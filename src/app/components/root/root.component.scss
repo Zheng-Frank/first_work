@@ -1,0 +1,47 @@
+$animationTime: 0.2s;
+.menu-bars {
+    position: relative;
+    font-size: 1.2rem;
+}
+
+.menu-bars div:nth-child(odd) {
+    position: absolute;
+    top: 0px;
+}
+.menu-bars-normal div:nth-child(1) {
+    transform: translateY(25%);
+    transition: transform $animationTime ease-in;
+}
+.menu-bars-normal div:nth-child(2) {
+    opacity: 1;
+    transition: opacity $animationTime;
+}
+.menu-bars-normal div:nth-child(3) {
+    transform: translateY(-25%);
+    transition: transform $animationTime ease-in;
+}
+
+.menu-bars-open div:nth-child(1) {
+    transform: rotate(45deg);
+    transition: transform $animationTime ease-in;
+}
+.menu-bars-open div:nth-child(2) {
+    opacity: 0;
+    transition: opacity $animationTime;
+}
+.menu-bars-open div:nth-child(3) {
+    transform: rotate(-45deg);
+    transition: transform $animationTime ease-in;
+}
+
+.open-menu {
+    transform-origin: top;
+    transform: scaleY(1);
+    transition: transform $animationTime ease-in;
+}
+
+.closed-menu {
+    transform-origin: top;
+    transform: scaleY(0);
+    transition: transform $animationTime ease-in;
+}
