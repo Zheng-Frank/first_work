@@ -1,0 +1,41 @@
+<nav *ngFor="let i of [0, 1]" class="navbar navbar-expand-sm bg-primary navbar-dark {{i > 0 ? 'fixed-top' : 'invisible'}}">
+    <!-- Brand -->
+    <a class="navbar-brand" href="#"> sadfa asdf asdf asdf asdf asdf asdf asdf asd </a>
+
+    <!-- Humburger -->
+    <div class="d-block d-sm-none text-light humberger {{toggle? 'humberger-open' : 'humberger-closed'}} cursor-pointer" (click)="toggle=!toggle">
+        <div>&#x2572;</div>
+        <div>&#x2572;</div>
+        <div>&#x2572;</div>
+    </div>
+
+    <!-- For larer screen: horizontal menu items -->
+    <div class="navbar-collapse d-none d-sm-block d-md-none" style="background-color: green">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Very long long agsfasd asd fasd fLink</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Link</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- For mobile screen: horizontal menu items. We do not need this to take spaces -->
+    <div *ngIf="i === 1" class="mobile-menu {{toggle ? 'menu-open' : 'menu-closed'}} navbar-collapse text-right pr-2">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" (click)="toggle=!toggle">Link</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" (click)="toggle=!toggle">Link</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" (click)="toggle=!toggle">Link</a>
+            </li>
+        </ul>
+    </div>
+</nav>

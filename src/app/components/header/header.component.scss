@@ -1,0 +1,60 @@
+@import '../../../styles';
+
+$animationTime: 0.2s;
+
+.mobile-menu {
+    background-color: darken($primary, 10%);
+    transition: transform $animationTime ease-in-out;
+    transform-origin: 0 0;
+    position: absolute;
+    top: 100%;
+    left: 0px;
+    right: 0px;
+}
+
+.mobile-menu a {
+    cursor: pointer;
+}
+
+.menu-closed {
+    transform: scaleY(0);
+}
+
+.menu-open {
+    transform: scaleY(1);
+}
+
+// humberger for the humburgers
+.humberger {
+    position: relative;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.humberger * {
+    transition: all $animationTime ease-in-out;
+}
+
+.humberger :nth-child(odd) {
+    position: absolute;
+}
+
+.humberger * {
+    transform: rotate(-45deg);
+}
+
+.humberger-closed :nth-child(1) {
+    top: -25%;
+}
+
+.humberger-closed :nth-child(2) {
+    top: 0;
+}
+
+.humberger-closed :nth-child(3) {
+    top: 25%;
+}
+
+.humberger-open * {
+    top: 0;
+}

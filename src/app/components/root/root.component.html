@@ -1,53 +1,12 @@
-<nav *ngFor="let i of [1]" class="navbar navbar-expand-sm bg-primary navbar-dark {{i > 0 ? 'fixed-top' : 'invisible'}}">
-  <!-- Brand -->
-  <a class="navbar-brand" href="#">Brand</a>
+<app-header></app-header>
+<div class="bg-light">
 
-  <div class="d-block d-sm-none text-light q-menu {{toggle? 'q-menu-open' : 'q-menu-closed'}} cursor-pointer" (click)="toggle=!toggle" >
-    <div id="bars" class="q-menu-bars">
-      <div id="bar1">&#x2572;</div>
-      <div id="bar2">&#x2572;</div>
-      <div id="bar3">&#x2572;</div>
-    </div>
-  </div>
-
-  <div class="navbar-collapse d-none d-sm-block d-md-none" style="background-color: green">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" href="#">Link</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Link</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Link</a>
-      </li>
-    </ul>
-  </div>
-
-  <div class="mobile-menu {{toggle ? 'menu-open' : 'menu-closed'}} navbar-collapse text-right pr-2">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" (click)="toggle=!toggle">Link</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" (click)="toggle=!toggle">Link</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" (click)="toggle=!toggle">Link</a>
-      </li>
-    </ul>
-  </div>
-</nav>
-
-
-<div class="bg-dark" style="padding-top: 400px">
-        
-        <div role="button">Link</div>
+    <div role="button">Link</div>
     BEFORE OUTLET
-  <router-outlet></router-outlet>
-  AFTER OUTLET
+    <router-outlet></router-outlet>
+    AFTER OUTLET
 </div>
 
 <footer class="bg-dark">
-  FOOTER
+    FOOTER
 </footer>
