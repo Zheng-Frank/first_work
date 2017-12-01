@@ -1,47 +1,87 @@
+
+@import '../../../styles';
+
 $animationTime: 0.2s;
-.menu-bars {
-    position: relative;
-    font-size: 1.2rem;
-}
 
-.menu-bars div:nth-child(odd) {
-    position: absolute;
-    top: 0px;
-}
-.menu-bars-normal div:nth-child(1) {
-    transform: translateY(25%);
-    transition: transform $animationTime ease-in;
-}
-.menu-bars-normal div:nth-child(2) {
-    opacity: 1;
-    transition: opacity $animationTime;
-}
-.menu-bars-normal div:nth-child(3) {
-    transform: translateY(-25%);
-    transition: transform $animationTime ease-in;
-}
 
-.menu-bars-open div:nth-child(1) {
-    transform: rotate(45deg);
-    transition: transform $animationTime ease-in;
-}
-.menu-bars-open div:nth-child(2) {
-    opacity: 0;
-    transition: opacity $animationTime;
-}
-.menu-bars-open div:nth-child(3) {
-    transform: rotate(-45deg);
-    transition: transform $animationTime ease-in;
-}
-
-.open-menu {
-    transform-origin: top;
-    transform: scaleY(1);
-    transition: transform $animationTime ease-in;
-}
-
-.closed-menu {
-    transform-origin: top;
+.menu-closed {
+    background-color: darken($primary, 10%);
+    transition: transform $animationTime ease-in-out;
+    transform-origin: 0 0;
     transform: scaleY(0);
-    transition: transform $animationTime ease-in;
+    position: absolute;
+    top: 100%;
+    left: 0px;
+    right: 0px;
 }
+
+.menu-open {
+    background-color: darken($primary, 10%);
+    transition: transform $animationTime ease-in-out;
+    transform-origin: 0 0;
+    transform: scaleY(1);
+    position: absolute;
+    top: 100%;
+    left: 0px;
+    right: 0px;
+}
+
+.q-menu {
+  position: relative;
+  cursor: pointer;
+}
+
+.q-menu * {
+  transition: opacity $animationTime;
+  transition: transform $animationTime ease-in-out;
+}
+
+.q-menu-closed #bar1 {
+  transform: rotate(-45deg);
+  position: absolute;
+  top: -25%;
+}
+
+.q-menu-closed #bar2 {
+  transform: rotate(-45deg);
+}
+
+.q-menu-closed #bar3 {
+  transform: rotate(-45deg);
+  position: absolute;
+  top: 25%;
+}
+
+.q-menu-closed #cross {
+  transform: scale(0, 0);
+  bottom: 0px;
+  position: absolute;
+}
+
+.q-menu-open #bar1 {
+  transform: rotate(-45deg);
+  position: absolute;
+  top: -25%;
+}
+
+.q-menu-open #bar2 {
+  transform: rotate(-45deg);
+}
+
+.q-menu-open #bar3 {
+  transform: rotate(-45deg);
+  position: absolute;
+  top: 25%;
+}
+
+.q-menu-open #bars {
+  transform: scale(0, 0);
+  top: 25%;
+}
+
+.q-menu-open #cross {
+  transform: scale(1, 1);
+  bottom: 0px;
+  position: absolute;
+}
+
