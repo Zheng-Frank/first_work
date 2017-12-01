@@ -1,87 +1,82 @@
-
 @import '../../../styles';
 
 $animationTime: 0.2s;
 
-
-.menu-closed {
+.mobile-menu {
     background-color: darken($primary, 10%);
     transition: transform $animationTime ease-in-out;
     transform-origin: 0 0;
-    transform: scaleY(0);
     position: absolute;
     top: 100%;
     left: 0px;
     right: 0px;
+}
+
+.menu-closed {
+    transform: scaleY(0);
 }
 
 .menu-open {
-    background-color: darken($primary, 10%);
-    transition: transform $animationTime ease-in-out;
-    transform-origin: 0 0;
     transform: scaleY(1);
-    position: absolute;
-    top: 100%;
-    left: 0px;
-    right: 0px;
 }
 
+
 .q-menu {
-  position: relative;
-  cursor: pointer;
+    position: relative;
+    font-size: 1.2rem;
+    cursor: pointer;
 }
 
 .q-menu * {
-  transition: opacity $animationTime;
-  transition: transform $animationTime ease-in-out;
+    transition: all $animationTime ease-in-out;
+}
+
+.q-menu #bar1,#bar3,#cross {
+    position: absolute;
+}
+
+.q-menu #bar1,#bar2,#bar3 {
+    transform: rotate(-45deg);
 }
 
 .q-menu-closed #bar1 {
-  transform: rotate(-45deg);
-  position: absolute;
-  top: -25%;
-}
-
-.q-menu-closed #bar2 {
-  transform: rotate(-45deg);
+    top: -25%;
 }
 
 .q-menu-closed #bar3 {
-  transform: rotate(-45deg);
-  position: absolute;
-  top: 25%;
+    top: 25%;
 }
 
 .q-menu-closed #cross {
-  transform: scale(0, 0);
-  bottom: 0px;
-  position: absolute;
+    transform: scale(0, 0);
+    bottom: 0px;
+}
+.q-menu-closed #bars {
+    opacity: 1;
 }
 
 .q-menu-open #bar1 {
-  transform: rotate(-45deg);
-  position: absolute;
-  top: -25%;
+    transform: rotate(-45deg);
+    top: -25%;
 }
 
 .q-menu-open #bar2 {
-  transform: rotate(-45deg);
+    transform: rotate(-45deg);
 }
 
 .q-menu-open #bar3 {
-  transform: rotate(-45deg);
-  position: absolute;
-  top: 25%;
+    transform: rotate(-45deg);
+    top: 25%;
 }
 
 .q-menu-open #bars {
-  transform: scale(0, 0);
-  top: 25%;
+    opacity: 0;
+    transform: scale(0, 0);
+    top: 25%;
 }
 
 .q-menu-open #cross {
-  transform: scale(1, 1);
-  bottom: 0px;
-  position: absolute;
+    opacity: 1;
+    transform: scale(1, 1);
+    bottom: 0px;
 }
-
