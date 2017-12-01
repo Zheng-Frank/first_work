@@ -12,6 +12,10 @@ $animationTime: 0.2s;
     right: 0px;
 }
 
+.mobile-menu a {
+    cursor: pointer;
+}
+
 .menu-closed {
     transform: scaleY(0);
 }
@@ -47,36 +51,33 @@ $animationTime: 0.2s;
     top: 25%;
 }
 
-.q-menu-closed #cross {
-    transform: scale(0, 0);
-    bottom: 0px;
+.q-menu-closed #bar2 {
+    top: 0;
 }
+
 .q-menu-closed #bars {
     opacity: 1;
 }
 
 .q-menu-open #bar1 {
     transform: rotate(-45deg);
-    top: -25%;
+    // top: -25%;
+    top: 0;
 }
 
 .q-menu-open #bar2 {
     transform: rotate(-45deg);
+    top: 0;
 }
 
 .q-menu-open #bar3 {
     transform: rotate(-45deg);
-    top: 25%;
+    // top: 25%;
+    top: 0;
 }
 
 .q-menu-open #bars {
-    opacity: 0;
-    transform: scale(0, 0);
-    top: 25%;
-}
-
-.q-menu-open #cross {
-    opacity: 1;
-    transform: scale(1, 1);
-    bottom: 0px;
+    // opacity: 0;
+    // transform: scale(0, 0);
+    // top: 25%;
 }
