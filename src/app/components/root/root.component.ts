@@ -12,4 +12,8 @@ export class RootComponent implements OnInit {
   ngOnInit() {
   }
 
+  isApiRequesting(){
+    return false;
+  }
+
 }
