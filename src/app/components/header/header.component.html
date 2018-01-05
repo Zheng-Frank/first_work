@@ -14,7 +14,7 @@
         <ul class="navbar-nav mr-auto">
             <li class="nav-item" *ngFor="let mi of menuItems">
                 <a class="nav-link" href="{{mi.href}}">
-                    <span *ngIf="mi.fa" class="d-none d-md-inline d-lg-none"><i class="fa fa-{{mi.fa}}"></i> </span>{{mi.name}}</a>
+                    <span *ngIf="mi.fa" class="d-none d-md-inline"><i class="fa fa-{{mi.fa}}"></i> </span>{{mi.name}}</a>
             </li>
         </ul>
         <ul class="navbar-nav">
