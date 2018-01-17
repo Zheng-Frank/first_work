@@ -1,6 +1,6 @@
-<nav *ngFor="let i of [0, 1]" class="navbar navbar-expand-sm bg-primary navbar-dark {{i > 0 ? 'fixed-top' : 'invisible'}}">
+<nav *ngFor="let i of [0, 1]" class="navbar navbar-expand-sm navbar-dark bg-primary {{i > 0 ? 'fixed-top' : 'invisible'}}" style="opacity: 0.9">
     <!-- Brand -->
-    <a class="navbar-brand" href="#"><img src="./assets/images/main_logo.png" style="height: 1.25rem"> My GreenSky</a>
+    <a class="navbar-brand" href="#"><img src="./assets/images/qMenu-white.png" style="height: 1.25rem"> qMenu</a>
 
     <!-- Humburger -->
     <div class="d-block d-sm-none text-light humberger {{toggle? 'humberger-open' : 'humberger-closed'}} cursor-pointer" (click)="toggle=!toggle">

@@ -1,30 +1,41 @@
 <app-header [menuItems]="[{name: 'LinkA', href: '#/A', fa: 'car'},{name: 'LinkB', href: '#/B', fa: 'bar'},{name: 'BS4', href: '#/bs4', fa: 'twitter'}]"></app-header>
 
-<div class="bg-light" style="position:relative">
+<div style="position:relative; min-height: 600px">
 
-    <!-- <div style="position: absolute; width: 100%">
+  <!-- <div style="position: absolute; width: 100%">
         <div class="alert alert-warning alert-dismissable">
             <a class="close" aria-label="close" (click)="dismiss(msg)">&times;</a>
             <i class="fa fa-warning"></i> My message
         </div>
     </div> -->
 
-    <div >
-        
-        <div style="background-color: lightgray">
-                Some stuff here!
-        </div>
-    </div>
+  <div>
 
-    <div role="button">Link</div>
-    BEFORE OUTLET
-    <router-outlet></router-outlet>
-    AFTER OUTLET
+    <div style="background-color: lightgray">
+      Some stuff here!
+    </div>
+  </div>
+
+  <div role="button">Link</div>
+  BEFORE OUTLET
+  <router-outlet></router-outlet>
+  AFTER OUTLET
 </div>
 
-<footer class="bg-dark">
-    FOOTER
+<footer class="container-fluid text-muted text-center pt-2 pb-2 bg-dark">
+  <small>
+    <p>&copy; 2016-{{getFullYear()}}
+      <a href="http://qmenu360.com" class="text-light">qMenu Inc.</a> |
+      <a href="http://qmenu360.com/privacy.html" class="text-light">Privacy Policy</a> |
+      <a href="http://qmenu360.com/#contact" class="text-light">Contact Us</a>
+    </p>
+    <p>
+        version: {{appVersion}}
+    </p>
+  </small>
 </footer>
 
 <!--display a spinning image if in requesting something-->
-<div *ngIf="isApiRequesting()" class="app-loading text-muted"><i class="fa fa-4x fa-spinner fa-spin fa-fw"></i></div>
+<div *ngIf="isApiRequesting()" class="app-loading text-muted">
+  <i class="fa fa-4x fa-spinner fa-spin fa-fw"></i>
+</div>

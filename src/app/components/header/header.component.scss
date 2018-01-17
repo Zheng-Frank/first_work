@@ -71,3 +71,8 @@ $animationTime: 0.2s;
 .humberger-open * {
     top: 0;
 }
+
+/* original navbar is a little too big */
+.navbar {
+    padding: 0.25rem 0.5rem;
+}

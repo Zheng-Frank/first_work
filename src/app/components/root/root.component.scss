@@ -1,3 +1,5 @@
+@import '~bootstrap/scss/bootstrap';
+
 .notification {
     position: fixed;
     bottom: 0;
@@ -13,4 +15,9 @@
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     z-index: 999999;
+}
+
+// illusion of footer taking up all space left at bottom of page
+footer {
+    box-shadow: 0px 500px 0px 500px $dark;
 }
