@@ -6,6 +6,7 @@
     "module": "es2015",
     "types": []
   },
+  "includes": ["node_modules/qmenu-ui/src/**/*.ts"],
   "exclude": [
     "test.ts",
     "**/*.spec.ts"

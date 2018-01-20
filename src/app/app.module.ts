@@ -8,6 +8,7 @@ import { HomeComponent } from './components/home/home.component';
 import { Bs4Component } from './components/bs4/bs4.component';
 import { HeaderComponent } from './components/header/header.component';
 
+import { QmenuUIModule } from 'qmenu-ui';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { HeaderComponent } from './components/header/header.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    QmenuUIModule
   ],
   providers: [],
   bootstrap: [RootComponent]

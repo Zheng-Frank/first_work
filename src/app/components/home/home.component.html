@@ -1,2 +1,17 @@
-Home 
+Home
 <button (click)="test()">TEST</button>
+<button (click)="toggle = !toggle">Toogle</button>
+<div *qIf="toggle">
+  <q-banner [backgroundImageUrl]="'http://irepo.primecp.com/2015/07/227528/Smoked-Salmon-Bites_Large600_ID-1080488.jpg?v=1080488'"
+    [backgroundBlur]="5" [maskingColor]="'rgba(0, 0, 0, 0.1)'">
+    <!--any content can go inside-->
+    <h1 style="height: 160px;" class="text-light">Some Other Content</h1>
+  </q-banner>
+</div>
+
+
+<button class="btn btn-primary" (click)="myConfirm.show()">Open</button>
+        
+<q-confirm [title]="'My Confirm Title'" #myConfirm>
+  <p class="text-danger">Are you sure?</p>
+</q-confirm>

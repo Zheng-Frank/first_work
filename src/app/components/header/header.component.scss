@@ -3,7 +3,7 @@
 $animationTime: 0.2s;
 
 .mobile-menu {
-    background-color: darken($primary, 10%);
+    background-color: darken($dark, 10%);
     transition: transform $animationTime ease-in-out;
 
     -webkit-transform-origin: 0 0;
