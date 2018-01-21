@@ -1,25 +1,7 @@
-<app-header [menuItems]="[{name: 'LinkA', href: '#/A', fa: 'car'},{name: 'LinkB', href: '#/B', fa: 'bar'},{name: 'BS4', href: '#/bs4', fa: 'twitter'}]"></app-header>
+<app-header [menuItems]="getMenus()" [user]="getUser()" (logout)="logout()"></app-header>
 
-<div style="position:relative; min-height: 600px">
-
-  <!-- <div style="position: absolute; width: 100%">
-        <div class="alert alert-warning alert-dismissable">
-            <a class="close" aria-label="close" (click)="dismiss(msg)">&times;</a>
-            <i class="fa fa-warning"></i> My message
-        </div>
-    </div> -->
-
-  <div>
-
-    <div style="background-color: lightgray">
-      Some stuff here!
-    </div>
-  </div>
-
-  <div role="button">Link</div>
-  BEFORE OUTLET
+<div class="container-fluid" style="position:relative; min-height: 600px">
   <router-outlet></router-outlet>
-  AFTER OUTLET
 </div>
 
 <footer class="container-fluid text-muted text-center pt-2 pb-2 bg-dark">
@@ -30,7 +12,7 @@
       <a href="http://qmenu360.com/#contact" class="text-light">Contact Us</a>
     </p>
     <p>
-        version: {{appVersion}}
+      version: {{appVersion}}
     </p>
   </small>
 </footer>

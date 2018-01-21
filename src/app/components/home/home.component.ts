@@ -8,6 +8,8 @@ import { HttpClient } from '@angular/common/http';
 })
 export class HomeComponent implements OnInit {
 
+  toggle;
+
   constructor(private _http: HttpClient) { }
 
   ngOnInit() {

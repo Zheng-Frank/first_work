@@ -1,42 +1,49 @@
 <nav *ngFor="let i of [0, 1]" class="navbar navbar-expand-sm navbar-dark bg-dark {{i > 0 ? 'fixed-top' : 'invisible'}}" style="opacity: 0.9">
-    <!-- Brand -->
-    <a class="navbar-brand" href="#"><img src="./assets/images/qMenu-red.png" style="height: 1.25rem"> qMenu</a>
+  <!-- Brand -->
+  <a class="navbar-brand" routerLink="/home">
+    <img src="./assets/images/qMenu-red.png" style="height: 1.25rem"> qMenu</a>
 
-    <!-- Humburger -->
-    <div class="d-block d-sm-none text-light humberger {{toggle? 'humberger-open' : 'humberger-closed'}} cursor-pointer" (click)="toggle=!toggle">
-        <div>&#x2572;</div>
-        <div>&#x2572;</div>
-        <div>&#x2572;</div>
-    </div>
+  <ng-container *ngIf="user">
 
-    <!-- For larer screen: horizontal menu items -->
+
+
+    <!-- For larger screen: horizontal menu items -->
     <div class="navbar-collapse d-none d-sm-block d-md-none">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item" *ngFor="let mi of menuItems">
-                <a class="nav-link" href="{{mi.href}}">
-                    <span *ngIf="mi.fa" class="d-none d-md-inline"><i class="fa fa-{{mi.fa}}"></i> </span>{{mi.name}}</a>
-            </li>
-        </ul>
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href="#">Register</a>
-            </li>
-        </ul>
+      <ul class="navbar-nav mr-auto">
+        <li *ngFor="let mi of menuItems" class="nav-item {{isActive(mi) ? 'active' : ''}}">
+          <a class="nav-link" href="{{mi.href}}">
+            <span *ngIf="mi.fa" class="d-none d-md-inline">
+              <i class="fa fa-{{mi.fa}}"></i>
+            </span>{{mi.name}}</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav" *ngIf="user">
+        <li class="nav-item">
+          <a class="nav-link" href="javascript:void(0)" (click)="clickLogout()">{{user?.username}} Logout</a>
+        </li>
+      </ul>
     </div>
 
     <!-- For mobile screen: horizontal menu items. We do not need this to take spaces -->
-    <div *ngIf="i === 1" class="mobile-menu {{toggle ? 'menu-open' : 'menu-closed'}} navbar-collapse text-right pr-2">
-        <ul class="navbar-nav">
-            
-            <li class="nav-item">
-                <a class="nav-link" (click)="toggle=!toggle">Link</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" (click)="toggle=!toggle">Link</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" (click)="toggle=!toggle">Link</a>
-            </li>
-        </ul>
+    <!-- Humburger -->
+    <div class="d-block d-sm-none text-light humberger {{toggle? 'humberger-open' : 'humberger-closed'}} cursor-pointer" (click)="toggle=!toggle">
+      <div>&#x2572;</div>
+      <div>&#x2572;</div>
+      <div>&#x2572;</div>
     </div>
+    <!-- menus -->
+    <div *ngIf="i === 1" class="mobile-menu {{toggle ? 'menu-open' : 'menu-closed'}} navbar-collapse text-right pr-2">
+      <ul class="navbar-nav d-block d-sm-none ">
+
+        <li *ngFor="let mi of menuItems" class="nav-item" >
+          <a class="nav-link" href="{{mi.href}}" (click)="clickItem()">
+            <i *ngIf="mi.fa" class="fa fa-{{mi.fa}}"></i> {{mi.name}}
+          </a>
+        </li>
+        <li class="nav-item" (click)="toggle()">
+           <a class="nav-link" href="javascript:void(0)" (click)="clickLogout()"><span class="pr-4">{{user?.username}}</span><i class="fa fa-sign-out"></i> Logout</a>
+        </li>
+      </ul>
+    </div>
+  </ng-container>
 </nav>
