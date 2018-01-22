@@ -38,13 +38,7 @@ export class RootComponent implements OnInit {
   }
 
   getMenus() {
-    if (this._global.token) {
-      return [
-        { name: 'LinkA', href: '#/A', fa: 'car' },
-        { name: 'LinkB', href: '#/B', fa: 'bar' },
-        { name: 'BS4', href: '#/bs4', fa: 'twitter' }];
-    }
-    return [];
+    return this._global.menus;
   }
 
   getUser() {
@@ -53,6 +47,14 @@ export class RootComponent implements OnInit {
 
   logout() {
     this._router.navigate(['login']);
+  }
+
+  getAlerts() {
+    return this._global.alerts;
+  }
+
+  dismissAlert(alert) {
+    this._global.dismissAlert(alert);
   }
 
 }

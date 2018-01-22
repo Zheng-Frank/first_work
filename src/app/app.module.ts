@@ -15,6 +15,13 @@ import { LoginComponent } from './components/login/login.component';
 import { GlobalService } from './services/global.service';
 import { MarketerGuard } from './marketer.guard';
 import { ApiService } from './services/api.service';
+import { ProfileComponent } from './components/profile/profile.component';
+import { UsersComponent } from './components/users/users.component';
+import { LeadsComponent } from './components/leads/leads.component';
+import { SystemComponent } from './components/system/system.component';
+import { RestaurantsComponent } from './components/restaurants/restaurants.component';
+import { InvoicesComponent } from './components/invoices/invoices.component';
+import { OrdersComponent } from './components/orders/orders.component';
 
 
 @NgModule({
@@ -23,7 +30,14 @@ import { ApiService } from './services/api.service';
     HomeComponent,
     Bs4Component,
     HeaderComponent,
-    LoginComponent
+    LoginComponent,
+    ProfileComponent,
+    UsersComponent,
+    LeadsComponent,
+    SystemComponent,
+    RestaurantsComponent,
+    InvoicesComponent,
+    OrdersComponent
   ],
   imports: [
     BrowserModule,

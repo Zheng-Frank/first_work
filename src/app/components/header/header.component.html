@@ -4,9 +4,6 @@
     <img src="./assets/images/qMenu-red.png" style="height: 1.25rem"> qMenu</a>
 
   <ng-container *ngIf="user">
-
-
-
     <!-- For larger screen: horizontal menu items -->
     <div class="navbar-collapse d-none d-sm-block d-md-none">
       <ul class="navbar-nav mr-auto">
@@ -19,7 +16,7 @@
       </ul>
       <ul class="navbar-nav" *ngIf="user">
         <li class="nav-item">
-          <a class="nav-link" href="javascript:void(0)" (click)="clickLogout()">{{user?.username}} Logout</a>
+          <a class="nav-link" href="javascript:void(0)" (click)="clickLogout()">Logout</a>
         </li>
       </ul>
     </div>
@@ -32,16 +29,16 @@
       <div>&#x2572;</div>
     </div>
     <!-- menus -->
-    <div *ngIf="i === 1" class="mobile-menu {{toggle ? 'menu-open' : 'menu-closed'}} navbar-collapse text-right pr-2">
+    <div *ngIf="i === 1" class="mobile-menu {{toggle ? 'menu-open' : 'menu-closed'}} navbar-collapse text-right px-4">
       <ul class="navbar-nav d-block d-sm-none ">
 
-        <li *ngFor="let mi of menuItems" class="nav-item" >
+        <li *ngFor="let mi of menuItems" class="nav-item {{isActive(mi) ? 'active' : ''}}" >
           <a class="nav-link" href="{{mi.href}}" (click)="clickItem()">
             <i *ngIf="mi.fa" class="fa fa-{{mi.fa}}"></i> {{mi.name}}
           </a>
         </li>
         <li class="nav-item" (click)="toggle()">
-           <a class="nav-link" href="javascript:void(0)" (click)="clickLogout()"><span class="pr-4">{{user?.username}}</span><i class="fa fa-sign-out"></i> Logout</a>
+           <a class="nav-link" href="javascript:void(0)" (click)="clickLogout()"><i class="fa fa-sign-out"></i> Logout</a>
         </li>
       </ul>
     </div>

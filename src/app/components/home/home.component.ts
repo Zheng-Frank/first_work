@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { GlobalService } from '../../services/global.service';
 
 @Component({
   selector: 'app-home',
@@ -10,26 +10,22 @@ export class HomeComponent implements OnInit {
 
   toggle;
 
-  constructor(private _http: HttpClient) { }
+  constructor(private _global: GlobalService) { }
 
   ngOnInit() {
   }
 
   test() {
-    const req = this._http.post('https://c887darp8f.execute-api.us-east-2.amazonaws.com/dev/auth', JSON.stringify({
-      "type": "cat",
-      "price": 123.11,
-      "phone": "1234567890"
-
-    }))
-      .subscribe(
-      res => {
-        console.log(res);
-      },
-      err => {
-        console.log("Error occured");
-      }
-      );
+    this._global.publishAlert({
+      text: 'my test' + this._global.alerts.length,
+      type: 'info',
+      timeout: 10000
+    });
+    this._global.publishAlert({
+      text: 'my test' + this._global.alerts.length,
+      type: 'danger',
+      timeout: 3000
+    });
   }
 
 }

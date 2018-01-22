@@ -21,3 +21,11 @@
 <div *ngIf="isApiRequesting()" class="app-loading text-muted">
   <i class="fa fa-4x fa-spinner fa-spin fa-fw"></i>
 </div>
+
+<!-- notifications -->
+<div class="fixed-bottom container-fluid" *ngIf="getAlerts().length > 0" style="opacity: 0.9">
+  <div *ngFor="let alert of getAlerts()" class="alert alert-dismissible {{'alert-' + alert.type}}" (click)="dismissAlert(alert)">
+    <i class="fa {{alert.type === 'danger' || alert.type === 'warning' ? 'fa-warning' : 'fa-info-circle'}}"></i> {{alert.text}}
+    <button type="button" class="close">&times;</button>
+  </div>
+</div>
