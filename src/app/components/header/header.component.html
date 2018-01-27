@@ -1,6 +1,6 @@
 <nav *ngFor="let i of [0, 1]" class="navbar navbar-expand-sm navbar-dark bg-dark {{i > 0 ? 'fixed-top' : 'invisible'}}" style="opacity: 0.9">
   <!-- Brand -->
-  <a class="navbar-brand" routerLink="/home">
+  <a class="navbar-brand" routerLink="/home" (click)="clickItem()">
     <img src="./assets/images/qMenu-red.png" style="height: 1.25rem"> qMenu</a>
 
   <ng-container *ngIf="user">

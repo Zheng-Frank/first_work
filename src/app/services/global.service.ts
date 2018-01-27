@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as jwtDecode from 'jwt-decode';
+import { Alert } from '../classes/alert';
+import { ApiService } from './api.service';
 declare var store: any;
 
 @Injectable()
@@ -21,22 +23,24 @@ export class GlobalService {
     return this._menus;
   }
 
-  private _alerts = [];
+  private _alerts: Alert[] = [];
   get alerts() {
     return this._alerts;
   }
 
-  constructor() {
+  constructor(private _api: ApiService) {
     this.storeRetrieve();
   }
 
   storeRetrieve() {
     this._token = store.get('token');
+    if (this._token) {
+      this._api.addHeader('Authorization', 'Bearer ' + this.token);
+    }
     this._menus = [];
     try {
       this._user = JSON.parse(jwtDecode(this._token)['user']);
       const roles = this._user.roles || [];
-console.log(roles);
       const menuMappings = [
         { name: 'Restaurants', href: '#/restaurants', fa: 'cutlery', accessibleRoles: ['ADMIN', 'MENU_EDITOR'] },
         { name: 'Invoices', href: '#/invoices', fa: 'dollar', accessibleRoles: ['ADMIN', 'ACCOUNTANT'] },
@@ -75,14 +79,14 @@ console.log(roles);
     this.storeRetrieve();
   }
 
-  publishAlert(alert) {
+  publishAlert(alert: Alert) {
     this._alerts.unshift(alert);
     setTimeout(() => {
       this.dismissAlert(alert);
     }, alert.timeout || 5000);
   }
 
-  dismissAlert(alert) {
+  dismissAlert(alert: Alert) {
     this._alerts = this._alerts.filter(a => a !== alert);
   }
 

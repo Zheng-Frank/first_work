@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { GlobalService } from '../../services/global.service';
+import { AlertType } from '../../classes/alert-type';
 
 @Component({
   selector: 'app-home',
@@ -18,12 +19,12 @@ export class HomeComponent implements OnInit {
   test() {
     this._global.publishAlert({
       text: 'my test' + this._global.alerts.length,
-      type: 'info',
+      type: AlertType.Danger,
       timeout: 10000
     });
     this._global.publishAlert({
       text: 'my test' + this._global.alerts.length,
-      type: 'danger',
+      type: AlertType.Success,
       timeout: 3000
     });
   }

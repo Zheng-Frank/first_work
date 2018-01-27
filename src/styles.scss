@@ -29,4 +29,26 @@ $danger: #FC3204;
 // $light : $gray-100 !default;
 // $dark : $gray-800 !default;
 
+$border-width:                1px;
+// $border-color:                $gray-300;
+
+$border-radius:               1px;
+$border-radius-lg:            2px;
+$border-radius-sm:            0px;
+
+$font-size-base:              0.9375rem;
+// $grid-gutter-width:           20px;
+
+// $input-btn-padding-y:         .25rem;
+// $input-btn-padding-x:         .5rem;
+
+// $input-btn-focus-width:       .2rem ;
+
+// $input-btn-padding-y-sm:      .2rem ;
+// $input-btn-padding-x-sm:      .4rem ;
+
+// $input-btn-padding-y-lg:      .375rem ;
+// $input-btn-padding-x-lg:      0.75rem ;
+
+
 @import '~bootstrap/scss/bootstrap';

@@ -34,7 +34,7 @@ export class RootComponent implements OnInit {
   }
 
   isApiRequesting() {
-    return this._api.urlsInRequesting.length > 0;
+   return this._api.urlsInRequesting.length > 0;
   }
 
   getMenus() {

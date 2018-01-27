@@ -1,3 +1,23 @@
-<p>
-  +add a user; change roles (0 role means inactive); link to see user details
-</p>
+<h1 class="text-center">Users</h1>
+<div class="text-right pb-2">
+  <button class="btn btn-primary">+ Add New User</button>
+</div>
+<table class="table table-sm table-hover">
+  <thead>
+    <tr>
+      <th scope="col">Username</th>
+      <th scope="col">Roles</th>
+      <th scope="col">Manager</th>
+      <th scope="col"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let user of users">
+      <th scope="row">{{user.username}}</th>
+      <td>{{(user.roles || []).join(', ')}}</td>
+      <td>{{user.manager}}</td>
+      <td class="text-right"><button class="btn btn-link pr-0">Edit</button></td>
+    </tr>
+  </tbody>
+</table>
+

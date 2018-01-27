@@ -60,7 +60,6 @@ export class ApiService {
     // we might need to think about same request being in queue already! Something wrong with the logic of our program. ignore for now
 
     this.urlsInRequesting.push(url);
-
     const headers = new Headers();
     Object.keys(this.autoAttachedHeaders).map(key => headers.append(key, this.autoAttachedHeaders[key]));
 
@@ -77,8 +76,10 @@ export class ApiService {
         break;
       case 'get':
         if (Object.keys(payload).length > 0) {
-          api += '?';
-          api += encodeURI(Object.keys(payload).map(key => key + '=' + payload[key]).join('&'));
+          if (api.indexOf('?') < 0) {
+            api += '?';
+          }
+          api += encodeURI(Object.keys(payload).map(key => key + '=' + JSON.stringify(payload[key])).join('&'));
         }
         observable = this.http[method](api, { headers: headers });
         break;
