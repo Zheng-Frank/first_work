@@ -1,6 +1,6 @@
 <h1 class="text-center">Users</h1>
 <div class="text-right pb-2">
-  <button class="btn btn-primary">+ Add New User</button>
+  <button class="btn btn-primary" (click)="edit(null)">+ Add New User</button>
 </div>
 <table class="table table-sm table-hover">
   <thead>
@@ -16,8 +16,13 @@
       <th scope="row">{{user.username}}</th>
       <td>{{(user.roles || []).join(', ')}}</td>
       <td>{{user.manager}}</td>
-      <td class="text-right"><button class="btn btn-link pr-0">Edit</button></td>
+      <td class="text-right">
+        <button class="btn btn-link pr-0" (click)="edit(user)">Edit</button>
+      </td>
     </tr>
   </tbody>
 </table>
 
+<q-modal [title]="userInEditing._id ? 'Edit User: ' + userInEditing.username : 'Create New User' " #editingModal>
+  <q-form-builder [object]="userInEditing" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)" (cancel)="editingModal.hide()"></q-form-builder>
+</q-modal>
