@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as jwtDecode from 'jwt-decode';
 import { Alert } from '../classes/alert';
 import { ApiService } from './api.service';
+import { AlertType } from '../classes/alert-type';
 declare var store: any;
 
 @Injectable()
@@ -79,11 +80,12 @@ export class GlobalService {
     this.storeRetrieve();
   }
 
-  publishAlert(alert: Alert) {
+  publishAlert(type: AlertType, message: string, timeout = 5000) {
+    const alert = { type: type, message: message, timeout: timeout };
     this._alerts.unshift(alert);
     setTimeout(() => {
       this.dismissAlert(alert);
-    }, alert.timeout || 5000);
+    }, alert.timeout);
   }
 
   dismissAlert(alert: Alert) {

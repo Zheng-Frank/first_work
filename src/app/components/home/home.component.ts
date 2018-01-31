@@ -17,16 +17,12 @@ export class HomeComponent implements OnInit {
   }
 
   test() {
-    this._global.publishAlert({
-      text: 'my test' + this._global.alerts.length,
-      type: AlertType.Danger,
-      timeout: 10000
-    });
-    this._global.publishAlert({
-      text: 'my test' + this._global.alerts.length,
-      type: AlertType.Success,
-      timeout: 3000
-    });
+    this._global.publishAlert(AlertType.Danger,
+      'my test' + this._global.alerts.length, 10000
+    );
+    this._global.publishAlert(AlertType.Success,
+      'my test' + this._global.alerts.length, 3000
+    );
   }
 
 }
