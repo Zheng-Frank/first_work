@@ -7,7 +7,7 @@ import { GlobalService } from '../../services/global.service';
 // import { ModalComponent } from 'qmenu-ui/bundles/qmenu-ui.umd';
 import { ModalComponent } from 'qmenu-ui/qmenu-ui.es5';
 import { AlertType } from '../../classes/alert-type';
-import * as patchGen from 'json-patch-gen';
+import { DeepDiff } from '../../classes/deep-diff';
 
 @Component({
   selector: 'app-users',
@@ -90,9 +90,17 @@ export class UsersComponent implements OnInit {
     this.editingModal.show();
   }
 
+  test() {
+    
+    const diff = DeepDiff.getDiff([1, 2, '3', 4], [1, 2, 3]);
 
+    console.log(JSON.parse(JSON.stringify(diff)));
+
+
+
+
+  }
   formSubmit(event) {
-    console.log(patchGen({"A": 2}, {"A": undefined}));
     if (this.userInEditing._id) {
       // patching
       const originalUser = this.users.filter(u => u._id === this.userInEditing._id)[0];
@@ -106,16 +114,14 @@ export class UsersComponent implements OnInit {
           delete this.userInEditing.password;
           delete originalUser.password;
         }
-        const patches = patchGen(originalUser, this.userInEditing);
-        if (patches.length === 0) {
-          event.acknowledge('Nothing changed');
-        } else {
-          // api update here...
-          console.log(patches);
-          event.acknowledge(null);
-        }
-
-
+        // const patches = patchGen(originalUser, this.userInEditing);
+        // if (patches.length === 0) {
+        //   event.acknowledge('Nothing changed');
+        // } else {
+        //   // api update here...
+        //   console.log(patches);
+        //   event.acknowledge(null);
+        // }
       }
 
     } else {
