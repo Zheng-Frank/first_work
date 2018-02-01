@@ -7,6 +7,8 @@ import { GlobalService } from '../../services/global.service';
 // import { ModalComponent } from 'qmenu-ui/bundles/qmenu-ui.umd';
 import { ModalComponent } from 'qmenu-ui/qmenu-ui.es5';
 import { AlertType } from '../../classes/alert-type';
+import * as patchGen from 'json-patch-gen';
+
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
@@ -69,7 +71,9 @@ export class UsersComponent implements OnInit {
       label: 'Manager',
       inputType: 'single-select',
       required: false,
-      items: this.existingUsernameItems
+      items: this.users
+        .filter(u => u.username !== user.username)
+        .map(u => ({ object: u.username, text: u.username, selected: false }))
     },
     {
       field: 'roles',
@@ -81,8 +85,6 @@ export class UsersComponent implements OnInit {
       items: this.existingRoleItems
     }
     ];
-
-    this.existingUsernameItems = this.users.map(u => ({ object: u.username, text: u.username, selected: false }));
 
     this.userInEditing = user;
     this.editingModal.show();
@@ -98,8 +100,15 @@ export class UsersComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, 'Something wrong!');
         event.acknowledge(null);
       } else {
-        // create patch!
+        // create patch, ignore password!
+        if (['', null].indexOf(this.userInEditing.password) < 0) {
+          delete this.userInEditing.password;
+          delete originalUser.password;
+        }
+        const patches = patchGen(originalUser, this.userInEditing);
+        console.log(patches);
         event.acknowledge(null);
+
       }
 
     } else {

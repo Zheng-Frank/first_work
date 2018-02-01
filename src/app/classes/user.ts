@@ -1,10 +1,12 @@
 export class User {
     _id: string;
     username: string;
+    password: string;
     manager: string;
     roles: string[];
     createdAt: Date;
     updatedAt: Date;
+
 
     constructor(user?: any) {
         if (user) {
