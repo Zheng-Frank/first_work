@@ -92,6 +92,7 @@ export class UsersComponent implements OnInit {
 
 
   formSubmit(event) {
+    console.log(patchGen({"A": 2}, {"A": undefined}));
     if (this.userInEditing._id) {
       // patching
       const originalUser = this.users.filter(u => u._id === this.userInEditing._id)[0];
@@ -106,8 +107,14 @@ export class UsersComponent implements OnInit {
           delete originalUser.password;
         }
         const patches = patchGen(originalUser, this.userInEditing);
-        console.log(patches);
-        event.acknowledge(null);
+        if (patches.length === 0) {
+          event.acknowledge('Nothing changed');
+        } else {
+          // api update here...
+          console.log(patches);
+          event.acknowledge(null);
+        }
+
 
       }
 
