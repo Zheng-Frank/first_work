@@ -29,6 +29,8 @@ export class UsersComponent implements OnInit {
     object: role
   }));
 
+  deleting = false;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -42,6 +44,10 @@ export class UsersComponent implements OnInit {
       error => {
         this._global.publishAlert(AlertType.Danger, 'Error pulling users from API');
       });
+  }
+
+  toggleDeleting() {
+    this.deleting = !this.deleting;
   }
 
   sortUsers(users) {
@@ -58,7 +64,8 @@ export class UsersComponent implements OnInit {
 
     this.formFieldDescriptors = [{
       field: 'username',
-      label: 'User Name'
+      label: 'User Name',
+      disabled: !!user._id
     },
     {
       field: 'password',
@@ -90,16 +97,12 @@ export class UsersComponent implements OnInit {
     this.editingModal.show();
   }
 
-  test() {
-    
-    const diff = DeepDiff.getDiff([1, 2, '3', 4], [1, 2, 3]);
-
-    console.log(JSON.parse(JSON.stringify(diff)));
-
-
-
-
+  formRemove(event) {
+    setTimeout(() => {
+      event.acknowledge(null);
+    }, 1000);
   }
+
   formSubmit(event) {
     if (this.userInEditing._id) {
       // patching
@@ -109,12 +112,15 @@ export class UsersComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, 'Something wrong!');
         event.acknowledge(null);
       } else {
-        // create patch, ignore password!
-        if (['', null].indexOf(this.userInEditing.password) < 0) {
-          delete this.userInEditing.password;
-          delete originalUser.password;
+        const ignoreFields = ['createdAt', 'updatedAt'];
+        // ignore password if empty!
+        if (['', null].indexOf(this.userInEditing.password) >= 0) {
+          ignoreFields.push('password');
         }
-        // const patches = patchGen(originalUser, this.userInEditing);
+
+        const diffs = DeepDiff.getDiff(originalUser._id, originalUser, this.userInEditing, ignoreFields);
+        console.log(diffs);
+        event.acknowledge(null);
         // if (patches.length === 0) {
         //   event.acknowledge('Nothing changed');
         // } else {

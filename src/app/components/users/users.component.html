@@ -1,5 +1,4 @@
 <h1 class="text-center">Users</h1>
-<button (click)="test()">TEST</button>
 <div class="text-right pb-2">
   <button class="btn btn-primary" (click)="edit(null)">+ Add New User</button>
 </div>
@@ -25,6 +24,8 @@
 </table>
 
 <q-modal [title]="userInEditing._id ? 'Edit User: ' + userInEditing.username : 'Create New User' " #editingModal>
-  <q-form-builder [object]="userInEditing" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)" (cancel)="editingModal.hide()"></q-form-builder>
+  <q-form-builder [object]="userInEditing" [showDelete]="userInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)" (remove)="formRemove($event)" (cancel)="editingModal.hide()"></q-form-builder>
   <!-- {{userInEditing | json}} -->
+
+
 </q-modal>
