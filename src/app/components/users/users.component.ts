@@ -7,6 +7,8 @@ import { GlobalService } from '../../services/global.service';
 // import { ModalComponent } from 'qmenu-ui/bundles/qmenu-ui.umd';
 import { ModalComponent } from 'qmenu-ui/qmenu-ui.es5';
 import { AlertType } from '../../classes/alert-type';
+import { DeepDiff } from '../../classes/deep-diff';
+
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
@@ -69,7 +71,9 @@ export class UsersComponent implements OnInit {
       label: 'Manager',
       inputType: 'single-select',
       required: false,
-      items: this.existingUsernameItems
+      items: this.users
+        .filter(u => u.username !== user.username)
+        .map(u => ({ object: u.username, text: u.username, selected: false }))
     },
     {
       field: 'roles',
@@ -82,13 +86,20 @@ export class UsersComponent implements OnInit {
     }
     ];
 
-    this.existingUsernameItems = this.users.map(u => ({ object: u.username, text: u.username, selected: false }));
-
     this.userInEditing = user;
     this.editingModal.show();
   }
 
+  test() {
+    
+    const diff = DeepDiff.getDiff([1, 2, '3', 4], [1, 2, 3]);
 
+    console.log(JSON.parse(JSON.stringify(diff)));
+
+
+
+
+  }
   formSubmit(event) {
     if (this.userInEditing._id) {
       // patching
@@ -98,8 +109,19 @@ export class UsersComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, 'Something wrong!');
         event.acknowledge(null);
       } else {
-        // create patch!
-        event.acknowledge(null);
+        // create patch, ignore password!
+        if (['', null].indexOf(this.userInEditing.password) < 0) {
+          delete this.userInEditing.password;
+          delete originalUser.password;
+        }
+        // const patches = patchGen(originalUser, this.userInEditing);
+        // if (patches.length === 0) {
+        //   event.acknowledge('Nothing changed');
+        // } else {
+        //   // api update here...
+        //   console.log(patches);
+        //   event.acknowledge(null);
+        // }
       }
 
     } else {
