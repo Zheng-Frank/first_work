@@ -43,14 +43,14 @@ export class GlobalService {
       this._user = JSON.parse(jwtDecode(this._token)['user']);
       const roles = this._user.roles || [];
       const menuMappings = [
-        { name: 'Restaurants', href: '#/restaurants', fa: 'cutlery', accessibleRoles: ['ADMIN', 'MENU_EDITOR'] },
-        { name: 'Invoices', href: '#/invoices', fa: 'dollar', accessibleRoles: ['ADMIN', 'ACCOUNTANT'] },
-        { name: 'Orders', href: '#/orders', fa: 'shopping-bag', accessibleRoles: ['ADMIN', 'ORDER_MANAGER'] },
-        { name: 'Leads', href: '#/leads', fa: 'lightbulb-o', accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR'] },
-        { name: 'System', href: '#/system', fa: 'heartbeat', accessibleRoles: ['ADMIN'] },
-        { name: 'Users', href: '#/users', fa: 'users', accessibleRoles: ['ADMIN'] },
-        { name: 'Bootstrap4', href: '#/bs4', fa: 'twitter', accessibleRoles: ['ADMIN'] },
-        { name: 'Me', href: '#/profile', fa: 'user' }
+        { name: 'Restaurants', href: '#/restaurants', fa: 'fas fa-utensils', accessibleRoles: ['ADMIN', 'MENU_EDITOR'] },
+        { name: 'Invoices', href: '#/invoices', fa: 'fas fa-dollar-sign', accessibleRoles: ['ADMIN', 'ACCOUNTANT'] },
+        { name: 'Orders', href: '#/orders', fa: 'fas fa-shopping-bag', accessibleRoles: ['ADMIN', 'ORDER_MANAGER'] },
+        { name: 'Leads', href: '#/leads', fa: 'fas fa-lightbulb-o', accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR'] },
+        { name: 'System', href: '#/system', fa: 'fas fa-heartbeat', accessibleRoles: ['ADMIN'] },
+        { name: 'Users', href: '#/users', fa: 'fas fa-users', accessibleRoles: ['ADMIN'] },
+        { name: 'Bootstrap4', href: '#/bs4', fa: 'fab fa-twitter', accessibleRoles: ['ADMIN'] },
+        { name: 'Me', href: '#/profile', fa: 'fas fa-user' }
       ];
 
       this._menus = menuMappings.filter(

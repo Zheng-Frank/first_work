@@ -10,7 +10,7 @@
         <li *ngFor="let mi of menuItems" class="nav-item {{isActive(mi) ? 'active' : ''}}">
           <a class="nav-link" href="{{mi.href}}">
             <span *ngIf="mi.fa" class="d-none d-md-inline">
-              <i class="fa fa-{{mi.fa}}"></i>
+              <i class="{{mi.fa}}"></i>
             </span>{{mi.name}}</a>
         </li>
       </ul>
@@ -34,11 +34,11 @@
 
         <li *ngFor="let mi of menuItems" class="nav-item {{isActive(mi) ? 'active' : ''}}" >
           <a class="nav-link" href="{{mi.href}}" (click)="clickItem()">
-            <i *ngIf="mi.fa" class="fa fa-{{mi.fa}}"></i> {{mi.name}}
+            <i *ngIf="mi.fa" class="{{mi.fa}}"></i> {{mi.name}}
           </a>
         </li>
         <li class="nav-item" (click)="toggle()">
-           <a class="nav-link" href="javascript:void(0)" (click)="clickLogout()"><i class="fa fa-sign-out"></i> Logout</a>
+           <a class="nav-link" href="javascript:void(0)" (click)="clickLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </li>
       </ul>
     </div>

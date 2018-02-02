@@ -60,7 +60,7 @@ export class UsersComponent implements OnInit {
     },
     {
       field: 'password',
-      label: 'Password',
+      label: user._id ? 'Password (leave blank, unless updating)' : 'Password',
       required: !user._id, // not required if editing
       inputType: 'password'
     },
