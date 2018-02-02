@@ -41,8 +41,7 @@ export class DeepDiff {
     }
 
     toMongo() {
-
-        const mobj = {};
+        const results = [];
         const path = this.path.join('.');
 
         switch (this.kind) {
@@ -50,35 +49,70 @@ export class DeepDiff {
             case 'E':   // edit ==> update
                 // if however undefined as value, we should treat that as delete?
                 if (this.rhs === undefined) {
-                    mobj['$unset'] = {};
-                    mobj['$unset'][path] = '';
+                    results.push(
+                        {
+                            $unset: {
+                                [path]: ''
+                            }
+                        }
+                    );
+
                 } else {
-                    mobj['$set'] = {};
-                    mobj['$set'][path] = this.rhs;
+                    results.push(
+                        {
+                            $set: {
+                                [path]: this.rhs
+                            }
+                        }
+                    );
                 }
                 break;
             case 'D':
-                mobj['$unset'] = {};
-                mobj['$unset'][path] = '';
+                results.push(
+                    {
+                        $unset: {
+                            [path]: ''
+                        }
+                    }
+                );
                 break;
             case 'A':   // array situation!
                 switch (this.item.kind) {
                     case 'N':   // new
-                        mobj['$push'] = {};
-                        mobj['$push'][path] = this.item.rhs;
+                        results.push(
+                            {
+                                $push: {
+                                    [path]: this.item.rhs
+                                }
+                            }
+                        );
                         break;
                     case 'E':   // edit ==> update
-                        mobj['$set'] = {};
-                        mobj['$set'][path + '.' + this.index] = this.item.rhs;
+                        results.push(
+                            {
+                                $set: {
+                                    [path + '.' + this.index]: this.item.rhs
+                                }
+                            }
+                        );
                         break;
                     case 'D':
                         // noway to splice at index. So do this:
                         // $set a random value;
-                        mobj['$set'] = {};
-                        mobj['$set'][path + '.' + this.index] = '____randomgarbage';
-                        // $pull that value out :(
-                        mobj['$pull'] = {};
-                        mobj['$pull'][path + '.' + this.index] = { $in: ['____randomgarbage'] };
+                        results.push(
+                            {
+                                $set: {
+                                    [path + '.' + this.index]: '____randomgarbage'
+                                }
+                            }
+                        );
+                        results.push(
+                            {
+                                $pull: {
+                                    [path]: { $in: ['____randomgarbage'] }
+                                }
+                            }
+                        );
                         break;
                     default:
                         throw { errorMessage: 'Terrible, not captured deepDiff!' };
@@ -87,6 +121,78 @@ export class DeepDiff {
             default:
                 throw { errorMessage: 'Terrible, not captured deepDiff!' };
         }
-        return mobj;
+        return results;
     }
+
+    static test() {
+        const original = {
+            root1: 1,
+            rootA: [1, 2],
+            path: {
+                p1: 1,
+                pA: [1, 2],
+            }
+        }
+
+        const print = function (label, compared) {
+            // print variable name
+            console.log(label);
+            const diffs = DeepDiff.getDiff('_id', original, compared);
+            console.log(diffs);
+            diffs.map(diff => console.log(diff.toMongo()));
+        }
+
+        const compareSame = JSON.parse(JSON.stringify(original));
+        print('same', compareSame);
+
+        const compareN = JSON.parse(JSON.stringify(original));
+        compareN.root2 = 2;
+        print('N', compareN);
+
+        const compareE = JSON.parse(JSON.stringify(original));
+        compareE.root1 = 11;
+        print('E', compareE);
+
+        const compareD = JSON.parse(JSON.stringify(original));
+        delete compareD.root1;
+        print('D', compareD);
+
+        const compareAN = JSON.parse(JSON.stringify(original));
+        compareAN.rootA.push(3);
+        print('AN', compareAN);
+
+        const compareAE = JSON.parse(JSON.stringify(original));
+        compareAE.rootA[0] = 11;
+        print('AE', compareAE);
+
+        const compareAD = JSON.parse(JSON.stringify(original));
+        compareAD.rootA.pop();
+        print('AD', compareAD);
+        // on a path
+
+        const comparePN = JSON.parse(JSON.stringify(original));
+        comparePN.path.p2 = 2;
+        print('PN', comparePN);
+
+        const comparePE = JSON.parse(JSON.stringify(original));
+        comparePE.path.p1 = 11;
+        print('PE', comparePE);
+
+        const comparePD = JSON.parse(JSON.stringify(original));
+        delete comparePD.path.p1;
+        print('PD', comparePD);
+
+        const comparePAN = JSON.parse(JSON.stringify(original));
+        comparePAN.path.pA.push(3);
+        print('PAN', comparePAN);
+
+        const comparePAE = JSON.parse(JSON.stringify(original));
+        comparePAE.path.pA[0] = 11;
+        print('PAE', comparePAE);
+
+        const comparePAD = JSON.parse(JSON.stringify(original));
+        comparePAD.path.pA.pop();
+        print('PAD', comparePAD);
+    }
+
 }
