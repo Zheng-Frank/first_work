@@ -98,9 +98,15 @@ export class UsersComponent implements OnInit {
   }
 
   formRemove(event) {
-    setTimeout(() => {
+    // api delete here...
+    this._api.delete(environment.apiBaseUrl + 'users', {ids: [this.userInEditing._id]}).subscribe(result => {
       event.acknowledge(null);
-    }, 1000);
+      this.users = this.users.filter(u => u.username !== this.userInEditing.username);
+      this.editingModal.hide();
+      this._global.publishAlert(AlertType.Danger, this.userInEditing.username + ' was deleted');
+    }, error => {
+      event.acknowledge(error);
+    });
   }
 
   formSubmit(event) {
@@ -120,14 +126,22 @@ export class UsersComponent implements OnInit {
 
         const diffs = DeepDiff.getDiff(originalUser._id, originalUser, this.userInEditing, ignoreFields);
         console.log(diffs);
-        event.acknowledge(null);
-        // if (patches.length === 0) {
-        //   event.acknowledge('Nothing changed');
-        // } else {
-        //   // api update here...
-        //   console.log(patches);
-        //   event.acknowledge(null);
-        // }
+
+        if (diffs.length === 0) {
+          event.acknowledge('Nothing changed');
+        } else {
+          // api update here...
+          this._api.patch(environment.apiBaseUrl + 'users', diffs).subscribe(result => {
+            event.acknowledge(null);
+            // let's update original, assuming everything successful
+            Object.assign(originalUser, this.userInEditing);
+            this.editingModal.hide();
+            this._global.publishAlert(AlertType.Success, this.userInEditing.username + ' was updated');
+          }, error => {
+            event.acknowledge(error);
+          });
+
+        }
       }
 
     } else {

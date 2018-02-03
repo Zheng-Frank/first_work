@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GlobalService } from '../../services/global.service';
 import { AlertType } from '../../classes/alert-type';
+import { DeepDiff } from '../../classes/deep-diff';
 
 @Component({
   selector: 'app-home',
@@ -17,12 +18,9 @@ export class HomeComponent implements OnInit {
   }
 
   test() {
-    this._global.publishAlert(AlertType.Danger,
-      'my test' + this._global.alerts.length, 10000
-    );
-    this._global.publishAlert(AlertType.Success,
-      'my test' + this._global.alerts.length, 3000
-    );
+
+    DeepDiff.test();
+
   }
 
 }

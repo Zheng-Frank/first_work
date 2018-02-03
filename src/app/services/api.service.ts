@@ -48,8 +48,12 @@ export class ApiService {
     return this.apiRequest('put', api, payload);
   }
 
-  delete(api: string) {
-    return this.apiRequest('delete', api);
+  patch(api: string, payload?) {
+    return this.apiRequest('patch', api, payload);
+  }
+
+  delete(api: string, payload?) {
+    return this.apiRequest('delete', api, payload);
   }
 
   private apiRequest(method: string, api: string, payload?: any) {
@@ -72,18 +76,18 @@ export class ApiService {
     switch (method) {
       case 'post':
       case 'put':
+      case 'patch':
         observable = this.http[method](api, payload, { headers: headers });
         break;
+      // get and delete, we have to use querystring to pass parameters
       case 'get':
+      case 'delete':
         if (Object.keys(payload).length > 0) {
           if (api.indexOf('?') < 0) {
             api += '?';
           }
           api += encodeURI(Object.keys(payload).map(key => key + '=' + JSON.stringify(payload[key])).join('&'));
         }
-        observable = this.http[method](api, { headers: headers });
-        break;
-      case 'delete':
         observable = this.http[method](api, { headers: headers });
         break;
       default:
