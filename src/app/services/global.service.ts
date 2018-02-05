@@ -3,6 +3,7 @@ import * as jwtDecode from 'jwt-decode';
 import { Alert } from '../classes/alert';
 import { ApiService } from './api.service';
 import { AlertType } from '../classes/alert-type';
+import { User } from '../classes/user';
 declare var store: any;
 
 @Injectable()
@@ -16,7 +17,7 @@ export class GlobalService {
     return this._token;
   }
 
-  get user() {
+  get user(): User {
     return this._user;
   }
 
@@ -46,7 +47,7 @@ export class GlobalService {
         { name: 'Restaurants', href: '#/restaurants', fa: 'fas fa-utensils', accessibleRoles: ['ADMIN', 'MENU_EDITOR'] },
         { name: 'Invoices', href: '#/invoices', fa: 'fas fa-dollar-sign', accessibleRoles: ['ADMIN', 'ACCOUNTANT'] },
         { name: 'Orders', href: '#/orders', fa: 'fas fa-shopping-bag', accessibleRoles: ['ADMIN', 'ORDER_MANAGER'] },
-        { name: 'Leads', href: '#/leads', fa: 'fas fa-lightbulb-o', accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR'] },
+        { name: 'Leads', href: '#/leads', fa: 'fas fa-lightbulb', accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR'] },
         { name: 'System', href: '#/system', fa: 'fas fa-heartbeat', accessibleRoles: ['ADMIN'] },
         { name: 'Users', href: '#/users', fa: 'fas fa-users', accessibleRoles: ['ADMIN'] },
         { name: 'Bootstrap4', href: '#/bs4', fa: 'fab fa-twitter', accessibleRoles: ['ADMIN'] },

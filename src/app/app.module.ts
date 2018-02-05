@@ -10,7 +10,7 @@ import { HomeComponent } from './components/home/home.component';
 import { Bs4Component } from './components/bs4/bs4.component';
 import { HeaderComponent } from './components/header/header.component';
 
-import { QmenuUIModule } from 'qmenu-ui';
+import { QmenuUIModule } from '@qmenu/ui';
 import { LoginComponent } from './components/login/login.component';
 import { GlobalService } from './services/global.service';
 import { MarketerGuard } from './marketer.guard';
@@ -22,7 +22,9 @@ import { SystemComponent } from './components/system/system.component';
 import { RestaurantsComponent } from './components/restaurants/restaurants.component';
 import { InvoicesComponent } from './components/invoices/invoices.component';
 import { OrdersComponent } from './components/orders/orders.component';
+import { RoleGuard } from './role.guard';
 
+import { Address } from '@qmenu/ui/src/app/classes';
 
 @NgModule({
   declarations: [
@@ -50,6 +52,7 @@ import { OrdersComponent } from './components/orders/orders.component';
   providers: [
     GlobalService,
     MarketerGuard,
+    RoleGuard,
     ApiService
   ],
   bootstrap: [RootComponent]

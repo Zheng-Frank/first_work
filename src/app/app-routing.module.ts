@@ -13,6 +13,7 @@ import { SystemComponent } from './components/system/system.component';
 import { UsersComponent } from './components/users/users.component';
 
 import { MarketerGuard } from './marketer.guard';
+import { RoleGuard } from './role.guard';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [MarketerGuard] },
@@ -24,7 +25,7 @@ const routes: Routes = [
   { path: 'profile', component: ProfileComponent, canActivate: [MarketerGuard] },
   { path: 'restaurants', component: RestaurantsComponent, canActivate: [MarketerGuard] },
   { path: 'system', component: SystemComponent, canActivate: [MarketerGuard] },
-  { path: 'users', component: UsersComponent, canActivate: [MarketerGuard] },
+  { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: {roles: ['ADMIN']} },
   { path: '**', redirectTo: '/home' }
 ];
 

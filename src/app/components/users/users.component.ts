@@ -1,11 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { User } from '../../classes/user';
-import { Alert } from '../../classes/alert';
 import { ApiService } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 import { GlobalService } from '../../services/global.service';
 // import { ModalComponent } from 'qmenu-ui/bundles/qmenu-ui.umd';
-import { ModalComponent } from 'qmenu-ui/qmenu-ui.es5';
+import { ModalComponent } from '@qmenu/ui/bundles/ui.umd';
 import { AlertType } from '../../classes/alert-type';
 import { DeepDiff } from '../../classes/deep-diff';
 
@@ -105,7 +104,7 @@ export class UsersComponent implements OnInit {
       this.editingModal.hide();
       this._global.publishAlert(AlertType.Danger, this.userInEditing.username + ' was deleted');
     }, error => {
-      event.acknowledge(error);
+      event.acknowledge(error.json() || error);
     });
   }
 
@@ -138,7 +137,7 @@ export class UsersComponent implements OnInit {
             this.editingModal.hide();
             this._global.publishAlert(AlertType.Success, this.userInEditing.username + ' was updated');
           }, error => {
-            event.acknowledge(error);
+            event.acknowledge(error.json() || error);
           });
 
         }
@@ -155,7 +154,7 @@ export class UsersComponent implements OnInit {
         this.editingModal.hide();
         this._global.publishAlert(AlertType.Success, this.userInEditing.username + ' was added');
       }, error => {
-        event.acknowledge(error);
+        event.acknowledge(error.json() || error);
       });
     }
   }
