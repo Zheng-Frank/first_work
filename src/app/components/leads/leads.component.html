@@ -1,3 +1,6 @@
+<div class="action-bar" *qIf="hasSelection()">
+  <button class="btn btn-primary" (click)="scanGoogle()"><i class="fab fa-searchengin"></i> Craw Google Info</button>
+</div>
 <h1 class="text-center">Lead Management</h1>
 <div class="text-right pb-2">
   <ng-container *ngFor="let filter of ['classifications', 'serviceProviders', 'zipCode', 'city', 'state', 'rating']">
@@ -13,7 +16,12 @@
 <table class="table table-hover table-responsive">
   <thead>
     <tr>
-      <th scope="col">Name</th>
+      <th scope="col">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="check-all" [checked]="isAllSelected()" (change)="toggleSelectAll()">
+          <label class="form-check-label" for="check-all">Name</label>
+        </div>
+      </th>
       <th scope="col">Street</th>
       <th scope="col">City</th>
       <th scope="col">Zip Code</th>
@@ -23,7 +31,12 @@
   </thead>
   <tbody>
     <tr *ngFor="let lead of leads">
-      <th scope="row">{{lead.name}}</th>
+      <th scope="row">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" [id]="'check-' + lead._id" [checked]="selectionSet.has(lead._id)" (change)="toggleSelection(lead)">
+          <label class="form-check-label" [attr.for]="'check-' + lead._id">{{lead.name}}</label>
+        </div>
+      </th>
       <td>{{lead.street}}</td>
       <td>{{lead.city}}</td>
       <td>{{lead.zipCode}}</td>
@@ -110,4 +123,6 @@
     </tbody>
 
   </table>
+  <hr>
+  <button class="btn btn-primary"><i class="fab fa-searchengin"></i> Craw Google</button> <button class="btn btn-primary"><i class="fas fa-map-marker-alt"></i> Inject Google Address</button>
 </q-modal>

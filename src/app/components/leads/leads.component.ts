@@ -20,6 +20,8 @@ export class LeadsComponent implements OnInit {
   @ViewChild('myAddressPicker') myAddressPicker: AddressPickerComponent;
   addressApt = null;
   leads: Lead[] = [];
+  selectionSet = new Set();
+
   leadInEditing = new Lead();
   // for editing
   formFieldDescriptors = [];
@@ -235,5 +237,34 @@ export class LeadsComponent implements OnInit {
     this.leadInEditing = lead;
     console.log(this.leadInEditing);
     this.viewModal.show();
+  }
+
+  isAllSelected() {
+    return this.leads.every(lead => this.selectionSet.has(lead._id));
+  }
+
+  toggleSelectAll() {
+    if (this.isAllSelected()) {
+      this.selectionSet.clear();
+    } else {
+      this.selectionSet = new Set(this.leads.map(lead => lead._id));
+      console.log(this.selectionSet);
+    }
+  }
+
+  toggleSelection(lead) {
+    if (this.selectionSet.has(lead._id)) {
+      this.selectionSet.delete(lead._id);
+    } else {
+      this.selectionSet.add(lead._id);
+    }
+  }
+
+  hasSelection() {
+    return this.leads.some(lead => this.selectionSet.has(lead._id));
+  }
+
+  scanGoogle() {
+    
   }
 }
