@@ -1,15 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
 
-
 /* INSERT bootstrap variable override here, eg.
 $primary: red;
 */
 
-$primary : #CC0000;
+$primary: #CC0000;
 $secondary: darkgray;
 $success: #349A04;
 $info: #349A9C;
-$warning: #FCCE34;
+$warning: darken(#FCCE34, 20%);
 $danger: #FC3204;
 // $primary : 	#FC9A04;
 // $secondary : darkgray;
@@ -28,27 +27,25 @@ $danger: #FC3204;
 // $gray-900: #212529 !default;
 // $light : $gray-100 !default;
 // $dark : $gray-800 !default;
-
-$border-width:                1px;
+$border-width: 1px;
 // $border-color:                $gray-300;
-
-$border-radius:               1px;
-$border-radius-lg:            2px;
-$border-radius-sm:            0px;
-
-$font-size-base:              0.9375rem;
+$border-radius: 1px;
+$border-radius-lg: 2px;
+$border-radius-sm: 0px;
+$font-size-base: 0.9375rem;
 // $grid-gutter-width:           20px;
-
 // $input-btn-padding-y:         .25rem;
 // $input-btn-padding-x:         .5rem;
-
 // $input-btn-focus-width:       .2rem ;
-
 // $input-btn-padding-y-sm:      .2rem ;
 // $input-btn-padding-x-sm:      .4rem ;
-
 // $input-btn-padding-y-lg:      .375rem ;
 // $input-btn-padding-x-lg:      0.75rem ;
-
-
 @import '~bootstrap/scss/bootstrap';
+a {
+  color: $info;
+}
+
+a:hover {
+  color: darken($info, 10%);
+}

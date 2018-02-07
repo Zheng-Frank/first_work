@@ -6,6 +6,7 @@ import { Lead } from '../../classes/lead';
 import { AlertType } from '../../classes/alert-type';
 import { ModalComponent, AddressPickerComponent } from '@qmenu/ui/bundles/ui.umd';
 import { DeepDiff } from '../../classes/deep-diff';
+import { GmbInfo } from '../../classes/gmb-info';
 
 @Component({
   selector: 'app-leads',
@@ -19,6 +20,9 @@ export class LeadsComponent implements OnInit {
 
   @ViewChild('myAddressPicker') myAddressPicker: AddressPickerComponent;
   addressApt = null;
+
+  apiRequesting = false;
+
   leads: Lead[] = [];
   selectionSet = new Set();
 
@@ -168,7 +172,7 @@ export class LeadsComponent implements OnInit {
     this.leadInEditing.address = this.myAddressPicker.address;
 
     this.leadInEditing.address.apt = (this.addressApt || '').trim();
-    this._api.post(environment.apiBaseUrl + 'leads', [this.leadInEditing]).subscribe(result => {
+    this._api.post(environment.lambdaUrl + 'leads', [this.leadInEditing]).subscribe(result => {
       event.acknowledge(null);
       // we get ids returned
       this.leadInEditing._id = result[0];
@@ -196,9 +200,11 @@ export class LeadsComponent implements OnInit {
   }
 
   removeFilter(filter) {
+    console.log(filter);
     delete this.searchFilter[filter];
     // reset searchFilter to make sure form builder reflect changes :(
     this.searchFilter = JSON.parse(JSON.stringify(this.searchFilter));
+    console.log(this.searchFilter);
     this.searchLeads();
   }
 
@@ -214,7 +220,7 @@ export class LeadsComponent implements OnInit {
       query['rating'] = { $lte: +this.searchFilter['rating'] };
     }
 
-    this._api.get(environment.apiBaseUrl + 'leads', { ids: [], limit: 50, query: query }).subscribe(
+    this._api.get(environment.lambdaUrl + 'leads', { ids: [], limit: 50, query: query }).subscribe(
       result => {
         this.leads = result.map(u => new Lead(u));
         this.sortLeads(this.leads);
@@ -264,7 +270,61 @@ export class LeadsComponent implements OnInit {
     return this.leads.some(lead => this.selectionSet.has(lead._id));
   }
 
-  scanGoogle() {
-    
+  crawGoogle(lead: Lead) {
+    this.apiRequesting = true;
+    this._api.get(environment.internalApiUrl + 'google',
+      { keywords: lead.name + ' ' + lead.address.route + ' ' + lead.address.postal_code })
+      .subscribe(result => {
+        const gmbInfo = result as GmbInfo;
+        const clonedLead = JSON.parse(JSON.stringify(lead));
+        clonedLead.rating = gmbInfo.rating;
+        clonedLead.totalReviews = gmbInfo.totalReviews;
+        clonedLead.gmbVerified = gmbInfo.gmbVerified;
+        clonedLead.orderOnlineUrl = gmbInfo.orderOnlineUrl;
+        clonedLead.gmbOpen = gmbInfo.gmbOpen;
+        clonedLead.cuisine = gmbInfo.cuisine;
+        clonedLead.menuUrls = gmbInfo.menuUrls;
+        clonedLead.gmbWebsite = gmbInfo.website;
+        clonedLead.reservations = gmbInfo.reservations;
+        if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
+          clonedLead.phones.push(gmbInfo.phone);
+        }
+        clonedLead.serviceProviders = gmbInfo.serviceProviders;
+        this.patchDiff(lead, clonedLead);
+        this.apiRequesting = false;
+      }, error => {
+        this.apiRequesting = false;
+        this._global.publishAlert(AlertType.Danger, 'Failed to craw');
+      });
+  }
+
+  injectGoogleAddress(lead: Lead) {
+    console.log(this.apiRequesting);
+    this.apiRequesting = true;
+    lead.address = lead.address || {};
+    setTimeout(() => {
+      this.apiRequesting = false;
+    }, 2000);
+  }
+
+  patchDiff(originalLead, newLead) {
+    const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
+    console.log(diffs);
+
+    if (diffs.length === 0) {
+      this._global.publishAlert(AlertType.Info, 'Nothing to update');
+    } else {
+      // api update here...
+      this._api.patch(environment.lambdaUrl + 'leads', diffs).subscribe(result => {
+
+        // let's update original, assuming everything successful
+        Object.assign(originalLead, newLead);
+        this.editingModal.hide();
+        this._global.publishAlert(AlertType.Success, originalLead.name + ' was updated');
+      }, error => {
+        this._global.publishAlert(AlertType.Danger, 'Error updating to DB');
+      });
+
+    }
   }
 }

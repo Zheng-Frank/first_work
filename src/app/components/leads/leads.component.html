@@ -1,5 +1,6 @@
 <div class="action-bar" *qIf="hasSelection()">
-  <button class="btn btn-primary" (click)="scanGoogle()"><i class="fab fa-searchengin"></i> Craw Google Info</button>
+  <button class="btn btn-primary" (click)="scanGoogle()">
+    <i class="fab fa-searchengin"></i> Craw Google Info</button>
 </div>
 <h1 class="text-center">Lead Management</h1>
 <div class="text-right pb-2">
@@ -13,42 +14,44 @@
     <i class="fas fa-filter"></i> Filter</button>
   <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button>
 </div>
-<table class="table table-hover table-responsive">
-  <thead>
-    <tr>
-      <th scope="col">
-        <div class="form-check">
-          <input type="checkbox" class="form-check-input" id="check-all" [checked]="isAllSelected()" (change)="toggleSelectAll()">
-          <label class="form-check-label" for="check-all">Name</label>
-        </div>
-      </th>
-      <th scope="col">Street</th>
-      <th scope="col">City</th>
-      <th scope="col">Zip Code</th>
-      <th scope="col">State</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let lead of leads">
-      <th scope="row">
-        <div class="form-check">
-          <input type="checkbox" class="form-check-input" [id]="'check-' + lead._id" [checked]="selectionSet.has(lead._id)" (change)="toggleSelection(lead)">
-          <label class="form-check-label" [attr.for]="'check-' + lead._id">{{lead.name}}</label>
-        </div>
-      </th>
-      <td>{{lead.street}}</td>
-      <td>{{lead.city}}</td>
-      <td>{{lead.zipCode}}</td>
-      <td>{{lead.state}}</td>
-      <td class="text-right">
-        <button class="btn btn-link py-0" (click)="view(lead)">
-          <i class="fas fa-bars"></i>
-        </button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="check-all" [checked]="isAllSelected()" (change)="toggleSelectAll()">
+            <label class="form-check-label" for="check-all">Name</label>
+          </div>
+        </th>
+        <th scope="col">Street</th>
+        <th scope="col">City</th>
+        <th scope="col">Zip Code</th>
+        <th scope="col">State</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let lead of leads">
+        <th scope="row">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" [id]="'check-' + lead._id" [checked]="selectionSet.has(lead._id)" (change)="toggleSelection(lead)">
+            <label class="form-check-label" [attr.for]="'check-' + lead._id">{{lead.name}}</label>
+          </div>
+        </th>
+        <td>{{(lead.address.stree_number || '') + ' ' + lead.address.route}}</td>
+        <td>{{lead.address.locality}}</td>
+        <td>{{lead.address.postal_code}}</td>
+        <td>{{lead.address.administrative_level_2}}</td>
+        <td class="text-right">
+          <button class="btn btn-link py-0" (click)="view(lead)">
+            <i class="fas fa-bars"></i>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 <q-modal [title]="leadInEditing._id ? 'Edit Restaurant Lead: ' + leadInEditing.name : 'Create New Restaurant Lead' " #editingModal>
   <q-form-builder [object]="leadInEditing" [showDelete]="leadInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
     (remove)="formRemove($event)" (cancel)="editingModal.hide()">
@@ -78,17 +81,22 @@
     <tbody>
       <tr>
         <th class="nowrap border-top-0">
-          <i *ngIf="leadInEditing.address?.place_id" class="fas fa-check text-success"></i>
+
           <b>Address</b>
         </th>
         <td class="border-top-0">
-          <a href="https://www.google.com/maps/search/?api=1&query={{leadInEditing.street}} {{leadInEditing.city}} {{leadInEditing.state}}"
-            target="_blank">{{leadInEditing.street}}, {{leadInEditing.city}}, {{leadInEditing.state}} {{leadInEditing.zipCode}}</a>
+          <a href="https://www.google.com/maps/search/?api=1&query={{leadInEditing.address?.getShortAddress()}}" target="_blank">
+            {{leadInEditing.address?.getShortAddress()}}
+            <i *ngIf="leadInEditing.address?.place_id" class="fas fa-check text-success"></i>
+          </a>
+          <div *ngIf="!(leadInEditing.address?.place_id)">
+            <button class="btn btn-outline-primary" (click)="injectGoogleAddress(leadInEditing)" [qLoading]="apiRequesting">
+              <i class="fas fa-map-marker-alt"></i> Inject Google Address</button>
+          </div>
         </td>
       </tr>
       <tr>
         <th class="nowrap border-top-0">
-          <i *ngIf="leadInEditing.address?.place_id" class="fas fa-check text-success"></i>
           <b>Phones</b>
         </th>
         <td class="border-top-0">
@@ -97,7 +105,6 @@
       </tr>
       <tr>
         <th class="nowrap border-top-0">
-          <i *ngIf="leadInEditing.address?.place_id" class="fas fa-check text-success"></i>
           <b>Email</b>
         </th>
         <td class="border-top-0">
@@ -106,7 +113,6 @@
       </tr>
       <tr>
         <th class="nowrap border-top-0">
-          <i *ngIf="leadInEditing.address?.place_id" class="fas fa-check text-success"></i>
           <b>Website</b>
         </th>
         <td class="border-top-0">
@@ -115,14 +121,40 @@
       </tr>
       <tr>
         <th class="nowrap border-top-0">
-          <i *ngIf="leadInEditing.address?.place_id" class="fas fa-check text-success"></i>
           <b>Classifications</b>
         </th>
         <td class="border-top-0"> {{(leadInEditing.classifications || []).join(', ')}}</td>
       </tr>
     </tbody>
-
   </table>
   <hr>
-  <button class="btn btn-primary"><i class="fab fa-searchengin"></i> Craw Google</button> <button class="btn btn-primary"><i class="fas fa-map-marker-alt"></i> Inject Google Address</button>
+  <div class="text-center">
+    <div *ngIf="leadInEditing.rating || leadInEditing.gmbWebsite || leadInEditing.gmbOpen; else no_gmb">
+      Has Rating
+    </div>
+    <ng-template #no_gmb>
+      <i class="fas fa-exclamation-triangle text-warning"></i> Missing GMB info
+      <i class="far fa-hand-point-right"></i>&nbsp;&nbsp;
+      <button class="btn btn-outline-primary" (click)="crawGoogle(leadInEditing)" [qLoading]="apiRequesting">
+        <i class="fab fa-searchengin"></i> Craw Google</button>
+    </ng-template>
+
+
+    <pre>
+      rating: number;
+      totalReviews: number;
+      gmbVerified: boolean;
+      gmbOpen: boolean;
+      orderOnlineUrl: string;
+      cuisine: string;
+      menuUrls: string[];
+  
+      gmbWebsite: string;
+      menuUrl: string;
+      reservations: string[];
+      serviceProviders: any[];
+    </pre>
+  </div>
+
+
 </q-modal>

@@ -11,19 +11,23 @@ export class Lead {
     classifications: string[];
 
     // from google crawling
-    averageAating: number;
+    rating: number;
     totalReviews: number;
+    gmbVerified: boolean;
+    gmbOpen: boolean;
+    orderOnlineUrl: string;
+    cuisine: string;
+    menuUrls: string[];
 
     gmbWebsite: string;
     menuUrl: string;
-    reservationUrl: string;
+    reservations: string[];
     serviceProviders: any[];
 
     disabled = false;
 
     createdAt: Date;
     updatedAt: Date;
-
 
     constructor(resturant?: any) {
 

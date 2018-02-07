@@ -8,3 +8,8 @@
   opacity: 0.9;
   margin-top: 0.5rem;
 }
+
+/* for piercing modal title */
+/deep/ .modal-header {
+  text-align: center;
+}
