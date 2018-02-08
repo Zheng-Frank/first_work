@@ -9,6 +9,8 @@ export interface GmbInfo {
     phone: string;
     serviceProviders: string[];
     menuUrls: string[];
+    gmbWebsite: string;
     website: string;
     reservations: string[];
+    gmbOwner?: string;
 }

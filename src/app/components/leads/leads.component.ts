@@ -7,6 +7,7 @@ import { AlertType } from '../../classes/alert-type';
 import { ModalComponent, AddressPickerComponent } from '@qmenu/ui/bundles/ui.umd';
 import { DeepDiff } from '../../classes/deep-diff';
 import { GmbInfo } from '../../classes/gmb-info';
+import { Address } from '@qmenu/ui/bundles/ui.umd';
 
 @Component({
   selector: 'app-leads',
@@ -286,6 +287,7 @@ export class LeadsComponent implements OnInit {
         clonedLead.menuUrls = gmbInfo.menuUrls;
         clonedLead.gmbWebsite = gmbInfo.website;
         clonedLead.reservations = gmbInfo.reservations;
+        clonedLead.address.formatted_address = gmbInfo.address ? gmbInfo.address : clonedLead.address.formatted_address;
         if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
           clonedLead.phones.push(gmbInfo.phone);
         }
@@ -302,9 +304,21 @@ export class LeadsComponent implements OnInit {
     console.log(this.apiRequesting);
     this.apiRequesting = true;
     lead.address = lead.address || {};
-    setTimeout(() => {
-      this.apiRequesting = false;
-    }, 2000);
+
+    this._api.get(environment.qmenuApiUrl + 'utilities/getGoogleAddress',
+      {
+        formatted_address: lead.address.formatted_address
+      })
+      .subscribe(result => {
+        console.log(result);
+        const clonedLead = JSON.parse(JSON.stringify(lead));
+        clonedLead.address = new Address(result);
+        this.patchDiff(lead, clonedLead);
+        this.apiRequesting = false;
+      }, error => {
+        this.apiRequesting = false;
+        this._global.publishAlert(AlertType.Danger, 'Failed to update Google address. Try crawing Google first.');
+      });
   }
 
   patchDiff(originalLead, newLead) {

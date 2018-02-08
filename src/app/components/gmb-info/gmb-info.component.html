@@ -1,0 +1,44 @@
+<div class="card border-info text-left">
+  <div class="card-header" style="position: relative">
+    <h4>
+      <span *ngIf="gmbInfo.gmbOpen">
+        <i class="fas fa-lock-open text-success"></i> OPEN! </span>
+      <span *ngIf="gmbInfo.gmbWebsite" class="{{gmbInfo.gmbOwner === 'qmenu' ? 'text-success' : 'text-danger'}}">
+        <i class="fas fa-lock"></i> {{gmbInfo.gmbOwner || 'unknown ownership' }} </span>
+    </h4>
+    <!-- rating and reviews -->
+    <div style="position:absolute; right: 0; top:0" class="alert-info">
+      <h3 style="padding: 0.25rem;">{{gmbInfo.rating}} / {{gmbInfo.totalReviews}}</h3>
+    </div>
+  </div>
+  <div class="card-body">
+    <table class="table">
+      <tbody>
+        <tr>
+          <th class="nowrap border-top-0">
+            <b>Services</b>
+          </th>
+          <td class="border-top-0">
+            {{(gmbInfo.serviceProviders || []).join(', ')}}
+          </td>
+        </tr>
+        <tr>
+          <th class="nowrap border-top-0">
+            <b>Menu</b>
+          </th>
+          <td class="border-top-0">
+            <a *ngFor="let url of gmbInfo.menuUrls || []" href="{{url}}" target="_blank">{{url}}</a>
+          </td>
+        </tr>
+        <tr>
+          <th class="nowrap border-top-0">
+            <b>Online URL</b>
+          </th>
+          <td class="border-top-0">
+            <a href="{{gmbInfo.orderOnlineUrl}}" target="_blank">{{gmbInfo.orderOnlineUrl}}</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

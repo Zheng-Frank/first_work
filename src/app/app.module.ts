@@ -25,6 +25,7 @@ import { OrdersComponent } from './components/orders/orders.component';
 import { RoleGuard } from './role.guard';
 
 import { Address } from '@qmenu/ui/src/app/classes';
+import { GmbInfoComponent } from './components/gmb-info/gmb-info.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { Address } from '@qmenu/ui/src/app/classes';
     SystemComponent,
     RestaurantsComponent,
     InvoicesComponent,
-    OrdersComponent
+    OrdersComponent,
+    GmbInfoComponent
   ],
   imports: [
     BrowserModule,

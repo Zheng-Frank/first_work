@@ -86,7 +86,9 @@ export class ApiService {
           if (api.indexOf('?') < 0) {
             api += '?';
           }
-          api += encodeURI(Object.keys(payload).map(key => key + '=' + JSON.stringify(payload[key])).join('&'));
+          // Only strigify Object, not primitives
+          api += encodeURI(Object.keys(payload).map(key =>
+            key + '=' + (Object(payload[key]) === payload[key] ? JSON.stringify(payload[key]) : payload[key])).join('&'));
         }
         observable = this.http[method](api, { headers: headers });
         break;

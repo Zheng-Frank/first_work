@@ -116,7 +116,7 @@
           <b>Website</b>
         </th>
         <td class="border-top-0">
-          <a *ngIf="leadInEditing.webSite" href="{{leadInEditing.webSite}}" target="_blank">{{leadInEditing.webSite}}</a>
+          <a *ngIf="leadInEditing.website" href="{{leadInEditing.website}}" target="_blank">{{leadInEditing.website}}</a>
         </td>
       </tr>
       <tr>
@@ -130,7 +130,7 @@
   <hr>
   <div class="text-center">
     <div *ngIf="leadInEditing.rating || leadInEditing.gmbWebsite || leadInEditing.gmbOpen; else no_gmb">
-      Has Rating
+      <app-gmb-info [gmbInfo]="leadInEditing"></app-gmb-info>
     </div>
     <ng-template #no_gmb>
       <i class="fas fa-exclamation-triangle text-warning"></i> Missing GMB info
@@ -138,22 +138,6 @@
       <button class="btn btn-outline-primary" (click)="crawGoogle(leadInEditing)" [qLoading]="apiRequesting">
         <i class="fab fa-searchengin"></i> Craw Google</button>
     </ng-template>
-
-
-    <pre>
-      rating: number;
-      totalReviews: number;
-      gmbVerified: boolean;
-      gmbOpen: boolean;
-      orderOnlineUrl: string;
-      cuisine: string;
-      menuUrls: string[];
-  
-      gmbWebsite: string;
-      menuUrl: string;
-      reservations: string[];
-      serviceProviders: any[];
-    </pre>
   </div>
 
 
