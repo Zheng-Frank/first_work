@@ -20,9 +20,12 @@ export class Lead {
     menuUrls: string[];
 
     gmbWebsite: string;
+    gmbScanned: boolean;
     menuUrl: string;
     reservations: string[];
     serviceProviders: any[];
+
+    closed: boolean; // some permanently closed!
 
     disabled = false;
 

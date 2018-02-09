@@ -7,9 +7,18 @@
   z-index: 1;
   opacity: 0.9;
   margin-top: 0.5rem;
+  box-shadow: 0px 10px 20px 1px rgba(0,0,0,0.2);
 }
 
 /* for piercing modal title */
 /deep/ .modal-header {
   text-align: center;
+}
+
+.hide {
+  visibility: hidden;
+}
+
+.closed {
+  text-decoration: line-through;
 }

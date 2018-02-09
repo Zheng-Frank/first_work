@@ -11,10 +11,17 @@ export class GmbInfoComponent implements OnInit {
     gbmWebsite: 'qmenu.us',
     gmbOwner: 'qmenu2',
     gmbOpen: true
-  } ;
+  };
   constructor() { }
 
   ngOnInit() {
+  }
+
+  getGoogleQuery() {
+    if (this.gmbInfo['address']) {
+      return 'https://www.google.com/search?q='
+        + encodeURIComponent(this.gmbInfo['name'] + ' ' + this.gmbInfo['address']['formatted_address']);
+    }
   }
 
 }

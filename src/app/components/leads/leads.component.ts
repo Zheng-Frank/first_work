@@ -9,6 +9,22 @@ import { DeepDiff } from '../../classes/deep-diff';
 import { GmbInfo } from '../../classes/gmb-info';
 import { Address } from '@qmenu/ui/bundles/ui.umd';
 
+const spMap = {
+  'beyondmenu': 'beyondmenu.png',
+  'chownow': 'chownow.png',
+  'chinesemenuonline': 'chinesemenuonline.png',
+  'doordash': 'doordash.png',
+  'eat24': 'eat24.png',
+  'eatstreet': 'eatstreet.png',
+  'grubhub': 'grubhub.png',
+  'menufy': 'menufy.png',
+  'qmenu': 'qmenu.png',
+  'redpassion': null,
+  'slicelife': 'slicelife.png',
+  'seamless': 'seamless.png',
+  'ubereats': 'ubereats.png',
+};
+
 @Component({
   selector: 'app-leads',
   templateUrl: './leads.component.html',
@@ -110,11 +126,11 @@ export class LeadsComponent implements OnInit {
       ].sort().map(s => ({ object: s, text: s, selected: false }))
     },
     {
-      field: 'serviceProviders', // match db naming otherwise would be single instead of plural
-      label: 'Service Provider',
+      field: 'gmbOwner', // match db naming otherwise would be single instead of plural
+      label: 'GMB Owner',
       required: false,
       inputType: 'single-select',
-      items: ['Grubhub', 'Doordash', 'CMO', 'Red Passion', 'BeyondMenu'].map(s => ({ object: s, text: s, selected: false }))
+      items: ['qmenu', 'beyondmenu', 'chownow', 'menufy'].map(s => ({ object: s, text: s, selected: false }))
     },
     {
       field: 'zipCode',
@@ -162,6 +178,10 @@ export class LeadsComponent implements OnInit {
 
     this.leadInEditing = new Lead();
     this.editingModal.show();
+  }
+
+  getLogo(lead) {
+    return spMap[lead.gmbOwner];
   }
 
   formSubmit(event) {
@@ -212,7 +232,7 @@ export class LeadsComponent implements OnInit {
   searchLeads(acknowledge?) {
     // get all users
     const query = {};
-    ['state', 'city', 'zipCode', 'serviceProviders', 'classifications'].map(field => {
+    ['state', 'city', 'zipCode', 'gmbOwner', 'classifications'].map(field => {
       if (this.searchFilter[field]) {
         query[field] = this.searchFilter[field];
       }
@@ -259,6 +279,10 @@ export class LeadsComponent implements OnInit {
     }
   }
 
+  deselectAll() {
+    this.selectionSet.clear();
+  }
+
   toggleSelection(lead) {
     if (this.selectionSet.has(lead._id)) {
       this.selectionSet.delete(lead._id);
@@ -271,36 +295,35 @@ export class LeadsComponent implements OnInit {
     return this.leads.some(lead => this.selectionSet.has(lead._id));
   }
 
-  crawGoogle(lead: Lead) {
+  crawGoogle(lead: Lead, promise?) {
     this.apiRequesting = true;
-    this._api.get(environment.internalApiUrl + 'google',
-      { keywords: lead.name + ' ' + lead.address.route + ' ' + lead.address.postal_code })
+    this._api.get(environment.internalApiUrl + 'lead-info',
+      { q: lead.name + ' ' + lead.address.route + ' ' + lead.address.postal_code })
       .subscribe(result => {
         const gmbInfo = result as GmbInfo;
-        const clonedLead = JSON.parse(JSON.stringify(lead));
-        clonedLead.rating = gmbInfo.rating;
-        clonedLead.totalReviews = gmbInfo.totalReviews;
-        clonedLead.gmbVerified = gmbInfo.gmbVerified;
-        clonedLead.orderOnlineUrl = gmbInfo.orderOnlineUrl;
-        clonedLead.gmbOpen = gmbInfo.gmbOpen;
-        clonedLead.cuisine = gmbInfo.cuisine;
-        clonedLead.menuUrls = gmbInfo.menuUrls;
-        clonedLead.gmbWebsite = gmbInfo.website;
-        clonedLead.reservations = gmbInfo.reservations;
-        clonedLead.address.formatted_address = gmbInfo.address ? gmbInfo.address : clonedLead.address.formatted_address;
+        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+        Object.assign(clonedLead, gmbInfo);
+
         if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
           clonedLead.phones.push(gmbInfo.phone);
+          delete clonedLead['phone'];
         }
-        clonedLead.serviceProviders = gmbInfo.serviceProviders;
+        clonedLead.gmbScanned = true;
         this.patchDiff(lead, clonedLead);
         this.apiRequesting = false;
+        if (promise) {
+          promise.resolve(result);
+        }
       }, error => {
         this.apiRequesting = false;
         this._global.publishAlert(AlertType.Danger, 'Failed to craw');
+        if (promise) {
+          promise.reject(error);
+        }
       });
   }
 
-  injectGoogleAddress(lead: Lead) {
+  injectGoogleAddress(lead: Lead, promise?) {
     console.log(this.apiRequesting);
     this.apiRequesting = true;
     lead.address = lead.address || {};
@@ -311,13 +334,19 @@ export class LeadsComponent implements OnInit {
       })
       .subscribe(result => {
         console.log(result);
-        const clonedLead = JSON.parse(JSON.stringify(lead));
+        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
         clonedLead.address = new Address(result);
         this.patchDiff(lead, clonedLead);
         this.apiRequesting = false;
+        if (promise) {
+          promise.resolve(result);
+        }
       }, error => {
         this.apiRequesting = false;
         this._global.publishAlert(AlertType.Danger, 'Failed to update Google address. Try crawing Google first.');
+        if (promise) {
+          promise.reject(error);
+        }
       });
   }
 
@@ -340,5 +369,20 @@ export class LeadsComponent implements OnInit {
       });
 
     }
+  }
+
+  crawGoogleGmbAll() {
+    // this has to be done sequencially!
+    this.leads
+      .filter(lead => this.selectionSet.has(lead._id))
+      .reduce((p: any, lead) => p.then(() => {
+        const promise = new Promise((resolve, reject) => { });
+        this.crawGoogle(lead, promise);
+        return p;
+      }), Promise.resolve());
+
+  }
+  crawGoogleAddressAll() {
+    // this can be done in parallel but let's do it sequencially too to avoid server stress
   }
 }

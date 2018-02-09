@@ -2,7 +2,7 @@
   <div class="card-header" style="position: relative">
     <h4>
       <span *ngIf="gmbInfo.gmbOpen">
-        <i class="fas fa-lock-open text-success"></i> OPEN! </span>
+        <i class="fas fa-lock-open text-info"></i> OPEN! </span>
       <span *ngIf="gmbInfo.gmbWebsite" class="{{gmbInfo.gmbOwner === 'qmenu' ? 'text-success' : 'text-danger'}}">
         <i class="fas fa-lock"></i> {{gmbInfo.gmbOwner || 'unknown ownership' }} </span>
     </h4>
@@ -40,5 +40,8 @@
         </tr>
       </tbody>
     </table>
+    <div class="text-right">
+      <a *ngIf="getGoogleQuery()" href="{{getGoogleQuery() }}" target="_blank"><i class="fas fa-arrow-circle-right"></i> Google</a>
+    </div>
   </div>
 </div>

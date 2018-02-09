@@ -1,10 +1,16 @@
-<div class="action-bar" *qIf="hasSelection()">
-  <button class="btn btn-primary" (click)="scanGoogle()">
+<div class="action-bar list-group" *qIf="hasSelection()">
+
+  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawGoogleGmbAll()">
     <i class="fab fa-searchengin"></i> Craw Google Info</button>
+  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawGoogleAddressAll()">
+    <i class="fas fa-map-marker-alt"></i> Inject Google Address</button>
+
+  <button type="button" class="list-group-item list-group-item-action" (click)="deselectAll()">Cancel</button>
+
 </div>
 <h1 class="text-center">Lead Management</h1>
 <div class="text-right pb-2">
-  <ng-container *ngFor="let filter of ['classifications', 'serviceProviders', 'zipCode', 'city', 'state', 'rating']">
+  <ng-container *ngFor="let filter of ['classifications', 'gmbOwner', 'zipCode', 'city', 'state', 'rating']">
     <button *ngIf="searchFilter[filter]" class="btn btn-outline-success" (click)="removeFilter(filter)">{{searchFilter[filter]}}
       <span class="text-danger">✕</span>
     </button>
@@ -24,6 +30,7 @@
             <label class="form-check-label" for="check-all">Name</label>
           </div>
         </th>
+        <th scope="col">GMB</th>
         <th scope="col">Street</th>
         <th scope="col">City</th>
         <th scope="col">Zip Code</th>
@@ -32,17 +39,25 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let lead of leads">
+      <tr *ngFor="let lead of leads" class="{{lead.disabled || lead.closed ? 'text-muted closed' : ''}}">
         <th scope="row">
           <div class="form-check">
             <input type="checkbox" class="form-check-input" [id]="'check-' + lead._id" [checked]="selectionSet.has(lead._id)" (change)="toggleSelection(lead)">
             <label class="form-check-label" [attr.for]="'check-' + lead._id">{{lead.name}}</label>
           </div>
         </th>
-        <td>{{(lead.address.stree_number || '') + ' ' + lead.address.route}}</td>
+        <td class="text-nowrap">
+          <i *ngIf="!getLogo(lead) && lead.gmbOwner" class="fas fa-question text-danger"></i>
+          <img *ngIf="getLogo(lead)" [attr.src]="'/assets/images/' + getLogo(lead)" [attr.alt]="lead.gmbOwner" height="16px">
+          <i class="fas fa-lock-open text-info" *ngIf="lead.gmbOpen"></i>
+          <i class="fas fa-globe text-muted" *ngIf="!lead.gmbWebsite && lead.serviceProviders && lead.serviceProviders.length > 0"></i>
+        </td>
+        <td class="{{lead.address.place_id ? 'text-info' : ''}}">{{(lead.address.stree_number || '') + ' ' + lead.address.route}}
+          <i *ngIf="lead.address.place_id" class="fas fa-check"></i>
+        </td>
         <td>{{lead.address.locality}}</td>
         <td>{{lead.address.postal_code}}</td>
-        <td>{{lead.address.administrative_level_2}}</td>
+        <td>{{lead.address.administrative_area_level_1}}</td>
         <td class="text-right">
           <button class="btn btn-link py-0" (click)="view(lead)">
             <i class="fas fa-bars"></i>
@@ -129,7 +144,7 @@
   </table>
   <hr>
   <div class="text-center">
-    <div *ngIf="leadInEditing.rating || leadInEditing.gmbWebsite || leadInEditing.gmbOpen; else no_gmb">
+    <div *ngIf="leadInEditing.gmbScanned; else no_gmb">
       <app-gmb-info [gmbInfo]="leadInEditing"></app-gmb-info>
     </div>
     <ng-template #no_gmb>
