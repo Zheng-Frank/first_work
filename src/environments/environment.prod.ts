@@ -1,7 +1,9 @@
 export const environment = {
   production: true,
-  env: 'prod',
-  lambdaBaseUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
-  internalApiUrl: 'http://internal-api.myqmenu.com:1337/',
-  qmenuApiUrl: 'https://api.myqmenu.com/'
+  env: 'dev',
+  lambdaUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
+  internalApiUrl: 'https://internal-api.myqmenu.com/',
+  // internalApiUrl: 'http://localhost:1337/',
+  qmenuApiUrl: 'https://quez.herokuapp.com/',
+  // qmenuApiUrl: 'http://localhost:1337/'
 };

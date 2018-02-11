@@ -71,14 +71,18 @@ export class GlobalService {
     this._menus = [];
   }
 
-  storeGetUsername() {
-    return store.get('username');
-  }
-
   storeSetUsernameAndToken(username, token) {
     store.set('token', token);
     store.set('username', username);
     this.storeRetrieve();
+  }
+
+  storeSet(itemName, itemValue) {
+    store.set(itemName, itemValue);
+  }
+
+  storeGet(itemName) {
+    return store.get(itemName);
   }
 
   publishAlert(type: AlertType, message: string, timeout = 5000) {

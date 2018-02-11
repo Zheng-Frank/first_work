@@ -3,6 +3,7 @@ import { Address } from '@qmenu/ui/bundles/ui.umd';
 export class Lead {
     _id: string;
     name: string;
+    oldName: string;
     address: Address;
     email: string;
     phones: string[];
@@ -28,6 +29,8 @@ export class Lead {
     closed: boolean; // some permanently closed!
 
     disabled = false;
+
+    assignee: string;
 
     createdAt: Date;
     updatedAt: Date;

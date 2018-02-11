@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit {
     // 1. make clean logout;
     this._global.logout();
     // 2. retrieve suggested username
-    this.username = this._global.storeGetUsername();
+    this.username = this._global.storeGet('username');
   }
 
   ngOnInit() {

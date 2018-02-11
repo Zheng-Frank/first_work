@@ -7,11 +7,7 @@ import { GmbInfo } from '../../classes/gmb-info';
   styleUrls: ['./gmb-info.component.scss']
 })
 export class GmbInfoComponent implements OnInit {
-  @Input() gmbInfo = {
-    gbmWebsite: 'qmenu.us',
-    gmbOwner: 'qmenu2',
-    gmbOpen: true
-  };
+  @Input() gmbInfo;
   constructor() { }
 
   ngOnInit() {

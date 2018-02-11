@@ -1,4 +1,5 @@
 export interface GmbInfo {
+    name: string;
     rating: number;
     totalReviews: number;
     gmbVerified: boolean;

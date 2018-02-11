@@ -43,17 +43,58 @@ export class LeadsComponent implements OnInit {
   leads: Lead[] = [];
   selectionSet = new Set();
 
+  showSelectOptions = false;
+
   leadInEditing = new Lead();
   // for editing
   formFieldDescriptors = [];
 
   // for filtering
-  searchFilter = {
-    classifications: 'Chinese Restaurants'
+  searchFilters = [{
+    path: 'classifications',
+    value: 'Chinese Restaurants'
+  }];
+
+  searchFilterObj = {
   };
-  searchRating;
+  filterRating;
 
   filterFieldDescriptors = [
+    {
+      field: 'gmbOwner', // match db naming otherwise would be single instead of plural
+      label: 'GMB Owner',
+      required: false,
+      inputType: 'single-select',
+      items: Object.keys(spMap).map(s => ({ object: s, text: s, selected: false }))
+    },
+    {
+      field: 'gmbOpen', // match db naming otherwise would be single instead of plural
+      label: 'GMB Status',
+      required: false,
+      inputType: 'single-select',
+      items: [
+        { object: 'gmb open', text: 'Open', selected: false }
+      ]
+    },
+    {
+      field: 'closed', // match db naming otherwise would be single instead of plural
+      label: 'Store Status',
+      required: false,
+      inputType: 'single-select',
+      items: [
+        { object: 'closed', text: 'Store Closed', selected: false },
+        { object: 'open', text: 'Store Open', selected: false }
+      ]
+    },
+    {
+      field: 'assignee', // match db naming otherwise would be single instead of plural
+      label: 'Assigned to Someone',
+      required: false,
+      inputType: 'single-select',
+      items: [
+        { object: 'assigned', text: 'Assigned', selected: false },
+        { object: 'not assigned', text: 'Not Assigned', selected: false }]
+    },
     {
       field: 'classifications', // match db naming otherwise would be single instead of plural
       label: 'Classifications',
@@ -126,26 +167,19 @@ export class LeadsComponent implements OnInit {
       ].sort().map(s => ({ object: s, text: s, selected: false }))
     },
     {
-      field: 'gmbOwner', // match db naming otherwise would be single instead of plural
-      label: 'GMB Owner',
-      required: false,
-      inputType: 'single-select',
-      items: ['qmenu', 'beyondmenu', 'chownow', 'menufy'].map(s => ({ object: s, text: s, selected: false }))
-    },
-    {
-      field: 'zipCode',
+      field: 'address.postal_code',
       label: 'Zip Code',
       required: false,
       inputType: 'tel'
     },
     {
-      field: 'city',
+      field: 'address.locality',
       label: 'City',
       required: false,
       inputType: 'text'
     },
     {
-      field: 'state',
+      field: 'address.administrative_area_level_1',
       label: 'State',
       required: false,
       inputType: 'single-select',
@@ -160,7 +194,39 @@ export class LeadsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+    this.searchFilters = this._global.storeGet('searchFilters') || [];
     this.searchLeads();
+    this.resetRatingAndAssignee();
+  }
+
+  resetRatingAndAssignee() {
+    // we need to parse float out of the rating settings
+    this.filterRating = undefined;
+    this.searchFilters.map(sf => {
+      switch (sf.path) {
+        case 'rating':
+          this.filterRating = (+sf.value.replace(/^\D+/g, '') + 0.5);
+          break;
+        default: break;
+      }
+    });
+  }
+  getObjFromFilters(searchFilters: any[]) {
+    const obj = {};
+    searchFilters.map(filter => this.setPathValue(obj, filter.path, filter.value));
+    return obj;
+  }
+
+  setPathValue(object, path, value) {
+    const parts = path.split('.');
+    let current = object;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!current[parts[i]]) { // fill an object if there is none
+        current[parts[i]] = {};
+      }
+      current = current[parts[i]];
+    }
+    current[parts[parts.length - 1]] = value;
   }
 
   sortLeads(users) {
@@ -203,43 +269,98 @@ export class LeadsComponent implements OnInit {
     }, error => {
       event.acknowledge(error.json() || error);
     });
+
   }
 
   formRemove(event) { }
 
   filter() {
-
+    // reset the searchFilterObj so that the formbuilder has the latest
+    this.searchFilterObj = this.getObjFromFilters(this.searchFilters);
     this.filterModal.show();
   }
 
   filterSubmit(event) {
-    this.searchFilter = event.object;
-    this.searchFilter['rating'] = this.searchRating;
+    this.searchFilters = this.getFilter(event.object);
+    // remove rating field if there is one (maybe we let rating slip into the formbuilder object?)
+    this.searchFilters = this.searchFilters.filter(sf => sf.path !== 'rating');
+    if (this.filterRating && +this.filterRating > 1) {
+      this.searchFilters.push({
+        path: 'rating',
+        value: 'rating ~ ' + this.filterRating
+      });
+    }
 
     this.searchLeads(event.acknowledge);
     this.filterModal.hide();
+    this._global.storeSet('searchFilters', this.searchFilters);
+  }
+
+  getFilter(variable, parentPath?) {
+    const results = [];
+    Object.keys(variable).map(key => {
+      const path = parentPath ? (parentPath + '.' + key) : key;
+      if (variable[key] !== Object(variable[key])) {
+        results.push({
+          path: path,
+          value: variable[key]
+        });
+
+      } else {
+        // case of non-primative
+        results.push(...this.getFilter(variable[key], path));
+      }
+    });
+    return results;
   }
 
   removeFilter(filter) {
-    console.log(filter);
-    delete this.searchFilter[filter];
-    // reset searchFilter to make sure form builder reflect changes :(
-    this.searchFilter = JSON.parse(JSON.stringify(this.searchFilter));
-    console.log(this.searchFilter);
+
+    // delete last key by filter's path (eg. address.locality)
+    this.searchFilters = this.searchFilters.filter(sf => sf !== filter);
+
+    // need to set rating, assignee values
+    this.resetRatingAndAssignee();
     this.searchLeads();
+    this._global.storeSet('searchFilters', this.searchFilters);
   }
 
   searchLeads(acknowledge?) {
     // get all users
     const query = {};
-    ['state', 'city', 'zipCode', 'gmbOwner', 'classifications'].map(field => {
-      if (this.searchFilter[field]) {
-        query[field] = this.searchFilter[field];
+    this.searchFilters.map(filter => {
+      switch (filter.path) {
+        case 'rating':
+          if (this.filterRating > 0) {
+            query['rating'] = { $gte: this.filterRating - 0.5 };
+          }
+          break;
+        case 'assignee':
+          if (filter.value === 'assigned') {
+            query['assignee'] = { $exists: true };
+          }
+          if (filter.value === 'not assigned') {
+            query['assignee'] = { $exists: false };
+          }
+          break;
+        case 'closed':
+          if (filter.value === 'closed') {
+            query['closed'] = true;
+          }
+          if (filter.value === 'open') {
+            query['closed'] = { $ne: true };
+          }
+          break;
+        case 'gmbOpen':
+          if (filter.value === 'gmb open') {
+            query['gmbOpen'] = true;
+          }
+          break;
+        default:
+          query[filter.path] = filter.value;
+          break;
       }
     });
-    if (+this.searchFilter['rating'] > 0) {
-      query['rating'] = { $lte: +this.searchFilter['rating'] };
-    }
 
     this._api.get(environment.lambdaUrl + 'leads', { ids: [], limit: 50, query: query }).subscribe(
       result => {
@@ -262,7 +383,6 @@ export class LeadsComponent implements OnInit {
 
   view(lead) {
     this.leadInEditing = lead;
-    console.log(this.leadInEditing);
     this.viewModal.show();
   }
 
@@ -275,7 +395,6 @@ export class LeadsComponent implements OnInit {
       this.selectionSet.clear();
     } else {
       this.selectionSet = new Set(this.leads.map(lead => lead._id));
-      console.log(this.selectionSet);
     }
   }
 
@@ -291,17 +410,30 @@ export class LeadsComponent implements OnInit {
     }
   }
 
+  selectNonCrawled() {
+    this.selectionSet.clear();
+    this.selectionSet = new Set(this.leads.filter(l => l.address && !l.address.place_id).map(l => l._id));
+  }
+
   hasSelection() {
     return this.leads.some(lead => this.selectionSet.has(lead._id));
   }
 
-  crawGoogle(lead: Lead, promise?) {
+  crawlGoogle(lead: Lead, promise?) {
     this.apiRequesting = true;
     this._api.get(environment.internalApiUrl + 'lead-info',
       { q: lead.name + ' ' + lead.address.route + ' ' + lead.address.postal_code })
       .subscribe(result => {
         const gmbInfo = result as GmbInfo;
         const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+
+        if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
+          clonedLead.oldName = clonedLead.name;
+        } else {
+          // to make sure carry the name
+          gmbInfo.name = clonedLead.name;
+        }
+
         Object.assign(clonedLead, gmbInfo);
 
         if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
@@ -316,7 +448,7 @@ export class LeadsComponent implements OnInit {
         }
       }, error => {
         this.apiRequesting = false;
-        this._global.publishAlert(AlertType.Danger, 'Failed to craw');
+        this._global.publishAlert(AlertType.Danger, 'Failed to crawl');
         if (promise) {
           promise.reject(error);
         }
@@ -324,7 +456,6 @@ export class LeadsComponent implements OnInit {
   }
 
   injectGoogleAddress(lead: Lead, promise?) {
-    console.log(this.apiRequesting);
     this.apiRequesting = true;
     lead.address = lead.address || {};
 
@@ -333,7 +464,6 @@ export class LeadsComponent implements OnInit {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(result => {
-        console.log(result);
         const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
         clonedLead.address = new Address(result);
         this.patchDiff(lead, clonedLead);
@@ -343,7 +473,7 @@ export class LeadsComponent implements OnInit {
         }
       }, error => {
         this.apiRequesting = false;
-        this._global.publishAlert(AlertType.Danger, 'Failed to update Google address. Try crawing Google first.');
+        this._global.publishAlert(AlertType.Danger, 'Failed to update Google address. Try crawling Google first.');
         if (promise) {
           promise.reject(error);
         }
@@ -352,8 +482,6 @@ export class LeadsComponent implements OnInit {
 
   patchDiff(originalLead, newLead) {
     const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
-    console.log(diffs);
-
     if (diffs.length === 0) {
       this._global.publishAlert(AlertType.Info, 'Nothing to update');
     } else {
@@ -371,18 +499,25 @@ export class LeadsComponent implements OnInit {
     }
   }
 
-  crawGoogleGmbAll() {
+  crawlGoogleGmbAll() {
     // this has to be done sequencially!
     this.leads
       .filter(lead => this.selectionSet.has(lead._id))
       .reduce((p: any, lead) => p.then(() => {
-        const promise = new Promise((resolve, reject) => { });
-        this.crawGoogle(lead, promise);
+        this.crawlGoogle(lead, Promise);
         return p;
       }), Promise.resolve());
 
   }
-  crawGoogleAddressAll() {
+  crawlGoogleAddressAll() {
     // this can be done in parallel but let's do it sequencially too to avoid server stress
+  }
+
+  assignLead() {
+    this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
+      const clonedLead = JSON.parse(JSON.stringify(lead));
+      clonedLead.assignee = this._global.user.username;
+      this.patchDiff(lead, clonedLead);
+    });
   }
 }
