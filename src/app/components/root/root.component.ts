@@ -5,8 +5,9 @@ import { ApiService } from '../../services/api.service';
 import { Router } from '@angular/router';
 
 declare function require(moduleName: string): any;
-
 const { version: appVersion } = require('../../../../package.json');
+
+declare var $: any;
 
 @Component({
   selector: 'app-root',
@@ -27,6 +28,16 @@ export class RootComponent implements OnInit {
       this.ref.detectChanges();
     }, 5 * 60 * 1000);
     this.appVersion = appVersion + ' ' + environment.env;
+    // dismiss modal if trying to navigate away
+    window.addEventListener('popstate', function (event) {
+      const modals = $('.modal');
+      if (modals && modals.hasClass('show')) {
+        modals.modal('hide');
+        setTimeout(() => {
+          history.forward();
+        });
+      }
+    });
   }
 
   getFullYear() {
@@ -34,7 +45,7 @@ export class RootComponent implements OnInit {
   }
 
   isApiRequesting() {
-   return this._api.urlsInRequesting.length > 0;
+    return this._api.urlsInRequesting.length > 0;
   }
 
   getMenus() {
