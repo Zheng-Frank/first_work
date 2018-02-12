@@ -8,6 +8,7 @@ import { ModalComponent, AddressPickerComponent } from '@qmenu/ui/bundles/ui.umd
 import { DeepDiff } from '../../classes/deep-diff';
 import { GmbInfo } from '../../classes/gmb-info';
 import { Address } from '@qmenu/ui/bundles/ui.umd';
+import { User } from '../../classes/user';
 
 const spMap = {
   'beyondmenu': 'beyondmenu.png',
@@ -32,6 +33,7 @@ const spMap = {
 })
 export class LeadsComponent implements OnInit {
   @ViewChild('editingModal') editingModal: ModalComponent;
+  @ViewChild('assigneeModal') assigneeModal: ModalComponent;
   @ViewChild('filterModal') filterModal: ModalComponent;
   @ViewChild('viewModal') viewModal: ModalComponent;
 
@@ -48,6 +50,10 @@ export class LeadsComponent implements OnInit {
   leadInEditing = new Lead();
   // for editing
   formFieldDescriptors = [];
+
+  // for assignee
+  assigneeObj = {};
+  assigneeFieldDescriptors = [];
 
   // for filtering
   searchFilters = [{
@@ -87,7 +93,7 @@ export class LeadsComponent implements OnInit {
       ]
     },
     {
-      field: 'assignee', // match db naming otherwise would be single instead of plural
+      field: 'assigned', // match db naming otherwise would be single instead of plural
       label: 'Assigned to Someone',
       required: false,
       inputType: 'single-select',
@@ -196,10 +202,39 @@ export class LeadsComponent implements OnInit {
   ngOnInit() {
     this.searchFilters = this._global.storeGet('searchFilters') || [];
     this.searchLeads();
-    this.resetRatingAndAssignee();
+    this.resetRating();
+
+    // grab all users and make an assignee list!
+    // get all users
+    this._api.get(environment.lambdaUrl + 'users', { ids: [] }).subscribe(
+      result => {
+        const marketingUsers = result.map(u => new User(u))
+          .filter(u => (u.roles || []).some(r => ['MARKETER', 'MARKETING_DIRECTOR'].indexOf(r) >= 0));
+
+        const descriptor = {
+          field: 'assignee', // match db naming otherwise would be single instead of plural
+          label: 'Assignee',
+          required: false,
+          inputType: 'single-select',
+          items: marketingUsers.map(mu => ({
+            object: mu.username,
+            text: mu.username,
+            selected: false
+          }))
+        };
+
+        this.filterFieldDescriptors.splice(4, 0, descriptor);
+
+        const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
+        clonedDescriptor.required = true;
+        this.assigneeFieldDescriptors.push(clonedDescriptor);
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, 'Error pulling users from API');
+      });
   }
 
-  resetRatingAndAssignee() {
+  resetRating() {
     // we need to parse float out of the rating settings
     this.filterRating = undefined;
     this.searchFilters.map(sf => {
@@ -320,7 +355,7 @@ export class LeadsComponent implements OnInit {
     this.searchFilters = this.searchFilters.filter(sf => sf !== filter);
 
     // need to set rating, assignee values
-    this.resetRatingAndAssignee();
+    this.resetRating();
     this.searchLeads();
     this._global.storeSet('searchFilters', this.searchFilters);
   }
@@ -335,7 +370,7 @@ export class LeadsComponent implements OnInit {
             query['rating'] = { $gte: this.filterRating - 0.5 };
           }
           break;
-        case 'assignee':
+        case 'assigned':
           if (filter.value === 'assigned') {
             query['assignee'] = { $exists: true };
           }
@@ -419,7 +454,7 @@ export class LeadsComponent implements OnInit {
     return this.leads.some(lead => this.selectionSet.has(lead._id));
   }
 
-  crawlGoogle(lead: Lead, promise?) {
+  crawlGoogle(lead: Lead, resolveCallback?, rejectCallback?) {
     this.apiRequesting = true;
     this._api.get(environment.internalApiUrl + 'lead-info',
       { q: lead.name + ' ' + lead.address.route + ' ' + lead.address.postal_code })
@@ -441,21 +476,28 @@ export class LeadsComponent implements OnInit {
           delete clonedLead['phone'];
         }
         clonedLead.gmbScanned = true;
-        this.patchDiff(lead, clonedLead);
+        this.patchDiff(lead, clonedLead, true);
         this.apiRequesting = false;
-        if (promise) {
-          promise.resolve(result);
+        if (resolveCallback) {
+          resolveCallback(result);
         }
       }, error => {
         this.apiRequesting = false;
         this._global.publishAlert(AlertType.Danger, 'Failed to crawl');
-        if (promise) {
-          promise.reject(error);
+        if (rejectCallback) {
+
+          rejectCallback(error);
         }
       });
   }
 
-  injectGoogleAddress(lead: Lead, promise?) {
+  crawlGooglePromise(lead: Lead) {
+    return new Promise((resolve, reject) => {
+      this.crawlGoogle(lead, resolve, resolve); // pass ALL resolves to kee the thing going even when some are failing
+    });
+  }
+
+  injectGoogleAddress(lead: Lead) {
     this.apiRequesting = true;
     lead.address = lead.address || {};
 
@@ -468,26 +510,22 @@ export class LeadsComponent implements OnInit {
         clonedLead.address = new Address(result);
         this.patchDiff(lead, clonedLead);
         this.apiRequesting = false;
-        if (promise) {
-          promise.resolve(result);
-        }
       }, error => {
         this.apiRequesting = false;
         this._global.publishAlert(AlertType.Danger, 'Failed to update Google address. Try crawling Google first.');
-        if (promise) {
-          promise.reject(error);
-        }
       });
   }
 
-  patchDiff(originalLead, newLead) {
+  patchDiff(originalLead, newLead, removeFromSelection?) {
     const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
     if (diffs.length === 0) {
       this._global.publishAlert(AlertType.Info, 'Nothing to update');
     } else {
       // api update here...
       this._api.patch(environment.lambdaUrl + 'leads', diffs).subscribe(result => {
-
+        if (removeFromSelection) {
+          this.selectionSet.delete(newLead._id);
+        }
         // let's update original, assuming everything successful
         Object.assign(originalLead, newLead);
         this.editingModal.hide();
@@ -499,24 +537,44 @@ export class LeadsComponent implements OnInit {
     }
   }
 
-  crawlGoogleGmbAll() {
-    // this has to be done sequencially!
+  crawlGoogleGmbOnSelected() {
+    // this has to be done sequencially otherwise overload the server!
+    // this.leads
+    //   .filter(lead => this.selectionSet.has(lead._id))
+    //   .reduce((p: any, lead) => p.then(() => {
+    //     return this.crawlGooglePromise(lead);
+    //   }), Promise.resolve());
+
+    // parallel example
     this.leads
       .filter(lead => this.selectionSet.has(lead._id))
-      .reduce((p: any, lead) => p.then(() => {
-        this.crawlGoogle(lead, Promise);
-        return p;
-      }), Promise.resolve());
-
-  }
-  crawlGoogleAddressAll() {
-    // this can be done in parallel but let's do it sequencially too to avoid server stress
+      .map(lead => {
+        this.crawlGoogle(lead);
+      });
   }
 
-  assignLead() {
+  assignOnSelected() {
+    this.assigneeModal.show();
+  }
+
+  assigneeSubmit(event) {
+    if (event.object.assignee) {
+      this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
+        const clonedLead = JSON.parse(JSON.stringify(lead));
+        clonedLead.assignee = event.object.assignee;
+        this.patchDiff(lead, clonedLead);
+      });
+      this.assigneeModal.hide();
+      event.acknowledge(null);
+    } else {
+      event.acknowledge('No assignee is selected');
+    }
+  }
+
+  unassignOnSelected() {
     this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
       const clonedLead = JSON.parse(JSON.stringify(lead));
-      clonedLead.assignee = this._global.user.username;
+      clonedLead.assignee = undefined;
       this.patchDiff(lead, clonedLead);
     });
   }

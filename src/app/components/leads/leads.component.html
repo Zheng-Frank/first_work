@@ -1,9 +1,12 @@
 <!-- list group as action bars for selected items -->
 <div class="action-bar list-group" *qIf="hasSelection()">
-  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawlGoogleGmbAll()">
-    <i class="fab fa-searchengin"></i> Crawl Google Info</button>
-  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignLead()">
-    <i class="fas fa-arrow-circle-right"></i> Assign to Me</button>
+  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawlGoogleGmbOnSelected()">
+    <i class="fab fa-searchengin"></i> Crawl Google Info ({{selectionSet.size}})</button>
+  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
+    <i class="fas fa-arrow-circle-right"></i> Assign to Marketer</button>
+  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="unassignOnSelected()">
+    <i class="fas fa-arrow-circle-right"></i> Unassign</button>
+
   <!-- <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawlGoogleAddressAll()">
     <i class="fas fa-map-marker-alt"></i> Inject Google Address</button> -->
   <button type="button" class="list-group-item list-group-item-action" (click)="deselectAll()">Cancel</button>
@@ -33,12 +36,14 @@
           </button> Name
           <div class="action-bar list-group" *qIf="showSelectOptions">
             <button type="button" class="list-group-item list-group-item-action text-primary" (click)="toggleSelectAll(); showSelectOptions = false;">
-              <span *ngIf="isAllSelected(); else notAllSelected">
+              <span *ngIf="isAllSelected(); else notAllSelected;">
                 <i class="fas fa-toggle-on"></i> Deselect All
               </span>
-              <span #notAllSelected>
-                <i class="fas fa-toggle-off"></i> Select All
-              </span>
+              <ng-template #notAllSelected>
+                <span>
+                  <i class="fas fa-toggle-off"></i> Select All
+                </span>
+              </ng-template>
             </button>
             <button type="button" class="list-group-item list-group-item-action text-primary" (click)="selectNonCrawled(); showSelectOptions = false;">
               <i class="far fa-flag text-muted"></i> Select Non-crawled
@@ -61,7 +66,12 @@
         <th scope="row">
           <div class="form-check">
             <input type="checkbox" class="form-check-input" [id]="'check-' + lead._id" [checked]="selectionSet.has(lead._id)" (change)="toggleSelection(lead)">
-            <label class="form-check-label" [attr.for]="'check-' + lead._id">{{lead.name}} <span class="text-muted" *ngIf="lead.oldName"><br><small>{{lead.oldName}}</small></span></label>
+            <label class="form-check-label" [attr.for]="'check-' + lead._id">{{lead.name}}
+              <span class="text-muted" *ngIf="lead.oldName">
+                <br>
+                <small>{{lead.oldName}}</small>
+              </span>
+            </label>
           </div>
         </th>
         <td>
@@ -175,6 +185,10 @@
         <i class="fab fa-searchengin"></i> Crawl Google</button>
     </ng-template>
   </div>
+</q-modal>
 
-
+<q-modal [title]="'Select Assignee' " #assigneeModal>
+  <q-form-builder [object]="assigneeObj" [showDelete]="false" [fieldDescriptors]="assigneeFieldDescriptors" (submit)="assigneeSubmit($event)"
+    (cancel)="assigneeModal.hide()">
+  </q-form-builder>
 </q-modal>
