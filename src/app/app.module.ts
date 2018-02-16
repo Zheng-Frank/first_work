@@ -26,6 +26,8 @@ import { RoleGuard } from './role.guard';
 
 import { Address } from '@qmenu/ui/src/app/classes';
 import { GmbInfoComponent } from './components/gmb-info/gmb-info.component';
+import { MyLeadsComponent } from './components/my-leads/my-leads.component';
+import { CallLoggerComponent } from './components/call-logger/call-logger.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +43,9 @@ import { GmbInfoComponent } from './components/gmb-info/gmb-info.component';
     RestaurantsComponent,
     InvoicesComponent,
     OrdersComponent,
-    GmbInfoComponent
+    GmbInfoComponent,
+    MyLeadsComponent,
+    CallLoggerComponent
   ],
   imports: [
     BrowserModule,

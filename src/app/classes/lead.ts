@@ -30,6 +30,8 @@ export class Lead {
 
     disabled = false;
 
+    saleStatus: string;
+
     assignee: string;
 
     createdAt: Date;

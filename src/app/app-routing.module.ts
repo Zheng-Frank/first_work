@@ -5,6 +5,7 @@ import { Bs4Component } from './components/bs4/bs4.component';
 import { HomeComponent } from './components/home/home.component';
 import { InvoicesComponent } from './components/invoices/invoices.component';
 import { LeadsComponent } from './components/leads/leads.component';
+import { MyLeadsComponent } from './components/my-leads/my-leads.component';
 import { LoginComponent } from './components/login/login.component';
 import { OrdersComponent } from './components/orders/orders.component';
 import { ProfileComponent } from './components/profile/profile.component';
@@ -20,6 +21,7 @@ const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [MarketerGuard] },
   { path: 'invoices', component: InvoicesComponent, canActivate: [MarketerGuard] },
   { path: 'leads', component: LeadsComponent, canActivate: [MarketerGuard] },
+  { path: 'my-leads', component: MyLeadsComponent, canActivate: [MarketerGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'orders', component: OrdersComponent },
   { path: 'profile', component: ProfileComponent, canActivate: [MarketerGuard] },

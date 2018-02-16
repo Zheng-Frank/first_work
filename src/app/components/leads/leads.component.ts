@@ -67,39 +67,14 @@ export class LeadsComponent implements OnInit {
 
   filterFieldDescriptors = [
     {
-      field: 'gmbOwner', // match db naming otherwise would be single instead of plural
-      label: 'GMB Owner',
-      required: false,
-      inputType: 'single-select',
-      items: Object.keys(spMap).map(s => ({ object: s, text: s, selected: false }))
-    },
-    {
-      field: 'gmbOpen', // match db naming otherwise would be single instead of plural
-      label: 'GMB Status',
+      field: 'gmbScanned', // match db naming otherwise would be single instead of plural
+      label: 'Data Scanned',
       required: false,
       inputType: 'single-select',
       items: [
-        { object: 'gmb open', text: 'Open', selected: false }
+        { object: 'scanned', text: 'Scanned', selected: false },
+        { object: 'not scanned', text: 'Not Scanned', selected: false }
       ]
-    },
-    {
-      field: 'closed', // match db naming otherwise would be single instead of plural
-      label: 'Store Status',
-      required: false,
-      inputType: 'single-select',
-      items: [
-        { object: 'closed', text: 'Store Closed', selected: false },
-        { object: 'open', text: 'Store Open', selected: false }
-      ]
-    },
-    {
-      field: 'assigned', // match db naming otherwise would be single instead of plural
-      label: 'Assigned to Someone',
-      required: false,
-      inputType: 'single-select',
-      items: [
-        { object: 'assigned', text: 'Assigned', selected: false },
-        { object: 'not assigned', text: 'Not Assigned', selected: false }]
     },
     {
       field: 'classifications', // match db naming otherwise would be single instead of plural
@@ -171,6 +146,41 @@ export class LeadsComponent implements OnInit {
         // 'Filipino Restaurants',
         // 'Russian Restaurants'
       ].sort().map(s => ({ object: s, text: s, selected: false }))
+    },
+    {
+      field: 'gmbOwner', // match db naming otherwise would be single instead of plural
+      label: 'GMB Owner',
+      required: false,
+      inputType: 'single-select',
+      items: Object.keys(spMap).map(s => ({ object: s, text: s, selected: false }))
+    },
+    {
+      field: 'gmbOpen', // match db naming otherwise would be single instead of plural
+      label: 'GMB Status',
+      required: false,
+      inputType: 'single-select',
+      items: [
+        { object: 'gmb open', text: 'Open', selected: false }
+      ]
+    },
+    {
+      field: 'closed', // match db naming otherwise would be single instead of plural
+      label: 'Store Status',
+      required: false,
+      inputType: 'single-select',
+      items: [
+        { object: 'closed', text: 'Store Closed', selected: false },
+        { object: 'open', text: 'Store Open', selected: false }
+      ]
+    },
+    {
+      field: 'assigned', // match db naming otherwise would be single instead of plural
+      label: 'Assigned to Someone',
+      required: false,
+      inputType: 'single-select',
+      items: [
+        { object: 'assigned', text: 'Assigned', selected: false },
+        { object: 'not assigned', text: 'Not Assigned', selected: false }]
     },
     {
       field: 'address.postal_code',
@@ -391,13 +401,20 @@ export class LeadsComponent implements OnInit {
             query['gmbOpen'] = true;
           }
           break;
+        case 'gmbScanned':
+          if (filter.value === 'scanned') {
+            query['gmbScanned'] = true;
+          } else if (filter.value === 'not scanned') {
+            query['gmbScanned'] = { $exists: false };
+          }
+          break;
         default:
           query[filter.path] = filter.value;
           break;
       }
     });
 
-    this._api.get(environment.lambdaUrl + 'leads', { ids: [], limit: 50, query: query }).subscribe(
+    this._api.get(environment.lambdaUrl + 'leads', { ids: [], limit: 100, query: query }).subscribe(
       result => {
         this.leads = result.map(u => new Lead(u));
         this.sortLeads(this.leads);
@@ -447,7 +464,7 @@ export class LeadsComponent implements OnInit {
 
   selectNonCrawled() {
     this.selectionSet.clear();
-    this.selectionSet = new Set(this.leads.filter(l => l.address && !l.address.place_id).map(l => l._id));
+    this.selectionSet = new Set(this.leads.filter(l => !l.gmbScanned).map(l => l._id));
   }
 
   hasSelection() {
@@ -539,18 +556,18 @@ export class LeadsComponent implements OnInit {
 
   crawlGoogleGmbOnSelected() {
     // this has to be done sequencially otherwise overload the server!
-    // this.leads
-    //   .filter(lead => this.selectionSet.has(lead._id))
-    //   .reduce((p: any, lead) => p.then(() => {
-    //     return this.crawlGooglePromise(lead);
-    //   }), Promise.resolve());
-
-    // parallel example
     this.leads
       .filter(lead => this.selectionSet.has(lead._id))
-      .map(lead => {
-        this.crawlGoogle(lead);
-      });
+      .reduce((p: any, lead) => p.then(() => {
+        return this.crawlGooglePromise(lead);
+      }), Promise.resolve());
+
+    // parallel example
+    // this.leads
+    //   .filter(lead => this.selectionSet.has(lead._id))
+    //   .map(lead => {
+    //     this.crawlGoogle(lead);
+    //   });
   }
 
   assignOnSelected() {
