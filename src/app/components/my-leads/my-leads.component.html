@@ -1,0 +1,18 @@
+<h1 class="text-center">My Leads</h1>
+<div class="card text-center">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item" *ngFor="let tab of tabs">
+        <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="activeTab = tab">{{tab}} ({{getLeadsForTab(tab).length}})</a>
+      </li>
+    </ul>
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">Special title treatment</h5>
+    <p class="card-text">
+        {{getLeadsForTab(activeTab) | json}}
+    </p>
+
+  </div>
+</div>
+<app-call-logger></app-call-logger>

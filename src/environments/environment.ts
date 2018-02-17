@@ -6,7 +6,7 @@
 export const environment = {
   production: false,
   env: 'dev',
-  lambdaUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
+  lambdaUrl: 'https://swozix2epl.execute-api.us-east-2.amazonaws.com/dev/',
   internalApiUrl: 'https://internal-api.myqmenu.com/',
   // internalApiUrl: 'http://localhost:1337/',
   qmenuApiUrl: 'https://quez.herokuapp.com/',
