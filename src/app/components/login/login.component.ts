@@ -29,7 +29,7 @@ export class LoginComponent implements OnInit {
   login() {
     this.apiRequesting = true;
     this.apiError = undefined;
-    this._api.post(environment.lambdaUrl + 'auth/csr-login', {
+    this._api.post(environment.lambdaUrl + 'auth/login', {
       username: this.username,
       password: this.password
     }).subscribe(

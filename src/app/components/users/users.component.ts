@@ -4,7 +4,7 @@ import { ApiService } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 import { GlobalService } from '../../services/global.service';
 // import { ModalComponent } from 'qmenu-ui/bundles/qmenu-ui.umd';
-import { ModalComponent } from '@qmenu/ui/bundles/ui.umd';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { AlertType } from '../../classes/alert-type';
 import { DeepDiff } from '../../classes/deep-diff';
 

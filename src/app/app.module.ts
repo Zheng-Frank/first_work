@@ -24,7 +24,7 @@ import { InvoicesComponent } from './components/invoices/invoices.component';
 import { OrdersComponent } from './components/orders/orders.component';
 import { RoleGuard } from './role.guard';
 
-import { Address } from '@qmenu/ui/src/app/classes';
+import { Address } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { GmbInfoComponent } from './components/gmb-info/gmb-info.component';
 
 @NgModule({

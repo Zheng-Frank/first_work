@@ -1,4 +1,4 @@
-import { Address } from '@qmenu/ui/bundles/ui.umd';
+import { Address } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 export class Lead {
     _id: string;

@@ -4,10 +4,10 @@ import { environment } from '../../../environments/environment';
 import { GlobalService } from '../../services/global.service';
 import { Lead } from '../../classes/lead';
 import { AlertType } from '../../classes/alert-type';
-import { ModalComponent, AddressPickerComponent } from '@qmenu/ui/bundles/ui.umd';
+import { ModalComponent, AddressPickerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { DeepDiff } from '../../classes/deep-diff';
 import { GmbInfo } from '../../classes/gmb-info';
-import { Address } from '@qmenu/ui/bundles/ui.umd';
+import { Address } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { User } from '../../classes/user';
 
 const spMap = {
