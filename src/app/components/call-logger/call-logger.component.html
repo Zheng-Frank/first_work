@@ -1,21 +1,57 @@
-<pre>
-  [Log Phone Call]
-  Phone Number
-  Date Time
-  [Busy] [Left Message] [Connected]
-      - 
+<ng-container *ngIf="lead">
+  <q-form-builder [object]="callLog" [showDelete]="false" [fieldDescriptors]="callLogFieldDescriptors" (submit)="callLogSubmit($event)"
+    (cancel)="callLogCancel()">
+    <div *qIf="callLog.lineStatus === 'connected'">
+      <div class="form-group">
+        <label>Who Was on Phone?</label>
+        <div class="contact-options">
+          <q-select [items]="getContactItems()" [maxSelection]="10" (select)="selectContact($event)"></q-select>
+          <input type="text" class="form-control" placeholder="type new contact" [(ngModel)]="newContactName" (change)="addNewContact()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Sales Outcome</label>
+        <div>
+          <q-select [items]="salesResultItems" (select)="selectSalesResult($event)"></q-select>
+          <div *qIf="isRejected()">
+            <div class="text-danger">Reasons</div>
+            <div class="contact-options">
+              <q-select [items]="rejectedReasons" [maxSelection]="10" (select)="selectRejectedReason($event)"></q-select>
+              <input type="text" class="form-control" placeholder="type a reason" [(ngModel)]="newRejectedReason" (change)="addNewRejectedReason()">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Others</label>
+        <div>
+          <q-select [items]="othersItems" [maxSelection]="10" (select)="selectOthers($event)"></q-select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Callback Time</label>
+        <div>
+            <input type="text" class="form-control" placeholder="type callback time" [(ngModel)]="callLog.callbackTime">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="comments">Extra Comments</label>
+        <textarea class="form-control" id="comments" rows="3" [(ngModel)]="callLog.comments"></textarea>
+      </div>
+    </div>
 
+  </q-form-builder>
+</ng-container>
+{{callLog | json}}
 
-  [Submit Log]
-</pre>>
-  
 <div class="card">
   <div class="card-body">
     <h5 class="card-title">Card title</h5>
     <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
     <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
     <button class="btn btn-link text-secondary" (click)="cancelClicked()">Cancel</button>
-    <button class="btn btn-primary" (click)="submitClicked()"><i class="fas fa-check"></i> Submit</button>
+    <button class="btn btn-primary" (click)="submitClicked()">
+      <i class="fas fa-check"></i> Submit</button>
   </div>
 
 </div>

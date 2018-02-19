@@ -6,8 +6,11 @@ export class Lead {
     oldName: string;
     address: Address;
     email: string;
+    fax: string;
     phones: string[];
+    contacts: string[];
     website: string;
+    language: string;
 
     classifications: string[];
 

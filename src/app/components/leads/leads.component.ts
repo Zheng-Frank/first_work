@@ -204,6 +204,14 @@ export class LeadsComponent implements OnInit {
         'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR',
         'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
         .map(state => ({ object: state, text: state, selected: false }))
+    },
+    {
+      field: 'timezone',
+      label: 'Timezone (UNDER CONSTRUCTION)',
+      required: false,
+      inputType: 'single-select',
+      items: ['East', 'Mountain', 'West']
+        .map(state => ({ object: state, text: state, selected: false }))
     }
   ];
 
@@ -487,7 +495,7 @@ export class LeadsComponent implements OnInit {
         }
 
         Object.assign(clonedLead, gmbInfo);
-
+        clonedLead.phones = clonedLead.phones || [];
         if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
           clonedLead.phones.push(gmbInfo.phone);
           delete clonedLead['phone'];
@@ -550,7 +558,6 @@ export class LeadsComponent implements OnInit {
       }, error => {
         this._global.publishAlert(AlertType.Danger, 'Error updating to DB');
       });
-
     }
   }
 

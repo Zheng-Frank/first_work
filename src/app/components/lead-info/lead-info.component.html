@@ -1,0 +1,80 @@
+<div *ngIf="lead">
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="row">
+        <div class="col-3 label">
+          <i class="fas fa-map-marker-alt"></i> Address
+        </div>
+        <div class="col">
+          {{(lead.address.formatted_address || '').replace(', USA', '')}}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <div class="row">
+        <div class="col-3 label">
+          <i class="far fa-envelope"></i> Email
+        </div>
+
+        <div class="col">
+          <q-edit-label [value]="lead.email" (edit)="editLabelChange($event, 'email')"></q-edit-label>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <div class="row">
+        <div class="col-3 label">
+          <i class="fas fa-phone"></i> Phone
+        </div>
+        <div class="col">
+          <div *ngFor="let phone of lead.phones || []" class="d-inline pr-3">
+            <q-edit-label [value]="phone" [type]="'tel'" (edit)="editLabelChange($event, 'phones')"></q-edit-label>
+          </div>
+          <div class="d-inline">
+            <q-edit-label [type]="'tel'" (edit)="editLabelChange($event, 'phones')" [emptyHint]="'+Add'"></q-edit-label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="row">
+        <div class="col-3 label">
+          <i class="fas fa-fax"></i> Fax
+        </div>
+        <div class="col">
+          <q-edit-label [value]="lead.fax" [type]="'tel'" (edit)="editLabelChange($event, 'fax')"></q-edit-label>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="row">
+        <div class="col-3 label">
+          <i class="far fa-address-book"></i> Contact
+        </div>
+        <div class="col">
+          <div *ngFor="let contact of lead.contacts || []" class="d-inline pr-3">
+            <q-edit-label [value]="contact" [type]="'text'" (edit)="editLabelChange($event, 'contacts')"></q-edit-label>
+          </div>
+          <div class="d-inline">
+            <q-edit-label [type]='text' (edit)="editLabelChange($event, 'contacts')" [emptyHint]="'+Add'"></q-edit-label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="row">
+        <div class="col-3 label">
+          <i class="fas fa-globe"></i> Language
+        </div>
+        <div class="col">
+          <q-edit-label [value]="lead.language" [type]="'single-select'" [options]="['Chinese', 'English', 'Spanish']" (edit)="editLabelChange($event, 'language')" [emptyHint]="'Select ···'"></q-edit-label>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+</div>
