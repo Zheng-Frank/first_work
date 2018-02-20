@@ -13,3 +13,8 @@ tr:hover {
 /deep/ .modal-dialog {
   max-width: 90%;
 }
+
+.legend {
+  display: inline-block;
+  min-width: 9rem;
+}

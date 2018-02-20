@@ -6,7 +6,7 @@
           <i class="fas fa-map-marker-alt"></i> Address
         </div>
         <div class="col">
-          {{(lead.address.formatted_address || '').replace(', USA', '')}}
+          {{((lead.address || {}).formatted_address || '').replace(', USA', '')}}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 import { GlobalService } from '../../services/global.service';
@@ -12,7 +12,7 @@ import { AlertType } from '../../classes/alert-type';
   templateUrl: './call-logger.component.html',
   styleUrls: ['./call-logger.component.scss']
 })
-export class CallLoggerComponent implements OnInit {
+export class CallLoggerComponent implements OnInit, OnChanges {
   @Input() lead: Lead;
   @Input() callLog = new CallLog();
   @Output() cancel = new EventEmitter();
@@ -21,6 +21,13 @@ export class CallLoggerComponent implements OnInit {
   newContactName;
 
   callLogFieldDescriptors = [
+    {
+      field: 'phone', // 
+      label: 'Phone Number',
+      required: true,
+      inputType: 'single-select',
+      items: []
+    },
     {
       field: 'lineStatus', // 
       label: 'Line Status',
@@ -101,6 +108,21 @@ export class CallLoggerComponent implements OnInit {
   ngOnInit() {
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    // changes.prop contains the old and the new value...
+    const phones = this.lead ? (this.lead.phones || []) : [];
+    this.callLogFieldDescriptors[0] = {
+      field: 'phone', // 
+      label: 'Phone Number',
+      required: true,
+      inputType: 'single-select',
+      items: phones.map(p => ({
+        text: p.substring(0, 3) + '-' +  p.substring(3, 6) + '-' + p.substr(6),
+        object: p,
+        selected: false
+      }))
+    };
+  }
 
   getContactItems() {
     if (this.contactItems.length === 0) {
@@ -161,6 +183,7 @@ export class CallLoggerComponent implements OnInit {
   callLogCancel() {
     this.cancel.emit();
   }
+
 
   addNewContact() {
     this.lead.contacts = this.lead.contacts || [];

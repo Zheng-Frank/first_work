@@ -16,7 +16,6 @@ export class CallLog {
     comments: string;
     
     constructor(callog?: any) {
-
         if (callog) {
             // copy every fields
             for (const k in callog) {
