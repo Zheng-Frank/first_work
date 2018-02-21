@@ -124,7 +124,6 @@ export class UsersComponent implements OnInit {
         }
 
         const diffs = DeepDiff.getDiff(originalUser._id, originalUser, this.userInEditing, ignoreFields);
-        console.log(diffs);
 
         if (diffs.length === 0) {
           event.acknowledge('Nothing changed');

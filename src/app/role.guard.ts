@@ -11,7 +11,7 @@ export class RoleGuard implements CanActivate {
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-    console.log(JSON.stringify(next.data));
+
     // role detecting
     let foundRole = false;
     if (next.data && next.data.roles && this._global.user && this._global.user.roles) {

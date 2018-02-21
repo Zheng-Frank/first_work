@@ -92,7 +92,6 @@ export class ApiService {
             key + '=' + encodeURIComponent( (Object(payload[key]) === payload[key] ? JSON.stringify(payload[key]) : payload[key])))
             .join('&');
         }
-        console.log(api);
         observable = this.http[method](api, { headers: headers });
         break;
       default:

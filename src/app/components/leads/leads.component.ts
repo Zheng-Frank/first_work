@@ -241,7 +241,7 @@ export class LeadsComponent implements OnInit {
           }))
         };
 
-        this.filterFieldDescriptors.splice(4, 0, descriptor);
+        this.filterFieldDescriptors.splice(5, 0, descriptor);
 
         const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
         clonedDescriptor.required = true;

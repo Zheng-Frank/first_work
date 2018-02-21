@@ -52,11 +52,9 @@ export class LeadInfoComponent implements OnInit {
         break;
     }
     this.patchDiff(this.lead, newLead);
-    console.log(result, field);
   }
 
   patchDiff(originalLead, newLead) {
-    console.log('patch')
     const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
     if (diffs.length === 0) {
       this._global.publishAlert(AlertType.Info, 'Nothing to update');

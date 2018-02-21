@@ -67,13 +67,22 @@ export class Lead {
     }
   }
 
-  getSalesOutcome() {
-    const sortedLogs = (this.callLogs || []).sort(
-      (log1, log2) => log1.time.valueOf() - log2.time.valueOf()
+  getDescSortedCallLogs() {
+    return (this.callLogs || []).sort(
+      (log1, log2) => log2.time.valueOf() - log1.time.valueOf()
     );
-    if (sortedLogs.length > 0) {
-      return sortedLogs[sortedLogs.length - 1].salesOutcome;
+  }
+
+  getSalesOutcome() {
+    const lastCallLog = this.getLastCallLog();
+    if(lastCallLog) {
+      return lastCallLog.salesOutcome;
     }
     return undefined;
   }
+
+  getLastCallLog() {
+    return this.getDescSortedCallLogs()[0];
+  }
+
 }

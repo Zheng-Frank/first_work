@@ -26,8 +26,12 @@ export class MyLeadsComponent implements OnInit {
   leadsInProgress = [];
 
   selectedLead = new Lead();
-  selectedCallLog = new CallLog();
-  editingCallLog = false;
+
+  newCallLog = new CallLog();
+  editingNewCallLog = false;
+
+  // for editing existing call log
+  selectedCallLog;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.populateMyLeads();
@@ -149,33 +153,44 @@ export class MyLeadsComponent implements OnInit {
   }
 
   selectCallLog(log) {
-    console.log(log);
+    this.selectedCallLog = this.selectedCallLog === log ? new CallLog() : log;
   }
 
   toggleNewCallLog() {
-    this.editingCallLog = !this.editingCallLog;
-    if (this.editingCallLog) {
-      this.selectedCallLog = new CallLog();
-      this.selectedCallLog.time = new Date();
-      this.selectedCallLog.caller = this._global.user.username;
+    this.editingNewCallLog = !this.editingNewCallLog;
+    if (this.editingNewCallLog) {
+      this.newCallLog = new CallLog();
+      this.newCallLog.time = new Date();
+      this.newCallLog.caller = this._global.user.username;
       if (this.selectedLead.phones && this.selectedLead.phones.length === 1) {
-        this.selectedCallLog.phone = this.selectedLead.phones[0];
+        this.newCallLog.phone = this.selectedLead.phones[0];
       }
     }
+  }
+
+  getLastCallLog(lead) {
+    return lead.getLastCallLog() || {};
   }
 
   sumbitCallLog(event) {
     const leadClone = new Lead(this.selectedLead);
     leadClone.callLogs = leadClone.callLogs || [];
-    leadClone.callLogs.push(event.object);
+    if (event.object === this.newCallLog) {
+      leadClone.callLogs.push(event.object);
+    }
     event.acknowledge(null);
-    this.editingCallLog = false;
+
+    this.editingNewCallLog = false;
+    this.selectedCallLog = null;
     this.patchDiff(this.selectedLead, leadClone);
   }
 
-  getSortedCallLogs(lead) {
-    return (lead.callLogs || []).sort(
-      (log1, log2) => log2.time.valueOf() - log1.time.valueOf()
-    );
+  removeCallLog(event) {
+    const leadClone = new Lead(this.selectedLead);
+    leadClone.callLogs = (this.selectedLead.callLogs || []).filter(log => log !== event.object);
+ 
+    event.acknowledge(null);
+    this.selectedCallLog = null;
+    this.patchDiff(this.selectedLead, leadClone);
   }
 }

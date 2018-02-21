@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
-import * as jwtDecode from 'jwt-decode';
-import { Alert } from '../classes/alert';
-import { ApiService } from './api.service';
-import { AlertType } from '../classes/alert-type';
-import { User } from '../classes/user';
+import { Injectable } from "@angular/core";
+import * as jwtDecode from "jwt-decode";
+import { Alert } from "../classes/alert";
+import { ApiService } from "./api.service";
+import { AlertType } from "../classes/alert-type";
+import { User } from "../classes/user";
 declare var store: any;
 
 @Injectable()
@@ -35,46 +35,86 @@ export class GlobalService {
   }
 
   storeRetrieve() {
-    this._token = store.get('token');
+    this._token = store.get("token");
     if (this._token) {
-      this._api.addHeader('Authorization', 'Bearer ' + this.token);
+      this._api.addHeader("Authorization", "Bearer " + this.token);
     }
     this._menus = [];
     try {
-      this._user = JSON.parse(jwtDecode(this._token)['user']);
+      this._user = JSON.parse(jwtDecode(this._token)["user"]);
       const roles = this._user.roles || [];
       const menuMappings = [
-        { name: 'Restaurants', href: '#/restaurants', fa: 'fas fa-utensils', accessibleRoles: ['ADMIN', 'MENU_EDITOR'] },
-        { name: 'Invoices', href: '#/invoices', fa: 'fas fa-dollar-sign', accessibleRoles: ['ADMIN', 'ACCOUNTANT'] },
-        { name: 'Orders', href: '#/orders', fa: 'fas fa-shopping-bag', accessibleRoles: ['ADMIN', 'ORDER_MANAGER'] },
-        { name: 'Leads', href: '#/leads', fa: 'fas fa-lightbulb', accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER'] },
-        { name: 'My Leads', href: '#/my-leads', fa: 'fas fa-tasks', accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER'] },
-        { name: 'System', href: '#/system', fa: 'fas fa-heartbeat', accessibleRoles: ['ADMIN'] },
-        { name: 'Users', href: '#/users', fa: 'fas fa-users', accessibleRoles: ['ADMIN'] },
-        { name: 'Bootstrap4', href: '#/bs4', fa: 'fab fa-twitter', accessibleRoles: ['ADMIN'] },
-        { name: 'Me', href: '#/profile', fa: 'fas fa-user' }
+        {
+          name: "Restaurants",
+          href: "#/restaurants",
+          fa: "fas fa-utensils",
+          accessibleRoles: ["ADMIN", "MENU_EDITOR"]
+        },
+        {
+          name: "Invoices",
+          href: "#/invoices",
+          fa: "fas fa-dollar-sign",
+          accessibleRoles: ["ADMIN", "ACCOUNTANT"]
+        },
+        {
+          name: "Orders",
+          href: "#/orders",
+          fa: "fas fa-shopping-bag",
+          accessibleRoles: ["ADMIN", "ORDER_MANAGER"]
+        },
+        {
+          name: "Leads",
+          href: "#/leads",
+          fa: "fas fa-lightbulb",
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER"]
+        },
+        {
+          name: "My Leads",
+          href: "#/my-leads",
+          fa: "fas fa-tasks",
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER"]
+        },
+        {
+          name: "System",
+          href: "#/system",
+          fa: "fas fa-heartbeat",
+          accessibleRoles: ["ADMIN"]
+        },
+        {
+          name: "Users",
+          href: "#/users",
+          fa: "fas fa-users",
+          accessibleRoles: ["ADMIN"]
+        },
+        {
+          name: "Bootstrap4",
+          href: "#/bs4",
+          fa: "fab fa-twitter",
+          accessibleRoles: ["ADMIN"]
+        },
+        { name: "Me", href: "#/profile", fa: "fas fa-user" }
       ];
 
       this._menus = menuMappings.filter(
-        menu => (!menu['accessibleRoles']
-          || this._user.roles.some(role => menu['accessibleRoles'].indexOf(role) >= 0)));
-
-    } catch {
-    }
+        menu =>
+          !menu["accessibleRoles"] ||
+          this.isUserInRoles(menu["accessibleRoles"])
+      );
+    } catch {}
   }
   /** reset persisted values, except username (for next login) */
   logout() {
-    const username = store.get('username');
+    const username = store.get("username");
     store.clearAll();
-    store.set('username', username);
+    store.set("username", username);
     this._token = undefined;
     this._user = undefined;
     this._menus = [];
   }
 
   storeSetUsernameAndToken(username, token) {
-    store.set('token', token);
-    store.set('username', username);
+    store.set("token", token);
+    store.set("username", username);
     this.storeRetrieve();
   }
 
@@ -98,4 +138,7 @@ export class GlobalService {
     this._alerts = this._alerts.filter(a => a !== alert);
   }
 
+  isUserInRoles(roles) {
+    return this._user.roles.some(role => roles.indexOf(role) >= 0);
+  }
 }

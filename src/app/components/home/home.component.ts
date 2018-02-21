@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { GlobalService } from '../../services/global.service';
 import { AlertType } from '../../classes/alert-type';
-import { DeepDiff } from '../../classes/deep-diff';
 
 @Component({
   selector: 'app-home',
@@ -17,10 +16,5 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
   }
 
-  test() {
-
-    DeepDiff.test();
-
-  }
 
 }

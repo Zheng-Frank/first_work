@@ -5,6 +5,7 @@ export class CallLog {
     time: Date;
 
     salesOutcome: string;
+    rejectedReasons: string[];
     callbackTime;
 
     lineStatus: string; // busy, connected, left message
