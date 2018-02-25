@@ -42,6 +42,8 @@ export class LeadsComponent implements OnInit {
   @ViewChild("viewModal") viewModal: ModalComponent;
 
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
+
+  users: User[];
   addressApt = null;
 
   apiRequesting = false;
@@ -178,8 +180,8 @@ export class LeadsComponent implements OnInit {
       required: false,
       inputType: "single-select",
       items: [
-        { object: "closed", text: "Store Closed", selected: false },
-        { object: "open", text: "Store Open", selected: false }
+        { object: "store closed", text: "Store Closed", selected: false },
+        { object: "sore open", text: "Store Open", selected: false }
       ]
     },
     {
@@ -304,6 +306,9 @@ export class LeadsComponent implements OnInit {
     // get all users
     this._api.get(environment.lambdaUrl + "users", { ids: [] }).subscribe(
       result => {
+        this.users = result.map(u => new User(u));
+
+        // make form selector here
         const marketingUsers = result
           .map(u => new User(u))
           .filter(u =>
@@ -492,10 +497,10 @@ export class LeadsComponent implements OnInit {
           }
           break;
         case "closed":
-          if (filter.value === "closed") {
+          if (filter.value === "store closed") {
             query["closed"] = true;
           }
-          if (filter.value === "open") {
+          if (filter.value === "store open") {
             query["closed"] = { $ne: true };
           }
           break;
@@ -727,23 +732,62 @@ export class LeadsComponent implements OnInit {
 
   assigneeSubmit(event) {
     if (event.object.assignee) {
-      this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
-        const clonedLead = JSON.parse(JSON.stringify(lead));
-        clonedLead.assignee = event.object.assignee;
-        this.patchDiff(lead, clonedLead);
-      });
-      this.assigneeModal.hide();
-      event.acknowledge(null);
+      const myusers = this.users
+        .filter(
+          u =>
+            u.manager === this._global.user.username ||
+            this._global.user.roles.indexOf("ADMIN") >= 0
+        )
+        .map(u => u.username);
+      myusers.push(this._global.user.username);
+      if (myusers.indexOf(event.object.assignee) < 0) {
+        event.acknowledge("Failed to " + event.object.assignee);
+      } else {
+        this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
+          const clonedLead = JSON.parse(JSON.stringify(lead));
+
+          if (
+            !clonedLead.assignee ||
+            myusers.indexOf(clonedLead.assignee) >= 0
+          ) {
+            clonedLead.assignee = event.object.assignee;
+            this.patchDiff(lead, clonedLead);
+          } else {
+            this._global.publishAlert(
+              AlertType.Danger,
+              "Failed to assign " + event.object.assignee
+            );
+          }
+        });
+        this.assigneeModal.hide();
+        event.acknowledge(null);
+      }
     } else {
       event.acknowledge("No assignee is selected");
     }
   }
 
   unassignOnSelected() {
+    const myusers = this.users
+      .filter(
+        u =>
+          u.manager === this._global.user.username ||
+          this._global.user.roles.indexOf("ADMIN") >= 0
+      )
+      .map(u => u.username);
+    myusers.push(this._global.user.username);
+
     this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
       const clonedLead = JSON.parse(JSON.stringify(lead));
-      clonedLead.assignee = undefined;
-      this.patchDiff(lead, clonedLead);
+      if (myusers.indexOf(clonedLead.assignee) >= 0) {
+        clonedLead.assignee = undefined;
+        this.patchDiff(lead, clonedLead);
+      } else {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Failed to unassign " + clonedLead.assignee
+        );
+      }
     });
   }
 
