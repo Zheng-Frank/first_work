@@ -195,6 +195,6 @@ export class MyLeadsComponent implements OnInit {
   }
 
   getShortenedTimeZone(tz) {
-    return tz.replace('America/', '');
+    return (tz || '').replace('America/', '');
   }
 }

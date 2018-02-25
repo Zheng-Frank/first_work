@@ -181,7 +181,7 @@ export class LeadsComponent implements OnInit {
       inputType: "single-select",
       items: [
         { object: "store closed", text: "Store Closed", selected: false },
-        { object: "sore open", text: "Store Open", selected: false }
+        { object: "store open", text: "Store Open", selected: false }
       ]
     },
     {
