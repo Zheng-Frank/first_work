@@ -72,7 +72,7 @@ export class LeadsComponent implements OnInit {
 
   filterFieldDescriptors = [
     {
-      field: "gmbScanned", // match db naming otherwise would be single instead of plural
+      field: "gmbScanned", //
       label: "Data Scanned",
       required: false,
       inputType: "single-select",
@@ -82,7 +82,7 @@ export class LeadsComponent implements OnInit {
       ]
     },
     {
-      field: "classifications", // match db naming otherwise would be single instead of plural
+      field: "classifications", //
       label: "Classifications",
       required: false,
       inputType: "single-select",
@@ -155,7 +155,7 @@ export class LeadsComponent implements OnInit {
         .map(s => ({ object: s, text: s, selected: false }))
     },
     {
-      field: "gmbOwner", // match db naming otherwise would be single instead of plural
+      field: "gmbOwner", //
       label: "GMB Owner",
       required: false,
       inputType: "single-select",
@@ -166,14 +166,14 @@ export class LeadsComponent implements OnInit {
       }))
     },
     {
-      field: "gmbOpen", // match db naming otherwise would be single instead of plural
+      field: "gmbOpen", //
       label: "GMB Status",
       required: false,
       inputType: "single-select",
       items: [{ object: "gmb open", text: "Open", selected: false }]
     },
     {
-      field: "closed", // match db naming otherwise would be single instead of plural
+      field: "closed", //
       label: "Store Status",
       required: false,
       inputType: "single-select",
@@ -183,7 +183,7 @@ export class LeadsComponent implements OnInit {
       ]
     },
     {
-      field: "assigned", // match db naming otherwise would be single instead of plural
+      field: "assigned", //
       label: "Assigned to Someone",
       required: false,
       inputType: "single-select",
@@ -193,11 +193,21 @@ export class LeadsComponent implements OnInit {
       ]
     },
     {
-      field: "email", // match db naming otherwise would be single instead of plural
+      field: "email", //
       label: "Email Status",
       required: false,
       inputType: "single-select",
       items: [{ object: "has email", text: "Has Email", selected: false }]
+    },
+    {
+      field: "address.place_id",
+      label: "Address Resolve",
+      required: false,
+      inputType: "single-select",
+      items: [
+        { object: "address resolved", text: "Resolved", selected: false },
+        { object: "not resolved", text: "Not Resolved", selected: false }
+      ]
     },
     {
       field: "address.postal_code",
@@ -506,6 +516,13 @@ export class LeadsComponent implements OnInit {
             query["gmbScanned"] = { $exists: false };
           }
           break;
+        case "address.place_id":
+          if (filter.value === "address resolved") {
+            query["address.place_id"] = { $exists: true };
+          } else if (filter.value === "not resolved") {
+            query["address.place_id"] = { $exists: false };
+          }
+          break;
         default:
           query[filter.path] = filter.value;
           break;
@@ -585,7 +602,14 @@ export class LeadsComponent implements OnInit {
     this.apiRequesting = true;
     this._api
       .get(environment.internalApiUrl + "lead-info", {
-        q: [lead.name, lead.address.route, lead.address.locality, lead.address.postal_code].filter(i => i).join(' ')
+        q: [
+          lead.name,
+          lead.address.route,
+          lead.address.locality,
+          lead.address.postal_code
+        ]
+          .filter(i => i)
+          .join(" ")
       })
       .subscribe(
         result => {
@@ -725,8 +749,12 @@ export class LeadsComponent implements OnInit {
 
   getGoogleQuery(lead) {
     if (lead.address) {
-      return 'https://www.google.com/search?q='
-        + encodeURIComponent(lead['name'] + ' ' + lead['address']['formatted_address']);
+      return (
+        "https://www.google.com/search?q=" +
+        encodeURIComponent(
+          lead["name"] + " " + lead["address"]["formatted_address"]
+        )
+      );
     }
     return undefined;
   }
