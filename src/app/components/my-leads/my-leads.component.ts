@@ -193,4 +193,8 @@ export class MyLeadsComponent implements OnInit {
     this.selectedCallLog = null;
     this.patchDiff(this.selectedLead, leadClone);
   }
+
+  getShortenedTimeZone(tz) {
+    return tz.replace('America/', '');
+  }
 }

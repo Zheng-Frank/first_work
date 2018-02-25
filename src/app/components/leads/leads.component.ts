@@ -585,7 +585,7 @@ export class LeadsComponent implements OnInit {
     this.apiRequesting = true;
     this._api
       .get(environment.internalApiUrl + "lead-info", {
-        q: lead.name + " " + lead.address.route + " " + lead.address.postal_code
+        q: [lead.name, lead.address.route, lead.address.locality, lead.address.postal_code].filter(i => i).join(' ')
       })
       .subscribe(
         result => {
