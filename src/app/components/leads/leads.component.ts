@@ -537,7 +537,7 @@ export class LeadsComponent implements OnInit {
     this._api
       .get(environment.lambdaUrl + "leads", {
         ids: [],
-        limit: 500,
+        limit: 1000,
         query: query
       })
       .subscribe(
