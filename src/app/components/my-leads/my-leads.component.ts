@@ -46,13 +46,13 @@ export class MyLeadsComponent implements OnInit {
     this._api
       .get(environment.lambdaUrl + "leads", {
         ids: [],
-        limit: 1000,
+        limit: 4000,
         query: query
       })
       .subscribe(
         result => {
           this.myLeads = result.map(u => new Lead(u));
-          this.myLeads.sort((u1, u2) => u1.name.localeCompare(u2.name));
+          this.myLeads.sort((u1, u2) => ((u1.address || {}).administrative_area_level_1 + u1.name).localeCompare((u2.address || {}).administrative_area_level_1 + u2.name));
           if (this.myLeads.length === 0) {
             this._global.publishAlert(AlertType.Info, "No lead found");
           }
