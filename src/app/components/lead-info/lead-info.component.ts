@@ -60,7 +60,7 @@ export class LeadInfoComponent implements OnInit {
       this._global.publishAlert(AlertType.Info, 'Nothing to update');
     } else {
       // api update here...
-      this._api.patch(environment.lambdaUrl + 'leads', diffs).subscribe(result => {
+      this._api.patch(environment.adminApiUrl + 'leads', diffs).subscribe(result => {
         // let's update original, assuming everything successful
         Object.assign(originalLead, newLead);
         for (let key in originalLead) {

@@ -44,7 +44,7 @@ export class MyLeadsComponent implements OnInit {
       assignee: this._global.user.username
     };
     this._api
-      .get(environment.lambdaUrl + "leads", {
+      .get(environment.adminApiUrl + "leads", {
         ids: [],
         limit: 4000,
         query: query
@@ -87,7 +87,9 @@ export class MyLeadsComponent implements OnInit {
     }
   }
 
-  scanLead(lead) {
+  scanLead(event) {
+    const lead = event.lead;
+
     this.apiRequesting = true;
     this.leadsInProgress.push(lead);
     this._api
@@ -116,11 +118,14 @@ export class MyLeadsComponent implements OnInit {
           this.patchDiff(lead, clonedLead);
           this.apiRequesting = false;
           this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
+          // notify done!
+          event.acknowledge && event.acknowledge(null);
         },
         error => {
           this.apiRequesting = false;
           this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
           this._global.publishAlert(AlertType.Danger, "Failed to crawl");
+          event.acknowledge && event.acknowledge('Error scanning GMB info');
         }
       );
   }
@@ -131,7 +136,7 @@ export class MyLeadsComponent implements OnInit {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.lambdaUrl + "leads", diffs).subscribe(
+      this._api.patch(environment.adminApiUrl + "leads", diffs).subscribe(
         result => {
           // let's update original, assuming everything successful
           Object.assign(originalLead, newLead);
