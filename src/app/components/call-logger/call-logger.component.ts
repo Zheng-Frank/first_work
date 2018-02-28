@@ -282,7 +282,7 @@ export class CallLoggerComponent implements OnInit, OnChanges {
       this.newContactName.trim() &&
       this.lead.contacts.indexOf(this.newContactName.trim()) < 0
     ) {
-      const newLead = JSON.parse(JSON.stringify(this.lead));
+      const newLead = new Lead(this.lead);
       newLead.contacts.push(this.newContactName.trim());
       this.patchDiff(this.lead, newLead);
 

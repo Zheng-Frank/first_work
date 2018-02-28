@@ -21,7 +21,7 @@ export class LeadInfoComponent implements OnInit {
 
   editLabelChange(result, field) {
     const value = (result.newValue || '').trim();
-    let newLead = JSON.parse(JSON.stringify(this.lead));
+    let newLead = new Lead(this.lead);
     switch (field) {
       case 'email':
       case 'fax':
