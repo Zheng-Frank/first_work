@@ -29,6 +29,7 @@ import { GmbInfoComponent } from './components/gmb-info/gmb-info.component';
 import { MyLeadsComponent } from './components/my-leads/my-leads.component';
 import { CallLoggerComponent } from './components/call-logger/call-logger.component';
 import { LeadInfoComponent } from './components/lead-info/lead-info.component';
+import { LeadCallLogComponent } from './components/lead-call-log/lead-call-log.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { LeadInfoComponent } from './components/lead-info/lead-info.component';
     GmbInfoComponent,
     MyLeadsComponent,
     CallLoggerComponent,
-    LeadInfoComponent
+    LeadInfoComponent,
+    LeadCallLogComponent
   ],
   imports: [
     BrowserModule,

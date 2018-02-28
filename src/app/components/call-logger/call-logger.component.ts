@@ -46,7 +46,8 @@ export class CallLoggerComponent implements OnInit, OnChanges {
       items: [
         { object: "busy", text: "Busy", selected: false },
         { object: "connected", text: "Connected", selected: false },
-        { object: "voicemail", text: "Voicemail", selected: false }
+        { object: "voicemail", text: "Voicemail", selected: false },
+        { object: "badNumber", text: "Bad Number", selected: false }
       ]
     }
   ];
@@ -112,6 +113,11 @@ export class CallLoggerComponent implements OnInit, OnChanges {
 
       this.othersItems = [
         {
+          text: "Hangup Immediately",
+          object: "hangupImmediately",
+          selected: !!this.callLog.hangupImmediately
+        },
+        {
           text: "Asked More Info",
           object: "askedMoreInfo",
           selected: !!this.callLog.askedMoreInfo
@@ -125,6 +131,11 @@ export class CallLoggerComponent implements OnInit, OnChanges {
           text: "Owner Not In",
           object: "ownerIsAbsent",
           selected: !!this.callLog.ownerIsAbsent
+        },
+        {
+          text: "Updated Language",
+          object: "updatedLanguage",
+          selected: !!this.callLog.updatedLanguage
         }
       ];
 
@@ -132,24 +143,39 @@ export class CallLoggerComponent implements OnInit, OnChanges {
         {
           text: "Too Many",
           object: "too many",
-          selected: (this.callLog.rejectedReasons || []).indexOf("too many")
+          selected:
+            (this.callLog.rejectedReasons || []).indexOf("too many") >= 0
         },
         {
           text: "Rate Too High",
           object: "rate too high",
-          selected: (this.callLog.rejectedReasons || []).indexOf(
-            "rate too high"
-          )
+          selected:
+            (this.callLog.rejectedReasons || []).indexOf("rate too high") >= 0
         },
         {
-          text: "Not Provided",
-          object: "not provided",
-          selected: (this.callLog.rejectedReasons || []).indexOf("not provided")
+          text: "Not Doing Online",
+          object: "not doing online",
+          selected:
+            (this.callLog.rejectedReasons || []).indexOf("Not Doing Online") >=
+            0
+        },
+        {
+          text: "Directly Rejected / Not Provided",
+          object: "no reason",
+          selected:
+            (this.callLog.rejectedReasons || []).indexOf("no reason") >= 0
         }
       ];
 
       (this.callLog.rejectedReasons || []).map(reason => {
-        if (["too many", "rate too high", "not provided"].indexOf(reason) < 0) {
+        if (
+          [
+            "too many",
+            "rate too high",
+            "no reason",
+            "not doing online"
+          ].indexOf(reason) < 0
+        ) {
           this.rejectedReasons.push({
             text: reason,
             object: reason,
@@ -221,15 +247,25 @@ export class CallLoggerComponent implements OnInit, OnChanges {
     );
   }
 
-  cancelClicked() {
-    this.cancel.emit();
-  }
-
-  submitClicked() {
-    this.submit.emit();
-  }
-
   callLogSubmit(event) {
+    // we need to maintain integrity: connected --> salesStatus --> rejected reasons
+    let log = event.object;
+    if (log.lineStatus !== "connected") {
+      log.salesOutcome = undefined;
+      log.rejectedReasons = undefined;
+      log.callbackTime = undefined;
+      log.hangupImmediately = undefined;
+      log.askedMoreInfo = undefined;
+      log.ownerIsBusy = undefined;
+      log.updatedLanguage = undefined;
+      log.ownerIsAbsent = undefined;
+      log.comments = undefined;
+    } else if (
+      log.lineStatus === "connected" &&
+      log.salesOutcome !== "rejected"
+    ) {
+      log.rejectedReasons = undefined;
+    }
     this.submit.emit(event);
   }
   callLogCancel() {

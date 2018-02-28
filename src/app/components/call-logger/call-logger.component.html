@@ -1,6 +1,7 @@
 <ng-container *ngIf="lead && callLog">
   <q-form-builder [object]="callLog" [showDelete]="showDelete" [fieldDescriptors]="callLogFieldDescriptors" (submit)="callLogSubmit($event)"
     (cancel)="callLogCancel()" (remove)="callLogDelete($event)">
+    <div *qIf="callLog.lineStatus === 'badNumber'" class="text-danger"><i class="fas fa-exclamation-triangle"></i> Remove the bad number after submit!</div>
     <div *qIf="callLog.lineStatus === 'connected'">
       <div class="form-group">
         <label>Who Was on Phone?</label>

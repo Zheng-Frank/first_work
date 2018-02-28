@@ -1,0 +1,15 @@
+<ng-container *ngIf="callLog">
+  {{callLog.time | date: 'M/dd'}} {{callLog.comments}}
+  <span *ngIf="callLog.callbackTime" class="text-info">
+    <i class="fas fa-history"></i> {{callLog.callbackTime}}
+  </span>
+  <span *ngFor="let reason of callLog.rejectedReasons || []" class="text-danger">
+    {{reason}}&nbsp;
+  </span>
+  <span *ngIf="callLog.lineStatus === 'badNumber'" class="badge badge-danger"> Bad phone </span>
+  <span *ngIf="callLog.hangupImmediately" class="badge badge-danger"> Hangup </span>
+  <span *ngIf="callLog.askedMoreInfo" class="badge badge-info"> Asked more info </span>
+  <span *ngIf="callLog.ownerIsBusy" class="badge badge-warning"> Owner busy </span>
+  <span *ngIf="callLog.ownerIsAbsent" class="badge badge-secondary"> Owner not in </span>
+  <span *ngIf="callLog.updatedLanguage" class="badge badge-secondary"> Language update </span>
+</ng-container>
