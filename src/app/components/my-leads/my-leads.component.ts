@@ -17,7 +17,14 @@ import { CallLog } from "../../classes/call-log";
 export class MyLeadsComponent implements OnInit {
   @ViewChild("leadModal") leadModal: ModalComponent;
 
-  tabs = ["All", "Ongoing", "Failed", "Interested", "Successful"];
+  tabs = [
+    "All",
+    "Ongoing",
+    "Need Callback",
+    "Interested",
+    "Failed",
+    "Successful"
+  ];
   activeTab = "All";
 
   apiRequesting = false;
@@ -78,11 +85,13 @@ export class MyLeadsComponent implements OnInit {
         return this.myLeads.filter(lead => {
           const outcome = lead.getSalesOutcome();
           return (
-            (!outcome || outcome === "interested") &&
             lead.callLogs &&
-            lead.callLogs.length > 0
+            lead.callLogs.length > 0 &&
+            ["rejected", "interested", 'success', "qmenuCustomer"].indexOf(outcome) < 0
           );
         });
+      case "Need Callback":
+        return this.myLeads.filter(lead => lead.callLogs && lead.callLogs.length > 0 && lead.callLogs[lead.callLogs.length - 1].callbackTime );
       case "Failed":
         return this.myLeads.filter(
           lead => lead.getSalesOutcome() === "rejected"
@@ -146,7 +155,7 @@ export class MyLeadsComponent implements OnInit {
 
   patchDiff(originalLead, newLead) {
     const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
-    
+
     if (diffs.length === 0) {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
@@ -173,7 +182,7 @@ export class MyLeadsComponent implements OnInit {
   }
 
   selectCallLog(log) {
-    console.log('selecting call log')
+    console.log("selecting call log");
     if (
       this.selectedCallLog &&
       this.selectedCallLog.time &&
@@ -182,10 +191,10 @@ export class MyLeadsComponent implements OnInit {
       this.selectedCallLog = new CallLog();
     } else {
       this.selectedCallLog = new CallLog(log);
-      console.log('a')
+      console.log("a");
       console.log(this.selectedCallLog);
       console.log(log);
-      console.log(this.selectedCallLog.time.toString() === log.time.toString())
+      console.log(this.selectedCallLog.time.toString() === log.time.toString());
     }
   }
 
