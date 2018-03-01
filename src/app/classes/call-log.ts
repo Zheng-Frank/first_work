@@ -35,6 +35,10 @@ export class CallLog {
       // deep clone rejectedReasons
       if (this.rejectedReasons) {
         this.rejectedReasons = JSON.parse(JSON.stringify(this.rejectedReasons));
+        if(!Array.isArray(this.rejectedReasons)) {
+          console.log('ERROR IN DB');
+          this.rejectedReasons = [];
+        }
       }
     }
   }
