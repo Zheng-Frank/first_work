@@ -58,11 +58,11 @@ export class Lead {
       // convert address to typeof Address
       this.callLogs = (this.callLogs || []).map(log => new CallLog(log));
       // convert time string here!
-      if (this.createdAt) {
-        this.createdAt = new Date(Date.parse(this.createdAt.toString()));
+      if (this.createdAt && !(this.createdAt instanceof Date)) {
+        this.createdAt = new Date(this.createdAt);
       }
-      if (this.updatedAt) {
-        this.updatedAt = new Date(Date.parse(this.updatedAt.toString()));
+      if (this.updatedAt && !(this.updatedAt instanceof Date)) {
+        this.updatedAt = new Date(this.updatedAt);
       }
     }
   }
@@ -75,7 +75,7 @@ export class Lead {
 
   getSalesOutcome() {
     const lastCallLog = this.getLastCallLog();
-    if(lastCallLog) {
+    if (lastCallLog) {
       return lastCallLog.salesOutcome;
     }
     return undefined;
@@ -84,5 +84,4 @@ export class Lead {
   getLastCallLog() {
     return this.getDescSortedCallLogs()[0];
   }
-
 }

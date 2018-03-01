@@ -145,7 +145,7 @@
               <app-lead-call-log [callLog]="log"></app-lead-call-log>
             </td>
           </tr>
-          <tr *ngIf="selectedCallLog && selectedCallLog.time && (selectedCallLog.time.toString() === log.time.toString())">
+          <tr *ngIf="log.hasSameTimeAs(selectedCallLog)">
             <td colspan="6">
               <div class="card card-body">
                 <h5 class="card-title">Edit Call Log</h5>

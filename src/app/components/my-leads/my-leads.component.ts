@@ -87,11 +87,18 @@ export class MyLeadsComponent implements OnInit {
           return (
             lead.callLogs &&
             lead.callLogs.length > 0 &&
-            ["rejected", "interested", 'success', "qmenuCustomer"].indexOf(outcome) < 0
+            ["rejected", "interested", "success", "qmenuCustomer"].indexOf(
+              outcome
+            ) < 0
           );
         });
       case "Need Callback":
-        return this.myLeads.filter(lead => lead.callLogs && lead.callLogs.length > 0 && lead.callLogs[lead.callLogs.length - 1].callbackTime );
+        return this.myLeads.filter(
+          lead =>
+            lead.callLogs &&
+            lead.callLogs.length > 0 &&
+            lead.callLogs[lead.callLogs.length - 1].callbackTime
+        );
       case "Failed":
         return this.myLeads.filter(
           lead => lead.getSalesOutcome() === "rejected"
@@ -182,19 +189,14 @@ export class MyLeadsComponent implements OnInit {
   }
 
   selectCallLog(log) {
-    console.log("selecting call log");
     if (
       this.selectedCallLog &&
       this.selectedCallLog.time &&
-      this.selectedCallLog.time.toString() === log.time.toString()
+      this.selectedCallLog.hasSameTimeAs(log)
     ) {
       this.selectedCallLog = new CallLog();
     } else {
       this.selectedCallLog = new CallLog(log);
-      console.log("a");
-      console.log(this.selectedCallLog);
-      console.log(log);
-      console.log(this.selectedCallLog.time.toString() === log.time.toString());
     }
   }
 
@@ -224,7 +226,7 @@ export class MyLeadsComponent implements OnInit {
     // replace edited callLog, we can only use time as key to find it
     for (let i = 0; i < leadClone.callLogs.length; i++) {
       if (
-        leadClone.callLogs[i].time.toString() === event.object.time.toString()
+        leadClone.callLogs[i].hasSameTimeAs(event.object)
       ) {
         leadClone.callLogs[i] = event.object;
       }
@@ -239,7 +241,7 @@ export class MyLeadsComponent implements OnInit {
   removeCallLog(event) {
     const leadClone = new Lead(this.selectedLead);
     leadClone.callLogs = (this.selectedLead.callLogs || []).filter(
-      log => log !== event.object
+      log => !log.hasSameTimeAs(event.object)
     );
 
     event.acknowledge(null);
@@ -252,6 +254,8 @@ export class MyLeadsComponent implements OnInit {
   }
 
   setActiveTab(tab) {
-    this.activeTab = tab;
+    setTimeout(() => {
+      this.activeTab = tab;
+    }, 0);
   }
 }
