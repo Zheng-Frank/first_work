@@ -62,7 +62,7 @@
             <td>{{getShortenedTimeZone(lead.address.timezone)}}</td>
             <td>{{lead.language}}</td>
             <td>
-              <span *ngFor="let log of (lead.callLogs || []).reverse()">
+              <span *ngFor="let log of (lead.callLogs || [])">
                 <app-lead-call-log [callLog]="log"></app-lead-call-log>
               </span>
             </td>

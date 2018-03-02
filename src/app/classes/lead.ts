@@ -68,9 +68,8 @@ export class Lead {
   }
 
   getDescSortedCallLogs() {
-    return (this.callLogs || []).sort(
-      (log1, log2) => log2.time.valueOf() - log1.time.valueOf()
-    );
+    const cloned = [...(this.callLogs || [])];
+    return cloned.reverse();
   }
 
   getSalesOutcome() {
@@ -82,6 +81,9 @@ export class Lead {
   }
 
   getLastCallLog() {
-    return this.getDescSortedCallLogs()[0];
+    if (this.callLogs && this.callLogs.length > 0) {
+      return this.callLogs[this.callLogs.length - 1];
+    }
+    return undefined;
   }
 }
