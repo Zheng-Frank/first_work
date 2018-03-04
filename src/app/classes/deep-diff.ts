@@ -21,6 +21,10 @@ export class DeepDiff {
         }
     }
 
+    toString() {
+        return JSON.stringify(this);
+    }
+
     static getDiff(_id, original, compared, ignoredFields?: string[]) {
         const originalClone = JSON.parse(JSON.stringify(original));
         const comparedClone = JSON.parse(JSON.stringify(compared));
@@ -171,6 +175,8 @@ export class DeepDiff {
                     case 'D':
                         // noway to splice at index. So do this:
                         // $set a random value;
+                        console.log(this.toString());
+                        alert('BUG: LET CHRIS KNOW');
                         results.push(
                             {
                                 $set: {

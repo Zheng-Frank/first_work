@@ -304,7 +304,7 @@ export class LeadsComponent implements OnInit {
 
     // grab all users and make an assignee list!
     // get all users
-    this._api.get(environment.lambdaUrl + "users", { ids: [] }).subscribe(
+    this._api.get(environment.adminApiUrl + "users", { ids: [] }).subscribe(
       result => {
         this.users = result.map(u => new User(u));
 
@@ -408,7 +408,7 @@ export class LeadsComponent implements OnInit {
 
     this.leadInEditing.address.apt = (this.addressApt || "").trim();
     this._api
-      .post(environment.lambdaUrl + "leads", [this.leadInEditing])
+      .post(environment.adminApiUrl + "leads", [this.leadInEditing])
       .subscribe(
         result => {
           event.acknowledge(null);
@@ -535,7 +535,7 @@ export class LeadsComponent implements OnInit {
     });
 
     this._api
-      .get(environment.lambdaUrl + "leads", {
+      .get(environment.adminApiUrl + "leads", {
         ids: [],
         limit: 1000,
         query: query
@@ -688,7 +688,7 @@ export class LeadsComponent implements OnInit {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.lambdaUrl + "leads", diffs).subscribe(
+      this._api.patch(environment.adminApiUrl + "leads", diffs).subscribe(
         result => {
           if (removeFromSelection) {
             this.selectionSet.delete(newLead._id);

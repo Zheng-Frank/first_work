@@ -1,0 +1,174 @@
+{
+  "name": "BulkWriteError",
+  "message": "write operation failed",
+  "stack":
+    "MongoError: write operation failed\n    at Function.MongoError.create (/var/task/node_modules/mongodb-core/lib/error.js:45:10)\n    at toError (/var/task/node_modules/@qmenu/aws-helpers/node_modules/mongodb/lib/utils.js:149:22)\n    at /var/task/node_modules/@qmenu/aws-helpers/node_modules/mongodb/lib/bulk/unordered.js:543:15\n    at handleCallback (/var/task/node_modules/@qmenu/aws-helpers/node_modules/mongodb/lib/utils.js:128:55)\n    at resultHandler (/var/task/node_modules/@qmenu/aws-helpers/node_modules/mongodb/lib/bulk/unordered.js:456:5)\n    at /var/task/node_modules/mongodb-core/lib/connection/pool.js:541:18\n    at _combinedTickCallback (internal/process/next_tick.js:73:7)\n    at process._tickDomainCallback (internal/process/next_tick.js:128:9)",
+  "driver": true,
+  "code": 16837,
+  "writeErrors": [
+    {
+      "code": 16837,
+      "index": 2,
+      "errmsg": "Cannot apply $pull to a non-array value",
+      "op": {
+        "q": { "_id": "5a8f9b10fac29139248f2f0e" },
+        "u": {
+          "$pull": {
+            "callLogs.0.rejectedReasons": { "$in": ["____randomgarbage"] }
+          }
+        },
+        "multi": false,
+        "upsert": false
+      }
+    },
+    {
+      "code": 16837,
+      "index": 4,
+      "errmsg": "Cannot apply $pull to a non-array value",
+      "op": {
+        "q": { "_id": "5a8f9b10fac29139248f2f0e" },
+        "u": {
+          "$pull": {
+            "callLogs.0.rejectedReasons": { "$in": ["____randomgarbage"] }
+          }
+        },
+        "multi": false,
+        "upsert": false
+      }
+    },
+    {
+      "code": 16837,
+      "index": 6,
+      "errmsg": "Cannot apply $pull to a non-array value",
+      "op": {
+        "q": { "_id": "5a8f9b10fac29139248f2f0e" },
+        "u": {
+          "$pull": {
+            "callLogs.0.rejectedReasons": { "$in": ["____randomgarbage"] }
+          }
+        },
+        "multi": false,
+        "upsert": false
+      }
+    }
+  ],
+  "result": {
+    "ok": 1,
+    "writeErrors": [
+      {
+        "code": 16837,
+        "index": 2,
+        "errmsg": "Cannot apply $pull to a non-array value",
+        "op": {
+          "q": { "_id": "5a8f9b10fac29139248f2f0e" },
+          "u": {
+            "$pull": {
+              "callLogs.0.rejectedReasons": { "$in": ["____randomgarbage"] }
+            }
+          },
+          "multi": false,
+          "upsert": false
+        }
+      },
+      {
+        "code": 16837,
+        "index": 4,
+        "errmsg": "Cannot apply $pull to a non-array value",
+        "op": {
+          "q": { "_id": "5a8f9b10fac29139248f2f0e" },
+          "u": {
+            "$pull": {
+              "callLogs.0.rejectedReasons": { "$in": ["____randomgarbage"] }
+            }
+          },
+          "multi": false,
+          "upsert": false
+        }
+      },
+      {
+        "code": 16837,
+        "index": 6,
+        "errmsg": "Cannot apply $pull to a non-array value",
+        "op": {
+          "q": { "_id": "5a8f9b10fac29139248f2f0e" },
+          "u": {
+            "$pull": {
+              "callLogs.0.rejectedReasons": { "$in": ["____randomgarbage"] }
+            }
+          },
+          "multi": false,
+          "upsert": false
+        }
+      }
+    ],
+    "writeConcernErrors": [],
+    "insertedIds": [],
+    "nInserted": 0,
+    "nUpserted": 0,
+    "nMatched": 5,
+    "nModified": 1,
+    "nRemoved": 0,
+    "upserted": [],
+    "lastOp": { "ts": "6527849217560412162", "t": 1 }
+  }
+}
+
+
+[
+  {
+    "kind": "E",
+    "path": [
+      "callLogs",
+      0,
+      "rejectedReasons",
+      0
+    ],
+    "lhs": "too many",
+    "rhs": "直接挂电话",
+    "_id": "5a8f9b10fac29139248f2f0e"
+  },
+  {
+    "kind": "A",
+    "path": [
+      "callLogs",
+      0,
+      "rejectedReasons"
+    ],
+    "index": 1,
+    "item": {
+      "kind": "D",
+      "lhs": "rate too high"
+    },
+    "_id": "5a8f9b10fac29139248f2f0e"
+  },
+  {
+    "kind": "A",
+    "path": [
+      "callLogs",
+      0,
+      "rejectedReasons"
+    ],
+    "index": 2,
+    "item": {
+      "kind": "D",
+      "lhs": "not provided"
+    },
+    "_id": "5a8f9b10fac29139248f2f0e"
+  },
+  {
+    "kind": "A",
+    "path": [
+      "callLogs",
+      0,
+      "rejectedReasons"
+    ],
+    "index": 3,
+    "item": {
+      "kind": "D",
+      "lhs": "直接挂电话"
+    },
+    "_id": "5a8f9b10fac29139248f2f0e"
+  }
+]
+
+

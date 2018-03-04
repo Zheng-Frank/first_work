@@ -58,31 +58,32 @@ export class Lead {
       // convert address to typeof Address
       this.callLogs = (this.callLogs || []).map(log => new CallLog(log));
       // convert time string here!
-      if (this.createdAt) {
-        this.createdAt = new Date(Date.parse(this.createdAt.toString()));
+      if (this.createdAt && !(this.createdAt instanceof Date)) {
+        this.createdAt = new Date(this.createdAt);
       }
-      if (this.updatedAt) {
-        this.updatedAt = new Date(Date.parse(this.updatedAt.toString()));
+      if (this.updatedAt && !(this.updatedAt instanceof Date)) {
+        this.updatedAt = new Date(this.updatedAt);
       }
     }
   }
 
   getDescSortedCallLogs() {
-    return (this.callLogs || []).sort(
-      (log1, log2) => log2.time.valueOf() - log1.time.valueOf()
-    );
+    const cloned = [...(this.callLogs || [])];
+    return cloned.reverse();
   }
 
   getSalesOutcome() {
     const lastCallLog = this.getLastCallLog();
-    if(lastCallLog) {
+    if (lastCallLog) {
       return lastCallLog.salesOutcome;
     }
     return undefined;
   }
 
   getLastCallLog() {
-    return this.getDescSortedCallLogs()[0];
+    if (this.callLogs && this.callLogs.length > 0) {
+      return this.callLogs[this.callLogs.length - 1];
+    }
+    return undefined;
   }
-
 }

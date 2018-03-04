@@ -17,7 +17,14 @@ import { CallLog } from "../../classes/call-log";
 export class MyLeadsComponent implements OnInit {
   @ViewChild("leadModal") leadModal: ModalComponent;
 
-  tabs = ["All", "Ongoing", "Failed", "Successful"];
+  tabs = [
+    "All",
+    "Ongoing",
+    "Need Callback",
+    "Interested",
+    "Failed",
+    "Successful"
+  ];
   activeTab = "All";
 
   apiRequesting = false;
@@ -44,7 +51,7 @@ export class MyLeadsComponent implements OnInit {
       assignee: this._global.user.username
     };
     this._api
-      .get(environment.lambdaUrl + "leads", {
+      .get(environment.adminApiUrl + "leads", {
         ids: [],
         limit: 4000,
         query: query
@@ -52,7 +59,13 @@ export class MyLeadsComponent implements OnInit {
       .subscribe(
         result => {
           this.myLeads = result.map(u => new Lead(u));
-          this.myLeads.sort((u1, u2) => ((u1.address || {}).administrative_area_level_1 + u1.name).localeCompare((u2.address || {}).administrative_area_level_1 + u2.name));
+          this.myLeads.sort((u1, u2) =>
+            (
+              (u1.address || {}).administrative_area_level_1 + u1.name
+            ).localeCompare(
+              (u2.address || {}).administrative_area_level_1 + u2.name
+            )
+          );
           if (this.myLeads.length === 0) {
             this._global.publishAlert(AlertType.Info, "No lead found");
           }
@@ -71,11 +84,28 @@ export class MyLeadsComponent implements OnInit {
       case "Ongoing":
         return this.myLeads.filter(lead => {
           const outcome = lead.getSalesOutcome();
-          return !outcome || outcome === "interested";
+          return (
+            lead.callLogs &&
+            lead.callLogs.length > 0 &&
+            ["rejected", "interested", "success", "qmenuCustomer"].indexOf(
+              outcome
+            ) < 0
+          );
         });
+      case "Need Callback":
+        return this.myLeads.filter(
+          lead =>
+            lead.callLogs &&
+            lead.callLogs.length > 0 &&
+            lead.callLogs[lead.callLogs.length - 1].callbackTime
+        );
       case "Failed":
         return this.myLeads.filter(
           lead => lead.getSalesOutcome() === "rejected"
+        );
+      case "Interested":
+        return this.myLeads.filter(
+          lead => lead.getSalesOutcome() === "interested"
         );
       case "Successful":
         return this.myLeads.filter(lead => {
@@ -87,7 +117,9 @@ export class MyLeadsComponent implements OnInit {
     }
   }
 
-  scanLead(lead) {
+  scanLead(event) {
+    const lead = event.lead;
+
     this.apiRequesting = true;
     this.leadsInProgress.push(lead);
     this._api
@@ -116,22 +148,26 @@ export class MyLeadsComponent implements OnInit {
           this.patchDiff(lead, clonedLead);
           this.apiRequesting = false;
           this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
+          // notify done!
+          event.acknowledge && event.acknowledge(null);
         },
         error => {
           this.apiRequesting = false;
           this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
           this._global.publishAlert(AlertType.Danger, "Failed to crawl");
+          event.acknowledge && event.acknowledge("Error scanning GMB info");
         }
       );
   }
 
   patchDiff(originalLead, newLead) {
     const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
+
     if (diffs.length === 0) {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.lambdaUrl + "leads", diffs).subscribe(
+      this._api.patch(environment.adminApiUrl + "leads", diffs).subscribe(
         result => {
           // let's update original, assuming everything successful
           Object.assign(originalLead, newLead);
@@ -153,7 +189,15 @@ export class MyLeadsComponent implements OnInit {
   }
 
   selectCallLog(log) {
-    this.selectedCallLog = this.selectedCallLog === log ? new CallLog() : log;
+    if (
+      this.selectedCallLog &&
+      this.selectedCallLog.time &&
+      this.selectedCallLog.hasSameTimeAs(log)
+    ) {
+      this.selectedCallLog = new CallLog();
+    } else {
+      this.selectedCallLog = new CallLog(log);
+    }
   }
 
   toggleNewCallLog() {
@@ -178,6 +222,15 @@ export class MyLeadsComponent implements OnInit {
     if (event.object === this.newCallLog) {
       leadClone.callLogs.push(event.object);
     }
+
+    // replace edited callLog, we can only use time as key to find it
+    for (let i = 0; i < leadClone.callLogs.length; i++) {
+      if (
+        leadClone.callLogs[i].hasSameTimeAs(event.object)
+      ) {
+        leadClone.callLogs[i] = event.object;
+      }
+    }
     event.acknowledge(null);
 
     this.editingNewCallLog = false;
@@ -187,14 +240,22 @@ export class MyLeadsComponent implements OnInit {
 
   removeCallLog(event) {
     const leadClone = new Lead(this.selectedLead);
-    leadClone.callLogs = (this.selectedLead.callLogs || []).filter(log => log !== event.object);
- 
+    leadClone.callLogs = (this.selectedLead.callLogs || []).filter(
+      log => !log.hasSameTimeAs(event.object)
+    );
+
     event.acknowledge(null);
     this.selectedCallLog = null;
     this.patchDiff(this.selectedLead, leadClone);
   }
 
   getShortenedTimeZone(tz) {
-    return (tz || '').replace('America/', '');
+    return (tz || "").replace("America/", "");
+  }
+
+  setActiveTab(tab) {
+    setTimeout(() => {
+      this.activeTab = tab;
+    }, 0);
   }
 }

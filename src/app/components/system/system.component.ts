@@ -1,15 +1,35 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from "@angular/core";
+import { ApiService } from "../../services/api.service";
+import { environment } from "../../../environments/environment";
+import { GlobalService } from "../../services/global.service";
+import { AlertType } from "../../classes/alert-type";
 
 @Component({
-  selector: 'app-system',
-  templateUrl: './system.component.html',
-  styleUrls: ['./system.component.scss']
+  selector: "app-system",
+  templateUrl: "./system.component.html",
+  styleUrls: ["./system.component.scss"]
 })
 export class SystemComponent implements OnInit {
+  constructor(private _api: ApiService, private _global: GlobalService) {}
 
-  constructor() { }
+  ngOnInit() {}
 
-  ngOnInit() {
+  migrateAddress() {
+    this._api
+      .post(environment.qmenuApiUrl + "scripts/migrate-address", {})
+      .subscribe(
+        result => {
+          this._global.publishAlert(
+            AlertType.Info,
+            "Migrated: " + result.length
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error running script from API"
+          );
+        }
+      );
   }
-
 }

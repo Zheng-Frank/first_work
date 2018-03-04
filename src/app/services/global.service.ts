@@ -41,7 +41,7 @@ export class GlobalService {
     }
     this._menus = [];
     try {
-      this._user = JSON.parse(jwtDecode(this._token)["user"]);
+      this._user = new User(JSON.parse(jwtDecode(this._token)["user"]));
       const roles = this._user.roles || [];
       const menuMappings = [
         {

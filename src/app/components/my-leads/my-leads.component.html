@@ -4,7 +4,7 @@
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item" *ngFor="let tab of tabs">
-        <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="activeTab = tab">{{tab}} ({{getLeadsForTab(tab).length}})</a>
+        <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)">{{tab}} ({{getLeadsForTab(tab).length}})</a>
       </li>
     </ul>
   </div>
@@ -21,11 +21,13 @@
             <th class="border-0">State</th>
             <th class="border-0">Phone</th>
             <th class="border-0">Timezone</th>
-            <!-- <th class="border-0"></th> -->
+            <th class="border-0">Language</th>
+            <th class="border-0">Comments</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let lead of getLeadsForTab(activeTab);" class="{{lead.disabled || lead.closed ? 'text-muted closed' : ''}}" (click)="selectLead(lead)">
+          <tr *ngFor="let lead of getLeadsForTab(activeTab) ;" class="{{lead.disabled || lead.closed ? 'text-muted closed' : ''}}"
+            (click)="selectLead(lead)">
             <td class="text-success text-nowrap">
               <span *ngIf="getLastCallLog(lead).salesOutcome==='rejected'" class="text-danger">■</span>
               <span *ngIf="getLastCallLog(lead).salesOutcome==='interested'" class="text-warning">■</span>
@@ -37,16 +39,13 @@
                 <i class="fas fa-history"></i>
               </span>
             </td>
-            <th scope="row">
+            <th scope="row" class="text-nowrap">
               <span class="{{lead.gmbScanned ? 'text-info': ''}}">{{lead.name}}
                 <span class="text-muted" *ngIf="lead.oldName">
                   <br>
                   <small>{{lead.oldName}}</small>
                 </span>
               </span>
-              <button class="btn btn-link py-0" *ngIf="!lead.gmbScanned" (click)="scanLead(lead)" [disabled]="leadsInProgress.indexOf(lead) >= 0">
-                <i class="fas fa-sync {{leadsInProgress.indexOf(lead) >= 0? 'fa-spin' : ''}}"></i>
-              </button>
 
             </th>
             <td class="text-nowrap">
@@ -57,13 +56,16 @@
             <td>{{lead.address.locality}}</td>
             <td>{{lead.address.postal_code}}</td>
             <td>{{lead.address.administrative_area_level_1}}</td>
-            <td><span *ngFor="let phone of (lead.phones ||[])">{{phone | tel}}&nbsp;&nbsp;</span></td>
+            <td>
+              <span *ngFor="let phone of (lead.phones ||[])">{{phone | tel}}&nbsp;&nbsp;</span>
+            </td>
             <td>{{getShortenedTimeZone(lead.address.timezone)}}</td>
-            <!-- <td>
-              <button class="btn btn-link py-0" (click)="edit(lead)">
-                <i class="fas fa-edit"></i> Edit
-              </button>
-            </td> -->
+            <td>{{lead.language}}</td>
+            <td>
+              <span *ngFor="let log of (lead.callLogs || [])">
+                <app-lead-call-log [callLog]="log"></app-lead-call-log>
+              </span>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -73,6 +75,15 @@
 
 <q-modal [title]="selectedLead.name" #leadModal>
   <app-lead-info [lead]="selectedLead"></app-lead-info>
+  <div *ngIf="selectedLead.gmbScanned; else noGmb">
+    <app-gmb-info [gmbInfo]="selectedLead" (scan)="scanLead($event)" [showRefresh]="true"></app-gmb-info>
+  </div>
+  <ng-template #noGmb>
+    <i class="fas fa-exclamation-triangle text-warning"></i> Missing GMB info
+    <i class="far fa-hand-point-right"></i>&nbsp;&nbsp;
+    <button class="btn btn-outline-primary" (click)="scanLead({lead: selectedLead})" [qLoading]="leadsInProgress.length > 0">
+      <i class="fab fa-searchengin"></i> Crawl Google</button>
+  </ng-template>
   <hr>
   <h5 class="text-center">Call Logs</h5>
   <div class="pb-2">
@@ -130,18 +141,17 @@
             </td>
             <td>{{log.callees}}</td>
 
-            <td>{{log.comments}}
-              <span *ngIf="log.callbackTime" class="text-info">
-                <i class="fas fa-history"></i> {{log.callbackTime}}
-              </span>
+            <td>
+              <app-lead-call-log [callLog]="log"></app-lead-call-log>
             </td>
           </tr>
-          <tr *ngIf="selectedCallLog === log">
+          <tr *ngIf="log.hasSameTimeAs(selectedCallLog)">
             <td colspan="6">
               <div class="card card-body">
-                 <h5 class="card-title">Edit Call Log</h5>
-                <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog" (cancel)="selectedCallLog = null" (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)"></app-call-logger>
-               
+                <h5 class="card-title">Edit Call Log</h5>
+                <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog" (cancel)="selectedCallLog = null"
+                  (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)"></app-call-logger>
+
               </div>
             </td>
           </tr>

@@ -35,7 +35,7 @@ export class UsersComponent implements OnInit {
   ngOnInit() {
 
     // get all users
-    this._api.get(environment.lambdaUrl + 'users', { ids: [] }).subscribe(
+    this._api.get(environment.adminApiUrl + 'users', { ids: [] }).subscribe(
       result => {
         this.users = result.map(u => new User(u));
         this.sortUsers(this.users);
@@ -98,7 +98,7 @@ export class UsersComponent implements OnInit {
 
   formRemove(event) {
     // api delete here...
-    this._api.delete(environment.lambdaUrl + 'users', {ids: [this.userInEditing._id]}).subscribe(result => {
+    this._api.delete(environment.adminApiUrl + 'users', {ids: [this.userInEditing._id]}).subscribe(result => {
       event.acknowledge(null);
       this.users = this.users.filter(u => u.username !== this.userInEditing.username);
       this.editingModal.hide();
@@ -129,7 +129,7 @@ export class UsersComponent implements OnInit {
           event.acknowledge('Nothing changed');
         } else {
           // api update here...
-          this._api.patch(environment.lambdaUrl + 'users', diffs).subscribe(result => {
+          this._api.patch(environment.adminApiUrl + 'users', diffs).subscribe(result => {
             event.acknowledge(null);
             // let's update original, assuming everything successful
             Object.assign(originalUser, this.userInEditing);
@@ -144,7 +144,7 @@ export class UsersComponent implements OnInit {
 
     } else {
       // must be new
-      this._api.post(environment.lambdaUrl + 'users', [this.userInEditing]).subscribe(result => {
+      this._api.post(environment.adminApiUrl + 'users', [this.userInEditing]).subscribe(result => {
         event.acknowledge(null);
         // we get ids returned
         this.userInEditing._id = result[0];

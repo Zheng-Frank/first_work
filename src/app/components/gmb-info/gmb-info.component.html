@@ -1,18 +1,17 @@
 <div class="card border-info text-left" *ngIf="gmbInfo">
-  <div class="card-header" style="position: relative">
+
+  <div class="card-body pb-0" style="position: relative">
     <h4>
       <span *ngIf="gmbInfo.gmbOpen">
         <i class="fas fa-lock-open text-info"></i> OPEN! </span>
       <span *ngIf="gmbInfo.gmbWebsite" class="{{gmbInfo.gmbOwner === 'qmenu' ? 'text-success' : 'text-danger'}}">
-        <i class="fas fa-lock"></i> {{gmbInfo.gmbOwner || 'unknown ownership' }} </span>
+        <i class="fas fa-globe"></i> {{gmbInfo.gmbOwner || 'unknown ownership' }} </span>
     </h4>
     <!-- rating and reviews -->
-    <div style="position:absolute; right: 0; top:0" class="alert-info">
+    <div style="position:absolute; right: 0; top:0" class="alert-info" *ngIf="gmbInfo.rating && gmbInfo.totalReviews">
       <h3 style="padding: 0.25rem;">{{gmbInfo.rating}} / {{gmbInfo.totalReviews}}</h3>
     </div>
-  </div>
-  <div class="card-body">
-    <table class="table">
+    <table class="table table-sm">
       <tbody>
         <tr>
           <th class="nowrap border-top-0">
@@ -41,7 +40,11 @@
       </tbody>
     </table>
     <div class="text-right">
-      <a *ngIf="getGoogleQuery()" href="{{getGoogleQuery() }}" target="_blank"><i class="fas fa-arrow-circle-right"></i> Google</a>
+      <button *ngIf="showRefresh" class="btn btn-link" style="vertical-align: baseline;" (click)="scanLead()" [disabled]="loading">
+        <i class="fas fa-sync {{loading ? 'fa-spin' : ''}}"></i> Refresh
+      </button>
+      <a *ngIf="getGoogleQuery()" href="{{getGoogleQuery() }}" target="_blank">
+        <i class="fas fa-arrow-circle-right"></i> Google</a>
     </div>
   </div>
 </div>

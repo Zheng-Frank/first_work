@@ -23,7 +23,7 @@ export class ProfileComponent implements OnInit {
     if (this._global.isUserInRoles(["ADMIN", "MARKETING_DIRECTOR"])) {
       // grab all users and make an assignee list!
       // get all users
-      this._api.get(environment.lambdaUrl + "users", { ids: [] }).subscribe(
+      this._api.get(environment.adminApiUrl + "users", { ids: [] }).subscribe(
         result => {
           const myTeamUsers = result
             .map(u => new User(u))
