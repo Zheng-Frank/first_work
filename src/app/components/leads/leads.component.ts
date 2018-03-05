@@ -4,6 +4,7 @@ import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { Lead } from "../../classes/lead";
 import { AlertType } from "../../classes/alert-type";
+import { CallLog } from "../../classes/call-log";
 import {
   ModalComponent,
   AddressPickerComponent
@@ -40,11 +41,15 @@ export class LeadsComponent implements OnInit {
   @ViewChild("assigneeModal") assigneeModal: ModalComponent;
   @ViewChild("filterModal") filterModal: ModalComponent;
   @ViewChild("viewModal") viewModal: ModalComponent;
+  @ViewChild("callModal") callModal: ModalComponent;
 
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
 
   users: User[];
   addressApt = null;
+  editingNewCallLog = false;
+  newCallLog = new CallLog();
+  selectedLead = new Lead();
 
   apiRequesting = false;
 
@@ -71,6 +76,9 @@ export class LeadsComponent implements OnInit {
 
   searchFilterObj = {};
   filterRating;
+
+  // for editing existing call log
+  selectedCallLog;
 
   filterFieldDescriptors = [
     {
@@ -564,9 +572,41 @@ export class LeadsComponent implements OnInit {
   }
 
   view(lead) {
-    this.leadInEditing = lead;
+    
+    this.selectedLead= lead;
     this.viewModal.show();
   }
+
+  call(lead) {
+    this.leadInEditing = lead;
+    this.selectedLead= lead;
+    this.callModal.show();
+  }
+
+  toggleNewCallLog() {
+    this.editingNewCallLog = !this.editingNewCallLog;
+    if (this.editingNewCallLog) {
+      this.newCallLog = new CallLog();
+      this.newCallLog.time = new Date();
+      this.newCallLog.caller = this._global.user.username;
+      if (this.selectedLead.phones && this.selectedLead.phones.length === 1) {
+        this.newCallLog.phone = this.selectedLead.phones[0];
+      }
+    }
+  }
+
+  selectCallLog(log) {
+    if (
+      this.selectedCallLog &&
+      this.selectedCallLog.time &&
+      this.selectedCallLog.hasSameTimeAs(log)
+    ) {
+      this.selectedCallLog = new CallLog();
+    } else {
+      this.selectedCallLog = new CallLog(log);
+    }
+  }
+
 
   isAllSelected() {
     return this.leads.every(lead => this.selectionSet.has(lead._id));
@@ -729,6 +769,44 @@ export class LeadsComponent implements OnInit {
   assignOnSelected() {
     this.assigneeModal.show();
   }
+
+
+  sumbitCallLog(event) {
+    const leadClone = new Lead(this.selectedLead);
+    //Assign to the current user by default if edit in leads table
+    leadClone.assignee=this._global.user.username
+    leadClone.callLogs = leadClone.callLogs || [];
+    if (event.object === this.newCallLog) {
+      leadClone.callLogs.push(event.object);
+    }
+
+    // replace edited callLog, we can only use time as key to find it
+    for (let i = 0; i < leadClone.callLogs.length; i++) {
+      if (
+        leadClone.callLogs[i].hasSameTimeAs(event.object)
+      ) {
+        leadClone.callLogs[i] = event.object;
+      }
+    }
+    event.acknowledge(null);
+
+    this.editingNewCallLog = false;
+    this.selectedCallLog = null;
+    this.patchDiff(this.selectedLead, leadClone);
+  }
+
+  removeCallLog(event) {
+    const leadClone = new Lead(this.selectedLead);
+    leadClone.callLogs = (this.selectedLead.callLogs || []).filter(
+      log => !log.hasSameTimeAs(event.object)
+    );
+
+    event.acknowledge(null);
+    this.selectedCallLog = null;
+    this.patchDiff(this.selectedLead, leadClone);
+  }
+
+
 
   assigneeSubmit(event) {
     if (event.object.assignee) {
