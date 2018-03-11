@@ -8,6 +8,7 @@ import { GmbInfo } from "../../classes/gmb-info";
 import { DeepDiff } from "../../classes/deep-diff";
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { CallLog } from "../../classes/call-log";
+import { User } from "../../classes/user";
 
 @Component({
   selector: "app-my-leads",
@@ -28,9 +29,15 @@ export class MyLeadsComponent implements OnInit {
   activeTab = "All";
 
   apiRequesting = false;
+  allLeads=[];
   myLeads = [];
+  users: User[];
+  marketingUsers = [];
 
   leadsInProgress = [];
+  agentList = [];
+  selectAgents = [];
+  selectedAgents = [];
 
   selectedLead = new Lead();
 
@@ -41,41 +48,109 @@ export class MyLeadsComponent implements OnInit {
   selectedCallLog;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
-    this.populateMyLeads();
+
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this._api.get(environment.adminApiUrl + "users", { ids: [] }).subscribe(
+      result => {
+        this.users = result.map(u => new User(u));
+
+        // make form selector here
+        this.marketingUsers = result
+          .map(u => new User(u))
+          .filter(u =>
+            u.manager == this._global.user.username && (u.roles || []).some(
+              r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+            )
+          );
+        this.marketingUsers.push(this._global.user);
+        console.log("mega=", this.marketingUsers);
+        this.populateMyLeads();
+
+
+
+
+
+        this.marketingUsers.map(each => {
+          this.selectAgents.push({ text: each.username })
+        });
+        //this.agentList.pus
+
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling users from API"
+        );
+      }
+    );
+
+  }
+
+
+  agentFilter(event) {
+    console.log(event);
+    this.selectedAgents=[];
+    event.map(each => {
+      if (each.selected) {
+          this.selectedAgents.push(each.text);
+
+      }
+    })
+
+    //Show all the leads by default, if no agent selected
+    if(this.selectedAgents.length==0){
+      this.myLeads=this.allLeads;
+    }else{
+      this.myLeads=this.allLeads.filter(each=> this.selectedAgents.indexOf(each.assignee)>=0);
+    }
+
+    //console.log("filter leads=",this.myLeads);
+
+
+  }
+
 
   populateMyLeads() {
+    const queryOrClause = [];
+
+    this.marketingUsers.map(each => {
+      queryOrClause.push({ assignee: each.username })
+    })
     const query = {
-      assignee: this._global.user.username
+      $or: queryOrClause
     };
+
+    console.log('query=', queryOrClause);
     this._api
       .get(environment.adminApiUrl + "leads", {
         ids: [],
-        limit: 4000,
+        limit: 6000,
         query: query
       })
       .subscribe(
-        result => {
-          this.myLeads = result.map(u => new Lead(u));
-          this.myLeads.sort((u1, u2) =>
-            (
-              (u1.address || {}).administrative_area_level_1 + u1.name
-            ).localeCompare(
-              (u2.address || {}).administrative_area_level_1 + u2.name
+      result => {
+        this.myLeads = result.map(u => new Lead(u));
+        this.myLeads.sort((u1, u2) =>
+          (
+            (u1.address || {}).administrative_area_level_1 + u1.name
+          ).localeCompare(
+            (u2.address || {}).administrative_area_level_1 + u2.name
             )
-          );
-          if (this.myLeads.length === 0) {
-            this._global.publishAlert(AlertType.Info, "No lead found");
-          }
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling leads from API"
-          );
+        );
+        if (this.myLeads.length === 0) {
+          this._global.publishAlert(AlertType.Info, "No lead found");
         }
+        this.allLeads=this.myLeads;
+        console.log("this.allLeads=",this.allLeads);
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling leads from API"
+        );
+      }
       );
   }
 
@@ -127,36 +202,36 @@ export class MyLeadsComponent implements OnInit {
         q: lead.name + " " + lead.address.route + " " + lead.address.postal_code
       })
       .subscribe(
-        result => {
-          const gmbInfo = result as GmbInfo;
-          const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+      result => {
+        const gmbInfo = result as GmbInfo;
+        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
 
-          if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
-            clonedLead.oldName = clonedLead.name;
-          } else {
-            // to make sure carry the name
-            gmbInfo.name = clonedLead.name;
-          }
-
-          Object.assign(clonedLead, gmbInfo);
-          clonedLead.phones = clonedLead.phones || [];
-          if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
-            clonedLead.phones.push(gmbInfo.phone);
-            delete clonedLead["phone"];
-          }
-          clonedLead.gmbScanned = true;
-          this.patchDiff(lead, clonedLead);
-          this.apiRequesting = false;
-          this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
-          // notify done!
-          event.acknowledge && event.acknowledge(null);
-        },
-        error => {
-          this.apiRequesting = false;
-          this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
-          this._global.publishAlert(AlertType.Danger, "Failed to crawl");
-          event.acknowledge && event.acknowledge("Error scanning GMB info");
+        if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
+          clonedLead.oldName = clonedLead.name;
+        } else {
+          // to make sure carry the name
+          gmbInfo.name = clonedLead.name;
         }
+
+        Object.assign(clonedLead, gmbInfo);
+        clonedLead.phones = clonedLead.phones || [];
+        if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
+          clonedLead.phones.push(gmbInfo.phone);
+          delete clonedLead["phone"];
+        }
+        clonedLead.gmbScanned = true;
+        this.patchDiff(lead, clonedLead);
+        this.apiRequesting = false;
+        this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
+        // notify done!
+        event.acknowledge && event.acknowledge(null);
+      },
+      error => {
+        this.apiRequesting = false;
+        this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
+        this._global.publishAlert(AlertType.Danger, "Failed to crawl");
+        event.acknowledge && event.acknowledge("Error scanning GMB info");
+      }
       );
   }
 
