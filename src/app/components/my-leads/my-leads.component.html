@@ -2,14 +2,6 @@
 <div class="text-danger">Select agent:</div>
 <q-select [items]="selectAgents" [maxSelection]="selectAgents.length" (select)="agentFilter($event)"></q-select>
 
-<div>
-  <div class="text-danger">Agent</div>
-  <div class="contact-options">
-    <q-select [items]="agentList" [maxSelection]="10" (select)="selectRejectedReason($event)"></q-select>
-    <input type="text" class="form-control" placeholder="type a reason" [(ngModel)]="newRejectedReason" (change)="addNewRejectedReason()">
-  </div>
-</div>
-
 <div class="card text-center">
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">

@@ -68,14 +68,9 @@ export class MyLeadsComponent implements OnInit {
         console.log("mega=", this.marketingUsers);
         this.populateMyLeads();
 
-
-
-
-
         this.marketingUsers.map(each => {
           this.selectAgents.push({ text: each.username })
-        });
-        //this.agentList.pus
+        });       
 
       },
       error => {
