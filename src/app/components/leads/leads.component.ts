@@ -166,7 +166,7 @@ export class LeadsComponent implements OnInit {
     },
     {
       field: "gmbOwner", //
-      label: "GMB Owner",
+      label: "GMB Website",
       required: false,
       inputType: "single-select",
       items: Object.keys(spMap).map(s => ({
@@ -181,6 +181,20 @@ export class LeadsComponent implements OnInit {
       required: false,
       inputType: "single-select",
       items: [{ object: "gmb open", text: "Open", selected: false }]
+    },
+    {
+      field: "gmbAccountOwner", //
+      label: "qMenu Is GMB Owner",
+      required: false,
+      inputType: "single-select",
+      items: [{ object: "qMenu gmb account", text: "Yes", selected: false }]
+    },
+    {
+      field: "inQmenu", //
+      label: "In qMenu System",
+      required: false,
+      inputType: "single-select",
+      items: [{ object: "in qMenu", text: "Yes", selected: false }]
     },
     {
       field: "closed", //
@@ -337,7 +351,7 @@ export class LeadsComponent implements OnInit {
           }))
         };
 
-        this.filterFieldDescriptors.splice(5, 0, descriptor);
+        this.filterFieldDescriptors.splice(8, 0, descriptor);
 
         const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
         clonedDescriptor.required = true;
@@ -517,6 +531,18 @@ export class LeadsComponent implements OnInit {
             query["gmbOpen"] = true;
           }
           break;
+        case "inQmenu":
+          if (filter.value === "in qMenu") {
+            query["inQmenu"] = true;
+          }
+          break;
+
+        case "gmbAccountOwner":
+          if (filter.value === "qMenu gmb account") {
+            query["gmbAccountOwner"] = "qmenu";
+          }
+          break;
+
         case "email":
           if (filter.value === "has email") {
             query["email"] = { $ne: "" };
@@ -572,14 +598,13 @@ export class LeadsComponent implements OnInit {
   }
 
   view(lead) {
-    
-    this.selectedLead= lead;
+    this.selectedLead = lead;
     this.viewModal.show();
   }
 
   call(lead) {
     this.leadInEditing = lead;
-    this.selectedLead= lead;
+    this.selectedLead = lead;
     this.callModal.show();
   }
 
@@ -606,7 +631,6 @@ export class LeadsComponent implements OnInit {
       this.selectedCallLog = new CallLog(log);
     }
   }
-
 
   isAllSelected() {
     return this.leads.every(lead => this.selectionSet.has(lead._id));
@@ -770,11 +794,10 @@ export class LeadsComponent implements OnInit {
     this.assigneeModal.show();
   }
 
-
   sumbitCallLog(event) {
     const leadClone = new Lead(this.selectedLead);
     //Assign to the current user by default if edit in leads table
-    leadClone.assignee=this._global.user.username
+    leadClone.assignee = this._global.user.username;
     leadClone.callLogs = leadClone.callLogs || [];
     if (event.object === this.newCallLog) {
       leadClone.callLogs.push(event.object);
@@ -782,9 +805,7 @@ export class LeadsComponent implements OnInit {
 
     // replace edited callLog, we can only use time as key to find it
     for (let i = 0; i < leadClone.callLogs.length; i++) {
-      if (
-        leadClone.callLogs[i].hasSameTimeAs(event.object)
-      ) {
+      if (leadClone.callLogs[i].hasSameTimeAs(event.object)) {
         leadClone.callLogs[i] = event.object;
       }
     }
@@ -805,8 +826,6 @@ export class LeadsComponent implements OnInit {
     this.selectedCallLog = null;
     this.patchDiff(this.selectedLead, leadClone);
   }
-
-
 
   assigneeSubmit(event) {
     if (event.object.assignee) {

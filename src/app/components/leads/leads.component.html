@@ -14,6 +14,7 @@
 
 <h1 class="text-center">Lead Management</h1>
 <div class="text-right pb-2">
+  Total: {{leads.length}}
   <!-- selected search filters -->
   <ng-container *ngFor="let filter of searchFilters">
     <button class="btn btn-outline-success" (click)="removeFilter(filter)">{{filter.value}}
@@ -54,6 +55,7 @@
         </th>
         <th scope="col">Assignee</th>
         <th scope="col">GMB</th>
+        <th scope="col">Website</th>
         <th scope="col">Email</th>
         <th scope="col">Street</th>
         <th scope="col">City</th>
@@ -77,6 +79,10 @@
         </th>
         <td>
           {{lead.assignee}}
+        </td>
+        <td>
+          <img *ngIf="lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="lead.gmbAccountOwner" height="16px">
+          <span *ngIf="lead.gmbAccountOwner !== 'qmenu'">?</span>
         </td>
         <td class="text-nowrap">
           <i *ngIf="!getLogo(lead) && lead.gmbOwner" class="fas fa-question text-danger"></i>
@@ -202,7 +208,7 @@
 
 </q-modal>
 
-<q-modal [title]="leadInEditing.name" #callModal>  
+<q-modal [title]="leadInEditing.name" #callModal>
 
   <div class="pb-2">
     <button class="btn btn-primary" (click)="toggleNewCallLog()">
@@ -225,7 +231,7 @@
           <th class="border-0">Number</th>
           <th class="border-0 text-center">Line</th>
           <th class="border-0">Callees</th>
-  
+
           <th class="border-0">Comments</th>
         </tr>
       </thead>
@@ -257,7 +263,7 @@
               <i class="fas fa-cloud-upload-alt"></i>
             </td>
             <td>{{log.callees}}</td>
-  
+
             <td>
               <app-lead-call-log [callLog]="log"></app-lead-call-log>
             </td>
@@ -268,7 +274,7 @@
                 <h5 class="card-title">Edit Call Log</h5>
                 <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog" (cancel)="selectedCallLog = null"
                   (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)"></app-call-logger>
-  
+
               </div>
             </td>
           </tr>

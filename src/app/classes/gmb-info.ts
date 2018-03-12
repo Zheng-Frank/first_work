@@ -14,5 +14,6 @@ export interface GmbInfo {
     website: string;
     reservations: string[];
     gmbOwner?: string;
+    gmbAccountOwner?: string;
     closed: boolean;
 }

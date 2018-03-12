@@ -26,6 +26,9 @@ export class Lead {
 
   gmbWebsite: string;
   gmbScanned: boolean;
+  gmbAccountOwner: string;
+  inQmenu: boolean;
+  gmbOwner: string;
   menuUrl: string;
   reservations: string[];
   serviceProviders: any[];

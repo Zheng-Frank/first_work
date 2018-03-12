@@ -7,8 +7,8 @@ export const environment = {
   production: false,
   env: "dev",
   // adminApiUrl: 'https://swozix2epl.execute-api.us-east-2.amazonaws.com/dev/',
-  // internalApiUrl: 'https://internal-api.myqmenu.com/',
-  // qmenuApiUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/'
+  // internalApiUrl: "https://internal-api.myqmenu.com/",
+  // qmenuApiUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
   adminApiUrl: "https://swozix2epl.execute-api.us-east-2.amazonaws.com/prod/",
   internalApiUrl: "https://internal-api.myqmenu.com/",
   qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/prod/"
