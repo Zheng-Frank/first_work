@@ -673,9 +673,7 @@ export class LeadsComponent implements OnInit {
       .get(environment.internalApiUrl + "lead-info", {
         q: [
           lead.name,
-          lead.address.route,
-          lead.address.locality,
-          lead.address.postal_code
+          lead.address.formatted_address
         ]
           .filter(i => i)
           .join(" ")
@@ -749,7 +747,8 @@ export class LeadsComponent implements OnInit {
   patchDiff(originalLead, newLead, removeFromSelection?) {
     const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
     if (diffs.length === 0) {
-      this._global.publishAlert(AlertType.Info, "Nothing to update");
+      this._global.publishAlert(AlertType.Info, originalLead.name+ ", Nothing to update");
+      this.selectionSet.delete(newLead._id);
     } else {
       // api update here...
       this._api.patch(environment.adminApiUrl + "leads", diffs).subscribe(

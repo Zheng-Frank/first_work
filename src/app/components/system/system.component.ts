@@ -92,6 +92,7 @@ export class SystemComponent implements OnInit {
             AlertType.Danger,
             "Non-matched: " + nonmatched.length
           );
+          console.log("nonmatched=",nonmatched);
         }
 
         for (let i = 0; i < gmbs.length; i++) {
