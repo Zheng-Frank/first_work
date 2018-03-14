@@ -169,11 +169,18 @@ export class LeadsComponent implements OnInit {
       label: "GMB Website",
       required: false,
       inputType: "single-select",
-      items: Object.keys(spMap).map(s => ({
-        object: s,
-        text: s,
-        selected: false
-      }))
+      items: [
+        {
+          object: "NOT_QMENU",
+          text: "NOT qMenu",
+          selected: false
+        },
+        ...Object.keys(spMap).map(s => ({
+          object: s,
+          text: s,
+          selected: false
+        }))
+      ]
     },
     {
       field: "gmbOpen", //
@@ -537,6 +544,14 @@ export class LeadsComponent implements OnInit {
           }
           break;
 
+        case "gmbOwner":
+          if (filter.value === "NOT_QMENU") {
+            query["gmbOwner"] = { $ne: "qmenu" };
+          } else if (filter.value) {
+            query["gmbOwner"] = filter.value;
+          }
+          break;
+
         case "gmbAccountOwner":
           if (filter.value === "qMenu gmb account") {
             query["gmbAccountOwner"] = "qmenu";
@@ -671,12 +686,7 @@ export class LeadsComponent implements OnInit {
     this.apiRequesting = true;
     this._api
       .get(environment.internalApiUrl + "lead-info", {
-        q: [
-          lead.name,
-          lead.address.formatted_address
-        ]
-          .filter(i => i)
-          .join(" ")
+        q: [lead.name, lead.address.formatted_address].filter(i => i).join(" ")
       })
       .subscribe(
         result => {
@@ -747,7 +757,10 @@ export class LeadsComponent implements OnInit {
   patchDiff(originalLead, newLead, removeFromSelection?) {
     const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
     if (diffs.length === 0) {
-      this._global.publishAlert(AlertType.Info, originalLead.name+ ", Nothing to update");
+      this._global.publishAlert(
+        AlertType.Info,
+        originalLead.name + ", Nothing to update"
+      );
       this.selectionSet.delete(newLead._id);
     } else {
       // api update here...
