@@ -23,7 +23,7 @@ export class UsersComponent implements OnInit {
 
 
   existingUsernameItems = [];
-  existingRoleItems = ['ADMIN', 'DRIVER', 'MENU_EDITOR', 'MARKETING_DIRECTOR', 'MARKETER', 'ACCOUNTANT'].map(role => ({
+  existingRoleItems = [ 'ACCOUNTANT','ADMIN', 'DRIVER', 'GMB', 'MARKETER', 'MARKETING_DIRECTOR', 'MENU_EDITOR'].map(role => ({
     text: role,
     object: role
   }));

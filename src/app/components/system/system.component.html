@@ -14,9 +14,7 @@
         <div class="card-body">
             <h5 class="card-title">Sync</h5>
             <p class="card-text">Three entities: Restaurants, GMB Business, Lead. </p>
-            <button class="btn btn-primary mb-1" (click)="syncFromRestaurantsToGmbs()">Restaurants → GMBs</button>
-            <button class="btn btn-primary mb-1" (click)="syncFromRestaurantsToLeads()">Restaurants → Leads</button>
-            <button class="btn btn-primary mb-1" (click)="syncFromGmbsToLeads()">GMBs → Leads</button>
+            <app-sync-buttons></app-sync-buttons>
         </div>
     </div>
 
@@ -35,19 +33,4 @@
             <button class="btn btn-primary" (click)="migrateAddress()">Migrate</button>
         </div>
     </div>
-
-    <!-- <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Address</h5>
-            <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document.</p>
-            <button class="btn btn-primary" (click)="migrateAddress()">Migrate</button>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Address</h5>
-            <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document.</p>
-            <button class="btn btn-primary" (click)="migrateAddress()">Migrate</button>
-        </div>
-    </div> -->
 </div>

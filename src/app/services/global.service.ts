@@ -63,6 +63,12 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "ORDER_MANAGER"]
         },
         {
+          name: "GMBs",
+          href: "#/gmbs",
+          fa: "fab fa-google",
+          accessibleRoles: ["ADMIN", "GMB"]
+        },
+        {
           name: "Leads",
           href: "#/leads",
           fa: "fas fa-lightbulb",

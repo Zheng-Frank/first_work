@@ -12,6 +12,7 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { RestaurantsComponent } from './components/restaurants/restaurants.component';
 import { SystemComponent } from './components/system/system.component';
 import { UsersComponent } from './components/users/users.component';
+import { GmbsComponent } from './components/gmbs/gmbs.component';
 
 import { MarketerGuard } from './marketer.guard';
 import { RoleGuard } from './role.guard';
@@ -26,6 +27,7 @@ const routes: Routes = [
   { path: 'orders', component: OrdersComponent },
   { path: 'profile', component: ProfileComponent, canActivate: [MarketerGuard] },
   { path: 'restaurants', component: RestaurantsComponent, canActivate: [MarketerGuard] },
+  { path: 'gmbs', component: GmbsComponent, canActivate: [MarketerGuard] },
   { path: 'system', component: SystemComponent, canActivate: [MarketerGuard] },
   { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: {roles: ['ADMIN']} },
   { path: '**', redirectTo: '/home' }

@@ -30,6 +30,8 @@ import { MyLeadsComponent } from './components/my-leads/my-leads.component';
 import { CallLoggerComponent } from './components/call-logger/call-logger.component';
 import { LeadInfoComponent } from './components/lead-info/lead-info.component';
 import { LeadCallLogComponent } from './components/lead-call-log/lead-call-log.component';
+import { GmbsComponent } from './components/gmbs/gmbs.component';
+import { SyncButtonsComponent } from './components/sync-buttons/sync-buttons.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +51,9 @@ import { LeadCallLogComponent } from './components/lead-call-log/lead-call-log.c
     MyLeadsComponent,
     CallLoggerComponent,
     LeadInfoComponent,
-    LeadCallLogComponent
+    LeadCallLogComponent,
+    GmbsComponent,
+    SyncButtonsComponent
   ],
   imports: [
     BrowserModule,
