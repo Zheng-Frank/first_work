@@ -1,15 +1,163 @@
-import { Component, OnInit } from '@angular/core';
-
+import { Component, OnInit } from "@angular/core";
+import { ApiService } from "../../services/api.service";
+import { environment } from "../../../environments/environment";
+import { GlobalService } from "../../services/global.service";
+import { Lead } from "../../classes/lead";
+import { AlertType } from "../../classes/alert-type";
+import { CallLog } from "../../classes/call-log";
+import {
+  ModalComponent,
+  AddressPickerComponent
+} from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { DeepDiff } from "../../classes/deep-diff";
+import { GmbInfo } from "../../classes/gmb-info";
+import { Address } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { User } from "../../classes/user";
+import { Order, Restaurant } from "@qmenu/ui";
+import { Observable } from "rxjs/Rx";
+const spMap = {
+  beyondmenu: "beyondmenu.png",
+  chownow: "chownow.png",
+  chinesemenuonline: "chinesemenuonline.png",
+  doordash: "doordash.png",
+  eat24: "eat24.png",
+  eatstreet: "eatstreet.png",
+  grubhub: "grubhub.png",
+  hanyi: "hanyi.png",
+  menufy: "menufy.png",
+  qmenu: "qmenu.png",
+  redpassion: "redpassion.png",
+  slicelife: "slicelife.png",
+  seamless: "seamless.png",
+  ubereats: "ubereats.png"
+};
 @Component({
-  selector: 'app-orders',
-  templateUrl: './orders.component.html',
-  styleUrls: ['./orders.component.scss']
+  selector: "app-orders",
+  templateUrl: "./orders.component.html",
+  styleUrls: ["./orders.component.scss"]
 })
 export class OrdersComponent implements OnInit {
+  rows = []; // restaurant, total, [orders by createdAt DESC]
+  totalOrders = 0;
+  restaurantsWithOrders = 0;
+  restaurantsWithoutOrders = 0;
 
-  constructor() { }
+  constructor(private _api: ApiService, private _global: GlobalService) {}
 
   ngOnInit() {
+    const start = new Date();
+    const end = new Date();
+    start.setDate(start.getDate() - 1);
+    this.searchOrders(start, end);
   }
 
+  searchOrders(startDate: Date, endDate: Date) {
+    Observable.zip(
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {
+          createdAt: {
+            $gte: startDate
+            // $lt: endDate
+          }
+        },
+        projection: {
+          restaurant: 1,
+          total: 1,
+          createdAt: 1,
+          orderNumber: 1,
+          type: 1
+        },
+        limit: 6000
+      }),
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          disabled: {
+            $ne: true
+          }
+        },
+        projection: {
+          name: 1
+        },
+        limit: 6000
+      }),
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "lead",
+        query: {
+          restaurantId: {
+            $exists: true
+          }
+        },
+        projection: {
+          restaurantId: 1,
+          gmbAccountOwner: 1,
+          gmbOwner: 1,
+          gmbWebsite: 1,
+          phones: 1,
+          fax: 1
+        },
+        limit: 6000
+      })
+    ).subscribe(
+      result => {
+        const orders = result[0];
+        const restaurants = result[1];
+        const leads = result[2];
+        this.rows = [];
+        const restaurantMap = {};
+        restaurants.map(r => {
+          restaurantMap[r._id] = {
+            restaurant: r,
+            orders: []
+          };
+        });
+        orders.map(o => {
+          if (restaurantMap[o.restaurant]) {
+            restaurantMap[o.restaurant].orders.push(o);
+          }
+        });
+
+        leads.map(lead => {
+          if (restaurantMap[lead.restaurantId]) {
+            restaurantMap[lead.restaurantId].lead = lead;
+          }
+        });
+
+        // sort by total orders, then name
+        this.rows = Object.values(restaurantMap).sort((r1, r2) => {
+          let diff = r2["orders"].length - r1["orders"].length;
+          if (diff) {
+            return diff;
+          } else {
+            // no difference, let's order by name
+            if (r1["restaurant"].name > r2["restaurant"].name) {
+              return 1;
+            } else if (r1["restaurant"].name === r2["restaurant"].name) {
+              return 0;
+            } else {
+              return -1;
+            }
+          }
+        });
+
+        this.restaurantsWithOrders = this.rows.filter(
+          r => r["orders"].length > 0
+        ).length;
+        this.restaurantsWithoutOrders = this.rows.filter(
+          r => r["orders"].length === 0
+        ).length;
+        this.totalOrders = orders.length;
+      },
+      error =>
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling orders & restaurants"
+        )
+    );
+  }
+
+  getLogo(lead) {
+    return spMap[lead.gmbOwner];
+  }
 }

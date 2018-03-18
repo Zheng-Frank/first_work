@@ -1,3 +1,54 @@
-<p>
-  orders works!
-</p>
+<h1 class="text-center">Orders in Past 24 Hours</h1>
+<div class="text-right">
+  Total Orders:
+  <span class="badge badge-info">{{totalOrders}}</span>
+  Restaurant Having Orders:
+  <span class="badge badge-success">{{restaurantsWithOrders}}</span>
+  No Orders:
+  <span class="badge badge-warning">{{restaurantsWithoutOrders}}</span>
+
+</div>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Restaurant</th>
+      <th scope="col">Total</th>
+      <th scope="col">GMB</th>
+      <th scope="col">Website</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of rows;">
+      <td>
+        <span (click)="row.expanded = !row.expanded">{{row.restaurant.name}}</span>
+        <button *ngIf="row.orders.length > 0" class="btn btn-link py-0" (click)="row.expanded = !row.expanded">
+          <i class="fas {{row.expanded ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
+        </button>
+
+        <div *ngIf="row.expanded">
+          <ng-container *ngFor="let order of row.orders">
+            <a href="https://biz.qmenu.us/#/order/{{order._id}}" target="_blank">
+              <span class="badge badge-info">{{order.orderNumber}}</span>
+            </a>
+          </ng-container>
+        </div>
+      </td>
+      <td>{{row.orders.length}}</td>
+      <td>
+        <ng-container *ngIf="row.lead">
+          <img *ngIf="row.lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="row.lead.gmbAccountOwner" height="16px">
+          <span *ngIf="row.lead.gmbAccountOwner !== 'qmenu'">?</span>
+        </ng-container>
+
+      </td>
+      <td class="text-nowrap">
+        <ng-container *ngIf="row.lead">
+          <i *ngIf="!getLogo(row.lead) && row.lead.gmbOwner" class="fas fa-question text-danger"></i>
+          <img *ngIf="getLogo(row.lead)" [attr.src]="'/assets/images/' + getLogo(row.lead)" [attr.alt]="row.lead.gmbOwner" height="16px">
+          <i class="fas fa-lock-open text-info" *ngIf="row.lead.gmbOpen"></i>
+          <i class="fas fa-globe text-muted" *ngIf="!row.lead.gmbWebsite && row.lead.serviceProviders && row.lead.serviceProviders.length > 0"></i>
+        </ng-container>
+      </td>
+    </tr>
+  </tbody>
+</table>
