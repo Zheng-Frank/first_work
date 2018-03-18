@@ -29,7 +29,7 @@ export class MyLeadsComponent implements OnInit {
   activeTab = "All";
 
   apiRequesting = false;
-  allLeads=[];
+  allLeads = [];
   myLeads = [];
   users: User[];
   marketingUsers = [];
@@ -47,9 +47,7 @@ export class MyLeadsComponent implements OnInit {
   // for editing existing call log
   selectedCallLog;
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
-
-  }
+  constructor(private _api: ApiService, private _global: GlobalService) {}
 
   ngOnInit() {
     this._api.get(environment.adminApiUrl + "users", { ids: [] }).subscribe(
@@ -59,19 +57,20 @@ export class MyLeadsComponent implements OnInit {
         // make form selector here
         this.marketingUsers = result
           .map(u => new User(u))
-          .filter(u =>
-            u.manager == this._global.user.username && (u.roles || []).some(
-              r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
-            )
+          .filter(
+            u =>
+              u.manager == this._global.user.username &&
+              (u.roles || []).some(
+                r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+              )
           );
         this.marketingUsers.push(this._global.user);
         console.log("mega=", this.marketingUsers);
         this.populateMyLeads();
 
         this.marketingUsers.map(each => {
-          this.selectAgents.push({ text: each.username })
-        });       
-
+          this.selectAgents.push({ text: each.username });
+        });
       },
       error => {
         this._global.publishAlert(
@@ -80,44 +79,40 @@ export class MyLeadsComponent implements OnInit {
         );
       }
     );
-
   }
-
 
   agentFilter(event) {
     console.log(event);
-    this.selectedAgents=[];
+    this.selectedAgents = [];
     event.map(each => {
       if (each.selected) {
-          this.selectedAgents.push(each.text);
-
+        this.selectedAgents.push(each.text);
       }
-    })
+    });
 
     //Show all the leads by default, if no agent selected
-    if(this.selectedAgents.length==0){
-      this.myLeads=this.allLeads;
-    }else{
-      this.myLeads=this.allLeads.filter(each=> this.selectedAgents.indexOf(each.assignee)>=0);
+    if (this.selectedAgents.length == 0) {
+      this.myLeads = this.allLeads;
+    } else {
+      this.myLeads = this.allLeads.filter(
+        each => this.selectedAgents.indexOf(each.assignee) >= 0
+      );
     }
 
     //console.log("filter leads=",this.myLeads);
-
-
   }
-
 
   populateMyLeads() {
     const queryOrClause = [];
 
     this.marketingUsers.map(each => {
-      queryOrClause.push({ assignee: each.username })
-    })
+      queryOrClause.push({ assignee: each.username });
+    });
     const query = {
       $or: queryOrClause
     };
 
-    console.log('query=', queryOrClause);
+    console.log("query=", queryOrClause);
     this._api
       .get(environment.adminApiUrl + "leads", {
         ids: [],
@@ -125,27 +120,27 @@ export class MyLeadsComponent implements OnInit {
         query: query
       })
       .subscribe(
-      result => {
-        this.myLeads = result.map(u => new Lead(u));
-        this.myLeads.sort((u1, u2) =>
-          (
-            (u1.address || {}).administrative_area_level_1 + u1.name
-          ).localeCompare(
-            (u2.address || {}).administrative_area_level_1 + u2.name
+        result => {
+          this.myLeads = result.map(u => new Lead(u));
+          this.myLeads.sort((u1, u2) =>
+            (
+              (u1.address || {}).administrative_area_level_1 + u1.name
+            ).localeCompare(
+              (u2.address || {}).administrative_area_level_1 + u2.name
             )
-        );
-        if (this.myLeads.length === 0) {
-          this._global.publishAlert(AlertType.Info, "No lead found");
+          );
+          if (this.myLeads.length === 0) {
+            this._global.publishAlert(AlertType.Info, "No lead found");
+          }
+          this.allLeads = this.myLeads;
+          console.log("this.allLeads=", this.allLeads);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling leads from API"
+          );
         }
-        this.allLeads=this.myLeads;
-        console.log("this.allLeads=",this.allLeads);
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling leads from API"
-        );
-      }
       );
   }
 
@@ -193,40 +188,45 @@ export class MyLeadsComponent implements OnInit {
     this.apiRequesting = true;
     this.leadsInProgress.push(lead);
     this._api
-      .get(environment.internalApiUrl + "lead-info", {
+      .get(environment.adminApiUrl + "utils/scan-gmb", {
         q: lead.name + " " + lead.address.route + " " + lead.address.postal_code
       })
       .subscribe(
-      result => {
-        const gmbInfo = result as GmbInfo;
-        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+        result => {
+          const gmbInfo = result as GmbInfo;
+          const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
 
-        if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
-          clonedLead.oldName = clonedLead.name;
-        } else {
-          // to make sure carry the name
-          gmbInfo.name = clonedLead.name;
-        }
+          if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
+            clonedLead.oldName = clonedLead.name;
+          } else {
+            // to make sure carry the name
+            gmbInfo.name = clonedLead.name;
+          }
 
-        Object.assign(clonedLead, gmbInfo);
-        clonedLead.phones = clonedLead.phones || [];
-        if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
-          clonedLead.phones.push(gmbInfo.phone);
-          delete clonedLead["phone"];
+          // currently we don't want to lose address in original lead
+          if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
+            gmbInfo.address = clonedLead.address;
+          }
+
+          Object.assign(clonedLead, gmbInfo);
+          clonedLead.phones = clonedLead.phones || [];
+          if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
+            clonedLead.phones.push(gmbInfo.phone);
+            delete clonedLead["phone"];
+          }
+          clonedLead.gmbScanned = true;
+          this.patchDiff(lead, clonedLead);
+          this.apiRequesting = false;
+          this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
+          // notify done!
+          event.acknowledge && event.acknowledge(null);
+        },
+        error => {
+          this.apiRequesting = false;
+          this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
+          this._global.publishAlert(AlertType.Danger, "Failed to crawl");
+          event.acknowledge && event.acknowledge("Error scanning GMB info");
         }
-        clonedLead.gmbScanned = true;
-        this.patchDiff(lead, clonedLead);
-        this.apiRequesting = false;
-        this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
-        // notify done!
-        event.acknowledge && event.acknowledge(null);
-      },
-      error => {
-        this.apiRequesting = false;
-        this.leadsInProgress = this.leadsInProgress.filter(l => l != lead);
-        this._global.publishAlert(AlertType.Danger, "Failed to crawl");
-        event.acknowledge && event.acknowledge("Error scanning GMB info");
-      }
       );
   }
 
@@ -295,9 +295,7 @@ export class MyLeadsComponent implements OnInit {
 
     // replace edited callLog, we can only use time as key to find it
     for (let i = 0; i < leadClone.callLogs.length; i++) {
-      if (
-        leadClone.callLogs[i].hasSameTimeAs(event.object)
-      ) {
+      if (leadClone.callLogs[i].hasSameTimeAs(event.object)) {
         leadClone.callLogs[i] = event.object;
       }
     }

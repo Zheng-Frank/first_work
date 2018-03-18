@@ -36,4 +36,66 @@ export class SystemComponent implements OnInit {
     //   );
   }
 
+
+  removeDuplicates() {
+    // 1. query ALL with restaurantIds
+    // 2. calculate duplicated
+    // 3. remove duplicated
+
+    this._api
+      .get(environment.adminApiUrl + "generic", {
+        resource: "lead",
+        query: {
+          restaurantId: { $exists: true }
+        },
+        projection: {
+          restaurantId: 1
+        },
+        limit: 6000
+      })
+      .subscribe(
+        result => {
+          console.log(result);
+          const duplicatedIds = [];
+          const existingRestaurantIdSet = new Set();
+          result.map(lead => {
+            if (existingRestaurantIdSet.has(lead.restaurantId)) {
+              duplicatedIds.push(lead._id);
+            } else {
+              existingRestaurantIdSet.add(lead.restaurantId);
+            }
+          });
+          this.removeLeads(duplicatedIds);
+          console.log(duplicatedIds);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling gmb from API"
+          );
+        }
+      );
+  }
+
+  removeLeads(leadIds) {
+    leadIds.length = 200;
+    console.log("remove", leadIds);
+    this._api
+      .delete(environment.adminApiUrl + "generic", {
+        resource: "lead",
+        ids: leadIds
+      })
+      .subscribe(
+        result => {
+          this._global.publishAlert(
+            AlertType.Success,
+            result.length + " was removed"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
+      );
+  }
+
 }

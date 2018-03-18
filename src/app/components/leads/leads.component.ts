@@ -685,7 +685,7 @@ export class LeadsComponent implements OnInit {
   crawlGoogle(lead: Lead, resolveCallback?, rejectCallback?) {
     this.apiRequesting = true;
     this._api
-      .get(environment.internalApiUrl + "lead-info", {
+      .get(environment.adminApiUrl + "utils/scan-gmb", {
         q: [lead.name, lead.address.formatted_address].filter(i => i).join(" ")
       })
       .subscribe(
@@ -698,6 +698,11 @@ export class LeadsComponent implements OnInit {
           } else {
             // to make sure carry the name
             gmbInfo.name = clonedLead.name;
+          }
+          
+          // currently we don't want to lose address in original lead
+          if(!gmbInfo.address || !gmbInfo.address['place_id']) {
+            gmbInfo.address = clonedLead.address;
           }
 
           Object.assign(clonedLead, gmbInfo);
