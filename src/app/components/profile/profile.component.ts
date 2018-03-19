@@ -23,20 +23,24 @@ export class ProfileComponent implements OnInit {
     if (this._global.isUserInRoles(["ADMIN", "MARKETING_DIRECTOR"])) {
       // grab all users and make an assignee list!
       // get all users
-      this._api.get(environment.adminApiUrl + "users", { ids: [] }).subscribe(
-        result => {
-          const myTeamUsers = result
-            .map(u => new User(u))
-            .filter(u => u.manager === this._global.user.username);
-
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling users from API"
-          );
-        }
-      );
+      this._api
+        .get(environment.adminApiUrl + "generic", {
+          resource: "user",
+          limit: 1000
+        })
+        .subscribe(
+          result => {
+            const myTeamUsers = result
+              .map(u => new User(u))
+              .filter(u => u.manager === this._global.user.username);
+          },
+          error => {
+            this._global.publishAlert(
+              AlertType.Danger,
+              "Error pulling users from API"
+            );
+          }
+        );
     }
   }
 

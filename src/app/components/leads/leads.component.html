@@ -156,7 +156,7 @@
             {{leadInEditing.address?.formatted_address}}
             <i *ngIf="leadInEditing.address?.place_id" class="fas fa-check text-success"></i>
           </a>
-          <div *ngIf="!(leadInEditing.address?.place_id)">
+          <div *ngIf="!(leadInEditing.address?.place_id && leadInEditing.address?.locality)">
             <button class="btn btn-outline-primary" (click)="injectGoogleAddress(leadInEditing)" [qLoading]="apiRequesting">
               <i class="fas fa-map-marker-alt"></i> Inject Google Address</button>
           </div>

@@ -333,44 +333,49 @@ export class LeadsComponent implements OnInit {
 
     // grab all users and make an assignee list!
     // get all users
-    this._api.get(environment.adminApiUrl + "users", { ids: [] }).subscribe(
-      result => {
-        this.users = result.map(u => new User(u));
+    this._api
+      .get(environment.adminApiUrl + "generic", {
+        resource: "user",
+        limit: 1000
+      })
+      .subscribe(
+        result => {
+          this.users = result.map(u => new User(u));
 
-        // make form selector here
-        const marketingUsers = result
-          .map(u => new User(u))
-          .filter(u =>
-            (u.roles || []).some(
-              r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
-            )
+          // make form selector here
+          const marketingUsers = result
+            .map(u => new User(u))
+            .filter(u =>
+              (u.roles || []).some(
+                r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+              )
+            );
+
+          const descriptor = {
+            field: "assignee", // match db naming otherwise would be single instead of plural
+            label: "Assignee",
+            required: false,
+            inputType: "single-select",
+            items: marketingUsers.map(mu => ({
+              object: mu.username,
+              text: mu.username,
+              selected: false
+            }))
+          };
+
+          this.filterFieldDescriptors.splice(8, 0, descriptor);
+
+          const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
+          clonedDescriptor.required = true;
+          this.assigneeFieldDescriptors.push(clonedDescriptor);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling users from API"
           );
-
-        const descriptor = {
-          field: "assignee", // match db naming otherwise would be single instead of plural
-          label: "Assignee",
-          required: false,
-          inputType: "single-select",
-          items: marketingUsers.map(mu => ({
-            object: mu.username,
-            text: mu.username,
-            selected: false
-          }))
-        };
-
-        this.filterFieldDescriptors.splice(8, 0, descriptor);
-
-        const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
-        clonedDescriptor.required = true;
-        this.assigneeFieldDescriptors.push(clonedDescriptor);
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling users from API"
-        );
-      }
-    );
+        }
+      );
   }
 
   resetRating() {
@@ -437,7 +442,9 @@ export class LeadsComponent implements OnInit {
 
     this.leadInEditing.address.apt = (this.addressApt || "").trim();
     this._api
-      .post(environment.adminApiUrl + "leads", [this.leadInEditing])
+      .post(environment.adminApiUrl + "generic?resource=lead", [
+        this.leadInEditing
+      ])
       .subscribe(
         result => {
           event.acknowledge(null);
@@ -584,7 +591,8 @@ export class LeadsComponent implements OnInit {
     });
 
     this._api
-      .get(environment.adminApiUrl + "leads", {
+      .get(environment.adminApiUrl + "generic", {
+        resource: "lead",
         ids: [],
         limit: 1000,
         query: query
@@ -699,9 +707,9 @@ export class LeadsComponent implements OnInit {
             // to make sure carry the name
             gmbInfo.name = clonedLead.name;
           }
-          
+
           // currently we don't want to lose address in original lead
-          if(!gmbInfo.address || !gmbInfo.address['place_id']) {
+          if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
             gmbInfo.address = clonedLead.address;
           }
 
@@ -739,7 +747,7 @@ export class LeadsComponent implements OnInit {
     lead.address = lead.address || {};
 
     this._api
-      .get(environment.qmenuApiUrl + "utilities/getGoogleAddress", {
+      .get(environment.adminApiUrl + "utils/google-address", {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(
@@ -769,23 +777,25 @@ export class LeadsComponent implements OnInit {
       this.selectionSet.delete(newLead._id);
     } else {
       // api update here...
-      this._api.patch(environment.adminApiUrl + "leads", diffs).subscribe(
-        result => {
-          if (removeFromSelection) {
-            this.selectionSet.delete(newLead._id);
+      this._api
+        .patch(environment.adminApiUrl + "generic?resource=lead", diffs)
+        .subscribe(
+          result => {
+            if (removeFromSelection) {
+              this.selectionSet.delete(newLead._id);
+            }
+            // let's update original, assuming everything successful
+            Object.assign(originalLead, newLead);
+            this.editingModal.hide();
+            this._global.publishAlert(
+              AlertType.Success,
+              originalLead.name + " was updated"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
           }
-          // let's update original, assuming everything successful
-          Object.assign(originalLead, newLead);
-          this.editingModal.hide();
-          this._global.publishAlert(
-            AlertType.Success,
-            originalLead.name + " was updated"
-          );
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-        }
-      );
+        );
     }
   }
 

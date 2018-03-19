@@ -305,7 +305,7 @@ export class CallLoggerComponent implements OnInit, OnChanges {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.adminApiUrl + "leads", diffs).subscribe(
+      this._api.patch(environment.adminApiUrl + "generic?resource=lead", diffs).subscribe(
         result => {
           // let's update original, assuming everything successful
           Object.assign(originalLead, newLead);

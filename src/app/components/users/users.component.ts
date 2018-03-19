@@ -35,7 +35,7 @@ export class UsersComponent implements OnInit {
   ngOnInit() {
 
     // get all users
-    this._api.get(environment.adminApiUrl + 'users', { ids: [] }).subscribe(
+    this._api.get(environment.adminApiUrl + 'generic', {resource: 'user', limit: 1000 }).subscribe(
       result => {
         this.users = result.map(u => new User(u));
         this.sortUsers(this.users);

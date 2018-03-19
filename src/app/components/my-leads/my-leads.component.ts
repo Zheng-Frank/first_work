@@ -50,35 +50,39 @@ export class MyLeadsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {}
 
   ngOnInit() {
-    this._api.get(environment.adminApiUrl + "users", { ids: [] }).subscribe(
-      result => {
-        this.users = result.map(u => new User(u));
+    this._api
+      .get(environment.adminApiUrl + "generic", {
+        resource: "user",
+        limit: 1000
+      })
+      .subscribe(
+        result => {
+          this.users = result.map(u => new User(u));
 
-        // make form selector here
-        this.marketingUsers = result
-          .map(u => new User(u))
-          .filter(
-            u =>
-              u.manager == this._global.user.username &&
-              (u.roles || []).some(
-                r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
-              )
+          // make form selector here
+          this.marketingUsers = result
+            .map(u => new User(u))
+            .filter(
+              u =>
+                u.manager == this._global.user.username &&
+                (u.roles || []).some(
+                  r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+                )
+            );
+          this.marketingUsers.push(this._global.user);
+          this.populateMyLeads();
+
+          this.marketingUsers.map(each => {
+            this.selectAgents.push({ text: each.username });
+          });
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling users from API"
           );
-        this.marketingUsers.push(this._global.user);
-        console.log("mega=", this.marketingUsers);
-        this.populateMyLeads();
-
-        this.marketingUsers.map(each => {
-          this.selectAgents.push({ text: each.username });
-        });
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling users from API"
-        );
-      }
-    );
+        }
+      );
   }
 
   agentFilter(event) {
@@ -114,7 +118,8 @@ export class MyLeadsComponent implements OnInit {
 
     console.log("query=", queryOrClause);
     this._api
-      .get(environment.adminApiUrl + "leads", {
+      .get(environment.adminApiUrl + "generic", {
+        resource: "lead",
         ids: [],
         limit: 6000,
         query: query
@@ -237,19 +242,21 @@ export class MyLeadsComponent implements OnInit {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.adminApiUrl + "leads", diffs).subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          Object.assign(originalLead, newLead);
-          this._global.publishAlert(
-            AlertType.Success,
-            originalLead.name + " was updated"
-          );
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-        }
-      );
+      this._api
+        .patch(environment.adminApiUrl + "generic?resource=lead", diffs)
+        .subscribe(
+          result => {
+            // let's update original, assuming everything successful
+            Object.assign(originalLead, newLead);
+            this._global.publishAlert(
+              AlertType.Success,
+              originalLead.name + " was updated"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
+        );
     }
   }
 
