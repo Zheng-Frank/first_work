@@ -46,19 +46,17 @@ export class OrdersComponent implements OnInit {
 
   ngOnInit() {
     const start = new Date();
-    const end = new Date();
-    start.setDate(start.getDate() - 1);
-    this.searchOrders(start, end);
+    start.setDate(start.getDate() - 2);
+    this.searchOrders(start);
   }
 
-  searchOrders(startDate: Date, endDate: Date) {
+  searchOrders(startDate: Date) {
     Observable.zip(
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "order",
         query: {
           createdAt: {
             $gte: startDate
-            // $lt: endDate
           }
         },
         projection: {
@@ -95,6 +93,7 @@ export class OrdersComponent implements OnInit {
           gmbOwner: 1,
           gmbWebsite: 1,
           phones: 1,
+          address: 1,
           fax: 1
         },
         limit: 6000
@@ -109,12 +108,21 @@ export class OrdersComponent implements OnInit {
         restaurants.map(r => {
           restaurantMap[r._id] = {
             restaurant: r,
-            orders: []
+            orders: [],
+            yesterdayOrders: []
           };
         });
+        const now = new Date();
+        const daySpan = 24 * 3600 * 1000;
+        this.totalOrders = 0;
         orders.map(o => {
           if (restaurantMap[o.restaurant]) {
-            restaurantMap[o.restaurant].orders.push(o);
+            if (now.valueOf() - new Date(o.createdAt).valueOf() > daySpan) {
+              restaurantMap[o.restaurant].yesterdayOrders.push(o);
+            } else {
+              restaurantMap[o.restaurant].orders.push(o);
+              this.totalOrders++;
+            }
           }
         });
 
@@ -147,7 +155,6 @@ export class OrdersComponent implements OnInit {
         this.restaurantsWithoutOrders = this.rows.filter(
           r => r["orders"].length === 0
         ).length;
-        this.totalOrders = orders.length;
       },
       error =>
         this._global.publishAlert(
@@ -159,5 +166,19 @@ export class OrdersComponent implements OnInit {
 
   getLogo(lead) {
     return spMap[lead.gmbOwner];
+  }
+  getGoogleQuery(row) {
+    if (row.lead && row.lead.address) {
+      return (
+        "https://www.google.com/search?q=" +
+        encodeURIComponent(
+          row.restaurant["name"] + " " + row.lead["address"]["formatted_address"]
+        )
+      );
+    }
+    return (
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(row.restaurant["name"])
+    );
   }
 }

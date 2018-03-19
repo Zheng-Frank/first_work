@@ -13,6 +13,7 @@
     <tr>
       <th scope="col">Restaurant</th>
       <th scope="col">Total</th>
+      <th scope="col">Change</th>
       <th scope="col">GMB</th>
       <th scope="col">Website</th>
     </tr>
@@ -20,7 +21,10 @@
   <tbody>
     <tr *ngFor="let row of rows;">
       <td>
-        <span (click)="row.expanded = !row.expanded">{{row.restaurant.name}}</span>
+        <span (click)="row.expanded = !row.expanded"></span>
+        <a href="{{getGoogleQuery(row)}}" target="_blank">
+          {{row.restaurant.name}}
+        </a>
         <button *ngIf="row.orders.length > 0" class="btn btn-link py-0" (click)="row.expanded = !row.expanded">
           <i class="fas {{row.expanded ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
         </button>
@@ -35,8 +39,16 @@
       </td>
       <td>{{row.orders.length}}</td>
       <td>
+        <span *ngIf="row.orders.length > row.yesterdayOrders.length" class="text-success">+{{row.orders.length - row.yesterdayOrders.length}}</span>
+        <span *ngIf="row.orders.length === row.yesterdayOrders.length">-</span>
+        <span *ngIf="row.orders.length < row.yesterdayOrders.length" class="text-danger">{{row.orders.length - row.yesterdayOrders.length}}</span>
+
+
+      </td>
+      <td>
         <ng-container *ngIf="row.lead">
-          <img *ngIf="row.lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="row.lead.gmbAccountOwner" height="16px">
+          <img *ngIf="row.lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="row.lead.gmbAccountOwner"
+            height="16px">
           <span *ngIf="row.lead.gmbAccountOwner !== 'qmenu'">?</span>
         </ng-container>
 
