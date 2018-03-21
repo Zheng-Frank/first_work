@@ -12,6 +12,8 @@ import { DeepDiff } from "../../classes/deep-diff";
   styleUrls: ["./system.component.scss"]
 })
 export class SystemComponent implements OnInit {
+
+  removingOrphanPhones = false;
   constructor(private _api: ApiService, private _global: GlobalService) {}
 
   ngOnInit() {}
@@ -96,6 +98,11 @@ export class SystemComponent implements OnInit {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");
         }
       );
+  }
+
+  removeOrphanPhones() {
+    this.removingOrphanPhones = true;
+
   }
 
 }

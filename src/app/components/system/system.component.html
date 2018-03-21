@@ -35,4 +35,12 @@
             <button class="btn btn-primary" (click)="migrateAddress()">Migrate</button>
         </div>
     </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Remove Orphan Phones</h5>
+            <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from database.</p>
+            <button class="btn btn-primary" (click)="removeOrphanPhones()"  [qLoading]="removingOrphanPhones">Remove</button>
+        </div>
+    </div>
 </div>
