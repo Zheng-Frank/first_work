@@ -95,12 +95,12 @@
             <i class="far fa-envelope"></i>
           </label>
         </td>
-        <td class="{{lead.address.place_id ? 'text-info' : ''}}">{{(lead.address.street_number || '') + ' ' + lead.address.route}}
-          <i *ngIf="lead.address.place_id" class="fas fa-check"></i>
+        <td class="{{lead.address?.place_id ? 'text-info' : ''}}">{{(lead.address?.street_number || '') + ' ' + lead.address?.route}}
+          <i *ngIf="lead.address?.place_id" class="fas fa-check"></i>
         </td>
-        <td>{{lead.address.locality}}</td>
-        <td>{{lead.address.postal_code}}</td>
-        <td>{{lead.address.administrative_area_level_1}}</td>
+        <td>{{lead.address?.locality}}</td>
+        <td>{{lead.address?.postal_code}}</td>
+        <td>{{lead.address?.administrative_area_level_1}}</td>
         <td>
           <span *ngFor="let phone of (lead.phones ||[])">{{phone | tel}}&nbsp;&nbsp;</span>
         </td>

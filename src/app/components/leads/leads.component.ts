@@ -622,6 +622,7 @@ export class LeadsComponent implements OnInit {
 
   view(lead) {
     this.selectedLead = lead;
+    this.leadInEditing = lead;
     this.viewModal.show();
   }
 
@@ -743,6 +744,7 @@ export class LeadsComponent implements OnInit {
   }
 
   injectGoogleAddress(lead: Lead) {
+    console.log(lead)
     this.apiRequesting = true;
     lead.address = lead.address || {};
 

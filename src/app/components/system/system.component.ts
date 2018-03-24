@@ -12,7 +12,6 @@ import { DeepDiff } from "../../classes/deep-diff";
   styleUrls: ["./system.component.scss"]
 })
 export class SystemComponent implements OnInit {
-
   removingOrphanPhones = false;
   constructor(private _api: ApiService, private _global: GlobalService) {}
 
@@ -37,7 +36,6 @@ export class SystemComponent implements OnInit {
     //     }
     //   );
   }
-
 
   removeDuplicates() {
     // 1. query ALL with restaurantIds
@@ -102,7 +100,57 @@ export class SystemComponent implements OnInit {
 
   removeOrphanPhones() {
     this.removingOrphanPhones = true;
+    // load ALL phones and restaurants
+    Observable.zip(
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "phone",
+        projection: {
+          restaurant: 1
+        },
+        limit: 50000
+      }),
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        projection: {
+          name: 1
+        },
+        limit: 10000
+      })
+    )
+      .flatMap(result => {
+        const restaurantSet = new Set(result[1].map(r => r._id));
+        const phones = result[0];
+        const goodPhones = phones.filter(p => restaurantSet.has(p.restaurant));
+        const badPhones = phones.filter(p => !restaurantSet.has(p.restaurant));
+        // get phones with restaurant id missin in restaurants
+        console.log(result);
+        console.log(goodPhones);
+        console.log(badPhones);
 
+        return this._api.delete(
+          environment.qmenuApiUrl + "generic",
+          {
+            resource: 'phone',
+            ids: badPhones.map(phone => phone._id)
+          }
+        );
+      })
+      .subscribe(
+        result => {
+          console.log("resullt");
+          console.log(result);
+
+          this.removingOrphanPhones = false;
+
+          // let's remove bad phones!
+        },
+        error => {
+          this.removingOrphanPhones = false;
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling gmb from API"
+          );
+        }
+      );
   }
-
 }
