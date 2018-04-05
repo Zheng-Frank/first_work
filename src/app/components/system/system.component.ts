@@ -13,12 +13,46 @@ import { DeepDiff } from "../../classes/deep-diff";
 })
 export class SystemComponent implements OnInit {
   removingOrphanPhones = false;
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   migrateAddress() {
-    alert("under construction");
+    // let's batch 20 every time
+    const batchSize = 20;
+    this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          address: { $exists: true },
+          googleAddress: { $exists: false },
+        },
+        projection: {
+          address: 1
+        },
+        limit: batchSize
+      }).flatMap(restaurants => {
+        console.log(restaurants);
+        console.log(restaurants.filter(r => r.address).map(r=>  'ObjectId("' + (r.address._id || r.address) + '")'))
+        return this._api
+          .get(environment.qmenuApiUrl + "generic", {
+            resource: "address",
+            query: {
+              _id: { $in: restaurants.filter(r => r.address).map(r=> 'ObjectId("' + (r.address._id || r.address) + '")') },
+            },
+            limit: batchSize
+          });
+      }
+      ).subscribe(
+        addresses => {
+          console.log(addresses)
+        },
+        error => {
+          console.log(error)
+        });
+    //query restaurants without googleAddress field but having address
+    // query address
+
     // this._api
     //   .post(environment.qmenuApiUrl + "scripts/migrate-address", {})
     //   .subscribe(

@@ -56,7 +56,13 @@ export class Lead {
       }
 
       // convert address to typeof Address
-      this.address = new Address(this.address);
+      if (typeof this.address === "string") {
+        this.address = new Address({
+          formatted_address: this.address
+        });
+      } else {
+        this.address = new Address(this.address);
+      }
 
       // convert address to typeof Address
       this.callLogs = (this.callLogs || []).map(log => new CallLog(log));

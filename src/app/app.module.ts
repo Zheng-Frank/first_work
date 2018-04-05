@@ -32,6 +32,7 @@ import { LeadInfoComponent } from './components/lead-info/lead-info.component';
 import { LeadCallLogComponent } from './components/lead-call-log/lead-call-log.component';
 import { GmbsComponent } from './components/gmbs/gmbs.component';
 import { SyncButtonsComponent } from './components/sync-buttons/sync-buttons.component';
+import { RestaurantImporterComponent } from './components/restaurant-importer/restaurant-importer.component';
 
 @NgModule({
   declarations: [
@@ -53,7 +54,8 @@ import { SyncButtonsComponent } from './components/sync-buttons/sync-buttons.com
     LeadInfoComponent,
     LeadCallLogComponent,
     GmbsComponent,
-    SyncButtonsComponent
+    SyncButtonsComponent,
+    RestaurantImporterComponent
   ],
   imports: [
     BrowserModule,
