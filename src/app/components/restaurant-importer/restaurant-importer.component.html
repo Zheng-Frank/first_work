@@ -1,36 +1,45 @@
 <h5>1. Get Restaurant Data</h5>
 <div class="input-group">
-  <input type="text" class="form-control" id="input-url" placeholder="Enter website URL" [(ngModel)]="crawUrl">
+  <input type="text" class="form-control" id="input-url" placeholder="Enter website URL" [(ngModel)]="crawlUrl">
   <div class="input-group-append">
-    <button class="btn btn-primary" (click)="getRestaurantData()" [qLoading]="crawling">Start Crawl</button>
+    <button class="btn btn-primary" (click)="getRestaurantData()" [qLoading]="apiRequesting">Start Crawl</button>
   </div>
 </div>
-<div class="mt-2">
+
+<div class="mt-2" *qIf="restaurant">
   <address>
-    <strong>Twitter, Inc.</strong>
-    <br> 1355 Market St, Suite 900
-    <br> San Francisco, CA 94103
+    <strong>{{restaurant.name}}</strong>
     <br>
-    <abbr title="Phone">P:</abbr> (123) 456-7890
+    <span *ngIf="restaurant && restaurant.address">
+      {{restaurant.address.street_number}} {{restaurant.address.route}}
+      <br> {{restaurant.address?.locality}} {{restaurant?.address.administrative_area_level_1}}, {{restaurant.address.postal_code}}
+      <br>
+    </span>
   </address>
+
+  <div *qIf="restaurant && restaurant.address">
+    <h5 class="mt-4">2. Check Alias Availabilty</h5>
+    <div class="input-group">
+      <input type="text" class="form-control" id="input-alias" placeholder="Enter alias" [(ngModel)]="alias">
+      <div class="input-group-append">
+        <button class="btn btn-primary" (click)="checkAliasAvailability()" [qLoading]="apiRequesting">Check Alias Existence</button>
+      </div>
+    </div>
+    <div *ngIf="alias">Preview Link:
+      <a href="{{getCustomerPreviewLink()}}" target="_blank">{{getCustomerPreviewLink()}}</a>
+    </div>
+
+  </div>
+
+  <div *qIf="existingRestaurant && existingRestaurant._id" class="text-right">
+    Existing alias found!
+    <button class="btn btn-primary" (click)="updateExistingRestaurant()" [qLoading]="apiRequesting">Update Menus</button>
+  </div>
+  <div *qIf="existingRestaurant && !existingRestaurant._id" class="text-right">
+    No alias found!
+    <button class="btn btn-primary" (click)="createNewRestaurant()" [qLoading]="apiRequesting">Create The Restaurant</button>
+  </div>
 </div>
 
-<h5 class="mt-4">2. Insert/Update Restaurant</h5>
 
-<div class="form-row align-items-center">
-  <div class="col-auto">
-    <input type="text" class="form-control mb-2" placeholder="Restaurant alias">
-  </div>
-  <div class="col-auto">
-    <select class="custom-select mb-2">
-      <option selected>Choose Time Zone...</option>
-      <option value="1">One</option>
-      <option value="2">Two</option>
-      <option value="3">Three</option>
-    </select>
-  </div>
-  <div class="col-auto">
-    <button class="btn btn-primary mb-2">Upsert</button>
-  </div>
-</div>
-<div>Preview Link</div>
+<!-- {{crawlUrl}} {{apiRequesting}} {{restaurant | json}} {{existingRestaurant | json}} -->

@@ -3,18 +3,10 @@
   <button class="btn btn-info" (click)="toggleCrawl()">
     <i class="fas fa-download"></i> Crawl Restaurant Data</button>
   <button class="btn btn-primary" (click)="createNew()" [disabled]="true">+ Add New Restaurant</button>
-  <div *qIf="showCrawl" class="card-body">
-    <div class="form-group">
-      <input type="text" class="form-control" id="input-url" placeholder="Enter website URL" [(ngModel)]="crawUrl">
+  <div class="card text-left" *qIf="showCrawl">
+    <div class="card-body">
+      <h5 class="card-title">Craw Restaurant</h5>
+      <app-restaurant-importer></app-restaurant-importer>
     </div>
-    <button class="btn btn-secondary" (click)="toggleCrawl()">Cancel</button>
-    <button class="btn btn-primary" (click)="getRestaurantData()" [qLoading]="crawling">Crawl</button>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title">Craw Restaurant</h5>
-    <app-restaurant-importer></app-restaurant-importer>
   </div>
 </div>

@@ -749,7 +749,7 @@ export class LeadsComponent implements OnInit {
     lead.address = lead.address || {};
 
     this._api
-      .get(environment.adminApiUrl + "utils/google-address", {
+      .get(environment.adminApiUrl + "utils/ddress", {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(
