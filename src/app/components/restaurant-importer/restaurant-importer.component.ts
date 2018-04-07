@@ -181,45 +181,6 @@ export class RestaurantImporterComponent implements OnInit {
           this._global.publishAlert(AlertType.Danger, "Error updating restaurant!");
         }
       );
-    // replace menu mcs with new menu mcs, replace menuoptions
-    // preparing the diffs!
-    // 
-    // const rNew = JSON.parse(JSON.stringify(this.existingRestaurant));
-
-    // rOld.menuOptions = null;
-    // rNew.menuOptions = this.restaurant.menuOptions || null;
-    // rNew.menus.length = this.restaurant.menus.length;
-    // for (let i = 0; i < this.restaurant.menus.length; i++) {
-    //   // keep everything of menu, except mcs which is to be replaced entirely!
-    //   // we don't want to have segmented compares to just set old to null (to be replaced)
-    //   if (rOld.menus[i]) {
-    //     rOld.menus[i].mcs = null;
-    //   }
-    //   rNew.menus[i] = rNew.menus[i] || this.restaurant.menus[i];
-    //   rNew.menus[i].name = this.restaurant.menus[i].name;
-    //   rNew.menus[i].mcs = this.restaurant.menus[i].mcs;
-    // }
-
-    // const diffs = DeepDiff.getDiff(rOld._id, rOld, rNew);
-    // if (diffs.length === 0) {
-    //   this._global.publishAlert(AlertType.Info, "Nothing to update");
-    // } else {
-    //   this.apiRequesting = true;
-
-    //   this._api
-    //     .patch(environment.qmenuApiUrl + "generic?resource=restaurant", diffs)
-    //     .subscribe(
-    //       result => {
-    //         this.apiRequesting = false;
-    //         this._global.publishAlert(AlertType.Success, "Restaurant " + this.existingRestaurant.name + " is updated!");
-    //         this.existingRestaurant = undefined;
-    //       },
-    //       error => {
-    //         this.apiRequesting = false;
-    //         this._global.publishAlert(AlertType.Danger, "Error updating restaurant!");
-    //       }
-    //     );
-    // }
 
   }
 

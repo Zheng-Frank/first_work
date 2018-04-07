@@ -30,18 +30,20 @@
     </div>
 
   </div>
+  <div *ngIf="existingRestaurant">
+    <app-restaurant-menu-shuffler #menuShuffler [restaurant1]="existingRestaurant" [restaurant2]="restaurant"></app-restaurant-menu-shuffler>
 
-  <app-restaurant-menu-shuffler #menuShuffler [restaurant1]="existingRestaurant"  [restaurant2]="restaurant"></app-restaurant-menu-shuffler>
-
-  <div *qIf="existingRestaurant && existingRestaurant._id" class="text-right mt-4">
-    Existing alias found!
-    <button class="btn btn-primary" (click)="updateExistingRestaurant()" [qLoading]="apiRequesting">Update Menus</button>
-  </div>
-  <div *qIf="existingRestaurant && !existingRestaurant._id" class="text-right mt-4">
-    No alias found!
-    <button class="btn btn-primary" (click)="createNewRestaurant()" [qLoading]="apiRequesting">Create The Restaurant</button>
+    <div *qIf="existingRestaurant && existingRestaurant._id" class="text-right mt-4">
+      Existing alias found!
+      <button class="btn btn-primary" (click)="updateExistingRestaurant()" [qLoading]="apiRequesting">Update Menus</button>
+    </div>
+    <div *qIf="existingRestaurant && !existingRestaurant._id" class="text-right mt-4">
+      No alias found!
+      <button class="btn btn-primary" (click)="createNewRestaurant()" [qLoading]="apiRequesting">Create The Restaurant</button>
+    </div>
   </div>
 </div>
+
 
 
 <!-- {{crawlUrl}} {{apiRequesting}} {{restaurant | json}} {{existingRestaurant | json}} -->

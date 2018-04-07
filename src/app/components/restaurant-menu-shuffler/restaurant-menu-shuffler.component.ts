@@ -13,6 +13,8 @@ export class RestaurantMenuShufflerComponent implements OnInit, OnChanges {
 
   restaurant1Clone: Restaurant;
   restaurant2Clone: Restaurant;
+  allOldMcs = [];
+  allNewMcs = [];
   reorganizedMenus = [];  // {name, oldHours, oldMcs, newMcs, newHours}, each mc: {name, selected}
   constructor() { }
 
@@ -47,22 +49,22 @@ export class RestaurantMenuShufflerComponent implements OnInit, OnChanges {
         }
       });
 
-      const allOldMcs = [];
-      const allNewMcs = [];
+      this.allOldMcs = [];
+      this.allNewMcs = [];
 
-      this.restaurant1Clone.menus.map(menu => menu.mcs.map(mc => allOldMcs.push(mc)));
-      this.restaurant2Clone.menus.map(menu => menu.mcs.map(mc => allNewMcs.push(mc)));
+      this.restaurant1Clone.menus.map(menu => menu.mcs.map(mc => this.allOldMcs.push(mc)));
+      this.restaurant2Clone.menus.map(menu => menu.mcs.map(mc => this.allNewMcs.push(mc)));
 
       this.reorganizedMenus.length = 0;
 
       this.reorganizedMenus = this.reorganizedMenus.concat(
         this.restaurant1Clone.menus.map(menu => ({
           name: menu.name,
-          oldMcSelections: allOldMcs.map(mc => ({
+          oldMcSelections: this.allOldMcs.map(mc => ({
             mc: mc,
             selected: menu.mcs.indexOf(mc) >= 0
           })),
-          newMcSelections: allNewMcs.map(mc => ({
+          newMcSelections: this.allNewMcs.map(mc => ({
             mc: mc,
             selected: false
           })),
@@ -73,33 +75,32 @@ export class RestaurantMenuShufflerComponent implements OnInit, OnChanges {
       this.reorganizedMenus = this.reorganizedMenus.concat(
         this.restaurant2Clone.menus.map(menu => ({
           name: menu.name,
-          oldMcSelections: allOldMcs.map(mc => ({
+          oldMcSelections: this.allOldMcs.map(mc => ({
             mc: mc,
             selected: false
           })),
-          newMcSelections: allNewMcs.map(mc => ({
+          newMcSelections: this.allNewMcs.map(mc => ({
             mc: mc,
             selected: menu.mcs.indexOf(mc) >= 0
           })),
           inheritOthersFrom: menu
         }))
       );
-
-      // add extra 3 empty menu rows
-      ['menu1', 'menu2', 'menu3'].map(menuName => {
-        this.reorganizedMenus.push({
-          name: menuName,
-          oldMcSelections: allOldMcs.map(mc => ({
-            mc: mc,
-            selected: false
-          })),
-          newMcSelections: allNewMcs.map(mc => ({
-            mc: mc,
-            selected: false
-          })),
-        });
-      });
     }
+  }
+
+  addNewMenu() {
+    this.reorganizedMenus.push({
+      name: 'New Menu',
+      oldMcSelections: this.allOldMcs.map(mc => ({
+        mc: mc,
+        selected: false
+      })),
+      newMcSelections: this.allNewMcs.map(mc => ({
+        mc: mc,
+        selected: false
+      })),
+    });
   }
 
   hasSelectedMcs(orgMenu) {
@@ -211,6 +212,14 @@ export class RestaurantMenuShufflerComponent implements OnInit, OnChanges {
       menus: menus,
       menuOptions: allMos
     };
+  }
+
+  setAllSelection(selections, selected) {
+    selections.map(selection => selection.selected = selected);
+  }
+
+  containsLunch(name) {
+    return (name || '').toLowerCase().indexOf('lunch') >= 0;
   }
 
 }

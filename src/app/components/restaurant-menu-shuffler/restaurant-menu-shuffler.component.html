@@ -1,10 +1,10 @@
-<h5>3. Select Menu Categories for New Menus:</h5>
-<table class="table">
+<h5>3. Re-organize Menus:</h5>
+<table class="table table-bordered">
   <thead>
     <tr>
-      <th scope="col">New Menu Name</th>
-      <th scope="col">Old Categories</th>
-      <th scope="col">New Categories</th>
+      <th scope="col" style="width: 30%">New Menu Name</th>
+      <th scope="col" *ngIf="restaurant1 && restaurant1.menus && restaurant1.menus.length > 0">Select Old Categories</th>
+      <th scope="col">Select New Categories</th>
     </tr>
   </thead>
   <tbody>
@@ -15,14 +15,14 @@
           No category selected and it will be abondoned.
         </div>
         <div *ngIf="hasSelectedMcs(menu)">
-          Selected Categories:
+          <!-- Selected Categories:
           <ng-container *ngFor="let mcSelections of [menu.oldMcSelections, menu.newMcSelections]">
             <div *ngFor="let mcSelection of mcSelections">
               <div *ngIf="mcSelection.selected" class="form-check">
                 {{mcSelection.mc.name}}
               </div>
             </div>
-          </ng-container>
+          </ng-container> -->
 
           <div>
             Applied Hours:
@@ -36,11 +36,22 @@
         </div>
 
       </td>
-      <td *ngFor="let selections of [menu.oldMcSelections, menu.newMcSelections]">
-        <div class="form-check" *ngFor="let mcSelection of selections">
-          
-          <label class="form-check-label" ><input type="checkbox" class="form-check-input" [(ngModel)]="mcSelection.selected"> {{mcSelection.mc.name}}</label>
-        </div>
+      <ng-container *ngFor="let selections of [menu.oldMcSelections, menu.newMcSelections]">
+        <td *ngIf="selections.length > 0">
+
+          <button type="button" class="btn btn-secondary btn-sm" (click)="setAllSelection(selections, true)">Select All</button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="setAllSelection(selections, false)">Deselect All</button>
+
+          <div class="form-check {{containsLunch(mcSelection.mc.name) ? 'text-danger' : ''}}" *ngFor="let mcSelection of selections">
+            <label class="form-check-label">
+              <input type="checkbox" class="form-check-input" [(ngModel)]="mcSelection.selected"> {{mcSelection.mc.name}}</label>
+          </div>
+        </td>
+      </ng-container>
+    </tr>
+    <tr>
+      <td colspan="3">
+          <button type="button" class="btn btn-primary" (click)="addNewMenu()"><i class="fas fa-plus-circle"></i> Add New Menu</button>
       </td>
     </tr>
   </tbody>
