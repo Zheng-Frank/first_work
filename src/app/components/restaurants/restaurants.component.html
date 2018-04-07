@@ -1,8 +1,26 @@
 <h1 class="text-center">qMenu Restaurants</h1>
-<div class="text-right pb-2">
-  <button class="btn btn-info" (click)="toggleCrawl()">
-    <i class="fas fa-download"></i> Crawl Restaurant Data</button>
-  <button class="btn btn-primary" (click)="createNew()" [disabled]="true">+ Add New Restaurant</button>
+<!-- <app-restaurant-menu-shuffler [restaurant1]="fakeRestaurant1"  [restaurant2]="fakeRestaurant2"></app-restaurant-menu-shuffler> -->
+<div class="text-right mb-2">
+  <div class="pb-2">
+    <button class="btn btn-info" (click)="showCrawl = !showCrawl">
+      <i class="fas fa-download"></i> Crawl Restaurant Data</button>
+    <!-- <button class="btn btn-primary" (click)="createNew()" [disabled]="true">+ Add New Restaurant</button> -->
+    <button class="btn btn-danger" (click)="showRemove = !showRemove"><i class="fas fa-times"></i> Delete Restaurant</button>
+  </div>
+  <div class="card text-left" *qIf="showRemove">
+    <div class="card-body">
+      <h5 class="card-title">Remove Restaurant</h5>
+      <div class="form-group">
+        <label for="formGroupExampleInput">Restaurant Alias</label>
+        <input type="text" class="form-control" placeholder="Restaurant alias" [(ngModel)]="removeAlias">
+      </div>
+      <div class="text-right mt-4">
+        <button class="btn btn-secondary" (click)="showRemove = false" [disabled]="removing">Cancel</button>
+        <button class="btn btn-primary" (click)="removeRestaurant()" [qLoading]="removing">Delete Restaurant</button>
+      </div>
+    </div>
+  </div>
+
   <div class="card text-left" *qIf="showCrawl">
     <div class="card-body">
       <h5 class="card-title">Craw Restaurant</h5>

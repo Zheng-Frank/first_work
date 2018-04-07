@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { GlobalService } from '../../services/global.service';
 import { AlertType } from '../../classes/alert-type';
@@ -11,6 +11,8 @@ import { DeepDiff } from "../../classes/deep-diff";
   styleUrls: ['./restaurant-importer.component.scss']
 })
 export class RestaurantImporterComponent implements OnInit {
+
+  @ViewChild('menuShuffler') menuShuffler;
 
   crawlUrl = "https://slicelife.com/restaurants/az/scottsdale/85260/ray-s-pizza-scottsdale/menu";
   apiRequesting;
@@ -109,7 +111,8 @@ export class RestaurantImporterComponent implements OnInit {
   }
 
   createNewRestaurant() {
-    // ccreate restaurant body, address
+
+    // create restaurant body, address
     const address = JSON.parse(JSON.stringify(this.restaurant.address));
     // add legacy line1, line2, zipCode, city, state
     address.line1 = address.street_number + ' ' + address.route;
@@ -124,6 +127,10 @@ export class RestaurantImporterComponent implements OnInit {
       .post(environment.qmenuApiUrl + "generic?resource=address", [address])
       .flatMap(addresses => {
         const restaurant = JSON.parse(JSON.stringify(this.restaurant));
+        const organizedMenusAndMenuOptions = this.menuShuffler.getOrganizedMenusAndMenuOptions();
+
+        restaurant.menus = organizedMenusAndMenuOptions.menus;
+        restaurant.menuOptions = organizedMenusAndMenuOptions.menuOptions;
         delete restaurant.phone;
         delete restaurant.formatted_address;
         restaurant.address = addresses[0];
@@ -149,46 +156,70 @@ export class RestaurantImporterComponent implements OnInit {
   }
 
   updateExistingRestaurant() {
+    const organized = this.menuShuffler.getOrganizedMenusAndMenuOptions();
+
+    // 1. delete existing menuOptions and menus
+    // 2. inject new menuOptions and menus
+    const rOld = JSON.parse(JSON.stringify(this.existingRestaurant));
+    const diffsToRemoveExistingMenusAndMenuOptions = DeepDiff.getDiff(rOld._id, { menus: {}, menuOptions: {} }, {});
+    const diffsToAddNewMenusAndMenuOptions = DeepDiff.getDiff(rOld._id, {}, { menus: organized.menus, menuOptions: organized.menuOptions });
+
+    this._api
+      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", diffsToRemoveExistingMenusAndMenuOptions)
+      .flatMap(
+        result => this._api
+          .patch(environment.qmenuApiUrl + "generic?resource=restaurant", diffsToAddNewMenusAndMenuOptions)
+      )
+      .subscribe(
+        result => {
+          this.apiRequesting = false;
+          this._global.publishAlert(AlertType.Success, "Restaurant " + this.existingRestaurant.name + " is updated!");
+          this.existingRestaurant = undefined;
+        },
+        error => {
+          this.apiRequesting = false;
+          this._global.publishAlert(AlertType.Danger, "Error updating restaurant!");
+        }
+      );
     // replace menu mcs with new menu mcs, replace menuoptions
     // preparing the diffs!
-    const rOld = JSON.parse(JSON.stringify(this.existingRestaurant));
-    const rNew = JSON.parse(JSON.stringify(this.existingRestaurant));
+    // 
+    // const rNew = JSON.parse(JSON.stringify(this.existingRestaurant));
 
-    rOld.menuOptions = null;
-    rNew.menuOptions = this.restaurant.menuOptions || null;
-    rNew.menus.length = this.restaurant.menus.length;
-    for (let i = 0; i < this.restaurant.menus.length; i++) {
-      // keep everything of menu, except mcs which is to be replaced entirely!
-      // we don't want to have segmented compares to just set old to null (to be replaced)
-      if (rOld.menus[i]) {
-        rOld.menus[i].mcs = null;
-      }
-      rNew.menus[i] = rNew.menus[i] || this.restaurant.menus[i];
-      rNew.menus[i].name = this.restaurant.menus[i].name;
-      rNew.menus[i].mcs = this.restaurant.menus[i].mcs;
-    }
+    // rOld.menuOptions = null;
+    // rNew.menuOptions = this.restaurant.menuOptions || null;
+    // rNew.menus.length = this.restaurant.menus.length;
+    // for (let i = 0; i < this.restaurant.menus.length; i++) {
+    //   // keep everything of menu, except mcs which is to be replaced entirely!
+    //   // we don't want to have segmented compares to just set old to null (to be replaced)
+    //   if (rOld.menus[i]) {
+    //     rOld.menus[i].mcs = null;
+    //   }
+    //   rNew.menus[i] = rNew.menus[i] || this.restaurant.menus[i];
+    //   rNew.menus[i].name = this.restaurant.menus[i].name;
+    //   rNew.menus[i].mcs = this.restaurant.menus[i].mcs;
+    // }
 
+    // const diffs = DeepDiff.getDiff(rOld._id, rOld, rNew);
+    // if (diffs.length === 0) {
+    //   this._global.publishAlert(AlertType.Info, "Nothing to update");
+    // } else {
+    //   this.apiRequesting = true;
 
-    const diffs = DeepDiff.getDiff(rOld._id, rOld, rNew);
-    if (diffs.length === 0) {
-      this._global.publishAlert(AlertType.Info, "Nothing to update");
-    } else {
-      this.apiRequesting = true;
-
-      this._api
-        .patch(environment.qmenuApiUrl + "generic?resource=restaurant", diffs)
-        .subscribe(
-          result => {
-            this.apiRequesting = false;
-            this._global.publishAlert(AlertType.Success, "Restaurant " + this.existingRestaurant.name + " is updated!");
-            this.existingRestaurant = undefined;
-          },
-          error => {
-            this.apiRequesting = false;
-            this._global.publishAlert(AlertType.Danger, "Error updating restaurant!");
-          }
-        );
-    }
+    //   this._api
+    //     .patch(environment.qmenuApiUrl + "generic?resource=restaurant", diffs)
+    //     .subscribe(
+    //       result => {
+    //         this.apiRequesting = false;
+    //         this._global.publishAlert(AlertType.Success, "Restaurant " + this.existingRestaurant.name + " is updated!");
+    //         this.existingRestaurant = undefined;
+    //       },
+    //       error => {
+    //         this.apiRequesting = false;
+    //         this._global.publishAlert(AlertType.Danger, "Error updating restaurant!");
+    //       }
+    //     );
+    // }
 
   }
 

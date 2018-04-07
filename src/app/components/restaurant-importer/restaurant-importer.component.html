@@ -17,7 +17,7 @@
     </span>
   </address>
 
-  <div *qIf="restaurant && restaurant.address">
+  <div *qIf="restaurant && restaurant.address" class="mb-4">
     <h5 class="mt-4">2. Check Alias Availabilty</h5>
     <div class="input-group">
       <input type="text" class="form-control" id="input-alias" placeholder="Enter alias" [(ngModel)]="alias">
@@ -31,11 +31,13 @@
 
   </div>
 
-  <div *qIf="existingRestaurant && existingRestaurant._id" class="text-right">
+  <app-restaurant-menu-shuffler #menuShuffler [restaurant1]="existingRestaurant"  [restaurant2]="restaurant"></app-restaurant-menu-shuffler>
+
+  <div *qIf="existingRestaurant && existingRestaurant._id" class="text-right mt-4">
     Existing alias found!
     <button class="btn btn-primary" (click)="updateExistingRestaurant()" [qLoading]="apiRequesting">Update Menus</button>
   </div>
-  <div *qIf="existingRestaurant && !existingRestaurant._id" class="text-right">
+  <div *qIf="existingRestaurant && !existingRestaurant._id" class="text-right mt-4">
     No alias found!
     <button class="btn btn-primary" (click)="createNewRestaurant()" [qLoading]="apiRequesting">Create The Restaurant</button>
   </div>

@@ -1,0 +1,67 @@
+<h5>3. Select Menu Categories for New Menus:</h5>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">New Menu Name</th>
+      <th scope="col">Old Categories</th>
+      <th scope="col">New Categories</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let menu of reorganizedMenus">
+      <td scope="row">
+        <input [(ngModel)]="menu.name" class="form-control">
+        <div *ngIf="!hasSelectedMcs(menu)" class="text-danger">
+          No category selected and it will be abondoned.
+        </div>
+        <div *ngIf="hasSelectedMcs(menu)">
+          Selected Categories:
+          <ng-container *ngFor="let mcSelections of [menu.oldMcSelections, menu.newMcSelections]">
+            <div *ngFor="let mcSelection of mcSelections">
+              <div *ngIf="mcSelection.selected" class="form-check">
+                {{mcSelection.mc.name}}
+              </div>
+            </div>
+          </ng-container>
+
+          <div>
+            Applied Hours:
+            <ng-container *ngFor="let menus of [restaurant1Clone.menus, restaurant2Clone.menus]">
+              <div class="form-check" *ngFor="let m of menus">
+                <label>
+                  <input type="checkbox" [checked]="m === menu.inheritOthersFrom" (change)="menu.inheritOthersFrom === m ? menu.inheritOthersFrom = null : menu.inheritOthersFrom = m"> Hours from {{m.name}}</label>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+      </td>
+      <td *ngFor="let selections of [menu.oldMcSelections, menu.newMcSelections]">
+        <div class="form-check" *ngFor="let mcSelection of selections">
+          
+          <label class="form-check-label" ><input type="checkbox" class="form-check-input" [(ngModel)]="mcSelection.selected"> {{mcSelection.mc.name}}</label>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h5>4. New Menus Preview:</h5>
+<div class="card-deck">
+  <div class="card" *ngFor="let menu of getOrganizedMenus()">
+
+    <div class="card-header">
+      {{menu.name}}
+      <div *ngIf="menu.inheritOthersFrom">
+        <small>Hours from {{menu.inheritOthersFrom.name}}</small>
+      </div>
+    </div>
+    <ul class="list-group list-group-flush">
+      <ng-container *ngFor="let menus of [menu.oldMcSelections, menu.newMcSelections]">
+        <ng-container *ngFor="let mcSelection of menus">
+          <li class="list-group-item" *ngIf="mcSelection.selected">{{mcSelection.mc.name}}</li>
+        </ng-container>
+      </ng-container>
+    </ul>
+
+  </div>
+</div>
