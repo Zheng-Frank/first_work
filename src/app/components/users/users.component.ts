@@ -6,7 +6,7 @@ import { GlobalService } from '../../services/global.service';
 // import { ModalComponent } from 'qmenu-ui/bundles/qmenu-ui.umd';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { AlertType } from '../../classes/alert-type';
-import { DeepDiff } from '../../classes/deep-diff';
+import { Helper } from "../../classes/helper";
 
 @Component({
   selector: 'app-users',
@@ -23,7 +23,7 @@ export class UsersComponent implements OnInit {
 
 
   existingUsernameItems = [];
-  existingRoleItems = [ 'ACCOUNTANT','ADMIN', 'DRIVER', 'GMB', 'MARKETER', 'MARKETING_DIRECTOR', 'MENU_EDITOR'].map(role => ({
+  existingRoleItems = ['ACCOUNTANT', 'ADMIN', 'DRIVER', 'GMB', 'MARKETER', 'MARKETING_DIRECTOR', 'MENU_EDITOR'].map(role => ({
     text: role,
     object: role
   }));
@@ -35,7 +35,7 @@ export class UsersComponent implements OnInit {
   ngOnInit() {
 
     // get all users
-    this._api.get(environment.adminApiUrl + 'generic', {resource: 'user', limit: 1000 }).subscribe(
+    this._api.get(environment.adminApiUrl + 'generic', { resource: 'user', limit: 1000 }).subscribe(
       result => {
         this.users = result.map(u => new User(u));
         this.sortUsers(this.users);
@@ -98,14 +98,18 @@ export class UsersComponent implements OnInit {
 
   formRemove(event) {
     // api delete here...
-    this._api.delete(environment.adminApiUrl + 'users', {ids: [this.userInEditing._id]}).subscribe(result => {
-      event.acknowledge(null);
-      this.users = this.users.filter(u => u.username !== this.userInEditing.username);
-      this.editingModal.hide();
-      this._global.publishAlert(AlertType.Danger, this.userInEditing.username + ' was deleted');
-    }, error => {
-      event.acknowledge(error.json() || error);
-    });
+    this._api.delete(environment.adminApiUrl + 'generic',
+      {
+        resource: 'user',
+        ids: [this.userInEditing._id]
+      }).subscribe(result => {
+        event.acknowledge(null);
+        this.users = this.users.filter(u => u.username !== this.userInEditing.username);
+        this.editingModal.hide();
+        this._global.publishAlert(AlertType.Danger, this.userInEditing.username + ' was deleted');
+      }, error => {
+        event.acknowledge(error.json() || error);
+      });
   }
 
   formSubmit(event) {
@@ -123,13 +127,18 @@ export class UsersComponent implements OnInit {
           ignoreFields.push('password');
         }
 
-        const diffs = DeepDiff.getDiff(originalUser._id, originalUser, this.userInEditing, ignoreFields);
+        const originalUserClone = JSON.parse(JSON.stringify(originalUser));
+        const userInEditingClone = JSON.parse(JSON.stringify(this.userInEditing));
+        ignoreFields.map(f => {
+          delete originalUserClone[f];
+          delete this.userInEditing[f];
+        });
 
-        if (diffs.length === 0) {
+        if (Helper.areObjectsEqual(originalUserClone, userInEditingClone)) {
           event.acknowledge('Nothing changed');
         } else {
           // api update here...
-          this._api.patch(environment.adminApiUrl + 'users', diffs).subscribe(result => {
+          this._api.patch(environment.adminApiUrl + 'generic?resource=user', [{ old: originalUserClone, new: userInEditingClone }]).subscribe(result => {
             event.acknowledge(null);
             // let's update original, assuming everything successful
             Object.assign(originalUser, this.userInEditing);

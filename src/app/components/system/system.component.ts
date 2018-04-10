@@ -4,7 +4,6 @@ import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
 import { Observable } from "rxjs/Rx";
-import { DeepDiff } from "../../classes/deep-diff";
 
 @Component({
   selector: "app-system",
@@ -19,37 +18,52 @@ export class SystemComponent implements OnInit {
 
   migrateAddress() {
     // let's batch 20 every time
-    const batchSize = 20;
-    this._api
-      .get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: {
-          address: { $exists: true },
-          googleAddress: { $exists: false },
-        },
-        projection: {
-          address: 1
-        },
-        limit: batchSize
-      }).flatMap(restaurants => {
-        console.log(restaurants);
-        console.log(restaurants.filter(r => r.address).map(r=>  'ObjectId("' + (r.address._id || r.address) + '")'))
-        return this._api
-          .get(environment.qmenuApiUrl + "generic", {
-            resource: "address",
-            query: {
-              _id: { $in: restaurants.filter(r => r.address).map(r=> 'ObjectId("' + (r.address._id || r.address) + '")') },
-            },
-            limit: batchSize
-          });
-      }
-      ).subscribe(
-        addresses => {
-          console.log(addresses)
-        },
-        error => {
-          console.log(error)
-        });
+    // const batchSize = 20;
+    //   .get(environment.qmenuApiUrl + "generic", {
+    //     resource: "restaurant",
+    //     query: {
+    // let myRestaurants;
+    // this._api
+    //       address: { $exists: true },
+    //       googleAddress: { $exists: false },
+    //     },
+    //     projection: {
+    //       address: 1,
+    //       name: 1
+    //     },
+    //     limit: batchSize
+    //   }).flatMap(restaurants => {
+    //     myRestaurants = restaurants;
+    //     return this._api
+    //       .get(environment.qmenuApiUrl + "generic", {
+    //         resource: "address",
+    //         query: {
+    //           _id: { $in: restaurants.filter(r => r.address).map(r => r.address._id || r.address) },
+    //         },
+    //         limit: batchSize
+    //       });
+    //   }).flatMap(addresses => {
+    //     const myRestaurantsClone = JSON.parse(JSON.stringify(myRestaurants))
+    //     const addressMap = {};
+    //     addresses.map(a => addressMap[a._id] = a);
+    //     myRestaurantsClone.map(r => r.googleAddress = addressMap[r.address]);
+        
+    //   }
+    //   ).subscribe(
+    //     addresses => {
+    //       console.log('address')
+    //       console.log(addresses);
+    //       console.log('restaurant')
+    //       console.log(myRestaurants);
+    //       // now update restaurant to insert the addresses returned!
+
+    //     },
+    //     error => {
+    //       this._global.publishAlert(
+    //         AlertType.Danger,
+    //         "Error running script from API"
+    //       );
+    //     });
     //query restaurants without googleAddress field but having address
     // query address
 
@@ -63,10 +77,7 @@ export class SystemComponent implements OnInit {
     //       );
     //     },
     //     error => {
-    //       this._global.publishAlert(
-    //         AlertType.Danger,
-    //         "Error running script from API"
-    //       );
+
     //     }
     //   );
   }

@@ -3,8 +3,7 @@ import { environment } from '../../../environments/environment';
 import { GlobalService } from '../../services/global.service';
 import { AlertType } from '../../classes/alert-type';
 import { ApiService } from '../../services/api.service';
-import { DeepDiff } from "../../classes/deep-diff";
-
+import { Helper } from "../../classes/helper";
 @Component({
   selector: 'app-restaurant-importer',
   templateUrl: './restaurant-importer.component.html',
@@ -161,14 +160,12 @@ export class RestaurantImporterComponent implements OnInit {
     // 1. delete existing menuOptions and menus
     // 2. inject new menuOptions and menus
     const rOld = JSON.parse(JSON.stringify(this.existingRestaurant));
-    const diffsToRemoveExistingMenusAndMenuOptions = DeepDiff.getDiff(rOld._id, { menus: {}, menuOptions: {} }, {});
-    const diffsToAddNewMenusAndMenuOptions = DeepDiff.getDiff(rOld._id, {}, { menus: organized.menus, menuOptions: organized.menuOptions });
 
     this._api
-      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", diffsToRemoveExistingMenusAndMenuOptions)
+      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: rOld._id, menus: {}, menuOptions: {} }, new: { _id: rOld._id } }])
       .flatMap(
         result => this._api
-          .patch(environment.qmenuApiUrl + "generic?resource=restaurant", diffsToAddNewMenusAndMenuOptions)
+          .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: rOld._id }, new: { _id: rOld._id, menus: organized.menus, menuOptions: organized.menuOptions } }])
       )
       .subscribe(
         result => {

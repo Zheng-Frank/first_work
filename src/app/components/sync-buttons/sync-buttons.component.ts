@@ -4,7 +4,7 @@ import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
 import { Observable } from "rxjs/Rx";
-import { DeepDiff } from "../../classes/deep-diff";
+import { Helper } from "../../classes/helper";
 
 @Component({
   selector: 'app-sync-buttons',
@@ -15,10 +15,10 @@ export class SyncButtonsComponent implements OnInit {
   restaurantToGmbSyncing = false;
   restaurantToLeadSyncing = false;
   gmbToLeadSyncing = false;
-  
-  constructor(private _api: ApiService, private _global: GlobalService) {}
 
-  ngOnInit() {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
+
+  ngOnInit() { }
 
   syncFromRestaurantsToGmbs() {
     this.restaurantToGmbSyncing = true;
@@ -77,7 +77,7 @@ export class SyncButtonsComponent implements OnInit {
             AlertType.Danger,
             "Non-matched: " + nonmatched.length
           );
-          console.log("nonmatched=",nonmatched);
+          console.log("nonmatched=", nonmatched);
         }
 
         for (let i = 0; i < gmbs.length; i++) {
@@ -95,12 +95,12 @@ export class SyncButtonsComponent implements OnInit {
   }
 
   patchGmbDiff(originalGmb, newGmb) {
-    const diffs = DeepDiff.getDiff(originalGmb._id, originalGmb, newGmb);
-    console.log(diffs);
-    if (diffs.length > 0) {
+    if (Helper.areObjectsEqual(originalGmb, newGmb)) {
+      this._global.publishAlert(AlertType.Info, "Nothing to update");
+    } else {
       // api update here...
       this._api
-        .patch(environment.qmenuApiUrl + "generic?resource=gmb", diffs)
+        .patch(environment.qmenuApiUrl + "generic?resource=gmb", [{ old: originalGmb, new: newGmb }])
         .subscribe(
           result => {
             this._global.publishAlert(
@@ -273,7 +273,7 @@ export class SyncButtonsComponent implements OnInit {
         const gmbs = result[1];
         const publishedIds = new Set();
 
-        // remove ALL leadsClone's gmbAccountOwner is there is any
+        // remove ALL leadsClone's gmbAccountOwner if there is any
         leadsClone.map(lead => delete lead.gmbAccountOwner);
 
         gmbs.map(gmb =>
@@ -289,14 +289,23 @@ export class SyncButtonsComponent implements OnInit {
           }
         });
 
-        const leadDiffs = [];
+        const pairs = [];
         for (let i = 0; i < leadsClone.length; i++) {
           const lead = leads[i];
           const leadClone = leadsClone[i];
-          const diffs = DeepDiff.getDiff(lead._id, lead, leadClone);
-          leadDiffs.push(...diffs);
+          if (!Helper.areObjectsEqual(lead, leadClone)) {
+            const pair = { old: lead, new: leadClone };
+            pairs.push(pair);
+          }
         }
-        this.patchLeadDiff(leadDiffs);
+        if (pairs.length == 0) {
+          this._global.publishAlert(
+            AlertType.Info,
+            "Nothing to sync"
+          );
+        } else {
+          this.patchLeadDiff(pairs);
+        }
       },
 
       error => {
@@ -309,15 +318,14 @@ export class SyncButtonsComponent implements OnInit {
     );
   }
 
-  patchLeadDiff(leadDiffs) {
-    console.log(leadDiffs);
+  patchLeadDiff(pairs) {
     this._api
-      .patch(environment.adminApiUrl + "generic?resource=lead", leadDiffs)
+      .patch(environment.adminApiUrl + "generic?resource=lead", pairs)
       .subscribe(
         result => {
           this._global.publishAlert(
             AlertType.Success,
-            leadDiffs.length + " was updated"
+            pairs.length + " was updated"
           );
         },
         error => {

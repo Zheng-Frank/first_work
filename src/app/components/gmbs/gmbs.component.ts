@@ -4,7 +4,6 @@ import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
 import { Observable } from "rxjs/Rx";
-import { DeepDiff } from "../../classes/deep-diff";
 
 @Component({
   selector: 'app-gmbs',

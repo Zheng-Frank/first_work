@@ -1,4 +1,9 @@
 <h1 class="text-center">Orders in Past 24 Hours</h1>
+<div class="text-right mb-2">
+  <div class="pb-2">
+    <button class="btn btn-danger" (click)="downloadStats()"><i class="fas fa-chart-line"></i> Download Stats</button>
+  </div>
+</div>
 <div class="text-right">
   Total Orders:
   <span class="badge badge-info">{{totalOrders}}</span>

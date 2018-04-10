@@ -9,10 +9,10 @@ import {
   ModalComponent,
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { DeepDiff } from "../../classes/deep-diff";
 import { GmbInfo } from "../../classes/gmb-info";
 import { Address } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { User } from "../../classes/user";
+import { Helper } from "../../classes/helper";
 
 const spMap = {
   beyondmenu: "beyondmenu.png",
@@ -770,8 +770,7 @@ export class LeadsComponent implements OnInit {
   }
 
   patchDiff(originalLead, newLead, removeFromSelection?) {
-    const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
-    if (diffs.length === 0) {
+    if (Helper.areObjectsEqual(originalLead, newLead)) {
       this._global.publishAlert(
         AlertType.Info,
         originalLead.name + ", Nothing to update"
@@ -780,7 +779,7 @@ export class LeadsComponent implements OnInit {
     } else {
       // api update here...
       this._api
-        .patch(environment.adminApiUrl + "generic?resource=lead", diffs)
+        .patch(environment.adminApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
         .subscribe(
           result => {
             if (removeFromSelection) {

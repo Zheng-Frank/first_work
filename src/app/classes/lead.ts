@@ -55,6 +55,10 @@ export class Lead {
         }
       }
 
+      ['phones', 'contacts', 'classifications', 'menuUrls', 'reservations', 'serviceProviders'].map(arrayField => {
+        this[arrayField] = this[arrayField] ? this[arrayField].slice() : this[arrayField];
+      })
+
       // convert address to typeof Address
       if (typeof this.address === "string") {
         this.address = new Address({
@@ -64,7 +68,7 @@ export class Lead {
         this.address = new Address(this.address);
       }
 
-      // convert address to typeof Address
+      // convert callogs to typeof CallLog
       this.callLogs = (this.callLogs || []).map(log => new CallLog(log));
       // convert time string here!
       if (this.createdAt && !(this.createdAt instanceof Date)) {

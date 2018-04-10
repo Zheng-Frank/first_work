@@ -12,8 +12,8 @@ import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { Lead } from "../../classes/lead";
 import { CallLog } from "../../classes/call-log";
-import { DeepDiff } from "../../classes/deep-diff";
 import { AlertType } from "../../classes/alert-type";
+import { Helper } from "../../classes/helper";
 
 @Component({
   selector: "app-call-logger",
@@ -300,12 +300,11 @@ export class CallLoggerComponent implements OnInit, OnChanges {
   }
 
   patchDiff(originalLead, newLead) {
-    const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
-    if (diffs.length === 0) {
+    if (Helper.areObjectsEqual(originalLead, newLead)) {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.adminApiUrl + "generic?resource=lead", diffs).subscribe(
+      this._api.patch(environment.adminApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}]).subscribe(
         result => {
           // let's update original, assuming everything successful
           Object.assign(originalLead, newLead);

@@ -9,12 +9,13 @@ import {
   ModalComponent,
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { DeepDiff } from "../../classes/deep-diff";
 import { GmbInfo } from "../../classes/gmb-info";
 import { Address } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { User } from "../../classes/user";
 import { Order, Restaurant } from "@qmenu/ui";
 import { Observable } from "rxjs/Rx";
+import { saveAs } from 'file-saver/FileSaver';
+
 const spMap = {
   beyondmenu: "beyondmenu.png",
   chownow: "chownow.png",
@@ -42,7 +43,7 @@ export class OrdersComponent implements OnInit {
   restaurantsWithOrders = 0;
   restaurantsWithoutOrders = 0;
 
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     const start = new Date();
@@ -180,5 +181,52 @@ export class OrdersComponent implements OnInit {
       "https://www.google.com/search?q=" +
       encodeURIComponent(row.restaurant["name"])
     );
+  }
+
+  downloadStats() {
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+      },
+      projection: {
+        createdAt: 1
+      },
+      limit: 200000,
+      sort: { createdAt: -1 }
+    }).subscribe(orders => {
+      let dMap = {};
+      let wMap = {};
+      let d = new Date(orders[0].createdAt);
+      let w = new Date(orders[0].createdAt);
+
+      const DAY_SPAN = 24 * 3600 * 1000;
+      const WEEK_SPAN = 7 * 24 * 3600 * 1000;
+
+      for (let i = 0; i < orders.length; i++) {
+        let t = new Date(orders[i].createdAt);
+        d.setDate(d.getDate() - Math.floor((d.valueOf() - t.valueOf()) / DAY_SPAN));
+        if (!dMap[d.toLocaleDateString()]) {
+          dMap[d.toLocaleDateString()] = 1;
+        } else {
+          dMap[d.toLocaleDateString()] = dMap[d.toLocaleDateString()] + 1;
+        }
+
+        w.setDate(w.getDate() - 7 * (Math.floor((w.valueOf() - t.valueOf()) / WEEK_SPAN)));
+        if (!wMap[w.toLocaleDateString()]) {
+          wMap[w.toLocaleDateString()] = 1;
+        } else {
+          wMap[w.toLocaleDateString()] = wMap[w.toLocaleDateString()] + 1;
+        }
+      }
+
+      const filename = 'order-stats.json';
+      const blob = new Blob([JSON.stringify({daily: dMap, weekly: wMap})], { type: 'text/plain' });
+      saveAs(blob, filename);
+    }, error => {
+      this._global.publishAlert(
+        AlertType.Danger,
+        "Error pulling orders"
+      )
+    })
   }
 }

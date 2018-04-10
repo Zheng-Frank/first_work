@@ -5,10 +5,10 @@ import { GlobalService } from "../../services/global.service";
 import { Lead } from "../../classes/lead";
 import { AlertType } from "../../classes/alert-type";
 import { GmbInfo } from "../../classes/gmb-info";
-import { DeepDiff } from "../../classes/deep-diff";
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { CallLog } from "../../classes/call-log";
 import { User } from "../../classes/user";
+import { Helper } from "../../classes/helper";
 
 @Component({
   selector: "app-my-leads",
@@ -236,14 +236,12 @@ export class MyLeadsComponent implements OnInit {
   }
 
   patchDiff(originalLead, newLead) {
-    const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
-
-    if (diffs.length === 0) {
+    if (Helper.areObjectsEqual(originalLead, newLead)) {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
       this._api
-        .patch(environment.adminApiUrl + "generic?resource=lead", diffs)
+        .patch(environment.adminApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
         .subscribe(
           result => {
             // let's update original, assuming everything successful

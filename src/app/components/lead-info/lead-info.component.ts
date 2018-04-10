@@ -1,10 +1,10 @@
 import { Component, OnInit, Input, Output } from "@angular/core";
 import { Lead } from "../../classes/lead";
+import { Helper } from "../../classes/helper";
 import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
-import { DeepDiff } from "../../classes/deep-diff";
 
 @Component({
   selector: "app-lead-info",
@@ -13,9 +13,9 @@ import { DeepDiff } from "../../classes/deep-diff";
 })
 export class LeadInfoComponent implements OnInit {
   @Input() lead: Lead;
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   editLabelChange(result, field) {
     const value = (result.newValue || "").trim();
@@ -53,12 +53,14 @@ export class LeadInfoComponent implements OnInit {
   }
 
   patchDiff(originalLead, newLead) {
-    const diffs = DeepDiff.getDiff(originalLead._id, originalLead, newLead);
-    if (diffs.length === 0) {
+    if (Helper.areObjectsEqual(originalLead, newLead)) {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.adminApiUrl + "generic?resource=lead", diffs).subscribe(
+      this._api.patch(environment.adminApiUrl + "generic?resource=lead", [{
+        old: originalLead,
+        new: newLead
+      }]).subscribe(
         result => {
           // let's update original, assuming everything successful
           Object.assign(originalLead, newLead);
