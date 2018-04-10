@@ -191,7 +191,7 @@ export class OrdersComponent implements OnInit {
       projection: {
         createdAt: 1
       },
-      limit: 200000,
+      limit: 50000,
       sort: { createdAt: -1 }
     }).subscribe(orders => {
       let dMap = {};
