@@ -1,0 +1,12 @@
+.thumb-img{
+    object-fit: cover;
+    overflow: hidden;
+    height: 32px; 
+    width : 32px;
+ }
+
+ .thumb-container {
+     min-width: 48px;
+     text-align: center;
+     display: inline-block;
+ }

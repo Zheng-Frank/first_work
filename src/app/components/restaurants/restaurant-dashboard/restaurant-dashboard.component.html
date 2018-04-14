@@ -5,7 +5,8 @@
     <button class="btn btn-info" (click)="showCrawl = !showCrawl">
       <i class="fas fa-download"></i> Crawl Restaurant Data</button>
     <!-- <button class="btn btn-primary" (click)="createNew()" [disabled]="true">+ Add New Restaurant</button> -->
-    <button class="btn btn-danger" (click)="showRemove = !showRemove"><i class="fas fa-times"></i> Delete Restaurant</button>
+    <button class="btn btn-danger" (click)="showRemove = !showRemove">
+      <i class="fas fa-times"></i> Delete Restaurant</button>
   </div>
   <div class="card text-left" *qIf="showRemove">
     <div class="card-body">
@@ -28,3 +29,26 @@
     </div>
   </div>
 </div>
+
+<div class="form-inline my-2">
+  Search Filter:
+
+  <input type="tel" class="form-control" placeholder="Restauran Name" [(ngModel)]="nameFilter">
+
+  <input type="tel" class="form-control" placeholder="Restauran Phone" [(ngModel)]="phoneFilter">
+
+</div>
+
+
+<ul class="list-group">
+  <li *ngFor="let r of getFilteredRestaurantList()" class="list-group-item d-flex justify-content-between align-items-center">
+    <span>
+      <span class="thumb-container">
+        <img src="{{r.logo}}" alt="{{r.name}}" class="thumb-img" *ngIf="r.logo">
+        <i class="fa fa-coffee" *ngIf="!r.logo"></i>
+      </span>
+      <a routerLink="/restaurant/{{r.id }}">{{r.name}}</a>
+    </span>
+    <span class="text-muted">{{r.alias}}</span>
+  </li>
+</ul>

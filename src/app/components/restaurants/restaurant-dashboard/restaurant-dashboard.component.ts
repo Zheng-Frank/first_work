@@ -10,7 +10,7 @@ import { mergeMap } from "rxjs/operators";
   styleUrls: ["./restaurant-dashboard.component.scss"]
 })
 export class RestaurantDashboardComponent implements OnInit {
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+
 
   showCrawl = false;
   crawling = false;
@@ -20,51 +20,34 @@ export class RestaurantDashboardComponent implements OnInit {
   removing = false;
   removeAlias;
 
-  fakeRestaurant1 = {
-    name: 'restaurant1',
-    menus: [
-      {
-        name: 'menu1',
-        mcs: [{
-          name: 'cat1-1'
-        }, {
-          name: 'cat1-2'
-        }]
-      },
-      {
-        name: 'menu2',
-        mcs: [{
-          name: 'cat2-1'
-        }, {
-          name: 'cat2-2'
-        }]
-      }
-    ]
-  };
+  phoneFilter: string;
+  nameFilter: string;
+  restaurantList = [];
 
-  fakeRestaurant2 = {
-    name: 'restaurant2',
-    menus: [
-      {
-        name: 'menuA',
-        mcs: [{
-          name: 'catA-1'
-        }, {
-          name: 'catA-2'
-        }]
-      },
-      {
-        name: 'menuB',
-        mcs: [{
-          name: 'catB-1'
-        }, {
-          name: 'catB-2'
-        }]
-      }
-    ]
-  };
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() { }
+  ngOnInit() {
+    // retrieve restaurant list
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      projection: {
+        name: 1,
+        alias: 1,
+        logo: 1,
+        phones: 1
+      },
+      limit: 6000
+    })
+      .subscribe(
+        result => {
+          this.restaurantList = result;
+          this.restaurantList.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, error);
+        }
+      );
+  }
 
   removeRestaurant() {
     // 1. find restaurant
@@ -105,6 +88,13 @@ export class RestaurantDashboardComponent implements OnInit {
           this._global.publishAlert(AlertType.Danger, error);
         }
       );
+  }
+
+  getFilteredRestaurantList() {
+    return this.restaurantList.filter(r => 
+      (!this.nameFilter || (r.name || '').toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0) &&
+      (!this.phoneFilter || (r.phones || []).some(p => p.indexOf(this.phoneFilter) >= 0))
+    );
   }
 
 }
