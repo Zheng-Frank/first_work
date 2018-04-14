@@ -10,7 +10,7 @@ import {
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { GmbInfo } from "../../classes/gmb-info";
-import { Address } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { Address } from "@qmenu/ui";
 import { User } from "../../classes/user";
 import { Helper } from "../../classes/helper";
 
@@ -746,7 +746,7 @@ export class LeadsComponent implements OnInit {
   injectGoogleAddress(lead: Lead) {
     console.log(lead)
     this.apiRequesting = true;
-    lead.address = lead.address || {};
+    lead.address = lead.address || {} as Address;
 
     this._api
       .get(environment.adminApiUrl + "utils/ddress", {

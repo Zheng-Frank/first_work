@@ -1,4 +1,4 @@
-import { Address } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { Address } from "@qmenu/ui"
 import { CallLog } from "./call-log";
 
 export class Lead {
@@ -69,6 +69,11 @@ export class Lead {
       }
 
       // convert callogs to typeof CallLog
+      if(this.callLogs && ! Array.isArray(this.callLogs)) {
+        console.log('data corruption', this);
+        // convert to array format!
+        this.callLogs = [this.callLogs[0]];
+      }
       this.callLogs = (this.callLogs || []).map(log => new CallLog(log));
       // convert time string here!
       if (this.createdAt && !(this.createdAt instanceof Date)) {

@@ -10,10 +10,10 @@ import {
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { GmbInfo } from "../../classes/gmb-info";
-import { Address } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { Address } from "@qmenu/ui";
 import { User } from "../../classes/user";
-import { Order, Restaurant } from "@qmenu/ui";
-import { Observable } from "rxjs/Rx";
+import { Order, Restaurant } from "@qmenu/ui/classes";
+import { zip } from "rxjs";
 import { saveAs } from 'file-saver/FileSaver';
 
 const spMap = {
@@ -52,7 +52,7 @@ export class OrdersComponent implements OnInit {
   }
 
   searchOrders(startDate: Date) {
-    Observable.zip(
+    zip(
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "order",
         query: {

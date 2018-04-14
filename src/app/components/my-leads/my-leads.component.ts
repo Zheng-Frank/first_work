@@ -86,7 +86,6 @@ export class MyLeadsComponent implements OnInit {
   }
 
   agentFilter(event) {
-    console.log(event);
     this.selectedAgents = [];
     event.map(each => {
       if (each.selected) {
@@ -103,7 +102,6 @@ export class MyLeadsComponent implements OnInit {
       );
     }
 
-    //console.log("filter leads=",this.myLeads);
   }
 
   populateMyLeads() {
@@ -116,7 +114,6 @@ export class MyLeadsComponent implements OnInit {
       $or: queryOrClause
     };
 
-    console.log("query=", queryOrClause);
     this._api
       .get(environment.adminApiUrl + "generic", {
         resource: "lead",
@@ -138,7 +135,6 @@ export class MyLeadsComponent implements OnInit {
             this._global.publishAlert(AlertType.Info, "No lead found");
           }
           this.allLeads = this.myLeads;
-          console.log("this.allLeads=", this.allLeads);
         },
         error => {
           this._global.publishAlert(

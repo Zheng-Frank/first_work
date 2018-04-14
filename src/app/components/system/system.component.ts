@@ -3,8 +3,8 @@ import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
-import { Observable } from "rxjs/Rx";
-
+import { zip } from "rxjs";
+import { mergeMap } from "rxjs/operators";
 @Component({
   selector: "app-system",
   templateUrl: "./system.component.html",
@@ -146,7 +146,7 @@ export class SystemComponent implements OnInit {
   removeOrphanPhones() {
     this.removingOrphanPhones = true;
     // load ALL phones and restaurants
-    Observable.zip(
+    zip(
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "phone",
         projection: {
@@ -161,8 +161,7 @@ export class SystemComponent implements OnInit {
         },
         limit: 10000
       })
-    )
-      .flatMap(result => {
+    ).pipe(mergeMap(result => {
         const restaurantSet = new Set(result[1].map(r => r._id));
         const phones = result[0];
         const goodPhones = phones.filter(p => restaurantSet.has(p.restaurant));
@@ -179,7 +178,7 @@ export class SystemComponent implements OnInit {
             ids: badPhones.map(phone => phone._id)
           }
         );
-      })
+      }))
       .subscribe(
         result => {
           console.log("resullt");
@@ -198,4 +197,6 @@ export class SystemComponent implements OnInit {
         }
       );
   }
+
+  fixCallLogs() {}
 }

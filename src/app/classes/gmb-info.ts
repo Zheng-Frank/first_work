@@ -6,7 +6,7 @@ export interface GmbInfo {
     orderOnlineUrl: string;
     gmbOpen: boolean;
     cuisine: string;
-    address: string;
+    address: any;
     phone: string;
     serviceProviders: string[];
     menuUrls: string[];

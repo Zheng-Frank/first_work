@@ -6,8 +6,10 @@
  * 4. Always attach Content-Type: application/json
  */
 import { Injectable, EventEmitter } from '@angular/core';
-import { Http, Headers } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
+
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+import { Observable } from 'rxjs';
 import { map, filter, tap, share } from 'rxjs/operators';
 
 @Injectable()
@@ -20,7 +22,7 @@ export class ApiService {
     'Content-Type': 'application/json'
   };
 
-  constructor(private http: Http) {
+  constructor(private http: HttpClient) {
   }
 
   addHeader(headerName: string, headerValue: string) {
@@ -57,16 +59,14 @@ export class ApiService {
   }
 
   private apiRequest(method: string, api: string, payload?: any) {
-
     payload = payload || {};
     const url = method + api + JSON.stringify(payload);
 
     // we might need to think about same request being in queue already! Something wrong with the logic of our program. ignore for now
 
     this.urlsInRequesting.push(url);
-    const headers = new Headers();
-    Object.keys(this.autoAttachedHeaders).map(key => headers.append(key, this.autoAttachedHeaders[key]));
-
+    const headers = new HttpHeaders(this.autoAttachedHeaders);
+    Object.keys(this.autoAttachedHeaders).map(key => headers.set(key, this.autoAttachedHeaders[key]));
     let observable: Observable<any>;
 
     // let's make an absolute url for the API requests
@@ -102,7 +102,6 @@ export class ApiService {
 
     // let's share this so we can have multiple subscribers but not requesting multiple times
     const sharedObservable = observable.pipe(share());
-
     sharedObservable.subscribe(
       d => {
         this.urlsInRequesting = this.urlsInRequesting.filter(u => u !== url);
@@ -119,8 +118,7 @@ export class ApiService {
       },
       () => { this.urlsInRequesting = this.urlsInRequesting.filter(u => u !== url); }
     );
-
-    return sharedObservable.pipe(map(res => res.json()));
+    return sharedObservable;
   }
 
 }

@@ -4,6 +4,8 @@ import { GlobalService } from '../../services/global.service';
 import { AlertType } from '../../classes/alert-type';
 import { ApiService } from '../../services/api.service';
 import { Helper } from "../../classes/helper";
+import { mergeMap } from "rxjs/operators";
+
 @Component({
   selector: 'app-restaurant-importer',
   templateUrl: './restaurant-importer.component.html',
@@ -124,19 +126,20 @@ export class RestaurantImporterComponent implements OnInit {
 
     this._api
       .post(environment.qmenuApiUrl + "generic?resource=address", [address])
-      .flatMap(addresses => {
-        const restaurant = JSON.parse(JSON.stringify(this.restaurant));
-        const organizedMenusAndMenuOptions = this.menuShuffler.getOrganizedMenusAndMenuOptions();
+      .pipe(
+        mergeMap(addresses => {
+          const restaurant = JSON.parse(JSON.stringify(this.restaurant));
+          const organizedMenusAndMenuOptions = this.menuShuffler.getOrganizedMenusAndMenuOptions();
 
-        restaurant.menus = organizedMenusAndMenuOptions.menus;
-        restaurant.menuOptions = organizedMenusAndMenuOptions.menuOptions;
-        delete restaurant.phone;
-        delete restaurant.formatted_address;
-        restaurant.address = addresses[0];
-        restaurant.alias = this.alias;
-        return this._api
-          .post(environment.qmenuApiUrl + "generic?resource=restaurant", [restaurant])
-      })
+          restaurant.menus = organizedMenusAndMenuOptions.menus;
+          restaurant.menuOptions = organizedMenusAndMenuOptions.menuOptions;
+          delete restaurant.phone;
+          delete restaurant.formatted_address;
+          restaurant.address = addresses[0];
+          restaurant.alias = this.alias;
+          return this._api
+            .post(environment.qmenuApiUrl + "generic?resource=restaurant", [restaurant])
+        }))
       .subscribe(
         result => {
           this.apiRequesting = false;
@@ -163,10 +166,10 @@ export class RestaurantImporterComponent implements OnInit {
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: rOld._id, menus: {}, menuOptions: {} }, new: { _id: rOld._id } }])
-      .flatMap(
+      .pipe(mergeMap(
         result => this._api
           .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: rOld._id }, new: { _id: rOld._id, menus: organized.menus, menuOptions: organized.menuOptions } }])
-      )
+      ))
       .subscribe(
         result => {
           this.apiRequesting = false;

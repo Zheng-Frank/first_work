@@ -3,7 +3,6 @@ import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
-import { Observable } from "rxjs/Rx";
 
 @Component({
   selector: 'app-gmbs',

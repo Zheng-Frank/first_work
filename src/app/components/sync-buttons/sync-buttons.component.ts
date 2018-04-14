@@ -3,7 +3,7 @@ import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
-import { Observable } from "rxjs/Rx";
+import { zip } from "rxjs";
 import { Helper } from "../../classes/helper";
 
 @Component({
@@ -22,7 +22,7 @@ export class SyncButtonsComponent implements OnInit {
 
   syncFromRestaurantsToGmbs() {
     this.restaurantToGmbSyncing = true;
-    Observable.zip(
+    zip(
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmb",
         projection: {
@@ -122,7 +122,7 @@ export class SyncButtonsComponent implements OnInit {
     // 4. if not matched, create new lead!
 
     this.restaurantToLeadSyncing = true;
-    Observable.zip(
+    zip(
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "lead",
         query: {
@@ -243,7 +243,7 @@ export class SyncButtonsComponent implements OnInit {
     // 3. compare and patch (add field gmbAccountOwner = true)
 
     this.gmbToLeadSyncing = true;
-    Observable.zip(
+    zip(
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "lead",
         query: {

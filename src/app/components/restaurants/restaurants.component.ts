@@ -3,7 +3,7 @@ import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
-
+import { mergeMap } from "rxjs/operators";
 @Component({
   selector: "app-restaurants",
   templateUrl: "./restaurants.component.html",
@@ -80,20 +80,21 @@ export class RestaurantsComponent implements OnInit {
         name: 1
       },
       limit: 6000
-    }).flatMap(result => {
-      if (result.length === 0) {
-        throw 'No restaurant found!';
-      } else {
-        nameOfRestaurant = result[0].name;
-        return this._api.delete(
-          environment.qmenuApiUrl + "generic",
-          {
-            resource: 'restaurant',
-            ids: [result[0]._id]
-          }
-        );
-      }
-    })
+    }).pipe(
+      mergeMap(result => {
+        if (result.length === 0) {
+          throw 'No restaurant found!';
+        } else {
+          nameOfRestaurant = result[0].name;
+          return this._api.delete(
+            environment.qmenuApiUrl + "generic",
+            {
+              resource: 'restaurant',
+              ids: [result[0]._id]
+            }
+          );
+        }
+      }))
       .subscribe(
         result => {
           this._global.publishAlert(AlertType.Success, nameOfRestaurant + " is removed!");
