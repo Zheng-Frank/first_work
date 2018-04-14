@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from "@angular/core";
-import { GmbInfo } from "../../classes/gmb-info";
+import { GmbInfo } from "../../../classes/gmb-info";
 
 @Component({
   selector: "app-gmb-info",

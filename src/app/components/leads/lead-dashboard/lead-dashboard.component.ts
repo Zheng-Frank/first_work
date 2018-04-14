@@ -1,18 +1,18 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { ApiService } from "../../services/api.service";
-import { environment } from "../../../environments/environment";
-import { GlobalService } from "../../services/global.service";
-import { Lead } from "../../classes/lead";
-import { AlertType } from "../../classes/alert-type";
-import { CallLog } from "../../classes/call-log";
+import { ApiService } from "../../../services/api.service";
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from "../../../services/global.service";
+import { Lead } from "../../../classes/lead";
+import { AlertType } from "../../../classes/alert-type";
+import { CallLog } from "../../../classes/call-log";
 import {
   ModalComponent,
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { GmbInfo } from "../../classes/gmb-info";
+import { GmbInfo } from "../../../classes/gmb-info";
 import { Address } from "@qmenu/ui";
-import { User } from "../../classes/user";
-import { Helper } from "../../classes/helper";
+import { User } from "../../../classes/user";
+import { Helper } from "../../../classes/helper";
 
 const spMap = {
   beyondmenu: "beyondmenu.png",
@@ -32,11 +32,11 @@ const spMap = {
 };
 
 @Component({
-  selector: "app-leads",
-  templateUrl: "./leads.component.html",
-  styleUrls: ["./leads.component.scss"]
+  selector: "app-lead-dashboard",
+  templateUrl: "./lead-dashboard.component.html",
+  styleUrls: ["./lead-dashboard.component.scss"]
 })
-export class LeadsComponent implements OnInit {
+export class LeadDashboardComponent implements OnInit {
   @ViewChild("editingModal") editingModal: ModalComponent;
   @ViewChild("assigneeModal") assigneeModal: ModalComponent;
   @ViewChild("filterModal") filterModal: ModalComponent;

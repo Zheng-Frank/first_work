@@ -1,10 +1,10 @@
 import { Component, OnInit } from "@angular/core";
-import { ApiService } from "../../services/api.service";
-import { environment } from "../../../environments/environment";
-import { GlobalService } from "../../services/global.service";
-import { AlertType } from "../../classes/alert-type";
+import { ApiService } from "../../../services/api.service";
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from "../../../services/global.service";
+import { AlertType } from "../../../classes/alert-type";
 import { zip } from "rxjs";
-import { Helper } from "../../classes/helper";
+import { Helper } from "../../../classes/helper";
 
 @Component({
   selector: 'app-sync-buttons',

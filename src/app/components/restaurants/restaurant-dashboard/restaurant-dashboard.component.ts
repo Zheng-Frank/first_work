@@ -1,15 +1,15 @@
 import { Component, OnInit } from "@angular/core";
-import { ApiService } from "../../services/api.service";
-import { environment } from "../../../environments/environment";
-import { GlobalService } from "../../services/global.service";
-import { AlertType } from "../../classes/alert-type";
+import { ApiService } from "../../../services/api.service";
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from "../../../services/global.service";
+import { AlertType } from "../../../classes/alert-type";
 import { mergeMap } from "rxjs/operators";
 @Component({
-  selector: "app-restaurants",
-  templateUrl: "./restaurants.component.html",
-  styleUrls: ["./restaurants.component.scss"]
+  selector: "app-restaurant-dashboard",
+  templateUrl: "./restaurant-dashboard.component.html",
+  styleUrls: ["./restaurant-dashboard.component.scss"]
 })
-export class RestaurantsComponent implements OnInit {
+export class RestaurantDashboardComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   showCrawl = false;

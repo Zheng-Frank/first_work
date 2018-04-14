@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { environment } from '../../../environments/environment';
-import { GlobalService } from '../../services/global.service';
-import { AlertType } from '../../classes/alert-type';
-import { ApiService } from '../../services/api.service';
-import { Helper } from "../../classes/helper";
+import { environment } from '../../../../environments/environment';
+import { GlobalService } from '../../../services/global.service';
+import { AlertType } from '../../../classes/alert-type';
+import { ApiService } from '../../../services/api.service';
+import { Helper } from "../../../classes/helper";
 import { mergeMap } from "rxjs/operators";
 
 @Component({

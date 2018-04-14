@@ -1,17 +1,17 @@
 import { Component, OnInit } from "@angular/core";
-import { ApiService } from "../../services/api.service";
-import { environment } from "../../../environments/environment";
-import { GlobalService } from "../../services/global.service";
-import { Lead } from "../../classes/lead";
-import { AlertType } from "../../classes/alert-type";
-import { CallLog } from "../../classes/call-log";
+import { ApiService } from "../../../services/api.service";
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from "../../../services/global.service";
+import { Lead } from "../../../classes/lead";
+import { AlertType } from "../../../classes/alert-type";
+import { CallLog } from "../../../classes/call-log";
 import {
   ModalComponent,
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { GmbInfo } from "../../classes/gmb-info";
+import { GmbInfo } from "../../../classes/gmb-info";
 import { Address } from "@qmenu/ui";
-import { User } from "../../classes/user";
+import { User } from "../../../classes/user";
 import { Order, Restaurant } from "@qmenu/ui/classes";
 import { zip } from "rxjs";
 import { saveAs } from 'file-saver/FileSaver';
@@ -34,10 +34,10 @@ const spMap = {
 };
 @Component({
   selector: "app-orders",
-  templateUrl: "./orders.component.html",
-  styleUrls: ["./orders.component.scss"]
+  templateUrl: "./order-dashboard.component.html",
+  styleUrls: ["./order-dashboard.component.scss"]
 })
-export class OrdersComponent implements OnInit {
+export class OrderDashboardComponent implements OnInit {
   rows = []; // restaurant, total, [orders by createdAt DESC]
   totalOrders = 0;
   restaurantsWithOrders = 0;

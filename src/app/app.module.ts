@@ -17,22 +17,22 @@ import { MarketerGuard } from './marketer.guard';
 import { ApiService } from './services/api.service';
 import { ProfileComponent } from './components/profile/profile.component';
 import { UsersComponent } from './components/users/users.component';
-import { LeadsComponent } from './components/leads/leads.component';
+import { LeadDashboardComponent } from './components/leads/lead-dashboard/lead-dashboard.component';
 import { SystemComponent } from './components/system/system.component';
-import { RestaurantsComponent } from './components/restaurants/restaurants.component';
-import { InvoicesComponent } from './components/invoices/invoices.component';
-import { OrdersComponent } from './components/orders/orders.component';
+import { RestaurantDashboardComponent } from './components/restaurants/restaurant-dashboard/restaurant-dashboard.component';
+import { InvoiceDashboardComponent } from './components/invoices/invoice-dashboard/invoice-dashboard.component';
+import { OrderDashboardComponent } from './components/orders/order-dashboard/order-dashboard.component';
 import { RoleGuard } from './role.guard';
 
-import { GmbInfoComponent } from './components/gmb-info/gmb-info.component';
-import { MyLeadsComponent } from './components/my-leads/my-leads.component';
-import { CallLoggerComponent } from './components/call-logger/call-logger.component';
-import { LeadInfoComponent } from './components/lead-info/lead-info.component';
-import { LeadCallLogComponent } from './components/lead-call-log/lead-call-log.component';
-import { GmbsComponent } from './components/gmbs/gmbs.component';
-import { SyncButtonsComponent } from './components/sync-buttons/sync-buttons.component';
-import { RestaurantImporterComponent } from './components/restaurant-importer/restaurant-importer.component';
-import { RestaurantMenuShufflerComponent } from './components/restaurant-menu-shuffler/restaurant-menu-shuffler.component';
+import { GmbInfoComponent } from './components/gmbs/gmb-info/gmb-info.component';
+import { MyLeadsComponent } from './components/leads/my-leads/my-leads.component';
+import { CallLoggerComponent } from './components/leads/call-logger/call-logger.component';
+import { LeadInfoComponent } from './components/leads/lead-info/lead-info.component';
+import { LeadCallLogComponent } from './components/leads/lead-call-log/lead-call-log.component';
+import { GmbDashboardComponent } from './components/gmbs/gmb-dashboard/gmb-dashboard.component';
+import { SyncButtonsComponent } from './components/shared/sync-buttons/sync-buttons.component';
+import { RestaurantImporterComponent } from './components/restaurants/restaurant-importer/restaurant-importer.component';
+import { RestaurantMenuShufflerComponent } from './components/restaurants/restaurant-menu-shuffler/restaurant-menu-shuffler.component';
 
 @NgModule({
   declarations: [
@@ -43,17 +43,17 @@ import { RestaurantMenuShufflerComponent } from './components/restaurant-menu-sh
     LoginComponent,
     ProfileComponent,
     UsersComponent,
-    LeadsComponent,
+    LeadDashboardComponent,
     SystemComponent,
-    RestaurantsComponent,
-    InvoicesComponent,
-    OrdersComponent,
+    RestaurantDashboardComponent,
+    InvoiceDashboardComponent,
+    OrderDashboardComponent,
     GmbInfoComponent,
     MyLeadsComponent,
     CallLoggerComponent,
     LeadInfoComponent,
     LeadCallLogComponent,
-    GmbsComponent,
+    GmbDashboardComponent,
     SyncButtonsComponent,
     RestaurantImporterComponent,
     RestaurantMenuShufflerComponent

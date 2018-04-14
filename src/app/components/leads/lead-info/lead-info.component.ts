@@ -1,10 +1,10 @@
 import { Component, OnInit, Input, Output } from "@angular/core";
-import { Lead } from "../../classes/lead";
-import { Helper } from "../../classes/helper";
-import { ApiService } from "../../services/api.service";
-import { environment } from "../../../environments/environment";
-import { GlobalService } from "../../services/global.service";
-import { AlertType } from "../../classes/alert-type";
+import { Lead } from "../../../classes/lead";
+import { Helper } from "../../../classes/helper";
+import { ApiService } from "../../../services/api.service";
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from "../../../services/global.service";
+import { AlertType } from "../../../classes/alert-type";
 
 @Component({
   selector: "app-lead-info",

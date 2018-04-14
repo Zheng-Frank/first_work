@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Lead } from '../../classes/lead';
-import { CallLog } from '../../classes/call-log';
+import { Lead } from '../../../classes/lead';
+import { CallLog } from '../../../classes/call-log';
 
 @Component({
   selector: 'app-lead-call-log',
