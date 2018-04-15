@@ -33,7 +33,7 @@ const spMap = {
   ubereats: "ubereats.png"
 };
 @Component({
-  selector: "app-orders",
+  selector: "app-order-dashboard",
   templateUrl: "./order-dashboard.component.html",
   styleUrls: ["./order-dashboard.component.scss"]
 })

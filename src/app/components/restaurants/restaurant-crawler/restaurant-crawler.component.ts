@@ -1,17 +1,20 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter} from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
 import { ApiService } from '../../../services/api.service';
 import { Helper } from "../../../classes/helper";
 import { mergeMap } from "rxjs/operators";
+import { Restaurant } from '@qmenu/ui';
 
 @Component({
-  selector: 'app-restaurant-importer',
-  templateUrl: './restaurant-importer.component.html',
-  styleUrls: ['./restaurant-importer.component.scss']
+  selector: 'app-restaurant-crawler',
+  templateUrl: './restaurant-crawler.component.html',
+  styleUrls: ['./restaurant-crawler.component.scss']
 })
-export class RestaurantImporterComponent implements OnInit {
+export class RestaurantCrawlerComponent implements OnInit {
+  @Output() menuUpdate = new EventEmitter();
+  @Output() restaurantCreate = new EventEmitter();
 
   @ViewChild('menuShuffler') menuShuffler;
 
@@ -124,11 +127,13 @@ export class RestaurantImporterComponent implements OnInit {
     // create address, then restaurant!
     this.apiRequesting = true;
 
+    const restaurant = JSON.parse(JSON.stringify(this.restaurant));
+
     this._api
       .post(environment.qmenuApiUrl + "generic?resource=address", [address])
       .pipe(
         mergeMap(addresses => {
-          const restaurant = JSON.parse(JSON.stringify(this.restaurant));
+          
           const organizedMenusAndMenuOptions = this.menuShuffler.getOrganizedMenusAndMenuOptions();
 
           restaurant.menus = organizedMenusAndMenuOptions.menus;
@@ -147,6 +152,9 @@ export class RestaurantImporterComponent implements OnInit {
             AlertType.Success, "Restaurant " + this.restaurant.name + " was created!"
           );
           this.existingRestaurant = undefined;
+          let r = new Restaurant(restaurant);
+          r.id = result[0];
+          this.restaurantCreate.emit(r);
 
         },
         error => {
@@ -175,6 +183,11 @@ export class RestaurantImporterComponent implements OnInit {
           this.apiRequesting = false;
           this._global.publishAlert(AlertType.Success, "Restaurant " + this.existingRestaurant.name + " is updated!");
           this.existingRestaurant = undefined;
+
+          let updated = new Restaurant(rOld);
+          updated.menus = organized.menus;
+          updated.menuOptions = organized.menuOptions;
+          this.menuUpdate.emit(updated);
         },
         error => {
           this.apiRequesting = false;

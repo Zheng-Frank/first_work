@@ -170,7 +170,6 @@ export class RestaurantMenuShufflerComponent implements OnInit, OnChanges {
 
     const allMos = [].concat(oldApplicableMenuOptions).concat(newApplicableMenuOptions);
 
-    console.log('total mos before: ', allMos.length);
     
     for (let i = allMos.length - 1; i >= 0; i--) {
       for (let j = 0; j < i; j++) {
@@ -195,7 +194,6 @@ export class RestaurantMenuShufflerComponent implements OnInit, OnChanges {
       }
     }
 
-    console.log('total mos after: ', allMos.length);
     // re-assign menu ids
     menus.map((m, i) => {
       m.id = 'menu-' + i;

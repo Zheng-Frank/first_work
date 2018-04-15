@@ -744,7 +744,6 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   injectGoogleAddress(lead: Lead) {
-    console.log(lead)
     this.apiRequesting = true;
     lead.address = lead.address || {} as Address;
 

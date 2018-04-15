@@ -1,0 +1,49 @@
+<h1 class="text-center">DB Scripts</h1>
+
+<div class="card-deck">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Sync</h5>
+            <p class="card-text">Three entities: Restaurants, GMB Business, Lead. </p>
+            <app-sync-buttons></app-sync-buttons>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Remove Duplicated Leads</h5>
+            <p class="card-text">Remove duplicated leads, based on restaurantId</p>
+            <button class="btn btn-primary" (click)="removeDuplicates()">Remove Duplicates</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">qMenu: Migrate Address</h5>
+            <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document as googleAddress.</p>
+            <button class="btn btn-primary" (click)="migrateAddress()">Migrate Address</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">qMenu: Migrate Phones</h5>
+            <p class="card-text">No side effects. Migrating 'phones' (in separate document) to 'restaurant' document as phones.</p>
+            <button class="btn btn-primary" (click)="migratePhones()">Migrate Phones</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">qMenu: Remove Orphan Phones</h5>
+            <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from database.</p>
+            <button class="btn btn-primary" (click)="removeOrphanPhones()" [qLoading]="removingOrphanPhones">Remove</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Admin: Fix Call Logs (Data Corruption)</h5>
+            <p class="card-text">Some call logs is object instead of array. This will put logs in array.</p>
+            <button class="btn btn-primary" (click)="fixCallLogs()">Fix</button>
+        </div>
+    </div>
+</div>

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-invoices',
+  selector: 'app-invoice-dashboard',
   templateUrl: './invoice-dashboard.component.html',
   styleUrls: ['./invoice-dashboard.component.scss']
 })

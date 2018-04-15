@@ -18,7 +18,9 @@ import { ApiService } from './services/api.service';
 import { ProfileComponent } from './components/profile/profile.component';
 import { UsersComponent } from './components/users/users.component';
 import { LeadDashboardComponent } from './components/leads/lead-dashboard/lead-dashboard.component';
-import { SystemComponent } from './components/system/system.component';
+import { SystemDashboardComponent } from './components/system/system-dashboard/system-dashboard.component';
+import { DbScriptsComponent } from './components/system/db-scripts/db-scripts.component';
+
 import { RestaurantDashboardComponent } from './components/restaurants/restaurant-dashboard/restaurant-dashboard.component';
 import { InvoiceDashboardComponent } from './components/invoices/invoice-dashboard/invoice-dashboard.component';
 import { OrderDashboardComponent } from './components/orders/order-dashboard/order-dashboard.component';
@@ -31,8 +33,10 @@ import { LeadInfoComponent } from './components/leads/lead-info/lead-info.compon
 import { LeadCallLogComponent } from './components/leads/lead-call-log/lead-call-log.component';
 import { GmbDashboardComponent } from './components/gmbs/gmb-dashboard/gmb-dashboard.component';
 import { SyncButtonsComponent } from './components/shared/sync-buttons/sync-buttons.component';
-import { RestaurantImporterComponent } from './components/restaurants/restaurant-importer/restaurant-importer.component';
+import { RestaurantCrawlerComponent } from './components/restaurants/restaurant-crawler/restaurant-crawler.component';
 import { RestaurantMenuShufflerComponent } from './components/restaurants/restaurant-menu-shuffler/restaurant-menu-shuffler.component';
+import { DataHealthComponent } from './components/system/data-health/data-health.component';
+import { NewRestaurantComponent } from './components/restaurants/new-restaurant/new-restaurant.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +48,8 @@ import { RestaurantMenuShufflerComponent } from './components/restaurants/restau
     ProfileComponent,
     UsersComponent,
     LeadDashboardComponent,
-    SystemComponent,
+    SystemDashboardComponent,
+    DbScriptsComponent,
     RestaurantDashboardComponent,
     InvoiceDashboardComponent,
     OrderDashboardComponent,
@@ -55,8 +60,10 @@ import { RestaurantMenuShufflerComponent } from './components/restaurants/restau
     LeadCallLogComponent,
     GmbDashboardComponent,
     SyncButtonsComponent,
-    RestaurantImporterComponent,
-    RestaurantMenuShufflerComponent
+    RestaurantCrawlerComponent,
+    RestaurantMenuShufflerComponent,
+    DataHealthComponent,
+    NewRestaurantComponent
   ],
   imports: [
     BrowserModule,

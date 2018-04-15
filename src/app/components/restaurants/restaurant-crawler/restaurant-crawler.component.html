@@ -28,7 +28,12 @@
     <div *ngIf="alias">Preview Link:
       <a href="{{getCustomerPreviewLink()}}" target="_blank">{{getCustomerPreviewLink()}}</a>
     </div>
-
+    <div *qIf="existingRestaurant && !existingRestaurant._id" class="text-danger mt-2">
+      No alias found! Re-orgnanize menu and create new below:
+    </div>
+    <div *qIf="existingRestaurant && existingRestaurant._id" class="text-danger mt-2">
+      Found existing restaurant! Re-orgnanize menu and update below:
+    </div>
   </div>
   <div *ngIf="existingRestaurant">
     <app-restaurant-menu-shuffler #menuShuffler [restaurant1]="existingRestaurant" [restaurant2]="restaurant"></app-restaurant-menu-shuffler>

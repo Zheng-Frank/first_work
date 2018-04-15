@@ -2,13 +2,29 @@
 <!-- <app-restaurant-menu-shuffler [restaurant1]="fakeRestaurant1"  [restaurant2]="fakeRestaurant2"></app-restaurant-menu-shuffler> -->
 <div class="text-right mb-2">
   <div class="pb-2">
-    <button class="btn btn-info" (click)="showCrawl = !showCrawl">
+    <button class="btn btn-primary" (click)="setAction('NEW')">
+      <i class="fas fa-plus"></i> Add New Restaurant</button>
+    <button class="btn btn-info" (click)="setAction('CRAWL')">
       <i class="fas fa-download"></i> Crawl Restaurant Data</button>
-    <!-- <button class="btn btn-primary" (click)="createNew()" [disabled]="true">+ Add New Restaurant</button> -->
-    <button class="btn btn-danger" (click)="showRemove = !showRemove">
+    <button class="btn btn-danger" (click)="setAction('REMOVE')">
       <i class="fas fa-times"></i> Delete Restaurant</button>
   </div>
-  <div class="card text-left" *qIf="showRemove">
+
+  <div class="card text-left" *qIf="currentAction === 'NEW'">
+    <div class="card-body">
+      <h5 class="card-title">Create New Restaurant</h5>
+      <app-new-restaurant (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()"></app-new-restaurant>
+    </div>
+  </div>
+
+  <div class="card text-left" *qIf="currentAction === 'CRAWL'">
+    <div class="card-body">
+      <h5 class="card-title">Craw Restaurant</h5>
+      <app-restaurant-crawler (restaurantCreate)="onSuccessCreation($event)"></app-restaurant-crawler>
+    </div>
+  </div>
+
+  <div class="card text-left" *qIf="currentAction === 'REMOVE'">
     <div class="card-body">
       <h5 class="card-title">Remove Restaurant</h5>
       <div class="form-group">
@@ -16,39 +32,33 @@
         <input type="text" class="form-control" placeholder="Restaurant alias" [(ngModel)]="removeAlias">
       </div>
       <div class="text-right mt-4">
-        <button class="btn btn-secondary" (click)="showRemove = false" [disabled]="removing">Cancel</button>
-        <button class="btn btn-primary" (click)="removeRestaurant()" [qLoading]="removing">Delete Restaurant</button>
+        <button class="btn btn-secondary" (click)="showRemove = false" [disabled]="requesting">Cancel</button>
+        <button class="btn btn-primary" (click)="removeRestaurant()" [qLoading]="requesting">Delete Restaurant</button>
       </div>
-    </div>
-  </div>
-
-  <div class="card text-left" *qIf="showCrawl">
-    <div class="card-body">
-      <h5 class="card-title">Craw Restaurant</h5>
-      <app-restaurant-importer></app-restaurant-importer>
     </div>
   </div>
 </div>
 
+
 <div class="form-inline my-2">
   Search Filter:
-
-  <input type="tel" class="form-control" placeholder="Restauran Name" [(ngModel)]="nameFilter">
-
-  <input type="tel" class="form-control" placeholder="Restauran Phone" [(ngModel)]="phoneFilter">
+  <input type="tel" class="form-control ml-2" placeholder="Restauran Name" [(ngModel)]="nameFilter">
+  <input type="tel" class="form-control ml-2" placeholder="Restauran Phone" [(ngModel)]="phoneFilter">
 
 </div>
 
 
 <ul class="list-group">
-  <li *ngFor="let r of getFilteredRestaurantList()" class="list-group-item d-flex justify-content-between align-items-center">
-    <span>
-      <span class="thumb-container">
-        <img src="{{r.logo}}" alt="{{r.name}}" class="thumb-img" *ngIf="r.logo">
-        <i class="fa fa-coffee" *ngIf="!r.logo"></i>
+  <ng-container *ngFor="let r of restaurantList">
+    <li *ngIf="isVisible(r)"class="list-group-item d-flex justify-content-between align-items-center {{r.disabled ? 'line-through' : ''}}">
+      <span>
+        <span class="thumb-container">
+          <img src="{{r.logo}}" alt="{{r.name}}" class="thumb-img" *ngIf="r.logo">
+          <i class="fa fa-coffee" *ngIf="!r.logo"></i>
+        </span>
+        <a routerLink="/restaurant/{{r.id }}">{{r.name}}</a>
       </span>
-      <a routerLink="/restaurant/{{r.id }}">{{r.name}}</a>
-    </span>
-    <span class="text-muted">{{r.alias}}</span>
-  </li>
+      <span class="text-muted">{{r.alias}}</span>
+    </li>
+  </ng-container>
 </ul>

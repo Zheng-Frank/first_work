@@ -5,7 +5,7 @@ import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 
 @Component({
-  selector: 'app-gmbs',
+  selector: 'app-gmb-dashboard',
   templateUrl: './gmb-dashboard.component.html',
   styleUrls: ['./gmb-dashboard.component.scss']
 })

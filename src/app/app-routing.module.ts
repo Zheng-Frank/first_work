@@ -10,7 +10,7 @@ import { LoginComponent } from './components/login/login.component';
 import { OrderDashboardComponent } from './components/orders/order-dashboard/order-dashboard.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { RestaurantDashboardComponent } from './components/restaurants/restaurant-dashboard/restaurant-dashboard.component';
-import { SystemComponent } from './components/system/system.component';
+import { SystemDashboardComponent } from './components/system/system-dashboard/system-dashboard.component';
 import { UsersComponent } from './components/users/users.component';
 import { GmbDashboardComponent } from './components/gmbs/gmb-dashboard/gmb-dashboard.component';
 
@@ -28,7 +28,7 @@ const routes: Routes = [
   { path: 'profile', component: ProfileComponent, canActivate: [MarketerGuard] },
   { path: 'restaurants', component: RestaurantDashboardComponent, canActivate: [MarketerGuard] },
   { path: 'gmbs', component: GmbDashboardComponent, canActivate: [MarketerGuard] },
-  { path: 'system', component: SystemComponent, canActivate: [MarketerGuard] },
+  { path: 'system', component: SystemDashboardComponent, canActivate: [MarketerGuard] },
   { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: {roles: ['ADMIN']} },
   { path: '**', redirectTo: '/home' }
 ];

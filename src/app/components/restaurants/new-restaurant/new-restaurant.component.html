@@ -1,0 +1,10 @@
+<q-form-builder [object]="restaurant" [showDelete]="false" [fieldDescriptors]="restaurantFieldDescriptors" (submit)="submit($event)"
+  (cancel)="clickCancel()">
+  <q-address-picker (pick)="selectAddress($event)"></q-address-picker>
+  <div class="form-group">
+    <label>Extra</label>
+    <div>
+      <input class="form-control" type="text" placeholder="eg. Suite 300" [(ngModel)] = "restaurant.googleAddress.apt">
+    </div>
+  </div>
+</q-form-builder>

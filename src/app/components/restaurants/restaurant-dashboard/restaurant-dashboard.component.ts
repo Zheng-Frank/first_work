@@ -11,18 +11,20 @@ import { mergeMap } from "rxjs/operators";
 })
 export class RestaurantDashboardComponent implements OnInit {
 
+  currentAction; // CRAWL, REMOVE, ADD
 
-  showCrawl = false;
-  crawling = false;
+  requesting = false;
+
   crawUrl;
-
-  showRemove = false;
-  removing = false;
   removeAlias;
 
   phoneFilter: string;
   nameFilter: string;
   restaurantList = [];
+
+  newRestaurant = {
+    googleAddress: {}
+  };
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -34,7 +36,8 @@ export class RestaurantDashboardComponent implements OnInit {
         name: 1,
         alias: 1,
         logo: 1,
-        phones: 1
+        phones: 1,
+        disabled: 1
       },
       limit: 6000
     })
@@ -49,10 +52,14 @@ export class RestaurantDashboardComponent implements OnInit {
       );
   }
 
+  setAction(action) {
+    this.currentAction = this.currentAction === action ? undefined : action;
+  }
+
   removeRestaurant() {
     // 1. find restaurant
     // 2. remove the restaurant (forget about dangling dependencies at this moment)
-    this.removing = true;
+    this.requesting = true;
     let nameOfRestaurant = '';
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
@@ -81,20 +88,35 @@ export class RestaurantDashboardComponent implements OnInit {
       .subscribe(
         result => {
           this._global.publishAlert(AlertType.Success, nameOfRestaurant + " is removed!");
-          this.removing = false;
+          this.requesting = false;
+          // let's remove this restaurant from the list!
+          this.restaurantList = this.restaurantList.filter(r => r.alias !== this.removeAlias);
         },
         error => {
-          this.removing = false;
+          this.requesting = false;
           this._global.publishAlert(AlertType.Danger, error);
         }
       );
   }
 
-  getFilteredRestaurantList() {
-    return this.restaurantList.filter(r => 
-      (!this.nameFilter || (r.name || '').toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0) &&
-      (!this.phoneFilter || (r.phones || []).some(p => p.indexOf(this.phoneFilter) >= 0))
-    );
+  isVisible(restaurant) {
+    return (!this.nameFilter || (restaurant.name || '').toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0) &&
+      (!this.phoneFilter || (restaurant.phones || []).some(p => (p.phoneNumber || '').indexOf(this.phoneFilter) >= 0));
+  }
+
+  onSuccessCreation(restaurant) {
+    this.currentAction = undefined;
+    this.restaurantList.unshift(restaurant);
+    this.newRestaurant = {
+      googleAddress: {}
+    };
+  }
+
+  onCancelCreation() {
+    this.currentAction = undefined;
+    this.newRestaurant = {
+      googleAddress: {}
+    };
   }
 
 }

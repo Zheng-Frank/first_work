@@ -77,7 +77,6 @@ export class SyncButtonsComponent implements OnInit {
             AlertType.Danger,
             "Non-matched: " + nonmatched.length
           );
-          console.log("nonmatched=", nonmatched);
         }
 
         for (let i = 0; i < gmbs.length; i++) {
@@ -169,14 +168,9 @@ export class SyncButtonsComponent implements OnInit {
         const phones = result[2];
         const addresses = result[3];
 
-        console.log(leadsWithRestaurantIdSet);
-        console.log("before", restaurants.length);
-
         const restaurantsRemaining = restaurants.filter(
           r => !leadsWithRestaurantIdSet.has(r._id)
         );
-
-        console.log("after", restaurantsRemaining.length);
 
         // mary restaurant and phones
         const restaurantMap = {};
@@ -207,7 +201,6 @@ export class SyncButtonsComponent implements OnInit {
           delete r._id;
         });
         // inject those restaurants to leads!
-        console.log(restaurantsRemaining)
         this.injectLeads(restaurantsRemaining);
       },
       error => {
