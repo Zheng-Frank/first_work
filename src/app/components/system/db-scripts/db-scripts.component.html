@@ -1,6 +1,6 @@
 <h1 class="text-center">DB Scripts</h1>
 
-<div class="card-deck">
+<div class="card-group">
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Sync</h5>
@@ -26,6 +26,13 @@
     </div>
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">qMenu: Fix Google Address</h5>
+            <p class="card-text">Some old restaurant's googleAddress has missing info (no locality, street_number etc.)</p>
+            <button class="btn btn-primary" (click)="fixAddress()">Fix Address</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">qMenu: Migrate Phones</h5>
             <p class="card-text">No side effects. Migrating 'phones' (in separate document) to 'restaurant' document as phones.</p>
             <button class="btn btn-primary" (click)="migratePhones()">Migrate Phones</button>
@@ -47,13 +54,5 @@
         </div>
     </div>
 
-
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">QUICKAdmin: Fix Call Logs (Data Corruption)</h5>
-            <p class="card-text">Recover from backup.</p>
-            <button class="btn btn-primary" (click)="backup()">Backup Phones</button>
-        </div>
-    </div>
 
 </div>

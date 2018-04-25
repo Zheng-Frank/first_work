@@ -297,102 +297,59 @@ export class DbScriptsComponent implements OnInit {
 
   }
 
-  backup() {
-    // query all phones from backup and prod
-    // load ALL phones and restaurants
-    zip(
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "phone",
-        projection: {
-          "phoneNumber": 1,
-          "callable": 1,
-          "faxable": 1,
-          "textable": 1,
-          "type": 1,
-          "restaurant": 1,
-          "createdAt": 1,
-          "updatedAt": 1
-        },
-        limit: 50000
-      }),
-      this._api.get(environment.qmenuBackupApiUrl + "generic", {
-        resource: "phone",
-        projection: {
-          "phoneNumber": 1,
-          "callable": 1,
-          "faxable": 1,
-          "textable": 1,
-          "type": 1,
-          "restaurant": 1,
-          "createdAt": 1,
-          "updatedAt": 1
-        },
-        limit: 50000
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        projection: {
-          "name": 1,
-          "phones": 1
-        },
-        limit: 50000
-      })
-    ).pipe(mergeMap(result => {
+  fixAddress() {
+    // let's batch 20 every time
+    const batchSize = 20;
+    let myRestaurants;
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        googleAddress: { $exists: true },
+        "googleAddress.street_number": { $exists: false },
+      },
+      projection: {
+        googleAddress: 1,
+        name: 1
+      },
+      limit: batchSize
+    }).subscribe(restaurants => {
+      console.log(restaurants);
+      myRestaurants = restaurants;
+      // now let's request and update each
 
-      const missing = result[1].filter(p1 => !result[0].some(p0 => p0.phoneNumber === p1.phoneNumber));
+      restaurants.map(r => {
+        this._api.get(environment.adminApiUrl + "utils/google-address", {
+          place_id: r.googleAddress.place_id
+        }).pipe(mergeMap(address => {
+          const rOrignal = JSON.parse(JSON.stringify(r));
+          const rClone = JSON.parse(JSON.stringify(r));
+          Object.assign(rClone.googleAddress, address);
+          return this._api
+            .patch(
+              environment.qmenuApiUrl + "generic?resource=restaurant", [{
+                old: rOrignal,
+                new: rClone
+              }]
+            );
+        })).subscribe(
+          patchResult => {
+            this._global.publishAlert(
+              AlertType.Success,
+              "Migrated: " + r.name
+            );
+            console.log('patched:', r.name);
+          },
+          error => {
+            console.log('Error finding place_id: ' + r.name);
+            this._global.publishAlert(
+              AlertType.Danger,
+              "Error: " + JSON.stringify(error)
+            );
+          });
 
-      const added = result[0].filter(p1 => !result[1].some(p0 => p0.phoneNumber === p1.phoneNumber));
-      console.log('missed', missing);
-      console.log('added', added);
-      const rMap = {};
-
-      result[2].map(r => {
-        rMap[r._id] = {
-          old: JSON.parse(JSON.stringify(r)),
-          new: JSON.parse(JSON.stringify(r))
-        };
       });
 
-      result[0].map(p => {
-        const r = rMap[p.restaurant];
-        if (r && !(r.new.phones || []).some(p2 => p2.phoneNumber === p.phoneNumber)) {
-          // console.log(r.new.name, p.phoneNumber);
-          r.new.phones.push(p);
-          // console.log(r.new.name)
-        }
-      });
-
-      const updated = Object
-        .keys(rMap)
-        .filter(k => rMap[k].old.phones && rMap[k].new.phones && rMap[k].old.phones.length !== rMap[k].new.phones.length)
-        .map(k => rMap[k]);
-
-      console.log('updated:-----------------', updated);
-return from([1,2, 3]);
-      // return this._api
-      //   .patch(
-      //     environment.qmenuApiUrl + "generic?resource=restaurant", updated);
-    }))
-      .subscribe(
-        result => {
-
-          this.removingOrphanPhones = false;
-
-          // let's remove bad phones!
-        },
-        error => {
-          console.log(error);
-          this.removingOrphanPhones = false;
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling gmb from API"
-          );
-        }
-      );
-    // compare and inejct missing
-
-    let json = { "old": { "_id": "5a31c981fa88ff1400233c9a", "name": "B.B'S Wings", "phones": [{ "_id": "5a31c981fa88ff1400233c9b", "phoneNumber": "7706766666", "callable": true, "type": "Business", "restaurant": "5a31c981fa88ff1400233c9a", "createdAt": "2017-12-14T00:44:49.315Z", "updatedAt": "2017-12-14T00:44:49.315Z" }, { "phoneNumber": "6786505577", "callable": false, "faxable": false, "textable": false, "type": "Mobile", "restaurant": "5a31c981fa88ff1400233c9a", "createdAt": "2018-04-16T17:55:00.240Z", "updatedAt": "2018-04-16T17:55:00.241Z", "id": "5ad4e37475287e3f789bd61e", "_id": "5ad4e37475287e3f789bd61e" }] }, "new": { "_id": "5a31c981fa88ff1400233c9a", "name": "B.B'S Wings", "phones": [{ "_id": "5a31c981fa88ff1400233c9b", "phoneNumber": "7706766666", "callable": true, "type": "Business", "restaurant": "5a31c981fa88ff1400233c9a", "createdAt": "2017-12-14T00:44:49.315Z", "updatedAt": "2017-12-14T00:44:49.315Z" }, { "phoneNumber": "6786505577", "callable": false, "faxable": false, "textable": false, "type": "Mobile", "restaurant": "5a31c981fa88ff1400233c9a", "createdAt": "2018-04-16T17:55:00.240Z", "updatedAt": "2018-04-16T17:55:00.241Z", "id": "5ad4e37475287e3f789bd61e", "_id": "5ad4e37475287e3f789bd61e" }, { "_id": "5a32a55cecda4214000842ff", "phoneNumber": "7706766661", "callable": false, "faxable": true, "textable": false, "type": "Business", "restaurant": "5a31c981fa88ff1400233c9a", "createdAt": "2017-12-14T16:22:52.112Z", "updatedAt": "2017-12-14T16:22:52.112Z" }, { "_id": "5a3330a203b1d0df208795f0", "phoneNumber": "6787991798", "callable": false, "faxable": false, "textable": false, "type": "Mobile", "restaurant": "5a31c981fa88ff1400233c9a", "createdAt": "2017-12-15T02:17:06.999Z", "updatedAt": "2017-12-15T02:17:06.999Z" }] } }
-
+    });
   }
 
 }
