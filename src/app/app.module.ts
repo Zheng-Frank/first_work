@@ -13,7 +13,6 @@ import { HeaderComponent } from './components/header/header.component';
 import { UiModule } from '@qmenu/ui';
 import { LoginComponent } from './components/login/login.component';
 import { GlobalService } from './services/global.service';
-import { MarketerGuard } from './marketer.guard';
 import { ApiService } from './services/api.service';
 import { ProfileComponent } from './components/profile/profile.component';
 import { UsersComponent } from './components/users/users.component';
@@ -75,7 +74,6 @@ import { NewRestaurantComponent } from './components/restaurants/new-restaurant/
   ],
   providers: [
     GlobalService,
-    MarketerGuard,
     RoleGuard,
     ApiService
   ],

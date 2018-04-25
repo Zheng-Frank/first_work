@@ -104,6 +104,10 @@ export class RestaurantDashboardComponent implements OnInit {
       (!this.phoneFilter || (restaurant.phones || []).some(p => (p.phoneNumber || '').indexOf(this.phoneFilter) >= 0));
   }
 
+  getEnabledCount() {
+    return this.restaurantList.filter(r => !r.disabled).length;
+  }
+
   onSuccessCreation(restaurant) {
     this.currentAction = undefined;
     this.restaurantList.unshift(restaurant);

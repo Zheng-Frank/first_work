@@ -14,22 +14,22 @@ import { SystemDashboardComponent } from './components/system/system-dashboard/s
 import { UsersComponent } from './components/users/users.component';
 import { GmbDashboardComponent } from './components/gmbs/gmb-dashboard/gmb-dashboard.component';
 
-import { MarketerGuard } from './marketer.guard';
 import { RoleGuard } from './role.guard';
 
 const routes: Routes = [
-  { path: 'bs4', component: Bs4Component, canActivate: [MarketerGuard] },
-  { path: 'home', component: HomeComponent, canActivate: [MarketerGuard] },
-  { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [MarketerGuard] },
-  { path: 'leads', component: LeadDashboardComponent, canActivate: [MarketerGuard] },
-  { path: 'my-leads', component: MyLeadsComponent, canActivate: [MarketerGuard] },
+  { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'home', component: HomeComponent },
+  { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
+  { path: 'leads', component: LeadDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR'] } },
+  { path: 'my-leads', component: MyLeadsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR'] } },
   { path: 'login', component: LoginComponent },
-  { path: 'orders', component: OrderDashboardComponent },
-  { path: 'profile', component: ProfileComponent, canActivate: [MarketerGuard] },
-  { path: 'restaurants', component: RestaurantDashboardComponent, canActivate: [MarketerGuard] },
-  { path: 'gmbs', component: GmbDashboardComponent, canActivate: [MarketerGuard] },
-  { path: 'system', component: SystemDashboardComponent, canActivate: [MarketerGuard] },
-  { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: {roles: ['ADMIN']} },
+  { path: 'orders', component: OrderDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
+  { path: 'profile', component: ProfileComponent },
+  { path: 'restaurants', component: RestaurantDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
+  { path: 'gmbs', component: GmbDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
+  { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+
   { path: '**', redirectTo: '/home' }
 ];
 

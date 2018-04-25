@@ -16,6 +16,24 @@ export class SystemDashboardComponent implements OnInit {
 
   ngOnInit() { }
 
+  getStates() {
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      projection: {
+        googleAddress: 1,
+        name: 1
+      },
+      limit: 5000
+    }).subscribe(restaurants => {
+      console.log(restaurants.length);
+      let states = restaurants
+        .filter(r => r.googleAddress && (r.googleAddress.state || r.googleAddress.administrative_area_level_1))
+        .map(r => r.googleAddress.state || r.googleAddress.administrative_area_level_1).sort();
+      let stateSet = new Set(states);
+      console.log(stateSet);
+    });
+  }
+
   migrateAddress() {
     // let's batch 20 every time
     const batchSize = 200;
@@ -49,7 +67,7 @@ export class SystemDashboardComponent implements OnInit {
       const myRestaurantsChanged = JSON.parse(JSON.stringify(myRestaurants))
       const addressMap = {};
       addresses.map(a => addressMap[a._id] = a);
-      myRestaurantsChanged.map(r => r.googleAddress = addressMap[ r.address ? (r.address._id || r.address) : 'non-exist']);
+      myRestaurantsChanged.map(r => r.googleAddress = addressMap[r.address ? (r.address._id || r.address) : 'non-exist']);
 
       return this._api
         .patch(
@@ -254,7 +272,7 @@ export class SystemDashboardComponent implements OnInit {
         .get(environment.qmenuApiUrl + "generic", {
           resource: "phone",
           query: {
-            restaurant: { $in: restaurants.map(r => r._id ) },
+            restaurant: { $in: restaurants.map(r => r._id) },
           },
           limit: batchSize
         });

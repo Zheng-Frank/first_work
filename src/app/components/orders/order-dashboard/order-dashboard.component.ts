@@ -46,6 +46,10 @@ export class OrderDashboardComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+    this.refresh();
+  }
+
+  refresh() {
     const start = new Date();
     start.setDate(start.getDate() - 2);
     this.searchOrders(start);
@@ -184,6 +188,7 @@ export class OrderDashboardComponent implements OnInit {
   }
 
   downloadStats() {
+    // alert('not enabled');
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: {

@@ -39,18 +39,21 @@
   </div>
 </div>
 
+<div class="row my-2">
+  <div class="col form-inline">
+    Search Filter:
+    <input type="tel" class="form-control ml-2" placeholder="Restauran Name" [(ngModel)]="nameFilter">
+    <input type="tel" class="form-control ml-2" placeholder="Restauran Phone" [(ngModel)]="phoneFilter">
 
-<div class="form-inline my-2">
-  Search Filter:
-  <input type="tel" class="form-control ml-2" placeholder="Restauran Name" [(ngModel)]="nameFilter">
-  <input type="tel" class="form-control ml-2" placeholder="Restauran Phone" [(ngModel)]="phoneFilter">
-
+  </div>
+  <div class="col-auto form-inline text-right"><div style="width: 100%">Total: {{getEnabledCount()}} / {{restaurantList.length}}</div></div>
 </div>
+
 
 
 <ul class="list-group">
   <ng-container *ngFor="let r of restaurantList">
-    <li *ngIf="isVisible(r)"class="list-group-item d-flex justify-content-between align-items-center {{r.disabled ? 'line-through' : ''}}">
+    <li *ngIf="isVisible(r)" class="list-group-item d-flex justify-content-between align-items-center {{r.disabled ? 'line-through' : ''}}">
       <span>
         <span class="thumb-container">
           <img src="{{r.logo}}" alt="{{r.name}}" class="thumb-img" *ngIf="r.logo">

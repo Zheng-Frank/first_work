@@ -1,7 +1,10 @@
 <h1 class="text-center">Orders in Past 24 Hours</h1>
 <div class="text-right mb-2">
   <div class="pb-2">
-    <button class="btn btn-danger" (click)="downloadStats()"><i class="fas fa-chart-line"></i> Download Stats</button>
+    <button class="btn btn-danger" (click)="refresh()">
+      <i class="fas fa-sync"></i> refresh</button>
+    <button class="btn btn-danger" (click)="downloadStats()">
+      <i class="fas fa-chart-line"></i> Download Stats</button>
   </div>
 </div>
 <div class="text-right">
