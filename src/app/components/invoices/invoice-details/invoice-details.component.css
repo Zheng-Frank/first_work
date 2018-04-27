@@ -1,0 +1,9 @@
+.btn {
+    padding-left: 0;
+}
+
+.app-invoice-canceled {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+}

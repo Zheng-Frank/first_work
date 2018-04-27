@@ -1,0 +1,42 @@
+<div class="form-group row">
+  <label class="col-4 col-form-label">Restaurant</label>
+  <div class="col-8">
+    <h5>{{restaurant.name}}</h5>
+  </div>
+</div>
+
+<div class="form-group row">
+  <label for="from-date" class="col-4 col-form-label">From Date</label>
+  <div class="col-8">
+    <input class="form-control" type="date" [(ngModel)]="fromDate">
+  </div>
+</div>
+<div class="form-group row">
+  <label for="to-date" class="col-4 col-form-label">To Date</label>
+  <div class="col-8">
+    <input class="form-control" type="date" [(ngModel)]="toDate">
+  </div>
+</div>
+<div class="form-group row">
+  <label class="col-4 col-form-label">Total Orders</label>
+  <div class="col-8">
+    <p>{{getTotalOrders()}}</p>
+  </div>
+</div>
+<div class="form-group row">
+  <label class="col-4 col-form-label">Commission</label>
+  <div class="col-8">
+    <p *ngIf="getRateSchedules().length === 0" class="text-warning"><i class="fas fa-exclamation-triangle"></i> Value not set. Please update rate schedules first.</p>
+    <p><span *ngFor="let rs of getRateSchedules()">
+      <span *ngIf="rs.rate">{{rs.rate | percentage }}</span>
+      <span *ngIf="rs.fixed">{{rs.fixed | currency:'USD':'symbol':'1.2-2' }}</span>
+      <span *ngIf="!(rs.fixed || rs.rate)">0</span>
+      &nbsp;since {{rs.date}} &nbsp;
+    </span></p>
+  </div>
+</div>
+<div class="text-right">
+  <p *ngIf="getError()"><small class="text-danger pb-1">{{getError()}}</small></p>
+  <button class="btn btn-default" (click)="cancel()">Cancel</button>
+  <button [disabled]="getError()"  class="btn btn-primary" (click)="createNewInvoice()">Submit</button>
+</div>

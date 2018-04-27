@@ -16,6 +16,35 @@ export class SystemDashboardComponent implements OnInit {
 
   ngOnInit() { }
 
+  getPhoneNumberStat() { 
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      projection: {
+        phones: 1,
+        name: 1
+      },
+      limit: 5000
+    }).subscribe(restaurants => {
+      let phoneRestaurantsDict ={};
+
+      restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
+      restaurants.map(r => (r.phones ||[]).map(phone => {
+        phoneRestaurantsDict[phone.phoneNumber] = phoneRestaurantsDict[phone.phoneNumber] || [];
+        phoneRestaurantsDict[phone.phoneNumber].push(r);
+      }));
+
+      const temp = Object.keys(phoneRestaurantsDict).map(p => ({
+        phone: p,
+        count: phoneRestaurantsDict[p].length,
+        restaurants: phoneRestaurantsDict[p]
+      }));
+
+      temp.sort((p1, p2)=> p2.restaurants.length - p1.restaurants.length);
+
+      console.log(temp);
+
+    });
+  }
   getStates() {
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",

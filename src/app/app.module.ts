@@ -37,6 +37,14 @@ import { RestaurantMenuShufflerComponent } from './components/restaurants/restau
 import { DataHealthComponent } from './components/system/data-health/data-health.component';
 import { NewRestaurantComponent } from './components/restaurants/new-restaurant/new-restaurant.component';
 
+import { InvoiceMonthlyComponent } from './components/invoices/invoice-monthly/invoice-monthly.component';
+import { InvoiceDetailsComponent } from './components/invoices/invoice-details/invoice-details.component';
+import { InvoiceEditorComponent } from './components/invoices/invoice-editor/invoice-editor.component';
+import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-monthly-details/invoice-monthly-details.component';
+import { InvoiceOptionEditorComponent } from './components/invoices/invoice-option-editor/invoice-option-editor.component';
+import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
+import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
+
 @NgModule({
   declarations: [
     RootComponent,
@@ -62,7 +70,14 @@ import { NewRestaurantComponent } from './components/restaurants/new-restaurant/
     RestaurantCrawlerComponent,
     RestaurantMenuShufflerComponent,
     DataHealthComponent,
-    NewRestaurantComponent
+    NewRestaurantComponent,
+    InvoiceMonthlyComponent,
+    InvoiceDetailsComponent,
+    InvoiceEditorComponent,
+    InvoiceMonthlyDetailsComponent,
+    InvoiceOptionEditorComponent,
+    InvoiceViewerComponent,
+    InvoicesTableComponent
   ],
   imports: [
     BrowserModule,

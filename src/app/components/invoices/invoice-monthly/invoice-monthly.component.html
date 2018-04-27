@@ -1,0 +1,7 @@
+<h1 class="text-center">Monthly Invoices</h1>
+<div *ngFor="let date of startDatesOfEachMonth" class="card text-center hvr-underline-reveal mx-1 mt-2" style="width: 20rem; display: inline-block; cursor: pointer;">
+  <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
+    <h4 class="card-title">{{date | date:'MMMM y' }}</h4>
+  </div>
+</div>
+<div></div>

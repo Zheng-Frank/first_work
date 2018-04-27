@@ -1,0 +1,35 @@
+<div>
+  Keys: <span class="text-primary">&#9632; Invoice Sent</span> | <span class="text-warning">&#9632; Payment Sent</span> | <span class="text-success">&#9632; Payment Completed</span> | <span class="text-danger">&#9632; Canceled</span>
+</div>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Date Range</th>
+      <th>Status</th>
+      <th class="text-right">Subtotal</th>
+      <!--<th>Tax</th>
+      <th>Delivery</th>
+      <th>Tip</th>-->
+      <th class="text-right">Total</th>
+      <th class="text-right">Collected By Restaurant</th>
+      <th class="text-right">Collected By qMenu</th>
+      <th class="text-right">Commission</th>
+      <!--<th>Agent</th>-->
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let invoice of invoices" routerLink="/invoices/{{invoice.id}}" class="{{getCssClass(invoice)}}" role="button">
+      <td>{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date: 'MMM dd'}}</td>
+      <td>{{invoice.status}}</td>
+      <td class="text-right">{{invoice.getSubtotal() | currency:'USD':'symbol'}}</td>
+      <!--<td class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</td>-->
+      <td class="text-right">{{invoice.getTotal() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.getEmailCollected() + invoice.getCashCollected() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.getQMenuCollected() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.getCommission() | currency:'USD':'symbol'}}</td>
+      <!--<td class="text-right">{{order.total | currency:'USD':'symbol':'1.2-2'}}</td>-->
+    </tr>
+  </tbody>
+</table>

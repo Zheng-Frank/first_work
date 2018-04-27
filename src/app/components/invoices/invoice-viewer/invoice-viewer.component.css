@@ -1,0 +1,17 @@
+.app-scaled-table {
+    font-size: 70%;
+}
+h1::first-letter {
+    margin-top: 0;
+}
+h3::first-letter {
+    margin-top: 0;
+}
+
+.canceled {
+    text-decoration: line-through;
+}
+
+th {
+    padding-right: 0 !important;
+}
