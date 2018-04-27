@@ -44,6 +44,7 @@ import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-mo
 import { InvoiceOptionEditorComponent } from './components/invoices/invoice-option-editor/invoice-option-editor.component';
 import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
+import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
 
 @NgModule({
   declarations: [
@@ -77,7 +78,8 @@ import { InvoicesTableComponent } from './components/invoices/invoices-table/inv
     InvoiceMonthlyDetailsComponent,
     InvoiceOptionEditorComponent,
     InvoiceViewerComponent,
-    InvoicesTableComponent
+    InvoicesTableComponent,
+    GmbWatchComponent
   ],
   imports: [
     BrowserModule,
