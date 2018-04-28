@@ -24,7 +24,7 @@ export class ProfileComponent implements OnInit {
       // grab all users and make an assignee list!
       // get all users
       this._api
-        .get(environment.adminApiUrl + "generic", {
+        .get(environment.adminApiUrl + "generic2", {
           resource: "user",
           limit: 1000
         })

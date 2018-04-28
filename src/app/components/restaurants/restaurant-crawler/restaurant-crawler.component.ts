@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Output, EventEmitter} from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
@@ -88,7 +88,7 @@ export class RestaurantCrawlerComponent implements OnInit {
   checkAliasAvailability() {
     this.existingRestaurant = undefined;
     this.apiRequesting = true;
-    this._api.get(environment.qmenuApiUrl + "generic", {
+    this._api.get(environment.qmenuApiUrl + "generic2", {
       resource: "restaurant",
       query: {
         alias: this.alias || 'non-existing'
@@ -116,35 +116,39 @@ export class RestaurantCrawlerComponent implements OnInit {
 
   createNewRestaurant() {
 
-    // create restaurant body, address
-    const address = JSON.parse(JSON.stringify(this.restaurant.address));
-    // add legacy line1, line2, zipCode, city, state
-    address.line1 = address.street_number + ' ' + address.route;
-    address.city = address.locality;
-    address.zipCode = address.postal_code;
-    address.state = address.administrative_area_level_1;
-
     // create address, then restaurant!
     this.apiRequesting = true;
 
     const restaurant = JSON.parse(JSON.stringify(this.restaurant));
 
-    this._api
-      .post(environment.qmenuApiUrl + "generic?resource=address", [address])
-      .pipe(
-        mergeMap(addresses => {
-          
-          const organizedMenusAndMenuOptions = this.menuShuffler.getOrganizedMenusAndMenuOptions();
+    const organizedMenusAndMenuOptions = this.menuShuffler.getOrganizedMenusAndMenuOptions();
 
-          restaurant.menus = organizedMenusAndMenuOptions.menus;
-          restaurant.menuOptions = organizedMenusAndMenuOptions.menuOptions;
-          delete restaurant.phone;
-          delete restaurant.formatted_address;
-          restaurant.address = addresses[0];
-          restaurant.alias = this.alias;
-          return this._api
-            .post(environment.qmenuApiUrl + "generic?resource=restaurant", [restaurant])
-        }))
+    restaurant.menus = organizedMenusAndMenuOptions.menus;
+    restaurant.menuOptions = organizedMenusAndMenuOptions.menuOptions;
+
+    // remove non-belonging fields
+    delete restaurant.phone;
+    delete restaurant.formatted_address;
+
+    const address = restaurant.address || {};
+
+    // add legacy line1, line2, zipCode, city, state
+    address.line1 = address.street_number + ' ' + address.route;
+    address.city = address.locality || address.sublocality;
+    address.zipCode = address.postal_code;
+    address.state = address.administrative_area_level_1;
+
+    // assign address to 
+    restaurant.googleAddress = address;
+
+    // we need to remove it from restaurant field
+    delete restaurant.address;
+
+    restaurant.alias = this.alias;
+
+    this._api
+      .post(environment.qmenuApiUrl + "generic2?resource=restaurant", [restaurant])
+
       .subscribe(
         result => {
           this.apiRequesting = false;
@@ -173,10 +177,10 @@ export class RestaurantCrawlerComponent implements OnInit {
     const rOld = JSON.parse(JSON.stringify(this.existingRestaurant));
 
     this._api
-      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: rOld._id, menus: {}, menuOptions: {} }, new: { _id: rOld._id } }])
+      .patch(environment.qmenuApiUrl + "generic2?resource=restaurant", [{ old: { _id: rOld._id, menus: {}, menuOptions: {} }, new: { _id: rOld._id } }])
       .pipe(mergeMap(
         result => this._api
-          .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: rOld._id }, new: { _id: rOld._id, menus: organized.menus, menuOptions: organized.menuOptions } }])
+          .patch(environment.qmenuApiUrl + "generic2?resource=restaurant", [{ old: { _id: rOld._id }, new: { _id: rOld._id, menus: organized.menus, menuOptions: organized.menuOptions } }])
       ))
       .subscribe(
         result => {

@@ -21,7 +21,7 @@ export class DbScriptsComponent implements OnInit {
     // let's batch 20 every time
     const batchSize = 200;
     let myRestaurants;
-    this._api.get(environment.qmenuApiUrl + "generic", {
+    this._api.get(environment.qmenuApiUrl + "generic2", {
       resource: "restaurant",
       query: {
         address: { $exists: true },
@@ -35,7 +35,7 @@ export class DbScriptsComponent implements OnInit {
     }).pipe(mergeMap(restaurants => {
       myRestaurants = restaurants;
       return this._api
-        .get(environment.qmenuApiUrl + "generic", {
+        .get(environment.qmenuApiUrl + "generic2", {
           resource: "address",
           query: {
             _id: { $in: restaurants.filter(r => r.address).map(r => r.address._id || r.address) },
@@ -54,7 +54,7 @@ export class DbScriptsComponent implements OnInit {
 
       return this._api
         .patch(
-          environment.qmenuApiUrl + "generic?resource=restaurant",
+          environment.qmenuApiUrl + "generic2?resource=restaurant",
           myRestaurantsChanged.map(clone => ({
             old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
             new: clone
@@ -88,7 +88,7 @@ export class DbScriptsComponent implements OnInit {
     // 3. remove duplicated
 
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.adminApiUrl + "generic2", {
         resource: "lead",
         query: {
           restaurantId: { $exists: true }
@@ -123,7 +123,7 @@ export class DbScriptsComponent implements OnInit {
   removeLeads(leadIds) {
     leadIds.length = 200;
     this._api
-      .delete(environment.adminApiUrl + "generic", {
+      .delete(environment.adminApiUrl + "generic2", {
         resource: "lead",
         ids: leadIds
       })
@@ -144,14 +144,14 @@ export class DbScriptsComponent implements OnInit {
     this.removingOrphanPhones = true;
     // load ALL phones and restaurants
     zip(
-      this._api.get(environment.qmenuApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic2", {
         resource: "phone",
         projection: {
           restaurant: 1
         },
         limit: 50000
       }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic2", {
         resource: "restaurant",
         projection: {
           name: 1
@@ -166,7 +166,7 @@ export class DbScriptsComponent implements OnInit {
       // get phones with restaurant id missin in restaurants
 
       return this._api.delete(
-        environment.qmenuApiUrl + "generic",
+        environment.qmenuApiUrl + "generic2",
         {
           resource: 'phone',
           ids: badPhones.map(phone => phone._id)
@@ -191,7 +191,7 @@ export class DbScriptsComponent implements OnInit {
   }
 
   fixCallLogs() {
-    this._api.get(environment.adminApiUrl + 'generic', {
+    this._api.get(environment.adminApiUrl + 'generic2', {
       resource: 'lead',
       query: {
         'callLogs.0': { $exists: true },
@@ -210,7 +210,7 @@ export class DbScriptsComponent implements OnInit {
             const changed = JSON.parse(JSON.stringify(original));
             delete original.callLogs;
             changed.callLogs = [changed.callLogs['0']];
-            this._api.patch(environment.adminApiUrl + "generic?resource=lead", [{ old: original, new: changed }]).subscribe(patched => console.log(patched));
+            this._api.patch(environment.adminApiUrl + "generic2?resource=lead", [{ old: original, new: changed }]).subscribe(patched => console.log(patched));
           }
         })
 
@@ -232,7 +232,7 @@ export class DbScriptsComponent implements OnInit {
     // let's batch 5 every time
     const batchSize = 100;
     let myRestaurants;
-    this._api.get(environment.qmenuApiUrl + "generic", {
+    this._api.get(environment.qmenuApiUrl + "generic2", {
       resource: "restaurant",
       query: {
         phones: { $exists: false },
@@ -244,10 +244,10 @@ export class DbScriptsComponent implements OnInit {
     }).pipe(mergeMap(restaurants => {
       myRestaurants = restaurants;
       return this._api
-        .get(environment.qmenuApiUrl + "generic", {
+        .get(environment.qmenuApiUrl + "generic2", {
           resource: "phone",
           query: {
-            restaurant: { $in: restaurants.map(r => r._id) },
+            restaurant: { $in: restaurants.map(r => ({$oid: r._id})) },
           },
           limit: batchSize
         });
@@ -269,7 +269,7 @@ export class DbScriptsComponent implements OnInit {
 
       return this._api
         .patch(
-          environment.qmenuApiUrl + "generic?resource=restaurant",
+          environment.qmenuApiUrl + "generic2?resource=restaurant",
           myRestaurantsChanged.map(clone => ({
             old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
             new: clone
@@ -301,7 +301,7 @@ export class DbScriptsComponent implements OnInit {
     // let's batch 20 every time
     const batchSize = 20;
     let myRestaurants;
-    this._api.get(environment.qmenuApiUrl + "generic", {
+    this._api.get(environment.qmenuApiUrl + "generic2", {
       resource: "restaurant",
       query: {
         googleAddress: { $exists: true },
@@ -326,7 +326,7 @@ export class DbScriptsComponent implements OnInit {
           Object.assign(rClone.googleAddress, address);
           return this._api
             .patch(
-              environment.qmenuApiUrl + "generic?resource=restaurant", [{
+              environment.qmenuApiUrl + "generic2?resource=restaurant", [{
                 old: rOrignal,
                 new: rClone
               }]

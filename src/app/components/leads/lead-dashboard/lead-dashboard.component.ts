@@ -334,7 +334,7 @@ export class LeadDashboardComponent implements OnInit {
     // grab all users and make an assignee list!
     // get all users
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.adminApiUrl + "generic2", {
         resource: "user",
         limit: 1000
       })
@@ -442,7 +442,7 @@ export class LeadDashboardComponent implements OnInit {
 
     this.leadInEditing.address.apt = (this.addressApt || "").trim();
     this._api
-      .post(environment.adminApiUrl + "generic?resource=lead", [
+      .post(environment.adminApiUrl + "generic2?resource=lead", [
         this.leadInEditing
       ])
       .subscribe(
@@ -591,9 +591,8 @@ export class LeadDashboardComponent implements OnInit {
     });
 
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.adminApiUrl + "generic2", {
         resource: "lead",
-        ids: [],
         limit: 1000,
         query: query
       })
@@ -778,7 +777,7 @@ export class LeadDashboardComponent implements OnInit {
     } else {
       // api update here...
       this._api
-        .patch(environment.adminApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
+        .patch(environment.adminApiUrl + "generic2?resource=lead", [{old: originalLead, new: newLead}])
         .subscribe(
           result => {
             if (removeFromSelection) {

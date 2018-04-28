@@ -39,7 +39,7 @@ export class NewRestaurantComponent implements OnInit {
   }
 
   clickCancel() {
-
+    this.cancel.emit();
   }
 
   selectAddress(address) {
@@ -51,7 +51,7 @@ export class NewRestaurantComponent implements OnInit {
       event.acknowledge('Address is not set. Please type and select address.');
     } else {
       // we need to check validity of alias!
-      this._api.get(environment.qmenuApiUrl + 'generic', {
+      this._api.get(environment.qmenuApiUrl + 'generic2', {
         resource: 'restaurant',
         query: {
           alias: event.object.alias
@@ -64,7 +64,7 @@ export class NewRestaurantComponent implements OnInit {
           // now create this restaurant!
           throw ('Alias ' + event.object.alias + ' already exists.');
         } else {
-          return this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [event.object]);
+          return this._api.post(environment.qmenuApiUrl + 'generic2?resource=restaurant', [event.object]);
         }
       })).subscribe(result => {
         event.acknowledge(null);

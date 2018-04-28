@@ -32,10 +32,10 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this._route.params.subscribe(
       params => {
         this._api
-          .get(environment.qmenuApiUrl + "generic", {
+          .get(environment.qmenuApiUrl + "generic2", {
             resource: "invoice",
             query: {
-              _id: params['id']
+              _id: {$oid: params['id']}
             },
             limit: 1
           }).subscribe(
@@ -79,13 +79,13 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
       updatedInvoice.logs = updatedInvoice.logs || [];
       updatedInvoice.logs.push({
-        time: new Date(),
+        time: {$date: new Date()},
         action: field,
         user: this._global.user.username,
         value: !this.invoice[field]
       });
 
-      this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
+      this._api.patch(environment.qmenuApiUrl + "generic2?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
         result => {
           // let's update original, assuming everything successful
           this.invoice[field] = updatedInvoice[field];
@@ -121,13 +121,13 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
     updatedInvoice.logs = updatedInvoice.logs || [];
     updatedInvoice.logs.push({
-      time: new Date(),
+      time: {$date: new Date()},
       action: "update",
       user: this._global.user.username,
       value: adjustment
     });
 
-    this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
+    this._api.patch(environment.qmenuApiUrl + "generic2?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
       result => {
         // let's update original, assuming everything successful
         this.invoice.adjustments = updatedInvoice.adjustments;
