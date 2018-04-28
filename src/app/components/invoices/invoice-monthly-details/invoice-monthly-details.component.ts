@@ -6,6 +6,7 @@ import { Restaurant, Order, Payment } from '@qmenu/ui';
 import { InvoiceEditorComponent } from '../invoice-editor/invoice-editor.component';
 import { InvoiceOptionEditorComponent} from '../invoice-option-editor/invoice-option-editor.component';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { GlobalService } from '../../../services/global.service';
 
 @Component({
   selector: 'app-invoice-monthly-details',
@@ -36,11 +37,13 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
     { label: 'Invoice Canceled?', value: 'any', css: 'text-danger', status: 'isCanceled' },
   ];
 
-  constructor(private _route: ActivatedRoute, private _api: ApiService) {
+  constructor(private _route: ActivatedRoute, private _api: ApiService, _global: GlobalService) {
     const self = this;
     this._route.params.subscribe(
       params => {
         this.startDate = new Date(params['startDate']);
+
+        
         // get endDate
         // let endDate = new Date(params['startDate']);
         // endDate.setMonth(endDate.getMonth() + 1);
