@@ -25,7 +25,7 @@ export class InvoiceDashboardComponent implements OnInit {
 
   getOne() {
     this._api
-      .get(environment.qmenuApiUrl + "generic2", {
+      .get(environment.qmenuApiUrl + "generic", {
         resource: "invoice",
         limit: 100
       })

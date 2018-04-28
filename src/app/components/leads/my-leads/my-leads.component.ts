@@ -51,7 +51,7 @@ export class MyLeadsComponent implements OnInit {
 
   ngOnInit() {
     this._api
-      .get(environment.adminApiUrl + "generic2", {
+      .get(environment.adminApiUrl + "generic", {
         resource: "user",
         limit: 1000
       })
@@ -115,7 +115,7 @@ export class MyLeadsComponent implements OnInit {
     };
 
     this._api
-      .get(environment.adminApiUrl + "generic2", {
+      .get(environment.adminApiUrl + "generic", {
         resource: "lead",
         limit: 6000,
         query: query
@@ -236,7 +236,7 @@ export class MyLeadsComponent implements OnInit {
     } else {
       // api update here...
       this._api
-        .patch(environment.adminApiUrl + "generic2?resource=lead", [{old: originalLead, new: newLead}])
+        .patch(environment.adminApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
         .subscribe(
           result => {
             // let's update original, assuming everything successful

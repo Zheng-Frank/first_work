@@ -17,7 +17,7 @@ export class SystemDashboardComponent implements OnInit {
   ngOnInit() { }
 
   getPhoneNumberStat() { 
-    this._api.get(environment.qmenuApiUrl + "generic2", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       projection: {
         phones: 1,
@@ -46,7 +46,7 @@ export class SystemDashboardComponent implements OnInit {
     });
   }
   getStates() {
-    this._api.get(environment.qmenuApiUrl + "generic2", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       projection: {
         googleAddress: 1,
@@ -67,7 +67,7 @@ export class SystemDashboardComponent implements OnInit {
     // let's batch 20 every time
     const batchSize = 200;
     let myRestaurants;
-    this._api.get(environment.qmenuApiUrl + "generic2", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         address: { $exists: true },
@@ -81,7 +81,7 @@ export class SystemDashboardComponent implements OnInit {
     }).pipe(mergeMap(restaurants => {
       myRestaurants = restaurants;
       return this._api
-        .get(environment.qmenuApiUrl + "generic2", {
+        .get(environment.qmenuApiUrl + "generic", {
           resource: "address",
           query: {
             _id: { $in: restaurants.filter(r => r.address).map(r => ({$oid: r.address._id || r.address})) },
@@ -100,7 +100,7 @@ export class SystemDashboardComponent implements OnInit {
 
       return this._api
         .patch(
-          environment.qmenuApiUrl + "generic2?resource=restaurant",
+          environment.qmenuApiUrl + "generic?resource=restaurant",
           myRestaurantsChanged.map(clone => ({
             old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
             new: clone
@@ -134,7 +134,7 @@ export class SystemDashboardComponent implements OnInit {
     // 3. remove duplicated
 
     this._api
-      .get(environment.adminApiUrl + "generic2", {
+      .get(environment.adminApiUrl + "generic", {
         resource: "lead",
         query: {
           restaurantId: { $exists: true }
@@ -172,7 +172,7 @@ export class SystemDashboardComponent implements OnInit {
     leadIds.length = 200;
     console.log("remove", leadIds);
     this._api
-      .delete(environment.adminApiUrl + "generic2", {
+      .delete(environment.adminApiUrl + "generic", {
         resource: "lead",
         ids: leadIds
       })
@@ -193,14 +193,14 @@ export class SystemDashboardComponent implements OnInit {
     this.removingOrphanPhones = true;
     // load ALL phones and restaurants
     zip(
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "phone",
         projection: {
           restaurant: 1
         },
         limit: 50000
       }),
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         projection: {
           name: 1
@@ -218,7 +218,7 @@ export class SystemDashboardComponent implements OnInit {
       console.log(badPhones);
 
       return this._api.delete(
-        environment.qmenuApiUrl + "generic2",
+        environment.qmenuApiUrl + "generic",
         {
           resource: 'phone',
           ids: badPhones.map(phone => phone._id)
@@ -245,7 +245,7 @@ export class SystemDashboardComponent implements OnInit {
   }
 
   fixCallLogs() {
-    this._api.get(environment.adminApiUrl + 'generic2', {
+    this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'lead',
       query: {
         'callLogs.0': { $exists: true },
@@ -264,7 +264,7 @@ export class SystemDashboardComponent implements OnInit {
             const changed = JSON.parse(JSON.stringify(original));
             delete original.callLogs;
             changed.callLogs = [changed.callLogs['0']];
-            this._api.patch(environment.adminApiUrl + "generic2?resource=lead", [{ old: original, new: changed }]).subscribe(patched => console.log(patched));
+            this._api.patch(environment.adminApiUrl + "generic?resource=lead", [{ old: original, new: changed }]).subscribe(patched => console.log(patched));
           }
         })
 
@@ -286,7 +286,7 @@ export class SystemDashboardComponent implements OnInit {
     // let's batch 5 every time
     const batchSize = 100;
     let myRestaurants;
-    this._api.get(environment.qmenuApiUrl + "generic2", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         phones: { $exists: false },
@@ -298,7 +298,7 @@ export class SystemDashboardComponent implements OnInit {
     }).pipe(mergeMap(restaurants => {
       myRestaurants = restaurants;
       return this._api
-        .get(environment.qmenuApiUrl + "generic2", {
+        .get(environment.qmenuApiUrl + "generic", {
           resource: "phone",
           query: {
             restaurant: { $in: restaurants.map(r => ({$oid: r._id})) },
@@ -323,7 +323,7 @@ export class SystemDashboardComponent implements OnInit {
 
       return this._api
         .patch(
-          environment.qmenuApiUrl + "generic2?resource=restaurant",
+          environment.qmenuApiUrl + "generic?resource=restaurant",
           myRestaurantsChanged.map(clone => ({
             old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
             new: clone

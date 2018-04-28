@@ -57,7 +57,7 @@ export class LeadInfoComponent implements OnInit {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.adminApiUrl + "generic2?resource=lead", [{
+      this._api.patch(environment.adminApiUrl + "generic?resource=lead", [{
         old: originalLead,
         new: newLead
       }]).subscribe(

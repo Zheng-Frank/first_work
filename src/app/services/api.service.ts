@@ -1,5 +1,5 @@
 /**
- * A generic2 API service for several purpose:
+ * A generic API service for several purpose:
  * 1. Forking the request (Observable.share), so a subscriber can handle some errors (eg. 500, 401) globally
  * 2. Tracking Urls being requested: so we can know how many are in-flight (eg. to display a spinner to indicate loading)
  * 3. Automatically attach Authorization header or x-access-token

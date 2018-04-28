@@ -23,14 +23,14 @@ export class SyncButtonsComponent implements OnInit {
   syncFromRestaurantsToGmbs() {
     this.restaurantToGmbSyncing = true;
     zip(
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmb",
         projection: {
           "businesses.ownershipRequests": 0
         },
         limit: 500
       }),
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         projection: {
           name: 1,
@@ -38,7 +38,7 @@ export class SyncButtonsComponent implements OnInit {
         },
         limit: 1000
       }),
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "phone",
         projection: {},
         limit: 5000
@@ -99,7 +99,7 @@ export class SyncButtonsComponent implements OnInit {
     } else {
       // api update here...
       this._api
-        .patch(environment.qmenuApiUrl + "generic2?resource=gmb", [{ old: originalGmb, new: newGmb }])
+        .patch(environment.qmenuApiUrl + "generic?resource=gmb", [{ old: originalGmb, new: newGmb }])
         .subscribe(
           result => {
             this._global.publishAlert(
@@ -122,7 +122,7 @@ export class SyncButtonsComponent implements OnInit {
 
     this.restaurantToLeadSyncing = true;
     zip(
-      this._api.get(environment.adminApiUrl + "generic2", {
+      this._api.get(environment.adminApiUrl + "generic", {
         resource: "lead",
         query: {
           restaurantId: { $exists: true }
@@ -135,7 +135,7 @@ export class SyncButtonsComponent implements OnInit {
         },
         limit: 4000
       }),
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         projection: {
           name: 1,
@@ -145,12 +145,12 @@ export class SyncButtonsComponent implements OnInit {
         },
         limit: 1000
       }),
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "phone",
         projection: {},
         limit: 5000
       }),
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "address",
         projection: {},
         limit: 5000
@@ -216,7 +216,7 @@ export class SyncButtonsComponent implements OnInit {
   injectLeads(leadsArray) {
     // api update here...
     this._api
-      .post(environment.adminApiUrl + "generic2?resource=lead", leadsArray)
+      .post(environment.adminApiUrl + "generic?resource=lead", leadsArray)
       .subscribe(
         result => {
           this._global.publishAlert(
@@ -237,7 +237,7 @@ export class SyncButtonsComponent implements OnInit {
 
     this.gmbToLeadSyncing = true;
     zip(
-      this._api.get(environment.adminApiUrl + "generic2", {
+      this._api.get(environment.adminApiUrl + "generic", {
         resource: "lead",
         query: {
           restaurantId: { $exists: true }
@@ -249,7 +249,7 @@ export class SyncButtonsComponent implements OnInit {
         },
         limit: 1000
       }),
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmb",
         projection: {
           "businesses.ownershipRequests": 0
@@ -313,7 +313,7 @@ export class SyncButtonsComponent implements OnInit {
 
   patchLeadDiff(pairs) {
     this._api
-      .patch(environment.adminApiUrl + "generic2?resource=lead", pairs)
+      .patch(environment.adminApiUrl + "generic?resource=lead", pairs)
       .subscribe(
         result => {
           this._global.publishAlert(

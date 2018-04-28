@@ -88,7 +88,7 @@ export class RestaurantCrawlerComponent implements OnInit {
   checkAliasAvailability() {
     this.existingRestaurant = undefined;
     this.apiRequesting = true;
-    this._api.get(environment.qmenuApiUrl + "generic2", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         alias: this.alias || 'non-existing'
@@ -147,7 +147,7 @@ export class RestaurantCrawlerComponent implements OnInit {
     restaurant.alias = this.alias;
 
     this._api
-      .post(environment.qmenuApiUrl + "generic2?resource=restaurant", [restaurant])
+      .post(environment.qmenuApiUrl + "generic?resource=restaurant", [restaurant])
 
       .subscribe(
         result => {
@@ -177,10 +177,10 @@ export class RestaurantCrawlerComponent implements OnInit {
     const rOld = JSON.parse(JSON.stringify(this.existingRestaurant));
 
     this._api
-      .patch(environment.qmenuApiUrl + "generic2?resource=restaurant", [{ old: { _id: rOld._id, menus: {}, menuOptions: {} }, new: { _id: rOld._id } }])
+      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: rOld._id, menus: {}, menuOptions: {} }, new: { _id: rOld._id } }])
       .pipe(mergeMap(
         result => this._api
-          .patch(environment.qmenuApiUrl + "generic2?resource=restaurant", [{ old: { _id: rOld._id }, new: { _id: rOld._id, menus: organized.menus, menuOptions: organized.menuOptions } }])
+          .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: rOld._id }, new: { _id: rOld._id, menus: organized.menus, menuOptions: organized.menuOptions } }])
       ))
       .subscribe(
         result => {

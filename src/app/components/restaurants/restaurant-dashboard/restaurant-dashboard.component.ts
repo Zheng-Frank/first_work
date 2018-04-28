@@ -30,7 +30,7 @@ export class RestaurantDashboardComponent implements OnInit {
 
   ngOnInit() {
     // retrieve restaurant list
-    this._api.get(environment.qmenuApiUrl + "generic2", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       projection: {
         name: 1,
@@ -61,7 +61,7 @@ export class RestaurantDashboardComponent implements OnInit {
     // 2. remove the restaurant (forget about dangling dependencies at this moment)
     this.requesting = true;
     let nameOfRestaurant = '';
-    this._api.get(environment.qmenuApiUrl + "generic2", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         alias: this.removeAlias || 'non-existing'
@@ -77,7 +77,7 @@ export class RestaurantDashboardComponent implements OnInit {
         } else {
           nameOfRestaurant = result[0].name;
           return this._api.delete(
-            environment.qmenuApiUrl + "generic2",
+            environment.qmenuApiUrl + "generic",
             {
               resource: 'restaurant',
               ids: [result[0]._id]

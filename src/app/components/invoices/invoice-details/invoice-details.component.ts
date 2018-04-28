@@ -32,7 +32,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this._route.params.subscribe(
       params => {
         this._api
-          .get(environment.qmenuApiUrl + "generic2", {
+          .get(environment.qmenuApiUrl + "generic", {
             resource: "invoice",
             query: {
               _id: {$oid: params['id']}
@@ -85,7 +85,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         value: !this.invoice[field]
       });
 
-      this._api.patch(environment.qmenuApiUrl + "generic2?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
+      this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
         result => {
           // let's update original, assuming everything successful
           this.invoice[field] = updatedInvoice[field];
@@ -127,7 +127,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       value: adjustment
     });
 
-    this._api.patch(environment.qmenuApiUrl + "generic2?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
+    this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
       result => {
         // let's update original, assuming everything successful
         this.invoice.adjustments = updatedInvoice.adjustments;

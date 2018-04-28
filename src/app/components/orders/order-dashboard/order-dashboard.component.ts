@@ -57,7 +57,7 @@ export class OrderDashboardComponent implements OnInit {
 
   searchOrders(startDate: Date) {
     zip(
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "order",
         query: {
           createdAt: {
@@ -73,7 +73,7 @@ export class OrderDashboardComponent implements OnInit {
         },
         limit: 6000
       }),
-      this._api.get(environment.qmenuApiUrl + "generic2", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {
           disabled: {
@@ -85,7 +85,7 @@ export class OrderDashboardComponent implements OnInit {
         },
         limit: 6000
       }),
-      this._api.get(environment.adminApiUrl + "generic2", {
+      this._api.get(environment.adminApiUrl + "generic", {
         resource: "lead",
         query: {
           restaurantId: {
@@ -189,7 +189,7 @@ export class OrderDashboardComponent implements OnInit {
 
   downloadStats() {
     // alert('not enabled');
-    this._api.get(environment.qmenuApiUrl + "generic2", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: {
       },

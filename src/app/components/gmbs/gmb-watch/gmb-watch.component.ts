@@ -17,7 +17,7 @@ export class GmbWatchComponent implements OnInit {
   }
 
   ngOnInit() {
-    this._api.get(environment.adminApiUrl + "generic2", {
+    this._api.get(environment.adminApiUrl + "generic", {
       resource: "gmb-watch",
       query: {},
       limit: 1
