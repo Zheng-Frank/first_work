@@ -42,14 +42,14 @@ export class InvoiceOptionEditorComponent implements OnInit {
   }
 
   setNonPrepaidCollapse() {
-    if(this.radioGroup.selectedValue === 'Non Prepaid'){
+    if(this.radioGroup && this.radioGroup.selectedValue === 'Non Prepaid'){
       return true;
     }
     return undefined;
   }
 
   setPrepaidCollapse(){
-    if(this.radioGroup.selectedValue === 'Prepaid'){
+    if(this.radioGroup && this.radioGroup.selectedValue === 'Prepaid'){
       return true;
     }
     return undefined;

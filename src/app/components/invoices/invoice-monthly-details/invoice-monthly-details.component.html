@@ -31,72 +31,7 @@
     </tr>
   </thead>
   <tbody>
-    <ng-container *ngFor="let record of restaurantInvoices;">
-        
-      <ng-container *ngIf="shouldShowQmenuRow(record)">
-        <ng-container *ngIf="shouldShowInvoiceRow(record)">
-        <!--display records-->
-        <ng-container *ngFor="let invoice of getFilteredInvoices(record); let i = index">
-          <tr *ngIf="shouldShowSubrow(invoice)" class="{{record.restaurant.disabled ? 'app-strike' : ''}}">
-            <td *ngIf="i === 0" style="color: #292b2c" [attr.rowspan]="getFilteredInvoices(record).length"><a routerLink="/restaurant/{{record.restaurant.id }}">{{record.restaurant.name}}</a></td>
-            <td class="text-nowrap" routerLink="/invoices/{{invoice.id}}" class="{{getCssClass(invoice)}}">&#9632; {{invoice.fromDate | date:'MMM d'}} - {{invoice.toDate | date:'MMM d'}}</td>
-            <td class="text-right">{{invoice.getTotal() | currency:'USD':'symbol'}}</td>
-            <td class="text-right">{{invoice.getCommission() | currency:'USD':'symbol'}}</td>
-            <td class="text-right"></td>
-            <!--invoice setting-->
-            <td class="text-right text-nowrap">
-            <!-- <div class="container-fluid">
-              <div class="row">
-                <div class="text-nowrap card">
-                <div class="card-body">
-                <h4 class="card-title"><a class="card-link text-primary" role="button" (click)="invoiceClicked(record.restaurant.id)">InvoiceDelivery</a>
-                </h4>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="text-nowrap list-group-item">jk<span class="pull-right" >what</span></li>
-                </ul>
-              </div>
-              </div>
-            </div> -->
-            </td>
-            <td class="text-right">
-              {{record.restaurant.creditCardProcessingMethod}}
-            </td>
-            <td class="text-right text-nowrap"><a routerLink="/invoices/{{invoice.id}}">Details</a> | <a class="text-primary" role="button" (click)="createClicked(record.restaurant.id)">Create</a></td>
-          </tr>
-        </ng-container>
 
-        <!--there is no invoice, we still list the restaurant name-->
-        <tr *ngIf="record.invoices.length === 0" class="{{record.restaurant.disabled ? 'app-strike' : ''}}">
-          <td><a routerLink="/restaurant/{{record.restaurant.id }}">{{record.restaurant.name}}</a></td>
-          <td colspan="3"></td>
-          <td class="text-right"></td>
-            <!--invoice setting-->
-            <td class="text-right text-nowrap">
-            <!-- <div class="container-fluid">
-              <div class="row">
-                <div class="text-nowrap card">
-                <div class="card-body">
-                <h4 class="card-title"><a class="card-link text-primary" role="button" (click)="invoiceClicked(record.restaurant.id)">InvoiceDelivery</a>
-                </h4>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li *ngIf="myInvoiceOptionEditor.fax" class="list-group-item">{{fax}}<span class="pull-right" ></span></li>
-                    <li class="list-group-item">jk<span class="pull-right" >   whatcanidotogejlk</span></li>
-                </ul>
-              </div>
-              </div>
-            </div> -->
-            </td>
-          <!--td class="text-right"><a class="text-primary" role="button" (click)="invoiceClicked(record.restaurant.id)">InvoiceDelivery</a></td-->
-          <td class="text-right">
-            {{record.restaurant.creditCardProcessingMethod}}
-          </td>
-          <td class="text-right"><a class="text-primary" role="button" (click)="createClicked(record.restaurant.id)">Create</a></td>
-        </tr>
-        </ng-container>
-      </ng-container>
-    </ng-container>
     <tr>
         <th></th>
         <th>SUM</th>
