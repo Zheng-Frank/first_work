@@ -61,7 +61,7 @@ export class OrderDashboardComponent implements OnInit {
         resource: "order",
         query: {
           createdAt: {
-            $gte: startDate
+            $gte: {$date: startDate}
           }
         },
         projection: {

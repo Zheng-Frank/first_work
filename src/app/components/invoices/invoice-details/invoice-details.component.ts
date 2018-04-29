@@ -35,7 +35,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           .get(environment.qmenuApiUrl + "generic", {
             resource: "invoice",
             query: {
-              _id: params['id']
+              _id: {$oid: params['id']}
             },
             limit: 1
           }).subscribe(
@@ -79,7 +79,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
       updatedInvoice.logs = updatedInvoice.logs || [];
       updatedInvoice.logs.push({
-        time: new Date(),
+        time: {$date: new Date()},
         action: field,
         user: this._global.user.username,
         value: !this.invoice[field]
@@ -121,7 +121,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
     updatedInvoice.logs = updatedInvoice.logs || [];
     updatedInvoice.logs.push({
-      time: new Date(),
+      time: {$date: new Date()},
       action: "update",
       user: this._global.user.username,
       value: adjustment

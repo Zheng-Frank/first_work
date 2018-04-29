@@ -39,7 +39,7 @@ export class NewRestaurantComponent implements OnInit {
   }
 
   clickCancel() {
-
+    this.cancel.emit();
   }
 
   selectAddress(address) {

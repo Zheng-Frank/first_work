@@ -84,7 +84,7 @@ export class SystemDashboardComponent implements OnInit {
         .get(environment.qmenuApiUrl + "generic", {
           resource: "address",
           query: {
-            _id: { $in: restaurants.filter(r => r.address).map(r => r.address._id || r.address) },
+            _id: { $in: restaurants.filter(r => r.address).map(r => ({$oid: r.address._id || r.address})) },
           },
           limit: batchSize
         });
@@ -301,7 +301,7 @@ export class SystemDashboardComponent implements OnInit {
         .get(environment.qmenuApiUrl + "generic", {
           resource: "phone",
           query: {
-            restaurant: { $in: restaurants.map(r => r._id) },
+            restaurant: { $in: restaurants.map(r => ({$oid: r._id})) },
           },
           limit: batchSize
         });

@@ -117,7 +117,6 @@ export class MyLeadsComponent implements OnInit {
     this._api
       .get(environment.adminApiUrl + "generic", {
         resource: "lead",
-        ids: [],
         limit: 6000,
         query: query
       })

@@ -247,7 +247,7 @@ export class DbScriptsComponent implements OnInit {
         .get(environment.qmenuApiUrl + "generic", {
           resource: "phone",
           query: {
-            restaurant: { $in: restaurants.map(r => r._id) },
+            restaurant: { $in: restaurants.map(r => ({$oid: r._id})) },
           },
           limit: batchSize
         });
