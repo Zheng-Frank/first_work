@@ -26,8 +26,8 @@
       <td class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</td>
       <td class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</td>-->
       <td class="text-right">{{invoice.getTotal() | currency:'USD':'symbol'}}</td>
-      <td class="text-right">{{invoice.getEmailCollected() + invoice.getCashCollected() | currency:'USD':'symbol'}}</td>
-      <td class="text-right">{{invoice.getQMenuCollected() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.getRestaurantCollectedCreditCard() + invoice.getCashCollected() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.getQMenuCcCollected() | currency:'USD':'symbol'}}</td>
       <td class="text-right">{{invoice.getCommission() | currency:'USD':'symbol'}}</td>
       <!--<td class="text-right">{{order.total | currency:'USD':'symbol':'1.2-2'}}</td>-->
     </tr>

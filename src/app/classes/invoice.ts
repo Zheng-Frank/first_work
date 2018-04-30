@@ -1,3 +1,5 @@
+import { InvoicePayment } from "./invoice-payment";
+
 export class Invoice {
   id: string;
   fromDate: Date;
@@ -7,13 +9,46 @@ export class Invoice {
   //  lastStatus, paymentType, payee}
   adjustments: any[];  // {name, amount}
   logs: string[];         // {time, user, ip, action}, action in [CREATED, SENT, PAID]
-  payments: any[];     // {time, payor, payee, amount, paymentMethod} currently we will have one payment but maybe more for each billing in future
+  payments: InvoicePayment[];    
   // paymentMethod: CASH, CREDITCARD {object to be defined}
-  payee: string;
   isCanceled: boolean;
   isSent: 'boolean';
   isPaymentSent: 'boolean';
   isPaymentCompleted: 'boolean';
+
+  // added fields for tracking things faster (need maintain integrity)
+  tax: number;
+  tip: number;
+  tmeTip: number;
+  surcharge: number;
+  deliveryCharge: number;
+  thirdPartyDeliveryCharge: number;
+  thirdPartyDeliveryTip: number;
+  subtotal: number;
+  adjustment: number;
+  total: number;
+  cashCollected: number;
+  qMenuCcCollected: number;
+  restaurantCcCollected: number;
+  stripeFee: number;
+  commission: number;
+  // balance: from restaurant to qMenu
+  balance: number;
+  rateAverage: number;
+  totalPayments: number;
+
+  computeDerivedValues() {
+    ['tax', 'tip', 'surcharge', 'deliveryCharge',
+      'thirdPartyDeliveryCharge', 'thirdPartyDeliveryTip',
+      'subtotal', 'adjustment', 'total', 'cashCollected',
+      'qMenuCcCollected', 'restaurantCcCollected',
+      'stripeFee', 'commission', 'balance', 'rateAverage', 'totalPayments']
+      .map(field => this[field] = this['get' + field[0].toUpperCase() + field.substr(1)]());
+  }
+
+  previousBalance: number;
+  previousInvoiceId: string;
+
   createdAt: Date;
   constructor(invoice?: Invoice) {
     if (invoice) {
@@ -30,17 +65,17 @@ export class Invoice {
       this.orders = this.orders || [];
       this.orders.sort((o1, o2) => new Date(o1.createdAt).valueOf() - new Date(o2.createdAt).valueOf());
       this.createdAt = new Date(invoice.createdAt);
+      this.computeDerivedValues();
     }
   }
+
   getTax() {
     return (this.orders || []).reduce((sum, o) => sum + (+o.tax.toFixed(2)) * (o.canceled ? 0 : 1), 0);
   }
   getTip() {
     return (this.orders || []).reduce((sum, o) => sum + (+(+o.tip).toFixed(2)) * (o.canceled ? 0 : 1), 0);
   }
-  getTmeTip() {
-    return (this.orders || []).reduce((sum, o) => sum + ((o.type === 'DELIVERY' && o.paymentType === 'CREDITCARD') ? +(+o.tip).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
-  }
+
   getSurcharge() {
     return (this.orders || []).reduce((sum, o) => sum + (+(+o.surchargeAmount).toFixed(2)) * (o.canceled ? 0 : 1), 0);
   }
@@ -55,15 +90,24 @@ export class Invoice {
   getDeliveryCharge() {
     return (this.orders || []).reduce((sum, o) => sum + (+(+o.deliveryCharge).toFixed(2)) * (o.canceled ? 0 : 1), 0);
   }
-  getTmeDeliveryCharge() {
-    return (this.orders || []).reduce((sum, o) => sum + ((o.type === 'DELIVERY') ? +(+o.deliveryCharge).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
+
+  getThirdPartyDeliveryCharge() {
+    return (this.orders || []).reduce((sum, o) => sum + (o.deliveryBy ? +(+o.deliveryCharge).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
   }
+
+  // right now driver takes 
+  getThirdPartyDeliveryTip() {
+    return (this.orders || []).reduce((sum, o) => sum + ((o.deliveryBy && o.paymentType === 'CREDITCARD') ? +(+o.tip).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
+  }
+
   getSubtotal() {
     return (this.orders || []).reduce((sum, o) => sum + (+(+o.subtotal).toFixed(2)) * (o.canceled ? 0 : 1), 0);
   }
+
   getAdjustment() {
     return (this.adjustments || []).reduce((sum, o) => sum + (+(+o.amount).toFixed(2)), 0);
   }
+
   getTotal() {
     return (this.orders || []).reduce((sum, o) => sum + (+(+o.total).toFixed(2)) * (o.canceled ? 0 : 1), 0);
   }
@@ -73,11 +117,11 @@ export class Invoice {
     return (this.orders || []).reduce((sum, o) => sum + (o.paymentType === 'CASH' ? +(+o.total).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
-  getQMenuCollected() {
+  getQMenuCcCollected() {
     return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'qMenu') ? +(+o.total).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
-  getEmailCollected() {
+  getRestaurantCcCollected() {
     return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'restaurant') ? +(+o.total).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
@@ -89,12 +133,10 @@ export class Invoice {
   getCommission() {
     return (this.orders || []).reduce((sum, o) => sum + (+o.rate * +o.subtotal + (o.fixed ? o.fixed : 0)) * (o.canceled ? 0 : 1), 0);
   }
+
   // balance: from restaurant to qMenu
   getBalance() {
-    return this.getStripeFee() - this.getQMenuCollected() + this.getCommission() - this.getAdjustment();
-  }
-  getBalanceWithTme() {
-    return this.getStripeFee() - this.getQMenuCollected() + this.getCommission() - this.getAdjustment() + this.getTmeTip() + this.getDeliveryCharge();
+    return (this.previousBalance || 0) - this.getTotalPayments() + this.getStripeFee() - this.getQMenuCcCollected() + this.getCommission() - this.getAdjustment() + this.getThirdPartyDeliveryTip() + this.getThirdPartyDeliveryCharge();
   }
 
   hasCanceledOrders() {
@@ -104,4 +146,9 @@ export class Invoice {
   getRateAverage() {
     return this.getCommission() / this.getSubtotal();
   }
+
+  getTotalPayments() {
+    return (this.payments || []).reduce((sum, o) => sum + (+(+o.amount).toFixed(2)), 0);
+  }
+
 }

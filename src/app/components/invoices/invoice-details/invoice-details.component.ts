@@ -39,7 +39,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
             },
             limit: 1
           }).subscribe(
-            invoices => { this.invoice = new Invoice(invoices[0]); console.log(this.invoice); },
+            invoices => { this.invoice = new Invoice(invoices[0]); },
             e => this._global.publishAlert(
               AlertType.Danger,
               "Error pulling invoice from API"

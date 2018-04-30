@@ -6,6 +6,7 @@ import { AlertType } from "../../../classes/alert-type";
 import { zip, Observable, from } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { Restaurant } from '@qmenu/ui';
+import { Invoice } from "../../../classes/invoice";
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -247,7 +248,7 @@ export class DbScriptsComponent implements OnInit {
         .get(environment.qmenuApiUrl + "generic", {
           resource: "phone",
           query: {
-            restaurant: { $in: restaurants.map(r => ({$oid: r._id})) },
+            restaurant: { $in: restaurants.map(r => ({ $oid: r._id })) },
           },
           limit: batchSize
         });
@@ -351,5 +352,238 @@ export class DbScriptsComponent implements OnInit {
 
     });
   }
+
+  injectDeliveryBy() {
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        deliveryByTme: true
+      },
+      projection: {
+        name: 1
+      },
+      limit: 10000
+    }).pipe(mergeMap(restaurants => {
+      console.log(restaurants);
+      this._global.publishAlert(
+        AlertType.Success,
+        "Restaurants affected " + restaurants.map(r => r.name).join(", ")
+      );
+      return this._api
+        .get(environment.qmenuApiUrl + "generic", {
+          resource: "order",
+          query: {
+            restaurant: { $in: restaurants.map(r => ({ $oid: r._id })) },
+            type: "DELIVERY",
+            deliveryBy: { $ne: 'TME' }
+          },
+          projection: {
+            type: 1,
+            restaurant: 1,
+            createdAt: 1
+          },
+          limit: 500
+        });
+    })).pipe(mergeMap(orders => {
+      console.log(orders);
+      return this._api
+        .patch(environment.qmenuApiUrl + "generic?resource=order", orders.map(o => {
+          const oldO = JSON.parse(JSON.stringify(o));
+          const newO = JSON.parse(JSON.stringify(o));
+          newO.deliveryBy = 'TME';
+          return {
+            old: oldO,
+            new: newO
+          };
+        }));
+    })).subscribe(
+      updatedOrders => {
+        console.log(updatedOrders);
+        this._global.publishAlert(
+          AlertType.Success,
+          "Updated " + updatedOrders.length
+        );
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error: " + JSON.stringify(error)
+        );
+      }
+    );
+  } // end injectDeliveryBy
+
+
+  injectDeliveryByToInvoice() {
+
+    let orderIdMap = {};
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        deliveryBy: { $exists: true }
+      },
+      projection: {
+        deliveryBy: 1
+      },
+      limit: 500
+    }).pipe(mergeMap(orders => {
+      console.log(orders);
+      orders.map(o => orderIdMap[o._id] = o);
+      this._global.publishAlert(
+        AlertType.Success,
+        "Total orders: " + orders.length
+      );
+      return this._api
+        .get(environment.qmenuApiUrl + "generic", {
+          resource: "invoice",
+          query: {
+            "orders.id": { $in: orders.map(r => r._id) }
+          },
+          projection: {
+            "restaurant.name": 1,
+            createdAt: 1,
+            orders: 1
+          },
+          limit: 500
+        });
+    })).pipe(mergeMap(invoices => {
+      console.log(invoices);
+      const originInvoices = JSON.parse(JSON.stringify(invoices));
+      const affectedInvoicies = new Set();
+      invoices.map(invoice => {
+        invoice.orders.map(o => {
+          if (orderIdMap[o.id] && o.deliveryBy !== orderIdMap[o.id].deliveryBy) {
+            o.deliveryBy = orderIdMap[o.id].deliveryBy;
+            console.log(o);
+            affectedInvoicies.add(invoice);
+          }
+        });
+      });
+
+      if (affectedInvoicies.size === 0) {
+        throw 'No invoice affect!';
+      }
+      console.log(affectedInvoicies);
+
+      return this._api
+        .patch(environment.qmenuApiUrl + "generic?resource=invoice", Array.from(affectedInvoicies).map(invoice => {
+          let index = invoices.indexOf(invoice);
+          const oldInvoice = JSON.parse(JSON.stringify(originInvoices[index]));
+          const newInvoice = JSON.parse(JSON.stringify(invoices[index]));
+          console.log(oldInvoice);
+          console.log(newInvoice);
+          return {
+            old: oldInvoice,
+            new: newInvoice
+          };
+        }));
+
+
+    })).subscribe(
+      updatedOrders => {
+        console.log(updatedOrders);
+        this._global.publishAlert(
+          AlertType.Success,
+          "Updated " + updatedOrders.length
+        );
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error: " + JSON.stringify(error)
+        );
+      }
+    );
+  } // end injectDeliveryBy
+
+  injectTotalEtcToInvoice() { 
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "invoice",
+      query: {
+        _id: { $oid: "5accd7793ef1e414008a2ab0" }
+      },
+      projection: {
+        orders: 1,
+        adjustments: 1
+      },
+      limit: 1
+    })
+    // .pipe(mergeMap(orders => {
+    //   console.log(orders);
+    //   orders.map(o => orderIdMap[o._id] = o);
+    //   this._global.publishAlert(
+    //     AlertType.Success,
+    //     "Total orders: " + orders.length
+    //   );
+    //   return this._api
+    //     .get(environment.qmenuApiUrl + "generic", {
+    //       resource: "invoice",
+    //       query: {
+    //         "orders.id": { $in: orders.map(r => r._id) }
+    //       },
+    //       projection: {
+    //         "restaurant.name": 1,
+    //         createdAt: 1,
+    //         orders: 1
+    //       },
+    //       limit: 500
+    //     });
+    // }))
+    // .pipe(mergeMap(invoices => {
+    //   console.log(invoices);
+    //   const originInvoices = JSON.parse(JSON.stringify(invoices));
+    //   const affectedInvoicies = new Set();
+    //   invoices.map(invoice => {
+    //     invoice.orders.map(o => {
+    //       if (orderIdMap[o.id] && o.deliveryBy !== orderIdMap[o.id].deliveryBy) {
+    //         o.deliveryBy = orderIdMap[o.id].deliveryBy;
+    //         console.log(o);
+    //         affectedInvoicies.add(invoice);
+    //       }
+    //     });
+    //   });
+
+    //   if (affectedInvoicies.size === 0) {
+    //     throw 'No invoice affect!';
+    //   }
+    //   console.log(affectedInvoicies);
+
+    //   return this._api
+    //     .patch(environment.qmenuApiUrl + "generic?resource=invoice", Array.from(affectedInvoicies).map(invoice => {
+    //       let index = invoices.indexOf(invoice);
+    //       const oldInvoice = JSON.parse(JSON.stringify(originInvoices[index]));
+    //       const newInvoice = JSON.parse(JSON.stringify(invoices[index]));
+    //       console.log(oldInvoice);
+    //       console.log(newInvoice);
+    //       return {
+    //         old: oldInvoice,
+    //         new: newInvoice
+    //       };
+    //     }));
+
+
+    // }))
+    .subscribe(
+      updatedOrders => {
+        console.log(updatedOrders);
+
+        updatedOrders.map(i => {
+          let invoice = new Invoice(i);
+          invoice.computeDerivedValues();
+        });
+
+        this._global.publishAlert(
+          AlertType.Success,
+          "Updated " + updatedOrders.length
+        );
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error: " + JSON.stringify(error)
+        );
+      }
+    );
+  } // injectTotalEtcToInvoice
 
 }

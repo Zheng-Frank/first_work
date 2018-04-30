@@ -54,5 +54,28 @@
         </div>
     </div>
 
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">qMenu: Inject deliveryBy for historical orders</h5>
+            <p class="card-text">ONE TIME: (Disable after run)</p>
+            <button class="btn btn-primary" (click)="injectDeliveryBy()">Fix</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">qMenu: Inject deliveryBy from order to invoice.orders</h5>
+            <p class="card-text">No side effects. We have invoices that didn't have deliveryBy injected</p>
+            <button class="btn btn-primary" (click)="injectDeliveryByToInvoice()">Fix</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">qMenu: Inject redundant total, subtotal etc to invoice</h5>
+            <p class="card-text">No side effects. We have to batch process existing invoices. When query, we SKIP already calculated ones.</p>
+            <button class="btn btn-primary" (click)="injectTotalEtcToInvoice()">Fix</button>
+        </div>
+    </div>
 
 </div>
