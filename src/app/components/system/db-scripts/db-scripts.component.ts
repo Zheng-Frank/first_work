@@ -496,94 +496,75 @@ export class DbScriptsComponent implements OnInit {
     );
   } // end injectDeliveryBy
 
-  injectTotalEtcToInvoice() { 
+  injectTotalEtcToInvoice() {
+
+    let affectedInvoices = [];
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "invoice",
       query: {
-        _id: { $oid: "5accd7793ef1e414008a2ab0" }
+        balance: { $exists: false }
       },
       projection: {
+        "restaurant.name": 1,
         orders: 1,
-        adjustments: 1
+        adjustments: 1,
+        payments: 1,
+        isCanceled: 1,
+        isSent: 1,
+        isPaymentSent: 1,
+        isPaymentCompleted: 1
+
       },
-      limit: 1
+      limit: 100
     })
-    // .pipe(mergeMap(orders => {
-    //   console.log(orders);
-    //   orders.map(o => orderIdMap[o._id] = o);
-    //   this._global.publishAlert(
-    //     AlertType.Success,
-    //     "Total orders: " + orders.length
-    //   );
-    //   return this._api
-    //     .get(environment.qmenuApiUrl + "generic", {
-    //       resource: "invoice",
-    //       query: {
-    //         "orders.id": { $in: orders.map(r => r._id) }
-    //       },
-    //       projection: {
-    //         "restaurant.name": 1,
-    //         createdAt: 1,
-    //         orders: 1
-    //       },
-    //       limit: 500
-    //     });
-    // }))
-    // .pipe(mergeMap(invoices => {
-    //   console.log(invoices);
-    //   const originInvoices = JSON.parse(JSON.stringify(invoices));
-    //   const affectedInvoicies = new Set();
-    //   invoices.map(invoice => {
-    //     invoice.orders.map(o => {
-    //       if (orderIdMap[o.id] && o.deliveryBy !== orderIdMap[o.id].deliveryBy) {
-    //         o.deliveryBy = orderIdMap[o.id].deliveryBy;
-    //         console.log(o);
-    //         affectedInvoicies.add(invoice);
-    //       }
-    //     });
-    //   });
-
-    //   if (affectedInvoicies.size === 0) {
-    //     throw 'No invoice affect!';
-    //   }
-    //   console.log(affectedInvoicies);
-
-    //   return this._api
-    //     .patch(environment.qmenuApiUrl + "generic?resource=invoice", Array.from(affectedInvoicies).map(invoice => {
-    //       let index = invoices.indexOf(invoice);
-    //       const oldInvoice = JSON.parse(JSON.stringify(originInvoices[index]));
-    //       const newInvoice = JSON.parse(JSON.stringify(invoices[index]));
-    //       console.log(oldInvoice);
-    //       console.log(newInvoice);
-    //       return {
-    //         old: oldInvoice,
-    //         new: newInvoice
-    //       };
-    //     }));
-
-
-    // }))
-    .subscribe(
-      updatedOrders => {
-        console.log(updatedOrders);
-
-        updatedOrders.map(i => {
-          let invoice = new Invoice(i);
-          invoice.computeDerivedValues();
+      .pipe(mergeMap(invoices => {
+        affectedInvoices = invoices;
+        const originInvoices = JSON.parse(JSON.stringify(invoices)).map(i => new Invoice(i));
+        const newInvoices = invoices.map(i => {
+          const newI = new Invoice(i);
+          newI.computeDerivedValues();
+          return newI;
         });
 
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated " + updatedOrders.length
-        );
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      }
-    );
+        console.log(originInvoices);
+        console.log(newInvoices);
+
+
+        if (newInvoices.length === 0) {
+          throw 'No invoice to update!';
+        }
+
+        return this._api
+          .patch(environment.qmenuApiUrl + "generic?resource=invoice", newInvoices.map((invoice, index) => {
+
+            const oldInvoice = originInvoices[index];
+            const newInvoice = invoice;
+            delete oldInvoice.orders;
+            delete newInvoice.orders;
+
+            console.log(oldInvoice);
+            console.log(newInvoice);
+            return {
+              old: oldInvoice,
+              new: newInvoice
+            };
+          }));
+      }))
+      .subscribe(
+        updatedInvoices => {
+          console.log(updatedInvoices);
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated " + affectedInvoices.map(i => i.restaurant.name).join(', ')
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        }
+      );
   } // injectTotalEtcToInvoice
 
 }

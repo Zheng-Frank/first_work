@@ -84,17 +84,10 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
             projection: {
               fromDate: true,
               toDate: true,
-              // "orders.rate": true,
-              // "orders.fixed": true,
-              "orders.total": true,
-              "orders.paymentType": true,
-              "orders.creditCardProcessingMethod": true,
-              // "restaurant.name": true,
-              // "restaurant.rateSchedules": true,
-              // "restaurant._id": true,
-              // "restaurant.id": true
+              total: true,
+              commission: true
             },
-            limit: 8000
+            limit: 80000
           }),
           this._api.get(environment.qmenuApiUrl + "generic", {
             resource: "restaurant",

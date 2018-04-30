@@ -65,7 +65,6 @@ export class Invoice {
       this.orders = this.orders || [];
       this.orders.sort((o1, o2) => new Date(o1.createdAt).valueOf() - new Date(o2.createdAt).valueOf());
       this.createdAt = new Date(invoice.createdAt);
-      this.computeDerivedValues();
     }
   }
 
@@ -77,7 +76,7 @@ export class Invoice {
   }
 
   getSurcharge() {
-    return (this.orders || []).reduce((sum, o) => sum + (+(+o.surchargeAmount).toFixed(2)) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (+(+o.surchargeAmount || 0).toFixed(2)) * (o.canceled ? 0 : 1), 0);
   }
   getSurchargeName() {
     for (let o of this.orders) {
