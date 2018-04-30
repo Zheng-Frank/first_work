@@ -8,7 +8,7 @@ export class Invoice {
   orders: any[];        // {id, time, order#, customer, type (Delivery/Dine/Pickup), subtotal, tax, tip, deliveryCharge, total, 
   //  lastStatus, paymentType, payee}
   adjustments: any[];  // {name, amount}
-  logs: string[];         // {time, user, ip, action}, action in [CREATED, SENT, PAID]
+  logs: any[];         // {time, user, ip, action}, action in [CREATED, SENT, PAID]
   payments: InvoicePayment[];    
   // paymentMethod: CASH, CREDITCARD {object to be defined}
   isCanceled: boolean;
@@ -16,7 +16,7 @@ export class Invoice {
   isPaymentSent: 'boolean';
   isPaymentCompleted: 'boolean';
 
-  // added fields for tracking things faster (need maintain integrity)
+  // those fields values are for tracking things faster (need maintain integrity using computeDerivedValues())
   tax: number;
   tip: number;
   tmeTip: number;
