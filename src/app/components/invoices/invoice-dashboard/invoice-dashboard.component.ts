@@ -23,23 +23,4 @@ export class InvoiceDashboardComponent implements OnInit {
   ngOnInit() {
   }
 
-  getOne() {
-    this._api
-      .get(environment.qmenuApiUrl + "generic", {
-        resource: "invoice",
-        limit: 100
-      })
-      .subscribe(
-        result => {
-          console.log(result)
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling invoice from API"
-          );
-        }
-      );
-  }
-
 }

@@ -67,7 +67,7 @@
               </td>
               <td class="text-right text-nowrap">
                 <a routerLink="/invoices/{{invoice._id}}" target="_blank">Details</a> |
-                <a class="text-primary" role="button" (click)="createClicked(record.restaurant._id)">Create</a>
+                <a class="text-primary" role="button" style="cursor: pointer;" (click)="createClicked(record.restaurant._id)">Create</a>
               </td>
             </tr>
           </ng-container>
@@ -88,7 +88,7 @@
               {{record.restaurant.creditCardProcessingMethod}}
             </td>
             <td class="text-right">
-              <a class="text-primary" role="button" (click)="createClicked(record.restaurant._id)">Create</a>
+              <a class="text-primary" role="button" style="cursor: pointer;" (click)="createClicked(record.restaurant._id)">Create</a>
             </td>
           </tr>
         </ng-container>
