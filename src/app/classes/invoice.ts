@@ -19,7 +19,6 @@ export class Invoice {
   // those fields values are for tracking things faster (need maintain integrity using computeDerivedValues())
   tax: number;
   tip: number;
-  tmeTip: number;
   surcharge: number;
   deliveryCharge: number;
   thirdPartyDeliveryCharge: number;
@@ -69,10 +68,10 @@ export class Invoice {
   }
 
   getTax() {
-    return (this.orders || []).reduce((sum, o) => sum + (+o.tax.toFixed(2)) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (+o.tax.toFixed(2) || 0) * (o.canceled ? 0 : 1), 0);
   }
   getTip() {
-    return (this.orders || []).reduce((sum, o) => sum + (+(+o.tip).toFixed(2)) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (+(+o.tip).toFixed(2) || 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getSurcharge() {
@@ -87,54 +86,55 @@ export class Invoice {
     return 'surcharge';
   }
   getDeliveryCharge() {
-    return (this.orders || []).reduce((sum, o) => sum + (+(+o.deliveryCharge).toFixed(2)) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (+(+o.deliveryCharge).toFixed(2) || 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getThirdPartyDeliveryCharge() {
-    return (this.orders || []).reduce((sum, o) => sum + (o.deliveryBy ? +(+o.deliveryCharge).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (o.deliveryBy ? (+(+o.deliveryCharge).toFixed(2) || 0) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
   // right now driver takes 
   getThirdPartyDeliveryTip() {
-    return (this.orders || []).reduce((sum, o) => sum + ((o.deliveryBy && o.paymentType === 'CREDITCARD') ? +(+o.tip).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + ((o.deliveryBy && o.paymentType === 'CREDITCARD') ? (+(+o.tip).toFixed(2) || 0) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getSubtotal() {
-    return (this.orders || []).reduce((sum, o) => sum + (+(+o.subtotal).toFixed(2)) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (+(+o.subtotal).toFixed(2) || 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getAdjustment() {
-    return (this.adjustments || []).reduce((sum, o) => sum + (+(+o.amount).toFixed(2)), 0);
+    return (this.adjustments || []).reduce((sum, o) => sum + (+(+o.amount).toFixed(2) || 0), 0);
   }
 
   getTotal() {
-    return (this.orders || []).reduce((sum, o) => sum + (+(+o.total).toFixed(2)) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (+(+o.total).toFixed(2) || 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getCashCollected() {
     // restaurant.creditCardProcessingMethod === 'Email' or order.paymentType === 'CASH'
-    return (this.orders || []).reduce((sum, o) => sum + (o.paymentType === 'CASH' ? +(+o.total).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (o.paymentType === 'CASH' ? (+(+o.total).toFixed(2) || 0) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getQMenuCcCollected() {
-    return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'qMenu') ? +(+o.total).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'qMenu') ? (+(+o.total).toFixed(2) || 0) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getRestaurantCcCollected() {
-    return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'restaurant') ? +(+o.total).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'restaurant') ? (+(+o.total).toFixed(2) || 0) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getStripeFee() {
     // restaurant.creditCardProcessingMethod === 'Email' or order.paymentType === 'CASH'
-    return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'qMenu') ? +((+(+o.total).toFixed(2)) * 0.029 + 0.30).toFixed(2) : 0) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'qMenu') ? (+((+(+o.total).toFixed(2)) * 0.029 + 0.30).toFixed(2) || 0) : 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getCommission() {
-    return (this.orders || []).reduce((sum, o) => sum + (+o.rate * +o.subtotal + (o.fixed ? o.fixed : 0)) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + ((+o.rate || 0) * +o.subtotal + (o.fixed ? o.fixed : 0)) * (o.canceled ? 0 : 1), 0);
   }
 
   // balance: from restaurant to qMenu
   getBalance() {
+  
     return (this.previousBalance || 0) - this.getTotalPayments() + this.getStripeFee() - this.getQMenuCcCollected() + this.getCommission() - this.getAdjustment() + this.getThirdPartyDeliveryTip() + this.getThirdPartyDeliveryCharge();
   }
 
@@ -147,7 +147,7 @@ export class Invoice {
   }
 
   getTotalPayments() {
-    return (this.payments || []).reduce((sum, o) => sum + (+(+o.amount).toFixed(2)), 0);
+    return (this.payments || []).reduce((sum, o) => sum + (+(+o.amount).toFixed(2) || 0), 0);
   }
 
 }

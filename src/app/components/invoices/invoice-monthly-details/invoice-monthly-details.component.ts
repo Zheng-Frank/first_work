@@ -8,8 +8,10 @@ import { InvoiceOptionEditorComponent } from '../invoice-option-editor/invoice-o
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { GlobalService } from '../../../services/global.service';
 import { zip } from "rxjs";
+import { mergeMap } from "rxjs/operators";
 import { environment } from "../../../../environments/environment";
 import { AlertType } from "../../../classes/alert-type";
+import { CacheService } from '../../../services/cache.service';
 
 @Component({
   selector: 'app-invoice-monthly-details',
@@ -40,10 +42,15 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
     { label: 'Invoice Canceled?', value: 'any', css: 'text-danger', status: 'isCanceled' },
   ];
 
-  constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
+  constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private _cache: CacheService) {
     const self = this;
     this._route.params.subscribe(
       params => {
+        const cacheKey = 'invoice' + params['startDate'];
+        // if (this._cache.get(cacheKey)) {
+        //   this.restaurantInvoices = this._cache.get(cacheKey);
+        //   return;
+        // }
         this.startDate = new Date(params['startDate']);
         let startDate = this.startDate;
 
@@ -85,7 +92,13 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
               fromDate: true,
               toDate: true,
               total: true,
-              commission: true
+              commission: true,
+              "restaurant.id": true,
+              "restaurant.offsetToEST": true,
+              isCanceled: true,
+              isPaymentCompleted: true,
+              isPaymentSent: true,
+              isSent: true
             },
             limit: 80000
           }),
@@ -94,16 +107,31 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
             projection: {
               name: 1,
               address: 1,
-              serviceSettings: true
+              serviceSettings: true,
+              disabled: true,
+              offsetToEST: 1
             },
             limit: 10000
+          }),
+          this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "order",
+            query: {
+              $and: [
+                {
+                  createdAt: { $lte: { $date: toDateE } }
+                },
+                {
+                  createdAt: { $gte: { $date: fromDateE } }
+                }]
+
+            },
+            projection: {
+              restaurant: 1
+            },
+            limit: 200000
           })
         ).subscribe(
           results => {
-            console.log(results);
-            // here we group invoices by restaurant1
-            console.log('A');
-
             let restaurantInvoiceDict = {};
             results[0].map(invoice => {
               let r_id = invoice.restaurant.id; // we didn't use _id in restaurant body :()
@@ -114,14 +142,11 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
             results[1].map(r => {
               let record = {
                 restaurant: r,
-                invoices: restaurantInvoiceDict[r._id] || []
-                // we keep invoices that has time overlaps
-                // invoices: results[0].filter(invoice =>
-                //   r._id && r._id === invoice.restaurant._id
-                //   && Math.max(new Date(invoice.fromDate).valueOf(), this.startDate.valueOf()) < Math.min(new Date(invoice.toDate).valueOf(), endDate.valueOf())).map(i => new Invoice(i))
+                invoices: (restaurantInvoiceDict[r._id] || []).filter(invoice =>
+                  r._id && r._id === invoice.restaurant.id
+                  && Math.max(new Date(invoice.fromDate).valueOf(), this.startDate.valueOf()) < Math.min(new Date(invoice.toDate).valueOf(), endDate.valueOf())).map(i => new Invoice(i)),
+                orders: results[2].filter(o => r._id === o.restaurant)
               };
-
-              console.log(record.invoices.length)
 
               let ccMethods = [];
               (r.serviceSettings || []).map(service => {
@@ -139,52 +164,18 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
 
               this.restaurantInvoices.push(record);
 
-              
+
             });
-console.log('B')
             // let's sort the list!
             this.restaurantInvoices.sort((a, b) => a.restaurant.name.toLowerCase().localeCompare(b.restaurant.name.toLowerCase()));
+
+            // let's store the list for 30 seconds
+            this._cache.set(cacheKey, this.restaurantInvoices, 30);
+
           }, error => {
             this._global.publishAlert(AlertType.Danger, "Error Pulling Data from API");
           });
 
-        //   this._api
-        //     .getRestaurantList()
-        //     .zip(this._controller.getInvoiceList(this.startDate, endDate))
-        //     .subscribe(results => {
-        //       // results[0] is restaurants
-        //       // results[1] is invoices
-        //       console.log('total invoices: ', results[1].length);
-        //       results[0].map(r => {
-
-        //         let record = {
-        //           restaurant: r,
-        //           // we keep invoices that has time overlaps
-        //           invoices: results[1].filter(invoice =>
-        //             invoice.restaurant.id === r.id
-        //             && Math.max(new Date(invoice.fromDate).valueOf(), this.startDate.valueOf()) < Math.min(new Date(invoice.toDate).valueOf(), endDate.valueOf())).map(i => new Invoice(i))
-        //         };
-
-        //         let ccMethods = [];
-        //         (r.serviceSettings || []).map(service => {
-        //           ['IN_PERSON', 'STRIPE', 'KEY_IN', 'QMENU'].map(paymentMethod => {
-        //             if ((service.paymentMethods || []).indexOf(paymentMethod) >= 0) {
-        //               ccMethods.push(paymentMethod);
-        //             }
-        //           });
-        //         });
-
-        //         // sort and unique
-        //         ccMethods = ccMethods.sort();
-        //         ccMethods = Array.from(new Set(ccMethods));
-        //         r.creditCardProcessingMethod = ccMethods.join(',');
-
-        //         this.restaurantInvoices.push(record);
-        //       });
-
-        //       // let's sort the list!
-        //       this.restaurantInvoices.sort((a, b) => a.restaurant.name.toLowerCase().localeCompare(b.restaurant.name.toLowerCase()));
-        //     }, err => console.log(err));
       });
   }
   ngOnInit() {
@@ -196,31 +187,68 @@ console.log('B')
 
 
   createClicked(restaurantId) {
-    // // let's make a dummy restaurant first, then request actual body!
-    // let restaurant = new Restaurant();
-    // this.myInvoiceEditor.setRestaurant(restaurant);
-    // // pre-set fromDate and toDate
-    // const date = this.startDate;
-    // this.myInvoiceEditor.fromDate = this.formatDate(new Date(date.getFullYear(), date.getMonth(), 1));
-    // this.myInvoiceEditor.toDate = this.formatDate(new Date(date.getFullYear(), date.getMonth() + 1, 0));
-    // // request the body asyn
-    // let self = this;
-    // // a function to request orders, called after we have restaurant details loaded
-    // const requestOrders = function (r) {
-    //   self._controller.getOrdersByRestaurantId(r.id).subscribe(
-    //     orders => {
-    //       r.orders = orders.map(o => new Order(o));
-    //     },
-    //     e => console.log(e)
-    //   );
-    // };
+    // let's make a dummy restaurant first, then request actual body!
+    let restaurant = new Restaurant();
+    this.myInvoiceEditor.setRestaurant(restaurant);
+    // pre-set fromDate and toDate
+    const date = this.startDate;
+    this.myInvoiceEditor.fromDate = this.formatDate(new Date(date.getFullYear(), date.getMonth(), 1));
+    this.myInvoiceEditor.toDate = this.formatDate(new Date(date.getFullYear(), date.getMonth() + 1, 0));
+    // request the body asyn
+    let self = this;
 
-    // this._controller.getRestaurantById(restaurantId).subscribe(
-    //   r => { Object.assign(restaurant, r); requestOrders(restaurant); },
-    //   e => console.log(e)
-    // );
+    zip(
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          _id: { $oid: restaurantId }
+        },
+        projection: {
+          name: 1,
+          offsetToEST: 1,
+          rateSchedules: 1
+        },
+        limit: 1
+      }),
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {
+          restaurant: { $oid: restaurantId }
+        },
+        projection: {
+          createdAt: 1
+        },
+        limit: 20000
+      }),
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "invoice",
+        query: {
+          "restaurant.id": restaurantId
+        },
+        projection: {
+          createdAt: 1,
+          fromDate: 1,
+          toDate: 1,
+          balance: 1,
+          isPaymentCompleted: 1,
+          isPaymentSent: 1,
+          "restaurant.offsetToEST": 1
+        },
+        limit: 2000
+      })
+    ).subscribe(
+      results => {
+        let r = results[0][0];
+        r.orders = results[1].map(o => new Order(o));
+        r.invoices = results[2].map(i => new Invoice(i)).filter(i => i.hasOwnProperty('balance') && !i.isCanceled);
+        r.invoices.sort((i1, i2) => i1.toDate.valueOf() - i2.toDate.valueOf());
+        Object.assign(restaurant, r);
+        console.log(results)
+      },
+      error => this._global.publishAlert(AlertType.Danger, "Error Pulling Data from API")
+    );
 
-    // this.invoiceModal.show();
+    this.invoiceModal.show();
   }
 
   invoiceClicked(restaurantId) {
@@ -262,19 +290,44 @@ console.log('B')
   }
 
   createNewInvoice(i) {
-    // this.invoiceModal.hide();
-    // this._controller.createInvoice(i.restaurant.id, new Date(i.fromDate), new Date(i.toDate))
-    //   .subscribe(
-    //   invoice => {
-    //     this.restaurantInvoices.map(ri => {
-    //       if (ri.restaurant.id === i.restaurant.id) {
-    //         ri.invoices = ri.invoices || [];
-    //         ri.invoices.push(new Invoice(invoice));
-    //       }
-    //     });
-    //   },
-    //   err => { this._controller.emitAlert('Failed to create invoice :('); }
-    //   );
+    console.log(i);
+    this._api.post(environment.legacyApiUrl + 'invoice', {
+      restaurantId: i.restaurant._id,
+      fromDate: new Date(i.fromDate),
+      toDate: new Date(i.toDate),
+      previousInvoiceId: i.previousInvoiceId,
+      previousBalance: i.previousBalance,
+      payments: i.payments,
+      username: this._global.user.username
+    }).pipe(
+      mergeMap(invoice => {
+        invoice._id = invoice._id || invoice.id; // legacy returns id instead of _id
+        // we need to update calculated fields!
+        const originInvoice = JSON.parse(JSON.stringify(invoice));
+        const newInvoice = new Invoice(invoice);
+        newInvoice.computeDerivedValues();
+        this.restaurantInvoices.map(ri => {
+          if (ri.restaurant._id === invoice.restaurant.id) {
+            ri.invoices = ri.invoices || [];
+            ri.invoices.push(new Invoice(newInvoice));
+          }
+        });
+
+        return this._api
+          .patch(environment.qmenuApiUrl + "generic?resource=invoice", [{
+            old: originInvoice,
+            new: newInvoice
+          }]);
+
+      }))
+      .subscribe(
+        invoiceIds => {
+
+          this._global.publishAlert(AlertType.Success, "Created invoice for " + i.restaurant.name);
+          this.invoiceModal.hide();
+        },
+        err => this._global.publishAlert(AlertType.Danger, "Error Creating Invoice")
+      );
   }
 
   private desc = false;
@@ -289,9 +342,14 @@ console.log('B')
     });
   }
 
+  sortByOrderCount() {
+    this.desc = !this.desc;
+    this.restaurantInvoices.sort((r1, r2) => (this.desc ? 1 : -1) * (r1.orders.length - r2.orders.length));
+  }
+
   shouldShowQmenuRow(record) {
     return (!record.restaurant.disabled || this.showCanceledRestaurant)
-      && (!this.showQmenuInvoiceOnly || (record.oo.creditCardProcessingMethod.indexOf('QMENU') >= 0));
+      && (!this.showQmenuInvoiceOnly || (record.restaurant.creditCardProcessingMethod.indexOf('QMENU') >= 0));
   }
 
   shouldShowInvoiceRow(record) {
@@ -313,7 +371,7 @@ console.log('B')
         sum += record.invoices.reduce((subtotal, invoice) => {
           if (this.shouldShowSubrow(invoice)) {
             if (!invoice.isCanceled) {
-              subtotal += invoice.getCommission();
+              subtotal += invoice.commission;
             }
           }
           return subtotal;
@@ -329,7 +387,7 @@ console.log('B')
         sum += record.invoices.reduce((subtotal, invoice) => {
           if (this.shouldShowSubrow(invoice)) {
             if (!invoice.isCanceled) {
-              subtotal += invoice.getTotal();
+              subtotal += invoice.total;
             }
           }
           return subtotal;

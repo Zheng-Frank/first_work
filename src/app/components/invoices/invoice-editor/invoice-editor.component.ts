@@ -14,6 +14,8 @@ export class InvoiceEditorComponent implements OnInit {
   fromDate = this.formatDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   toDate = this.formatDate(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0));
 
+  previousInvoice = undefined;
+
   @Input() restaurant: Restaurant = new Restaurant();
 
   constructor() { }
@@ -38,7 +40,10 @@ export class InvoiceEditorComponent implements OnInit {
     const i = {
       restaurant: this.restaurant,
       fromDate: this.fromDate,
-      toDate: this.toDate
+      toDate: this.toDate,
+      previousInvoiceId: this.previousInvoice ? this.previousInvoice._id : undefined,
+      previousBalance: this.previousInvoice ? this.previousInvoice.balance : undefined,
+      payments: this.previousInvoice && this.previousInvoice.isPaymentCompleted ? [{ amount: this.previousInvoice.balance }] : undefined
     };
     this.onNewInvoice.emit(i);
   }
@@ -56,6 +61,7 @@ export class InvoiceEditorComponent implements OnInit {
 
   setRestaurant(r) {
     this.restaurant = r;
+    this.previousInvoice = undefined;
   }
 
   getRateSchedules() {
@@ -87,6 +93,13 @@ export class InvoiceEditorComponent implements OnInit {
 
   cancel() {
     this.onCancel.emit();
+  }
+
+  setPreviousInvoice(invoice) {
+    this.previousInvoice = invoice;
+    let suggestedStartDate = new Date(invoice.toDate);
+    suggestedStartDate.setDate(suggestedStartDate.getDate() + 1);
+    this.fromDate = this.formatDate(suggestedStartDate);
   }
 
 }

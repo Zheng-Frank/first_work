@@ -18,17 +18,17 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let invoice of invoices" routerLink="/invoices/{{invoice.id}}" class="{{getCssClass(invoice)}}" role="button">
+    <tr *ngFor="let invoice of invoices" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}}" role="button">
       <td>{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date: 'MMM dd'}}</td>
       <td>{{invoice.status}}</td>
-      <td class="text-right">{{invoice.getSubtotal() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.subtotal | currency:'USD':'symbol'}}</td>
       <!--<td class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</td>
       <td class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</td>
       <td class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</td>-->
-      <td class="text-right">{{invoice.getTotal() | currency:'USD':'symbol'}}</td>
-      <td class="text-right">{{invoice.getRestaurantCollectedCreditCard() + invoice.getCashCollected() | currency:'USD':'symbol'}}</td>
-      <td class="text-right">{{invoice.getQMenuCcCollected() | currency:'USD':'symbol'}}</td>
-      <td class="text-right">{{invoice.getCommission() | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.total | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.restaurantCcCollected + invoice.cashCollected | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.qMenuCcCollected | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{invoice.commission | currency:'USD':'symbol'}}</td>
       <!--<td class="text-right">{{order.total | currency:'USD':'symbol':'1.2-2'}}</td>-->
     </tr>
   </tbody>

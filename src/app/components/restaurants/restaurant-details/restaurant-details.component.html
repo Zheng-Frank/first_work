@@ -1,0 +1,29 @@
+<div *ngIf="restaurant">
+  <q-banner [backgroundImageUrl]="(restaurant.images && restaurant.images[restaurant.images.length - 1] || '')">
+    <h1 class="text-center">{{restaurant.name}}</h1>
+  </q-banner>
+
+  <h3 class="text-center">Invoices</h3>
+  <app-invoices-table [invoices]="invoices"></app-invoices-table>
+  <!-- <div class="d-flex justify-content-around flex-wrap mt-4">
+    <div *ngFor="let r of getVisibleRoutes()" class="card text-center app-block hvr-underline-from-center">
+      <div class="card-body" role="button" routerLink="{{r.route}}">
+        <h3 class="card-title">{{r.title}}</h3>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- <app-restaurant-profile [restaurant]="restaurant"></app-restaurant-profile>
+  <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
+
+  <app-restaurant-delivery-settings [restaurant]="restaurant"></app-restaurant-delivery-settings>
+
+  <app-restaurant-phone [restaurant]="restaurant"></app-restaurant-phone>
+  <div *ngIf="_db.isAccountantOrAdmin()">
+    <app-restaurant-rate-schedules [restaurant]="restaurant"></app-restaurant-rate-schedules>
+  </div>
+  <app-restaurant-closed-days [restaurant]="restaurant"></app-restaurant-closed-days>
+  <app-restaurant-cloud-printing [restaurant]="restaurant"></app-restaurant-cloud-printing> -->
+
+
+</div>

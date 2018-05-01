@@ -18,6 +18,7 @@ import { RoleGuard } from './role.guard';
 import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-monthly-details/invoice-monthly-details.component';
 import { InvoiceDetailsComponent } from './components/invoices/invoice-details/invoice-details.component';
 import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
+import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
@@ -31,6 +32,7 @@ const routes: Routes = [
   { path: 'orders', component: OrderDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'profile', component: ProfileComponent },
   { path: 'restaurants', component: RestaurantDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
+  { path: 'restaurants/:id', component: RestaurantDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT'] } },
   { path: 'gmbs', component: GmbDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmbs/watch', component: GmbWatchComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },

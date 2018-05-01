@@ -45,6 +45,8 @@ import { InvoiceOptionEditorComponent } from './components/invoices/invoice-opti
 import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
+import { CacheService } from './services/cache.service';
+import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 
 @NgModule({
   declarations: [
@@ -79,7 +81,8 @@ import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.compone
     InvoiceOptionEditorComponent,
     InvoiceViewerComponent,
     InvoicesTableComponent,
-    GmbWatchComponent
+    GmbWatchComponent,
+    RestaurantDetailsComponent
   ],
   imports: [
     BrowserModule,
@@ -92,7 +95,8 @@ import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.compone
   providers: [
     GlobalService,
     RoleGuard,
-    ApiService
+    ApiService,
+    CacheService
   ],
   bootstrap: [RootComponent]
 })

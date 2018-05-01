@@ -59,7 +59,7 @@
           <img src="{{r.logo}}" alt="{{r.name}}" class="thumb-img" *ngIf="r.logo">
           <i class="fas fa-coffee" *ngIf="!r.logo"></i>
         </span>
-        <a routerLink="/restaurant/{{r.id }}">{{r.name}}</a>
+        <a routerLink="/restaurants/{{r._id }}">{{r.name}}</a>
       </span>
       <span class="text-muted">{{r.alias}}</span>
     </li>

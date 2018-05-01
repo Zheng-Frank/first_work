@@ -1,0 +1,10 @@
+.app-block {
+    display: inline-block;
+    width: 20rem;
+    margin-bottom: 2rem;
+}
+/deep/ .banner-container {
+    margin-left: -15px;
+    margin-right: -15px;
+    padding: 20px;
+}

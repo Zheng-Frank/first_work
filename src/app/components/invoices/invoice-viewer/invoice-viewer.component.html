@@ -39,7 +39,7 @@
       <table class="table">
         <ng-container *ngIf="invoice.previousInvoiceId">
           <tr>
-            <th>Previous Balance {{invoice.previousInvoiceId}}</th>
+            <th>Previous Balance</th>
             <td>{{(invoice.previousBalance || 0) | currency:'USD':'symbol'}}</td>
           </tr>
           <tr>
@@ -140,7 +140,6 @@
             <td>{{invoice.getThirdPartyDeliveryCharge()+invoice.getThirdPartyDeliveryTip() | currency:'USD':'symbol'}}</td>
           </tr>
         </ng-container>
-
 
         <tr *ngIf="invoice.getBalance() >= 0">
           <th>

@@ -441,6 +441,7 @@ export class DbScriptsComponent implements OnInit {
           },
           projection: {
             "restaurant.name": 1,
+            "restaurant.offsetToEST": 1,
             createdAt: 1,
             orders: 1
           },
@@ -506,6 +507,7 @@ export class DbScriptsComponent implements OnInit {
       },
       projection: {
         "restaurant.name": 1,
+        "restaurant.offsetToEST": 1,
         orders: 1,
         adjustments: 1,
         payments: 1,
