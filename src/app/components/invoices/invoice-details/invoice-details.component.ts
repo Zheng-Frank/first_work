@@ -49,7 +49,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    console.log('init');
     // UGLY solution to hide header and footer
     $('nav').hide();
     $('#footer').hide();
@@ -57,7 +56,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     // UGLY solution to restore hider and footer
-    console.log('destroy');
     $('nav').show();
     $('#footer').show();
   }
@@ -115,9 +113,15 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     };
 
     const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
-    const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
+    let updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
     updatedInvoice.adjustments = updatedInvoice.adjustments || [];
     updatedInvoice.adjustments.push(adjustment);
+
+    // we need recalculate the values!
+    let i = new Invoice(updatedInvoice);
+    i.computeDerivedValues();
+    // back to use POJS
+    updatedInvoice = JSON.parse(JSON.stringify(i));
 
     updatedInvoice.logs = updatedInvoice.logs || [];
     updatedInvoice.logs.push({
@@ -130,8 +134,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
       result => {
         // let's update original, assuming everything successful
-        this.invoice.adjustments = updatedInvoice.adjustments;
-        this.invoice.logs = updatedInvoice.logs;
+        Object.assign(this.invoice, i);
         this._global.publishAlert(
           AlertType.Success,
           adjustment.name + " was added"

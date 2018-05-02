@@ -3,13 +3,13 @@
   Select A Previous Invoice If Applicable:
   <table class="table">
     <tr>
-      <td></td>
-      <td>Date</td>
-      <td>Balance</td>
-      <td>Cleared</td>
+      <th>Select</th>
+      <th>Date</th>
+      <th>Balance</th>
+      <th>Cleared</th>
     </tr>
     <tr *ngFor="let invoice of (restaurant.invoices ||[])">
-      <td>
+      <td class="text-center">
           <input class="form-check-input" type="checkbox" [checked]="previousInvoice === invoice" (change)="setPreviousInvoice(invoice)">
       </td>
       <td>{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date: 'MMM dd'}}</td>

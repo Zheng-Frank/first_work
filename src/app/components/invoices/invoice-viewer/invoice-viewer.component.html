@@ -39,69 +39,65 @@
       <table class="table">
         <ng-container *ngIf="invoice.previousInvoiceId">
           <tr>
-            <th>Previous Balance</th>
-            <td>{{(invoice.previousBalance || 0) | currency:'USD':'symbol'}}</td>
+            <th>Previous {{invoice.previousBalance >= 0 ? 'Balance' : 'Credit'}}</th>
+            <td class="text-right">{{getAbs(invoice.previousBalance || 0) | currency:'USD':'symbol'}}</td>
           </tr>
           <tr>
-            <th>Payments</th>
-            <td>{{invoice.getTotalPayments() | currency:'USD':'symbol'}}</td>
+            <th>{{invoice.getTotalPayments() >= 0 ? 'You Paid' : 'qMenu Paid You'}}</th>
+            <td class="text-right">{{getAbs(invoice.getTotalPayments()) | currency:'USD':'symbol'}}</td>
           </tr>
         </ng-container>
 
         <tr>
           <th>Orders Subtotal</th>
-          <td>{{invoice.getSubtotal() | currency:'USD':'symbol'}}</td>
-        </tr>
-        <tr>
-          <th>Orders Subtotal</th>
-          <td>{{invoice.getSubtotal() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getSubtotal() | currency:'USD':'symbol'}}</td>
         </tr>
         <tr>
           <th>Tax</th>
-          <td>{{invoice.getTax() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</td>
         </tr>
         <tr>
           <th>Delivery</th>
-          <td>{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</td>
 
         </tr>
         <tr>
           <th>Tip</th>
-          <td>{{invoice.getTip() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</td>
         </tr>
         <tr *ngIf="invoice.getSurcharge() > 0">
           <th>{{invoice.getSurchargeName()}}</th>
-          <td>{{invoice.getSurcharge() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getSurcharge() | currency:'USD':'symbol'}}</td>
         </tr>
         <tr>
-          <th>Total</th>
-          <td>
+          <th>Order Total</th>
+          <td class="text-right">
             <strong>{{invoice.getTotal() | currency:'USD':'symbol'}}</strong>
           </td>
         </tr>
         <tr>
-          <th class="fas fa-bell">
-            <small>Total = Restaurant Collected + qMenu CC Collected</small>
-          </th>
+          <td colspan="2" style="font-size: 60%">
+            Order Total = Restaurant Collected + qMenu CC Collected
+          </td>
         </tr>
       </table>
     </div>
     <div class="col-6">
 
-      <table class="table my-table">
+      <table class="table">
 
         <tr>
           <th>Restaurant Collected</th>
-          <td>{{invoice.getCashCollected() + invoice.getRestaurantCcCollected() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getCashCollected() + invoice.getRestaurantCcCollected() | currency:'USD':'symbol'}}</td>
         </tr>
 
         <tr>
           <th>qMenu CC Collected</th>
-          <td>{{invoice.getQMenuCcCollected() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getQMenuCcCollected() | currency:'USD':'symbol'}}</td>
         </tr>
         <tr>
           <th>CC Processing Fee</th>
-          <td>{{invoice.getStripeFee() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getStripeFee() | currency:'USD':'symbol'}}</td>
         </tr>
         <tr>
           <th>
@@ -110,34 +106,34 @@
               <br>
             </span>
           </th>
-          <td>{{invoice.getCommission() | currency:'USD':'symbol' }}</td>
+          <td class="text-right">{{invoice.getCommission() | currency:'USD':'symbol' }}</td>
         </tr>
         <tr *ngIf="invoice.getAdjustment() !== 0">
           <th>
             Adjustment Credit
           </th>
-          <td>{{invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
+          <td class="text-right">{{invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
         </tr>
         <ng-container *ngIf="invoice.getThirdPartyDeliveryCharge() > 0 || invoice.getThirdPartyDeliveryTip() > 0">
           <tr>
             <th>
               Pay TME Delivery Fee
             </th>
-            <td>{{invoice.getThirdPartyDeliveryCharge() | currency:'USD':'symbol' }}</td>
+            <td class="text-right">{{invoice.getThirdPartyDeliveryCharge() | currency:'USD':'symbol' }}</td>
           </tr>
 
           <tr>
             <th>
               Pay TME Delivery Tip (CC)
             </th>
-            <td>{{invoice.getThirdPartyDeliveryTip() | currency:'USD':'symbol'}}</td>
+            <td class="text-right">{{invoice.getThirdPartyDeliveryTip() | currency:'USD':'symbol'}}</td>
           </tr>
 
           <tr>
             <th>
               Pay TME Total
             </th>
-            <td>{{invoice.getThirdPartyDeliveryCharge()+invoice.getThirdPartyDeliveryTip() | currency:'USD':'symbol'}}</td>
+            <th class="text-right">{{invoice.getThirdPartyDeliveryCharge()+invoice.getThirdPartyDeliveryTip() | currency:'USD':'symbol'}}</th>
           </tr>
         </ng-container>
 
@@ -145,13 +141,13 @@
           <th>
             <h4>Pay qMenu</h4>
           </th>
-          <th>{{invoice.getBalance() | currency:'USD':'symbol' }}</th>
+          <th class="text-right">{{invoice.getBalance() | currency:'USD':'symbol' }}</th>
         </tr>
         <tr *ngIf="invoice.getBalance() < 0 ">
           <th>
             <h4>Pay Restaurant</h4>
           </th>
-          <th>{{-invoice.getBalance() | currency:'USD':'symbol' }}</th>
+          <th class="text-right">{{-invoice.getBalance() | currency:'USD':'symbol' }}</th>
         </tr>
       </table>
     </div>
@@ -174,9 +170,8 @@
       <tr>
         <td>
           <div>
-            qMenu collected
-            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong> in taxes for the orders outlined below and sent directly
-            to you. As part of your normal periodic tax return filing, it is your responsibility to pay
+            The taxes for the orders listed below is 
+            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong>. qMenu does not hold any amount of the taxes. As part of your normal periodic tax return filing, it is your responsibility to pay
             <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong> to the proper taxing authority for such orders.
           </div>
 

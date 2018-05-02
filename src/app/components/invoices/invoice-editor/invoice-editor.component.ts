@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
 
@@ -7,7 +7,7 @@ import { Invoice } from '../../../classes/invoice';
   templateUrl: './invoice-editor.component.html',
   styleUrls: ['./invoice-editor.component.css']
 })
-export class InvoiceEditorComponent implements OnInit {
+export class InvoiceEditorComponent implements OnInit, OnChanges {
   @Output() onNewInvoice = new EventEmitter();
   @Output() onCancel = new EventEmitter();
 
@@ -21,6 +21,10 @@ export class InvoiceEditorComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    this.previousInvoice = undefined;
   }
 
   createNewInvoice() {

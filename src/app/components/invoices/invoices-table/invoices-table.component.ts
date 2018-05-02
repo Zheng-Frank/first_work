@@ -14,7 +14,7 @@ export class InvoicesTableComponent implements OnInit {
   }
 
   getCssClass(invoice: Invoice) {
-    return invoice.isCanceled ? 'text-danger' : (invoice.isPaymentCompleted ? 'text-success' : (invoice.isPaymentSent ? 'text-warning' : (invoice.isSent ? 'text-primary' : 'text-seconday')));
+    return invoice.isCanceled ? 'text-danger' : (invoice.isPaymentCompleted ? 'text-success' : (invoice.isPaymentSent ? 'text-warning' : (invoice.isSent ? 'text-info' : 'text-seconday')));
   }
 
 }

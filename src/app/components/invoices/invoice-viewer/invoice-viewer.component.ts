@@ -19,6 +19,10 @@ export class InvoiceViewerComponent implements OnInit {
     return t;
   }
 
+  getAbs(value) {
+    return Math.abs(value);
+  }
+
   getValidOrders() {
     return this.invoice.orders.filter(o => !o.canceled);
   }

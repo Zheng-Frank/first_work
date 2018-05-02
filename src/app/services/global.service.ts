@@ -48,7 +48,7 @@ export class GlobalService {
           name: "Restaurants",
           href: "#/restaurants",
           fa: "fas fa-utensils",
-          accessibleRoles: ["ADMIN", "MENU_EDITOR"]
+          accessibleRoles: ["ADMIN", "MENU_EDITOR", "ACCOUNTANT"]
         },
         {
           name: "Invoices",
@@ -72,7 +72,7 @@ export class GlobalService {
           name: "Leads",
           href: "#/leads",
           fa: "fas fa-lightbulb",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER"]
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB"]
         },
         {
           name: "My Leads",

@@ -36,7 +36,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
   showInPersonInvoiceOnly = false;
 
   invoiceStates = [
-    { label: 'Invoice Sent?', value: 'any', css: 'text-primary', status: 'isSent' },
+    { label: 'Invoice Sent?', value: 'any', css: 'text-info', status: 'isSent' },
     { label: 'Payment Sent?', value: 'any', css: 'text-warning', status: 'isPaymentSent' },
     { label: 'Payment Completed?', value: 'any', css: 'text-success', status: 'isPaymentCompleted' },
     { label: 'Invoice Canceled?', value: 'any', css: 'text-danger', status: 'isCanceled' },
@@ -89,16 +89,17 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
                 }]
             },
             projection: {
-              fromDate: true,
-              toDate: true,
-              total: true,
-              commission: true,
-              "restaurant.id": true,
-              "restaurant.offsetToEST": true,
-              isCanceled: true,
-              isPaymentCompleted: true,
-              isPaymentSent: true,
-              isSent: true
+              fromDate: 1,
+              toDate: 1,
+              total: 1,
+              balance: 1,
+              commission: 1,
+              "restaurant.id": 1,
+              "restaurant.offsetToEST": 1,
+              isCanceled: 1,
+              isPaymentCompleted: 1,
+              isPaymentSent: 1,
+              isSent: 1
             },
             limit: 80000
           }),
@@ -107,8 +108,8 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
             projection: {
               name: 1,
               address: 1,
-              serviceSettings: true,
-              disabled: true,
+              serviceSettings: 1,
+              disabled: 1,
               offsetToEST: 1
             },
             limit: 10000
@@ -182,7 +183,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
   }
 
   getCssClass(invoice: Invoice) {
-    return invoice.isCanceled ? 'text-danger' : (invoice.isPaymentCompleted ? 'text-success' : (invoice.isPaymentSent ? 'text-warning' : (invoice.isSent ? 'text-primary' : 'text-seconday')));
+    return invoice.isCanceled ? 'text-danger' : (invoice.isPaymentCompleted ? 'text-success' : (invoice.isPaymentSent ? 'text-warning' : (invoice.isSent ? 'text-info' : 'text-seconday')));
   }
 
 
@@ -232,6 +233,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
           balance: 1,
           isPaymentCompleted: 1,
           isPaymentSent: 1,
+          isCanceled: 1,
           "restaurant.offsetToEST": 1
         },
         limit: 2000
@@ -243,7 +245,6 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
         r.invoices = results[2].map(i => new Invoice(i)).filter(i => i.hasOwnProperty('balance') && !i.isCanceled);
         r.invoices.sort((i1, i2) => i1.toDate.valueOf() - i2.toDate.valueOf());
         Object.assign(restaurant, r);
-        console.log(results)
       },
       error => this._global.publishAlert(AlertType.Danger, "Error Pulling Data from API")
     );
@@ -290,7 +291,6 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
   }
 
   createNewInvoice(i) {
-    console.log(i);
     this._api.post(environment.legacyApiUrl + 'invoice', {
       restaurantId: i.restaurant._id,
       fromDate: new Date(i.fromDate),

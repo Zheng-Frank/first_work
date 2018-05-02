@@ -48,6 +48,7 @@ export class RestaurantDetailsComponent implements OnInit {
                 total: 1,
                 commission: 1,
                 subtotal: 1,
+                balance: 1,
                 status: 1,
                 restaurantCcCollected: 1,
                 qMenuCcCollected: 1,
