@@ -1,27 +1,34 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant } from '@qmenu/ui';
+import { Restaurant, Order } from '@qmenu/ui';
+import { Invoice } from '../../../classes/invoice';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { zip } from "rxjs";
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { zip } from "rxjs";
-import { Invoice } from '../../../classes/invoice';
 
 @Component({
-  selector: 'app-restaurant-details',
-  templateUrl: './restaurant-details.component.html',
-  styleUrls: ['./restaurant-details.component.css']
+  selector: 'app-restaurant-invoices',
+  templateUrl: './restaurant-invoices.component.html',
+  styleUrls: ['./restaurant-invoices.component.css']
 })
-export class RestaurantDetailsComponent implements OnInit {
+export class RestaurantInvoicesComponent implements OnInit {
+  @ViewChild('rateScheduleEditorModal') rateScheduleEditorModal: ModalComponent;
+
+  // temp. using a shared service to get the value
   restaurant: Restaurant;
-  id;
-  invoices = [];
+
+  showInvoiceCreation = false;
+  invoiceFromDate = null;
+  invoiceToDate = null;
+  invoiceCreationError = null;
+
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
 
     this._route.params.subscribe(
       params => {
-        this.id = params['id'];
         zip(
           this._api
             .get(environment.qmenuApiUrl + "generic", {
@@ -32,7 +39,9 @@ export class RestaurantDetailsComponent implements OnInit {
               projection: {
                 logo: true,
                 name: true,
-                images: true
+                images: true,
+                offsetToEST: 1,
+                rateSchedules: 1
               },
               limit: 1
             }),
@@ -63,14 +72,26 @@ export class RestaurantDetailsComponent implements OnInit {
               },
               limit: 100
             }),
+          this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "order",
+            query: {
+              restaurant: { $oid: params['id'] }
+            },
+            projection: {
+              createdAt: 1
+            },
+            limit: 10000
+          })
         )
           .subscribe(
             results => {
               this.restaurant = new Restaurant(results[0][0]);
-              this.invoices = results[1].map(i => new Invoice(i));
+              const invoices = results[1].map(i => new Invoice(i));
               // sort by end date!
-              this.invoices.sort((i1, i2)=> i1.toDate.valueOf() - i2.toDate.valueOf());
-              console.log(results);
+              invoices.sort((i1, i2) => i2.toDate.valueOf() - i1.toDate.valueOf());
+              this.restaurant.invoices = invoices;
+              const orders = results[2].map(i => new Order(i));
+              this.restaurant.orders = orders;
             },
             e => this._global.publishAlert(
               AlertType.Danger,
@@ -81,44 +102,6 @@ export class RestaurantDetailsComponent implements OnInit {
   }
 
   ngOnInit() {
-  }
-
-
-  getAddress() {
-    return (this.restaurant.address || {});
-  }
-
-  goto(route: string) {
-    route = route.replace(' ', '-');
-    this._router.navigate(['restaurant/' + this.id + '/' + route.toLowerCase()]);
-  }
-
-  getVisibleRoutes() {
-    const routes = [
-      {
-        title: 'Menus',
-        route: 'menus',
-        roles: ['ADMIN', 'MENU_EDITOR']
-      },
-      {
-        title: 'Menu Options',
-        route: 'menu-options',
-        roles: ['ADMIN', 'MENU_EDITOR']       
-      },
-      {
-        title: 'Orders',
-        route: 'orders',
-        roles: ['ADMIN', 'ACCOUNTANT']
-      },
-      {
-        title: 'Invoices',
-        route: 'invoices',
-        roles: ['ADMIN', 'ACCOUNTANT']       
-      }
-    ];
-    const roles = this._global.user.roles || [];
-
-    return routes.filter(r => r.roles.some(role => roles.indexOf(role) >= 0));
   }
 
 }

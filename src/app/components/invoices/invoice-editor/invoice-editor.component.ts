@@ -16,6 +16,9 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
 
   previousInvoice = undefined;
 
+  allDisplayed = false;
+  startRows = 4;
+
   @Input() restaurant: Restaurant = new Restaurant();
 
   constructor() { }
@@ -104,6 +107,12 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
     let suggestedStartDate = new Date(invoice.toDate);
     suggestedStartDate.setDate(suggestedStartDate.getDate() + 1);
     this.fromDate = this.formatDate(suggestedStartDate);
+  }
+
+  getNonCanceledAndSortedDESCInvoices() {
+    let recentInvoices =  (this.restaurant.invoices || []).filter(i => !i.isCanceled);
+    recentInvoices.sort((i1, i2)=> i1.toDate.valueOf() - i2.toDate.valueOf());
+    return recentInvoices;
   }
 
 }

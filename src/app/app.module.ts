@@ -47,6 +47,7 @@ import { InvoicesTableComponent } from './components/invoices/invoices-table/inv
 import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
 import { CacheService } from './services/cache.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
+import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 
 @NgModule({
   declarations: [
@@ -82,7 +83,8 @@ import { RestaurantDetailsComponent } from './components/restaurants/restaurant-
     InvoiceViewerComponent,
     InvoicesTableComponent,
     GmbWatchComponent,
-    RestaurantDetailsComponent
+    RestaurantDetailsComponent,
+    RestaurantInvoicesComponent
   ],
   imports: [
     BrowserModule,

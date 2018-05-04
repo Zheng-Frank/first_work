@@ -1,17 +1,20 @@
 <div *ngIf="restaurant">
-  <q-banner [backgroundImageUrl]="(restaurant.images && restaurant.images[restaurant.images.length - 1] || '')">
-    <h1 class="text-center">{{restaurant.name}}</h1>
+  <q-banner [maskingColor]="'rgba(0, 0, 0, 0.3)'" [backgroundImageUrl]="(restaurant.images && restaurant.images[restaurant.images.length - 1] || '')">
+    <div class="text-center">
+      <img src="{{restaurant.logo}}" [attr.alt]="restaurant.name" class="logo">
+    </div>
+    <h1 class="text-center text-light">{{restaurant.name}}</h1>
   </q-banner>
 
   <h3 class="text-center">Invoices</h3>
   <app-invoices-table [invoices]="invoices"></app-invoices-table>
-  <!-- <div class="d-flex justify-content-around flex-wrap mt-4">
-    <div *ngFor="let r of getVisibleRoutes()" class="card text-center app-block hvr-underline-from-center">
+  <div class="d-flex justify-content-around flex-wrap mt-4">
+    <div *ngFor="let r of getVisibleRoutes()" class="card text-center btn-card hvr-underline-from-center">
       <div class="card-body" role="button" routerLink="{{r.route}}">
         <h3 class="card-title">{{r.title}}</h3>
       </div>
     </div>
-  </div> -->
+  </div>
 
   <!-- <app-restaurant-profile [restaurant]="restaurant"></app-restaurant-profile>
   <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>

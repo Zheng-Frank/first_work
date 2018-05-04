@@ -1,0 +1,21 @@
+<div *ngIf="!restaurant">
+  No restaurant data.
+</div>
+
+<div *ngIf="restaurant">
+  <h1 class="text-center">Invoices for {{restaurant.name}}</h1>
+
+  <div class="text-right mb-2">
+    <div class="pb-2">
+      <button class="btn btn-primary" (click)="showInvoiceCreation = !showInvoiceCreation">
+        <i class="fas fa-plus"></i> Create New Invoice</button>
+    </div>
+  </div>
+
+  <div *qIf="showInvoiceCreation">
+    <div class="card card-body  bg-light">
+      <app-invoice-editor [restaurant]="restaurant" (onNewInvoice)="createNewInvoice($event)" (onCancel)="showInvoiceCreation = false"></app-invoice-editor>
+    </div>
+  </div>
+  <app-invoices-table [invoices]="restaurant.invoices"></app-invoices-table>
+</div>
