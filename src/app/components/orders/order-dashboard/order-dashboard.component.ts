@@ -189,16 +189,20 @@ export class OrderDashboardComponent implements OnInit {
 
   downloadStats() {
     // alert('not enabled');
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "order",
-      query: {
-      },
-      projection: {
-        createdAt: 1
-      },
-      limit: 50000,
-      sort: { createdAt: -1 }
-    }).subscribe(orders => {
+    // this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: "order",
+    //   query: {
+    //   },
+    //   projection: {
+    //     i: 1
+    //   },
+    //   limit: 100000,
+    //   sort: { createdAt: -1 }
+    // })
+    this._api.get(environment.legacyApiUrl + "order/stat", {
+      limit: 500000
+    })
+    .subscribe(orders => {
       let dMap = {};
       let wMap = {};
       let d = new Date(orders[0].createdAt);
