@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Invoice } from '../../../classes/invoice';
 import { ApiService } from "../../../services/api.service";
-import { Restaurant, Order, Payment } from '@qmenu/ui';
+import { Restaurant, Order, Payment, Address } from '@qmenu/ui';
 import { InvoiceEditorComponent } from '../invoice-editor/invoice-editor.component';
 import { InvoiceOptionEditorComponent } from '../invoice-option-editor/invoice-option-editor.component';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
@@ -34,6 +34,8 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
   showKeyInInvoiceOnly = false;
   showStripeInvoiceOnly = false;
   showInPersonInvoiceOnly = false;
+
+  nameFilter = undefined;
 
   invoiceStates = [
     { label: 'Invoice Sent?', value: 'any', css: 'text-info', status: 'isSent' },
@@ -110,7 +112,12 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
               address: 1,
               serviceSettings: 1,
               disabled: 1,
-              offsetToEST: 1
+              offsetToEST: 1,
+              email: 1,
+              "phones.faxable": 1,
+              "phones.phoneNumber": 1,
+              "phones.textable": 1,
+              googleAddress: 1
             },
             limit: 10000
           }),
@@ -348,7 +355,8 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
   }
 
   shouldShowQmenuRow(record) {
-    return (!record.restaurant.disabled || this.showCanceledRestaurant)
+    return (!this.nameFilter || (record.restaurant.name.toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0))
+      && (!record.restaurant.disabled || this.showCanceledRestaurant)
       && (!this.showQmenuInvoiceOnly || (record.restaurant.creditCardProcessingMethod.indexOf('QMENU') >= 0));
   }
 
@@ -399,6 +407,25 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
 
   createInvoiceOption(event) {
     // this method is missing and the build won't work without this
+  }
+
+  getLine1(address: Address) {
+    return (address.street_number ? address.street_number : '') + ' '
+      + (address.route ? ' ' + address.route : '') +
+      (address.apt ? ', ' + address.apt : '');
+  }
+  getLine2(address: Address) {
+    return (address.locality ? address.locality + ', ' : (address.sublocality ? address.sublocality + ', ' : ''))
+      + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
+      + ' ' + address.postal_code;
+  }
+
+  getText(restaurant) {
+    return ((restaurant.phones || []).filter(p => p.textable)[0] || {}).phoneNumber;
+  }
+
+  getFax(restaurant) {
+    return ((restaurant.phones || []).filter(p => p.faxable)[0] || {}).phoneNumber;
   }
 
 }

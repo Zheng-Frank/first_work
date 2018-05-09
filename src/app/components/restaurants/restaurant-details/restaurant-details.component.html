@@ -6,8 +6,8 @@
     <h1 class="text-center text-light">{{restaurant.name}}</h1>
   </q-banner>
 
-  <h3 class="text-center">Invoices</h3>
-  <app-invoices-table [invoices]="invoices"></app-invoices-table>
+  <!-- <h3 class="text-center">Invoices</h3>
+  <app-invoices-table [invoices]="invoices"></app-invoices-table> -->
   <div class="d-flex justify-content-around flex-wrap mt-4">
     <div *ngFor="let r of getVisibleRoutes()" class="card text-center btn-card hvr-underline-from-center">
       <div class="card-body" role="button" routerLink="{{r.route}}">

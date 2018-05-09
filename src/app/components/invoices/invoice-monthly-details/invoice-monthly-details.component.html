@@ -15,6 +15,14 @@
   <label class="checkbox-inline">
     <input type="checkbox" [(ngModel)]="showQmenuInvoiceOnly"> Show Qmenu Invoice</label>
 </div>
+<div class="row my-2">
+  <div class="col form-inline">
+    Search Filter:
+    <input type="tel" class="form-control ml-2" placeholder="Restauran Name" [(ngModel)]="nameFilter">
+
+  </div>
+</div>
+
 <table class="table table-hover">
   <thead>
     <tr>
@@ -45,6 +53,18 @@
             <tr *ngIf="shouldShowSubrow(invoice)" class="{{record.restaurant.disabled ? 'app-strike' : ''}}">
               <td *ngIf="i === 0" style="color: #292b2c" [attr.rowspan]="getFilteredInvoices(record).length">
                 <a routerLink="/restaurants/{{record.restaurant._id }}">{{record.restaurant.name}}</a>
+
+                <button class="btn btn-link py-0" (click)="record.showContact = !record.showContact">
+                  <!-- <i class="far fa-address-card"></i>&nbsp; -->
+                  <i class="fas {{record.showContact ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
+                </button>
+                <div *ngIf="record.showContact">
+                  <div>Email: {{record.restaurant.email}}</div>
+                  <div>Fax: {{getFax(record.restaurant) | tel}}</div>
+                  <div>Text: {{getText(record.restaurant) | tel}}</div>
+                  <div>{{getLine1(record.restaurant.googleAddress)}}</div>
+                  <div>{{getLine2(record.restaurant.googleAddress)}}</div>
+                </div>
               </td>
               <td class="text-nowrap" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}}">&#9632; {{invoice.fromDate | date:'MMM d'}} - {{invoice.toDate | date:'MMM d'}}</td>
               <td class="text-right">{{invoice.total | currency:'USD':'symbol'}}</td>
@@ -70,6 +90,17 @@
           <tr *ngIf="record.invoices.length === 0" class="{{record.restaurant.disabled ? 'app-strike' : ''}}">
             <td>
               <a routerLink="/restaurants/{{record.restaurant._id }}">{{record.restaurant.name}}</a>
+              <button class="btn btn-link py-0" (click)="record.showContact = !record.showContact">
+                <!-- <i class="far fa-address-card"></i>&nbsp; -->
+                <i class="fas {{record.showContact ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
+              </button>
+              <div *ngIf="record.showContact">
+                <div>Email: {{record.restaurant.email}}</div>
+                <div>Fax: {{getFax(record.restaurant) | tel}}</div>
+                <div>Text: {{getText(record.restaurant) | tel}}</div>
+                <div>{{getLine1(record.restaurant.googleAddress)}}</div>
+                <div>{{getLine2(record.restaurant.googleAddress)}}</div>
+              </div>
             </td>
             <td colspan="4"></td>
             <td class="text-right"></td>

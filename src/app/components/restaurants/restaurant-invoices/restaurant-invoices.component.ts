@@ -4,6 +4,7 @@ import { Restaurant, Order } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { zip } from "rxjs";
+import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
@@ -103,5 +104,52 @@ export class RestaurantInvoicesComponent implements OnInit {
 
   ngOnInit() {
   }
+
+  // return 2017-2-12
+  private formatDate(d) {
+    let month = '' + (d.getMonth() + 1);
+    let day = '' + d.getDate();
+    const year = d.getFullYear();
+    if (month.length < 2) { month = '0' + month; }
+    if (day.length < 2) { day = '0' + day; }
+    return [year, month, day].join('-');
+  }
+
+  createNewInvoice(i) {
+    this._api.post(environment.legacyApiUrl + 'invoice', {
+      restaurantId: i.restaurant._id,
+      fromDate: new Date(i.fromDate),
+      toDate: new Date(i.toDate),
+      previousInvoiceId: i.previousInvoiceId,
+      previousBalance: i.previousBalance,
+      payments: i.payments,
+      username: this._global.user.username
+    }).pipe(
+      mergeMap(invoice => {
+        invoice._id = invoice._id || invoice.id; // legacy returns id instead of _id
+        // we need to update calculated fields!
+        const originInvoice = JSON.parse(JSON.stringify(invoice));
+        const newInvoice = new Invoice(invoice);
+        newInvoice.computeDerivedValues();
+
+        this.restaurant.invoices.unshift(new Invoice(newInvoice));
+
+        return this._api
+          .patch(environment.qmenuApiUrl + "generic?resource=invoice", [{
+            old: originInvoice,
+            new: newInvoice
+          }]);
+
+      }))
+      .subscribe(
+        invoiceIds => {
+
+          this._global.publishAlert(AlertType.Success, "Created invoice for " + i.restaurant.name);
+          this.showInvoiceCreation = false;
+        },
+        err => this._global.publishAlert(AlertType.Danger, "Error Creating Invoice")
+      );
+  }
+
 
 }
