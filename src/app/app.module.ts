@@ -48,7 +48,8 @@ import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.compone
 import { CacheService } from './services/cache.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
-
+import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
+import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 @NgModule({
   declarations: [
     RootComponent,
@@ -84,7 +85,9 @@ import { RestaurantInvoicesComponent } from './components/restaurants/restaurant
     InvoicesTableComponent,
     GmbWatchComponent,
     RestaurantDetailsComponent,
-    RestaurantInvoicesComponent
+    RestaurantInvoicesComponent,
+    RestaurantContactsComponent,
+    RestaurantDetailsHostComponent
   ],
   imports: [
     BrowserModule,

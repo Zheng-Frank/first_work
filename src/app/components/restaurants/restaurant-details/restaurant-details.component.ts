@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, OnInit, Input } from '@angular/core';
+import { Router } from '@angular/router';
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
@@ -14,70 +14,11 @@ import { Invoice } from '../../../classes/invoice';
   styleUrls: ['./restaurant-details.component.css']
 })
 export class RestaurantDetailsComponent implements OnInit {
-  restaurant: Restaurant;
+  @Input() restaurant: Restaurant;
   id;
   invoices = [];
-  constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
+  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
 
-    this._route.params.subscribe(
-      params => {
-        this.id = params['id'];
-        zip(
-          this._api
-            .get(environment.qmenuApiUrl + "generic", {
-              resource: "restaurant",
-              query: {
-                _id: { $oid: params['id'] }
-              },
-              projection: {
-                logo: true,
-                name: true,
-                images: true
-              },
-              limit: 1
-            }),
-          this._api
-            .get(environment.qmenuApiUrl + "generic", {
-              resource: "invoice",
-              query: {
-                "restaurant.id": params['id']
-              },
-              projection: {
-                fromDate: 1,
-                toDate: 1,
-                total: 1,
-                commission: 1,
-                subtotal: 1,
-                balance: 1,
-                status: 1,
-                restaurantCcCollected: 1,
-                qMenuCcCollected: 1,
-                cashCollected: 1,
-                "restaurant.id": 1,
-                "restaurant.offsetToEST": 1,
-                isCanceled: 1,
-                isPaymentCompleted: 1,
-                isPaymentSent: 1,
-                isSent: 1
-
-              },
-              limit: 100
-            }),
-        )
-          .subscribe(
-            results => {
-              this.restaurant = new Restaurant(results[0][0]);
-              this.invoices = results[1].map(i => new Invoice(i));
-              // sort by end date!
-              this.invoices.sort((i1, i2)=> i1.toDate.valueOf() - i2.toDate.valueOf());
-              console.log(results);
-            },
-            e => this._global.publishAlert(
-              AlertType.Danger,
-              "Error pulling data from API"
-            )
-          );
-      });
   }
 
   ngOnInit() {
@@ -95,25 +36,25 @@ export class RestaurantDetailsComponent implements OnInit {
 
   getVisibleRoutes() {
     const routes = [
-      {
-        title: 'Menus',
-        route: 'menus',
-        roles: ['ADMIN', 'MENU_EDITOR']
-      },
-      {
-        title: 'Menu Options',
-        route: 'menu-options',
-        roles: ['ADMIN', 'MENU_EDITOR']       
-      },
-      {
-        title: 'Orders',
-        route: 'orders',
-        roles: ['ADMIN', 'ACCOUNTANT']
-      },
+      // {
+      //   title: 'Menus',
+      //   route: 'menus',
+      //   roles: ['ADMIN', 'MENU_EDITOR']
+      // },
+      // {
+      //   title: 'Menu Options',
+      //   route: 'menu-options',
+      //   roles: ['ADMIN', 'MENU_EDITOR']
+      // },
+      // {
+      //   title: 'Orders',
+      //   route: 'orders',
+      //   roles: ['ADMIN', 'ACCOUNTANT']
+      // },
       {
         title: 'Invoices',
-        route: 'invoices',
-        roles: ['ADMIN', 'ACCOUNTANT']       
+        route: '/restaurants/' + this.restaurant['_id'] + '/invoices',
+        roles: ['ADMIN', 'ACCOUNTANT']
       }
     ];
     const roles = this._global.user.roles || [];
