@@ -30,14 +30,20 @@ export class RestaurantDetailsHostComponent implements OnInit {
               _id: { $oid: params['id'] }
             },
             projection: {
-              logo: true,
-              name: true,
-              images: true
+              logo: 1,
+              name: 1,
+              images: 1,
+              googleAddress: 1,
+              channels: 1,
+              people: 1,
+              rateSchedules: 1,
+              serviceSettings: 1
             },
             limit: 1
           }).subscribe(
             results => {
               this.restaurant = new Restaurant(results[0]);
+              console.log(this.restaurant);
             },
             e => this._global.publishAlert(
               AlertType.Danger,
@@ -49,6 +55,4 @@ export class RestaurantDetailsHostComponent implements OnInit {
 
   ngOnInit() {
   }
-
-
 }

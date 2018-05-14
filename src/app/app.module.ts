@@ -50,6 +50,9 @@ import { RestaurantDetailsComponent } from './components/restaurants/restaurant-
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
+import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
+import { RestaurantServiceSettingsComponent } from './components/restaurants/restaurant-service-settings/restaurant-service-settings.component';
+
 @NgModule({
   declarations: [
     RootComponent,
@@ -87,7 +90,9 @@ import { RestaurantDetailsHostComponent } from './components/restaurants/restaur
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
     RestaurantContactsComponent,
-    RestaurantDetailsHostComponent
+    RestaurantDetailsHostComponent,
+    RestaurantRateSchedulesComponent,
+    RestaurantServiceSettingsComponent
   ],
   imports: [
     BrowserModule,

@@ -114,7 +114,10 @@ export class HomeComponent implements OnInit {
       projection: {
         name: 1,
         images: 1,
-        contacts: 1
+        channels: 1,
+        people: 1,
+        rateSchedules: 1,
+        serviceSettings: 1
       },
       limit: 1
     })

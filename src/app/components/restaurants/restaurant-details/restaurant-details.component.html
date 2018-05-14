@@ -1,15 +1,28 @@
 <div *ngIf="restaurant">
-  <q-banner [maskingColor]="'rgba(0, 0, 0, 0.3)'" [backgroundImageUrl]="(restaurant.images && restaurant.images[restaurant.images.length - 1] || '')">
-    <div class="text-center">
-      <img src="{{restaurant.logo}}" [attr.alt]="restaurant.name" class="logo">
-    </div>
-    <h2 class="text-center text-light">{{restaurant.name}}</h2>
-  </q-banner>
+  <div class="text-center text-light">
+    <q-banner [maskingColor]="'rgba(0, 0, 0, 0.3)'" [backgroundImageUrl]="(restaurant.images && restaurant.images[restaurant.images.length - 1] || '')">
+      <div>
+        <img src="{{restaurant.logo}}" [attr.alt]="restaurant.name" class="logo">
+      </div>
+      <h2>{{restaurant.name}}</h2>
+      <div class="small">
+        {{getLine1(restaurant.googleAddress)}}
+        <br> {{getLine2(restaurant.googleAddress)}}
+      </div>
+    </q-banner>
+  </div>
+
 
   <div class="row mt-4">
-    <div class="col-md-6">
+    <div class="col-xl-6">
       <app-restaurant-contacts [restaurant]="restaurant"></app-restaurant-contacts>
     </div>
+    <div class="col-xl-6">
+      <app-restaurant-rate-schedules [restaurant]="restaurant"></app-restaurant-rate-schedules>
+    </div>
+    <div class="col-xl-6">
+        <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
+      </div>
   </div>
 
   <!-- <h3 class="text-center">Invoices</h3>

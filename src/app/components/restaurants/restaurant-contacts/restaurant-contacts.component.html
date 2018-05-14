@@ -1,27 +1,79 @@
 <div class="card mb-2">
   <h3 class="card-title text-center py-2">
     <i class="far fa-address-card"></i>&nbsp;Contacts</h3>
-
-
   <ul class="list-group list-group-flush">
-    <li class="list-group-item" *ngFor="let contact of (restaurant.contacts || [])">
-      <div class="row">
-        <div class="col-6">
-          <q-edit-label [value]="contact.name" (edit)="editLabelChange($event, contact, 'name')" [emptyHint]="'Enter name···'"></q-edit-label>
-        </div>
-        <div class="col-4">
-          <q-edit-label [value]="contact.title" [type]="'single-select'" [options]="['Owner', 'Manager', 'Employee']" (edit)="editLabelChange($event, contact, 'title')"
-            [emptyHint]="'Select title ···'"></q-edit-label>
-        </div>
-        <div class="col-2">
-          <button class="btn btn-link py-0" (click)="remove(contact)">x</button>
-        </div>
-      </div>
+    <li class="list-group-item">
+      <table class="table table-borderless table-sm">
+        <thead>
+          <tr *ngIf="restaurant.channels">
+            <th scope="col">Type</th>
+            <th scope="col">Channel</th>
+            <th scope="col">Notifications</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let channel of restaurant.channels || []">
+            <td>{{channel.type}}</td>
+            <td>{{channel.value}}</td>
+            <td>{{join(channel.notifications)}}</td>
+            <td>
+              <button class="btn btn-link p-0" (click)="editChannel(channel)">Edit</button>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <button class="btn btn-link px-0" (click)="editChannel()">+ Add A Channel</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </li>
+    <li class="list-group-item">
+      <table class="table table-borderless table-sm">
+        <thead>
+          <tr *ngIf="restaurant.people">
+            <th scope="col">Name</th>
+            <th scope="col">Position</th>
+            <th scope="col">Channels</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let person of restaurant.people || [];">
+            <td>{{person.title}} {{person.name}}</td>
+            <td>{{join(person.roles)}}</td>
+            <td>{{join(person.channels)}}</td>
+            <td>
+              <button class="btn btn-link p-0" (click)="editPerson(person)">Edit</button>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <button class="btn btn-link px-0" (click)="editPerson()">+ Add A Person</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </li>
   </ul>
-  <div class="card-body text-right">
-    <button class="btn btn-link py-0" (click)="addNew()">+ Add New</button>
-  </div>
 </div>
 
+<q-modal #modalChannel>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
 
+  <q-form-builder [object]="channelInEditing" [showDelete]="channelInEditing.index >= 0" [fieldDescriptors]="channelFieldDescriptors"
+    (submit)="submitChannel($event)" (cancel)="cancelChannel()" (remove)="removeChannel($event)">
+  </q-form-builder>
+</q-modal>
+
+<q-modal #modalPerson>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <q-form-builder [object]="personInEditing" [showDelete]="personInEditing.index >= 0" [fieldDescriptors]="personFieldDescriptors"
+    (submit)="submitPerson($event)" (cancel)="cancelPerson()" (remove)="removePerson($event)">
+  </q-form-builder>
+</q-modal>

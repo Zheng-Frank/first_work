@@ -569,4 +569,110 @@ export class DbScriptsComponent implements OnInit {
       );
   } // injectTotalEtcToInvoice
 
+  migrateEmailAndPhones() {
+    // faxable -> {Fax, Order}
+    // callable -> {Voice, Order}
+    // textable -> {SMS, Order}
+    // (nothing) -> {Voice}
+    // email --> split(,) --> {Email, Order}
+
+    // let's batch 5 every time
+    const batchSize = 1;
+    let myRestaurants;
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        channels: { $exists: false },
+        $or: [
+          { email: { $exists: true } },
+          { phones: { $exists: true } },
+        ]
+      },
+      projection: {
+        name: 1,
+        email: 1,
+        phones: 1
+      },
+      limit: batchSize
+    }).pipe(mergeMap(restaurants => {
+      myRestaurants = restaurants;
+      const restaurantsOriginal = JSON.parse(JSON.stringify(restaurants));
+      const restaurantsChanged = JSON.parse(JSON.stringify(restaurants));
+
+
+      restaurantsChanged.map(restaurant => {
+        const channels = [];
+        (restaurant.phones || []).map(phone => {
+          const phoneMap = {
+            faxable: 'Fax',
+            callable: 'Voice',
+            textable: 'SMS'
+          };
+
+          Object.keys(phoneMap).map(key => {
+            if (phone[key]) {
+              channels.push({
+                type: phoneMap[key],
+                value: phone.phoneNumber,
+                notifications: ['Order']
+              });
+            }
+          });
+
+          // if none is selected, we just list it as a login option?? 
+          if (!phone.faxable && !phone.textable && !phone.callable) {
+            channels.push({
+              type: 'Voice',
+              value: phone.phoneNumber,
+              notifications: []
+            });
+          }
+        });
+
+        (restaurant.email || '').split(',').map(email => {
+          if (email && email.indexOf('@') >= 0) {
+            channels.push({
+              type: 'Email',
+              value: email,
+              notifications: ['Order']
+            });
+          }
+        });
+
+        if (channels.length > 0) {
+          restaurant.channels = channels;
+        }
+      });
+
+      return this._api
+        .patch(
+          environment.qmenuApiUrl + "generic?resource=restaurant",
+          restaurantsChanged.map(clone => ({
+            old: restaurantsOriginal.filter(r => r._id === clone._id)[0],
+            new: clone
+          }))
+        );
+    })
+    ).subscribe(
+      patchResult => {
+        this._global.publishAlert(
+          AlertType.Success,
+          "Migrated: " + myRestaurants.filter(r => patchResult.indexOf(r._id) >= 0).map(r => r.name).join(', ')
+        );
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Non-Migrated: " + myRestaurants.filter(r => patchResult.indexOf(r._id) < 0).map(r => r.name).join(', ')
+        );
+      },
+      error => {
+        console.log(error);
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error: " + JSON.stringify(error)
+        );
+      });
+
+  } // end of migrateEmailAndPhones
+
+
 }

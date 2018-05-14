@@ -106,7 +106,7 @@ export class GlobalService {
           !menu["accessibleRoles"] ||
           this.isUserInRoles(menu["accessibleRoles"])
       );
-    } catch {}
+    } catch { }
   }
   /** reset persisted values, except username (for next login) */
   logout() {

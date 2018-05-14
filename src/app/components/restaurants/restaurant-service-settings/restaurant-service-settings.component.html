@@ -1,0 +1,115 @@
+<div class="card mb-2">
+  <h3 class="card-title text-center py-2">
+    <i class="fa fa-coffee"></i>&nbsp;Service Settings</h3>
+  <div class="text-center">{{getExcludedPaymentString()}}</div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <!--displaying-->
+      <div *qIf="!editing">
+        <table class="table table-borderless table-sm" *ngIf="restaurant.serviceSettings && restaurant.serviceSettings.length > 0">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Payment Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let service of restaurant.serviceSettings">
+              <td class="text-nowrap">
+                {{service.name}}
+              </td>
+              <td>
+                <small>
+                  <ul>
+                    <li *ngFor="let method of (service.paymentMethods || [])">{{paymentDescriptionMap[method]}}
+                      <span *ngIf="service.name === 'Delivery' && method === 'IN_PERSON'"> (DRIVER MUST HAVE CREDIT CARD PROCESSOR!)</span>
+                    </li>
+                  </ul>
+                </small>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="text-danger" *ngIf="!restaurant.serviceSettings || restaurant.serviceSettings.length === 0">No service setup yet</div>
+      </div>
+
+      <!--editing-->
+      <div *qIf="editing">
+
+        <table class="table table-borderless table-sm">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Payment Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let service of serviceSettingsInEditing">
+              <td class="text-nowrap">
+                {{service.name}}
+              </td>
+              <td>
+                <div>
+                  <div class="form-check" *ngFor="let paymentMethod of getPaymentMethods()">
+                    <label class="form-check-label">
+                      <input type="checkbox" class="form-check-input" [checked]="isPaymentMethodSelected(service, paymentMethod)" (change)="servicePaymentMethodChange(service, paymentMethod)"> {{paymentDescriptionMap[paymentMethod]}}
+                      <span *ngIf="service.name === 'Delivery' && paymentMethod === 'IN_PERSON'"> (DRIVER MUST HAVE CREDIT CARD PROCESSOR!)</span>
+                    </label>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <hr>
+        <div *ngIf="shouldShowStripeInput()">
+          <div class="form-group">
+            <label>Stripe Publishable Key</label>
+            <div>
+              <input type="text" [(ngModel)]="stripePublishableKey" class="form-control" placeholder="publishable key">
+
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Stripe Secret Key</label>
+            <div>
+              <input type="text" [(ngModel)]="stripeSecretKey" class="form-control" placeholder="secret key">
+
+            </div>
+          </div>
+
+        </div>
+        <div>
+          <label class="switch">
+            <input type="checkbox" (click)="toggleZipcode()" [checked]="requireZipcode">
+            <div class="slider round"></div>
+          </label>
+          Require Zip Code
+        </div>
+        <div>
+          <label class="switch">
+            <input type="checkbox" (click)="toggleAmex()" [checked]="excludeAmex">
+            <div class="slider round"></div>
+          </label>
+          Exclude American Express
+        </div>
+        <div>
+          <label class="switch">
+            <input type="checkbox" (click)="toggleDiscover()" [checked]="excludeDiscover">
+            <div class="slider round"></div>
+          </label>
+          Exclude Discover
+        </div>
+
+        <div class="p-t-1 text-right">
+          <button class="btn btn-secondary" (click)="toggleEditing()" style="min-width: 6rem">Cancel</button>
+          <button class="btn btn-primary" (click)="update()" style="min-width: 6rem">OK</button>
+        </div>
+      </div>
+      <div class="text-right" *ngIf="!editing">
+          <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
+        </div>
+    </li>
+  </ul>
+</div>

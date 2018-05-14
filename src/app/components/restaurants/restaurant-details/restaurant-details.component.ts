@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Router } from '@angular/router';
-import { Restaurant } from '@qmenu/ui';
+import { Restaurant, Address } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
@@ -61,5 +61,23 @@ export class RestaurantDetailsComponent implements OnInit {
 
     return routes.filter(r => r.roles.some(role => roles.indexOf(role) >= 0));
   }
+
+  getLine1(address: Address) {
+    if(!address) {
+      return 'Address Missing';
+    }
+    return (address.street_number ? address.street_number : '') + ' '
+      + (address.route ? ' ' + address.route : '') +
+      (address.apt ? ', ' + address.apt : '');
+  }
+  getLine2(address: Address) {
+    if(!address) {
+      return '';
+    }
+    return (address.locality ? address.locality + ', ' : (address.sublocality ? address.sublocality + ', ' : ''))
+      + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
+      + ' ' + address.postal_code;
+  }
+
 
 }

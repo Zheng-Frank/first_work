@@ -21,3 +21,7 @@
 h1 {
     text-shadow: 1px 1px 1px #777;
 }
+
+.small {
+    font-size: 80%;
+}
