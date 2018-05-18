@@ -56,7 +56,15 @@ export class Lead {
       }
 
       ['phones', 'contacts', 'classifications', 'menuUrls', 'reservations', 'serviceProviders'].map(arrayField => {
-        this[arrayField] = this[arrayField] ? this[arrayField].slice() : this[arrayField];
+
+        try{
+          this[arrayField] = this[arrayField] ? this[arrayField].slice() : this[arrayField];
+        }
+        catch(e){
+          console.log("restaurant", resturant);
+          console.log("arrayField", arrayField);
+          console.log("this[arrayField]", this[arrayField]);
+        }
       })
 
       // convert address to typeof Address
