@@ -52,6 +52,10 @@ import { RestaurantContactsComponent } from './components/restaurants/restaurant
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
 import { RestaurantServiceSettingsComponent } from './components/restaurants/restaurant-service-settings/restaurant-service-settings.component';
+import { RestaurantCloudPrintingComponent } from './components/restaurants/restaurant-cloud-printing/restaurant-cloud-printing.component';
+import { PromotionEditorComponent } from './components/restaurants/promotion-editor/promotion-editor.component';
+import { PromotionViewerComponent } from './components/restaurants/promotion-viewer/promotion-viewer.component';
+import { RestaurantPromotionsComponent } from './components/restaurants/restaurant-promotions/restaurant-promotions.component';
 
 @NgModule({
   declarations: [
@@ -92,7 +96,11 @@ import { RestaurantServiceSettingsComponent } from './components/restaurants/res
     RestaurantContactsComponent,
     RestaurantDetailsHostComponent,
     RestaurantRateSchedulesComponent,
-    RestaurantServiceSettingsComponent
+    RestaurantServiceSettingsComponent,
+    RestaurantCloudPrintingComponent,
+    PromotionEditorComponent,
+    PromotionViewerComponent,
+    RestaurantPromotionsComponent
   ],
   imports: [
     BrowserModule,

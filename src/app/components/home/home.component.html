@@ -24,7 +24,7 @@
     <div class="col-sm-9 bg-light">
         <div *ngIf="!selectedRestaurant" class="py-4">No restaurant selected. Please search and select restaurant.</div>
         <div *ngIf="selectedRestaurant">
-            <app-restaurant-details [restaurant]="selectedRestaurant"></app-restaurant-details>
+            <app-restaurant-details [id]="selectedRestaurant?._id"></app-restaurant-details>
         </div>
 
     </div>

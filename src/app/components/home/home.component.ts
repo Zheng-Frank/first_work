@@ -105,34 +105,6 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.selectedRestaurant = restaurant;
-    // let's fill more needed info to this restaurant!
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "restaurant",
-      query: {
-        _id: { $oid: restaurant._id }
-      },
-      projection: {
-        name: 1,
-        images: 1,
-        channels: 1,
-        people: 1,
-        rateSchedules: 1,
-        serviceSettings: 1
-      },
-      limit: 1
-    })
-      .subscribe(
-        results => {
-          results.map(r1 => this.restaurantList.map(r2 => {
-            if (r1._id === r2._id) {
-              Object.assign(r2, r1);
-            }
-          }))
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, error);
-        }
-      );
   }
 
 }

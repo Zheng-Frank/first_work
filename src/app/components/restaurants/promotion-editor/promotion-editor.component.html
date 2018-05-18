@@ -1,0 +1,57 @@
+<div *ngIf="promotion">
+  <label>Display Title:</label>
+  <div class="{{promotion.name ? '' : 'has-danger'}}">
+    <input type="text" class="form-control" [(ngModel)]="promotion.name" placeholder="eg. $5 off $50">
+  </div>
+  <label class="m-t-1">Code:</label>
+  <div class="{{promotion.code ? '' : 'has-danger'}}">
+    <input type="text" class="form-control" [(ngModel)]="promotion.code" placeholder="eg. spring5">
+  </div>
+
+  <label class="m-t-1">Fixed Amount($):</label>
+  <div>
+    <input type="tel" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
+  </div>
+
+  <label class="m-t-1">Percentage(%):</label>
+  <div>
+    <input type="tel" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
+  </div>
+
+  <label class="m-t-1">Order Minimum ($):</label>
+  <div>
+    <input type="tel" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
+  </div>
+
+  <label class="m-t-1">Expiration Date:</label>
+  <div>
+    <input type="date" class="form-control" [value]="getExpiry()" (change)="expiryChanged($event)">
+  </div>
+  <div>
+    <label class="m-t-1">
+      <input type="checkbox" [(ngModel)]="promotion.public"> Publicly displayed</label>
+  </div>
+
+  <div>
+    <label class="m-t-1">
+      <input type="checkbox" [(ngModel)]="promotion.newCustomerOnly"> Only for new customers</label>
+  </div>
+
+  <label class="m-t-1">Not Applicable Menus:</label>
+  <div *ngFor="let menu of (menus || [])" class="p-l-1">
+    <label class="m-t-1">
+      <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="menuToggled($event, menu)"> {{menu.name}}</label>
+  </div>
+
+  <div class="m-t-1 text-xs-right">
+    <button *ngIf="promotion.id" class="btn btn-link text-danger" (click)="remove()">Delete</button>
+    <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+    <button class="btn btn-primary" (click)="done()" [disabled]="!isPromotionValid()">OK</button>
+  </div>
+
+  <hr>
+  <h4>Preview</h4>
+  <app-promotion-viewer [promotion]="promotion" [offsetToEST]="offsetToEST" [hideEditButton]="true"></app-promotion-viewer>
+  <!-- because of viewer having float left -->
+  <div class="clearfix"></div>
+</div>

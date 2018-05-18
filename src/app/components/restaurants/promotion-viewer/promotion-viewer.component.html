@@ -1,0 +1,23 @@
+<div class="promo" *ngIf="promotion">
+  <h4>{{promotion.name}}</h4>
+  <hr>
+  <div>Code: {{promotion.code}}</div>
+  <div *ngIf="promotion.percentage && !promotion.amount">Amount: {{promotion.percentage}}% Off</div>
+  <div *ngIf="!promotion.percentage && promotion.amount">Amount: {{promotion.amount | currency:'USD':'symbol'}}</div>
+  <div *ngIf="promotion.percentage && promotion.amount">Amount: {{promotion.percentage}}% + {{promotion.amount | currency:'USD':'symbol'}}</div>
+  <div *ngIf="!promotion.percentage && !promotion.amount">Amount: $0.00</div>
+  <div [ngClass]="{'text-danger': promotion.expiry < today}">Epxires: {{promotion.expiry | yMMMd: offsetToEST}}</div>
+  <div>Order Minimum: {{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
+  <small>
+    <div *ngIf="promotion.public">
+      <i class="fa fa-unlock"></i> Publicly displayed</div>
+    <div *ngIf="!promotion.public">
+      <i class="fa fa-lock"></i> Not displayed on webpage</div>
+    <div *ngIf="promotion.newCustomerOnly">
+      <i class="fa fa-user-plus"></i> New customer only</div>
+    <div *ngIf="promotion.excludedMenuIds && promotion.excludedMenuIds.length > 0">
+      Not Applicable: {{getExcludedMenus()}}
+    </div>
+  </small>
+  <button class="btn btn-link" *ngIf="!hideEditButton" (click)="edit()">Click to edit</button>
+</div>

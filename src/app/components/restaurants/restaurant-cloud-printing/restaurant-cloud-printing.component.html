@@ -1,0 +1,141 @@
+<div class="card mb-2">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="fa fa-print"></i>&nbsp;Cloud Printing Settings</h3>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+
+      <!--displaying-->
+      <div *qIf="!editing">
+        <table class="table table-borderless table-sm">
+          <tr>
+            <td>Auto Print Order</td>
+            <td>
+              {{restaurant.autoPrintOnNewOrder? 'Yes': 'No'}}
+            </td>
+          </tr>
+          <tr>
+            <td>Auto Print Copies</td>
+            <td>
+              {{restaurant.printCopies || 1}}
+            </td>
+          </tr>
+          <tr>
+            <td>Auto Print Program</td>
+            <td>
+              {{restaurant.autoPrintVersion || 'Not Set'}}
+            </td>
+          </tr>
+          <tr>
+            <td>Default Printer</td>
+            <td>{{getDefaultPrinterName()}}</td>
+          </tr>
+          <tr>
+            <td class="text-nowrap">Customized Styles</td>
+            <td>{{restaurant.customizedRenderingStyles}}</td>
+          </tr>
+
+          <tr>
+            <td>FeiE Printer SN</td>
+            <td>{{restaurant.printerSN}}</td>
+          </tr>
+          <tr>
+            <td>FeiE Printer Key</td>
+            <td>{{restaurant.printerKey}}</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="text-right">
+              UNDER CONSTRUCTION...
+              <button class="btn btn-link" (click)="printLastOrder()" [disabled]="true">Print Last Order</button>
+              <button class="btn btn-primary" (click)="toggleEditing()" [disabled]="true">Edit</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+
+      <!--editing-->
+      <div *qIf="editing">
+        <table class="table table-borderless table-sm">
+          <tr>
+            <td>Auto Print Order</td>
+            <td>
+              <label class="switch">
+                <input type="checkbox" (click)="switchAutoPrint()" [checked]="restaurant.autoPrintOnNewOrder">
+                <div class="slider round"></div>
+              </label>
+            </td>
+          </tr>
+
+          <tr>
+            <td>Auto Print Copies</td>
+            <td>
+              <select [(ngModel)]="restaurant.printCopies" class="form-control">
+                <option *ngFor="let value of [1, 2, 3, 4]" [value]="value">{{value}}</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>Auto Print Program</td>
+            <td>
+              <select [(ngModel)]="restaurant.autoPrintVersion" class="form-control">
+                <option *ngFor="let value of ['', 'Legacy', 'Longhorn']" [value]="value">{{value}}</option>
+              </select>
+              <div class="text-danger">
+                <small>
+                  <i class="fa fa-warning"></i> If changed, SAVE (click OK) FIRST and then come back to refresh printer list</small>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>Default Printer</td>
+            <td class="p-l-1 p-t-1 p-b-1">
+
+              <select [(ngModel)]="defaultPrinter" class="form-control">
+                <option *ngFor="let printer of printers" [ngValue]="printer">{{printer.name}}</option>
+              </select>
+              <div *ngIf="printers.length <= 1">
+                <small>Click refresh to list all printers</small>
+              </div>
+              <div *ngIf="printers.length > 1" class="text-success">
+                <small>Select default printer from the list</small>
+              </div>
+              <div class="text-xs-right p-t-05">
+                <button class="btn btn-default fa fa-refresh" (click)="queryPrinters()"> Refresh</button>
+              </div>
+              <div *ngIf="queryPrintersError" class="text-danger">
+                <small>{{queryPrintersError}}</small>
+              </div>
+
+            </td>
+          </tr>
+          <tr>
+            <td>FeiE Printer SN</td>
+            <td>
+              <input type="text" [(ngModel)]="restaurant.printerSN" class="form-control">
+            </td>
+          </tr>
+          <tr>
+            <td>FeiE Printer Key</td>
+            <td>
+              <input type="text" [(ngModel)]="restaurant.printerKey" class="form-control">
+            </td>
+          </tr>
+          <tr>
+            <td>Customized Styles</td>
+            <td>
+              <textarea [(ngModel)]="restaurant.customizedRenderingStyles" class="form-control" rows="4"></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3" class="text-right">
+              <button class="btn btn-secondary" (click)="toggleEditing()">Cancel</button>
+              <button class="btn btn-primary" (click)="update()">&nbsp;&nbsp;OK&nbsp;&nbsp;</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+    </li>
+  </ul>
+</div>
