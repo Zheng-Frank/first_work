@@ -56,6 +56,7 @@ import { RestaurantCloudPrintingComponent } from './components/restaurants/resta
 import { PromotionEditorComponent } from './components/restaurants/promotion-editor/promotion-editor.component';
 import { PromotionViewerComponent } from './components/restaurants/promotion-viewer/promotion-viewer.component';
 import { RestaurantPromotionsComponent } from './components/restaurants/restaurant-promotions/restaurant-promotions.component';
+import { RestaurantClosedDaysComponent } from './components/restaurants/restaurant-closed-days/restaurant-closed-days.component';
 
 @NgModule({
   declarations: [
@@ -100,7 +101,8 @@ import { RestaurantPromotionsComponent } from './components/restaurants/restaura
     RestaurantCloudPrintingComponent,
     PromotionEditorComponent,
     PromotionViewerComponent,
-    RestaurantPromotionsComponent
+    RestaurantPromotionsComponent,
+    RestaurantClosedDaysComponent
   ],
   imports: [
     BrowserModule,

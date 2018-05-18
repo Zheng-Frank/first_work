@@ -39,6 +39,8 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
           rateSchedules: 1,
           serviceSettings: 1,
           promotions: 1,
+          googleAddress: 1,
+          closedDays: 1,
 
           autoPrintOnNewOrder: 1,
           printCopies: 1,
@@ -78,6 +80,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
       rateSchedules: ['ADMIN', 'ACCOUNTANT'],
       serviceSettings: ['ADMIN', 'MENU_EDITOR'],
       promotions: ['ADMIN', 'MENU_EDITOR'],
+      closedDays: ['ADMIN', 'MENU_EDITOR'],
       cloudPrinting: ['ADMIN', 'MENU_EDITOR']
     }
     const roles = this._global.user.roles || [];
