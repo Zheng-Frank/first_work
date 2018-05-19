@@ -1,0 +1,196 @@
+<div class="card mb-2">
+	<h3 class="card-title text-center pt-4 pb-2">
+		<i class="fa fa-building"></i> Profile</h3>
+	<ul class="list-group list-group-flush">
+		<li class="list-group-item">
+
+			<div *qIf="!editing">
+				<table class="table table-borderless table-sm">
+					<tbody>
+						<tr>
+							<th class="text-right">Website Broadcast</th>
+							<td class="pl-1">{{restaurant.notification || 'N/A'}}</td>
+						</tr>
+
+						<tr>
+							<th class="text-right">Time Estimate for Pickup</th>
+							<td class="pl-1">{{restaurant.pickupTimeEstimate || 'N/A'}} minutes</td>
+						</tr>
+						<tr>
+							<th class="text-right">Time Estimate for Delivery</th>
+							<td class="pl-1">{{restaurant.deliveryTimeEstimate || 'N/A'}} minutes</td>
+						</tr>
+						<tr>
+							<th class="text-right">Address</th>
+							<td class="pl-1">{{restaurant.address?.formatted_address}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">Email</th>
+							<td class="pl-1">{{restaurant.email}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">Tax Rate</th>
+							<td class="pl-1">{{restaurant.taxRate | percentage}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">Surchage</th>
+							<td class="pl-1">{{restaurant.surchargeName}} {{restaurant.surchargeAmount | currency:'USD':'symbol'}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">CC Processing Rate</th>
+							<td class="pl-1">{{restaurant.ccProcessingRate | percentage}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">CC Processing Flat Fee</th>
+							<td class="pl-1">{{restaurant.ccProcessingFlatFee | currency:'USD':'symbol'}}</td>
+
+						</tr>
+						<tr>
+							<th class="text-right">Allow Scheduling</th>
+							<td class="pl-1">{{!restaurant.disableScheduling}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">Time Zone</th>
+							<td class="pl-1">{{getTimeZoneText()}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+
+			<!--editing view-->
+			<div *qIf="editing">
+				<table class="table table-borderless table-sm">
+					<tbody>
+						<tr>
+							<th class="text-right">Website Broadcast</th>
+							<td class="pl-1">
+								<input type="text" [(ngModel)]="notification" class="form-control" placeholder="important message showing on website">
+							</td>
+						</tr>
+
+						<tr>
+							<td colspan="2"></td>
+						</tr>
+						<tr>
+							<th class="text-right">Time Estimate for Pickup (mins)</th>
+							<td class="pl-1">
+								<input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Time Estimate for Delivery (mins)</th>
+							<td class="pl-1">
+								<input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
+							</td>
+						</tr>
+						<tr>
+							<tr>
+								<th class="text-right">Address</th>
+								<td class="pl-1">{{restaurant.address?.formatted_address}}</td>
+							</tr>
+							<tr>
+								<th class="text-right">Email</th>
+								<td class="pl-1 {{isEmailValid() ? '' : 'has-danger'}}">
+									<input type="text" [(ngModel)]="email" class="form-control">
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">Tax Rate</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="taxRate" class="form-control">
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">Surcharge</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="surchargeAmount" class="form-control" placeholder="surcharge amount">
+									<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1" placeholder="text to show customer">
+									<small>* This is money charged to customer for every online order and the collected money goes to restaurant.
+										<i class="fa fa-warning"></i> It may drive customers away.</small>
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">CC Processing Rate</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
+								</td>
+							</tr>
+							<tr>
+
+								<th class="text-right">CC Processing Flat Fee
+								</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control" placeholder="fee">
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">Allow Scheduling</th>
+								<td class="pl-1">
+									<input type="checkbox" [(ngModel)]="allowScheduling">
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">Time Zone</th>
+								<td class="pl-1">
+									<select class="form-control" [(ngModel)]="timeZone">
+										<option *ngFor="let zone of timeZones" [ngValue]="zone">
+											{{ zone.text }}
+										</option>
+									</select>
+								</td>
+							</tr>
+
+							<tr>
+								<th class="text-right">Logo</th>
+								<td class="pl-1">
+									<hr>
+									<div *ngIf="logo" class="p-r-1 p-b-1" style="display:inline-block; position:relative">
+										<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
+										<button (click)="deleteLogo(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+										<button (click)="deleteLogo(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+									</div>
+									<div *ngIf="uploadLogoError">
+										<span class="text-danger">{{uploadLogoError}}</span>
+									</div>
+									<div class="app-limit-file">
+										<input type="file" (change)="onUploadLogo($event)" />
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">Photos</th>
+								<td class="pl-1">
+									<div *ngFor="let img of images" class="p-r-1 p-b-1" style="display:inline-block; position:relative">
+										<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
+										<button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+										<button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+									</div>
+									<div *ngIf="uploadImageError">
+										<span class="text-danger">{{uploadImageError}}</span>
+									</div>
+									<div class="app-limit-file">
+										<input type="file" (change)="onUploadImage($event)" />
+									</div>
+									<div>
+										<small class="text-warning">Image may take time to show</small>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2" class="text-right pl-1">
+									<button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+									<button class="btn btn-primary" [disabled]="!isEmailValid()" (click)="ok()">OK</button>
+								</td>
+							</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="text-right" *ngIf="!editing">
+				<button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
+			</div>
+
+		</li>
+
+	</ul>
+</div>

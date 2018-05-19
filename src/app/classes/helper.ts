@@ -1,4 +1,25 @@
+declare var AWS: any;
+
 export class Helper {
+    static uploadImage(awsAccessKeyId, awsSecretAccessKey, files: File[], callback) {
+        if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
+            callback('Invalid file type. Choose image only.', null);
+        } else if (files && files.length > 0 && files[0].size > 10000000) {
+            callback('The image size exceeds 10M.', null);
+        } else {
+
+            AWS.config.accessKeyId = awsAccessKeyId;
+            AWS.config.secretAccessKey = awsSecretAccessKey;
+
+            let file = files[0];
+            let uuid = new Date().valueOf();
+            let ext = file.name.split('.').pop();
+
+            let bucket = new AWS.S3({ params: { Bucket: 'chopst', ContentType: 'image/jpeg' } });
+            let imageFile = { Key: 'menuImage/' + uuid + '.' + ext, Body: file };
+            bucket.upload(imageFile, callback);
+        }
+    }
     static areObjectsEqual(obj1, obj2) {
         if (Object.is(obj1, obj2)) {
             return true;

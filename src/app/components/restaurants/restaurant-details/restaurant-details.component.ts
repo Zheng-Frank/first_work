@@ -55,7 +55,6 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
         .subscribe(
           results => {
             this.restaurant = new Restaurant(results[0]);
-            console.log(this.restaurant)
           },
           error => {
             this._global.publishAlert(AlertType.Danger, error);
@@ -76,6 +75,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
 
   isSectionVisible(sectionName) {
     const visibilityRolesMap = {
+      profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT'],
       contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT'],
       rateSchedules: ['ADMIN', 'ACCOUNTANT'],
       serviceSettings: ['ADMIN', 'MENU_EDITOR'],

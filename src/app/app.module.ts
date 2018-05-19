@@ -57,6 +57,7 @@ import { PromotionEditorComponent } from './components/restaurants/promotion-edi
 import { PromotionViewerComponent } from './components/restaurants/promotion-viewer/promotion-viewer.component';
 import { RestaurantPromotionsComponent } from './components/restaurants/restaurant-promotions/restaurant-promotions.component';
 import { RestaurantClosedDaysComponent } from './components/restaurants/restaurant-closed-days/restaurant-closed-days.component';
+import { RestaurantProfileComponent } from './components/restaurants/restaurant-profile/restaurant-profile.component';
 
 @NgModule({
   declarations: [
@@ -102,7 +103,8 @@ import { RestaurantClosedDaysComponent } from './components/restaurants/restaura
     PromotionEditorComponent,
     PromotionViewerComponent,
     RestaurantPromotionsComponent,
-    RestaurantClosedDaysComponent
+    RestaurantClosedDaysComponent,
+    RestaurantProfileComponent
   ],
   imports: [
     BrowserModule,
