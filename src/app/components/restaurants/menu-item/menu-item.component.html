@@ -1,0 +1,36 @@
+<div class="media mt-1 {{mi.disabled ? 'app-muted' : ''}}">
+  <div class="media-left" *ngIf="getMiImageUrl(mi)">
+    <img class="media-object img-rounded app-menu-thumbnail" src="{{getMiImageUrl(mi)}}" alt="{{mi.name}}">
+    <div *ngIf="hasInventory()">
+      <div *ngIf="mi.inventory === 0" class="text-danger">Sold out.</div>
+      <div *ngIf="mi.inventory > 0 && mi.inventory < 10" class="text-danger">Only {{mi.inventory}} left.</div>
+      <div *ngIf="mi.inventory >= 10" class="text-muted">{{mi.inventory}} in stock.</div>
+    </div>
+  </div>
+  <div class="media-body">
+    <table width="100%">
+      <tr>
+        <td valign="top">
+          <h5 class="media-heading">{{mi.name}}</h5>
+          <p *ngIf="mi.description" class="text-muted">{{mi.description}}</p>
+          <div *ngFor="let i of mi.menuOptionIds || []">
+            <small>{{getDescriptionOfMenuOptionId(i)}}</small>
+          </div>
+          <div *ngIf="getSpicy()">
+            <img *ngFor="let i of getSpicy()" src="/assets/images/pepper.png" alt="spicy!" height="33px" width="9px">
+          </div>
+          <!--in case there is no image, we show inventory under name and description-->
+          <div *ngIf="hasInventory() && !getMiImageUrl(mi)">
+            <div *ngIf="mi.inventory === 0" class="text-danger">Sold out.</div>
+            <div *ngIf="mi.inventory > 0 && mi.inventory < 10" class="text-danger">Only {{mi.inventory}} left.</div>
+            <div *ngIf="mi.inventory >= 10" class="text-muted">{{mi.inventory}} in stock.</div>
+          </div>
+
+        </td>
+        <td valign="top" align="right">
+          <p *ngFor="let p of mi.sizeOptions" class="text-right text-muted"><small>{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</small> {{p.price | currency:'USD':'symbol'}}</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

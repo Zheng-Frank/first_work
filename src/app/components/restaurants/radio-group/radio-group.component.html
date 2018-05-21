@@ -1,0 +1,11 @@
+<table class="table app-table-r {{bordered? 'table-bordered' : ''}} m-b-0 {{fixed? 'app-table-fixed' :''}}">
+  <tbody>
+    <tr>
+      <td *ngFor="let item of items" (click)="select(item)" role="button" class=" text-xs-center">
+        <span class="fa {{item.value === selectedValue ? 'fa-check-circle text-success' : 'fa-circle-thin'}}"></span>
+        {{item.name}}
+      </td> 
+      <td *ngIf="showOther" (click)="clickOther()" class="text-xs-center" role="button">Other</td>
+    </tr>
+  </tbody>
+</table>

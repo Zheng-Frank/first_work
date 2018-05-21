@@ -13,52 +13,52 @@
     </q-banner>
   </div>
 
+  <div class="card text-center">
+    <div class="card-header">
+      <ul class="nav nav-tabs card-header-tabs">
+        <li class="nav-item" *ngFor="let tab of tabs">
+          <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)" style="cursor: pointer;">{{tab}}</a>
+        </li>
+      </ul>
+    </div>
+    <div class="card-body">
 
-  <div class="row mt-4">
-    <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
-      <app-restaurant-profile [restaurant]="restaurant"></app-restaurant-profile>
-    </div>
-    <div class="col-xl-6" *ngIf="isSectionVisible('contacts')">
-      <app-restaurant-contacts [restaurant]="restaurant"></app-restaurant-contacts>
-    </div>
-    <div class="col-xl-6" *ngIf="isSectionVisible('rateSchedules')">
-      <app-restaurant-rate-schedules [restaurant]="restaurant"></app-restaurant-rate-schedules>
-    </div>
-    <div class="col-xl-6" *ngIf="isSectionVisible('serviceSettings')">
-      <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
-    </div>
-    <div class="col-xl-6" *ngIf="isSectionVisible('closedDays')">
-      <app-restaurant-closed-days [restaurant]="restaurant"></app-restaurant-closed-days>
-    </div>
-    <div class="col-xl-6" *ngIf="isSectionVisible('promotions')">
-      <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
-    </div>
-    <div class="col-xl-6" *ngIf="isSectionVisible('cloudPrinting')">
-      <app-restaurant-cloud-printing [restaurant]="restaurant"></app-restaurant-cloud-printing>
-    </div>
-  </div>
+      <div *ngIf="activeTab === 'Menus'">
+        <app-menus [restaurant]="restaurant"></app-menus>
+      </div>
 
-  <!-- <h3 class="text-center">Invoices</h3>
-  <app-invoices-table [invoices]="invoices"></app-invoices-table> -->
-  <div class="d-flex justify-content-around flex-wrap mt-4">
-    <div *ngFor="let r of getVisibleRoutes()" class="card text-center btn-card hvr-underline-from-center">
-      <div class="card-body" role="button" routerLink="{{r.route}}">
-        <h3 class="card-title">{{r.title}}</h3>
+      <div *ngIf="activeTab === 'Menu Options'">
+        <app-menu-options [restaurant]="restaurant"></app-menu-options>
+      </div>
+
+      <div *ngIf="activeTab === 'Invoices'">
+        <app-restaurant-invoices [restaurant]="restaurant"></app-restaurant-invoices>
+      </div>
+
+      <div class="row mt-4" *ngIf="activeTab === 'Settings'">
+        <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
+          <app-restaurant-profile [restaurant]="restaurant"></app-restaurant-profile>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('contacts')">
+          <app-restaurant-contacts [restaurant]="restaurant"></app-restaurant-contacts>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('rateSchedules')">
+          <app-restaurant-rate-schedules [restaurant]="restaurant"></app-restaurant-rate-schedules>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('serviceSettings')">
+          <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('closedDays')">
+          <app-restaurant-closed-days [restaurant]="restaurant"></app-restaurant-closed-days>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('promotions')">
+          <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('cloudPrinting')">
+          <app-restaurant-cloud-printing [restaurant]="restaurant"></app-restaurant-cloud-printing>
+        </div>
       </div>
     </div>
   </div>
-
-  <!-- <app-restaurant-profile [restaurant]="restaurant"></app-restaurant-profile>
-  <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
-
-  <app-restaurant-delivery-settings [restaurant]="restaurant"></app-restaurant-delivery-settings>
-
-  <app-restaurant-phone [restaurant]="restaurant"></app-restaurant-phone>
-  <div *ngIf="_db.isAccountantOrAdmin()">
-    <app-restaurant-rate-schedules [restaurant]="restaurant"></app-restaurant-rate-schedules>
-  </div>
-  <app-restaurant-closed-days [restaurant]="restaurant"></app-restaurant-closed-days>
-  <app-restaurant-cloud-printing [restaurant]="restaurant"></app-restaurant-cloud-printing> -->
-
 
 </div>

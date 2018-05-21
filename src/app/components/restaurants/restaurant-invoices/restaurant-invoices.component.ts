@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Order } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
@@ -19,7 +19,7 @@ export class RestaurantInvoicesComponent implements OnInit {
   @ViewChild('rateScheduleEditorModal') rateScheduleEditorModal: ModalComponent;
 
   // temp. using a shared service to get the value
-  restaurant: Restaurant;
+  @Input() restaurant: Restaurant;
 
   showInvoiceCreation = false;
   invoiceFromDate = null;

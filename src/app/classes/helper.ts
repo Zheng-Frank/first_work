@@ -1,15 +1,22 @@
+import { environment } from '../../environments/environment';
 declare var AWS: any;
 
 export class Helper {
-    static uploadImage(awsAccessKeyId, awsSecretAccessKey, files: File[], callback) {
-        if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
+
+    static awsAccessKeyId;
+    static awsSecretAccessKey;
+    static uploadImage(files: File[], callback) {
+        if(!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
+            callback('Missing AWS kyes. Contact qMenu.', null);
+        }
+        else if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
             callback('Invalid file type. Choose image only.', null);
         } else if (files && files.length > 0 && files[0].size > 10000000) {
             callback('The image size exceeds 10M.', null);
         } else {
 
-            AWS.config.accessKeyId = awsAccessKeyId;
-            AWS.config.secretAccessKey = awsSecretAccessKey;
+            AWS.config.accessKeyId = Helper.awsAccessKeyId;
+            AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
 
             let file = files[0];
             let uuid = new Date().valueOf();
@@ -39,5 +46,27 @@ export class Helper {
             return false;
         }
         return true;
+    }
+
+    static getFileName(url) {
+        if (!url) {
+            return url;
+        }
+        let fileNameIndex = url.lastIndexOf('/') + 1;
+        if (fileNameIndex <= 0) {
+            fileNameIndex = url.lastIndexOf('\\') + 1;
+        }
+        if (fileNameIndex <= 0) {
+            return url;
+        }
+        return url.substr(fileNameIndex);
+    }
+
+    static getThumbnailUrl(originalUrl): string {
+        return originalUrl && environment.thumnailUrl + this.getFileName(originalUrl);
+    }
+
+    static getNormalResUrl(originalUrl): string {
+        return originalUrl && environment.normalResUrl + this.getFileName(originalUrl);
     }
 }

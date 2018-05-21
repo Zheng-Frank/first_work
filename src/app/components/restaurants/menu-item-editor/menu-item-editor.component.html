@@ -1,0 +1,168 @@
+<div *ngIf="mi">
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+  <h4>{{mi.id ? mi.name: (mi.name || 'New Item')}}</h4>
+  <hr>
+  <!--brand new item: we guide user to make a choice, either from scratch or copy from existing-->
+  <div class="form-group" *ngIf="!mi.id">
+    <div *qIf="!finishedChoosingStartupAction">
+      <h6 class="mb-1">Copy from existing item?</h6>
+      <q-selector #startupActionSelector [values]="['Yes', 'No']" (onSelectValue)="startupActionSelected($event)"></q-selector>
+      <div *qIf="startupAction === 'Yes'">
+        <h6 class="mb-1 mt-1">Select item to copy:</h6>
+        <div class="form-group">
+          <input type="text" [(ngModel)]="searchText" class="form-control" placeholder="type name">
+        </div>
+
+        <ul class="list-group list-group-flush">
+          <li *ngFor="let mi of getSearchedMis()" (click)="selectMi(mi)" class="list-group-item">
+            {{mi.name}}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="mi && (mi.id || finishedChoosingStartupAction)">
+  <!--quick update section, only available when we editing old Mi-->
+  <div *ngIf="mi.id">
+    <app-switch (onSelectValue)="onSelectAvailability($event)" [selectedValue]="getAvailability()" [values]="availabilityValues"></app-switch>
+    <div class="form-group pt-1">
+      <label for="inventory">Inventory (库存量)</label>
+      <input [(ngModel)]="mi.inventory" type="number" class="form-control" id="inventory" placeholder="eg. 12">
+      <small class="form-text text-muted">Leave empty if inventory is not controlled. </small>
+    </div>
+    <!--price-->
+    <div class="form-group">
+      <label>Pricing:</label>
+      <app-options-editor [options]="mi.sizeOptions" [priceRequired]="true" [itemPlaceHolderString]="'size'" [pricePlaceHolderString]="'price'"
+        [suggestions]="sizeNames">
+      </app-options-editor>
+    </div>
+    <h6 class="mb-1 text-primary" role="button" (click)="showDetails = !showDetails">More details...</h6>
+  </div>
+
+  <div *qIf="showDetails || !mi.id">
+    <!--two columns, one for name, one for sorting order-->
+    <div class="row">
+      <div class="col-xs-8">
+        <div class="form-group {{!mi.name ? 'has-danger' : ''}}">
+          <label>Name:</label>
+          <input name="mi-name" type="text" class="form-control" [attr.list]="'mi-names-' + mi.id" [(ngModel)]="mi.name" placeholder="eg. spring rolls"
+            autofocus>
+        </div>
+        <datalist [id]="'mi-names-' + mi.id">
+          <option *ngFor="let miName of miNames" value="{{miName}}">
+        </datalist>
+      </div>
+      <div class="col-xs-4">
+        <div class="form-group">
+          <label for="mi-sort-order">Sequence:</label>
+          <input name="mi-order" type="number" class="form-control" id="mi-sort-order" [(ngModel)]="mi.sortOrder">
+        </div>
+      </div>
+    </div>
+
+    <!--description and order number-->
+    <div class="row">
+      <div class="col-xs-8">
+        <div class="form-group">
+          <label>Description:</label>
+          <input name="mi-description" type="text" class="form-control" [(ngModel)]="mi.description" placeholder="eg. source: New Zealand">
+        </div>
+      </div>
+      <div class="col-xs-4">
+        <div class="form-group">
+          <label for="mi-order-number">Number:</label>
+          <input type="text" class="form-control" id="mi-order-number" [(ngModel)]="mi.number" placeholder="A1, A2...">
+        </div>
+      </div>
+    </div>
+
+    <!--images section-->
+    <label>Images:</label>
+    <div *ngIf="mi.imageObjs">
+      <div *ngFor="let img of mi.imageObjs" class="pr-1 pb-1" style="display:inline-block; position:relative">
+        <img class="img-thumbnail app-thumbnail-h-6" src="{{img.originalUrl}}">
+        <button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+        <button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+      </div>
+    </div>
+    <div *ngIf="uploadImageError">
+      <span class="text-danger">{{uploadImageError}}</span>
+    </div>
+    <input type="file" (change)="onUploadImageChange($event)" />
+    <div><small class="text-warning">Image may take time to show</small></div>
+
+    <div *ngIf="!mi.id" class="form-group pt-1">
+      <label for="inventory">Inventory (库存量)</label>
+      <input [(ngModel)]="mi.inventory" type="number" class="form-control" id="inventory" placeholder="eg. 12">
+      <small class="form-text text-muted">Leave empty if inventory is not controlled. </small>
+    </div>
+    <hr>
+
+    <!--price-->
+    <div class="form-group">
+      <label>Pricing:</label>
+      <app-options-editor [options]="mi.sizeOptions" [priceRequired]="true" [itemPlaceHolderString]="'size'" [pricePlaceHolderString]="'price'"
+        [suggestions]="sizeNames">
+      </app-options-editor>
+    </div>
+
+    <!--taste or flavor-->
+    <div class="form-group">
+      <label><input type="checkbox" [checked]="mi.flavors" (change)="toggleFlavors()"> Flavor levels (optional)</label>
+      <div *qIf="mi.flavors">
+
+        <label>Spicy (max = 5):</label>
+        <q-selector #spicySelector [name]="'Spicy'" [values]="[1, 2, 3, 4, 5]"></q-selector>
+        <label>Sweet:</label>
+        <q-selector #sweetSelector [name]="'Sweet'" [values]="[1, 2, 3, 4, 5]"></q-selector>
+        <label>Sour:</label>
+        <q-selector #sourSelector [name]="'Sour'" [values]="[1, 2, 3, 4, 5]"></q-selector>
+
+      </div>
+    </div>
+    <hr>
+
+    <div class="form-group">
+      <label><input type="checkbox" [checked]="mi.promotional" (change)="mi.promotional=!mi.promotional"> Promotional</label>
+    </div>
+    <!--allow special instruactions?-->
+    <div class="form-group">
+      <label><input type="checkbox" [checked]="!mi.nonCustomizable" (change)="toggleCustomizable()"> Allow customer input instructions (eg. no garlic)</label>
+    </div>
+
+    <!--select menu options-->
+    <div>
+      <label><input type="checkbox" (change)="menuOptionIdsChange()" [checked] = "mi.menuOptionIds"> Select menu options for this item</label>
+    </div>
+    <div *ngIf="mi.menuOptionIds" class="pl-1">
+      <div *ngFor="let mo of menuOptions">
+        <div *ngIf="!isMenuOptionSelectedInMc(mo)" (click)="toggleMenuOption(mo)" role="button" class="mb-1">
+          <span class="fa {{isMenuOptionSelected(mo) ? 'fa-check-square-o' : 'fa-square-o'}}"></span> {{mo.name}}
+        </div>
+        <div *ngIf="isMenuOptionSelectedInMc(mo)" class="text-muted alert-warning mb-1">
+          <span class="fa fa-check-square-o"></span> {{mo.name}} (in category)
+        </div>
+      </div>
+
+      <div *ngIf="!menuOptions || menuOptions.length === 0">
+        No menu option is defined yet. Menu options will show up for selection after you create them.
+      </div>
+      <div><a class="btn btn-link text-primary" (click)="gotoMenuOptions()">Manage Menu Options</a></div>
+    </div>
+    <hr>
+  </div>
+
+  <div class="text-right">
+    <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">  
+          Cancel
+    </button>
+    <button *ngIf="mi.id" type="button" class="btn btn-link" (click)="delete()"> 
+      <span class="text-danger"> Delete</span>
+    </button>
+    <button type="button" class="btn btn-primary" (click)="ok()" [disabled]="!isValid()">
+          <span class="fa fa-ok"></span> &nbsp;&nbsp;OK&nbsp;&nbsp;&nbsp;&nbsp;
+    </button>
+  </div>
+
+</div>

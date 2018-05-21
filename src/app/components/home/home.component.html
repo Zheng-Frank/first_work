@@ -1,7 +1,7 @@
 <h1 class="text-center">qMenu Portal</h1>
 
 <div class="row">
-    <div class="col-sm-3">
+    <div class="col-sm-2">
         <div style="position: relative;">
             <input class="form-control" placeholder="name or phone" [(ngModel)]="searchTerm">
             <div class="search-overlay">
@@ -21,7 +21,7 @@
 
 
     </div>
-    <div class="col-sm-9 bg-light">
+    <div class="col-sm-10 bg-light">
         <div *ngIf="!selectedRestaurant" class="py-4">No restaurant selected. Please search and select restaurant.</div>
         <div *ngIf="selectedRestaurant">
             <app-restaurant-details [id]="selectedRestaurant?._id"></app-restaurant-details>

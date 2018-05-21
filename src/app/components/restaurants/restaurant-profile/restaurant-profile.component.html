@@ -8,10 +8,17 @@
 				<table class="table table-borderless table-sm">
 					<tbody>
 						<tr>
+							<th class="text-right">ID</th>
+							<td class="pl-1">{{restaurant._id}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">Alias</th>
+							<td class="pl-1">{{restaurant.alias}}</td>
+						</tr>
+						<tr>
 							<th class="text-right">Website Broadcast</th>
 							<td class="pl-1">{{restaurant.notification || 'N/A'}}</td>
 						</tr>
-
 						<tr>
 							<th class="text-right">Time Estimate for Pickup</th>
 							<td class="pl-1">{{restaurant.pickupTimeEstimate || 'N/A'}} minutes</td>
@@ -20,10 +27,7 @@
 							<th class="text-right">Time Estimate for Delivery</th>
 							<td class="pl-1">{{restaurant.deliveryTimeEstimate || 'N/A'}} minutes</td>
 						</tr>
-						<tr>
-							<th class="text-right">Address</th>
-							<td class="pl-1">{{restaurant.address?.formatted_address}}</td>
-						</tr>
+
 						<tr>
 							<th class="text-right">Email</th>
 							<td class="pl-1">{{restaurant.email}}</td>
@@ -46,8 +50,12 @@
 
 						</tr>
 						<tr>
-							<th class="text-right">Allow Scheduling</th>
-							<td class="pl-1">{{!restaurant.disableScheduling}}</td>
+							<th class="text-right">Disable Scheduling</th>
+							<td class="pl-1">{{!!restaurant.disableScheduling}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">Preferred Language</th>
+							<td class="pl-1">{{restaurant.preferredLanguage}}</td>
 						</tr>
 						<tr>
 							<th class="text-right">Time Zone</th>
@@ -63,7 +71,7 @@
 				<table class="table table-borderless table-sm">
 					<tbody>
 						<tr>
-							<th class="text-right">Website Broadcast</th>
+							<th class="text-right" style="width: 33%">Website Broadcast</th>
 							<td class="pl-1">
 								<input type="text" [(ngModel)]="notification" class="form-control" placeholder="important message showing on website">
 							</td>
@@ -85,10 +93,6 @@
 							</td>
 						</tr>
 						<tr>
-							<tr>
-								<th class="text-right">Address</th>
-								<td class="pl-1">{{restaurant.address?.formatted_address}}</td>
-							</tr>
 							<tr>
 								<th class="text-right">Email</th>
 								<td class="pl-1 {{isEmailValid() ? '' : 'has-danger'}}">
@@ -125,9 +129,19 @@
 								</td>
 							</tr>
 							<tr>
-								<th class="text-right">Allow Scheduling</th>
+								<th class="text-right">Disable Scheduling</th>
 								<td class="pl-1">
-									<input type="checkbox" [(ngModel)]="allowScheduling">
+									<input type="checkbox" [(ngModel)]="disableScheduling">
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">Order Call Language</th>
+								<td class="pl-1">
+									<select class="form-control" [(ngModel)]="preferredLanguage">
+										<option *ngFor="let language of preferredLanguages" [ngValue]="language">
+											{{ language.text }}
+										</option>
+									</select>
 								</td>
 							</tr>
 							<tr>
@@ -140,37 +154,38 @@
 									</select>
 								</td>
 							</tr>
-
 							<tr>
 								<th class="text-right">Logo</th>
 								<td class="pl-1">
 									<hr>
-									<div *ngIf="logo" class="p-r-1 p-b-1" style="display:inline-block; position:relative">
-										<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
-										<button (click)="deleteLogo(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-										<button (click)="deleteLogo(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+									<div *ngIf="logo" style="display:inline-block; position:relative">
+										<img class="img-thumbnail" src="{{logo}}">
+										<button (click)="deleteLogo(img)" class="btn btn-secondary" style="position:absolute; top:0.4rem; right:0.4rem; opacity:0.7"><i class="fas fa-times"></i></button>
+										<button (click)="deleteLogo(img)" class="btn btn-link text-danger" style="position:absolute; top:0.4rem; right:0.4rem">
+											<i class="fas fa-times"></i>
+										</button>
 									</div>
 									<div *ngIf="uploadLogoError">
-										<span class="text-danger">{{uploadLogoError}}</span>
+										<span class="text-danger">{{uploadError}}</span>
 									</div>
 									<div class="app-limit-file">
-										<input type="file" (change)="onUploadLogo($event)" />
+										<input type="file" (change)="onUpload($event, 'LOGO')" />
 									</div>
 								</td>
 							</tr>
 							<tr>
 								<th class="text-right">Photos</th>
 								<td class="pl-1">
-									<div *ngFor="let img of images" class="p-r-1 p-b-1" style="display:inline-block; position:relative">
-										<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
-										<button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-										<button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+									<div *ngFor="let img of images"  style="display:inline-block; position:relative">
+										<img class="img-thumbnail" src="{{img}}">
+										<button (click)="deleteImage(img)" class="btn btn-secondary" style="position:absolute; top:0.4rem; right:0.4rem; opacity:0.7"><i class="fas fa-times"></i></button>
+										<button (click)="deleteImage(img)" class="btn btn-link text-danger" style="position:absolute; top:0.4rem; right:0.4rem"><i class="fas fa-times"></i></button>
 									</div>
 									<div *ngIf="uploadImageError">
-										<span class="text-danger">{{uploadImageError}}</span>
+										<span class="text-danger">{{uploadError}}</span>
 									</div>
 									<div class="app-limit-file">
-										<input type="file" (change)="onUploadImage($event)" />
+										<input type="file" (change)="onUpload($event, 'IMAGE')" />
 									</div>
 									<div>
 										<small class="text-warning">Image may take time to show</small>

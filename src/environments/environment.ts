@@ -12,7 +12,9 @@ export const environment = {
   // qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/prod/",
   legacyApiUrl: "https://quez.herokuapp.com/",
   bizUrl: 'https://restaurant-quez.herokuapp.com/',
-  customerUrl: 'https://customer-app.herokuapp.com/'
+  customerUrl: 'https://customer-app.herokuapp.com/',
+  thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
+  normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/'
 };
 
 /*

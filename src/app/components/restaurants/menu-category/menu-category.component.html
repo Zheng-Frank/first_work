@@ -1,0 +1,25 @@
+<div class="card pb-1 {{mc.disabled ? 'app-muted' : ''}}">
+  <div (click)="clickMc()" role="button" class="app-category-header-container" [ngStyle]="{ 'background-image': 'url(' + getMcImageUrl(mc) + ')'}">
+    <div class="app-category-masking-layer"></div>
+    <div class="app-category-text-layer">
+      <h4 class="mb-1 text-center app-categoty-title">{{mc.name}}</h4>
+      <div><small>{{mc.description}}</small></div>
+      <div *ngFor="let i of mc.menuOptionIds || []">
+        <small>{{getDescriptionOfMenuOptionId(i)}}</small>
+      </div>
+      <p *ngIf="mc.addons" class="text-center"><small>Sides: {{getOptions(mc.addons.options)}}
+        <span *ngIf="mc.addons.quantity"> ({{mc.addons.quantity}} for free)</span>
+        <span *ngIf="mc.addons.description"><br>{{mc.addons.description}}</span></small></p>
+    </div>
+  </div>
+
+  <div class="row ml-0 mr-0">
+    <!-- row has negative margins and we need to remove them! -->
+    <div *ngFor="let item of mc.mis" (click)="clickMi(item)" role="button" class="col-sm-12 col-md-6 col-lg-4 ">
+      <app-menu-item [mi]="item" [menuOptions]="menuOptions" *ngIf="!serveTimeFilter || (item.serveTimes && item.serveTimes.indexOf(serveTimeFilter) >= 0)"></app-menu-item>
+    </div>
+  </div>
+  <div class="pl-1 pr-1 pt-1">
+    <a class="btn btn-secondary" role="button" (click)="clickMi(null)">Add Item</a>
+  </div>
+</div>

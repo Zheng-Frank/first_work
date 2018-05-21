@@ -1,0 +1,41 @@
+<h5>
+  {{menuOption.name}}</h5>
+<small>
+  <span *ngIf="menuOption.minSelection > 0" class="text-danger">Customer MUST select {{menuOption.maxSelection}}</span>
+  <span *ngIf="menuOption.minSelection <= 0">Select {{menuOption.maxSelection > 0 ? menuOption.maxSelection : 'any'}}, optional</span>
+</small>
+<table class="table table-bordered table-sm">
+  <thead>
+    <tr>
+      <th scope="col">Items</th>
+      <th scope="col" *ngIf="placements.length > 1">Placement</th>
+      <th scope="col" *ngIf="amounts.length > 1">Amount</th>
+      <th scope="col" *ngFor="let size of sizes">{{sizes.length > 1 ? size : 'Price'}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngFor="let row of groupedMaterialsAndItems">
+      <ng-container *ngFor="let placement of placements; let pIndex = index;">
+        <ng-container *ngFor="let amount of amounts; let aIndex = index">
+          <tr>
+            <td [attr.rowspan]="placements.length * amounts.length" *ngIf="pIndex===0 && aIndex=== 0" style="min-width: 40%">
+
+              <q-values [(ngModel)]="row.materials" [editDisabled]="true"></q-values>
+
+            </td>
+            <td [attr.rowspan]="amounts.length" *ngIf="aIndex === 0 && placements.length > 1">
+              {{placement}}
+            </td>
+            <td *ngIf="amounts.length > 1">
+              {{amount}}
+            </td>
+            <td *ngFor="let size of sizes">
+              {{row.pricing[placement][amount][size] || 0 | currency:'USD':true:'1.2-2'}}
+            </td>
+          </tr>
+        </ng-container>
+      </ng-container>
+    </ng-container>
+
+  </tbody>
+</table>

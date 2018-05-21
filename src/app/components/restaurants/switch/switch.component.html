@@ -1,0 +1,10 @@
+<table class="table table-bordered mb-0">
+  <tbody>
+    <tr>
+      <td class="{{selectedValue === values[0] ? 'bg-success' : 'bg-secondary'}} text-center" style="width: 50%" (click)="select(0)">
+        <span class="fa {{selectedValue === values[0] ? 'fa-check-circle' : 'fa-circle-thin'}}"></span> {{values[0]}}</td>
+      <td class="{{selectedValue === values[1] ? 'bg-danger' : 'bg-secondary'}} text-center" (click)="select(1)">
+        <span class="fa {{selectedValue === values[1] ? 'fa-check-circle' : 'fa-circle-thin'}}"></span> {{values[1]}}</td>
+    </tr>
+  </tbody>
+</table>

@@ -17,6 +17,28 @@ export class RestaurantProfileComponent implements OnInit {
 
   editing: boolean = false;
 
+  fields = [
+    'email',
+    'taxRate',
+    'surchargeAmount',
+    'surchargeName',
+    'pickupTimeEstimate',
+    'deliveryTimeEstimate',
+    'logo',
+    'images',
+    'stripeSecretKey',
+    'stripePublishableKey',
+    'offsetToEST',
+    'preferredLanguage',
+    'disableScheduling',
+    'notification',
+    'ccProcessingRate',
+    'ccProcessingFlatFee',
+    'deliveryBy'
+  ];
+
+  uploadError: string;
+
   email: string;
   taxRate: number;
   surchargeName;
@@ -25,16 +47,13 @@ export class RestaurantProfileComponent implements OnInit {
   deliveryTimeEstimate: number;
   logo: string;
   images: string[] = [];
-  uploadImageError: string;
-  uploadLogoError: string;
-  stripeSecretKey: string;
-  stripePublishableKey: string;
+
   ccProcessingRate: number;
-  ccProcessingFlatFee:number;
-  excludeAmex;
-  requireZipcode;
-  allowScheduling = true;
+  ccProcessingFlatFee: number;
+  disableScheduling = false;
   timeZone;
+  preferredLanguage;
+
   notification;
   timeZones = [
     { value: 0, text: 'Eastern Time (GMT -5:00)' },
@@ -45,6 +64,11 @@ export class RestaurantProfileComponent implements OnInit {
     { value: -5, text: 'Hawaii (GMT -10:00)' }
   ];
 
+  preferredLanguages = [
+    { value: 'ENGLISH', text: 'English' },
+    { value: 'CHINESE', text: 'Chinese' }
+  ];
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -52,52 +76,62 @@ export class RestaurantProfileComponent implements OnInit {
 
   toggleEditing() {
     this.editing = !this.editing;
+    this.fields.map(field => this[field] = this.restaurant[field]);
 
-    this.email = this.restaurant.email;
-    this.taxRate = this.restaurant.taxRate;
-    this.surchargeAmount = this.restaurant.surchargeAmount;
-    this.surchargeName = this.restaurant.surchargeName;
-    this.pickupTimeEstimate = this.restaurant.pickupTimeEstimate;
-    this.deliveryTimeEstimate = this.restaurant.deliveryTimeEstimate;
-    
-    this.logo = this.restaurant.logo;
+    // special fields
     this.images = this.restaurant.images || [];
-    this.excludeAmex = this.restaurant.excludeAmex;
-    this.requireZipcode = this.restaurant.requireZipcode;
-    this.allowScheduling = !this.restaurant.disableScheduling;
-    this.timeZone = this.timeZones.find(z => z.value === (this.restaurant.offsetToEST || 0));
-    this.notification = this.restaurant.notification;
-    this.ccProcessingRate = this.restaurant.ccProcessingRate;
-    this.ccProcessingFlatFee = this.restaurant.ccProcessingFlatFee;
-
-    this.stripeSecretKey = this.restaurant.stripeSecretKey;
-    this.stripePublishableKey = this.restaurant.stripePublishableKey;
+    this.timeZone = this.timeZones.filter(z => z.value === (this.restaurant.offsetToEST || 0))[0];
+    this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
   }
+
   isEmailValid() {
     return !this.email || this.email.match(/\S+@\S+\.\S+/);
   }
 
   ok() {
-    this.restaurant.email = this.email;
-    this.restaurant.taxRate = +this.taxRate;
-    this.restaurant.surchargeAmount = +this.surchargeAmount;
-    this.restaurant.surchargeName = this.surchargeName;
-    this.restaurant.pickupTimeEstimate = +this.pickupTimeEstimate;
-    this.restaurant.deliveryTimeEstimate = +this.deliveryTimeEstimate;
 
-    this.restaurant.logo = this.logo;
-    this.restaurant.images = this.images;
-    this.restaurant.stripeSecretKey = this.stripeSecretKey;
-    this.restaurant.stripePublishableKey = this.stripePublishableKey;
-    this.restaurant.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
-    this.restaurant.disableScheduling = !this.allowScheduling;
-    this.restaurant.notification = this.notification;
+    const oldObj = { _id: this.restaurant['_id'] };
+    const newObj = { _id: this.restaurant['_id'] } as any;
+    this.fields.map(field => {
+      oldObj[field] = this.restaurant[field];
+      newObj[field] = this[field];
+    });
 
-    this.restaurant.ccProcessingRate = this.ccProcessingRate;
-    this.restaurant.ccProcessingFlatFee = this.ccProcessingFlatFee;
+    // make sure types are correct!
+    newObj.taxRate = +this.taxRate || undefined;
+    newObj.surchargeAmount = +this.surchargeAmount || undefined;
+    newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
+    newObj.deliveryTimeEstimate = +this.deliveryTimeEstimate || undefined;
 
+
+    newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
+    newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
     // update those two fields!
-    // this._controller.updateRestaurant(this.restaurant);
+    console.log(oldObj)
+    this._api
+      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+        {
+          old: oldObj,
+          new: newObj
+        }])
+      .subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
+
+          // assign new values to restaurant
+          this.fields.map(f => this.restaurant[f] = newObj[f]);
+
+          this.editing = false;
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
+      );
+
     this.editing = false;
   }
 
@@ -105,35 +139,44 @@ export class RestaurantProfileComponent implements OnInit {
     this.editing = false;
   }
 
-  // logo related
-  onUploadLogo(event) {
-    this.uploadLogoError = undefined;
+  // upload logo or image
+
+  onUpload(event, type) {
+    this.uploadError = undefined;
     let files = event.target.files;
-    Helper.uploadImage('', '', files, (err, data) => {
-      if (err) {
-        this.uploadLogoError = err;
-      } else if (data && data.Location) {
-        this.logo = data.Location;
-      }
-    });
+
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "key",
+      projection: {
+        awsAccessKeyId: 1,
+        awsSecretAccessKey: 1
+      },
+      limit: 1
+    })
+      .subscribe(keys => {
+        Helper.uploadImage(files, (err, data) => {
+          if (err) {
+            this.uploadError = err;
+          } else if (data && data.Location) {
+            if (type === 'LOGO') {
+              this.logo = data.Location;
+            } else {
+              this.images = this.images || [];
+              this.images.push(data.Location);
+            }
+          }
+        });
+      }, error => {
+        this.uploadError = error;
+      });
   }
+
 
   deleteLogo(url) {
     this.logo = undefined;
   }
 
-  // images related
-  onUploadImage(event) {
-    this.uploadImageError = undefined;
-    let files = event.target.files;
-    Helper.uploadImage('', '', files, (err, data) => {
-      if (err) {
-        this.uploadImageError = err;
-      } else if (data && data.Location) {
-        this.images.push(data.Location);
-      }
-    });
-  }
+
   deleteImage(url) {
     let index = this.images.indexOf(url);
     if (index >= 0) {

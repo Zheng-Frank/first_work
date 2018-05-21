@@ -1,0 +1,31 @@
+<h2 class="text-center pb-1">Menu Options</h2>
+<div class="container-fluid">
+  <div class="row">
+    <div *ngFor="let mo of getMenuOptions()" class="col-sm-6">
+
+      <div class="mycard">
+        <app-menu-option-viewer [menuOption]="mo"></app-menu-option-viewer>
+
+        <div (click)="editMenuOption(mo)" role="button">
+          <a class="card-link text-primary">Edit</a>
+        </div>
+      </div>
+
+
+
+    </div>
+  </div>
+
+  <div class="row mt-1 ml-0 mr-0">
+    <button (click)="editMenuOption(null)" class="btn btn-primary btn-block">Add New</button>
+  </div>
+
+  <q-modal #menuOptionEditingModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">{{editingTitle}}</h4>
+    <hr>
+    <app-menu-option-editor [menuOption]="menuOptionInEditing" #menuOptionEditor (submit)="moDone($event)" (cancel)="moCancel($event)"
+      (remove)="moDelete(menuOptionInEditing)"></app-menu-option-editor>
+  </q-modal>

@@ -1,0 +1,39 @@
+<div *ngIf="menu" class="{{menu.disabled ? 'app-muted' : ''}}">
+  <!--header of menu-->
+  <div (click)="edit()" class="app-category-header-container app-jumbo" [ngStyle]="{ 'background-image': 'url(' + getMenuImageUrl() + ')'}" role="button">
+    <div class="app-category-masking-layer"></div>
+    <div class="app-category-text-layer">
+
+      <h2 class="text-center">{{menu.name}}</h2>
+      <h4 *ngIf="menu.nontaxable" class="text-center  text-danger">NO TAX</h4>
+      <small>
+        <div *ngIf="menu.description" class="card-subtitle">{{menu.description}}</div>
+        <div class="text-center">
+          <q-hours-viewer [offsetToEST]="offsetToEST" [hours]="menu.hours ? menu.hours : []"></q-hours-viewer>
+        </div>
+      </small>
+    </div>
+  </div>
+  <div style="height: 20px"></div>
+
+  <!--category cards-->
+  <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)" (onMiClicked)="editMi($event)">
+  </app-menu-category>
+
+  <!--add category section-->
+  <div class="row mt-1 ml-0 mr-0">
+    <button (click)="editMc(null)" class="btn btn-primary btn-block">Add Category</button>
+  </div>
+  <div class="row mt-1 ml-0 mr-0">
+    <small class="text-muted">* click item to edit</small>
+  </div>
+</div>
+
+<q-modal #mcModal>
+  <app-menu-category-editor #mcEditor (onDone)="mcDone($event)" (onCancel)="mcCancel($event)" (onDelete)="mcDelete($event)"></app-menu-category-editor>
+</q-modal>
+<q-modal #miModal>
+  <!--size names: if use get method, it keeps changing detection-->
+  <app-menu-item-editor #miEditor (onDone)="miDone($event)" (onCancel)="miCancel($event)" (onDelete)="miDelete($event)"></app-menu-item-editor>
+</q-modal>
+

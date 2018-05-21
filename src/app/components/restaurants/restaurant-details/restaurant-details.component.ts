@@ -16,6 +16,16 @@ import { Invoice } from '../../../classes/invoice';
 export class RestaurantDetailsComponent implements OnInit, OnChanges {
   restaurant: Restaurant;
   @Input() id;
+
+  tabs = [
+    "Settings",
+    "Menus",
+    "Menu Options",
+    "Orders",
+    "Invoices"
+  ];
+  activeTab = 'Settings';
+
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
 
   }
@@ -48,7 +58,32 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
           customizedRenderingStyles: 1,
           printerSN: 1,
           printerKey: 1,
-          printers: 1
+          printers: 1,
+
+          // profile needed fields
+
+          email: 1,
+          taxRate: 1,
+          surchargeAmount : 1,
+          surchargeName : 1,
+          pickupTimeEstimate : 1,
+          deliveryTimeEstimate: 1,
+          logo: 1,
+          excludeAmex: 1,
+          requireZipcode: 1,
+          allowScheduling: 1,
+          timeZone: 1,
+          notification: 1,
+          ccProcessingRate: 1,
+          ccProcessingFlatFee: 1,
+          stripeSecretKey: 1,
+          stripePublishableKey: 1,
+          preferredLanguage: 1,
+
+          deliveryByTme: 1,
+
+          menus: 1,
+          menuOptions: 1
         },
         limit: 1
       })
@@ -61,6 +96,10 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
           }
         );
     }
+  }
+
+  setActiveTab(tab) {
+    this.activeTab = tab;
   }
 
 
@@ -89,21 +128,21 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
 
   getVisibleRoutes() {
     const routes = [
-      // {
-      //   title: 'Menus',
-      //   route: 'menus',
-      //   roles: ['ADMIN', 'MENU_EDITOR']
-      // },
-      // {
-      //   title: 'Menu Options',
-      //   route: 'menu-options',
-      //   roles: ['ADMIN', 'MENU_EDITOR']
-      // },
-      // {
-      //   title: 'Orders',
-      //   route: 'orders',
-      //   roles: ['ADMIN', 'ACCOUNTANT']
-      // },
+      {
+        title: 'Menus',
+        route: '/restaurants/' + this.restaurant['_id'] + '/menus',
+        roles: ['ADMIN', 'MENU_EDITOR']
+      },
+      {
+        title: 'Menu Options',
+        route: '/restaurants/' + this.restaurant['_id'] + '/menu-options',
+        roles: ['ADMIN', 'MENU_EDITOR']
+      },
+      {
+        title: 'Orders',
+        route: '/restaurants/' + this.restaurant['_id'] + '/orders',
+        roles: ['ADMIN', 'CSR']
+      },
       {
         title: 'Invoices',
         route: '/restaurants/' + this.restaurant['_id'] + '/invoices',

@@ -1,0 +1,101 @@
+<div *ngIf="menuOption">
+  <div class="form-group">
+    <label>Name:</label>
+    <input type="text" class="form-control" [(ngModel)]="menuOption.name">
+    <small class="text-danger" *ngIf="!menuOption.name">Required</small>
+  </div>
+
+  <div class="form-group">
+    <label>Min quantity a customer must select:</label>
+    <q-selector #selectorMinQuantity [values]="minQuantities"></q-selector>
+  </div>
+  <div class="form-group">
+    <label>Max quantity a customer can select:</label>
+    <q-selector #selectorMaxQuantity [values]="maxQuantities"></q-selector>
+    <div *ngIf="!selectorMaxQuantity.getFirstSelectedValue()" class="text-danger">
+      <small>Max quantity is not selected</small>
+    </div>
+    <div *ngIf="selectorMaxQuantity.selectedValues[0] !== 'Any' && +selectorMaxQuantity.selectedValues[0] < +selectorMinQuantity.selectedValues[0]"
+      class="text-danger">
+      <small>Max quantity can't be smaller than min quantity</small>
+    </div>
+
+  </div>
+
+  <label>For Sizes:</label>
+  <small> (don't edit if not size dependent)</small>
+  <div class="form-group">
+    <q-edit-label [value]="getString(sizes)" (edit)="onEdit($event, sizes)"></q-edit-label>
+  </div>
+
+  <label>Placements:</label>
+  <small> (don't edit if not size dependent)</small>
+  <div class="form-group">
+    <q-edit-label [value]="getString(placements)" (edit)="onEdit($event, placements)"></q-edit-label>
+  </div>
+
+  <label>Amounts:</label>
+  <small> (don't edit if not size dependent)</small>
+
+  <div class="form-group">
+    <q-edit-label [value]="getString(amounts)" (edit)="onEdit($event, amounts)"></q-edit-label>
+
+  </div>
+
+  Pricing ($):
+  <table class="table table-bordered table-sm">
+    <thead>
+      <tr>
+        <th scope="col">Items</th>
+        <th scope="col" *ngIf="placements.length > 1">Placement</th>
+        <th scope="col" *ngIf="amounts.length > 1">Amount</th>
+        <th class="price-col" *ngFor="let size of sizes">{{sizes.length > 1 ? size : 'Price'}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let row of groupedMaterialsAndItems">
+        <ng-container *ngFor="let placement of placements; let pIndex = index;">
+          <ng-container *ngFor="let amount of amounts; let aIndex = index">
+            <tr>
+              <td [attr.rowspan]="placements.length * amounts.length" *ngIf="pIndex===0 && aIndex=== 0" style="min-width: 40%">
+                <q-edit-label [value]="getString(row.materials)" (edit)="onEdit($event, row.materials)"></q-edit-label>
+                <div>
+                  <button class="btn btn-sm btn-link text-danger" (click)="removeRow(row)">Delete Row</button>
+                </div>
+              </td>
+              <td [attr.rowspan]="amounts.length" *ngIf="aIndex === 0 && placements.length > 1">
+                {{placement}}
+              </td>
+              <td *ngIf="amounts.length > 1">
+                {{amount}}
+              </td>
+              <td *ngFor="let size of sizes" class="price-col">
+                <input type="number" class="form-control form-control-sm" [(ngModel)]="row.pricing[placement][amount][size]">
+              </td>
+            </tr>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+      <tr>
+        <td [attr.colspan]="4 + sizes.length">
+          <button class="btn btn-sm btn-link" (click)="add()">
+            <i class="fa fa-plus-circle"></i> Add Row</button>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!--action bar-->
+  <div class="text-right pt-1">
+    <button type="button" class="btn btn-link" (click)="formCancel()" data-dismiss="modal">
+      Cancel
+    </button>
+    <button *ngIf="menuOption.id" type="button" class="btn btn-link" (click)="formRemove()">
+      <span class="text-danger"> Delete</span>
+    </button>
+    <button type="button" class="btn btn-primary" (click)="formSubmit()" [disabled]="!isValid()">
+      <span class="fa fa-ok"></span> OK
+    </button>
+  </div>
+</div>

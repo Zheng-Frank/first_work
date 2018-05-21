@@ -58,6 +58,19 @@ import { PromotionViewerComponent } from './components/restaurants/promotion-vie
 import { RestaurantPromotionsComponent } from './components/restaurants/restaurant-promotions/restaurant-promotions.component';
 import { RestaurantClosedDaysComponent } from './components/restaurants/restaurant-closed-days/restaurant-closed-days.component';
 import { RestaurantProfileComponent } from './components/restaurants/restaurant-profile/restaurant-profile.component';
+import { MenuComponent } from './components/restaurants/menu/menu.component';
+import { MenuCategoryComponent } from './components/restaurants/menu-category/menu-category.component';
+import { MenuCategoryEditorComponent } from './components/restaurants/menu-category-editor/menu-category-editor.component';
+import { MenuEditorComponent } from './components/restaurants/menu-editor/menu-editor.component';
+import { MenuItemComponent } from './components/restaurants/menu-item/menu-item.component';
+import { MenuItemEditorComponent } from './components/restaurants/menu-item-editor/menu-item-editor.component';
+import { MenuOptionViewerComponent } from './components/restaurants/menu-option-viewer/menu-option-viewer.component';
+import { MenuOptionsComponent } from './components/restaurants/menu-options/menu-options.component';
+import { MenusComponent } from './components/restaurants/menus/menus.component';
+import { OptionsEditorComponent } from './components/restaurants/options-editor/options-editor.component';
+import { MenuOptionEditorComponent } from './components/restaurants/menu-option-editor/menu-option-editor.component';
+import { SwitchComponent } from './components/restaurants/switch/switch.component';
+import { RadioGroupComponent } from './components/restaurants/radio-group/radio-group.component';
 
 @NgModule({
   declarations: [
@@ -104,7 +117,20 @@ import { RestaurantProfileComponent } from './components/restaurants/restaurant-
     PromotionViewerComponent,
     RestaurantPromotionsComponent,
     RestaurantClosedDaysComponent,
-    RestaurantProfileComponent
+    RestaurantProfileComponent,
+    MenuComponent,
+    MenuCategoryComponent,
+    MenuCategoryEditorComponent,
+    MenuEditorComponent,
+    MenuItemComponent,
+    MenuItemEditorComponent,
+    MenuOptionEditorComponent,
+    MenuOptionViewerComponent,
+    MenuOptionsComponent,
+    MenusComponent,
+    OptionsEditorComponent,
+    SwitchComponent,
+    RadioGroupComponent,
   ],
   imports: [
     BrowserModule,

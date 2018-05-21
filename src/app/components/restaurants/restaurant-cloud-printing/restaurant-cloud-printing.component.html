@@ -89,7 +89,7 @@
 
           <tr>
             <td>Default Printer</td>
-            <td class="p-l-1 p-t-1 p-b-1">
+            <td class="pl-1 pt-1 pb-1">
 
               <select [(ngModel)]="defaultPrinter" class="form-control">
                 <option *ngFor="let printer of printers" [ngValue]="printer">{{printer.name}}</option>
@@ -100,7 +100,7 @@
               <div *ngIf="printers.length > 1" class="text-success">
                 <small>Select default printer from the list</small>
               </div>
-              <div class="text-xs-right p-t-05">
+              <div class="text-right pt-05">
                 <button class="btn btn-default fa fa-refresh" (click)="queryPrinters()"> Refresh</button>
               </div>
               <div *ngIf="queryPrintersError" class="text-danger">

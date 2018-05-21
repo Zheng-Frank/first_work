@@ -1,0 +1,26 @@
+<div class="form-group" *ngFor="let option of options; let i= index">
+  <div class="row">
+    <div class="col-xs-6">
+      <input (change)="optionChanged(option)" type="text" [(ngModel)]="option.name" class="form-control" [placeholder]="itemPlaceHolderString"
+        [attr.list]="uniqueId">
+    </div>
+    <div class="col-xs-6 {{!isPriceValid(option) ? 'has-danger' : ''}}">
+      <input type="number" [(ngModel)]="option.price" class="form-control" [placeholder]="pricePlaceHolderString">
+    </div>
+  </div>
+</div>
+<datalist [id]="uniqueId">
+  <option *ngFor="let suggestion of suggestions" value="{{suggestion}}">
+</datalist>
+<!--<div class="form-group" *ngFor="let option of getOptionsPlus1(options); let i= index">
+  <div class="row">
+    <div class="col-xs-6">
+      <input [formControl]="nameBox" (change)="optionChanged(options, option)" type="text" [(ngModel)]="option.name" class="form-control"
+        [placeholder]="itemPlaceHolderString" [attr.list]="uniqueId">
+    </div>
+    <div class="col-xs-6">
+      <input type="number" [(ngModel)]="option.price" class="form-control" [placeholder]="pricePlaceHolderString">
+    </div>
+  </div>
+</div>
+-->
