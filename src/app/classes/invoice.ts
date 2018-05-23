@@ -31,6 +31,7 @@ export class Invoice {
   restaurantCcCollected: number;
   stripeFee: number;
   commission: number;
+  ccProcessingFee: number; // customer paid as part of an order
   // balance: from restaurant to qMenu
   balance: number;
   rateAverage: number;
@@ -40,7 +41,7 @@ export class Invoice {
     ['tax', 'tip', 'surcharge', 'deliveryCharge',
       'thirdPartyDeliveryCharge', 'thirdPartyDeliveryTip',
       'subtotal', 'adjustment', 'total', 'cashCollected',
-      'qMenuCcCollected', 'restaurantCcCollected',
+      'qMenuCcCollected', 'restaurantCcCollected', 'ccProcessingFee',
       'stripeFee', 'commission', 'balance', 'rateAverage', 'totalPayments']
       .map(field => this[field] = this['get' + field[0].toUpperCase() + field.substr(1)]());
   }
@@ -126,6 +127,10 @@ export class Invoice {
   getStripeFee() {
     // restaurant.creditCardProcessingMethod === 'Email' or order.paymentType === 'CASH'
     return (this.orders || []).reduce((sum, o) => sum + ((o.paymentType === 'CREDITCARD' && o.payee === 'qMenu') ? (+((+(+o.total).toFixed(2)) * 0.029 + 0.30).toFixed(2) || 0) : 0) * (o.canceled ? 0 : 1), 0);
+  }
+
+  getCcProcessingFee() {
+    return (this.orders || []).reduce((sum, o) => sum + (+(+o.ccProcessingFee).toFixed(2) || 0) * (o.canceled ? 0 : 1), 0);
   }
 
   getCommission() {
