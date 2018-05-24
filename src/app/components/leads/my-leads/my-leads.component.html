@@ -2,7 +2,7 @@
 <div class="text-danger">Select agent:</div>
 <q-select [items]="selectAgents" [maxSelection]="selectAgents.length" (select)="agentFilter($event)"></q-select>
 
-<div class="card text-center">
+<div class="card text-center mt-2">
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item" *ngFor="let tab of tabs">

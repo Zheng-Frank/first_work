@@ -82,8 +82,8 @@
     <div *ngIf="mi.imageObjs">
       <div *ngFor="let img of mi.imageObjs" class="pr-1 pb-1" style="display:inline-block; position:relative">
         <img class="img-thumbnail app-thumbnail-h-6" src="{{img.originalUrl}}">
-        <button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-        <button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+        <button (click)="deleteImage(img)" class="btn btn-secondary fas fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+        <button (click)="deleteImage(img)" class="btn btn-link fas fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
       </div>
     </div>
     <div *ngIf="uploadImageError">
@@ -138,10 +138,10 @@
     <div *ngIf="mi.menuOptionIds" class="pl-1">
       <div *ngFor="let mo of menuOptions">
         <div *ngIf="!isMenuOptionSelectedInMc(mo)" (click)="toggleMenuOption(mo)" role="button" class="mb-1">
-          <span class="fa {{isMenuOptionSelected(mo) ? 'fa-check-square-o' : 'fa-square-o'}}"></span> {{mo.name}}
+          <span class="far {{isMenuOptionSelected(mo) ? 'fa-check-square' : 'fa-square'}}"></span> {{mo.name}}
         </div>
         <div *ngIf="isMenuOptionSelectedInMc(mo)" class="text-muted alert-warning mb-1">
-          <span class="fa fa-check-square-o"></span> {{mo.name}} (in category)
+          <span class="far fa-check-square"></span> {{mo.name}} (in category)
         </div>
       </div>
 
@@ -161,7 +161,7 @@
       <span class="text-danger"> Delete</span>
     </button>
     <button type="button" class="btn btn-primary" (click)="ok()" [disabled]="!isValid()">
-          <span class="fa fa-ok"></span> &nbsp;&nbsp;OK&nbsp;&nbsp;&nbsp;&nbsp;
+          <span class="fas fa-check"></span> &nbsp;&nbsp;OK&nbsp;&nbsp;&nbsp;&nbsp;
     </button>
   </div>
 

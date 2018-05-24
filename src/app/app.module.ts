@@ -71,6 +71,12 @@ import { OptionsEditorComponent } from './components/restaurants/options-editor/
 import { MenuOptionEditorComponent } from './components/restaurants/menu-option-editor/menu-option-editor.component';
 import { SwitchComponent } from './components/restaurants/switch/switch.component';
 import { RadioGroupComponent } from './components/restaurants/radio-group/radio-group.component';
+import { GmbDeleteRestaurantComponent } from './components/gmbs/gmb-delete-restaurant/gmb-delete-restaurant.component';
+import { VerificationCodeRetrieverComponent } from './components/gmbs/verification-code-retriever/verification-code-retriever.component';
+import { GmbRequestOwnershipComponent } from './components/gmbs/gmb-request-ownership/gmb-request-ownership.component';
+import { GmbEditorComponent } from './components/gmbs/gmb-editor/gmb-editor.component';
+import { GmbCardComponent } from './components/gmbs/gmb-card/gmb-card.component';
+import { BusinessEditorComponent } from './components/gmbs/business-editor/business-editor.component';
 
 @NgModule({
   declarations: [
@@ -131,6 +137,14 @@ import { RadioGroupComponent } from './components/restaurants/radio-group/radio-
     OptionsEditorComponent,
     SwitchComponent,
     RadioGroupComponent,
+    VerificationCodeRetrieverComponent,
+    GmbRequestOwnershipComponent,
+    GmbWatchComponent,
+    GmbInfoComponent,
+    GmbEditorComponent,
+    GmbDeleteRestaurantComponent,
+    GmbCardComponent,
+    BusinessEditorComponent
   ],
   imports: [
     BrowserModule,

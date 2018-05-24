@@ -1,0 +1,152 @@
+<!-- class="col-sm-12 col-md-6 col-lg-4 mb-2" -->
+
+<div class="card" style="height:100%;" *ngIf="gmb">
+
+  <div class="card-body">
+    <table class="table">
+      <tr>
+        <td>
+          <h2>{{emailTokens()[0]}}
+            <!-- <i *ngIf="scanning" class="fas fa-spinner fa-spin fa-fw text-muted"></i> -->
+            <!-- <small class="text-muted">@{{emailTokens()[1]}}</small> -->
+          </h2>
+        </td>
+        <td class="text-right">
+          <button class="btn btn-link" (click)="edit()">
+            <i class="far fa-edit"></i> Edit</button>
+          <button class="btn btn-link" [disabled]="scanning" (click)="refreshPublished()">
+            <i class="fas fa-lock"></i> Refresh Published List</button>
+          <button class="btn btn-link" [disabled]="scanning" (click)="scan()">
+            <i class="far fa-envelope "></i> Scan Email</button>
+        </td>
+      </tr>
+    </table>
+    <div class="row">
+
+      <ng-container *ngFor="let biz of getSortedBusinesses(gmb)">
+        <div *ngIf="isBizVisible(biz)" class="scale96 alert alert-{{biz.getStatus(now)}} col-sm-12 col-md-6 col-lg-4 col-xl-3">
+          <div style="position: absolute; right: 5px">
+            <a *ngIf="biz.pop3Email" href="mailto:{{biz.pop3Email}}" class="text-muted" title="{{biz.pop3Email}}">
+              <i class="far fa-envelope"></i>
+            </a>
+            <a href="{{biz.homepage}}" class="text-muted" title="{{biz.homepage}}">
+              <i class="fas fa-globe"></i>
+            </a>
+          </div>
+          <h5 class="text-center text-shadow text-nowrap {{!biz.isPublished && !getPublishedGmbAccount(biz.address).email ? 'text-danger' : ''}}"
+            role="button" (click)="toggleExpanded(biz)" style="cursor: pointer;">{{biz.name}}
+            <i class="fas fa-chevron-down {{isExpanded(biz) ? 'fa-rotate-180' : ''}}"></i>
+          </h5>
+          <div class="text-center text-muted">
+            <small>{{biz.address}}</small>
+          </div>
+          <div *ngIf="!biz.isPublished" class="text-center">
+            <i class="far fa-hand-point-right"></i> {{(getPublishedGmbAccount(biz.address).email || '').split('@')[0]}}</div>
+          <hr>
+          <div *qIf="isExpanded(biz)">
+
+            <div>
+              <button class="btn btn-link" (click)="editBusiness(biz)">
+                <i class="fas fa-cogs"></i> Email/Zipcode Settings</button>
+            </div>
+            <div>
+              <button class="btn btn-link" (click)="readEmail(biz)" [disabled]="!biz.pop3Host || !biz.pop3Email || !biz.pop3Password">
+                <i class="fas fa-key"></i> Read Email Code</button>
+            </div>
+            <div>
+              <button class="btn btn-link" (click)="requestOwnership(biz)" [disabled]="biz.isPublished || !biz.pop3Host || !biz.pop3Email || !biz.pop3Password || !biz.zipcode">
+                <i class="fas fa-user-plus"></i> Request Ownership</button>
+            </div>
+            <div>
+              <button class="btn btn-link" (click)="deleteOwnership(biz)" [disabled]="!gmb.password">
+                <i class="fas fa-user-times"></i> Remove Ownership</button>
+            </div>
+            <div>
+              <button class="btn btn-link" (click)="deleteFromListing(biz)" [disabled]="biz.isPublished">
+                <i class="fas fa-times"></i> Remove from List</button>
+            </div>
+            <div>
+              <button class="btn btn-link" (click)="markAsHandled(biz)" [disabled]="!canMarkAsHandled(biz)">
+                <i class="fas fa-check"></i> Mark as Handled</button>
+            </div>
+            <div>
+              <button class="btn btn-link" (click)="copyTo(biz)">
+                <i class="fas fa-angle-double-down"></i> Copy To</button>
+            </div>
+
+            <hr>
+          </div>
+
+          <div *ngFor="let request of getUnhandledRequests(biz)">
+            {{getDaysAgo(request.date)}} 天前
+            <span *ngIf="request.isReminder"> |
+              <i class="far fa-bell"></i>
+            </span> | {{(request.email || '').split('@')[0]}}
+            <span role="button" (click)="markRequestAsHandled(request)" *ngIf="shouldShowMark(biz, request)">|
+              <u>标为处理</u>
+            </span>
+          </div>
+          <div *ngIf="getHandledRequests(biz).length > 0" class="hide-details">
+            已处理：{{getHandledRequests(biz).length}}
+            <i class="fas fa-chevron-down"></i>
+            <div>
+              <div *ngFor="let request of getHandledRequests(biz)">
+                <del>{{getDaysAgo(request.date)}} 天前 | {{request.email}}</del>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!--the editing modal-->
+  <q-modal #businessEditingModal>
+    <app-business-editor [business]="businessInEditing" (onDone)="doneEditingBusiness(businessInEditing)"></app-business-editor>
+  </q-modal>
+
+  <div class="centered-axis-x">
+    <i *ngIf="scanning" class="fas fa-spinner fa-spin fa-fw text-muted"></i>
+  </div>
+
+  <q-modal #verificationCodeModal>
+    <h4 [ngClass]="{'text-danger': verification?.mismatch}">
+      {{verification?.mismatch? 'Bad Result: Name Mismatch' : verification.business}}
+    </h4>
+    <h4 *ngIf="verification.error" class="text-danger">
+      Error: {{verification.error}}
+    </h4>
+    <hr>
+    <h6>latest verificaiton code:</h6>
+    <div class="row">
+      <label class="col-2">Restaurant</label>
+      <div class="col-10" [ngClass]="{'text-danger': verification.nameMismatch }">
+        {{verification?.business}}
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-2">Time</label>
+      <div class="col-10" [ngClass]="{'text-danger': verification && verification.minutesAgo > 10 }">
+        {{verification?.minutesAgo}} minutes ago
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-2">Code</label>
+      <div class="col-10">
+        <b class="text-danger">{{verification?.code}}</b>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-2">Requester</label>
+      <div class="col-10">
+        {{verification?.email}}
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-block" data-dismiss="modal">OK</button>
+  </q-modal>
+
+  <!-- {{gmb |json}} -->
+</div>

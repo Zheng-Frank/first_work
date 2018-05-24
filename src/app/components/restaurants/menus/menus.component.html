@@ -9,7 +9,7 @@
         role="button">{{menu.name}}</a>
     </li>
     <li class="nav-item" *ngIf="getMenus().length > 0">
-      <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()" role="button"><span class="fa fa-plus-square"></span> Add New Menu</a>
+      <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()" role="button"><span class="far fa-plus-square"></span> Add New Menu</a>
     </li>
   </ul>
   </div>
@@ -34,5 +34,5 @@
     <app-menu-editor #menuEditor [offsetToEST]="restaurant.offsetToEST" (onDone)="onDoneEditing($event)" (onDelete)="onDelete($event)"></app-menu-editor>
   </q-modal>
 
-  <div class="app-plus"><button (click)="clickNew()" class="btn btn-link text-success fa fa-plus-circle"></button></div>
+  <div class="app-plus"><button (click)="clickNew()" class="btn btn-link text-success far fa-plus-circle"></button></div>
 </div>

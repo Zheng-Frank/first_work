@@ -22,7 +22,7 @@ export class GmbWatchComponent implements OnInit {
       query: {},
       limit: 1
     }).subscribe(watchlist => {
-      if(watchlist.length === 0) {
+      if (watchlist.length === 0) {
         this._global.publishAlert(AlertType.Danger, 'Please manually insert one gmb-watch document');
       } else {
         this.gmbWatch = watchlist[0];

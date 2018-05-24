@@ -34,8 +34,8 @@
 <div class="clearfix"></div>
 <div *ngIf="menu.backgroundImageUrl" class="pr-1 pb-1" style="display:inline-block; position:relative">
 <img class="img-thumbnail app-thumbnail-h-6" src="{{menu.backgroundImageUrl}}">
-<button (click)="deleteBackgroundImage()" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-<button (click)="deleteBackgroundImage()" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+<button (click)="deleteBackgroundImage()" class="btn btn-secondary fas fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+<button (click)="deleteBackgroundImage()" class="btn btn-link fas fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
 </div>
 
 <div *ngIf="uploadImageError">
@@ -55,7 +55,7 @@
       <span class="text-danger"> Delete</span>
     </button>
   <button type="button" class="btn btn-primary" (click)="ok()" [disabled]="!isValid()">
-      <span class="fa fa-ok"></span> OK
+      <span class="fas fa-check"></span> OK
     </button>
 </div>
 <div *qIf="clickedDelete">

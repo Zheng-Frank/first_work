@@ -10,11 +10,11 @@
   <div>Order Minimum: {{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
   <small>
     <div *ngIf="promotion.public">
-      <i class="fa fa-unlock"></i> Publicly displayed</div>
+      <i class="fas fa-unlock"></i> Publicly displayed</div>
     <div *ngIf="!promotion.public">
-      <i class="fa fa-lock"></i> Not displayed on webpage</div>
+      <i class="fas fa-lock"></i> Not displayed on webpage</div>
     <div *ngIf="promotion.newCustomerOnly">
-      <i class="fa fa-user-plus"></i> New customer only</div>
+      <i class="fas fa-user-plus"></i> New customer only</div>
     <div *ngIf="promotion.excludedMenuIds && promotion.excludedMenuIds.length > 0">
       Not Applicable: {{getExcludedMenus()}}
     </div>

@@ -12,9 +12,9 @@ export class GmbInfoComponent implements OnInit {
   @Output() scan = new EventEmitter();
 
   loading = false;
-  constructor() {}
+  constructor() { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   getGoogleQuery() {
     if (this.gmbInfo["address"]) {
@@ -22,8 +22,8 @@ export class GmbInfoComponent implements OnInit {
         "https://www.google.com/search?q=" +
         encodeURIComponent(
           this.gmbInfo["name"] +
-            " " +
-            this.gmbInfo["address"]["formatted_address"]
+          " " +
+          this.gmbInfo["address"]["formatted_address"]
         )
       );
     }
