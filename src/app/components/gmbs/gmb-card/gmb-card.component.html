@@ -44,10 +44,13 @@
             <i class="far fa-hand-point-right"></i> {{(getPublishedGmbAccount(biz.address).email || '').split('@')[0]}}</div>
           <hr>
           <div *qIf="isExpanded(biz)">
-
+            <div>
+              <button class="btn btn-link" (click)="viewContact(biz)">
+                  <i class="far fa-address-card"></i> View Contact</button>
+            </div>
             <div>
               <button class="btn btn-link" (click)="editBusiness(biz)">
-                <i class="fas fa-cogs"></i> Email/Zipcode Settings</button>
+                <i class="fas fa-cog"></i> Email / Zipcode Settings</button>
             </div>
             <div>
               <button class="btn btn-link" (click)="readEmail(biz)" [disabled]="!biz.pop3Host || !biz.pop3Email || !biz.pop3Password">
@@ -74,7 +77,23 @@
                 <i class="fas fa-angle-double-down"></i> Copy To</button>
             </div>
 
+            <div>
+              <button class="btn btn-link" (click)="postcardRequested(biz)" [disabled]="biz.isPublished">
+                  <i class="far fa-envelope"></i> Postcard Requested</button>
+            </div>
+            <div>
+              <button class="btn btn-link" (click)="postcardNotified(biz)" [disabled]="!biz.postcardActions || biz.postcardActions.length === 0">
+                  <i class="fas fa-phone-volume"></i> Postcard Notified</button>
+            </div>
+            <div>
+              <button class="btn btn-link" (click)="postcardCleared(biz)" [disabled]="!biz.postcardActions || biz.postcardActions.length === 0">
+                  <i class="fas fa-check"></i> Postcard Cleared</button>
+            </div>
             <hr>
+          </div>
+
+          <div *ngFor="let action of biz.postcardActions || []" class="{{getDaysAgo(action.time) > 1 ? 'text-warning' : ''}}">
+              {{getDaysAgo(action.time)}} 天前 | <i class="far fa-envelope"></i> Postcard {{action.action}}
           </div>
 
           <div *ngFor="let request of getUnhandledRequests(biz)">
@@ -94,7 +113,6 @@
                 <del>{{getDaysAgo(request.date)}} 天前 | {{request.email}}</del>
               </div>
             </div>
-
           </div>
 
         </div>

@@ -16,13 +16,21 @@ export class GmbCardComponent implements OnInit {
   @Input() gmb: Gmb;
   @Input() lostBusinessAddresses: Set<string> = new Set();
   @Input() allGmbs: Gmb[] = [];
+  
   @Input() nameFilter;
   @Input() redOnly = false;
   @Input() lostOnly = false;
+
+  @Input() bizFilter: any;
+
   @Output() onEdit = new EventEmitter();
   @Output() onUpdate = new EventEmitter();
   @Output() onCopyBusiness = new EventEmitter();
   @Output() onBusinessEmailUpdate = new EventEmitter<Business>();
+  @Output() onViewContact = new EventEmitter();
+  @Output() onPostcardRequested = new EventEmitter();
+  @Output() onPostcardNotified = new EventEmitter();
+  @Output() onPostcardCleared = new EventEmitter();
 
   @ViewChild('businessEditingModal') businessEditingModal;
 
@@ -42,7 +50,15 @@ export class GmbCardComponent implements OnInit {
     setInterval(() => { this.now = new Date(); }, 1000 * 60 * 10);
   }
 
+  viewContact(biz) {
+    this.onViewContact.emit(biz);
+  }
+
   isBizVisible(biz) {
+    return this.bizFilter(biz);
+  }
+
+  isBizVisibleOld(biz) {
     return (this.nameFilter === undefined || this.nameFilter === null || this.nameFilter.length === 0 || biz.name.toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0)
       && (!this.redOnly || biz.getStatus(this.now) === 'danger')
       && (!this.lostOnly || this.lostBusinessAddresses.has(biz.address));
@@ -346,4 +362,15 @@ export class GmbCardComponent implements OnInit {
           console.log(error);
         });
   };
+
+  postcardRequested(biz) {
+    this.onPostcardRequested.emit(biz);
+  }
+  postcardNotified(biz) {
+    this.onPostcardNotified.emit(biz);
+  }
+  postcardCleared(biz) {
+    this.onPostcardCleared.emit(biz);
+  }
+  
 }

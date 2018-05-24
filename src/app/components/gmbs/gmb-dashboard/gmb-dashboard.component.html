@@ -1,74 +1,73 @@
 <ul class="list-group list-group-flush">
-  <li *ngFor="let email of updatedGMB" class="list-group-item">{{email}}</li>
+    <li *ngFor="let email of updatedGMB" class="list-group-item">{{email}}</li>
 </ul>
 
 <h1 class="text-center">Google My Business ({{getStatOfPublished().published}}/{{getStatOfPublished().published + getStatOfPublished().lostOwnership}})</h1>
 <div class="card text-center mb-4">
-  <div class="card-header">
-    <ul class="nav nav-tabs card-header-tabs">
-      <li class="nav-item" *ngFor="let tab of tabs">
-        <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)">{{tab}}</a>
-      </li>
-    </ul>
-  </div>
-  <div class="card-body text-left">
-    <div *ngIf="'All' === activeTab">
-      Total GMB account={{this.myGmbs.length}}
-      <p *ngIf="updatedGMB.length>0">
-        updated {{updatedGMB.length}} of {{this.myGmbs.length}}
-      </p>
-
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item" *ngFor="let tab of tabs">
+                <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)">{{tab}}</a>
+            </li>
+        </ul>
     </div>
+    <div class="card-body text-left">
+        <div *ngIf="'All' === activeTab">
+            Total GMB account={{this.myGmbs.length}}
+            <p *ngIf="updatedGMB.length>0">
+                updated {{updatedGMB.length}} of {{this.myGmbs.length}}
+            </p>
 
-    <!-- filter row -->
-    <div class="row mb-2" *ngIf="'Tools' !== activeTab">
-      <div class="col-6">
-        <!-- this hack to REMOVE chrome autocomplete! -->
-        <div style="display: none">
-          <input type="text" name="username" />
-          <input type="password" name="password" />
         </div>
-        <input type="text" class="form-control" placeholder="account filter" [(ngModel)]="filterAccount">
-      </div>
-      <div class="col-6">
-        <input type="text" class="form-control" placeholder="restaurant filter" [(ngModel)]="filterBusiness">
-      </div>
-    </div>
 
-    <!-- contents of different tabs -->
-    <div class="row ml-0 mr-0" *ngIf="'Tools' !== activeTab">
-      <!-- row has negative margins and we need to remove them! -->
-      <div #gmbCards *ngFor="let gmb of getFilteredAndSortedGmbs()" class="w-100 mb-2">
-        <app-gmb-card [nameFilter]="filterBusiness" [redOnly]="redOnly" [lostOnly]="lostOnly" [gmb]="gmb" [now]="now" [allGmbs]="myGmbs"
-          [lostBusinessAddresses]="getLostBusinessAddresses()" (onEdit)="edit($event)" (onUpdate)="update($event)" (onCopyBusiness)="copyBusiness($event)"
-          (onBusinessEmailUpdate)="businessEmailUpdated($event)"></app-gmb-card>
-      </div>
-    </div>
+        <!-- filter row -->
+        <div class="row mb-2" *ngIf="'Tools' !== activeTab">
+            <div class="col-6">
+                <!-- this hack to REMOVE chrome autocomplete! -->
+                <div style="display: none">
+                    <input type="text" name="username" />
+                    <input type="password" name="password" />
+                </div>
+                <input type="text" class="form-control" placeholder="account filter" [(ngModel)]="filterAccount">
+            </div>
+            <div class="col-6">
+                <input type="text" class="form-control" placeholder="restaurant filter" [(ngModel)]="filterBusiness">
+            </div>
+        </div>
 
-    <!-- tools tab -->
-    <div *ngIf="'Tools' === activeTab">
-      <div class="text-right">
-        <button class="btn btn-primary" (click)="addNew()">
+        <!-- contents of different tabs -->
+        <div class="row ml-0 mr-0" *ngIf="'Tools' !== activeTab">
+            <!-- row has negative margins and we need to remove them! -->
+            <div #gmbCards *ngFor="let gmb of getFilteredAndSortedGmbs()" class="w-100 mb-2">
+                <app-gmb-card [nameFilter]="filterBusiness" [redOnly]="redOnly" [lostOnly]="lostOnly" [gmb]="gmb" [now]="now" [allGmbs]="myGmbs" [lostBusinessAddresses]="getLostBusinessAddresses()" [bizFilter]="getBizFilter()" (onEdit)="edit($event)" (onUpdate)="update($event)" (onCopyBusiness)="copyBusiness($event)"
+                    (onBusinessEmailUpdate)="businessEmailUpdated($event)" (onViewContact)="viewContact($event)" (onPostcardRequested)="postcardRequested($event)" (onPostcardNotified)="postcardNotified($event)" (onPostcardCleared)="postcardCleared($event)"></app-gmb-card>
+            </div>
+        </div>
+
+        <!-- tools tab -->
+        <div *ngIf="'Tools' === activeTab">
+            <div class="text-right">
+                <button class="btn btn-primary" (click)="addNew()">
           <i class="fas fa-plus"></i> Add New GMB</button>
-        <button class="btn btn-primary" (click)="updateAll()">
+                <button class="btn btn-primary" (click)="updateAll()">
           <i class="fas fa-sync"></i> Update All</button>
-      </div>
+            </div>
 
 
-      <h3>Delete Restaurant</h3>
-      <app-gmb-delete-restaurant></app-gmb-delete-restaurant>
-      <hr>
-      <h3>Retrieve Verification Code</h3>
-      <app-verification-code-retriever></app-verification-code-retriever>
-      <hr>
-      <h3>Request Ownership</h3>
-      <app-gmb-request-ownership></app-gmb-request-ownership>
-      <hr>
-      <h3>Sync Data</h3>
-      <app-sync-buttons></app-sync-buttons>
-      <!-- <a routerLink="/gmbs/watch">GMB Status Monitoring</a> -->
+            <h3>Delete Restaurant</h3>
+            <app-gmb-delete-restaurant></app-gmb-delete-restaurant>
+            <hr>
+            <h3>Retrieve Verification Code</h3>
+            <app-verification-code-retriever></app-verification-code-retriever>
+            <hr>
+            <h3>Request Ownership</h3>
+            <app-gmb-request-ownership></app-gmb-request-ownership>
+            <hr>
+            <h3>Sync Data</h3>
+            <app-sync-buttons></app-sync-buttons>
+            <!-- <a routerLink="/gmbs/watch">GMB Status Monitoring</a> -->
+        </div>
     </div>
-  </div>
 
 </div>
 
@@ -76,32 +75,51 @@
 
 <!--the editing modal-->
 <q-modal #gmbEditingModal>
-  <h4 class="text-center">{{gmbInEditing && gmbInEditing.id ? 'Update' : 'Add New'}}</h4>
-  <hr>
-  <app-gmb-editor [gmb]="gmbInEditing" (onDelete)="onDelete($event)" (onDone)="done($event)" (onCancel)="cancel()"></app-gmb-editor>
-  <div class="text-danger">{{apiError}}</div>
+    <h4 class="text-center">{{gmbInEditing && gmbInEditing.id ? 'Update' : 'Add New'}}</h4>
+    <hr>
+    <app-gmb-editor [gmb]="gmbInEditing" (onDelete)="onDelete($event)" (onDone)="done($event)" (onCancel)="cancel()"></app-gmb-editor>
+    <div class="text-danger">{{apiError}}</div>
 </q-modal>
 
 <!--the editing modal-->
 <q-modal #gmbCopyToModal>
-  <h4 class="text-center">{{copyData?.business?.name}}</h4>
-  <hr>
-  <div class="form-group">
-    <label>Copy from:</label>
-    <div>
-      {{copyData?.gmb?.email}}
+    <h4 class="text-center">{{copyData?.business?.name}}</h4>
+    <hr>
+    <div class="form-group">
+        <label>Copy from:</label>
+        <div>
+            {{copyData?.gmb?.email}}
+        </div>
     </div>
-  </div>
-  <div class="form-group">
-    <label for="gmb-select">To Target Account:</label>
-    {{copyTargetEmail}}
-    <select *ngIf="true" class="form-control" id="gmb-select" [(ngModel)]="copyTargetEmail">
+    <div class="form-group">
+        <label for="gmb-select">To Target Account:</label> {{copyTargetEmail}}
+        <select *ngIf="true" class="form-control" id="gmb-select" [(ngModel)]="copyTargetEmail">
       <option *ngFor="let email of getCopyTargets()">{{email}}</option>
     </select>
-  </div>
-  <div class="text-right">
-    <button class="btn btn-default" data-dismiss="modal">Cancel</button>
-    <button class="btn btn-primary" (click)="submitCopy()">Submit
+    </div>
+    <div class="text-right">
+        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" (click)="submitCopy()">Submit
     </button>
-  </div>
+    </div>
+</q-modal>
+
+<!--the editing modal-->
+<q-modal #gmbViewContactModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+
+    <div class="text-center">
+        <h4>{{contactBiz?.name}}</h4>
+        <div>Phone: {{contactBiz?.phone | tel}}</div>
+        <div *ngIf="contactRestaurant">
+            <div>Matched: {{contactRestaurant.name}} <i class="fas fa-check text-success mb-4"></i></div>
+
+            <app-restaurant-contacts [restaurant]="contactRestaurant"></app-restaurant-contacts>
+        </div>
+        <div *ngIf="!contactRestaurant" class="text-danger">
+            No matched restaurant found.
+        </div>
+    </div>
+
+
 </q-modal>

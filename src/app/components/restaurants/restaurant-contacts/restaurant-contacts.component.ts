@@ -6,6 +6,8 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Helper } from "../../../classes/helper";
+import { Channel } from "../../../classes/channel";
+import { Person } from "../../../classes/person";
 import { FormSubmit } from '@qmenu/ui/classes';
 
 @Component({
@@ -21,11 +23,9 @@ export class RestaurantContactsComponent implements OnInit {
   @ViewChild('modalChannel') modalChannel: ModalComponent;
 
 
-  personInEditing: any = {
-  };
+  personInEditing: Person = {} as Person;
 
-  channelInEditing: any = {
-  };
+  channelInEditing: Channel = {} as Channel;
 
   channelFieldDescriptors = [
     {
@@ -109,7 +109,7 @@ export class RestaurantContactsComponent implements OnInit {
       if (fd.field === 'channels') {
         fd.items = (this.restaurant.channels || []).map(channel => ({
           text: channel.type + ': ' + channel.value,
-          object: channel.type + ': ' + channel.value
+          object: { type: channel.type, value: channel.value }
         }))
       }
     });
@@ -126,8 +126,8 @@ export class RestaurantContactsComponent implements OnInit {
   editChannel(channel?: any) {
     if (!channel) {
       this.channelInEditing = {
-        index: -1, // we use index as Id since JSON doesn't have Id for each obj,
-      };
+        index: -1 // we use index as Id since JSON doesn't have Id for each obj,
+      } as Channel;
     } else {
       this.channelInEditing = JSON.parse(JSON.stringify(channel));
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
@@ -137,10 +137,10 @@ export class RestaurantContactsComponent implements OnInit {
 
   editPerson(person?: any) {
     this.resetPersonFieldDescriptors();
-    if (!person) {
+    if (person === null || person === undefined) {
       this.personInEditing = {
         index: -1 // we use index as Id since JSON doesn't have Id for each obj.
-      };
+      } as Person;
     } else {
       this.personInEditing = JSON.parse(JSON.stringify(person));
       this.personInEditing.index = this.restaurant.people.indexOf(person);
@@ -149,23 +149,26 @@ export class RestaurantContactsComponent implements OnInit {
   }
 
   submitPerson(event: FormSubmit) {
-    // construct person, also possibly update channels to include this person
-    const person = JSON.parse(JSON.stringify(this.personInEditing));
-    this.restaurant.people = this.restaurant.people || [];
-    if (person.index === -1) {
-      this.restaurant.people.push(person);
+    const newPeople = (this.restaurant.people || []).slice(0);
+    if (this.personInEditing.index === -1) {
+      newPeople.push(this.personInEditing);
     } else {
-      this.restaurant.people[person.index] = person;
+      newPeople[this.personInEditing.index] = this.personInEditing;
     }
+
     // we need to remove temp index!
-    delete person.index;
+    delete this.personInEditing.index;
+
+    this.patchDiff('people', newPeople);
 
     event.acknowledge(null);
     this.modalPerson.hide();
   }
 
   removePerson(event: FormSubmit) {
-    this.restaurant.people.splice(this.personInEditing.index, 1);
+    const newPeople = this.restaurant.people.slice(0);
+    newPeople.splice(this.personInEditing.index, 1);
+    this.patchDiff('people', newPeople);
     event.acknowledge(null);
     this.modalPerson.hide();
   }
@@ -175,103 +178,105 @@ export class RestaurantContactsComponent implements OnInit {
   }
 
   submitChannel(event: FormSubmit) {
-    // construct person, also possibly update channels to include this person
-    const channel = JSON.parse(JSON.stringify(this.channelInEditing));
-    this.restaurant.channels = this.restaurant.channels || [];
-    if (channel.index === -1) {
-      this.restaurant.channels.push(channel);
-    } else {
-      const oldChannel = this.restaurant.channels[channel.index];
-      // we also need to update whatever in person.channels!
-      this.updatePeopleOnChannelChange('UPDATE', oldChannel, channel);
 
-      this.restaurant.channels[channel.index] = channel;
+    const newChannels = (this.restaurant.channels || []).slice(0);
+    if (this.channelInEditing.index === -1) {
+      newChannels.push(this.channelInEditing);
+    } else {
+
+      this.updatePeopleOnChannelChange('UPDATE', this.restaurant.channels[this.channelInEditing.index], this.channelInEditing);
+      newChannels[this.channelInEditing.index] = this.channelInEditing;
     }
+
     // we need to remove temp index!
-    delete channel.index;
+    delete this.channelInEditing.index;
+
+    this.patchDiff('channels', newChannels);
 
     event.acknowledge(null);
     this.modalChannel.hide();
+
   }
 
   removeChannel(event: FormSubmit) {
+
+
     const oldChannel = this.restaurant.channels[this.channelInEditing.index];
     this.updatePeopleOnChannelChange('DELETE', oldChannel);
-    this.restaurant.channels.splice(this.channelInEditing.index, 1);
+
+    const newChannels = this.restaurant.channels.slice(0);
+    newChannels.splice(this.channelInEditing.index, 1);
+    this.patchDiff('channels', newChannels);
     event.acknowledge(null);
     this.modalChannel.hide();
   }
 
   updatePeopleOnChannelChange(action, oldChannel, newChannel?) {
-    (this.restaurant.people || []).map(person => {
-      for (let i = (person.channels || []).length - 1; i >= 0; i--) {
-        if (person.channels[i] === oldChannel.type + ': ' + oldChannel.value) {
-          switch (action) {
-            case 'DELETE':
-              person.channels.splice(i, 1);
-              break;
-            case 'UPDATE':
-              person.channels[i] = newChannel.type + ': ' + newChannel.value;
-              break;
-            default:
-              break;
+    console.log(action, oldChannel, newChannel)
+    if (this.restaurant.people) {
+      let affected = false;
+      const newPeople = JSON.parse(JSON.stringify(this.restaurant.people));
+      (newPeople || []).map(person => {
+        console.log('person', person)
+        for (let i = (person.channels || []).length - 1; i >= 0; i--) {
+          if (person.channels[i].type === oldChannel.type && person.channels[i].value === oldChannel.value) {
+            switch (action) {
+              case 'DELETE':
+                person.channels.splice(i, 1);
+                affected = true;
+                break;
+              case 'UPDATE':
+                affected = true;
+                person.channels[i] = newChannel;
+                break;
+              default:
+                break;
+            }
           }
         }
+      });
+
+      if (affected) {
+        this.patchDiff('people', newPeople)
       }
-    });
+    }
+
   }
 
   cancelChannel(event) {
     this.modalChannel.hide();
   }
 
-  remove(contact) {
-    const newContacts = this.restaurant.contacts.filter(c => c !== contact);
-    this.patchDiff(newContacts);
-  }
 
-  addNew() {
-    const newContacts = JSON.parse(JSON.stringify((this.restaurant.contacts || [])));
-    newContacts.push({ name: null });
-    this.patchDiff(newContacts);
-  }
-
-  editLabelChange(event, contact, property) {
-    // preserve old contacts
-    const oldContacts = JSON.parse(JSON.stringify(this.restaurant.contacts));
-
-    // update the property
-    contact[property] = event.newValue;
-    const newContacts = this.restaurant.contacts;
-
-    // put the old contacts back to restaurant. When API call is success, it will be updated.
-    this.restaurant.contacts = oldContacts;
-    this.patchDiff(newContacts);
-
-  }
-
-  patchDiff(newContacts) {
-    if (Helper.areObjectsEqual(this.restaurant.contacts, newContacts)) {
+  patchDiff(field, newValue) {
+    if (Helper.areObjectsEqual(this.restaurant[field], newValue)) {
       this._global.publishAlert(
         AlertType.Info,
         "Not changed"
       );
     } else {
       // api update here...
+
+      const oldBody = {
+        _id: this.restaurant.id || this.restaurant['_id']
+      };
+      oldBody[field] = this.restaurant[field];
+
+      const newBody = {
+        _id: this.restaurant.id || this.restaurant['_id']
+      };
+
+      newBody[field] = newValue;
+
+
       this._api
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-          old: {
-            _id: this.restaurant['_id'],
-            contacts: this.restaurant.contacts
-          }, new: {
-            _id: this.restaurant['_id'],
-            contacts: newContacts
-          }
+          old: oldBody, new: newBody
         }])
         .subscribe(
           result => {
             // let's update original, assuming everything successful
-            this.restaurant.contacts = newContacts;
+            this.restaurant[field] = newValue;
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"

@@ -1,4 +1,5 @@
 import { OwnershipRequest } from './ownership-request';
+import { PostcardAction } from './postcard-action';
 
 export class Business {
     id: string;
@@ -13,6 +14,7 @@ export class Business {
     address: string;
     isPublished: boolean;
     ownershipRequests: OwnershipRequest[];
+    postcardActions: PostcardAction[]; // {time, action, result}
     constructor(biz?: any) {
         if (biz) {
             // copy every fields
@@ -23,8 +25,9 @@ export class Business {
             }
             // convert businesses
             this.ownershipRequests = (this.ownershipRequests || []).map(o => new OwnershipRequest(o));
-            // lets sort the requests by time
-            // this.ownershipRequests.sort
+            
+            // convert postcardActions
+            this.postcardActions = (this.postcardActions || []).map(p => new PostcardAction(p));
         }
     }
 

@@ -1,4 +1,4 @@
-<div class="card mb-2">
+<div class="card mb-2" *ngIf="restaurant">
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="far fa-address-card"></i>&nbsp;Contacts</h3>
   <ul class="list-group list-group-flush">
@@ -43,7 +43,11 @@
           <tr *ngFor="let person of restaurant.people || [];">
             <td>{{person.title}} {{person.name}}</td>
             <td>{{join(person.roles)}}</td>
-            <td>{{join(person.channels)}}</td>
+            <td>
+              <div *ngFor="let c of person.channels || []">
+                {{c.type}}: {{c.value}}
+              </div>
+            </td>
             <td>
               <button class="btn btn-link p0" (click)="editPerson(person)">Edit</button>
             </td>

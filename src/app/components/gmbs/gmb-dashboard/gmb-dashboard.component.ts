@@ -8,6 +8,8 @@ import { Business } from '../../../classes/business';
 import { OwnershipRequest } from '../../../classes/ownership-request';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
+import { Restaurant } from '@qmenu/ui';
+import { PostcardAction } from '../../../classes/postcard-action';
 
 @Component({
   selector: 'app-gmb-dashboard',
@@ -19,6 +21,10 @@ export class GmbDashboardComponent implements OnInit {
   @ViewChild('gmbEditingModal') gmbEditingModal;
   @ViewChild('gmbCopyToModal') gmbCopyToModal;
   @ViewChildren('gmbCards') gmbCards;
+  @ViewChild('gmbViewContactModal') gmbViewContactModal;
+
+  contactRestaurant: Restaurant;
+  contactBiz: Business;
 
   gmbInEditing: Gmb = new Gmb();
   apiError = undefined;
@@ -34,7 +40,7 @@ export class GmbDashboardComponent implements OnInit {
   copyTargetEmail;
   updatedGMB = [];
 
-  tabs = ["All", "Red", "Lost", "Tools"];
+  tabs = ["All", "Red", "Lost", "Postcard Not Notified", "Postcard Not Cleared", "Tools"];
   activeTab = "All"
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -45,6 +51,7 @@ export class GmbDashboardComponent implements OnInit {
   get lostOnly() {
     return this.activeTab === 'Lost'
   }
+
   ngOnInit() {
     console.log('requesting gmbs');
 
@@ -70,6 +77,18 @@ export class GmbDashboardComponent implements OnInit {
     );
 
     setInterval(() => { this.now = new Date(); }, 1000);
+  }
+
+  getBizFilter() {
+    return (biz: Business) => {
+      return (
+        (!this.filterBusiness || biz.name.toLocaleLowerCase().indexOf(this.filterBusiness.toLowerCase()) >= 0)
+        && (!this.redOnly || biz.getStatus(this.now) === 'danger')
+        && (!this.lostOnly || this.getLostBusinessAddresses().has(biz.address))
+        && (this.activeTab !== 'Postcard Not Notified' || biz.postcardActions && biz.postcardActions.length === 1)
+        && (this.activeTab !== 'Postcard Not Cleared' || biz.postcardActions && biz.postcardActions.length > 0)
+      );
+    }
   }
 
   setActiveTab(tab) {
@@ -108,7 +127,9 @@ export class GmbDashboardComponent implements OnInit {
       const filterBiz = (this.filterBusiness === undefined || this.filterBusiness === null || this.filterBusiness.length === 0) || (gmb.businesses.some(biz => biz.name.toLowerCase().indexOf(this.filterBusiness.toLowerCase()) >= 0));
       const filterRed = (!this.redOnly || gmb.businesses.some(biz => biz.getStatus(this.now) === 'danger'));
       const filterLost = (!this.lostOnly || gmb.businesses.some(biz => lostAddresses.has(biz.address)));
-      return filterAccount && filterBiz && filterRed && filterLost;
+      const filterPostcardNotNotified = (this.activeTab !== 'Postcard Not Notified' || gmb.businesses.some(biz => biz.postcardActions && biz.postcardActions.length === 1));
+      const filterPostcardNotCleared = (this.activeTab !== 'Postcard Not Cleared' || gmb.businesses.some(biz => biz.postcardActions && biz.postcardActions.length > 0));
+      return filterAccount && filterBiz && filterRed && filterLost && filterPostcardNotNotified && filterPostcardNotCleared;
     });
   }
 
@@ -395,4 +416,91 @@ export class GmbDashboardComponent implements OnInit {
     const o = new Observable();
     this.myGmbs.reduce((p: any, gmb) => p.then(() => this.scanPublished(gmb)).then(() => this.scanEmail(gmb)), Promise.resolve());
   }
+
+  viewContact(biz: Business) {
+    this.contactBiz = biz;
+    console.log(this.contactBiz)
+    this.gmbViewContactModal.show();
+    // get all users
+    this._api.get(environment.qmenuApiUrl + 'generic',
+      {
+        resource: 'restaurant',
+        query: {
+          'phones.phoneNumber': biz.phone
+        },
+        projection: {
+          name: 1,
+          people: 1,
+          channels: 1,
+          phones: 1
+        },
+        limit: 1
+      }).subscribe(
+        restaurants => {
+          this.contactRestaurant = restaurants[0];
+        },
+        error => {
+          this.contactRestaurant = undefined;
+          this._global.publishAlert(AlertType.Danger, 'Error querying restaurant with phone ' + biz.phone);
+        });
+  }
+
+  postcardRequested(biz: Business) {
+    biz.postcardActions = [{
+      time: new Date(),
+      action: 'Requested'
+    }];
+    this.myGmbs.map(gmb => {
+      if (gmb.businesses.some(b => b === biz)) {
+        this.update(gmb);
+      }
+    });
+  }
+
+  postcardNotified(biz: Business) {
+    biz.postcardActions = biz.postcardActions || [];
+    biz.postcardActions.push(
+      {
+        time: new Date(),
+        action: 'Notified'
+      }
+    );
+    this.myGmbs.map(gmb => {
+      if (gmb.businesses.some(b => b === biz)) {
+        this.update(gmb);
+      }
+    });
+  }
+  postcardCleared(biz: Business) {
+    biz.postcardActions = undefined;
+    this.myGmbs.map(gmb => {
+      if (gmb.businesses.some(b => b === biz)) {
+        this.update(gmb);
+      }
+    });
+  }
+
+  countAll() {
+
+  }
+
+  countRed() {
+
+  }
+
+  countLost() {
+
+  }
+
+  countPostcardNotCleared() {
+    this.myGmbs.reduce((sum, gmb) => sum + gmb.businesses.reduce((subtotal, biz) => subtotal + ((biz.postcardActions && biz.postcardActions.length > 0) ? 1 : 0), 0), 0);
+  }
+
+  countPostcardNotNotified() {
+    // if there is only one postcard action, we assume it's not notified
+    this.myGmbs.reduce((sum, gmb) => sum + gmb.businesses.reduce((subtotal, biz) => subtotal + ((biz.postcardActions && biz.postcardActions.length === 1) ? 1 : 0), 0), 0);
+
+  }
+
+
 }
