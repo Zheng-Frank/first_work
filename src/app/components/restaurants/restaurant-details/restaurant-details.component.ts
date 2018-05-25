@@ -116,7 +116,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
     const visibilityRolesMap = {
       profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT'],
       contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT'],
-      rateSchedules: ['ADMIN', 'ACCOUNTANT'],
+      rateSchedules: ['ACCOUNTANT'],
       serviceSettings: ['ADMIN', 'MENU_EDITOR'],
       promotions: ['ADMIN', 'MENU_EDITOR'],
       closedDays: ['ADMIN', 'MENU_EDITOR'],

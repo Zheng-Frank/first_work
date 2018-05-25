@@ -69,7 +69,7 @@
   </button>
 
   <q-form-builder [object]="channelInEditing" [showDelete]="channelInEditing.index >= 0" [fieldDescriptors]="channelFieldDescriptors"
-    (submit)="submitChannel($event)" (cancel)="cancelChannel()" (remove)="removeChannel($event)">
+    (submit)="submitChannel($event)" (cancel)="cancelChannel($event)" (remove)="removeChannel($event)">
   </q-form-builder>
 </q-modal>
 
@@ -78,6 +78,6 @@
     <span aria-hidden="true">×</span>
   </button>
   <q-form-builder [object]="personInEditing" [showDelete]="personInEditing.index >= 0" [fieldDescriptors]="personFieldDescriptors"
-    (submit)="submitPerson($event)" (cancel)="cancelPerson()" (remove)="removePerson($event)">
+    (submit)="submitPerson($event)" (cancel)="cancelPerson($event)" (remove)="removePerson($event)">
   </q-form-builder>
 </q-modal>

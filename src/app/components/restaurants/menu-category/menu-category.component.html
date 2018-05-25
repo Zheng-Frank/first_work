@@ -7,9 +7,6 @@
       <div *ngFor="let i of mc.menuOptionIds || []">
         <small>{{getDescriptionOfMenuOptionId(i)}}</small>
       </div>
-      <p *ngIf="mc.addons" class="text-center"><small>Sides: {{getOptions(mc.addons.options)}}
-        <span *ngIf="mc.addons.quantity"> ({{mc.addons.quantity}} for free)</span>
-        <span *ngIf="mc.addons.description"><br>{{mc.addons.description}}</span></small></p>
     </div>
   </div>
 
