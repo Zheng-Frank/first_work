@@ -17,11 +17,9 @@
 <div class="row my-2">
   <div class="col form-inline">
     Search Filter:
-    <input type="text" class="form-control ml-2" placeholder="Restauran Name" [(ngModel)]="nameFilter">
-    <input type="tel" class="form-control ml-2" placeholder="Restauran Phone" [(ngModel)]="phoneFilter">
+    <input type="text" class="form-control ml-2" placeholder="name, phone, order# ..." [(ngModel)]="searchFilter">
 
   </div>
-  <div class="col-auto form-inline text-right"><div style="width: 100%">Total: {{getEnabledCount()}} / {{restaurantList.length}}</div></div>
 </div>
 
 
