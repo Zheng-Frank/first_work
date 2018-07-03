@@ -571,10 +571,10 @@ export class DbScriptsComponent implements OnInit {
 
   migrateEmailAndPhones() {
     // faxable -> {Fax, Order}
-    // callable -> {Voice, Order}
+    // callable -> {Phone, Order}
     // textable -> {SMS, Order}
-    // (nothing) -> {Voice}
-    // email --> split(,) --> {Email, Order}
+    // (nothing) -> {Phone, Business}
+    // email --> split(, or ;) --> {Email, Order}
 
     // let's batch 5 every time
     const batchSize = 1;
@@ -605,7 +605,7 @@ export class DbScriptsComponent implements OnInit {
         (restaurant.phones || []).map(phone => {
           const phoneMap = {
             faxable: 'Fax',
-            callable: 'Voice',
+            callable: 'Phone',
             textable: 'SMS'
           };
 
@@ -622,7 +622,7 @@ export class DbScriptsComponent implements OnInit {
           // if none is selected, we just list it as a login option?? 
           if (!phone.faxable && !phone.textable && !phone.callable) {
             channels.push({
-              type: 'Voice',
+              type: 'Phone',
               value: phone.phoneNumber,
               notifications: []
             });

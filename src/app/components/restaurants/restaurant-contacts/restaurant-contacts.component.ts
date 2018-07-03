@@ -35,7 +35,7 @@ export class RestaurantContactsComponent implements OnInit {
       inputType: "single-select",
       items: [
         { object: "Email", text: "Email", selected: false },
-        { object: "Voice", text: "Voice", selected: false },
+        { object: "Phone", text: "Phone", selected: false },
         { object: "SMS", text: "SMS", selected: false },
         { object: "Fax", text: "Fax", selected: false }
       ]
@@ -44,16 +44,18 @@ export class RestaurantContactsComponent implements OnInit {
       field: "value", //
       label: "Value",
       required: true,
+      placeholder: 'eg. ‭4043829768‬',
       inputType: "text"
     },
     {
       field: "notifications", //
-      label: "Receive Notifications",
+      label: "Notifications / Purpose",
       required: false,
       inputType: "multi-select",
       items: [
         { object: "Order", text: "Incoming Orders", selected: false },
-        { object: "Invoice", text: "Invoice", selected: false }
+        { object: "Invoice", text: "Invoice", selected: false },
+        { object: "Business", text: "Business Phone", selected: false }
       ]
     }
   ];
@@ -96,6 +98,14 @@ export class RestaurantContactsComponent implements OnInit {
       ]
     }
   ];
+
+
+  channelTypeToFaClassMap = {
+    'Email': 'fas fa-envelope',
+    'Phone': 'fas fa-phone-volume',
+    'SMS': 'fas fa-comments',
+    'Fax': 'fas fa-fax'
+  };
 
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -178,6 +188,13 @@ export class RestaurantContactsComponent implements OnInit {
   }
 
   submitChannel(event: FormSubmit) {
+
+    // keep only digits for phone/sms/fax
+    if(['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
+      this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g,'');
+    }
+    this.channelInEditing
+
 
     const newChannels = (this.restaurant.channels || []).slice(0);
     if (this.channelInEditing.index === -1) {

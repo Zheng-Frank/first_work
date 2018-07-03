@@ -1,6 +1,6 @@
 export class Channel {
     index?: number;
-    type: 'Email' | 'Voice' | 'SMS' | 'Fax';
+    type: 'Email' | 'Phone' | 'SMS' | 'Fax';
     value: string;
     notifications?: string[];
 }

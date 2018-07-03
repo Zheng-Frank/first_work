@@ -8,14 +8,15 @@
           <tr *ngIf="restaurant.channels">
             <th scope="col">Type</th>
             <th scope="col">Channel</th>
-            <th scope="col">Notifications</th>
+            <th scope="col">Notifications / Purpose</th>
             <th scope="col"></th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let channel of restaurant.channels || []">
-            <td>{{channel.type}}</td>
-            <td>{{channel.value}}</td>
+            <td><i class="{{channelTypeToFaClassMap[channel.type]}}"></i></td>
+            <td *ngIf="channel.type === 'Email'">{{channel.value}}</td>
+            <td *ngIf="channel.type !== 'Email'">{{channel.value | tel}}</td>
             <td>{{join(channel.notifications)}}</td>
             <td>
               <button class="btn btn-link p0" (click)="editChannel(channel)">Edit</button>
