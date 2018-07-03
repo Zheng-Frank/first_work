@@ -1,6 +1,6 @@
 
 export class PaymentMeans {
-    type: 'CHECK' | 'QUICK_BOOK' | 'CREDIT_CARD' | 'STRIPE';
+    type: 'Check' | 'Quickbooks' | 'Creditcard' | 'Stripe';
     /**
      * check: {images, accountNumber, routingNumber, accountAddress, account name}
      */

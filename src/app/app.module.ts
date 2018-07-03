@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { RootComponent } from './components/root/root.component';
 import { HomeComponent } from './components/home/home.component';
+import { CsrHomeComponent } from './components/csr/csr-home/csr-home.component';
 import { Bs4Component } from './components/bs4/bs4.component';
 import { HeaderComponent } from './components/header/header.component';
 
@@ -82,6 +83,7 @@ import { BusinessEditorComponent } from './components/gmbs/business-editor/busin
   declarations: [
     RootComponent,
     HomeComponent,
+    CsrHomeComponent,
     Bs4Component,
     HeaderComponent,
     LoginComponent,

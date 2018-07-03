@@ -8,5 +8,5 @@ export class Payment {
     sentAt: Date;
     receivedAt: Date;
     clearedAt: Date;
-    type: 'CASH' | 'CHECK' | 'STRIPE';
+    type: 'Cash' | 'Check' | 'Stripe';
 }
