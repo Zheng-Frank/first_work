@@ -99,7 +99,7 @@ export class RestaurantCloudPrintingComponent implements OnInit {
       // },
       //   error => {
       //     console.log(error);
-      //     alert('Error printing last order. Please call 678-799-0850 for support.');
+      //     alert('Error printing last order. Please call 404-382-9768 for support.');
       //   });
     }
   }
