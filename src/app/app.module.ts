@@ -79,6 +79,8 @@ import { GmbEditorComponent } from './components/gmbs/gmb-editor/gmb-editor.comp
 import { GmbCardComponent } from './components/gmbs/gmb-card/gmb-card.component';
 import { BusinessEditorComponent } from './components/gmbs/business-editor/business-editor.component';
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
+import { PaymentMeansEditorComponent } from './components/payments/payment-means-editor/payment-means-editor.component';
+import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 
 @NgModule({
   declarations: [
@@ -148,7 +150,9 @@ import { LogEditorComponent } from './components/logs/log-editor/log-editor.comp
     GmbEditorComponent,
     GmbDeleteRestaurantComponent,
     GmbCardComponent,
-    BusinessEditorComponent
+    BusinessEditorComponent,
+    PaymentMeansEditorComponent,
+    PaymentsDashboardComponent
   ],
   imports: [
     BrowserModule,

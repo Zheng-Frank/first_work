@@ -57,6 +57,12 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "CSR", "ACCOUNTANT"]
         },
         {
+          name: "Payments",
+          href: "#/payments",
+          fa: "fas fa-hand-holding-usd",
+          accessibleRoles: ["ADMIN","ACCOUNTANT"]
+        },
+        {
           name: "Invoices",
           href: "#/invoices",
           fa: "fas fa-dollar-sign",

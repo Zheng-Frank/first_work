@@ -1,0 +1,24 @@
+<div *qIf="!restaurant">
+  <label>Select Restaurant:</label>
+  <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="select($event)"></q-restaurant-picker>
+</div>
+<div class="clearfix alert alert-info" *qIf="restaurant">
+  <div class="media float-left">
+    <img *ngIf="restaurant?.logo" class="mr-2" src="{{restaurant?.logo}}" alt="Generic placeholder image" style="height: 2rem;">
+    <div class="media-body">
+      <h6 class="mt-0">{{restaurant?.name}}
+        <small *ngFor="let phone of getPhones(restaurant)" class="text-muted ml-2">{{phone | phone}}</small>
+      </h6>
+      <small class="d-block text-muted">{{restaurant?.googleAddress?.formatted_address}}</small>
+    </div>
+  </div>
+  <div class="float-right">
+    <button class="btn btn-link" (click)="resetRestaurant()">Reset</button>
+  </div>
+</div>
+
+
+<q-form-builder [object]="log" [showDelete]="log.time" [fieldDescriptors]="logFieldDescriptors" (submit)="submit($event)"
+  (cancel)="clickCancel()" (remove)="clickRemove($event)">
+
+</q-form-builder>

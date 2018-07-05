@@ -4,6 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { Bs4Component } from './components/bs4/bs4.component';
 import { HomeComponent } from './components/home/home.component';
 import { LogsDashboardComponent } from './components/logs/logs-dashboard/logs-dashboard.component';
+import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { InvoiceDashboardComponent } from './components/invoices/invoice-dashboard/invoice-dashboard.component';
 import { LeadDashboardComponent } from './components/leads/lead-dashboard/lead-dashboard.component';
 import { MyLeadsComponent } from './components/leads/my-leads/my-leads.component';
@@ -25,6 +26,7 @@ const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', "GMB"] } },
   { path: 'logs', component: LogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['CSR', 'ADMIN'] } },
+  { path: 'payments', component: PaymentsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ACCOUNTANT', 'ADMIN'] } },
   { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/monthly/:startDate', component: InvoiceMonthlyDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/:id', component: InvoiceDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
