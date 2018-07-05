@@ -2,9 +2,10 @@ export class Log {
     time: Date;
     user: string;
     
-    customerName: string;
-    customerPhone: string;
-    relatedOrderIds: string[];
+    callerName: string;
+    callerPhone: string;
+
+    relatedOrderIds: string;
 
     problem: string;
     response: string;

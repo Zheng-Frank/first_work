@@ -81,7 +81,8 @@ export class OrderDashboardComponent implements OnInit {
           }
         },
         projection: {
-          name: 1
+          name: 1,
+          // rateSchedules: 1
         },
         limit: 6000
       }),
@@ -160,6 +161,25 @@ export class OrderDashboardComponent implements OnInit {
         this.restaurantsWithoutOrders = this.rows.filter(
           r => r["orders"].length === 0
         ).length;
+
+        // stats of agents
+        const agentDict = {};
+        this.rows.map(row => {
+          let agent = 'none';
+          if(row.restaurant.rateSchedules && row.restaurant.rateSchedules.length > 0) {
+            agent = row.restaurant.rateSchedules[0].agent;
+          }
+          agentDict[agent] = agentDict[agent] || {
+
+            restaurant: 0,
+            restaurantWithOrders: 0,
+            orders: 0
+          };
+          agentDict[agent].restaurant = agentDict[agent].restaurant + 1;
+          agentDict[agent].orders = agentDict[agent].orders + row.orders.length + row.yesterdayOrders.length;
+          agentDict[agent].restaurantWithOrders = agentDict[agent].restaurantWithOrders + (row.orders.length + row.yesterdayOrders.length > 0 ? 1: 0) ;
+        });
+        // console.log(agentDict);
       },
       error =>
         this._global.publishAlert(

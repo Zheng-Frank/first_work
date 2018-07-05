@@ -19,6 +19,7 @@
 <table class="table">
   <thead>
     <tr>
+      <!-- <th scope="col">Agent</th> -->
       <th scope="col">Restaurant</th>
       <th scope="col">Total</th>
       <th scope="col">Change</th>
@@ -28,10 +29,12 @@
   </thead>
   <tbody>
     <tr *ngFor="let row of rows;">
+      <!-- <td>
+        {{row.restaurant.rateSchedules && row.restaurant.rateSchedules.length > 0 ? row.restaurant.rateSchedules[0].agent : ''}}
+      </td> -->
       <td>
         <span (click)="row.expanded = !row.expanded"></span>
-        <a href="{{getGoogleQuery(row)}}" target="_blank">
-          {{row.restaurant.name}}
+        <a href="{{getGoogleQuery(row)}}" target="_blank">{{row.restaurant.name}}
         </a>
         <button *ngIf="row.orders.length > 0" class="btn btn-link py-0" (click)="row.expanded = !row.expanded">
           <i class="fas {{row.expanded ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
