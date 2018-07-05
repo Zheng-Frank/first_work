@@ -13,24 +13,28 @@ import { Log } from "../../../classes/log";
 
 
 @Component({
-  selector: 'app-csr-dashboard',
-  templateUrl: './csr-dashboard.component.html',
-  styleUrls: ['./csr-dashboard.component.scss']
+  selector: 'app-logs-dashboard',
+  templateUrl: './logs-dashboard.component.html',
+  styleUrls: ['./logs-dashboard.component.scss']
 })
-export class CsrDashboardComponent implements OnInit {
+export class LogsDashboardComponent implements OnInit {
 
   @ViewChild('myLogEditor') set myLogEditor(editor) {
     if (editor) {
       editor.reset();
     }
   }
-  addingNewLog = false;
+
+  @ViewChild('logEditingModal') logEditingModal;
+
   searchFilter = '';
   unresolvedOnly = false;
 
   filteredRestaurantLogs = [];
 
   logInEditing = new Log();
+  logInEditingOriginal;
+
   restaurant = undefined;
   restaurantList = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -55,6 +59,12 @@ export class CsrDashboardComponent implements OnInit {
     }).subscribe(
       restaurants => {
         this.restaurantList = restaurants;
+        // convert log to type of Log
+        this.restaurantList.map(r => {
+          if (r.logs) {
+            r.logs = r.logs.map(log => new Log(log));
+          }
+        });
         this.computeFilteredLogs();
       },
       error => {
@@ -69,14 +79,8 @@ export class CsrDashboardComponent implements OnInit {
   ngOnInit() {
   }
 
-  toggleNew() {
-    this.addingNewLog = !this.addingNewLog;
-    this.logInEditing = new Log();
-    this.restaurant = undefined;
-  }
-
   onCancelCreation() {
-    this.addingNewLog = false;
+    this.logEditingModal.hide();
   }
 
   onSuccessCreation(data) {
@@ -84,28 +88,20 @@ export class CsrDashboardComponent implements OnInit {
     const oldRestaurant = this.restaurantList.filter(r => r._id === data.restaurant._id)[0];
     const updatedRestaurant = JSON.parse(JSON.stringify(oldRestaurant));
     updatedRestaurant.logs = updatedRestaurant.logs || [];
-    data.log.time = new Date();
-    updatedRestaurant.logs.push(new Log(data.log));
+    if (!data.log.time) {
+      data.log.time = new Date();
+    }
 
-    this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        oldRestaurant.logs = oldRestaurant.logs || [];
-        oldRestaurant.logs.push(new Log(data.log));
-        this._global.publishAlert(
-          AlertType.Success,
-          'Successfully created new log.'
-        );
+    // check if the original exists
+    if (oldRestaurant.logs && oldRestaurant.logs.indexOf(this.logInEditingOriginal) >= 0) {
+      const index = oldRestaurant.logs.indexOf(this.logInEditingOriginal);
+      updatedRestaurant.logs[index] = new Log(data.log);
+    } else {
+      updatedRestaurant.logs.push(new Log(data.log));
+    }
 
-        data.formEvent.acknowledge(null);
-        this.addingNewLog = false;
-        this.computeFilteredLogs();
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error adding a log");
-        data.formEvent.acknowledge("API Error");
-      }
-    );
+    this.patch(oldRestaurant, updatedRestaurant, data.formEvent.acknowledge);
+
   }
 
   computeFilteredLogs() {
@@ -122,7 +118,7 @@ export class CsrDashboardComponent implements OnInit {
         if (b1 && b2) {
           this.filteredRestaurantLogs.push({
             restaurant: r,
-            log: new Log(log)
+            log: log
           });
         }
 
@@ -131,7 +127,6 @@ export class CsrDashboardComponent implements OnInit {
 
     // sort DESC by time!
     this.filteredRestaurantLogs.sort((rl1, rl2) => rl2.log.time.valueOf() - rl1.log.time.valueOf());
-
 
   }
 
@@ -150,8 +145,58 @@ export class CsrDashboardComponent implements OnInit {
     return '';
   }
 
+  createNew() {
+
+    this.logInEditing = new Log();
+    this.logInEditingOriginal = undefined;
+    this.restaurant = null;
+    this.logEditingModal.title = "Add New Log";
+    this.logEditingModal.show();
+  }
+
   edit(restaurantLog) {
-    console.log(restaurantLog)
+    console.log(restaurantLog);
+    // let make a copy and preserve the original
+    this.logInEditing = new Log(restaurantLog.log);
+    this.logInEditingOriginal = restaurantLog.log;
+
+    this.restaurant = restaurantLog.restaurant;
+    this.logEditingModal.title = "Edit Log";
+    this.logEditingModal.show();
+  }
+
+  remove(event) {
+
+    if (this.restaurant && this.restaurant.logs && this.restaurant.logs.indexOf(this.logInEditingOriginal) >= 0) {
+      const newLogs = this.restaurant.logs.filter(log => log !== this.logInEditingOriginal);
+      const updatedRestaurant = JSON.parse(JSON.stringify(this.restaurant));
+      updatedRestaurant.logs = newLogs;
+      this.patch(this.restaurant, updatedRestaurant, event.formEvent.acknowledge);
+
+    } else {
+      event.formEvent.acknowledge('Missing restaurant, or restaurant logs');
+    }
+  }
+
+  patch(oldRestaurant, updatedRestaurant, acknowledge) {
+    this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
+      result => {
+        // let's update original, assuming everything successful
+        oldRestaurant.logs = updatedRestaurant.logs;
+        this._global.publishAlert(
+          AlertType.Success,
+          'Successfully created new log.'
+        );
+
+        acknowledge(null);
+        this.logEditingModal.hide();
+        this.computeFilteredLogs();
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error adding a log");
+        acknowledge("API Error");
+      }
+    );
   }
 
 }

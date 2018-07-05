@@ -15,10 +15,12 @@ import { Log } from '../../../classes/log';
 })
 export class LogEditorComponent implements OnInit {
   @Output() cancel = new EventEmitter();
-  @Output() remove = new EventEmitter();
+  @Output() remove = new EventEmitter<any>();
   @Output() success = new EventEmitter<any>();
+
   @Input() log = {} as Log;
   @Input() restaurant;
+
   @Input() restaurantList;
 
   @ViewChild('myRestaurantPicker') set picker(picker) {
@@ -89,8 +91,12 @@ export class LogEditorComponent implements OnInit {
     this.cancel.emit();
   }
 
-  clickRemove() {
-    this.remove.emit();
+  clickRemove(event: FormEvent) {
+    this.remove.emit({
+      formEvent: event,
+      restaurant: this.restaurant,
+      log: this.log
+    });
   }
 
   select(restaurant) {

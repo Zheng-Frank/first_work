@@ -7,7 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { RootComponent } from './components/root/root.component';
 import { HomeComponent } from './components/home/home.component';
-import { CsrDashboardComponent } from './components/csr/csr-dashboard/csr-dashboard.component';
+import { LogsDashboardComponent } from './components/logs/logs-dashboard/logs-dashboard.component';
 import { Bs4Component } from './components/bs4/bs4.component';
 import { HeaderComponent } from './components/header/header.component';
 
@@ -78,13 +78,13 @@ import { GmbRequestOwnershipComponent } from './components/gmbs/gmb-request-owne
 import { GmbEditorComponent } from './components/gmbs/gmb-editor/gmb-editor.component';
 import { GmbCardComponent } from './components/gmbs/gmb-card/gmb-card.component';
 import { BusinessEditorComponent } from './components/gmbs/business-editor/business-editor.component';
-import { LogEditorComponent } from './components/csr/log-editor/log-editor.component';
+import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
 
 @NgModule({
   declarations: [
     RootComponent,
     HomeComponent,
-    CsrDashboardComponent,
+    LogsDashboardComponent,
     Bs4Component,
     HeaderComponent,
     LoginComponent,
