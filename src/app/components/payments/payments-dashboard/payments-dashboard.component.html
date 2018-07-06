@@ -1,4 +1,4 @@
-<h1 class="text-center">Logs</h1>
+<h1 class="text-center">Payment Means</h1>
 <div class="clearfix">
     <div class="float-left form-inline">
         Restaurant Filter:
@@ -12,7 +12,7 @@
     <div class="float-right">
         <div class="pb-2">
             <button class="btn btn-primary" (click)="createNew()">
-        <i class="fas fa-plus"></i> Add New Log</button>
+        <i class="fas fa-plus"></i> Add New Payment Means</button>
         </div>
     </div>
 </div>
@@ -54,5 +54,5 @@
 
 <!--the eidting modal-->
 <q-modal #logEditingModal>
-    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing" (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
+    <app-payment-means-editor #myPaymentMeansEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [paymentMeans]="paymentMeansInEditing" (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-payment-means-editor>
 </q-modal>

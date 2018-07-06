@@ -1,12 +1,9 @@
 import { Component, OnInit, EventEmitter, Output, Input, ViewChild } from '@angular/core';
 import { FormEvent } from '../../../classes/form-event';
 import { ApiService } from "../../../services/api.service";
-import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
-import { mergeMap } from "rxjs/operators";
 import { Restaurant } from '@qmenu/ui';
-import { Log } from '../../../classes/log';
+import { PaymentMeans } from '../../../classes/payment-means';
 
 @Component({
   selector: 'app-payment-means-editor',
@@ -18,7 +15,7 @@ export class PaymentMeansEditorComponent implements OnInit {
   @Output() remove = new EventEmitter<any>();
   @Output() success = new EventEmitter<any>();
 
-  @Input() log = {} as Log;
+  @Input() paymentMeans = {} as PaymentMeans;
   @Input() restaurant;
 
   @Input() restaurantList;
@@ -28,42 +25,31 @@ export class PaymentMeansEditorComponent implements OnInit {
   }
   myRestaurantPicker;
 
-  logFieldDescriptors = [
+  paymentMeansFieldDescriptors = [
     {
-      field: "callerName",
-      label: "Caller Name",
-      required: false,
-      inputType: "text"
-    },
-    {
-      field: "callerPhone",
-      label: "Caller Phone",
-      required: false,
-      inputType: "tel"
-    },
-    {
-      field: "relatedOrders",
-      label: "Related Order Numbers",
-      required: false,
-      inputType: "text"
-    },
-    {
-      field: "problem",
-      label: "Problem",
+      field: "direction",
+      label: "Purpose for Restaurant",
       required: true,
-      inputType: "textarea"
+      inputType: "single-select",
+      items: [
+        { object: "Send", text: "To Send Money to qMenu", selected: false },
+        { object: "Receive", text: "To Receive Money from qMenu", selected: false }
+      ]
     },
     {
-      field: "response",
-      label: "Response",
+      field: "type",
+      label: "Type",
       required: true,
-      inputType: "textarea"
-    },
-    {
-      field: "resolved",
-      label: "Resolved",
-      required: false,
-      inputType: "checkbox"
+      inputType: "single-select",
+      items: [
+        { object: "Check", text: "Check to qMenu", selected: false },
+        { object: "Quickbooks Invoicing", text: "Quickbooks Invoicing", selected: false },
+        { object: "Quickbooks Bank Withdraw", text: "Quickbooks Bank Withdraw", selected: false },
+        { object: "Credit Card", text: "Credit Card", selected: false },
+        { object: "Stripe", text: "Stripe", selected: false },
+        { object: "Direct Deposit", text: "Direct Deposit (receive)", selected: false },
+        { object: "Check Deposit", text: "Check Deposit (receive)", selected: false }
+      ]
     }
 
   ];
@@ -95,7 +81,7 @@ export class PaymentMeansEditorComponent implements OnInit {
     this.remove.emit({
       formEvent: event,
       restaurant: this.restaurant,
-      log: this.log
+      paymentMeans: this.paymentMeans
     });
   }
 
@@ -124,7 +110,7 @@ export class PaymentMeansEditorComponent implements OnInit {
       this.success.emit({
         formEvent: event,
         restaurant: this.restaurant,
-        log: this.log
+        paymentMeans: this.paymentMeans
       });
     }
 

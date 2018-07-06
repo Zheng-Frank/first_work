@@ -18,7 +18,50 @@
 </div>
 
 
-<q-form-builder [object]="log" [showDelete]="log.time" [fieldDescriptors]="logFieldDescriptors" (submit)="submit($event)"
-  (cancel)="clickCancel()" (remove)="clickRemove($event)">
+<q-form-builder [object]="paymentMeans" [showDelete]="originalPaymentMeans" [fieldDescriptors]="paymentMeansFieldDescriptors"
+  (submit)="submit($event)" (cancel)="clickCancel()" (remove)="clickRemove($event)">
+  type = {{paymentMeans.type}}
+  <div class="form-group" *ngIf="paymentMeans.type === 'Check'">
+    <label>More Details</label>
+    <div>
+      Check (normally nothing)
+    </div>
+  </div>
+  <div class="form-group" *ngIf="paymentMeans.type === 'Quickbooks Invoicing'">
+    <label>More Details</label>
+    <div>
+      Quickbooks Invoicing
+    </div>
+  </div>
+  <div class="form-group" *ngIf="paymentMeans.type === 'Quickbooks Bank Withdraw'">
+    <label>More Details</label>
+    <div>
+      Quickbooks Bank Withdraw
+    </div>
+  </div>
+  <div class="form-group" *ngIf="paymentMeans.type === 'Credit Card'">
+    <label>More Details</label>
+    <div>
+      Credit Card
+    </div>
+  </div>
+  <div class="form-group" *ngIf="paymentMeans.type === 'Stripe'">
+    <label>More Details</label>
+    <div>
+      Stripe
+    </div>
+  </div>
+  <div class="form-group" *ngIf="paymentMeans.type === 'Direct Deposit'">
+    <label>More Details</label>
+    <div>
+      Direct Deposit
+    </div>
+  </div>
+  <div class="form-group" *ngIf="paymentMeans.type === 'Check Deposit'">
+    <label>More Details</label>
+    <div>
+      Check Deposit
+    </div>
+  </div>
 
 </q-form-builder>

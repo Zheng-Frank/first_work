@@ -2,14 +2,9 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { Lead } from "../../../classes/lead";
 import { AlertType } from "../../../classes/alert-type";
-import { GmbInfo } from "../../../classes/gmb-info";
-import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { CallLog } from "../../../classes/call-log";
-import { User } from "../../../classes/user";
-import { Helper } from "../../../classes/helper";
 import { Log } from "../../../classes/log";
+import { PaymentMeans } from "../../../classes/payment-means";
 
 
 @Component({
@@ -32,13 +27,12 @@ export class PaymentsDashboardComponent implements OnInit {
 
   filteredRestaurantLogs = [];
 
-  logInEditing = new Log();
+  paymentMeansInEditing = new PaymentMeans();
   logInEditingOriginal;
 
   restaurant = undefined;
   restaurantList = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
-    this.logInEditing.time = new Date();
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
@@ -147,7 +141,7 @@ export class PaymentsDashboardComponent implements OnInit {
 
   createNew() {
 
-    this.logInEditing = new Log();
+    this.paymentMeansInEditing = new PaymentMeans();
     this.logInEditingOriginal = undefined;
     this.restaurant = null;
     this.logEditingModal.title = "Add New Log";
@@ -155,14 +149,14 @@ export class PaymentsDashboardComponent implements OnInit {
   }
 
   edit(restaurantLog) {
-    console.log(restaurantLog);
-    // let make a copy and preserve the original
-    this.logInEditing = new Log(restaurantLog.log);
-    this.logInEditingOriginal = restaurantLog.log;
+    // console.log(restaurantLog);
+    // // let make a copy and preserve the original
+    // this.paymentMeansInEditing = new Log(restaurantLog.log);
+    // this.logInEditingOriginal = restaurantLog.log;
 
-    this.restaurant = restaurantLog.restaurant;
-    this.logEditingModal.title = "Edit Log";
-    this.logEditingModal.show();
+    // this.restaurant = restaurantLog.restaurant;
+    // this.logEditingModal.title = "Edit Log";
+    // this.logEditingModal.show();
   }
 
   remove(event) {

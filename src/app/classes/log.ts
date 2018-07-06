@@ -1,6 +1,6 @@
 export class Log {
     time: Date;
-    user: string;
+    username: string;
     
     callerName: string;
     callerPhone: string;

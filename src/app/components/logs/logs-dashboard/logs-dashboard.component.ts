@@ -2,13 +2,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { Lead } from "../../../classes/lead";
 import { AlertType } from "../../../classes/alert-type";
-import { GmbInfo } from "../../../classes/gmb-info";
-import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { CallLog } from "../../../classes/call-log";
-import { User } from "../../../classes/user";
-import { Helper } from "../../../classes/helper";
 import { Log } from "../../../classes/log";
 
 
@@ -38,7 +32,6 @@ export class LogsDashboardComponent implements OnInit {
   restaurant = undefined;
   restaurantList = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
-    this.logInEditing.time = new Date();
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
@@ -90,6 +83,9 @@ export class LogsDashboardComponent implements OnInit {
     updatedRestaurant.logs = updatedRestaurant.logs || [];
     if (!data.log.time) {
       data.log.time = new Date();
+    }
+    if(!data.log.username) {
+      data.log.username = this._global.user.username;
     }
 
     // check if the original exists

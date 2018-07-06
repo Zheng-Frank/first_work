@@ -21,7 +21,8 @@
 <table class="table table-sm">
     <thead>
         <tr>
-            <th scope="col">#</th>
+            
+            <th scope="col">User</th>
             <th scope="col">Date</th>
             <th scope="col">Restaurant</th>
             <th scope="col">Caller</th>
@@ -32,7 +33,8 @@
     </thead>
     <tbody>
         <tr *ngFor="let rl of filteredRestaurantLogs; let i = index" class="list-group-item-action {{rl.log.resolved ? '' : 'alert-danger'}}" (click)="edit(rl)">
-            <th scope="row">{{i+1}}</th>
+            
+            <td>{{rl.log.username}}</td>
             <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
                 <div class="text-muted">{{rl.log.time | date: 'shortTime'}}</div>
             </td>

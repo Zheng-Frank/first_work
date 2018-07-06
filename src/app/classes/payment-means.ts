@@ -1,6 +1,6 @@
 
 export class PaymentMeans {
-    type: 'Check' | 'Quickbooks Invoicing' | 'Quickbooks Direct Withdraw' | 'Creditcard' | 'Stripe' | 'Direct Deposit';
+    type: 'Check' | 'Quickbooks Invoicing' | 'Quickbooks Bank Withdraw' | 'Credit Card' | 'Stripe' | 'Direct Deposit' | 'Check Deposit';
     direction: 'Receive' | 'Send';
     details: any;
     images: any[];
@@ -10,22 +10,14 @@ const check1 = {
     type: 'Check',
     direction: 'Send'
 }
-const check2 = {
-    type: 'Check',
-    direction: 'Receive',
-    details: {
-        payee: 'Chris LLC',
-        memo: 'Amazon Inc',
-        address: '12809 Grant Ave, Harrison, NJ 30019'
-    }
-}
+
 
 const quickbooks1 = {
-    type: 'Quickbooks-Invoice',
+    type: 'Quickbooks Invoicing',
     direction: 'Send'
 }
 const quickbooks2 = {
-    type: 'Quickbooks-Direct-Withdraw',
+    type: 'Quickbooks Bank Withdraw',
     direction: 'Send',
     details: {
         routingNumber: 'xxxxxx',
@@ -36,7 +28,7 @@ const quickbooks2 = {
 }
 
 const creditcard = {
-    type: 'Creditcard',
+    type: 'Credit Card',
     direction: 'Send',
     details: {
         cardNumber: 'encryptednumber',
@@ -52,12 +44,22 @@ const stripe = {
 }
 
 const directDeposit = {
-    type: 'DirectDeposit',
+    type: 'Direct Bank Deposit',
     direction: 'Receive',
     details: {
         routingNumber: 'xxxxxx',
         accountNumber: 'xxxxxx',
         name: 'Alex and Mary',
         address: 'some address....'
+    }
+}
+
+const check2 = {
+    type: 'Check Deposit',
+    direction: 'Receive',
+    details: {
+        payee: 'Chris LLC',
+        memo: 'Amazon Inc',
+        address: '12809 Grant Ave, Harrison, NJ 30019'
     }
 }
