@@ -48,7 +48,7 @@ export class GlobalService {
           name: "Restaurants",
           href: "#/restaurants",
           fa: "fas fa-utensils",
-          accessibleRoles: ["ADMIN", "MENU_EDITOR", "ACCOUNTANT"]
+          accessibleRoles: ["ADMIN", "MENU_EDITOR", "CSR","ACCOUNTANT"]
         },
         {
           name: "Logs",
@@ -66,13 +66,13 @@ export class GlobalService {
           name: "Invoices",
           href: "#/invoices",
           fa: "fas fa-dollar-sign",
-          accessibleRoles: ["ADMIN", "ACCOUNTANT"]
+          accessibleRoles: ["ADMIN", "CSR", "ACCOUNTANT"]
         },
         {
           name: "Orders",
           href: "#/orders",
           fa: "fas fa-shopping-bag",
-          accessibleRoles: ["ADMIN", "ORDER_MANAGER"]
+          accessibleRoles: ["ADMIN", "CSR", "ORDER_MANAGER"]
         },
         {
           name: "GMBs",

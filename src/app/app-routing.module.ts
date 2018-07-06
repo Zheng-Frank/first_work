@@ -24,7 +24,7 @@ import { RestaurantDetailsHostComponent } from './components/restaurants/restaur
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
-  { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', "GMB"] } },
+  { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', 'GMB', 'CSR'] } },
   { path: 'logs', component: LogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['CSR', 'ADMIN', 'ACCOUNTANT'] } },
   { path: 'payments', component: PaymentsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['CSR', 'ACCOUNTANT', 'ADMIN'] } },
   { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
