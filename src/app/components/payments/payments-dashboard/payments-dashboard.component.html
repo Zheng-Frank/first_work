@@ -1,18 +1,24 @@
 <h1 class="text-center">Payment Means</h1>
+
 <div class="clearfix">
     <div class="float-left form-inline">
         Restaurant Filter:
-        <input [qDebounce]="800" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="name, phone, order# ..." [(ngModel)]="searchFilter"> &nbsp;&nbsp;
-        <div class="checkbox">
-            <label class="text-danger">
-        <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="unresolvedOnlyChange()">&nbsp;Only Unresolved
-      </label>
-        </div>
+        <input [qDebounce]="800" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="name, phone, ..."
+            [(ngModel)]="searchFilter"> &nbsp;&nbsp;
+
+        <select class="form-control" [(ngModel)]="selectedType" (change)="changeFilter()">
+            <option *ngFor="let typeItem of typeItems" value="{{typeItem.value}}">{{typeItem.text}}</option>
+        </select> &nbsp;
+        <select class="form-control" [(ngModel)]="selectedDirection" (change)="changeFilter()">
+            <option *ngFor="let directionItem of directionItems" value="{{directionItem.value}}">{{directionItem.text}}</option>
+        </select>
+
+
     </div>
     <div class="float-right">
         <div class="pb-2">
             <button class="btn btn-primary" (click)="createNew()">
-        <i class="fas fa-plus"></i> Add New Payment Means</button>
+                <i class="fas fa-plus"></i> Add New Payment Means</button>
         </div>
     </div>
 </div>
@@ -21,38 +27,25 @@
 <table class="table table-sm">
     <thead>
         <tr>
-            <th scope="col">#</th>
-            <th scope="col">Date</th>
             <th scope="col">Restaurant</th>
-            <th scope="col">Caller</th>
-            <th scope="col">Order#</th>
-            <th scope="col">Problem</th>
-            <th scope="col">Response</th>
+            <th scope="col">Payment Means</th>
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let rl of filteredRestaurantLogs; let i = index" class="list-group-item-action {{rl.log.resolved ? '' : 'alert-danger'}}" (click)="edit(rl)">
-            <th scope="row">{{i+1}}</th>
-            <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
-                <div class="text-muted">{{rl.log.time | date: 'shortTime'}}</div>
+        <tr *ngFor="let rp of filteredRestaurantPaymentMeans; let i = index" class="list-group-item-action" (click)="edit(rp)">
+            <td>
+                <q-restaurant-media-object [restaurant]="rp.restaurant" [showPhones]="false"></q-restaurant-media-object>
             </td>
             <td>
-                <b>{{rl.restaurant.name}}</b>
-                <div class="text-muted">
-                    <small>{{getAddress(rl.restaurant)}}</small>
-                </div>
+                <q-payment-means-viewer [paymentMeans]="rp.paymentMeans"></q-payment-means-viewer>
             </td>
-            <td>{{rl.log.callerName}}
-                <div>{{rl.log.callerPhone | phone}}</div>
-            </td>
-            <td>{{rl.log.relatedOrders}}</td>
-            <td>{{rl.log.problem}}</td>
-            <td>{{rl.log.response}}</td>
         </tr>
     </tbody>
 </table>
 
 <!--the eidting modal-->
-<q-modal #logEditingModal>
-    <app-payment-means-editor #myPaymentMeansEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [paymentMeans]="paymentMeansInEditing" (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-payment-means-editor>
+<q-modal #paymentMeansEditingModal>
+    <app-payment-means-editor #myPaymentMeansEditor [paymentMeansOriginal]="paymentMeansInEditingOriginal" [restaurant]="restaurant"
+        [restaurantList]="restaurantList" [paymentMeans]="paymentMeansInEditing" (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()"
+        (remove)="remove($event)"></app-payment-means-editor>
 </q-modal>

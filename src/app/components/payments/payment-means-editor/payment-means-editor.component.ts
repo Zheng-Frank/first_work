@@ -16,6 +16,7 @@ export class PaymentMeansEditorComponent implements OnInit {
   @Output() success = new EventEmitter<any>();
 
   @Input() paymentMeans = {} as PaymentMeans;
+  @Input() paymentMeansOriginal;
   @Input() restaurant;
 
   @Input() restaurantList;
@@ -46,7 +47,7 @@ export class PaymentMeansEditorComponent implements OnInit {
         { object: "Quickbooks Invoicing", text: "Quickbooks Invoicing", selected: false },
         { object: "Quickbooks Bank Withdraw", text: "Quickbooks Bank Withdraw", selected: false },
         { object: "Credit Card", text: "Credit Card", selected: false },
-        { object: "Stripe", text: "Stripe", selected: false },
+        // { object: "Stripe", text: "Stripe", selected: false },
         { object: "Direct Deposit", text: "Direct Deposit (receive)", selected: false },
         { object: "Check Deposit", text: "Check Deposit (receive)", selected: false }
       ]
@@ -58,7 +59,6 @@ export class PaymentMeansEditorComponent implements OnInit {
   customerPhone: string;
   relatedOrderIds: string[];
 
-  csrRestaurants = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
 
   }

@@ -77,7 +77,6 @@ export class LogsDashboardComponent implements OnInit {
   }
 
   onSuccessCreation(data) {
-    console.log(data);
     const oldRestaurant = this.restaurantList.filter(r => r._id === data.restaurant._id)[0];
     const updatedRestaurant = JSON.parse(JSON.stringify(oldRestaurant));
     updatedRestaurant.logs = updatedRestaurant.logs || [];
@@ -151,7 +150,6 @@ export class LogsDashboardComponent implements OnInit {
   }
 
   edit(restaurantLog) {
-    console.log(restaurantLog);
     // let make a copy and preserve the original
     this.logInEditing = new Log(restaurantLog.log);
     this.logInEditingOriginal = restaurantLog.log;

@@ -72,7 +72,6 @@ export class LogEditorComponent implements OnInit {
   customerPhone: string;
   relatedOrderIds: string[];
 
-  csrRestaurants = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
 
   }
