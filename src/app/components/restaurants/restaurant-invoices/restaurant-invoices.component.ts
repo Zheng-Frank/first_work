@@ -42,7 +42,8 @@ export class RestaurantInvoicesComponent implements OnInit {
                 name: true,
                 images: true,
                 offsetToEST: 1,
-                rateSchedules: 1
+                rateSchedules: 1,
+                paymentMeans: 1
               },
               limit: 1
             }),

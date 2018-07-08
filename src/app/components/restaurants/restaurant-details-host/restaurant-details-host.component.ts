@@ -37,7 +37,7 @@ export class RestaurantDetailsHostComponent implements OnInit {
               channels: 1,
               people: 1,
               rateSchedules: 1,
-              
+              paymentMeans: 1,
               autoPrintOnNewOrder: 1,
               printCopies: 1,
               autoPrintVersion: 1,

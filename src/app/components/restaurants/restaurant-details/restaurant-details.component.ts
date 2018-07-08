@@ -47,6 +47,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
           channels: 1,
           people: 1,
           rateSchedules: 1,
+          paymentMeans: 1,
           serviceSettings: 1,
           promotions: 1,
           googleAddress: 1,
@@ -114,13 +115,14 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
 
   isSectionVisible(sectionName) {
     const visibilityRolesMap = {
-      profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT'],
-      contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT'],
+      profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR'],
+      contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR'],
       rateSchedules: ['ACCOUNTANT'],
-      serviceSettings: ['ADMIN', 'MENU_EDITOR'],
-      promotions: ['ADMIN', 'MENU_EDITOR'],
-      closedDays: ['ADMIN', 'MENU_EDITOR'],
-      cloudPrinting: ['ADMIN', 'MENU_EDITOR']
+      paymentMeans: ['ACCOUNTANT', 'CSR'],
+      serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      promotions: ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      closedDays: ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR']
     }
     const roles = this._global.user.roles || [];
     return visibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;

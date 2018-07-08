@@ -52,6 +52,7 @@ import { RestaurantInvoicesComponent } from './components/restaurants/restaurant
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
+import { RestaurantPaymentMeansComponent } from './components/restaurants/restaurant-payment-means/restaurant-payment-means.component';
 import { RestaurantServiceSettingsComponent } from './components/restaurants/restaurant-service-settings/restaurant-service-settings.component';
 import { RestaurantCloudPrintingComponent } from './components/restaurants/restaurant-cloud-printing/restaurant-cloud-printing.component';
 import { PromotionEditorComponent } from './components/restaurants/promotion-editor/promotion-editor.component';
@@ -123,6 +124,7 @@ import { PaymentsDashboardComponent } from './components/payments/payments-dashb
     RestaurantContactsComponent,
     RestaurantDetailsHostComponent,
     RestaurantRateSchedulesComponent,
+    RestaurantPaymentMeansComponent,
     RestaurantServiceSettingsComponent,
     RestaurantCloudPrintingComponent,
     PromotionEditorComponent,
