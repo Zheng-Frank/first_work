@@ -61,6 +61,11 @@ export class Invoice {
       // parse fromDate and toDate
       this.fromDate = new Date(invoice.fromDate);
       this.toDate = new Date(invoice.toDate);
+
+      // parse logs
+      if(this.logs) {
+        this.logs.map(log => log.time = new Date(log.time));
+      }
       // let's sort orders by id
       this.orders = this.orders || [];
       this.orders.sort((o1, o2) => new Date(o1.createdAt).valueOf() - new Date(o2.createdAt).valueOf());

@@ -6,42 +6,86 @@
         <div *ngIf="!invoice.isCanceled">
             <div class="form-check form-check-inline">
                 <label class="form-check-label">
-            <input class="form-check-input" type="checkbox" [checked]="invoice.isSent" (change)="toggleInvoiceStatus('isSent')"> Invoice Sent
-            </label>
+                    <input class="form-check-input" type="checkbox" [checked]="invoice.isSent" (change)="toggleInvoiceStatus('isSent')"> Invoice Sent
+                </label>
             </div>
             <div class="form-check form-check-inline">
                 <label class="form-check-label">
-                <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentSent" (change)="toggleInvoiceStatus('isPaymentSent')"> Payment Sent
-            </label>
+                    <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentSent" (change)="toggleInvoiceStatus('isPaymentSent')"> Payment Sent
+                </label>
             </div>
             <div class="form-check form-check-inline">
                 <label class="form-check-label">
-                <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentCompleted" (change)="toggleInvoiceStatus('isPaymentCompleted')"> Payment Completed
-            </label>
+                    <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentCompleted" (change)="toggleInvoiceStatus('isPaymentCompleted')"> Payment Completed
+                </label>
             </div>
         </div>
         <div>
-            <button class="btn btn-link" (click)="toggleLogs()"><i class="fas fa-history"></i> Show Logs</button>
-            <button class="btn btn-link" (click)="downloadPdf()"><i class="far fa-file-pdf"></i> Download PDF</button>
+        </div>
+        <div>
+            <button class="btn btn-link" (click)="setDisplay('logs')">
+                <i class="fas fa-history"></i> Show Logs({{getUnresolvedLogs().length}})</button>
+            <button class="btn btn-link" (click)="setDisplay('paymentMeans')">
+                <i class="fas fa-hand-holding-usd"></i> Show Payment Means({{paymentMeans.length}})</button>
+            <button class="btn btn-link" (click)="downloadPdf()">
+                <i class="far fa-file-pdf"></i> Download PDF</button>
             <span *ngIf="!invoice.isCanceled">
-                <button class="btn btn-link" (click)="addAdjustment()"><i class="far fa-plus-square"></i> Add Adjustment</button>
-                <button class="btn btn-link text-danger" (click)="toggleInvoiceStatus('isCanceled')"><i class="fas fa-times"></i> Cancel Invoice</button>
+                <button class="btn btn-link" (click)="addAdjustment()">
+                    <i class="far fa-plus-square"></i> Add Adjustment</button>
+                <button class="btn btn-link text-danger" (click)="toggleInvoiceStatus('isCanceled')">
+                    <i class="fas fa-times"></i> Cancel Invoice</button>
             </span>
         </div>
-        <div *qIf="displayLogs">
-            <table class="table table-striped">
+
+        <div *qIf="display === 'paymentMeans'" class="row">
+            <div class="col-sm-6" *ngFor="let pm of paymentMeans">
+                <q-payment-means-viewer [paymentMeans]="pm"></q-payment-means-viewer>
+            </div>
+        </div>
+
+        <div *qIf="display === 'logs'">
+            <h4>Restaurant Logs <small>(*click to edit)</small></h4>
+            <table class="table table-sm">
                 <thead>
                     <tr>
-                        <th>Time</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Order#</th>
+                        <th scope="col">Problem</th>
+                        <th scope="col">Response</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let log of restaurantLogs" class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}">
+
+                        <td class="text-nowrap">{{log.time | date: 'shortDate'}}
+                            <div class="text-muted">
+                                <small>{{log.time | date: 'shortTime'}}</small>
+                            </div>
+                        </td>
+                        <td>{{log.relatedOrders}}</td>
+                        <td>{{log.problem}}</td>
+                        <td>{{log.response}}</td>
+                    
+                        <td><button *ngIf="!log.resolved" class="btn btn-link p-0" (click)="resolve(log)">Mark as Resolved</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Invoice Logs</h4>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
                         <th>User</th>
+                        <th>Date</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngFor="let log of invoice.logs">
-                        <td>{{log.time}}</td>
                         <td>{{log.user}}</td>
-                        <th>{{log.action}}</th>
+                        <td>{{log.time | date: 'short'}}</td>
+                        <td>{{log.action}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -51,8 +95,12 @@
 
 <app-invoice-viewer [invoice]="invoice"></app-invoice-viewer>
 
+
+
 <q-modal #adjustmentModal>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
     <h4 class="text-center">Invoice Adjustment</h4>
     <hr>
     <div class="form-group">
@@ -62,8 +110,7 @@
 
     <div class="form-check">
         <label class="form-check-label">
-            <input class="form-check-input" type="checkbox" [(ngModel)]="adjustmentIsCredit">
-            Is Credit to Restaurant
+            <input class="form-check-input" type="checkbox" [(ngModel)]="adjustmentIsCredit"> Is Credit to Restaurant
         </label>
     </div>
 
@@ -72,7 +119,8 @@
         <input [(ngModel)]="adjustmentAmount" type="number" class="form-control" placeholder="eg. 5">
     </div>
 
-    <button type="button" class="btn btn-block btn-primary" (click)="okAdjustment()"><span class="fas fa-check"></span> OK</button>
+    <button type="button" class="btn btn-block btn-primary" (click)="okAdjustment()">
+        <span class="fas fa-check"></span> OK</button>
 
 
 </q-modal>

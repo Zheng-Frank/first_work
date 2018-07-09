@@ -7,6 +7,10 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
+import { mergeMap } from 'rxjs/operators';
+import { Restaurant } from '@qmenu/ui';
+import { Log } from "../../../classes/log";
+import { PaymentMeans } from '../../../classes/payment-means';
 
 declare var $: any;
 declare var window: any;
@@ -19,7 +23,11 @@ declare var window: any;
 })
 export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   invoice: Invoice;
-  displayLogs = false;
+  paymentMeans: PaymentMeans[] = [];
+  restaurantLogs: Log[] = [];
+  restaurantId;
+
+  display = '';
 
   adjustmentDescription;
   adjustmentIsCredit = true;
@@ -29,22 +37,47 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     const self = this;
-    this._route.params.subscribe(
-      params => {
+    this._route.params
+      .pipe(mergeMap(params =>
         this._api
           .get(environment.qmenuApiUrl + "generic", {
             resource: "invoice",
             query: {
-              _id: {$oid: params['id']}
+              _id: { $oid: params['id'] }
             },
             limit: 1
-          }).subscribe(
-            invoices => { this.invoice = new Invoice(invoices[0]); },
-            e => this._global.publishAlert(
-              AlertType.Danger,
-              "Error pulling invoice from API"
-            )
-          );
+          })
+      )).pipe(mergeMap(invoices => {
+        this.invoice = new Invoice(invoices[0]);
+        return this._api
+          .get(environment.qmenuApiUrl + "generic", {
+            resource: "restaurant",
+            query: {
+              _id: { $oid: this.invoice.restaurant.id }
+            },
+            projection: {
+              name: 1,
+              paymentMeans: 1,
+              channels: 1,
+              logs: 1
+            },
+            limit: 1
+          })
+      })).subscribe(restaurants => {
+
+        this.restaurantId = restaurants[0]._id;
+
+        // show only relevant payment means: Send to qMenu = balance > 0
+        this.paymentMeans = (restaurants[0].paymentMeans || [])
+          .map(pm => new PaymentMeans(pm))
+          .filter(pm => (pm.direction === 'Send' && this.invoice.getBalance() > 0) || (pm.direction === 'Receive' && this.invoice.getBalance() < 0));
+
+        this.restaurantLogs = (restaurants[0].logs || []).map(log => new Log(log));
+      }, error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling invoice from API"
+        )
       });
   }
 
@@ -60,8 +93,12 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     $('#footer').show();
   }
 
-  toggleLogs() {
-    this.displayLogs = !this.displayLogs;
+  setDisplay(item) {
+    if (this.display === item) {
+      this.display = '';
+    } else {
+      this.display = item;
+    }
   }
 
   downloadPdf() {
@@ -77,7 +114,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
       updatedInvoice.logs = updatedInvoice.logs || [];
       updatedInvoice.logs.push({
-        time: {$date: new Date()},
+        time: { $date: new Date() },
         action: field,
         user: this._global.user.username,
         value: !this.invoice[field]
@@ -125,7 +162,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
     updatedInvoice.logs = updatedInvoice.logs || [];
     updatedInvoice.logs.push({
-      time: {$date: new Date()},
+      time: { $date: new Date() },
       action: "update",
       user: this._global.user.username,
       value: adjustment
@@ -147,5 +184,41 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
     this.adjustmentModal.hide();
   }
+
+  resolve(log) {
+    const newRestaurantLogs = this.restaurantLogs.slice(0);
+    const index = newRestaurantLogs.indexOf(log);
+    const logResolved = new Log(log);
+    logResolved.resolved = true;
+    newRestaurantLogs[index] = logResolved;
+
+    console.log(this.restaurantId);
+
+    this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+      {
+        old: { _id: this.restaurantId, logs: this.restaurantLogs }, new:
+        {
+          _id: this.restaurantId,
+          logs: newRestaurantLogs
+        }
+      }]).subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          this.restaurantLogs = newRestaurantLogs;
+          this._global.publishAlert(
+            AlertType.Success,
+            'Successfully updated.'
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating log");
+        }
+      );
+  }
+
+  getUnresolvedLogs() {
+    return (this.restaurantLogs || []).filter(log => !log.resolved);
+  }
+
 
 }
