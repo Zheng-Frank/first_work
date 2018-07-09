@@ -27,6 +27,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   restaurantLogs: Log[] = [];
   restaurantId;
 
+  invoiceChannels = [];
+
   display = '';
 
   adjustmentDescription;
@@ -73,6 +75,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           .filter(pm => (pm.direction === 'Send' && this.invoice.getBalance() > 0) || (pm.direction === 'Receive' && this.invoice.getBalance() < 0));
 
         this.restaurantLogs = (restaurants[0].logs || []).map(log => new Log(log));
+
+        this.invoiceChannels = (restaurants[0].channels || []).filter(c => c.notifications && c.notifications.indexOf('Invoice') >= 0);
       }, error => {
         this._global.publishAlert(
           AlertType.Danger,

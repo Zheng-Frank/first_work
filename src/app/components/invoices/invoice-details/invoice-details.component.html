@@ -20,7 +20,11 @@
                 </label>
             </div>
         </div>
-        <div>
+        <div *ngIf="invoiceChannels.length > 0">
+            <ng-container *ngFor="let channel of invoiceChannels">
+                <span *ngIf="channel.type === 'Email'" class="badge badge-info">{{channel.type}}: {{channel.value}}</span>
+                <span *ngIf="channel.type !== 'Email'"  class="badge badge-info">{{channel.type}}: {{channel.value | tel}}</span>&nbsp;
+            </ng-container>
         </div>
         <div>
             <button class="btn btn-link" (click)="setDisplay('logs')">
@@ -44,7 +48,9 @@
         </div>
 
         <div *qIf="display === 'logs'">
-            <h4>Restaurant Logs <small>(*click to edit)</small></h4>
+            <h4>Restaurant Logs
+                <small>(*click to edit)</small>
+            </h4>
             <table class="table table-sm">
                 <thead>
                     <tr>
@@ -66,8 +72,10 @@
                         <td>{{log.relatedOrders}}</td>
                         <td>{{log.problem}}</td>
                         <td>{{log.response}}</td>
-                    
-                        <td><button *ngIf="!log.resolved" class="btn btn-link p-0" (click)="resolve(log)">Mark as Resolved</button></td>
+
+                        <td>
+                            <button *ngIf="!log.resolved" class="btn btn-link p-0" (click)="resolve(log)">Mark as Resolved</button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
