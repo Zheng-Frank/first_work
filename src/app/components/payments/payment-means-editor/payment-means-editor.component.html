@@ -48,12 +48,6 @@
           <input type="tel" class="form-control"  [(ngModel)]="paymentMeans.details.accountNumber"/>
         </div>
       </div>
-      <div class="form-group">
-        <label>Memo</label>
-        <div class="input-group">
-          <input type="text" class="form-control" placeholder="Extra comments"  [(ngModel)]="paymentMeans.details.memo"/>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -105,13 +99,13 @@
           <input type="text" class="form-control"  [(ngModel)]="paymentMeans.details.address"/>
         </div>
       </div>
-      <div class="form-group">
-        <label>Memo</label>
-        <div class="input-group">
-          <input type="text" class="form-control" [(ngModel)]="paymentMeans.details.memo"/>
-        </div>
-      </div>
-
     </div>
   </div>
+
+  <div class="form-group">
+      <label>Memo</label>
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Extra comments"  [(ngModel)]="paymentMeans.details.memo"/>
+      </div>
+    </div>
 </q-form-builder>
