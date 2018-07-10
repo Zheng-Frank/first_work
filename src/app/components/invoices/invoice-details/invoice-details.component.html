@@ -19,6 +19,7 @@
                     <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentCompleted" (change)="toggleInvoiceStatus('isPaymentCompleted')"> Payment Completed
                 </label>
             </div>
+            <a routerLink="/restaurants/{{restaurantId}}">Restaurant Details</a>
         </div>
         <div *ngIf="invoiceChannels.length > 0">
             <ng-container *ngFor="let channel of invoiceChannels">

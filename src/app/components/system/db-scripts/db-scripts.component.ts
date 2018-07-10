@@ -577,18 +577,18 @@ export class DbScriptsComponent implements OnInit {
     // email --> split(, or ;) --> {Email, Order}
 
     // let's batch 5 every time
-    const batchSize = 1;
+    const batchSize = 3000;
     let myRestaurants;
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
-        channels: { $exists: false },
         $or: [
           { email: { $exists: true } },
           { phones: { $exists: true } },
         ]
       },
       projection: {
+        channels: 1,
         name: 1,
         email: 1,
         phones: 1
@@ -596,12 +596,22 @@ export class DbScriptsComponent implements OnInit {
       limit: batchSize
     }).pipe(mergeMap(restaurants => {
       myRestaurants = restaurants;
-      const restaurantsOriginal = JSON.parse(JSON.stringify(restaurants));
-      const restaurantsChanged = JSON.parse(JSON.stringify(restaurants));
+      const oldNewPairs = [];
+      restaurants.map(restaurant => {
+        const oldChannels = restaurant.channels || [];
+        const newChannels = (restaurant.channels || []).slice(0); // a clone
+        // let's handle emails
+        (restaurant.email || '').replace(/\s/g, '').split(',').join(';').split(';').filter(email => email).map(email => {
+          if (email && email.indexOf('@') >= 0 && !newChannels.some(c => c.value.toLowerCase() === email.toLowerCase())) {
+            newChannels.push({
+              type: 'Email',
+              value: email.toLowerCase(),
+              notifications: ['Order']
+            });
+          }
+        });
 
-
-      restaurantsChanged.map(restaurant => {
-        const channels = [];
+        //lets handle phones
         (restaurant.phones || []).map(phone => {
           const phoneMap = {
             faxable: 'Fax',
@@ -610,8 +620,8 @@ export class DbScriptsComponent implements OnInit {
           };
 
           Object.keys(phoneMap).map(key => {
-            if (phone[key]) {
-              channels.push({
+            if (phone[key] && !newChannels.some(c => c.value === phone.phoneNumber && c.notifications && c.notifications.indexOf('Order') >= 0)) {
+              newChannels.push({
                 type: phoneMap[key],
                 value: phone.phoneNumber,
                 notifications: ['Order']
@@ -619,38 +629,52 @@ export class DbScriptsComponent implements OnInit {
             }
           });
 
-          // if none is selected, we just list it as a login option?? 
-          if (!phone.faxable && !phone.textable && !phone.callable) {
-            channels.push({
+          // if business type and not any of the above
+          if (!phone.faxable && !phone.textable && !phone.callable && phone.type === 'Business' && !newChannels.some(c => c.value === phone.phoneNumber && c.channels && c.channels.indexOf('Business') >= 0)) {
+            newChannels.push({
+              type: 'Phone',
+              value: phone.phoneNumber,
+              notifications: ['Business']
+            });
+          }
+
+          // if none is selected:
+          if (!phone.faxable && !phone.textable && !phone.callable && phone.type !== 'Business' && !newChannels.some(c => c.value === phone.phoneNumber && c.notifications && c.notifications.length === 0)) {
+            newChannels.push({
               type: 'Phone',
               value: phone.phoneNumber,
               notifications: []
             });
           }
+
         });
 
-        (restaurant.email || '').split(',').map(email => {
-          if (email && email.indexOf('@') >= 0) {
-            channels.push({
-              type: 'Email',
-              value: email,
-              notifications: ['Order']
-            });
+        // let's lint newChannels: same type and value, then merge/union notifications!
+        for(let i = newChannels.length - 1; i >= 1; i --) {
+          for(let j = 0; j < i; j++) {
+            if(newChannels[i].value === newChannels[j].value && newChannels[i].type === newChannels[j].type) {
+              newChannels.splice(j, 1);
+              break;
+            }
+          }
+        }
+        
+        oldNewPairs.push({
+          old: {
+            _id: restaurant._id,
+            channels: oldChannels
+          },
+          new: {
+            _id: restaurant._id,
+            channels: newChannels
           }
         });
-
-        if (channels.length > 0) {
-          restaurant.channels = channels;
-        }
       });
-
+      console.log(oldNewPairs);
       return this._api
         .patch(
           environment.qmenuApiUrl + "generic?resource=restaurant",
-          restaurantsChanged.map(clone => ({
-            old: restaurantsOriginal.filter(r => r._id === clone._id)[0],
-            new: clone
-          }))
+          oldNewPairs
         );
     })
     ).subscribe(
