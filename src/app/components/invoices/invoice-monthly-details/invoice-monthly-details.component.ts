@@ -379,7 +379,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
         sum += record.invoices.reduce((subtotal, invoice) => {
           if (this.shouldShowSubrow(invoice)) {
             if (!invoice.isCanceled) {
-              subtotal += invoice.commission;
+              subtotal += (invoice.commission || 0);
             }
           }
           return subtotal;
@@ -395,7 +395,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
         sum += record.invoices.reduce((subtotal, invoice) => {
           if (this.shouldShowSubrow(invoice)) {
             if (!invoice.isCanceled) {
-              subtotal += invoice.total;
+              subtotal += (invoice.total || 0);
             }
           }
           return subtotal;

@@ -425,7 +425,7 @@ export class DbScriptsComponent implements OnInit {
       projection: {
         deliveryBy: 1
       },
-      limit: 500
+      limit: 50
     }).pipe(mergeMap(orders => {
       console.log(orders);
       orders.map(o => orderIdMap[o._id] = o);
@@ -517,7 +517,7 @@ export class DbScriptsComponent implements OnInit {
         isPaymentCompleted: 1
 
       },
-      limit: 100
+      limit: 50
     })
       .pipe(mergeMap(invoices => {
         affectedInvoices = invoices;

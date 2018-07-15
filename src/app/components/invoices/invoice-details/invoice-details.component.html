@@ -21,21 +21,26 @@
             </div>
             <a routerLink="/restaurants/{{restaurantId}}">Restaurant Details</a>
         </div>
-        <div *ngIf="invoiceChannels.length > 0">
-            <ng-container *ngFor="let channel of invoiceChannels">
-                <span *ngIf="channel.type === 'Email'" class="badge badge-info">{{channel.type}}: {{channel.value}}</span>
-                <span *ngIf="channel.type !== 'Email'"  class="badge badge-info">{{channel.type}}: {{channel.value | tel}}</span>&nbsp;
-            </ng-container>
-        </div>
-        <div>
-            <button class="btn btn-link" (click)="setDisplay('logs')">
+
+        <!-- communication channels -->
+        <ng-container *ngFor="let channel of invoiceChannels">
+            <div>
+                <b>{{channel.type}}</b> 
+                <span *ngIf="channel.type === 'Email'"> {{channel.value}}</span>
+                <span *ngIf="channel.type !== 'Email'"> {{channel.value | tel}}</span>
+                <button *ngIf="channel.type === 'Fax'" class="btn btn-primary btn-sm" (click)="faxInvoice(channel.value)">{{invoice.isSent ? 'Resend Fax' : 'Send Fax'}}</button>
+            </div>
+        </ng-container>
+        
+        <div class="mt-2">
+            <button class="btn btn-info" (click)="setDisplay('logs')">
                 <i class="fas fa-history"></i> Show Logs({{getUnresolvedLogs().length}})</button>
-            <button class="btn btn-link" (click)="setDisplay('paymentMeans')">
+            <button class="btn btn-info" (click)="setDisplay('paymentMeans')">
                 <i class="fas fa-hand-holding-usd"></i> Show Payment Means({{paymentMeans.length}})</button>
-            <button class="btn btn-link" (click)="downloadPdf()">
+            <button class="btn btn-info" (click)="downloadPdf()">
                 <i class="far fa-file-pdf"></i> Download PDF</button>
             <span *ngIf="!invoice.isCanceled">
-                <button class="btn btn-link" (click)="addAdjustment()">
+                <button class="btn btn-primary" (click)="addAdjustment()">
                     <i class="far fa-plus-square"></i> Add Adjustment</button>
                 <button class="btn btn-link text-danger" (click)="toggleInvoiceStatus('isCanceled')">
                     <i class="fas fa-times"></i> Cancel Invoice</button>

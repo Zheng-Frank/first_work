@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Restaurant, Address } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
@@ -13,7 +13,7 @@ import { Invoice } from '../../../classes/invoice';
   templateUrl: './restaurant-details.component.html',
   styleUrls: ['./restaurant-details.component.css']
 })
-export class RestaurantDetailsComponent implements OnInit, OnChanges {
+export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy {
   restaurant: Restaurant;
   @Input() id;
 
@@ -31,6 +31,11 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
+    this.activeTab = this._global.storeGet('restaurantDetailsTab') || 'Settings';
+  }
+
+  ngOnDestroy() {
+    this._global.storeSet('restaurantDetailsTab', this.activeTab);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -65,9 +70,9 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges {
 
           email: 1,
           taxRate: 1,
-          surchargeAmount : 1,
-          surchargeName : 1,
-          pickupTimeEstimate : 1,
+          surchargeAmount: 1,
+          surchargeName: 1,
+          pickupTimeEstimate: 1,
           deliveryTimeEstimate: 1,
           logo: 1,
           excludeAmex: 1,

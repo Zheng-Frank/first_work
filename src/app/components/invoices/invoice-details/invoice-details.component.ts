@@ -224,5 +224,15 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     return (this.restaurantLogs || []).filter(log => !log.resolved);
   }
 
-
+  faxInvoice(faxNumber) {
+    console.log(this.invoice)
+    this._api.post(environment.legacyApiUrl + 'utilities/sendFax', {faxNumber: faxNumber, invoiceId: this.invoice.id || this.invoice['_id']}).subscribe(
+      result => {
+        this.toggleInvoiceStatus('isSent')
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error sending fax");
+      }
+    );
+  }
 }
