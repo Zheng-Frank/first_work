@@ -74,9 +74,28 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           .map(pm => new PaymentMeans(pm))
           .filter(pm => (pm.direction === 'Send' && this.invoice.getBalance() > 0) || (pm.direction === 'Receive' && this.invoice.getBalance() < 0));
 
+        // inject paymentMeans to invoice. If multiple, choose the first only
+        const firstPm = this.paymentMeans[0];
+        if (firstPm) {
+          // https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-dollars-currency-string-in-javascript
+          const amountString = '$' + Math.abs(this.invoice.balance).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+
+          const wordingMap = {
+            'Check': 'Please send payment check in the amount of ' + amountString + ' to:<br>qMenu, Inc.<br>7778 McGinnis Ferry Rd, Suite 276<br>Suwanee, GA 30024',
+            'Quickbooks Invoicing': undefined,
+            'Quickbooks Bank Withdraw': 'Balance ' + amountString + ' will be withdrawn from your bank account ending in ' + ((firstPm.details || {}).accountNumber || '').substr(-4) + '.',
+            'Credit Card': 'Balance ' + amountString + ' will be charged to your credit card ending in ' + ((firstPm.details || {}).cardNumber || '').substr(-4)+ '.',
+            'Direct Deposit': 'Credit ' + amountString + ' will be deposited to your bank account ending in ' + ((firstPm.details || {}).accountNumber || '').substr(-4) + '. It may take up to 3 business days.',
+            'Check Deposit': 'A payment check of ' + amountString + ' is mailed to you. It may take up to 7 business days.'
+          }
+          this.invoice.paymentInstructions = wordingMap[firstPm.type];
+        }
+
+
         this.restaurantLogs = (restaurants[0].logs || []).map(log => new Log(log));
 
         this.invoiceChannels = (restaurants[0].channels || []).filter(c => c.notifications && c.notifications.indexOf('Invoice') >= 0);
+
       }, error => {
         this._global.publishAlert(
           AlertType.Danger,
@@ -226,7 +245,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   faxInvoice(faxNumber) {
     console.log(this.invoice)
-    this._api.post(environment.legacyApiUrl + 'utilities/sendFax', {faxNumber: faxNumber, invoiceId: this.invoice.id || this.invoice['_id']}).subscribe(
+    this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: faxNumber, invoiceId: this.invoice.id || this.invoice['_id'] }).subscribe(
       result => {
         this.toggleInvoiceStatus('isSent')
       },

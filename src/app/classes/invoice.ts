@@ -37,6 +37,8 @@ export class Invoice {
   rateAverage: number;
   totalPayments: number;
 
+  paymentInstructions: string;
+  
   computeDerivedValues() {
     ['tax', 'tip', 'surcharge', 'deliveryCharge',
       'thirdPartyDeliveryCharge', 'thirdPartyDeliveryTip',

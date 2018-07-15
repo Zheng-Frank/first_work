@@ -1,6 +1,10 @@
 <div class="container" *ngIf="invoice">
   <!--<h1 style="position:absolute; color: lightgray; font-style: italic;">PAID</h1>-->
-  <h1 class="text-center">Invoice</h1>
+  <h3 class="text-center">QMENU INVOICE</h3>
+  <h6 class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate'}} -{{invoice.toDate | date: 'mediumDate'}}</h6>
+
+  <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6"  [innerHTML]="invoice.paymentInstructions">
+  </div>
 
   <table class="table table-bordered">
     <tr>
@@ -9,7 +13,7 @@
 
         <h3 class="pt-1">qMenu, Inc.</h3>
         <p>
-          7778 McGinnis Ferry Rd, Suite 276         
+          7778 McGinnis Ferry Rd, Suite 276
           <br> Suwanee, GA 30024
           <br> Tel: 404-382-9768
         </p>
@@ -31,8 +35,6 @@
 
   <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() >= 0">Balance Due: {{invoice.getBalance() | currency:'USD':'symbol' }}</h3>
   <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() < 0 ">Credit: {{-invoice.getBalance() | currency:'USD':'symbol' }}</h3>
-
-  <p class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate'}} -{{invoice.toDate | date: 'mediumDate'}}</p>
 
   <div class="row">
     <div class="col-6">
