@@ -84,9 +84,9 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
             'Check': 'Please send payment check in the amount of ' + amountString + ' to:<br>qMenu, Inc.<br>7778 McGinnis Ferry Rd, Suite 276<br>Suwanee, GA 30024',
             'Quickbooks Invoicing': undefined,
             'Quickbooks Bank Withdraw': 'Balance ' + amountString + ' will be withdrawn from your bank account ending in ' + ((firstPm.details || {}).accountNumber || '').substr(-4) + '.',
-            'Credit Card': 'Balance ' + amountString + ' will be charged to your credit card ending in ' + ((firstPm.details || {}).cardNumber || '').substr(-4)+ '.',
+            'Credit Card': 'Balance ' + amountString + ' will be charged to your credit card ending in ' + ((firstPm.details || {}).cardNumber || '').substr(-4) + '.',
             'Direct Deposit': 'Credit ' + amountString + ' will be deposited to your bank account ending in ' + ((firstPm.details || {}).accountNumber || '').substr(-4) + '. It may take up to 3 business days.',
-            'Check Deposit': 'A payment check of ' + amountString + ' is mailed to you. It may take up to 7 business days.'
+            'Check Deposit': 'A payment check of ' + amountString + ' is mailed to ' + ((firstPm.details || {}).address ? firstPm.details.address : 'you') + '. It may take up to 7 business days.'
           }
           this.invoice.paymentInstructions = wordingMap[firstPm.type];
         }
@@ -220,22 +220,22 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
       {
         old: { _id: this.restaurantId, logs: this.restaurantLogs }, new:
-        {
-          _id: this.restaurantId,
-          logs: newRestaurantLogs
-        }
+          {
+            _id: this.restaurantId,
+            logs: newRestaurantLogs
+          }
       }]).subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this.restaurantLogs = newRestaurantLogs;
-          this._global.publishAlert(
-            AlertType.Success,
-            'Successfully updated.'
-          );
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating log");
-        }
+      result => {
+        // let's update original, assuming everything successful
+        this.restaurantLogs = newRestaurantLogs;
+        this._global.publishAlert(
+          AlertType.Success,
+          'Successfully updated.'
+        );
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error updating log");
+      }
       );
   }
 
