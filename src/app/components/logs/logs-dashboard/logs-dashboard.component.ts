@@ -58,6 +58,8 @@ export class LogsDashboardComponent implements OnInit {
             r.logs = r.logs.map(log => new Log(log));
           }
         });
+
+        // sort logs
         this.computeFilteredLogs();
       },
       error => {
@@ -83,7 +85,7 @@ export class LogsDashboardComponent implements OnInit {
     if (!data.log.time) {
       data.log.time = new Date();
     }
-    if(!data.log.username) {
+    if (!data.log.username) {
       data.log.username = this._global.user.username;
     }
 
@@ -121,7 +123,8 @@ export class LogsDashboardComponent implements OnInit {
     });
 
     // sort DESC by time!
-    this.filteredRestaurantLogs.sort((rl1, rl2) => rl2.log.time.valueOf() - rl1.log.time.valueOf());
+    // one without time
+    this.filteredRestaurantLogs.sort((rl1, rl2) => (rl2.log.time || new Date(0)).valueOf() - (rl1.log.time || new Date(0)).valueOf());
 
   }
 
@@ -152,6 +155,10 @@ export class LogsDashboardComponent implements OnInit {
   edit(restaurantLog) {
     // let make a copy and preserve the original
     this.logInEditing = new Log(restaurantLog.log);
+    // fix: sometimes log time is missing
+    if(!this.logInEditing.time) {
+      this.logInEditing.time = new Date();
+    }
     this.logInEditingOriginal = restaurantLog.log;
 
     this.restaurant = restaurantLog.restaurant;
