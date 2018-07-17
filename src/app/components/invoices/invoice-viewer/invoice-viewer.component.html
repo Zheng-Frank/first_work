@@ -163,7 +163,7 @@
   <!--adjustments section-->
   <div *ngIf="invoice.adjustments && invoice.adjustments.length > 0">
     <h3 class="text-center">Adjustment (credit)</h3>
-    <table class="table app-scaled-table">
+    <table class="table">
       <tr *ngFor="let adjustment of invoice.adjustments">
         <th>{{adjustment.name}}</th>
         <td>{{adjustment.amount | currency:'USD':'symbol' }}</td>

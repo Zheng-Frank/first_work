@@ -1,7 +1,10 @@
 .app-scaled-table {
     font-size: 90%;
 }
-.app-scaled-table th,td{
+.app-scaled-table th{
+    padding: 0;
+}
+.app-scaled-table td{
     padding: 0;
 }
 h1::first-letter {
