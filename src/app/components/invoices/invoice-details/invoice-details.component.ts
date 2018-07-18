@@ -11,6 +11,7 @@ import { mergeMap } from 'rxjs/operators';
 import { Restaurant } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
 import { PaymentMeans } from '../../../classes/payment-means';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 
 declare var $: any;
 declare var window: any;
@@ -19,7 +20,8 @@ declare var window: any;
 @Component({
   selector: 'app-invoice-details',
   templateUrl: './invoice-details.component.html',
-  styleUrls: ['./invoice-details.component.css']
+  styleUrls: ['./invoice-details.component.css'],
+  providers: [CurrencyPipe, DatePipe]
 })
 export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   invoice: Invoice;
@@ -37,7 +39,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   @ViewChild('adjustmentModal') adjustmentModal: ModalComponent;
 
-  constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
+  constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) {
     const self = this;
     this._route.params
       .pipe(mergeMap(params =>
@@ -132,7 +134,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this.setInvoiceStatus(field, !this.invoice[field]);
     this.addLog(
       {
-        time:new Date(),
+        time: new Date(),
         action: "set",
         user: this._global.user.username,
         value: field + '=' + !this.invoice[field]
@@ -250,7 +252,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         this.setInvoiceStatus('isSent', true);
         this.addLog(
           {
-            time:new Date(),
+            time: new Date(),
             action: "fax",
             user: this._global.user.username,
             value: faxNumber
@@ -269,7 +271,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         this.setInvoiceStatus('isSent', true);
         this.addLog(
           {
-            time:new Date(),
+            time: new Date(),
             action: "email",
             user: this._global.user.username,
             value: email
@@ -280,6 +282,36 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         this._global.publishAlert(AlertType.Danger, "Error sending email");
       }
     );
+  }
+
+  smsInvoice(phoneNumber) {
+    // let's forming a good text message
+
+    const url = environment.bizUrl + '#/invoice/' + (this.invoice.id || this.invoice['_id']);
+
+    this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
+      let message = 'QMENU INVOICE:';
+      message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';
+      message += '\n' + (this.invoice.getBalance() > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.getBalance()), 'USD');
+      message += '\n' + shortUrl + ' .'; // add training space to make it clickable in imessage     
+      // if (this.invoice.paymentInstructions) {
+      //   message += '\n' + this.invoice.paymentInstructions.replace(/\<br\>/g, '\n');
+      // }
+      message += '\nThank you for your business!'
+
+      // we need to replace $ with USD because of imessage bug
+      message = message.replace(/\$/g, '');
+      return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: phoneNumber, message: message });
+    }))
+      .subscribe(
+        result => {
+          this._global.publishAlert(AlertType.Success, "SMS sent");
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error shortening URL");
+        }
+      );
+
   }
 
   addLog(log) {
