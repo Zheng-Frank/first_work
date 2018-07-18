@@ -129,25 +129,28 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   toggleInvoiceStatus(field) {
+    this.setInvoiceStatus(field, !this.invoice[field]);
+    this.addLog(
+      {
+        time:new Date(),
+        action: "set",
+        user: this._global.user.username,
+        value: field + '=' + !this.invoice[field]
+      }
+    );
+  }
+
+  setInvoiceStatus(field, value) {
     if (field !== 'isCanceled' || confirm('Are you sure to cancel the invoice?')) {
 
       const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
       const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
-      updatedInvoice[field] = !updatedInvoice[field];
-
-      updatedInvoice.logs = updatedInvoice.logs || [];
-      updatedInvoice.logs.push({
-        time: { $date: new Date() },
-        action: field,
-        user: this._global.user.username,
-        value: !this.invoice[field]
-      });
+      updatedInvoice[field] = value;
 
       this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
         result => {
           // let's update original, assuming everything successful
           this.invoice[field] = updatedInvoice[field];
-          this.invoice.logs = updatedInvoice.logs;
           this._global.publishAlert(
             AlertType.Success,
             field + " was updated"
@@ -183,13 +186,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     // back to use POJS
     updatedInvoice = JSON.parse(JSON.stringify(i));
 
-    updatedInvoice.logs = updatedInvoice.logs || [];
-    updatedInvoice.logs.push({
-      time: { $date: new Date() },
-      action: "update",
-      user: this._global.user.username,
-      value: adjustment
-    });
+
 
     this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
       result => {
@@ -199,6 +196,12 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           AlertType.Success,
           adjustment.name + " was added"
         );
+        this.addLog({
+          time: new Date(),
+          action: "adjust",
+          user: this._global.user.username,
+          value: adjustment
+        });
       },
       error => {
         this._global.publishAlert(AlertType.Danger, "Error updating to DB");
@@ -218,22 +221,22 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
       {
         old: { _id: this.restaurantId, logs: this.restaurantLogs }, new:
-          {
-            _id: this.restaurantId,
-            logs: newRestaurantLogs
-          }
+        {
+          _id: this.restaurantId,
+          logs: newRestaurantLogs
+        }
       }]).subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        this.restaurantLogs = newRestaurantLogs;
-        this._global.publishAlert(
-          AlertType.Success,
-          'Successfully updated.'
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating log");
-      }
+        result => {
+          // let's update original, assuming everything successful
+          this.restaurantLogs = newRestaurantLogs;
+          this._global.publishAlert(
+            AlertType.Success,
+            'Successfully updated.'
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating log");
+        }
       );
   }
 
@@ -244,10 +247,62 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   faxInvoice(faxNumber) {
     this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: faxNumber, invoiceId: this.invoice.id || this.invoice['_id'] }).subscribe(
       result => {
-        this.toggleInvoiceStatus('isSent')
+        this.setInvoiceStatus('isSent', true);
+        this.addLog(
+          {
+            time:new Date(),
+            action: "fax",
+            user: this._global.user.username,
+            value: faxNumber
+          }
+        );
       },
       error => {
         this._global.publishAlert(AlertType.Danger, "Error sending fax");
+      }
+    );
+  }
+
+  emailInvoice(email) {
+    this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: email, invoiceId: this.invoice.id || this.invoice['_id'] }).subscribe(
+      result => {
+        this.setInvoiceStatus('isSent', true);
+        this.addLog(
+          {
+            time:new Date(),
+            action: "email",
+            user: this._global.user.username,
+            value: email
+          }
+        );
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error sending email");
+      }
+    );
+  }
+
+  addLog(log) {
+    const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
+    const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
+    updatedInvoice.logs = updatedInvoice.logs || [];
+    const logTime = log.time;
+    // when updating, we need to convert to time format of database
+    log.time = { $date: logTime };
+    updatedInvoice.logs.push(log);
+    this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
+      result => {
+        // let's update original, assuming everything successful
+        this.invoice.logs = updatedInvoice.logs;
+        // the last log's time should convert back to normal (without $date)
+        this.invoice.logs[this.invoice.logs.length - 1].time = logTime;
+        this._global.publishAlert(
+          AlertType.Success,
+          "log was updated"
+        );
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
       }
     );
   }

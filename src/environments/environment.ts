@@ -10,7 +10,9 @@ export const environment = {
   qmenuApiUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
   // adminApiUrl: "https://swozix2epl.execute-api.us-east-2.amazonaws.com/prod/",
   // qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/prod/",
-  legacyApiUrl: "https://quez.herokuapp.com/",
+  legacyApiUrl: "http://localhost:1337/",
+  // legacyApiUrl: "https://quez.herokuapp.com/",
+  
   bizUrl: 'https://restaurant-quez.herokuapp.com/',
   customerUrl: 'https://customer-app.herokuapp.com/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',

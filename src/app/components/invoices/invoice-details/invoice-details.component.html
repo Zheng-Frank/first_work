@@ -28,7 +28,8 @@
                 <b>{{channel.type}}</b> 
                 <span *ngIf="channel.type === 'Email'"> {{channel.value}}</span>
                 <span *ngIf="channel.type !== 'Email'"> {{channel.value | tel}}</span>
-                <button *ngIf="channel.type === 'Fax'" class="btn btn-primary btn-sm" (click)="faxInvoice(channel.value)">{{invoice.isSent ? 'Resend Fax' : 'Send Fax'}}</button>
+                <button *ngIf="channel.type === 'Email'" class="btn btn-primary btn-sm mb-2" (click)="emailInvoice(channel.value)">{{invoice.isSent ? 'Resend Email' : 'Send Email'}}</button>
+                <button *ngIf="channel.type === 'Fax'" class="btn btn-primary btn-sm mb-2" (click)="faxInvoice(channel.value)">{{invoice.isSent ? 'Resend Fax' : 'Send Fax'}}</button>
             </div>
         </ng-container>
         
@@ -93,6 +94,7 @@
                         <th>User</th>
                         <th>Date</th>
                         <th>Action</th>
+                        <th>Value</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -100,6 +102,7 @@
                         <td>{{log.user}}</td>
                         <td>{{log.time | date: 'short'}}</td>
                         <td>{{log.action}}</td>
+                        <td>{{log.value || log.result?.fax?.status}}</td>
                     </tr>
                 </tbody>
             </table>
