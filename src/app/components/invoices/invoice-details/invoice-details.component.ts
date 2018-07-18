@@ -306,6 +306,15 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       .subscribe(
         result => {
           this._global.publishAlert(AlertType.Success, "SMS sent");
+          this.setInvoiceStatus('isSent', true);
+          this.addLog(
+            {
+              time: new Date(),
+              action: "sms",
+              user: this._global.user.username,
+              value: phoneNumber
+            }
+          );
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error shortening URL");
