@@ -47,7 +47,6 @@ export class GmbDeleteRestaurantComponent implements OnInit {
         .subscribe(
           result => {
             this.apiResult = result;
-            console.log(result);
             this.apiRequesting = false;
           },
           error => {

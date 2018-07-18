@@ -53,7 +53,6 @@ export class GmbDashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log('requesting gmbs');
 
     // this._api.get(environment.qmenuApiUrl + "generic", {
     //   resource: "gmb",
@@ -192,7 +191,6 @@ export class GmbDashboardComponent implements OnInit {
   update(gmb) {
     this.updatedGMB = this.updatedGMB.filter(this.onlyUnique);
 
-    console.log('update ' + gmb.email);
     this._api.put(environment.legacyApiUrl + 'gmb/' + gmb.id, gmb).subscribe(
       result => {
         // replace same id instance
@@ -275,7 +273,6 @@ export class GmbDashboardComponent implements OnInit {
 
   scanPublished(gmb) {
     return new Promise((resolve, reject) => {
-      console.log('scan ' + gmb.email);
       this._api
         .post('http://localhost:3000/retrievePublishedGmbLocations', { email: gmb.email, password: gmb.password })
         .subscribe(
@@ -292,7 +289,6 @@ export class GmbDashboardComponent implements OnInit {
   }
 
   updatePublishedLocations(gmb, publishedLocations: any[]) {
-    console.log('calculating update ' + gmb.email);
     gmb.businesses.map(biz => {
       publishedLocations.map(pbiz => {
         if (pbiz.equals(biz)) {
@@ -330,14 +326,13 @@ export class GmbDashboardComponent implements OnInit {
 
   scanEmail(gmb) {
     return new Promise((resolve, reject) => {
-      console.log('scan email ' + gmb.email);
       this._api
         .post('http://localhost:3000/retrieveGmbRequests', { email: gmb.email, password: gmb.password, stayAfterScan: false })
         .subscribe(
           result => {
             // convert to OwnershipRequest type and remove isReminder!
             const requests: OwnershipRequest[] = result.map(r => new OwnershipRequest(r)); //.filter(r => !r.isReminder);
-            //console.log(result);
+
             // find reminders that have NO previous requests (within 7 days!)
             //let or = new OwnershipRequest();
             const eightDays = 8 * 24 * 3600 * 1000;
@@ -376,7 +371,7 @@ export class GmbDashboardComponent implements OnInit {
             }
 
             const finalRequests = requests.filter(r => !r.isReminder || noPreviousRequestReminders.indexOf(r) >= 0);
-            //console.log(finalRequests);
+
             this.updateOwnershipRequests(gmb, finalRequests);
             resolve();
           },
@@ -419,7 +414,6 @@ export class GmbDashboardComponent implements OnInit {
 
   viewContact(biz: Business) {
     this.contactBiz = biz;
-    console.log(this.contactBiz)
     this.gmbViewContactModal.show();
     // get all users
     this._api.get(environment.qmenuApiUrl + 'generic',

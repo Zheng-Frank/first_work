@@ -51,7 +51,6 @@ export class RestaurantDetailsHostComponent implements OnInit {
             results => {
               this.restaurant = new Restaurant(results[0]);
               this.restaurant.id = this.restaurant.id || this.restaurant['_id'];
-              console.log(this.restaurant);
             },
             e => this._global.publishAlert(
               AlertType.Danger,

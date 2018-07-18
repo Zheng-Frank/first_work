@@ -115,7 +115,6 @@ export class GmbCardComponent implements OnInit {
 
   scan() {
     this.scanning = true;
-    console.log(this.gmb)
     this._api
       .post('http://localhost:3000/retrieveGmbRequests', { email: this.gmb.email, password: this.gmb.password, stayAfterScan: true })
       .subscribe(
@@ -123,7 +122,6 @@ export class GmbCardComponent implements OnInit {
           this.scanning = false;
           // convert to OwnershipRequest type and remove isReminder!
           const requests: OwnershipRequest[] = result.map(r => new OwnershipRequest(r)); //.filter(r => !r.isReminder);
-          //console.log(result);
           // find reminders that have NO previous requests (within 7 days!)
           //let or = new OwnershipRequest();
           const eightDays = 8 * 24 * 3600 * 1000;
@@ -162,7 +160,6 @@ export class GmbCardComponent implements OnInit {
           }
 
           const finalRequests = requests.filter(r => !r.isReminder || noPreviousRequestReminders.indexOf(r) >= 0);
-          //console.log(finalRequests);
           this.updateOwnershipRequests(finalRequests);
         },
         error => {
@@ -210,7 +207,6 @@ export class GmbCardComponent implements OnInit {
       .subscribe(
         result => {
           this.scanning = false;
-          //console.log(result);
           this.updatePublishedLocations(result.map(b => new Business(b)));
         },
         error => {
@@ -234,7 +230,6 @@ export class GmbCardComponent implements OnInit {
         });
     });
 
-    //console.log("gmb=", this.gmb.businesses);
     // we'd better sort by date asending
     this.gmb.businesses.map(biz => {
       biz.ownershipRequests = biz.ownershipRequests || [];
@@ -333,7 +328,6 @@ export class GmbCardComponent implements OnInit {
       .post('http://localhost:3000/removeBusiness', { email: this.gmb.email, password: this.gmb.password, businessName: biz.name })
       .subscribe(
         result => {
-          //console.log(result);
           alert('Deleted');
         },
         error => {
@@ -354,7 +348,6 @@ export class GmbCardComponent implements OnInit {
       })
       .subscribe(
         result => {
-          //console.log(result);
           alert('done');
         },
         error => {

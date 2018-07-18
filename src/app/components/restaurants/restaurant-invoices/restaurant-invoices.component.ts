@@ -30,7 +30,6 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
 
     this._route.params.subscribe(
       params => {
-        console.log('params=', params)
         if(!params ||  !params.id) {
           return;
         }

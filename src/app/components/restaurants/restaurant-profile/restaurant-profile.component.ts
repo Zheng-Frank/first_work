@@ -107,7 +107,6 @@ export class RestaurantProfileComponent implements OnInit {
     newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
     // update those two fields!
-    console.log(oldObj)
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {

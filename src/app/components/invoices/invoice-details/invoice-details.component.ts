@@ -78,7 +78,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         const firstPm = this.paymentMeans[0];
         if (firstPm) {
           // https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-dollars-currency-string-in-javascript
-          const amountString = '$' + Math.abs(this.invoice.balance).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+          const amountString = '$' + Math.abs(this.invoice.getBalance()).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 
           const wordingMap = {
             'Check': 'Please send payment check in the amount of ' + amountString + ' to:<br>qMenu, Inc.<br>7778 McGinnis Ferry Rd, Suite 276<br>Suwanee, GA 30024',
@@ -215,8 +215,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     logResolved.resolved = true;
     newRestaurantLogs[index] = logResolved;
 
-    console.log(this.restaurantId);
-
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
       {
         old: { _id: this.restaurantId, logs: this.restaurantLogs }, new:
@@ -244,7 +242,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   faxInvoice(faxNumber) {
-    console.log(this.invoice)
     this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: faxNumber, invoiceId: this.invoice.id || this.invoice['_id'] }).subscribe(
       result => {
         this.toggleInvoiceStatus('isSent')

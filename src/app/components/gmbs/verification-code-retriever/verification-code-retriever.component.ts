@@ -47,7 +47,6 @@ export class VerificationCodeRetrieverComponent implements OnInit {
           result => {
             this.apiRequesting = false;
             this.retrievedCode = result;
-            console.log(result);
           },
           error => {
             this.apiRequesting = false;

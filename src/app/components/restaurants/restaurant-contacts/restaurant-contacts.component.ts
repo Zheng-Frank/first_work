@@ -229,12 +229,10 @@ export class RestaurantContactsComponent implements OnInit {
   }
 
   updatePeopleOnChannelChange(action, oldChannel, newChannel?) {
-    console.log(action, oldChannel, newChannel)
     if (this.restaurant.people) {
       let affected = false;
       const newPeople = JSON.parse(JSON.stringify(this.restaurant.people));
       (newPeople || []).map(person => {
-        console.log('person', person)
         for (let i = (person.channels || []).length - 1; i >= 0; i--) {
           if (person.channels[i].type === oldChannel.type && person.channels[i].value === oldChannel.value) {
             switch (action) {
