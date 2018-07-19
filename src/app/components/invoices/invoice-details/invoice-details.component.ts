@@ -7,11 +7,13 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, observeOn } from 'rxjs/operators';
 import { Restaurant } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
 import { PaymentMeans } from '../../../classes/payment-means';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { Channel } from '../../../classes/channel';
+import { Observable, from } from 'rxjs';
 
 declare var $: any;
 declare var window: any;
@@ -36,6 +38,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   adjustmentDescription;
   adjustmentIsCredit = true;
   adjustmentAmount;
+
+  apiRequesting: 'Fax' | 'SMS' | 'Email' | 'Phone';
 
   @ViewChild('adjustmentModal') adjustmentModal: ModalComponent;
 
@@ -246,52 +250,14 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     return (this.restaurantLogs || []).filter(log => !log.resolved);
   }
 
-  faxInvoice(faxNumber) {
-    this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: faxNumber, invoiceId: this.invoice.id || this.invoice['_id'] }).subscribe(
-      result => {
-        this.setInvoiceStatus('isSent', true);
-        this.addLog(
-          {
-            time: new Date(),
-            action: "fax",
-            user: this._global.user.username,
-            value: faxNumber
-          }
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error sending fax");
-      }
-    );
-  }
-
-  emailInvoice(email) {
-    this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: email, invoiceId: this.invoice.id || this.invoice['_id'] }).subscribe(
-      result => {
-        this.setInvoiceStatus('isSent', true);
-        this.addLog(
-          {
-            time: new Date(),
-            action: "email",
-            user: this._global.user.username,
-            value: email
-          }
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error sending email");
-      }
-    );
-  }
-
-  smsInvoice(phoneNumber) {
-    // let's forming a good text message
-
+  sendInvoice(channel: Channel) {
+    this.apiRequesting = channel.type;
+    // we need to get shorten URL, mainly for SMS.
     const url = environment.bizUrl + '#/invoice/' + (this.invoice.id || this.invoice['_id']);
-
     this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
       let message = 'QMENU INVOICE:';
       message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';
+      // USE USD instead of $ because $ causes trouble for text :(
       message += '\n' + (this.invoice.getBalance() > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.getBalance()), 'USD');
       message += '\n' + shortUrl + ' .'; // add training space to make it clickable in imessage     
       // if (this.invoice.paymentInstructions) {
@@ -299,28 +265,44 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       // }
       message += '\nThank you for your business!'
 
-      // we need to replace $ with USD because of imessage bug
-      message = message.replace(/\$/g, '');
-      return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: phoneNumber, message: message });
+      // we need to append '-' to end of $xxx.xx because of imessage bug
+      const matches = message.match(/\.\d\d/g);
+      matches.map(match => {
+        message = message.replace(match, match + '-');
+      });
+
+      switch (channel.type) {
+        case 'Fax':
+          return this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
+        case 'Email':
+          return this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
+        case 'SMS':
+          return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: channel.value, message: message });
+        default: break;
+      }
+
     }))
       .subscribe(
         result => {
-          this._global.publishAlert(AlertType.Success, "SMS sent");
-          this.setInvoiceStatus('isSent', true);
+          this.apiRequesting = undefined;
+          this._global.publishAlert(AlertType.Success, channel.type + ' Send');
+          if (!this.invoice.isSent) {
+            this.setInvoiceStatus('isSent', true);
+          }
           this.addLog(
             {
               time: new Date(),
-              action: "sms",
+              action: channel.type,
               user: this._global.user.username,
-              value: phoneNumber
+              value: channel.value
             }
           );
         },
         error => {
+          this.apiRequesting = undefined;
           this._global.publishAlert(AlertType.Danger, "Error shortening URL");
         }
       );
-
   }
 
   addLog(log) {
