@@ -698,5 +698,45 @@ export class DbScriptsComponent implements OnInit {
 
   } // end of migrateEmailAndPhones
 
+  genericTesting() {
+    // find out invoice having Fax-phaxio-callback as log
+    
+    let affectedInvoices = [];
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "invoice",
+      query: {
+        "logs.action": 'Fax-phaxio-callback',
+        "orders.canceled": true
+      },
+      projection: {
+        "restaurant.name": 1,
+        "restaurant.offsetToEST": 1,
+        orders: 1,
+        logs: 1,
+        adjustments: 1,
+        payments: 1,
+        isCanceled: 1,
+        isSent: 1,
+        isPaymentSent: 1,
+        isPaymentCompleted: 1
+
+      },
+      limit: 50
+    }).subscribe(
+        invoices => {
+          console.log(invoices);
+          this._global.publishAlert(
+            AlertType.Success,
+            "done"
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        }
+      );
+  }
 
 }
