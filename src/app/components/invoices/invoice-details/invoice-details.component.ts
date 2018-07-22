@@ -253,8 +253,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   sendInvoice(channel: Channel) {
     this.apiRequesting = channel.type;
     // we need to get shorten URL, mainly for SMS.
-    // const url = environment.bizUrl + 'index.html#/invoice/' + (this.invoice.id || this.invoice['_id']);
-    const url = environment.legacyApiUrl + 'utilities/invoice/' + (this.invoice.id || this.invoice['_id']);
+    const url = environment.bizUrl + 'index.html#/invoice/' + (this.invoice.id || this.invoice['_id']);
+    // const url = environment.legacyApiUrl + 'utilities/invoice/' + (this.invoice.id || this.invoice['_id']);
 
     this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
       let message = 'QMENU INVOICE:';
