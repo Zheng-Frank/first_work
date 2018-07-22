@@ -53,6 +53,10 @@ export class PaymentsDashboardComponent implements OnInit {
       value: 'Credit Card'
     },
     {
+      text: 'Stripe',
+      value: 'Stripe'
+    },
+    {
       text: 'Direct Deposit (receive)',
       value: 'Direct Deposit'
     },
