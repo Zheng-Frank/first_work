@@ -1,7 +1,6 @@
 import { Component, ViewChild, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-import { Mc, Item, Mi, MenuOption } from 'qmenu-shared/models';
-import { OptionsEditorComponent, SelectorComponent } from 'qmenu-shared/components';
-import { UploadImageService } from '../../../services/upload-image.service';
+import { Mc, Item, Mi, MenuOption } from '@qmenu/ui';
+import { OptionsEditorComponent, SelectorComponent } from '../options-editor/options-editor.component';
 import { Router, NavigationStart } from '@angular/router';
 
 declare var $: any;
