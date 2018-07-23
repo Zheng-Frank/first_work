@@ -27,6 +27,8 @@ export class MenuComponent implements OnInit {
   @ViewChild('mcEditor') mcEditor: MenuCategoryEditorComponent;
   @ViewChild('miEditor') miEditor: MenuItemEditorComponent;
 
+  @ViewChild('misEditor') misEditor: MenuItemsEditorComponent;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -56,6 +58,12 @@ export class MenuComponent implements OnInit {
     }
     this.mcEditor.setMc(mcCopy, this.restaurant.menuOptions);
     this.mcModal.show();
+  }
+
+  editAllItems(mc) {
+    this.editingMis = true;
+    this.misEditor.setMc(mc, this.restaurant.menuOptions);
+
   }
 
   mcDone(mc: Mc) {

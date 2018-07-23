@@ -17,9 +17,9 @@
   <div style="height: 20px"></div>
 
   <!--category cards-->
-  <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)" (onMiClicked)="editMi($event)">
+  <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)" (onMiClicked)="editMi($event)">
   </app-menu-category>
-
+  
   <!--add category section-->
   <div class="row mt-1 ml-0 mr-0">
     <button (click)="editMc(null)" class="btn btn-primary btn-block">Add Category</button>
@@ -27,6 +27,10 @@
   <div class="row mt-1 ml-0 mr-0">
     <small class="text-muted">* click item to edit</small>
   </div>
+</div>
+
+<div [hidden]="!editingMis">
+  <app-menu-items-editor #misEditor (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
 </div>
 
 <q-modal #mcModal>
