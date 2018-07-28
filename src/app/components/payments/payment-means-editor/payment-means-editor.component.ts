@@ -47,7 +47,7 @@ export class PaymentMeansEditorComponent implements OnInit {
         { object: "Quickbooks Invoicing", text: "Quickbooks Invoicing", selected: false },
         { object: "Quickbooks Bank Withdraw", text: "Quickbooks Bank Withdraw", selected: false },
         { object: "Credit Card", text: "Credit Card", selected: false },
-        // { object: "Stripe", text: "Stripe", selected: false },
+        { object: "Stripe", text: "Stripe", selected: false },
         { object: "Direct Deposit", text: "Direct Deposit (receive)", selected: false },
         { object: "Check Deposit", text: "Check Deposit (receive)", selected: false }
       ]

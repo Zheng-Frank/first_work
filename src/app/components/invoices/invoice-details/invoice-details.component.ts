@@ -89,6 +89,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           const wordingMap = {
             'Check': 'Please send payment check in the amount of ' + amountString + ' to:<br>qMenu, Inc.<br>7778 McGinnis Ferry Rd, Suite 276<br>Suwanee, GA 30024',
             'Quickbooks Invoicing': undefined,
+            'Stripe': 'Please pay online or send payment check in the amount of ' + amountString + ' to:<br>qMenu, Inc.<br>7778 McGinnis Ferry Rd, Suite 276<br>Suwanee, GA 30024',
             'Quickbooks Bank Withdraw': 'Balance ' + amountString + ' will be withdrawn from your bank account ending in ' + ((firstPm.details || {}).accountNumber || '').substr(-4) + '.',
             'Credit Card': 'Balance ' + amountString + ' will be charged to your credit card ending in ' + ((firstPm.details || {}).cardNumber || '').substr(-4) + '.',
             'Direct Deposit': 'Credit ' + amountString + ' will be deposited to your bank account ending in ' + ((firstPm.details || {}).accountNumber || '').substr(-4) + '. It may take up to 3 business days.',
@@ -253,7 +254,9 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   sendInvoice(channel: Channel) {
     this.apiRequesting = channel.type;
     // we need to get shorten URL, mainly for SMS.
-    const url = environment.bizUrl + '#/invoice/' + (this.invoice.id || this.invoice['_id']);
+    const url = environment.bizUrl + 'index.html#/invoice/' + (this.invoice.id || this.invoice['_id']);
+    // const url = environment.legacyApiUrl + 'utilities/invoice/' + (this.invoice.id || this.invoice['_id']);
+
     this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
       let message = 'QMENU INVOICE:';
       message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';

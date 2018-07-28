@@ -9,7 +9,7 @@ export class Invoice {
   //  lastStatus, paymentType, payee}
   adjustments: any[];  // {name, amount}
   logs: any[];         // {time, user, ip, action}, action in [CREATED, SENT, PAID]
-  payments: InvoicePayment[];    
+  payments: InvoicePayment[];
   // paymentMethod: CASH, CREDITCARD {object to be defined}
   isCanceled: boolean;
   isSent: 'boolean';
@@ -38,7 +38,7 @@ export class Invoice {
   totalPayments: number;
 
   paymentInstructions: string;
-  
+
   computeDerivedValues() {
     ['tax', 'tip', 'surcharge', 'deliveryCharge',
       'thirdPartyDeliveryCharge', 'thirdPartyDeliveryTip',
@@ -65,7 +65,7 @@ export class Invoice {
       this.toDate = new Date(invoice.toDate);
 
       // parse logs
-      if(this.logs) {
+      if (this.logs) {
         this.logs.map(log => log.time = new Date(log.time));
       }
       // let's sort orders by id
@@ -146,7 +146,13 @@ export class Invoice {
 
   // balance: from restaurant to qMenu
   getBalance() {
-  
+
+    return (this.previousBalance || 0) + this.getStripeFee() - this.getQMenuCcCollected() + this.getCommission() - this.getAdjustment() + this.getThirdPartyDeliveryTip() + this.getThirdPartyDeliveryCharge();
+  }
+
+  // balance: from restaurant to qMenu
+  getOutstandingBalance() {
+
     return (this.previousBalance || 0) - this.getTotalPayments() + this.getStripeFee() - this.getQMenuCcCollected() + this.getCommission() - this.getAdjustment() + this.getThirdPartyDeliveryTip() + this.getThirdPartyDeliveryCharge();
   }
 
