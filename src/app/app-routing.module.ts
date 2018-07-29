@@ -22,6 +22,7 @@ import { InvoiceDetailsComponent } from './components/invoices/invoice-details/i
 import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
+import { TaskTesterComponent } from './components/tasks/task-tester/task-tester.component';
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', 'GMB', 'CSR'] } },
@@ -46,6 +47,7 @@ const routes: Routes = [
   { path: 'gmbs/watch', component: GmbWatchComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'tasks', component: TaskTesterComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
 
   { path: '**', redirectTo: '/home' }
 ];
