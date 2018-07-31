@@ -699,32 +699,70 @@ export class DbScriptsComponent implements OnInit {
   } // end of migrateEmailAndPhones
 
   genericTesting() {
-    // find out invoice having Fax-phaxio-callback as log
-    
-    let affectedInvoices = [];
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "invoice",
+    // // find out invoice having Fax-phaxio-callback as log
+    // let affectedInvoices = [];
+    // this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: "invoice",
+    //   query: {
+    //     "logs.action": 'Fax-phaxio-callback',
+    //     "orders.canceled": true
+    //   },
+    //   projection: {
+    //     "restaurant.name": 1,
+    //     "restaurant.offsetToEST": 1,
+    //     orders: 1,
+    //     logs: 1,
+    //     adjustments: 1,
+    //     payments: 1,
+    //     isCanceled: 1,
+    //     isSent: 1,
+    //     isPaymentSent: 1,
+    //     isPaymentCompleted: 1
+
+    //   },
+    //   limit: 50
+    // }).subscribe(
+    //     invoices => {
+    //       console.log(invoices);
+    //       this._global.publishAlert(
+    //         AlertType.Success,
+    //         "done"
+    //       );
+    //     },
+    //     error => {
+    //       this._global.publishAlert(
+    //         AlertType.Danger,
+    //         "Error: " + JSON.stringify(error)
+    //       );
+    //     }
+    //   );
+
+    // get banned customer
+
+    const startDate = new Date('2018-07-01');
+    const endDate = new Date('2018-07-02');
+     this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "customer",
       query: {
-        "logs.action": 'Fax-phaxio-callback',
-        "orders.canceled": true
+        //bannedReasons: { $exists: true },
+        // socialProvider: { $exists: true },
+        "createdAt" : { $gte: { $date: startDate }, $lte: { $date: endDate }}
       },
       projection: {
-        "restaurant.name": 1,
-        "restaurant.offsetToEST": 1,
-        orders: 1,
-        logs: 1,
-        adjustments: 1,
-        payments: 1,
-        isCanceled: 1,
-        isSent: 1,
-        isPaymentSent: 1,
-        isPaymentCompleted: 1
-
+        email: 1,
+        firstName: 1,
+        socialProvider: 1,
+        banCounter: 1,
+        bannedReasons: 1,
+        createdAt: 1
       },
-      limit: 50
+      limit: 2000
     }).subscribe(
-        invoices => {
-          console.log(invoices);
+        results => {
+         // results = results.filter(r => r.bannedReasons.length > 0);
+          console.log(results);
+          const socials = results.filter(r => r.socialProvider);
+          console.log(socials);
           this._global.publishAlert(
             AlertType.Success,
             "done"

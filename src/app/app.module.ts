@@ -82,6 +82,9 @@ import { BusinessEditorComponent } from './components/gmbs/business-editor/busin
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
 import { PaymentMeansEditorComponent } from './components/payments/payment-means-editor/payment-means-editor.component';
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
+import { TaskListComponent } from './components/tasks/task-list/task-list.component';
+import { TaskTesterComponent } from './components/tasks/task-tester/task-tester.component';
+import { TaskActionerComponent } from './components/tasks/task-actioner/task-actioner.component';
 
 @NgModule({
   declarations: [
@@ -154,7 +157,10 @@ import { PaymentsDashboardComponent } from './components/payments/payments-dashb
     GmbCardComponent,
     BusinessEditorComponent,
     PaymentMeansEditorComponent,
-    PaymentsDashboardComponent
+    PaymentsDashboardComponent,
+    TaskListComponent,
+    TaskTesterComponent,
+    TaskActionerComponent
   ],
   imports: [
     BrowserModule,
