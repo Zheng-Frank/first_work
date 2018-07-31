@@ -1,7 +1,6 @@
-<!-- <app-stripe></app-stripe> -->
-<app-task-list [taskList]="tasks" [username]="myName" [roles]="myRoles"></app-task-list>
-<div class="container">
-    <h2>Assigned to Me</h2>
+<button class="btn btn-primary" (click)="generateTask()">Generate A Task</button>
+<div>
+    <h2>Tasks</h2>
     <!-- by task name -->
     <div *ngFor="let nameEntry of groupedTasks" class="mb-4">
         <h5>{{nameEntry.name}}</h5>
@@ -13,3 +12,4 @@
         </ng-container>
     </div>
 </div>
+<app-task-list [taskList]="myTasks" [username]="myUsername" [roles]="myRoles"></app-task-list>

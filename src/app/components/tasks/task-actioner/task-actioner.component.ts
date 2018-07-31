@@ -1,6 +1,8 @@
 import { Component, OnInit, OnChanges, Input, Output, EventEmitter } from '@angular/core';
 import { Task } from '../../../classes/task';
 import { Action } from '../../../classes/action';
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
 
 @Component({
   selector: 'app-task-actioner',
@@ -20,7 +22,7 @@ export class TaskActionerComponent implements OnInit, OnChanges {
   confirming;
   confirmError;
 
-  constructor() { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
   }
@@ -36,7 +38,7 @@ export class TaskActionerComponent implements OnInit, OnChanges {
 
   clickConfirm() {
     this.confirming = true;
-    this.action.perform(this.task, null).then(data => {
+    this.action.perform(this.task, this._api, {assignee: this._global.user.username}).then(data => {
       this.done.emit(data);
       this.confirming = false;
     }).catch(error => {

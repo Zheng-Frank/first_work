@@ -1,5 +1,8 @@
 import { Component, NgZone } from '@angular/core';
 import { Task } from '../../../classes/task';
+import { ApiService } from '../../../services/api.service';
+import { environment } from '../../../../environments/environment';
+import { GlobalService } from '../../../services/global.service';
 
 @Component({
   selector: 'app-task-tester',
@@ -7,13 +10,13 @@ import { Task } from '../../../classes/task';
   styleUrls: ['./task-tester.component.css']
 })
 export class TaskTesterComponent {
-  tasks: Task[] = [];
+  
   myTasks: Task[] = [];
+  
+  myUsername;
+  myRoles;
 
   groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
-
-  myName = 'gary';
-  myRoles = ['role1', 'role3'];
 
   statuses = [
     { name: 'OPEN', btnClass: 'btn-secondary' },
@@ -21,43 +24,76 @@ export class TaskTesterComponent {
     { name: 'CLOSED', btnClass: 'btn-success' },
     { name: 'CANCELED', btnClass: 'btn-danger' }]
 
-  constructor(_zone: NgZone) {
+  constructor(private _api: ApiService, private _global: GlobalService) {
 
-    [undefined, 'gary', 'brian'].map((assignee, i) =>
-      [undefined, 'role1', 'role2', 'role3', 'role4'].map((role, j) =>
-        [undefined, 'CLOSED', 'CANCELED'].map((result, k) => {
-          let random = Math.floor(Math.random() * 3);
-          for (let i = 0; i < random; i++) {
-            this.tasks.push(new Task({
-              name: 'awesome tasks' + i + j,
-              description: 'some description blah blah',
-              assignee: assignee,
-              roles: [role],
-              result: result
-            }));
-          }
+    this.myUsername = this._global.user.username;
+    this.myRoles = this._global.user.roles;
 
-        })));
+    this.refresh();
 
-    this.myTasks = this.tasks.filter(t =>
-      t.assignee === this.myName || t.roles.some(r => this.myRoles.indexOf(r) >= 0));
 
-    console.log(this.myTasks)
-    // compute groupedTasks, by task name
-    const nameMap = {};
-    this.myTasks.map(t => {
-      nameMap[t.name] = nameMap[t.name] || { name: t.name };
+    // [undefined, 'gary', 'brian'].map((assignee, i) =>
+    //   [undefined, 'role1', 'role2', 'role3', 'role4'].map((role, j) =>
+    //     [undefined, 'CLOSED', 'CANCELED'].map((result, k) => {
+    //       let random = Math.floor(Math.random() * 3);
+    //       for (let i = 0; i < random; i++) {
+    //         this.tasks.push(new Task({
+    //           name: 'awesome tasks' + i + j,
+    //           description: 'some description blah blah',
+    //           assignee: assignee,
+    //           roles: [role],
+    //           result: result
+    //         }));
+    //       }
 
-      let status = t.getStatus();
+    //     })));
 
-      nameMap[t.name][status] = (nameMap[t.name][status] || 0) + 1;
+
+
+  }
+
+  refresh() {
+    this._api.get(environment.adminApiUrl + "generic", {
+      resource: "task",
+      query: {
+      },
+      limit: 10000
+    }).subscribe(tasks => {
+      console.log(tasks);
+      tasks = tasks.map(t => new Task(t));
+      this.myTasks = tasks.filter(t =>
+        t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
+
+      console.log(this.myTasks)
+      // compute groupedTasks, by task name
+      const nameMap = {};
+      this.myTasks.map(t => {
+        nameMap[t.name] = nameMap[t.name] || { name: t.name };
+
+        let status = t.getStatus();
+
+        nameMap[t.name][status] = (nameMap[t.name][status] || 0) + 1;
+      });
+
+      console.log(nameMap);
+
+      // convert to groupedTasks so that we can bind to UI
+      this.groupedTasks = Object.keys(nameMap).map(key => nameMap[key]);
+    }, error => {
+      console.log(error);
     });
+  }
 
-    console.log(nameMap);
-
-    // convert to groupedTasks so that we can bind to UI
-    this.groupedTasks = Object.keys(nameMap).map(key => nameMap[key]);
-
+  generateTask() {
+    Task.generate({ name: 'Call Restaurant Owner', description: '407-580-7504, Demo Restaurant', roles: ['ADMIN'] }, this._api)
+      .subscribe(
+        tasks => {
+          console.log(tasks);
+          this.refresh();
+        },
+        error => {
+          console.log(error);
+        });
   }
 
 }

@@ -4,11 +4,14 @@
  */
 import { Action } from './action';
 import { ActionCancel } from './action-cancel';
-import { ActionClaim } from './action-claim';
+import { ActionAssign } from './action-assign';
 import { ActionClose } from './action-close';
+import { ApiService } from '../services/api.service';
+import { environment } from "../../environments/environment";
+import { Observable } from 'rxjs';
 
 export class Task {
-    id: string;
+    _id: string;
     name: string;
     description: string;
     assignee: string;
@@ -39,28 +42,31 @@ export class Task {
         const actions = [];
         // can claim if not finished, in role, not assigned
         if (!this.result && !this.assignee && this.roles.some(r => roles.indexOf(r) >= 0)) {
-            actions.push(new ActionClaim({
-                name: 'Claim',
-                confirmationText: 'This will assign you to the task',
+            actions.push(new ActionAssign({
+                name: 'Assign to Me',
+                confirmationText: 'The task will be assigned to me.',
                 requiredRoles: this.roles
             }));
         }
 
         // can close or cancel if assigned to me but not yet finished or in my role
-        if (!this.result && (this.assignee === username || (!this.assignee && this.roles.some(r => roles.indexOf(r) >= 0)))) {
+        if (!this.result && this.assignee === username ) {
             actions.push(new ActionClose({
                 name: 'Close',
-                confirmationText: 'This will close the task',
+                confirmationText: 'This will close the task.',
                 requiredRoles: this.roles
             }));
 
             actions.push(new ActionCancel({
                 name: 'Cancel',
-                confirmationText: 'This will cancel the task',
+                confirmationText: 'This will cancel the task.',
                 requiredRoles: this.roles
             }));
         }
-
         return actions;
+    }
+
+    static generate(task, api: ApiService): Observable<any> {
+        return api.post(environment.adminApiUrl + 'generic?resource=task', [task]);
     }
 }

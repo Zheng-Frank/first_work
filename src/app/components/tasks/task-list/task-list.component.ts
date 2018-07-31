@@ -2,6 +2,7 @@ import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { Task } from '../../../classes/task';
 import { Action } from '../../../classes/action';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { ApiService } from '../../../services/api.service';
 
 @Component({
   selector: 'app-task-list',
@@ -9,7 +10,7 @@ import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
   styleUrls: ['./task-list.component.css']
 })
 export class TaskListComponent implements OnInit {
-  
+
   @Input() taskList = [];
   @Input() username;
   @Input() roles;
@@ -24,7 +25,7 @@ export class TaskListComponent implements OnInit {
   ngOnInit() {
   }
 
-  getRoles(task:Task) {
+  getRoles(task: Task) {
     return (task.roles || []).join(', ');
   }
 
@@ -46,4 +47,6 @@ export class TaskListComponent implements OnInit {
     this.taskActionerModal.hide();
     console.log(event)
   }
+
+
 }

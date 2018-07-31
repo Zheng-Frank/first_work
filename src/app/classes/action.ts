@@ -17,5 +17,5 @@ export abstract class Action {
             Object.keys(action).map(k => this[k] = action[k]);
         }
     }
-    abstract perform(task: Task, api: ApiService) : Promise<any>;
+    abstract perform(task: Task, api: ApiService, paramsObj: any) : Promise<any>;
 }
