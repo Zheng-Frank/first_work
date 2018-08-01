@@ -1,4 +1,7 @@
-export class Gmb2 {
+/**
+ * GMB account
+ */
+export class GmbAccount {
     id: string;
     email: string;  // let's use this as key
     password: string;

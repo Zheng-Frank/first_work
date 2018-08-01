@@ -1,5 +1,5 @@
 import { Component, NgZone } from '@angular/core';
-import { Task } from '../../../classes/task';
+import { Task } from '../../../classes/tasks/task';
 import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment';
 import { GlobalService } from '../../../services/global.service';
