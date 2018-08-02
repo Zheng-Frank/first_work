@@ -1,3 +1,26 @@
-<p>
-  gmb-account-list works!
-</p>
+<div class="clearfix my-2">
+  <div class="float-left form-inline">
+    Account Filter:
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email..." [(ngModel)]="searchFilter">
+
+  </div>
+  <div class="float-right">
+
+    <button class="btn btn-primary" (click)="addNew()">
+      <i class="fas fa-plus"></i> Add New GMB Account</button>
+    <button class="btn btn-primary" (click)="updateAll()">
+      <i class="fas fa-sync"></i> Update All</button>
+
+  </div>
+</div>
+<div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
+  <app-gmb-card2 [gmbAccount]="gmbAccount" (edit)="edit($event)"></app-gmb-card2>
+</div>
+
+<!--the editing modal-->
+<q-modal #gmbEditingModal>
+  <h4 class="text-center">{{gmbInEditing && gmbInEditing.id ? 'Update' : 'Add New'}}</h4>
+  <hr>
+  <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)" (cancel)="cancel()"></app-gmb-account-editor>
+  <div class="text-danger">{{apiError}}</div>
+</q-modal>

@@ -1,3 +1,12 @@
-<p>
-  gmb-biz-list works!
-</p>
+<div class="clearfix my-2">
+  <div class="float-left form-inline">
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control mr-2" placeholder="typw name, phone..."
+      [(ngModel)]="searchFilter"> total: {{filteredBizList.length}}
+  </div>
+  <div class="float-right">
+
+    <button class="btn btn-primary" (click)="addNew()">
+      <i class="fas fa-plus"></i> Functions</button>
+
+  </div>
+</div>

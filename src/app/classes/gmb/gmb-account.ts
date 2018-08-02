@@ -2,18 +2,24 @@
  * GMB account
  */
 export class GmbAccount {
-    id: string;
+    _id: string;
     email: string;  // let's use this as key
     password: string;
+    gmbRefreshedAt: Date;
+    emailScannedAt: Date;
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields
-            gmb.id = gmb.id || gmb._id;
             for (const k in gmb) {
                 if (gmb.hasOwnProperty(k)) {
                     this[k] = gmb[k];
                 }
             }
+            ['gmbRefreshedAt', 'emailScannedAt'].map(dateField => {
+                if(gmb[dateField]) {
+                    this[dateField] = new Date((Date.parse(gmb[dateField])));
+                }
+            });
         }
     }
 }

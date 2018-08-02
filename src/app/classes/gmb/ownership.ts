@@ -1,23 +1,23 @@
 /**
  * 
  */
-export class Ownership {
+export class GmbOwnership {
     id: string;        // every ownership has an id, which is generated from appealing. If granted, id won't change
-    possessedOn : Date;
+    possessedAt : Date;
     gmbRequestId: string;
     email: string;  // the holder
     isQmenu: boolean;
 
-    constructor(biz?: any) {
-        if (biz) {
+    constructor(obj?: any) {
+        if (obj) {
             // copy every fields
-            for (const k in biz) {
-                if (biz.hasOwnProperty(k)) {
-                    this[k] = biz[k];
+            for (const k in obj) {
+                if (obj.hasOwnProperty(k)) {
+                    this[k] = obj[k];
                 }
             }
             // convert date to Date format
-            this.possessedOn = new Date((Date.parse(biz.possessedOn)));
+            this.possessedAt = new Date((Date.parse(obj.possessedAt)));
         }
     }
 }

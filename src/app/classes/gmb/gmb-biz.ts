@@ -1,9 +1,9 @@
-import { Ownership } from "./ownership";
+import { GmbOwnership } from "./ownership";
 
 /**
  * A business at google
  */
-export class Biz {
+export class GmbBiz {
     cid: string;        // listing id, can be obtained from listing page
     place_id: string;   // place_id, can be obtained from listing page
     qmenuId: string;
@@ -23,7 +23,7 @@ export class Biz {
 
     score: number;
 
-    ownerships: Ownership[] =[];
+    gmbOwnerships: GmbOwnership[] =[];
 
     constructor(biz?: any) {
         if (biz) {
@@ -33,8 +33,8 @@ export class Biz {
                     this[k] = biz[k];
                 }
             }
-            if(this.ownerships && this.ownerships.length > 0) {
-                this.ownerships = this.ownerships.map(o => new Ownership(o));
+            if(this.gmbOwnerships && this.gmbOwnerships.length > 0) {
+                this.gmbOwnerships = this.gmbOwnerships.map(o => new GmbOwnership(o));
             }
         }
     }

@@ -1,0 +1,21 @@
+<!-- class="col-sm-12 col-md-6 col-lg-4 mb-2" -->
+
+<div class="card" style="height:100%;" *ngIf="accountName">
+
+  <div class="card-body">
+    <div class="clearfix">
+      <div class="float-left">
+        <h2>{{accountName}}</h2>
+      </div>
+      <div class="float-right">
+        <button class="btn btn-link" (click)="clickEdit()">
+          <i class="far fa-edit"></i> Edit</button>
+        <button class="btn btn-link" [disabled]="scanning" (click)="refreshPublished()">
+          <i class="fas fa-lock"></i> Refresh Published List</button>
+        <button class="btn btn-link" [disabled]="scanning" (click)="scan()">
+          <i class="far fa-envelope "></i> Scan Email</button>
+      </div>
+    </div>
+
+  </div>
+</div>
