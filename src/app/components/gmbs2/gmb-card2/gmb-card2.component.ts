@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
+import { FormEvent } from '@qmenu/ui';
 
 @Component({
   selector: 'app-gmb-card2',
@@ -11,9 +12,15 @@ export class GmbCard2Component implements OnInit, OnChanges {
   @Input() gmbAccount: GmbAccount;
 
   @Output() edit: EventEmitter<any> = new EventEmitter();
+  @Output() scanRequests: EventEmitter<any> = new EventEmitter();
+  @Output() scanBizList: EventEmitter<any> = new EventEmitter();
 
   accountName;
 
+  now = new Date();
+
+  scanningBizList = false;
+  scanningRequests = false;
 
   constructor() { }
 
@@ -26,6 +33,26 @@ export class GmbCard2Component implements OnInit, OnChanges {
 
   clickEdit() {
     this.edit.emit(JSON.parse(JSON.stringify(this.gmbAccount)));
+  }
+
+  clickScanRequests() {
+    this.scanningRequests = true;
+    this.scanRequests.emit({
+      object: this.gmbAccount,
+      acknowledge: (error) => {
+        this.scanningRequests = false;
+      }
+    });
+  }
+
+  clickScanBizList() {
+    this.scanningBizList = true;
+    this.scanBizList.emit({
+      object: this.gmbAccount,
+      acknowledge: (error) => {
+        this.scanningBizList = false;
+      }
+    });
   }
 
 }

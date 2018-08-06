@@ -10,9 +10,9 @@
       <div class="float-right">
         <button class="btn btn-link" (click)="clickEdit()">
           <i class="far fa-edit"></i> Edit</button>
-        <button class="btn btn-link" [disabled]="scanning" (click)="refreshPublished()">
-          <i class="fas fa-lock"></i> Refresh Published List</button>
-        <button class="btn btn-link" [disabled]="scanning" (click)="scan()">
+        <button class="btn btn-link" [disabled]="scanningBizList" (click)="clickScanBizList()">
+          <i class="fas fa-lock"></i> Refresh Managed Restaurants<div *ngIf="gmbAccount.gmbScannedAt" class="text-muted"><small>{{gmbAccount.gmbScannedAt | ago: now}}</small></div></button>
+        <button class="btn btn-link" [disabled]="scanningRequests" (click)="clickScanRequests()">
           <i class="far fa-envelope "></i> Scan Email</button>
       </div>
     </div>

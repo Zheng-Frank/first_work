@@ -1,49 +1,61 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnChanges, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
+import { FormEvent } from '@qmenu/ui';
 
 @Component({
   selector: 'app-gmb-account-editor',
   templateUrl: './gmb-account-editor.component.html',
   styleUrls: ['./gmb-account-editor.component.css']
 })
-export class GmbAccountEditorComponent implements OnInit {
-  @Output() submit = new EventEmitter();
-  @Output() remove = new EventEmitter();
+export class GmbAccountEditorComponent implements OnInit, OnChanges {
+  @Output() submit = new EventEmitter<FormEvent>();
+  @Output() remove = new EventEmitter<FormEvent>();
   @Output() cancel = new EventEmitter();
+
   @Input() gmbAccount: GmbAccount;
 
-  newPassword: string = null;
-
-  submitClicked = false;
+  fieldDescriptors = [];
 
   constructor() { }
 
   ngOnInit() {
   }
 
-  isEmailValid() {
-    return this.gmbAccount.email && this.gmbAccount.email.match(/\S+@\S+\.\S+/);
+  ngOnChanges(changes: SimpleChanges) {
+    this.fieldDescriptors = [
+      {
+        field: "email", //
+        label: "Email",
+        required: true,
+        inputType: "text",
+        items: [],
+        disabled: this.gmbAccount && this.gmbAccount._id,
+        validate: this.isEmailValid
+      },
+      {
+        field: "password", //
+        label: "Password",
+        required: true,
+        inputType: "password",
+        items: []
+      }];
   }
 
-  clickCancel() {
+  formSubmit(event) {
+    // make sure of lowercase of email
+    this.gmbAccount.email = this.gmbAccount.email.toLowerCase().trim();
+    this.submit.emit(event);
+  }
+
+  formCancel() {
     this.cancel.emit();
   }
 
-  clickRemove() {
-    this.remove.emit(this.gmbAccount);
+  formRemove(event) {
+    this.remove.emit(event);
   }
 
-  clickSubmit() {
-    this.submitClicked = true;
-    // trim
-    this.gmbAccount.email = (this.gmbAccount.email || '').trim();
-
-    // case of update
-    if (this.gmbAccount._id && this.newPassword) {
-      this.gmbAccount.password = this.newPassword;
-    }
-    if (this.isEmailValid() && (this.gmbAccount._id && this.newPassword || (!this.gmbAccount._id && this.gmbAccount.password))) {
-      this.submit.emit(this.gmbAccount);
-    }
+  isEmailValid(email) {
+    return email && email.match(/\S+@\S+\.\S+/);
   }
 }

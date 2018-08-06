@@ -14,23 +14,6 @@ import { Address } from "@qmenu/ui";
 import { User } from "../../../classes/user";
 import { Helper } from "../../../classes/helper";
 
-const spMap = {
-  beyondmenu: "beyondmenu.png",
-  chownow: "chownow.png",
-  chinesemenuonline: "chinesemenuonline.png",
-  doordash: "doordash.png",
-  eat24: "eat24.png",
-  eatstreet: "eatstreet.png",
-  grubhub: "grubhub.png",
-  hanyi: "hanyi.png",
-  menufy: "menufy.png",
-  qmenu: "qmenu.png",
-  redpassion: "redpassion.png",
-  slicelife: "slicelife.png",
-  seamless: "seamless.png",
-  ubereats: "ubereats.png"
-};
-
 @Component({
   selector: "app-lead-dashboard",
   templateUrl: "./lead-dashboard.component.html",
@@ -175,7 +158,7 @@ export class LeadDashboardComponent implements OnInit {
           text: "NOT qMenu",
           selected: false
         },
-        ...Object.keys(spMap).map(s => ({
+        ...Object.keys(GlobalService.serviceProviderMap).map(s => ({
           object: s,
           text: s,
           selected: false
@@ -430,7 +413,7 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   getLogo(lead) {
-    return spMap[lead.gmbOwner];
+    return GlobalService.serviceProviderMap[lead.gmbOwner];
   }
 
   formSubmit(event) {

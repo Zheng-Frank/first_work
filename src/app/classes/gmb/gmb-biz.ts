@@ -1,20 +1,24 @@
-import { GmbOwnership } from "./ownership";
+import { GmbOwnership } from "./gmb-ownership";
 
 /**
  * A business at google
  */
 export class GmbBiz {
+    _id: string;        // mongodb id
     cid: string;        // listing id, can be obtained from listing page
     place_id: string;   // place_id, can be obtained from listing page
-    qmenuId: string;
+    qmenuId: string;    // restaurant id
 
-    id: string; // restaurant id
     name: string;
     phone: string;
-    zipcode: string;
-    homepage: string;
-    address: string;  
 
+    address: string;
+    zipcode: string;
+
+    gmbOwner: string;
+    gmbWebsite: string;
+    gmbOpen: boolean;
+    menuUrls: string[];
     // qMenu related information (injected to listing once we have ownership)
     qWebsite: string;
     qPop3Email: string;
@@ -22,8 +26,12 @@ export class GmbBiz {
     qPop3Password: string;
 
     score: number;
+    agent: string;
 
-    gmbOwnerships: GmbOwnership[] =[];
+    gmbOwnerships: GmbOwnership[] = [];
+
+    updatedAt: Date;
+    createdAt: Date;
 
     constructor(biz?: any) {
         if (biz) {
@@ -33,9 +41,31 @@ export class GmbBiz {
                     this[k] = biz[k];
                 }
             }
-            if(this.gmbOwnerships && this.gmbOwnerships.length > 0) {
+            ['createdAt', 'updatedAt'].map(dateField => {
+                if (this[dateField]) {
+                    this[dateField] = new Date((Date.parse(this[dateField])));
+                }
+            });
+            if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
                 this.gmbOwnerships = this.gmbOwnerships.map(o => new GmbOwnership(o));
             }
         }
+    }
+
+    /** test if the last ownership is one of the given emails */
+    hasOwnership(emails) {
+        let lastEmail;
+        if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
+            lastEmail = this.gmbOwnerships[0].email;
+        }
+        return emails.indexOf(lastEmail) >= 0;
+    }
+
+    getAccount() {
+        let email = 'N/A';
+        if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
+            email = this.gmbOwnerships[this.gmbOwnerships.length - 1].email || 'N/A';
+        }
+        return email.split('@')[0];
     }
 }

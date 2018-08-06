@@ -5,7 +5,7 @@ export class GmbAccount {
     _id: string;
     email: string;  // let's use this as key
     password: string;
-    gmbRefreshedAt: Date;
+    gmbScannedAt: Date;
     emailScannedAt: Date;
     constructor(gmb?: any) {
         if (gmb) {
@@ -15,7 +15,7 @@ export class GmbAccount {
                     this[k] = gmb[k];
                 }
             }
-            ['gmbRefreshedAt', 'emailScannedAt'].map(dateField => {
+            ['gmbScannedAt', 'emailScannedAt'].map(dateField => {
                 if(gmb[dateField]) {
                     this[dateField] = new Date((Date.parse(gmb[dateField])));
                 }

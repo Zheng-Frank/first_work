@@ -16,22 +16,6 @@ import { Order, Restaurant } from "@qmenu/ui/classes";
 import { zip } from "rxjs";
 import { saveAs } from 'file-saver/FileSaver';
 
-const spMap = {
-  beyondmenu: "beyondmenu.png",
-  chownow: "chownow.png",
-  chinesemenuonline: "chinesemenuonline.png",
-  doordash: "doordash.png",
-  eat24: "eat24.png",
-  eatstreet: "eatstreet.png",
-  grubhub: "grubhub.png",
-  hanyi: "hanyi.png",
-  menufy: "menufy.png",
-  qmenu: "qmenu.png",
-  redpassion: "redpassion.png",
-  slicelife: "slicelife.png",
-  seamless: "seamless.png",
-  ubereats: "ubereats.png"
-};
 @Component({
   selector: "app-order-dashboard",
   templateUrl: "./order-dashboard.component.html",
@@ -190,7 +174,7 @@ export class OrderDashboardComponent implements OnInit {
   }
 
   getLogo(lead) {
-    return spMap[lead.gmbOwner];
+    return GlobalService.serviceProviderMap[lead.gmbOwner];
   }
   getGoogleQuery(row) {
     if (row.lead && row.lead.address) {
