@@ -10,6 +10,7 @@ import { FormEvent } from '@qmenu/ui';
 export class GmbCard2Component implements OnInit, OnChanges {
 
   @Input() gmbAccount: GmbAccount;
+  @Input() disabled = false;
 
   @Output() edit: EventEmitter<any> = new EventEmitter();
   @Output() scanRequests: EventEmitter<any> = new EventEmitter();

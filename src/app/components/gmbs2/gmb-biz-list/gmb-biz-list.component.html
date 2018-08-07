@@ -14,11 +14,11 @@
 <table class="table table-sm">
   <thead>
     <tr>
-      <th scope="col">#</th>
-      <th scope="col">Name</th>
-      <th scope="col">Posseded</th>
-      <th scope="col">Accounts</th>
-      <th scope="col">GMB</th>
+      <th>#</th>
+      <th>Name</th>
+      <th>Posseded</th>
+      <th>Accounts</th>
+      <th>GMB</th>
       <th>Website</th>
       <th></th>
     </tr>
@@ -52,7 +52,7 @@
         <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
       </td>
       <td class="text-center">
-        <button class="btn btn-link" [qLoading]="isProcessing(biz)" (click)="gCrawl(biz)">G-Crawl</button>
+        <button class="btn btn-link" [qLoading]="isProcessing(biz)" (click)="crawlOne(biz)">G-Crawl</button>
         <div *ngIf="biz.gmbBiz.updatedAt" class="text-muted text-nowrap">
           <small>{{biz.gmbBiz.updatedAt | ago: now}}</small>
         </div>

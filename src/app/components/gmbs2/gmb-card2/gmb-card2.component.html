@@ -8,11 +8,11 @@
         <h2>{{accountName}}</h2>
       </div>
       <div class="float-right">
-        <button class="btn btn-link" (click)="clickEdit()">
+        <button class="btn btn-link" [disabled]="disabled" (click)="clickEdit()">
           <i class="far fa-edit"></i> Edit</button>
-        <button class="btn btn-link" [disabled]="scanningBizList" (click)="clickScanBizList()">
-          <i class="fas fa-lock"></i> Refresh Managed Restaurants<div *ngIf="gmbAccount.gmbScannedAt" class="text-muted"><small>{{gmbAccount.gmbScannedAt | ago: now}}</small></div></button>
-        <button class="btn btn-link" [disabled]="scanningRequests" (click)="clickScanRequests()">
+        <button class="btn btn-link" [disabled]="scanningBizList || disabled" (click)="clickScanBizList()">
+          <i class="fas fa-lock"></i> Scan Published Locations<div *ngIf="gmbAccount.gmbScannedAt" class="text-muted"><small>{{gmbAccount.gmbScannedAt | ago: now}}</small></div></button>
+        <button class="btn btn-link" [disabled]="scanningRequests || disabled" (click)="clickScanRequests()">
           <i class="far fa-envelope "></i> Scan Email</button>
       </div>
     </div>

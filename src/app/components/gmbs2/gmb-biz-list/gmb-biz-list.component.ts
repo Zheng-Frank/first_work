@@ -113,71 +113,61 @@ export class GmbBizListComponent implements OnInit {
   }
 
   async crawlAll() {
-    console.log('start');
     this.crawling = true;
-    for (let biz of this.bizList.slice(0, 3)) {
-      console.log(biz.name);
-      let result = await this.crawlOne(biz);
+    for (let biz of this.bizList) {
+      try {
+        let result = await this.crawlOne(biz);
+        this.patchGmbBiz(biz, result);
+      } catch (error) {
+        this._global.publishAlert(AlertType.Danger, 'Error crawling ' + biz.name);
+      }
     }
-    console.log('done!');
     this.crawling = false;
   }
 
   private crawlOne(biz) {
     // let's ALLWAYS resolve to not blocking sequencial requesting
     return new Promise((resolve, reject) => {
+      this.processingBizSet.add(biz);
       this._api
         .get(environment.adminApiUrl + "utils/scan-gmb", {
           q: [biz.name, biz.address].join(" ")
         })
         .subscribe(result => {
+          this.processingBizSet.delete(biz);
           resolve(result);
         }, error => {
-          resolve(null);
+          this.processingBizSet.delete(biz);
+          reject(error);
         });
     });
-  }
-
-  gCrawl(biz) {
-    this.processingBizSet.add(biz);
-    this._api
-      .get(environment.adminApiUrl + "utils/scan-gmb", {
-        q: [biz.gmbBiz.name, biz.gmbBiz.address].join(" ")
-      })
-      .subscribe(
-        result => {
-          this.processingBizSet.delete(biz);
-          const kvps = ['place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls'].map(key => ({ key: key, value: result[key] }));
-
-          // if gmbWebsite belongs to qmenu, we assign it to qWebsite
-          if (result['gmbOwner'] === 'qmenu') {
-            kvps.push({ key: 'qWebsite', value: result['gmbWebsite'] });
-          }
-          this.patchGmbBiz(biz.gmbBiz, kvps);
-        },
-        error => {
-          this.processingBizSet.delete(biz);
-          this._global.publishAlert(AlertType.Danger, "Failed to crawl");
-        }
-      );
   }
 
   isProcessing(biz) {
     return this.processingBizSet.has(biz);
   }
 
-  patchGmbBiz(gmbBiz, keyValuePairs) {
+  patchGmbBiz(gmbBiz: GmbBiz, crawledResult) {
+
+    const kvps = ['place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls'].map(key => ({ key: key, value: crawledResult[key] }));
+
+    // if gmbWebsite belongs to qmenu, we assign it to qWebsite
+    if (crawledResult['gmbOwner'] === 'qmenu') {
+      kvps.push({ key: 'qWebsite', value: crawledResult['gmbWebsite'] });
+    }
     // let's just override!
     const oldBiz = { _id: gmbBiz._id };
     const newBiz = { _id: gmbBiz._id };
-    keyValuePairs.map(kvp => newBiz[kvp.key] = kvp.value);
+    kvps.map(kvp => newBiz[kvp.key] = kvp.value);
+
     this._api
       .patch(environment.adminApiUrl + "generic?resource=gmbBiz", [{ old: oldBiz, new: newBiz }])
       .subscribe(result => {
         this._global.publishAlert(AlertType.Success, 'Updated ' + gmbBiz.name);
-        // update gmbBiz!
-        keyValuePairs.map(kvp => gmbBiz[kvp.key] = kvp.value);
 
+        // update gmbBiz!
+        kvps.map(kvp => gmbBiz[kvp.key] = kvp.value);
+        gmbBiz.updatedAt = new Date();
       }, error => {
         this._global.publishAlert(AlertType.Danger, 'Error updating ' + gmbBiz.name);
       });

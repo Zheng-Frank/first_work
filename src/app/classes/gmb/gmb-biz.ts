@@ -56,7 +56,7 @@ export class GmbBiz {
     hasOwnership(emails) {
         let lastEmail;
         if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
-            lastEmail = this.gmbOwnerships[0].email;
+            lastEmail = this.gmbOwnerships[this.gmbOwnerships.length - 1].email;
         }
         return emails.indexOf(lastEmail) >= 0;
     }
