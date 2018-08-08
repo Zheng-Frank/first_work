@@ -1,6 +1,6 @@
 import { Component, OnInit, OnChanges, Input, Output, EventEmitter } from '@angular/core';
-import { Task } from '../../../classes/task';
-import { Action } from '../../../classes/action';
+import { Task } from '../../../classes/tasks/task';
+import { Action } from '../../../classes/tasks/action';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 

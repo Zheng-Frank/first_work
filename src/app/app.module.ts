@@ -85,6 +85,11 @@ import { PaymentsDashboardComponent } from './components/payments/payments-dashb
 import { TaskListComponent } from './components/tasks/task-list/task-list.component';
 import { TaskTesterComponent } from './components/tasks/task-tester/task-tester.component';
 import { TaskActionerComponent } from './components/tasks/task-actioner/task-actioner.component';
+import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
+import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
+import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
+import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.component';
+import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor/gmb-account-editor.component';
 
 @NgModule({
   declarations: [
@@ -155,12 +160,17 @@ import { TaskActionerComponent } from './components/tasks/task-actioner/task-act
     GmbEditorComponent,
     GmbDeleteRestaurantComponent,
     GmbCardComponent,
+    GmbCard2Component,
     BusinessEditorComponent,
     PaymentMeansEditorComponent,
     PaymentsDashboardComponent,
     TaskListComponent,
     TaskTesterComponent,
-    TaskActionerComponent
+    TaskActionerComponent,
+    Gmb2DashboardComponent,
+    GmbAccountListComponent,
+    GmbBizListComponent,
+    GmbAccountEditorComponent
   ],
   imports: [
     BrowserModule,

@@ -650,15 +650,15 @@ export class DbScriptsComponent implements OnInit {
         });
 
         // let's lint newChannels: same type and value, then merge/union notifications!
-        for(let i = newChannels.length - 1; i >= 1; i --) {
-          for(let j = 0; j < i; j++) {
-            if(newChannels[i].value === newChannels[j].value && newChannels[i].type === newChannels[j].type) {
+        for (let i = newChannels.length - 1; i >= 1; i--) {
+          for (let j = 0; j < i; j++) {
+            if (newChannels[i].value === newChannels[j].value && newChannels[i].type === newChannels[j].type) {
               newChannels.splice(j, 1);
               break;
             }
           }
         }
-        
+
         oldNewPairs.push({
           old: {
             _id: restaurant._id,
@@ -697,6 +697,79 @@ export class DbScriptsComponent implements OnInit {
       });
 
   } // end of migrateEmailAndPhones
+
+  convertGmb() {
+    let myRestaurants;
+    zip(
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "gmb",
+        projection: {
+          email: 1,
+          password: 1
+        },
+        limit: 2000
+      }),
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "gmbAccount",
+        projection: {
+          email: 1
+        },
+        limit: 2000
+      })).pipe(mergeMap(gmbs => {
+        const newGmbs = gmbs[0].filter(g0 => !gmbs[1].some(g1 => g1.email.toLowerCase() === g0.email.toLowerCase()));
+        // remove id because newly inserted will have id
+        newGmbs.map(g => delete g._id);
+        return this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', newGmbs);
+      })).subscribe(
+        gmbIds => {
+          this._global.publishAlert(
+            AlertType.Success,
+            "Success! Total: " + gmbIds.length
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        });
+  }
+
+  getStripeErrors() {
+    // get ALL payment, method === QMENU, without stripeObject.charges
+    // has order with the id, order status is confirmed
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "payment",
+      query: {
+        "method": "QMENU",
+        "stripeObject.charges": { "$exists": false }
+      },
+      projection: {
+        createdAt: 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 100
+    }).pipe(mergeMap(payments => {
+      console.log(payments);
+      return this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {
+          "payment": { $in: payments.map(r => ({ $oid: r._id })) }
+        },
+        projection: {
+          restaurant: 1
+        },
+        limit: 500
+      });
+    }))
+
+
+      .subscribe(payments => {
+        console.log(payments)
+      });
+  }
 
   genericTesting() {
     // // find out invoice having Fax-phaxio-callback as log
@@ -741,12 +814,12 @@ export class DbScriptsComponent implements OnInit {
 
     const startDate = new Date('2018-07-01');
     const endDate = new Date('2018-07-02');
-     this._api.get(environment.qmenuApiUrl + "generic", {
+    this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "customer",
       query: {
         //bannedReasons: { $exists: true },
         // socialProvider: { $exists: true },
-        "createdAt" : { $gte: { $date: startDate }, $lte: { $date: endDate }}
+        "createdAt": { $gte: { $date: startDate }, $lte: { $date: endDate } }
       },
       projection: {
         email: 1,
@@ -758,23 +831,23 @@ export class DbScriptsComponent implements OnInit {
       },
       limit: 2000
     }).subscribe(
-        results => {
-         // results = results.filter(r => r.bannedReasons.length > 0);
-          console.log(results);
-          const socials = results.filter(r => r.socialProvider);
-          console.log(socials);
-          this._global.publishAlert(
-            AlertType.Success,
-            "done"
-          );
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error: " + JSON.stringify(error)
-          );
-        }
-      );
+      results => {
+        // results = results.filter(r => r.bannedReasons.length > 0);
+        console.log(results);
+        const socials = results.filter(r => r.socialProvider);
+        console.log(socials);
+        this._global.publishAlert(
+          AlertType.Success,
+          "done"
+        );
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error: " + JSON.stringify(error)
+        );
+      }
+    );
   }
 
 }

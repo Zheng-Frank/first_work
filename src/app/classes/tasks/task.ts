@@ -6,8 +6,8 @@ import { Action } from './action';
 import { ActionCancel } from './action-cancel';
 import { ActionAssign } from './action-assign';
 import { ActionClose } from './action-close';
-import { ApiService } from '../services/api.service';
-import { environment } from "../../environments/environment";
+import { ApiService } from '../../services/api.service';
+import { environment } from "../../../environments/environment";
 import { Observable } from 'rxjs';
 
 export class Task {

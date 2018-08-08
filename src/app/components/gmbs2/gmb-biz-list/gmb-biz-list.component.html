@@ -1,0 +1,62 @@
+<div class="clearfix my-2">
+  <div class="float-left form-inline">
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control mr-2" placeholder="type name, phone, account..."
+      [(ngModel)]="searchFilter"> total: {{filteredMyBizList.length}}
+  </div>
+  <div class="float-right">
+    <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
+      <i class="fas fa-sync-alt"></i> Reload</button>
+    <button class="btn btn-primary" (click)="crawlAll()" [qLoading]="crawling">
+      <i class="fab fa-google"></i> Crawl All</button>
+  </div>
+</div>
+
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Name</th>
+      <th>Posseded</th>
+      <th>Accounts</th>
+      <th>GMB</th>
+      <th>Website</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let biz of filteredMyBizList; let i = index;" [ngClass]="{'list-group-item-danger': !biz.owned }">
+      <th scope="row">{{i+1}}</th>
+      <td>
+        <div>
+          <strong>{{biz.gmbBiz.name}}</strong>&nbsp;
+          <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
+        </div>
+        <div class="text-muted">
+          <small>{{biz.gmbBiz.address}}</small>
+        </div>
+        <div class="text-danger" *ngIf="biz.lostDate">
+          <small>Lost: {{biz.lostDate | ago: now}}</small>
+        </div>
+      </td>
+      <td>{{biz.ownershipPercentage}}%</td>
+      <td>
+        <small>{{biz.transfers}}</small>
+      </td>
+      <td class="text-center">
+        <img *ngIf="biz.owned" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+        <span *ngIf="!biz.owned">?</span>
+      </td>
+      <td class="text-center">
+        <i *ngIf="!getLogo(biz.gmbBiz) && biz.gmbBiz.gmbOwner" class="fas fa-question text-danger"></i>
+        <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" [attr.alt]="biz.gmbBiz.gmbOwner" height="16px">
+        <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
+      </td>
+      <td class="text-center">
+        <button class="btn btn-link" [qLoading]="isProcessing(biz)" (click)="crawlOne(biz)">G-Crawl</button>
+        <div *ngIf="biz.gmbBiz.updatedAt" class="text-muted text-nowrap">
+          <small>{{biz.gmbBiz.updatedAt | ago: now}}</small>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

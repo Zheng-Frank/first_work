@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
-import { Task } from '../../../classes/task';
-import { Action } from '../../../classes/action';
+import { Task } from '../../../classes/tasks/task';
+import { Action } from '../../../classes/tasks/action';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from '../../../services/api.service';
 

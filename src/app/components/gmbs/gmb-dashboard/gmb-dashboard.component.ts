@@ -75,7 +75,7 @@ export class GmbDashboardComponent implements OnInit {
       }
     );
 
-    setInterval(() => { this.now = new Date(); }, 1000);
+    setInterval(() => { this.now = new Date(); }, 60000);
   }
 
   getBizFilter() {

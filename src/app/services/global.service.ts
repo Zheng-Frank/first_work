@@ -159,4 +159,21 @@ export class GlobalService {
   isUserInRoles(roles) {
     return this._user.roles.some(role => roles.indexOf(role) >= 0);
   }
+
+  static serviceProviderMap = {
+    beyondmenu: "beyondmenu.png",
+    chownow: "chownow.png",
+    chinesemenuonline: "chinesemenuonline.png",
+    doordash: "doordash.png",
+    eat24: "eat24.png",
+    eatstreet: "eatstreet.png",
+    grubhub: "grubhub.png",
+    hanyi: "hanyi.png",
+    menufy: "menufy.png",
+    qmenu: "qmenu.png",
+    redpassion: "redpassion.png",
+    slicelife: "slicelife.png",
+    seamless: "seamless.png",
+    ubereats: "ubereats.png"
+  }
 }

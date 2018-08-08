@@ -144,14 +144,14 @@ export class Invoice {
     return (this.orders || []).reduce((sum, o) => sum + ((+o.rate || 0) * +o.subtotal + (o.fixed ? o.fixed : 0)) * (o.canceled ? 0 : 1), 0);
   }
 
-  // balance: from restaurant to qMenu
-  getBalance() {
+  // balance: from restaurant to qMenu, but not calculating previous payments
+  getThisBalance() {
 
     return (this.previousBalance || 0) + this.getStripeFee() - this.getQMenuCcCollected() + this.getCommission() - this.getAdjustment() + this.getThirdPartyDeliveryTip() + this.getThirdPartyDeliveryCharge();
   }
 
   // balance: from restaurant to qMenu
-  getOutstandingBalance() {
+  getBalance() {
 
     return (this.previousBalance || 0) - this.getTotalPayments() + this.getStripeFee() - this.getQMenuCcCollected() + this.getCommission() - this.getAdjustment() + this.getThirdPartyDeliveryTip() + this.getThirdPartyDeliveryCharge();
   }

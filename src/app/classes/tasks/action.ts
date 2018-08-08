@@ -1,5 +1,5 @@
 import { Task } from "./task";
-import { ApiService } from "../services/api.service";
+import { ApiService } from "../../services/api.service";
 
 /**
  * @desc An action is performed on a task, causing changes of the task 
