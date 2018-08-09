@@ -22,7 +22,7 @@
 
 <!--the editing modal-->
 <q-modal #gmbEditingModal>
-  <h4 class="text-center">{{gmbInEditing && gmbInEditing.id ? 'Update' : 'Add New'}}</h4>
+  <h4 class="text-center">{{gmbInEditing && gmbInEditing._id ? 'Update' : 'Add New'}}</h4>
   <hr>
   <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)" (cancel)="cancel()"></app-gmb-account-editor>
   <div class="text-danger">{{apiError}}</div>

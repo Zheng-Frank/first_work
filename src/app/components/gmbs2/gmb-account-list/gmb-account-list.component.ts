@@ -7,6 +7,8 @@ import { AlertType } from '../../../classes/alert-type';
 import { mergeMap } from 'rxjs/operators';
 import { FormEvent } from '@qmenu/ui';
 import { zip, of } from 'rxjs';
+import { GmbRequest } from '../../../classes/gmb/gmb-request';
+import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 
 @Component({
   selector: 'app-gmb-account-list',
@@ -286,11 +288,12 @@ export class GmbAccountListComponent implements OnInit {
 
   async scanRequests(event: FormEvent) {
     try {
-      await this.scanAccountEmails(event.object);
+      let results: any = await this.scanAccountEmails(event.object);
       event.acknowledge(null);
-      this._global.publishAlert(AlertType.Success, 'Successfully scanned ' + event.object.email);
+      this._global.publishAlert(AlertType.Success, 'Scanned ' + event.object.email + ', found: ' + results.length);
     }
     catch (error) {
+      console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Error scanning ' + event.object.email);
       event.acknowledge(error);
     }
@@ -302,14 +305,74 @@ export class GmbAccountListComponent implements OnInit {
 
   scanAccountEmails(gmbAccount: GmbAccount) {
     return new Promise((resolve, reject) => {
+      let parsedRequests;
       this.processingGmbAccountSet.add(gmbAccount);
-      this._api
-        .post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: true })
+      zip(
+        this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: true }),
+        // get those gmbBiz with email as owner
+        this._api.get(environment.adminApiUrl + "generic", {
+          query: {
+            "gmbAccountId": gmbAccount._id
+          },
+          resource: "gmbRequest",
+          limit: 5000
+        }),
+        // get those gmbBiz with email as owner
+        this._api.get(environment.adminApiUrl + "generic", {
+          query: {
+            "gmbOwnerships.email": gmbAccount.email
+          },
+          projection: {
+            name: 1,
+            gmbOwnerships: 1
+          },
+          resource: "gmbBiz",
+          limit: 5000
+        })
+      ).pipe(mergeMap(results => {
+
+        this.processingGmbAccountSet.delete(gmbAccount);
+        // convert to OwnershipRequest type and remove isReminder!
+        // ingore: isReminder, over 30 days
+        const now = new Date();
+
+        const requests: GmbRequest[] = results[0].filter(r => !r.isReminder).map(r => new GmbRequest(r)).filter(r => now.valueOf() - r.date.valueOf() < 30 * 24 * 3600 * 1000);
+        // remove isReminder
+        requests.map(r => delete r["isReminder"]);
+
+        const gmbRequests: GmbRequest[] = results[1].map(r => new GmbRequest(r));
+        const gmbBizList: GmbBiz[] = results[2].map(b => new GmbBiz(b)).filter(biz => biz.hasOwnership([gmbAccount.email]));
+        // new requests: same gmbAccount and same date and 
+        const newRequests = requests.filter(r => !gmbRequests.some(r2 => r2.business.toLowerCase() === r.business.toLowerCase() && r2.gmbAccountId === gmbAccount._id && r2.date.valueOf() === r.date.valueOf()));
+
+        console.log('new requests: ');
+        console.log(newRequests);
+
+        const matchedNewRequests = newRequests.filter(r => {
+          r.gmbAccountId = gmbAccount._id;
+          const bizMatch = gmbBizList.filter(b => b.name.toLowerCase() === r.business.toLowerCase())[0];
+          if (bizMatch) {
+            r.gmbBizId = bizMatch._id;
+            return true;
+          } else {
+            console.log('non matched: ', r.business);
+            return false;
+          }
+        });
+
+        console.log('matched: ');
+        console.log(matchedNewRequests);
+        parsedRequests = matchedNewRequests;
+        // lets convert date but not ids because mongo id doesn't seem to provide benifits
+        (matchedNewRequests as any).map(r => {
+          r.date = { $date: r.date };
+        });
+        return this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', matchedNewRequests);
+      }))
         .subscribe(
-          result => {
+          results => {
             this.processingGmbAccountSet.delete(gmbAccount);
-            // convert to OwnershipRequest type and remove isReminder!
-            resolve();
+            resolve(parsedRequests);
           },
           error => {
             this.processingGmbAccountSet.delete(gmbAccount);

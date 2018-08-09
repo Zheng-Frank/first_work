@@ -30,6 +30,8 @@ export class GmbBiz {
 
     gmbOwnerships: GmbOwnership[] = [];
 
+    ignoreGmbOwnerhsipRequest: boolean;
+
     updatedAt: Date;
     createdAt: Date;
 
