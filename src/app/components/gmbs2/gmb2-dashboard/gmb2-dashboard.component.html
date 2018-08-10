@@ -8,6 +8,17 @@
     <hr>{{ownedGmbBizList.length}}/{{gmbBizList.length}}
   </button>
 </div>
+<h2>System Actions</h2>
+<div>
+  <button class="btn btn-primary mb-2" (click)="injectRestaurantIds()" [qLoading]="injectingIds">
+    <span class="h6">Inject qMenu Restaurant IDs</span>
+    <hr class="my-2">Match GMB and qMenu Restaurants
+  </button>
+  <button class="btn btn-primary mb-2" (click)="calculateRestaurantScores(true)" [qLoading]="restaurant">
+    <span class="h6">Inject Missing Restaurant Scores</span>
+    <hr class="my-2">{{bizInCalculating ? bizInCalculating.name: 'May take Long Time'}}
+  </button>
+</div>
 <pre>
   3. Actions (scan all)
 </pre> Tasks (with flow charts)

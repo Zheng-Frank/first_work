@@ -16,10 +16,12 @@
     <tr>
       <th>#</th>
       <th>Name</th>
+      <th>Score</th>
       <th>Posseded</th>
       <th>Accounts</th>
       <th>GMB</th>
       <th>Website</th>
+      <th>Updated</th>
       <th></th>
     </tr>
   </thead>
@@ -27,8 +29,10 @@
     <tr *ngFor="let biz of filteredMyBizList; let i = index;" [ngClass]="{'list-group-item-danger': !biz.owned }">
       <th scope="row">{{i+1}}</th>
       <td>
-        <div>
-          <strong>{{biz.gmbBiz.name}}</strong>&nbsp;
+        <div class="font-weight-bold">
+          <a *ngIf="biz.gmbBiz.qmenuId" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">{{biz.gmbBiz.name}}</a>
+          <span *ngIf="!biz.gmbBiz.qmenuId">{{biz.gmbBiz.name}}</span>
+          &nbsp;
           <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
         </div>
         <div class="text-muted">
@@ -38,6 +42,7 @@
           <small>Lost: {{biz.lostDate | ago: now}}</small>
         </div>
       </td>
+      <td>{{biz.gmbBiz.score}}</td>
       <td>{{biz.ownershipPercentage}}%</td>
       <td>
         <small>{{biz.transfers}}</small>
@@ -52,10 +57,12 @@
         <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
       </td>
       <td class="text-center">
-        <button class="btn btn-link" [qLoading]="isProcessing(biz)" (click)="crawlOne(biz)">G-Crawl</button>
         <div *ngIf="biz.gmbBiz.updatedAt" class="text-muted text-nowrap">
           <small>{{biz.gmbBiz.updatedAt | ago: now}}</small>
         </div>
+      </td>
+      <td class="text-center">
+        <button class="btn btn-link" [qLoading]="isProcessing(biz)" (click)="crawlOne(biz)">G-Crawl</button>
       </td>
     </tr>
   </tbody>

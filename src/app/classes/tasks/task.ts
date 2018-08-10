@@ -25,6 +25,8 @@ export class Task {
     // won't be enabled unless all prerequisites are successfully CLOSED!
     prerequisiteTaskIds;
 
+    priority: number = 0;
+
     createdAt: Date;
 
     constructor(task?: any) {
