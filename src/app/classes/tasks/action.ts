@@ -12,6 +12,7 @@ export abstract class Action {
     prerequisites: Action[];
     username: string;
     comments: string;
+    paramsObj: any;
     constructor(action: any) {
         if (action) {
             Object.keys(action).map(k => this[k] = action[k]);

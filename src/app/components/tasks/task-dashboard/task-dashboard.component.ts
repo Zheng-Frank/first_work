@@ -64,22 +64,26 @@ export class TaskDashboardComponent {
 
       console.log(this.myTasks)
       // compute groupedTasks, by task name
-      const nameMap = {};
-      this.myTasks.map(t => {
-        nameMap[t.name] = nameMap[t.name] || { name: t.name };
-
-        let status = t.getStatus();
-
-        nameMap[t.name][status] = (nameMap[t.name][status] || 0) + 1;
-      });
-
-      console.log(nameMap);
-
-      // convert to groupedTasks so that we can bind to UI
-      this.groupedTasks = Object.keys(nameMap).map(key => nameMap[key]);
+      this.computeGroupedTasks();
     }, error => {
       console.log(error);
     });
+  }
+
+  computeGroupedTasks() {
+    const nameMap = {};
+    this.myTasks.map(t => {
+      nameMap[t.name] = nameMap[t.name] || { name: t.name };
+
+      let status = t.getStatus();
+
+      nameMap[t.name][status] = (nameMap[t.name][status] || 0) + 1;
+    });
+
+    console.log(nameMap);
+
+    // convert to groupedTasks so that we can bind to UI
+    this.groupedTasks = Object.keys(nameMap).map(key => nameMap[key]);
   }
 
   generateTask() {
@@ -102,6 +106,7 @@ export class TaskDashboardComponent {
         this.myTasks[i] = event.task;
       }
     }
+    this.computeGroupedTasks();
   }
 
 }

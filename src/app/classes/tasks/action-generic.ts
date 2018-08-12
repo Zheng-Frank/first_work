@@ -3,12 +3,12 @@ import { Task } from "./task";
 import { ApiService } from "../../services/api.service";
 import { environment } from '../../../environments/environment';
 import { mergeMap } from "rxjs/operators";
-export class ActionGenric extends Action {
+export class ActionGeneric extends Action {
     constructor(action: any) {
         super(action);
     }
-    perform(task: Task, api: ApiService, paramsObj: any) {
-        if(!paramsObj || !paramsObj.field) {
+    perform(task: Task, api: ApiService) {
+        if(!this.paramsObj || !this.paramsObj.field) {
             return Promise.reject('Missing field to update.');
         }
         return new Promise((resolve, reject) => {
@@ -27,7 +27,7 @@ export class ActionGenric extends Action {
                 } else {
                     const oldTask = JSON.parse(JSON.stringify(task));
                     updatedTask = JSON.parse(JSON.stringify(task));
-                    updatedTask[paramsObj.field] = paramsObj.value;
+                    updatedTask[this.paramsObj.field] = this.paramsObj.value;
                     return api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: updatedTask }]);
                 }                
             })).subscribe(patched => {
