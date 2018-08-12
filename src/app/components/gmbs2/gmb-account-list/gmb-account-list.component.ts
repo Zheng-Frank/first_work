@@ -25,7 +25,7 @@ export class GmbAccountListComponent implements OnInit {
   gmbInEditing: GmbAccount = new GmbAccount();
   apiError = undefined;
 
-  scanningAllLocations = false;
+  scanningAll = false;
 
   processingGmbAccountSet = new Set<any>();
 
@@ -122,8 +122,7 @@ export class GmbAccountListComponent implements OnInit {
     }).subscribe(
       result => {
         event.acknowledge(null);
-        // hard refresh
-        this.retrieveGmbAccounts();
+        this.gmbAccounts = this.gmbAccounts.filter(g => g.email !== gmb.email);
         this.gmbEditingModal.hide();
       },
       error => {
@@ -171,7 +170,7 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   async scanAllPublishedLocations() {
-    this.scanningAllLocations = true;
+    this.scanningAll = true;
     for (let gmbAccount of this.gmbAccounts) {
       try {
         this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
@@ -179,7 +178,7 @@ export class GmbAccountListComponent implements OnInit {
       }
       catch (error) { }
     }
-    this.scanningAllLocations = false;
+    this.scanningAll = false;
   }
 
   async scanOnePublishedLocations(gmb: GmbAccount) {
@@ -367,7 +366,19 @@ export class GmbAccountListComponent implements OnInit {
         (matchedNewRequests as any).map(r => {
           r.date = { $date: r.date };
         });
+        this.patchGmb(gmbAccount, 'emailScannedAt', { $date: new Date() });
+        newRequests
+        // we'd like to create each task for each request automatically
         return this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', matchedNewRequests);
+      })).pipe(mergeMap(ids => {
+        const tasks = ids.map((id, index) => ({
+          name: 'GMB Request',
+          description: parsedRequests[index].business,
+          roles: ['GMB', 'ADMIN'],
+          objects: [{ _id: id, name: 'gmbRequest' }]
+        }));
+
+        return this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
       }))
         .subscribe(
           results => {
@@ -382,7 +393,15 @@ export class GmbAccountListComponent implements OnInit {
     });
   }
 
-  scanAllEmails() {
-
+  async scanAllEmails() {
+    this.scanningAll = true;
+    for (let gmbAccount of this.gmbAccounts) {
+      try {
+        this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
+        await this.scanAccountEmails(gmbAccount);
+      }
+      catch (error) { }
+    }
+    this.scanningAll = false;
   }
 }

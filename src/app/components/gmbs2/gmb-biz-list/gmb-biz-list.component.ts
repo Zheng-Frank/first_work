@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ViewChild  } from '@angular/core';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -6,13 +6,15 @@ import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
+import { FormEvent } from '@qmenu/ui';
+import { mergeMap } from 'rxjs/operators';
 
 interface myBiz {
   gmbBiz: GmbBiz;
   owned?: boolean;
   ownershipPercentage?: number;
   lostDate?: Date;
-  transfers?: string; // A -> B -> C
+  transfers?: string; // A <- B <- C
 }
 
 @Component({
@@ -21,6 +23,7 @@ interface myBiz {
   styleUrls: ['./gmb-biz-list.component.css']
 })
 export class GmbBizListComponent implements OnInit {
+  @ViewChild('bizEditingModal') bizEditingModal;
 
   bizList: GmbBiz[] = [];
   myEmails: string[] = [];
@@ -35,6 +38,42 @@ export class GmbBizListComponent implements OnInit {
   now = new Date();
 
   processingBizSet = new Set<any>();
+
+  bizInEditing: GmbBiz;
+  apiError;
+
+  myColumnDescriptors = [
+    {
+      label: "Name",
+      paths: ['gmbBiz', 'name'],
+      sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
+    },
+    {
+      label: "Score",
+      paths: ['gmbBiz', 'score'],
+      sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+    },
+    {
+      label: "Possessed"
+    },
+    {
+      label: "Accounts",
+      paths: ['transfers'],
+      sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+    },
+    {
+      label: "GMB"
+    },
+    {
+      label: "Website"
+    },
+    {
+      label: "Updated"
+    },
+    {
+      label: "Actions"
+    }
+  ];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.refresh();
@@ -94,7 +133,7 @@ export class GmbBizListComponent implements OnInit {
 
     this.filteredMyBizList = filteredBizList.map(biz => ({
       gmbBiz: biz,
-      transfers: (biz.gmbOwnerships || []).map(o => (o.email || 'N/A').split('@')[0]).join('→'),
+      transfers: (biz.gmbOwnerships || []).map(o => (o.email || 'N/A').split('@')[0]).reverse().join('←'),
       owned: biz.hasOwnership(this.myEmails),
       ownershipPercentage: ((biz) => {
         let possesedTime = 1;
@@ -177,4 +216,72 @@ export class GmbBizListComponent implements OnInit {
     return GlobalService.serviceProviderMap[gmbBiz.gmbOwner];
   }
 
+  edit(bizObj) {
+
+    this.apiError = undefined;
+    // make a copy of biz instead to avoid mutation
+    this.bizInEditing = new GmbBiz(bizObj.gmbBiz);
+    // we need to remove pop3 password
+    delete this.bizInEditing.qPop3Password;
+
+    this.bizEditingModal.show();
+  }
+
+  cancel() {
+    this.bizEditingModal.hide();
+  }
+
+  done(event: FormEvent) {
+    const biz = event.object as GmbBiz;
+    this.apiError = undefined;
+    this._api.post(environment.autoGmbUrl + 'encrypt', {email: biz.qPop3Email || 'n/a', password: biz.qPop3Password || 'n/a'}).pipe(mergeMap(result => {
+      const oldBiz = JSON.parse(JSON.stringify(this.bizList.filter(b => b._id === biz._id)[0]));
+      const updatedBiz = JSON.parse(JSON.stringify(biz));
+      // depends on if we are updating password
+      delete oldBiz.password;
+      delete updatedBiz.password;
+
+      if(biz.qPop3Password) {
+        updatedBiz.password = result;
+      }
+
+      if (biz._id) {
+        return this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", [{ old: oldBiz, new: updatedBiz }]);
+      } else {
+        return this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [updatedBiz]);
+      }
+
+    })).subscribe(
+      result => {
+        event.acknowledge(null);
+        this.refresh();
+        this.bizEditingModal.hide();
+      },
+      error => {
+        this.apiError = 'Possible: no Auto-GMB server running';
+        event.acknowledge(error.message || 'API Error.');
+        console.log(error);
+      }
+    );
+  }
+  
+  remove(event: FormEvent) {
+    const gmbBiz = event.object;
+    this._api.delete(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      ids: [gmbBiz._id]
+    }).subscribe(
+      result => {
+        event.acknowledge(null);
+        this.bizList = this.bizList.filter(b => b._id !== gmbBiz._id);
+        this.filterBizList();
+        this.bizEditingModal.hide();
+      },
+      error => {
+        event.acknowledge(error.message || 'API Error.');
+        this.apiError = 'API Error. Status code: ' + error.statusText;
+        console.log(error);
+      }
+    );
+  }
 }

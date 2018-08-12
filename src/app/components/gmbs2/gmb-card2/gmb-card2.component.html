@@ -8,12 +8,21 @@
         <h2>{{accountName}}</h2>
       </div>
       <div class="float-right">
+
+        <button class="btn btn-link" [disabled]="scanningBizList || disabled" (click)="clickScanBizList()">
+          <i class="fas fa-lock"></i> Scan Published Locations
+          <div *ngIf="gmbAccount.gmbScannedAt" class="text-muted">
+            <small>{{gmbAccount.gmbScannedAt | ago: now}}</small>
+          </div>
+        </button>
+        <button class="btn btn-link" [disabled]="scanningRequests || disabled" (click)="clickScanRequests()">
+          <i class="far fa-envelope "></i> Scan Email
+          <div *ngIf="gmbAccount.emailScannedAt" class="text-muted">
+            <small>{{gmbAccount.emailScannedAt | ago: now}}</small>
+          </div>
+        </button>
         <button class="btn btn-link" [disabled]="disabled" (click)="clickEdit()">
           <i class="far fa-edit"></i> Edit</button>
-        <button class="btn btn-link" [disabled]="scanningBizList || disabled" (click)="clickScanBizList()">
-          <i class="fas fa-lock"></i> Scan Published Locations<div *ngIf="gmbAccount.gmbScannedAt" class="text-muted"><small>{{gmbAccount.gmbScannedAt | ago: now}}</small></div></button>
-        <button class="btn btn-link" [disabled]="scanningRequests || disabled" (click)="clickScanRequests()">
-          <i class="far fa-envelope "></i> Scan Email</button>
       </div>
     </div>
 

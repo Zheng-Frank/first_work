@@ -3,11 +3,14 @@ import { Task } from "./task";
 import { ApiService } from "../../services/api.service";
 import { environment } from '../../../environments/environment';
 import { mergeMap } from "rxjs/operators";
-export class ActionCancel extends Action {
+export class ActionGenric extends Action {
     constructor(action: any) {
         super(action);
     }
-    perform(task: Task, api: ApiService, paramsObj) {
+    perform(task: Task, api: ApiService, paramsObj: any) {
+        if(!paramsObj || !paramsObj.field) {
+            return Promise.reject('Missing field to update.');
+        }
         return new Promise((resolve, reject) => {
             // query the same task: if it's not there, throw error. otherwise take it
             // there is still a chance that other peole just claimed the same taks but the probability is low
@@ -24,10 +27,10 @@ export class ActionCancel extends Action {
                 } else {
                     const oldTask = JSON.parse(JSON.stringify(task));
                     updatedTask = JSON.parse(JSON.stringify(task));
-                    updatedTask.result = 'CLOSED';
+                    updatedTask[paramsObj.field] = paramsObj.value;
                     return api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: updatedTask }]);
                 }                
-            })).subscribe(pached => {
+            })).subscribe(patched => {
                 resolve(new Task(updatedTask));
             }, error => {
                 reject(error);
@@ -36,4 +39,3 @@ export class ActionCancel extends Action {
 
     }
 }
-

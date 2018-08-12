@@ -14,6 +14,7 @@ export class ActionAssign extends Action {
         return new Promise((resolve, reject) => {
             // query the same task: if it's not there, throw error. otherwise take it
             // there is still a chance that other peole just claimed the same taks but the probability is low
+            let updatedTask;
             api.get(environment.adminApiUrl + "generic", {
                 resource: "task",
                 query: {
@@ -27,12 +28,12 @@ export class ActionAssign extends Action {
                     throw 'Already assigned to ' + task.assignee;
                 } else {
                     const oldTask = JSON.parse(JSON.stringify(task));
-                    const newTask = JSON.parse(JSON.stringify(task));
-                    newTask.assignee = paramsObj.assignee;
-                    return api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }]);
+                    updatedTask = JSON.parse(JSON.stringify(task));
+                    updatedTask.assignee = paramsObj.assignee;
+                    return api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: updatedTask }]);
                 }                
             })).subscribe(pached => {
-                resolve();
+                resolve(new Task(updatedTask));
             }, error => {
                 reject(error);
             });

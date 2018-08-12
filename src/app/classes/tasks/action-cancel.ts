@@ -11,6 +11,7 @@ export class ActionCancel extends Action {
         return new Promise((resolve, reject) => {
             // query the same task: if it's not there, throw error. otherwise take it
             // there is still a chance that other peole just claimed the same taks but the probability is low
+            let updatedTask;
             api.get(environment.adminApiUrl + "generic", {
                 resource: "task",
                 query: {
@@ -22,12 +23,12 @@ export class ActionCancel extends Action {
                     throw 'No task found.';
                 } else {
                     const oldTask = JSON.parse(JSON.stringify(task));
-                    const newTask = JSON.parse(JSON.stringify(task));
-                    newTask.result = 'CANCELED';
-                    return api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }]);
+                    updatedTask = JSON.parse(JSON.stringify(task));
+                    updatedTask.result = 'CANCELED';
+                    return api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: updatedTask }]);
                 }                
             })).subscribe(pached => {
-                resolve();
+                resolve(new Task(updatedTask));
             }, error => {
                 reject(error);
             });

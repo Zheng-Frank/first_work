@@ -1,9 +1,6 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
 import { Action } from '../../../classes/tasks/action';
-import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { ApiService } from '../../../services/api.service';
-
 @Component({
   selector: 'app-task-list',
   templateUrl: './task-list.component.html',
@@ -12,14 +9,9 @@ import { ApiService } from '../../../services/api.service';
 export class TaskListComponent implements OnInit {
 
   @Input() taskList = [];
-  @Input() username;
-  @Input() roles;
-
-  @ViewChild('taskActionerModal') taskActionerModal: ModalComponent;
-
-  activeTask: Task;
-  activeAction: Action;
-
+  @Input() user;
+  @Output() actionDone = new EventEmitter();
+  
   constructor() { }
 
   ngOnInit() {
@@ -29,24 +21,8 @@ export class TaskListComponent implements OnInit {
     return (task.roles || []).join(', ');
   }
 
-  act(task, action) {
-    this.activeAction = action;
-    this.activeTask = task;
-    this.taskActionerModal.show();
+  triggerActionDone(event) {
+    this.actionDone.emit(event);
   }
-
-  cancelAction(event) {
-    this.activeAction = undefined;
-    this.activeTask = undefined;
-    this.taskActionerModal.hide();
-  }
-
-  actionDone(event) {
-    this.activeAction = undefined;
-    this.activeTask = undefined;
-    this.taskActionerModal.hide();
-    console.log(event)
-  }
-
 
 }

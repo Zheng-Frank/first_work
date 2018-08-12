@@ -23,10 +23,7 @@
             <td>{{getRoles(task)}}</td>
             <td>{{task.getStatus()}}</td>
             <td>
-                <div class="d-inline-block" *ngFor="let action of task.getBuiltInActions(username, roles)">
-                    <button class="btn btn-sm btn-primary" (click)="act(task, action)">{{action.name}}</button>&nbsp;
-                </div>
-
+                <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)"></app-task-action-bar>
             </td>
         </tr>
     </tbody>
@@ -35,9 +32,3 @@
 <tr *ngIf="!taskList || taskList.length === 0">
     List is empty
 </tr>
-
-<!--the editing modal-->
-<q-modal #taskActionerModal [title]="activeTask?.name">
-    <app-task-actioner (cancel)="cancelAction($event)" (done)="actionDone($event)" [action]="activeAction" [task]="activeTask"></app-task-actioner>
-
-</q-modal>

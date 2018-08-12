@@ -22,10 +22,11 @@ import { InvoiceDetailsComponent } from './components/invoices/invoice-details/i
 import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
-import { TaskTesterComponent } from './components/tasks/task-tester/task-tester.component';
+import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
+import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', 'GMB', 'CSR'] } },
@@ -50,10 +51,11 @@ const routes: Routes = [
   { path: 'gmbs/watch', component: GmbWatchComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
-  { path: 'tasks', component: TaskTesterComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'tasks', component: TaskDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'gmbs2', component: Gmb2DashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-accounts', component: GmbAccountListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-businesses', component: GmbBizListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
+  { path: 'gmb-requests', component: GmbRequestListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
 
   { path: '**', redirectTo: '/home' }
 ];

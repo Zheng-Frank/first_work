@@ -7,6 +7,7 @@ import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { mergeMap } from 'rxjs/operators';
+import { GmbRequest } from '../../../classes/gmb/gmb-request';
 
 @Component({
   selector: 'app-gmb2-dashboard',
@@ -17,6 +18,7 @@ export class Gmb2DashboardComponent implements OnInit {
 
   gmbAccounts: GmbAccount[] = [];
   gmbBizList: GmbBiz[] = [];
+  gmbRequests: GmbRequest[] = [];
 
   ownedGmbBizList = [];
 
@@ -25,6 +27,8 @@ export class Gmb2DashboardComponent implements OnInit {
   bizInCalculating: any = null;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setMonth(thirtyDaysAgo.getMonth() - 1);
     zip(
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbAccount",
@@ -39,11 +43,25 @@ export class Gmb2DashboardComponent implements OnInit {
           "gmbOwnerships.email": 1
         },
         limit: 5000
-      })
+      }),
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "gmbRequest",
+        query: {
+          date: { $gte: { $date: thirtyDaysAgo } },
+          handledDate: {
+            $exists: false
+          }
+        },
+        projection: {
+          email: 1
+        },
+        limit: 5000
+      }),
     ).subscribe(
       results => {
         this.gmbAccounts = results[0].map(g => new GmbAccount(g)); //.sort((g1, g2) => g1.email > g2.email ? 1 : -1);
         this.gmbBizList = results[1].map(b => new GmbBiz(b));
+        this.gmbRequests = results[2].map(r => new GmbRequest(r));
         const emails = this.gmbAccounts.map(ga => ga.email);
         this.ownedGmbBizList = this.gmbBizList.filter(b => b.hasOwnership(emails));
       },

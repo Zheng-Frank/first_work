@@ -38,8 +38,8 @@ export class TaskActionerComponent implements OnInit, OnChanges {
 
   clickConfirm() {
     this.confirming = true;
-    this.action.perform(this.task, this._api, {assignee: this._global.user.username}).then(data => {
-      this.done.emit(data);
+    this.action.perform(this.task, this._api, {assignee: this._global.user.username}).then(updatedTask => {
+      this.done.emit(updatedTask);
       this.confirming = false;
     }).catch(error => {
       this.confirmError = error;

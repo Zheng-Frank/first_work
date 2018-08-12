@@ -1,0 +1,22 @@
+<h2 class="text-center">Task List</h2>
+<div class="clearfix my-2">
+    <div class="float-left form-inline">
+
+    </div>
+    <div class="float-right">
+        <button class="btn btn-primary" (click)="generateTask()">Generate A Task</button>
+    </div>
+</div>
+
+<!-- by task name -->
+<div *ngFor="let nameEntry of groupedTasks" class="mb-4">
+    <h5>{{nameEntry.name}}</h5>
+    <ng-container *ngFor="let status of statuses">
+        <button class="btn {{status.btnClass}} btn-status mr-4">
+            <span class="h1">{{nameEntry[status.name] || 0}}</span>
+            <hr>{{status.name}}
+        </button>
+    </ng-container>
+</div>
+
+<app-task-list [taskList]="myTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>

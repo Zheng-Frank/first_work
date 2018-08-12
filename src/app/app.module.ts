@@ -83,13 +83,16 @@ import { LogEditorComponent } from './components/logs/log-editor/log-editor.comp
 import { PaymentMeansEditorComponent } from './components/payments/payment-means-editor/payment-means-editor.component';
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { TaskListComponent } from './components/tasks/task-list/task-list.component';
-import { TaskTesterComponent } from './components/tasks/task-tester/task-tester.component';
+import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
 import { TaskActionerComponent } from './components/tasks/task-actioner/task-actioner.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
 import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.component';
 import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor/gmb-account-editor.component';
+import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
+import { GmbBizEditorComponent } from './components/gmbs2/gmb-biz-editor/gmb-biz-editor.component';
+import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 
 @NgModule({
   declarations: [
@@ -165,12 +168,15 @@ import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor
     PaymentMeansEditorComponent,
     PaymentsDashboardComponent,
     TaskListComponent,
-    TaskTesterComponent,
+    TaskDashboardComponent,
     TaskActionerComponent,
     Gmb2DashboardComponent,
     GmbAccountListComponent,
     GmbBizListComponent,
-    GmbAccountEditorComponent
+    GmbAccountEditorComponent,
+    GmbRequestListComponent,
+    GmbBizEditorComponent,
+    TaskActionBarComponent
   ],
   imports: [
     BrowserModule,

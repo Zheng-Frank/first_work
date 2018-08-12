@@ -1,0 +1,30 @@
+<h2 class="text-center">GMB: Requests</h2>
+<div class="clearfix my-2">
+  <div class="float-left form-inline">
+    <label class="checkbox-inline">
+      <input type="checkbox" [(ngModel)]="includeHandled" (change)="applyFilter()">&nbsp;Include Handled</label>
+  </div>
+  <div class="float-right">
+    <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
+      <i class="fas fa-sync-alt"></i> Reload</button>
+    <button class="btn btn-primary" (click)="crawlAll()" [qLoading]="crawling">
+      <i class="fab fa-google"></i> Crawl All</button>
+  </div>
+</div>
+<q-table [rows]="filteredRequests" [tableColumnDescriptors]="myColumnDescriptors">
+  <tr *tableRowTemplate="let r;" class="{{'list-group-item-' + r.state}}">
+    <td>{{r.request.date | ago: now}}</td>
+    <td>{{r.request.business}}</td>
+    <td>{{r.biz?.score}}</td>
+    <td>{{r.accountEmail}}</td>
+    <td>
+      <span *ngIf="r.request.handledAt">✓ &nbsp;</span>{{r.request.handledBy}}
+      <div class="text-muted" *ngIf="r.request.handledAt">
+        <small>{{r.request.handledAt | ago: now}}</small>
+      </div>
+    </td>
+    <td>
+      <app-task-action-bar [task]="r.task" [user]="user" (actionDone)="taskUpdated($event)"></app-task-action-bar>
+    </td>
+  </tr>
+</q-table>

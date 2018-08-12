@@ -1,0 +1,11 @@
+<ng-container *ngIf="task && user">
+    <ng-container *ngFor="let action of task.getBuiltInActions(user)">
+        <button class="btn btn-sm btn-primary" (click)="act(action)">{{action.name}}</button>&nbsp;
+    </ng-container>
+</ng-container>
+
+
+<!--the editing modal-->
+<q-modal #taskActionerModal [title]="task?.name">
+    <app-task-actioner (cancel)="cancelAction($event)" (done)="finishAction($event)" [action]="activeAction" [task]="task"></app-task-actioner>
+</q-modal>

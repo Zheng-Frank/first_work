@@ -1,3 +1,4 @@
+<h2 class="text-center">GMB: Restaurants</h2>
 <div class="clearfix my-2">
   <div class="float-left form-inline">
     <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control mr-2" placeholder="type name, phone, account..."
@@ -11,59 +12,54 @@
   </div>
 </div>
 
-<table class="table table-sm">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Name</th>
-      <th>Score</th>
-      <th>Posseded</th>
-      <th>Accounts</th>
-      <th>GMB</th>
-      <th>Website</th>
-      <th>Updated</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let biz of filteredMyBizList; let i = index;" [ngClass]="{'list-group-item-danger': !biz.owned }">
-      <th scope="row">{{i+1}}</th>
-      <td>
-        <div class="font-weight-bold">
-          <a *ngIf="biz.gmbBiz.qmenuId" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">{{biz.gmbBiz.name}}</a>
-          <span *ngIf="!biz.gmbBiz.qmenuId">{{biz.gmbBiz.name}}</span>
-          &nbsp;
-          <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
-        </div>
-        <div class="text-muted">
-          <small>{{biz.gmbBiz.address}}</small>
-        </div>
-        <div class="text-danger" *ngIf="biz.lostDate">
-          <small>Lost: {{biz.lostDate | ago: now}}</small>
-        </div>
-      </td>
-      <td>{{biz.gmbBiz.score}}</td>
-      <td>{{biz.ownershipPercentage}}%</td>
-      <td>
-        <small>{{biz.transfers}}</small>
-      </td>
-      <td class="text-center">
-        <img *ngIf="biz.owned" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
-        <span *ngIf="!biz.owned">?</span>
-      </td>
-      <td class="text-center">
-        <i *ngIf="!getLogo(biz.gmbBiz) && biz.gmbBiz.gmbOwner" class="fas fa-question text-danger"></i>
-        <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" [attr.alt]="biz.gmbBiz.gmbOwner" height="16px">
-        <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
-      </td>
-      <td class="text-center">
-        <div *ngIf="biz.gmbBiz.updatedAt" class="text-muted text-nowrap">
-          <small>{{biz.gmbBiz.updatedAt | ago: now}}</small>
-        </div>
-      </td>
-      <td class="text-center">
-        <button class="btn btn-link" [qLoading]="isProcessing(biz)" (click)="crawlOne(biz)">G-Crawl</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<q-table [rows]="filteredMyBizList" [tableColumnDescriptors]="myColumnDescriptors">
+  <tr *tableRowTemplate="let biz;" [ngClass]="{'list-group-item-danger': !biz.owned }">
+    <td>
+      <div class="font-weight-bold">
+        <span class="text-success" *ngIf="biz.gmbBiz.ignoreGmbOwnershipRequest">✓</span>
+        <a *ngIf="biz.gmbBiz.qmenuId" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">{{biz.gmbBiz.name}}</a>
+        <span *ngIf="!biz.gmbBiz.qmenuId">{{biz.gmbBiz.name}}</span>
+        &nbsp;
+        <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
+      </div>
+      <div class="text-muted">
+        <small>{{biz.gmbBiz.address}}</small>
+      </div>
+      <div class="text-danger" *ngIf="biz.lostDate">
+        <small>Lost: {{biz.lostDate | ago: now}}</small>
+      </div>
+    </td>
+    <td>{{biz.gmbBiz.score}}</td>
+    <td>{{biz.ownershipPercentage}}%</td>
+    <td>
+      <small>{{biz.transfers}}</small>
+    </td>
+    <td class="text-center">
+      <img *ngIf="biz.owned" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+      <span *ngIf="!biz.owned">?</span>
+    </td>
+    <td class="text-center">
+      <i *ngIf="!getLogo(biz.gmbBiz) && biz.gmbBiz.gmbOwner" class="fas fa-question text-danger"></i>
+      <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" [attr.alt]="biz.gmbBiz.gmbOwner" height="16px">
+      <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
+    </td>
+    <td class="text-center">
+      <div *ngIf="biz.gmbBiz.updatedAt" class="text-muted text-nowrap">
+        <small>{{biz.gmbBiz.updatedAt | ago: now}}</small>
+      </div>
+    </td>
+    <td class="text-center">
+      <button class="btn btn-link" [qLoading]="isProcessing(biz)" (click)="crawlOne(biz)">G-Crawl</button>
+      <button class="btn btn-link" (click)="edit(biz)">Edit</button>
+    </td>
+  </tr>
+</q-table>
+<hr>
+<div class="text-success mb-4">✓: GMB Requests Ignored (usually qMenu partners)</div>
+<!--the editing modal-->
+<q-modal #bizEditingModal>
+  <h4 class="text-center">{{bizInEditing && bizInEditing._id ? 'Update' : 'Add New'}}</h4>
+  <hr>
+  <app-gmb-biz-editor [gmbBiz]="bizInEditing" (remove)="remove($event)" (submit)="done($event)" (cancel)="cancel()"></app-gmb-biz-editor>
+  <div class="text-danger">{{apiError}}</div>
+</q-modal>

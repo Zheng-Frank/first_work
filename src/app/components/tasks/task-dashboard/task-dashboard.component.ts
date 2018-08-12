@@ -3,18 +3,17 @@ import { Task } from '../../../classes/tasks/task';
 import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment';
 import { GlobalService } from '../../../services/global.service';
+import { User } from '../../../classes/user';
 
 @Component({
-  selector: 'app-task-tester',
-  templateUrl: './task-tester.component.html',
-  styleUrls: ['./task-tester.component.css']
+  selector: 'app-task-dashboard',
+  templateUrl: './task-dashboard.component.html',
+  styleUrls: ['./task-dashboard.component.css']
 })
-export class TaskTesterComponent {
-  
+export class TaskDashboardComponent {
+
   myTasks: Task[] = [];
-  
-  myUsername;
-  myRoles;
+  user: User;
 
   groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
 
@@ -26,8 +25,7 @@ export class TaskTesterComponent {
 
   constructor(private _api: ApiService, private _global: GlobalService) {
 
-    this.myUsername = this._global.user.username;
-    this.myRoles = this._global.user.roles;
+    this.user = this._global.user;
 
     this.refresh();
 
@@ -94,6 +92,16 @@ export class TaskTesterComponent {
         error => {
           console.log(error);
         });
+  }
+
+  updateTask(event) {
+    console.log('updated task:', event);
+    // find and replace the task
+    for (let i = 0; i < this.myTasks.length; i++) {
+      if (this.myTasks[i]._id === event.task._id) {
+        this.myTasks[i] = event.task;
+      }
+    }
   }
 
 }
