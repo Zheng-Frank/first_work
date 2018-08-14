@@ -57,6 +57,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           promotions: 1,
           googleAddress: 1,
           closedDays: 1,
+          restaurantId: 1,
 
           autoPrintOnNewOrder: 1,
           printCopies: 1,

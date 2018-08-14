@@ -20,6 +20,7 @@ export class RestaurantDashboardComponent implements OnInit {
 
   phoneFilter: string;
   nameFilter: string;
+  restaurantIdFilter: string;
   restaurantList = [];
 
   newRestaurant = {
@@ -36,6 +37,7 @@ export class RestaurantDashboardComponent implements OnInit {
         name: 1,
         alias: 1,
         logo: 1,
+        restaurantId:1,
         phones: 1,
         disabled: 1
       },
@@ -100,7 +102,12 @@ export class RestaurantDashboardComponent implements OnInit {
   }
 
   isVisible(restaurant) {
+    if(this.phoneFilter){
+      this.phoneFilter=this.phoneFilter.replace(/\D/g,"");
+    }
+
     return (!this.nameFilter || (restaurant.name || '').toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0) &&
+    (!this.restaurantIdFilter || this.restaurantIdFilter==restaurant.restaurantId) &&
       (!this.phoneFilter || (restaurant.phones || []).some(p => (p.phoneNumber || '').indexOf(this.phoneFilter) >= 0));
   }
 

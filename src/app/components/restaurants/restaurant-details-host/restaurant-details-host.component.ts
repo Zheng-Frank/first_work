@@ -35,6 +35,7 @@ export class RestaurantDetailsHostComponent implements OnInit {
               images: 1,
               googleAddress: 1,
               channels: 1,
+              restaurantId: 1,
               people: 1,
               rateSchedules: 1,
               paymentMeans: 1,
