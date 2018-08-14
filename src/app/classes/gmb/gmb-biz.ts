@@ -32,6 +32,8 @@ export class GmbBiz {
 
     ignoreGmbOwnershipRequest: boolean;
 
+    comments: string;
+
     updatedAt: Date;
     createdAt: Date;
 

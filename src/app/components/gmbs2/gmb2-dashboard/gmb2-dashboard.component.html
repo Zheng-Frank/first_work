@@ -18,7 +18,7 @@
     <span class="h6">Inject qMenu Restaurant IDs</span>
     <hr class="my-2">Match GMB and qMenu Restaurants
   </button>
-  <button class="btn btn-primary mb-2" (click)="calculateRestaurantScores(true)" [qLoading]="restaurant">
+  <button class="btn btn-primary mb-2" (click)="calculateRestaurantScores(true)" [qLoading]="bizInCalculating">
     <span class="h6">Inject Missing Restaurant Scores</span>
     <hr class="my-2">{{bizInCalculating ? bizInCalculating.name: 'May take Long Time'}}
   </button>

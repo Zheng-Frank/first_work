@@ -8,7 +8,7 @@ export class ActionGeneric extends Action {
         super(action);
     }
     perform(task: Task, api: ApiService) {
-        if(!this.paramsObj || !this.paramsObj.field) {
+        if (!this.paramsObj || !this.paramsObj.field) {
             return Promise.reject('Missing field to update.');
         }
         return new Promise((resolve, reject) => {
@@ -22,15 +22,22 @@ export class ActionGeneric extends Action {
                 },
                 limit: 1
             }).pipe(mergeMap(tasks => {
-                if(tasks.length === 0) {
+                if (tasks.length === 0) {
                     throw 'No task found.';
                 } else {
                     const oldTask = JSON.parse(JSON.stringify(task));
                     updatedTask = JSON.parse(JSON.stringify(task));
                     updatedTask[this.paramsObj.field] = this.paramsObj.value;
+                    if (this.paramsObj.field === 'result') {
+                        updatedTask.resultAt = { $date: new Date() };
+                    }
                     return api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: updatedTask }]);
-                }                
+                }
             })).subscribe(patched => {
+                // revert resultAt back to normal date
+                if (updatedTask.resultAt) {
+                    updatedTask.resultAt = updatedTask.resultAt['$date'] || updatedTask.resultAt;
+                }
                 resolve(new Task(updatedTask));
             }, error => {
                 reject(error);

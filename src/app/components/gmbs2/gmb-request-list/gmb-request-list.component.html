@@ -18,9 +18,9 @@
     <td>{{r.biz?.score}}</td>
     <td>{{r.accountEmail}}</td>
     <td>
-      <span *ngIf="r.request.handledAt">✓ &nbsp;</span>{{r.request.handledBy}}
-      <div class="text-muted" *ngIf="r.request.handledAt">
-        <small>{{r.request.handledAt | ago: now}}</small>
+      <span *ngIf="r.task && r.task.resultAt">✓ &nbsp;</span>{{r.task?.assignee}}
+      <div class="text-muted" *ngIf="r.task && r.task.resultAt">
+        <small>{{r.task.resultAt | ago: now}}</small>
       </div>
     </td>
     <td>

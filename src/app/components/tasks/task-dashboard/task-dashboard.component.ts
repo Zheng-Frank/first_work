@@ -15,6 +15,8 @@ export class TaskDashboardComponent {
   myTasks: Task[] = [];
   user: User;
 
+  refreshing = false;
+
   groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
 
   statuses = [
@@ -29,43 +31,27 @@ export class TaskDashboardComponent {
 
     this.refresh();
 
-
-    // [undefined, 'gary', 'brian'].map((assignee, i) =>
-    //   [undefined, 'role1', 'role2', 'role3', 'role4'].map((role, j) =>
-    //     [undefined, 'CLOSED', 'CANCELED'].map((result, k) => {
-    //       let random = Math.floor(Math.random() * 3);
-    //       for (let i = 0; i < random; i++) {
-    //         this.tasks.push(new Task({
-    //           name: 'awesome tasks' + i + j,
-    //           description: 'some description blah blah',
-    //           assignee: assignee,
-    //           roles: [role],
-    //           result: result
-    //         }));
-    //       }
-
-    //     })));
-
-
-
   }
 
   refresh() {
+    this.refreshing = true;
     this._api.get(environment.adminApiUrl + "generic", {
       resource: "task",
-      query: {
-      },
-      limit: 10000
+      query: {},
+      limit: 10000,
+      sort: {
+        createdAt: -1
+      }
     }).subscribe(tasks => {
-      console.log(tasks);
+      this.refreshing = false;
       tasks = tasks.map(t => new Task(t));
       this.myTasks = tasks.filter(t =>
         t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
 
-      console.log(this.myTasks)
       // compute groupedTasks, by task name
       this.computeGroupedTasks();
     }, error => {
+      this.refreshing = false;
       console.log(error);
     });
   }
@@ -80,26 +66,22 @@ export class TaskDashboardComponent {
       nameMap[t.name][status] = (nameMap[t.name][status] || 0) + 1;
     });
 
-    console.log(nameMap);
-
     // convert to groupedTasks so that we can bind to UI
     this.groupedTasks = Object.keys(nameMap).map(key => nameMap[key]);
   }
 
   generateTask() {
-    Task.generate({ name: 'Call Restaurant Owner', description: '407-580-7504, Demo Restaurant', roles: ['ADMIN'] }, this._api)
-      .subscribe(
-        tasks => {
-          console.log(tasks);
-          this.refresh();
-        },
-        error => {
-          console.log(error);
-        });
+    // Task.generate({ name: 'Call Restaurant Owner', description: '407-580-7504, Demo Restaurant', roles: ['ADMIN'] }, this._api)
+    //   .subscribe(
+    //     tasks => {
+    //       this.refresh();
+    //     },
+    //     error => {
+    //       console.log(error);
+    //     });
   }
 
   updateTask(event) {
-    console.log('updated task:', event);
     // find and replace the task
     for (let i = 0; i < this.myTasks.length; i++) {
       if (this.myTasks[i]._id === event.task._id) {

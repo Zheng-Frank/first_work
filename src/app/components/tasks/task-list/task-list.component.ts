@@ -1,6 +1,5 @@
-import { Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
-import { Action } from '../../../classes/tasks/action';
 @Component({
   selector: 'app-task-list',
   templateUrl: './task-list.component.html',
@@ -11,7 +10,8 @@ export class TaskListComponent implements OnInit {
   @Input() taskList = [];
   @Input() user;
   @Output() actionDone = new EventEmitter();
-  
+
+  now = new Date();
   constructor() { }
 
   ngOnInit() {

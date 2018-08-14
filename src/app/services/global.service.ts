@@ -105,10 +105,9 @@ export class GlobalService {
           accessibleRoles: ["ADMIN"]
         },
         {
-          name: "Bootstrap4",
-          href: "#/bs4",
-          fa: "fab fa-twitter",
-          accessibleRoles: ["ADMIN"]
+          name: "Tasks",
+          href: "#/tasks",
+          fa: "fas fa-tasks"
         },
         { name: "Me", href: "#/profile", fa: "fas fa-user" }
       ];

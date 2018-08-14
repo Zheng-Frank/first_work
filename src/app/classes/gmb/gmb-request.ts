@@ -15,10 +15,7 @@ export class GmbRequest {
     
     gmbAccountId: string;
     gmbBizId: string;
-
-    handledAt: Date;
-    handledBy: string;
-
+    
     constructor(request?: any) {
         if (request) {
             // copy every fields

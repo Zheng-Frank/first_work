@@ -9,6 +9,7 @@ import { FormEvent } from '@qmenu/ui';
 import { zip, of } from 'rxjs';
 import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
+import { Task } from '../../../classes/tasks/task';
 
 @Component({
   selector: 'app-gmb-account-list',
@@ -304,7 +305,8 @@ export class GmbAccountListComponent implements OnInit {
 
   scanAccountEmails(gmbAccount: GmbAccount) {
     return new Promise((resolve, reject) => {
-      let parsedRequests;
+      let parsedRequests: GmbRequest[];
+      const bizMap = {};
       this.processingGmbAccountSet.add(gmbAccount);
       zip(
         this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: true }),
@@ -323,7 +325,8 @@ export class GmbAccountListComponent implements OnInit {
           },
           projection: {
             name: 1,
-            gmbOwnerships: 1
+            gmbOwnerships: 1,
+            ignoreGmbOwnershipRequest: 1
           },
           resource: "gmbBiz",
           limit: 5000
@@ -341,6 +344,10 @@ export class GmbAccountListComponent implements OnInit {
 
         const gmbRequests: GmbRequest[] = results[1].map(r => new GmbRequest(r));
         const gmbBizList: GmbBiz[] = results[2].map(b => new GmbBiz(b)).filter(biz => biz.hasOwnership([gmbAccount.email]));
+
+        // make the bizMap
+        gmbBizList.map(b => bizMap[b._id] = b);
+
         // new requests: same gmbAccount and same date and 
         const newRequests = requests.filter(r => !gmbRequests.some(r2 => r2.business.toLowerCase() === r.business.toLowerCase() && r2.gmbAccountId === gmbAccount._id && r2.date.valueOf() === r.date.valueOf()));
 
@@ -362,21 +369,73 @@ export class GmbAccountListComponent implements OnInit {
         console.log('matched: ');
         console.log(matchedNewRequests);
         parsedRequests = matchedNewRequests;
-        // lets convert date but not ids because mongo id doesn't seem to provide benifits
+
+        // lets convert date but not ids because mongo id doesn't seem to provide benifits for Ids
         (matchedNewRequests as any).map(r => {
           r.date = { $date: r.date };
         });
         this.patchGmb(gmbAccount, 'emailScannedAt', { $date: new Date() });
-        newRequests
-        // we'd like to create each task for each request automatically
-        return this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', matchedNewRequests);
-      })).pipe(mergeMap(ids => {
-        const tasks = ids.map((id, index) => ({
-          name: 'GMB Request',
-          description: parsedRequests[index].business,
-          roles: ['GMB', 'ADMIN'],
-          objects: [{ _id: id, name: 'gmbRequest' }]
-        }));
+
+        // we'd like to create task for some requests automatically. we need to see what's already been there first
+        return zip(
+          this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', matchedNewRequests),
+          // also find those tasks with requestId
+          this._api.get(environment.adminApiUrl + "generic", {
+            resource: "task",
+            query: {
+              "relatedMap.gmbAccountId": gmbAccount._id,
+              result: null    // null is the same as either non-exists or actually null in mongodb
+            },
+            sort: {
+              createdAt: -1
+            },
+            limit: 1000
+          })
+        );
+
+      })).pipe(mergeMap(idsAndTasks => {
+
+        // let's insert the id for parsed requests;
+        const ids = idsAndTasks[0];
+        ids.map((id, index) => parsedRequests[index]._id = id);
+
+        // conditions to create a account transfer  task:
+        // 1. requester is not qmenu;
+        // 2. and no outstanding similar task pending (not closed)
+        // 3. and restaurant is not qmenu partner (ignoreGmbRequest = true)
+
+
+        const myAccountEmails = this.gmbAccounts.map(a => a.email);
+        const nonQmenuRequest = parsedRequests.filter(r => myAccountEmails.indexOf(r.email.toLowerCase()) < 0);
+        const afterIgnore = nonQmenuRequest.filter(r => bizMap[r.gmbBizId] && !bizMap[r.gmbBizId].ignoreGmbOwnershipRequest);
+
+        // use gmbBizId && gmbAccount email as key to see if there is any outstanding task!
+        const outstandingTaskMap = new Set();
+        (idsAndTasks[1] as Task[]).filter(t => !t.result).map(t => {
+          if (t.relatedMap && t.relatedMap['gmbBizId'] && t.relatedMap['gmbAccountId']) {
+            outstandingTaskMap.add(t.relatedMap['gmbBizId'] + t.relatedMap['gmbAccountId']);
+          }
+        });
+
+        // we have to consider same task in this batch too, so use a loop instead of map to handle this
+        const finalLeftUnhandledRequests: GmbRequest[] = [];
+
+        for (let i = 0; i < afterIgnore.length; i++) {
+          let request = afterIgnore[i];
+          if (!outstandingTaskMap.has(request.gmbBizId + request.gmbAccountId)) {
+            finalLeftUnhandledRequests.push(request);
+            outstandingTaskMap.add(request.gmbBizId + request.gmbAccountId)
+          }
+        }
+
+        const tasks = finalLeftUnhandledRequests
+          .map(r => ({
+            name: 'Invalidate GMB Request C',
+            scheduledAt: r.date, // r.date is alreay in {$date: xxx} format 
+            description: r.business,
+            roles: ['GMB', 'ADMIN'],
+            relatedMap: { 'gmbBizId': r.gmbBizId, 'gmbAccountId': r.gmbAccountId, 'gmbRequestId': r._id }
+          }));
 
         return this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
       }))

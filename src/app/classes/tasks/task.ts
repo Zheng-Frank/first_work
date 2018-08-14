@@ -7,7 +7,6 @@ import { ActionGeneric } from './action-generic';
 import { ApiService } from '../../services/api.service';
 import { environment } from "../../../environments/environment";
 import { Observable } from 'rxjs';
-import { TaskObject } from './task-object';
 import { User } from '../user';
 
 export class Task {
@@ -16,9 +15,11 @@ export class Task {
     description: string;
     assignee: string;
     roles: string[] = [];
-    viewers: string[];
 
+    scheduledAt: Date;
+    
     result: 'CLOSED' | 'CANCELED';
+    resultAt: Date;
 
     // actions: Action[] = [];
 
@@ -26,7 +27,8 @@ export class Task {
     prerequisiteTaskIds;
 
     priority: number = 0;
-    objects: TaskObject[];
+    
+    relatedMap: any;   // {gmbBizId: xxxx, gmbRequestId: xxxx, ....}
 
     createdAt: Date;
 
@@ -34,7 +36,11 @@ export class Task {
         if (task) {
             Object.keys(task).map(k => this[k] = task[k]);
         }
-        // this.actions = (this.actions || []).map(a => new Action(a));
+        ['scheduledAt', 'resultAt', 'createdAt', 'updatedAt'].map(dateField => {
+            if (this[dateField]) {
+                this[dateField] = new Date((Date.parse(this[dateField])));
+            }
+        });
     }
 
     getStatus() {
@@ -93,9 +99,5 @@ export class Task {
 
         }
         return actions;
-    }
-
-    static generate(task, api: ApiService): Observable<any> {
-        return api.post(environment.adminApiUrl + 'generic?resource=task', [task]);
     }
 }

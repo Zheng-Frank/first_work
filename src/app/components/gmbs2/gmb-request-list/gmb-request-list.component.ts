@@ -25,6 +25,8 @@ export class GmbRequestListComponent implements OnInit {
 
   refreshing = false;
 
+  crawling = false;
+
   includeHandled = false;
 
   myColumnDescriptors = [
@@ -42,7 +44,7 @@ export class GmbRequestListComponent implements OnInit {
       label: "Account"
     },
     {
-      label: "Handler"
+      label: "Assignee"
     },
     {
       label: "Actions"
@@ -80,7 +82,7 @@ export class GmbRequestListComponent implements OnInit {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "task",
         query: {
-          "objects.name": "gmbRequest"
+          "relatedMap.gmbRequestId": {$exists: 1}
         },
         sort: {
           createdAt: -1
@@ -97,7 +99,7 @@ export class GmbRequestListComponent implements OnInit {
           const taskMap = {};
           results[0].map(b => new GmbBiz(b)).map(b => bizMap[b._id] = b);
           results[1].map(a => new GmbAccount(a)).map(a => accountMap[a._id] = a);
-          results[3].map(t => new Task(t)).map(t => (t.objects || []).map(obj => taskMap[obj._id] = t));
+          (results[3] as Task[]).map(t => t.relatedMap && t.relatedMap['gmbRequest'] ? (taskMap[t.relatedMap['gmbRequest']] = t) : (null));
           const now = new Date();
 
           const getState = (date: Date) => {
@@ -138,6 +140,10 @@ export class GmbRequestListComponent implements OnInit {
   taskUpdated(event) {
     // ideally this can apply only to affected entities
     this.refresh();
+  }
+
+  crawlAll() {
+    alert('not done yet');
   }
 
 }
