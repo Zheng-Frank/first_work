@@ -6,6 +6,6 @@
 
 
 <!--the editing modal-->
-<q-modal #taskActionerModal [title]="task?.name">
+<q-modal #taskActionerModal [title]="activeAction?.name">
     <app-task-actioner (cancel)="cancelAction($event)" (done)="finishAction($event)" [action]="activeAction" [task]="task"></app-task-actioner>
 </q-modal>

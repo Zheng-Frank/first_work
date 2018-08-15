@@ -93,7 +93,9 @@ import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { GmbBizEditorComponent } from './components/gmbs2/gmb-biz-editor/gmb-biz-editor.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
-
+import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+ 
 @NgModule({
   declarations: [
     RootComponent,
@@ -180,11 +182,14 @@ import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
     HttpModule,
-    UiModule
+    UiModule,
+    OwlDateTimeModule,
+    OwlNativeDateTimeModule,
   ],
   providers: [
     GlobalService,

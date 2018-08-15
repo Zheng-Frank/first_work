@@ -55,7 +55,7 @@ export class Task {
         if (!this.result && !this.assignee && this.roles.some(r => roles.indexOf(r) >= 0)) {
             actions.push(new ActionGeneric({
                 name: 'Assign to Me',
-                confirmationText: 'The task will be assigned to me.',
+                confirmationText: 'Assign this task to me.',
                 requiredRoles: this.roles,
                 paramsObj: {
                     field: 'assignee',
@@ -69,7 +69,7 @@ export class Task {
 
             actions.push(new ActionGeneric({
                 name: 'Release',
-                confirmationText: 'This will release the task back to unassigned list.',
+                confirmationText: 'Release this task back to unassigned list.',
                 requiredRoles: this.roles,
                 paramsObj: {
                     field: 'assignee',
@@ -78,8 +78,8 @@ export class Task {
             }));
 
             actions.push(new ActionGeneric({
-                name: 'Cancel',
-                confirmationText: 'This will mark the task as canceled.',
+                name: 'Update',
+                confirmationText: 'Update this task.',
                 requiredRoles: this.roles,
                 paramsObj: {
                     field: 'result',
@@ -89,14 +89,13 @@ export class Task {
 
             actions.push(new ActionGeneric({
                 name: 'Close',
-                confirmationText: 'This will close the task.',
+                confirmationText: 'Close this task.',
                 requiredRoles: this.roles,
                 paramsObj: {
                     field: 'result',
                     value: 'CLOSED'
                 }
             }));
-
         }
         return actions;
     }

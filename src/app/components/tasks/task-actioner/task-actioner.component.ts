@@ -19,8 +19,14 @@ export class TaskActionerComponent implements OnInit, OnChanges {
   @Output() error = new EventEmitter();
 
 
+  taskCopy: Task;
   confirming;
   confirmError;
+
+  selectItems = [
+    { text: 'Canceld', object: 'CANCELED' },
+    { text: 'Closed',  object: 'CLOSED' }
+  ];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -30,6 +36,8 @@ export class TaskActionerComponent implements OnInit, OnChanges {
   ngOnChanges(simpleChanges) {
     this.confirmError = undefined;
     this.confirming = undefined;
+    this.taskCopy = this.task ? new Task(this.task) : undefined;
+    
   }
 
   clickCancel() {
@@ -38,7 +46,7 @@ export class TaskActionerComponent implements OnInit, OnChanges {
 
   clickConfirm() {
     this.confirming = true;
-    this.action.perform(this.task, this._api, {assignee: this._global.user.username}).then(updatedTask => {
+    this.action.perform(this.taskCopy, this._api, {assignee: this._global.user.username}).then(updatedTask => {
       this.done.emit(updatedTask);
       this.confirming = false;
     }).catch(error => {

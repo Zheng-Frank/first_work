@@ -1,9 +1,31 @@
-<ng-container *ngIf="task && action">
-    <h6 class="card-title">{{action.name}}</h6>
+<ng-container *ngIf="taskCopy && action">
+    <h6 class="card-title">{{taskCopy.name}}</h6>
 
-    <p class="card-text text-muted">{{task.description}}</p>
+    <p class="card-text text-muted">{{taskCopy.description}}</p>
     <p class="card-text">{{action.confirmationText}}</p>
 
+    <!-- Update case, we allow scheduledAt update -->
+    <div *ngIf="action.name === 'Update'">
+        Scheduled At
+
+        <input [owlDateTimeTrigger]="dt" [owlDateTime]="dt">
+        <owl-date-time #dt></owl-date-time>
+        
+    </div>
+
+    <!-- Update case, we allow scheduledAt update -->
+    <div *ngIf="action.name === 'Close'" class="form-group">
+        <label>Result:</label>
+        <q-simple-radio [(ngModel)]="taskCopy.result" [equalWidth]="true" [values]="['CANCELED', 'CLOSED']">
+        </q-simple-radio>
+    </div>
+    <div class="form-group">
+        <label>Comments:</label>
+        <textarea class="form-control" rows="3" [(ngModel)]="taskCopy.comments" placeholder="extra comments"></textarea>
+    </div>
+
+
+    {{selectItems | json}} COMMENTS GOES HERE..... {{taskCopy | json }}
     <div class="text-right">
         <a class="btn btn-link mr-2" (click)="clickCancel()">Cancel</a>
         <button class="btn btn-primary btn-sm" (click)="clickConfirm()" [qLoading]="confirming">{{confirmError ? 'Retry' : 'Confirm'}}</button>
@@ -11,5 +33,4 @@
             <small>{{confirmError}}</small>
         </div>
     </div>
-
 </ng-container>
