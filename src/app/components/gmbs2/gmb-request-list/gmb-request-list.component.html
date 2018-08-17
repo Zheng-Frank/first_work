@@ -1,9 +1,9 @@
 <h2 class="text-center">GMB: Requests</h2>
 <div class="clearfix my-2">
-  <div class="float-left form-inline">
+  <!-- <div class="float-left form-inline">
     <label class="checkbox-inline">
       <input type="checkbox" [(ngModel)]="includeHandled" (change)="applyFilter()">&nbsp;Include Handled</label>
-  </div>
+  </div> -->
   <div class="float-right">
     <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
       <i class="fas fa-sync-alt"></i> Reload</button>
@@ -18,9 +18,9 @@
     <td>{{r.biz?.score}}</td>
     <td>{{r.accountEmail}}</td>
     <td>
-      <span *ngIf="r.task && r.task.resultAt">✓ &nbsp;</span>{{r.task?.assignee}}
+      {{r.task?.comments}}
       <div class="text-muted" *ngIf="r.task && r.task.resultAt">
-        <small>{{r.task.resultAt | ago: now}}</small>
+        <small>✓ &nbsp;{{r.task.resultAt | ago: now}}</small>
       </div>
     </td>
     <td>

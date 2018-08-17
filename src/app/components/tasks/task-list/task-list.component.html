@@ -1,36 +1,33 @@
-<table class="table" *ngIf="taskList && taskList.length > 0">
-    <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Scheduled At</th>
-            <th scope="col">Task</th>
-            <th scope="col">Status</th>
-            <th scope="col">Group</th>
-            <th scope="col">Assignee</th>
-            <th scope="col">Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let task of taskList; let i=index" class="{{'status-' + task.getStatus()}} {{task.getStatus() === 'CLOSED' ? 'text-success' : ''}}">
-            <th scope="row">{{i+1}}</th>
-            <td>{{task.scheduledAt | ago: now}}</td>
-            <td>{{task.name}}
-                <div class="text-muted" *ngIf="task.description">
-                    <small>
-                        {{task.description}}
-                    </small>
-                </div>
-            </td>
-            <td>{{task.getStatus()}}</td>
-            <td>{{getRoles(task)}}</td>
-            <td>{{task.assignee}}</td>
-            <td>
-                <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)"></app-task-action-bar>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-<tr *ngIf="!taskList || taskList.length === 0">
+<div *ngIf="!taskList || taskList.length === 0">
     List is empty
-</tr>
+</div>
+
+<q-table [rows]="taskList" [tableColumnDescriptors]="myColumnDescriptors">
+    <tr *tableRowTemplate="let task;">
+        <td>
+            <div class="badge badge-{{getTaskClass(task)}}" *ngIf="!task.result">{{task.scheduledAt | ago: now}}</div>
+
+            <div *ngIf="task.result">
+                {{task.result}}
+                <small class="text-muted d-block">
+                    {{task.resultAt | date: 'short'}}
+                </small>
+            </div>
+        </td>
+
+        <td>{{task.name}}
+            <div class="text-muted" *ngIf="task.description">
+                <small>
+                    {{task.description}}
+                </small>
+            </div>
+        </td>
+        <td>{{task.score}}</td>
+        <td>{{getRoles(task)}}</td>
+        <td>{{task.assignee}}</td>
+        <td>{{task.comments}}</td>
+        <td>
+            <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)"></app-task-action-bar>
+        </td>
+    </tr>
+</q-table>

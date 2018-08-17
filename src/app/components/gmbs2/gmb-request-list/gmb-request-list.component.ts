@@ -44,7 +44,7 @@ export class GmbRequestListComponent implements OnInit {
       label: "Account"
     },
     {
-      label: "Assignee"
+      label: "Comments"
     },
     {
       label: "Actions"
@@ -99,7 +99,7 @@ export class GmbRequestListComponent implements OnInit {
           const taskMap = {};
           results[0].map(b => new GmbBiz(b)).map(b => bizMap[b._id] = b);
           results[1].map(a => new GmbAccount(a)).map(a => accountMap[a._id] = a);
-          (results[3] as Task[]).map(t => t.relatedMap && t.relatedMap['gmbRequest'] ? (taskMap[t.relatedMap['gmbRequest']] = t) : (null));
+          (results[3] as Task[]).map(t => t.relatedMap && t.relatedMap['gmbRequestId'] ? (taskMap[t.relatedMap['gmbRequestId']] = t) : (null));
           const now = new Date();
 
           const getState = (date: Date) => {
@@ -120,10 +120,10 @@ export class GmbRequestListComponent implements OnInit {
               biz: bizMap[r.gmbBizId],
               account: accountMap[r.gmbAccountId],
               accountEmail: ((accountMap[r.gmbAccountId] || {}).email || '').split('@')[0],
-              task: taskMap[r._id],
+              task: new Task(taskMap[r._id]),
               state: getState(r.date)
             }))
-            .sort((a, b) => a.request.date - b.request.date);
+            .sort((a, b) => b.request.date - a.request.date);
           this.applyFilter();
         },
         error => {

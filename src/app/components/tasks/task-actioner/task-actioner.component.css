@@ -1,0 +1,4 @@
+/* we need this to solve popup over popup problem, lousy cdk */
+::ng-deep .cdk-overlay-container {
+    z-index: 100000;
+}

@@ -434,6 +434,7 @@ export class GmbAccountListComponent implements OnInit {
             scheduledAt: r.date, // r.date is alreay in {$date: xxx} format 
             description: r.business,
             roles: ['GMB', 'ADMIN'],
+            score: bizMap[r.gmbBizId].score,
             relatedMap: { 'gmbBizId': r.gmbBizId, 'gmbAccountId': r.gmbAccountId, 'gmbRequestId': r._id }
           }));
 

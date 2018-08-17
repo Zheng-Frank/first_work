@@ -3,7 +3,6 @@
  * 
  */
 import { Action } from './action';
-import { ActionGeneric } from './action-generic';
 import { ApiService } from '../../services/api.service';
 import { environment } from "../../../environments/environment";
 import { Observable } from 'rxjs';
@@ -26,10 +25,13 @@ export class Task {
     // won't be enabled unless all prerequisites are successfully CLOSED!
     prerequisiteTaskIds;
 
-    priority: number = 0;
+    score: number;
     
     relatedMap: any;   // {gmbBizId: xxxx, gmbRequestId: xxxx, ....}
 
+    
+    comments: string;
+    
     createdAt: Date;
 
     constructor(task?: any) {
@@ -53,21 +55,17 @@ export class Task {
         const actions = [];
         // can claim if not finished, in role, not assigned
         if (!this.result && !this.assignee && this.roles.some(r => roles.indexOf(r) >= 0)) {
-            actions.push(new ActionGeneric({
+            actions.push(new Action({
                 name: 'Assign to Me',
                 confirmationText: 'Assign this task to me.',
-                requiredRoles: this.roles,
-                paramsObj: {
-                    field: 'assignee',
-                    value: user.username
-                }
+                requiredRoles: this.roles
             }));
         }
 
         // can close or cancel if assigned to me but not yet finished or in my role
         if (!this.result && this.assignee === username) {
 
-            actions.push(new ActionGeneric({
+            actions.push(new Action({
                 name: 'Release',
                 confirmationText: 'Release this task back to unassigned list.',
                 requiredRoles: this.roles,
@@ -77,19 +75,13 @@ export class Task {
                 }
             }));
 
-            actions.push(new ActionGeneric({
+            actions.push(new Action({
                 name: 'Update',
-                confirmationText: 'Update this task.',
-                requiredRoles: this.roles,
-                paramsObj: {
-                    field: 'result',
-                    value: 'CANCELED'
-                }
+                requiredRoles: this.roles
             }));
 
-            actions.push(new ActionGeneric({
+            actions.push(new Action({
                 name: 'Close',
-                confirmationText: 'Close this task.',
                 requiredRoles: this.roles,
                 paramsObj: {
                     field: 'result',

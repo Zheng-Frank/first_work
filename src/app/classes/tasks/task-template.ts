@@ -1,6 +1,7 @@
 import { GmbBiz } from "../gmb/gmb-biz";
 import { GmbAccount } from "../gmb/gmb-account";
 import { GmbRequest } from "../gmb/gmb-request";
+import { Task } from "./task";
 
 /**
  * @desc A task templates
@@ -11,10 +12,10 @@ export class TaskTemplates {
 
     static templates = [
         {
-            name: 'Verify GMB via Postcard',
+            name: 'Request GMB Ownership',
             getTask: function (gmbBiz: GmbBiz, gmbAccount: GmbAccount, gmbRequest: GmbRequest, scheduledAt: Date) {
-                return ({
-                    name: 'Verify GMB via Postcard',
+                return new Task({
+                    name: 'Request GMB Ownership',
                     description: gmbBiz.name,
                     relatedMap: {
                         gmbBizId: gmbBiz._id,
@@ -27,10 +28,10 @@ export class TaskTemplates {
             }
         },
         {
-            name: 'Request GMB Ownership',
+            name: 'Verify GMB via Postcard',
             getTask: function (gmbBiz: GmbBiz, gmbAccount: GmbAccount, gmbRequest: GmbRequest, scheduledAt: Date) {
-                return ({
-                    name: 'Request GMB Ownership',
+                return new Task({
+                    name: 'Verify GMB via Postcard',
                     description: gmbBiz.name,
                     relatedMap: {
                         gmbBizId: gmbBiz._id,
@@ -45,7 +46,7 @@ export class TaskTemplates {
         {
             name: 'Invalidate GMB Request C',
             getTask: function (gmbBiz: GmbBiz, gmbAccount: GmbAccount, gmbRequest: GmbRequest, scheduledAt: Date) {
-                return ({
+                return new Task({
                     name: 'Invalidate GMB Request C',
                     description: gmbBiz.name,
                     relatedMap: {

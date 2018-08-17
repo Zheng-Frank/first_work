@@ -1,25 +1,46 @@
-<h2 class="text-center">Task List</h2>
-<div class="clearfix my-2">
+<h1 class="text-center">
+    Tasks</h1>
+
+<div class="clearfix mt-2">
     <div class="float-left form-inline">
 
     </div>
     <div class="float-right">
-        <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
+        <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing">
             <i class="fas fa-sync-alt"></i> Reload</button>
-        <button class="btn btn-primary" (click)="generateTask()">Generate A Task</button>
+        <button class="btn btn-link" (click)="generateTask()">Generate A Task</button>
 
     </div>
 </div>
 
-<!-- by task name -->
-<div *ngFor="let nameEntry of groupedTasks" class="mb-4">
-    <h5>{{nameEntry.name}}</h5>
-    <ng-container *ngFor="let status of statuses">
-        <button class="btn {{status.btnClass}} btn-status mr-4">
-            <span class="h1">{{nameEntry[status.name] || 0}}</span>
-            <hr>{{status.name}}
-        </button>
-    </ng-container>
-</div>
+<div class="card text-center mb-4">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item" *ngFor="let tab of tabs" style="cursor: pointer;">
+                <a class="nav-link {{activeTabValue === tab.value? 'active' : ''}}" (click)="setActiveTab(tab)">{{tab.label}}</a>
+            </li>
+        </ul>
+    </div>
 
-<app-task-list [taskList]="myTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+
+    <div class="card-body text-left">
+        <div *ngIf="'Statistics' === activeTabValue">
+            <!-- grouped by task name -->
+            <div *ngFor="let nameEntry of groupedTasks" class="mb-4">
+                <h5>{{nameEntry.name}}</h5>
+                <ng-container *ngFor="let status of statuses">
+                    <button class="btn {{status.btnClass}} btn-status mr-4">
+                        <span class="h1">{{nameEntry[status.name] || 0}}</span>
+                        <hr>{{status.name}}
+                    </button>
+                </ng-container>
+            </div>
+        </div>
+        <div *ngIf="'Open' === activeTabValue">
+            <app-task-list [taskList]="myOpenTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+        </div>
+        <div *ngIf="'Closed' === activeTabValue">
+            <app-task-list [taskList]="myClosedTasks" [user]="user"></app-task-list>
+        </div>
+    </div>
+</div>

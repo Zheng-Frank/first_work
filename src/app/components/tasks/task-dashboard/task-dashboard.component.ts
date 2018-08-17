@@ -13,18 +13,28 @@ import { User } from '../../../classes/user';
 export class TaskDashboardComponent {
 
   myTasks: Task[] = [];
+  myOpenTasks: Task[] = [];
+  myClosedTasks: Task[] = [];
+
   user: User;
 
   refreshing = false;
 
   groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
 
+
   statuses = [
     { name: 'OPEN', btnClass: 'btn-secondary' },
-    { name: 'ASSIGNED', btnClass: 'btn-primary' },
+    { name: 'ASSIGNED', btnClass: 'btn-info' },
     { name: 'CLOSED', btnClass: 'btn-success' },
     { name: 'CANCELED', btnClass: 'btn-danger' }]
 
+  tabs = [
+    { value: 'Open', label: 'Open (5)' },
+    { value: 'Closed', label: 'Closed (0)' }, { value: 'Statistics', label: 'Statistics' }
+  ];
+
+  activeTabValue = 'Open';
   constructor(private _api: ApiService, private _global: GlobalService) {
 
     this.user = this._global.user;
@@ -48,6 +58,7 @@ export class TaskDashboardComponent {
       this.myTasks = tasks.filter(t =>
         t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
 
+      this.myTasks = this.myTasks.sort((a, b) => a.scheduledAt.valueOf() - b.scheduledAt.valueOf())
       // compute groupedTasks, by task name
       this.computeGroupedTasks();
     }, error => {
@@ -60,35 +71,51 @@ export class TaskDashboardComponent {
     const nameMap = {};
     this.myTasks.map(t => {
       nameMap[t.name] = nameMap[t.name] || { name: t.name };
-
       let status = t.getStatus();
-
       nameMap[t.name][status] = (nameMap[t.name][status] || 0) + 1;
     });
 
     // convert to groupedTasks so that we can bind to UI
     this.groupedTasks = Object.keys(nameMap).map(key => nameMap[key]);
+
+    this.myOpenTasks = this.myTasks.filter(t => !t.result);
+    this.myClosedTasks = this.myTasks.filter(t => t.result);
+
+    this.tabs.map(tab => {
+      switch (tab.value) {
+        case 'Open':
+          tab.label = 'Open (' + this.myOpenTasks.length + ')';
+          break;
+        case 'Closed':
+          tab.label = 'Closed (' + this.myClosedTasks.length + ')';
+          break;
+        default:
+          break;
+      }
+    });
+
   }
 
   generateTask() {
-    // Task.generate({ name: 'Call Restaurant Owner', description: '407-580-7504, Demo Restaurant', roles: ['ADMIN'] }, this._api)
-    //   .subscribe(
-    //     tasks => {
-    //       this.refresh();
-    //     },
-    //     error => {
-    //       console.log(error);
-    //     });
+
+    alert('to be implemented')
   }
 
   updateTask(event) {
     // find and replace the task
+    console.log('event!')
+    console.log(event);
     for (let i = 0; i < this.myTasks.length; i++) {
       if (this.myTasks[i]._id === event.task._id) {
-        this.myTasks[i] = event.task;
+        // remember to use new!
+        this.myTasks[i] = new Task(event.task);
       }
     }
     this.computeGroupedTasks();
+  }
+
+  setActiveTab(tab) {
+    this.activeTabValue = tab.value;
   }
 
 }
