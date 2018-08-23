@@ -8,7 +8,6 @@ import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
 import { Task } from '../../../classes/tasks/task';
-import { Action } from '../../../classes/tasks/action';
 
 @Component({
   selector: 'app-gmb-request-list',

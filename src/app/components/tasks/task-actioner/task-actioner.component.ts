@@ -25,6 +25,8 @@ export class TaskActionerComponent implements OnInit, OnChanges {
   confirming;
   confirmError;
 
+  showDetails = false;
+
   selectItems = [
     { text: 'Canceld', object: 'CANCELED' },
     { text: 'Closed', object: 'CLOSED' }

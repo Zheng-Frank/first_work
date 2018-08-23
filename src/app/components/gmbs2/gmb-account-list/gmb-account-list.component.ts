@@ -307,6 +307,7 @@ export class GmbAccountListComponent implements OnInit {
     return new Promise((resolve, reject) => {
       let parsedRequests: GmbRequest[];
       const bizMap = {};
+      
       this.processingGmbAccountSet.add(gmbAccount);
       zip(
         this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: true }),
@@ -430,12 +431,21 @@ export class GmbAccountListComponent implements OnInit {
 
         const tasks = finalLeftUnhandledRequests
           .map(r => ({
-            name: 'Invalidate GMB Request C',
-            scheduledAt: r.date, // r.date is alreay in {$date: xxx} format 
+            name: 'Transfer GMB Ownership',
+            scheduledAt: (date => {
+              const d = new Date(date.getTime());
+              d.setDate(d.getDate() + 7);
+              return {
+                $date: d
+              };
+            })(r.date['$date']), // r.date is alreay in {$date: xxx} format 
             description: r.business,
             roles: ['GMB', 'ADMIN'],
             score: bizMap[r.gmbBizId].score,
-            relatedMap: { 'gmbBizId': r.gmbBizId, 'gmbAccountId': r.gmbAccountId, 'gmbRequestId': r._id }
+            relatedMap: { 'gmbBizId': r.gmbBizId, 'gmbAccountId': r.gmbAccountId, 'gmbRequestId': r._id },
+            transfer: {
+              fromEmail: gmbAccount.email
+            }
           }));
 
         return this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);

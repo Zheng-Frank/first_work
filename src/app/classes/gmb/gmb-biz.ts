@@ -20,10 +20,10 @@ export class GmbBiz {
     gmbOpen: boolean;
     menuUrls: string[];
     // qMenu related information (injected to listing once we have ownership)
-    qWebsite: string;
-    qPop3Email: string;
-    qPop3Host: string;
-    qPop3Password: string;
+    qmenuWebsite: string;
+    qmenuPop3Email: string;
+    qmenuPop3Host: string;
+    qmenuPop3Password: string;
 
     score: number;
     agent: string;

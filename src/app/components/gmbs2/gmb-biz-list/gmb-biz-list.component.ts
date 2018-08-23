@@ -190,9 +190,9 @@ export class GmbBizListComponent implements OnInit {
 
     const kvps = ['place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls'].map(key => ({ key: key, value: crawledResult[key] }));
 
-    // if gmbWebsite belongs to qmenu, we assign it to qWebsite
+    // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite
     if (crawledResult['gmbOwner'] === 'qmenu') {
-      kvps.push({ key: 'qWebsite', value: crawledResult['gmbWebsite'] });
+      kvps.push({ key: 'qmenuWebsite', value: crawledResult['gmbWebsite'] });
     }
     // let's just override!
     const oldBiz = { _id: gmbBiz._id };
@@ -222,7 +222,7 @@ export class GmbBizListComponent implements OnInit {
     // make a copy of biz instead to avoid mutation
     this.bizInEditing = new GmbBiz(bizObj.gmbBiz);
     // we need to remove pop3 password
-    delete this.bizInEditing.qPop3Password;
+    delete this.bizInEditing.qmenuPop3Password;
 
     this.bizEditingModal.show();
   }
@@ -234,15 +234,15 @@ export class GmbBizListComponent implements OnInit {
   done(event: FormEvent) {
     const biz = event.object as GmbBiz;
     this.apiError = undefined;
-    this._api.post(environment.autoGmbUrl + 'encrypt', {email: biz.qPop3Email || 'n/a', password: biz.qPop3Password || 'n/a'}).pipe(mergeMap(result => {
+    this._api.post(environment.autoGmbUrl + 'encrypt', {email: biz.qmenuPop3Email || 'n/a', password: biz.qmenuPop3Password || 'n/a'}).pipe(mergeMap(result => {
       const oldBiz = JSON.parse(JSON.stringify(this.bizList.filter(b => b._id === biz._id)[0]));
       const updatedBiz = JSON.parse(JSON.stringify(biz));
       // depends on if we are updating password
-      delete oldBiz.password;
-      delete updatedBiz.password;
+      delete oldBiz.qmenuPop3Password;
+      delete updatedBiz.qmenuPop3Password;
 
-      if(biz.qPop3Password) {
-        updatedBiz.password = result;
+      if(biz.qmenuPop3Password) {
+        updatedBiz.qmenuPop3Password = result;
       }
 
       if (biz._id) {

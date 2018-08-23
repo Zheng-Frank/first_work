@@ -95,6 +95,7 @@ import { GmbBizEditorComponent } from './components/gmbs2/gmb-biz-editor/gmb-biz
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { GmbOwnershipTransferComponent } from './components/gmbs2/gmb-ownership-transfer/gmb-ownership-transfer.component';
  
 @NgModule({
   declarations: [
@@ -178,7 +179,8 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
     GmbAccountEditorComponent,
     GmbRequestListComponent,
     GmbBizEditorComponent,
-    TaskActionBarComponent
+    TaskActionBarComponent,
+    GmbOwnershipTransferComponent
   ],
   imports: [
     BrowserModule,

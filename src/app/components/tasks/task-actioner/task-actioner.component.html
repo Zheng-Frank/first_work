@@ -5,6 +5,11 @@
     <p class="card-text">{{action.confirmationText}}</p>
 
     <!-- Update case, we allow scheduledAt update -->
+    <div *ngIf="action.name === 'Transfer'">
+        <app-gmb-ownership-transfer [transfer]="task.transfer" [task]="taskCopy"></app-gmb-ownership-transfer>
+    </div>
+
+    <!-- Update case, we allow scheduledAt update -->
     <div *ngIf="action.name === 'Update'">
         <label>Scheduled At:</label>
         <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskCopy.scheduledAt">
@@ -28,15 +33,8 @@
         <textarea class="form-control" rows="3" [(ngModel)]="taskCopy.comments" placeholder="extra comments"></textarea>
     </div>
 
-    <div class="text-right">
-        <a class="btn btn-link mr-2" (click)="clickCancel()">Cancel</a>
-        <button class="btn btn-primary btn-sm" (click)="clickConfirm()" [qLoading]="confirming">{{confirmError ? 'Retry' : 'Confirm'}}</button>
-        <div class="text-danger" *ngIf="!confirming">
-            <small>{{confirmError}}</small>
-        </div>
-    </div>
-
-    <div class="card border-info mt-4">
+    <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}</button>
+    <div class="card border-info" *qIf="showDetails">
         <div class="card-body">
             <h4>More Details</h4>
             <ng-container *ngIf="gmbBiz">
@@ -80,4 +78,11 @@
         </div>
     </div>
 
+    <div class="text-right">
+        <a class="btn btn-link mr-2" (click)="clickCancel()">Cancel</a>
+        <button class="btn btn-primary btn-sm" (click)="clickConfirm()" [qLoading]="confirming">{{confirmError ? 'Retry' : 'Confirm'}}</button>
+        <div class="text-danger" *ngIf="!confirming">
+            <small>{{confirmError}}</small>
+        </div>
+    </div>
 </ng-container>

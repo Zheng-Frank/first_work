@@ -1,0 +1,12 @@
+div button {
+    min-width: 12rem;
+}
+
+div .btn-link {
+    min-width: 0;
+}
+
+
+label {
+    font-weight: bold;
+}

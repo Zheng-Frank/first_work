@@ -7,6 +7,8 @@ import { ApiService } from '../../services/api.service';
 import { environment } from "../../../environments/environment";
 import { Observable } from 'rxjs';
 import { User } from '../user';
+import { Step } from './step';
+import { GmbTransfer } from '../gmb/gmb-transfer';
 
 export class Task {
     _id: string;
@@ -16,40 +18,51 @@ export class Task {
     roles: string[] = [];
 
     scheduledAt: Date;
-    
+
     result: 'CLOSED' | 'CANCELED';
     resultAt: Date;
 
-    // actions: Action[] = [];
+    steps: Step[];
 
     // won't be enabled unless all prerequisites are successfully CLOSED!
     prerequisiteTaskIds;
 
     score: number;
-    
+
     relatedMap: any;   // {gmbBizId: xxxx, gmbRequestId: xxxx, ....}
 
-    
+    transfer: GmbTransfer; // this should not be here! but for temp tasks, let's attach this 
+
     comments: string;
-    
+
     createdAt: Date;
 
     constructor(task?: any) {
         if (task) {
             Object.keys(task).map(k => this[k] = task[k]);
-        }
-        ['scheduledAt', 'resultAt', 'createdAt', 'updatedAt'].map(dateField => {
-            if (this[dateField]) {
-                this[dateField] = new Date((Date.parse(this[dateField])));
+
+            ['scheduledAt', 'resultAt', 'createdAt', 'updatedAt'].map(dateField => {
+                if (this[dateField]) {
+                    this[dateField] = new Date((Date.parse(this[dateField])));
+                }
+            });
+
+            if (task.steps) {
+                this.steps = task.steps.map(step => new Step(step));
             }
-        });
+
+            if (task.transfer) {
+                this.transfer = new GmbTransfer(task.transfer);
+            }
+        }
+
     }
 
     getStatus() {
         return this.result || (this.assignee ? 'ASSIGNED' : 'OPEN');
     }
 
-    getBuiltInActions(user: User): Action[] {
+    getActions(user: User): Action[] {
         const username = user.username;
         const roles = user.roles || [];
         const actions = [];
@@ -75,19 +88,29 @@ export class Task {
                 }
             }));
 
-            actions.push(new Action({
-                name: 'Update',
-                requiredRoles: this.roles
-            }));
+            switch (this.name) {
+                case 'Transfer GMB Ownership':
+                    actions.push(new Action({
+                        name: 'Transfer',
+                        requiredRoles: this.roles
+                    }));
+                    break;
+                default:
+                    actions.push(new Action({
+                        name: 'Update',
+                        requiredRoles: this.roles
+                    }));
+                    break;
+            }
 
-            actions.push(new Action({
-                name: 'Close',
-                requiredRoles: this.roles,
-                paramsObj: {
-                    field: 'result',
-                    value: 'CLOSED'
-                }
-            }));
+            // actions.push(new Action({
+            //     name: 'Close',
+            //     requiredRoles: this.roles,
+            //     paramsObj: {
+            //         field: 'result',
+            //         value: 'CLOSED'
+            //     }
+            // }));
         }
         return actions;
     }

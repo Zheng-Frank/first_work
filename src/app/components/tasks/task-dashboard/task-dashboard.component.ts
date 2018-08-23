@@ -4,6 +4,8 @@ import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment';
 import { GlobalService } from '../../../services/global.service';
 import { User } from '../../../classes/user';
+import { GmbTransfer } from '../../../classes/gmb/gmb-transfer';
+import { GmbAccount } from '../../../classes/gmb/gmb-account';
 
 @Component({
   selector: 'app-task-dashboard',
@@ -41,7 +43,13 @@ export class TaskDashboardComponent {
 
     this.refresh();
 
+    this.transfer = new GmbTransfer(
+ 
+      { "fromEmail": "qmenu06@gmail.com"}    );
+
   }
+
+  transfer;
 
   refresh() {
     this.refreshing = true;
@@ -117,5 +125,7 @@ export class TaskDashboardComponent {
   setActiveTab(tab) {
     this.activeTabValue = tab.value;
   }
+
+
 
 }

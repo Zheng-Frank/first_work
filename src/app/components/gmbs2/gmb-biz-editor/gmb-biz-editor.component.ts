@@ -30,24 +30,24 @@ export class GmbBizEditorComponent implements OnInit, OnChanges {
         required: false
       },
       {
-        field: "qWebsite",
+        field: "qmenuWebsite",
         label: "qMenu Website",
         required: false
       },
       {
-        field: "qPop3Host",
+        field: "qmenuPop3Host",
         label: "Godaddy Email Pop3 Host",
         required: false
       },
       {
-        field: "qPop3Email",
+        field: "qmenuPop3Email",
         label: "Pop3 Email",
         required: false,
         validate: this.isEmailValid,
       },
 
       {
-        field: "qPop3Password",
+        field: "qmenuPop3Password",
         label: "Pop3 Password (leave blank, unless updating)",
         inputType: "password",
         required: false,
@@ -64,7 +64,7 @@ export class GmbBizEditorComponent implements OnInit, OnChanges {
 
   formSubmit(event) {
     // make sure of lowercase of email
-    this.gmbBiz.qPop3Email = this.gmbBiz.qPop3Email ? this.gmbBiz.qPop3Email.toLowerCase().trim() : undefined;
+    this.gmbBiz.qmenuPop3Email = this.gmbBiz.qmenuPop3Email ? this.gmbBiz.qmenuPop3Email.toLowerCase().trim() : undefined;
 
     this.submit.emit(event);
   }
