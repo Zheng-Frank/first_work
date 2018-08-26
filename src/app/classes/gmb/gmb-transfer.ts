@@ -21,7 +21,7 @@ export class GmbTransfer {
     appealId: string;
     verificationMethod: 'Text' | 'Call' | 'Postcard' | 'Email';
     code;
-    result: 'Failed' | 'Succeeded';
+    result: 'Canceled' | 'Failed' | 'Succeeded';
 
     constructor(transfer?: any) {
         if (transfer) {

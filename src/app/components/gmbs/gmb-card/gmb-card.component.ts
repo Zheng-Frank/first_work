@@ -93,10 +93,6 @@ export class GmbCardComponent implements OnInit {
     this.onEdit.emit(JSON.parse(JSON.stringify(this.gmb)));
   }
 
-  emailTokens() {
-    return (this.gmb.email || '').split('@');
-  }
-
   getUnhandledRequests(biz: Business) {
     return (biz.ownershipRequests || []).filter(r => !r.isHandled);
   }

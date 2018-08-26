@@ -18,7 +18,7 @@
         <td>{{task.name}}
             <div class="text-muted" *ngIf="task.description">
                 <small>
-                    {{task.description}}
+                    {{task.description}} <span *ngIf="task.transfer?.fromEmail" class="border-bottom">@{{task.transfer?.fromEmail | emailName}}</span>
                 </small>
             </div>
         </td>

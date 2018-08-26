@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, SimpleChanges, Input, } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter } from '@angular/core';
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbTransfer } from '../../../classes/gmb/gmb-transfer';
@@ -10,31 +10,42 @@ import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { mergeMap } from 'rxjs/operators';
-@Component({
-  selector: 'app-gmb-ownership-transfer',
-  templateUrl: './gmb-ownership-transfer.component.html',
-  styleUrls: ['./gmb-ownership-transfer.component.css']
-})
-export class GmbOwnershipTransferComponent implements OnInit, OnChanges {
+import { Restaurant } from '@qmenu/ui';
 
-  @Input() transfer: GmbTransfer;
-  // because transfer object is part of a gmb task and we need to pass task in for updating
+@Component({
+  selector: 'app-task-gmb-transfer',
+  templateUrl: './task-gmb-transfer.component.html',
+  styleUrls: ['./task-gmb-transfer.component.css']
+})
+export class TaskGmbTransferComponent implements OnInit, OnChanges {
+
+  @Output() ok = new EventEmitter();
+  @Output() cancel = new EventEmitter();
+
   @Input() task: Task;
+
+
+  transfer: GmbTransfer;
+  gmbBiz: GmbBiz;
+  restaurant: Restaurant;
 
   gmbRequesting = false;
   gmbRejecting = false;
   gmbAppealing = false;
-  retrievingCode = false;
+  savingCode = false;
   verifyingCode = false;
   completing = false;
 
   now = new Date();
+  emailSettings = {} as any;
 
-  accounts: any[] = [];
+  accounts: any[] = []; // account with bizCount
+
+  taskScheduledAt = new Date();
 
   constructor(private _api: ApiService, private _global: GlobalService) {
 
-    // let's retrieve gmb accounts and gmb biz (to count how many):
+    // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
     zip(
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
@@ -56,12 +67,11 @@ export class GmbOwnershipTransferComponent implements OnInit, OnChanges {
         results => {
           const accountMap = {};
           results[1].map(a => {
-            accountMap[a.email.split('@')[0]] = a;
+            accountMap[a.email] = a;
           });
           results[0].map(biz => {
-            const accountName = new GmbBiz(biz).getAccount();
-            if (accountMap[accountName]) {
-              accountMap[accountName].bizCount = (accountMap[accountName].bizCount || 0) + 1;
+            if (accountMap[biz.email]) {
+              accountMap[biz.email].bizCount = (accountMap[biz.email].bizCount || 0) + 1;
             }
           });
 
@@ -81,11 +91,6 @@ export class GmbOwnershipTransferComponent implements OnInit, OnChanges {
   ngOnInit() {
   }
 
-
-  getAccountName(email) {
-    return (email || '').split('@')[0];
-  }
-
   getFilteredAccounts() {
     if (this.transfer) {
       return this.accounts.filter(a => a.email !== this.transfer.fromEmail);
@@ -95,12 +100,57 @@ export class GmbOwnershipTransferComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     this.now = new Date();
+    if (this.gmbBiz) {
+      this.emailSettings.email = this.gmbBiz.qmenuPop3Email;
+      this.emailSettings.host = this.gmbBiz.qmenuPop3Host;
+      this.emailSettings.password = this.gmbBiz.qmenuPop3Password;
+    }
+    if (this.task) {
+      this.taskScheduledAt = this.task.scheduledAt;
+      this.transfer = this.task.transfer;
+      this.populateGmbBiz();
+    }
   }
+
+  populateGmbBiz() {
+    // query gmbBiz
+    if (this.task.relatedMap['gmbBizId']) {
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: 'gmbBiz',
+        query: {
+          _id: { $oid: this.task.relatedMap['gmbBizId'] }
+        },
+        limit: 1
+      }).subscribe(results => {
+        this.gmbBiz = results[0];
+        this.populateRestaurant();
+      });
+    }
+  }
+
+  populateRestaurant() {
+    // let's also request qmenu database's restaurant obj: logs, contacts etc.
+    if (this.gmbBiz && this.gmbBiz.qmenuId) {
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: 'restaurant',
+        query: {
+          _id: { $oid: this.gmbBiz.qmenuId }
+        },
+        projection: {
+          people: 1
+        },
+        limit: 1
+      }).subscribe(results => {
+        this.restaurant = results[0];
+      });
+    }
+  }
+
 
 
   /**
    * 
-   * @param name = select | request | reject | appeal | retrieve | verify | failed | succeeded
+   * @param name = select | request | reject | appeal | retrieve | verify | failed | succeeded | canceled | reopen |
    * @param loadingVariableName 
    * @param timestampVariableName 
    */
@@ -287,19 +337,26 @@ export class GmbOwnershipTransferComponent implements OnInit, OnChanges {
             }
             newBareTask.transfer.verificationMethod = this.transfer.verificationMethod;
             break;
-
+          case 'saveCode':
+            // because input code is bound to transfer already, we actually need to delete it so
+            delete oldTask.transfer.code;
+            newBareTask.transfer.code = this.transfer.code;
+            break;
           case 'retrieve':
             this.transfer.code = result;
             newBareTask.transfer.code = result;
             break;
-
           case 'failed':
-            this.transfer.result = 'Failed';
-            newBareTask.transfer.result = 'Failed';
-            break;
+          case 'canceled':
           case 'succeeded':
-            this.transfer.result = 'Succeeded';
-            newBareTask.transfer.result = 'Succeeded';
+            this.transfer.result = name;
+            newBareTask.transfer.result = name;
+            break;
+          case 'reopen':
+            this.transfer.result = undefined;
+            this.transfer.completedAt = undefined;
+            newBareTask.transfer.result = undefined;
+            newBareTask.transfer.completedAt = undefined;
             break;
           default:
             break;
@@ -310,16 +367,7 @@ export class GmbOwnershipTransferComponent implements OnInit, OnChanges {
 
         console.log(newBareTask);
         // save to database now!
-        this._api
-          .patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newBareTask }])
-          .subscribe(
-            result => {
-              this._global.publishAlert(AlertType.Success, 'Updated Task');
-            },
-            error => {
-              this._global.publishAlert(AlertType.Danger, 'Error Updating Task :(');
-            }
-          );
+        this.saveTask(oldTask, newBareTask);
       })
       .catch(error => {
         if (loadingVariableName) {
@@ -330,5 +378,82 @@ export class GmbOwnershipTransferComponent implements OnInit, OnChanges {
       );
   }
 
+  retrieveEmailCode(event) {
+    if (event.email === this.transfer.toEmail) {
+      this.transfer.code = event.code;
+    }
+  }
 
+  plusDay(i) {
+    const scheduledAt = new Date(Date.parse(this.taskScheduledAt as any));
+    scheduledAt.setDate(scheduledAt.getDate() + i);
+    this.taskScheduledAt = scheduledAt;
+    // update the task scheduledAt
+    const oldTask = {
+      _id: this.task._id
+    }
+
+    const newTask = {
+      _id: this.task._id,
+      scheduledAt: { $date: this.taskScheduledAt }
+    };
+    this.saveTask(oldTask, newTask);
+  }
+
+  saveTask(oldTask, newTask) {
+    this._api
+      .patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
+      .subscribe(
+        result => {
+          this._global.publishAlert(AlertType.Success, 'Updated Task');
+          // let's mutate task, we need to be careful about transfer
+          Object.keys(newTask).map(k => {
+            if (k === 'transfer') {
+              Object.keys(newTask.transfer).map(kt => this.task.transfer[kt] = newTask.transfer[kt]['$date'] || newTask.transfer[kt]);
+            } else {
+              this.task[k] = newTask[k]['$date'] || newTask[k];
+            }
+          });
+
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error Updating Task :(');
+        }
+      );
+  }
+
+  saveEmailSettings(event) {
+    // get hashed password
+    if (event.email && event.password && event.password.length < 20) {
+      this._api.post(environment.autoGmbUrl + 'encrypt', event).pipe(mergeMap(encryptedPassword => {
+        const oldBiz = {
+          _id: this.gmbBiz._id
+        };
+
+        const newBiz = {
+          _id: this.gmbBiz._id,
+          qmenuPop3Email: event.email,
+          qmenuPop3Host: event.host,
+          qmenuPop3Password: encryptedPassword
+        };
+
+        return this._api
+          .patch(environment.adminApiUrl + "generic?resource=gmbBiz", [{ old: oldBiz, new: newBiz }])
+      })).subscribe(
+        result => {
+          this.emailSettings.email = event.email;
+          this.emailSettings.host = event.host;
+          this.emailSettings.password = event.password;
+          this._global.publishAlert(AlertType.Success, 'Saved email');
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error saving email');
+        }
+      );
+    }
+  }
+
+  clickOk() {
+    this.ok.emit();
+  }
 }

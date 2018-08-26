@@ -69,7 +69,7 @@ export class Task {
         // can claim if not finished, in role, not assigned
         if (!this.result && !this.assignee && this.roles.some(r => roles.indexOf(r) >= 0)) {
             actions.push(new Action({
-                name: 'Assign to Me',
+                name: 'Claim',
                 confirmationText: 'Assign this task to me.',
                 requiredRoles: this.roles
             }));

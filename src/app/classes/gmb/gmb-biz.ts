@@ -65,11 +65,10 @@ export class GmbBiz {
         return emails.indexOf(lastEmail) >= 0;
     }
 
-    getAccount() {
-        let email = 'N/A';
+    getAccountEmail() {
         if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
-            email = this.gmbOwnerships[this.gmbOwnerships.length - 1].email || 'N/A';
+            return this.gmbOwnerships[this.gmbOwnerships.length - 1].email;
         }
-        return email.split('@')[0];
+        return undefined;
     }
 }

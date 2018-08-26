@@ -1,11 +1,11 @@
 <!-- class="col-sm-12 col-md-6 col-lg-4 mb-2" -->
 
-<div class="card" style="height:100%;" *ngIf="accountName">
+<div class="card" style="height:100%;" *ngIf="gmbAccount">
 
   <div class="card-body">
     <div class="clearfix">
       <div class="float-left">
-        <h2>{{accountName}}</h2>
+        <h2>{{gmbAccount.email | emailName}}</h2>
       </div>
       <div class="float-right">
 

@@ -16,8 +16,6 @@ export class GmbCard2Component implements OnInit, OnChanges {
   @Output() scanRequests: EventEmitter<any> = new EventEmitter();
   @Output() scanBizList: EventEmitter<any> = new EventEmitter();
 
-  accountName;
-
   now = new Date();
 
   scanningBizList = false;
@@ -29,7 +27,6 @@ export class GmbCard2Component implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    this.accountName = this.gmbAccount ? (this.gmbAccount.email || '').split('@')[0] : 'N/A';
   }
 
   clickEdit() {

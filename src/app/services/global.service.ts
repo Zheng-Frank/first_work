@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, EventEmitter } from "@angular/core";
 import * as jwtDecode from "jwt-decode";
 import { Alert } from "../classes/alert";
 import { ApiService } from "./api.service";
@@ -8,6 +8,9 @@ declare var store: any;
 
 @Injectable()
 export class GlobalService {
+
+  // a place for propagting changes of resources
+  resourceUpdated = new EventEmitter<any>();
   // token management
   private _token;
   private _user;

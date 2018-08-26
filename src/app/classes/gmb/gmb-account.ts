@@ -22,7 +22,4 @@ export class GmbAccount {
             });
         }
     }
-    getAccount() {
-        return this.email.split('@')[0];
-    }
 }

@@ -1,0 +1,161 @@
+<ng-container *ngIf="transfer">
+  <!-- {{gmbBiz | json}} -->
+  <div class="mb-4">
+    <!-- <h4 class="mb-3">GMB Transfer Steps</h4> -->
+    <span class="alert alert-warning p-2">{{transfer.fromEmail | emailName}} <button class="btn btn-link fix-v-align">Login</button></span> →
+    <span class="alert alert-warning p-2" *ngIf="transfer.toEmail">{{transfer.toEmail | emailName}} <button class="btn btn-link fix-v-align">Login</button></span>
+  </div>
+  <div class="mb-4" *ngIf="!transfer.toEmail">
+    <label>
+      Select B (Target Account)
+      <span *ngIf="toGmb" class="text-success"> ✓</span>
+    </label>
+
+    <select [(ngModel)]="transfer.toEmail" class="form-control" (change)="handleUpdate('select')">
+      <option></option>
+      <option *ngFor="let account of getFilteredAccounts()" [ngValue]="account.email">{{account.email | emailName}} (biz
+        count = {{account.bizCount || 0}})</option>
+    </select>
+  </div>
+
+  <div class="mb-4">
+    <label>
+      Let B Request Ownership
+    </label>
+    <div *ngIf="!transfer.request">
+      <button class="btn btn-sm btn-info" [qLoading]="gmbRequesting" [disabled]="!transfer.toEmail" (click)="handleUpdate('request', 'requestedAt', 'gmbRequesting')">Request
+        Ownership
+      </button>
+    </div>
+
+    <div *ngIf="transfer.request">
+      Requested {{transfer.requestedAt | ago: now}}
+    </div>
+  </div>
+
+
+  <div class="mb-4">
+    <label>
+      Let A Reject B's Request
+    </label>
+    <div *ngIf="!transfer.rejectedAt">
+      <button class="btn btn-sm btn-info" [qLoading]="gmbRejecting" [disabled]="!transfer.request" (click)="handleUpdate('reject', 'rejectedAt', 'gmbRejecting')">Reject
+        B's Request</button>
+    </div>
+    <div *ngIf="transfer.rejectedAt">
+      Rejected {{transfer.rejectedAt | ago: now}}
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <label>
+      Let B Appeal
+    </label>
+    <div *ngIf="!transfer.appealedAt">
+      <button class="btn btn-sm btn-info" [qLoading]="gmbAppealing" [disabled]="!transfer.rejectedAt" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Appeal</button>
+    </div>
+    <div *ngIf="transfer.appealedAt">
+      Appealed {{transfer.appealedAt | ago: now}} ID: {{transfer.appealId}}
+      <div>
+        <button class="btn btn-link px-0" [qLoading]="gmbAppealing" [disabled]="!transfer.rejectedAt" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Re-Appeal</button>
+      </div>
+      Selected Verification Method:
+      <div>
+        <q-simple-radio [(ngModel)]="transfer.verificationMethod" [equalWidth]="true" [values]="['Email', 'Call', 'Postcard']" (ngModelChange)="handleUpdate('selectVerificationMethod')">
+        </q-simple-radio>
+      </div>
+      <div class="card card-body" *ngIf="transfer.verificationMethod === 'Email'">
+        <app-email-code-reader [email]="emailSettings.email" [host]="emailSettings.host" [password]="emailSettings.password" (retrieve)="retrieveEmailCode($event)"
+          (save)="saveEmailSettings($event)"></app-email-code-reader>
+      </div>
+      <div class="card card-body" *ngIf="transfer.verificationMethod === 'Call' || transfer.verificationMethod === 'Postcard'">
+        <div *ngIf="gmbBiz?.phone">
+          <i class="fas fa-phone mr-2"></i>{{gmbBiz.phone | tel}}
+        </div>
+        
+        <div *ngIf="restaurant && restaurant.people">
+          <span class="d-inline-block mr-2" *ngFor="let person of restaurant.people"><i class="fas fa-user mr-2"></i>{{person.title}} {{person.name}} {{person.roles}}</span>
+        </div>
+
+        <div class="my-4">
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" [checked]="!!transfer.bizNotifiedAt" (change)="handleUpdate('notify', 'bizNotifiedAt', null)">
+            <label class="form-check-label" for="defaultCheck1">
+              Notified Restaurant
+              <span *ngIf="transfer.bizNotifiedAt" style="font-weight: normal">{{transfer.bizNotifiedAt | ago: now}}</span>
+            </label>
+          </div>
+          <label>Schedule Followup At:</label>
+          <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt">
+          <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+          <div class="py-1 text-right">
+            <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 2, 3]" (click)="plusDay(i)">+
+              {{i}} day{{i > 1 ? 's' : ''}}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <label>
+      Input Verification Code
+    </label>
+
+    <div class="form-inline">
+      <input [(ngModel)]="transfer.code" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;" placeholder="code goes here">
+      <button class="btn btn-sm btn-info mb-2" [qLoading]="savingCode" (click)="handleUpdate('saveCode', null, 'savingCode')">Save
+        Code
+      </button>
+    </div>
+
+
+  </div>
+
+
+  <div class="mb-4">
+    <label>
+      Verify/Obtain New Ownership
+    </label>
+
+    <div *ngIf="!transfer.verifiedAt">
+      <button class="btn btn-sm btn-info" [qLoading]="verifyingCode" [disabled]="!transfer.code" (click)="handleUpdate('verify', 'verifiedAt', 'verifyingCode')">Verify
+        Code
+      </button>
+    </div>
+    <div *ngIf="transfer.verifiedAt">
+      Verified {{transfer.verifiedAt | ago: now}}
+    </div>
+
+  </div>
+
+  --------------------------------------
+  <div class="mb-4">
+    <label>
+      Update Verified Website
+    </label>
+
+    SOME CODE GOES HERE {{restaurant | json}} {{gmbBiz | json }}
+  </div>
+
+  <div class="mb-4">
+    <label>
+      Complete the Transfer
+    </label>
+    <div *ngIf="!transfer.completedAt">
+      <button class="btn btn-sm btn-danger" [qLoading]="completing" (click)="handleUpdate('Canceled', 'completedAt', 'completing')">Canceled</button>
+      <button class="btn btn-sm btn-warning" [qLoading]="completing" (click)="handleUpdate('Failed', 'completedAt', 'completing')">Failed</button>
+      <button class="btn btn-sm btn-success" [qLoading]="completing" (click)="handleUpdate('Succeeded', 'completedAt', 'completing')">Succeeded</button>
+    </div>
+    <div *ngIf="transfer.completedAt" class="alert {{transfer.result === 'Succeeded' ? 'alert-success' : 'alert-danger'}}">
+      {{transfer.result}}: {{transfer.completedAt | ago : now}}
+      <button class="btn btn-link px-0" (click)="handleUpdate('reopen', null, null)">Reopen</button>
+    </div>
+  </div>
+
+  <hr>
+  <div class="text-right">
+    <button class="btn btn-primary" (click)="clickOk()">OK</button>
+  </div>
+
+</ng-container>

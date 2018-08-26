@@ -6,9 +6,7 @@
     <table class="table">
       <tr>
         <td>
-          <h2>{{emailTokens()[0]}}
-            <!-- <i *ngIf="scanning" class="fas fa-spinner fa-spin fa-fw text-muted"></i> -->
-            <!-- <small class="text-muted">@{{emailTokens()[1]}}</small> -->
+          <h2>{{gmb.email | emailName}}
           </h2>
         </td>
         <td class="text-right">
@@ -41,7 +39,7 @@
             <small>{{biz.address}}</small>
           </div>
           <div *ngIf="!biz.isPublished" class="text-center">
-            <i class="far fa-hand-point-right"></i> {{(getPublishedGmbAccount(biz.address).email || '').split('@')[0]}}</div>
+            <i class="far fa-hand-point-right"></i> {{getPublishedGmbAccount(biz.address).email | emailName}}</div>
           <hr>
           <div *qIf="isExpanded(biz)">
             <div>
@@ -100,7 +98,7 @@
             {{getDaysAgo(request.date)}} 天前
             <span *ngIf="request.isReminder"> |
               <i class="far fa-bell"></i>
-            </span> | {{(request.email || '').split('@')[0]}}
+            </span> | {{ request.email | emailName}}
             <span role="button" (click)="markRequestAsHandled(request)" *ngIf="shouldShowMark(biz, request)">|
               <u>标为处理</u>
             </span>

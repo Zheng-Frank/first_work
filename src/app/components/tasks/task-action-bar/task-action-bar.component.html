@@ -7,5 +7,6 @@
 
 <!--the editing modal-->
 <q-modal #taskActionerModal [title]="activeAction?.name">
-    <app-task-actioner (cancel)="cancelAction($event)" (done)="finishAction($event)" [action]="activeAction" [task]="task"></app-task-actioner>
+    <app-task-generic-handler *ngIf="activeAction?.name !== 'Transfer'" (cancel)="cancelAction($event)" (done)="finishAction($event)" [action]="activeAction" [task]="task"></app-task-generic-handler>
+    <app-task-gmb-transfer *ngIf="activeAction?.name === 'Transfer'" [task]="task" (ok)="cancelAction()" ></app-task-gmb-transfer>
 </q-modal>

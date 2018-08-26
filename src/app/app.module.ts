@@ -84,7 +84,7 @@ import { PaymentMeansEditorComponent } from './components/payments/payment-means
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { TaskListComponent } from './components/tasks/task-list/task-list.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
-import { TaskActionerComponent } from './components/tasks/task-actioner/task-actioner.component';
+import { TaskGenericHandlerComponent } from './components/tasks/task-generic-handler/task-generic-handler.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
@@ -95,7 +95,8 @@ import { GmbBizEditorComponent } from './components/gmbs2/gmb-biz-editor/gmb-biz
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import { GmbOwnershipTransferComponent } from './components/gmbs2/gmb-ownership-transfer/gmb-ownership-transfer.component';
+import { EmailCodeReaderComponent } from './components/gmbs2/email-code-reader/email-code-reader.component';
+import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/task-gmb-transfer.component';
  
 @NgModule({
   declarations: [
@@ -172,7 +173,7 @@ import { GmbOwnershipTransferComponent } from './components/gmbs2/gmb-ownership-
     PaymentsDashboardComponent,
     TaskListComponent,
     TaskDashboardComponent,
-    TaskActionerComponent,
+    TaskGenericHandlerComponent,
     Gmb2DashboardComponent,
     GmbAccountListComponent,
     GmbBizListComponent,
@@ -180,7 +181,8 @@ import { GmbOwnershipTransferComponent } from './components/gmbs2/gmb-ownership-
     GmbRequestListComponent,
     GmbBizEditorComponent,
     TaskActionBarComponent,
-    GmbOwnershipTransferComponent
+    EmailCodeReaderComponent,
+    TaskGmbTransferComponent
   ],
   imports: [
     BrowserModule,

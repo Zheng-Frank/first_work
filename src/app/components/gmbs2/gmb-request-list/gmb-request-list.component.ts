@@ -118,7 +118,7 @@ export class GmbRequestListComponent implements OnInit {
               request: r,
               biz: bizMap[r.gmbBizId],
               account: accountMap[r.gmbAccountId],
-              accountEmail: ((accountMap[r.gmbAccountId] || {}).email || '').split('@')[0],
+              accountEmail: (accountMap[r.gmbAccountId] || {}).email,
               task: new Task(taskMap[r._id]),
               state: getState(r.date)
             }))

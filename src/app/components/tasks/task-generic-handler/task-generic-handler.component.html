@@ -5,11 +5,6 @@
     <p class="card-text">{{action.confirmationText}}</p>
 
     <!-- Update case, we allow scheduledAt update -->
-    <div *ngIf="action.name === 'Transfer'">
-        <app-gmb-ownership-transfer [transfer]="task.transfer" [task]="taskCopy"></app-gmb-ownership-transfer>
-    </div>
-
-    <!-- Update case, we allow scheduledAt update -->
     <div *ngIf="action.name === 'Update'">
         <label>Scheduled At:</label>
         <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskCopy.scheduledAt">
@@ -41,7 +36,7 @@
                 <hr>
                 <label>Restaurant:</label>
                 <h6>
-                    <a target="_blank" routerLink="/restaurants/5b1614f50ab74c14002be951">{{gmbBiz.name}}</a>
+                    <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
                 </h6>
 
                 <table class="table table-sm" *ngIf="restaurantLogs.length > 0">
