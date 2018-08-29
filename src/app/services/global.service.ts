@@ -78,6 +78,11 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "CSR", "ORDER_MANAGER"]
         },
         {
+          name: "Tasks",
+          href: "#/tasks",
+          fa: "fas fa-tasks"
+        },
+        {
           name: "GMBs",
           href: "#/gmbs",
           fa: "fab fa-google",
@@ -106,11 +111,6 @@ export class GlobalService {
           href: "#/users",
           fa: "fas fa-users",
           accessibleRoles: ["ADMIN"]
-        },
-        {
-          name: "Tasks",
-          href: "#/tasks",
-          fa: "fas fa-tasks"
         },
         { name: "Me", href: "#/profile", fa: "fas fa-user" }
       ];
