@@ -2,8 +2,10 @@
   <!-- {{gmbBiz | json}} -->
   <div class="mb-4">
     <!-- <h4 class="mb-3">GMB Transfer Steps</h4> -->
-    <span class="alert alert-warning p-2">{{transfer.fromEmail | emailName}} <button class="btn btn-link fix-v-align">Login</button></span> →
-    <span class="alert alert-warning p-2" *ngIf="transfer.toEmail">{{transfer.toEmail | emailName}} <button class="btn btn-link fix-v-align">Login</button></span>
+    <span class="alert alert-warning p-2">{{transfer.fromEmail | emailName}} <button class="btn btn-link fix-v-align" (click)="login(transfer.fromEmail)">Login</button></span>
+    →
+    <span class="alert alert-warning p-2" *ngIf="transfer.toEmail">{{transfer.toEmail | emailName}} <button class="btn btn-link fix-v-align"
+        (click)="login(transfer.toEmail)">Login</button></span>
   </div>
   <div class="mb-4" *ngIf="!transfer.toEmail">
     <label>
@@ -57,7 +59,7 @@
     <div *ngIf="transfer.appealedAt">
       Appealed {{transfer.appealedAt | ago: now}} ID: {{transfer.appealId}}
       <div>
-        <button class="btn btn-link px-0" [qLoading]="gmbAppealing" [disabled]="!transfer.rejectedAt" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Re-Appeal</button>
+        <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing" [disabled]="!transfer.rejectedAt" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Re-Appeal</button>
       </div>
       Selected Verification Method:
       <div>
@@ -72,9 +74,10 @@
         <div *ngIf="gmbBiz?.phone">
           <i class="fas fa-phone mr-2"></i>{{gmbBiz.phone | tel}}
         </div>
-        
+
         <div *ngIf="restaurant && restaurant.people">
-          <span class="d-inline-block mr-2" *ngFor="let person of restaurant.people"><i class="fas fa-user mr-2"></i>{{person.title}} {{person.name}} {{person.roles}}</span>
+          <span class="d-inline-block mr-2" *ngFor="let person of restaurant.people"><i class="fas fa-user mr-2"></i>{{person.title}}
+            {{person.name}} <span class="text-muted" *ngIf="person.roles && person.roles.length > 0"><small>{{person.roles}}</small></span></span>
         </div>
 
         <div class="my-4">
@@ -108,10 +111,7 @@
         Code
       </button>
     </div>
-
-
   </div>
-
 
   <div class="mb-4">
     <label>
@@ -129,13 +129,12 @@
 
   </div>
 
-  --------------------------------------
-  <div class="mb-4">
+  <div class="mb-4" *ngIf="gmbBiz?.qmenuWebsite">
     <label>
-      Update Verified Website
+      Inject Qmenu Website
     </label>
-
-    SOME CODE GOES HERE {{restaurant | json}} {{gmbBiz | json }}
+    <a href="{{gmbBiz?.qmenuWebsite}}" class="d-block mb-2">{{gmbBiz?.qmenuWebsite}}</a>
+    <button class="btn btn-sm btn-info d-block" [qLoading]="updatingWebsite" (click)="handleUpdate('updateWebsite', 'websiteUpdatedAt', 'updatingWebsite')">Inject</button>
   </div>
 
   <div class="mb-4">
@@ -143,17 +142,21 @@
       Complete the Transfer
     </label>
     <div *ngIf="!transfer.completedAt">
-      <button class="btn btn-sm btn-danger" [qLoading]="completing" (click)="handleUpdate('Canceled', 'completedAt', 'completing')">Canceled</button>
-      <button class="btn btn-sm btn-warning" [qLoading]="completing" (click)="handleUpdate('Failed', 'completedAt', 'completing')">Failed</button>
-      <button class="btn btn-sm btn-success" [qLoading]="completing" (click)="handleUpdate('Succeeded', 'completedAt', 'completing')">Succeeded</button>
+      <button class="btn btn-sm btn-danger" [qLoading]="completing" (click)="handleUpdate('canceled', 'completedAt', 'completing')">Canceled</button>
+      <button class="btn btn-sm btn-warning" [qLoading]="completing" (click)="handleUpdate('failed', 'completedAt', 'completing')">Failed</button>
+      <button class="btn btn-sm btn-success" [qLoading]="completing" (click)="handleUpdate('succeeded', 'completedAt', 'completing')">Succeeded</button>
     </div>
-    <div *ngIf="transfer.completedAt" class="alert {{transfer.result === 'Succeeded' ? 'alert-success' : 'alert-danger'}}">
+    <div *ngIf="transfer.completedAt" class="alert {{transfer.result === 'succeeded' ? 'alert-success' : 'alert-danger'}}">
       {{transfer.result}}: {{transfer.completedAt | ago : now}}
-      <button class="btn btn-link px-0" (click)="handleUpdate('reopen', null, null)">Reopen</button>
+      <button class="btn btn-link px-0 fix-v-align" (click)="handleUpdate('reopen', null, null)">Reopen</button>
     </div>
   </div>
 
   <hr>
+  <div class="form-group">
+    <label>Comments:</label>
+    <textarea class="form-control" rows="3" [(ngModel)]="comments" placeholder="extra comments"></textarea>
+  </div>
   <div class="text-right">
     <button class="btn btn-primary" (click)="clickOk()">OK</button>
   </div>

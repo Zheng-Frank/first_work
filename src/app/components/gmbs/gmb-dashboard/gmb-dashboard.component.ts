@@ -274,9 +274,11 @@ export class GmbDashboardComponent implements OnInit {
   scanPublished(gmb) {
     return new Promise((resolve, reject) => {
       this._api
-        .post('http://localhost:3000/retrievePublishedGmbLocations', { email: gmb.email, password: gmb.password })
+        .post('http://localhost:3000/retrieveGmbLocations', { email: gmb.email, password: gmb.password })
         .subscribe(
           result => {
+            // keep only published
+            result = result.filter(pl => pl.status.indexOf('Published') === 0);
             this.updatePublishedLocations(gmb, result.map(b => new Business(b)));
             resolve();
           },

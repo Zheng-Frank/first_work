@@ -8,6 +8,7 @@ import { zip } from 'rxjs';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { mergeMap } from 'rxjs/operators';
 import { GmbRequest } from '../../../classes/gmb/gmb-request';
+import { GmbService } from '../../../services/gmb.service';
 
 @Component({
   selector: 'app-gmb2-dashboard',
@@ -22,18 +23,30 @@ export class Gmb2DashboardComponent implements OnInit {
 
   ownedGmbBizList = [];
 
-  injectingIds = false;
-  // use this variable to track which restaurant is being calculated
-  bizInCalculating: any = null;
+  sections = [
+    { title: '➀ Scan GMB Accounts', description: 'Retrieve all managed locations', loading: false, executeFunction: 'scanAllAccounts' },
+    { title: '➁ Crawl Google Listings', description: 'Update to reflect latest google listing status', loading: false, executeFunction: 'crawlAllBiz' },
+    { title: '➂ Sync GMB and Restaurant', description: 'Link restaurant and GMB locations', loading: false, executeFunction: 'injectRestaurantIds' },
+    { title: '➃ Inject Restaurant Scores', description: 'Evaluate each restaurant and assign a score value', loading: false, executeFunction: 'injectScores' },
+    { title: '➄ Scan Account Emails', description: 'Get all ownership requests', loading: false, executeFunction: 'scanAllEmails' }]
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService) {
+    this.refresh();
+  }
+
+  ngOnInit() {
+  }
+
+  refresh() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setMonth(thirtyDaysAgo.getMonth() - 1);
     zip(
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
-          email: 1
+          email: 1,
+          // gmbScannedAt: 1,
+          // emailScannedAt: 1
         },
         limit: 5000
       }),
@@ -69,16 +82,106 @@ export class Gmb2DashboardComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, error);
       }
     );
-
   }
 
-  ngOnInit() {
+  async processSection(section) {
+    console.log(section)
+    section.loading = true;
+    try {
+      await this[section.executeFunction]();
+      // do a refresh all so many updates
+      this.refresh();
+    } catch (error) {
+      console.log(error);
+    }
+    section.loading = false;
   }
 
-  injectRestaurantIds() {
-    this.injectingIds = true;
+  async scanAllAccounts() {
+    // we would like to scan all based on gmbScannedAt
+    return new Promise((resolve, reject) => {
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "gmbAccount",
+        projection: {
+          email: 1,
+          password: 1,
+          gmbScannedAt: 1
+        },
+        limit: 5000
+      }).subscribe(
+        async accounts => {
+          accounts = accounts.map(a => new GmbAccount(a)).sort((a1, a2) => (a1.gmbScannedAt || new Date(0)).valueOf() - (a2.gmbScannedAt || new Date(0)).valueOf());
+
+          // TEMP: only scanned
+          accounts = accounts.filter(a => a.gmbScannedAt);
+          accounts.length = 4;
+
+          const batchSize = 2;
+          const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
+
+          console.log(batchedAccounts);
+
+          for (let batch of batchedAccounts) {
+            try {
+              await Promise.all(batch.map(account => this._gmb.scanOneGmbAccountLocations(account)));
+              this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(account => account.email).join(', '), 2000);
+            }
+            catch (error) {
+              console.log(error);
+              this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(account => account.email).join(', '), 2000);
+            }
+          }
+
+          resolve();
+        },
+        error => reject(error));
+    });
+  }
+
+  async crawlAllBiz() {
+    // we would like to scan all based on gmbScannedAt
+    return new Promise((resolve, reject) => {
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "gmbBiz",
+        projection: {
+          name: 1,
+          address: 1,
+          crawledAt: 1
+        },
+        limit: 5000
+      }).subscribe(
+        async bizList => {
+          bizList = bizList.map(a => new GmbBiz(a)).sort((a1, a2) => (a1.crawledAt || new Date(0)).valueOf() - (a2.crawledAt || new Date(0)).valueOf());
+
+          // // TEMP: try 4 only
+          // bizList.length = 4;
+
+          const batchSize = 4;
+          const batchedBizList = Array(Math.ceil(bizList.length / batchSize)).fill(0).map((i, index) => bizList.slice(index * batchSize, (index + 1) * batchSize));
+
+          console.log(batchedBizList);
+
+          for (let batch of batchedBizList) {
+            try {
+              await Promise.all(batch.map(biz => this._gmb.crawlOneGoogleListing(biz)));
+              this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(biz => biz.name).join(', '), 2000);
+            }
+            catch (error) {
+              console.log(error);
+              this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(biz => biz.name).join(', '), 2000);
+            }
+          }
+
+          resolve();
+        },
+        error => reject(error));
+    });
+  }
+
+  async injectRestaurantIds() {
+
     // we can  only match by official phone number, we need to assume restaurants don't share same phone numbers
-    zip(
+    return zip(
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         projection: {
@@ -125,87 +228,65 @@ export class Gmb2DashboardComponent implements OnInit {
           }))
         );
       }
-    ))
-      .subscribe(
-        result => {
-          this.injectingIds = false;
-        },
-        error => {
-          this.injectingIds = false;
-          this._global.publishAlert(AlertType.Danger, error);
-        }
-      );
+    )).toPromise();
   }
 
-  calculateRestaurantScores(skipRestaurantWithScores) {
+  async injectScores() {
     // grab ALL restaurant --> loop through each to get last 1000 orders --> calculate a score
-    this._api.get(environment.adminApiUrl + "generic", {
+    const bizList = await this._api.get(environment.adminApiUrl + "generic", {
       resource: "gmbBiz",
       query: {
         qmenuId: { $exists: 1 }
       },
       projection: {
         qmenuId: 1,
-        name: 1
+        name: 1,
+        score: 1
       },
       limit: 5000
-    }).subscribe(
-      async bizList => {
-        for (let biz of bizList) {
-          this.bizInCalculating = biz;
-          try {
-            let t = await this.injectScore(biz);
-          }
-          catch (error) {
-            console.log(error);
-          }
-        }
-        this.bizInCalculating = null;
-      },
-      error => {
-        this.bizInCalculating = null;
-        this._global.publishAlert(AlertType.Danger, 'Error Querying Biz List');
-      });
+    }).toPromise();
+
+    // skip those with score 4+
+    for (let biz of bizList) {
+      try {
+        let t = await this.injectOneScore(biz);
+        console.log('updated: ' + biz.name + ', score = ' + biz.score);
+      }
+      catch (error) {
+        console.log(error);
+      }
+    }
   }
 
-  injectScore(biz) {
-    return new Promise((resolve, reject) => {
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
-        query: {
-          restaurant: {
-            $oid: biz.qmenuId
-          }
-        },
-        projection: {
-          createdAt: 1
-        },
-        sort: { createdAt: -1 },
-        limit: 1000
-      }).pipe(mergeMap(orders => {
-        const score = this.getScore(orders);
+  async injectOneScore(biz) {
 
-        return this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", [
-          {
-            old: {
-              _id: biz._id
-            },
-            new: {
-              _id: biz._id,
-              score: score
-            }
-          }
-        ]);
-      })).subscribe(
-        result => {
-          resolve();
-        },
-        error => {
-          reject(error);
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        restaurant: {
+          $oid: biz.qmenuId
         }
-      );
-
-    });
+      },
+      projection: {
+        createdAt: 1
+      },
+      sort: { createdAt: -1 },
+      limit: 1000
+    }).toPromise();
+    const score = this.getScore(orders);
+    // update biz's score
+    biz.score = score;
+    return this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", [
+      {
+        old: {
+          _id: biz._id
+        },
+        new: {
+          _id: biz._id,
+          score: score
+        }
+      }
+    ]).toPromise();
   }
 
   private getScore(orders) {
@@ -219,4 +300,45 @@ export class Gmb2DashboardComponent implements OnInit {
     return Math.floor(orders.length / (Object.keys(dateMap).length || 1));
   }
 
+  async scanAllEmails() {
+    // we would like to scan all based on gmbScannedAt
+    return new Promise((resolve, reject) => {
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "gmbAccount",
+        projection: {
+          email: 1,
+          password: 1,
+          emailScannedAt: 1
+        },
+        limit: 5000
+      }).subscribe(
+        async accounts => {
+          accounts = accounts.map(a => new GmbAccount(a)).sort((a1, a2) => (a1.emailScannedAt || new Date(0)).valueOf() - (a2.emailScannedAt || new Date(0)).valueOf());
+
+          console.log('all accounts', accounts);
+          // TEMP: only scanned
+          accounts = accounts.filter(a => a.emailScannedAt);
+          accounts.length = 3;
+
+          const batchSize = 2;
+          const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
+
+          console.log(batchedAccounts);
+
+          for (let batch of batchedAccounts) {
+            try {
+              await Promise.all(batch.map(account => this._gmb.scanAccountEmails(account)));
+              this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(account => account.email).join(', '), 2000);
+            }
+            catch (error) {
+              console.log(error);
+              this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(account => account.email).join(', '), 2000);
+            }
+          }
+
+          resolve();
+        },
+        error => reject(error));
+    });
+  }
 }

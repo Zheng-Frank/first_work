@@ -15,6 +15,7 @@ export class GmbTransfer {
     bizNotifiedAt: Date;
     codeObtainedAt: Date;
     verifiedAt: Date;
+    websiteUpdatedAt: Date;
     completedAt: Date;
 
     request: any; // {"place_id":"ChIJS3D31kqf9YgR8OmAsPZAJZc","arci":4465959,"id1":1534815972,"id2":401000000}
@@ -32,7 +33,7 @@ export class GmbTransfer {
                 }
             }
             
-            ['requestedAt', 'rejectedAt', 'appealedAt', 'bizNotifiedAt', 'codeObtainedAt', 'verifiedAt', 'completedAt'].map(dateField => {
+            ['requestedAt', 'rejectedAt', 'appealedAt', 'bizNotifiedAt', 'codeObtainedAt', 'verifiedAt', 'completedAt', 'websiteUpdatedAt'].map(dateField => {
                 if (transfer[dateField]) {
                     this[dateField] = new Date((Date.parse(transfer[dateField])));
                 }

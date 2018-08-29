@@ -7,6 +7,7 @@ export class GmbBiz {
     _id: string;        // mongodb id
     cid: string;        // listing id, can be obtained from listing page
     place_id: string;   // place_id, can be obtained from listing page
+    appealId: string;
     qmenuId: string;    // restaurant id
 
     name: string;
@@ -34,6 +35,7 @@ export class GmbBiz {
 
     comments: string;
 
+    crawledAt: Date;
     updatedAt: Date;
     createdAt: Date;
 
@@ -45,7 +47,7 @@ export class GmbBiz {
                     this[k] = biz[k];
                 }
             }
-            ['createdAt', 'updatedAt'].map(dateField => {
+            ['createdAt', 'updatedAt', 'crawledAt'].map(dateField => {
                 if (this[dateField]) {
                     this[dateField] = new Date((Date.parse(this[dateField])));
                 }

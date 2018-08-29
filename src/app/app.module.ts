@@ -97,6 +97,7 @@ import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { EmailCodeReaderComponent } from './components/gmbs2/email-code-reader/email-code-reader.component';
 import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/task-gmb-transfer.component';
+import { GmbService } from './services/gmb.service';
  
 @NgModule({
   declarations: [
@@ -197,6 +198,7 @@ import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/t
   ],
   providers: [
     GlobalService,
+    GmbService,
     RoleGuard,
     ApiService,
     CacheService

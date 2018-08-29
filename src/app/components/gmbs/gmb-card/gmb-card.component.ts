@@ -199,10 +199,12 @@ export class GmbCardComponent implements OnInit {
     //
     this.scanning = true;
     this._api
-      .post('http://localhost:3000/retrievePublishedGmbLocations', { email: this.gmb.email, password: this.gmb.password })
+      .post('http://localhost:3000/retrieveGmbLocations', { email: this.gmb.email, password: this.gmb.password })
       .subscribe(
         result => {
           this.scanning = false;
+          // keep only published
+          result = result.filter(pl => pl.status.indexOf('Published') === 0);
           this.updatePublishedLocations(result.map(b => new Business(b)));
         },
         error => {

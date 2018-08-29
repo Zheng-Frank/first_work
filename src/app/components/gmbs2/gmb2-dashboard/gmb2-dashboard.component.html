@@ -12,17 +12,13 @@
     <hr>{{gmbRequests.length}}
   </button>
 </div>
-<h2>System Actions</h2>
+
+<h2>System Actions (Run Daily)</h2>
 <div>
-  <button class="btn btn-primary mb-2" (click)="injectRestaurantIds()" [qLoading]="injectingIds">
-    <span class="h6">Inject qMenu Restaurant IDs</span>
-    <hr class="my-2">Match GMB and qMenu Restaurants
-  </button>
-  <button class="btn btn-primary mb-2" (click)="calculateRestaurantScores(true)" [qLoading]="bizInCalculating">
-    <span class="h6">Inject Missing Restaurant Scores</span>
-    <hr class="my-2">{{bizInCalculating ? bizInCalculating.name: 'May take Long Time'}}
-  </button>
+  <ng-container *ngFor="let section of sections">
+    <button class="btn btn-info mr-4 btn-status" (click)="processSection(section)" [qLoading]="section.loading">
+      <span class="h6">{{section.title}}</span>
+      <hr class="my-2"> {{section.description}}
+    </button>
+  </ng-container>
 </div>
-<pre>
-  3. Actions (scan all)
-</pre> Tasks (with flow charts)

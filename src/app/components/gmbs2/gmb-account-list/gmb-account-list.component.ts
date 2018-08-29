@@ -195,12 +195,11 @@ export class GmbAccountListComponent implements OnInit {
           },
           limit: 10000
         }),
-        this._api.post('http://localhost:3000/retrievePublishedGmbLocations', { email: gmb.email, password: gmb.password })
+        this._api.post('http://localhost:3000/retrieveGmbLocations', { email: gmb.email, password: gmb.password })
       ).pipe(mergeMap(results => {
 
-        console.log(results)
         const bizList = results[0];
-        const publishedLocations = results[1];
+        const publishedLocations = results[1].filter(pl => pl.status.indexOf('Published') === 0);
 
         // new gmbBiz
         const newBizList = publishedLocations.filter(location => !bizList.some(biz => biz.phone === location.phone));
@@ -307,7 +306,7 @@ export class GmbAccountListComponent implements OnInit {
     return new Promise((resolve, reject) => {
       let parsedRequests: GmbRequest[];
       const bizMap = {};
-      
+
       this.processingGmbAccountSet.add(gmbAccount);
       zip(
         this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: true }),
@@ -336,10 +335,10 @@ export class GmbAccountListComponent implements OnInit {
 
         this.processingGmbAccountSet.delete(gmbAccount);
         // convert to OwnershipRequest type and remove isReminder!
-        // ingore: isReminder, over 30 days
+        // ingore: isReminder, or over 15 days (if it's still not handled, likely the requester didn't care)
         const now = new Date();
 
-        const requests: GmbRequest[] = results[0].filter(r => !r.isReminder).map(r => new GmbRequest(r)).filter(r => now.valueOf() - r.date.valueOf() < 30 * 24 * 3600 * 1000);
+        const requests: GmbRequest[] = results[0].filter(r => !r.isReminder).map(r => new GmbRequest(r)).filter(r => now.valueOf() - r.date.valueOf() < 15 * 24 * 3600 * 1000);
         // remove isReminder
         requests.map(r => delete r["isReminder"]);
 
@@ -410,6 +409,8 @@ export class GmbAccountListComponent implements OnInit {
         const nonQmenuRequest = parsedRequests.filter(r => myAccountEmails.indexOf(r.email.toLowerCase()) < 0);
         const afterIgnore = nonQmenuRequest.filter(r => bizMap[r.gmbBizId] && !bizMap[r.gmbBizId].ignoreGmbOwnershipRequest);
 
+        const afterIgnoreDesc = afterIgnore.sort((r1, r2) => (r1.date['$date'] || r1.date).valueOf() - (r2.date['$date'] || r2.date).valueOf());
+
         // use gmbBizId && gmbAccount email as key to see if there is any outstanding task!
         const outstandingTaskMap = new Set();
         (idsAndTasks[1] as Task[]).filter(t => !t.result).map(t => {
@@ -421,8 +422,8 @@ export class GmbAccountListComponent implements OnInit {
         // we have to consider same task in this batch too, so use a loop instead of map to handle this
         const finalLeftUnhandledRequests: GmbRequest[] = [];
 
-        for (let i = 0; i < afterIgnore.length; i++) {
-          let request = afterIgnore[i];
+        for (let i = 0; i < afterIgnoreDesc.length; i++) {
+          let request = afterIgnoreDesc[i];
           if (!outstandingTaskMap.has(request.gmbBizId + request.gmbAccountId)) {
             finalLeftUnhandledRequests.push(request);
             outstandingTaskMap.add(request.gmbBizId + request.gmbAccountId)

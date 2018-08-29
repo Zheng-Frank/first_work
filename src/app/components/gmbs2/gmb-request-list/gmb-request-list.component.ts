@@ -43,6 +43,9 @@ export class GmbRequestListComponent implements OnInit {
       label: "Account"
     },
     {
+      label: "Requester"
+    },
+    {
       label: "Comments"
     },
     {
@@ -117,6 +120,7 @@ export class GmbRequestListComponent implements OnInit {
             .map(r => ({
               request: r,
               biz: bizMap[r.gmbBizId],
+              isQmenuRequest: results[1].some(a => a.email === r.email),
               account: accountMap[r.gmbAccountId],
               accountEmail: (accountMap[r.gmbAccountId] || {}).email,
               task: new Task(taskMap[r._id]),

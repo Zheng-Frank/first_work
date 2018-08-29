@@ -34,6 +34,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   gmbAppealing = false;
   savingCode = false;
   verifyingCode = false;
+  updatingWebsite = false;
   completing = false;
 
   now = new Date();
@@ -42,6 +43,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   accounts: any[] = []; // account with bizCount
 
   taskScheduledAt = new Date();
+
+  comments: string;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
 
@@ -108,6 +111,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
     if (this.task) {
       this.taskScheduledAt = this.task.scheduledAt;
       this.transfer = this.task.transfer;
+      this.comments = this.task.comments;
       this.populateGmbBiz();
     }
   }
@@ -284,6 +288,97 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             }
           );
           break;
+
+        case 'verify':
+          this._api.get(environment.adminApiUrl + "generic",
+            {
+              resource: "gmbAccount",
+              query: {
+                email: this.transfer.toEmail,
+              },
+              projection: {
+                email: 1,
+                password: 1
+              },
+              limit: 1
+            }
+          ).pipe(mergeMap(
+            results => this._api.post(
+              'http://localhost:3000/verify', {
+                email: results[0].email,
+                password: results[0].password,
+                code: this.transfer.code,
+                appealId: this.transfer.appealId
+              }
+            )
+          )).subscribe(
+            result => {
+              resolve(result);
+            },
+            error => {
+              reject(error);
+            }
+          );
+          break;
+
+        case 'updateWebsite':
+          zip(this._api.get(environment.adminApiUrl + "generic",
+            {
+              resource: "gmbAccount",
+              query: {
+                email: this.transfer.toEmail,
+              },
+              projection: {
+                email: 1,
+                password: 1
+              },
+              limit: 1
+            }
+          ),
+            this._api.get(environment.adminApiUrl + "generic",
+              {
+                resource: "gmbBiz",
+                query: {
+                  _id: { $oid: this.task.relatedMap['gmbBizId'] }
+                },
+                projection: {
+                  qmenuWebsite: 1
+                },
+                limit: 1
+              })
+          ).pipe(mergeMap(
+            results => this._api.post(
+              'http://localhost:3000/updateWebsite', {
+                email: results[0][0].email,
+                password: results[0][0].password,
+                website: results[1][0].qmenuWebsite,
+                appealId: this.transfer.appealId
+              }
+            )
+          )).subscribe(
+            result => {
+              resolve(result);
+            },
+            error => {
+              reject(error);
+            }
+          );
+          break;
+        case 'failed':
+        case 'canceled':
+        case 'succeeded':
+          // we need to finish the task also!
+          const result = 'CLOSED';
+          const resultAt = new Date();
+          this._api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: { _id: this.task._id }, new: { _id: this.task._id, result: result, resultAt: { $date: resultAt } } }]).subscribe(
+            ok => {
+              this.task.result = result;
+              this.task.resultAt = resultAt;
+              resolve();
+            },
+            error => reject(error)
+          )
+          break;
         default:
           resolve();
           break;
@@ -373,7 +468,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         if (loadingVariableName) {
           this[loadingVariableName] = false;
         }
-        this._global.publishAlert(AlertType.Danger, error);
+        this._global.publishAlert(AlertType.Danger, typeof error === 'string' ? error : JSON.stringify(error));
       }
       );
   }
@@ -401,6 +496,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   }
 
   saveTask(oldTask, newTask) {
+
     this._api
       .patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
       .subscribe(
@@ -454,6 +550,26 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   }
 
   clickOk() {
+    if(this.comments !== this.task.comments) {
+      this.saveTask({_id: this.task._id}, {_id: this.task._id, comments: this.comments});
+    }
     this.ok.emit();
+  }
+
+  login(email) {
+    this._api.get(environment.adminApiUrl + "generic", {
+      resource: "gmbAccount",
+      query: {
+        email: email
+      },
+      limit: 1
+    })
+      .pipe(mergeMap(gmbAccounts =>
+        this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccounts[0].email, password: gmbAccounts[0].password, stayAfterScan: true })
+      ))
+      .subscribe(
+        ok => this._global.publishAlert(AlertType.Success, 'Success'),
+        error => this._global.publishAlert(AlertType.Danger, 'Failed to login')
+      );
   }
 }

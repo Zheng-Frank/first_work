@@ -87,6 +87,9 @@ export class Task {
                     value: undefined
                 }
             }));
+        }
+
+        if (this.assignee === username) {
 
             switch (this.name) {
                 case 'Transfer GMB Ownership':

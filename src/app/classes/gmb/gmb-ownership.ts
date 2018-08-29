@@ -2,9 +2,8 @@
  * 
  */
 export class GmbOwnership {
-    oid: string;        // every ownership has an id, which is generated from appealing. If granted, id won't change
+    appealId: string;        // every ownership has an id, which is generated from appealing. If granted, id won't change
     possessedAt : Date;
-    gmbRequestId: string;
     email: string;  // the holder
 
     constructor(obj?: any) {

@@ -39,18 +39,23 @@
       <span *ngIf="!biz.owned">?</span>
     </td>
     <td class="text-center">
-      <i *ngIf="!getLogo(biz.gmbBiz) && biz.gmbBiz.gmbOwner" class="fas fa-question text-danger"></i>
-      <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" [attr.alt]="biz.gmbBiz.gmbOwner" height="16px">
-      <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
+      <a href="{{biz.gmbBiz.gmbWebsite}}" title="{{biz.gmbBiz.gmbWebsite}}" target="_blank">
+        <i *ngIf="!getLogo(biz.gmbBiz) && biz.gmbBiz.gmbOwner" class="fas fa-question text-danger"></i>
+        <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" [attr.alt]="biz.gmbBiz.gmbOwner" height="16px">
+        <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
+      </a>
     </td>
     <td class="text-center">
-      <div *ngIf="biz.gmbBiz.updatedAt" class="text-muted text-nowrap">
-        <small>{{biz.gmbBiz.updatedAt | ago: now}}</small>
+      <div *ngIf="biz.gmbBiz.crawledAt" class="text-muted text-nowrap">
+        <small>{{biz.gmbBiz.crawledAt | ago: now}}</small>
       </div>
     </td>
-    <td class="text-center">
-      <button class="btn btn-link" [qLoading]="isProcessing(biz)" (click)="crawlOne(biz)">G-Crawl</button>
-      <button class="btn btn-link" (click)="edit(biz)">Edit</button>
+    <td class="text-center text-nowrap">
+        <!-- *ngIf="biz.gmbBiz.gmbOwner !== 'qmenu'"  -->
+      <button class="btn btn-link" [qLoading]="isProcessing(biz.gmbBiz)" (click)="inject(biz.gmbBiz)">Inject
+        Qmenu</button>
+      <button class="btn btn-link" [qLoading]="isProcessing(biz.gmbBiz)" (click)="crawl(biz.gmbBiz)">G-Crawl</button>
+      <button class="btn btn-link" (click)="edit(biz.gmbBiz)">Edit</button>
     </td>
   </tr>
 </q-table>

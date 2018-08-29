@@ -17,6 +17,7 @@
     <td>{{r.request.business}}</td>
     <td>{{r.biz?.score}}</td>
     <td>{{r.accountEmail | emailName}}</td>
+    <td>{{r.request.email | emailName}} <img *ngIf="r.isQmenuRequest" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px"></td>
     <td>
       {{r.task?.comments}}
       <div class="text-muted" *ngIf="r.task && r.task.resultAt">
