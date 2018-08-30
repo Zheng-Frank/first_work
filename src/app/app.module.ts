@@ -77,6 +77,7 @@ import { GmbDeleteRestaurantComponent } from './components/gmbs/gmb-delete-resta
 import { VerificationCodeRetrieverComponent } from './components/gmbs/verification-code-retriever/verification-code-retriever.component';
 import { GmbRequestOwnershipComponent } from './components/gmbs/gmb-request-ownership/gmb-request-ownership.component';
 import { GmbEditorComponent } from './components/gmbs/gmb-editor/gmb-editor.component';
+import { MenuItemsEditorComponent } from './components/restaurants/menu-items-editor/menu-items-editor.component';
 import { GmbCardComponent } from './components/gmbs/gmb-card/gmb-card.component';
 import { BusinessEditorComponent } from './components/gmbs/business-editor/business-editor.component';
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
@@ -142,6 +143,7 @@ import { PaymentsDashboardComponent } from './components/payments/payments-dashb
     MenuOptionViewerComponent,
     MenuOptionsComponent,
     MenusComponent,
+    MenuItemsEditorComponent,
     OptionsEditorComponent,
     SwitchComponent,
     RadioGroupComponent,

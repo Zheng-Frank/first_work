@@ -1,6 +1,7 @@
 import { Component, ViewChild, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { Mc, Item, Mi, MenuOption } from '@qmenu/ui';
-import { OptionsEditorComponent, SelectorComponent } from '../options-editor/options-editor.component';
+import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { OptionsEditorComponent } from '../options-editor/options-editor.component';
 import { Router, NavigationStart } from '@angular/router';
 
 declare var $: any;

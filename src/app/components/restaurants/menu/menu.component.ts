@@ -4,6 +4,7 @@ import { Helper } from '../../../classes/helper';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { MenuCategoryEditorComponent } from '../menu-category-editor/menu-category-editor.component';
 import { MenuItemEditorComponent } from '../menu-item-editor/menu-item-editor.component';
+import { MenuItemsEditorComponent } from '../menu-items-editor/menu-items-editor.component';
 
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
@@ -28,6 +29,8 @@ export class MenuComponent implements OnInit {
   @ViewChild('miEditor') miEditor: MenuItemEditorComponent;
 
   @ViewChild('misEditor') misEditor: MenuItemsEditorComponent;
+  
+  editingMis = false;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -114,6 +117,11 @@ export class MenuComponent implements OnInit {
               Object.keys(mc).map(key => key !== 'mis' && (category[key] = mc[key]));
             }
           });
+
+          //this.menu.mcs=((this.menu.mcs || [])).push(mc);
+          //this.menu.mcs.push(mc);
+          //this.menu.mcs = this.menu.mcs.filter(m => m.id !== mc.id);
+          
           this._global.publishAlert(
             AlertType.Success,
             "Updated successfully"
@@ -222,7 +230,7 @@ export class MenuComponent implements OnInit {
       });
     }
 
-    if (!mi.id) {
+    if (!mi.id) { // new mi
       mi.id = new Date().valueOf() + '';
       // push it to it's mc!
       newMenus.mcs.map(mc => {
@@ -236,7 +244,7 @@ export class MenuComponent implements OnInit {
       newMenus.map(menu => menu.mcs.map(category =>
         category.mis.map(mii => {
           if (mii.id === mi.id) {
-            Object.keys(mii).map(key => mii[key] = mi[key]);
+            Object.keys(mi).map(key => mii[key] = mi[key]);            
           }
         })));
     }
@@ -279,6 +287,7 @@ export class MenuComponent implements OnInit {
     this.miModal.hide();
   }
 
+
   miDelete(mi: Mi) {
 
     // menus -> menu -> mc
@@ -316,6 +325,66 @@ export class MenuComponent implements OnInit {
       );
 
     this.miModal.hide();
+  }
+
+  misDone(mc) {
+    this.editingMis = false;
+    // menus -> menu -> mc
+    const oldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    // menus -> menu -> mc. We don't need to keep everything, just id is enough
+    oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
+      id: category.id,
+      mis: category.mis.map(item => item.id)
+    })));
+
+
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+
+    newMenus.mcs.map(mc => {
+      if (mc.id === mc.category) {
+        mc.mis = mc.mis || [];
+        mc.mis.push(mc.mis);
+      }
+    });
+
+    this._api
+      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id'],
+          menus: oldMenus
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: newMenus
+        }
+      }])
+      .subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          this.menu.mcs.map(category => {
+            if (category.id === mc.id) {
+              Object.keys(mc).map(key => key !== 'mis' && (category[key] = mc[key]));
+            }
+          });
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
+
+          this.menu.sortMcsAndMis();
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
+      );
+
+
+
+
+  }
+
+
+  misCancel(mc) {
+    this.editingMis = false;
   }
 
 }
