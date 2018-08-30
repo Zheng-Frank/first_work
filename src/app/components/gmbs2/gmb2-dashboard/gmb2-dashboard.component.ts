@@ -112,11 +112,11 @@ export class Gmb2DashboardComponent implements OnInit {
         async accounts => {
           accounts = accounts.map(a => new GmbAccount(a)).sort((a1, a2) => (a1.gmbScannedAt || new Date(0)).valueOf() - (a2.gmbScannedAt || new Date(0)).valueOf());
 
-          // TEMP: only scanned
-          accounts = accounts.filter(a => a.gmbScannedAt);
-          accounts.length = 4;
+          // // TEMP: only scanned
+          // accounts = accounts.filter(a => a.gmbScannedAt);
+          // accounts.length = 4;
 
-          const batchSize = 2;
+          const batchSize = 3;
           const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
 
           console.log(batchedAccounts);
@@ -146,6 +146,8 @@ export class Gmb2DashboardComponent implements OnInit {
         projection: {
           name: 1,
           address: 1,
+          place_id: 1,
+          phone: 1,
           crawledAt: 1
         },
         limit: 5000
@@ -154,15 +156,16 @@ export class Gmb2DashboardComponent implements OnInit {
           bizList = bizList.map(a => new GmbBiz(a)).sort((a1, a2) => (a1.crawledAt || new Date(0)).valueOf() - (a2.crawledAt || new Date(0)).valueOf());
 
           // // TEMP: try 4 only
-          // bizList.length = 4;
+          // bizList.length = 1;
 
-          const batchSize = 4;
+          const batchSize = 1;
           const batchedBizList = Array(Math.ceil(bizList.length / batchSize)).fill(0).map((i, index) => bizList.slice(index * batchSize, (index + 1) * batchSize));
 
           console.log(batchedBizList);
 
           for (let batch of batchedBizList) {
             try {
+              console.log(batch.map(b => b.name));
               await Promise.all(batch.map(biz => this._gmb.crawlOneGoogleListing(biz)));
               this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(biz => biz.name).join(', '), 2000);
             }
@@ -236,7 +239,8 @@ export class Gmb2DashboardComponent implements OnInit {
     const bizList = await this._api.get(environment.adminApiUrl + "generic", {
       resource: "gmbBiz",
       query: {
-        qmenuId: { $exists: 1 }
+        qmenuId: { $exists: 1 },
+        score: {$exists: 0}
       },
       projection: {
         qmenuId: 1,

@@ -168,6 +168,7 @@ export class GmbService {
     // we need to fillup gmbBiz's phone, matching place_id, and websites info
     const crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [gmbBiz.name, gmbBiz.address].join(" ") }).toPromise();
 
+    console.log(gmbBiz);
     if (crawledResult['place_id'] !== gmbBiz.place_id) {
       throw 'Crawl error: place_id not match, ' + gmbBiz.name;
     }
