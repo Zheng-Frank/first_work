@@ -110,6 +110,11 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
             return;
         }
 
+        if(this.taskCopy.result) {
+          paramsObj.result = this.taskCopy.result;
+          paramsObj.resultAt = { $date: new Date() };
+        }
+
         this.confirming = true;
         this.action.perform(this.task, this._api, paramsObj).then(updatedTask => {
           // we'd better revert updatedTask back to without $date thing!

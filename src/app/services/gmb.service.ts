@@ -7,13 +7,14 @@ import { GmbBiz } from '../classes/gmb/gmb-biz';
 import { GmbRequest } from '../classes/gmb/gmb-request';
 import { zip } from 'rxjs';
 import { Task } from '../classes/tasks/task';
+import { TaskService } from './task.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GmbService {
 
-  constructor(private _api: ApiService) {
+  constructor(private _api: ApiService, private _task: TaskService) {
   }
 
   async scanOneGmbAccountLocations(gmbAccount: GmbAccount) {
@@ -21,8 +22,8 @@ export class GmbService {
     const locations = await this._api.post('http://localhost:3000/retrieveGmbLocations', { email: gmbAccount.email, password: gmbAccount.password }).toPromise();
 
     // pre-process:
-    // order: 'Published' > 'Pending verification' > 'Verification required' > 'Duplicate'
-    const statusOrder = ['Duplicate', 'Suspended', 'Verification required', 'Pending verification', 'Published'];
+    // order: 'Published' > 'Suspended' > 'Pending verification' > 'Verification required' > 'Duplicate'
+    const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
 
     for (let status of statusOrder) {
       for (let i = locations.length - 1; i >= 0; i--) {
@@ -52,33 +53,36 @@ export class GmbService {
           gmbWebsite: 1,
           name: 1,
           place_id: 1,
-          gmbOwnerships: 1
+          gmbOwnerships: 1,
+          score: 1
         },
         limit: 5000
       }).toPromise();
 
     // we have either inserted (no place_id found!) new or updated!
     const locationsToInsert: GmbLocation[] = locations.filter(loc => !existingGmbBizList.some(biz => biz.place_id === loc.place_id));
-    if (locationsToInsert.length > 0) {
-      const newBizList = locationsToInsert.map(loc => ({
-        address: loc.address,
-        appealId: loc.appealId,
-        cid: loc.cid,
-        gmbWebsite: loc.homepage,
-        name: loc.name,
-        place_id: loc.place_id,
-        gmbOwnerships:
-          loc.status === 'Published' ?
-            [{
-              appealId: loc.appealId,
-              possessedAt: { $date: new Date() },
-              email: gmbAccount.email
-            }]
-            :
-            []
-      }));
+    const newBizList = locationsToInsert.map(loc => ({
+      address: loc.address,
+      appealId: loc.appealId,
+      cid: loc.cid,
+      gmbWebsite: loc.homepage,
+      name: loc.name,
+      place_id: loc.place_id,
+      gmbOwnerships:
+        loc.status === 'Published' ?
+          [{
+            appealId: loc.appealId,
+            possessedAt: { $date: new Date() },
+            email: gmbAccount.email
+          }]
+          :
+          []
+    }));
 
-      await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', []).toPromise();
+    if (locationsToInsert.length > 0) {
+      const newBizListIds = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', newBizList).toPromise();
+      // inject ids
+      newBizListIds.map((id, index) => newBizList[index]['_id'] = id);
     }
 
     const locationsToUpdate = locations.filter(loc => existingGmbBizList.some(biz => biz.place_id === loc.place_id));
@@ -144,6 +148,18 @@ export class GmbService {
     // update original:
     gmbAccount.gmbScannedAt = new Date();
 
+    // generate Appeal Suspended GMB task for those suspended
+    const suspendedLocations = locations.filter(loc => loc.status === 'Suspended');
+    console.log('Suspended', suspendedLocations);
+    for(let suspendedLoc of suspendedLocations) {
+      try {
+        const gmbBiz = existingGmbBizList.concat(newBizList).filter(biz => biz.place_id === suspendedLoc.place_id)[0];
+        await this._task.upsertSuspendedTask(gmbBiz, gmbAccount);
+      }
+      catch(error) {
+        console.log('Error creating suspended task ' + suspendedLoc);
+      }
+    }
     return locations;
   }
 
@@ -199,7 +215,8 @@ export class GmbService {
         projection: {
           name: 1,
           gmbOwnerships: 1,
-          ignoreGmbOwnershipRequest: 1
+          ignoreGmbOwnershipRequest: 1,
+          score: 1
         },
         resource: "gmbBiz",
         limit: 5000
@@ -339,6 +356,7 @@ export class GmbService {
     // create new tasks!
     const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
 
+    return gmbRequests;
   }
 
 }

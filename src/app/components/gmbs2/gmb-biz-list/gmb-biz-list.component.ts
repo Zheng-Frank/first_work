@@ -127,7 +127,7 @@ export class GmbBizListComponent implements OnInit {
           biz.name.toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0)
 
           // search phone
-          || biz.phone.indexOf(this.searchFilter) === 0
+          || (biz.phone || '').indexOf(this.searchFilter) === 0
 
           // search account
           || (biz.gmbOwnerships || []).some(o => (o.email || '').indexOf(this.searchFilter) === 0)

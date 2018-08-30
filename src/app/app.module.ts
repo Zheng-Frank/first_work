@@ -98,6 +98,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { EmailCodeReaderComponent } from './components/gmbs2/email-code-reader/email-code-reader.component';
 import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/task-gmb-transfer.component';
 import { GmbService } from './services/gmb.service';
+import { TaskService } from './services/task.service';
  
 @NgModule({
   declarations: [
@@ -201,6 +202,7 @@ import { GmbService } from './services/gmb.service';
     GmbService,
     RoleGuard,
     ApiService,
+    TaskService,
     CacheService
   ],
   bootstrap: [RootComponent]
