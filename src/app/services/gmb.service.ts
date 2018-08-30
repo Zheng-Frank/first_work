@@ -8,6 +8,7 @@ import { GmbRequest } from '../classes/gmb/gmb-request';
 import { zip } from 'rxjs';
 import { Task } from '../classes/tasks/task';
 import { TaskService } from './task.service';
+import { mergeMap } from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -151,12 +152,12 @@ export class GmbService {
     // generate Appeal Suspended GMB task for those suspended
     const suspendedLocations = locations.filter(loc => loc.status === 'Suspended');
     console.log('Suspended', suspendedLocations);
-    for(let suspendedLoc of suspendedLocations) {
+    for (let suspendedLoc of suspendedLocations) {
       try {
         const gmbBiz = existingGmbBizList.concat(newBizList).filter(biz => biz.place_id === suspendedLoc.place_id)[0];
         await this._task.upsertSuspendedTask(gmbBiz, gmbAccount);
       }
-      catch(error) {
+      catch (error) {
         console.log('Error creating suspended task ' + suspendedLoc);
       }
     }
@@ -358,6 +359,51 @@ export class GmbService {
     const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
 
     return gmbRequests;
+  }
+
+  async updateGmbWebsite(gmbBiz: GmbBiz) {
+
+    let biz = new GmbBiz(gmbBiz);
+    // making sure we are going to have appealId and email account for the updated!
+    if (!biz.appealId || !biz.getAccountEmail()) {
+      biz = new GmbBiz((await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          _id: { $oid: gmbBiz._id }
+        },
+        limit: 1
+      }).toPromise())[0]);
+    }
+
+    if (!biz.getAccountEmail()) {
+      throw 'No GMB account found';
+    }
+
+    if (!biz.qmenuWebsite) {
+      throw 'No qMenu website found for ' + biz.name;
+    }
+
+    // let's get account
+    const account = (await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: "gmbAccount",
+      query: {
+        email: biz.getAccountEmail(),
+      },
+      projection: {
+        email: 1,
+        password: 1
+      },
+      limit: 1
+    }).toPromise())[0];
+
+    return await this._api.post(
+      'http://localhost:3000/updateWebsite', {
+        email: account.email,
+        password: account.password,
+        website: biz.qmenuWebsite,
+        appealId: biz.appealId
+      }
+    ).toPromise();
   }
 
 }

@@ -30,6 +30,7 @@ export class GmbBizListComponent implements OnInit {
   myEmails: string[] = [];
 
   searchFilter;
+  websiteUpdateNeeded = false;
 
   filteredMyBizList: myBiz[] = [];
 
@@ -114,11 +115,16 @@ export class GmbBizListComponent implements OnInit {
       );
   }
 
+  getEncodedGoogleSearchString(gmbBiz: GmbBiz) {
+    return encodeURI(gmbBiz.name + ' ' + gmbBiz.address);
+  }
+
   debounce(event) {
     this.filterBizList();
   }
 
   filterBizList() {
+    const start = new Date();
     let filteredBizList = this.bizList;
     if (this.searchFilter) {
       filteredBizList = this.bizList
@@ -133,6 +139,8 @@ export class GmbBizListComponent implements OnInit {
           || (biz.gmbOwnerships || []).some(o => (o.email || '').indexOf(this.searchFilter) === 0)
         );
     }
+
+
 
     this.filteredMyBizList = filteredBizList.map(biz => ({
       gmbBiz: biz,
@@ -152,6 +160,12 @@ export class GmbBizListComponent implements OnInit {
       })(biz),
       lostDate: (biz.hasOwnership(this.myEmails) || !biz.gmbOwnerships || biz.gmbOwnerships.length === 0) ? undefined : biz.gmbOwnerships[biz.gmbOwnerships.length - 1].possessedAt
     }));
+
+    if (this.websiteUpdateNeeded) {
+      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwner !== 'qmenu' && b.owned);
+    }
+
+    console.log(new Date().valueOf() - start.valueOf());
   }
 
   async crawlAll() {
@@ -259,8 +273,14 @@ export class GmbBizListComponent implements OnInit {
     );
   }
 
-  inject(biz) {
-    this.injectOne(biz);
+  async inject(biz) {
+    try {
+      await this._gmb.updateGmbWebsite(biz);
+      this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Erro Updating ' + biz.name + ', ' + error);
+    }
   }
 
   private injectOne(gmbBiz) {
