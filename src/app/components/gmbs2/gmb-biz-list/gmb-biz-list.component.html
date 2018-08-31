@@ -10,6 +10,13 @@
         Website Update Needed
       </label>
     </div>
+    <div class="form-check ml-4">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="notScanned3" (change)="filterBizList()" id="notScannedCheckbox">
+      <label class="form-check-label" for="notScannedCheckbox">
+        Not Scanned in 3 Days {{notScanned3}}
+      </label>
+    </div>
+
   </div>
   <div class="float-right">
     <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
@@ -58,7 +65,8 @@
       </div>
     </td>
     <td class="text-center text-nowrap">
-      <a class="btn btn-link" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google Listing</a>
+      <a class="btn btn-link" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
+        Listing</a>
       <!-- *ngIf="biz.gmbBiz.gmbOwner !== 'qmenu'"  -->
       <button class="btn btn-link" [qLoading]="isProcessing(biz.gmbBiz)" (click)="inject(biz.gmbBiz)">Inject Qmenu</button>
       <button class="btn btn-link" [qLoading]="isProcessing(biz.gmbBiz)" (click)="crawl(biz.gmbBiz)">G-Crawl</button>

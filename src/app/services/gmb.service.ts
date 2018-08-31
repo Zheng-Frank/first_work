@@ -167,11 +167,33 @@ export class GmbService {
 
   async crawlOneGoogleListing(gmbBiz: GmbBiz) {
     // we need to fillup gmbBiz's phone, matching place_id, and websites info
-    const crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [gmbBiz.name, gmbBiz.address].join(" ") }).toPromise();
+    let crawledResult;
+    try {
+      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [gmbBiz.name, gmbBiz.address].join(" ") }).toPromise();
+    }
+    catch (error) {
+      // use only city state and zip code!
+      // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
+      const addressTokens = gmbBiz.address.split(", ");
+      const q = gmbBiz.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
+      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
+    }
+
 
     console.log(gmbBiz);
-    if (crawledResult['place_id'] !== gmbBiz.place_id) {
-      throw 'Crawl error: place_id not match, ' + gmbBiz.name;
+    console.log(crawledResult);
+
+    const name1 = crawledResult['name'].toLowerCase();
+    const name2 = gmbBiz.name.toLowerCase();
+    const nameEqual = (name1 === name2) || (name1.indexOf(name2) >= 0 || name2.indexOf(name1) >= 0);
+    const zipcodeEqual = crawledResult['address'].split(' ').pop() === gmbBiz.address.split(' ').pop();
+    const place_idEqual = crawledResult['place_id'] === gmbBiz.place_id;
+
+    console.log(nameEqual);
+    console.log(zipcodeEqual);
+    console.log(place_idEqual)
+    if (!place_idEqual && !nameEqual && !zipcodeEqual) {
+      throw 'Crawl error: nothing matches, ' + gmbBiz.name;
     }
 
     const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls'].map(key => ({ key: key, value: crawledResult[key] }));

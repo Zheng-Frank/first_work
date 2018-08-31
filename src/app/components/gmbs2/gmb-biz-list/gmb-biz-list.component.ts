@@ -31,6 +31,7 @@ export class GmbBizListComponent implements OnInit {
 
   searchFilter;
   websiteUpdateNeeded = false;
+  notScanned3 = false;
 
   filteredMyBizList: myBiz[] = [];
 
@@ -163,6 +164,11 @@ export class GmbBizListComponent implements OnInit {
 
     if (this.websiteUpdateNeeded) {
       this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwner !== 'qmenu' && b.owned);
+    }
+
+    
+    if (this.notScanned3) {
+      this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.crawledAt || this.now.valueOf() - b.gmbBiz.crawledAt.valueOf() > 3 * 24 * 3600000);
     }
 
     console.log(new Date().valueOf() - start.valueOf());
