@@ -80,7 +80,8 @@ export class GlobalService {
         {
           name: "Tasks",
           href: "#/tasks",
-          fa: "fas fa-tasks"
+          fa: "fas fa-tasks",
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
           name: "GMBs",

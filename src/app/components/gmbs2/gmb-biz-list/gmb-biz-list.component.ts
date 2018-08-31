@@ -170,14 +170,16 @@ export class GmbBizListComponent implements OnInit {
 
   async crawlAll() {
     this.crawling = true;
-    // we'd like to crawl from most outdate ones
-    const sortedBizList = this.bizList.sort((a1, a2) => (a1.crawledAt || new Date(0)).valueOf() - (a2.crawledAt || new Date(0)).valueOf());
 
-    for (let biz of sortedBizList) {
+    // we'd like to crawl from most outdate ones
+    const sortedBizList = this.filteredMyBizList.sort((a1, a2) => (a1.gmbBiz.crawledAt || new Date(0)).valueOf() - (a2.gmbBiz.crawledAt || new Date(0)).valueOf());
+
+    for (let b of sortedBizList) {
       try {
-        let result = await this.crawl(biz);
+        let result = await this.crawl(b.gmbBiz);
       } catch (error) {
-        this._global.publishAlert(AlertType.Danger, 'Error crawling ' + biz.name);
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, 'Error crawling ' + b.gmbBiz.name);
       }
     }
     this.crawling = false;
@@ -190,7 +192,9 @@ export class GmbBizListComponent implements OnInit {
       let result = await this._gmb.crawlOneGoogleListing(biz);
       this.now = new Date();
       this.processingBizSet.delete(biz);
+      this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);
     } catch (error) {
+      console.log(error);
       this.processingBizSet.delete(biz);
       this._global.publishAlert(AlertType.Danger, 'Error crawling ' + biz.name);
     }
