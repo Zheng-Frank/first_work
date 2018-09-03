@@ -1,9 +1,10 @@
 <ng-container *ngIf="transfer">
   <!-- {{gmbBiz | json}} -->
   <div class="mb-4">
-    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests". You can complete the task directly.</div>
+    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests". You
+      can complete the task directly.</div>
     <!-- <h4 class="mb-3">GMB Transfer Steps</h4> -->
-    <span class="alert alert-warning p-2">{{transfer.fromEmail | emailName}} <button class="btn btn-link fix-v-align" (click)="login(transfer.fromEmail)">Login</button></span>
+    <span class="alert alert-warning p-2">{{transfer.fromEmail | emailName}} </span>
     →
     <span class="alert alert-warning p-2" *ngIf="transfer.toEmail">{{transfer.toEmail | emailName}} <button class="btn btn-link fix-v-align"
         (click)="login(transfer.toEmail)">Login</button></span>
@@ -32,21 +33,7 @@
     </div>
 
     <div *ngIf="transfer.request">
-      Requested {{transfer.requestedAt | ago: now}}
-    </div>
-  </div>
-
-
-  <div class="mb-4">
-    <label>
-      Let A Reject B's Request
-    </label>
-    <div *ngIf="!transfer.rejectedAt">
-      <button class="btn btn-sm btn-info" [qLoading]="gmbRejecting" [disabled]="!transfer.request" (click)="handleUpdate('reject', 'rejectedAt', 'gmbRejecting')">Reject
-        B's Request</button>
-    </div>
-    <div *ngIf="transfer.rejectedAt">
-      Rejected {{transfer.rejectedAt | ago: now}}
+      Requested {{transfer.requestedAt | ago: now}} {{transfer.arci}}
     </div>
   </div>
 
@@ -55,8 +42,9 @@
       Let B Appeal
     </label>
     <div *ngIf="!transfer.appealedAt">
-      <button class="btn btn-sm btn-info" [qLoading]="gmbAppealing" [disabled]="!transfer.rejectedAt" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Appeal</button>
+      <button class="btn btn-sm btn-info" [qLoading]="gmbAppealing" [disabled]="!transfer.request" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Appeal</button>
     </div>
+
     <div *ngIf="transfer.appealedAt">
       Appealed {{transfer.appealedAt | ago: now}} ID: {{transfer.appealId}}
       <div>
@@ -89,18 +77,20 @@
               <span *ngIf="transfer.bizNotifiedAt" style="font-weight: normal">{{transfer.bizNotifiedAt | ago: now}}</span>
             </label>
           </div>
-          <label>Schedule Followup At:</label>
-          <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt" (ngModelChange)="scheduledAtUpdated($event)">
-          <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
-          <div class="py-1 text-right">
-            <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 3, 7]" (click)="plusDay(i)">+
-              {{i}} day{{i > 1 ? 's' : ''}}</button>
-          </div>
+
         </div>
       </div>
     </div>
   </div>
-
+  <div class="card card-body mt-2">
+    <label>Schedule Followup At:</label>
+    <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt" (ngModelChange)="scheduledAtUpdated($event)">
+    <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+    <div class="py-1 text-right">
+      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 3, 7]" (click)="plusDay(i)">+
+        {{i}} day{{i > 1 ? 's' : ''}}</button>
+    </div>
+  </div>
   <div class="mb-4">
     <label>
       Input Verification Code
@@ -140,7 +130,7 @@
 
   <div class="mb-4">
     <label>
-      Complete the Transfer
+      Complete the Application
     </label>
     <div *ngIf="!transfer.completedAt">
       <button class="btn btn-sm btn-danger" [qLoading]="completing" (click)="handleUpdate('canceled', 'completedAt', 'completing')">Canceled</button>

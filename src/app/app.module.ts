@@ -99,6 +99,7 @@ import { EmailCodeReaderComponent } from './components/gmbs2/email-code-reader/e
 import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/task-gmb-transfer.component';
 import { GmbService } from './services/gmb.service';
 import { TaskService } from './services/task.service';
+import { TaskGmbApplyComponent } from './components/tasks/task-gmb-apply/task-gmb-apply.component';
  
 @NgModule({
   declarations: [
@@ -184,7 +185,8 @@ import { TaskService } from './services/task.service';
     GmbBizEditorComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,
-    TaskGmbTransferComponent
+    TaskGmbTransferComponent,
+    TaskGmbApplyComponent
   ],
   imports: [
     BrowserModule,

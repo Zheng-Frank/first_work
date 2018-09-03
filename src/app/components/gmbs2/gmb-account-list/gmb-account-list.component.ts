@@ -11,6 +11,7 @@ import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { Task } from '../../../classes/tasks/task';
 import { GmbService } from '../../../services/gmb.service';
+import { ModalType } from "../../../classes/modal-type";
 
 @Component({
   selector: 'app-gmb-account-list',
@@ -86,34 +87,52 @@ export class GmbAccountListComponent implements OnInit {
     this.gmbEditingModal.hide();
   }
 
-  done(event: FormEvent) {
+  async done(event: FormEvent) {
     const gmb = event.object as GmbAccount;
     this.apiError = undefined;
-    this._api.post(environment.autoGmbUrl + 'encrypt', gmb).pipe(mergeMap(result => {
-      const oldGmb = JSON.parse(JSON.stringify(gmb));
-      const updatedGmb = JSON.parse(JSON.stringify(gmb));
-      updatedGmb.password = result;
-      updatedGmb.email = updatedGmb.email.toLowerCase().trim();
 
-      if (gmb._id) {
-        return this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{ old: oldGmb, new: updatedGmb }]);
-      } else {
-        return this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', [updatedGmb]);
-      }
+    const oldGmb = {
+      _id: gmb._id,
+      email: gmb.email
+    };
+    const updatedGmb = {
+      _id: gmb._id,
+      email: gmb.email.toLowerCase().trim(),
+      comments: gmb.comments
+    } as any;
 
-    })).subscribe(
-      result => {
-        event.acknowledge(null);
-        // hard refresh
-        this.retrieveGmbAccounts();
-        this.gmbEditingModal.hide();
-      },
-      error => {
-        this.apiError = 'Possible: no Auto-GMB server running';
+    if (gmb.password) {
+      try {
+        updatedGmb.password = await this._api.post(environment.autoGmbUrl + 'encrypt', gmb).toPromise();
+        console.log(updatedGmb.password);
+      } catch (error) {
+        this.apiError = 'No Auto-GMB server running?';
         event.acknowledge(error.message || 'API Error.');
         console.log(error);
+      };
+    }
+
+    console.log(oldGmb)
+    console.log(updatedGmb);
+
+    try {
+      if (gmb._id) {
+        await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{ old: oldGmb, new: updatedGmb }]).toPromise();
+      } else {
+        await this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', [updatedGmb]).toPromise();
       }
-    );
+      event.acknowledge(null);
+      // hard refresh
+      this.retrieveGmbAccounts();
+      this.gmbEditingModal.hide();
+
+    }
+    catch (error) {
+      this.apiError = 'Possible: no Auto-GMB server running';
+      event.acknowledge(error.message || 'API Error.');
+      console.log(error);
+    }
+
   }
 
   remove(event: FormEvent) {
@@ -161,7 +180,7 @@ export class GmbAccountListComponent implements OnInit {
     this.scanningAll = false;
   }
 
- 
+
   async scanRequests(event: FormEvent) {
     try {
       let results: any = await this._gmb.scanAccountEmails(event.object);
@@ -189,5 +208,9 @@ export class GmbAccountListComponent implements OnInit {
       catch (error) { }
     }
     this.scanningAll = false;
+  }
+
+  test() {
+    this._global.publishModal(ModalType.gmbAccount, '123123');
   }
 }

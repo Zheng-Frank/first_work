@@ -34,10 +34,16 @@ export class GmbAccountEditorComponent implements OnInit, OnChanges {
       },
       {
         field: "password", //
-        label: "Password",
-        required: true,
+        label: "Password (leave blank, unless updating)",
+        required: false,
         inputType: "password",
         items: []
+      },
+      {
+        field: "comments", //
+        label: "Comments",
+        required: false,
+        inputType: "textarea"
       }];
   }
 

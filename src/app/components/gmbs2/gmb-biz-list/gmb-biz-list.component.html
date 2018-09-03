@@ -1,19 +1,36 @@
-<h2 class="text-center">GMB: Restaurants</h2>
+<h2 class="text-center">GMB: Restaurants <small>{{filteredMyBizList.length}}</small></h2>
 <div class="clearfix my-2">
   <div class="float-left form-inline">
-    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control mr-2" placeholder="type name, phone, account..."
-      [(ngModel)]="searchFilter"> total: {{filteredMyBizList.length}}
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control mr-4" placeholder="type name, phone, account..."
+      [(ngModel)]="searchFilter">
 
-    <div class="form-check ml-4">
-      <input class="form-check-input" type="checkbox" [(ngModel)]="websiteUpdateNeeded" (change)="filterBizList()" id="updateWebsiteCheckbox">
-      <label class="form-check-label" for="updateWebsiteCheckbox">
-        Website Update Needed
-      </label>
-    </div>
+    <label class="mr-2"> GMB:</label>
+    <select class="form-control mr-4" [(ngModel)]="gmbOwnership" (change)="filterBizList()">
+      <option>any</option>
+      <option>qmenu</option>
+      <option>NOT qmenu</option>
+      <option>NOT qmenu</option>
+
+    </select>
+
+    <label class="mr-2"> Google Listing:</label>
+    <select class="form-control mr-4" [(ngModel)]="googleListingOwner" (change)="filterBizList()">
+      <option>any</option>
+      <option>qmenu</option>
+      <option>NOT qmenu</option>
+    </select>
+
     <div class="form-check ml-4">
       <input class="form-check-input" type="checkbox" [(ngModel)]="notScanned3" (change)="filterBizList()" id="notScannedCheckbox">
       <label class="form-check-label" for="notScannedCheckbox">
         Not Scanned in 3 Days {{notScanned3}}
+      </label>
+    </div>
+
+    <div class="form-check ml-4">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="onlyLost" (change)="filterBizList()" id="lostCheckbox">
+      <label class="form-check-label" for="lostCheckbox">
+        Only lost
       </label>
     </div>
 
@@ -26,25 +43,35 @@
   </div>
 </div>
 
-<q-table [rows]="filteredMyBizList" [tableColumnDescriptors]="myColumnDescriptors">
-  <tr *tableRowTemplate="let biz;" [ngClass]="{'list-group-item-danger': !biz.owned }">
+<q-table [rows]="filteredMyBizList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+  <!-- <tr *tableRowTemplate="let biz;" [ngClass]="{'list-group-item-danger': !biz.owned }"> -->
+  <tr *tableRowTemplate="let biz;">
     <td>
-      <div class="font-weight-bold">
-        <span class="text-success" *ngIf="biz.gmbBiz.ignoreGmbOwnershipRequest">✓</span>
-        <a *ngIf="biz.gmbBiz.qmenuId" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">{{biz.gmbBiz.name}}</a>
-        <span *ngIf="!biz.gmbBiz.qmenuId">{{biz.gmbBiz.name}}</span>
-        &nbsp;
-        <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
+      <div class="dropdown">
+        <button class="btn btn-link dropdown-toggle font-weight-bold pl-0" type="button" data-toggle="dropdown">
+          {{biz.gmbBiz.name}}
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" target="_blank" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">qMenu Restaurant Details</a>
+          <a class="dropdown-item" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
+            Listing
+          </a>
+        </div>
       </div>
       <div class="text-muted">
         <small>{{biz.gmbBiz.address}}</small>
       </div>
-      <div class="text-danger" *ngIf="biz.lostDate">
+
+      <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
+    </td>
+    <td>
+      <ng-container *ngIf="biz.qmenuIdDays">{{biz.qmenuIdDays}} days</ng-container>
+      <div class="badge badge-pill badge-danger" *ngIf="biz.lostDate">
         <small>Lost: {{biz.lostDate | ago: now}}</small>
       </div>
     </td>
     <td>{{biz.gmbBiz.score}}</td>
-    <td>{{biz.ownershipPercentage}}%</td>
+    <!-- <td>{{biz.ownershipPercentage}}%</td> -->
     <td>
       <small>{{biz.transfers}}</small>
     </td>
@@ -59,18 +86,28 @@
         <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
       </a>
     </td>
-    <td class="text-center">
+    <td>
       <div *ngIf="biz.gmbBiz.crawledAt" class="text-muted text-nowrap">
         <small>{{biz.gmbBiz.crawledAt | ago: now}}</small>
       </div>
     </td>
-    <td class="text-center text-nowrap">
-      <a class="btn btn-link" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
-        Listing</a>
-      <!-- *ngIf="biz.gmbBiz.gmbOwner !== 'qmenu'"  -->
-      <button class="btn btn-link" [qLoading]="isProcessing(biz.gmbBiz)" (click)="inject(biz.gmbBiz)">Inject Qmenu</button>
-      <button class="btn btn-link" [qLoading]="isProcessing(biz.gmbBiz)" (click)="crawl(biz.gmbBiz)">G-Crawl</button>
-      <button class="btn btn-link" (click)="edit(biz.gmbBiz)">Edit</button>
+    <td>
+      {{getOutstandingTasks(biz.gmbBiz)}}
+    </td>
+    <td class="text-center">
+      <div class="dropdown">
+        <button class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown">
+          Action...
+        </button>
+        <div class="dropdown-menu dropdown-menu-right">
+          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="inject(biz.gmbBiz)">Inject Qmenu</button>
+          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="crawl(biz.gmbBiz)">G-Crawl</button>
+          <button *ngIf="biz.lostDate" class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="createApplyTask(biz.gmbBiz)">Create
+            Apply-GMB Task</button>
+          <button class="dropdown-item" (click)="edit(biz.gmbBiz)">Edit</button>
+        </div>
+      </div>
+
     </td>
   </tr>
 </q-table>

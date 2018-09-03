@@ -9,6 +9,7 @@ import { zip } from 'rxjs';
 import { FormEvent } from '@qmenu/ui';
 import { mergeMap } from 'rxjs/operators';
 import { GmbService } from '../../../services/gmb.service';
+import { Task } from '../../../classes/tasks/task';
 
 interface myBiz {
   gmbBiz: GmbBiz;
@@ -30,8 +31,11 @@ export class GmbBizListComponent implements OnInit {
   myEmails: string[] = [];
 
   searchFilter;
-  websiteUpdateNeeded = false;
+  gmbOwnership;
+  googleListingOwner;
   notScanned3 = false;
+  onlyLost = false;
+
 
   filteredMyBizList: myBiz[] = [];
 
@@ -45,6 +49,8 @@ export class GmbBizListComponent implements OnInit {
   bizInEditing: GmbBiz;
   apiError;
 
+  bizTaskMap = {};
+
   myColumnDescriptors = [
     {
       label: "Name",
@@ -52,13 +58,16 @@ export class GmbBizListComponent implements OnInit {
       sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
     },
     {
+      label: "In Qmenu"
+    },
+    {
       label: "Score",
       paths: ['gmbBiz', 'score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
-    {
-      label: "Possessed"
-    },
+    // {
+    //   label: "Possessed"
+    // },
     {
       label: "Accounts",
       paths: ['transfers'],
@@ -76,6 +85,9 @@ export class GmbBizListComponent implements OnInit {
       sort: (a1, a2) => (a1 || new Date(0)).valueOf() - (a2 || new Date(0)).valueOf()
     },
     {
+      label: "Tasks"
+    },
+    {
       label: "Actions"
     }
   ];
@@ -86,7 +98,7 @@ export class GmbBizListComponent implements OnInit {
   ngOnInit() {
   }
 
-  refresh() {
+  async refresh() {
     this.now = new Date();
     this.refreshing = true;
     zip(
@@ -114,6 +126,28 @@ export class GmbBizListComponent implements OnInit {
           this._global.publishAlert(AlertType.Danger, error);
         }
       );
+
+    this.bizTaskMap = {};
+    const outstandingTasks: Task[] = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: "task",
+      query: {
+        result: null    // null is the same as either non-exists or actually null in mongodb
+      },
+      projection: {
+        name: 1,
+        relatedMap: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    outstandingTasks.map(t => {
+      if (t.relatedMap && t.relatedMap['gmbBizId']) {
+        if (!this.bizTaskMap[t.relatedMap['gmbBizId']]) {
+          this.bizTaskMap[t.relatedMap['gmbBizId']] = [];
+        }
+        this.bizTaskMap[t.relatedMap['gmbBizId']].push(t.name);
+      }
+    });
   }
 
   getEncodedGoogleSearchString(gmbBiz: GmbBiz) {
@@ -141,12 +175,11 @@ export class GmbBizListComponent implements OnInit {
         );
     }
 
-
-
     this.filteredMyBizList = filteredBizList.map(biz => ({
       gmbBiz: biz,
-      transfers: (biz.gmbOwnerships || []).map(o => (o.email || 'N/A').split('@')[0]).reverse().join('←'),
+      transfers: (biz.gmbOwnerships || []).map(o => (o.email || 'N/A').split('@')[0]).join('→ '),
       owned: biz.hasOwnership(this.myEmails),
+      qmenuIdDays: biz.qmenuId ? Math.floor((this.now.valueOf() - parseInt(biz.qmenuId.substring(0, 8), 16) * 1000) / (24 * 3600000)) : undefined,
       ownershipPercentage: ((biz) => {
         let possesedTime = 1;
         let nonPossesedTime = 1000;
@@ -162,16 +195,46 @@ export class GmbBizListComponent implements OnInit {
       lostDate: (biz.hasOwnership(this.myEmails) || !biz.gmbOwnerships || biz.gmbOwnerships.length === 0) ? undefined : biz.gmbOwnerships[biz.gmbOwnerships.length - 1].possessedAt
     }));
 
-    if (this.websiteUpdateNeeded) {
-      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwner !== 'qmenu' && b.owned);
+    //
+    switch (this.gmbOwnership) {
+      case 'qmenu':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.owned);
+        break;
+
+      case 'NOT qmenu':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.owned);
+        break;
+
+      default:
+        break;
     }
 
-    
+    switch (this.googleListingOwner) {
+      case 'qmenu':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwner === 'qmenu');
+        break;
+
+      case 'NOT qmenu':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwner !== 'qmenu');
+        break;
+
+      default:
+        break;
+    }
+
     if (this.notScanned3) {
       this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.crawledAt || this.now.valueOf() - b.gmbBiz.crawledAt.valueOf() > 3 * 24 * 3600000);
     }
 
-    console.log(new Date().valueOf() - start.valueOf());
+    // fitler lost: the last ownership is not qmenu
+    if (this.onlyLost) {
+      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwnerships && b.gmbBiz.gmbOwnerships.length > 0 && !b.gmbBiz.gmbOwnerships[b.gmbBiz.gmbOwnerships.length - 1].email);
+    }
+
+  }
+
+  getOutstandingTasks(gmbBiz: GmbBiz) {
+    return this.bizTaskMap[gmbBiz._id] || [];
   }
 
   async crawlAll() {
@@ -194,7 +257,6 @@ export class GmbBizListComponent implements OnInit {
   async crawl(biz) {
     try {
       this.processingBizSet.add(biz);
-      console.log(this.processingBizSet);
       let result = await this._gmb.crawlOneGoogleListing(biz);
       this.now = new Date();
       this.processingBizSet.delete(biz);
@@ -298,26 +360,42 @@ export class GmbBizListComponent implements OnInit {
     if (!email) {
       return Promise.reject('No email');
     }
+    this._gmb.updateGmbWebsite(gmbBiz);
+  }
 
+  async createApplyTask(gmbBiz: GmbBiz) {
+    // first make sure there is no outstanding 
+    const outstandingTasks = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: "task",
+      query: {
+        "relatedMap.gmbBizId": gmbBiz._id,
+        name: 'Apply GMB Ownership',
+        result: null    // null is the same as either non-exists or actually null in mongodb
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 1
+    }).toPromise();
 
-    console.log(email);
-    console.log(gmbBiz);
-    // return new Promise((resolve, reject) => {
-    //   this.processingBizSet.add(biz);
-    //   // 1. need to get last good qmenu account
-    //   // 2. 
-    //   this._api.post(
-    //     'http://localhost:3000/updateWebsite', {
-    //       email: results[0][0].email,
-    //       password: results[0][0].password,
-    //       website: results[1][0].qmenuWebsite,
-    //       appealId: this.transfer.appealId
-    //     }
-    //   ).subscribe(
-    //     ok => resolve(),
-    //     error => reject(error)
-    //   );
-    // });
+    if (outstandingTasks.length > 0) {
+      this._global.publishAlert(AlertType.Danger, 'Same task already exists!');
+      return;
+    }
+
+    const task = {
+      name: 'Apply GMB Ownership',
+      scheduledAt: { $date: new Date() },
+      description: gmbBiz.name,
+      roles: ['GMB', 'ADMIN'],
+      score: gmbBiz.score,
+      relatedMap: { 'gmbBizId': gmbBiz._id },
+      transfer: {}
+    };
+
+    await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+    this.bizTaskMap[gmbBiz._id] = this.bizTaskMap[gmbBiz._id] || [];
+    this.bizTaskMap[gmbBiz._id].push(task.name);
   }
 
 }

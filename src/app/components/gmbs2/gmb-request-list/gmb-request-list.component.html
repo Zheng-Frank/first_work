@@ -11,7 +11,7 @@
       <i class="fab fa-google"></i> Crawl All</button>
   </div>
 </div>
-<q-table [rows]="filteredRequests" [tableColumnDescriptors]="myColumnDescriptors">
+<q-table [rows]="filteredRequests" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
   <tr *tableRowTemplate="let r;" class="{{'list-group-item-' + r.state}}">
     <td>{{r.request.date | ago: now}}</td>
     <td>{{r.request.business}}</td>

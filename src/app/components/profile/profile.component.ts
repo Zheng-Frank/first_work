@@ -57,4 +57,5 @@ export class ProfileComponent implements OnInit {
     }
     return this.myTeamUsers;
   }
+
 }

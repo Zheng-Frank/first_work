@@ -31,7 +31,7 @@ export class GmbBizEditorComponent implements OnInit, OnChanges {
       },
       {
         field: "qmenuWebsite",
-        label: "qMenu Website",
+        label: "qMenu Managed Website",
         required: false
       },
       {
@@ -57,6 +57,12 @@ export class GmbBizEditorComponent implements OnInit, OnChanges {
         field: "ignoreGmbOwnershipRequest",
         label: "Ignore GMB Requests",
         inputType: "checkbox",
+        required: false
+      },
+      {
+        field: "comments",
+        label: "Comments",
+        inputType: "textarea",
         required: false
       }];
 

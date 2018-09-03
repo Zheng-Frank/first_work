@@ -4,6 +4,9 @@ import { Alert } from "../classes/alert";
 import { ApiService } from "./api.service";
 import { AlertType } from "../classes/alert-type";
 import { User } from "../classes/user";
+import { ModalType } from "../classes/modal-type";
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+
 declare var store: any;
 
 @Injectable()
@@ -157,6 +160,16 @@ export class GlobalService {
 
   dismissAlert(alert: Alert) {
     this._alerts = this._alerts.filter(a => a !== alert);
+  }
+
+  
+  modal: ModalComponent;
+
+  registerModal(modal: ModalComponent) {
+    this.modal = modal;
+  }
+  publishModal(type: ModalType, _id: string) {
+    this.modal.show();
   }
 
   isUserInRoles(roles) {

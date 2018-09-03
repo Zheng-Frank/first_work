@@ -1,7 +1,7 @@
 <ng-container *ngIf="taskCopy && action">
     <h6 class="card-title">{{taskCopy.name}}</h6>
 
-    <p class="card-text text-muted">{{taskCopy.description}}</p>
+    <p class="card-text text-muted">{{taskCopy.description}} <a *ngIf="gmbAccount" (click)="login()" href="javascript:void(0)">Login</a></p>
     <p class="card-text">{{action.confirmationText}}</p>
 
     <!-- Update case, we allow scheduledAt update -->
@@ -10,7 +10,7 @@
         <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskCopy.scheduledAt">
         <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
         <div class="py-1 text-right">
-            <button type="button" class="btn btn-info" *ngFor="let i of [1, 2, 3]" (click)="plusDay(i)">+ {{i}} day{{i > 1 ? 's' : ''}}</button>
+            <button type="button" class="btn btn-info" *ngFor="let i of [1, 3, 7]" (click)="plusDay(i)">+ {{i}} day{{i > 1 ? 's' : ''}}</button>
         </div>
     </div>
 

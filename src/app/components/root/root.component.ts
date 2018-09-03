@@ -1,8 +1,9 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { GlobalService } from '../../services/global.service';
 import { ApiService } from '../../services/api.service';
 import { Router } from '@angular/router';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 declare function require(moduleName: string): any;
 const { version: appVersion } = require('../../../../package.json');
@@ -17,11 +18,16 @@ declare var $: any;
 })
 export class RootComponent implements OnInit {
 
+  @ViewChild('hotItemModal') hotItemModal: ModalComponent;
+
   appVersion;
   now = new Date();
-  constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef, private _router: Router) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef, private _router: Router) {
+
+  }
 
   ngOnInit() {
+    this._global.registerModal(this.hotItemModal);
     // refreshing 'now'
     setInterval(() => {
       this.now = new Date();

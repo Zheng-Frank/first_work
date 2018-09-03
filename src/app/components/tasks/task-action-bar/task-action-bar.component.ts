@@ -27,7 +27,6 @@ export class TaskActionBarComponent implements OnInit {
   }
 
   act(event) {
-    console.log(event)
     this.activeAction = event;
     this.taskActionerModal.show();
   }
@@ -38,7 +37,6 @@ export class TaskActionBarComponent implements OnInit {
   }
 
   finishAction(event) {
-    console.log('action done!', event);
     this.actionDone.emit({
       task: event,
       action: this.activeAction

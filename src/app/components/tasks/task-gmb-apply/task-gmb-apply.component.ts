@@ -13,11 +13,11 @@ import { mergeMap } from 'rxjs/operators';
 import { Restaurant } from '@qmenu/ui';
 
 @Component({
-  selector: 'app-task-gmb-transfer',
-  templateUrl: './task-gmb-transfer.component.html',
-  styleUrls: ['./task-gmb-transfer.component.css']
+  selector: 'app-task-gmb-apply',
+  templateUrl: './task-gmb-apply.component.html',
+  styleUrls: ['./task-gmb-apply.component.css']
 })
-export class TaskGmbTransferComponent implements OnInit, OnChanges {
+export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
   @Output() ok = new EventEmitter();
   @Output() cancel = new EventEmitter();
@@ -82,7 +82,6 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
           });
 
           this.accounts = results[1].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
-
         },
         error => {
           this._global.publishAlert(AlertType.Danger, error);
@@ -164,6 +163,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
    */
   handleUpdate(name, timestampVariableName, loadingVariableName) {
 
+    console.log(name, timestampVariableName, loadingVariableName)
     if (loadingVariableName) {
       this[loadingVariableName] = true;
     }
@@ -463,6 +463,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         // update definition of now
         this.now = new Date();
 
+        console.log(newBareTask);
         // save to database now!
         this.saveTask(oldTask, newBareTask);
       })

@@ -2,7 +2,7 @@
     List is empty
 </div>
 
-<q-table [rows]="taskList" [tableColumnDescriptors]="myColumnDescriptors">
+<q-table [rows]="taskList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
     <tr *tableRowTemplate="let task;">
         <td>
             <div class="badge badge-{{getTaskClass(task)}}" *ngIf="!task.result">{{task.scheduledAt | ago: now}}</div>

@@ -112,6 +112,7 @@ export class GmbService {
 
       const lastOwnerEmail = new GmbBiz(pair.newGmbBiz).getAccountEmail();
       // we used to have this account but now don't know
+      // this doesn't mean we lost it because it might be transferred to other account
       if (lastOwnerEmail === gmbAccount.email && pair.location.status !== 'Published') {
         // push an unknown ownership in. No need to check existence of gmbOwnerships
         pair.newGmbBiz.gmbOwnerships.push({

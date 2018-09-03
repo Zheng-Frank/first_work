@@ -6,6 +6,7 @@
     <div class="clearfix">
       <div class="float-left">
         <h2>{{gmbAccount.email | emailName}}</h2>
+        <div *ngIf="gmbAccount.comments"><small>{{gmbAccount.comments}}</small></div>
       </div>
       <div class="float-right">
 

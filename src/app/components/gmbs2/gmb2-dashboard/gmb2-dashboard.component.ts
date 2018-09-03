@@ -85,7 +85,6 @@ export class Gmb2DashboardComponent implements OnInit {
   }
 
   async processSection(section) {
-    console.log(section)
     section.loading = true;
     try {
       await this[section.executeFunction]();
@@ -118,8 +117,6 @@ export class Gmb2DashboardComponent implements OnInit {
 
           const batchSize = 3;
           const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
-
-          console.log(batchedAccounts);
 
           for (let batch of batchedAccounts) {
             try {
@@ -161,11 +158,8 @@ export class Gmb2DashboardComponent implements OnInit {
           const batchSize = 1;
           const batchedBizList = Array(Math.ceil(bizList.length / batchSize)).fill(0).map((i, index) => bizList.slice(index * batchSize, (index + 1) * batchSize));
 
-          console.log(batchedBizList);
-
           for (let batch of batchedBizList) {
             try {
-              console.log(batch.map(b => b.name));
               await Promise.all(batch.map(biz => this._gmb.crawlOneGoogleListing(biz)));
               this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(biz => biz.name).join(', '), 2000);
             }
@@ -212,8 +206,6 @@ export class Gmb2DashboardComponent implements OnInit {
 
         const matched = bizList.filter(b => b.qmenuId);
         const nonMatched = bizList.filter(b => !b.qmenuId);
-        console.log('non-matched');
-        console.log(nonMatched);
         if (nonMatched.length > 0) {
           this._global.publishAlert(AlertType.Danger, "Not Matched: " + nonMatched.length + ". Use debugger console to see un-matched list!");
         }
@@ -318,16 +310,12 @@ export class Gmb2DashboardComponent implements OnInit {
       }).subscribe(
         async accounts => {
           accounts = accounts.map(a => new GmbAccount(a)).sort((a1, a2) => (a1.emailScannedAt || new Date(0)).valueOf() - (a2.emailScannedAt || new Date(0)).valueOf());
-
-          console.log('all accounts', accounts);
           // TEMP: only scanned
           accounts = accounts.filter(a => a.emailScannedAt);
           accounts.length = 3;
 
           const batchSize = 2;
           const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
-
-          console.log(batchedAccounts);
 
           for (let batch of batchedAccounts) {
             try {

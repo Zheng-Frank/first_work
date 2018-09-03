@@ -98,6 +98,12 @@ export class Task {
                         requiredRoles: this.roles
                     }));
                     break;
+                case 'Apply GMB Ownership':
+                    actions.push(new Action({
+                        name: 'Apply GMB',
+                        requiredRoles: this.roles
+                    }));
+                    break;
                 default:
                     actions.push(new Action({
                         name: 'Update',
