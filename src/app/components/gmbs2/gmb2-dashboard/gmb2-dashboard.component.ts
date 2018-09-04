@@ -81,7 +81,7 @@ export class Gmb2DashboardComponent implements OnInit {
       error => {
         this._global.publishAlert(AlertType.Danger, error);
       }
-    );
+      );
   }
 
   async processSection(section) {
@@ -97,6 +97,7 @@ export class Gmb2DashboardComponent implements OnInit {
   }
 
   async scanAllAccounts() {
+    const failedAccounts = [];
     // we would like to scan all based on gmbScannedAt
     return new Promise((resolve, reject) => {
       this._api.get(environment.adminApiUrl + "generic", {
@@ -115,19 +116,35 @@ export class Gmb2DashboardComponent implements OnInit {
           // accounts = accounts.filter(a => a.gmbScannedAt);
           // accounts.length = 4;
 
-          const batchSize = 3;
+          const batchSize = 5;
           const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
 
           for (let batch of batchedAccounts) {
             try {
-              await Promise.all(batch.map(account => this._gmb.scanOneGmbAccountLocations(account)));
-              this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(account => account.email).join(', '), 2000);
+              await Promise.all(batch.map(account =>
+                new Promise((resolve, reject) => {
+                  this._gmb.scanOneGmbAccountLocations(account).then(ok => {
+                    resolve();
+                    this._global.publishAlert(AlertType.Success, '✓ ' + account.email, 2000);
+                  }).catch(error => {
+                    this._global.publishAlert(AlertType.Danger, '✗ ' + account.email);
+                    failedAccounts.push(account);
+                    resolve();
+                  }
+                    );
+                })
+              ));
+
             }
             catch (error) {
               console.log(error);
               this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(account => account.email).join(', '), 2000);
             }
           }
+
+          console.log('Failed accounts:');
+
+          console.log(failedAccounts)
 
           resolve();
         },
@@ -232,7 +249,7 @@ export class Gmb2DashboardComponent implements OnInit {
       resource: "gmbBiz",
       query: {
         qmenuId: { $exists: 1 },
-        score: {$exists: 0}
+        score: { $exists: 0 }
       },
       projection: {
         qmenuId: 1,
@@ -332,5 +349,15 @@ export class Gmb2DashboardComponent implements OnInit {
         },
         error => reject(error));
     });
+  }
+
+  async scanAll() {
+    for (let section of this.sections) {
+      try {
+        await this[section.executeFunction]();
+      } catch (error) {
+      }
+    }
+
   }
 }
