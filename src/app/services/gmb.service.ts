@@ -221,9 +221,9 @@ export class GmbService {
 
   }
 
-  async scanAccountEmails(gmbAccount: GmbAccount) {
+  async scanAccountEmails(gmbAccount: GmbAccount, stayAfterScan?) {
     const abc = await zip(
-      this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: true }),
+      this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: !!stayAfterScan }),
       // get those gmbBiz with email as owner
       this._api.get(environment.adminApiUrl + "generic", {
         query: {

@@ -183,7 +183,7 @@ export class GmbAccountListComponent implements OnInit {
 
   async scanRequests(event: FormEvent) {
     try {
-      let results: any = await this._gmb.scanAccountEmails(event.object);
+      let results: any = await this._gmb.scanAccountEmails(event.object, true);
       event.acknowledge(null);
       this._global.publishAlert(AlertType.Success, 'Scanned ' + event.object.email + ', found: ' + results.length);
     }
@@ -203,7 +203,7 @@ export class GmbAccountListComponent implements OnInit {
     for (let gmbAccount of this.gmbAccounts) {
       try {
         this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
-        await this._gmb.scanAccountEmails(gmbAccount);
+        await this._gmb.scanAccountEmails(gmbAccount, false);
       }
       catch (error) { }
     }

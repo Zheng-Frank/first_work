@@ -331,12 +331,12 @@ export class Gmb2DashboardComponent implements OnInit {
           accounts = accounts.filter(a => a.emailScannedAt);
           accounts.length = 3;
 
-          const batchSize = 2;
+          const batchSize = 4;
           const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
 
           for (let batch of batchedAccounts) {
             try {
-              await Promise.all(batch.map(account => this._gmb.scanAccountEmails(account)));
+              await Promise.all(batch.map(account => this._gmb.scanAccountEmails(account, false)));
               this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(account => account.email).join(', '), 2000);
             }
             catch (error) {
