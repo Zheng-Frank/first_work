@@ -383,17 +383,21 @@ export class GmbBizListComponent implements OnInit {
       return;
     }
 
+    // auto assign to me
     const task = {
       name: 'Apply GMB Ownership',
       scheduledAt: { $date: new Date() },
       description: gmbBiz.name,
       roles: ['GMB', 'ADMIN'],
+      assignee: this._global.user.username,
       score: gmbBiz.score,
       relatedMap: { 'gmbBizId': gmbBiz._id },
       transfer: {}
     };
 
     await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+
+    // also update bizTaskMap!
     this.bizTaskMap[gmbBiz._id] = this.bizTaskMap[gmbBiz._id] || [];
     this.bizTaskMap[gmbBiz._id].push(task.name);
   }
