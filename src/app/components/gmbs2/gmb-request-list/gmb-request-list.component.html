@@ -16,7 +16,7 @@
     <td>{{r.request.date | ago: now}}</td>
     <td>{{r.request.business}}</td>
     <td>{{r.biz?.score}}</td>
-    <td>{{r.accountEmail | emailName}}</td>
+    <td><app-gmb-account-hotlink [email]="r.accountEmail"></app-gmb-account-hotlink></td>
     <td>{{r.request.email | emailName}} <img *ngIf="r.isQmenuRequest" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px"></td>
     <td>
       {{r.task?.comments}}

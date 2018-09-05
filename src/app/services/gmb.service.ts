@@ -253,10 +253,28 @@ export class GmbService {
     // ingore: isReminder, or over 15 days (if it's still not handled, likely the requester didn't care)
     const now = new Date();
 
-    const requests: GmbRequest[] = abc[0].filter(r => !r.isReminder).map(r => new GmbRequest(r)).filter(r => now.valueOf() - r.date.valueOf() < 15 * 24 * 3600 * 1000);
-    // remove isReminder
-    requests.map(r => delete r["isReminder"]);
+    // already sort normally (original is DESC)
+    const requests: GmbRequest[] = abc[0].map(r => new GmbRequest(r)).reverse();
+    // to compare and delete useless (duplicated ones), we need to work backward
+    const before = requests.map(r => r);
+    console.log('before', before);
+    for (let i = requests.length - 1; i >= 0; i--) {
+      const requesterEmail = requests[i].email;
+      const requesterBiz = requests[i].business;
+      for (let j = i - 1; j >= 0; j--) {
+        if (requests[j].email === requesterEmail && requests[j].business === requesterBiz) {
+          requests.splice(i, 1);
+          break;
+        }
+      }
+    }
+    console.log('after', requests);
+    // keep ONLY reminders that have no previous same reminder or request (some have direct reminder without any request!)
 
+    // const requests: GmbRequest[] = abc[0].filter(r => !r.isReminder).map(r => new GmbRequest(r)).filter(r => now.valueOf() - r.date.valueOf() < 15 * 24 * 3600 * 1000);
+
+
+    // existing requests in DB: 
     const gmbRequests: GmbRequest[] = abc[1].map(r => new GmbRequest(r));
     const gmbBizList: GmbBiz[] = abc[2].map(b => new GmbBiz(b)).filter(biz => biz.hasOwnership([gmbAccount.email]));
 
@@ -264,10 +282,10 @@ export class GmbService {
     const bizMap = {};
     gmbBizList.map(b => bizMap[b._id] = b);
 
-    // new requests: same gmbAccount and same date and 
+    // new requests compared to DB (previously scanned and stored, same is defined as "same gmbAccount and same date")
     const newRequests = requests.filter(r => !gmbRequests.some(r2 => r2.business.toLowerCase() === r.business.toLowerCase() && r2.gmbAccountId === gmbAccount._id && r2.date.valueOf() === r.date.valueOf()));
 
-    console.log('new requests: ');
+    console.log('new requests compared to DB: ');
     console.log(newRequests);
 
     const matchedNewRequests = newRequests.filter(r => {
@@ -277,13 +295,14 @@ export class GmbService {
         r.gmbBizId = bizMatch._id;
         return true;
       } else {
-        console.log('non matched: ', r.business);
+        console.log('not managed anymore: ', r.business);
         return false;
       }
     });
 
-    console.log('matched: ');
+    console.log('requests against managed locations: ');
     console.log(matchedNewRequests);
+
 
     // lets convert date but not ids because mongo id doesn't seem to provide benifits for Ids
     (matchedNewRequests as any).map(r => {
@@ -338,7 +357,8 @@ export class GmbService {
     const nonQmenuRequest = matchedNewRequests.filter(r => myAccountEmails.indexOf(r.email.toLowerCase()) < 0);
     const afterIgnore = nonQmenuRequest.filter(r => bizMap[r.gmbBizId] && !bizMap[r.gmbBizId].ignoreGmbOwnershipRequest);
 
-    const afterIgnoreDesc = afterIgnore.sort((r1, r2) => (r1.date['$date'] || r1.date).valueOf() - (r2.date['$date'] || r2.date).valueOf());
+    const afterIgnoreAsending = afterIgnore.sort((r1, r2) => (r1.date['$date'] || r1.date).valueOf() - (r2.date['$date'] || r2.date).valueOf());
+    console.log('afterIgnoreAsending:', afterIgnoreAsending);
 
     // use gmbBizId && gmbAccount email as key to see if there is any outstanding task!
     const outstandingTaskMap = new Set();
@@ -351,8 +371,9 @@ export class GmbService {
     // we have to consider same task in this batch too, so use a loop instead of map to handle this
     const finalLeftUnhandledRequests: GmbRequest[] = [];
 
-    for (let i = 0; i < afterIgnoreDesc.length; i++) {
-      let request = afterIgnoreDesc[i];
+    // asending, so older requests triumphs newer ones
+    for (let i = 0; i < afterIgnoreAsending.length; i++) {
+      let request = afterIgnoreAsending[i];
       if (!outstandingTaskMap.has(request.gmbBizId + request.gmbAccountId)) {
         finalLeftUnhandledRequests.push(request);
         outstandingTaskMap.add(request.gmbBizId + request.gmbAccountId)
@@ -364,7 +385,7 @@ export class GmbService {
         name: 'Transfer GMB Ownership',
         scheduledAt: (date => {
           const d = new Date(date.getTime());
-          d.setDate(d.getDate() + 7);
+          d.setDate(d.getDate() + (r.isReminder ? 3 : 7));  // direct reminder: 3 days left, otherwise 7 days
           return {
             $date: d
           };
@@ -374,7 +395,8 @@ export class GmbService {
         score: bizMap[r.gmbBizId].score,
         relatedMap: { 'gmbBizId': r.gmbBizId, 'gmbAccountId': r.gmbAccountId, 'gmbRequestId': r._id },
         transfer: {
-          fromEmail: gmbAccount.email
+          fromEmail: gmbAccount.email,
+          againstEmail: r.email
         }
       }));
 

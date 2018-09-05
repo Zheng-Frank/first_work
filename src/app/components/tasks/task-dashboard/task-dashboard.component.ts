@@ -16,6 +16,7 @@ export class TaskDashboardComponent {
 
   myTasks: Task[] = [];
   myOpenTasks: Task[] = [];
+  myAssignedTasks: Task[] = [];
   myClosedTasks: Task[] = [];
 
   user: User;
@@ -33,7 +34,9 @@ export class TaskDashboardComponent {
 
   tabs = [
     { value: 'Open', label: 'Open (5)' },
-    { value: 'Closed', label: 'Closed (0)' }, { value: 'Statistics', label: 'Statistics' }
+    { value: 'Mine', label: 'Mine (5)' },
+    { value: 'Closed', label: 'Closed (0)' },
+    { value: 'Statistics', label: 'Statistics' }
   ];
 
   activeTabValue = 'Open';
@@ -44,8 +47,8 @@ export class TaskDashboardComponent {
     this.refresh();
 
     this.transfer = new GmbTransfer(
- 
-      { "fromEmail": "qmenu06@gmail.com"}    );
+
+      { "fromEmail": "qmenu06@gmail.com" });
 
   }
 
@@ -87,12 +90,16 @@ export class TaskDashboardComponent {
     this.groupedTasks = Object.keys(nameMap).map(key => nameMap[key]);
 
     this.myOpenTasks = this.myTasks.filter(t => !t.result);
+    this.myAssignedTasks = this.myTasks.filter(t => !t.result && t.assignee === this.user.username);
     this.myClosedTasks = this.myTasks.filter(t => t.result);
 
     this.tabs.map(tab => {
       switch (tab.value) {
         case 'Open':
           tab.label = 'Open (' + this.myOpenTasks.length + ')';
+          break;
+        case 'Mine':
+          tab.label = 'Mine (' + this.myAssignedTasks.length + ')';
           break;
         case 'Closed':
           tab.label = 'Closed (' + this.myClosedTasks.length + ')';

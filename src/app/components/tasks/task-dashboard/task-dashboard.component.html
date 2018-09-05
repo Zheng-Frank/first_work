@@ -39,6 +39,9 @@
         <div *ngIf="'Open' === activeTabValue">
             <app-task-list [taskList]="myOpenTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
         </div>
+        <div *ngIf="'Mine' === activeTabValue">
+            <app-task-list [taskList]="myAssignedTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+        </div>
         <div *ngIf="'Closed' === activeTabValue">
             <app-task-list [taskList]="myClosedTasks" [user]="user"></app-task-list>
         </div>

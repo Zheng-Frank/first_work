@@ -1,7 +1,8 @@
 <ng-container *ngIf="transfer">
   <!-- {{gmbBiz | json}} -->
   <div class="mb-4">
-    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests". You can complete the task directly.</div>
+    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests". You
+      can complete the task directly.</div>
     <!-- <h4 class="mb-3">GMB Transfer Steps</h4> -->
     <span class="alert alert-warning p-2">{{transfer.fromEmail | emailName}} <button class="btn btn-link fix-v-align" (click)="login(transfer.fromEmail)">Login</button></span>
     →
@@ -162,4 +163,49 @@
     <button class="btn btn-primary" (click)="clickOk()">OK</button>
   </div>
 
+
+  <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}</button>
+  <div class="card border-info" *qIf="showDetails">
+    <div class="card-body">
+      <h4>More Details</h4>
+      <ng-container *ngIf="gmbBiz">
+        <hr>
+        <label>Restaurant:</label>
+        <h6>
+          <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+        </h6>
+
+        <table class="table table-sm" *ngIf="restaurantLogs.length > 0">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Problem</th>
+              <th scope="col">Response</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of restaurantLogs">
+              <td>{{log.time | date: 'short'}}</td>
+              <td>{{log.problem}}</td>
+              <td>{{log.response}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </ng-container>
+      <ng-container *ngIf="gmbAccount">
+        <hr>
+        <label>GMB Account:</label>
+        <h6><app-gmb-account-hotlink [email]="gmbAccount.email"></app-gmb-account-hotlink></h6>
+      </ng-container>
+      <ng-container *ngIf="gmbRequest">
+        <hr>
+        <label>Requester Email:</label>
+        <h6>{{gmbRequest.email}}</h6>
+        <label>Request Date:</label>
+        <h6>{{gmbRequest.date | date: 'short'}}</h6>
+      </ng-container>
+
+    </div>
+  </div>
 </ng-container>

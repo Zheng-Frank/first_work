@@ -6,6 +6,7 @@ import { GmbBiz } from "./gmb-biz";
  * GMB account
  */
 export class GmbTransfer {
+    againstEmail: string;   // usually enemy's email causing transfer
     fromEmail: string;
     toEmail: string;
 

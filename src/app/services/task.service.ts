@@ -58,6 +58,10 @@ export class TaskService {
       scheduledAt: {
         $date: new Date()
       },
+      // fake transfer object (compatible with transfer tasks)
+      transfer: {
+        fromEmail: gmbAccount.email
+      },
       description: gmbBiz.name + ' @ ' + gmbAccount.email.split('@')[0],
       roles: ['GMB', 'ADMIN'],
       score: gmbBizWithScore.score

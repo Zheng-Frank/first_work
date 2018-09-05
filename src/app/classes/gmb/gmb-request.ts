@@ -9,7 +9,7 @@ export class GmbRequest {
     phone: string;
     email: string;
     business: string;
-
+    isReminder: boolean;
 
     againstOwnershipId: string;
     

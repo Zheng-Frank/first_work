@@ -11,6 +11,7 @@ import { zip } from 'rxjs';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { mergeMap } from 'rxjs/operators';
 import { Restaurant } from '@qmenu/ui';
+import { Log } from '../../../classes/log';
 
 @Component({
   selector: 'app-task-gmb-transfer',
@@ -24,6 +25,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   @Input() task: Task;
 
+
+  showDetails = false;
 
   transfer: GmbTransfer;
   gmbBiz: GmbBiz;
@@ -98,6 +101,51 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   ngOnInit() {
   }
 
+  gmbRequest;
+  gmbAccount;
+  restaurantLogs: Log[] = [];
+  refreshRelated() {
+    this.restaurantLogs = [];
+    ['gmbBiz', 'gmbRequest', 'gmbAccount'].forEach(obj => {
+      this[obj] = undefined;
+      if (this.task.relatedMap[obj + 'Id']) {
+        this._api.get(environment.adminApiUrl + "generic", {
+          resource: obj,
+          query: {
+            _id: { $oid: this.task.relatedMap[obj + 'Id'] }
+          },
+          limit: 1
+        }).subscribe(results => {
+          this[obj] = results[0];
+          if (obj === 'gmbBiz' && results[0] && results[0].qmenuId) {
+            this.refreshLogs();
+          }
+        });
+      }
+    });
+  }
+
+  refreshLogs() {
+    this.restaurantLogs = [];
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        _id: { $oid: this.gmbBiz.qmenuId }
+      },
+      projection: {
+        logs: 1
+      },
+      limit: 1
+    }).subscribe(
+      results => {
+        if (results[0] && results[0].logs) {
+          this.restaurantLogs = results[0].logs.map(log => new Log(log));
+          // sort DESC
+          this.restaurantLogs = this.restaurantLogs.sort((a, b) => b.time.valueOf() - b.time.valueOf());
+        }
+      });
+  }
+
   getFilteredAccounts() {
     if (this.transfer) {
       return this.accounts.filter(a => a.email !== this.transfer.fromEmail);
@@ -117,6 +165,9 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
       this.transfer = this.task.transfer;
       this.comments = this.task.comments;
       this.populateGmbBiz();
+      if (this.task) {
+        this.refreshRelated();
+      }
     }
   }
 

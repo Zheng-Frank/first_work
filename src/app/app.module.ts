@@ -100,6 +100,7 @@ import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/t
 import { GmbService } from './services/gmb.service';
 import { TaskService } from './services/task.service';
 import { TaskGmbApplyComponent } from './components/tasks/task-gmb-apply/task-gmb-apply.component';
+import { GmbAccountHotlinkComponent } from './components/gmbs2/gmb-account-hotlink/gmb-account-hotlink.component';
  
 @NgModule({
   declarations: [
@@ -186,7 +187,8 @@ import { TaskGmbApplyComponent } from './components/tasks/task-gmb-apply/task-gm
     TaskActionBarComponent,
     EmailCodeReaderComponent,
     TaskGmbTransferComponent,
-    TaskGmbApplyComponent
+    TaskGmbApplyComponent,
+    GmbAccountHotlinkComponent
   ],
   imports: [
     BrowserModule,
