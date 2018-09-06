@@ -320,18 +320,17 @@ export class Gmb2DashboardComponent implements OnInit {
         resource: "gmbAccount",
         projection: {
           email: 1,
-          password: 1,
-          emailScannedAt: 1
+          password: 1
         },
         limit: 5000
       }).subscribe(
         async accounts => {
           accounts = accounts.map(a => new GmbAccount(a)).sort((a1, a2) => (a1.emailScannedAt || new Date(0)).valueOf() - (a2.emailScannedAt || new Date(0)).valueOf());
           // TEMP: only scanned
-          accounts = accounts.filter(a => a.emailScannedAt);
-          accounts.length = 3;
+          // accounts = accounts.filter(a => a.emailScannedAt);
+          // accounts.length = 3;
 
-          const batchSize = 4;
+          const batchSize = 3;
           const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
 
           for (let batch of batchedAccounts) {
