@@ -320,7 +320,8 @@ export class Gmb2DashboardComponent implements OnInit {
         resource: "gmbAccount",
         projection: {
           email: 1,
-          password: 1
+          password: 1,
+          emailScannedAt: 1
         },
         limit: 5000
       }).subscribe(
