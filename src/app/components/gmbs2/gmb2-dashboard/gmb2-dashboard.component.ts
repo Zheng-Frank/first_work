@@ -81,7 +81,7 @@ export class Gmb2DashboardComponent implements OnInit {
       error => {
         this._global.publishAlert(AlertType.Danger, error);
       }
-      );
+    );
   }
 
   async processSection(section) {
@@ -131,7 +131,7 @@ export class Gmb2DashboardComponent implements OnInit {
                     failedAccounts.push(account);
                     resolve();
                   }
-                    );
+                  );
                 })
               ));
 
@@ -352,10 +352,12 @@ export class Gmb2DashboardComponent implements OnInit {
   }
 
   async scanAll() {
-    for (let section of this.sections) {
-      try {
-        await this[section.executeFunction]();
-      } catch (error) {
+    for (let i = 0; i < 3; i++) {
+      for (let section of this.sections) {
+        try {
+          await this[section.executeFunction]();
+        } catch (error) {
+        }
       }
     }
 
