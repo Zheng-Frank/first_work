@@ -4,6 +4,8 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { mergeMap } from "rxjs/operators";
+import { zip } from "rxjs";
+
 @Component({
   selector: "app-restaurant-dashboard",
   templateUrl: "./restaurant-dashboard.component.html",
@@ -79,30 +81,43 @@ export class RestaurantDashboardComponent implements OnInit {
     // 2. remove the restaurant (forget about dangling dependencies at this moment)
     this.requesting = true;
     let nameOfRestaurant = '';
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "restaurant",
-      query: {
-        _id: { $oid: this.removeId || 'non-existing' }
-      },
-      projection: {
-        name: 1
-      },
-      limit: 6000
-    }).pipe(
-      mergeMap(result => {
-        if (result.length === 0) {
-          throw 'No restaurant found!';
-        } else {
-          nameOfRestaurant = result[0].name;
-          return this._api.delete(
-            environment.qmenuApiUrl + "generic",
-            {
-              resource: 'restaurant',
-              ids: [result[0]._id]
-            }
-          );
-        }
-      }))
+    zip(
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          _id: { $oid: this.removeId || 'non-existing' }
+        },
+        projection: {
+          name: 1
+        },
+        limit: 6000
+      }),
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {
+          restaurant: { $oid: this.removeId }
+        },
+        projection: {
+          name: 1
+        },
+        limit: 6
+      }),
+    )
+      .pipe(
+        mergeMap(result => {
+          if (result[1].length > 0) {
+            throw 'This restaurant has orders!';
+          } else {
+            nameOfRestaurant = result[0][0].name;
+            return this._api.delete(
+              environment.qmenuApiUrl + "generic",
+              {
+                resource: 'restaurant',
+                ids: [result[0][0]._id]
+              }
+            );
+          }
+        }))
       .subscribe(
         result => {
           this._global.publishAlert(AlertType.Success, nameOfRestaurant + " is removed!");
