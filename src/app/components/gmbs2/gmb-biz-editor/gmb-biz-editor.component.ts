@@ -60,6 +60,11 @@ export class GmbBizEditorComponent implements OnInit, OnChanges {
         required: false
       },
       {
+        field: "bizManagedWebsite",
+        label: "Restaurant Insisted Website",
+        required: false
+      },
+      {
         field: "comments",
         label: "Comments",
         inputType: "textarea",

@@ -187,6 +187,7 @@ export class GlobalService {
     hanyi: "hanyi.png",
     menufy: "menufy.png",
     qmenu: "qmenu.png",
+    "qmenu-gray": "qmenu-gray.png",
     redpassion: "redpassion.png",
     slicelife: "slicelife.png",
     seamless: "seamless.png",

@@ -122,7 +122,7 @@
 
   <div class="mb-4" *ngIf="gmbBiz?.qmenuWebsite">
     <label>
-      Inject Qmenu Website
+      Inject qMenu Website
     </label>
     <a href="{{gmbBiz?.qmenuWebsite}}" target="_blank" class="d-block mb-2">{{gmbBiz?.qmenuWebsite}}</a>
     <button class="btn btn-sm btn-info d-block" [qLoading]="updatingWebsite" (click)="handleUpdate('updateWebsite', 'websiteUpdatedAt', 'updatingWebsite')">Inject</button>

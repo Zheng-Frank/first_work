@@ -7,7 +7,7 @@ import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
 import { FormEvent } from '@qmenu/ui';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, ignoreElements } from 'rxjs/operators';
 import { GmbService } from '../../../services/gmb.service';
 import { Task } from '../../../classes/tasks/task';
 
@@ -272,7 +272,10 @@ export class GmbBizListComponent implements OnInit {
     return this.processingBizSet.has(biz);
   }
 
-  getLogo(gmbBiz) {
+  getLogo(gmbBiz: GmbBiz) {
+    if(gmbBiz.bizManagedWebsite && gmbBiz.gmbOwner === 'qmenu') {
+      return GlobalService.serviceProviderMap['qmenu-gray'];
+    }
     return GlobalService.serviceProviderMap[gmbBiz.gmbOwner];
   }
 
@@ -361,6 +364,11 @@ export class GmbBizListComponent implements OnInit {
       return Promise.reject('No email');
     }
     this._gmb.updateGmbWebsite(gmbBiz);
+  }
+
+  async injectScore(gmbBiz) {
+    const score = await this._gmb.injectOneScore(gmbBiz);
+    gmbBiz.score = score;
   }
 
   async createApplyTask(gmbBiz: GmbBiz) {

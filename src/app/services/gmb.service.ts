@@ -196,7 +196,17 @@ export class GmbService {
     if (!place_idEqual && !nameEqual && !zipcodeEqual) {
       throw 'Crawl error: nothing matches, ' + gmbBiz.name;
     }
-
+    // handle bizManagedWebsite --> qmenu-gray
+    if(crawledResult.gmbWebsite && gmbBiz.bizManagedWebsite ) {
+      // same domain name \?
+      const u1 = new URL(crawledResult.gmbWebsite);
+      const u2 = new URL(gmbBiz.bizManagedWebsite);
+      const parts1 = u1.host.split('.');
+      const parts2 = u2.host.split('.');
+      if(parts1[parts1.length - 2] === parts2[parts2.length -2]) {
+        crawledResult.gmbOwner = 'qmenu';
+      }
+    }
     const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls'].map(key => ({ key: key, value: crawledResult[key] }));
 
     // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite
@@ -446,9 +456,56 @@ export class GmbService {
         email: account.email,
         password: account.password,
         website: biz.qmenuWebsite,
+        bizManagedWebsite: biz.bizManagedWebsite,
         appealId: biz.appealId
       }
     ).toPromise();
   }
+
+
+
+  async injectOneScore(biz: GmbBiz) {
+
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        restaurant: {
+          $oid: biz.qmenuId
+        }
+      },
+      projection: {
+        createdAt: 1
+      },
+      sort: { createdAt: -1 },
+      limit: 100
+    }).toPromise();
+    const score = this.getScore(orders);
+    // update biz's score
+    biz.score = score;
+    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", [
+      {
+        old: {
+          _id: biz._id
+        },
+        new: {
+          _id: biz._id,
+          score: score
+        }
+      }
+    ]).toPromise();
+    return score;
+  }
+
+  private getScore(orders) {
+    // counting days with orders (having gmbs?) and do an average
+    const dateMap = {};
+    // "2018-08-10T00:26:03.990Z" ==> "Thu Aug 09 2018"
+    orders.map(order => {
+      const key = new Date(order.createdAt).toDateString();
+      dateMap[key] = dateMap[key] ? dateMap[key] + 1 : 1;
+    });
+    return Math.floor(orders.length / (Object.keys(dateMap).length || 1));
+  }
+
 
 }

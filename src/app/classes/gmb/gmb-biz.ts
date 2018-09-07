@@ -20,6 +20,9 @@ export class GmbBiz {
     gmbWebsite: string;
     gmbOpen: boolean;
     menuUrls: string[];
+
+    // 
+    bizManagedWebsite: string;
     // qMenu related information (injected to listing once we have ownership)
     qmenuWebsite: string;
     qmenuPop3Email: string;
