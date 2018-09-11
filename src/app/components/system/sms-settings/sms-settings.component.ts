@@ -29,7 +29,7 @@ export class SmsSettingsComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, 'Error querying system');
     }
   }
-  updateSmsProvider(smsProvider) {
+  updateProvider(smsProvider) {
     console.log(smsProvider);
   }
 
