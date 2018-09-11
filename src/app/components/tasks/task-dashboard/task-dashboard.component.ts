@@ -26,6 +26,17 @@ export class TaskDashboardComponent {
   groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
 
 
+  currentAction = null;
+  requesting = false;
+
+  addTask() {
+    setTimeout(() => this.requesting = false, 4000);
+  }
+
+  toggleAction(action) {
+    this.currentAction = this.currentAction === action ? null : action;
+  }
+
   statuses = [
     { name: 'OPEN', btnClass: 'btn-secondary' },
     { name: 'ASSIGNED', btnClass: 'btn-info' },
@@ -111,10 +122,6 @@ export class TaskDashboardComponent {
 
   }
 
-  generateTask() {
-
-    alert('to be implemented')
-  }
 
   updateTask(event) {
     // find and replace the task

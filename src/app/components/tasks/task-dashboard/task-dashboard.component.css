@@ -16,3 +16,7 @@
     right: 0.25rem;
     top: 0.25rem;
 }
+
+.w-40-rem {
+    max-width: 40rem;
+}

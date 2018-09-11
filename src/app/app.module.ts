@@ -101,6 +101,9 @@ import { GmbService } from './services/gmb.service';
 import { TaskService } from './services/task.service';
 import { TaskGmbApplyComponent } from './components/tasks/task-gmb-apply/task-gmb-apply.component';
 import { GmbAccountHotlinkComponent } from './components/gmbs2/gmb-account-hotlink/gmb-account-hotlink.component';
+import { TaskGeneratorComponent } from './components/tasks/task-generator/task-generator.component';
+import { SmsSettingsComponent } from './components/system/sms-settings/sms-settings.component';
+import { FaxSettingsComponent } from './components/system/fax-settings/fax-settings.component';
  
 @NgModule({
   declarations: [
@@ -188,7 +191,10 @@ import { GmbAccountHotlinkComponent } from './components/gmbs2/gmb-account-hotli
     EmailCodeReaderComponent,
     TaskGmbTransferComponent,
     TaskGmbApplyComponent,
-    GmbAccountHotlinkComponent
+    GmbAccountHotlinkComponent,
+    TaskGeneratorComponent,
+    SmsSettingsComponent,
+    FaxSettingsComponent
   ],
   imports: [
     BrowserModule,

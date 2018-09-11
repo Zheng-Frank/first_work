@@ -9,7 +9,7 @@ import { Task } from "./task";
  */
 
 export class TaskTemplates {
-
+    
     static templates = [
         {
             name: 'Request GMB Ownership',
