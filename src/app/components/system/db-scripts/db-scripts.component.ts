@@ -958,9 +958,6 @@ export class DbScriptsComponent implements OnInit {
         }
       }))
     ).toPromise();
-
-
-
   }
 
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -22,6 +22,7 @@ interface myBiz {
 @Component({
   selector: 'app-gmb-biz-list',
   templateUrl: './gmb-biz-list.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush, 
   styleUrls: ['./gmb-biz-list.component.css']
 })
 export class GmbBizListComponent implements OnInit {
@@ -35,6 +36,7 @@ export class GmbBizListComponent implements OnInit {
   googleListingOwner;
   notScanned3 = false;
   onlyLost = false;
+  onlyMissingManagedWebsite;
 
 
   filteredMyBizList: myBiz[] = [];
@@ -92,7 +94,7 @@ export class GmbBizListComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _ref: ChangeDetectorRef) {
     this.refresh();
   }
   ngOnInit() {
@@ -231,6 +233,12 @@ export class GmbBizListComponent implements OnInit {
       this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwnerships && b.gmbBiz.gmbOwnerships.length > 0 && !b.gmbBiz.gmbOwnerships[b.gmbBiz.gmbOwnerships.length - 1].email);
     }
 
+    if(this.onlyMissingManagedWebsite) {
+      this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.qmenuWebsite);
+    }
+    console.log('filter time: ', new Date().valueOf() - start.valueOf());
+
+    this._ref.detectChanges();
   }
 
   getOutstandingTasks(gmbBiz: GmbBiz) {
@@ -246,6 +254,7 @@ export class GmbBizListComponent implements OnInit {
     for (let b of sortedBizList) {
       try {
         let result = await this.crawl(b.gmbBiz);
+  
       } catch (error) {
         console.log(error);
         this._global.publishAlert(AlertType.Danger, 'Error crawling ' + b.gmbBiz.name);
@@ -260,7 +269,8 @@ export class GmbBizListComponent implements OnInit {
       let result = await this._gmb.crawlOneGoogleListing(biz);
       this.now = new Date();
       this.processingBizSet.delete(biz);
-      this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);
+      this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);     
+       this._ref.detectChanges();
     } catch (error) {
       console.log(error);
       this.processingBizSet.delete(biz);
@@ -352,6 +362,7 @@ export class GmbBizListComponent implements OnInit {
     try {
       await this._gmb.updateGmbWebsite(biz);
       this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);
+      this._ref.detectChanges();
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Erro Updating ' + biz.name + ', ' + error);
@@ -364,11 +375,13 @@ export class GmbBizListComponent implements OnInit {
       return Promise.reject('No email');
     }
     this._gmb.updateGmbWebsite(gmbBiz);
+    this._ref.detectChanges();
   }
 
   async injectScore(gmbBiz) {
     const score = await this._gmb.injectOneScore(gmbBiz);
     gmbBiz.score = score;
+    this._ref.detectChanges();
   }
 
   async createApplyTask(gmbBiz: GmbBiz) {
@@ -408,6 +421,7 @@ export class GmbBizListComponent implements OnInit {
     // also update bizTaskMap!
     this.bizTaskMap[gmbBiz._id] = this.bizTaskMap[gmbBiz._id] || [];
     this.bizTaskMap[gmbBiz._id].push(task.name);
+    this._ref.detectChanges();
   }
 
 }

@@ -22,7 +22,7 @@
     <div class="form-check ml-4">
       <input class="form-check-input" type="checkbox" [(ngModel)]="notScanned3" (change)="filterBizList()" id="notScannedCheckbox">
       <label class="form-check-label" for="notScannedCheckbox">
-        Not Scanned in 3 Days {{notScanned3}}
+        Not Scanned in 3 Days
       </label>
     </div>
 
@@ -30,6 +30,13 @@
       <input class="form-check-input" type="checkbox" [(ngModel)]="onlyLost" (change)="filterBizList()" id="lostCheckbox">
       <label class="form-check-label" for="lostCheckbox">
         Only lost
+      </label>
+    </div>
+
+    <div class="form-check ml-4">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="onlyMissingManagedWebsite" (change)="filterBizList()" id="noWebsiteCheckbox">
+      <label class="form-check-label" for="noWebsiteCheckbox">
+        Only missing qMenu website
       </label>
     </div>
 
@@ -43,7 +50,6 @@
 </div>
 
 <q-table [rows]="filteredMyBizList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <!-- <tr *tableRowTemplate="let biz;" [ngClass]="{'list-group-item-danger': !biz.owned }"> -->
   <tr *tableRowTemplate="let biz;">
     <td>
       <div class="dropdown">
@@ -72,7 +78,11 @@
     <td>{{biz.gmbBiz.score}}</td>
     <!-- <td>{{biz.ownershipPercentage}}%</td> -->
     <td>
-      <small>{{biz.transfers}}</small>
+      <small>
+        <span *ngFor="let o of (biz.gmbBiz.gmbOwnerships || []); let i=index"><app-gmb-account-hotlink [email]="o.email"></app-gmb-account-hotlink><span
+            *ngIf="i < biz.gmbBiz.gmbOwnerships.length - 1">→</span></span>
+      </small>
+      <!-- {{biz.transfers}} -->
     </td>
     <td class="text-center">
       <img *ngIf="biz.owned" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
@@ -101,7 +111,8 @@
         <div class="dropdown-menu dropdown-menu-right">
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="inject(biz.gmbBiz)">Inject qMenu</button>
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="crawl(biz.gmbBiz)">G-Crawl</button>
-          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="createApplyTask(biz.gmbBiz)">Create Apply-GMB Task</button>
+          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="createApplyTask(biz.gmbBiz)">Create
+            Apply-GMB Task</button>
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="injectScore(biz.gmbBiz)">Inject Score</button>
           <button class="dropdown-item" (click)="edit(biz.gmbBiz)">Edit</button>
         </div>

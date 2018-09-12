@@ -47,7 +47,7 @@ export class TaskService {
     }
 
     const gmbBizWithScore: GmbBiz = results[1][0];
-    
+
     const newTask = {
       name: 'Appeal Suspended GMB',
       relatedMap: {
@@ -72,6 +72,66 @@ export class TaskService {
     newTask['_id'] = result[0];
     newTask['scheduledAt'] = new Date();
     return newTask;
+  }
+
+  /**
+   * This will remove non-claimed, non-closed, invalid transfer task (where original GMB ownership's lost!)
+   */
+  async purgeTransferTasks() {
+    const openNonClaimedTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Transfer GMB Ownership',
+        assignee: null
+      },
+      limit: 500
+    }).toPromise();
+
+    const bizIds = openNonClaimedTransferTasks.map(task => task.relatedMap.gmbBizId);
+
+    const gmbBizList = [];
+
+    const batchSize = 100;
+
+    while (bizIds.length > 0) {
+      const slice = bizIds.splice(0, batchSize);
+      const list = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          _id: { $in: slice.map(id => ({ $oid: id })) },
+        },
+        projection: {
+          gmbOwnerships: 1
+        },
+        limit: 5000
+      }).toPromise();
+      gmbBizList.push(...list);
+    }
+
+    const bizMap = {};
+    gmbBizList.map(b => bizMap[b._id] = b);
+
+    const toBeClosed = openNonClaimedTransferTasks.filter(t => {
+      const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
+      return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email !== t.transfer.fromEmail;
+    });
+
+    // patch those tasks to be closed! by system
+    const pairs = toBeClosed.map(t => ({
+      old: {
+        _id: t._id
+      },
+      new: {
+        _id: t._id,
+        assignee: 'system',
+        result: 'CANCELED',
+        resultAt: { $date: new Date() }
+      }
+    }));
+
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+
+    return toBeClosed;
   }
 
 }

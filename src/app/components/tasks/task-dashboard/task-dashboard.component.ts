@@ -6,6 +6,8 @@ import { GlobalService } from '../../../services/global.service';
 import { User } from '../../../classes/user';
 import { GmbTransfer } from '../../../classes/gmb/gmb-transfer';
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
+import { TaskService } from '../../../services/task.service';
+import { AlertType } from '../../../classes/alert-type';
 
 @Component({
   selector: 'app-task-dashboard',
@@ -22,6 +24,8 @@ export class TaskDashboardComponent {
   user: User;
 
   refreshing = false;
+
+  purging = false;
 
   groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
 
@@ -51,7 +55,7 @@ export class TaskDashboardComponent {
   ];
 
   activeTabValue = 'Open';
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
 
     this.user = this._global.user;
 
@@ -140,6 +144,16 @@ export class TaskDashboardComponent {
     this.activeTabValue = tab.value;
   }
 
-
-
+  async purge() {
+    this.purging = true;
+    try {
+      const purgedTasks = await this._task.purgeTransferTasks();
+      console.log('purged: ', purgedTasks)
+      this._global.publishAlert(AlertType.Success, 'Purged ' + purgedTasks.length +', check console for details');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
+     }
+    this.purging = false;
+    this.refresh();
+  }
 }
