@@ -48,8 +48,8 @@ export class TaskDashboardComponent {
     { name: 'CANCELED', btnClass: 'btn-danger' }]
 
   tabs = [
-    { value: 'Open', label: 'Open (5)' },
-    { value: 'Mine', label: 'Mine (5)' },
+    { value: 'Open', label: 'Open (0)' },
+    { value: 'Mine', label: 'Mine (0)' },
     { value: 'Closed', label: 'Closed (0)' },
     { value: 'Statistics', label: 'Statistics' }
   ];

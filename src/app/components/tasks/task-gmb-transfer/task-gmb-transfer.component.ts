@@ -36,6 +36,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   gmbRejecting = false;
   gmbAppealing = false;
   savingCode = false;
+  savingAppealId = false;
   verifyingCode = false;
   updatingWebsite = false;
   completing = false;
@@ -48,6 +49,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   taskScheduledAt = new Date();
 
   comments: string;
+
+  toggleManualAppeal = false;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
 
@@ -490,6 +493,11 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             // because input code is bound to transfer already, we actually need to delete it so
             delete oldTask.transfer.code;
             newBareTask.transfer.code = this.transfer.code;
+            break;
+          case 'saveAppealId':
+            // because input appealId is bound to transfer already, we actually need to delete it so
+            delete oldTask.transfer.appealId;
+            newBareTask.transfer.appealId = this.transfer.appealId;
             break;
           case 'retrieve':
             this.transfer.code = result;

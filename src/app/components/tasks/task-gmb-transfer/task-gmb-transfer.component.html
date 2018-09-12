@@ -9,7 +9,7 @@
     <span class="alert alert-warning p-2" *ngIf="transfer.toEmail">{{transfer.toEmail | emailName}} <button class="btn btn-link fix-v-align"
         (click)="login(transfer.toEmail)">Login</button></span>
   </div>
-  <div class="mb-4" *ngIf="!transfer.toEmail">
+  <div class="mb-4" *ngIf="!transfer.requestedAt">
     <label>
       Select B (Target Account)
       <span *ngIf="toGmb" class="text-success"> ✓</span>
@@ -58,10 +58,21 @@
     <div *ngIf="!transfer.appealedAt">
       <button class="btn btn-sm btn-info" [qLoading]="gmbAppealing" [disabled]="!transfer.rejectedAt" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Appeal</button>
     </div>
+    <div *ngIf="transfer.request">
+      <button class="btn btn-link pl-0" (click)="toggleManualAppeal = !toggleManualAppeal">Manually input appeal ID?</button>
+      <div *qIf="toggleManualAppeal">
+          <div class="form-inline">
+              <input [(ngModel)]="transfer.appealId" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;" placeholder="appeal ID goes here">
+              <button class="btn btn-sm btn-info mb-2" [qLoading]="savingAppealId" (click)="handleUpdate('saveAppealId', 'appealedAt', 'savingAppealId')">Save
+                Appeal ID
+              </button>
+            </div>
+      </div>
+    </div>
     <div *ngIf="transfer.appealedAt">
       Appealed {{transfer.appealedAt | ago: now}} ID: {{transfer.appealId}}
       <div>
-        <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing" [disabled]="!transfer.rejectedAt" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Re-Appeal</button>
+        <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Re-Appeal</button>
       </div>
       Selected Verification Method:
       <div>
