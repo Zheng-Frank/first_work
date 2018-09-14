@@ -13,7 +13,7 @@ import { AlertType } from '../../../classes/alert-type';
 export class GmbAccountHotlinkComponent implements OnInit {
 
   @Input() email;
-  @Input() targetPage = 'EMAIL'; // or 'GMB'
+  @Input() targetPage = 'GMB'; // or 'EMAIL'
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 

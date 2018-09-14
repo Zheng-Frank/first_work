@@ -31,6 +31,8 @@ export class Task {
 
     relatedMap: any;   // {gmbBizId: xxxx, gmbRequestId: xxxx, ....}
 
+    etc: any;
+
     transfer: GmbTransfer; // this should not be here! but for temp tasks, let's attach this 
 
     comments: string;
@@ -101,6 +103,12 @@ export class Task {
                 case 'Apply GMB Ownership':
                     actions.push(new Action({
                         name: 'Apply GMB',
+                        requiredRoles: this.roles
+                    }));
+                    break;
+                case 'Appeal Suspended GMB':
+                    actions.push(new Action({
+                        name: 'Appeal Suspended',
                         requiredRoles: this.roles
                     }));
                     break;

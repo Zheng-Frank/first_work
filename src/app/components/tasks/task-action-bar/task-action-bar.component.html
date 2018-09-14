@@ -10,7 +10,8 @@
 <q-modal #taskActionerModal [title]="activeAction?.name">
     <app-task-gmb-apply *ngIf="activeAction?.name === 'Apply GMB'" [task]="task" (ok)="cancelAction()"></app-task-gmb-apply>
     <app-task-gmb-transfer *ngIf="activeAction?.name === 'Transfer'" [task]="task" (ok)="cancelAction()"></app-task-gmb-transfer>
-    <app-task-generic-handler *ngIf="['Transfer', 'Apply GMB'].indexOf(activeAction?.name) === -1" (cancel)="cancelAction($event)" (done)="finishAction($event)"
+    <app-task-gmb-appeal-suspended *ngIf="activeAction?.name === 'Appeal Suspended'" [task]="task" (ok)="cancelAction()"></app-task-gmb-appeal-suspended>
+    <app-task-generic-handler *ngIf="['Transfer', 'Apply GMB', 'Appeal Suspended'].indexOf(activeAction?.name) === -1" (cancel)="cancelAction($event)" (done)="finishAction($event)"
         [action]="activeAction" [task]="task"></app-task-generic-handler>
 
 </q-modal>
