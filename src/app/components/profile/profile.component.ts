@@ -44,6 +44,10 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  getUser() {
+    return this._global.user;
+  }
+
   shouldShowMyMarketers() {
     return this._global.isUserInRoles(["ADMIN", "MARKETING_DIRECTOR"]);
   }
