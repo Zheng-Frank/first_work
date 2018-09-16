@@ -58,8 +58,7 @@ export class TaskService {
       scheduledAt: {
         $date: new Date()
       },
-      // fake transfer object (compatible with transfer tasks)
-      transfer: {
+      etc: {
         fromEmail: gmbAccount.email
       },
       description: gmbBiz.name + ' @ ' + gmbAccount.email.split('@')[0],
@@ -82,7 +81,8 @@ export class TaskService {
       resource: 'task',
       query: {
         name: 'Transfer GMB Ownership',
-        assignee: null
+        assignee: null,
+        result: null
       },
       limit: 500
     }).toPromise();
@@ -114,6 +114,71 @@ export class TaskService {
     const toBeClosed = openNonClaimedTransferTasks.filter(t => {
       const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
       return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email !== t.transfer.fromEmail;
+    });
+
+    // patch those tasks to be closed! by system
+    const pairs = toBeClosed.map(t => ({
+      old: {
+        _id: t._id
+      },
+      new: {
+        _id: t._id,
+        assignee: 'system',
+        result: 'CANCELED',
+        resultAt: { $date: new Date() }
+      }
+    }));
+
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+
+    return toBeClosed;
+  }
+
+    /**
+   * This will remove non-claimed, non-closed, invalid transfer task (where original GMB ownership's lost!)
+   */
+  async purgeAppealTasks() {
+    const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Appeal Suspended GMB',
+        assignee: null,
+        result: null
+      },
+      limit: 500
+    }).toPromise();
+
+    console.log(openAppealTasks);
+
+    const bizIds = openAppealTasks.map(task => task.relatedMap.gmbBizId);
+
+    const gmbBizList = [];
+
+    const batchSize = 100;
+
+    while (bizIds.length > 0) {
+      const slice = bizIds.splice(0, batchSize);
+      const list = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          _id: { $in: slice.map(id => ({ $oid: id })) },
+        },
+        projection: {
+          gmbOwnerships: 1
+        },
+        limit: 5000
+      }).toPromise();
+      gmbBizList.push(...list);
+    }
+
+    const bizMap = {};
+    gmbBizList.map(b => bizMap[b._id] = b);
+
+
+    // find those that's published (last ownership has email!)
+    const toBeClosed = openAppealTasks.filter(t => {
+      const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
+      return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email;
     });
 
     // patch those tasks to be closed! by system

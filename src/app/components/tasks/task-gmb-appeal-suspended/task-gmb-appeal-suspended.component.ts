@@ -149,12 +149,15 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
             bizName: this.gmbBiz.name,
             address: this.gmbBiz.address,
             website: this.gmbBiz.bizManagedWebsite || this.gmbBiz.qmenuWebsite,
-            phone: this.gmbBiz.phone
+            phone: this.gmbBiz.phone,
+            appealId: this.gmbBiz.appealId
           }
         }
       ).toPromise();
 
       const appealedAt = new Date();
+      const appealedAt7 = new Date();
+      appealedAt7.setDate(appealedAt.getDate() + 7);
       await this._api.patch(environment.adminApiUrl + 'generic?resource=task', [
         {
           old: {
@@ -164,13 +167,16 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
             _id: this.task._id,
             etc: {
               appealedAt: { $date: appealedAt }
-            }
+            },
+            scheduledAt: { $date: appealedAt7 }
           }
         }
       ]).toPromise();
-
+      //update original
       this.task.etc.appealedAt = appealedAt;
+      this.task.scheduledAt = appealedAt7;
 
+      this.gmbAppealing = false;
     } catch (error) {
       this.gmbAppealing = false;
       this._global.publishAlert(AlertType.Danger, 'Error appealing');
@@ -181,7 +187,10 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
 
   plusDay(i) {
 
-    this.task.scheduledAt.setDate(this.task.scheduledAt.getDate() + i);
+    const newDate = new Date(this.task.scheduledAt);
+    newDate.setDate(newDate.getDate() + i);
+    this.task.scheduledAt = newDate;
+
     this.scheduledAtUpdated();
   }
 
@@ -230,7 +239,9 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
     if (this.comments !== this.task.comments) {
       newTask.comments = this.comments;
     }
-    this.saveTask(oldTask, newTask)
+    if (updated) {
+      this.saveTask(oldTask, newTask)
+    }
     this.ok.emit();
   }
 

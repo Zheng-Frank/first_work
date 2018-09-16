@@ -56,6 +56,11 @@ export class Task {
             if (task.transfer) {
                 this.transfer = new GmbTransfer(task.transfer);
             }
+
+            // BAD code: very specific dates conversion
+            if(task.etc && task.etc.appealedAt) {
+                task.etc.appealedAt =  new Date((Date.parse(task.etc.appealedAt)));
+            }
         }
 
     }

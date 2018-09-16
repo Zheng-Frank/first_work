@@ -1,4 +1,3 @@
-<div class="alert alert-danger">STOP. CHECKBACK TOMORROW. NOT IMPLEMENTED YET.</div>
 <ng-container *ngIf="task">
   <div class="mb-4">
     <label>GMB Account</label>
@@ -29,6 +28,8 @@
       <div>
         <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing" (click)="appeal()">Re-Appeal</button>
       </div>
+
+      <div class="alert alert-warning">Task was postponed 7 days automatically after appeal.</div>
 
     </div>
   </div>

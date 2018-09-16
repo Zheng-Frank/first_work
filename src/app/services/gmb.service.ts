@@ -38,9 +38,11 @@ export class GmbService {
       }
     }
 
+
     // register locations as gmbBiz
     const place_ids = locations.map(loc => loc.place_id);
 
+    // let's get all existing bizList
     const existingGmbBizList = await
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
@@ -60,7 +62,7 @@ export class GmbService {
         limit: 5000
       }).toPromise();
 
-    // we have either inserted (no place_id found!) new or updated!
+    // if no place_id found in DB, it must be new!
     const locationsToInsert: GmbLocation[] = locations.filter(loc => !existingGmbBizList.some(biz => biz.place_id === loc.place_id));
     const newBizList = locationsToInsert.map(loc => ({
       address: loc.address,
@@ -80,12 +82,14 @@ export class GmbService {
           []
     }));
 
+    // Save new locations to DB
     if (locationsToInsert.length > 0) {
       const newBizListIds = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', newBizList).toPromise();
       // inject ids
       newBizListIds.map((id, index) => newBizList[index]['_id'] = id);
     }
 
+    // If place_id is in DB, then it's maybe something to update
     const locationsToUpdate = locations.filter(loc => existingGmbBizList.some(biz => biz.place_id === loc.place_id));
 
     const pairs = locationsToUpdate.map(loc => ({
@@ -150,10 +154,110 @@ export class GmbService {
     // update original:
     gmbAccount.gmbScannedAt = new Date();
 
+
+    // Some scope variables
+    const idBizMap: any = new Map(existingGmbBizList.map(biz => [biz._id, biz]));
+    const placeIdLocationMap = new Map(locations.map(loc => [loc.place_id, loc]));
+    const placeIdBizMap = new Map(existingGmbBizList.map(biz => [biz.place_id, biz]));
+    const toBeClosedTasks = [];
+
+    // invalidate some A -> B transfer task: if 
+    // 1. open
+    // 2. non-assigned
+    // 3. from email == this.account
+    // 4. biz not suspended and not published!
+    // 5. Not a postcard task
+
+    const openTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Transfer GMB Ownership',
+        assignee: null,
+        result: null,
+        "relatedMap.gmbAccountId": gmbAccount._id
+      },
+      limit: 5000
+    }).toPromise();
+
+    // step 4, match biz
+
+    openTransferTasks.map(task => {
+      if (task.transfer && task.transfer.verificationMethod === 'Postcard' && task.relatedMap && idBizMap.has(task.relatedMap.gmbBizId)) {
+        const biz = idBizMap.get(task.relatedMap.gmbBizId);
+        if (placeIdLocationMap.has(biz.place_id)) {
+          const location: any = placeIdLocationMap.get(biz.place_id);
+          if (location.status !== "Published" && location.status !== "Suspended") {
+            toBeClosedTasks.push(task);
+          }
+        }
+      }
+    });
+
+    console.log('open tasks TRANSFER', openTransferTasks)
+    console.log('to be closed TRANSFER', toBeClosedTasks)
+
+    // patch those tasks to be closed! by system
+    const closedPairs = toBeClosedTasks.map(t => ({
+      old: {
+        _id: t._id
+      },
+      new: {
+        _id: t._id,
+        assignee: 'system',
+        result: 'CANCELED',
+        resultAt: { $date: new Date() }
+      }
+    }));
+
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', closedPairs).toPromise();
+
+    // invalidate appeal: if 
+    // 1. open
+    // 2. related gmbAccountId === this.account
+    // 3. biz not suspended anymore!
+
+    const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Appeal Suspended GMB',
+        assignee: null,
+        result: null,
+        "relatedMap.gmbAccountId": gmbAccount._id
+      },
+      limit: 5000
+    }).toPromise();
+
+    openAppealTasks.map(task => {
+      if (idBizMap.has(task.relatedMap.gmbBizId)) {
+        const biz = idBizMap.get(task.relatedMap.gmbBizId);
+        if (placeIdLocationMap.has(biz.place_id)) {
+          const location: any = placeIdLocationMap.get(biz.place_id);
+          if (location.status !== "Suspended") {
+            toBeClosedTasks.push(task);
+          }
+        }
+      }
+    });
+
+    console.log('open tasks', openTransferTasks)
+    console.log('to be closed', toBeClosedTasks)
+
     // generate Appeal Suspended GMB task for those suspended
+    // 1. NO outstanding appeal task
+    //    a. same biz
+    // 2. Biz is not published anywhere
+
     const suspendedLocations = locations.filter(loc => loc.status === 'Suspended');
-    console.log('Suspended', suspendedLocations);
-    for (let suspendedLoc of suspendedLocations) {
+
+    const newSuspendedLocations = suspendedLocations.filter(loc => {
+      const biz = placeIdBizMap.get(loc.place_id) as GmbBiz;
+      const taskExisted = openAppealTasks.some(task => task.relatedMap['gmbBizId'] === biz._id);
+      return !taskExisted && (!biz || !(biz.gmbOwnerships && biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email));
+    });
+
+    console.log(newSuspendedLocations);
+
+    for (let suspendedLoc of newSuspendedLocations) {
       try {
         const gmbBiz = existingGmbBizList.concat(newBizList).filter(biz => biz.place_id === suspendedLoc.place_id)[0];
         await this._task.upsertSuspendedTask(gmbBiz, gmbAccount);
@@ -197,13 +301,13 @@ export class GmbService {
       throw 'Crawl error: nothing matches, ' + gmbBiz.name;
     }
     // handle bizManagedWebsite --> qmenu-gray
-    if(crawledResult.gmbWebsite && gmbBiz.bizManagedWebsite ) {
+    if (crawledResult.gmbWebsite && gmbBiz.bizManagedWebsite) {
       // same domain name \?
       const u1 = new URL(crawledResult.gmbWebsite);
       const u2 = new URL(gmbBiz.bizManagedWebsite);
       const parts1 = u1.host.split('.');
       const parts2 = u2.host.split('.');
-      if(parts1[parts1.length - 2] === parts2[parts2.length -2]) {
+      if (parts1[parts1.length - 2] === parts2[parts2.length - 2]) {
         crawledResult.gmbOwner = 'qmenu';
       }
     }

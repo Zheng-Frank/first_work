@@ -149,10 +149,19 @@ export class TaskDashboardComponent {
     try {
       const purgedTasks = await this._task.purgeTransferTasks();
       console.log('purged: ', purgedTasks)
-      this._global.publishAlert(AlertType.Success, 'Purged ' + purgedTasks.length +', check console for details');
+      this._global.publishAlert(AlertType.Success, 'Purged ' + purgedTasks.length + ' Transfer Tasks, check console for details');
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
-     }
+    }
+
+    try {
+      const purgedTasks = await this._task.purgeAppealTasks();
+      console.log('purged: ', purgedTasks)
+      this._global.publishAlert(AlertType.Success, 'Purged ' + purgedTasks.length + ' Appeal Tasks, check console for details');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
+    }
+
     this.purging = false;
     this.refresh();
   }
