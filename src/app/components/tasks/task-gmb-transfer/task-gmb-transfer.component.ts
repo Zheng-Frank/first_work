@@ -156,6 +156,14 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
     return this.accounts;
   }
 
+  getLastAccountEmail() {
+    if (this.gmbBiz) {
+      return this.gmbBiz.gmbOwnerships[this.gmbBiz.gmbOwnerships.length - 1].email;
+    } else {
+      return '';
+    }
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     this.now = new Date();
     if (this.gmbBiz) {
@@ -645,6 +653,15 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         ok => this._global.publishAlert(AlertType.Success, 'Success'),
         error => this._global.publishAlert(AlertType.Danger, 'Failed to login')
       );
+  }
+
+  isTaskExpired() {
+    const days30 = 30 * 24 * 3600 * 1000;
+    if(this.task.transfer.appealedAt) {
+      return this.now.valueOf() - this.task.transfer.appealedAt.valueOf() >= days30;
+    }
+
+    return false;
   }
 
 

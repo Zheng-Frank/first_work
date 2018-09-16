@@ -1,10 +1,15 @@
 <ng-container *ngIf="transfer">
+  <div *ngIf="isTaskExpired()" class="alert alert-danger">
+    EXPIRED TASK. PLEASE CLOSE.
+  </div>
   <!-- {{gmbBiz | json}} -->
   <div class="mb-4">
-    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests". You
+    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests".
+      You
       can complete the task directly.</div>
     <!-- <h4 class="mb-3">GMB Transfer Steps</h4> -->
-    <span class="alert alert-warning p-2">{{transfer.fromEmail | emailName}} <button class="btn btn-link fix-v-align" (click)="login(transfer.fromEmail)">Login</button></span>
+    <span class="alert alert-warning p-2">{{transfer.fromEmail | emailName}} <button class="btn btn-link fix-v-align"
+        (click)="login(transfer.fromEmail)">Login</button></span>
     →
     <span class="alert alert-warning p-2" *ngIf="transfer.toEmail">{{transfer.toEmail | emailName}} <button class="btn btn-link fix-v-align"
         (click)="login(transfer.toEmail)">Login</button></span>
@@ -17,7 +22,8 @@
 
     <select [(ngModel)]="transfer.toEmail" class="form-control" (change)="handleUpdate('select')">
       <option></option>
-      <option *ngFor="let account of getFilteredAccounts()" [ngValue]="account.email">{{account.email | emailName}} (biz
+      <option *ngFor="let account of getFilteredAccounts()" [ngValue]="account.email">{{account.email | emailName}}
+        (biz
         count = {{account.bizCount || 0}})</option>
     </select>
   </div>
@@ -61,12 +67,13 @@
     <div *ngIf="transfer.request">
       <button class="btn btn-link pl-0" (click)="toggleManualAppeal = !toggleManualAppeal">Manually input appeal ID?</button>
       <div *qIf="toggleManualAppeal">
-          <div class="form-inline">
-              <input [(ngModel)]="transfer.appealId" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;" placeholder="appeal ID goes here">
-              <button class="btn btn-sm btn-info mb-2" [qLoading]="savingAppealId" (click)="handleUpdate('saveAppealId', 'appealedAt', 'savingAppealId')">Save
-                Appeal ID
-              </button>
-            </div>
+        <div class="form-inline">
+          <input [(ngModel)]="transfer.appealId" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;"
+            placeholder="appeal ID goes here">
+          <button class="btn btn-sm btn-info mb-2" [qLoading]="savingAppealId" (click)="handleUpdate('saveAppealId', 'appealedAt', 'savingAppealId')">Save
+            Appeal ID
+          </button>
+        </div>
       </div>
     </div>
     <div *ngIf="transfer.appealedAt">
@@ -76,12 +83,13 @@
       </div>
       Selected Verification Method:
       <div>
-        <q-simple-radio [(ngModel)]="transfer.verificationMethod" [equalWidth]="true" [values]="['Email', 'Call', 'Postcard']" (ngModelChange)="handleUpdate('selectVerificationMethod')">
+        <q-simple-radio [(ngModel)]="transfer.verificationMethod" [equalWidth]="true" [values]="['Email', 'Call', 'Postcard']"
+          (ngModelChange)="handleUpdate('selectVerificationMethod')">
         </q-simple-radio>
       </div>
       <div class="card card-body" *ngIf="transfer.verificationMethod === 'Email'">
-        <app-email-code-reader [email]="emailSettings.email" [host]="emailSettings.host" [password]="emailSettings.password" (retrieve)="retrieveEmailCode($event)"
-          (save)="saveEmailSettings($event)"></app-email-code-reader>
+        <app-email-code-reader [email]="emailSettings.email" [host]="emailSettings.host" [password]="emailSettings.password"
+          (retrieve)="retrieveEmailCode($event)" (save)="saveEmailSettings($event)"></app-email-code-reader>
       </div>
       <div class="card card-body" *ngIf="transfer.verificationMethod === 'Call' || transfer.verificationMethod === 'Postcard'">
         <div *ngIf="gmbBiz?.phone">
@@ -95,14 +103,16 @@
 
         <div class="my-4">
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" [checked]="!!transfer.bizNotifiedAt" (change)="handleUpdate('notify', 'bizNotifiedAt', null)">
+            <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" [checked]="!!transfer.bizNotifiedAt"
+              (change)="handleUpdate('notify', 'bizNotifiedAt', null)">
             <label class="form-check-label" for="defaultCheck1">
               Notified Restaurant
               <span *ngIf="transfer.bizNotifiedAt" style="font-weight: normal">{{transfer.bizNotifiedAt | ago: now}}</span>
             </label>
           </div>
           <label>Schedule Followup At:</label>
-          <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt" (ngModelChange)="scheduledAtUpdated($event)">
+          <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt"
+            (ngModelChange)="scheduledAtUpdated($event)">
           <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
           <div class="py-1 text-right">
             <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 3, 7]" (click)="plusDay(i)">+
@@ -119,7 +129,8 @@
     </label>
 
     <div class="form-inline">
-      <input [(ngModel)]="transfer.code" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;" placeholder="code goes here">
+      <input [(ngModel)]="transfer.code" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;"
+        placeholder="code goes here">
       <button class="btn btn-sm btn-info mb-2" [qLoading]="savingCode" (click)="handleUpdate('saveCode', null, 'savingCode')">Save
         Code
       </button>
@@ -130,7 +141,13 @@
     <label>
       Verify/Obtain New Ownership
     </label>
-
+    <div class="alert alert-warning">
+      Postcard Code: Only choose to input the code when <span class="badge badge-warning">{{transfer.fromEmail |
+        emailName}}</span> lost ownership.
+      <br>Current ownership status: <span class="badge badge-{{getLastAccountEmail() === transfer.fromEmail ? 'success' : 'danger'}}">
+          {{getLastAccountEmail() ? ('Still Under ' + getLastAccountEmail()) : 'LOST'}}
+      </span>
+    </div>
     <div *ngIf="!transfer.verifiedAt">
       <button class="btn btn-sm btn-info" [qLoading]="verifyingCode" [disabled]="!transfer.code" (click)="handleUpdate('verify', 'verifiedAt', 'verifyingCode')">Verify
         Code
@@ -175,7 +192,8 @@
   </div>
 
 
-  <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}</button>
+  <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
+    details...'}}</button>
   <div class="card border-info" *qIf="showDetails">
     <div class="card-body">
       <h4>More Details</h4>
@@ -207,7 +225,9 @@
       <ng-container *ngIf="gmbAccount">
         <hr>
         <label>GMB Account:</label>
-        <h6><app-gmb-account-hotlink [email]="gmbAccount.email"></app-gmb-account-hotlink></h6>
+        <h6>
+          <app-gmb-account-hotlink [email]="gmbAccount.email"></app-gmb-account-hotlink>
+        </h6>
       </ng-container>
       <ng-container *ngIf="gmbRequest">
         <hr>

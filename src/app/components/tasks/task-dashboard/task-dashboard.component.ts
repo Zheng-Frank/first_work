@@ -162,6 +162,14 @@ export class TaskDashboardComponent {
       this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
     }
 
+    try {
+      const purgedTasks = await this._task.purgeApplyTasks();
+      console.log('purged: ', purgedTasks)
+      this._global.publishAlert(AlertType.Success, 'Purged ' + purgedTasks.length + ' Apply Tasks, check console for details');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
+    }
+
     this.purging = false;
     this.refresh();
   }
