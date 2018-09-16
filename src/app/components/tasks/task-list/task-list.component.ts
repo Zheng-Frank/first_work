@@ -1,11 +1,11 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
 @Component({
   selector: 'app-task-list',
   templateUrl: './task-list.component.html',
   styleUrls: ['./task-list.component.css']
 })
-export class TaskListComponent implements OnInit {
+export class TaskListComponent implements OnInit, OnChanges {
 
   @Input() taskList = [];
   @Input() user;
@@ -49,9 +49,31 @@ export class TaskListComponent implements OnInit {
     }
   ];
 
+  taskNames = ['All'];
+  selectedTaskName = 'All';
+
+  filteredTasks = [];
+
+
   constructor() { }
 
   ngOnInit() {
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if(this.taskList) {
+      this.selectedTaskName = 'All';
+      this.taskNames = ['All',  ...Array.from(new Set(this.taskList.map(t => t.name)))];
+      this.filter();
+    }
+  }
+
+  filter() {
+    if(this.selectedTaskName === 'All') {
+      this.filteredTasks = this.taskList;
+    } else {
+      this.filteredTasks = this.taskList.filter(t => t.name === this.selectedTaskName);
+    }
   }
 
   getTaskClass(task) {
@@ -77,6 +99,10 @@ export class TaskListComponent implements OnInit {
 
   triggerActionDone(event) {
     this.actionDone.emit(event);
+  }
+
+  selectTask(item) {
+    this.filter();
   }
 
 }

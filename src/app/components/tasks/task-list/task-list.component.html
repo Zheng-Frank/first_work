@@ -1,8 +1,9 @@
 <div *ngIf="!taskList || taskList.length === 0">
     List is empty
 </div>
-
-<q-table [rows]="taskList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+<q-simple-radio [(ngModel)]="selectedTaskName" [values]="taskNames" (ngModelChange)="selectTask($event)">
+</q-simple-radio>
+<q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
     <tr *tableRowTemplate="let task;">
         <td>
             <div class="badge badge-{{getTaskClass(task)}}" *ngIf="!task.result">{{task.scheduledAt | ago: now}}</div>
