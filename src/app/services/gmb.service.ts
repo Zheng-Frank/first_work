@@ -520,7 +520,7 @@ export class GmbService {
     return gmbRequests;
   }
 
-  async updateGmbWebsite(gmbBiz: GmbBiz) {
+  async updateGmbWebsite(gmbBiz: GmbBiz, stayAfterScan) {
 
     let biz = new GmbBiz(gmbBiz);
     // making sure we are going to have appealId and email account for the updated!
@@ -561,7 +561,8 @@ export class GmbService {
         password: account.password,
         website: biz.qmenuWebsite,
         bizManagedWebsite: biz.bizManagedWebsite,
-        appealId: biz.appealId
+        appealId: biz.appealId,
+        stayAfterScan: stayAfterScan
       }
     ).toPromise();
   }

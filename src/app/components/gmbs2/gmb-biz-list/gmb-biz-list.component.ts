@@ -22,7 +22,7 @@ interface myBiz {
 @Component({
   selector: 'app-gmb-biz-list',
   templateUrl: './gmb-biz-list.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush, 
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./gmb-biz-list.component.css']
 })
 export class GmbBizListComponent implements OnInit {
@@ -34,15 +34,15 @@ export class GmbBizListComponent implements OnInit {
   searchFilter;
   gmbOwnership;
   googleListingOwner;
+  qMenuManagedWebsite;
   notScanned3 = false;
   onlyLost = false;
-  onlyMissingManagedWebsite;
-
 
   filteredMyBizList: myBiz[] = [];
 
   refreshing = false;
   crawling = false;
+  injecting = false;
 
   now = new Date();
 
@@ -117,16 +117,16 @@ export class GmbBizListComponent implements OnInit {
       })
     )
       .subscribe(
-        results => {
-          this.refreshing = false;
-          this.bizList = results[0].map(b => new GmbBiz(b)).sort((g1, g2) => g1.name > g2.name ? 1 : -1);
-          this.myEmails = results[1].map(account => account.email);
-          this.filterBizList();
-        },
-        error => {
-          this.refreshing = false;
-          this._global.publishAlert(AlertType.Danger, error);
-        }
+      results => {
+        this.refreshing = false;
+        this.bizList = results[0].map(b => new GmbBiz(b)).sort((g1, g2) => g1.name > g2.name ? 1 : -1);
+        this.myEmails = results[1].map(account => account.email);
+        this.filterBizList();
+      },
+      error => {
+        this.refreshing = false;
+        this._global.publishAlert(AlertType.Danger, error);
+      }
       );
 
     this.bizTaskMap = {};
@@ -233,8 +233,15 @@ export class GmbBizListComponent implements OnInit {
       this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwnerships && b.gmbBiz.gmbOwnerships.length > 0 && !b.gmbBiz.gmbOwnerships[b.gmbBiz.gmbOwnerships.length - 1].email);
     }
 
-    if(this.onlyMissingManagedWebsite) {
-      this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.qmenuWebsite);
+    switch (this.qMenuManagedWebsite) {
+      case 'exist':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.qmenuWebsite);
+        break;
+      case 'non-exist':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.qmenuWebsite);
+        break;
+      default:
+        break;
     }
     console.log('filter time: ', new Date().valueOf() - start.valueOf());
 
@@ -252,14 +259,16 @@ export class GmbBizListComponent implements OnInit {
     const sortedBizList = this.filteredMyBizList.sort((a1, a2) => (a1.gmbBiz.crawledAt || new Date(0)).valueOf() - (a2.gmbBiz.crawledAt || new Date(0)).valueOf());
 
     for (let b of sortedBizList) {
+      
       try {
         let result = await this.crawl(b.gmbBiz);
-  
+
       } catch (error) {
         console.log(error);
         this._global.publishAlert(AlertType.Danger, 'Error crawling ' + b.gmbBiz.name);
       }
     }
+    this._ref.detectChanges();
     this.crawling = false;
   }
 
@@ -269,8 +278,8 @@ export class GmbBizListComponent implements OnInit {
       let result = await this._gmb.crawlOneGoogleListing(biz);
       this.now = new Date();
       this.processingBizSet.delete(biz);
-      this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);     
-       this._ref.detectChanges();
+      this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);
+      this._ref.detectChanges();
     } catch (error) {
       console.log(error);
       this.processingBizSet.delete(biz);
@@ -283,7 +292,7 @@ export class GmbBizListComponent implements OnInit {
   }
 
   getLogo(gmbBiz: GmbBiz) {
-    if(gmbBiz.bizManagedWebsite && gmbBiz.gmbOwner === 'qmenu') {
+    if (gmbBiz.bizManagedWebsite && gmbBiz.gmbOwner === 'qmenu') {
       return GlobalService.serviceProviderMap['qmenu-gray'];
     }
     return GlobalService.serviceProviderMap[gmbBiz.gmbOwner];
@@ -335,7 +344,7 @@ export class GmbBizListComponent implements OnInit {
         event.acknowledge(error.message || 'API Error.');
         console.log(error);
       }
-    );
+      );
   }
 
   remove(event: FormEvent) {
@@ -355,27 +364,18 @@ export class GmbBizListComponent implements OnInit {
         this.apiError = 'API Error. Status code: ' + error.statusText;
         console.log(error);
       }
-    );
+      );
   }
 
   async inject(biz) {
     try {
-      await this._gmb.updateGmbWebsite(biz);
+      await this._gmb.updateGmbWebsite(biz, true);
       this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);
       this._ref.detectChanges();
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Erro Updating ' + biz.name + ', ' + error);
     }
-  }
-
-  private injectOne(gmbBiz) {
-    let email = gmbBiz.gmbOwnerships.map(o => o.email).filter(email => email.indexOf('@') > 0).reverse()[0];
-    if (!email) {
-      return Promise.reject('No email');
-    }
-    this._gmb.updateGmbWebsite(gmbBiz);
-    this._ref.detectChanges();
   }
 
   async injectScore(gmbBiz) {
@@ -422,6 +422,23 @@ export class GmbBizListComponent implements OnInit {
     this.bizTaskMap[gmbBiz._id] = this.bizTaskMap[gmbBiz._id] || [];
     this.bizTaskMap[gmbBiz._id].push(task.name);
     this._ref.detectChanges();
+  }
+
+  async injectAll() {
+    this.injecting = true;
+
+    for (let b of this.filteredMyBizList) {
+      try {
+        await this._gmb.updateGmbWebsite(b.gmbBiz, false);
+        this._global.publishAlert(AlertType.Success, 'Updated ' + b.gmbBiz.name);
+        this._ref.detectChanges();
+      } catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, 'Erro Updating ' + b.gmbBiz.name + ', ' + error);
+      }
+    }
+    this._ref.detectChanges();
+    this.injecting = false;
   }
 
 }
