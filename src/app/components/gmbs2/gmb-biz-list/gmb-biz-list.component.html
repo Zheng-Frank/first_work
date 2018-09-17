@@ -19,6 +19,14 @@
       <option>NOT qmenu</option>
     </select>
 
+
+    <label class="mr-2"> qMenu Managed Website:</label>
+    <select class="form-control mr-4" [(ngModel)]="qMenuManagedWebsite" (change)="filterBizList()">
+      <option>any</option>
+      <option>exist</option>
+      <option>non-exist</option>
+    </select>
+
     <div class="form-check ml-4">
       <input class="form-check-input" type="checkbox" [(ngModel)]="notScanned3" (change)="filterBizList()" id="notScannedCheckbox">
       <label class="form-check-label" for="notScannedCheckbox">
@@ -33,19 +41,14 @@
       </label>
     </div>
 
-    <div class="form-check ml-4">
-      <input class="form-check-input" type="checkbox" [(ngModel)]="onlyMissingManagedWebsite" (change)="filterBizList()" id="noWebsiteCheckbox">
-      <label class="form-check-label" for="noWebsiteCheckbox">
-        Only missing qMenu website
-      </label>
-    </div>
-
   </div>
   <div class="float-right">
     <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
       <i class="fas fa-sync-alt"></i> Reload</button>
     <button class="btn btn-primary" (click)="crawlAll()" [qLoading]="crawling">
       <i class="fab fa-google"></i> Crawl All</button>
+      <button class="btn btn-primary" (click)="injectAll()" [qLoading]="injecting">
+        <i class="fab fa-file-download"></i> Inject All</button>  
   </div>
 </div>
 

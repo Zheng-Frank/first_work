@@ -141,7 +141,7 @@
     <label>
       Verify/Obtain New Ownership
     </label>
-    <div class="alert alert-warning">
+    <div class="alert alert-warning" *ngIf="transfer.verificationMethod === 'Postcard' && transfer.code">
       Postcard Code: Only choose to input the code when <span class="badge badge-warning">{{transfer.fromEmail |
         emailName}}</span> lost ownership.
       <br>Current ownership status: <span class="badge badge-{{getLastAccountEmail() === transfer.fromEmail ? 'success' : 'danger'}}">
