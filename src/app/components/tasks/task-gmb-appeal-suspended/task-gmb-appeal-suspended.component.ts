@@ -144,7 +144,7 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
           email: this.gmbAccount.email,
           password: this.gmbAccount.password,
           params: {
-            name: 'Dixon Adair',
+            name: 'Tim Pennington',
             email: this.gmbAccount.email,
             bizName: this.gmbBiz.name,
             address: this.gmbBiz.address,
