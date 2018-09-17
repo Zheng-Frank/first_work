@@ -115,8 +115,7 @@
             (ngModelChange)="scheduledAtUpdated($event)">
           <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
           <div class="py-1 text-right">
-            <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 3, 7]" (click)="plusDay(i)">+
-              {{i}} day{{i > 1 ? 's' : ''}}</button>
+            <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 7, 30]" (click)="plusDay(i)">Today + {{i}}</button>
           </div>
         </div>
       </div>
@@ -145,7 +144,7 @@
       Postcard Code: Only choose to input the code when <span class="badge badge-warning">{{transfer.fromEmail |
         emailName}}</span> lost ownership.
       <br>Current ownership status: <span class="badge badge-{{getLastAccountEmail() === transfer.fromEmail ? 'success' : 'danger'}}">
-          {{getLastAccountEmail() ? ('Still Under ' + getLastAccountEmail()) : 'LOST'}}
+        {{getLastAccountEmail() ? ('Still Under ' + getLastAccountEmail()) : 'LOST'}}
       </span>
     </div>
     <div *ngIf="!transfer.verifiedAt">

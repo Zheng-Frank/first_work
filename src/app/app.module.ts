@@ -106,6 +106,7 @@ import { SmsSettingsComponent } from './components/system/sms-settings/sms-setti
 import { FaxSettingsComponent } from './components/system/fax-settings/fax-settings.component';
 import { TaskGmbAppealSuspendedComponent } from './components/tasks/task-gmb-appeal-suspended/task-gmb-appeal-suspended.component';
 import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor/biz-website-editor.component';
+import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
  
 @NgModule({
   declarations: [
@@ -198,7 +199,8 @@ import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor
     TaskGeneratorComponent,
     SmsSettingsComponent,
     FaxSettingsComponent,
-    BizWebsiteEditorComponent
+    BizWebsiteEditorComponent,
+    QuickDatePickerComponent
   ],
   imports: [
     BrowserModule,
