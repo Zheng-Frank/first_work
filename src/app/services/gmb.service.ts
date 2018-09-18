@@ -99,7 +99,7 @@ export class GmbService {
 
     console.log('LOST: ', lostOwnershipBizList);
 
-    // update lost
+    // update lost ownerships status, also update Transfer tasks where it is postcard with code in hand!
     if (lostOwnershipBizList.length > 0) {
 
       const lostPairs = lostOwnershipBizList.map(b => {
@@ -120,7 +120,37 @@ export class GmbService {
 
       });
       await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', lostPairs).toPromise();
+
+      // query postcard tasks
+      const openTasksToBeRescheduled = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'task',
+        query: {
+          "transfer.verificationMethod": 'Postcard',
+          result: null,
+          toEmail: gmbAccount.email,
+          "transfer.code": { $exists: true }
+        }
+      }).toPromise();
+
+      console.log('outstanding open tasks to be re-scheduled: ', openTasksToBeRescheduled);
+      if (openTasksToBeRescheduled.length > 0) {
+        const now = new Date();
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=task', openTasksToBeRescheduled.map(
+          t => ({
+            old: {
+              _id: t._id
+            },
+            new: {
+              _id: t._id,
+              scheduledAt: { $date: now }
+            }
+          })
+        )).toPromise();
+      }
     }
+
+    // New Panda 445 East Cheyenne Mountain Boulevard, Colorado Springs, CO 80906 
+    // redpassion9876
 
     // Save new locations to DB
     if (locationsToInsert.length > 0) {

@@ -134,7 +134,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
   }
 
   plusDay(i) {
-    const scheduledAt = new Date(Date.parse(this.taskCopy.scheduledAt as any));
+    const scheduledAt = new Date();
     scheduledAt.setDate(scheduledAt.getDate() + i);
     this.taskCopy.scheduledAt = scheduledAt;
   }

@@ -187,7 +187,7 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
 
   plusDay(i) {
 
-    const newDate = new Date(this.task.scheduledAt);
+    const newDate = new Date();
     newDate.setDate(newDate.getDate() + i);
     this.task.scheduledAt = newDate;
 

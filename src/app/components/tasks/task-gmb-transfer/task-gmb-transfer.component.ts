@@ -46,6 +46,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   accounts: any[] = []; // account with bizCount
 
+  assignees = [];
+
   taskScheduledAt = new Date();
 
   comments: string;
@@ -102,12 +104,24 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
+
   }
 
   gmbRequest;
   gmbAccount;
   restaurantLogs: Log[] = [];
   refreshRelated() {
+    this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'user',
+      projection: {
+        username: 1,
+        roles: 1
+      },
+      limit: 5000
+    }).subscribe(users => {
+      this.assignees = users.filter(u => u.roles.some(r => this.task.roles.indexOf(r) >= 0)).sort((r1, r2) => r1.username > r2.username ? 1 : -1);
+      console.log(this.assignees);
+    });
     this.restaurantLogs = [];
     ['gmbBiz', 'gmbRequest', 'gmbAccount'].forEach(obj => {
       this[obj] = undefined;
@@ -456,11 +470,15 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
         const oldTask = {
           _id: this.task._id,
+          result: this.task.result,
+          resultAt: this.task.resultAt,
           transfer: new GmbTransfer(this.transfer)
         } as any;
 
         const newBareTask = {
           _id: this.task._id,
+          result: this.task.result,
+          resultAt: this.task.resultAt,
           transfer: new GmbTransfer(this.transfer)
         } as any;
 
@@ -480,6 +498,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             delete oldTask.transfer.toEmail;
             newBareTask.transfer.toEmail = this.transfer.toEmail;
             break;
+
           case 'request':
             this.transfer.request = result;
             newBareTask.transfer.request = result;
@@ -523,6 +542,13 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             this.transfer.completedAt = undefined;
             newBareTask.transfer.result = undefined;
             newBareTask.transfer.completedAt = undefined;
+            newBareTask.result = undefined;
+            newBareTask.resultAt = undefined;
+            break;
+          case 'assign':
+            // because selected assignee's already in there, we actually need to delete it
+            delete oldTask.assignee;
+            newBareTask.assignee = this.task.assignee;
             break;
           default:
             break;
@@ -558,7 +584,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   }
 
   plusDay(i) {
-    const scheduledAt = new Date(Date.parse(this.taskScheduledAt as any));
+    const scheduledAt = new Date();
     scheduledAt.setDate(scheduledAt.getDate() + i);
     this.taskScheduledAt = scheduledAt;
 
@@ -588,9 +614,9 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
           // let's mutate task, we need to be careful about transfer
           Object.keys(newTask).map(k => {
             if (k === 'transfer') {
-              Object.keys(newTask.transfer).map(kt => this.task.transfer[kt] = newTask.transfer[kt]['$date'] || newTask.transfer[kt]);
+              Object.keys(newTask.transfer).map(kt => this.task.transfer[kt] = (newTask.transfer[kt] || {})['$date'] || newTask.transfer[kt]);
             } else {
-              this.task[k] = newTask[k]['$date'] || newTask[k];
+              this.task[k] = (newTask[k] || {})['$date'] || newTask[k];
             }
           });
 
@@ -658,7 +684,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   isTaskExpired() {
     const days30 = 30 * 24 * 3600 * 1000;
-    if(this.task.transfer.appealedAt) {
+    if (this.task.transfer.appealedAt) {
       return this.now.valueOf() - this.task.transfer.appealedAt.valueOf() >= days30;
     }
 

@@ -243,7 +243,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
           isCanceled: 1,
           "restaurant.offsetToEST": 1
         },
-        limit: 2000
+        limit: 5000
       })
     ).subscribe(
       results => {

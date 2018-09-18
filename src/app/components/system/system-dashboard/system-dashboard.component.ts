@@ -382,7 +382,7 @@ export class SystemDashboardComponent implements OnInit {
         phones: 1,
         name: 1
       },
-      limit: 2000
+      limit: 5000
     }).toPromise();
     console.log(restaurants.length);
 

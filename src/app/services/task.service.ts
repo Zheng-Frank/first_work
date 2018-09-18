@@ -94,7 +94,6 @@ export class TaskService {
     const gmbBizList = [];
 
     const batchSize = 100;
-
     while (bizIds.length > 0) {
       const slice = bizIds.splice(0, batchSize);
       const list = await this._api.get(environment.adminApiUrl + 'generic', {
@@ -109,16 +108,24 @@ export class TaskService {
       }).toPromise();
       gmbBizList.push(...list);
     }
-
+    
     const bizMap = {};
-    gmbBizList.map(b => bizMap[b._id] = b);
 
+    gmbBizList.map(b => bizMap[b._id] = b);
     // current biz's account is NOT original's account, and NOT postcard
     const toBeClosed = openTransferTasks.filter(t => {
       const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
+      if(!gmbBiz) {
+        console.log('gmbBiz Not Found!', t.relatedMap);
+        console.log('task', t);
+        return true;
+      }
       const notPostcard = t.transfer.verificationMethod !== 'Postcard';
-      const lastEmail = gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email;
+
+      const lastEmail = (gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1] || {}).email;
+
       const originalAccountLost = lastEmail !== t.transfer.fromEmail;
+
       if (originalAccountLost && notPostcard) {
         t.comments = (t.comments ? t.comments + ' ' : '') + 'Ownership transferred to ' + (lastEmail || 'N/A');
         return true;
@@ -190,6 +197,12 @@ export class TaskService {
     // find those that's published (last ownership has email!)
     const toBeClosed = openAppealTasks.filter(t => {
       const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
+      if(!gmbBiz) {
+        console.log('gmbBiz Not Found!', t.relatedMap);
+        console.log('task', t);
+        // delete the task!
+        return true;
+      }
       return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email;
     });
 
@@ -251,6 +264,11 @@ export class TaskService {
     // find those that's published (last ownership has email!)
     const toBeClosed = openApplyTasks.filter(t => {
       const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
+      if(!gmbBiz) {
+        console.log('gmbBiz Not Found!', t.relatedMap);
+        console.log('task', t);
+        return false;
+      }
       return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email;
     });
 
