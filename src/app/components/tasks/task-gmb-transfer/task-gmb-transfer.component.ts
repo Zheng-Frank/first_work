@@ -166,11 +166,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     this.now = new Date();
-    if (this.gmbBiz) {
-      this.emailSettings.email = this.gmbBiz.qmenuPop3Email;
-      this.emailSettings.host = this.gmbBiz.qmenuPop3Host;
-      this.emailSettings.password = this.gmbBiz.qmenuPop3Password;
-    }
+
     if (this.task) {
       this.taskScheduledAt = this.task.scheduledAt;
       this.transfer = this.task.transfer;
@@ -193,6 +189,11 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         limit: 1
       }).subscribe(results => {
         this.gmbBiz = results[0];
+        if (this.gmbBiz) {
+          this.emailSettings.email = this.gmbBiz.qmenuPop3Email;
+          this.emailSettings.host = this.gmbBiz.qmenuPop3Host;
+          this.emailSettings.password = this.gmbBiz.qmenuPop3Password;
+        }
         this.populateRestaurant();
       });
     }
