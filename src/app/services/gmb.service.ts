@@ -47,7 +47,8 @@ export class GmbService {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         query: {
-          place_id: { $in: place_ids }
+          $or: [{ place_id: { $in: place_ids } }, { "gmbOwnerships.email": gmbAccount.email }]
+
         },
         projection: {
           address: 1,
@@ -81,6 +82,45 @@ export class GmbService {
           :
           []
     }));
+
+    // if existingGmbBizList's last ownership is this account but scanned locations don't have this biz, then it's lost ownership
+    const lostOwnershipBizList = existingGmbBizList.filter(biz => {
+      if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
+        const lastEmail = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
+        if (lastEmail === gmbAccount.email) {
+          console.log(biz.name);
+          if (!locations.some(loc => loc.place_id === biz.place_id)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+
+    console.log('LOST: ', lostOwnershipBizList);
+
+    // update lost
+    if (lostOwnershipBizList.length > 0) {
+
+      const lostPairs = lostOwnershipBizList.map(b => {
+        const cloneOfGmbOwnerships = JSON.parse(JSON.stringify(b.gmbOwnerships));
+        cloneOfGmbOwnerships.push({
+          possessedAt: { $date: new Date() }
+        });
+        return ({
+          old: {
+            _id: b._id,
+            gmbOwnerships: b.gmbOwnerships
+          },
+          new: {
+            _id: b._id,
+            gmbOwnerships: cloneOfGmbOwnerships
+          }
+        });
+
+      });
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', lostPairs).toPromise();
+    }
 
     // Save new locations to DB
     if (locationsToInsert.length > 0) {
