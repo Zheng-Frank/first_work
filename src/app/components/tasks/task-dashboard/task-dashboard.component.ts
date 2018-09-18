@@ -8,7 +8,7 @@ import { GmbTransfer } from '../../../classes/gmb/gmb-transfer';
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { TaskService } from '../../../services/task.service';
 import { AlertType } from '../../../classes/alert-type';
-
+import { zip } from 'rxjs';
 @Component({
   selector: 'app-task-dashboard',
   templateUrl: './task-dashboard.component.html',
@@ -71,20 +71,41 @@ export class TaskDashboardComponent {
 
   refresh() {
     this.refreshing = true;
-    this._api.get(environment.adminApiUrl + "generic", {
+    zip(this._api.get(environment.adminApiUrl + "generic", {
       resource: "task",
       query: {},
       limit: 10000,
       sort: {
         createdAt: -1
       }
-    }).subscribe(tasks => {
+    }),
+    this._api.get(environment.adminApiUrl + "generic", {
+      resource: "gmbBiz",
+      query: {},
+      projection: {
+        address: 1
+      },
+      limit: 10000
+    }),
+  ).subscribe(results => {
       this.refreshing = false;
-      tasks = tasks.map(t => new Task(t));
+      const tasks = results[0].map(t => new Task(t));
       this.myTasks = tasks.filter(t =>
         t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
 
-      this.myTasks = this.myTasks.sort((a, b) => a.scheduledAt.valueOf() - b.scheduledAt.valueOf())
+      this.myTasks = this.myTasks.sort((a, b) => a.scheduledAt.valueOf() - b.scheduledAt.valueOf());
+
+      const bizMap = {};
+      results[1].map(biz => {
+        bizMap[biz._id] = biz;
+      });
+      
+      tasks.map(t => {
+        if(t.relatedMap && t.relatedMap.gmbBizId && bizMap[t.relatedMap.gmbBizId]) {
+          t.gmbBiz = t.gmbBiz || {};
+          t.gmbBiz = bizMap[t.relatedMap.gmbBizId];
+        }
+      });
       // compute groupedTasks, by task name
       this.computeGroupedTasks();
     }, error => {
