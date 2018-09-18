@@ -1027,7 +1027,8 @@ export class DbScriptsComponent implements OnInit {
 
         if (tasksToBeUpdated.length > 0) {
           alert('STOP')
-          throw 'NOT YET VERIFIED, CAUSING MISSING ID'
+          if (new Date())
+            throw 'NOT YET VERIFIED, CAUSING MISSING ID'
           await this._api.patch(environment.adminApiUrl + 'generic?resource=task', tasksToBeUpdated.map(t => ({
             old: {
               _id: t._id,
