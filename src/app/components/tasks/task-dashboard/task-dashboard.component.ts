@@ -18,6 +18,7 @@ export class TaskDashboardComponent {
 
   myTasks: Task[] = [];
   myOpenTasks: Task[] = [];
+  myDueTasks: Task[] = [];
   myAssignedTasks: Task[] = [];
   myClosedTasks: Task[] = [];
 
@@ -49,6 +50,7 @@ export class TaskDashboardComponent {
 
   tabs = [
     { value: 'Open', label: 'Open (0)' },
+    { value: 'Due', label: 'Due (0)' },
     { value: 'Mine', label: 'Mine (0)' },
     { value: 'Closed', label: 'Closed (0)' },
     { value: 'Statistics', label: 'Statistics' }
@@ -79,15 +81,15 @@ export class TaskDashboardComponent {
         createdAt: -1
       }
     }),
-    this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbBiz",
-      query: {},
-      projection: {
-        address: 1
-      },
-      limit: 10000
-    }),
-  ).subscribe(results => {
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "gmbBiz",
+        query: {},
+        projection: {
+          address: 1
+        },
+        limit: 10000
+      }),
+    ).subscribe(results => {
       this.refreshing = false;
       const tasks = results[0].map(t => new Task(t));
       this.myTasks = tasks.filter(t =>
@@ -99,9 +101,9 @@ export class TaskDashboardComponent {
       results[1].map(biz => {
         bizMap[biz._id] = biz;
       });
-      
+
       tasks.map(t => {
-        if(t.relatedMap && t.relatedMap.gmbBizId && bizMap[t.relatedMap.gmbBizId]) {
+        if (t.relatedMap && t.relatedMap.gmbBizId && bizMap[t.relatedMap.gmbBizId]) {
           t.gmbBiz = t.gmbBiz || {};
           t.gmbBiz = bizMap[t.relatedMap.gmbBizId];
         }
@@ -129,10 +131,16 @@ export class TaskDashboardComponent {
     this.myAssignedTasks = this.myTasks.filter(t => !t.result && t.assignee === this.user.username);
     this.myClosedTasks = this.myTasks.filter(t => t.result);
 
+    const now = new Date();
+    this.myDueTasks = this.myTasks.filter(t => !t.result && t.scheduledAt && t.scheduledAt.valueOf() && t.scheduledAt.valueOf() < now.valueOf());
+
     this.tabs.map(tab => {
       switch (tab.value) {
         case 'Open':
           tab.label = 'Open (' + this.myOpenTasks.length + ')';
+          break;
+        case 'Due':
+          tab.label = 'Due (' + this.myDueTasks.length + ')';
           break;
         case 'Mine':
           tab.label = 'Mine (' + this.myAssignedTasks.length + ')';
