@@ -29,7 +29,7 @@
         <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing" (click)="appeal()">Re-Appeal</button>
       </div>
 
-      <div class="alert alert-warning">Task was postponed 7 days automatically after appeal.</div>
+      <div class="alert alert-warning">Task was postponed 21 days automatically after appeal.</div>
 
     </div>
   </div>
@@ -40,7 +40,7 @@
       (ngModelChange)="scheduledAtUpdated($event)">
     <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
     <div class="py-1 text-right">
-        <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 7, 30]" (click)="plusDay(i)">Today + {{i}}</button>
+        <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 5, 7, 30]" (click)="plusDay(i)">Today + {{i}}</button>
     </div>
   </div>
 

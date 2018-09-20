@@ -132,7 +132,8 @@ export class TaskDashboardComponent {
     this.myClosedTasks = this.myTasks.filter(t => t.result);
 
     const now = new Date();
-    this.myDueTasks = this.myTasks.filter(t => !t.result && t.scheduledAt && t.scheduledAt.valueOf() && t.scheduledAt.valueOf() < now.valueOf());
+    const bufferTime = 2 * 24 * 3600000;
+    this.myDueTasks = this.myTasks.filter(t => !t.result && t.scheduledAt && t.scheduledAt.valueOf() && t.scheduledAt.valueOf() < now.valueOf() + bufferTime);
 
     this.tabs.map(tab => {
       switch (tab.value) {

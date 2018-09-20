@@ -209,19 +209,19 @@ export class GmbService {
       await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', lostPairs).toPromise();
       this._global.publishAlert(AlertType.Info, 'Lost ownerships: ' + lostOwnershipBizList.map(b => b.name));
 
-      // 2. close appeal or non-postcard transfer tasks
+      // 2. close appeal or non-postcard, no-code transfer tasks
       const toBeClosedTasks = outstandingTasks.filter(t => {
         if (t.relatedMap && lostOwnershipBizList.some(biz => biz._id === t.relatedMap.gmbBizId)) {
-          return t.name === 'Appeal Suspended GMB' || (t.transfer && t.transfer.verificationMethod !== 'Postcard');
+          return t.name === 'Appeal Suspended GMB' || (t.transfer && t.transfer.verificationMethod !== 'Postcard' && !t.transfer.code);
         }
         return false;
       });
       console.log('To Be Closed Tasks: ', toBeClosedTasks);
 
-      // 3. close appeal or non-postcard transfer tasks
+      // 3. reschedule postcard with code task to now!
       const toBeScheduledNowTasks = outstandingTasks.filter(t => {
         if (t.relatedMap && lostOwnershipBizList.some(biz => biz._id === t.relatedMap.gmbBizId)) {
-          return t.transfer && t.transfer.verificationMethod === 'Postcard';
+          return t.transfer && t.transfer.verificationMethod === 'Postcard' && t.transfer.code;
         }
         return false;
       });

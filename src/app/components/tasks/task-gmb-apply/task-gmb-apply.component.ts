@@ -123,7 +123,6 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         limit: 5000
       }).subscribe(users => {
         this.assignees = users.filter(u => u.roles.some(r => this.task.roles.indexOf(r) >= 0)).sort((r1, r2) => r1.username > r2.username ? 1 : -1);
-        console.log(this.assignees);
       });
     }
   }

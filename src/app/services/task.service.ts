@@ -121,12 +121,12 @@ export class TaskService {
         return true;
       }
       const notPostcard = t.transfer.verificationMethod !== 'Postcard';
-
+      const noCode = !t.transfer.code;
       const lastEmail = (gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1] || {}).email;
 
       const originalAccountLost = lastEmail !== t.transfer.fromEmail;
 
-      if (originalAccountLost && notPostcard) {
+      if (originalAccountLost && notPostcard && noCode ) {
         t.comments = (t.comments ? t.comments + ' ' : '') + 'Ownership transferred to ' + (lastEmail || 'N/A');
         return true;
       }

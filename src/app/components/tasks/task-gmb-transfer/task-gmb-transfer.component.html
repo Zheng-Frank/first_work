@@ -110,14 +110,7 @@
               <span *ngIf="transfer.bizNotifiedAt" style="font-weight: normal">{{transfer.bizNotifiedAt | ago: now}}</span>
             </label>
           </div>
-          <label>Schedule Followup At:</label>
-          <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt"
-            (ngModelChange)="scheduledAtUpdated($event)">
-          <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
-          <div class="py-1 text-right">
-            <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 7, 30]" (click)="plusDay(i)">Today
-              + {{i}}</button>
-          </div>
+
         </div>
       </div>
     </div>
@@ -178,6 +171,17 @@
     </div>
     <div *ngIf="transfer.completedAt" class="alert {{transfer.result === 'succeeded' ? 'alert-success' : 'alert-danger'}}">
       {{transfer.result}}: {{transfer.completedAt | ago : now}}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Schedule Followup At:</label>
+    <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt"
+      (ngModelChange)="scheduledAtUpdated($event)">
+    <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+    <div class="py-1 text-right">
+      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 5, 7, 30]" (click)="plusDay(i)">Today
+        + {{i}}</button>
     </div>
   </div>
 
