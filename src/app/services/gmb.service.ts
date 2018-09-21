@@ -249,7 +249,8 @@ export class GmbService {
           },
           new: {
             _id: t._id,
-            scheduledAt: { $date: new Date() }
+            scheduledAt: { $date: new Date() },
+            comments: (t.comments ? t.comments + ' ' : '') + '[rescheduled by system]'
           }
         })));
 
