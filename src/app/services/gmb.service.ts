@@ -280,8 +280,9 @@ export class GmbService {
     const newSuspendedLocations = suspendedLocations.filter(loc => {
       const biz = placeIdBizMap[loc.place_id] || addressBizMap[loc.address];
       const taskExisted = biz && outstandingTasks.some(task => task.name === 'Appeal Suspended GMB' && task.relatedMap['gmbBizId'] === biz._id);
+
       const lastOwnerEmail = biz && biz.gmbOwnerships && biz.gmbOwnerships[biz.gmbOwnerships.length - 1] && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
-      return !taskExisted && (!biz || !lastOwnerEmail);
+      return !taskExisted && (!biz || !lastOwnerEmail || lastOwnerEmail === gmbAccount.email);
     });
 
     console.log('NEW SUSPENDED: ', newSuspendedLocations);
