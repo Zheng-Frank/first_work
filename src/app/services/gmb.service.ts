@@ -227,9 +227,6 @@ export class GmbService {
       });
       console.log('To Be Scheduled Now: ', toBeScheduledNowTasks);
 
-      if (locations.length > 0)
-        throw 'error';
-
       if (toBeClosedTasks.length > 0 || toBeScheduledNowTasks.length > 0) {
         const pairs = [];
         pairs.push(...toBeClosedTasks.map(t => ({
@@ -254,6 +251,7 @@ export class GmbService {
           }
         })));
 
+        console.log('PAIR>>>>>>>>', pairs)
         await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
         this._global.publishAlert(AlertType.Info, 'Task closed: ' + toBeClosedTasks.length);
         this._global.publishAlert(AlertType.Info, 'Task scheduled to NOW: ' + toBeScheduledNowTasks.length);

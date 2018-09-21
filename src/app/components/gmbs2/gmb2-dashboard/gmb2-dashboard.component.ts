@@ -116,7 +116,7 @@ export class Gmb2DashboardComponent implements OnInit {
           // accounts = accounts.filter(a => a.gmbScannedAt);
           // accounts.length = 4;
 
-          const batchSize = 5;
+          const batchSize = 1;
           const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
 
           for (let batch of batchedAccounts) {

@@ -221,7 +221,9 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
           _id: { $oid: this.gmbBiz.qmenuId }
         },
         projection: {
-          people: 1
+          people: 1,
+          channels: 1,
+          phones: 1
         },
         limit: 1
       }).subscribe(results => {
