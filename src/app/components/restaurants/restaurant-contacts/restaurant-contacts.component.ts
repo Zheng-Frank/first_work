@@ -18,6 +18,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
 export class RestaurantContactsComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
+  @Input() viewOnly = false;
 
   @ViewChild('modalPerson') modalPerson: ModalComponent;
   @ViewChild('modalChannel') modalChannel: ModalComponent;

@@ -87,16 +87,7 @@
       </div>
     </div>
   </div>
-  <div class="card card-body mt-2">
-    <label>Schedule Followup At:</label>
-    <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt"
-      (ngModelChange)="scheduledAtUpdated($event)">
-    <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
-    <div class="py-1 text-right">
-      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 7, 30]" (click)="plusDay(i)">Today
-        + {{i}}</button>
-    </div>
-  </div>
+
   <div class="mb-4">
     <label>
       Input Verification Code
@@ -152,7 +143,16 @@
   <div *ngIf="task.result">
     <button class="btn btn-link px-0 fix-v-align" (click)="handleUpdate('reopen', null, null)">Reopen</button>
   </div>
-
+  <div class="form-group">
+    <label>Schedule Followup At:</label>
+    <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt"
+      (ngModelChange)="scheduledAtUpdated($event)">
+    <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+    <div class="py-1 text-right">
+      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 5, 7, 30]" (click)="plusDay(i)">Today
+        + {{i}}</button>
+    </div>
+  </div>
   <div class="form-group">
     <label>Comments:</label>
     <textarea class="form-control" rows="3" [(ngModel)]="comments" placeholder="extra comments"></textarea>

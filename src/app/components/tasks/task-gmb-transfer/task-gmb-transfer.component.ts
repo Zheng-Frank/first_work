@@ -120,7 +120,6 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
       limit: 5000
     }).subscribe(users => {
       this.assignees = users.filter(u => u.roles.some(r => this.task.roles.indexOf(r) >= 0)).sort((r1, r2) => r1.username > r2.username ? 1 : -1);
-      console.log(this.assignees);
     });
     this.restaurantLogs = [];
     ['gmbBiz', 'gmbRequest', 'gmbAccount'].forEach(obj => {
@@ -222,7 +221,9 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
           _id: { $oid: this.gmbBiz.qmenuId }
         },
         projection: {
-          people: 1
+          people: 1,
+          channels: 1,
+          phones: 1
         },
         limit: 1
       }).subscribe(results => {

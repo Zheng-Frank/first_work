@@ -19,14 +19,21 @@
         <td>{{task.name}}
             <div class="text-muted" *ngIf="task.description">
                 <small>
-                    {{task.description}} @{{task.gmbBiz?.address}} <br><app-gmb-account-hotlink *ngIf="task.transfer?.fromEmail" [email]="task.transfer.fromEmail"></app-gmb-account-hotlink><span *ngIf="task.transfer?.againstEmail">« {{task.transfer?.againstEmail | emailName}}</span>
+                    {{task.description}} {{task.gmbBiz?.address}}
+                    <div *ngIf="task.transfer && task.transfer.fromEmail">
+                        <app-gmb-account-hotlink [email]="task.transfer.fromEmail"></app-gmb-account-hotlink><span
+                            *ngIf="task.transfer.againstEmail">« {{task.transfer.againstEmail | emailName}}</span>
+                    </div>
+                    <div *ngIf="task.etc && task.etc.fromEmail">
+                        <app-gmb-account-hotlink [email]="task.etc.fromEmail"></app-gmb-account-hotlink>
+                    </div>
                 </small>
             </div>
         </td>
         <td>{{task.score}}</td>
         <td>{{getRoles(task)}}</td>
         <td>{{task.assignee}}</td>
-        <td>{{task.comments}}</td>
+        <td class="wrap">{{task.comments}}</td>
         <td>
             <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)"></app-task-action-bar>
         </td>

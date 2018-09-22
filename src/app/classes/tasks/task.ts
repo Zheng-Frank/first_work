@@ -69,33 +69,8 @@ export class Task {
         return this.result || (this.assignee ? 'ASSIGNED' : 'OPEN');
     }
 
-    getActions(user: User): Action[] {
-        const username = user.username;
-        const roles = user.roles || [];
+    getActionsOnlyForAssignee(username): Action[] {
         const actions = [];
-        // can claim if not finished, in role, not assigned
-        if (!this.result && !this.assignee && this.roles.some(r => roles.indexOf(r) >= 0)) {
-            actions.push(new Action({
-                name: 'Claim',
-                confirmationText: 'Assign this task to me.',
-                requiredRoles: this.roles
-            }));
-        }
-
-        // can close or cancel if assigned to me but not yet finished or in my role
-        if (!this.result && this.assignee === username) {
-
-            actions.push(new Action({
-                name: 'Release',
-                confirmationText: 'Release this task back to unassigned list.',
-                requiredRoles: this.roles,
-                paramsObj: {
-                    field: 'assignee',
-                    value: undefined
-                }
-            }));
-        }
-
         if (this.assignee === username) {
 
             switch (this.name) {
@@ -125,15 +100,39 @@ export class Task {
                     break;
             }
 
-            // actions.push(new Action({
-            //     name: 'Close',
-            //     requiredRoles: this.roles,
-            //     paramsObj: {
-            //         field: 'result',
-            //         value: 'CLOSED'
-            //     }
-            // }));
         }
+
+        return actions;
+    }
+
+    getActions(user: User): Action[] {
+        const username = user.username;
+        const roles = user.roles || [];
+        const actions = [];
+        // can claim if not finished, in role, not assigned
+        if (!this.result && !this.assignee && this.roles.some(r => roles.indexOf(r) >= 0)) {
+            actions.push(new Action({
+                name: 'Claim',
+                confirmationText: 'Assign this task to me.',
+                requiredRoles: this.roles
+            }));
+        }
+
+        // can close or cancel if assigned to me but not yet finished or in my role
+        if (!this.result && this.assignee === username) {
+
+            actions.push(new Action({
+                name: 'Release',
+                confirmationText: 'Release this task back to unassigned list.',
+                requiredRoles: this.roles,
+                paramsObj: {
+                    field: 'assignee',
+                    value: undefined
+                }
+            }));
+        }
+
+        actions.push(...this.getActionsOnlyForAssignee(user.username));
         return actions;
     }
 }

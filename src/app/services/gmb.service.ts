@@ -9,13 +9,15 @@ import { zip } from 'rxjs';
 import { Task } from '../classes/tasks/task';
 import { TaskService } from './task.service';
 import { mergeMap } from "rxjs/operators";
+import { GlobalService } from './global.service';
+import { AlertType } from '../classes/alert-type';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GmbService {
 
-  constructor(private _api: ApiService, private _task: TaskService) {
+  constructor(private _api: ApiService, private _task: TaskService, private _global: GlobalService) {
   }
 
   async scanOneGmbAccountLocations(gmbAccount: GmbAccount) {
@@ -24,30 +26,48 @@ export class GmbService {
 
     // pre-process:
     // order: 'Published' > 'Suspended' > 'Pending verification' > 'Verification required' > 'Duplicate'
+    // keep only ONE based on place_id
+
     const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
 
-    for (let status of statusOrder) {
-      for (let i = locations.length - 1; i >= 0; i--) {
-        for (let j = 0; j < i; j++) {
-          // since we iterate from lower priority, we can sure that the current one can be safely removed if there is another one in the list
-          if (locations[i].place_id === locations[j].place_id) {
-            locations.splice(i, 1);
-            break;
-          }
-        }
+    const placeIdLocationMap = {};
+    const addressLocationMap = {};
+    locations.map(loc => {
+      if (!placeIdLocationMap[loc.place_id]) {
+        placeIdLocationMap[loc.place_id] = loc;
       }
-    }
+      const order1 = statusOrder.indexOf(placeIdLocationMap[loc.place_id].status);
+      const order2 = statusOrder.indexOf(loc.status);
+      if (order2 > order1) {
+        placeIdLocationMap[loc.place_id] = loc;
+      }
 
+      if (!addressLocationMap[loc.address]) {
+        addressLocationMap[loc.address] = loc;
+      }
+      const order3 = statusOrder.indexOf(addressLocationMap[loc.address].status);
+      const order4 = statusOrder.indexOf(loc.status);
+      if (order4 > order3) {
+        addressLocationMap[loc.address] = loc;
+      }
+
+    });
 
     // register locations as gmbBiz
-    const place_ids = locations.map(loc => loc.place_id);
+    const place_ids = Object.keys(placeIdLocationMap);
 
-    // let's get all existing bizList
-    const existingGmbBizList = await
-      this._api.get(environment.adminApiUrl + "generic", {
+    const addresses = [...new Set(locations.map(loc => loc.address))];
+
+    // let's get all existing bizList: we need to batch it because of GET length limit :(
+    let existingGmbBizList = [];
+    const batchSize = 30;
+    const batchedLocations = Array(Math.ceil(locations.length / batchSize)).fill(0).map((i, index) => locations.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedLocations) {
+      const gmbBizList = await this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         query: {
-          $or: [{ place_id: { $in: place_ids } }, { "gmbOwnerships.email": gmbAccount.email }]
+          $or: [{ place_id: { $in: batch.map(loc => loc.place_id) } }, { "gmbOwnerships.email": gmbAccount.email }, { address: { $in: batch.map(loc => loc.address) } }]
 
         },
         projection: {
@@ -62,9 +82,65 @@ export class GmbService {
         },
         limit: 5000
       }).toPromise();
+      existingGmbBizList.push(...gmbBizList);
+    }
 
-    // if no place_id found in DB, it must be new!
-    const locationsToInsert: GmbLocation[] = locations.filter(loc => !existingGmbBizList.some(biz => biz.place_id === loc.place_id));
+    // we have LOTS of duplication of gmbBizList, let's purge
+    const idBizMap = {};
+    const placeIdBizMap = {};
+    const addressBizMap = {};
+    existingGmbBizList.map(b => {
+      idBizMap[b._id] = b;
+      placeIdBizMap[b.place_id] = b;
+      addressBizMap[b.address] = b;
+    });
+    // keep only unique ones
+    existingGmbBizList = Object.keys(idBizMap).map(key => idBizMap[key]);
+
+    console.log("Existing GMB List: ", existingGmbBizList);
+
+    // query ALL outstanding task: 
+    const outstandingTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        "relatedMap.gmbAccountId": gmbAccount._id,
+        result: null
+      },
+      limit: 5000
+    }).toPromise();
+    console.log("Outstanding Tasks: ", outstandingTasks);
+
+    //////////////////////////////////////////////////////////////////////////////
+
+
+    // Situation: location is published here, address's the same, but NOT same place_id => need to update place_id!
+
+    const placeIdUpdatedLocations = locations.filter(loc => loc.status !== 'Duplicate' && !placeIdBizMap[loc.place_id] && addressBizMap[loc.address]);
+    placeIdUpdatedLocations.map(loc => placeIdBizMap[loc.place_id] = addressBizMap[loc.address]);
+
+    if (placeIdUpdatedLocations.length > 0) {
+      console.log('Need Update place_id: ', placeIdUpdatedLocations);
+      const patchedBizPairs = placeIdUpdatedLocations.map(loc => {
+        const biz = placeIdBizMap[loc.place_id] || addressBizMap[loc.address];
+        return {
+          old: {
+            _id: biz._id
+          },
+          new: {
+            _id: biz._id,
+            place_id: loc.place_id
+          }
+        };
+      });
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', patchedBizPairs).toPromise();
+      this._global.publishAlert(AlertType.Info, 'Updated place_id: ' + placeIdUpdatedLocations.map(loc => loc.name));
+    }
+
+
+    // (no place_id match, no address match, NOT duplicate) => new;
+    // what about duplicated ?? let's skip because we've previously scanned them in
+    const locationsToInsert: GmbLocation[] =
+      locations.filter(loc => loc.status !== 'Duplicate' && !existingGmbBizList.some(biz => biz.place_id === loc.place_id || biz.address === loc.address));
     const newBizList = locationsToInsert.map(loc => ({
       address: loc.address,
       appealId: loc.appealId,
@@ -83,13 +159,23 @@ export class GmbService {
           []
     }));
 
-    // if existingGmbBizList's last ownership is this account but scanned locations don't have this biz, then it's lost ownership
+    console.log('NEW: ', locationsToInsert);
+    // Save new locations to DB
+    if (newBizList.length > 0) {
+      await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', newBizList).toPromise();
+      this._global.publishAlert(AlertType.Info, 'New Biz Found: ' + newBizList.map(b => b.name));
+    }
+
+    // find out LOST list
+    // (used to be this account, not in scanned list or became Duplicate) => lost 
+
     const lostOwnershipBizList = existingGmbBizList.filter(biz => {
       if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
         const lastEmail = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
         if (lastEmail === gmbAccount.email) {
-          console.log(biz.name);
-          if (!locations.some(loc => loc.place_id === biz.place_id)) {
+          // not in scanned list or is Duplicate!
+          const matchedLocation = placeIdLocationMap[biz.place_id] || addressLocationMap[biz.address];
+          if (!matchedLocation || matchedLocation.status === 'Duplicate') {
             return true;
           }
         }
@@ -99,9 +185,9 @@ export class GmbService {
 
     console.log('LOST: ', lostOwnershipBizList);
 
-    // update lost ownerships status, also update Transfer tasks where it is postcard with code in hand!
     if (lostOwnershipBizList.length > 0) {
 
+      // 1. Update the biz (insert unknown ownership time)
       const lostPairs = lostOwnershipBizList.map(b => {
         const cloneOfGmbOwnerships = JSON.parse(JSON.stringify(b.gmbOwnerships));
         cloneOfGmbOwnerships.push({
@@ -119,101 +205,59 @@ export class GmbService {
         });
 
       });
+
       await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', lostPairs).toPromise();
+      this._global.publishAlert(AlertType.Info, 'Lost ownerships: ' + lostOwnershipBizList.map(b => b.name));
 
-      // query postcard tasks
-      const openTasksToBeRescheduled = await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'task',
-        query: {
-          "transfer.verificationMethod": 'Postcard',
-          result: null,
-          toEmail: gmbAccount.email,
-          "transfer.code": { $exists: true }
+      // 2. close appeal or non-postcard, no-code transfer tasks
+      const toBeClosedTasks = outstandingTasks.filter(t => {
+        if (t.relatedMap && lostOwnershipBizList.some(biz => biz._id === t.relatedMap.gmbBizId)) {
+          return t.name === 'Appeal Suspended GMB' || (t.transfer && t.transfer.verificationMethod !== 'Postcard' && !t.transfer.code);
         }
-      }).toPromise();
-
-      console.log('outstanding open tasks to be re-scheduled: ', openTasksToBeRescheduled);
-      if (openTasksToBeRescheduled.length > 0) {
-        const now = new Date();
-        await this._api.patch(environment.adminApiUrl + 'generic?resource=task', openTasksToBeRescheduled.map(
-          t => ({
-            old: {
-              _id: t._id
-            },
-            new: {
-              _id: t._id,
-              scheduledAt: { $date: now }
-            }
-          })
-        )).toPromise();
-      }
-    }
-
-    // New Panda 445 East Cheyenne Mountain Boulevard, Colorado Springs, CO 80906 
-    // redpassion9876
-
-    // Save new locations to DB
-    if (locationsToInsert.length > 0) {
-      const newBizListIds = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', newBizList).toPromise();
-      // inject ids
-      newBizListIds.map((id, index) => newBizList[index]['_id'] = id);
-    }
-
-    // If place_id is in DB, then it's maybe something to update
-    const locationsToUpdate = locations.filter(loc => existingGmbBizList.some(biz => biz.place_id === loc.place_id));
-
-    const pairs = locationsToUpdate.map(loc => ({
-      updated: false,
-      location: loc,
-      oldGmbBiz: existingGmbBizList.filter(biz => biz.place_id === loc.place_id)[0],
-      newGmbBiz: JSON.parse(JSON.stringify(existingGmbBizList.filter(biz => biz.place_id === loc.place_id)[0]))
-    }));
-
-    // let's start compare
-    pairs.map(pair => {
-      ['address', 'appealId', 'cid', 'name', 'place_id'].map(field => {
-        if (pair.location[field] !== pair.newGmbBiz[field]) {
-          pair.newGmbBiz[field] = pair.location[field];
-          pair.updated = true;
-        }
+        return false;
       });
-      // homepage -> gmbWebsite
-      if (pair.location['homepage'] !== pair.newGmbBiz['gmbWebsite']) {
-        pair.newGmbBiz['gmbWebsite'] = pair.location['homepage'];
-        pair.updated = true;
+      console.log('To Be Closed Tasks: ', toBeClosedTasks);
 
+      // 3. reschedule postcard with code task to now!
+      const toBeScheduledNowTasks = outstandingTasks.filter(t => {
+        if (t.relatedMap && lostOwnershipBizList.some(biz => biz._id === t.relatedMap.gmbBizId)) {
+          return t.transfer && t.transfer.verificationMethod === 'Postcard' && t.transfer.code;
+        }
+        return false;
+      });
+      console.log('To Be Scheduled Now: ', toBeScheduledNowTasks);
+
+      if (toBeClosedTasks.length > 0 || toBeScheduledNowTasks.length > 0) {
+        const pairs = [];
+        pairs.push(...toBeClosedTasks.map(t => ({
+          old: {
+            _id: t._id
+          },
+          new: {
+            _id: t._id,
+            result: 'CLOSED',
+            resultAt: { $date: new Date() },
+            comments: (t.comments ? t.comments + ' ' : '') + '[closed by system]'
+          }
+        })));
+        pairs.push(...toBeScheduledNowTasks.map(t => ({
+          old: {
+            _id: t._id
+          },
+          new: {
+            _id: t._id,
+            scheduledAt: { $date: new Date() },
+            comments: (t.comments ? t.comments + ' ' : '') + '[rescheduled by system]'
+          }
+        })));
+
+        console.log('PAIR>>>>>>>>', pairs)
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+        this._global.publishAlert(AlertType.Info, 'Task closed: ' + toBeClosedTasks.length);
+        this._global.publishAlert(AlertType.Info, 'Task scheduled to NOW: ' + toBeScheduledNowTasks.length);
       }
 
-      const lastOwnerEmail = new GmbBiz(pair.newGmbBiz).getAccountEmail();
-      // we used to have this account but now don't know
-      // this doesn't mean we lost it because it might be transferred to other account
-      if (lastOwnerEmail === gmbAccount.email && pair.location.status !== 'Published') {
-        // push an unknown ownership in. No need to check existence of gmbOwnerships
-        pair.newGmbBiz.gmbOwnerships.push({
-          possessedAt: { $date: new Date() }
-        });
-        pair.updated = true;
-      }
-      // if lastOwnerEmail is not this account or unknown, we don't need to do anything
-      // but if this is the new owner, let's put it in!
-      if (lastOwnerEmail !== gmbAccount.email && pair.location.status === 'Published') {
-        // push an unknown ownership in
-        pair.newGmbBiz.gmbOwnerships = pair.newGmbBiz.gmbOwnerships || [];
-        pair.newGmbBiz.gmbOwnerships.push({
-          email: gmbAccount.email,
-          possessedAt: { $date: new Date() }
-        });
-        pair.updated = true;
-      }
-    });
-
-    // handle ONLY those updated gmbBiz
-    const updatedPairs = pairs.filter(p => p.updated);
-    // await updating!
-    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", updatedPairs.map(p => ({
-      old: p.oldGmbBiz,
-      new: p.newGmbBiz
-    }))).toPromise();
+    }
 
     // also update gmbScannedAt
     await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{
@@ -225,93 +269,6 @@ export class GmbService {
     gmbAccount.gmbScannedAt = new Date();
 
 
-    // Some scope variables
-    const idBizMap: any = new Map(existingGmbBizList.map(biz => [biz._id, biz]));
-    const placeIdLocationMap = new Map(locations.map(loc => [loc.place_id, loc]));
-    const placeIdBizMap = new Map(existingGmbBizList.map(biz => [biz.place_id, biz]));
-    const toBeClosedTasks = [];
-
-    // invalidate some A -> B transfer task: if 
-    // 1. open
-    // 2. non-assigned
-    // 3. from email == this.account
-    // 4. biz not suspended and not published!
-    // 5. Not a postcard task
-
-    const openTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Transfer GMB Ownership',
-        assignee: null,
-        result: null,
-        "relatedMap.gmbAccountId": gmbAccount._id
-      },
-      limit: 5000
-    }).toPromise();
-
-    // step 4, match biz
-
-    openTransferTasks.map(task => {
-      if (task.transfer && task.transfer.verificationMethod === 'Postcard' && task.relatedMap && idBizMap.has(task.relatedMap.gmbBizId)) {
-        const biz = idBizMap.get(task.relatedMap.gmbBizId);
-        if (placeIdLocationMap.has(biz.place_id)) {
-          const location: any = placeIdLocationMap.get(biz.place_id);
-          if (location.status !== "Published" && location.status !== "Suspended") {
-            toBeClosedTasks.push(task);
-          }
-        }
-      }
-    });
-
-    console.log('open tasks TRANSFER', openTransferTasks)
-    console.log('to be closed TRANSFER', toBeClosedTasks)
-
-    // patch those tasks to be closed! by system
-    const closedPairs = toBeClosedTasks.map(t => ({
-      old: {
-        _id: t._id
-      },
-      new: {
-        _id: t._id,
-        assignee: 'system',
-        result: 'CANCELED',
-        resultAt: { $date: new Date() }
-      }
-    }));
-
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', closedPairs).toPromise();
-
-    // invalidate appeal: if 
-    // 1. open
-    // 2. related gmbAccountId === this.account
-    // 3. biz not suspended anymore!
-
-    const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Appeal Suspended GMB',
-        assignee: null,
-        result: null,
-        "relatedMap.gmbAccountId": gmbAccount._id
-      },
-      limit: 5000
-    }).toPromise();
-
-    openAppealTasks.map(task => {
-      if (idBizMap.has(task.relatedMap.gmbBizId)) {
-        const biz = idBizMap.get(task.relatedMap.gmbBizId);
-        if (placeIdLocationMap.has(biz.place_id)) {
-          const location: any = placeIdLocationMap.get(biz.place_id);
-          if (location.status !== "Suspended") {
-            toBeClosedTasks.push(task);
-          }
-        }
-      }
-    });
-
-    console.log('open tasks', openTransferTasks)
-    console.log('to be closed', toBeClosedTasks)
-
     // generate Appeal Suspended GMB task for those suspended
     // 1. NO outstanding appeal task
     //    a. same biz
@@ -320,22 +277,41 @@ export class GmbService {
     const suspendedLocations = locations.filter(loc => loc.status === 'Suspended');
 
     const newSuspendedLocations = suspendedLocations.filter(loc => {
-      const biz = placeIdBizMap.get(loc.place_id) as GmbBiz;
-      const taskExisted = openAppealTasks.some(task => task.relatedMap['gmbBizId'] === biz._id);
-      return !taskExisted && (!biz || !(biz.gmbOwnerships && biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email));
+      const biz = placeIdBizMap[loc.place_id] || addressBizMap[loc.address];
+      const taskExisted = biz && outstandingTasks.some(task => task.name === 'Appeal Suspended GMB' && task.relatedMap['gmbBizId'] === biz._id);
+
+      const lastOwnerEmail = biz && biz.gmbOwnerships && biz.gmbOwnerships[biz.gmbOwnerships.length - 1] && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
+      return !taskExisted && (!biz || !lastOwnerEmail || lastOwnerEmail === gmbAccount.email);
     });
 
-    console.log(newSuspendedLocations);
+    console.log('NEW SUSPENDED: ', newSuspendedLocations);
 
-    for (let suspendedLoc of newSuspendedLocations) {
-      try {
-        const gmbBiz = existingGmbBizList.concat(newBizList).filter(biz => biz.place_id === suspendedLoc.place_id)[0];
-        await this._task.upsertSuspendedTask(gmbBiz, gmbAccount);
-      }
-      catch (error) {
-        console.log('Error creating suspended task ' + suspendedLoc);
-      }
+    // create Appeal Suspended GMB tasks
+    if (newSuspendedLocations.length > 0) {
+      const newAppealTasks = newSuspendedLocations.map(loc => {
+        const biz = placeIdBizMap[loc.place_id] || addressBizMap[loc.address];
+        const newTask = {
+          name: 'Appeal Suspended GMB',
+          relatedMap: {
+            gmbBizId: biz._id,
+            gmbAccountId: gmbAccount._id,
+            appealId: biz.appealId
+          },
+          scheduledAt: {
+            $date: new Date()
+          },
+          etc: {
+            fromEmail: gmbAccount.email
+          },
+          description: biz.name,
+          roles: ['GMB', 'ADMIN'],
+          score: biz.score
+        };
+        return newTask;
+      });
+      await this._api.post(environment.adminApiUrl + 'generic?resource=task', newAppealTasks);
     }
+
     return locations;
   }
 

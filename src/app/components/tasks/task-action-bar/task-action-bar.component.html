@@ -3,15 +3,26 @@
         <button *ngIf="!task.result" class="btn btn-sm btn-primary mb-2" (click)="act(action)">{{action.name}}</button>&nbsp;
         <button *ngIf="task.result" class="btn btn-sm btn-link mb-2" (click)="act(action)">View</button>&nbsp;
     </ng-container>
+    <ng-container *ngIf="task.assignee !== user.username">
+        <ng-container *ngFor="let action of task.getActionsOnlyForAssignee(task.assignee)">
+            <button class="btn btn-sm btn-link mb-2" (click)="act(action)">View</button>&nbsp;
+        </ng-container>
+    </ng-container>
 </ng-container>
 
 
 <!--the editing modal-->
 <q-modal #taskActionerModal [title]="activeAction?.name">
+    <div *ngIf="task.assignee && task.assignee !== user.username" class="alert alert-danger">
+        Task claimed by <strong>{{task.assignee}}</strong>. Be careful.
+    </div>
+    <div *ngIf="!task.assignee" class="alert alert-warning">
+        Task not claimed.
+    </div>
     <app-task-gmb-apply *ngIf="activeAction?.name === 'Apply GMB'" [task]="task" (ok)="cancelAction()"></app-task-gmb-apply>
     <app-task-gmb-transfer *ngIf="activeAction?.name === 'Transfer'" [task]="task" (ok)="cancelAction()"></app-task-gmb-transfer>
     <app-task-gmb-appeal-suspended *ngIf="activeAction?.name === 'Appeal Suspended'" [task]="task" (ok)="cancelAction()"></app-task-gmb-appeal-suspended>
-    <app-task-generic-handler *ngIf="['Transfer', 'Apply GMB', 'Appeal Suspended'].indexOf(activeAction?.name) === -1" (cancel)="cancelAction($event)" (done)="finishAction($event)"
-        [action]="activeAction" [task]="task"></app-task-generic-handler>
+    <app-task-generic-handler *ngIf="['Transfer', 'Apply GMB', 'Appeal Suspended'].indexOf(activeAction?.name) === -1"
+        (cancel)="cancelAction($event)" (done)="finishAction($event)" [action]="activeAction" [task]="task"></app-task-generic-handler>
 
 </q-modal>
