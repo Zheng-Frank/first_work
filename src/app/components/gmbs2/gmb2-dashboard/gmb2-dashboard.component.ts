@@ -76,7 +76,7 @@ export class Gmb2DashboardComponent implements OnInit {
         this.gmbBizList = results[1].map(b => new GmbBiz(b));
         this.gmbRequests = results[2].map(r => new GmbRequest(r));
         const emails = this.gmbAccounts.map(ga => ga.email);
-        this.ownedGmbBizList = this.gmbBizList.filter(b => b.hasOwnership(emails));
+        this.ownedGmbBizList = this.gmbBizList.filter(b => b.publishedIn(emails));
       },
       error => {
         this._global.publishAlert(AlertType.Danger, error);

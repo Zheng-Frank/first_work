@@ -62,17 +62,21 @@ export class GmbBiz {
     }
 
     /** test if the last ownership is one of the given emails */
-    hasOwnership(emails) {
-        let lastEmail;
-        if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
-            lastEmail = this.gmbOwnerships[this.gmbOwnerships.length - 1].email;
-        }
-        return emails.indexOf(lastEmail) >= 0;
+    publishedIn(emails) {
+        const lastOwnership = this.getLastGmbOwnership();
+        return lastOwnership && (lastOwnership.status === 'Published' || !lastOwnership.status) && emails.indexOf(lastOwnership.email) >= 0;
+    }
+    suspendedIn(emails) {
+        const lastOwnership = this.getLastGmbOwnership();
+        return lastOwnership && lastOwnership.status === 'Suspended' && emails.indexOf(lastOwnership.email) >= 0;
+    }
+    getAccountEmail() {
+        return (this.getLastGmbOwnership() || {})['email'];
     }
 
-    getAccountEmail() {
+    getLastGmbOwnership() {
         if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
-            return this.gmbOwnerships[this.gmbOwnerships.length - 1].email;
+            return this.gmbOwnerships[this.gmbOwnerships.length - 1];
         }
         return undefined;
     }

@@ -7,7 +7,8 @@
     <label class="mr-2"> GMB:</label>
     <select class="form-control mr-4" [(ngModel)]="gmbOwnership" (change)="filterBizList()">
       <option>any</option>
-      <option>qmenu</option>
+      <option>qmenu: published</option>
+      <option>qmenu: suspended</option>
       <option>NOT qmenu</option>
 
     </select>
@@ -88,8 +89,9 @@
       <!-- {{biz.transfers}} -->
     </td>
     <td class="text-center">
-      <img *ngIf="biz.owned" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
-      <span *ngIf="!biz.owned">?</span>
+      <img *ngIf="biz.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+      <img *ngIf="biz.suspended" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
+      <span *ngIf="!biz.published && !biz.suspended">?</span>
     </td>
     <td class="text-center">
       <a href="{{biz.gmbBiz.gmbWebsite}}" title="{{biz.gmbBiz.gmbWebsite}}" target="_blank">

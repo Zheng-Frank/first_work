@@ -13,7 +13,8 @@ import { Task } from '../../../classes/tasks/task';
 
 interface myBiz {
   gmbBiz: GmbBiz;
-  owned?: boolean;
+  published?: boolean;
+  suspended?: boolean;
   ownershipPercentage?: number;
   lostDate?: Date;
   transfers?: string; // A <- B <- C
@@ -117,16 +118,16 @@ export class GmbBizListComponent implements OnInit {
       })
     )
       .subscribe(
-      results => {
-        this.refreshing = false;
-        this.bizList = results[0].map(b => new GmbBiz(b)).sort((g1, g2) => g1.name > g2.name ? 1 : -1);
-        this.myEmails = results[1].map(account => account.email);
-        this.filterBizList();
-      },
-      error => {
-        this.refreshing = false;
-        this._global.publishAlert(AlertType.Danger, error);
-      }
+        results => {
+          this.refreshing = false;
+          this.bizList = results[0].map(b => new GmbBiz(b)).sort((g1, g2) => g1.name > g2.name ? 1 : -1);
+          this.myEmails = results[1].map(account => account.email);
+          this.filterBizList();
+        },
+        error => {
+          this.refreshing = false;
+          this._global.publishAlert(AlertType.Danger, error);
+        }
       );
 
     this.bizTaskMap = {};
@@ -180,7 +181,8 @@ export class GmbBizListComponent implements OnInit {
     this.filteredMyBizList = filteredBizList.map(biz => ({
       gmbBiz: biz,
       transfers: (biz.gmbOwnerships || []).map(o => (o.email || 'N/A').split('@')[0]).join('→ '),
-      owned: biz.hasOwnership(this.myEmails),
+      published: biz.publishedIn(this.myEmails),
+      suspended: biz.suspendedIn(this.myEmails),
       qmenuIdDays: biz.qmenuId ? Math.floor((this.now.valueOf() - parseInt(biz.qmenuId.substring(0, 8), 16) * 1000) / (24 * 3600000)) : undefined,
       ownershipPercentage: ((biz) => {
         let possesedTime = 1;
@@ -194,17 +196,19 @@ export class GmbBizListComponent implements OnInit {
         }
         return Math.round(possesedTime * 100 / (possesedTime + nonPossesedTime));
       })(biz),
-      lostDate: (biz.hasOwnership(this.myEmails) || !biz.gmbOwnerships || biz.gmbOwnerships.length === 0) ? undefined : biz.gmbOwnerships[biz.gmbOwnerships.length - 1].possessedAt
+      lostDate: biz.getLastGmbOwnership() && (biz.getLastGmbOwnership().status === 'Suspended' || !biz.getAccountEmail) ? biz.getLastGmbOwnership().possessedAt : undefined
     }));
 
     //
     switch (this.gmbOwnership) {
-      case 'qmenu':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.owned);
+      case 'qmenu: published':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.published);
         break;
-
+      case 'qmenu: suspended':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.suspended);
+        break;
       case 'NOT qmenu':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.owned);
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.published && !b.suspended);
         break;
 
       default:
@@ -259,7 +263,7 @@ export class GmbBizListComponent implements OnInit {
     const sortedBizList = this.filteredMyBizList.sort((a1, a2) => (a1.gmbBiz.crawledAt || new Date(0)).valueOf() - (a2.gmbBiz.crawledAt || new Date(0)).valueOf());
 
     for (let b of sortedBizList) {
-      
+
       try {
         let result = await this.crawl(b.gmbBiz);
 
@@ -344,7 +348,7 @@ export class GmbBizListComponent implements OnInit {
         event.acknowledge(error.message || 'API Error.');
         console.log(error);
       }
-      );
+    );
   }
 
   remove(event: FormEvent) {
@@ -364,7 +368,7 @@ export class GmbBizListComponent implements OnInit {
         this.apiError = 'API Error. Status code: ' + error.statusText;
         console.log(error);
       }
-      );
+    );
   }
 
   async inject(biz) {

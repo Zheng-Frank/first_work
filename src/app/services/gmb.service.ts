@@ -50,7 +50,6 @@ export class GmbService {
       if (order4 > order3) {
         addressLocationMap[loc.address] = loc;
       }
-
     });
 
     // register locations as gmbBiz
@@ -85,6 +84,9 @@ export class GmbService {
       existingGmbBizList.push(...gmbBizList);
     }
 
+    // convert to GmbBiz type
+    existingGmbBizList = existingGmbBizList.map(b => new GmbBiz(b));
+
     // we have LOTS of duplication of gmbBizList, let's purge
     const idBizMap = {};
     const placeIdBizMap = {};
@@ -113,8 +115,7 @@ export class GmbService {
     //////////////////////////////////////////////////////////////////////////////
 
 
-    // Situation: location is published here, address's the same, but NOT same place_id => need to update place_id!
-
+    // Situation: location is Non-duplicate here, address's the same, but NOT same place_id => need to update place_id!
     const placeIdUpdatedLocations = locations.filter(loc => loc.status !== 'Duplicate' && !placeIdBizMap[loc.place_id] && addressBizMap[loc.address]);
     placeIdUpdatedLocations.map(loc => placeIdBizMap[loc.place_id] = addressBizMap[loc.address]);
 
@@ -135,6 +136,43 @@ export class GmbService {
       await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', patchedBizPairs).toPromise();
       this._global.publishAlert(AlertType.Info, 'Updated place_id: ' + placeIdUpdatedLocations.map(loc => loc.name));
     }
+    // find out Status updated (Published --> Suspended or Suspended --> Published) list
+    // (used to be this account, not in scanned list or became Duplicate) => lost 
+    const statusUpdatedBizList = existingGmbBizList.filter(biz => {
+      const matchedLocation = placeIdLocationMap[biz.place_id] || addressLocationMap[biz.address];
+      const lastOwnership = biz.getLastGmbOwnership();
+      if (matchedLocation && lastOwnership && lastOwnership.email === gmbAccount.email) {
+
+        return (matchedLocation.status === 'Suspended' && lastOwnership.status !== 'Suspended') || (lastOwnership.status === 'Suspended' && matchedLocation.status === 'Published');
+      }
+      return false;
+    });
+    if (statusUpdatedBizList.length > 0) {
+      console.log('Need Update Status: ', statusUpdatedBizList);
+      const updatedPairs = statusUpdatedBizList.map(b => {
+        const cloneOfGmbOwnerships = JSON.parse(JSON.stringify(b.gmbOwnerships));
+        const matchedLocation = placeIdLocationMap[b.place_id] || addressLocationMap[b.address];
+        cloneOfGmbOwnerships.push({
+          possessedAt: { $date: new Date() },
+          email: gmbAccount.email,
+          status: matchedLocation.status
+        });
+        return ({
+          old: {
+            _id: b._id,
+            gmbOwnerships: b.gmbOwnerships
+          },
+          new: {
+            _id: b._id,
+            gmbOwnerships: cloneOfGmbOwnerships
+          }
+        });
+      });
+      
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', updatedPairs).toPromise();
+      this._global.publishAlert(AlertType.Info, 'Updated Status: ' + statusUpdatedBizList.map(b => b.name));
+
+    }
 
 
     // (no place_id match, no address match, NOT duplicate) => new;
@@ -149,11 +187,12 @@ export class GmbService {
       name: loc.name,
       place_id: loc.place_id,
       gmbOwnerships:
-        loc.status === 'Published' ?
+        loc.status === 'Published' || loc.status === 'Suspended' ?
           [{
             appealId: loc.appealId,
             possessedAt: { $date: new Date() },
-            email: gmbAccount.email
+            email: gmbAccount.email,
+            status: loc.status
           }]
           :
           []
@@ -218,10 +257,10 @@ export class GmbService {
       });
       console.log('To Be Closed Tasks: ', toBeClosedTasks);
 
-      // 3. reschedule postcard with code task to now!
+      // 3. reschedule task with code (doesn't matter type of verificatoin method anymore) to now!
       const toBeScheduledNowTasks = outstandingTasks.filter(t => {
         if (t.relatedMap && lostOwnershipBizList.some(biz => biz._id === t.relatedMap.gmbBizId)) {
-          return t.transfer && t.transfer.verificationMethod === 'Postcard' && t.transfer.code;
+          return t.transfer && t.transfer.code;
         }
         return false;
       });
@@ -251,7 +290,6 @@ export class GmbService {
           }
         })));
 
-        console.log('PAIR>>>>>>>>', pairs)
         await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
         this._global.publishAlert(AlertType.Info, 'Task closed: ' + toBeClosedTasks.length);
         this._global.publishAlert(AlertType.Info, 'Task scheduled to NOW: ' + toBeScheduledNowTasks.length);

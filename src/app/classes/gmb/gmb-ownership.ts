@@ -5,6 +5,7 @@ export class GmbOwnership {
     appealId: string;        // every ownership has an id, which is generated from appealing. If granted, id won't change
     possessedAt : Date;
     email: string;  // the holder
+    status: string; // Published (default), Suspended
 
     constructor(obj?: any) {
         if (obj) {

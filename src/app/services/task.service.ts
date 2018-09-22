@@ -194,7 +194,7 @@ export class TaskService {
     gmbBizList.map(b => bizMap[b._id] = b);
 
 
-    // find those that's published (last ownership has email!)
+    // find those that's published (last ownership has email && status is not suspended!)
     const toBeClosed = openAppealTasks.filter(t => {
       const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
       if(!gmbBiz) {
@@ -203,7 +203,7 @@ export class TaskService {
         // delete the task!
         return true;
       }
-      return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email;
+      return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status !== 'Suspended';
     });
 
     console.log('To be closed: ', toBeClosed);
