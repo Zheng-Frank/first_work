@@ -76,7 +76,10 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           deliveryTimeEstimate: 1,
           logo: 1,
           excludeAmex: 1,
+          excludeDiscover: 1,
+          taxBeforePromotion: 1,
           requireZipcode: 1,
+          requireBillingAddress: 1, 
           allowScheduling: 1,
           timeZone: 1,
           notification: 1,
@@ -89,7 +92,8 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           deliveryByTme: 1,
 
           menus: 1,
-          menuOptions: 1
+          menuOptions: 1,
+          notes:1
         },
         limit: 1
       })

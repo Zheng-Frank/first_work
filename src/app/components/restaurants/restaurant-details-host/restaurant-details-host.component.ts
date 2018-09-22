@@ -44,7 +44,8 @@ export class RestaurantDetailsHostComponent implements OnInit {
               customizedRenderingStyles: 1,
               printerSN: 1,
               printerKey: 1,
-              printers: 1
+              printers: 1,
+              notes: 1
             },
             limit: 1
           }).subscribe(
