@@ -24,6 +24,7 @@ export class GmbAccountListComponent implements OnInit {
 
   searchFilter;
   filteredGmbAccounts = [];
+  accounts: any[] = []; // account with bizCount
 
   gmbInEditing: GmbAccount = new GmbAccount();
   apiError = undefined;
@@ -33,11 +34,57 @@ export class GmbAccountListComponent implements OnInit {
   processingGmbAccountSet = new Set<any>();
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService) {
-    this.retrieveGmbAccounts();
+    
+
+    // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
+    zip(
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "gmbBiz",
+        projection: {
+          "gmbOwnerships.email": 1,
+          "phone": 1
+        },
+        limit: 5000
+      }),
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "gmbAccount",
+        projection: {
+          email: 1
+        },
+        limit: 5000
+      })
+    )
+      .subscribe(
+        results => {
+          const accountMap = {};
+          results[1].map(a => {
+            accountMap[a.email] = a;
+          });
+          results[0].map(biz => {
+            if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
+              const email = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
+              if (accountMap[email]) {
+                accountMap[email].bizCount = (accountMap[email].bizCount || 0) + 1;
+              }
+            }
+          });
+
+          this.accounts = results[1].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
+          this.retrieveGmbAccounts();
+          console.log(this.accounts);
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, error);
+        }
+      );
+
+
+    
   }
 
   ngOnInit() {
   }
+
 
   retrieveGmbAccounts() {
     this._api.get(environment.adminApiUrl + "generic", {
@@ -50,7 +97,12 @@ export class GmbAccountListComponent implements OnInit {
     })
       .subscribe(
         gmbAccounts => {
-          this.gmbAccounts = gmbAccounts.map(g => new GmbAccount(g)).sort((g1, g2) => g1.email > g2.email ? 1 : -1);
+          this.gmbAccounts = gmbAccounts.map(g => {
+            let gmb=new GmbAccount(g);
+            gmb.bizCount=this.accounts.find(each=>each.email=== gmb.email).bizCount;
+            return gmb;
+          }
+          ).sort((g1, g2) => g1.email > g2.email ? 1 : -1);
           this.filterGmbAccounts();
         },
         error => {

@@ -6,10 +6,11 @@
     <div class="clearfix">
       <div class="float-left">
         <h2>{{gmbAccount.email | emailName}}</h2>
+        <h5>(bizCount={{gmbAccount.bizCount}})</h5>
         <div *ngIf="gmbAccount.comments"><small>{{gmbAccount.comments}}</small></div>
       </div>
       <div class="float-right">
-
+       
         <button class="btn btn-link" [disabled]="scanningBizList || disabled" (click)="clickScanBizList()">
           <i class="fas fa-lock"></i> Scan Published Locations
           <div *ngIf="gmbAccount.gmbScannedAt" class="text-muted">
