@@ -8,6 +8,7 @@ export class GmbAccount {
     gmbScannedAt: Date;
     emailScannedAt: Date;
     comments: string;
+    bizCount: number;
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields
