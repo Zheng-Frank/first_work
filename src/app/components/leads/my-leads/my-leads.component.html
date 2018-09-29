@@ -79,15 +79,6 @@
 
 <q-modal [title]="selectedLead.name" #leadModal>
   <app-lead-info [lead]="selectedLead"></app-lead-info>
-  <div *ngIf="selectedLead.gmbScanned; else noGmb">
-    <app-gmb-info [gmbInfo]="selectedLead" (scan)="scanLead($event)" [showRefresh]="true"></app-gmb-info>
-  </div>
-  <ng-template #noGmb>
-    <i class="fas fa-exclamation-triangle text-warning"></i> Missing GMB info
-    <i class="far fa-hand-point-right"></i>&nbsp;&nbsp;
-    <button class="btn btn-outline-primary" (click)="scanLead({lead: selectedLead})" [qLoading]="leadsInProgress.length > 0">
-      <i class="fab fa-searchengin"></i> Crawl Google</button>
-  </ng-template>
   <hr>
   <h5 class="text-center">Call Logs</h5>
   <div class="pb-2">

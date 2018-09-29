@@ -83,7 +83,7 @@
     <!-- <td>{{biz.ownershipPercentage}}%</td> -->
     <td>
       <small>
-        <span *ngFor="let o of (biz.gmbBiz.gmbOwnerships || []); let i=index"><app-gmb-account-hotlink [email]="o.email"></app-gmb-account-hotlink><span
+        <span *ngFor="let o of (biz.gmbBiz.gmbOwnerships || []); let i=index"><app-gmb-account-hotlink [email]="o.email" [muted]="o.status === 'Suspended'"></app-gmb-account-hotlink><span
             *ngIf="i < biz.gmbBiz.gmbOwnerships.length - 1">→</span></span>
       </small>
       <!-- {{biz.transfers}} -->
@@ -115,6 +115,7 @@
         </button>
         <div class="dropdown-menu dropdown-menu-right">
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="inject(biz.gmbBiz)">Inject qMenu</button>
+          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="suggest(biz.gmbBiz)">Suggest qMenu</button>
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="crawl(biz.gmbBiz)">G-Crawl</button>
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="createApplyTask(biz.gmbBiz)">Create
             Apply-GMB Task</button>

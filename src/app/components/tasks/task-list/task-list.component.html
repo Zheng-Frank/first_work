@@ -33,7 +33,12 @@
         <td>{{task.score}}</td>
         <td>{{getRoles(task)}}</td>
         <td>{{task.assignee}}</td>
-        <td class="wrap">{{task.comments}}</td>
+        <td>
+            <div class="wrap">{{task.comments}}</div>
+            <div *ngIf="task.transfer && task.transfer.verificationMethod">
+                {{task.transfer.verificationMethod}}
+            </div>
+        </td>
         <td>
             <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)"></app-task-action-bar>
         </td>

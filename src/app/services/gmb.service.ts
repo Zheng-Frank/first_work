@@ -21,9 +21,14 @@ export class GmbService {
   }
 
   async scanOneGmbAccountLocations(gmbAccount: GmbAccount) {
-    // scan locations
-    const locations = await this._api.post('http://localhost:3000/retrieveGmbLocations', { email: gmbAccount.email, password: gmbAccount.password }).toPromise();
+    let password = gmbAccount.password;
+    if (password.length > 20) {
+      password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: gmbAccount.email, phrase: password }).toPromise();
+    }
 
+    // scan locations
+    const locations = await this._api.post(environment.autoGmbUrl + 'retrieveGmbLocations', { email: gmbAccount.email, password: password }).toPromise();
+    console.log(locations)
     // pre-process:
     // order: 'Published' > 'Suspended' > 'Pending verification' > 'Verification required' > 'Duplicate'
     // keep only ONE based on place_id
@@ -105,7 +110,13 @@ export class GmbService {
     const outstandingTasks = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'task',
       query: {
-        "relatedMap.gmbAccountId": gmbAccount._id,
+        $or: [
+          {
+            "relatedMap.gmbAccountId": gmbAccount._id
+          },
+          {
+            "relatedMap.gmbBizId": { $in: Object.keys(idBizMap).map(id => id) } // no need $oid because here we store id as string
+          }],
         result: null
       },
       limit: 5000
@@ -136,19 +147,60 @@ export class GmbService {
       await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', patchedBizPairs).toPromise();
       this._global.publishAlert(AlertType.Info, 'Updated place_id: ' + placeIdUpdatedLocations.map(loc => loc.name));
     }
-    // find out Status updated (Published --> Suspended or Suspended --> Published) list
-    // (used to be this account, not in scanned list or became Duplicate) => lost 
+    // find out Status updated, Suspended/Published
     const statusUpdatedBizList = existingGmbBizList.filter(biz => {
       const matchedLocation = placeIdLocationMap[biz.place_id] || addressLocationMap[biz.address];
-      const lastOwnership = biz.getLastGmbOwnership();
-      if (matchedLocation && lastOwnership && lastOwnership.email === gmbAccount.email) {
-
-        return (matchedLocation.status === 'Suspended' && lastOwnership.status !== 'Suspended') || (lastOwnership.status === 'Suspended' && matchedLocation.status === 'Published');
+      if (!matchedLocation) {
+        return false;
       }
-      return false;
+
+      const lastOwnership = biz.getLastGmbOwnership();
+
+      // loc is either Published or Suspended, and then lastOwnership is either NOT this account, or having different status
+      const owned = matchedLocation.status === 'Published' || matchedLocation.status === 'Suspended';
+      const lastOwnershipChanged = !lastOwnership || lastOwnership.email !== gmbAccount.email;
+      const sameButLastStatusChanged = matchedLocation && lastOwnership && lastOwnership.email === gmbAccount.email && (lastOwnership.status !== matchedLocation.status);
+      return owned && (lastOwnershipChanged || sameButLastStatusChanged);
+
     });
+
     if (statusUpdatedBizList.length > 0) {
+
       console.log('Need Update Status: ', statusUpdatedBizList);
+      // we need to close outstanding Apply Task (No Code ones, Possible post card), close Appeal Task if published(already won)
+      const toBeClosedTasks = outstandingTasks.filter(t => {
+        if (t.relatedMap && statusUpdatedBizList.some(biz => biz._id === t.relatedMap.gmbBizId)) {
+          const biz = idBizMap[t.relatedMap.gmbBizId];
+          const matchedLocation = placeIdLocationMap[biz.place_id] || addressLocationMap[biz.address];
+          const isAppealTaskInvalid = t.name === 'Appeal Suspended GMB' && matchedLocation.status === 'Published';
+          const isApplyTaskInvalid = t.name === 'Apply GMB Ownership' && matchedLocation.status === 'Published' && (t.transfer && t.transfer.verificationMethod !== 'Postcard' && !t.transfer.code);
+          const isTransferTaskInvalid = t.name === 'Transfer GMB Ownership' && matchedLocation.status !== 'Published' &&  (t.transfer && t.transfer.verificationMethod !== 'Postcard' && !t.transfer.code);
+          return isAppealTaskInvalid || isApplyTaskInvalid || isTransferTaskInvalid;
+        }
+        return false;
+      });
+
+      console.log('To Be Closed Tasks Because of Published/Suspended:');
+      console.log(toBeClosedTasks);
+      if (toBeClosedTasks.length > 0) {
+        const pairs = [];
+        pairs.push(...toBeClosedTasks.map(t => ({
+          old: {
+            _id: t._id
+          },
+          new: {
+            _id: t._id,
+            result: 'CLOSED',
+            resultAt: { $date: new Date() },
+            comments: (t.comments ? t.comments + ' ' : '') + '[closed by system]'
+          }
+        })));
+
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+        this._global.publishAlert(AlertType.Info, 'Task closed: ' + toBeClosedTasks.length);
+
+      }
+
       const updatedPairs = statusUpdatedBizList.map(b => {
         const cloneOfGmbOwnerships = JSON.parse(JSON.stringify(b.gmbOwnerships));
         const matchedLocation = placeIdLocationMap[b.place_id] || addressLocationMap[b.address];
@@ -168,7 +220,7 @@ export class GmbService {
           }
         });
       });
-      
+
       await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', updatedPairs).toPromise();
       this._global.publishAlert(AlertType.Info, 'Updated Status: ' + statusUpdatedBizList.map(b => b.name));
 
@@ -297,6 +349,9 @@ export class GmbService {
 
     }
 
+
+
+
     // also update gmbScannedAt
     await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{
       old: { _id: gmbAccount._id },
@@ -420,8 +475,13 @@ export class GmbService {
   }
 
   async scanAccountEmails(gmbAccount: GmbAccount, stayAfterScan?) {
+    let password = gmbAccount.password;
+    if (password.length > 20) {
+      password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: gmbAccount.email, phrase: password }).toPromise();
+    }
+
     const abc = await zip(
-      this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: !!stayAfterScan }),
+      this._api.post(environment.autoGmbUrl + 'retrieveGmbRequests', { email: gmbAccount.email, password: password, stayAfterScan: !!stayAfterScan }),
       // get those gmbBiz with email as owner
       this._api.get(environment.adminApiUrl + "generic", {
         query: {
@@ -474,7 +534,7 @@ export class GmbService {
 
     // existing requests in DB: 
     const gmbRequests: GmbRequest[] = abc[1].map(r => new GmbRequest(r));
-    const gmbBizList: GmbBiz[] = abc[2].map(b => new GmbBiz(b)).filter(biz => biz.hasOwnership([gmbAccount.email]));
+    const gmbBizList: GmbBiz[] = abc[2].map(b => new GmbBiz(b)).filter(biz => biz.getAccountEmail() === gmbAccount.email);
 
     // make the bizMap
     const bizMap = {};
@@ -638,11 +698,11 @@ export class GmbService {
       },
       limit: 1
     }).toPromise())[0];
-
+    const password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: account.password }).toPromise();
     return await this._api.post(
-      'http://localhost:3000/updateWebsite', {
+      environment.autoGmbUrl + 'updateWebsite', {
         email: account.email,
-        password: account.password,
+        password: password,
         website: biz.qmenuWebsite,
         bizManagedWebsite: biz.bizManagedWebsite,
         appealId: biz.appealId,
@@ -696,5 +756,30 @@ export class GmbService {
     return Math.floor(orders.length / (Object.keys(dateMap).length || 1));
   }
 
+  async suggestQmenu(gmbBiz: GmbBiz) {
+
+    let biz = new GmbBiz(gmbBiz);
+    // let's get account
+    const account = (await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: "gmbAccount",
+      query: {
+        email: biz.getAccountEmail(),
+      },
+      projection: {
+        email: 1,
+        password: 1
+      },
+      limit: 1
+    }).toPromise())[0];
+
+    const password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: account.password }).toPromise();
+    return await this._api.post(
+      environment.autoGmbUrl + 'suggestEdit', {
+        email: account.email,
+        password: password,
+        gmbBiz: gmbBiz
+      }
+    ).toPromise();
+  }
 
 }

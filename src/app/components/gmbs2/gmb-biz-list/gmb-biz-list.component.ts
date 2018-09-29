@@ -320,7 +320,7 @@ export class GmbBizListComponent implements OnInit {
   done(event: FormEvent) {
     const biz = event.object as GmbBiz;
     this.apiError = undefined;
-    this._api.post(environment.autoGmbUrl + 'encrypt', { email: biz.qmenuPop3Email || 'n/a', password: biz.qmenuPop3Password || 'n/a' }).pipe(mergeMap(result => {
+    this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: biz.qmenuPop3Email || 'n/a', phrase: biz.qmenuPop3Password || 'n/a' }).pipe(mergeMap(result => {
       const oldBiz = JSON.parse(JSON.stringify(this.bizList.filter(b => b._id === biz._id)[0]));
       const updatedBiz = JSON.parse(JSON.stringify(biz));
       // depends on if we are updating password
@@ -444,5 +444,17 @@ export class GmbBizListComponent implements OnInit {
     this._ref.detectChanges();
     this.injecting = false;
   }
+
+  async suggest(biz) {
+    try {
+      await this._gmb.suggestQmenu(biz);
+      this._global.publishAlert(AlertType.Success, 'Suggested ' + biz.name);
+      this._ref.detectChanges();
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Erro Suggesting Edit ' + biz.name + ', ' + error);
+    }
+  }
+
 
 }

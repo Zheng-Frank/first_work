@@ -186,22 +186,4 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
       });
   }
 
-  login() {
-    this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbAccount",
-      query: {
-        email: this.gmbAccount.email
-      },
-      limit: 1
-    })
-      .pipe(mergeMap(gmbAccounts =>
-        this._api.post('http://localhost:3000/retrieveGmbLocations', { email: gmbAccounts[0].email, password: gmbAccounts[0].password, stayAfterScan: true })
-      ))
-      .subscribe(
-        ok => this._global.publishAlert(AlertType.Success, 'Logged in.'),
-        error => this._global.publishAlert(AlertType.Danger, 'Failed to login')
-      );
-  }
-
-
 }

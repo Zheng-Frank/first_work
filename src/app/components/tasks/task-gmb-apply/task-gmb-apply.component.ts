@@ -48,6 +48,10 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
   comments: string;
 
+  toggleManualAppeal = false;
+
+  dropdownVisible = false;
+
   constructor(private _api: ApiService, private _global: GlobalService) {
 
     // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
@@ -167,6 +171,233 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   }
 
 
+  /**
+ * 
+ * @param name = select | request | reject | appeal | retrieve | verify | failed | succeeded | canceled | reopen |
+ * @param loadingVariableName 
+ * @param timestampVariableName 
+ */
+async handleUpdate(name, timestampVariableName, loadingVariableName) {
+
+  if (loadingVariableName) {
+    this[loadingVariableName] = true;
+  }
+
+  try {
+    let toGmbAccount, toPassword;
+    if (this.transfer.toEmail) {
+      toGmbAccount = (await this._api.get(environment.adminApiUrl + "generic",
+        {
+          resource: "gmbAccount",
+          query: {
+            email: this.transfer.toEmail,
+          },
+          projection: {
+            email: 1,
+            password: 1
+          },
+          limit: 1
+        }
+      ).toPromise())[0];
+
+      if (!toGmbAccount) {
+        throw 'To Account  not found';
+      }
+
+      toPassword = toGmbAccount.password;
+      if (toPassword.length > 20) {
+        toPassword = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: toGmbAccount.email, phrase: toPassword }).toPromise();
+      }
+    }
+    const gmbBiz = (await this._api.get(environment.adminApiUrl + "generic",
+      {
+        resource: "gmbBiz",
+        query: {
+          _id: { $oid: this.task.relatedMap['gmbBizId'] }
+        },
+        projection: {
+          qmenuWebsite: 1,
+          place_id: 1
+        },
+        limit: 1
+      }).toPromise())[0];
+
+    if (!gmbBiz || !gmbBiz.place_id) {
+      throw 'No place_id found';
+    }
+
+    let result = '';
+    switch (name) {
+      case 'request':
+
+        result = await this._api.post(
+          environment.autoGmbUrl + 'requestOwnership', {
+            email: toGmbAccount.email,
+            password: toPassword,
+            place_id: gmbBiz.place_id
+          }
+        ).toPromise();
+        break;
+
+      case 'appeal':
+
+        result = await this._api.post(
+          environment.autoGmbUrl + 'appealGmbRequest', {
+            email: toGmbAccount.email,
+            password: toPassword,
+            arci: this.transfer.request.arci,
+            qmenuWebsite: gmbBiz.qmenuWebsite
+          }
+        ).toPromise();
+        break;
+
+      case 'verify':
+        result = await this._api.post(
+          environment.autoGmbUrl + 'verify', {
+            email: toGmbAccount.email,
+            password: toPassword,
+            code: this.transfer.code,
+            appealId: this.transfer.appealId || this.task.transfer.appealId
+          }
+        ).toPromise();
+        break;
+
+      case 'updateWebsite':
+
+        result = await this._api.post(
+          environment.autoGmbUrl + 'updateWebsite', {
+            email: toGmbAccount.email,
+            password: toPassword,
+            website: gmbBiz.qmenuWebsite,
+            appealId: this.transfer.appealId
+          }
+        ).toPromise();
+        break;
+      case 'failed':
+      case 'canceled':
+      case 'succeeded':
+        // we need to finish the task also!
+        const taskResult = 'CLOSED';
+        const resultAt = new Date();
+        result = await this._api.patch(environment.adminApiUrl + "generic?resource=task",
+          [{ old: { _id: this.task._id }, new: { _id: this.task._id, result: taskResult, resultAt: { $date: resultAt } } }]).toPromise();
+        break;
+      default:
+        break;
+    }
+
+
+    const oldTask = {
+      _id: this.task._id,
+      result: this.task.result,
+      resultAt: this.task.resultAt,
+      transfer: new GmbTransfer(this.transfer)
+    } as any;
+
+    const newBareTask = {
+      _id: this.task._id,
+      result: this.task.result,
+      resultAt: this.task.resultAt,
+      transfer: new GmbTransfer(this.transfer)
+    } as any;
+
+    if (timestampVariableName) {
+      this.transfer[timestampVariableName] = new Date();
+      newBareTask.transfer[timestampVariableName] = { $date: new Date() };
+    }
+
+    switch (name) {
+      case 'select':
+        // because selected toEmail's already in toEmail, we actually need to delete it
+        delete oldTask.transfer.toEmail;
+        newBareTask.transfer = {
+          fromEmail: this.transfer.fromEmail,
+          toEmail: this.transfer.toEmail
+        };
+        // delete all keys
+        const protectedFields = ['fromEmail', 'toEmail'];
+        Object.keys(this.transfer).map(k => { if (protectedFields.indexOf(k) < 0) { delete this.transfer[k]; } });
+        break;
+
+      case 'request':
+        this.transfer.request = result;
+        newBareTask.transfer.request = result;
+        break;
+
+      case 'appeal':
+        this.transfer.appealId = result['appealId'];
+        newBareTask.transfer.appealId = result['appealId'];
+        break;
+      case 'selectVerificationMethod':
+        if (this.transfer.verificationMethod) {
+          delete oldTask.transfer.verificationMethod;
+        } else {
+          // assign some random value so after comparison, the field will be deleted in MongoDb
+          oldTask.transfer.verificationMethod = 'Email';
+        }
+        newBareTask.transfer.verificationMethod = this.transfer.verificationMethod;
+        break;
+      case 'saveCode':
+        // because input code is bound to transfer already, we actually need to delete it so
+        delete oldTask.transfer.code;
+        newBareTask.transfer.code = this.transfer.code;
+        break;
+      case 'saveAppealId':
+        // because input appealId is bound to transfer already, we actually need to delete it so
+        delete oldTask.transfer.appealId;
+        newBareTask.transfer.appealId = this.transfer.appealId;
+        break;
+      case 'retrieve':
+        this.transfer.code = result;
+        newBareTask.transfer.code = result;
+        break;
+      case 'failed':
+      case 'canceled':
+      case 'succeeded':
+        this.transfer.result = name;
+        newBareTask.transfer.result = name;
+        break;
+      case 'reopen':
+        this.transfer.result = undefined;
+        this.transfer.completedAt = undefined;
+        newBareTask.transfer.result = undefined;
+        newBareTask.transfer.completedAt = undefined;
+        newBareTask.result = undefined;
+        newBareTask.resultAt = undefined;
+        break;
+      case 'assign':
+        // because selected assignee's already in there, we actually need to delete it
+        delete oldTask.assignee;
+        newBareTask.assignee = this.task.assignee;
+        break;
+      default:
+        break;
+    }
+
+    // update definition of now
+    this.now = new Date();
+
+    // save to database now!
+    this.saveTask(oldTask, newBareTask);
+    if (loadingVariableName) {
+      this[loadingVariableName] = false;
+    }
+  } catch (error) {
+    console.log(error)
+    if (loadingVariableName) {
+      this[loadingVariableName] = false;
+    }
+    let errorMessage = 'Error';
+    if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error && error.error) {
+      errorMessage = error.error;
+    }
+
+    this._global.publishAlert(AlertType.Danger, errorMessage);
+  }
+
+}
 
   /**
    * 
@@ -174,7 +405,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
    * @param loadingVariableName 
    * @param timestampVariableName 
    */
-  handleUpdate(name, timestampVariableName, loadingVariableName) {
+  handleUpdateOld(name, timestampVariableName, loadingVariableName) {
 
     console.log(name, timestampVariableName, loadingVariableName)
     if (loadingVariableName) {
@@ -214,7 +445,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
                 throw 'No place_id found for gmb Biz';
               }
               return this._api.post(
-                'http://localhost:3000/requestOwnership', {
+                environment.autoGmbUrl + 'requestOwnership', {
                   email: results[0][0].email,
                   password: results[0][0].password,
                   place_id: results[1][0].place_id
@@ -245,7 +476,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             }
           ).pipe(mergeMap(
             result => this._api.post(
-              'http://localhost:3000/rejectGmbRequest', {
+              environment.autoGmbUrl + 'rejectGmbRequest', {
                 email: result[0].email,
                 password: result[0].password,
                 arci: this.transfer.request.arci
@@ -288,7 +519,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
               })
           ).pipe(mergeMap(
             results => this._api.post(
-              'http://localhost:3000/appealGmbRequest', {
+              environment.autoGmbUrl + 'appealGmbRequest', {
                 email: results[0][0].email,
                 password: results[0][0].password,
                 arci: this.transfer.request.arci,
@@ -320,7 +551,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             }
           ).pipe(mergeMap(
             results => this._api.post(
-              'http://localhost:3000/verify', {
+              environment.autoGmbUrl + 'verify', {
                 email: results[0].email,
                 password: results[0].password,
                 code: this.transfer.code,
@@ -364,7 +595,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
               })
           ).pipe(mergeMap(
             results => this._api.post(
-              'http://localhost:3000/updateWebsite', {
+              environment.autoGmbUrl + 'updateWebsite', {
                 email: results[0][0].email,
                 password: results[0][0].password,
                 website: results[1][0].qmenuWebsite,
@@ -561,7 +792,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   saveEmailSettings(event) {
     // get hashed password
     if (event.email && event.password && event.password.length < 20) {
-      this._api.post(environment.autoGmbUrl + 'encrypt', event).pipe(mergeMap(encryptedPassword => {
+      this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: event.email, phrase: event.password }).pipe(mergeMap(encryptedPassword => {
         const oldBiz = {
           _id: this.gmbBiz._id
         };
@@ -595,23 +826,13 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
     }
     this.ok.emit();
   }
+  
+  isTaskExpired() {
+    const days30 = 30 * 24 * 3600 * 1000;
+    if (this.task.transfer.appealedAt) {
+      return this.now.valueOf() - this.task.transfer.appealedAt.valueOf() >= days30;
+    }
 
-  login(email) {
-    this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbAccount",
-      query: {
-        email: email
-      },
-      limit: 1
-    })
-      .pipe(mergeMap(gmbAccounts =>
-        this._api.post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccounts[0].email, password: gmbAccounts[0].password, stayAfterScan: true })
-      ))
-      .subscribe(
-        ok => this._global.publishAlert(AlertType.Success, 'Success'),
-        error => this._global.publishAlert(AlertType.Danger, 'Failed to login')
-      );
+    return false;
   }
-
-
 }

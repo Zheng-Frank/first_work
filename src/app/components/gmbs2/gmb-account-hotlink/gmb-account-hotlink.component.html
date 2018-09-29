@@ -1,2 +1,2 @@
-<button *ngIf="this.email" class="btn btn-link fix-v-align px-0" (click)="login()">{{this.email | emailName}}</button>
+<button *ngIf="this.email" class="btn btn-link fix-v-align px-0 {{muted ? 'text-muted': ''}}" (click)="login()">{{this.email | emailName}}</button>
 <span  *ngIf="!this.email" class="px-1">N/A</span>

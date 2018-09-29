@@ -139,10 +139,14 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
   async appeal() {
     this.gmbAppealing = true;
     try {
+      let password = this.gmbAccount.password;
+      if (password.length > 20) {
+        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: this.gmbAccount.email, phrase: password }).toPromise();
+      }
       await this._api.post(
-        'http://localhost:3000/appealSuspended', {
+        environment.autoGmbUrl + 'appealSuspended', {
           email: this.gmbAccount.email,
-          password: this.gmbAccount.password,
+          password: password,
           params: {
             name: 'Tim Pennington',
             email: this.gmbAccount.email,

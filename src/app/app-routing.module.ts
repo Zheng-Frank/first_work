@@ -14,12 +14,10 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { RestaurantDashboardComponent } from './components/restaurants/restaurant-dashboard/restaurant-dashboard.component';
 import { SystemDashboardComponent } from './components/system/system-dashboard/system-dashboard.component';
 import { UsersComponent } from './components/users/users.component';
-import { GmbDashboardComponent } from './components/gmbs/gmb-dashboard/gmb-dashboard.component';
 
 import { RoleGuard } from './role.guard';
 import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-monthly-details/invoice-monthly-details.component';
 import { InvoiceDetailsComponent } from './components/invoices/invoice-details/invoice-details.component';
-import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
@@ -48,7 +46,6 @@ const routes: Routes = [
   { path: 'restaurants/:id/invoices', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
 
   { path: 'gmbs', component: Gmb2DashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
-  { path: 'gmbs/watch', component: GmbWatchComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'tasks', component: TaskDashboardComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"] } },

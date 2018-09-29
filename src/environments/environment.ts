@@ -4,6 +4,17 @@
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 
 export const environment = {
+  // production: false,
+  // env: "dev",
+  // adminApiUrl: 'https://swozix2epl.execute-api.us-east-2.amazonaws.com/dev/',
+  // qmenuApiUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
+  // legacyApiUrl: "https://quez.herokuapp.com/",
+  // autoGmbUrl: "http://localhost:3000/",
+  
+  // bizUrl: 'https://restaurant-quez.herokuapp.com/',
+  // customerUrl: 'https://customer-app.herokuapp.com/',
+  // thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
+  // normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/'
   production: true,
   env: "prod",
   adminApiUrl: "https://swozix2epl.execute-api.us-east-2.amazonaws.com/prod/",

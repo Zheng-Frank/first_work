@@ -101,19 +101,17 @@ export class GmbAccountListComponent implements OnInit {
       comments: gmb.comments
     } as any;
 
-    if (gmb.password) {
+    if (gmb.password && gmb.password.length < 20) {
       try {
-        updatedGmb.password = await this._api.post(environment.autoGmbUrl + 'encrypt', gmb).toPromise();
-        console.log(updatedGmb.password);
+        updatedGmb.password = await this._api.post(environment.adminApiUrl + 'utils/crypto', {
+          salt: gmb.email,
+          phrase: gmb.password
+        }).toPromise();
       } catch (error) {
-        this.apiError = 'No Auto-GMB server running?';
         event.acknowledge(error.message || 'API Error.');
         console.log(error);
       };
     }
-
-    console.log(oldGmb)
-    console.log(updatedGmb);
 
     try {
       if (gmb._id) {

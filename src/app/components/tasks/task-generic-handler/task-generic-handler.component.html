@@ -1,7 +1,7 @@
 <ng-container *ngIf="taskCopy && action">
     <h6 class="card-title">{{taskCopy.name}}</h6>
 
-    <p class="card-text text-muted">{{taskCopy.description}} <a *ngIf="gmbAccount" (click)="login()" href="javascript:void(0)">Login</a></p>
+    <p class="card-text text-muted">{{taskCopy.description}} <app-gmb-account-hotlink [email]="gmbAccount?.email"></app-gmb-account-hotlink></p>
     <p class="card-text">{{action.confirmationText}}</p>
 
     <!-- Update case, we allow scheduledAt update -->

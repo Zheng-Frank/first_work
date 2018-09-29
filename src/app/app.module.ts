@@ -26,12 +26,10 @@ import { InvoiceDashboardComponent } from './components/invoices/invoice-dashboa
 import { OrderDashboardComponent } from './components/orders/order-dashboard/order-dashboard.component';
 import { RoleGuard } from './role.guard';
 
-import { GmbInfoComponent } from './components/gmbs/gmb-info/gmb-info.component';
 import { MyLeadsComponent } from './components/leads/my-leads/my-leads.component';
 import { CallLoggerComponent } from './components/leads/call-logger/call-logger.component';
 import { LeadInfoComponent } from './components/leads/lead-info/lead-info.component';
 import { LeadCallLogComponent } from './components/leads/lead-call-log/lead-call-log.component';
-import { GmbDashboardComponent } from './components/gmbs/gmb-dashboard/gmb-dashboard.component';
 import { SyncButtonsComponent } from './components/shared/sync-buttons/sync-buttons.component';
 import { RestaurantCrawlerComponent } from './components/restaurants/restaurant-crawler/restaurant-crawler.component';
 import { RestaurantMenuShufflerComponent } from './components/restaurants/restaurant-menu-shuffler/restaurant-menu-shuffler.component';
@@ -45,7 +43,6 @@ import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-mo
 import { InvoiceOptionEditorComponent } from './components/invoices/invoice-option-editor/invoice-option-editor.component';
 import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
-import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
 import { CacheService } from './services/cache.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
@@ -73,12 +70,6 @@ import { OptionsEditorComponent } from './components/restaurants/options-editor/
 import { MenuOptionEditorComponent } from './components/restaurants/menu-option-editor/menu-option-editor.component';
 import { SwitchComponent } from './components/restaurants/switch/switch.component';
 import { RadioGroupComponent } from './components/restaurants/radio-group/radio-group.component';
-import { GmbDeleteRestaurantComponent } from './components/gmbs/gmb-delete-restaurant/gmb-delete-restaurant.component';
-import { VerificationCodeRetrieverComponent } from './components/gmbs/verification-code-retriever/verification-code-retriever.component';
-import { GmbRequestOwnershipComponent } from './components/gmbs/gmb-request-ownership/gmb-request-ownership.component';
-import { GmbEditorComponent } from './components/gmbs/gmb-editor/gmb-editor.component';
-import { GmbCardComponent } from './components/gmbs/gmb-card/gmb-card.component';
-import { BusinessEditorComponent } from './components/gmbs/business-editor/business-editor.component';
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
 import { PaymentMeansEditorComponent } from './components/payments/payment-means-editor/payment-means-editor.component';
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
@@ -125,12 +116,10 @@ import { QuickDatePickerComponent } from './components/quick-date-picker/quick-d
     RestaurantDashboardComponent,
     InvoiceDashboardComponent,
     OrderDashboardComponent,
-    GmbInfoComponent,
     MyLeadsComponent,
     CallLoggerComponent,
     LeadInfoComponent,
     LeadCallLogComponent,
-    GmbDashboardComponent,
     SyncButtonsComponent,
     RestaurantCrawlerComponent,
     RestaurantMenuShufflerComponent,
@@ -143,7 +132,6 @@ import { QuickDatePickerComponent } from './components/quick-date-picker/quick-d
     InvoiceOptionEditorComponent,
     InvoiceViewerComponent,
     InvoicesTableComponent,
-    GmbWatchComponent,
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
     RestaurantContactsComponent,
@@ -170,15 +158,7 @@ import { QuickDatePickerComponent } from './components/quick-date-picker/quick-d
     OptionsEditorComponent,
     SwitchComponent,
     RadioGroupComponent,
-    VerificationCodeRetrieverComponent,
-    GmbRequestOwnershipComponent,
-    GmbWatchComponent,
-    GmbInfoComponent,
-    GmbEditorComponent,
-    GmbDeleteRestaurantComponent,
-    GmbCardComponent,
     GmbCard2Component,
-    BusinessEditorComponent,
     PaymentMeansEditorComponent,
     PaymentsDashboardComponent,
     TaskListComponent,
