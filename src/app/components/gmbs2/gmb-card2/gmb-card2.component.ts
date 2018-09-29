@@ -21,6 +21,8 @@ export class GmbCard2Component implements OnInit, OnChanges {
   scanningBizList = false;
   scanningRequests = false;
 
+  expandBizLis = false;
+
   constructor() { }
 
   ngOnInit() {
