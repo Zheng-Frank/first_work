@@ -147,6 +147,35 @@ export class GmbService {
       await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', patchedBizPairs).toPromise();
       this._global.publishAlert(AlertType.Info, 'Updated place_id: ' + placeIdUpdatedLocations.map(loc => loc.name));
     }
+
+
+    // Situation: location is Non-duplicate here, address's the same, but NOT same place_id => need to update place_id!
+    const appealIdUpdatedBizList = existingGmbBizList.filter(b => {
+      if(b.place_id && b.address) {
+        const loc = placeIdLocationMap[b.place_id] || addressLocationMap[b.address];
+        return loc && loc.appealId && loc.appealId !== b.appealId;
+      }
+      return false;
+    });
+
+    console.log('Appeal ID Updated: ', appealIdUpdatedBizList);
+    if (appealIdUpdatedBizList.length > 0) {
+      const patchedBizPairs = appealIdUpdatedBizList.map(biz => {
+        const loc = placeIdLocationMap[biz.place_id] || addressLocationMap[biz.address];
+        return {
+          old: {
+            _id: biz._id
+          },
+          new: {
+            _id: biz._id,
+            appealId: loc.appealId
+          }
+        };
+      });
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', patchedBizPairs).toPromise();
+      this._global.publishAlert(AlertType.Info, 'Updated apealId: ' + appealIdUpdatedBizList.map(biz => biz.name));
+    }
+
     // find out Status updated, Suspended/Published
     const statusUpdatedBizList = existingGmbBizList.filter(biz => {
       const matchedLocation = placeIdLocationMap[biz.place_id] || addressLocationMap[biz.address];
