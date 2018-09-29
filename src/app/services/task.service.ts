@@ -84,7 +84,7 @@ export class TaskService {
         name: 'Transfer GMB Ownership',
         result: null
       },
-      limit: 500
+      limit: 5000
     }).toPromise();
 
     console.log('Open transfer tasks: ', openTransferTasks);
@@ -108,14 +108,14 @@ export class TaskService {
       }).toPromise();
       gmbBizList.push(...list);
     }
-    
+
     const bizMap = {};
 
     gmbBizList.map(b => bizMap[b._id] = b);
     // current biz's account is NOT original's account, and NOT postcard
     const toBeClosed = openTransferTasks.filter(t => {
       const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
-      if(!gmbBiz) {
+      if (!gmbBiz) {
         console.log('gmbBiz Not Found!', t.relatedMap);
         console.log('task', t);
         return true;
@@ -126,7 +126,7 @@ export class TaskService {
 
       const originalAccountLost = lastEmail !== t.transfer.fromEmail;
 
-      if (originalAccountLost && notPostcard && noCode ) {
+      if (originalAccountLost && notPostcard && noCode) {
         t.comments = (t.comments ? t.comments + ' ' : '') + 'Ownership transferred to ' + (lastEmail || 'N/A');
         return true;
       }
@@ -164,7 +164,7 @@ export class TaskService {
         name: 'Appeal Suspended GMB',
         result: null
       },
-      limit: 500
+      limit: 5000
     }).toPromise();
 
     console.log('Open appeal tasks: ', openAppealTasks);
@@ -197,7 +197,7 @@ export class TaskService {
     // find those that's published (last ownership has email && status is not suspended!)
     const toBeClosed = openAppealTasks.filter(t => {
       const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
-      if(!gmbBiz) {
+      if (!gmbBiz) {
         console.log('gmbBiz Not Found!', t.relatedMap);
         console.log('task', t);
         // delete the task!
@@ -232,7 +232,7 @@ export class TaskService {
         name: 'Apply GMB Ownership',
         result: null
       },
-      limit: 500
+      limit: 5000
     }).toPromise();
 
     console.log('Open apply tasks: ', openApplyTasks);
@@ -264,7 +264,7 @@ export class TaskService {
     // find those that's published (last ownership has email!)
     const toBeClosed = openApplyTasks.filter(t => {
       const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
-      if(!gmbBiz) {
+      if (!gmbBiz) {
         console.log('gmbBiz Not Found!', t.relatedMap);
         console.log('task', t);
         return false;
@@ -289,6 +289,29 @@ export class TaskService {
     await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
 
     return toBeClosed;
+  }
+
+  async deleteOutdatedTasks() {
+    const closedTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        result: { $exists: 1 }
+      },
+      limit: 1000
+    }).toPromise();
+    console.log(closedTasks)
+    const days45 = 45 * 24 * 3600000;
+    const toBeRemovedTasks = closedTasks.filter(t => t.result && (t.assignee === 'system' || (new Date().valueOf() - new Date(t.resultAt).valueOf()) > days45));
+    console.log('Expired Tasks: ', toBeRemovedTasks);
+    // may be too many for one iteration to remove
+    if (toBeRemovedTasks.length > 100) {
+      toBeRemovedTasks.length = 100;
+    }
+    await this._api.delete(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      ids: toBeRemovedTasks.map(t => t._id)
+    }).toPromise();
+    return toBeRemovedTasks;
   }
 
 }
