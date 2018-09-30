@@ -98,6 +98,8 @@ import { FaxSettingsComponent } from './components/system/fax-settings/fax-setti
 import { TaskGmbAppealSuspendedComponent } from './components/tasks/task-gmb-appeal-suspended/task-gmb-appeal-suspended.component';
 import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor/biz-website-editor.component';
 import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
+import { LogsTableComponent } from './components/logs/logs-table/logs-table.component';
+import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
  
 @NgModule({
   declarations: [
@@ -180,7 +182,9 @@ import { QuickDatePickerComponent } from './components/quick-date-picker/quick-d
     SmsSettingsComponent,
     FaxSettingsComponent,
     BizWebsiteEditorComponent,
-    QuickDatePickerComponent
+    QuickDatePickerComponent,
+    LogsTableComponent,
+    RestaurantLogsComponent
   ],
   imports: [
     BrowserModule,
