@@ -46,6 +46,7 @@ import { InvoicesTableComponent } from './components/invoices/invoices-table/inv
 import { CacheService } from './services/cache.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
+import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
@@ -134,6 +135,7 @@ import { QuickDatePickerComponent } from './components/quick-date-picker/quick-d
     InvoicesTableComponent,
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
+    RestaurantOrdersComponent,
     RestaurantContactsComponent,
     RestaurantDetailsHostComponent,
     RestaurantRateSchedulesComponent,

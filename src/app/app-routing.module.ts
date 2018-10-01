@@ -20,6 +20,7 @@ import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-mo
 import { InvoiceDetailsComponent } from './components/invoices/invoice-details/invoice-details.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
+import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
@@ -40,7 +41,7 @@ const routes: Routes = [
   { path: 'profile', component: ProfileComponent },
   { path: 'restaurants', component: RestaurantDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', "ACCOUNTANT"] } },
   { path: 'restaurants/:id', component: RestaurantDetailsHostComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT'] } },
-  { path: 'restaurants/:id/orders', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'restaurants/:id/orders', component: RestaurantOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'restaurants/:id/menus', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
   { path: 'restaurants/:id/menu-options', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
   { path: 'restaurants/:id/invoices', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
