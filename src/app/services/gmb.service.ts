@@ -294,7 +294,8 @@ export class GmbService {
         const lastEmail = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
         if (lastEmail === gmbAccount.email) {
           // not in scanned list or is Duplicate!
-          const matchedLocation = placeIdLocationMap[biz.place_id] || addressLocationMap[biz.address];
+          // location id different, but address same: possible changed names, so we need to check name one more time
+          const matchedLocation = placeIdLocationMap[biz.place_id] || (addressLocationMap[biz.address] && addressLocationMap[biz.address].name === biz.name );
           if (!matchedLocation || matchedLocation.status === 'Duplicate') {
             return true;
           }
