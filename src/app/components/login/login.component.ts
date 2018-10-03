@@ -36,7 +36,7 @@ export class LoginComponent implements OnInit {
       result => {
         this.apiRequesting = false;
         this._global.storeSetUsernameAndToken(this.username, result.token);
-        this._router.navigate(['home']);
+        this._router.navigate(['restaurants']);
       },
       error => { this.apiRequesting = false; this.apiError = error.json(); console.log(error); });
   }
