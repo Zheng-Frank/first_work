@@ -54,7 +54,7 @@ const routes: Routes = [
   { path: 'gmb-businesses', component: GmbBizListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-requests', component: GmbRequestListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
 
-  { path: '**', redirectTo: '/restaurants' }
+  { path: '**', redirectTo: '/home' }
 ];
 
 @NgModule({
