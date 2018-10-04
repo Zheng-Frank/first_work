@@ -134,6 +134,9 @@ export class RestaurantDashboardComponent implements OnInit {
   }
 
   isVisible(restaurant) {
+    if(this.phoneFilter){
+      this.phoneFilter=this.phoneFilter.replace(/\D/g,"");
+    }
     return (!this.nameFilter || (restaurant.name || '').toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0) &&
       (!this.phoneFilter || (restaurant.phones || []).some(p => (p.phoneNumber || '').indexOf(this.phoneFilter) >= 0));
   }

@@ -1,0 +1,21 @@
+<span class="fa fa-warning text-warning"> Be sure that customer agreed the adjustment.</span>
+<div class="form-group">
+  <label>Amount ($):</label>
+  <div class="text-muted">
+    <small>Input negative number if it is a credit/refund to customer!</small>
+  </div>
+  <input [(ngModel)]="adjustmentAmount" type="number" step="0.01" class="form-control" placeholder="eg. 5" id="adjustment">
+  <div class="text-danger" *ngIf="submitClicked && !adjustmentAmount"><small>Amount is missing</small></div>
+</div>
+<div class="form-group">
+  <label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="isTipAdjustment"> Is tip adjustment</label>
+</div>
+<div class="form-group" *ngIf="!isTipAdjustment">
+  <label>Reason:</label>
+  <input [(ngModel)]="adjustmentReason" type="text" class="form-control" placeholder="eg. extra shrimp">
+  <div class="text-danger" *ngIf="submitClicked && !adjustmentReason"><small>Reason is missing</small></div>
+</div>
+
+<button type="button" class="btn btn-block btn-primary" (click)="okAdjust()">
+  <span class="fa fa-check"></span> OK</button>

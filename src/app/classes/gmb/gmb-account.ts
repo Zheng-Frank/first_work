@@ -10,7 +10,7 @@ export class GmbAccount {
     gmbScannedAt: Date;
     emailScannedAt: Date;
     comments: string;
-    bizList: GmbBiz[];
+    bizList: GmbBiz[] = [];
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields

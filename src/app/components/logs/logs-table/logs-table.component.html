@@ -1,0 +1,30 @@
+<div class="alert alert-info" *ngIf="!logs || logs.length === 0">
+  No logs.
+</div>
+
+<table class="table table-sm" *ngIf="logs && logs.length > 0">
+  <thead>
+    <tr>
+      <th scope="col">User</th>
+      <th scope="col">Date</th>
+      <th scope="col">Caller</th>
+      <th scope="col">Order#</th>
+      <th scope="col">Problem</th>
+      <th scope="col">Response</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let log of logs; let i = index" class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}" (click)="clickRow(log)">
+      <td>{{log.username}}</td>
+      <td class="text-nowrap">{{log.time | date: 'shortDate'}}
+        <div class="text-muted"><small>{{log.time | date: 'shortTime'}}</small></div>
+      </td>
+      <td>{{log.callerName}}
+        <div class="text-nowrap">{{log.callerPhone | tel}}</div>
+      </td>
+      <td>{{log.relatedOrders}}</td>
+      <td>{{log.problem}}</td>
+      <td>{{log.response}}</td>
+    </tr>
+  </tbody>
+</table>

@@ -22,7 +22,8 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     "Menus",
     "Menu Options",
     "Orders",
-    "Invoices"
+    "Invoices",
+    "Logs"
   ];
   activeTab = 'Settings';
 
@@ -93,7 +94,8 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
 
           menus: 1,
           menuOptions: 1,
-          notes:1
+          notes:1,
+          logs: 1
         },
         limit: 1
       })
@@ -181,6 +183,5 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
       + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
       + ' ' + address.postal_code;
   }
-
 
 }

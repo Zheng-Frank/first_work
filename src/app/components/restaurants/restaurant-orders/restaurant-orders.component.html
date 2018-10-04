@@ -1,1 +1,19 @@
-test
+<div *ngIf="orders">
+    <div class="form-group">
+        <input type="text" [(ngModel)]="searchText" class="form-control" placeholder="search order#, phone, name...">
+        <div *ngIf="searchText" class="text-muted">Found: {{orders.length}}</div>
+    </div>
+
+    {{JASON.stringify(restaurant)}}
+
+    <div class="row m-l-0 m-r-0" (window:scroll)="onScroll($event)">
+        <!-- row has negative margins and we need to remove them! -->
+        <div *ngFor="let order of orders" class="col-sm-12 col-md-6 col-lg-4  app-p-l-025 app-p-r-025 m-b-1">
+            test
+            <app-order-card [restaurant]="restaurant" [order]="order">
+            </app-order-card>
+        </div>
+    </div>
+
+
+</div>

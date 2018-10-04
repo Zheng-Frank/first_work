@@ -12,6 +12,7 @@ import { Bs4Component } from './components/bs4/bs4.component';
 import { HeaderComponent } from './components/header/header.component';
 
 import { UiModule } from '@qmenu/ui';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { LoginComponent } from './components/login/login.component';
 import { GlobalService } from './services/global.service';
 import { ApiService } from './services/api.service';
@@ -47,6 +48,7 @@ import { CacheService } from './services/cache.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
+import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
@@ -99,9 +101,18 @@ import { FaxSettingsComponent } from './components/system/fax-settings/fax-setti
 import { TaskGmbAppealSuspendedComponent } from './components/tasks/task-gmb-appeal-suspended/task-gmb-appeal-suspended.component';
 import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor/biz-website-editor.component';
 import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
- 
+import { LogsTableComponent } from './components/logs/logs-table/logs-table.component';
+import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
+import { OrderActionBarComponent } from './components/restaurants/order-action-bar/order-action-bar.component';
+import { OrderItemsComponent } from './components/restaurants/order-items/order-items.component';
+import { OrderAdjustmentComponent } from './components/restaurants/order-adjustment/order-adjustment.component';
+import { OrderRejectBarComponent } from './components/restaurants/order-reject-bar/order-reject-bar.component';
+import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
+
 @NgModule({
   declarations: [
+    appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
     LogsDashboardComponent,
@@ -182,7 +193,15 @@ import { QuickDatePickerComponent } from './components/quick-date-picker/quick-d
     SmsSettingsComponent,
     FaxSettingsComponent,
     BizWebsiteEditorComponent,
-    QuickDatePickerComponent
+    QuickDatePickerComponent,
+    LogsTableComponent,
+    RestaurantLogsComponent,
+    OrderCardComponent,
+    OrderActionBarComponent,
+    OrderItemsComponent,
+    OrderAdjustmentComponent,
+    OrderRejectBarComponent,
+
   ],
   imports: [
     BrowserModule,
@@ -193,7 +212,7 @@ import { QuickDatePickerComponent } from './components/quick-date-picker/quick-d
     HttpModule,
     UiModule,
     OwlDateTimeModule,
-    OwlNativeDateTimeModule,
+    OwlNativeDateTimeModule
   ],
   providers: [
     GlobalService,

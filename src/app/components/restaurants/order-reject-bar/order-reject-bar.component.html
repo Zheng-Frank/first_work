@@ -1,0 +1,27 @@
+
+<div *ngIf="order">
+  <div class="form-group">
+    <div>
+      <input [(ngModel)]="outOfCapacity" [attr.id]="'box1' + order.id" type="checkbox" />
+      <label [attr.for]="'box1' + order.id">Out of capacity</label>
+    </div>
+
+    <div>
+      <input [(ngModel)]="outOfMaterial" [attr.id]="'box2' + order.id" type="checkbox" />
+      <label [attr.for]="'box2' + order.id">Out of material</label>
+    </div>
+
+    <div>
+      <input [(ngModel)]="cardDeclined" [attr.id]="'box3' + order.id" type="checkbox" />
+      <label [attr.for]="'box3' + order.id">Credit card declined</label>
+    </div>
+
+    <div>
+      <label [attr.for]="'comments' + order.id">Extra Comments:</label>
+      <input [(ngModel)]="comments" type="text" class="form-control" [attr.id]="'comments' + order.id">
+    </div>
+
+    <div class="m-t-1"><button class="btn btn-block btn-danger" (click)="reject(order)">Submit</button></div>
+
+  </div>
+</div>
