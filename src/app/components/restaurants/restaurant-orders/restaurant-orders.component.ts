@@ -31,13 +31,14 @@ export class RestaurantOrdersComponent implements OnInit {
   orderForModal: Order = null;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
-   
+
 
   }
 
   async ngOnInit() {
     console.log(this.restaurant);
-    this.orders=await this._api.get('http://localhost:1337/'  + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], {limit: 200}).toPromise();
+    this.orders = await this._api.get('http://localhost:1337/' + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 200 }).toPromise();
+    this.orders = this.orders.map(o => new Order(o));
     console.log(this.orders);
 
   }
