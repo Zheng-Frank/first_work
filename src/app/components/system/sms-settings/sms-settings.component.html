@@ -1,12 +1,45 @@
-<q-simple-radio [(ngModel)]="selectedProvider" [equalWidth]="true" [values]="providers" (ngModelChange)="updateProvider(selectedProvider)">
-</q-simple-radio>
+{{system | json}}
+<ng-container *ngIf="system && system.smsSettings">
+  <div class="row">
+    <div class="col col-sm-4" *ngFor="let provider of system.smsSettings.providers">
 
+      <div class="card">
+        <div class="card-header clearfix {{system.smsSettings.defaultProviderName === provider.name ? 'bg-success text-white' : ''}}">
+          <div class="float-left">{{provider.name | uppercase}}</div>
+          <div class="float-right" *ngIf="system.smsSettings.defaultProviderName === provider.name"><i class="fas fa-check"></i>
+            Default</div>
+          <div class="float-right" *ngIf="system.smsSettings.defaultProviderName !== provider.name">
+            <button class="btn btn-link custom-btn-link" (click)="setDefault(provider)">Set as Default</button></div>
+        </div>
+        <div class="card-body">
+          <div class="pb-4">
 
-<div class="form-check form-check-inline" *ngFor="let provider of providers">
-  <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
-  <label class="form-check-label" for="inlineRadio1">1</label>
-</div>
-<div class="form-check form-check-inline">
-  <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
-  <label class="form-check-label" for="inlineRadio2">2</label>
-</div>
+            <ng-container *ngFor="let phone of provider.phones">
+              <span class="badge badge-info">{{phone | tel}}</span>
+            </ng-container>
+
+            <div *ngIf="provider.customized" class="card card-body mt-2">
+              Customized:
+              <div *ngFor="let c of provider.customized">
+                <div>{{c.phone | tel}}</div>
+                <span *ngFor="let r of c.restaurants; let i = index;">{{i > 0 ? ' | ' : ''}}{{r.name}}</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- <div>
+        <button class="btn btn-link px-0">+ Add Number</button>
+        <div class="card text-left bg-light" *qIf="currentAction === 'NEW'">
+          <div class="card-body">
+            <h5 class="card-title">Add New Phone</h5>
+            ...
+          </div>
+        </div>
+      </div> -->
+
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

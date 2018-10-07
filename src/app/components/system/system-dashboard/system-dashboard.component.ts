@@ -7,6 +7,9 @@ import { zip, Observable } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import * as FileSaver from 'file-saver';
 
+// import { Address } from '@qmenu/ui/esm2015/classes/address.js';
+import { Address } from '@qmenu/ui';
+
 @Component({
   selector: "app-system-dashboard",
   templateUrl: "./system-dashboard.component.html",
@@ -14,9 +17,45 @@ import * as FileSaver from 'file-saver';
 })
 export class SystemDashboardComponent implements OnInit {
   removingOrphanPhones = false;
+
+  system: any;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() { }
+  async ngOnInit() {
+    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', {resource: 'system'}).toPromise())[0];
+    console.log(this.system);
+    let a = new Address({
+      "_id": {
+          "$oid": "5ae47d50219ad2048633f828"
+      },
+      "place_id": "ChIJIUwDBch1K4cRlSekWG0ygSg",
+      "formatted_address": "15577 North Hayden Road, Scottsdale, AZ 85260, USA",
+      "lat": 33.6268709,
+      "lng": -111.8931338,
+      "street_number": "15577",
+      "route": "North Hayden Road",
+      "neighborhood": "North Scottsdale",
+      "locality": "Scottsdale",
+      "administrative_area_level_2": "Maricopa County",
+      "administrative_area_level_1": "AZ",
+      "country": "US",
+      "postal_code": "85260",
+      "timezone": "America/Phoenix",
+      "line1": "15577 North Hayden Road",
+      "city": "Scottsdale",
+      "zipCode": "85260",
+      "state": "AZ",
+      "createdAt": {
+          "$date": "2018-04-28T13:55:28.686Z"
+      },
+      "updatedAt": {
+          "$date": "2018-04-28T13:55:28.686Z"
+      }
+  });
+    console.log(a);
+  console.log(a.getLine1());
+  }
 
   getPhoneNumberStat() {
     this._api.get(environment.qmenuApiUrl + "generic", {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -11,26 +11,32 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class SmsSettingsComponent implements OnInit {
 
-  selectedProvider;
-
-  providers = ['plivo', 'twilio'];
+  @Input() system: any;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+
+  }
+
+  async setDefault(smsProvider) {
     try {
-      const systems = this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'system'
-      }).toPromise();
-      if (systems[0]) {
-        this.selectedProvider = systems[0].smsProvider;
-      }
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Error querying system');
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
+        {
+          old: { _id: this.system._id, smsSettings: {} },
+          new: { _id: this.system._id, smsSettings: { defaultProviderName: smsProvider.name } }
+        }
+      ]).toPromise();
+      this.system.smsSettings.defaultProviderName = smsProvider.name;
+      alert('we need to actually switch default provider here!')
+      this._global.publishAlert(AlertType.Success, "Success");
     }
+    catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Serious Error Happended. Please check errors.');
+    }
+
   }
-  updateProvider(smsProvider) {
-    console.log(smsProvider);
-  }
+
 
 }
