@@ -9,6 +9,8 @@ import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { TaskService } from '../../../services/task.service';
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
+
+import { Address} from '@qmenu/ui';
 @Component({
   selector: 'app-task-dashboard',
   templateUrl: './task-dashboard.component.html',
@@ -58,7 +60,6 @@ export class TaskDashboardComponent {
 
   activeTabValue = 'Open';
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
-
     this.user = this._global.user;
 
     this.refresh();
@@ -106,6 +107,7 @@ export class TaskDashboardComponent {
         if (t.relatedMap && t.relatedMap.gmbBizId && bizMap[t.relatedMap.gmbBizId]) {
           t.gmbBiz = t.gmbBiz || {};
           t.gmbBiz = bizMap[t.relatedMap.gmbBizId];
+          t.gmbBiz.timeZone = Address.getTimeZone(t.gmbBiz.address);
         }
       });
       // compute groupedTasks, by task name
@@ -214,4 +216,5 @@ export class TaskDashboardComponent {
     this.purging = false;
     this.refresh();
   }
+
 }

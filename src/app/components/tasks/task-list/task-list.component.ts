@@ -29,6 +29,11 @@ export class TaskListComponent implements OnInit, OnChanges {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: "Time Zone",
+      paths: ['gmbBiz', 'timeZone'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
       label: "Score",
       paths: ['score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)

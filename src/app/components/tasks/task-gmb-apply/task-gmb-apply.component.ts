@@ -163,11 +163,13 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         projection: {
           people: 1,
           channels: 1,
-          phones: 1
+          phones: 1,
+          offsetToEST: 1
         },
         limit: 1
       }).subscribe(results => {
         this.restaurant = results[0];
+        console.log("this.restaurant", this.restaurant);
       });
     }
   }
