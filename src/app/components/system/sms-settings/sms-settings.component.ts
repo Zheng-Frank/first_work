@@ -35,6 +35,38 @@ export class SmsSettingsComponent implements OnInit {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Serious Error Happended. Please check errors.');
     }
+  }
+
+  async deploy() {
+    try {
+      await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+    }
+    catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Failed deployment.');
+    }
+  }
+
+  async customizedUpdated(event) {
+
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
+        {
+          old: { _id: this.system._id, smsSettings: { customized: {} } },
+          new: { _id: this.system._id, smsSettings: { customized: this.system.smsSettings.customized } }
+        }
+      ]).toPromise();
+      await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+    }
+    catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Failed updating phone numbers. Please reload.');
+    }
+
+    if (event.some(p => p.length !== 10)) {
+      const illFormattedPhones = event.filter(p => p.length !== 10);
+      this._global.publishAlert(AlertType.Danger, 'Wrong format: ' + illFormattedPhones.join(', '));
+    }
 
   }
 

@@ -1,4 +1,7 @@
 <ng-container *ngIf="system && system.smsSettings">
+  <div class="pb-2">
+    <button class="btn btn-primary" (click)="deploy()">Deploy Changes</button>
+  </div>
   <div class="row">
     <div class="col col-sm-4" *ngFor="let provider of system.smsSettings.providers">
       <div class="card">
@@ -25,7 +28,8 @@
     <div *ngFor="let c of system.smsSettings.customized">
       <h4>Use {{c.providerName}} {{c.phone | tel}}</h4>
       <div>
-        <span *ngFor="let r of c.toPhones; let i = index;">{{i > 0 ? ' | ' : ''}}{{r | tel}}</span>
+        <q-values [(ngModel)]="c.toPhones" (ngModelChange)="customizedUpdated($event)"></q-values>
+        <!-- <span *ngFor="let r of c.toPhones; let i = index;">{{i > 0 ? ' | ' : ''}}{{r | tel}}</span> -->
       </div>
     </div>
   </div>
