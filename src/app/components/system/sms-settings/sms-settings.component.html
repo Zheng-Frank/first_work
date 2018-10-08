@@ -1,8 +1,6 @@
-{{system | json}}
 <ng-container *ngIf="system && system.smsSettings">
   <div class="row">
     <div class="col col-sm-4" *ngFor="let provider of system.smsSettings.providers">
-
       <div class="card">
         <div class="card-header clearfix {{system.smsSettings.defaultProviderName === provider.name ? 'bg-success text-white' : ''}}">
           <div class="float-left">{{provider.name | uppercase}}</div>
@@ -17,28 +15,17 @@
             <ng-container *ngFor="let phone of provider.phones">
               <span class="badge badge-info">{{phone | tel}}</span>
             </ng-container>
-
-            <div *ngIf="provider.customized" class="card card-body mt-2">
-              Customized:
-              <div *ngFor="let c of provider.customized">
-                <div>{{c.phone | tel}}</div>
-                <span *ngFor="let r of c.restaurants; let i = index;">{{i > 0 ? ' | ' : ''}}{{r.name}}</span>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- <div>
-        <button class="btn btn-link px-0">+ Add Number</button>
-        <div class="card text-left bg-light" *qIf="currentAction === 'NEW'">
-          <div class="card-body">
-            <h5 class="card-title">Add New Phone</h5>
-            ...
           </div>
         </div>
-      </div> -->
+      </div>
+    </div>
+  </div>
 
-        </div>
+  <div *ngIf="system && system.smsSettings && system.smsSettings.customized" class="card card-body mt-2">
+    <div *ngFor="let c of system.smsSettings.customized">
+      <h4>Use {{c.providerName}} {{c.phone | tel}}</h4>
+      <div>
+        <span *ngFor="let r of c.toPhones; let i = index;">{{i > 0 ? ' | ' : ''}}{{r | tel}}</span>
       </div>
     </div>
   </div>
