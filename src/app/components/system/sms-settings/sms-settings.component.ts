@@ -28,8 +28,9 @@ export class SmsSettingsComponent implements OnInit {
         }
       ]).toPromise();
       this.system.smsSettings.defaultProviderName = smsProvider.name;
-      alert('we need to actually switch default provider here!')
-      this._global.publishAlert(AlertType.Success, "Success");
+      // await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
+      await this._api.post("http://localhost:1337/utilities/resetSystemSettings", {}).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
     }
     catch (error) {
       console.log(error);
