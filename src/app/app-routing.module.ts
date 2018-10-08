@@ -14,18 +14,17 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { RestaurantDashboardComponent } from './components/restaurants/restaurant-dashboard/restaurant-dashboard.component';
 import { SystemDashboardComponent } from './components/system/system-dashboard/system-dashboard.component';
 import { UsersComponent } from './components/users/users.component';
-import { GmbDashboardComponent } from './components/gmbs/gmb-dashboard/gmb-dashboard.component';
 
 import { RoleGuard } from './role.guard';
 import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-monthly-details/invoice-monthly-details.component';
 import { InvoiceDetailsComponent } from './components/invoices/invoice-details/invoice-details.component';
-import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
-import { TaskTesterComponent } from './components/tasks/task-tester/task-tester.component';
+import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
+import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', 'GMB', 'CSR'] } },
@@ -46,14 +45,14 @@ const routes: Routes = [
   { path: 'restaurants/:id/menu-options', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
   { path: 'restaurants/:id/invoices', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
 
-  { path: 'gmbs', component: GmbDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
-  { path: 'gmbs/watch', component: GmbWatchComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
+  { path: 'gmbs', component: Gmb2DashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
-  { path: 'tasks', component: TaskTesterComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'tasks', component: TaskDashboardComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"] } },
   { path: 'gmbs2', component: Gmb2DashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-accounts', component: GmbAccountListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-businesses', component: GmbBizListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
+  { path: 'gmb-requests', component: GmbRequestListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
 
   { path: '**', redirectTo: '/home' }
 ];

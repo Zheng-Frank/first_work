@@ -1,0 +1,83 @@
+<ng-container *ngIf="taskCopy && action">
+    <h6 class="card-title">{{taskCopy.name}}</h6>
+
+    <p class="card-text text-muted">{{taskCopy.description}} <app-gmb-account-hotlink [email]="gmbAccount?.email"></app-gmb-account-hotlink></p>
+    <p class="card-text">{{action.confirmationText}}</p>
+
+    <!-- Update case, we allow scheduledAt update -->
+    <div *ngIf="action.name === 'Update'">
+        <label>Scheduled at:</label>
+        <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskCopy.scheduledAt">
+        <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+        <div class="py-1 text-right">
+            <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 5, 7, 30]" (click)="plusDay(i)">Today + {{i}}</button>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Comments:</label>
+        <textarea class="form-control" rows="3" [(ngModel)]="taskCopy.comments" placeholder="extra comments"></textarea>
+    </div>
+
+    <div *ngIf="action.name === 'Update'" class="form-group">
+        <label>If Done, Select Result:</label>
+        <q-simple-radio [(ngModel)]="taskCopy.result" [equalWidth]="true" [values]="['CANCELED', 'CLOSED']">
+        </q-simple-radio>
+        <!-- <div *ngIf="!taskCopy.result" class="text-danger">
+            <small>* Please select a result: either CANCELED or CLOSED.'</small>
+        </div> -->
+    </div>
+
+    <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}</button>
+    <div class="card border-info" *qIf="showDetails">
+        <div class="card-body">
+            <h4>More Details</h4>
+            <ng-container *ngIf="gmbBiz">
+                <hr>
+                <label>Restaurant:</label>
+                <h6>
+                    <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+                </h6>
+
+                <table class="table table-sm" *ngIf="restaurantLogs.length > 0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Problem</th>
+                            <th scope="col">Response</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let log of restaurantLogs">
+                            <td>{{log.time | date: 'short'}}</td>
+                            <td>{{log.problem}}</td>
+                            <td>{{log.response}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </ng-container>
+            <ng-container *ngIf="gmbAccount">
+                <hr>
+                <label>GMB Account:</label>
+                <h6>{{gmbAccount.email}}</h6>
+            </ng-container>
+            <ng-container *ngIf="gmbRequest">
+                <hr>
+                <label>Requester Email:</label>
+                <h6>{{gmbRequest.email}}</h6>
+                <label>Request Date:</label>
+                <h6>{{gmbRequest.date | date: 'short'}}</h6>
+            </ng-container>
+
+        </div>
+    </div>
+
+    <div class="text-right">
+        <a class="btn btn-link mr-2" (click)="clickCancel()">Cancel</a>
+        <button class="btn btn-primary btn-sm" (click)="clickConfirm()" [qLoading]="confirming">{{confirmError ? 'Retry' : 'Confirm'}}</button>
+        <div class="text-danger" *ngIf="!confirming">
+            <small>{{confirmError}}</small>
+        </div>
+    </div>
+</ng-container>

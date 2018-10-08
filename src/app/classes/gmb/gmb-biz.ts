@@ -7,6 +7,7 @@ export class GmbBiz {
     _id: string;        // mongodb id
     cid: string;        // listing id, can be obtained from listing page
     place_id: string;   // place_id, can be obtained from listing page
+    appealId: string;
     qmenuId: string;    // restaurant id
 
     name: string;
@@ -19,17 +20,25 @@ export class GmbBiz {
     gmbWebsite: string;
     gmbOpen: boolean;
     menuUrls: string[];
+
+    // 
+    bizManagedWebsite: string;
     // qMenu related information (injected to listing once we have ownership)
-    qWebsite: string;
-    qPop3Email: string;
-    qPop3Host: string;
-    qPop3Password: string;
+    qmenuWebsite: string;
+    qmenuPop3Email: string;
+    qmenuPop3Host: string;
+    qmenuPop3Password: string;
 
     score: number;
     agent: string;
 
     gmbOwnerships: GmbOwnership[] = [];
 
+    ignoreGmbOwnershipRequest: boolean;
+
+    comments: string;
+
+    crawledAt: Date;
     updatedAt: Date;
     createdAt: Date;
 
@@ -41,7 +50,7 @@ export class GmbBiz {
                     this[k] = biz[k];
                 }
             }
-            ['createdAt', 'updatedAt'].map(dateField => {
+            ['createdAt', 'updatedAt', 'crawledAt'].map(dateField => {
                 if (this[dateField]) {
                     this[dateField] = new Date((Date.parse(this[dateField])));
                 }
@@ -53,19 +62,22 @@ export class GmbBiz {
     }
 
     /** test if the last ownership is one of the given emails */
-    hasOwnership(emails) {
-        let lastEmail;
-        if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
-            lastEmail = this.gmbOwnerships[this.gmbOwnerships.length - 1].email;
-        }
-        return emails.indexOf(lastEmail) >= 0;
+    publishedIn(emails) {
+        const lastOwnership = this.getLastGmbOwnership();
+        return lastOwnership && (lastOwnership.status === 'Published' || !lastOwnership.status) && emails.indexOf(lastOwnership.email) >= 0;
+    }
+    suspendedIn(emails) {
+        const lastOwnership = this.getLastGmbOwnership();
+        return lastOwnership && lastOwnership.status === 'Suspended' && emails.indexOf(lastOwnership.email) >= 0;
+    }
+    getAccountEmail() {
+        return (this.getLastGmbOwnership() || {})['email'];
     }
 
-    getAccount() {
-        let email = 'N/A';
+    getLastGmbOwnership() {
         if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
-            email = this.gmbOwnerships[this.gmbOwnerships.length - 1].email || 'N/A';
+            return this.gmbOwnerships[this.gmbOwnerships.length - 1];
         }
-        return email.split('@')[0];
+        return undefined;
     }
 }

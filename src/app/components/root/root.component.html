@@ -25,7 +25,13 @@
 <!-- notifications -->
 <div class="fixed-bottom container-fluid" *ngIf="getAlerts().length > 0" style="opacity: 0.9; z-index: 9999">
   <div *ngFor="let alert of getAlerts()" class="alert alert-dismissible {{'alert-' + alert.type}}" (click)="dismissAlert(alert)">
-    <i class="fas {{alert.type === 'danger' || alert.type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}}"></i> {{alert.message}}
+    <i class="fas {{alert.type === 'danger' || alert.type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}}"></i>
+    {{alert.message}}
     <button type="button" class="close">&times;</button>
   </div>
 </div>
+
+<!-- a quick (ugly) implementation of global hot items. should be replaced by dynamic component later -->
+<q-modal #hotItemModal>
+  Hot item
+</q-modal>

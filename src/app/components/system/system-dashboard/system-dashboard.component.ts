@@ -5,6 +5,11 @@ import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { zip, Observable } from "rxjs";
 import { mergeMap } from "rxjs/operators";
+import * as FileSaver from 'file-saver';
+
+// import { Address } from '@qmenu/ui/esm2015/classes/address.js';
+import { Address } from '@qmenu/ui';
+
 @Component({
   selector: "app-system-dashboard",
   templateUrl: "./system-dashboard.component.html",
@@ -12,11 +17,47 @@ import { mergeMap } from "rxjs/operators";
 })
 export class SystemDashboardComponent implements OnInit {
   removingOrphanPhones = false;
+
+  system: any;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() { }
+  async ngOnInit() {
+    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', {resource: 'system'}).toPromise())[0];
+    console.log(this.system);
+    let a = new Address({
+      "_id": {
+          "$oid": "5ae47d50219ad2048633f828"
+      },
+      "place_id": "ChIJIUwDBch1K4cRlSekWG0ygSg",
+      "formatted_address": "15577 North Hayden Road, Scottsdale, AZ 85260, USA",
+      "lat": 33.6268709,
+      "lng": -111.8931338,
+      "street_number": "15577",
+      "route": "North Hayden Road",
+      "neighborhood": "North Scottsdale",
+      "locality": "Scottsdale",
+      "administrative_area_level_2": "Maricopa County",
+      "administrative_area_level_1": "AZ",
+      "country": "US",
+      "postal_code": "85260",
+      "timezone": "America/Phoenix",
+      "line1": "15577 North Hayden Road",
+      "city": "Scottsdale",
+      "zipCode": "85260",
+      "state": "AZ",
+      "createdAt": {
+          "$date": "2018-04-28T13:55:28.686Z"
+      },
+      "updatedAt": {
+          "$date": "2018-04-28T13:55:28.686Z"
+      }
+  });
+    console.log(a);
+  console.log(a.getLine1());
+  }
 
-  getPhoneNumberStat() { 
+  getPhoneNumberStat() {
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       projection: {
@@ -25,10 +66,10 @@ export class SystemDashboardComponent implements OnInit {
       },
       limit: 5000
     }).subscribe(restaurants => {
-      let phoneRestaurantsDict ={};
+      let phoneRestaurantsDict = {};
 
       restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
-      restaurants.map(r => (r.phones ||[]).map(phone => {
+      restaurants.map(r => (r.phones || []).map(phone => {
         phoneRestaurantsDict[phone.phoneNumber] = phoneRestaurantsDict[phone.phoneNumber] || [];
         phoneRestaurantsDict[phone.phoneNumber].push(r);
       }));
@@ -39,7 +80,7 @@ export class SystemDashboardComponent implements OnInit {
         restaurants: phoneRestaurantsDict[p]
       }));
 
-      temp.sort((p1, p2)=> p2.restaurants.length - p1.restaurants.length);
+      temp.sort((p1, p2) => p2.restaurants.length - p1.restaurants.length);
 
       console.log(temp);
 
@@ -84,7 +125,7 @@ export class SystemDashboardComponent implements OnInit {
         .get(environment.qmenuApiUrl + "generic", {
           resource: "address",
           query: {
-            _id: { $in: restaurants.filter(r => r.address).map(r => ({$oid: r.address._id || r.address})) },
+            _id: { $in: restaurants.filter(r => r.address).map(r => ({ $oid: r.address._id || r.address })) },
           },
           limit: batchSize
         });
@@ -301,7 +342,7 @@ export class SystemDashboardComponent implements OnInit {
         .get(environment.qmenuApiUrl + "generic", {
           resource: "phone",
           query: {
-            restaurant: { $in: restaurants.map(r => ({$oid: r._id})) },
+            restaurant: { $in: restaurants.map(r => ({ $oid: r._id })) },
           },
           limit: batchSize
         });
@@ -348,6 +389,60 @@ export class SystemDashboardComponent implements OnInit {
           "Error: " + JSON.stringify(error)
         );
       });
+
+  }
+
+  async getRestaurantLocations() {
+
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        "googleAddress.formatted_address": 1,
+        "googleAddress.lat": 1,
+        "googleAddress.lng": 1,
+        "googleAddress.administrative_area_level_1": 1
+      },
+      limit: 5000
+    }).toPromise();
+    console.log(restaurants);
+    FileSaver.saveAs(new Blob([JSON.stringify(restaurants)], { type: "text" }), 'data.txt');
+  }
+
+  async removePhone() {
+    const phone = '6787990850';
+    const restaurantIdToKeep = undefined; // "5ae6f70593fc1b14000708c2";
+    let restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "phones.phoneNumber": phone
+      },
+      projection: {
+        phones: 1,
+        name: 1
+      },
+      limit: 5000
+    }).toPromise();
+    console.log(restaurants.length);
+
+    restaurants = restaurants.filter(r => r._id !== restaurantIdToKeep);
+    console.log(restaurants);
+
+    const pairs = restaurants.map(r => {
+      let newR = JSON.parse(JSON.stringify(r));
+      newR.phones = newR.phones.filter(p => p.phoneNumber !== phone);
+      let oldR = r;
+      delete oldR.phones;
+      delete oldR.name;
+      delete newR.name;
+
+      return {
+        old: oldR,
+        new: newR
+      };
+    });
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', pairs).toPromise();
 
   }
 

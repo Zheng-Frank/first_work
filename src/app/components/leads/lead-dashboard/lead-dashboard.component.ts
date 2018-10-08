@@ -576,7 +576,7 @@ export class LeadDashboardComponent implements OnInit {
     this._api
       .get(environment.adminApiUrl + "generic", {
         resource: "lead",
-        limit: 2000,
+        limit: 500,
         query: query
       })
       .subscribe(

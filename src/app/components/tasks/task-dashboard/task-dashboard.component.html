@@ -1,0 +1,72 @@
+<h1 class="text-center">Tasks</h1>
+<app-quick-date-picker></app-quick-date-picker>
+<div class="clearfix mt-2">
+    <div class="float-left form-inline">
+
+    </div>
+    <div class="float-right">
+        <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing">
+            <i class="fas fa-sync-alt"></i> Reload</button>
+        <button class="btn btn-link" (click)="purge()" [qLoading]="purging">
+                <i class="fas fa-broom"></i> Purge Invalid Tasks</button>
+        <!-- <button class="btn btn-link" (click)="toggleAction('ADD')">Generate A Task</button> -->
+    </div>
+</div>
+<div class="clearfix">
+    <div class="card text-left bg-light mb-4 float-right w-40-rem" *qIf="currentAction === 'ADD'">
+        <div class="card-body">
+            <h5 class="card-title">Add New Task</h5>
+            <app-task-generator></app-task-generator>
+
+            <!-- <div class="form-group">
+                <label for="formGroupExampleInput">Restaurant ID</label>
+                <input type="text" class="form-control" placeholder="Restaurant ID" [(ngModel)]="removeId">
+            </div>
+
+            <div class="text-right mt-4">
+                <button class="btn btn-secondary" (click)="currentAction = null" [disabled]="requesting">Cancel</button>
+                <button class="btn btn-primary" (click)="addTask()" [qLoading]="requesting">Add Task</button>
+            </div> -->
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card text-center mb-4">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item" *ngFor="let tab of tabs" style="cursor: pointer;">
+                <a class="nav-link {{activeTabValue === tab.value? 'active' : ''}}" (click)="setActiveTab(tab)">{{tab.label}}</a>
+            </li>
+        </ul>
+    </div>
+
+
+    <div class="card-body text-left">
+        <div *ngIf="'Statistics' === activeTabValue">
+            <!-- grouped by task name -->
+            <div *ngFor="let nameEntry of groupedTasks" class="mb-4">
+                <h5>{{nameEntry.name}}</h5>
+                <ng-container *ngFor="let status of statuses">
+                    <button class="btn {{status.btnClass}} btn-status mr-4">
+                        <span class="h1">{{nameEntry[status.name] || 0}}</span>
+                        <hr>{{status.name}}
+                    </button>
+                </ng-container>
+            </div>
+        </div>
+        <div *ngIf="'Open' === activeTabValue">
+            <app-task-list [taskList]="myOpenTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+        </div>
+        <div *ngIf="'Due' === activeTabValue">
+            <app-task-list [taskList]="myDueTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+        </div>
+        <div *ngIf="'Mine' === activeTabValue">
+            <app-task-list [taskList]="myAssignedTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+        </div>
+        <div *ngIf="'Closed' === activeTabValue">
+            <app-task-list [taskList]="myClosedTasks" [user]="user"></app-task-list>
+        </div>
+    </div>
+</div>

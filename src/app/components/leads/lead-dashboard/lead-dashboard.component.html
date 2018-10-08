@@ -195,15 +195,7 @@
     </tbody>
   </table>
   <div>
-    <div *ngIf="leadInEditing.gmbScanned; else noGmb">
-      <app-gmb-info [gmbInfo]="leadInEditing"></app-gmb-info>
-    </div>
-    <ng-template #noGmb>
-      <i class="fas fa-exclamation-triangle text-warning"></i> Missing GMB info
-      <i class="far fa-hand-point-right"></i>&nbsp;&nbsp;
-      <button class="btn btn-outline-primary" (click)="crawlGoogle(leadInEditing)" [qLoading]="apiRequesting">
-        <i class="fab fa-searchengin"></i> Crawl Google</button>
-    </ng-template>
+
   </div>
 
 </q-modal>

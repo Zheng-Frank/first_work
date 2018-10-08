@@ -7,6 +7,7 @@ import { zip, Observable, from } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { Restaurant } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
+import { validateStyleParams } from "@angular/animations/browser/src/util";
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -707,18 +708,21 @@ export class DbScriptsComponent implements OnInit {
           email: 1,
           password: 1
         },
-        limit: 2000
+        limit: 5000
       }),
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
           email: 1
         },
-        limit: 2000
+        limit: 5000
       })).pipe(mergeMap(gmbs => {
         const newGmbs = gmbs[0].filter(g0 => !gmbs[1].some(g1 => g1.email.toLowerCase() === g0.email.toLowerCase()));
         // remove id because newly inserted will have id
         newGmbs.map(g => delete g._id);
+        // convert email to lowercase
+        newGmbs.map(g => g.email = g.email.toLowerCase());
+
         return this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', newGmbs);
       })).subscribe(
         gmbIds => {
@@ -771,7 +775,7 @@ export class DbScriptsComponent implements OnInit {
       });
   }
 
-  genericTesting() {
+  async genericTesting() {
     // // find out invoice having Fax-phaxio-callback as log
     // let affectedInvoices = [];
     // this._api.get(environment.qmenuApiUrl + "generic", {
@@ -812,42 +816,242 @@ export class DbScriptsComponent implements OnInit {
 
     // get banned customer
 
-    const startDate = new Date('2018-07-01');
-    const endDate = new Date('2018-07-02');
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "customer",
-      query: {
-        //bannedReasons: { $exists: true },
-        // socialProvider: { $exists: true },
-        "createdAt": { $gte: { $date: startDate }, $lte: { $date: endDate } }
-      },
+    // const startDate = new Date('2018-07-01');
+    // const endDate = new Date('2018-07-02');
+    // this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: "customer",
+    //   query: {
+    //     //bannedReasons: { $exists: true },
+    //     // socialProvider: { $exists: true },
+    //     "createdAt": { $gte: { $date: startDate }, $lte: { $date: endDate } }
+    //   },
+    //   projection: {
+    //     email: 1,
+    //     firstName: 1,
+    //     socialProvider: 1,
+    //     banCounter: 1,
+    //     bannedReasons: 1,
+    //     createdAt: 1
+    //   },
+    //   limit: 2000
+    // }).subscribe(
+    //   results => {
+    //     // results = results.filter(r => r.bannedReasons.length > 0);
+    //     console.log(results);
+    //     const socials = results.filter(r => r.socialProvider);
+    //     console.log(socials);
+    //     this._global.publishAlert(
+    //       AlertType.Success,
+    //       "done"
+    //     );
+    //   },
+    //   error => {
+    //     this._global.publishAlert(
+    //       AlertType.Danger,
+    //       "Error: " + JSON.stringify(error)
+    //     );
+    //   }
+    // );
+
+    //make all gmb account emails small case
+    // const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', { resource: 'gmbAccount', projection: { email: 1 }, limit: 5000 }).toPromise();
+    // console.log(gmbAccounts);
+    // const gmbAccountsUpper = gmbAccounts.filter(ga => ga.email.toLowerCase() !== ga.email);
+    // console.log(gmbAccountsUpper);
+    // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount',
+    //   gmbAccountsUpper.map(ga => ({
+    //     old: { _id: ga._id },
+    //     new: { _id: ga._id, email: ga.email.toLowerCase() }
+    //   }))
+    // );
+
+    //make all task.transfer.fromEmail to small case
+    // const tasks = await this._api.get(environment.adminApiUrl + 'generic', { resource: 'task', projection: { "transfer.fromEmail": 1 }, limit: 5000 }).toPromise();
+    // const filteredTasks = tasks.filter(t => t.transfer && t.transfer.fromEmail && t.transfer.fromEmail.toLowerCase() !== t.transfer.fromEmail);
+    // console.log(filteredTasks);
+    // await this._api.patch(environment.adminApiUrl + 'generic?resource=task',
+    //   filteredTasks.map(t => ({
+    //     old: { _id: t._id, transfer: {fromEmail: t.transfer.fromEmail} },
+    //     new: { _id: t._id, transfer: {fromEmail: t.transfer.fromEmail.toLowerCase()} }
+    //   }))
+    // );
+
+    // get all existing gmbs and find those have lastpublishedtim
+
+    const gmbs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmb',
       projection: {
         email: 1,
-        firstName: 1,
-        socialProvider: 1,
-        banCounter: 1,
-        bannedReasons: 1,
-        createdAt: 1
+        'businesses.name': 1,
+        'businesses.phone': 1,
+        'businesses.lastPublishedTime': 1,
+        'businesses.restaurantId': 1,
+        'businesses.isPublished': 1
       },
-      limit: 2000
-    }).subscribe(
-      results => {
-        // results = results.filter(r => r.bannedReasons.length > 0);
-        console.log(results);
-        const socials = results.filter(r => r.socialProvider);
-        console.log(socials);
-        this._global.publishAlert(
-          AlertType.Success,
-          "done"
-        );
+      limit: 5000
+    }).toPromise();
+
+    // make a dictionary phone-> {business: xxx, email: xxx}
+    const phoneMap = {} as any;
+    gmbs.map(gmb => {
+      (gmb.businesses || []).map(biz => {
+        if (biz.lastPublishedTime && biz.phone) {
+          if (!phoneMap[biz.phone]) {
+            phoneMap[biz.phone] = [];
+          }
+          phoneMap[biz.phone].push({
+            business: biz,
+            email: gmb.email.toLowerCase().trim()
+          });
+        }
+      });
+    });
+    console.log(phoneMap);
+
+    // inject into gmbOwnerships of each biz
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        phone: 1,
+        gmbOwnerships: 1
       },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
+      limit: 5000
+    }).toPromise();
+
+    // only handle those that don't have any gmb ownership history
+    const virginGmbBizList = gmbBizList.filter(b => !b.gmbOwnerships || b.gmbOwnerships.length === 0);
+
+    // let's match and inject into new format
+    virginGmbBizList.map(biz => {
+      const entries = phoneMap[biz.phone] || [];
+      let sortedEntries = entries.sort((e1, e2) => new Date(e1.business.lastPublishedTime).valueOf() - new Date(e2.business.lastPublishedTime).valueOf());
+
+      if (sortedEntries.length > 0 && !sortedEntries[sortedEntries.length - 1].business.isPublished) {
+        sortedEntries.push({
+          email: undefined,
+          business: { lastPublishedTime: new Date().toISOString() }
+        });
       }
-    );
+
+      const gmbOwnerships = sortedEntries.map(entry => ({
+        email: entry.email,
+        possessedAt: {
+          "$date": entry.business.lastPublishedTime
+        }
+      }));
+      console.log(gmbOwnerships);
+
+      biz.gmbOwnerships = gmbOwnerships;
+    });
+
+    // patch to insert!
+
+    console.log('updated: ');
+    console.log(virginGmbBizList);
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
+      virginGmbBizList.map(biz => ({
+        old: {
+          _id: biz._id
+        },
+        new: {
+          _id: biz._id,
+          gmbOwnerships: biz.gmbOwnerships
+        }
+      }))
+    ).toPromise();
+  }
+
+  async removeRedundantGmbBiz() {
+    // 1. get ALL gmbBiz
+    const bizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        cid: 1,
+        place_id: 1,
+        name: 1,
+        gmbOwnerships: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    // group by place_id (or phone?)
+    const placeIdMap = {};
+    bizList.map(b => {
+      placeIdMap[b.place_id] = placeIdMap[b.place_id] || [];
+      placeIdMap[b.place_id].push(b);
+    });
+    console.log(placeIdMap);
+    const sortedValues = Object.keys(placeIdMap).map(k => placeIdMap[k]).sort((a, b) => b.length - a.length);
+
+    console.log(sortedValues);
+    // keep the one with active gmbOwnerships!
+    for (let values of sortedValues) {
+      if (values.length > 1) {
+        console.log('duplicated', values);
+        const sortedValues = values.sort((v1, v2) => {
+          const published1 = (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
+          const possessedAt1 = (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).possessedAt;
+          const published2 = (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
+          const possessedAt2 = (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).possessedAt;
+          // only one published
+          if (published1 != published2) {
+            return published2 - published1;
+          }
+
+          // both published, take the last published one
+          if (published1 === 1) {
+            return new Date(possessedAt2).valueOf() - new Date(possessedAt1).valueOf();
+          }
+
+          return v2.length - v1.length;
+        });
+
+        // 1. get FIRST _id
+        // 2. get _ids of all others
+        // 3. go-though tasks of gmbBizId of relatedMap, replace with FIRST _id
+        // 4. delete all others!
+        const firstId = sortedValues[0]._id;
+        const otherIds = sortedValues.map(b => b._id).slice(1);
+
+
+        const tasksToBeUpdated = await this._api.get(environment.adminApiUrl + 'generic', {
+          resource: 'task',
+          query: {
+            "relatedMap.gmbBizId": { $in: otherIds.map(id => ({ $oid: id })) }
+          },
+          projection: {
+            name: 1
+          },
+          limit: 200
+        }).toPromise();
+
+        if (tasksToBeUpdated.length > 0) {
+          alert('STOP')
+          if (new Date())
+            throw 'NOT YET VERIFIED, CAUSING MISSING ID'
+          await this._api.patch(environment.adminApiUrl + 'generic?resource=task', tasksToBeUpdated.map(t => ({
+            old: {
+              _id: t._id,
+              relatedMap: {}
+            },
+            new: {
+              _id: t._id,
+              relatedMap: {
+                gmbBizId: firstId
+              }
+            },
+          }))).toPromise();
+          console.log('patched tasks: ', tasksToBeUpdated);
+        }
+
+        // delete ALL the redudant ids
+        await this._api.delete(environment.adminApiUrl + 'generic', {
+          resource: 'gmbBiz',
+          ids: otherIds
+        }).toPromise();
+
+      }
+    }
   }
 
 }

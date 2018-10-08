@@ -36,7 +36,7 @@ export class SyncButtonsComponent implements OnInit {
           name: 1,
           address: 1
         },
-        limit: 2000
+        limit: 5000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "phone",
@@ -143,7 +143,7 @@ export class SyncButtonsComponent implements OnInit {
           email: 1,
           alias: 1
         },
-        limit: 2000
+        limit: 5000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "phone",
@@ -247,7 +247,7 @@ export class SyncButtonsComponent implements OnInit {
           restaurantId: 1,
           gmbAccountOwner: 1
         },
-        limit: 2000
+        limit: 5000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmb",

@@ -2,12 +2,20 @@
  * An ownership request against a current ownership
  */
 export class GmbRequest {
-    id: string;
-    againstOwnershipId: string;
+    _id: string;
+    arci: string;
     date: Date;
     requester: string;
     phone: string;
     email: string;
+    business: string;
+    isReminder: boolean;
+
+    againstOwnershipId: string;
+    
+    gmbAccountId: string;
+    gmbBizId: string;
+    
     constructor(request?: any) {
         if (request) {
             // copy every fields

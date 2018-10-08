@@ -1,3 +1,5 @@
+import { GmbBiz } from "./gmb-biz";
+
 /**
  * GMB account
  */
@@ -7,6 +9,8 @@ export class GmbAccount {
     password: string;
     gmbScannedAt: Date;
     emailScannedAt: Date;
+    comments: string;
+    bizList: GmbBiz[] = [];
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields

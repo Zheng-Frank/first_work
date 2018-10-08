@@ -3,3 +3,10 @@
     text-decoration: line-through;
 }
 
+.wrap {
+    white-space: pre-wrap
+}
+
+/deep/ th {
+    white-space: nowrap;
+}

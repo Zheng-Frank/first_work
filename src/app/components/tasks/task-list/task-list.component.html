@@ -1,43 +1,47 @@
-<table class="table" *ngIf="taskList && taskList.length > 0">
-    <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Task</th>
-            <th scope="col">Assignee</th>
-            <th scope="col">Group</th>
-            <th scope="col">Status</th>
-            <th scope="col">Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let task of taskList; let i=index" class="{{'status-' + task.getStatus()}} {{task.getStatus() === 'CLOSED' ? 'text-success' : ''}}">
-            <th scope="row">{{i+1}}</th>
-            <td>{{task.name}}
-                <div class="text-muted" *ngIf="task.description">
-                    <small>
-                        {{task.description}}
-                    </small>
-                </div>
-            </td>
-            <td>{{task.assignee}}</td>
-            <td>{{getRoles(task)}}</td>
-            <td>{{task.getStatus()}}</td>
-            <td>
-                <div class="d-inline-block" *ngFor="let action of task.getBuiltInActions(username, roles)">
-                    <button class="btn btn-sm btn-primary" (click)="act(task, action)">{{action.name}}</button>&nbsp;
-                </div>
-
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-<tr *ngIf="!taskList || taskList.length === 0">
+<div *ngIf="!taskList || taskList.length === 0">
     List is empty
-</tr>
+</div>
+<q-simple-radio [(ngModel)]="selectedTaskName" [values]="taskNames" (ngModelChange)="selectTask($event)">
+</q-simple-radio>
+<q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+    <tr *tableRowTemplate="let task;">
+        <td>
+            <div class="badge badge-{{getTaskClass(task)}}" *ngIf="!task.result">{{task.scheduledAt | ago: now}}</div>
 
-<!--the editing modal-->
-<q-modal #taskActionerModal [title]="activeTask?.name">
-    <app-task-actioner (cancel)="cancelAction($event)" (done)="actionDone($event)" [action]="activeAction" [task]="activeTask"></app-task-actioner>
+            <div *ngIf="task.result">
+                {{task.result}}
+                <small class="text-muted d-block">
+                    {{task.resultAt | date: 'short'}}
+                </small>
+            </div>
+        </td>
 
-</q-modal>
+        <td>{{task.name}}
+            <div class="text-muted" *ngIf="task.description">
+                <small>
+                    {{task.description}} {{task.gmbBiz?.address}}
+                    <div *ngIf="task.transfer && task.transfer.fromEmail">
+                        <app-gmb-account-hotlink [email]="task.transfer.fromEmail"></app-gmb-account-hotlink><span
+                            *ngIf="task.transfer.againstEmail">« {{task.transfer.againstEmail | emailName}}</span>
+                    </div>
+                    <div *ngIf="task.etc && task.etc.fromEmail">
+                        <app-gmb-account-hotlink [email]="task.etc.fromEmail"></app-gmb-account-hotlink>
+                    </div>
+                </small>
+            </div>
+        </td>
+        <td>{{task.gmbBiz?.timeZone}}</td>
+        <td>{{task.score}}</td>
+        <td>{{getRoles(task)}}</td>
+        <td>{{task.assignee}}</td>
+        <td>
+            <div class="wrap">{{task.comments}}</div>
+            <div *ngIf="task.transfer && task.transfer.verificationMethod">
+                {{task.transfer.verificationMethod}}
+            </div>
+        </td>
+        <td>
+            <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)"></app-task-action-bar>
+        </td>
+    </tr>
+</q-table>

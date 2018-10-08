@@ -3,12 +3,12 @@
  * 
  */
 import { Action } from './action';
-import { ActionCancel } from './action-cancel';
-import { ActionAssign } from './action-assign';
-import { ActionClose } from './action-close';
 import { ApiService } from '../../services/api.service';
 import { environment } from "../../../environments/environment";
 import { Observable } from 'rxjs';
+import { User } from '../user';
+import { Step } from './step';
+import { GmbTransfer } from '../gmb/gmb-transfer';
 
 export class Task {
     _id: string;
@@ -16,57 +16,123 @@ export class Task {
     description: string;
     assignee: string;
     roles: string[] = [];
-    viewers: string[];
+
+    scheduledAt: Date;
 
     result: 'CLOSED' | 'CANCELED';
+    resultAt: Date;
 
-    // actions: Action[] = [];
+    steps: Step[];
 
     // won't be enabled unless all prerequisites are successfully CLOSED!
     prerequisiteTaskIds;
+
+    score: number;
+
+    relatedMap: any;   // {gmbBizId: xxxx, gmbRequestId: xxxx, ....}
+
+    etc: any;
+
+    transfer: GmbTransfer; // this should not be here! but for temp tasks, let's attach this 
+
+    comments: string;
 
     createdAt: Date;
 
     constructor(task?: any) {
         if (task) {
             Object.keys(task).map(k => this[k] = task[k]);
+
+            ['scheduledAt', 'resultAt', 'createdAt', 'updatedAt'].map(dateField => {
+                if (this[dateField]) {
+                    this[dateField] = new Date((Date.parse(this[dateField])));
+                }
+            });
+
+            if (task.steps) {
+                this.steps = task.steps.map(step => new Step(step));
+            }
+
+            if (task.transfer) {
+                this.transfer = new GmbTransfer(task.transfer);
+            }
+
+            // BAD code: very specific dates conversion
+            if(task.etc && task.etc.appealedAt) {
+                task.etc.appealedAt =  new Date((Date.parse(task.etc.appealedAt)));
+            }
         }
-        // this.actions = (this.actions || []).map(a => new Action(a));
+
     }
 
     getStatus() {
         return this.result || (this.assignee ? 'ASSIGNED' : 'OPEN');
     }
 
-    getBuiltInActions(username, roles): Action[] {
+    getActionsOnlyForAssignee(username): Action[] {
+        const actions = [];
+        if (this.assignee === username) {
+
+            switch (this.name) {
+                case 'Transfer GMB Ownership':
+                    actions.push(new Action({
+                        name: 'Transfer',
+                        requiredRoles: this.roles
+                    }));
+                    break;
+                case 'Apply GMB Ownership':
+                    actions.push(new Action({
+                        name: 'Apply GMB',
+                        requiredRoles: this.roles
+                    }));
+                    break;
+                case 'Appeal Suspended GMB':
+                    actions.push(new Action({
+                        name: 'Appeal Suspended',
+                        requiredRoles: this.roles
+                    }));
+                    break;
+                default:
+                    actions.push(new Action({
+                        name: 'Update',
+                        requiredRoles: this.roles
+                    }));
+                    break;
+            }
+
+        }
+
+        return actions;
+    }
+
+    getActions(user: User): Action[] {
+        const username = user.username;
+        const roles = user.roles || [];
         const actions = [];
         // can claim if not finished, in role, not assigned
         if (!this.result && !this.assignee && this.roles.some(r => roles.indexOf(r) >= 0)) {
-            actions.push(new ActionAssign({
-                name: 'Assign to Me',
-                confirmationText: 'The task will be assigned to me.',
+            actions.push(new Action({
+                name: 'Claim',
+                confirmationText: 'Assign this task to me.',
                 requiredRoles: this.roles
             }));
         }
 
         // can close or cancel if assigned to me but not yet finished or in my role
-        if (!this.result && this.assignee === username ) {
-            actions.push(new ActionClose({
-                name: 'Close',
-                confirmationText: 'This will close the task.',
-                requiredRoles: this.roles
-            }));
+        if (!this.result && this.assignee === username) {
 
-            actions.push(new ActionCancel({
-                name: 'Cancel',
-                confirmationText: 'This will cancel the task.',
-                requiredRoles: this.roles
+            actions.push(new Action({
+                name: 'Release',
+                confirmationText: 'Release this task back to unassigned list.',
+                requiredRoles: this.roles,
+                paramsObj: {
+                    field: 'assignee',
+                    value: undefined
+                }
             }));
         }
-        return actions;
-    }
 
-    static generate(task, api: ApiService): Observable<any> {
-        return api.post(environment.adminApiUrl + 'generic?resource=task', [task]);
+        actions.push(...this.getActionsOnlyForAssignee(user.username));
+        return actions;
     }
 }

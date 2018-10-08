@@ -1,13 +1,19 @@
-import { Injectable } from "@angular/core";
+import { Injectable, EventEmitter } from "@angular/core";
 import * as jwtDecode from "jwt-decode";
 import { Alert } from "../classes/alert";
 import { ApiService } from "./api.service";
 import { AlertType } from "../classes/alert-type";
 import { User } from "../classes/user";
+import { ModalType } from "../classes/modal-type";
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+
 declare var store: any;
 
 @Injectable()
 export class GlobalService {
+
+  // a place for propagting changes of resources
+  resourceUpdated = new EventEmitter<any>();
   // token management
   private _token;
   private _user;
@@ -75,6 +81,12 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "CSR", "ORDER_MANAGER"]
         },
         {
+          name: "Tasks",
+          href: "#/tasks",
+          fa: "fas fa-tasks",
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
+        },
+        {
           name: "GMBs",
           href: "#/gmbs",
           fa: "fab fa-google",
@@ -102,12 +114,6 @@ export class GlobalService {
           name: "Users",
           href: "#/users",
           fa: "fas fa-users",
-          accessibleRoles: ["ADMIN"]
-        },
-        {
-          name: "Bootstrap4",
-          href: "#/bs4",
-          fa: "fab fa-twitter",
           accessibleRoles: ["ADMIN"]
         },
         { name: "Me", href: "#/profile", fa: "fas fa-user" }
@@ -156,6 +162,16 @@ export class GlobalService {
     this._alerts = this._alerts.filter(a => a !== alert);
   }
 
+  
+  modal: ModalComponent;
+
+  registerModal(modal: ModalComponent) {
+    this.modal = modal;
+  }
+  publishModal(type: ModalType, _id: string) {
+    this.modal.show();
+  }
+
   isUserInRoles(roles) {
     return this._user.roles.some(role => roles.indexOf(role) >= 0);
   }
@@ -171,6 +187,7 @@ export class GlobalService {
     hanyi: "hanyi.png",
     menufy: "menufy.png",
     qmenu: "qmenu.png",
+    "qmenu-gray": "qmenu-gray.png",
     redpassion: "redpassion.png",
     slicelife: "slicelife.png",
     seamless: "seamless.png",

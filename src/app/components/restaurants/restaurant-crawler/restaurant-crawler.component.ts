@@ -48,7 +48,9 @@ export class RestaurantCrawlerComponent implements OnInit {
         result => {
           this.apiRequesting = false;
           this.restaurant = result;
-          this.fillAddress();
+          if (this.restaurant.formatted_address) {
+            this.fillAddress();
+          }
         },
         error => {
           this.apiRequesting = false;

@@ -7,6 +7,11 @@ import { AlertType } from '../../../classes/alert-type';
 import { mergeMap } from 'rxjs/operators';
 import { FormEvent } from '@qmenu/ui';
 import { zip, of } from 'rxjs';
+import { GmbRequest } from '../../../classes/gmb/gmb-request';
+import { GmbBiz } from '../../../classes/gmb/gmb-biz';
+import { Task } from '../../../classes/tasks/task';
+import { GmbService } from '../../../services/gmb.service';
+import { ModalType } from "../../../classes/modal-type";
 
 @Component({
   selector: 'app-gmb-account-list',
@@ -23,35 +28,51 @@ export class GmbAccountListComponent implements OnInit {
   gmbInEditing: GmbAccount = new GmbAccount();
   apiError = undefined;
 
-  scanningAllLocations = false;
+  scanningAll = false;
 
   processingGmbAccountSet = new Set<any>();
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
-    this.retrieveGmbAccounts();
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService) {
+
   }
 
   ngOnInit() {
+    this.populate();
   }
 
-  retrieveGmbAccounts() {
-    this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbAccount",
-      // projection: {
-      //   email: 1,
-      //   password: 1
-      // },
+  async populate() {
+    const bizList = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: "gmbBiz",
+      projection: {
+        "gmbOwnerships.email": 1,
+        "phone": 1,
+        "address": 1,
+        "name": 1
+      },
       limit: 5000
-    })
-      .subscribe(
-        gmbAccounts => {
-          this.gmbAccounts = gmbAccounts.map(g => new GmbAccount(g)).sort((g1, g2) => g1.email > g2.email ? 1 : -1);
-          this.filterGmbAccounts();
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, error);
-        }
-      );
+    }).toPromise();
+
+    const accountList = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: "gmbAccount",
+      limit: 5000
+    }).toPromise();
+
+    this.gmbAccounts = accountList.sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1).map(a => new GmbAccount(a));
+
+    const sortedBizList = bizList.sort((b1, b2) => b1.name > b2.name ? 1 : -1).map(b => new GmbBiz(b));
+
+    const emailAccountMap = {};
+    this.gmbAccounts.map(a => emailAccountMap[a.email] = a);
+
+    sortedBizList.map(biz => {
+      const email = biz.getAccountEmail();
+      if (email && emailAccountMap[email]) {
+        emailAccountMap[email].bizList = emailAccountMap[email].bizList || [];
+        emailAccountMap[email].bizList.push(biz);
+      }
+    });
+    // make 
+    this.filterGmbAccounts();
   }
 
   debounce(value) {
@@ -82,34 +103,50 @@ export class GmbAccountListComponent implements OnInit {
     this.gmbEditingModal.hide();
   }
 
-  done(event: FormEvent) {
+  async done(event: FormEvent) {
     const gmb = event.object as GmbAccount;
     this.apiError = undefined;
-    this._api.post(environment.autoGmbUrl + 'encrypt', gmb).pipe(mergeMap(result => {
-      const oldGmb = JSON.parse(JSON.stringify(gmb));
-      const updatedGmb = JSON.parse(JSON.stringify(gmb));
-      updatedGmb.password = result;
-      updatedGmb.email = updatedGmb.email.toLowerCase().trim();
 
-      if (gmb._id) {
-        return this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{ old: oldGmb, new: updatedGmb }]);
-      } else {
-        return this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', [updatedGmb]);
-      }
+    const oldGmb = {
+      _id: gmb._id,
+      email: gmb.email
+    };
+    const updatedGmb = {
+      _id: gmb._id,
+      email: gmb.email.toLowerCase().trim(),
+      comments: gmb.comments
+    } as any;
 
-    })).subscribe(
-      result => {
-        event.acknowledge(null);
-        // hard refresh
-        this.retrieveGmbAccounts();
-        this.gmbEditingModal.hide();
-      },
-      error => {
-        this.apiError = 'Possible: no Auto-GMB server running';
+    if (gmb.password && gmb.password.length < 20) {
+      try {
+        updatedGmb.password = await this._api.post(environment.adminApiUrl + 'utils/crypto', {
+          salt: gmb.email,
+          phrase: gmb.password
+        }).toPromise();
+      } catch (error) {
         event.acknowledge(error.message || 'API Error.');
         console.log(error);
+      };
+    }
+
+    try {
+      if (gmb._id) {
+        await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{ old: oldGmb, new: updatedGmb }]).toPromise();
+      } else {
+        await this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', [updatedGmb]).toPromise();
       }
-    );
+      event.acknowledge(null);
+      // hard refresh
+      this.populate();
+      this.gmbEditingModal.hide();
+
+    }
+    catch (error) {
+      this.apiError = 'Possible: no Auto-GMB server running';
+      event.acknowledge(error.message || 'API Error.');
+      console.log(error);
+    }
+
   }
 
   remove(event: FormEvent) {
@@ -120,8 +157,7 @@ export class GmbAccountListComponent implements OnInit {
     }).subscribe(
       result => {
         event.acknowledge(null);
-        // hard refresh
-        this.retrieveGmbAccounts();
+        this.gmbAccounts = this.gmbAccounts.filter(g => g.email !== gmb.email);
         this.gmbEditingModal.hide();
       },
       error => {
@@ -136,7 +172,7 @@ export class GmbAccountListComponent implements OnInit {
 
     const gmb = event.object;
     try {
-      const result = await this.scanOnePublishedLocations(gmb);
+      const result = await this._gmb.scanOneGmbAccountLocations(gmb);
       this._global.publishAlert(AlertType.Success, "Success");
       event.acknowledge(null);
     }
@@ -146,151 +182,27 @@ export class GmbAccountListComponent implements OnInit {
     }
   }
 
-  patchGmb(gmb: GmbAccount, field, value) {
-    const oldGmb = JSON.parse(JSON.stringify(gmb));
-    const updatedGmb = JSON.parse(JSON.stringify(gmb));
-    updatedGmb[field] = value;
-
-    // update gmbScannedAt field
-    this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [
-      { old: gmb, new: updatedGmb }
-    ]).subscribe(result => {
-      if (value.$date) {
-        this.gmbAccounts.map(g => {
-          if (g._id === gmb._id) {
-            g[field] = value.$date;
-          }
-        });
-      }
-      this._global.publishAlert(AlertType.Success, "Updated " + gmb.email);
-    }, error => {
-      this._global.publishAlert(AlertType.Danger, "Error updating " + gmb.email);
-    });
-  }
-
   async scanAllPublishedLocations() {
-    this.scanningAllLocations = true;
+    this.scanningAll = true;
     for (let gmbAccount of this.gmbAccounts) {
       try {
         this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
-        await this.scanOnePublishedLocations(gmbAccount);
+        await this._gmb.scanOneGmbAccountLocations(gmbAccount);
       }
       catch (error) { }
     }
-    this.scanningAllLocations = false;
+    this.scanningAll = false;
   }
 
-  async scanOnePublishedLocations(gmb: GmbAccount) {
-    return new Promise((resolve, reject) => {
-      zip(
-
-        // we need to get currently ALL managed gmbBiz
-        this._api.get(environment.adminApiUrl + "generic", {
-          resource: "gmbBiz",
-          projection: {
-            phone: 1,
-            gmbOwnerships: 1
-          },
-          limit: 10000
-        }),
-        this._api.post('http://localhost:3000/retrievePublishedGmbLocations', { email: gmb.email, password: gmb.password })
-      ).pipe(mergeMap(results => {
-
-        console.log(results)
-        const bizList = results[0];
-        const publishedLocations = results[1];
-
-        // new gmbBiz
-        const newBizList = publishedLocations.filter(location => !bizList.some(biz => biz.phone === location.phone));
-        newBizList.map(biz => biz.gmbOwnerships = [{
-          email: gmb.email,
-          // no other info available so only mark the date possessedAt
-          possessedAt: { $date: new Date() }
-        }]);
-        console.log('new', newBizList);
-        // lost ownership: biz  last ownership.email is this gmb.email but the biz is not in the published location anymore!
-        const lostOwnershipBizList = bizList
-          .filter(biz =>
-            biz.gmbOwnerships &&
-            biz.gmbOwnerships.length > 0 &&
-            biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email === gmb.email &&
-            !publishedLocations.some(location => location.phone === biz.phone));
-        console.log('lost', lostOwnershipBizList);
-
-        // gained new ownership:
-        const gainedOwnershipList = bizList
-          .filter(biz =>
-            publishedLocations.some(location => location.phone === biz.phone) &&
-            (!biz.gmbOwnerships || (biz.gmbOwnerships[biz.gmbOwnerships.length - 1] || {}).email !== gmb.email)
-          );
-        console.log('gained', gainedOwnershipList);
-
-        // making patch list:
-        const patchList = [];
-        lostOwnershipBizList.map(biz => {
-          const oldBiz = JSON.parse(JSON.stringify(biz));
-          const updatedBiz = JSON.parse(JSON.stringify(biz));
-          updatedBiz.gmbOwnerships.push({
-            // no other info available so only mark the date possessedAt
-            possessedAt: { $date: new Date() }
-          });
-          patchList.push({
-            old: oldBiz,
-            new: updatedBiz
-          });
-        });
-
-        gainedOwnershipList.map(biz => {
-          const oldBiz = JSON.parse(JSON.stringify(biz));
-          const updatedBiz = JSON.parse(JSON.stringify(biz));
-          updatedBiz.gmbOwnerships = updatedBiz.gmbOwnerships || [];
-          updatedBiz.gmbOwnerships.push({
-            email: gmb.email,
-            // no other info available so only mark the date possessedAt
-            possessedAt: { $date: new Date() }
-          });
-          patchList.push({
-            old: oldBiz,
-            new: updatedBiz
-          });
-        });
-
-        return zip(
-          // add new gmbBiz
-          this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', newBizList),
-          // update existing biz's gmb ownership status
-          this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", patchList),
-        );
-
-      }))
-        .subscribe(
-          result => {
-            resolve();
-            this._global.publishAlert(AlertType.Success, "Scanned " + gmb.email);
-            this.patchGmb(gmb, 'gmbScannedAt', { $date: new Date() });
-          },
-          error => {
-            // highly rely on auto-gmb response!!!
-            if (error.error === "not displayed") {
-              resolve();
-              this._global.publishAlert(AlertType.Success, "Nothing found");
-              this.patchGmb(gmb, 'gmbScannedAt', { $date: new Date() });
-            } else {
-              reject('Error Scanning Published Locations');
-              this._global.publishAlert(AlertType.Danger, error);
-            }
-          });
-    });
-
-  }
 
   async scanRequests(event: FormEvent) {
     try {
-      await this.scanAccountEmails(event.object);
+      let results: any = await this._gmb.scanAccountEmails(event.object, true);
       event.acknowledge(null);
-      this._global.publishAlert(AlertType.Success, 'Successfully scanned ' + event.object.email);
+      this._global.publishAlert(AlertType.Success, 'Scanned ' + event.object.email + ', found: ' + results.length);
     }
     catch (error) {
+      console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Error scanning ' + event.object.email);
       event.acknowledge(error);
     }
@@ -300,26 +212,19 @@ export class GmbAccountListComponent implements OnInit {
     return this.processingGmbAccountSet.has(gmbAccount);
   }
 
-  scanAccountEmails(gmbAccount: GmbAccount) {
-    return new Promise((resolve, reject) => {
-      this.processingGmbAccountSet.add(gmbAccount);
-      this._api
-        .post('http://localhost:3000/retrieveGmbRequests', { email: gmbAccount.email, password: gmbAccount.password, stayAfterScan: true })
-        .subscribe(
-          result => {
-            this.processingGmbAccountSet.delete(gmbAccount);
-            // convert to OwnershipRequest type and remove isReminder!
-            resolve();
-          },
-          error => {
-            this.processingGmbAccountSet.delete(gmbAccount);
-            reject(error);
-            console.log(error);
-          });
-    });
+  async scanAllEmails() {
+    this.scanningAll = true;
+    for (let gmbAccount of this.gmbAccounts) {
+      try {
+        this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
+        await this._gmb.scanAccountEmails(gmbAccount, false);
+      }
+      catch (error) { }
+    }
+    this.scanningAll = false;
   }
 
-  scanAllEmails() {
-
+  test() {
+    this._global.publishModal(ModalType.gmbAccount, '123123');
   }
 }

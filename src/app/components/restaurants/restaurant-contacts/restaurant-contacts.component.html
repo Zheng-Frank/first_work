@@ -21,10 +21,10 @@
             </td>
             <td>{{join(channel.notifications)}}</td>
             <td>
-              <button class="btn btn-link p0" (click)="editChannel(channel)">Edit</button>
+              <button class="btn btn-link p0" (click)="editChannel(channel)" *ngIf="!viewOnly">Edit</button>
             </td>
           </tr>
-          <tr>
+          <tr *ngIf="!viewOnly">
             <td colspan="3">
               <button class="btn btn-link px-0" (click)="editChannel()">+ Add A Channel</button>
             </td>
@@ -52,14 +52,28 @@
               </div>
             </td>
             <td>
-              <button class="btn btn-link p0" (click)="editPerson(person)">Edit</button>
+              <button class="btn btn-link p0" (click)="editPerson(person)" *ngIf="!viewOnly">Edit</button>
             </td>
           </tr>
-          <tr>
+          <tr *ngIf="!viewOnly">
             <td colspan="3">
               <button class="btn btn-link px-0" (click)="editPerson()">+ Add A Person</button>
             </td>
           </tr>
+
+          <tr>
+            <td  colspan="3">
+                <div class="form-group">
+                    <label for="comment"><strong>Notes:</strong></label>
+                    <textarea class="form-control" rows="5" [(ngModel)]="notes" ></textarea>
+                  </div>
+
+                  <div class="text-right" >
+                      <button (click)="submitNotes()" class="btn btn-primary" role="button">Submit</button>
+                    </div>
+            </td>
+  
+         </tr>          
         </tbody>
       </table>
     </li>

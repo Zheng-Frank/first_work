@@ -3,11 +3,24 @@
     <span class="h3">GMB Accounts</span>
     <hr>{{gmbAccounts.length}}
   </a>
-  <button class="btn btn-warning btn-status mr-4" routerLink="/gmb-businesses">
+  <button class="btn btn-success btn-status mr-4" routerLink="/gmb-businesses">
     <span class="h3">Restaurants</span>
     <hr>{{ownedGmbBizList.length}}/{{gmbBizList.length}}
   </button>
+  <button class="btn btn-warning btn-status mr-4" routerLink="/gmb-requests">
+    <span class="h3">Requests</span>
+    <hr>{{gmbRequests.length}}
+  </button>
 </div>
-<pre>
-  3. Actions (scan all)
-</pre> Tasks (with flow charts)
+
+<h2>System Actions (Run Daily)</h2>
+<div>
+  <ng-container *ngFor="let section of sections">
+    <button class="btn btn-info mr-4 btn-status" (click)="processSection(section)" [qLoading]="section.loading">
+      <span class="h6">{{section.title}}</span>
+      <hr class="my-2"> {{section.description}}
+    </button>
+  </ng-container>
+</div>
+
+<button class="btn btn-primary btn-lg" (click)="scanAll()">SCAN ALL</button>

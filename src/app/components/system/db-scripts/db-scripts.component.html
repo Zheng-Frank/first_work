@@ -20,7 +20,9 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Migrate Address</h5>
-            <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document as googleAddress.</p>
+            <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document
+                as
+                googleAddress.</p>
             <button class="btn btn-primary" (click)="migrateAddress()">Migrate Address</button>
         </div>
     </div>
@@ -34,7 +36,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Migrate Phones</h5>
-            <p class="card-text">No side effects. Migrating 'phones' (in separate document) to 'restaurant' document as phones.</p>
+            <p class="card-text">No side effects. Migrating 'phones' (in separate document) to 'restaurant' document as
+                phones.</p>
             <button class="btn btn-primary" (click)="migratePhones()">Migrate Phones</button>
         </div>
     </div>
@@ -50,7 +53,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Remove Orphan Phones</h5>
-            <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from database.</p>
+            <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from
+                database.</p>
             <button class="btn btn-primary" (click)="removeOrphanPhones()" [qLoading]="removingOrphanPhones">Remove</button>
         </div>
     </div>
@@ -82,7 +86,9 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Inject redundant total, subtotal etc to invoice</h5>
-            <p class="card-text">No side effects. We have to batch process existing invoices. When query, we SKIP already calculated ones.</p>
+            <p class="card-text">No side effects. We have to batch process existing invoices. When query, we SKIP
+                already
+                calculated ones.</p>
             <button class="btn btn-primary" (click)="injectTotalEtcToInvoice()">Fix</button>
         </div>
     </div>
@@ -111,5 +117,18 @@
         </div>
     </div>
 
-
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Invoice Error (previous balance)</h5>
+            <p class="card-text">get Random</p>
+            <button class="btn btn-primary" (click)="genericTesting()">Testing</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Remove Redundant Gmb Biz</h5>
+            <p class="card-text">Based On Same place_ids</p>
+            <button class="btn btn-primary" (click)="removeRedundantGmbBiz()">Remove</button>
+        </div>
+    </div>
 </div>
