@@ -20,6 +20,7 @@ export class StripeComponent implements OnInit {
   card;
 
   apiRequesting = false;
+  apiError = undefined;
 
   constructor(private _api: ApiService) { }
 
@@ -71,6 +72,8 @@ export class StripeComponent implements OnInit {
   submit() {
     this.apiRequesting = true;
     const self = this;
+
+    this.apiError = undefined;
     this.stripe.createToken(this.card).then(function (result) {
       if (result.error) {
         self.apiRequesting = false;
@@ -79,18 +82,24 @@ export class StripeComponent implements OnInit {
         errorElement.textContent = result.error.message;
       } else {
         // Send the token to your server.
-        this._api.post(environment.legacyApiUrl + 'invoice/pay', {
-          id: self.invoiceId, stripeToken: result.token, amount: this.amount
-        }).subscribe(
+        const payload = {
+          id: self.invoiceId,
+          stripeToken: result.token,
+          amount: self.amount
+        };
+        console.log('paylod', payload)
+        self._api.post(environment.legacyApiUrl + 'invoice/pay', payload).subscribe(
           result => {
             self.apiRequesting = false;
+
             self.success.emit();
           },
           error => {
             self.apiRequesting = false;
+            self.apiError = error;
             console.log(error);
           }
-          );
+        );
       }
     });
   }
