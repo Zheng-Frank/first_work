@@ -100,6 +100,7 @@ import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor
 import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
 import { LogsTableComponent } from './components/logs/logs-table/logs-table.component';
 import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
+import { StripeComponent } from './components/invoices/stripe/stripe.component';
  
 @NgModule({
   declarations: [
@@ -184,7 +185,8 @@ import { RestaurantLogsComponent } from './components/restaurants/restaurant-log
     BizWebsiteEditorComponent,
     QuickDatePickerComponent,
     LogsTableComponent,
-    RestaurantLogsComponent
+    RestaurantLogsComponent,
+    StripeComponent
   ],
   imports: [
     BrowserModule,

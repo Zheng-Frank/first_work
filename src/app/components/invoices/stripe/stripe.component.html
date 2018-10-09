@@ -1,0 +1,18 @@
+<div class="form-row">
+  <h6>Security Online Payment</h6>
+  <label for="card-element">
+    Credit or Debit Card Pay Online
+  </label>
+  <div id="card-element" class="w-100">
+    <!-- A Stripe Element will be inserted here. -->
+  </div>
+
+  <!-- Used to display form errors. -->
+  <div id="card-errors" role="alert" class="text-danger"></div>
+</div>
+<div class="text-right mt-2">
+  <button [qLoading]="apiRequesting" class="btn btn-success" style="min-width: 160px" (click)="submit()">Pay {{amount |
+    currency:'USD':true:'1.2-2'}}
+  </button>
+  <div class="alert alert-danger mt-1" *ngIf="apiError">{{apiError.error || 'Error paying online'}}</div>
+</div>

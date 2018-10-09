@@ -53,7 +53,7 @@ export class PaymentsDashboardComponent implements OnInit {
       value: 'Credit Card'
     },
     {
-      text: 'Stripe',
+      text: 'Pay Online',
       value: 'Stripe'
     },
     {

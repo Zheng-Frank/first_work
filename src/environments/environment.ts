@@ -14,7 +14,9 @@ export const environment = {
   bizUrl: 'https://restaurant-quez.herokuapp.com/',
   customerUrl: 'https://customer-app.herokuapp.com/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
-  normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/'
+  normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
+  stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg'
+
   // production: true,
   // env: "prod",
   // adminApiUrl: "https://swozix2epl.execute-api.us-east-2.amazonaws.com/prod/",
@@ -24,7 +26,8 @@ export const environment = {
   // bizUrl: 'https://biz.qmenu.us/',
   // customerUrl: 'https://qmenu.us/',
   // thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
-  // normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/'
+  // normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
+  // stripePublishableKey: 'pk_live_uSs2MVVyG0vn6TICsTIyXG6Y'
 };
 
 /*
