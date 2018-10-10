@@ -10,7 +10,7 @@ import { AlertType } from "../../../classes/alert-type";
 import { mergeMap, observeOn } from 'rxjs/operators';
 import { Restaurant } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
-import { PaymentMeans } from '../../../classes/payment-means';
+import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Channel } from '../../../classes/channel';
 import { Observable, from } from 'rxjs';
@@ -138,6 +138,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   paymentSuccess() {
     this.loadInvoice();
+    this._global.publishAlert(AlertType.Success, 'Payment Success.');
   }
 
   setDisplay(item) {

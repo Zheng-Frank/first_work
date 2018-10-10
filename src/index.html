@@ -2,6 +2,11 @@
 <html lang="en">
 
 <head>
+  <script type="text/javascript">
+    if (window.location.protocol != 'https:' && window.location.href.indexOf('localhost') < 0 && window.location.href.indexOf('127.0.0') < 0) {
+      location.href = location.href.replace("http://", "https://");
+    }
+  </script>
   <meta charset="utf-8">
   <title>qMenu Administrative</title>
   <base href="/">
@@ -53,7 +58,7 @@
   <!--AWS-->
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.5.3.min.js"></script>
   <!-- stripe -->
-	<script src="https://js.stripe.com/v3/"></script>
+  <script src="https://js.stripe.com/v3/"></script>
 </body>
 
 </html>

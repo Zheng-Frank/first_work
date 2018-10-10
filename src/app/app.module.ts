@@ -71,7 +71,6 @@ import { MenuOptionEditorComponent } from './components/restaurants/menu-option-
 import { SwitchComponent } from './components/restaurants/switch/switch.component';
 import { RadioGroupComponent } from './components/restaurants/radio-group/radio-group.component';
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
-import { PaymentMeansEditorComponent } from './components/payments/payment-means-editor/payment-means-editor.component';
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { TaskListComponent } from './components/tasks/task-list/task-list.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
@@ -162,7 +161,6 @@ import { StripeComponent } from './components/invoices/stripe/stripe.component';
     SwitchComponent,
     RadioGroupComponent,
     GmbCard2Component,
-    PaymentMeansEditorComponent,
     PaymentsDashboardComponent,
     TaskListComponent,
     TaskDashboardComponent,
