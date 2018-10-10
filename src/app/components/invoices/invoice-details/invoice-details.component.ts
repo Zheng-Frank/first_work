@@ -26,6 +26,8 @@ declare var window: any;
   providers: [CurrencyPipe, DatePipe]
 })
 export class InvoiceDetailsComponent implements OnInit, OnDestroy {
+  @ViewChild('myInvoiceViewer') myInvoiceViewer;
+
   invoice: Invoice;
   paymentMeans: PaymentMeans[] = [];
   restaurantLogs: Log[] = [];
@@ -104,12 +106,15 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
             'Check Deposit': 'A payment check of ' + amountString + ' is mailed to ' + ((firstPm.details || {}).address ? firstPm.details.address : 'you') + '. It may take up to 7 business days.'
           }
           this.invoice.paymentInstructions = wordingMap[firstPm.type];
+
         }
 
 
         this.restaurantLogs = (restaurants[0].logs || []).map(log => new Log(log));
 
         this.invoiceChannels = (restaurants[0].channels || []).filter(c => c.notifications && c.notifications.indexOf('Invoice') >= 0);
+
+        this.myInvoiceViewer.refresh();
 
       }, error => {
         this._global.publishAlert(

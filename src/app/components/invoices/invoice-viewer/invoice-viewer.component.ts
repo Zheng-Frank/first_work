@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Invoice } from '../../../classes/invoice';
 
 @Component({
@@ -9,9 +9,13 @@ import { Invoice } from '../../../classes/invoice';
 })
 export class InvoiceViewerComponent implements OnInit {
   @Input() invoice: Invoice;
-  constructor() { }
+  constructor(private _ref: ChangeDetectorRef) { }
 
   ngOnInit() {
+  }
+
+  refresh() {
+    this._ref.detectChanges();
   }
 
   getRestaurantTime(time): Date {
