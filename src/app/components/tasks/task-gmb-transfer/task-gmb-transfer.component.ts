@@ -71,7 +71,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
-          email: 1
+          email: 1,
+          allLocations: 1
         },
         limit: 5000
       })

@@ -11,7 +11,7 @@
         <button class="btn btn-link pl-0">Published: {{gmbAccount.bizList.length}} <i class="fas {{expandBizLis ? 'fa-caret-up' : 'fa-caret-down'}} "
             (click)="expandBizLis = !expandBizLis"></i></button>
 
-            <span class="{{gmbAccount.allLocations > 95 ? 'bg-danger text-ligth' : ''}}" *ngIf="gmbAccount.allLocations"> Total {{gmbAccount.allLocations}}</span>
+            <span class="{{gmbAccount.allLocations > 95 ? 'bg-danger text-light' : ''}}" *ngIf="gmbAccount.allLocations"> Total {{gmbAccount.allLocations}}</span>
         <div *ngIf="expandBizLis">
           <div *ngFor="let biz of gmbAccount.bizList" class="mt-1">{{biz.name}} <small class="text-muted">{{biz.address}}</small></div>
         </div>
