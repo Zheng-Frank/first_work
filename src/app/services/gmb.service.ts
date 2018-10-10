@@ -267,6 +267,7 @@ export class GmbService {
       gmbWebsite: loc.homepage,
       name: loc.name,
       place_id: loc.place_id,
+      origin: gmbAccount.email,
       gmbOwnerships:
         loc.status === 'Published' || loc.status === 'Suspended' ?
           [{
@@ -379,9 +380,6 @@ export class GmbService {
 
     }
 
-
-
-
     // also update gmbScannedAt
     await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{
       old: { _id: gmbAccount._id },
@@ -454,18 +452,13 @@ export class GmbService {
     }
 
 
-    console.log(gmbBiz);
-    console.log(crawledResult);
-
     const name1 = crawledResult['name'].toLowerCase();
     const name2 = gmbBiz.name.toLowerCase();
     const nameEqual = (name1 === name2) || (name1.indexOf(name2) >= 0 || name2.indexOf(name1) >= 0);
     const zipcodeEqual = crawledResult['address'].split(' ').pop() === gmbBiz.address.split(' ').pop();
     const place_idEqual = crawledResult['place_id'] === gmbBiz.place_id;
 
-    console.log(nameEqual);
-    console.log(zipcodeEqual);
-    console.log(place_idEqual)
+
     if (!place_idEqual && !nameEqual && !zipcodeEqual) {
       throw 'Crawl error: nothing matches, ' + gmbBiz.name;
     }
