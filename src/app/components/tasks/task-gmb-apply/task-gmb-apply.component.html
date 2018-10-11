@@ -26,8 +26,7 @@
     <select [(ngModel)]="transfer.toEmail" class="form-control" (change)="handleUpdate('select')">
       <option></option>
       <option *ngFor="let account of getFilteredAccounts()" [ngValue]="account.email">{{account.email | emailName}}
-        (biz
-        count = {{account.bizCount || 0}})</option>
+        (total: {{account.allLocations}})</option>
     </select>
   </div>
 

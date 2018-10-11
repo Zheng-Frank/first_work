@@ -22,12 +22,10 @@
       Select B (Target Account)
       <span *ngIf="toGmb" class="text-success"> ✓</span>
     </label>
-
     <select [(ngModel)]="transfer.toEmail" class="form-control" (change)="handleUpdate('select')">
       <option></option>
       <option *ngFor="let account of getFilteredAccounts()" [ngValue]="account.email">{{account.email | emailName}}
-        (biz
-        count = {{account.bizCount || 0}})</option>
+        (total: {{account.allLocations}})</option>
     </select>
   </div>
 
