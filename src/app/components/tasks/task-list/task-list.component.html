@@ -31,6 +31,7 @@
             </div>
         </td>
         <td>{{task.gmbBiz?.timeZone}}</td>
+        <td><i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i></td>
         <td>{{task.score}}</td>
         <td>{{getRoles(task)}}</td>
         <td>{{task.assignee}}</td>

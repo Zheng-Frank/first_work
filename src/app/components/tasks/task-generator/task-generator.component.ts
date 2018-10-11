@@ -16,12 +16,14 @@ export class TaskGeneratorComponent implements OnInit {
       name: 'Task A',
       description: 'a description',
       roles: ['ADMIN'],
-      defaultAssignee: 'gary'
+      assignee: 'gary',
+      scheduledAt: new Date()
     },
     {
       name: 'Task B',
       description: 'b description',
-      roles: ['ADMIN']
+      roles: ['ADMIN', 'MENU_EDITOR'],
+      scheduledAt: new Date()
     }
   ];
 
@@ -45,21 +47,38 @@ export class TaskGeneratorComponent implements OnInit {
       required: false,
       inputType: "multi-select",
       items: [
-        { object: "ADMIN", text: "Incoming Orders", selected: false },
-        { object: "MENU_EDITOR", text: "Invoice", selected: false }
+        { object: "ADMIN", text: "ADMIN", selected: false },
+        { object: "MENU_EDITOR", text: "MENU_EDITOR", selected: false }
       ]
     }];
-  
+
   constructor() { }
   ngOnInit() {
   }
 
   selectTemplate(event) {
+    if (this.selectedTemplate) {
 
+      ['name', 'description', 'assignee', 'scheduledAt'].map(k => {
+        this.obj[k] = this.selectedTemplate[k];
+      });
+
+      this.obj.roles = (this.selectedTemplate.roles || []).slice();
+
+      // this.fieldDescriptors.filter(f => f.field === 'roles').map(f => f.items.map(i => i.selected = this.selectedTemplate.roles.indexOf(i.object) >= 0))
+    }
   }
 
   formSubmit(event) {
-    console.log(event);
+    event.acknowledge(null);
+    this.submit.emit({
+      name: this.obj.name,
+      description: this.obj.description,
+      scheduledAt: this.obj.description,
+      assignee: this.obj.assignee,
+      roles: this.obj.roles.filter(r => r.selected).map(r => r.object),
+      comments: this.obj.comments
+    } as Task);
   }
 
 }

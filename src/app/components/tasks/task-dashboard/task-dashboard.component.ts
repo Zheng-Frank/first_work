@@ -86,7 +86,8 @@ export class TaskDashboardComponent {
         resource: "gmbBiz",
         query: {},
         projection: {
-          address: 1
+          address: 1,
+          gmbOpen: 1
         },
         limit: 10000
       }),

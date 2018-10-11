@@ -62,4 +62,8 @@ export class ProfileComponent implements OnInit {
     return this.myTeamUsers;
   }
 
+  createNewTask(task) {
+    console.log(task)
+  }
+
 }

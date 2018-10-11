@@ -35,8 +35,9 @@ export class GmbBizListComponent implements OnInit {
   searchFilter;
   gmbOwnership;
   googleListingOwner;
+  outstandingTask;
   qMenuManagedWebsite;
-  notScanned3 = false;
+  onlyGmbOpen = false;
   onlyLost = false;
 
   filteredMyBizList: myBiz[] = [];
@@ -228,8 +229,8 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
-    if (this.notScanned3) {
-      this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.crawledAt || this.now.valueOf() - b.gmbBiz.crawledAt.valueOf() > 3 * 24 * 3600000);
+    if (this.onlyGmbOpen) {
+      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOpen);
     }
 
     // fitler lost: the last ownership is not qmenu
@@ -247,6 +248,20 @@ export class GmbBizListComponent implements OnInit {
       default:
         break;
     }
+
+
+    switch (this.outstandingTask) {
+      case 'exist':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].length > 0);
+        break;
+      case 'non-exist':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => !this.bizTaskMap[b.gmbBiz._id] || this.bizTaskMap[b.gmbBiz._id].length === 0);
+        break;
+      default:
+        break;
+    }
+
+
     console.log('filter time: ', new Date().valueOf() - start.valueOf());
 
     this._ref.detectChanges();
