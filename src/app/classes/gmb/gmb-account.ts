@@ -10,6 +10,8 @@ export class GmbAccount {
     gmbScannedAt: Date;
     emailScannedAt: Date;
     allLocations: number;
+    published: number;
+    suspended: number;
     comments: string;
     bizList: GmbBiz[] = [];
     constructor(gmb?: any) {
