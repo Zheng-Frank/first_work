@@ -36,6 +36,8 @@ export class TaskDashboardComponent {
   currentAction = null;
   requesting = false;
 
+  bizList = [];
+
   addTask() {
     setTimeout(() => this.requesting = false, 4000);
   }
@@ -87,11 +89,14 @@ export class TaskDashboardComponent {
         query: {},
         projection: {
           address: 1,
-          gmbOpen: 1
+          gmbOpen: 1,
+          phone: 1,
+          name: 1
         },
         limit: 10000
       }),
     ).subscribe(results => {
+      this.bizList = results;
       this.refreshing = false;
       const tasks = results[0].map(t => new Task(t));
       this.myTasks = tasks.filter(t =>
@@ -222,6 +227,18 @@ export class TaskDashboardComponent {
 
     this.purging = false;
     this.refresh();
+  }
+
+  
+
+  async createNewTask(task) {
+    
+    const taskCloned = JSON.parse(JSON.stringify(task));
+    if (taskCloned.scheduledAt) {
+      taskCloned.scheduledAt = { $date: taskCloned.scheduledAt }
+    }
+    
+    await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
   }
 
 }

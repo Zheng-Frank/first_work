@@ -1,6 +1,3 @@
-<q-simple-radio [(ngModel)]="obj.type" [equalWidth]="true" [values]="['From a list', 'Type new task']">
-</q-simple-radio>
-
 <div class="form-group">
   <label for="chooseTemplate">Select Template (optional)</label>
   <select class="form-control mr-4" [(ngModel)]="selectedTemplate" (change)="selectTemplate($event)">
@@ -14,6 +11,10 @@
     <label>Scheduled at:</label>
     <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="obj.scheduledAt">
     <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+  </div>
+  <div class="form-group">
+    <label>Related Restaurant:</label>
+    <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
   </div>
   <div class="form-group">
     <label>Comments:</label>

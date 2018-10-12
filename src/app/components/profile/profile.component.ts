@@ -2,7 +2,6 @@ import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
-import { Lead } from "../../classes/lead";
 import { AlertType } from "../../classes/alert-type";
 import { User } from "../../classes/user";
 
@@ -17,7 +16,7 @@ export class ProfileComponent implements OnInit {
 
   myTeamUsers = [];
 
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     if (this._global.isUserInRoles(["ADMIN", "MARKETING_DIRECTOR"])) {
@@ -60,10 +59,6 @@ export class ProfileComponent implements OnInit {
       // 2. find all users under me and then request all leads assigned to those users, including me
     }
     return this.myTeamUsers;
-  }
-
-  createNewTask(task) {
-    console.log(task)
   }
 
 }

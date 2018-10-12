@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input, ViewChild } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
 
 @Component({
@@ -8,6 +8,10 @@ import { Task } from '../../../classes/tasks/task';
 })
 export class TaskGeneratorComponent implements OnInit {
   @Output() submit = new EventEmitter<Task>();
+  // for picking related restaurant
+  @Input() restaurantList = [];
+
+  @ViewChild('myRestaurantPicker') myRestaurantPicker;
 
   selectedTemplate;
 
@@ -56,6 +60,11 @@ export class TaskGeneratorComponent implements OnInit {
   ngOnInit() {
   }
 
+  reset() {
+    this.obj.relatedMap = {};
+    
+  }
+
   selectTemplate(event) {
     if (this.selectedTemplate) {
 
@@ -64,9 +73,12 @@ export class TaskGeneratorComponent implements OnInit {
       });
 
       this.obj.roles = (this.selectedTemplate.roles || []).slice();
-
-      // this.fieldDescriptors.filter(f => f.field === 'roles').map(f => f.items.map(i => i.selected = this.selectedTemplate.roles.indexOf(i.object) >= 0))
+      this.fieldDescriptors.filter(f => f.field === 'roles').map(f => f.items.map(i => i.selected = this.selectedTemplate.roles.indexOf(i.object) >= 0))
     }
+  }
+
+  selectRestaurant(restaurant) {
+    this.obj.relatedMap = this.obj.relatedMap || { gmbBizId: restaurant._id };
   }
 
   formSubmit(event) {
@@ -74,7 +86,7 @@ export class TaskGeneratorComponent implements OnInit {
     this.submit.emit({
       name: this.obj.name,
       description: this.obj.description,
-      scheduledAt: this.obj.description,
+      scheduledAt: this.obj.scheduledAt,
       assignee: this.obj.assignee,
       roles: this.obj.roles.filter(r => r.selected).map(r => r.object),
       comments: this.obj.comments
