@@ -61,7 +61,13 @@ export class GmbBizEditorComponent implements OnInit, OnChanges {
       },
       {
         field: "bizManagedWebsite",
-        label: "Restaurant Insisted Website",
+        label: "Restaurant Managed Website",
+        required: false
+      },
+      {
+        field: "useBizWebsite",
+        label: "Insisted",
+        inputType: "checkbox",
         required: false
       },
       {
