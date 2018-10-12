@@ -776,6 +776,33 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async genericTesting() {
+    //find bizManagedWebsite
+    const havingBizWebsite = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        bizManagedWebsite: { $exists: 1 }
+      },
+      projection: {
+        name: 1,
+        bizManagedWebsite: 1,
+        useBizWebsite: 1
+      },
+      limit: 5000
+    }).toPromise();
+    // // update gmbBiz to make
+    // CAREFUL: SET useBizWebsite = true
+    // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
+    //   havingBizWebsite.map(b => ({
+    //     old: {
+    //       _id: b._id
+    //     },
+    //     new: {
+    //       _id: b._id,
+    //       useBizWebsite: b.bizManagedWebsite && b.bizManagedWebsite.length > 0
+    //     }
+    //   }))
+    // ).toPromise();
+    console.log(havingBizWebsite);
     // // find out invoice having Fax-phaxio-callback as log
     // let affectedInvoices = [];
     // this._api.get(environment.qmenuApiUrl + "generic", {
@@ -878,87 +905,87 @@ export class DbScriptsComponent implements OnInit {
 
     // get all existing gmbs and find those have lastpublishedtim
 
-    const gmbs = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmb',
-      projection: {
-        email: 1,
-        'businesses.name': 1,
-        'businesses.phone': 1,
-        'businesses.lastPublishedTime': 1,
-        'businesses.restaurantId': 1,
-        'businesses.isPublished': 1
-      },
-      limit: 5000
-    }).toPromise();
+    // const gmbs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'gmb',
+    //   projection: {
+    //     email: 1,
+    //     'businesses.name': 1,
+    //     'businesses.phone': 1,
+    //     'businesses.lastPublishedTime': 1,
+    //     'businesses.restaurantId': 1,
+    //     'businesses.isPublished': 1
+    //   },
+    //   limit: 5000
+    // }).toPromise();
 
-    // make a dictionary phone-> {business: xxx, email: xxx}
-    const phoneMap = {} as any;
-    gmbs.map(gmb => {
-      (gmb.businesses || []).map(biz => {
-        if (biz.lastPublishedTime && biz.phone) {
-          if (!phoneMap[biz.phone]) {
-            phoneMap[biz.phone] = [];
-          }
-          phoneMap[biz.phone].push({
-            business: biz,
-            email: gmb.email.toLowerCase().trim()
-          });
-        }
-      });
-    });
-    console.log(phoneMap);
+    // // make a dictionary phone-> {business: xxx, email: xxx}
+    // const phoneMap = {} as any;
+    // gmbs.map(gmb => {
+    //   (gmb.businesses || []).map(biz => {
+    //     if (biz.lastPublishedTime && biz.phone) {
+    //       if (!phoneMap[biz.phone]) {
+    //         phoneMap[biz.phone] = [];
+    //       }
+    //       phoneMap[biz.phone].push({
+    //         business: biz,
+    //         email: gmb.email.toLowerCase().trim()
+    //       });
+    //     }
+    //   });
+    // });
+    // console.log(phoneMap);
 
-    // inject into gmbOwnerships of each biz
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        phone: 1,
-        gmbOwnerships: 1
-      },
-      limit: 5000
-    }).toPromise();
+    // // inject into gmbOwnerships of each biz
+    // const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    //   resource: 'gmbBiz',
+    //   projection: {
+    //     phone: 1,
+    //     gmbOwnerships: 1
+    //   },
+    //   limit: 5000
+    // }).toPromise();
 
-    // only handle those that don't have any gmb ownership history
-    const virginGmbBizList = gmbBizList.filter(b => !b.gmbOwnerships || b.gmbOwnerships.length === 0);
+    // // only handle those that don't have any gmb ownership history
+    // const virginGmbBizList = gmbBizList.filter(b => !b.gmbOwnerships || b.gmbOwnerships.length === 0);
 
-    // let's match and inject into new format
-    virginGmbBizList.map(biz => {
-      const entries = phoneMap[biz.phone] || [];
-      let sortedEntries = entries.sort((e1, e2) => new Date(e1.business.lastPublishedTime).valueOf() - new Date(e2.business.lastPublishedTime).valueOf());
+    // // let's match and inject into new format
+    // virginGmbBizList.map(biz => {
+    //   const entries = phoneMap[biz.phone] || [];
+    //   let sortedEntries = entries.sort((e1, e2) => new Date(e1.business.lastPublishedTime).valueOf() - new Date(e2.business.lastPublishedTime).valueOf());
 
-      if (sortedEntries.length > 0 && !sortedEntries[sortedEntries.length - 1].business.isPublished) {
-        sortedEntries.push({
-          email: undefined,
-          business: { lastPublishedTime: new Date().toISOString() }
-        });
-      }
+    //   if (sortedEntries.length > 0 && !sortedEntries[sortedEntries.length - 1].business.isPublished) {
+    //     sortedEntries.push({
+    //       email: undefined,
+    //       business: { lastPublishedTime: new Date().toISOString() }
+    //     });
+    //   }
 
-      const gmbOwnerships = sortedEntries.map(entry => ({
-        email: entry.email,
-        possessedAt: {
-          "$date": entry.business.lastPublishedTime
-        }
-      }));
-      console.log(gmbOwnerships);
+    //   const gmbOwnerships = sortedEntries.map(entry => ({
+    //     email: entry.email,
+    //     possessedAt: {
+    //       "$date": entry.business.lastPublishedTime
+    //     }
+    //   }));
+    //   console.log(gmbOwnerships);
 
-      biz.gmbOwnerships = gmbOwnerships;
-    });
+    //   biz.gmbOwnerships = gmbOwnerships;
+    // });
 
-    // patch to insert!
+    // // patch to insert!
 
-    console.log('updated: ');
-    console.log(virginGmbBizList);
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
-      virginGmbBizList.map(biz => ({
-        old: {
-          _id: biz._id
-        },
-        new: {
-          _id: biz._id,
-          gmbOwnerships: biz.gmbOwnerships
-        }
-      }))
-    ).toPromise();
+    // console.log('updated: ');
+    // console.log(virginGmbBizList);
+    // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
+    //   virginGmbBizList.map(biz => ({
+    //     old: {
+    //       _id: biz._id
+    //     },
+    //     new: {
+    //       _id: biz._id,
+    //       gmbOwnerships: biz.gmbOwnerships
+    //     }
+    //   }))
+    // ).toPromise();
   }
 
   async removeRedundantGmbBiz() {

@@ -731,7 +731,7 @@ export class GmbService {
         email: account.email,
         password: password,
         website: biz.qmenuWebsite,
-        bizManagedWebsite: biz.bizManagedWebsite,
+        bizManagedWebsite: biz.useBizWebsite ? biz.bizManagedWebsite : undefined,
         appealId: biz.appealId,
         stayAfterScan: stayAfterScan
       }

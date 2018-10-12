@@ -24,6 +24,7 @@ export class GmbBiz {
 
     // 
     bizManagedWebsite: string;
+    useBizWebsite: boolean;
     // qMenu related information (injected to listing once we have ownership)
     qmenuWebsite: string;
     qmenuPop3Email: string;
