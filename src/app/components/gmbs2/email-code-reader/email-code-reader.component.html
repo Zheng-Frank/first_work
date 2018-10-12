@@ -23,6 +23,7 @@
   <div *ngIf="retrievedObj" class="mb-2">
     <span class="badge badge-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.code}}</span> {{retrievedObj.time | ago: now}} {{retrievedObj.name}} <span class="text-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.email}}</span>
   </div>
-  <button class="btn btn-link" (click)="clickSave()" [qLoading]="apiRequesting">Save Email Settings</button>
+  <span *ngIf="!gmbBiz" class="text-muted"><small>No GMB biz</small></span>
+  <button class="btn btn-link" (click)="clickSave()" [qLoading]="apiRequesting" *ngIf="gmbBiz">Save Email Settings</button>
   <button class="btn btn-primary" (click)="clickRetrieve()" [qLoading]="apiRequesting">Retrieve</button>
 </div>

@@ -1,5 +1,9 @@
 import { Component, OnInit, Output, EventEmitter, Input, ViewChild } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
+import { ApiService } from '../../../services/api.service';
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from '../../../services/global.service';
+import { AlertType } from '../../../classes/alert-type';
 
 @Component({
   selector: 'app-task-generator',
@@ -10,6 +14,9 @@ export class TaskGeneratorComponent implements OnInit {
   @Output() submit = new EventEmitter<Task>();
   // for picking related restaurant
   @Input() restaurantList = [];
+
+  gmbBiz;
+  restaurant;
 
   @ViewChild('myRestaurantPicker') myRestaurantPicker;
 
@@ -56,18 +63,31 @@ export class TaskGeneratorComponent implements OnInit {
       ]
     }];
 
-  constructor() { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
   ngOnInit() {
   }
 
   reset() {
     this.obj.relatedMap = {};
-    
+    this.gmbBiz = undefined;
+    this.restaurant = undefined;
+  }
+  async selectRestaurant(restaurant) {
+    this.restaurant = restaurant;
+    this.gmbBiz = (await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        qmenuId: restaurant._id || restaurant.id
+      }
+    }).toPromise())[0];
+  }
+
+  resetRestaurant() {
+    this.reset();
   }
 
   selectTemplate(event) {
     if (this.selectedTemplate) {
-
       ['name', 'description', 'assignee', 'scheduledAt'].map(k => {
         this.obj[k] = this.selectedTemplate[k];
       });
@@ -75,10 +95,6 @@ export class TaskGeneratorComponent implements OnInit {
       this.obj.roles = (this.selectedTemplate.roles || []).slice();
       this.fieldDescriptors.filter(f => f.field === 'roles').map(f => f.items.map(i => i.selected = this.selectedTemplate.roles.indexOf(i.object) >= 0))
     }
-  }
-
-  selectRestaurant(restaurant) {
-    this.obj.relatedMap = this.obj.relatedMap || { gmbBizId: restaurant._id };
   }
 
   formSubmit(event) {
@@ -89,7 +105,10 @@ export class TaskGeneratorComponent implements OnInit {
       scheduledAt: this.obj.scheduledAt,
       assignee: this.obj.assignee,
       roles: this.obj.roles.filter(r => r.selected).map(r => r.object),
-      comments: this.obj.comments
+      comments: this.obj.comments,
+      relatedMap: {
+        gmbBizId: (this.gmbBiz || {})['_id']
+      }
     } as Task);
   }
 

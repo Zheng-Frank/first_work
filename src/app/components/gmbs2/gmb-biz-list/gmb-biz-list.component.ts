@@ -38,7 +38,7 @@ export class GmbBizListComponent implements OnInit {
   outstandingTask;
   qMenuManagedWebsite;
   onlyGmbOpen = false;
-  onlyLost = false;
+  inQmenu;
 
   filteredMyBizList: myBiz[] = [];
 
@@ -122,6 +122,12 @@ export class GmbBizListComponent implements OnInit {
         results => {
           this.refreshing = false;
           this.bizList = results[0].map(b => new GmbBiz(b)).sort((g1, g2) => g1.name > g2.name ? 1 : -1);
+          // let's keep ONLY 6 transfer history
+          this.bizList.map(biz => {
+            if(biz.gmbOwnerships && biz.gmbOwnerships.length > 6) {
+              biz.gmbOwnerships = biz.gmbOwnerships.slice(biz.gmbOwnerships.length - 6, biz.gmbOwnerships.length)
+            }
+          });
           this.myEmails = results[1].map(account => account.email);
           this.filterBizList();
         },
@@ -233,11 +239,6 @@ export class GmbBizListComponent implements OnInit {
       this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOpen);
     }
 
-    // fitler lost: the last ownership is not qmenu
-    if (this.onlyLost) {
-      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwnerships && b.gmbBiz.gmbOwnerships.length > 0 && !b.gmbBiz.gmbOwnerships[b.gmbBiz.gmbOwnerships.length - 1].email);
-    }
-
     switch (this.qMenuManagedWebsite) {
       case 'exist':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.qmenuWebsite);
@@ -249,6 +250,16 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
+    switch (this.inQmenu) {
+      case 'in qMenu DB':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.qmenuId);
+        break;
+      case 'not in qMenu DB':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.qmenuId);
+        break;
+      default:
+        break;
+    }
 
     switch (this.outstandingTask) {
       case 'exist':

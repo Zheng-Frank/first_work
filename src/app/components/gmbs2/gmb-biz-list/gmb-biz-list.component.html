@@ -35,17 +35,17 @@
       <option>non-exist</option>
     </select>
 
+    <label class="mr-2">qMenu:</label>
+    <select class="form-control mr-4" [(ngModel)]="inQmenu" (change)="filterBizList()">
+      <option>any</option>
+      <option>in qMenu DB</option>
+      <option>not in qMenu DB</option>
+    </select>
+
     <div class="form-check ml-4">
       <input class="form-check-input" type="checkbox" [(ngModel)]="onlyGmbOpen" (change)="filterBizList()" id="onlyGmbOpen">
       <label class="form-check-label" for="onlyGmbOpen">
         Only GMB Open
-      </label>
-    </div>
-
-    <div class="form-check ml-4">
-      <input class="form-check-input" type="checkbox" [(ngModel)]="onlyLost" (change)="filterBizList()" id="lostCheckbox">
-      <label class="form-check-label" for="lostCheckbox">
-        Only lost
       </label>
     </div>
 
