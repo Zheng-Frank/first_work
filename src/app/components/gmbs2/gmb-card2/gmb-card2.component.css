@@ -16,3 +16,7 @@
 td {
   border: 0;
 }
+
+.fix-v-align {
+  vertical-align: baseline;
+}

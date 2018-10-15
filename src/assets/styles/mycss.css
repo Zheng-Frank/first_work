@@ -1,0 +1,394 @@
+body {
+    /*background-color: #fafafa*/
+}
+
+html, body {
+    height: 100%;
+}
+
+/* fix iOS modal non-scrolling issue */
+.modal-dialog {
+    height: 101%;
+}
+
+.modal-content {
+    padding-bottom: 3rem;
+}
+/* end fix */
+
+.app-icon-label {
+    width: 2rem;
+}
+
+.app-card-edit {
+    position: absolute;
+    bottom: 0rem;
+    right: 0rem;
+}
+/*expand to parent*/
+.app-jumbo {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    background-color: #f9f9f9;
+}
+
+.app-menu-thumbnail {
+    width: 6rem;
+    height: 6rem;
+}
+
+.app-thumbnail-h-6 {
+    width: auto;
+    min-width: 6rem;
+    height: 6rem;
+}
+
+.app-p-l-05 {
+    padding-left: 0.5rem;
+}
+
+.app-p-r-05 {
+    padding-right: 0.5rem;
+}
+
+.app-p-l-025 {
+    padding-left: 0.25rem;
+}
+
+.app-p-r-025 {
+    padding-right: 0.25rem;
+}
+
+.app-p-t-025 {
+    padding-top: 0.25rem;
+}
+
+/* banner */
+.app-banner-container {
+    position: relative;
+    /*background-image: url('http://irepo.primecp.com/2015/07/227528/Smoked-Salmon-Bites_Large600_ID-1080488.jpg?v=1080488');*/
+    /*background-color: black;*/
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    
+}
+
+.app-banner-masking-layer {
+    position: absolute;
+    left: 0px;
+    top:0px;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    opacity: 0.6;
+
+        /*background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    -webkit-filter: blur(2px);
+    -moz-filter: blur(2px);
+    -o-filter: blur(2px);
+    -ms-filter: blur(2px);
+    filter: blur(2px);*/
+}
+.app-banner-logo-layer {
+    position: relative;
+    text-align: center;
+}
+
+.app-banner-logo {
+    height: 8rem;
+    width: auto;
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.app-banner-title {
+    text-shadow: 0px 1px 1px #fff;
+    font-weight: bold;
+}
+
+/* menu-category */
+
+.app-category-header-container {
+    position: relative;
+    /*background-image: url('http://irepo.primecp.com/2015/07/227528/Smoked-Salmon-Bites_Large600_ID-1080488.jpg?v=1080488');*/
+    /*background-color: black;*/
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.app-category-masking-layer {
+    position: absolute;
+    left: 0px;
+    top:0px;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    opacity: 0.7;
+}
+.app-category-text-layer {
+    position: relative;
+    text-align: center;
+    padding: 1rem;
+}
+.app-categoty-title {
+    text-shadow: 0px 1px 1px #fff;
+    font-weight: bold;
+}
+
+/* menus */
+
+.app-plus {
+    position: fixed;
+    bottom: 0rem;
+    right: 0rem;
+    z-index: 100;
+    font-size: xx-large;
+    opacity: 0.9;
+}
+
+/* order-action-bar */
+
+.stepwizard-step p {
+    margin-top: 10px;    
+}
+
+.stepwizard-row {
+    display: table-row;
+}
+
+.stepwizard {
+    display: table;     
+    width: 100%;
+    position: relative;
+    font-size: x-small;
+}
+
+.stepwizard-step button[disabled] {
+    opacity: 1 !important;
+    filter: alpha(opacity=100) !important;
+}
+
+.stepwizard-row:before {
+    top: 14px;
+    bottom: 0;
+    position: absolute;
+    content: " ";
+    width: 100%;
+    height: 1px;
+    background-color: #ccc;
+    z-order: 0;
+    
+}
+
+.stepwizard-step {    
+    display: table-cell;
+    text-align: center;
+    position: relative;
+}
+
+/* .btn-circle {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 12px;
+  line-height: 1.428571429;
+  border-radius: 15px;
+} */
+
+.btn-circle {
+    width: 30px;
+    height: 30px;
+    padding: 6px 0px;
+    border-radius: 15px;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.42857;
+}
+
+/* order-card */
+
+.app-order-finished {
+  opacity: 0.6;
+}
+
+.app-status-done {
+  position:absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+/* order items */
+.app-description {
+    font-size: small;
+}
+.app-borderless tbody tr td, .borderless tbody tr th, .borderless thead tr th {
+    border: none;
+}
+
+/* order-reject-bar */
+
+/* restaurant-closed-days */
+.app-table td, th {
+    padding-top: 0.75rem;
+    padding-left: 0rem;
+    padding-right: 0.5rem;
+    padding-bottom: 0.75rem;
+    font-size: small;
+}
+
+.app table th {
+    white-space: nowrap;
+}
+
+/* restaurant-delivery-settings */
+.app-table td, th {
+    padding-top: 0.75rem;
+    padding-left: 0rem;
+    padding-right: 0.5rem;
+    padding-bottom: 0.75rem;
+    font-size: small;
+}
+
+/* restaurant-hours */
+.app-time-table td{
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+    padding-left:0.125rem;
+    padding-right:0.125rem;
+    width: 50%;
+}
+/* restaurant-phone */
+
+
+/* restaurant-profile */
+
+.app-limit-file {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* root */
+
+.navbar::after {
+      content: none;
+}
+.navbar {
+  padding: 0.125rem 1rem 0.125rem 1rem
+}
+.container-fluid {
+  padding-top: 0.75rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  
+}
+
+.app-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* bring your own prefixes */
+  transform: translate(-50%, -50%);
+}
+
+.app-notifier{
+  z-index: 100000;
+  position: fixed;
+  width: 100%;
+  height: 3rem;
+    /* text-align: center; */
+    /*opacity: 0.95;*/
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  align-items: center;
+}
+
+.app-nav {
+    padding: 0 0 0 0;
+}
+.app-table-nav tbody tr td, .app-table-nav tbody tr th, .app-table-nav thead tr th {
+    border: none;
+    font-size: larger;
+    cursor: pointer;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-shadow: -1px -1px 1px #888;
+}
+.app-table-nav-tablet {
+    font-size: x-large;
+}
+.app-route-active {
+    color: #fff!important;
+}
+.app-logo-cell {
+  width: 2rem;
+}
+
+.app-logo {
+    height: 2rem;
+    -webkit-filter: drop-shadow(1px 1px 1px #fff);
+    filter: drop-shadow(1px 1px 1px #fff);
+}
+.app-logo-tablet {
+    height: 3rem!important;
+}
+
+/* selector */
+.table td{
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+    padding-left:0.125rem;
+    padding-right:0.125rem;
+}
+
+.app-stand-out {
+    -webkit-box-shadow: 2px 2px 12px 0px rgba(0,0,0,0.5);
+    -moz-box-shadow: 2px 2px 12px 0px rgba(0,0,0,0.5);
+    box-shadow: 2px 2px 12px 0px rgba(0,0,0,0.5);
+}
+.card {
+    border-radius: 0.125rem;
+}
+
+/*prevent body scrolling if there is modal???*/
+
+/*body.noScroll {
+  overflow: hidden;
+}
+
+body.dialogShowing { 
+  overflow: hidden;
+}*/
+
+.app-muted {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+/* selector */
+.app-table-selector td{
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+    padding-left:0.125rem;
+    padding-right:0.125rem;
+}
+
+.app-table-fixed {
+    table-layout: fixed;
+}
+/* end selector */
+
+label {
+    font-weight: bold;
+}
+
+.editable {
+    cursor: pointer;
+}

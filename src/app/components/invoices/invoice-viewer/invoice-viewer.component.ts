@@ -1,16 +1,21 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Invoice } from '../../../classes/invoice';
 
 @Component({
   selector: 'app-invoice-viewer',
   templateUrl: './invoice-viewer.component.html',
-  styleUrls: ['./invoice-viewer.component.css']
+  styleUrls: ['./invoice-viewer.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InvoiceViewerComponent implements OnInit {
   @Input() invoice: Invoice;
-  constructor() { }
+  constructor(private _ref: ChangeDetectorRef) { }
 
   ngOnInit() {
+  }
+
+  refresh() {
+    this._ref.detectChanges();
   }
 
   getRestaurantTime(time): Date {

@@ -30,7 +30,7 @@ export class OrderCardComponent implements OnInit {
 
 
   getSubmittedTime(order: Order) {
-    return new Date(+order.orderStatuses[0].createdAt);
+    return new Date(order.orderStatuses[0].createdAt);
   }
 
   getCustomerName(order: Order) {

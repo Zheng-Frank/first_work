@@ -67,7 +67,8 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
-          email: 1
+          email: 1,
+          allLocations: 1
         },
         limit: 5000
       })
@@ -105,7 +106,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
   getFilteredAccounts() {
     if (this.transfer) {
-      return this.accounts.filter(a => a.email !== this.transfer.fromEmail);
+      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90 );
     }
     return this.accounts;
   }
@@ -161,11 +162,15 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           _id: { $oid: this.gmbBiz.qmenuId }
         },
         projection: {
-          people: 1
+          people: 1,
+          channels: 1,
+          phones: 1,
+          offsetToEST: 1
         },
         limit: 1
       }).subscribe(results => {
         this.restaurant = results[0];
+        console.log("this.restaurant", this.restaurant);
       });
     }
   }

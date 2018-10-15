@@ -7,10 +7,10 @@
     
   </div>
   <div class="card-block">
-    <h4 class="text-xs-center">
+    <h4 class="text-sm-center">
       {{getCustomerName(order)}}
     </h4>
-    <div *ngIf="order.customer.bannedReasons" class="alert alert-danger">
+    <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
       <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
     </div>
 
@@ -23,25 +23,25 @@
       &#10008;
     </h4>
 
-    <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-xs-center">
+    <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
       <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
     </h5>
-    <div class="text-xs-center card-text"><span>{{getSubmittedTime(order) | MMMd : order.restaurant.offsetToEST}} {{getSubmittedTime(order) | shortTime: order.restaurant.offsetToEST}}</span>      | <strong>{{order.type}}</strong> | <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong></div>
+    <div class="text-sm-center card-text"><span>{{getSubmittedTime(order) | MMMd : order.restaurant.offsetToEST}} {{getSubmittedTime(order) | shortTime: order.restaurant.offsetToEST}}</span>      | <strong>{{order.type}}</strong> | <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong></div>
     <a *ngIf="order.getDeliveryAddress()" href="http://maps.google.com/?q={{order.deliveryAddress.formatted_address}}">
-      <div class="text-xs-center card-text"><strong>{{order.getDeliveryAddress().line1}}</strong></div>
-      <div class="text-xs-center card-text"><strong>{{order.getDeliveryAddress().line2}}</strong></div>      
-      <div *ngIf="order.deliveryDistance" class="text-xs-center card-text"><strong>({{order.deliveryDistance.toFixed(1)}} miles)</strong></div>
+      <div class="text-sm-center card-text"><strong>{{order.getDeliveryAddress().line1}}</strong></div>
+      <div class="text-sm-center card-text"><strong>{{order.getDeliveryAddress().line2}}</strong></div>      
+      <div *ngIf="order.deliveryDistance" class="text-sm-center card-text"><strong>({{order.deliveryDistance.toFixed(1)}} miles)</strong></div>
     </a>
-    <div class="text-xs-center" *ngIf="order.deliveryAddress && order.deliveryAddress.specialInstructions">
+    <div class="text-sm-center" *ngIf="order.deliveryAddress && order.deliveryAddress.specialInstructions">
       <small>{{order.deliveryAddress.specialInstructions}}</small>
     </div>
-    <div *ngIf="order.timeToDeliver" class="text-xs-center card-text alert-success"><span class="fa fa-clock-o"></span><strong> scheduled: {{order.timeToDeliver | MMMd : order.restaurant.offsetToEST}} {{order.timeToDeliver | shortTime: order.restaurant.offsetToEST}}</strong></div>
+    <div *ngIf="order.timeToDeliver" class="text-sm-center card-text alert-success"><span class="fa fa-clock-o"></span><strong> scheduled: {{order.timeToDeliver | MMMd : order.restaurant.offsetToEST}} {{order.timeToDeliver | shortTime: order.restaurant.offsetToEST}}</strong></div>
 
     <small>
-      <div class="text-xs-center" *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
+      <div class="text-sm-center" *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
         Note: Customer's <a routerLink="/order/{{order.customerPreviousOrderStatus.order}}">previous order</a> was canceled. Reason: <span class="text-danger">{{order.customerPreviousOrderStatus.comments}}</span>
       </div>
-      <div class="text-danger text-xs-center" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
+      <div class="text-danger text-sm-center" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
     </small>
     <div class="m-t-1">
       <app-order-action-bar *ngIf="order.isPending()" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"></app-order-action-bar>

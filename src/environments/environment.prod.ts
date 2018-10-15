@@ -8,5 +8,6 @@ export const environment = {
   bizUrl: 'https://biz.qmenu.us/',
   customerUrl: 'https://qmenu.us/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
-  normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/'
+  normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
+  stripePublishableKey: 'pk_live_uSs2MVVyG0vn6TICsTIyXG6Y'
 };

@@ -22,12 +22,10 @@
       Select B (Target Account)
       <span *ngIf="toGmb" class="text-success"> ✓</span>
     </label>
-
     <select [(ngModel)]="transfer.toEmail" class="form-control" (change)="handleUpdate('select')">
       <option></option>
       <option *ngFor="let account of getFilteredAccounts()" [ngValue]="account.email">{{account.email | emailName}}
-        (biz
-        count = {{account.bizCount || 0}})</option>
+        (total: {{account.allLocations}})</option>
     </select>
   </div>
 
@@ -219,6 +217,16 @@
         <h6>
           <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
         </h6>
+        <label>qMenu Web Site:</label>
+        <h6>
+          {{gmbBiz.gmbWebsite}}
+        </h6>
+        <div *ngIf="gmbBiz.bizManagedWebsite">
+          <label>Restaurant Managed Website:</label>
+          <h6>
+            {{gmbBiz.bizManagedWebsite}}
+          </h6>
+        </div>
         <app-restaurant-contacts [restaurant]="restaurant" [viewOnly]="true"></app-restaurant-contacts>
         <table class="table table-sm" *ngIf="restaurantLogs.length > 0">
           <thead>

@@ -6,17 +6,20 @@
         <div *ngIf="!invoice.isCanceled">
             <div class="form-check form-check-inline">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" [checked]="invoice.isSent" (change)="toggleInvoiceStatus('isSent')"> Invoice Sent
+                    <input class="form-check-input" type="checkbox" [checked]="invoice.isSent" (change)="toggleInvoiceStatus('isSent')">
+                    Invoice Sent
                 </label>
             </div>
             <div class="form-check form-check-inline">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentSent" (change)="toggleInvoiceStatus('isPaymentSent')"> Payment Sent
+                    <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentSent" (change)="toggleInvoiceStatus('isPaymentSent')">
+                    Payment Sent
                 </label>
             </div>
             <div class="form-check form-check-inline">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentCompleted" (change)="toggleInvoiceStatus('isPaymentCompleted')"> Payment Completed
+                    <input class="form-check-input" type="checkbox" [checked]="invoice.isPaymentCompleted" (change)="toggleInvoiceStatus('isPaymentCompleted')">
+                    Payment Completed
                 </label>
             </div>
             <a routerLink="/restaurants/{{restaurantId}}">Restaurant Details</a>
@@ -25,16 +28,18 @@
         <!-- communication channels -->
         <ng-container *ngFor="let channel of invoiceChannels">
             <div>
-                <b>{{channel.type}}</b> 
+                <b>{{channel.type}}</b>
                 <span *ngIf="channel.type === 'Email'"> {{channel.value}}</span>
                 <span *ngIf="channel.type !== 'Email'"> {{channel.value | tel}}</span>
                 <ng-container *ngFor="let type of ['SMS', 'Email', 'Fax']">
-                    <button *ngIf="channel.type === type" class="btn btn-primary btn-sm mb-2" (click)="sendInvoice(channel)" [qLoading]="apiRequesting === type">{{invoice.isSent ? 'Resend ' + type : 'Send ' + type}}</button>
+                    <button *ngIf="channel.type === type" class="btn btn-primary btn-sm mb-2" (click)="sendInvoice(channel)"
+                        [qLoading]="apiRequesting === type">{{invoice.isSent ? 'Resend ' + type : 'Send ' + type}}</button>
                 </ng-container>
-                
+
             </div>
         </ng-container>
-        
+
+
         <div class="mt-2">
             <button class="btn btn-info" (click)="setDisplay('logs')">
                 <i class="fas fa-history"></i> Show Logs({{getUnresolvedLogs().length}})</button>
@@ -83,7 +88,8 @@
                         <td>{{log.response}}</td>
 
                         <td>
-                            <button *ngIf="!log.resolved" class="btn btn-link p-0" (click)="resolve(log)">Mark as Resolved</button>
+                            <button *ngIf="!log.resolved" class="btn btn-link p-0" (click)="resolve(log)">Mark as
+                                Resolved</button>
                         </td>
                     </tr>
                 </tbody>
@@ -110,9 +116,14 @@
             </table>
         </div>
     </div>
+    <div class="alert alert-info" *ngIf="!(invoice.isPaymentSent || invoice.isPaymentCompleted) && isCreditCardOrStripe()">
+        <app-stripe [amount]="invoice.getBalance()" [hidePostalCode]="true" [invoiceId]="invoice._id" (success)="paymentSuccess()"></app-stripe>
+    </div>
 </div>
 
-<app-invoice-viewer [invoice]="invoice"></app-invoice-viewer>
+
+
+<app-invoice-viewer [invoice]="invoice" #myInvoiceViewer></app-invoice-viewer>
 
 
 

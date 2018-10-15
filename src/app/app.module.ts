@@ -74,7 +74,6 @@ import { MenuOptionEditorComponent } from './components/restaurants/menu-option-
 import { SwitchComponent } from './components/restaurants/switch/switch.component';
 import { RadioGroupComponent } from './components/restaurants/radio-group/radio-group.component';
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
-import { PaymentMeansEditorComponent } from './components/payments/payment-means-editor/payment-means-editor.component';
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { TaskListComponent } from './components/tasks/task-list/task-list.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
@@ -108,8 +107,11 @@ import { OrderItemsComponent } from './components/restaurants/order-items/order-
 import { OrderAdjustmentComponent } from './components/restaurants/order-adjustment/order-adjustment.component';
 import { OrderRejectBarComponent } from './components/restaurants/order-reject-bar/order-reject-bar.component';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
 
+import { StripeComponent } from './components/invoices/stripe/stripe.component';
+ 
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -172,7 +174,6 @@ import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, sh
     SwitchComponent,
     RadioGroupComponent,
     GmbCard2Component,
-    PaymentMeansEditorComponent,
     PaymentsDashboardComponent,
     TaskListComponent,
     TaskDashboardComponent,
@@ -201,7 +202,8 @@ import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, sh
     OrderItemsComponent,
     OrderAdjustmentComponent,
     OrderRejectBarComponent,
-
+    BanCustomerComponent,
+    StripeComponent
   ],
   imports: [
     BrowserModule,

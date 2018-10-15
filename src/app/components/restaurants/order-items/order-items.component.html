@@ -58,7 +58,7 @@
       </tr>
 
       <tr class="gray-border-top ">
-        <td class="text-xs-center" style="vertical-align: middle" attr.rowspan="{{3 + (alwaysDisplayDeliveryCharge || order.deliveryCharge ? 1: 0) + (alwaysDisplayTip || order.getTip() ? 1: 0) + (order.surchargeAmount ? 1: 0) + (order.ccProcessingRate || order.ccProcessingFlatFee ? 1: 0)}}">
+        <td class="text-sm-center" style="vertical-align: middle" attr.rowspan="{{3 + (alwaysDisplayDeliveryCharge || order.deliveryCharge ? 1: 0) + (alwaysDisplayTip || order.getTip() ? 1: 0) + (order.surchargeAmount ? 1: 0) + (order.ccProcessingRate || order.ccProcessingFlatFee ? 1: 0)}}">
           <span class="box" *ngIf="order.specialInstructions"><strong>{{order.specialInstructions}}</strong></span></td>
         <td class="text-xs-right text-nowrap">subtotal</td>
         <td class="text-xs-right text-nowrap">{{order.getSubtotal() | money}}</td>

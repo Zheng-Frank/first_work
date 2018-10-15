@@ -71,7 +71,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
-          email: 1
+          email: 1,
+          allLocations: 1
         },
         limit: 5000
       })
@@ -166,7 +167,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   getFilteredAccounts() {
     if (this.transfer) {
-      return this.accounts.filter(a => a.email !== this.transfer.fromEmail);
+      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90 );
     }
     return this.accounts;
   }

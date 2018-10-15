@@ -29,6 +29,11 @@ export class TaskListComponent implements OnInit, OnChanges {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: "Time Zone",
+      paths: ['gmbBiz', 'timeZone'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
       label: "Score",
       paths: ['score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
@@ -79,15 +84,15 @@ export class TaskListComponent implements OnInit, OnChanges {
   getTaskClass(task) {
     const day = 24 * 3600 * 1000;
     const diff = this.now.valueOf() - task.scheduledAt.valueOf();
-    if (diff > 0) {
+    if (diff > day) {
       return 'danger';
     }
 
-    if (diff > -day) {
+    if (diff > 0) {
       return 'warning';
     }
 
-    if (diff > -2 * day) {
+    if (diff > -1 * day) {
       return 'info';
     }
     return 'success';

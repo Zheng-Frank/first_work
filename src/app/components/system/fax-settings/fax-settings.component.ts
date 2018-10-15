@@ -25,4 +25,22 @@ export class FaxSettingsComponent implements OnInit {
 
   }
 
+  async sendTestFax() {
+    try {
+      await this._api.post(environment.qmenuApiUrl + 'messaging/fax', {
+        providerName: "twilio",
+        from: "6789091808",
+        to: "6785509237",
+        mediaUrl: "https://quez.herokuapp.com/utilities/order/5bafbfbf05a4681400059f63?format=pdf",
+        callbackUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/utils/phaxio-callback?orderId=5bafbfbf05a4681400059f63"
+      }).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Successfully sent');
+    }
+    catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Failed! ' + JSON.stringify(error));
+    }
+  }
+
 }
+
+

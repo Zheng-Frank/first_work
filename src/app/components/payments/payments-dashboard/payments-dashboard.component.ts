@@ -3,7 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { PaymentMeans } from "../../../classes/payment-means";
+import { PaymentMeans } from "@qmenu/ui";
 
 
 @Component({
@@ -12,12 +12,6 @@ import { PaymentMeans } from "../../../classes/payment-means";
   styleUrls: ['./payments-dashboard.component.scss']
 })
 export class PaymentsDashboardComponent implements OnInit {
-
-  @ViewChild('myPaymentMeansEditor') set myPaymentMeansEditor(editor) {
-    if (editor) {
-      editor.reset();
-    }
-  }
 
   @ViewChild('paymentMeansEditingModal') paymentMeansEditingModal;
 
@@ -53,7 +47,7 @@ export class PaymentsDashboardComponent implements OnInit {
       value: 'Credit Card'
     },
     {
-      text: 'Stripe',
+      text: 'Pay Online / Stripe',
       value: 'Stripe'
     },
     {
@@ -119,7 +113,7 @@ export class PaymentsDashboardComponent implements OnInit {
   }
 
   onSuccessCreation(data) {
-    const oldRestaurant = this.restaurantList.filter(r => r._id === data.restaurant._id)[0];
+    const oldRestaurant = this.restaurant;
     const updatedRestaurant = JSON.parse(JSON.stringify(oldRestaurant));
     updatedRestaurant.paymentMeans = updatedRestaurant.paymentMeans || [];
 
@@ -177,7 +171,11 @@ export class PaymentsDashboardComponent implements OnInit {
     }
     return '';
   }
+  
 
+  select(restaurant) {
+    this.restaurant = restaurant;
+  }
   createNew() {
 
     this.paymentMeansInEditing = new PaymentMeans();

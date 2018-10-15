@@ -12,8 +12,6 @@
         <select class="form-control" [(ngModel)]="selectedDirection" (change)="changeFilter()">
             <option *ngFor="let directionItem of directionItems" value="{{directionItem.value}}">{{directionItem.text}}</option>
         </select>
-
-
     </div>
     <div class="float-right">
         <div class="pb-2">
@@ -24,7 +22,7 @@
 </div>
 
 
-<table class="table table-sm">
+<table class="table table-sm my-2">
     <thead>
         <tr>
             <th scope="col">Restaurant</th>
@@ -43,9 +41,14 @@
     </tbody>
 </table>
 
-<!--the eidting modal-->
 <q-modal #paymentMeansEditingModal>
-    <app-payment-means-editor #myPaymentMeansEditor [paymentMeansOriginal]="paymentMeansInEditingOriginal" [restaurant]="restaurant"
-        [restaurantList]="restaurantList" [paymentMeans]="paymentMeansInEditing" (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()"
-        (remove)="remove($event)"></app-payment-means-editor>
+    <div *ngIf="!restaurant">
+        <label>Select Restaurant:</label>
+        <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="select($event)"></q-restaurant-picker>
+    </div>
+    <h5 *ngIf="restaurant">
+        {{restaurant.name}}
+    </h5>
+    <q-payment-means-editor [paymentMeans]="paymentMeansInEditing" [showDelete]="paymentMeansInEditingOriginal"
+        (submit)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></q-payment-means-editor>
 </q-modal>

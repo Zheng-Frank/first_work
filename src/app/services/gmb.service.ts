@@ -27,7 +27,9 @@ export class GmbService {
     }
 
     // scan locations
-    const locations = await this._api.post(environment.autoGmbUrl + 'retrieveGmbLocations', { email: gmbAccount.email, password: password }).toPromise();
+    const scanResult = await this._api.post(environment.autoGmbUrl + 'retrieveGmbLocations', { email: gmbAccount.email, password: password }).toPromise();
+    const locations = scanResult.locations;
+
     console.log(locations)
     // pre-process:
     // order: 'Published' > 'Suspended' > 'Pending verification' > 'Verification required' > 'Duplicate'
@@ -382,14 +384,17 @@ export class GmbService {
 
 
 
-    // also update gmbScannedAt
+    // also update gmbScannedAt and total locations
     await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{
       old: { _id: gmbAccount._id },
-      new: { _id: gmbAccount._id, gmbScannedAt: { $date: new Date() } }
+      new: { _id: gmbAccount._id, gmbScannedAt: { $date: new Date() }, allLocations: scanResult.allLocations, published: scanResult.published, suspended: scanResult.suspended }
     }]).toPromise();
 
     // update original:
     gmbAccount.gmbScannedAt = new Date();
+    gmbAccount.allLocations = scanResult.allLocations;
+    gmbAccount.published = scanResult.published;
+    gmbAccount.suspended = scanResult.suspended;
 
 
     // generate Appeal Suspended GMB task for those suspended
@@ -734,7 +739,7 @@ export class GmbService {
         email: account.email,
         password: password,
         website: biz.qmenuWebsite,
-        bizManagedWebsite: biz.bizManagedWebsite,
+        bizManagedWebsite: biz.useBizWebsite ? biz.bizManagedWebsite : undefined,
         appealId: biz.appealId,
         stayAfterScan: stayAfterScan
       }

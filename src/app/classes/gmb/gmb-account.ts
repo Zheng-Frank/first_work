@@ -9,6 +9,9 @@ export class GmbAccount {
     password: string;
     gmbScannedAt: Date;
     emailScannedAt: Date;
+    allLocations: number;
+    published: number;
+    suspended: number;
     comments: string;
     bizList: GmbBiz[] = [];
     constructor(gmb?: any) {
