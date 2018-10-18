@@ -6,7 +6,6 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { zip } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
-import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { OrderItem } from "@qmenu/ui";
@@ -32,9 +31,7 @@ export class RestaurantOrdersComponent implements OnInit {
   orderForModal: Order = null;
   now: Date = new Date();
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
-
-
+  constructor(private _api: ApiService) {
   }
 
   async ngOnInit() {

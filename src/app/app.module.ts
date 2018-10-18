@@ -102,11 +102,14 @@ import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor
 import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
 import { LogsTableComponent } from './components/logs/logs-table/logs-table.component';
 import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
+import { RestaurantPhoneComponent } from './components/restaurants/restaurant-phone/restaurant-phone.component';
+import { RestaurantPhoneEditorComponent } from './components/restaurants/restaurant-phone-editor/restaurant-phone-editor.component';
 import { OrderActionBarComponent } from './components/restaurants/order-action-bar/order-action-bar.component';
 import { OrderItemsComponent } from './components/restaurants/order-items/order-items.component';
 import { OrderAdjustmentComponent } from './components/restaurants/order-adjustment/order-adjustment.component';
 import { OrderRejectBarComponent } from './components/restaurants/order-reject-bar/order-reject-bar.component';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
 
@@ -203,6 +206,8 @@ import { StripeComponent } from './components/invoices/stripe/stripe.component';
     OrderAdjustmentComponent,
     OrderRejectBarComponent,
     BanCustomerComponent,
+    RestaurantPhoneComponent,
+    RestaurantPhoneEditorComponent,
     StripeComponent
   ],
   imports: [
