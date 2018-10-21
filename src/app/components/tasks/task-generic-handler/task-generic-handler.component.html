@@ -1,6 +1,5 @@
 <ng-container *ngIf="taskCopy && action">
-    <h6 class="card-title">{{taskCopy.name}}</h6>
-
+    <h6 class="card-title">{{taskCopy.name}} <small *ngIf="gmbBiz">{{gmbBiz.name}}</small></h6>
     <p class="card-text text-muted">{{taskCopy.description}} <app-gmb-account-hotlink *ngIf="gmbAccount && gmbAccount.email" [email]="gmbAccount?.email"></app-gmb-account-hotlink></p>
     <p class="card-text">{{action.confirmationText}}</p>
 
@@ -89,6 +88,4 @@
             <small>{{confirmError}}</small>
         </div>
     </div>
-
-    {{gmbBiz | json}}
 </ng-container>

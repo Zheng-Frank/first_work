@@ -1,9 +1,7 @@
 <ng-container *ngIf="transfer">
-  <!-- {{gmbBiz | json}} -->
   <div *ngIf="isTaskExpired()" class="alert alert-danger">
     EXPIRED TASK. PLEASE CLOSE.
   </div>
-  <!-- {{gmbBiz | json}} -->
   <div class="mb-4">
     <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests".
       You

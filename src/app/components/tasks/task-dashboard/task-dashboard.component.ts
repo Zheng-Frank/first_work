@@ -38,12 +38,34 @@ export class TaskDashboardComponent {
 
   bizList = [];
 
+  restaurantList = [];
+
   addTask() {
     setTimeout(() => this.requesting = false, 4000);
   }
 
-  toggleAction(action) {
+  async toggleAction(action) {
     this.currentAction = this.currentAction === action ? null : action;
+    if(action === 'ADD' && this.restaurantList.length === 0) {
+      this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          disabled: {
+            $ne: true
+          }
+        },
+        projection: {
+          name: 1,
+          alias: 1,
+          logs: 1,
+          logo: 1,
+          "phones.phoneNumber": 1,
+          "channels.value": 1,
+          "googleAddress.formatted_address": 1
+        },
+        limit: 6000
+      }).toPromise();
+    }
   }
 
   statuses = [
@@ -232,13 +254,15 @@ export class TaskDashboardComponent {
   
 
   async createNewTask(task) {
-    
     const taskCloned = JSON.parse(JSON.stringify(task));
     if (taskCloned.scheduledAt) {
       taskCloned.scheduledAt = { $date: taskCloned.scheduledAt }
     }
     
     await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+    this._global.publishAlert(AlertType.Success, `Created ${task.name}`);
+    this.toggleAction('ADD');
+    this.refresh();
   }
 
 }

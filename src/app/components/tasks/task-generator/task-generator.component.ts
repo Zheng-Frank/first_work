@@ -12,6 +12,7 @@ import { AlertType } from '../../../classes/alert-type';
 })
 export class TaskGeneratorComponent implements OnInit {
   @Output() submit = new EventEmitter<Task>();
+  @Output() cancel = new EventEmitter();
   // for picking related restaurant
   @Input() restaurantList = [];
 
@@ -27,7 +28,7 @@ export class TaskGeneratorComponent implements OnInit {
       name: 'Task A',
       description: 'a description',
       roles: ['ADMIN'],
-      assignee: 'gary',
+      assignee: 'ted',
       scheduledAt: new Date()
     },
     {
@@ -72,6 +73,7 @@ export class TaskGeneratorComponent implements OnInit {
     this.gmbBiz = undefined;
     this.restaurant = undefined;
   }
+
   async selectRestaurant(restaurant) {
     this.restaurant = restaurant;
     this.gmbBiz = (await this._api.get(environment.adminApiUrl + 'generic', {
@@ -99,17 +101,23 @@ export class TaskGeneratorComponent implements OnInit {
 
   formSubmit(event) {
     event.acknowledge(null);
-    this.submit.emit({
+    const task = {
       name: this.obj.name,
       description: this.obj.description,
       scheduledAt: this.obj.scheduledAt,
       assignee: this.obj.assignee,
-      roles: this.obj.roles.filter(r => r.selected).map(r => r.object),
+      roles: this.obj.roles.slice(),
       comments: this.obj.comments,
       relatedMap: {
         gmbBizId: (this.gmbBiz || {})['_id']
       }
-    } as Task);
+    } as Task;
+
+    this.submit.emit(task);
+  }
+
+  formCancel() {
+    this.cancel.emit();
   }
 
 }

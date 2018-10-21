@@ -1,7 +1,8 @@
 <div *ngIf="!restaurant">
-  <label>Prepopulate from Restaurant:</label>
-  <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectResetaurant($event)"></q-restaurant-picker>
+  <label>Related Restaurant (optional):</label>
+  <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
 </div>
+
 <div class="clearfix alert alert-info" *ngIf="restaurant">
   <div class="media float-left">
     <q-restaurant-media-object [restaurant]="restaurant"></q-restaurant-media-object>
@@ -19,7 +20,7 @@
   </select>
 </div>
 
-<q-form-builder [object]="obj" [showDelete]="false" [fieldDescriptors]="fieldDescriptors" (submit)="formSubmit($event)">
+<q-form-builder [object]="obj" [showDelete]="false" [fieldDescriptors]="fieldDescriptors" (submit)="formSubmit($event)" (cancel)="formCancel()">
   <div class="form-group">
     <label>Scheduled at:</label>
     <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="obj.scheduledAt">
@@ -28,9 +29,6 @@
   <div class="form-group">
     <label>Comments:</label>
     <textarea class="form-control" [(ngModel)]="obj.comments">
-
-
-
     </textarea>
   </div>
 </q-form-builder>
@@ -39,4 +37,3 @@
   <label for="formGroupExampleInput">Restaurant ID</label>
   <input type="text" class="form-control" placeholder="Restaurant ID" [(ngModel)]="removeId">
 </div> -->
-{{obj | json}}
