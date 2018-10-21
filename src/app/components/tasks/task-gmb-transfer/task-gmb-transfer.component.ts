@@ -127,7 +127,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
     this.restaurantLogs = [];
     ['gmbBiz', 'gmbRequest', 'gmbAccount'].forEach(obj => {
       this[obj] = undefined;
-      if (this.task.relatedMap[obj + 'Id']) {
+      if (this.task.relatedMap && this.task.relatedMap[obj + 'Id']) {
         this._api.get(environment.adminApiUrl + "generic", {
           resource: obj,
           query: {

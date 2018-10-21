@@ -28,17 +28,24 @@
       <option>non-exist</option>
     </select>
 
-    <div class="form-check ml-4">
-      <input class="form-check-input" type="checkbox" [(ngModel)]="notScanned3" (change)="filterBizList()" id="notScannedCheckbox">
-      <label class="form-check-label" for="notScannedCheckbox">
-        Not Scanned in 3 Days
-      </label>
-    </div>
+    <label class="mr-2">Oustanding Task:</label>
+    <select class="form-control mr-4" [(ngModel)]="outstandingTask" (change)="filterBizList()">
+      <option>any</option>
+      <option>exist</option>
+      <option>non-exist</option>
+    </select>
+
+    <label class="mr-2">qMenu:</label>
+    <select class="form-control mr-4" [(ngModel)]="inQmenu" (change)="filterBizList()">
+      <option>any</option>
+      <option>in qMenu DB</option>
+      <option>not in qMenu DB</option>
+    </select>
 
     <div class="form-check ml-4">
-      <input class="form-check-input" type="checkbox" [(ngModel)]="onlyLost" (change)="filterBizList()" id="lostCheckbox">
-      <label class="form-check-label" for="lostCheckbox">
-        Only lost
+      <input class="form-check-input" type="checkbox" [(ngModel)]="onlyGmbOpen" (change)="filterBizList()" id="onlyGmbOpen">
+      <label class="form-check-label" for="onlyGmbOpen">
+        Only GMB Open
       </label>
     </div>
 

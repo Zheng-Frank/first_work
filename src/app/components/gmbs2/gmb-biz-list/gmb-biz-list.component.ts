@@ -35,9 +35,10 @@ export class GmbBizListComponent implements OnInit {
   searchFilter;
   gmbOwnership;
   googleListingOwner;
+  outstandingTask;
   qMenuManagedWebsite;
-  notScanned3 = false;
-  onlyLost = false;
+  onlyGmbOpen = false;
+  inQmenu;
 
   filteredMyBizList: myBiz[] = [];
 
@@ -121,6 +122,12 @@ export class GmbBizListComponent implements OnInit {
         results => {
           this.refreshing = false;
           this.bizList = results[0].map(b => new GmbBiz(b)).sort((g1, g2) => g1.name > g2.name ? 1 : -1);
+          // let's keep ONLY 6 transfer history
+          this.bizList.map(biz => {
+            if (biz.gmbOwnerships && biz.gmbOwnerships.length > 6) {
+              biz.gmbOwnerships = biz.gmbOwnerships.slice(biz.gmbOwnerships.length - 6, biz.gmbOwnerships.length)
+            }
+          });
           this.myEmails = results[1].map(account => account.email);
           this.filterBizList();
         },
@@ -228,13 +235,8 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
-    if (this.notScanned3) {
-      this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.crawledAt || this.now.valueOf() - b.gmbBiz.crawledAt.valueOf() > 3 * 24 * 3600000);
-    }
-
-    // fitler lost: the last ownership is not qmenu
-    if (this.onlyLost) {
-      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwnerships && b.gmbBiz.gmbOwnerships.length > 0 && !b.gmbBiz.gmbOwnerships[b.gmbBiz.gmbOwnerships.length - 1].email);
+    if (this.onlyGmbOpen) {
+      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOpen);
     }
 
     switch (this.qMenuManagedWebsite) {
@@ -247,6 +249,30 @@ export class GmbBizListComponent implements OnInit {
       default:
         break;
     }
+
+    switch (this.inQmenu) {
+      case 'in qMenu DB':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.qmenuId);
+        break;
+      case 'not in qMenu DB':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.qmenuId);
+        break;
+      default:
+        break;
+    }
+
+    switch (this.outstandingTask) {
+      case 'exist':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].length > 0);
+        break;
+      case 'non-exist':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => !this.bizTaskMap[b.gmbBiz._id] || this.bizTaskMap[b.gmbBiz._id].length === 0);
+        break;
+      default:
+        break;
+    }
+
+
     console.log('filter time: ', new Date().valueOf() - start.valueOf());
 
     this._ref.detectChanges();
@@ -431,16 +457,73 @@ export class GmbBizListComponent implements OnInit {
   async injectAll() {
     this.injecting = true;
 
-    for (let b of this.filteredMyBizList) {
+    // updated ALL locations first
+    const uniqueEmails = [...new Set(this.filteredMyBizList.map(b => b.gmbBiz.getAccountEmail()).filter(email => email))];
+
+    console.log(uniqueEmails);
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic',
+      {
+        resource: 'gmbAccount',
+        query: {
+          email: { $in: uniqueEmails }
+        },
+        limit: 1000
+      }).toPromise();
+
+    console.log(gmbAccounts);
+
+    const batchSize = 4;
+    const batchedAccounts = Array(Math.ceil(gmbAccounts.length / batchSize)).fill(0).map((i, index) => gmbAccounts.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedAccounts) {
       try {
-        await this._gmb.updateGmbWebsite(b.gmbBiz, false);
-        this._global.publishAlert(AlertType.Success, 'Updated ' + b.gmbBiz.name);
-        this._ref.detectChanges();
-      } catch (error) {
+        await Promise.all(batch.map(account =>
+          new Promise((resolve, reject) => {
+            this._gmb.scanOneGmbAccountLocations(account).then(ok => {
+              resolve();
+              this._global.publishAlert(AlertType.Success, '✓ ' + account.email, 2000);
+            }).catch(error => {
+              this._global.publishAlert(AlertType.Danger, '✗ ' + account.email);
+              resolve();
+            }
+            );
+          })
+        ));
+      }
+      catch (error) {
         console.log(error);
-        this._global.publishAlert(AlertType.Danger, 'Erro Updating ' + b.gmbBiz.name + ', ' + error);
+        this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(account => account.email).join(', '), 2000);
       }
     }
+
+    this.refresh();
+    this.filterBizList();
+    this._ref.detectChanges();
+
+    const batchedFilteredMyBizList = Array(Math.ceil(this.filteredMyBizList.length / batchSize)).fill(0).map((i, index) => this.filteredMyBizList.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedFilteredMyBizList) {
+      try {
+        await Promise.all(batch.map(b =>
+          new Promise((resolve, reject) => {
+            this._gmb.updateGmbWebsite(b.gmbBiz, false).then(ok => {
+              resolve();
+              this._global.publishAlert(AlertType.Success, '✓ ' + b.gmbBiz.name, 2000);
+            }).catch(error => {
+              this._global.publishAlert(AlertType.Danger, '✗ ' + b.gmbBiz.name);
+              resolve();
+            }
+            );
+          })
+        ));
+      }
+      catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(b => b.gmbBiz.name).join(', '), 2000);
+      }
+    }
+
     this._ref.detectChanges();
     this.injecting = false;
   }

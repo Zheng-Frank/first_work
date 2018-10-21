@@ -36,12 +36,36 @@ export class TaskDashboardComponent {
   currentAction = null;
   requesting = false;
 
+  bizList = [];
+
+  restaurantList = [];
+
   addTask() {
     setTimeout(() => this.requesting = false, 4000);
   }
 
-  toggleAction(action) {
+  async toggleAction(action) {
     this.currentAction = this.currentAction === action ? null : action;
+    if(action === 'ADD' && this.restaurantList.length === 0) {
+      this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          disabled: {
+            $ne: true
+          }
+        },
+        projection: {
+          name: 1,
+          alias: 1,
+          logs: 1,
+          logo: 1,
+          "phones.phoneNumber": 1,
+          "channels.value": 1,
+          "googleAddress.formatted_address": 1
+        },
+        limit: 6000
+      }).toPromise();
+    }
   }
 
   statuses = [
@@ -86,11 +110,15 @@ export class TaskDashboardComponent {
         resource: "gmbBiz",
         query: {},
         projection: {
-          address: 1
+          address: 1,
+          gmbOpen: 1,
+          phone: 1,
+          name: 1
         },
         limit: 10000
       }),
     ).subscribe(results => {
+      this.bizList = results;
       this.refreshing = false;
       const tasks = results[0].map(t => new Task(t));
       this.myTasks = tasks.filter(t =>
@@ -210,10 +238,30 @@ export class TaskDashboardComponent {
       this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
     }
 
-    
+    try {
+      const purgedTasks = await this._task.deleteMissingBizIdTasks();
+      console.log('purged: ', purgedTasks)
+      this._global.publishAlert(AlertType.Success, 'Deleted ' + purgedTasks.length);
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
+    }
 
 
     this.purging = false;
+    this.refresh();
+  }
+
+  
+
+  async createNewTask(task) {
+    const taskCloned = JSON.parse(JSON.stringify(task));
+    if (taskCloned.scheduledAt) {
+      taskCloned.scheduledAt = { $date: taskCloned.scheduledAt }
+    }
+    
+    await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+    this._global.publishAlert(AlertType.Success, `Created ${task.name}`);
+    this.toggleAction('ADD');
     this.refresh();
   }
 

@@ -1044,7 +1044,7 @@ export class DbScriptsComponent implements OnInit {
         const tasksToBeUpdated = await this._api.get(environment.adminApiUrl + 'generic', {
           resource: 'task',
           query: {
-            "relatedMap.gmbBizId": { $in: otherIds.map(id => ({ $oid: id })) }
+            "relatedMap.gmbBizId": { $in: otherIds }
           },
           projection: {
             name: 1

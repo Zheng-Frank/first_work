@@ -3,6 +3,7 @@
 </div>
 <q-simple-radio [(ngModel)]="selectedTaskName" [values]="taskNames" (ngModelChange)="selectTask($event)">
 </q-simple-radio>
+Count: {{filteredTasks.length}}
 <q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
     <tr *tableRowTemplate="let task;">
         <td>
@@ -31,6 +32,7 @@
             </div>
         </td>
         <td>{{task.gmbBiz?.timeZone}}</td>
+        <td><i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i></td>
         <td>{{task.score}}</td>
         <td>{{getRoles(task)}}</td>
         <td>{{task.assignee}}</td>

@@ -1,9 +1,7 @@
 <ng-container *ngIf="transfer">
-  <!-- {{gmbBiz | json}} -->
   <div *ngIf="isTaskExpired()" class="alert alert-danger">
     EXPIRED TASK. PLEASE CLOSE.
   </div>
-  <!-- {{gmbBiz | json}} -->
   <div class="mb-4">
     <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests".
       You
@@ -53,10 +51,23 @@
       <button class="btn btn-sm btn-info" [qLoading]="gmbAppealing" [disabled]="!transfer.request" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Appeal</button>
     </div>
 
+    <div *ngIf="transfer.request">
+      <button class="btn btn-link pl-0" (click)="toggleManualAppeal = !toggleManualAppeal">Manually input appeal ID?</button>
+      <div *qIf="toggleManualAppeal">
+        <div class="form-inline">
+          <input [(ngModel)]="transfer.appealId" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;"
+            placeholder="appeal ID goes here">
+          <button class="btn btn-sm btn-info mb-2" [qLoading]="savingAppealId" (click)="handleUpdate('saveAppealId', 'appealedAt', 'savingAppealId')">Save
+            Appeal ID
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div *ngIf="transfer.appealedAt">
       Appealed {{transfer.appealedAt | ago: now}} ID: {{transfer.appealId}}
       <div>
-        <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing" [disabled]="!transfer.rejectedAt"
+        <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing"
           (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Re-Appeal</button>
       </div>
       Selected Verification Method:

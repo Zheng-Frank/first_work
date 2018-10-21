@@ -314,4 +314,37 @@ export class TaskService {
     return toBeRemovedTasks;
   }
 
+  async deleteMissingBizIdTasks() {
+    const openTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        result: null
+      },
+      limit: 2000
+    }).toPromise();
+    console.log(openTasks);
+
+    const bizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        name: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    const taskBizIdSet = new Set(openTasks.filter(t => t.relatedMap && t.relatedMap.gmbBizId).map(t => t.relatedMap.gmbBizId));
+    const bizIdSet = new Set(bizList.map(b => b._id));
+    
+    const missingInBizSet = new Set([...taskBizIdSet].filter(id => !bizIdSet.has(id)));
+
+    const toBeRemovedTasks = openTasks.filter(t => t.relatedMap && missingInBizSet.has(t.relatedMap.gmbBizId));
+    console.log(toBeRemovedTasks);
+    
+    await this._api.delete(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      ids: toBeRemovedTasks.map(t => t._id)
+    }).toPromise();
+    return toBeRemovedTasks;
+  }
+
 }
