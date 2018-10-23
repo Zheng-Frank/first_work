@@ -163,7 +163,7 @@ export class OrderDashboardComponent implements OnInit {
           agentDict[agent].orders = agentDict[agent].orders + row.orders.length + row.yesterdayOrders.length;
           agentDict[agent].restaurantWithOrders = agentDict[agent].restaurantWithOrders + (row.orders.length + row.yesterdayOrders.length > 0 ? 1: 0) ;
         });
-        // console.log(agentDict);
+        console.log(agentDict);
       },
       error =>
         this._global.publishAlert(

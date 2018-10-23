@@ -101,6 +101,8 @@ import { LogsTableComponent } from './components/logs/logs-table/logs-table.comp
 import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
+import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
+import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
  
 @NgModule({
   declarations: [
@@ -186,7 +188,9 @@ import { CheckEmailComponent } from './components/utilities/check-email/check-em
     LogsTableComponent,
     RestaurantLogsComponent,
     StripeComponent,
-    CheckEmailComponent
+    CheckEmailComponent,
+    InjectWebsiteComponent,
+    MyRestaurantComponent
   ],
   imports: [
     BrowserModule,

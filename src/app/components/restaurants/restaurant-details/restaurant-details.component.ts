@@ -95,7 +95,9 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           menus: 1,
           menuOptions: 1,
           notes:1,
-          logs: 1
+          logs: 1,
+
+          domain: 1
         },
         limit: 1
       })
