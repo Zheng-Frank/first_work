@@ -1,0 +1,67 @@
+<h1 class="text-center">My Restaurants</h1>
+<div class="form-inline mb-2">
+  <label class="mr-2"> GMB:</label>
+  <select class="form-control mr-4" [(ngModel)]="gmbOwnership" (change)="filter()">
+    <option>any</option>
+    <option>qmenu</option>
+    <option>NOT qmenu</option>
+
+  </select>
+
+  <label class="mr-2"> Google Listing:</label>
+  <select class="form-control mr-4" [(ngModel)]="googleListingOwner" (change)="filter()">
+    <option>any</option>
+    <option>qmenu</option>
+    <option>NOT qmenu</option>
+  </select>
+
+  <label class="mr-2">Oustanding Task:</label>
+  <select class="form-control mr-4" [(ngModel)]="outstandingTask" (change)="filter()">
+    <option>any</option>
+    <option>exist</option>
+    <option>non-exist</option>
+  </select>
+
+
+  Total: {{filteredList.length}} GMB: {{getGmbCount()}}
+</div>
+<q-table [rows]="filteredList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+  <tr *tableRowTemplate="let biz;">
+    <td>
+      <div class="dropdown">
+        <button class="btn btn-link dropdown-toggle font-weight-bold pl-0" type="button" data-toggle="dropdown">
+          {{biz.restaurant.name}}
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
+            Listing
+          </a>
+        </div>
+      </div>
+      <div class="text-muted">
+        <small>{{biz.gmbBiz?.address || biz.restaurant.googleAddress?.formatted_address}}</small>
+      </div>
+
+      <small class="text-muted text-nowrap">{{biz.gmbBiz?.phone | tel}}</small>
+    </td>
+    <td>
+      {{biz.gmbBiz?.score}}
+    </td>
+    <td>
+      {{biz.restaurant.createdAt | ago: now}}
+    </td>
+    <td>
+      <img *ngIf="biz.gmbBiz?.getAccountEmail()" [attr.src]="'/assets/images/qmenu.png'" height="16px">
+    </td>
+    <td>
+      <a *ngIf="biz.gmbBiz" href="{{biz.gmbBiz?.gmbWebsite}}" title="{{biz.gmbBiz?.gmbWebsite}}" target="_blank">
+        <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" height="16px">
+      </a>
+    </td>
+    <td>
+      <div *ngFor="let task of (biz.outstandingTasks || [])">{{task.name}}
+        <br><span class="badge badge-{{getTaskClass(task)}}">{{task.scheduledAt | ago: now}}</span>
+      </div>
+    </td>
+  </tr>
+</q-table>

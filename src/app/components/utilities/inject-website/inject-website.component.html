@@ -1,0 +1,25 @@
+<div *ngIf="!restaurant">
+  <label>Prepopulate from Restaurant:</label>
+  <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="select($event)"></q-restaurant-picker>
+</div>
+
+<div class="clearfix alert alert-info" *ngIf="restaurant">
+  <div class="media float-left">
+    <q-restaurant-media-object [restaurant]="restaurant"></q-restaurant-media-object>
+  </div>
+  <div class="float-right">
+    <button class="btn btn-link" (click)="resetRestaurant()">Reset</button>
+  </div>
+</div>
+
+<q-form-builder [object]="myObj" [showDelete]="false" [showCancel]="false" [fieldDescriptors]="fieldDescriptors"
+  (submit)="formSubmit($event)">
+  <a *ngIf="myObj.domain" href="{{ 'http://' + myObj.domain}}" target="_blank">View in new tab: {{myObj.domain}}</a>
+  <div class="form-group mt-3">
+    <label>Website Template</label>
+    <select [(ngModel)]="myObj.websiteTemplateName" class="form-control">
+      <option *ngFor="let template of templateNames" [ngValue]="template">{{template}}</option>
+    </select>
+  </div>
+</q-form-builder>
+<div class="text-right text-muted my-2"><small>Domain and selected template will be saved</small></div>
