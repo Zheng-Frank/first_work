@@ -1,6 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Order, Payment, CreditCard, Customer, Restaurant }  from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { ApiService } from '../../../services/api.service';
+import { environment } from "../../../../environments/environment";
 declare var $: any;
 @Component({
   selector: 'app-order-card',
@@ -24,6 +26,9 @@ export class OrderCardComponent implements OnInit {
   confirmTitle;
   confirmBodyText;
 
+
+  constructor(private _api: ApiService) {
+  }
 
   ngOnInit() {
   }
@@ -57,20 +62,22 @@ export class OrderCardComponent implements OnInit {
   }
 
   canShowCreditCard(order: Order) {
-    // 1000 * 3600 * 2 = 7200000
-    return order.payment.paymentType === 'CREDITCARD' && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 96 * 3600 * 1000);
+    // 1000 * 3600 * 24 * 10, 10 days
+    //return true;
+    return order.payment.paymentType === 'CREDITCARD';
   }
 
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 2 days
     // 1000 * 3600 * 48 = 172800000
-    return !(order.statusEqual('CANCELED')) &&  (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 10* 24 * 3600 * 1000);
+    return true;
+    //return !(order.statusEqual('CANCELED')) &&  (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 10* 24 * 3600 * 1000);
   }
 
   canShowAdjust(order: Order) {
     // we can only adjust order within 3 days
-    // 1000 * 3600 * 72 = 259200000
-    return !order.statusEqual('CANCELED') && new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 259200000;
+    // 1000 * 3600 * 24 * 10 = 259200000
+    return !order.statusEqual('CANCELED') && new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 864000000;
   }
 
   canPrint() {
@@ -104,27 +111,29 @@ export class OrderCardComponent implements OnInit {
   confirm() {
     switch (this.confirmAction) {
       case 'PRINT':
-        // this._controller.printOrderDetails(this.order).subscribe(
-        //   d => {
-        //     //console.log(d);
-        //   },
-        //   e => {
-        //     console.log(e);
-        //   }
-        // );
+      this._api.post(environment.legacyApiUrl + 'order/printOrderDetailsByOrderId', { orderId: this.order.id })
+        .subscribe(
+          d => {
+            //console.log(d);
+          },
+          e => {
+            console.log(e);
+          }
+        );
         break;
       case 'FAX':
-      //   this._controller.faxOrder(this.order.id, this.restaurant.phones.find(p => p.faxable).phoneNumber).subscribe(
-      //     d => {
-      //       //console.log(d);
-      //     },
-      //     e => {
-      //       console.log(e);
-      //     }
-      //   );
-      //   break;
-      // default:
-      //   break;
+      this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { orderId: this.order.id, faxNumber: this.restaurant.phones.find(p => p.faxable).phoneNumber })
+      .subscribe(
+          d => {
+            //console.log(d);
+          },
+          e => {
+            console.log(e);
+          }
+        );
+        break;
+      default:
+        break;
     }
   }
 
@@ -147,6 +156,10 @@ export class OrderCardComponent implements OnInit {
 
   getBannedReasons() {
     return this.order && this.order.customer && this.order.customer.bannedReasons && this.order.customer.bannedReasons.join(', ');
+  }
+
+  getOrderLink(){
+    return environment.legacyApiUrl+'utilities/order/'+this.order.id;
   }
 
   isCanceled(order: Order) {

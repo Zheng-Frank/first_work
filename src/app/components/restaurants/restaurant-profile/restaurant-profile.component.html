@@ -54,6 +54,10 @@
 							<td class="pl-1">{{!!restaurant.disableScheduling}}</td>
 						</tr>
 						<tr>
+							<th class="text-right">Pickup Minimum</th>
+							<td class="pl-1">{{restaurant.pickupMinimum | money}}</td>
+						</tr>
+						<tr>
 							<th class="text-right">Preferred Language</th>
 							<td class="pl-1">{{restaurant.preferredLanguage}}</td>
 						</tr>
@@ -135,6 +139,12 @@
 								</td>
 							</tr>
 							<tr>
+								<th class="text-xs-right">Pickup Minimum</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="pickupMinimum" class="form-control">															
+								</td>
+							</tr>
+							<tr>
 								<th class="text-right">Order Call Language</th>
 								<td class="pl-1">
 									<select class="form-control" [(ngModel)]="preferredLanguage">
@@ -155,41 +165,33 @@
 								</td>
 							</tr>
 							<tr>
-								<th class="text-right">Logo</th>
-								<td class="pl-1">
+								<th class="text-xs-right">Logo</th>
+								<td class="p-l-1">
 									<hr>
-									<div *ngIf="logo" style="display:inline-block; position:relative">
-										<img class="img-thumbnail" src="{{logo}}">
-										<button (click)="deleteLogo(img)" class="btn btn-secondary" style="position:absolute; top:0.4rem; right:0.4rem; opacity:0.7"><i class="fas fa-times"></i></button>
-										<button (click)="deleteLogo(img)" class="btn btn-link text-danger" style="position:absolute; top:0.4rem; right:0.4rem">
-											<i class="fas fa-times"></i>
-										</button>
+									<div *ngIf="logo" class="p-r-1 p-b-1" style="display:inline-block; position:relative">
+										<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
+										<button (click)="deleteLogo(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+										<button (click)="deleteLogo(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
 									</div>
 									<div *ngIf="uploadLogoError">
-										<span class="text-danger">{{uploadError}}</span>
+										<span class="text-danger">{{uploadLogoError}}</span>
 									</div>
-									<div class="app-limit-file">
-										<input type="file" (change)="onUpload($event, 'LOGO')" />
-									</div>
+									<div class="app-limit-file"><input type="file" (change)="onUploadLogo($event)" /></div>
 								</td>
 							</tr>
 							<tr>
-								<th class="text-right">Photos</th>
-								<td class="pl-1">
-									<div *ngFor="let img of images"  style="display:inline-block; position:relative">
-										<img class="img-thumbnail" src="{{img}}">
-										<button (click)="deleteImage(img)" class="btn btn-secondary" style="position:absolute; top:0.4rem; right:0.4rem; opacity:0.7"><i class="fas fa-times"></i></button>
-										<button (click)="deleteImage(img)" class="btn btn-link text-danger" style="position:absolute; top:0.4rem; right:0.4rem"><i class="fas fa-times"></i></button>
+								<th class="text-xs-right">Photos</th>
+								<td class="p-l-1">
+									<div *ngFor="let img of images" class="p-r-1 p-b-1" style="display:inline-block; position:relative">
+										<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
+										<button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+										<button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
 									</div>
 									<div *ngIf="uploadImageError">
-										<span class="text-danger">{{uploadError}}</span>
+										<span class="text-danger">{{uploadImageError}}</span>
 									</div>
-									<div class="app-limit-file">
-										<input type="file" (change)="onUpload($event, 'IMAGE')" />
-									</div>
-									<div>
-										<small class="text-warning">Image may take time to show</small>
-									</div>
+									<div class="app-limit-file"><input type="file" (change)="onUploadImage($event)" /></div>
+									<div><small class="text-warning">Image may take time to show</small></div>
 								</td>
 							</tr>
 							<tr>

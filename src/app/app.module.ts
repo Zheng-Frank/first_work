@@ -109,7 +109,7 @@ import { OrderItemsComponent } from './components/restaurants/order-items/order-
 import { OrderAdjustmentComponent } from './components/restaurants/order-adjustment/order-adjustment.component';
 import { OrderRejectBarComponent } from './components/restaurants/order-reject-bar/order-reject-bar.component';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-
+import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
 
@@ -208,6 +208,7 @@ import { StripeComponent } from './components/invoices/stripe/stripe.component';
     BanCustomerComponent,
     RestaurantPhoneComponent,
     RestaurantPhoneEditorComponent,
+    RestaurantDeliverySettingsComponent,
     StripeComponent
   ],
   imports: [

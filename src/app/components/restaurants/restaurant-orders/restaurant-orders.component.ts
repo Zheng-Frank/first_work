@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges } from '@angular/core';
+import { Injectable, EventEmitter, NgZone } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Order } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
@@ -10,6 +11,8 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { OrderItem } from "@qmenu/ui";
 declare var $: any;
+declare var io: any;
+
 @Component({
   selector: 'app-restaurant-orders',
   templateUrl: './restaurant-orders.component.html',
@@ -22,6 +25,9 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('banModal') banModal: ModalComponent;
   @ViewChild('adjustModal') adjustModal: ModalComponent;
 
+  onNewOrderReceived: EventEmitter<any> = new EventEmitter();
+
+
   @Input() restaurant: Restaurant;
   searchText;
   maxCount = 8;
@@ -30,16 +36,86 @@ export class RestaurantOrdersComponent implements OnInit {
   payment = {};
   orderForModal: Order = null;
   now: Date = new Date();
+  private socket: any;
+  orderEvent: any;
 
-  constructor(private _api: ApiService) {
+  constructor(private _api: ApiService, private _ngZone: NgZone) {
+    this.socket = io(environment.socketUrl);
   }
 
-  async ngOnInit() {
-    console.log(this.restaurant);
-    this.orders = await this._api.get('http://localhost:1337/' + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 500 }).toPromise();
-    this.orders = this.orders.map(o => new Order(o));
-    console.log(this.orders);
+  ngOnInit() {
+    this.onNewOrderReceived.subscribe(
+      d => this.showNotifier(d)
+    );
 
+
+
+    console.log(this.restaurant);
+    this._api.get(environment.legacyApiUrl + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 1000 }).
+      subscribe(d => {
+        this.orders = d;
+        this.orders = this.orders.map(o => new Order(o));
+
+        console.log(this.orders);
+      },
+      e => {
+        console.log(e);
+        console.log('refresh failed!');
+      }
+      );
+    this.setSocket(this.restaurant);
+  }
+
+
+  showNotifier(orderEvent) {
+    this.orderEvent = orderEvent;
+    $('#order-notifier').show(1000); setTimeout(() => { $('#order-notifier').hide(1000); }, 10000);
+  }
+
+  setSocket(restaurant: Restaurant) {
+    // remove socket listening if there is any
+    if (this.restaurant) {
+      this.socket.removeAllListeners(this.restaurant['_id']);
+    }
+
+    let self = this;
+    // subscribe to event if the new customer has id
+    if (restaurant) {
+      this.socket.on(restaurant['_id'], (data) => {
+        self._ngZone.run(() => {
+          switch (data.action) {
+            case 'ORDER_STATUS':
+              data.orderStatus.createdAt = new Date(Date.parse(data.orderStatus.createdAt));
+              this.attachNewOrderStatus(data.orderStatus);
+              break;
+            case 'ORDER_NEW':
+              // we should do minimal refresh in future here
+              //this.refreshAllOrders(restaurant.id);
+              this.onNewOrderReceived.emit(data);
+              break;
+
+            default: break;
+          }
+        });
+
+      });
+    }
+
+  }
+
+
+  attachNewOrderStatus(orderStatus) {
+    // find the order and attach to status
+    if (this.orders) {
+      this.orders.forEach(o => {
+        if (o.id === orderStatus.order) {
+          if (!o.orderStatuses) {
+            o.orderStatuses = [];
+          }
+          o.orderStatuses.push(orderStatus);
+        }
+      });
+    }
   }
 
   onScroll(o) {
@@ -50,9 +126,7 @@ export class RestaurantOrdersComponent implements OnInit {
   }
 
 
-  getRecentOrders() {
-    // we get only unfinished orders + today's orders
-    // filter
+  getOrders() {
     let list = this.orders;
     if (this.searchText) {
       let key = this.searchText;
@@ -102,15 +176,15 @@ export class RestaurantOrdersComponent implements OnInit {
 
       this._api.post(environment.legacyApiUrl + "order/paymentDetails", { orderId: order.id })
         .subscribe(
-          payment => {
-            Object.assign(this.payment, payment);
-            this.paymentModal.show();
-          },
-          error => {
-            console.log(error);
-            let errorString = error._body || 'error in retrieving creditcard';
-            alert(errorString);
-          });
+        payment => {
+          Object.assign(this.payment, payment);
+          this.paymentModal.show();
+        },
+        error => {
+          console.log(error);
+          let errorString = error._body || 'error in retrieving creditcard';
+          alert(errorString);
+        });
     }
   }
 
@@ -160,10 +234,10 @@ export class RestaurantOrdersComponent implements OnInit {
 
   okBan(reasons) {
     if (this.orderForModal && this.orderForModal.customer) {
-      this._api.post(environment.legacyApiUrl + "customer/ban",  { customer: this.orderForModal.customer, reasons: reasons })
+      this._api.post(environment.legacyApiUrl + "customer/ban", { customer: this.orderForModal.customer, reasons: reasons })
         .subscribe(
-          d => { this.banModal.hide(); },
-          error => console.log(error));
+        d => { this.banModal.hide(); },
+        error => console.log(error));
     } else {
       alert('no customer found');
     }
@@ -177,14 +251,14 @@ export class RestaurantOrdersComponent implements OnInit {
     console.log(adjustment);
     adjustment['orderId'] = this.orderForModal.id;
 
-    this._api.post(environment.legacyApiUrl + "order/adjust",  adjustment)
-    .subscribe(
+    this._api.post(environment.legacyApiUrl + "order/adjust", adjustment)
+      .subscribe(
       resultedOrder => {
         this.orderForModal.tip = resultedOrder.tip;
         this.orderForModal.orderItems = resultedOrder.orderItems.map(oi => new OrderItem(oi));
       },
       error => { console.log(error); alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.'); }
-    );
+      );
   }
 
 

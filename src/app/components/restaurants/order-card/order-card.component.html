@@ -57,11 +57,12 @@
       <div class="text-xs-right">
         <hr>
         <a role="button" class="text-danger text-nowrap card-link" (click)="ban()"><i class="fa fa-thumbs-down"></i> Ban</a>
-        <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order)"><i class="fa fa-remove"></i> Cancel</a>
+        <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order)"><i class="fa fa-times"></i> Cancel</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="print()" *ngIf="canPrint()"><i class="fa fa-print"></i> Print</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="fax()" *ngIf="canFax()"><i class="fa fa-fax"></i> Fax</a>
-        <a role="button" class="text-primary text-nowrap card-link" (click)="adjust()" *ngIf="canShowAdjust(order)"><i class="fa fa-dollar"></i> Adjust</a>
+        <a role="button" class="text-primary text-nowrap card-link" (click)="adjust()" *ngIf="canShowAdjust(order)"><i class="fa fa-dollar-sign"></i> Adjust</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="showCreditCard()" *ngIf="canShowCreditCard(order)"><i class="fa fa-credit-card"></i> View</a>
+        <a target="_blank" class="text-primary text-nowrap card-link" href="{{getOrderLink()}}"><i class="fa fa-eye"></i> View Order</a>
       </div>
       <!-- <div *ngIf="!order.isPending() && canShowCreditCard(order)" class="text-xs-right">
         <hr>
@@ -71,6 +72,6 @@
   </div>
 </div>
 
-<q-confirm #confirmModal [title]="confirmTitle" (onYes)="confirm()">
+<q-confirm #confirmModal [title]="confirmTitle" (yes)="confirm()">
   {{confirmBodyText}}
 </q-confirm>

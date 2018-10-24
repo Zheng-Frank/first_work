@@ -78,7 +78,7 @@ export class RestaurantLogsComponent implements OnInit {
   }
 
   getReversedLogs(restaurant) {
-    return restaurant.logs.slice().reverse();
+    return (restaurant.logs || []).slice().reverse();
   }
 
   patch(oldRestaurant, updatedRestaurant, acknowledge) {

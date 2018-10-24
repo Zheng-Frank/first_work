@@ -1,0 +1,145 @@
+<div class="card mb-2">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="far fa fa-car"></i> Delivery Settings</h3>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <!--displaying-->
+      <div *qIf="!editing">
+        <table class="app-table w-100">
+          <tr>
+            <th class="text-xs-right">Taxable</th>
+            <td class="p-l-1">{{restaurant.taxOnDelivery ? 'Yes' : 'No'}}</td>
+          </tr>
+          <!--add block-->
+          <tr>
+            <th class="text-xs-right">Blocked Cities</th>
+            <td class="p-l-1">{{restaurant.blockedCities}}</td>
+          </tr>
+          <!--end add bolck-->
+          <!--add block-->
+          <tr>
+            <th class="text-xs-right">Blocked Zip Codes</th>
+            <td class="p-l-1">{{restaurant.blockedZipCodes}}</td>
+          </tr>
+          <!--end add bolck-->
+          <tr>
+            <th class="text-xs-right">Start Time</th>
+            <td class="p-l-1">
+              {{restaurant.deliveryFromTime | shortTime: restaurant.offsetToEST}}
+            </td>
+          </tr>
+          <tr>
+            <th class="text-xs-right">End Time</th>
+            <td class="p-l-1">{{getDeliveryEndString()}}</td>
+          </tr>
+        </table>
+
+        <table class="table app-borderless w-100" *ngIf="restaurant.deliverySettings && restaurant.deliverySettings.length > 0">
+          <thead>
+            <tr>
+              <th class="text-xs-center">Distance (mile)</th>
+              <th class="text-xs-center">Order Minimum</th>
+              <th class="text-xs-center">Charge</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ds of restaurant.deliverySettings">
+              <td class="text-xs-center">{{ds.distance}}</td>
+              <td class="text-xs-center">{{(ds.orderMinimum || 0) | money}}</td>
+              <td class="text-xs-center">{{(ds.charge || 0) | money}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!--editing-->
+      <div *qIf="editing">
+
+        <table class="w-100">
+          <tr>
+            <th class="text-xs-right">Taxable</th>
+            <td class="p-l-1">
+              <label class="switch">
+                <input type="checkbox" (click)="toggleTaxOnDelivery()" [checked]="restaurant.taxOnDelivery">
+                <div class="slider round"></div>
+              </label>
+            </td>
+          </tr>
+          <!--add blocked city-->
+          <tr>
+            <th class="text-xs-right">Blocked Cities</th>
+            <td class="p-l-1">
+              <input type="text" [(ngModel)]="blockedCities" class="form-control" ng-init="formkey='restlockedCities'">
+            </td>
+          </tr>
+          <!--end add bolcked city-->
+
+
+          <!--add blocked zip-->
+          <tr>
+            <th class="text-xs-right">Blocked Zip Codes</th>
+            <td class="p-l-1">
+              <input type="text" [(ngModel)]="blockedZipCodes" class="form-control">
+            </td>
+          </tr>
+          <!--end add bolcked zip-->
+
+
+          <tr>
+            <th class="text-xs-right">Start Time</th>
+            <td class="p-l-1">
+              <select [(ngModel)]="deliveryFrom" class="form-control">
+                <option *ngFor="let t of deliveryFromTimes" [ngValue]="t">{{t.text}}</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <th class="text-xs-right">End Time</th>
+            <td class="p-l-1">
+              <select [(ngModel)]="deliveryEndMinutesBeforeClosing" class="form-control">
+                <option *ngFor="let t of deliveryEndTimes" [ngValue]="t.value">{{t.text}}</option>
+              </select>
+            </td>
+          </tr>
+        </table>
+
+        <table class="table app-borderless w-100">
+          <thead>
+            <tr>
+              <th class="text-xs-center">Distance (mile)</th>
+              <th class="text-xs-center">Order Minimum</th>
+              <th class="text-xs-center">Charge</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ds of deliverySettingsInEditing">
+              <td class="text-xs-center">
+                <input type="number" class="form-control" [(ngModel)]="ds.distance">
+              </td>
+              <td class="text-xs-center">
+                <input type="number" class="form-control" [(ngModel)]="ds.orderMinimum">
+              </td>
+              <td class="text-xs-center">
+                <input type="number" class="form-control" [(ngModel)]="ds.charge">
+              </td>
+            </tr>
+            <tr>
+          </tbody>
+        </table>
+
+        <div class="p-t-1 text-xs-right">
+          <button class="btn btn-secondary" (click)="toggleEditing()" style="min-width: 6rem">Cancel</button>
+          <button class="btn btn-primary" (click)="update()" style="min-width: 6rem">OK</button>
+        </div>
+      </div>
+
+      <div style="position:relative" *ngIf="!editing">
+        &nbsp;
+        <div class="app-card-edit">
+          <a (click)="toggleEditing()" role="button">Edit</a>
+        </div>
+      </div>
+    </li>
+
+  </ul>
+</div>

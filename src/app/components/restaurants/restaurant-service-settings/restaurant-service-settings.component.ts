@@ -56,6 +56,22 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   ngOnInit() {
   }
 
+  isServiceEnabled(service) {
+    return service && service.paymentMethods && service.paymentMethods.length > 0;
+  }
+
+  toggleService(service) {
+    if (this.isServiceEnabled(service)) {
+      // toggle off: save current to backup, reset paymentMethods
+      service.paymentMethodsBackup = service.paymentMethods;
+      service.paymentMethods = [];
+    } else {
+      // turn on: retrieve
+      service.paymentMethods = service.paymentMethodsBackup || [];
+      service.paymentMethodsBackup = undefined;
+    }
+  }
+
   toggleEditing() {
     this.editing = !this.editing;
     this.excludeAmex = this.restaurant.excludeAmex;
@@ -69,7 +85,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     this.serviceSettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.serviceSettings || []));
     // make sure it has all service types
     this.serviceTypes.map(st => {
-      if (!this.serviceSettingsInEditing.some(serviceSetting => serviceSetting.name === st)) {
+      if (!this.serviceSettingsInEditing.some(serviceSetting => (serviceSetting.name? serviceSetting.name: '') === st)) {
         this.serviceSettingsInEditing.push({ name: st, paymentMethods: [] });
       }
     });
@@ -102,7 +118,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     const oldR = JSON.parse(JSON.stringify(this.restaurant));
     const newR = JSON.parse(JSON.stringify(this.restaurant));
 
-    newR.serviceSettings = this.serviceSettingsInEditing.filter(service => service.paymentMethods.length > 0);
+    newR.serviceSettings = this.serviceSettingsInEditing;
     newR.excludeAmex = this.excludeAmex;
     newR.excludeDiscover = this.excludeDiscover;
     newR.taxBeforePromotion = this.taxBeforePromotion;
@@ -125,7 +141,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
             "Updated successfully"
           );
           
-          this.restaurant.serviceSettings = this.serviceSettingsInEditing.filter(service => service.paymentMethods.length > 0);
+          this.restaurant.serviceSettings = this.serviceSettingsInEditing;
           this.restaurant.excludeAmex = this.excludeAmex;
           this.restaurant.excludeDiscover = this.excludeDiscover;
           this.restaurant.requireZipcode = this.requireZipcode;

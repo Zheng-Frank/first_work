@@ -21,7 +21,6 @@ export class RestaurantPhoneComponent implements OnInit {
   }
 
   getPhones() {
-    console.log("phones=", this.restaurant.phones);
     return this.restaurant.phones || [];
   }
 
@@ -43,7 +42,6 @@ export class RestaurantPhoneComponent implements OnInit {
   }
 
   onDone(phone) {
-    console.log('phone=', phone);
     this.phoneEditingModal.hide();
     if (phone.id) {
       let phoneClone = JSON.parse(JSON.stringify(phone));
