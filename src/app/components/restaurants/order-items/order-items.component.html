@@ -47,51 +47,51 @@
             <u>{{n.specialInstructions}}</u>
           </div>
         </td>
-        <td class="text-xs-right text-nowrap">{{n.quantity*n.getUnitCost() | money}}</td>
+        <td class="text-right text-nowrap">{{n.quantity*n.getUnitCost() | money}}</td>
       </tr>
 
       <tr *ngIf="order.promotion">
-        <td class="text-nowrap text-xs-right" colspan="2">
+        <td class="text-nowrap text-right" colspan="2">
           <span class="box"><strong>{{order.promotion.name}}</strong></span>
         </td>
-        <td class="text-xs-right text-nowrap">-{{order.getDiscount() | money}}</td>
+        <td class="text-right text-nowrap">-{{order.getDiscount() | money}}</td>
       </tr>
 
       <tr class="gray-border-top ">
         <td class="text-sm-center" style="vertical-align: middle" attr.rowspan="{{3 + (alwaysDisplayDeliveryCharge || order.deliveryCharge ? 1: 0) + (alwaysDisplayTip || order.getTip() ? 1: 0) + (order.surchargeAmount ? 1: 0) + (order.ccProcessingRate || order.ccProcessingFlatFee ? 1: 0)}}">
           <span class="box" *ngIf="order.specialInstructions"><strong>{{order.specialInstructions}}</strong></span></td>
-        <td class="text-xs-right text-nowrap">subtotal</td>
-        <td class="text-xs-right text-nowrap">{{order.getSubtotal() | money}}</td>
+        <td class="text-right text-nowrap">subtotal</td>
+        <td class="text-right text-nowrap">{{order.getSubtotal() | money}}</td>
       </tr>
       <tr *ngIf="alwaysDisplayDeliveryCharge || order.deliveryCharge">
-        <td class="text-xs-right text-nowrap">delivery
+        <td class="text-right text-nowrap">delivery
         </td>
-        <td class="text-xs-right text-nowrap">{{order.getDeliveryCharge() | money}}</td>
+        <td class="text-right text-nowrap">{{order.getDeliveryCharge() | money}}</td>
       </tr>
 
       <tr>
-        <td class="text-xs-right text-nowrap">tax {{(order.taxRate ? order.taxRate : 0) | percentage}}
+        <td class="text-right text-nowrap">tax {{(order.taxRate ? order.taxRate : 0) | percentage}}
         </td>
-        <td class="text-xs-right text-nowrap">{{order.getTax() | money}}</td>
+        <td class="text-right text-nowrap">{{order.getTax() | money}}</td>
       </tr>
       <tr *ngIf="alwaysDisplayTip || order.getTip()">
-        <td class="text-xs-right text-nowrap">tip
+        <td class="text-right text-nowrap">tip
         </td>
-        <td class="text-xs-right text-nowrap">{{order.getTip() | money}}</td>
+        <td class="text-right text-nowrap">{{order.getTip() | money}}</td>
       </tr>
       <tr *ngIf="order.surchargeAmount">
-        <td class="text-xs-right text-nowrap">{{order.surchargeName || 'surcharge'}}</td>
-        <td class="text-xs-right text-nowrap">{{order.surchargeAmount | money}}</td>
+        <td class="text-right text-nowrap">{{order.surchargeName || 'surcharge'}}</td>
+        <td class="text-right text-nowrap">{{order.surchargeAmount | money}}</td>
       </tr>
       <tr *ngIf="order.getCreditCardProcessingFeeAmount()>0">
-        <td class="text-xs-right text-nowrap">credit card fee {{order.ccProcessingRate ? (order.ccProcessingRate*100).toFixed(2)+'%' : ''}}{{order.ccProcessingRate && order.ccProcessingFlatFee ? '+$'+order.ccProcessingFlatFee.toFixed(2) : ''}}</td>
-        <td class="text-xs-right text-nowrap">{{order.getCreditCardProcessingFeeAmount() | money}}</td>
+        <td class="text-right text-nowrap">credit card fee {{order.ccProcessingRate ? (order.ccProcessingRate*100).toFixed(2)+'%' : ''}}{{order.ccProcessingRate && order.ccProcessingFlatFee ? '+$'+order.ccProcessingFlatFee.toFixed(2) : ''}}</td>
+        <td class="text-right text-nowrap">{{order.getCreditCardProcessingFeeAmount() | money}}</td>
       </tr>      
       <tr>
-        <td class="text-xs-right text-nowrap">
+        <td class="text-right text-nowrap">
           <!--only allows editing if not submitted yet-->
           <strong>total</strong></td>
-        <td class="text-xs-right text-nowrap"><strong>{{order.getTotal() | money}}</strong></td>
+        <td class="text-right text-nowrap"><strong>{{order.getTotal() | money}}</strong></td>
       </tr>
     </tbody>
   </table>

@@ -152,7 +152,7 @@
 								</td>
 							</tr>
 							<tr>
-								<th class="text-xs-right">Pickup Minimum</th>
+								<th class="text-right">Pickup Minimum</th>
 								<td class="pl-1">
 									<input type="number" [(ngModel)]="pickupMinimum" class="form-control">
 								</td>
@@ -178,10 +178,10 @@
 								</td>
 							</tr>
 							<tr>
-								<th class="text-xs-right">Logo</th>
-								<td class="p-l-1">
+								<th class="text-right">Logo</th>
+								<td class="pl-1">
 									<hr>
-									<div *ngIf="logo" class="p-r-1 p-b-1" style="display:inline-block; position:relative">
+									<div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
 										<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
 										<button (click)="deleteLogo(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
 										<button (click)="deleteLogo(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
@@ -195,9 +195,9 @@
 								</td>
 							</tr>
 							<tr>
-								<th class="text-xs-right">Photos</th>
-								<td class="p-l-1">
-									<div *ngFor="let img of images" class="p-r-1 p-b-1" style="display:inline-block; position:relative">
+								<th class="text-right">Photos</th>
+								<td class="pl-1">
+									<div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
 										<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
 										<button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
 										<button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>

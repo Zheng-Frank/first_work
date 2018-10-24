@@ -12,7 +12,6 @@ import { Bs4Component } from './components/bs4/bs4.component';
 import { HeaderComponent } from './components/header/header.component';
 
 import { UiModule } from '@qmenu/ui';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { LoginComponent } from './components/login/login.component';
 import { GlobalService } from './services/global.service';
 import { ApiService } from './services/api.service';

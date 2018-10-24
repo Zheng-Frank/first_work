@@ -3,7 +3,7 @@
           {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}} 
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
   <div class="text-muted" style="position:absolute;font-size:120%">
-    <span class="p-l-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
+    <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
     
   </div>
   <div class="card-block">
@@ -43,7 +43,7 @@
       </div>
       <div class="text-danger text-sm-center" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
     </small>
-    <div class="m-t-1">
+    <div class="mt-1">
       <app-order-action-bar *ngIf="order.isPending()" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"></app-order-action-bar>
     </div>
     <div [id]="'items-'+order.id">
@@ -54,7 +54,7 @@
         Order was canceled :(
         <div>{{order.getCurrentStatusComments()}}</div>
       </div>
-      <div class="text-xs-right">
+      <div class="text-right">
         <hr>
         <a role="button" class="text-danger text-nowrap card-link" (click)="ban()"><i class="fa fa-thumbs-down"></i> Ban</a>
         <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order)"><i class="fa fa-times"></i> Cancel</a>
@@ -64,7 +64,7 @@
         <a role="button" class="text-primary text-nowrap card-link" (click)="showCreditCard()" *ngIf="canShowCreditCard(order)"><i class="fa fa-credit-card"></i> View</a>
         <a target="_blank" class="text-primary text-nowrap card-link" href="{{getOrderLink()}}"><i class="fa fa-eye"></i> View Order</a>
       </div>
-      <!-- <div *ngIf="!order.isPending() && canShowCreditCard(order)" class="text-xs-right">
+      <!-- <div *ngIf="!order.isPending() && canShowCreditCard(order)" class="text-right">
         <hr>
         <a role="button" class="text-primary card-link" (click)="showCreditCard()"><i class="fa fa-credit-card"></i> View</a>
       </div> -->

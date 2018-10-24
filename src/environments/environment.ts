@@ -3,9 +3,9 @@ export const environment = {
   env: "dev",
   adminApiUrl: 'https://swozix2epl.execute-api.us-east-2.amazonaws.com/dev/',
   qmenuApiUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
-  legacyApiUrl: "https://quez.herokuapp.com/",
+  legacyApiUrl: "http://localhost:1337/",
   autoGmbUrl: "http://localhost:3000/",
-  
+  socketUrl: "http://localhost:1337/",
   bizUrl: 'https://restaurant-quez.herokuapp.com/',
   customerUrl: 'https://customer-app.herokuapp.com/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
