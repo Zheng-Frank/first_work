@@ -51,7 +51,7 @@ export class RestaurantOrdersComponent implements OnInit {
 
 
     console.log(this.restaurant);
-    this._api.get(environment.legacyApiUrl + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 1000 }).
+    this._api.get(environment.legacyApiUrl + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 500 }).
       subscribe(d => {
         this.orders = d;
         this.orders = this.orders.map(o => new Order(o));
@@ -138,7 +138,7 @@ export class RestaurantOrdersComponent implements OnInit {
       });
     }
 
-    return list.slice(0, this.maxCount);
+    return list;
   }
 
   async handleOnSetNewStatus(data) {

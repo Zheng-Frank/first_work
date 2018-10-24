@@ -13,7 +13,8 @@
 <div class="mt-1 text-right">
     <button *ngIf="phone && phone.id" class="btn btn-link text-danger" (click)="remove()">Delete</button>
     <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-    <button class="btn btn-primary" (click)="done()" [disabled]="!isPhoneValid()">OK</button></div>
+    <button class="btn btn-primary" (click)="done()" [disabled]="!isPhoneValid()">OK</button>
+</div>
 <!--<div *ngIf="codeSent" class="app-row mt-1">
     <app-validation-box #validationBox [validationTextLength]="3" [type]="'tel'" [focusOnEnter]="true" [placeholderText]="'enter code received from your phone'" (onTextSet)="setText($event)">
     </app-validation-box>
