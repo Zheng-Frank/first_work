@@ -33,6 +33,8 @@ export class HomeComponent implements OnInit {
           logo: 1,
           phones: 1,
           disabled: 1,
+          domain: 1,
+          websiteTemplateName: 1,
           googleAddress: 1
         },
         limit: 6000
@@ -105,6 +107,14 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.selectedRestaurant = restaurant;
+  }
+
+  isVisible(section) {
+    const sectionRolesMap = {
+      email: ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      template: ['ADMIN', 'CSR', 'MENU_EDITOR']
+    }
+    return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
 
 }

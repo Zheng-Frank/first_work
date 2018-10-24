@@ -10,6 +10,7 @@ export class GmbBiz {
     appealId: string;
     qmenuId: string;    // restaurant id
 
+    origin: string;     // first scanned from GMB account
     name: string;
     phone: string;
 

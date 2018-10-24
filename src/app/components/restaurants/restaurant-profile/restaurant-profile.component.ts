@@ -35,7 +35,8 @@ export class RestaurantProfileComponent implements OnInit {
     'notification',
     'ccProcessingRate',
     'ccProcessingFlatFee',
-    'deliveryBy'
+    'deliveryBy',
+    'domain'
   ];
 
   uploadError: string;

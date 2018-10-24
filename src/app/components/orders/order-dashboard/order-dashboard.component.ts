@@ -163,7 +163,7 @@ export class OrderDashboardComponent implements OnInit {
           agentDict[agent].orders = agentDict[agent].orders + row.orders.length + row.yesterdayOrders.length;
           agentDict[agent].restaurantWithOrders = agentDict[agent].restaurantWithOrders + (row.orders.length + row.yesterdayOrders.length > 0 ? 1: 0) ;
         });
-        // console.log(agentDict);
+        console.log(agentDict);
       },
       error =>
         this._global.publishAlert(
@@ -193,19 +193,19 @@ export class OrderDashboardComponent implements OnInit {
 
   downloadStats() {
     // alert('not enabled');
-    // this._api.get(environment.qmenuApiUrl + "generic", {
-    //   resource: "order",
-    //   query: {
-    //   },
-    //   projection: {
-    //     i: 1
-    //   },
-    //   limit: 100000,
-    //   sort: { createdAt: -1 }
-    // })
-    this._api.get(environment.legacyApiUrl + "order/stat", {
-      limit: 500000
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+      },
+      projection: {
+        createdAt: 1
+      },
+      limit: 30000,
+      sort: { createdAt: -1 }
     })
+    // this._api.get(environment.legacyApiUrl + "order/stat", {
+    //   limit: 500000
+    // })
     .subscribe(orders => {
       let dMap = {};
       let wMap = {};

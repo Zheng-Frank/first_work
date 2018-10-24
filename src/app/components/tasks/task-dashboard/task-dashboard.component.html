@@ -8,15 +8,16 @@
         <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing">
             <i class="fas fa-sync-alt"></i> Reload</button>
         <button class="btn btn-link" (click)="purge()" [qLoading]="purging">
-                <i class="fas fa-broom"></i> Purge Invalid Tasks</button>
-        <!-- <button class="btn btn-link" (click)="toggleAction('ADD')">Generate A Task</button> -->
+            <i class="fas fa-broom"></i> Purge Invalid Tasks</button>
+        <button class="btn btn-link" (click)="toggleAction('ADD')">Generate A Task</button>
     </div>
 </div>
 <div class="clearfix">
     <div class="card text-left bg-light mb-4 float-right w-40-rem" *qIf="currentAction === 'ADD'">
         <div class="card-body">
             <h5 class="card-title">Add New Task</h5>
-            <app-task-generator></app-task-generator>
+
+            <app-task-generator (submit)="createNewTask($event)" (cancel)="toggleAction('ADD')" [restaurantList]="restaurantList"></app-task-generator>
 
             <!-- <div class="form-group">
                 <label for="formGroupExampleInput">Restaurant ID</label>

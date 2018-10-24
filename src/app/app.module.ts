@@ -114,6 +114,9 @@ import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-
 import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
 
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
+import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
+import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
+import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
  
 @NgModule({
   declarations: [
@@ -209,7 +212,10 @@ import { StripeComponent } from './components/invoices/stripe/stripe.component';
     RestaurantPhoneComponent,
     RestaurantPhoneEditorComponent,
     RestaurantDeliverySettingsComponent,
-    StripeComponent
+    StripeComponent,
+    CheckEmailComponent,
+    InjectWebsiteComponent,
+    MyRestaurantComponent
   ],
   imports: [
     BrowserModule,

@@ -16,6 +16,13 @@
 							<td class="pl-1">{{restaurant.alias}}</td>
 						</tr>
 						<tr>
+							<th class="text-right">Domain</th>
+							<td class="pl-1">
+								<a *ngIf="restaurant.domain" href="{{ 'http://' + restaurant.domain}}" target="_blank">{{restaurant.domain}} </a>
+								<span *ngIf="!restaurant.domain">N/A</span>
+							</td>
+						</tr>
+						<tr>
 							<th class="text-right">Website Broadcast</th>
 							<td class="pl-1">{{restaurant.notification || 'N/A'}}</td>
 						</tr>
@@ -74,6 +81,12 @@
 			<div *qIf="editing">
 				<table class="table table-borderless table-sm">
 					<tbody>
+						<tr>
+							<th class="text-right" style="width: 33%">Domain</th>
+							<td class="pl-1">
+								<input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
+							</td>
+						</tr>
 						<tr>
 							<th class="text-right" style="width: 33%">Website Broadcast</th>
 							<td class="pl-1">
@@ -141,7 +154,7 @@
 							<tr>
 								<th class="text-xs-right">Pickup Minimum</th>
 								<td class="pl-1">
-									<input type="number" [(ngModel)]="pickupMinimum" class="form-control">															
+									<input type="number" [(ngModel)]="pickupMinimum" class="form-control">
 								</td>
 							</tr>
 							<tr>
@@ -176,7 +189,9 @@
 									<div *ngIf="uploadLogoError">
 										<span class="text-danger">{{uploadLogoError}}</span>
 									</div>
-									<div class="app-limit-file"><input type="file" (change)="onUploadLogo($event)" /></div>
+									<div class="app-limit-file">
+										<input type="file" (change)="onUploadLogo($event)" />
+									</div>
 								</td>
 							</tr>
 							<tr>
@@ -190,8 +205,12 @@
 									<div *ngIf="uploadImageError">
 										<span class="text-danger">{{uploadImageError}}</span>
 									</div>
-									<div class="app-limit-file"><input type="file" (change)="onUploadImage($event)" /></div>
-									<div><small class="text-warning">Image may take time to show</small></div>
+									<div class="app-limit-file">
+										<input type="file" (change)="onUploadImage($event)" />
+									</div>
+									<div>
+										<small class="text-warning">Image may take time to show</small>
+									</div>
 								</td>
 							</tr>
 							<tr>

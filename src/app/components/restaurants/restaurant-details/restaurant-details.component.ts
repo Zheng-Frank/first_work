@@ -103,7 +103,9 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           deliveryFromTime: 1, 
           deliveryEndMinutesBeforeClosing: 1,
           offsetToEST: 1,
-          disableScheduling: 1
+          disableScheduling: 1,
+          domain: 1,
+          websiteTemplateName: 1
         },
         limit: 1
       })
