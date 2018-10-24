@@ -30,6 +30,7 @@ export class RestaurantProfileComponent implements OnInit {
     'stripePublishableKey',
     'offsetToEST',
     'preferredLanguage',
+    'pickupMinimum',
     'disableScheduling',
     'notification',
     'ccProcessingRate',
@@ -46,6 +47,7 @@ export class RestaurantProfileComponent implements OnInit {
   surchargeAmount;
   pickupTimeEstimate: number;
   deliveryTimeEstimate: number;
+  pickupMinimum: number;
   logo: string;
   images: string[] = [];
 
@@ -103,7 +105,7 @@ export class RestaurantProfileComponent implements OnInit {
     newObj.surchargeAmount = +this.surchargeAmount || undefined;
     newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
     newObj.deliveryTimeEstimate = +this.deliveryTimeEstimate || undefined;
-
+    newObj.pickupMinimum = +this.pickupMinimum || undefined;
 
     newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;

@@ -1,0 +1,103 @@
+<div *ngIf="order && order.orderItems.length > 0">
+  <!--order items-->
+  <table class="table app-borderless">
+    <tbody>
+      <tr *ngFor="let n of order.orderItems">
+        <td colspan="2">
+
+          <span *ngIf="n.miInstance.number">{{n.miInstance.number}} </span>
+          <strong>{{n.miInstance.name}}</strong><span *ngIf="n.miInstance.sizeOptions.length > 1" class="text-lowercase"><small> - {{n.getSizeChoice()}}</small></span>
+          <div>
+            <small> {{n.menuName}}&rarr;{{n.mcInstance.name}}</small>
+          </div>
+          <div *ngFor="let mo of getSelectedMenuOptions(n)" class="app-description">
+            <div *ngIf="getPlacementGroupedItems(mo).placements.length > 1">
+              <div *ngFor="let placement of getPlacementGroupedItems(mo).placements">
+                <div *ngFor="let item of getPlacementGroupedItems(mo).dict[placement]">
+                  <div *ngIf="item.selected">
+                    <i class="{{getPlacementClass(placement)}}" style="font-size: 120%"></i> {{item.name}}
+                    <span *ngIf="item.amount"> ({{item.amount}})</span>
+                    <span *ngIf="item.price"> {{item.price | money}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="getPlacementGroupedItems(mo).placements.length <= 1">
+              <div *ngFor="let item of mo.items">
+                <div *ngIf="item.selected">+ {{item.name}}
+                  <span *ngIf="item.amount"> ({{item.amount}})</span>
+                  <span *ngIf="item.price"> {{item.price | money}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngFor="let addon of n.getMcAddonsChoices()" class="app-description">
+            <span>+ {{addon.name}}</span><span *ngIf="addon.price"> {{addon.price | money}}</span>
+          </div>
+          <div *ngFor="let comp of n.getMiCompositionChoices()" class="app-description">
+            <span>+ {{comp.name}}</span><span *ngIf="comp.price"> {{comp.price | money}}</span>
+          </div>
+          <div *ngIf="n.quantity>1">
+            <span class="box"><strong>Qty = {{n.quantity}}</strong></span>
+            <div>{{n.getUnitCost()| money}} &times; {{n.quantity}}</div>
+
+          </div>
+          <div *ngIf="n.specialInstructions">
+            <u>{{n.specialInstructions}}</u>
+          </div>
+        </td>
+        <td class="text-right text-nowrap">{{n.quantity*n.getUnitCost() | money}}</td>
+      </tr>
+
+      <tr *ngIf="order.promotion">
+        <td class="text-nowrap text-right" colspan="2">
+          <span class="box"><strong>{{order.promotion.name}}</strong></span>
+        </td>
+        <td class="text-right text-nowrap">-{{order.getDiscount() | money}}</td>
+      </tr>
+
+      <tr class="gray-border-top ">
+        <td class="text-sm-center" style="vertical-align: middle" attr.rowspan="{{3 + (alwaysDisplayDeliveryCharge || order.deliveryCharge ? 1: 0) + (alwaysDisplayTip || order.getTip() ? 1: 0) + (order.surchargeAmount ? 1: 0) + (order.ccProcessingRate || order.ccProcessingFlatFee ? 1: 0)}}">
+          <span class="box" *ngIf="order.specialInstructions"><strong>{{order.specialInstructions}}</strong></span></td>
+        <td class="text-right text-nowrap">subtotal</td>
+        <td class="text-right text-nowrap">{{order.getSubtotal() | money}}</td>
+      </tr>
+      <tr *ngIf="alwaysDisplayDeliveryCharge || order.deliveryCharge">
+        <td class="text-right text-nowrap">delivery
+        </td>
+        <td class="text-right text-nowrap">{{order.getDeliveryCharge() | money}}</td>
+      </tr>
+
+      <tr>
+        <td class="text-right text-nowrap">tax {{(order.taxRate ? order.taxRate : 0) | percentage}}
+        </td>
+        <td class="text-right text-nowrap">{{order.getTax() | money}}</td>
+      </tr>
+      <tr *ngIf="alwaysDisplayTip || order.getTip()">
+        <td class="text-right text-nowrap">tip
+        </td>
+        <td class="text-right text-nowrap">{{order.getTip() | money}}</td>
+      </tr>
+      <tr *ngIf="order.surchargeAmount">
+        <td class="text-right text-nowrap">{{order.surchargeName || 'surcharge'}}</td>
+        <td class="text-right text-nowrap">{{order.surchargeAmount | money}}</td>
+      </tr>
+      <tr *ngIf="order.getCreditCardProcessingFeeAmount()>0">
+        <td class="text-right text-nowrap">credit card fee {{order.ccProcessingRate ? (order.ccProcessingRate*100).toFixed(2)+'%' : ''}}{{order.ccProcessingRate && order.ccProcessingFlatFee ? '+$'+order.ccProcessingFlatFee.toFixed(2) : ''}}</td>
+        <td class="text-right text-nowrap">{{order.getCreditCardProcessingFeeAmount() | money}}</td>
+      </tr>      
+      <tr>
+        <td class="text-right text-nowrap">
+          <!--only allows editing if not submitted yet-->
+          <strong>total</strong></td>
+        <td class="text-right text-nowrap"><strong>{{order.getTotal() | money}}</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<div *ngIf="!order || order.orderItems.length == 0">
+  No item.
+</div>

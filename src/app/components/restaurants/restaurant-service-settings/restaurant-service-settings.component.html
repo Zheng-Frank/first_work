@@ -10,6 +10,7 @@
           <thead>
             <tr>
               <th>Service</th>
+              <th>On/Off</th>
               <th>Payment Options</th>
             </tr>
           </thead>
@@ -17,6 +18,13 @@
             <tr *ngFor="let service of restaurant.serviceSettings">
               <td class="text-nowrap">
                 {{service.name}}
+              </td>
+              <td>
+                <small>
+                  <ul>
+                    {{isServiceEnabled(service)? 'On': 'Off'}}
+                  </ul>
+                </small>
               </td>
               <td>
                 <small>
@@ -40,6 +48,7 @@
           <thead>
             <tr>
               <th>Service</th>
+              <th>On/Off</th>
               <th>Payment Options</th>
             </tr>
           </thead>
@@ -48,6 +57,19 @@
               <td class="text-nowrap">
                 {{service.name}}
               </td>
+              <td>
+                <small>
+                  <ul>
+                    {{isServiceEnabled(service)? 'On': 'Off'}}
+                  </ul>
+                </small>
+              </td>
+              <td>
+                <label class="switch">
+                 <input type="checkbox" (click)="toggleService(service)" [checked]="isServiceEnabled(service)">
+                 <div class="slider round"></div>
+               </label>
+             </td>
               <td>
                 <div>
                   <div class="form-check" *ngFor="let paymentMethod of getPaymentMethods()">

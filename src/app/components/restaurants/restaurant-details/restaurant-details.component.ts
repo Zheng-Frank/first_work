@@ -89,15 +89,23 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           stripeSecretKey: 1,
           stripePublishableKey: 1,
           preferredLanguage: 1,
-
           deliveryByTme: 1,
-
+          phones: 1,
           menus: 1,
           menuOptions: 1,
           notes:1,
           logs: 1,
-
-          domain: 1
+          deliverySettings: 1,
+          pickupMinimum: 1,
+          taxOnDelivery: 1,
+          blockedCities: 1,
+          blockedZipCodes: 1,
+          deliveryFromTime: 1, 
+          deliveryEndMinutesBeforeClosing: 1,
+          offsetToEST: 1,
+          disableScheduling: 1,
+          domain: 1,
+          websiteTemplateName: 1
         },
         limit: 1
       })
@@ -135,7 +143,9 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
       serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR'],
       promotions: ['ADMIN', 'MENU_EDITOR', 'CSR'],
       closedDays: ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR']
+      cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      phones: ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      deliveryeSettings: ['ADMIN', 'MENU_EDITOR', 'CSR']
     }
     const roles = this._global.user.roles || [];
     return visibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;

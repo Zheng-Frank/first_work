@@ -1,0 +1,92 @@
+<div *ngIf="orders">
+    <div class="form-group">
+        <input type="text" [(ngModel)]="searchText" class="form-control" placeholder="search order#, phone, name...">
+        <div *ngIf="searchText" class="text-muted">Found: {{getOrders().length}}</div>
+    </div>
+
+    <div class="row ml-0 mr-0">
+        <!-- row has negative margins and we need to remove them! -->
+        <div *ngFor="let order of getOrders()" class="col-sm-12 col-md-6 col-lg-4  app-pl-025 app-pr-025 mb-1">
+            <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
+                (onBan)="handleOnBan($event)" (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)">
+            </app-order-card>
+        </div>
+    </div>
+    <q-modal #paymentModal>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+        </button>
+        <div class="clearfix"></div>
+        <hr>
+        <p>{{payment.explanation}}</p>
+        <table class="table-borderless">
+            <tr>
+                <th>Payment Type</th>
+                <td>{{payment.paymentType}}</td>
+            </tr>
+            <tr *ngIf="payment.creditCard">
+                <th>Customer Name</th>
+                <td>{{payment.creditCard.firstName + ' ' + (payment.creditCard.lastName || '')}}</td>
+            </tr>
+            <tr *ngIf="payment.creditCard">
+                <th>Card Number</th>
+                <td>{{getFormattedCreditCardNumber(payment.creditCard.cardNumber)}}</td>
+            </tr>
+            <tr *ngIf="payment.creditCard">
+                <th>Card Expiry</th>
+                <td>{{payment.creditCard.expiryMonth + '/' + payment.creditCard.expiryYear}}</td>
+            </tr>
+            <tr *ngIf="payment.creditCard">
+                <th>Card CVC</th>
+                <td>{{payment.creditCard.cvc || 'N/A'}}</td>
+            </tr>
+            <tr *ngIf="payment.creditCard && payment.creditCard.zipcode">
+                <th>Zip Code</th>
+                <td>{{payment.creditCard.zipcode || 'N/A'}}</td>
+            </tr>
+            <tr *ngIf="payment.creditCard && payment.creditCard.billingAddress && payment.creditCard.billingAddress.place_id">
+                <th>Billing Address</th>
+                <td>
+                    {{getLine1(payment.creditCard.billingAddress)}}
+                    <br> {{getLine2(payment.creditCard.billingAddress)}}
+                </td>
+            </tr>
+        </table>
+        <button class="btn btn-lg btn-block btn-secondary" data-dismiss="modal">OK</button>
+    </q-modal>
+
+    <q-modal #rejectModal>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+        </button>
+        <h4 class="text-center">Reject Order</h4>
+        <hr>
+        <app-order-reject-bar [order]="orderForModal" (onSetNewStatus)="handleOnSetNewStatus($event)"></app-order-reject-bar>
+    </q-modal>
+
+    <q-modal #banModal>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+        </button>
+        <h4 class="text-center">BAN CUSTOMER</h4>
+        <hr>
+        <div class="alert-danger">USE EXTREME CAUTION: The customer
+            <b>{{orderForModal?.customer?.firstName}} {{orderForModal?.customer?.phone | tel}}</b> will be banned permanently
+            from placing any orders in future!</div>
+        <div class="alert-success mt-1 mt-1">Banned customers will NOT see the reasons.</div>
+
+        <h5 class="pt-1 pb-1">Reasons (check all that applies)</h5>
+        <app-ban-customer (onBan)="okBan($event)"></app-ban-customer>
+
+    </q-modal>
+
+    <q-modal #adjustModal>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+        </button>
+        <h4 class="text-center">Adjustment</h4>
+        <hr>
+        <app-order-adjustment (submit)="submitAdjustment($event)"></app-order-adjustment>
+    </q-modal>
+
+</div>

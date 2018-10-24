@@ -46,6 +46,8 @@ import { InvoicesTableComponent } from './components/invoices/invoices-table/inv
 import { CacheService } from './services/cache.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
+import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
+import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
@@ -99,6 +101,17 @@ import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor
 import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
 import { LogsTableComponent } from './components/logs/logs-table/logs-table.component';
 import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
+import { RestaurantPhoneComponent } from './components/restaurants/restaurant-phone/restaurant-phone.component';
+import { RestaurantPhoneEditorComponent } from './components/restaurants/restaurant-phone-editor/restaurant-phone-editor.component';
+import { OrderActionBarComponent } from './components/restaurants/order-action-bar/order-action-bar.component';
+import { OrderItemsComponent } from './components/restaurants/order-items/order-items.component';
+import { OrderAdjustmentComponent } from './components/restaurants/order-adjustment/order-adjustment.component';
+import { OrderRejectBarComponent } from './components/restaurants/order-reject-bar/order-reject-bar.component';
+import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
+import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
+import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
+
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
 import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
@@ -106,6 +119,7 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
  
 @NgModule({
   declarations: [
+    appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
     LogsDashboardComponent,
@@ -139,6 +153,7 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
     InvoicesTableComponent,
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
+    RestaurantOrdersComponent,
     RestaurantContactsComponent,
     RestaurantDetailsHostComponent,
     RestaurantRateSchedulesComponent,
@@ -187,6 +202,15 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
     QuickDatePickerComponent,
     LogsTableComponent,
     RestaurantLogsComponent,
+    OrderCardComponent,
+    OrderActionBarComponent,
+    OrderItemsComponent,
+    OrderAdjustmentComponent,
+    OrderRejectBarComponent,
+    BanCustomerComponent,
+    RestaurantPhoneComponent,
+    RestaurantPhoneEditorComponent,
+    RestaurantDeliverySettingsComponent,
     StripeComponent,
     CheckEmailComponent,
     InjectWebsiteComponent,
@@ -201,7 +225,7 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
     HttpModule,
     UiModule,
     OwlDateTimeModule,
-    OwlNativeDateTimeModule,
+    OwlNativeDateTimeModule
   ],
   providers: [
     GlobalService,
