@@ -290,7 +290,7 @@ export class GmbService {
     }
 
     // find out LOST list
-    // (used to be this account, not in scanned list or became Duplicate) => lost 
+    // (used to be this account, not in scanned list or became Duplicate/Verification Required etc.) => lost 
 
     const lostOwnershipBizList = existingGmbBizList.filter(biz => {
       if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
@@ -299,7 +299,7 @@ export class GmbService {
           // not in scanned list or is Duplicate!
           // location id different, but address same: possible changed names, so we need to check name one more time
           const matchedLocation = placeIdLocationMap[biz.place_id] || (addressLocationMap[biz.address] && addressLocationMap[biz.address].name === biz.name );
-          if (!matchedLocation || matchedLocation.status === 'Duplicate') {
+          if (!matchedLocation || (matchedLocation.status !== 'Published' && matchedLocation.status !== 'Suspended')) {
             return true;
           }
         }
