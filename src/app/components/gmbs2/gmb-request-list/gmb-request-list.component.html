@@ -1,0 +1,31 @@
+<h2 class="text-center">GMB: Requests</h2>
+<div class="clearfix my-2">
+  <!-- <div class="float-left form-inline">
+    <label class="checkbox-inline">
+      <input type="checkbox" [(ngModel)]="includeHandled" (change)="applyFilter()">&nbsp;Include Handled</label>
+  </div> -->
+  <div class="float-right">
+    <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
+      <i class="fas fa-sync-alt"></i> Reload</button>
+    <button class="btn btn-primary" (click)="crawlAll()" [qLoading]="crawling">
+      <i class="fab fa-google"></i> Crawl All</button>
+  </div>
+</div>
+<q-table [rows]="filteredRequests" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+  <tr *tableRowTemplate="let r;" class="{{'list-group-item-' + r.state}}">
+    <td>{{r.request.date | ago: now}}</td>
+    <td>{{r.request.business}}</td>
+    <td>{{r.biz?.score}}</td>
+    <td><app-gmb-account-hotlink [email]="r.accountEmail"></app-gmb-account-hotlink></td>
+    <td>{{r.request.email | emailName}} <img *ngIf="r.isQmenuRequest" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px"></td>
+    <td>
+      {{r.task?.comments}}
+      <div class="text-muted" *ngIf="r.task && r.task.resultAt">
+        <small>✓ &nbsp;{{r.task.resultAt | ago: now}}</small>
+      </div>
+    </td>
+    <td>
+      <app-task-action-bar [task]="r.task" [user]="user" (actionDone)="taskUpdated($event)"></app-task-action-bar>
+    </td>
+  </tr>
+</q-table>

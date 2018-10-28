@@ -16,22 +16,6 @@ import { Order, Restaurant } from "@qmenu/ui/classes";
 import { zip } from "rxjs";
 import { saveAs } from 'file-saver/FileSaver';
 
-const spMap = {
-  beyondmenu: "beyondmenu.png",
-  chownow: "chownow.png",
-  chinesemenuonline: "chinesemenuonline.png",
-  doordash: "doordash.png",
-  eat24: "eat24.png",
-  eatstreet: "eatstreet.png",
-  grubhub: "grubhub.png",
-  hanyi: "hanyi.png",
-  menufy: "menufy.png",
-  qmenu: "qmenu.png",
-  redpassion: "redpassion.png",
-  slicelife: "slicelife.png",
-  seamless: "seamless.png",
-  ubereats: "ubereats.png"
-};
 @Component({
   selector: "app-order-dashboard",
   templateUrl: "./order-dashboard.component.html",
@@ -179,7 +163,7 @@ export class OrderDashboardComponent implements OnInit {
           agentDict[agent].orders = agentDict[agent].orders + row.orders.length + row.yesterdayOrders.length;
           agentDict[agent].restaurantWithOrders = agentDict[agent].restaurantWithOrders + (row.orders.length + row.yesterdayOrders.length > 0 ? 1: 0) ;
         });
-        // console.log(agentDict);
+        console.log(agentDict);
       },
       error =>
         this._global.publishAlert(
@@ -190,7 +174,7 @@ export class OrderDashboardComponent implements OnInit {
   }
 
   getLogo(lead) {
-    return spMap[lead.gmbOwner];
+    return GlobalService.serviceProviderMap[lead.gmbOwner];
   }
   getGoogleQuery(row) {
     if (row.lead && row.lead.address) {
@@ -209,19 +193,19 @@ export class OrderDashboardComponent implements OnInit {
 
   downloadStats() {
     // alert('not enabled');
-    // this._api.get(environment.qmenuApiUrl + "generic", {
-    //   resource: "order",
-    //   query: {
-    //   },
-    //   projection: {
-    //     i: 1
-    //   },
-    //   limit: 100000,
-    //   sort: { createdAt: -1 }
-    // })
-    this._api.get(environment.legacyApiUrl + "order/stat", {
-      limit: 500000
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+      },
+      projection: {
+        createdAt: 1
+      },
+      limit: 30000,
+      sort: { createdAt: -1 }
     })
+    // this._api.get(environment.legacyApiUrl + "order/stat", {
+    //   limit: 500000
+    // })
     .subscribe(orders => {
       let dMap = {};
       let wMap = {};

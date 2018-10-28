@@ -1,0 +1,5 @@
+<div *ngIf="gmbAccount">
+  <q-form-builder [object]="gmbAccount" [showDelete]="gmbAccount._id" [fieldDescriptors]="fieldDescriptors" (submit)="formSubmit($event)"
+    (cancel)="formCancel()" (remove)="formRemove($event)">
+  </q-form-builder>
+</div>

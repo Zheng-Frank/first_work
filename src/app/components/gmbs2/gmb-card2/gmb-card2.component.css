@@ -1,0 +1,22 @@
+/* override padding, default 1.25 is too big */
+
+.centered-axis-x {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+.scale96 {
+  transform: scale(0.96)
+}
+
+.hide-details div { display: none; }
+.hide-details:hover div { display: block; }
+
+td {
+  border: 0;
+}
+
+.fix-v-align {
+  vertical-align: baseline;
+}

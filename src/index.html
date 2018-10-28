@@ -2,6 +2,11 @@
 <html lang="en">
 
 <head>
+  <script type="text/javascript">
+    if (window.location.protocol != 'https:' && window.location.href.indexOf('localhost') < 0 && window.location.href.indexOf('127.0.0') < 0) {
+      location.href = location.href.replace("http://", "https://");
+    }
+  </script>
   <meta charset="utf-8">
   <title>qMenu Administrative</title>
   <base href="/">
@@ -20,11 +25,12 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon-180x180.png" />
 
   <!-- Font Awesome -->
-  <link href="https://use.fontawesome.com/releases/v5.0.11/css/all.css" rel="stylesheet">
+  <link href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" rel="stylesheet">
   <script src="/assets/js/store.modern.min.js"></script>
 
   <!-- Hover effects CSS -->
   <link rel="stylesheet" href="assets/styles/hover-min.css">
+  <link rel="stylesheet" href="assets/styles/mycss.css">
 </head>
 
 <body>
@@ -52,6 +58,10 @@
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCDXCDAVYv86XMcAaKpucL1lp4EEpp9oKY&libraries=places"></script>
   <!--AWS-->
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.5.3.min.js"></script>
+  <!-- stripe -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <!--Socket io-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
 </body>
 
 </html>

@@ -55,7 +55,7 @@
         </th>
         <th scope="col">Assignee</th>
         <th scope="col">GMB</th>
-        <th scope="col">Website</th>
+        <th scope="col">Web</th>
         <th scope="col">Email</th>
         <th scope="col">Street</th>
         <th scope="col">City</th>
@@ -195,15 +195,7 @@
     </tbody>
   </table>
   <div>
-    <div *ngIf="leadInEditing.gmbScanned; else noGmb">
-      <app-gmb-info [gmbInfo]="leadInEditing"></app-gmb-info>
-    </div>
-    <ng-template #noGmb>
-      <i class="fas fa-exclamation-triangle text-warning"></i> Missing GMB info
-      <i class="far fa-hand-point-right"></i>&nbsp;&nbsp;
-      <button class="btn btn-outline-primary" (click)="crawlGoogle(leadInEditing)" [qLoading]="apiRequesting">
-        <i class="fab fa-searchengin"></i> Crawl Google</button>
-    </ng-template>
+
   </div>
 
 </q-modal>

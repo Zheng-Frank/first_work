@@ -18,6 +18,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
 export class RestaurantContactsComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
+  @Input() viewOnly = false;
 
   @ViewChild('modalPerson') modalPerson: ModalComponent;
   @ViewChild('modalChannel') modalChannel: ModalComponent;
@@ -27,6 +28,7 @@ export class RestaurantContactsComponent implements OnInit {
 
   channelInEditing: Channel = {} as Channel;
 
+  notes: string;
   channelFieldDescriptors = [
     {
       field: "type", //
@@ -112,6 +114,8 @@ export class RestaurantContactsComponent implements OnInit {
 
   ngOnInit() {
     this.resetPersonFieldDescriptors();
+    this.notes=this.restaurant.notes;
+    console.log(this.restaurant);
   }
 
   resetPersonFieldDescriptors() {
@@ -260,6 +264,10 @@ export class RestaurantContactsComponent implements OnInit {
 
   cancelChannel(event) {
     this.modalChannel.hide();
+  }
+
+  submitNotes() {
+    this.patchDiff('notes', this.notes);
   }
 
 

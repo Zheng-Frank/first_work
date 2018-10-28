@@ -1,10 +1,9 @@
-UNDER CONSTRUCTION
-<div *ngIf="shouldShowMyMarketers()">
-<h2>My Team</h2>
-<pre>
-    1. load users
-    2. load my managed users
-    3. load leads assigned to those users
-    
-</pre>
+<div *ngIf="getUser().roles.indexOf('MARKETER') >= 0">
+    <app-my-restaurant></app-my-restaurant>
 </div>
+<!-- <p>
+    Username: {{getUser().username}}
+</p>
+<p>
+    Roles: {{getUser().roles}}
+</p> -->

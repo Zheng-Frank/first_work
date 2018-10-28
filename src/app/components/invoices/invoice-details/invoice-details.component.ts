@@ -10,7 +10,7 @@ import { AlertType } from "../../../classes/alert-type";
 import { mergeMap, observeOn } from 'rxjs/operators';
 import { Restaurant } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
-import { PaymentMeans } from '../../../classes/payment-means';
+import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Channel } from '../../../classes/channel';
 import { Observable, from } from 'rxjs';
@@ -26,6 +26,8 @@ declare var window: any;
   providers: [CurrencyPipe, DatePipe]
 })
 export class InvoiceDetailsComponent implements OnInit, OnDestroy {
+  @ViewChild('myInvoiceViewer') myInvoiceViewer;
+
   invoice: Invoice;
   paymentMeans: PaymentMeans[] = [];
   restaurantLogs: Log[] = [];
@@ -44,6 +46,14 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('adjustmentModal') adjustmentModal: ModalComponent;
 
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) {
+    this.loadInvoice();
+  }
+
+  isCreditCardOrStripe() {
+    return this.paymentMeans && this.paymentMeans.some(pm => pm.type === 'Credit Card' || pm.type === 'Stripe');
+  }
+
+  loadInvoice() {
     const self = this;
     this._route.params
       .pipe(mergeMap(params =>
@@ -96,12 +106,15 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
             'Check Deposit': 'A payment check of ' + amountString + ' is mailed to ' + ((firstPm.details || {}).address ? firstPm.details.address : 'you') + '. It may take up to 7 business days.'
           }
           this.invoice.paymentInstructions = wordingMap[firstPm.type];
+
         }
 
 
         this.restaurantLogs = (restaurants[0].logs || []).map(log => new Log(log));
 
         this.invoiceChannels = (restaurants[0].channels || []).filter(c => c.notifications && c.notifications.indexOf('Invoice') >= 0);
+
+        this.myInvoiceViewer.refresh();
 
       }, error => {
         this._global.publishAlert(
@@ -121,6 +134,11 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     // UGLY solution to restore hider and footer
     $('nav').show();
     $('#footer').show();
+  }
+
+  paymentSuccess() {
+    this.loadInvoice();
+    this._global.publishAlert(AlertType.Success, 'Payment Success.');
   }
 
   setDisplay(item) {
@@ -209,6 +227,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           user: this._global.user.username,
           value: adjustment
         });
+        this.loadInvoice();
       },
       error => {
         this._global.publishAlert(AlertType.Danger, "Error updating to DB");
@@ -216,6 +235,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     );
 
     this.adjustmentModal.hide();
+
+    // because invoiceViewer is onPush, we need to refresh
   }
 
   resolve(log) {

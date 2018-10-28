@@ -1,6 +1,22 @@
 <h1 class="text-center">qMenu Portal</h1>
 
-<div class="row">
+
+<div class="card-group">
+    <div class="card" *ngIf="isVisible('email')">
+        <div class="card-body">
+            <h5 class="card-title"><i class="far fa-envelope"></i> Check Email</h5>
+            <app-check-email [restaurantList]="restaurantList"></app-check-email>
+        </div>
+    </div>
+    <div class="card" *ngIf="isVisible('template')">
+        <div class="card-body">
+            <h5 class="card-title"><i class="fas fa-globe"></i> Inject Website from Templates</h5>
+            <div class="alert alert-danger">NOT READY YET. DO NOT USE.</div>
+            <app-inject-website [restaurantList]="restaurantList"></app-inject-website>
+        </div>
+    </div>
+</div>
+<!-- <div class="row">
     <div class="col-sm-2">
         <div style="position: relative;">
             <input class="form-control" placeholder="name or phone" [(ngModel)]="searchTerm">
@@ -8,7 +24,7 @@
                 <i class="fas fa-search"></i>
             </div>
         </div>
-        <!-- row has negative margins and we need to remove them! -->
+        
         <div style="max-height: 600px; overflow: auto" class="mt-2">
             <div *ngFor="let restaurant of getFilteredList()" class="card hvr-underline-reveal mb-2 {{selectedRestaurant === restaurant ? 'bg-light' : ''}}"
                 style="cursor: pointer;" (click)="select(restaurant)">
@@ -29,8 +45,7 @@
 
     </div>
 
-</div>
-
+</div> -->
 
 
 <!-- <div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">

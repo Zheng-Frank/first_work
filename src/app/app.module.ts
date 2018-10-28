@@ -26,12 +26,10 @@ import { InvoiceDashboardComponent } from './components/invoices/invoice-dashboa
 import { OrderDashboardComponent } from './components/orders/order-dashboard/order-dashboard.component';
 import { RoleGuard } from './role.guard';
 
-import { GmbInfoComponent } from './components/gmbs/gmb-info/gmb-info.component';
 import { MyLeadsComponent } from './components/leads/my-leads/my-leads.component';
 import { CallLoggerComponent } from './components/leads/call-logger/call-logger.component';
 import { LeadInfoComponent } from './components/leads/lead-info/lead-info.component';
 import { LeadCallLogComponent } from './components/leads/lead-call-log/lead-call-log.component';
-import { GmbDashboardComponent } from './components/gmbs/gmb-dashboard/gmb-dashboard.component';
 import { SyncButtonsComponent } from './components/shared/sync-buttons/sync-buttons.component';
 import { RestaurantCrawlerComponent } from './components/restaurants/restaurant-crawler/restaurant-crawler.component';
 import { RestaurantMenuShufflerComponent } from './components/restaurants/restaurant-menu-shuffler/restaurant-menu-shuffler.component';
@@ -45,10 +43,11 @@ import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-mo
 import { InvoiceOptionEditorComponent } from './components/invoices/invoice-option-editor/invoice-option-editor.component';
 import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
-import { GmbWatchComponent } from './components/gmbs/gmb-watch/gmb-watch.component';
 import { CacheService } from './services/cache.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
+import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
+import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
@@ -73,19 +72,55 @@ import { OptionsEditorComponent } from './components/restaurants/options-editor/
 import { MenuOptionEditorComponent } from './components/restaurants/menu-option-editor/menu-option-editor.component';
 import { SwitchComponent } from './components/restaurants/switch/switch.component';
 import { RadioGroupComponent } from './components/restaurants/radio-group/radio-group.component';
-import { GmbDeleteRestaurantComponent } from './components/gmbs/gmb-delete-restaurant/gmb-delete-restaurant.component';
-import { VerificationCodeRetrieverComponent } from './components/gmbs/verification-code-retriever/verification-code-retriever.component';
-import { GmbRequestOwnershipComponent } from './components/gmbs/gmb-request-ownership/gmb-request-ownership.component';
-import { GmbEditorComponent } from './components/gmbs/gmb-editor/gmb-editor.component';
 import { MenuItemsEditorComponent } from './components/restaurants/menu-items-editor/menu-items-editor.component';
-import { GmbCardComponent } from './components/gmbs/gmb-card/gmb-card.component';
-import { BusinessEditorComponent } from './components/gmbs/business-editor/business-editor.component';
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
-import { PaymentMeansEditorComponent } from './components/payments/payment-means-editor/payment-means-editor.component';
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
+import { TaskListComponent } from './components/tasks/task-list/task-list.component';
+import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
+import { TaskGenericHandlerComponent } from './components/tasks/task-generic-handler/task-generic-handler.component';
+import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
+import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
+import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
+import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.component';
+import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor/gmb-account-editor.component';
+import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
+import { GmbBizEditorComponent } from './components/gmbs2/gmb-biz-editor/gmb-biz-editor.component';
+import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
+import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { EmailCodeReaderComponent } from './components/gmbs2/email-code-reader/email-code-reader.component';
+import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/task-gmb-transfer.component';
+import { GmbService } from './services/gmb.service';
+import { TaskService } from './services/task.service';
+import { TaskGmbApplyComponent } from './components/tasks/task-gmb-apply/task-gmb-apply.component';
+import { GmbAccountHotlinkComponent } from './components/gmbs2/gmb-account-hotlink/gmb-account-hotlink.component';
+import { TaskGeneratorComponent } from './components/tasks/task-generator/task-generator.component';
+import { SmsSettingsComponent } from './components/system/sms-settings/sms-settings.component';
+import { FaxSettingsComponent } from './components/system/fax-settings/fax-settings.component';
+import { TaskGmbAppealSuspendedComponent } from './components/tasks/task-gmb-appeal-suspended/task-gmb-appeal-suspended.component';
+import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor/biz-website-editor.component';
+import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
+import { LogsTableComponent } from './components/logs/logs-table/logs-table.component';
+import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
+import { RestaurantPhoneComponent } from './components/restaurants/restaurant-phone/restaurant-phone.component';
+import { RestaurantPhoneEditorComponent } from './components/restaurants/restaurant-phone-editor/restaurant-phone-editor.component';
+import { OrderActionBarComponent } from './components/restaurants/order-action-bar/order-action-bar.component';
+import { OrderItemsComponent } from './components/restaurants/order-items/order-items.component';
+import { OrderAdjustmentComponent } from './components/restaurants/order-adjustment/order-adjustment.component';
+import { OrderRejectBarComponent } from './components/restaurants/order-reject-bar/order-reject-bar.component';
+import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
+import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
+import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
 
+import { StripeComponent } from './components/invoices/stripe/stripe.component';
+import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
+import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
+import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
+ 
 @NgModule({
   declarations: [
+    appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
     LogsDashboardComponent,
@@ -101,12 +136,10 @@ import { PaymentsDashboardComponent } from './components/payments/payments-dashb
     RestaurantDashboardComponent,
     InvoiceDashboardComponent,
     OrderDashboardComponent,
-    GmbInfoComponent,
     MyLeadsComponent,
     CallLoggerComponent,
     LeadInfoComponent,
     LeadCallLogComponent,
-    GmbDashboardComponent,
     SyncButtonsComponent,
     RestaurantCrawlerComponent,
     RestaurantMenuShufflerComponent,
@@ -119,9 +152,9 @@ import { PaymentsDashboardComponent } from './components/payments/payments-dashb
     InvoiceOptionEditorComponent,
     InvoiceViewerComponent,
     InvoicesTableComponent,
-    GmbWatchComponent,
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
+    RestaurantOrdersComponent,
     RestaurantContactsComponent,
     RestaurantDetailsHostComponent,
     RestaurantRateSchedulesComponent,
@@ -147,29 +180,61 @@ import { PaymentsDashboardComponent } from './components/payments/payments-dashb
     OptionsEditorComponent,
     SwitchComponent,
     RadioGroupComponent,
-    VerificationCodeRetrieverComponent,
-    GmbRequestOwnershipComponent,
-    GmbWatchComponent,
-    GmbInfoComponent,
-    GmbEditorComponent,
-    GmbDeleteRestaurantComponent,
-    GmbCardComponent,
-    BusinessEditorComponent,
-    PaymentMeansEditorComponent,
-    PaymentsDashboardComponent
+    GmbCard2Component,
+    PaymentsDashboardComponent,
+    TaskListComponent,
+    TaskDashboardComponent,
+    TaskGenericHandlerComponent,
+    Gmb2DashboardComponent,
+    GmbAccountListComponent,
+    GmbBizListComponent,
+    GmbAccountEditorComponent,
+    GmbRequestListComponent,
+    GmbBizEditorComponent,
+    TaskActionBarComponent,
+    EmailCodeReaderComponent,
+    TaskGmbTransferComponent,
+    TaskGmbAppealSuspendedComponent,
+    TaskGmbApplyComponent,
+    GmbAccountHotlinkComponent,
+    TaskGeneratorComponent,
+    SmsSettingsComponent,
+    FaxSettingsComponent,
+    BizWebsiteEditorComponent,
+    QuickDatePickerComponent,
+    LogsTableComponent,
+    RestaurantLogsComponent,
+    OrderCardComponent,
+    OrderActionBarComponent,
+    OrderItemsComponent,
+    OrderAdjustmentComponent,
+    OrderRejectBarComponent,
+    BanCustomerComponent,
+    RestaurantPhoneComponent,
+    RestaurantPhoneEditorComponent,
+    RestaurantDeliverySettingsComponent,
+    StripeComponent,
+    CheckEmailComponent,
+    InjectWebsiteComponent,
+    MyRestaurantComponent
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
     HttpModule,
-    UiModule
+    UiModule,
+    OwlDateTimeModule,
+    OwlNativeDateTimeModule
   ],
   providers: [
     GlobalService,
+    GmbService,
     RoleGuard,
     ApiService,
+    TaskService,
     CacheService
   ],
   bootstrap: [RootComponent]

@@ -1,10 +1,6 @@
 import { Component, OnInit, EventEmitter, Output, Input, ViewChild } from '@angular/core';
 import { FormEvent } from '../../../classes/form-event';
-import { ApiService } from "../../../services/api.service";
-import { environment } from "../../../../environments/environment";
-import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
-import { mergeMap } from "rxjs/operators";
+
 import { Restaurant } from '@qmenu/ui';
 import { Log } from '../../../classes/log';
 
@@ -72,7 +68,7 @@ export class LogEditorComponent implements OnInit {
   customerPhone: string;
   relatedOrderIds: string[];
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor() {
 
   }
 

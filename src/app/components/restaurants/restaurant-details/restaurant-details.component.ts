@@ -7,6 +7,7 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from "rxjs";
 import { Invoice } from '../../../classes/invoice';
+declare var $: any;
 
 @Component({
   selector: 'app-restaurant-details',
@@ -15,6 +16,10 @@ import { Invoice } from '../../../classes/invoice';
 })
 export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy {
   restaurant: Restaurant;
+  displayTextReply = false;
+  phoneNumber;
+  message = '';
+  textedPhoneNumber;
   @Input() id;
 
   tabs = [
@@ -22,7 +27,8 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     "Menus",
     "Menu Options",
     "Orders",
-    "Invoices"
+    "Invoices",
+    "Logs"
   ];
   activeTab = 'Settings';
 
@@ -77,7 +83,10 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           deliveryTimeEstimate: 1,
           logo: 1,
           excludeAmex: 1,
+          excludeDiscover: 1,
+          taxBeforePromotion: 1,
           requireZipcode: 1,
+          requireBillingAddress: 1,
           allowScheduling: 1,
           timeZone: 1,
           notification: 1,
@@ -86,27 +95,87 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           stripeSecretKey: 1,
           stripePublishableKey: 1,
           preferredLanguage: 1,
-
           deliveryByTme: 1,
-
+          phones: 1,
           menus: 1,
-          menuOptions: 1
+          menuOptions: 1,
+          notes: 1,
+          logs: 1,
+          deliverySettings: 1,
+          pickupMinimum: 1,
+          taxOnDelivery: 1,
+          blockedCities: 1,
+          blockedZipCodes: 1,
+          deliveryFromTime: 1,
+          deliveryEndMinutesBeforeClosing: 1,
+          offsetToEST: 1,
+          disableScheduling: 1,
+          domain: 1,
+          websiteTemplateName: 1
         },
         limit: 1
       })
         .subscribe(
-          results => {
-            this.restaurant = new Restaurant(results[0]);
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, error);
-          }
+        results => {
+          this.restaurant = new Restaurant(results[0]);
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, error);
+        }
         );
     }
   }
 
   setActiveTab(tab) {
     this.activeTab = tab;
+  }
+
+  isValid() {
+    return this.isPhoneValid(this.phoneNumber);
+  }
+
+  isPhoneValid(text) {
+    if (!text) {
+      return false;
+    }
+
+    let digits = text.replace(/\D/g, '');
+    if (digits) {
+      let phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
+      if (digits.match(phoneRe)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  sendText() {
+    this.textedPhoneNumber = this.phoneNumber;
+
+    this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
+      phoneNumber: this.phoneNumber,
+      message: this.message,
+      source: this.restaurant.id
+    })
+    .subscribe(
+      result => {
+        // let's update original, assuming everything successful
+        this._global.publishAlert(
+          AlertType.Success,
+          "Text Message Sent successfully"
+        );      
+
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
+      }
+    );
+  }
+
+  toggleTextReply() {
+    this.displayTextReply = !this.displayTextReply;
+    // focus on the phone number!
+    setTimeout(() => { $('#profile-phone-number').focus(); }, 500);
   }
 
 
@@ -123,12 +192,14 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     const visibilityRolesMap = {
       profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR'],
       contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR'],
-      rateSchedules: ['ACCOUNTANT'],
+      rateSchedules: ['RATE_EDITOR'],
       paymentMeans: ['ACCOUNTANT', 'CSR'],
       serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR'],
       promotions: ['ADMIN', 'MENU_EDITOR', 'CSR'],
       closedDays: ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR']
+      cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      phones: ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      deliveryeSettings: ['ADMIN', 'MENU_EDITOR', 'CSR']
     }
     const roles = this._global.user.roles || [];
     return visibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
@@ -178,6 +249,5 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
       + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
       + ' ' + address.postal_code;
   }
-
 
 }

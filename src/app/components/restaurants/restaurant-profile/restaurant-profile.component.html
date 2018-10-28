@@ -20,6 +20,13 @@
 							<td class="pl-1">{{restaurant.alias}}</td>
 						</tr>
 						<tr>
+							<th class="text-right">Domain</th>
+							<td class="pl-1">
+								<a *ngIf="restaurant.domain" href="{{ 'http://' + restaurant.domain}}" target="_blank">{{restaurant.domain}} </a>
+								<span *ngIf="!restaurant.domain">N/A</span>
+							</td>
+						</tr>
+						<tr>
 							<th class="text-right">Website Broadcast</th>
 							<td class="pl-1">{{restaurant.notification || 'N/A'}}</td>
 						</tr>
@@ -58,6 +65,10 @@
 							<td class="pl-1">{{!!restaurant.disableScheduling}}</td>
 						</tr>
 						<tr>
+							<th class="text-right">Pickup Minimum</th>
+							<td class="pl-1">{{restaurant.pickupMinimum | money}}</td>
+						</tr>
+						<tr>
 							<th class="text-right">Preferred Language</th>
 							<td class="pl-1">{{restaurant.preferredLanguage}}</td>
 						</tr>
@@ -74,6 +85,12 @@
 			<div *qIf="editing">
 				<table class="table table-borderless table-sm">
 					<tbody>
+						<tr>
+							<th class="text-right" style="width: 33%">Domain</th>
+							<td class="pl-1">
+								<input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
+							</td>
+						</tr>
 						<tr>
 							<th class="text-right" style="width: 33%">Website Broadcast</th>
 							<td class="pl-1">
@@ -139,6 +156,12 @@
 								</td>
 							</tr>
 							<tr>
+								<th class="text-right">Pickup Minimum</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="pickupMinimum" class="form-control">
+								</td>
+							</tr>
+							<tr>
 								<th class="text-right">Order Call Language</th>
 								<td class="pl-1">
 									<select class="form-control" [(ngModel)]="preferredLanguage">
@@ -162,34 +185,32 @@
 								<th class="text-right">Logo</th>
 								<td class="pl-1">
 									<hr>
-									<div *ngIf="logo" style="display:inline-block; position:relative">
-										<img class="img-thumbnail" src="{{logo}}">
-										<button (click)="deleteLogo(img)" class="btn btn-secondary" style="position:absolute; top:0.4rem; right:0.4rem; opacity:0.7"><i class="fas fa-times"></i></button>
-										<button (click)="deleteLogo(img)" class="btn btn-link text-danger" style="position:absolute; top:0.4rem; right:0.4rem">
-											<i class="fas fa-times"></i>
-										</button>
+									<div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
+										<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
+										<button (click)="deleteLogo(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+										<button (click)="deleteLogo(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
 									</div>
 									<div *ngIf="uploadLogoError">
-										<span class="text-danger">{{uploadError}}</span>
+										<span class="text-danger">{{uploadLogoError}}</span>
 									</div>
 									<div class="app-limit-file">
-										<input type="file" (change)="onUpload($event, 'LOGO')" />
+										<input type="file" (change)="onUploadLogo($event)" />
 									</div>
 								</td>
 							</tr>
 							<tr>
 								<th class="text-right">Photos</th>
 								<td class="pl-1">
-									<div *ngFor="let img of images"  style="display:inline-block; position:relative">
-										<img class="img-thumbnail" src="{{img}}">
-										<button (click)="deleteImage(img)" class="btn btn-secondary" style="position:absolute; top:0.4rem; right:0.4rem; opacity:0.7"><i class="fas fa-times"></i></button>
-										<button (click)="deleteImage(img)" class="btn btn-link text-danger" style="position:absolute; top:0.4rem; right:0.4rem"><i class="fas fa-times"></i></button>
+									<div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
+										<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
+										<button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+										<button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
 									</div>
 									<div *ngIf="uploadImageError">
-										<span class="text-danger">{{uploadError}}</span>
+										<span class="text-danger">{{uploadImageError}}</span>
 									</div>
 									<div class="app-limit-file">
-										<input type="file" (change)="onUpload($event, 'IMAGE')" />
+										<input type="file" (change)="onUploadImage($event)" />
 									</div>
 									<div>
 										<small class="text-warning">Image may take time to show</small>

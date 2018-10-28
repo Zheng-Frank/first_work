@@ -1,0 +1,30 @@
+<h2 class="text-center">GMB: Accounts</h2>
+<div class="clearfix my-2">
+  <div class="float-left form-inline">
+    Account Filter:
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email..." [(ngModel)]="searchFilter">
+
+  </div>
+  <div class="float-right">
+
+    <button class="btn btn-primary" (click)="addNew()">
+      <i class="fas fa-plus"></i> Add GMB Account</button>
+    <button class="btn btn-primary" (click)="scanAllPublishedLocations()" [qLoading]="scanningAll">
+      <i class="fas fa-sync"></i> Scan All Published</button>
+    <button class="btn btn-primary" (click)="scanAllEmails()" [qLoading]="scanningAll">
+      <i class="fas fa-sync"></i> Scan All Emails</button>
+      <button class="btn btn-primary" (click)="test()">TEST</button>
+  </div>
+</div>
+<div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
+  <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)" (scanRequests)="scanRequests($event)"
+    (scanBizList)="scanBizList($event)"></app-gmb-card2>
+</div>
+
+<!--the editing modal-->
+<q-modal #gmbEditingModal>
+  <h4 class="text-center">{{gmbInEditing && gmbInEditing._id ? 'Update' : 'Add New'}}</h4>
+  <hr>
+  <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)" (cancel)="cancel()"></app-gmb-account-editor>
+  <div class="text-danger">{{apiError}}</div>
+</q-modal>

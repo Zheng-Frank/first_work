@@ -28,6 +28,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   excludeAmex = false;
   excludeDiscover = false;
   requireZipcode = false;
+  requireBillingAddress = false;
+  taxBeforePromotion =false;
 
   stripePublishableKey;
   stripeSecretKey;
@@ -54,18 +56,36 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   ngOnInit() {
   }
 
+  isServiceEnabled(service) {
+    return service && service.paymentMethods && service.paymentMethods.length > 0;
+  }
+
+  toggleService(service) {
+    if (this.isServiceEnabled(service)) {
+      // toggle off: save current to backup, reset paymentMethods
+      service.paymentMethodsBackup = service.paymentMethods;
+      service.paymentMethods = [];
+    } else {
+      // turn on: retrieve
+      service.paymentMethods = service.paymentMethodsBackup || [];
+      service.paymentMethodsBackup = undefined;
+    }
+  }
+
   toggleEditing() {
     this.editing = !this.editing;
     this.excludeAmex = this.restaurant.excludeAmex;
     this.excludeDiscover = this.restaurant.excludeDiscover;
+    this.taxBeforePromotion = this.restaurant.taxBeforePromotion;
     this.requireZipcode = this.restaurant.requireZipcode;
+    this.requireBillingAddress= this.restaurant.requireBillingAddress;
     this.stripePublishableKey = this.restaurant.stripePublishableKey;
     this.stripeSecretKey = this.restaurant.stripeSecretKey;
 
     this.serviceSettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.serviceSettings || []));
     // make sure it has all service types
     this.serviceTypes.map(st => {
-      if (!this.serviceSettingsInEditing.some(serviceSetting => serviceSetting.name === st)) {
+      if (!this.serviceSettingsInEditing.some(serviceSetting => (serviceSetting.name? serviceSetting.name: '') === st)) {
         this.serviceSettingsInEditing.push({ name: st, paymentMethods: [] });
       }
     });
@@ -98,12 +118,13 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     const oldR = JSON.parse(JSON.stringify(this.restaurant));
     const newR = JSON.parse(JSON.stringify(this.restaurant));
 
-    newR.serviceSettings = this.serviceSettingsInEditing.filter(service => service.paymentMethods.length > 0);
+    newR.serviceSettings = this.serviceSettingsInEditing;
     newR.excludeAmex = this.excludeAmex;
     newR.excludeDiscover = this.excludeDiscover;
+    newR.taxBeforePromotion = this.taxBeforePromotion;
     newR.requireZipcode = this.requireZipcode;
+    newR.requireBillingAddress = this.requireBillingAddress;
     newR.stripePublishableKey = this.stripePublishableKey;
-    newR.stripeSecretKey = this.stripeSecretKey;
 
 
     this._api
@@ -120,10 +141,11 @@ export class RestaurantServiceSettingsComponent implements OnInit {
             "Updated successfully"
           );
           
-          this.restaurant.serviceSettings = this.serviceSettingsInEditing.filter(service => service.paymentMethods.length > 0);
+          this.restaurant.serviceSettings = this.serviceSettingsInEditing;
           this.restaurant.excludeAmex = this.excludeAmex;
           this.restaurant.excludeDiscover = this.excludeDiscover;
           this.restaurant.requireZipcode = this.requireZipcode;
+          this.restaurant.requireBillingAddress = this.requireBillingAddress;
           this.restaurant.stripePublishableKey = this.stripePublishableKey;
           this.restaurant.stripeSecretKey = this.stripeSecretKey;
 
@@ -148,6 +170,15 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   toggleZipcode() {
     this.requireZipcode = !this.requireZipcode;
   }
+
+  toggleBillingAddress() {
+    this.requireBillingAddress = !this.requireBillingAddress;
+  }
+
+  toggleTaxBeforePromotion() {
+    this.taxBeforePromotion = !this.taxBeforePromotion;
+  }
+
 
   shouldShowStripeInput() {
     return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'STRIPE'));

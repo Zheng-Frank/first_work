@@ -1,0 +1,22 @@
+<h5 *ngIf="phone" class="text-center mb-1">
+    {{phone.id ? phone.phoneNumber : 'Add New Phone'}}</h5>
+<label>Number:</label>
+<div class="{{!isPhoneValid() ? 'invalid' : ''}}">
+    <input *ngIf="phone" type="tel" class="form-control" [(ngModel)]="phone.phoneNumber">
+</div>
+
+<label class="mt-1">Type:</label>
+<q-selector #typeSelector [values]="['Mobile', 'Business']"></q-selector>
+<label class="mt-1">Incoming Orders Notification:</label>
+<q-selector #notificationSelector [values]="['Call', 'Text', 'Fax']" [maxSelectCount]="3"></q-selector>
+
+<div class="mt-1 text-right">
+    <button *ngIf="phone && phone.id" class="btn btn-link text-danger" (click)="remove()">Delete</button>
+    <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+    <button class="btn btn-primary" (click)="done()" [disabled]="!isPhoneValid()">OK</button>
+</div>
+<!--<div *ngIf="codeSent" class="app-row mt-1">
+    <app-validation-box #validationBox [validationTextLength]="3" [type]="'tel'" [focusOnEnter]="true" [placeholderText]="'enter code received from your phone'" (onTextSet)="setText($event)">
+    </app-validation-box>
+    {{textReceived}}
+</div>-->

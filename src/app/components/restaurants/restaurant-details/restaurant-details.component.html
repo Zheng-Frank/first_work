@@ -13,6 +13,22 @@
     </q-banner>
   </div>
 
+  <div class="p-t-1 pt-1 p-b-1 pb-1">
+		<button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
+  </div>
+  
+  
+	<div *qIf="displayTextReply">
+
+		<textarea rows="4" class="form-control mt-1" type="text" [(ngModel)]="message"></textarea>
+		<div class="form-group {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}}">
+			<input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control mt-1" placeholder="customer phone #">
+		</div>
+		<button (click)="sendText()" [disabled]="!isValid()" class="btn btn-primary btn-block mt-1">Send</button>
+		<div class="mt-1 alert-success" *ngIf="textedPhoneNumber"><small>Text was sent to {{textedPhoneNumber}}. Thank you!</small></div>
+		<hr>
+  </div>
+
   <div class="card">
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs">
@@ -34,32 +50,51 @@
       <div *ngIf="activeTab === 'Invoices'">
         <app-restaurant-invoices [restaurant]="restaurant"></app-restaurant-invoices>
       </div>
-
+      <div *ngIf="activeTab === 'Orders'">
+        <app-restaurant-orders [restaurant]="restaurant"></app-restaurant-orders>
+      </div>
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
         <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
           <app-restaurant-profile [restaurant]="restaurant"></app-restaurant-profile>
         </div>
+
+        <div class="col-xl-6" *ngIf="isSectionVisible('serviceSettings')">
+          <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
+        </div>
+
+        <div class="col-xl-6" *ngIf="isSectionVisible('deliveryeSettings')">
+          <app-restaurant-delivery-settings [restaurant]="restaurant"></app-restaurant-delivery-settings>
+        </div>
+
+        <div class="col-xl-6" *ngIf="isSectionVisible('phones')">
+          <app-restaurant-phone [restaurant]="restaurant"></app-restaurant-phone>
+        </div>
+
+        <div class="col-xl-6" *ngIf="isSectionVisible('promotions')">
+          <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
+        </div>
+
+        <div class="col-xl-6" *ngIf="isSectionVisible('closedDays')">
+          <app-restaurant-closed-days [restaurant]="restaurant"></app-restaurant-closed-days>
+        </div>
+
+        <div class="col-xl-6" *ngIf="isSectionVisible('cloudPrinting')">
+          <app-restaurant-cloud-printing [restaurant]="restaurant"></app-restaurant-cloud-printing>
+        </div>
+
         <div class="col-xl-6" *ngIf="isSectionVisible('contacts')">
           <app-restaurant-contacts [restaurant]="restaurant"></app-restaurant-contacts>
         </div>
+
         <div class="col-xl-6" *ngIf="isSectionVisible('paymentMeans')">
           <app-restaurant-payment-means [restaurant]="restaurant"></app-restaurant-payment-means>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('rateSchedules')">
           <app-restaurant-rate-schedules [restaurant]="restaurant"></app-restaurant-rate-schedules>
         </div>
-        <div class="col-xl-6" *ngIf="isSectionVisible('serviceSettings')">
-          <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
-        </div>
-        <div class="col-xl-6" *ngIf="isSectionVisible('closedDays')">
-          <app-restaurant-closed-days [restaurant]="restaurant"></app-restaurant-closed-days>
-        </div>
-        <div class="col-xl-6" *ngIf="isSectionVisible('promotions')">
-          <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
-        </div>
-        <div class="col-xl-6" *ngIf="isSectionVisible('cloudPrinting')">
-          <app-restaurant-cloud-printing [restaurant]="restaurant"></app-restaurant-cloud-printing>
-        </div>
+      </div>
+      <div *ngIf="activeTab === 'Logs'">
+        <app-restaurant-logs [restaurant]="restaurant"></app-restaurant-logs>
       </div>
     </div>
   </div>

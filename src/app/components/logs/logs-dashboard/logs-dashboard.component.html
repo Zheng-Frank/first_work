@@ -52,13 +52,13 @@
                 <div class="text-nowrap">{{rl.log.callerPhone | tel}}</div>
             </td>
             <td>{{rl.log.relatedOrders}}</td>
-            <td>{{rl.log.problem}}</td>
-            <td>{{rl.log.response}}</td>
+            <td style="white-space: pre-wrap">{{rl.log.problem}}</td>
+            <td style="white-space: pre-wrap">{{rl.log.response}}</td>
         </tr>
     </tbody>
 </table>
 
-<!--the eidting modal-->
+<!--the editing modal-->
 <q-modal #logEditingModal>
     <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing" (success)="onSuccessCreation($event)"
         (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
