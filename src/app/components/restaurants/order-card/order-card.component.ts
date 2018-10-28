@@ -2,7 +2,9 @@ import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angu
 import { Order, Payment, CreditCard, Customer, Restaurant }  from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ApiService } from '../../../services/api.service';
+import { GlobalService } from "../../../services/global.service";
 import { environment } from "../../../../environments/environment";
+import { AlertType } from '../../../classes/alert-type';
 declare var $: any;
 @Component({
   selector: 'app-order-card',
@@ -25,9 +27,11 @@ export class OrderCardComponent implements OnInit {
   confirmAction;
   confirmTitle;
   confirmBodyText;
+  phoneNumberToText;
+  showTexting:boolean=false;
 
 
-  constructor(private _api: ApiService) {
+  constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   ngOnInit() {
@@ -65,6 +69,10 @@ export class OrderCardComponent implements OnInit {
     // 1000 * 3600 * 24 * 10, 10 days
     //return true;
     return order.payment.paymentType === 'CREDITCARD';
+  }
+
+  canSendEmail(order: Order){
+    return  this.restaurant && this.restaurant.email; 
   }
 
   canCancel(order: Order) {
@@ -108,6 +116,44 @@ export class OrderCardComponent implements OnInit {
     this.confirmModal.show();
   }
 
+  setTexting(){
+    this.showTexting=!this.showTexting;
+  }
+
+  sendText(){
+    this._api.post(environment.legacyApiUrl + 'utilities/sendOrderSMS', { orderId: this.order.id, orderNumber: this.order.orderNumber, phones: this.phoneNumberToText.split()})
+    .subscribe(
+        d => {
+          this._global.publishAlert(
+            AlertType.Success,
+            "SMS successfully"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Failed to send text");
+        }
+      );
+  }
+
+  isPhoneValid() {
+    return this.phoneNumberToText  && this.phoneNumberToText.match(/^[2-9]\d{2}[2-9]\d{2}\d{4}$/);
+  }
+
+  sendEmail(){
+    this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: this.restaurant.email, orderId: this.order.id, orderNumber: this.order.orderNumber})
+    .subscribe(
+        d => {
+          this._global.publishAlert(
+            AlertType.Success,
+            "Email successfully"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Failed to send email");
+        }
+      );
+  }
+
   confirm() {
     switch (this.confirmAction) {
       case 'PRINT':
@@ -116,8 +162,8 @@ export class OrderCardComponent implements OnInit {
           d => {
             //console.log(d);
           },
-          e => {
-            console.log(e);
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Failed to Print");
           }
         );
         break;
@@ -127,8 +173,8 @@ export class OrderCardComponent implements OnInit {
           d => {
             //console.log(d);
           },
-          e => {
-            console.log(e);
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Failed to fax");
           }
         );
         break;
