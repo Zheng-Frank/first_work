@@ -224,6 +224,7 @@ export class AutomationDashboardComponent implements OnInit {
         if (shouldApplyList.length > 0) {
           this.addRunningMessage('add new gmb task, ' + shouldApplyList.map(biz => biz.name).join(', '));
           await this.createApplyTasks(shouldApplyList);
+          this.executedTasks++;
         }
 
       } catch (error) {
