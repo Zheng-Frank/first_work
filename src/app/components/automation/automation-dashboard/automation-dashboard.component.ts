@@ -75,9 +75,9 @@ export class AutomationDashboardComponent implements OnInit {
           if (!this.startTime) {
             break;
           }
-          if (gmbAccount.email !== '2redpassion8797@gmail.com') {
-            continue;
-          }
+          // if (gmbAccount.email !== '2redpassion8797@gmail.com') {
+          //   continue;
+          // }
           try {
             // 1. scan gmb locations
             this.addRunningMessage(`scan: ${gmbAccount.email}`);
@@ -208,7 +208,7 @@ export class AutomationDashboardComponent implements OnInit {
         const outstandingApplyTasks = await this._api.get(environment.adminApiUrl + 'generic', {
           resource: "task",
           query: {
-            //name: 'Apply GMB Ownership',
+            name: 'Apply GMB Ownership',
             result: null
           },
           projection: {
@@ -221,10 +221,10 @@ export class AutomationDashboardComponent implements OnInit {
         const shouldApplyList = notOwnedList.filter(biz => !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id));
 
         console.log('should apply gmb', shouldApplyList);
-        // if (shouldApplyList.length > 0) {
-        //   this.addRunningMessage('add new gmb task, ' + shouldApplyList.map(biz => biz.name).join(', '));
-        //   await this.createApplyTasks(shouldApplyList);
-        // }
+        if (shouldApplyList.length > 0) {
+          this.addRunningMessage('add new gmb task, ' + shouldApplyList.map(biz => biz.name).join(', '));
+          await this.createApplyTasks(shouldApplyList);
+        }
 
       } catch (error) {
         console.log(error);
