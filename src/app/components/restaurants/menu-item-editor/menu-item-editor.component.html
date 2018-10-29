@@ -100,7 +100,7 @@
     <hr>
 
     <!--price-->
-    <div class="form-group">
+    <div *ngIf="!mi.id" class="form-group">
       <label>Pricing:</label>
       <app-options-editor [options]="mi.sizeOptions" [priceRequired]="true" [itemPlaceHolderString]="'size'" [pricePlaceHolderString]="'price'"
         [suggestions]="sizeNames">

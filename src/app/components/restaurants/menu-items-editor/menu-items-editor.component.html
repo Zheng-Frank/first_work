@@ -21,6 +21,9 @@
           Pricing
         </th>
         <th>
+          Spicy
+        </th>
+        <th>
           No Special Instructions
         </th>
       </tr>
@@ -28,10 +31,10 @@
     <tbody>
       <tr *ngFor="let mi of mc.mis">
         <td>
-          <input type="number" [(ngModel)]="mi.sortOrder" class="form-control app-input-xs">
+          <input type="number" [(ngModel)]="mi.sortOrder" class="form-control app-input-sm">
         </td>
         <td>
-          <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-sm">
+          <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-md">
         </td>
         <td>
           <input type="text" [(ngModel)]="mi.name" class="form-control app-input-100" placeholder="name">
@@ -41,9 +44,12 @@
         </td>
         <td>
           <div *ngFor="let option of mi.sizeOptions">
-            <input type="text" [(ngModel)]="option.name" class="form-control app-input-sm" placeholder="size">
-            <input type="number" [(ngModel)]="option.price" class="form-control app-input-sm" placeholder="$">
+            <input type="text" [(ngModel)]="option.name" class="form-control app-input-md" placeholder="size">
+            <input type="number" [(ngModel)]="option.price" class="form-control app-input-md" placeholder="$">
           </div>
+        </td>
+        <td>
+          <label><input type="checkbox" [checked]="isSpicy(mi)" (change)="setSpicy(mi)"> Spicy</label>
         </td>
         <td>
           <input type="checkbox" [(ngModel)]="mi.nonCustomizable">

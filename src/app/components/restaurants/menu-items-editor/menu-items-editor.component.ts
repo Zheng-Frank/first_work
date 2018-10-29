@@ -38,8 +38,8 @@ export class MenuItemsEditorComponent implements OnInit {
     });
 
     let baseId = new Date().valueOf() + '';
-    // add 10 extra empty items
-    for (let i = 0; i < 10; i++) {
+    // add 20 extra empty items
+    for (let i = 0; i < 20; i++) {
       const mi = new Mi();
       mi.category = mc.id;
       mi.id = baseId + i.toString();
@@ -57,6 +57,15 @@ export class MenuItemsEditorComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  isSpicy(mi){
+    return mi.flavors && mi.flavors['Spicy'];
+  }
+
+  setSpicy(mi) {
+    mi.flavors = mi.flavors || {};
+    mi.flavors['Spicy'] = (this.isSpicy(mi) ? undefined: 1);
   }
 
   ok() {

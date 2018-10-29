@@ -1,10 +1,28 @@
 import { environment } from '../../environments/environment';
+import { ApiService } from '../services/api.service';
 declare var AWS: any;
 
 export class Helper {
 
     static awsAccessKeyId;
     static awsSecretAccessKey;
+
+    constructor(private _api: ApiService) {
+        this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "key",
+            projection: {
+              awsAccessKeyId: 1,
+              awsSecretAccessKey: 1
+            },
+            limit: 1
+          })
+            .subscribe(keys => {
+                Helper.awsAccessKeyId=keys[0].awsAccessKeyId;
+                Helper.awsSecretAccessKey=keys[0].awsSecretAccessKey;
+
+            });
+    }
+
     static uploadImage(files: File[], callback) {
         if(!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
             callback('Missing AWS kyes. Contact qMenu.', null);
@@ -14,7 +32,6 @@ export class Helper {
         } else if (files && files.length > 0 && files[0].size > 10000000) {
             callback('The image size exceeds 10M.', null);
         } else {
-
             AWS.config.accessKeyId = Helper.awsAccessKeyId;
             AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
 
