@@ -25,6 +25,7 @@ export class RestaurantProfileComponent implements OnInit {
     'pickupTimeEstimate',
     'deliveryTimeEstimate',
     'logo',
+    'restaurantId',
     'images',
     'stripeSecretKey',
     'stripePublishableKey',

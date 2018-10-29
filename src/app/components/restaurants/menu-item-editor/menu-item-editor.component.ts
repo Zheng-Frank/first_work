@@ -3,6 +3,7 @@ import { Mi, Item, MenuOption } from '@qmenu/ui';
 import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { Router, NavigationStart } from '@angular/router';
+import { ApiService } from "../../../services/api.service";
 
 declare var $: any;
 @Component({
@@ -36,7 +37,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     showDetails = false;
     searchText = null;
 
-    constructor(private _router: Router) {
+    constructor(private _router: Router, private _api: ApiService) {
 
     }
     ngOnInit() {
@@ -113,14 +114,14 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.mi.imageObjs.splice(this.mi.imageObjs.indexOf(img), 1);
     }
 
-    onUploadImageChange(event) {
+    async onUploadImageChange(event) {
         this.uploadImageError = undefined;
         let files = event.target.files;
-        Helper.uploadImage(files, (err, data) => {
-            this.mi.imageObjs = this.mi.imageObjs || [];
-            if (err) {
-                this.uploadImageError = err;
-            } else if (data && data.Location) {
+        try {
+            const data: any = await Helper.uploadImage2(files, this._api);
+
+            if (data && data.Location) {
+                this.mi.imageObjs = this.mi.imageObjs || [];
                 // infer 3 Urls
                 this.mi.imageObjs.push({
                     originalUrl: data.Location,
@@ -129,7 +130,11 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
                     origin: 'USER'
                 });
             }
-        });
+        }
+        catch (err) {
+            this.uploadImageError = err;
+        }
+
     }
 
     toggleFlavors() {
