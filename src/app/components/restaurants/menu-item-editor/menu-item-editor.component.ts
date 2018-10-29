@@ -3,6 +3,8 @@ import { Mi, Item, MenuOption } from '@qmenu/ui';
 import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { Router, NavigationStart } from '@angular/router';
+import { ApiService } from '../../../services/api.service';
+import { environment } from "../../../../environments/environment";
 
 declare var $: any;
 @Component({
@@ -36,7 +38,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     showDetails = false;
     searchText = null;
 
-    constructor(private _router: Router) {
+    constructor(private _router: Router, private _api: ApiService) {
 
     }
     ngOnInit() {
@@ -116,6 +118,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     onUploadImageChange(event) {
         this.uploadImageError = undefined;
         let files = event.target.files;
+
         Helper.uploadImage(files, (err, data) => {
             this.mi.imageObjs = this.mi.imageObjs || [];
             if (err) {
@@ -130,6 +133,9 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
                 });
             }
         });
+
+
+
     }
 
     toggleFlavors() {
@@ -187,10 +193,12 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         // get or remove flavors!
         if (this.mi.flavors) {
             [this.spicySelector, this.sweetSelector, this.sourSelector].forEach(selector => {
-                if (selector.getFirstSelectedValue()) {
-                    this.mi.flavors[selector.name] = selector.getFirstSelectedValue();
-                } else {
-                    delete this.mi.flavors[selector.name];
+                if (selector) {
+                    if (selector.getFirstSelectedValue()) {
+                        this.mi.flavors[selector.name] = selector.getFirstSelectedValue();
+                    } else {
+                        delete this.mi.flavors[selector.name];
+                    }
                 }
             });
         }

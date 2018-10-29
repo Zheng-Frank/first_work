@@ -33,6 +33,7 @@ export class HomeComponent implements OnInit {
           logo: 1,
           phones: 1,
           disabled: 1,
+          restaurantId: 1,
           domain: 1,
           websiteTemplateName: 1,
           googleAddress: 1
@@ -67,6 +68,8 @@ export class HomeComponent implements OnInit {
       const restaurant = this.restaurantList[i];
       if (!this.searchTerm) {
         results.push(restaurant);
+      }else{
+        this.searchTerm=this.searchTerm.replace(/[^a-zA-Z 0-9]+/g,"");
       }
     }
 
@@ -87,6 +90,13 @@ export class HomeComponent implements OnInit {
     for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
       const restaurant = this.restaurantList[i];
       if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.name.toLowerCase().indexOf(this.searchTerm.toLocaleLowerCase()) >= 0)) {
+        results.push(restaurant);
+      }
+    }
+
+    for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
+      const restaurant = this.restaurantList[i];
+      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.restaurantId==this.searchTerm)) {
         results.push(restaurant);
       }
     }

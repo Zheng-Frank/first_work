@@ -22,6 +22,7 @@ export class RestaurantDashboardComponent implements OnInit {
 
   phoneFilter: string;
   nameFilter: string;
+  restaurantIdFilter: string;
   restaurantList = [];
 
   newRestaurant = {
@@ -38,9 +39,9 @@ export class RestaurantDashboardComponent implements OnInit {
         name: 1,
         alias: 1,
         logo: 1,
-        "phones.phoneNumber": 1,
-        disabled: 1,
-        'googleAddress.formatted_address': 1
+        restaurantId:1,
+        phones: 1,
+        disabled: 1
       },
       limit: 6000
     })
@@ -138,6 +139,7 @@ export class RestaurantDashboardComponent implements OnInit {
       this.phoneFilter=this.phoneFilter.replace(/\D/g,"");
     }
     return (!this.nameFilter || (restaurant.name || '').toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0) &&
+    (!this.restaurantIdFilter || this.restaurantIdFilter==restaurant.restaurantId) &&
       (!this.phoneFilter || (restaurant.phones || []).some(p => (p.phoneNumber || '').indexOf(this.phoneFilter) >= 0));
   }
 

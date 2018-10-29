@@ -1,0 +1,16 @@
+.app-input-xs {
+    width: 3rem;
+}
+.app-input-sm {
+    width: 5rem;
+}
+.app-input-md {
+    width: 10rem;
+}
+.app-input-100 {
+    width: 100%;
+}
+
+.form-control{
+    display: initial !important;
+}
