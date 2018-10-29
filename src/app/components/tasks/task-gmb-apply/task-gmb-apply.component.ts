@@ -833,9 +833,9 @@ async handleUpdate(name, timestampVariableName, loadingVariableName) {
   }
   
   isTaskExpired() {
-    const days30 = 30 * 24 * 3600 * 1000;
+    const days60 = 30 * 24 * 3600 * 1000;
     if (this.task.transfer.appealedAt) {
-      return this.now.valueOf() - this.task.transfer.appealedAt.valueOf() >= days30;
+      return this.now.valueOf() - this.task.transfer.appealedAt.valueOf() >= days60;
     }
 
     return false;

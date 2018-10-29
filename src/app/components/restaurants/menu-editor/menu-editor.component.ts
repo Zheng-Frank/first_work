@@ -3,6 +3,8 @@ import { Menu, Hour } from '@qmenu/ui';
 import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
+import { ApiService } from '../../../services/api.service';
+import { environment } from "../../../../environments/environment";
 
 @Component({
   selector: 'app-menu-editor',
@@ -23,7 +25,7 @@ export class MenuEditorComponent implements OnInit {
 
   uploadImageError: string;
 
-  constructor() { }
+  constructor(private _api: ApiService) { }
 
   ngOnInit() {
   }
@@ -104,12 +106,25 @@ export class MenuEditorComponent implements OnInit {
   onUploadImageChange(event) {
     this.uploadImageError = undefined;
     let files = event.target.files;
-    Helper.uploadImage(files, (err, data) => {
-      if (err) {
-        this.uploadImageError = err;
-      } else if (data && data.Location) {
-        this.menu.backgroundImageUrl = data.Location;
-      }
-    });
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "key",
+      projection: {
+        awsAccessKeyId: 1,
+        awsSecretAccessKey: 1
+      },
+      limit: 1
+    })
+      .subscribe(keys => {
+        console.log('keys', keys);
+        Helper.uploadImage(files, (err, data) => {
+          if (err) {
+            this.uploadImageError = err;
+          } else if (data && data.Location) {
+            this.menu.backgroundImageUrl = data.Location;
+          }
+        });
+      });
+
+
   }
 }

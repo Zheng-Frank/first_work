@@ -1,0 +1,15 @@
+<h2 class="text-center">Forever Running Scripts<br><small>Require auto-gmb</small></h2>
+
+<button class="btn btn-success" *ngIf="!startTime" (click)="start()"><i class="fas fa-play"></i> Start</button>
+<button class="btn btn-danger" *ngIf="startTime" (click)="stop()"><i class="fas fa-stop"></i> Stop</button>
+<span *ngIf="startTime">Started: {{startTime | ago: now}} </span>
+<div class="py-4">
+  <p>Scanned Accounts: {{scannedAccounts}} </p>
+  <p>Executed Tasks: {{executedTasks}} </p>
+  <div class="alert alert-danger" role="alert">
+    <div *ngFor="let message of errorMessages">{{message}}</div>
+  </div>
+  <div class="alert alert-secondary" role="alert">
+    <div *ngFor="let message of runningMessages">{{message}}</div>
+  </div>
+</div>

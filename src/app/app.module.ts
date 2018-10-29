@@ -72,6 +72,7 @@ import { OptionsEditorComponent } from './components/restaurants/options-editor/
 import { MenuOptionEditorComponent } from './components/restaurants/menu-option-editor/menu-option-editor.component';
 import { SwitchComponent } from './components/restaurants/switch/switch.component';
 import { RadioGroupComponent } from './components/restaurants/radio-group/radio-group.component';
+import { MenuItemsEditorComponent } from './components/restaurants/menu-items-editor/menu-items-editor.component';
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { TaskListComponent } from './components/tasks/task-list/task-list.component';
@@ -116,6 +117,7 @@ import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
 import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
 import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
+import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
  
 @NgModule({
   declarations: [
@@ -175,6 +177,7 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
     MenuOptionViewerComponent,
     MenuOptionsComponent,
     MenusComponent,
+    MenuItemsEditorComponent,
     OptionsEditorComponent,
     SwitchComponent,
     RadioGroupComponent,
@@ -214,7 +217,8 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
     StripeComponent,
     CheckEmailComponent,
     InjectWebsiteComponent,
-    MyRestaurantComponent
+    MyRestaurantComponent,
+    AutomationDashboardComponent
   ],
   imports: [
     BrowserModule,

@@ -268,10 +268,19 @@ export class GmbBizListComponent implements OnInit {
       case 'non-exist':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => !this.bizTaskMap[b.gmbBiz._id] || this.bizTaskMap[b.gmbBiz._id].length === 0);
         break;
+      case 'appeal':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].some(task => task === 'Appeal Suspended GMB'));
+        break;
+      case 'apply':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].some(task => task === 'Apply GMB Ownership'));
+        break;
+      case 'transfer':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].some(task => task === 'Transfer GMB Ownership'));
+  
+        break;
       default:
         break;
     }
-
 
     console.log('filter time: ', new Date().valueOf() - start.valueOf());
 

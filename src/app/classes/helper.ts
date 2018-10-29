@@ -1,13 +1,11 @@
 import { environment } from '../../environments/environment';
-import { ApiService } from 'src/app/services/api.service';
-
+import { ApiService } from '../services/api.service';
 declare var AWS: any;
 
 export class Helper {
 
     static awsAccessKeyId;
     static awsSecretAccessKey;
-
 
     static uploadImage(files: File[], callback) {
         if(!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
@@ -18,7 +16,6 @@ export class Helper {
         } else if (files && files.length > 0 && files[0].size > 10000000) {
             callback('The image size exceeds 10M.', null);
         } else {
-
             AWS.config.accessKeyId = Helper.awsAccessKeyId;
             AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
 

@@ -30,6 +30,13 @@ export class GmbService {
     const scanResult = await this._api.post(environment.autoGmbUrl + 'retrieveGmbLocations', { email: gmbAccount.email, password: password }).toPromise();
     const locations = scanResult.locations;
 
+    // 10/28/2018 Treating Pending edits as Published!
+    locations.map(loc => {
+      if (loc.status === 'Pending edits') {
+        loc.status = 'Published';
+      }
+    });
+
     console.log(locations)
     // pre-process:
     // order: 'Published' > 'Suspended' > 'Pending verification' > 'Verification required' > 'Duplicate'
@@ -153,7 +160,7 @@ export class GmbService {
 
     // Situation: location is Non-duplicate here, address's the same, but NOT same place_id => need to update place_id!
     const appealIdUpdatedBizList = existingGmbBizList.filter(b => {
-      if(b.place_id && b.address) {
+      if (b.place_id && b.address) {
         const loc = placeIdLocationMap[b.place_id] || addressLocationMap[b.address];
         return loc && loc.appealId && loc.appealId !== b.appealId;
       }
@@ -205,7 +212,7 @@ export class GmbService {
           const matchedLocation = placeIdLocationMap[biz.place_id] || addressLocationMap[biz.address];
           const isAppealTaskInvalid = t.name === 'Appeal Suspended GMB' && matchedLocation.status === 'Published';
           const isApplyTaskInvalid = t.name === 'Apply GMB Ownership' && matchedLocation.status === 'Published' && (t.transfer && t.transfer.verificationMethod !== 'Postcard' && !t.transfer.code);
-          const isTransferTaskInvalid = t.name === 'Transfer GMB Ownership' && matchedLocation.status !== 'Published' &&  (t.transfer && t.transfer.verificationMethod !== 'Postcard' && !t.transfer.code);
+          const isTransferTaskInvalid = t.name === 'Transfer GMB Ownership' && matchedLocation.status !== 'Published' && (t.transfer && t.transfer.verificationMethod !== 'Postcard' && !t.transfer.code);
           return isAppealTaskInvalid || isApplyTaskInvalid || isTransferTaskInvalid;
         }
         return false;
@@ -298,7 +305,7 @@ export class GmbService {
         if (lastEmail === gmbAccount.email) {
           // not in scanned list or is Duplicate!
           // location id different, but address same: possible changed names, so we need to check name one more time
-          const matchedLocation = placeIdLocationMap[biz.place_id] || (addressLocationMap[biz.address] && addressLocationMap[biz.address].name === biz.name );
+          const matchedLocation = placeIdLocationMap[biz.place_id] || (addressLocationMap[biz.address] && addressLocationMap[biz.address].name === biz.name);
           if (!matchedLocation || (matchedLocation.status !== 'Published' && matchedLocation.status !== 'Suspended')) {
             return true;
           }
@@ -808,5 +815,115 @@ export class GmbService {
       }
     ).toPromise();
   }
+
+
+
+  async appeal(gmbAccount, gmbBiz, task) {
+
+    const randomNames = `Rosena Massaro
+    Jeanmarie Eynon
+    Burma Busby
+    Charlyn Wall
+    Daniel Carrillo
+    Shanon Chalker
+    Alberta Gorski
+    Steffanie Mccullen
+    Chanelle Stukes
+    Harlan Horman
+    Aura Fleming
+    Edyth Applebee
+    Francisco Halloway
+    Maryjo Isakson
+    Eveline Lager
+    Isabel Middleton
+    Edda Rickel
+    Margareta Joye
+    Nona Fager
+    Lynelle Coutee
+    Rasheeda Gillmore
+    Kiesha Padula
+    Maryalice Matheny
+    Jacqueline Danos
+    Alden Crossman
+    Corinna Edge
+    Cassandra Trial
+    Zulema Freedman
+    Brunilda Halberg
+    Jewell Pyne
+    Jeff Kemmerer
+    Rosalee Heard
+    Maximina Gangi
+    Merrie Kall
+    Leilani Zeringue
+    Bradly Backes
+    Samella Bleich
+    Barrie Whetzel
+    Shakia Bischof
+    Gregoria Neace
+    Denice Vowels
+    Carlotta Barton
+    Andy Saltsman
+    Octavia Geis
+    Danelle Kornreich
+    Danica Stanfield
+    Shay Nilsson
+    Nan Jaffee
+    Laraine Fritzler
+    Christopher Pagani`;
+
+    const names = randomNames.split('   ').map(n => n.trim());
+
+    const randomName = names[new Date().valueOf() % names.length];
+
+    try {
+      let password = gmbAccount.password;
+      if (password.length > 20) {
+        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: gmbAccount.email, phrase: password }).toPromise();
+      }
+      await this._api.post(
+        environment.autoGmbUrl + 'appealSuspended', {
+          email: gmbAccount.email,
+          password: password,
+          params: {
+            name: randomName,
+            email: gmbAccount.email,
+            bizName: gmbBiz.name,
+            address: gmbBiz.address,
+            website: gmbBiz.useBizWebsite && gmbBiz.bizManagedWebsite ? gmbBiz.bizManagedWebsite : gmbBiz.qmenuWebsite,
+            phone: gmbBiz.phone,
+            appealId: gmbBiz.appealId
+          }
+        }
+      ).toPromise();
+
+      const appealedAt = new Date();
+      // postpone 21 days
+      const appealedAt21 = new Date();
+      appealedAt21.setDate(appealedAt.getDate() + 21);
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', [
+        {
+          old: {
+            _id: task._id
+          },
+          new: {
+            _id: task._id,
+            etc: {
+              appealedAt: { $date: appealedAt }
+            },
+            scheduledAt: { $date: appealedAt21 }
+          }
+        }
+      ]).toPromise();
+      //update original
+      task.etc.appealedAt = appealedAt;
+      task.scheduledAt = appealedAt21;
+
+      return Promise.resolve();
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error appealing');
+      return Promise.reject(error);
+    }
+  }
+
 
 }

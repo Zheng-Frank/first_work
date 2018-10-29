@@ -1015,11 +1015,12 @@ export class DbScriptsComponent implements OnInit {
     for (let values of sortedValues) {
       if (values.length > 1) {
         console.log('duplicated', values);
-        const sortedValues = values.sort((v1, v2) => {
+        const localSortedValues = values.sort((v1, v2) => {
           const published1 = (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
           const possessedAt1 = (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).possessedAt;
           const published2 = (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
           const possessedAt2 = (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).possessedAt;
+
           // only one published
           if (published1 != published2) {
             return published2 - published1;
@@ -1029,17 +1030,16 @@ export class DbScriptsComponent implements OnInit {
           if (published1 === 1) {
             return new Date(possessedAt2).valueOf() - new Date(possessedAt1).valueOf();
           }
-
-          return v2.length - v1.length;
+          // keep whoever gets more history
+          return v2.gmbOwnerships.length - v1.gmbOwnerships.length;
         });
 
         // 1. get FIRST _id
         // 2. get _ids of all others
         // 3. go-though tasks of gmbBizId of relatedMap, replace with FIRST _id
         // 4. delete all others!
-        const firstId = sortedValues[0]._id;
-        const otherIds = sortedValues.map(b => b._id).slice(1);
-
+        const firstId = localSortedValues[0]._id;
+        const otherIds = localSortedValues.map(b => b._id).slice(1);
 
         const tasksToBeUpdated = await this._api.get(environment.adminApiUrl + 'generic', {
           resource: 'task',
@@ -1053,9 +1053,7 @@ export class DbScriptsComponent implements OnInit {
         }).toPromise();
 
         if (tasksToBeUpdated.length > 0) {
-          alert('STOP')
-          if (new Date())
-            throw 'NOT YET VERIFIED, CAUSING MISSING ID'
+          console.log(tasksToBeUpdated);
           await this._api.patch(environment.adminApiUrl + 'generic?resource=task', tasksToBeUpdated.map(t => ({
             old: {
               _id: t._id,
