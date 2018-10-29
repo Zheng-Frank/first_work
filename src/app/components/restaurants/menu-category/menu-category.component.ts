@@ -13,6 +13,7 @@ export class MenuCategoryComponent implements OnInit {
   @Input() serveTimeFilter: string;
   @Output() onMiClicked = new EventEmitter();
   @Output() onMcClicked = new EventEmitter();
+  @Output() onEditAllMenuItems = new EventEmitter();
 
   constructor() { }
 
@@ -72,5 +73,9 @@ export class MenuCategoryComponent implements OnInit {
 
   clickMc() {
     this.onMcClicked.emit(this.mc);
+  }
+
+  editAll() {
+    this.onEditAllMenuItems.emit(this.mc);
   }
 }
