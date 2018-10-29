@@ -117,6 +117,7 @@ import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
 import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
 import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
+import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
  
 @NgModule({
   declarations: [
@@ -216,7 +217,8 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
     StripeComponent,
     CheckEmailComponent,
     InjectWebsiteComponent,
-    MyRestaurantComponent
+    MyRestaurantComponent,
+    AutomationDashboardComponent
   ],
   imports: [
     BrowserModule,

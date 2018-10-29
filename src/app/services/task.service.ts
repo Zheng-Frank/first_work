@@ -143,7 +143,7 @@ export class TaskService {
       new: {
         _id: t._id,
         assignee: 'system',
-        comments: t.comments,
+        comments: (t.comments || '') + '\n[closed by system: NOT postcard, NO code, GMB lost.]',
         result: 'CANCELED',
         resultAt: { $date: new Date() }
       }
@@ -216,6 +216,7 @@ export class TaskService {
         _id: t._id,
         assignee: 'system',
         result: 'CANCELED',
+        comments: (t.comments || '') + '\n[closed by system]',
         resultAt: { $date: new Date() }
       }
     }));
@@ -282,6 +283,7 @@ export class TaskService {
         _id: t._id,
         assignee: t.assignee || 'system',
         result: 'CANCELED',
+        comments: (t.comments || '') + '\n[closed by system: GMB OWNED.]',
         resultAt: { $date: new Date() }
       }
     }));
