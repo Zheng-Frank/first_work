@@ -7,29 +7,29 @@ export class Helper {
     static awsAccessKeyId;
     static awsSecretAccessKey;
 
-    static uploadImage(files: File[], callback) {
-        if(!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
-            callback('Missing AWS kyes. Contact qMenu.', null);
-        }
-        else if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
-            callback('Invalid file type. Choose image only.', null);
-        } else if (files && files.length > 0 && files[0].size > 10000000) {
-            callback('The image size exceeds 10M.', null);
-        } else {
-            AWS.config.accessKeyId = Helper.awsAccessKeyId;
-            AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
+    // static uploadImage(files: File[], callback) {
+    //     if(!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
+    //         callback('Missing AWS kyes. Contact qMenu.', null);
+    //     }
+    //     else if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
+    //         callback('Invalid file type. Choose image only.', null);
+    //     } else if (files && files.length > 0 && files[0].size > 10000000) {
+    //         callback('The image size exceeds 10M.', null);
+    //     } else {
+    //         AWS.config.accessKeyId = Helper.awsAccessKeyId;
+    //         AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
 
-            let file = files[0];
-            let uuid = new Date().valueOf();
-            let ext = file.name.split('.').pop();
+    //         let file = files[0];
+    //         let uuid = new Date().valueOf();
+    //         let ext = file.name.split('.').pop();
 
-            let bucket = new AWS.S3({ params: { Bucket: 'chopst', ContentType: 'image/jpeg' } });
-            let imageFile = { Key: 'menuImage/' + uuid + '.' + ext, Body: file };
-            bucket.upload(imageFile, callback);
-        }
-    }
+    //         let bucket = new AWS.S3({ params: { Bucket: 'chopst', ContentType: 'image/jpeg' } });
+    //         let imageFile = { Key: 'menuImage/' + uuid + '.' + ext, Body: file };
+    //         bucket.upload(imageFile, callback);
+    //     }
+    // }
 
-    static async uploadImage2(files: File[], _api: ApiService) {
+    static async uploadImage(files: File[], _api: ApiService) {
 
         if (!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
             const keys = await _api.get(environment.qmenuApiUrl + "generic", {

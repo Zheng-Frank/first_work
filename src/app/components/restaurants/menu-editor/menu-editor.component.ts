@@ -103,28 +103,18 @@ export class MenuEditorComponent implements OnInit {
     this.menu.backgroundImageUrl = undefined;
   }
 
-  onUploadImageChange(event) {
+  async onUploadImageChange(event) {
     this.uploadImageError = undefined;
     let files = event.target.files;
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "key",
-      projection: {
-        awsAccessKeyId: 1,
-        awsSecretAccessKey: 1
-      },
-      limit: 1
-    })
-      .subscribe(keys => {
-        console.log('keys', keys);
-        Helper.uploadImage(files, (err, data) => {
-          if (err) {
-            this.uploadImageError = err;
-          } else if (data && data.Location) {
-            this.menu.backgroundImageUrl = data.Location;
-          }
-        });
-      });
+    try {
+      const data: any = await Helper.uploadImage(files, this._api);
 
-
+      if (data && data.Location) {
+        this.menu.backgroundImageUrl = data.Location;
+      }
+    }
+    catch (err) {
+      this.uploadImageError = err;
+    }
   }
 }

@@ -4,6 +4,8 @@ import { OptionsEditorComponent } from '../options-editor/options-editor.compone
 import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Router, NavigationStart } from '@angular/router';
 import { Helper } from '../../../classes/helper';
+import { ApiService } from '../../../services/api.service';
+import { environment } from "../../../../environments/environment";
 
 declare var $: any;
 
@@ -23,7 +25,7 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
 
   uploadImageError: string;
 
-  constructor(private _router: Router) {
+  constructor(private _router: Router, private _api: ApiService) {
 
   }
 
@@ -71,17 +73,22 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
     this.mc.images.splice(this.mc.images.indexOf(img), 1);
   }
 
-  onUploadImageChange(event) {
+  async onUploadImageChange(event) {
+
+    
     this.uploadImageError = undefined;
     let files = event.target.files;
-    Helper.uploadImage(files, (err, data) => {
-      this.mc.images = this.mc.images || [];
-      if (err) {
+    try {
+        const data: any = await Helper.uploadImage(files, this._api);
+
+        if (data && data.Location) {
+          (this.mc.images || []).push(data.Location);
+        }
+    }
+    catch (err) {
         this.uploadImageError = err;
-      } else if (data && data.Location) {
-        this.mc.images.push(data.Location);
-      }
-    });
+    }
+
   }
 
   ok() {

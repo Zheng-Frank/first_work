@@ -14,7 +14,7 @@ import { AlertType } from '../../../classes/alert-type';
 })
 export class RestaurantProfileComponent implements OnInit {
   @Input() restaurant: Restaurant;
-
+  uploadImageError: string;
   editing: boolean = false;
 
   fields = [
@@ -144,34 +144,23 @@ export class RestaurantProfileComponent implements OnInit {
 
   // upload logo or image
 
-  onUpload(event, type) {
-    this.uploadError = undefined;
-    let files = event.target.files;
+  async onUpload(event, type) {
 
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "key",
-      projection: {
-        awsAccessKeyId: 1,
-        awsSecretAccessKey: 1
-      },
-      limit: 1
-    })
-      .subscribe(keys => {
-        Helper.uploadImage(files, (err, data) => {
-          if (err) {
-            this.uploadError = err;
-          } else if (data && data.Location) {
-            if (type === 'LOGO') {
-              this.logo = data.Location;
-            } else {
-              this.images = this.images || [];
-              this.images.push(data.Location);
-            }
-          }
-        });
-      }, error => {
-        this.uploadError = error;
-      });
+    this.uploadImageError = undefined;
+    let files = event.target.files;
+    try {
+        const data: any = await Helper.uploadImage(files, this._api);
+
+        if (data && data.Location) {
+          this.images = this.images || [];
+          this.images.push(data.Location);
+        }
+    }
+    catch (err) {
+        this.uploadImageError = err;
+    }
+
+    
   }
 
 

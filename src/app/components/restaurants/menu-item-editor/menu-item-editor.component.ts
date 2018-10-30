@@ -119,7 +119,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.uploadImageError = undefined;
         let files = event.target.files;
         try {
-            const data: any = await Helper.uploadImage2(files, this._api);
+            const data: any = await Helper.uploadImage(files, this._api);
 
             if (data && data.Location) {
                 this.mi.imageObjs = this.mi.imageObjs || [];

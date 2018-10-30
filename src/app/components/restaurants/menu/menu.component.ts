@@ -93,11 +93,19 @@ export class MenuComponent implements OnInit {
       });
     } else {
       // old Mc, replace everything
+
+
+      // old Mi, replace everything
       newMenus.map(menu => menu.mcs.map(category => {
         if (category.id === mc.id) {
-          Object.keys(mc).map(key => key !== "mis" && (category[key] = mc[key]));
+          for (const prop of Object.keys(category)) {
+            delete category[prop];
+          }
+          Object.assign(category, mc);
         }
-      }));
+      }
+
+      ));
     }
 
     this._api
@@ -113,17 +121,20 @@ export class MenuComponent implements OnInit {
       .subscribe(
       result => {
 
-           // either update or insert new, carefully check because socket might add it before this!
+        // either update or insert new, carefully check because socket might add it before this!
         this.menu.mcs = this.menu.mcs || [];
         if (action === 'CREATE') {
           if (!this.menu.mcs.some(m => m.id === mc.id)) {
             this.menu.mcs.push(mc);
           }
-        }else{
+        } else {
           // let's update original, assuming everything successful
           this.menu.mcs.map(category => {
             if (category.id === mc.id) {
-              Object.keys(mc).map(key => key !== 'mis' && (category[key] = mc[key]));
+              for (const prop of Object.keys(category)) {
+                delete category[prop];
+              }
+              Object.assign(category, mc);
             }
           });
 
@@ -257,7 +268,10 @@ export class MenuComponent implements OnInit {
       newMenus.map(menu => menu.mcs.map(category =>
         category.mis.map(mii => {
           if (mii.id === mi.id) {
-            Object.keys(mi).map(key => mii[key] = mi[key]);
+            for (const prop of Object.keys(mii)) {
+              delete mii[prop];
+            }
+            Object.assign(mii, mi);
           }
         })));
     }
@@ -285,7 +299,7 @@ export class MenuComponent implements OnInit {
           }
         } else {
           // replace with the updated version
-          this.menu.mcs.map(eachMc=>{
+          this.menu.mcs.map(eachMc => {
             eachMc.mis.forEach(m => {
               if (m.id === mi.id) {
                 for (const prop of Object.keys(m)) {
@@ -296,12 +310,13 @@ export class MenuComponent implements OnInit {
             });
           })
 
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated successfully"
-        );
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
 
-        this.menu.sortMcsAndMis();
+          this.menu.sortMcsAndMis();
+        }
       },
       error => {
         this._global.publishAlert(AlertType.Danger, "Error updating to DB");
@@ -326,7 +341,7 @@ export class MenuComponent implements OnInit {
       mis: category.mis.map(item => item.id)
     })));
 
-    const newMenus=JSON.parse(JSON.stringify(oldMenus));
+    const newMenus = JSON.parse(JSON.stringify(oldMenus));
 
     newMenus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(item => item !== mi.id)));
 
@@ -369,7 +384,7 @@ export class MenuComponent implements OnInit {
 
 
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
-    newMenus.map(eachMenu=>{
+    newMenus.map(eachMenu => {
       eachMenu.mcs.map(eachMc => {
         if (eachMc.id === mc.id) {
           eachMc.mis = mc.mis || [];
