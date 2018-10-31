@@ -56,3 +56,8 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+
+.p-t-05
+{
+  padding-top: 0.5rem;
+}

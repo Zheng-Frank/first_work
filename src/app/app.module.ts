@@ -111,12 +111,14 @@ import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
-
+import { RestaurantClosedHoursComponent } from './components/restaurants/restaurant-closed-hours/restaurant-closed-hours.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
 import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
 import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
+import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-simple/hour-picker-simple.component';
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
+import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
  
 @NgModule({
   declarations: [
@@ -163,6 +165,7 @@ import { AutomationDashboardComponent } from './components/automation/automation
     RestaurantCloudPrintingComponent,
     PromotionEditorComponent,
     PromotionViewerComponent,
+    RestaurantClosedHoursComponent,
     RestaurantPromotionsComponent,
     RestaurantProfileComponent,
     MenuComponent,
@@ -216,7 +219,9 @@ import { AutomationDashboardComponent } from './components/automation/automation
     CheckEmailComponent,
     InjectWebsiteComponent,
     MyRestaurantComponent,
-    AutomationDashboardComponent
+    AutomationDashboardComponent,
+    HourPickerSimpleComponent,
+    FutureDateTimePickerComponent
   ],
   imports: [
     BrowserModule,

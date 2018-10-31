@@ -1,0 +1,10 @@
+<div class="row" *ngIf="hour">
+  <div class="col col-sm-6">
+    <label>From:</label>
+    <app-future-date-time-picker [(ngModel)]="hour.fromTime"></app-future-date-time-picker>
+  </div>
+  <div class="col col-sm-6">
+    <label>To:</label>
+    <app-future-date-time-picker [(ngModel)]="hour.toTime"></app-future-date-time-picker>
+  </div>
+</div>
