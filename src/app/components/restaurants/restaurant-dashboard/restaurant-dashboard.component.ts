@@ -41,7 +41,8 @@ export class RestaurantDashboardComponent implements OnInit {
         logo: 1,
         restaurantId:1,
         phones: 1,
-        disabled: 1
+        disabled: 1,
+        googleAddress: 1
       },
       limit: 6000
     })

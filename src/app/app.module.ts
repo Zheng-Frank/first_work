@@ -57,7 +57,6 @@ import { RestaurantCloudPrintingComponent } from './components/restaurants/resta
 import { PromotionEditorComponent } from './components/restaurants/promotion-editor/promotion-editor.component';
 import { PromotionViewerComponent } from './components/restaurants/promotion-viewer/promotion-viewer.component';
 import { RestaurantPromotionsComponent } from './components/restaurants/restaurant-promotions/restaurant-promotions.component';
-import { RestaurantClosedDaysComponent } from './components/restaurants/restaurant-closed-days/restaurant-closed-days.component';
 import { RestaurantProfileComponent } from './components/restaurants/restaurant-profile/restaurant-profile.component';
 import { MenuComponent } from './components/restaurants/menu/menu.component';
 import { MenuCategoryComponent } from './components/restaurants/menu-category/menu-category.component';
@@ -112,12 +111,14 @@ import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
-
+import { RestaurantClosedHoursComponent } from './components/restaurants/restaurant-closed-hours/restaurant-closed-hours.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
 import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
 import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
+import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-simple/hour-picker-simple.component';
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
+import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
  
 @NgModule({
   declarations: [
@@ -164,8 +165,8 @@ import { AutomationDashboardComponent } from './components/automation/automation
     RestaurantCloudPrintingComponent,
     PromotionEditorComponent,
     PromotionViewerComponent,
+    RestaurantClosedHoursComponent,
     RestaurantPromotionsComponent,
-    RestaurantClosedDaysComponent,
     RestaurantProfileComponent,
     MenuComponent,
     MenuCategoryComponent,
@@ -218,7 +219,9 @@ import { AutomationDashboardComponent } from './components/automation/automation
     CheckEmailComponent,
     InjectWebsiteComponent,
     MyRestaurantComponent,
-    AutomationDashboardComponent
+    AutomationDashboardComponent,
+    HourPickerSimpleComponent,
+    FutureDateTimePickerComponent
   ],
   imports: [
     BrowserModule,

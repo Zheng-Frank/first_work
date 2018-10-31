@@ -1,10 +1,7 @@
-
-
-
-
 <div class="card mb-2">
     <h3 class="card-title text-center pt-4 pb-2"><i class="fa fa-phone"></i> Phones</h3>
-
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
     <table class="app-table w-100">
       <tr *ngFor="let phone of getPhones()" role="butt" (click)="edit(phone)">
         <th>{{phone.type}}</th>
@@ -43,5 +40,7 @@
       <app-restaurant-phone-editor [phone]="phoneInEditing" (onDone)="onDone($event)" (onCancel)="onCancel($event)" (onDelete)="onDelete($event)"></app-restaurant-phone-editor>
     </q-modal>
 
+      </li>
+      </ul>
 
 </div>

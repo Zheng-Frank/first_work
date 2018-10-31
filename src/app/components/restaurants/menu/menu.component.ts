@@ -59,6 +59,7 @@ export class MenuComponent implements OnInit {
     } else {
       mcCopy = new Mc(mc);
     }
+    console.log("this.restaurant ", this.restaurant);
     this.mcEditor.setMc(mcCopy, this.restaurant.menuOptions);
     this.mcModal.show();
   }

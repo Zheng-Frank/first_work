@@ -23,6 +23,8 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
 
+  @Input() restaurantId: string;
+
   uploadImageError: string;
 
   constructor(private _router: Router, private _api: ApiService) {
@@ -50,17 +52,18 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
   }
 
   gotoMenuOptions() {
+    console.log('11111=', this.restaurantId)
     // clear popup, then go!
     const modals = $('.modal');
     const self = this;
-    if (modals && modals.hasClass('in')) {
+    if (modals && modals.hasClass('show')) {
       modals.on('hidden.bs.modal', function () {
         modals.off('hidden.bs.modal');
-        self._router.navigate(['/menu-options']);
+        self._router.navigate(['restaurants/' + self.restaurantId + '/menu-options']);
       });
       modals.modal('hide');
     } else {
-      self._router.navigate(['/menu-options']);
+      self._router.navigate(['restaurants/' + self.restaurantId + '/menu-options']);
     }
   }
 

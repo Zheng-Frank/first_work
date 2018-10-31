@@ -35,7 +35,7 @@
 </div>
 
 <q-modal #mcModal>
-  <app-menu-category-editor #mcEditor (onDone)="mcDone($event)" (onCancel)="mcCancel($event)" (onDelete)="mcDelete($event)"></app-menu-category-editor>
+  <app-menu-category-editor #mcEditor [restaurantId]="restaurant['_id']"  (onDone)="mcDone($event)" (onCancel)="mcCancel($event)" (onDelete)="mcDelete($event)"></app-menu-category-editor>
 </q-modal>
 <q-modal #miModal>
   <!--size names: if use get method, it keeps changing detection-->
