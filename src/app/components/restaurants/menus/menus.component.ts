@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, Output, EventEmitter } from '@angular/core';
 
 import { Menu, Restaurant } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
@@ -21,6 +21,7 @@ export class MenusComponent implements OnInit {
   @ViewChild('menuEditor') menuEditor: MenuEditorComponent;
 
   @Input() restaurant: Restaurant;
+  @Output() onVisitMenuOptions = new EventEmitter();
 
   activeId = undefined;
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -152,6 +153,9 @@ export class MenusComponent implements OnInit {
     }
   }
 
+  visitMenuOptions() {
+    this.onVisitMenuOptions.emit();
+  }
 
 
 }

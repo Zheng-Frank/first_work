@@ -22,6 +22,7 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
   @Output() onDelete = new EventEmitter();
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
+  @Output() onVisitMenuOptions = new EventEmitter();
 
   @Input() restaurantId: string;
 
@@ -52,19 +53,7 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
   }
 
   gotoMenuOptions() {
-    console.log('11111=', this.restaurantId)
-    // clear popup, then go!
-    const modals = $('.modal');
-    const self = this;
-    if (modals && modals.hasClass('show')) {
-      modals.on('hidden.bs.modal', function () {
-        modals.off('hidden.bs.modal');
-        self._router.navigate(['restaurants/' + self.restaurantId + '/menu-options']);
-      });
-      modals.modal('hide');
-    } else {
-      self._router.navigate(['restaurants/' + self.restaurantId + '/menu-options']);
-    }
+    this.onVisitMenuOptions.emit()
   }
 
 

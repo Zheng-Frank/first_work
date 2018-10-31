@@ -17,7 +17,7 @@
   <!-- Tab panes -->
   <div class="tab-content">
     <div *ngFor="let menu of getMenus()" class="tab-pane  {{getActiveId() == menu.id ? 'active' : ''}} pt-1" role="tabpanel">
-      <app-menu [restaurant]="restaurant" [menu]="menu" [offsetToEST]="restaurant.offsetToEST" (onEdit)="edit($event)"></app-menu>
+      <app-menu [restaurant]="restaurant" [menu]="menu" [offsetToEST]="restaurant.offsetToEST" (onEdit)="edit($event)" (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
     </div>
     <div class="tab-pane  {{!getActiveId() ? 'active' : ''}} pt-1" role="tabpanel">
       <div *ngIf="getMenus().length === 0" class="text-center mb-1">

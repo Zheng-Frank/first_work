@@ -51,10 +51,9 @@ export class RestaurantClosedHoursComponent implements OnInit {
 
     this.patch(newClosedHours, this.restaurant.closedHours);
 
-
   }
 
-  patch(newClosedHours, oldClosedHours) {
+  patch(newClosedHours, oldClosedHours, ) {
     if (Helper.areObjectsEqual(newClosedHours, oldClosedHours)) {
       this._global.publishAlert(
         AlertType.Info,
@@ -75,7 +74,7 @@ export class RestaurantClosedHoursComponent implements OnInit {
         .subscribe(
           result => {
             // let's update original, assuming everything successful
-            this.restaurant.closedHours = newClosedHours;
+            this.restaurant.closedHours = newClosedHours.map(h => new Hour(h));
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"

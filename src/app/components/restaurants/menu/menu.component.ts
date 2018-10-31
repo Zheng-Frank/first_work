@@ -18,6 +18,7 @@ import { AlertType } from '../../../classes/alert-type';
 })
 export class MenuComponent implements OnInit {
   @Output() onEdit = new EventEmitter();
+  @Output() onVisitMenuOptions = new EventEmitter();
   @Input() menu: Menu;
   @Input() offsetToEST = 0;
   @Input() restaurant: Restaurant;
@@ -428,4 +429,9 @@ export class MenuComponent implements OnInit {
     this.editingMis = false;
   }
 
+  visitMenuOptions() {
+    this.miModal.hide();
+    this.mcModal.hide();
+    this.onVisitMenuOptions.emit();
+  }
 }
