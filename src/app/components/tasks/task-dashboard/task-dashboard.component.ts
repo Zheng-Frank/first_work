@@ -135,9 +135,7 @@ export class TaskDashboardComponent {
         if (t.relatedMap && t.relatedMap.gmbBizId && bizMap[t.relatedMap.gmbBizId]) {
           t.gmbBiz = t.gmbBiz || {};
           t.gmbBiz = bizMap[t.relatedMap.gmbBizId];
-          // if(t.gmbBiz.address){
-          //   t.gmbBiz.timeZone = Address.getTimeZone(t.gmbBiz.address);
-          // }
+          t.gmbBiz.timeZone = Address.getTimeZone(t.gmbBiz.address);
         }
       });
       // compute groupedTasks, by task name
