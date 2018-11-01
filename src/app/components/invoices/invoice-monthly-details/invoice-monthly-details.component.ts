@@ -136,7 +136,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
             projection: {
               restaurant: 1
             },
-            limit: 200000
+            limit: 20000
           })
         ).subscribe(
           results => {
