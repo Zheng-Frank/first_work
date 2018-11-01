@@ -119,6 +119,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
         .subscribe(
         results => {
           this.restaurant = new Restaurant(results[0]);
+          console.log("Mega restaurant=",this.restaurant)
         },
         error => {
           this._global.publishAlert(AlertType.Danger, error);

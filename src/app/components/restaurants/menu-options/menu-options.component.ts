@@ -27,7 +27,14 @@ export class MenuOptionsComponent implements OnInit {
 
   getMenuOptions() {
     if (this.restaurant) {
-      return this.restaurant.menuOptions;
+      return this.restaurant.menuOptions.sort((i1, i2) => {
+        if (i1.name < i2.name)
+          return -1;
+        if (i1.name > i2.name)
+          return 1;
+        return 0;
+      });
+
     }
     return [];
     // let mock = [];
@@ -47,6 +54,21 @@ export class MenuOptionsComponent implements OnInit {
     // });
     // return mock;
   }
+
+  copyMenuOption(mo: MenuOption) {
+    // we use a copy of mo:
+    let moCopy = new MenuOption(mo);
+    moCopy.items = moCopy.items || [];
+    //assign id to be undefined to create the new id in the service side
+    moCopy.id = undefined;
+
+    this.menuOptionInEditing = moCopy;
+    this.editingTitle = moCopy.id ? 'Edit Menu Options' : 'Add New Menu Options';
+
+    // this.menuOptionEditor.setMenuOption(moCopy);
+    this.menuOptionEditingModal.show();
+  }
+
 
   editMenuOption(mo: MenuOption) {
     // we use a copy of mo:

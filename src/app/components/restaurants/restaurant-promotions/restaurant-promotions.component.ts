@@ -121,7 +121,7 @@ export class RestaurantPromotionsComponent implements OnInit {
         .subscribe(
           result => {
             // let's update original, assuming everything successful
-            this.restaurant.promotions = newPromotions;
+            this.restaurant.promotions = newPromotions.map(each=> {each.expiry= new Date(each.expiry)});
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"
