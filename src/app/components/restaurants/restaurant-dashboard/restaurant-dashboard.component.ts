@@ -40,9 +40,9 @@ export class RestaurantDashboardComponent implements OnInit {
         alias: 1,
         logo: 1,
         restaurantId:1,
-        phones: 1,
+        "phones.phoneNumber": 1,
         disabled: 1,
-        googleAddress: 1
+        "googleAddress.formatted_address": 1
       },
       limit: 6000
     })
