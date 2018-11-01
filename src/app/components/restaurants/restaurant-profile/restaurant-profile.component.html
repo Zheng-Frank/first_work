@@ -8,6 +8,10 @@
 				<table class="table table-borderless table-sm">
 					<tbody>
 						<tr>
+							<th class="text-right">Address</th>
+							<td class="pl-1">{{restaurant.googleAddress.formatted_address}}</td>
+						</tr>
+						<tr>
 							<th class="text-right">ID</th>
 							<td class="pl-1">{{restaurant._id}}</td>
 						</tr>
@@ -85,6 +89,10 @@
 			<div *qIf="editing">
 				<table class="table table-borderless table-sm">
 					<tbody>
+						<tr>
+							<th class="text-right">Address</th>
+							<td class="pl-1"> <q-address-picker  (pick)="selectAddress($event)"></q-address-picker></td>
+						</tr>
 						<tr>
 							<th class="text-right" style="width: 33%">Domain</th>
 							<td class="pl-1">

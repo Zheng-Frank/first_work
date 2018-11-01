@@ -111,13 +111,15 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           offsetToEST: 1,
           disableScheduling: 1,
           domain: 1,
-          websiteTemplateName: 1
+          websiteTemplateName: 1,
+          closedHours: 1
         },
         limit: 1
       })
         .subscribe(
         results => {
           this.restaurant = new Restaurant(results[0]);
+          console.log("Mega restaurant=",this.restaurant)
         },
         error => {
           this._global.publishAlert(AlertType.Danger, error);
@@ -196,7 +198,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
       paymentMeans: ['ACCOUNTANT', 'CSR'],
       serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR'],
       promotions: ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      closedDays: ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR'],
       cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR'],
       phones: ['ADMIN', 'MENU_EDITOR', 'CSR'],
       deliveryeSettings: ['ADMIN', 'MENU_EDITOR', 'CSR']

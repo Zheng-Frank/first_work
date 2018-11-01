@@ -1,0 +1,14 @@
+<div class="row">
+  <div class="col col-xs-6">
+    <span class="text-muted"><small> {{weekly ? 'Day' : 'Date'}}</small></span><br>
+    <select [disabled]="disabled" class="form-control form-control-sm" [(ngModel)]="selectedDate" (change)="select($event)">
+      <option *ngFor="let item of dateItems" [ngValue]="item.value">{{item.text}}</option>
+    </select>
+  </div>
+  <div class="col col-xs-6">
+    <span class="text-muted"><small>Time</small></span><br>
+    <select [disabled]="disabled" class="form-control form-control-sm" [(ngModel)]="selectedTime" (change)="select($event)">
+      <option *ngFor="let item of timeItems" [ngValue]="item.value">{{item.text}}</option>
+    </select>
+  </div>
+</div>

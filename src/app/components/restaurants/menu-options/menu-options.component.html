@@ -5,9 +5,9 @@
 
       <div class="mycard">
         <app-menu-option-viewer [menuOption]="mo"></app-menu-option-viewer>
-
-        <div (click)="editMenuOption(mo)" role="button">
-          <a class="card-link text-primary">Edit</a>
+        <div >
+          <a (click)="editMenuOption(mo)" role="button" class="card-link text-primary">Edit</a>
+          <a (click)="copyMenuOption(mo)" role="button"class="card-link text-primary">Copy</a>
         </div>
       </div>
 

@@ -53,7 +53,7 @@
   </div>
   <div *ngIf="mc.menuOptionIds" class="pl-1">
     <div *ngFor="let mo of menuOptions" role="button" (click)="toggleMenuOption(mo)">
-      <span class="far {{isMenuOptionSelected(mo) ? 'fa-check-square' : 'fa-square'}}"></span> {{mo.name}}
+      <span class="far {{isMenuOptionSelected(mo) ? 'fa-check-square' : 'fa-square'}}"></span> {{mo.name}} ({{mo.id.substring(mo.id.length-4)}})
     </div>
     <div *ngIf="!menuOptions || menuOptions.length === 0">
       No menu option is defined yet. Menu options will show up for selection after you create them.

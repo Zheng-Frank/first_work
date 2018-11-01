@@ -1,5 +1,5 @@
 <h5>
-  {{menuOption.name}}</h5>
+  {{menuOption.name}} ({{menuOption.id.substring(menuOption.id.length-4)}})</h5>
 <small>
   <span *ngIf="menuOption.minSelection > 0" class="text-danger">Customer MUST select {{menuOption.maxSelection}}</span>
   <span *ngIf="menuOption.minSelection <= 0">Select {{menuOption.maxSelection > 0 ? menuOption.maxSelection : 'any'}}, optional</span>

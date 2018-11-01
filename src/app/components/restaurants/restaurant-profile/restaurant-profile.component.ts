@@ -16,6 +16,7 @@ export class RestaurantProfileComponent implements OnInit {
   @Input() restaurant: Restaurant;
   uploadImageError: string;
   editing: boolean = false;
+  address;
 
   fields = [
     'email',
@@ -25,6 +26,7 @@ export class RestaurantProfileComponent implements OnInit {
     'pickupTimeEstimate',
     'deliveryTimeEstimate',
     'logo',
+    'googleAddress',
     'restaurantId',
     'images',
     'stripeSecretKey',
@@ -78,6 +80,10 @@ export class RestaurantProfileComponent implements OnInit {
   ngOnInit() {
   }
 
+  selectAddress(address) {
+    this.address = address;
+  }
+
   toggleEditing() {
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
@@ -107,6 +113,7 @@ export class RestaurantProfileComponent implements OnInit {
     newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
     newObj.deliveryTimeEstimate = +this.deliveryTimeEstimate || undefined;
     newObj.pickupMinimum = +this.pickupMinimum || undefined;
+    newObj.googleAddress = this.address;
 
     newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;

@@ -68,7 +68,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
             fromDate: 1,
             toDate: 1,
             total: 1,
-            commission: 1,
+          commission: 1,
             subtotal: 1,
             balance: 1,
             status: 1,

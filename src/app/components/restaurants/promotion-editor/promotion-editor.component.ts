@@ -24,19 +24,22 @@ export class PromotionEditorComponent implements OnInit {
   ngOnInit() {
   }
 
-  getExpiry() {
-    if (this.promotion.expiry) {
-      return this.promotion.expiry['restaurant yyyy-mm-dd'](this.offsetToEST);
-    }
-    return new Date()['restaurant yyyy-mm-dd'](this.offsetToEST);
-  }
+  // getExpiry() {
+  //   if (this.promotion.expiry) {
+  //     return this.promotion.expiry['restaurant yyyy-mm-dd'](this.offsetToEST);
+  //   }
+  //   console.log('restaurant yyyy-mm-dd', new Date()['restaurant yyyy-mm-dd'](this.offsetToEST))
+  //   return new Date()['restaurant yyyy-mm-dd'](this.offsetToEST);
+  // }
 
-  expiryChanged(event) {
-    if (event.target.value) {
-      // '2017-05-11'
-      this.promotion.expiry = Date['parseRestaurantDate'](event.target.value, this.offsetToEST);
-    }
-  }
+  // expiryChanged(event) {
+  //   if (event.target.value) {
+      
+  //     // '2017-05-11'
+  //     this.promotion.expiry = Date['parseRestaurantDate'](event.target.value, this.offsetToEST);
+  //     console.log('this.promotion.expiry', this.promotion.expiry);
+  //   }
+  // }
 
   isPromotionValid() {
     return this.promotion.name;
@@ -68,9 +71,9 @@ export class PromotionEditorComponent implements OnInit {
     this.promotion.percentage = Math.abs(+this.promotion.percentage || 0);
     this.promotion.orderMinimum = Math.abs(+this.promotion.orderMinimum || 0);
     if (!this.promotion.expiry) {
-      this.promotion.expiry = new Date();
+      this.promotion.expiry = new Date(this.promotion.expiry);
       // making it expire at next month
-      this.promotion.expiry.setMonth(this.promotion.expiry.getMonth() + 1);
+      //this.promotion.expiry.setMonth(this.promotion.expiry.getMonth() + 1);
     }
 
     this.onDone.emit(this.promotion);
