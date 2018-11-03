@@ -8,9 +8,17 @@
 				<table class="table table-borderless table-sm">
 					<tbody>
 						<tr>
+							<th class="text-right">name</th>
+							<td class="pl-1">{{restaurant.name}}</td>
+						</tr>
+						<tr>
 							<th class="text-right">Address</th>
 							<td class="pl-1">{{restaurant.googleAddress?.formatted_address}}</td>
 						</tr>
+						<!-- <tr>
+							<th class="text-right">Address Extra</th>
+							<td class="pl-1">{{restaurant.googleAddress?.apt}}</td>
+						</tr> -->
 						<tr>
 							<th class="text-right">ID</th>
 							<td class="pl-1">{{restaurant._id}}</td>
@@ -90,9 +98,23 @@
 				<table class="table table-borderless table-sm">
 					<tbody>
 						<tr>
-							<th class="text-right">Address</th>
-							<td class="pl-1"> <q-address-picker  (pick)="selectAddress($event)"></q-address-picker></td>
+							<th class="text-right">Name</th>
+							<td class="pl-1">
+								<input type="text" [(ngModel)]="name" class="form-control">
+							</td>
 						</tr>
+						<tr>
+							<th class="text-right">Address</th>
+							<td class="pl-1">
+								<q-address-picker [address]="address" (pick)="selectAddress($event)"></q-address-picker>
+							</td>
+						</tr>
+						<!-- <tr>
+							<th class="text-right">Address Extra</th>
+							<td class="pl-1">
+								<input type="text" class="form-control" placeholder="eg. Suite 300" [(ngModel)]="googleAddress.apt">
+							</td>
+						</tr> -->
 						<tr>
 							<th class="text-right" style="width: 33%">Domain</th>
 							<td class="pl-1">
