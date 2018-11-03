@@ -118,4 +118,26 @@ export class Helper {
     static getNormalResUrl(originalUrl): string {
         return originalUrl && environment.normalResUrl + this.getFileName(originalUrl);
     }
+
+    static areDomainsSame(url1, url2): boolean {
+        if (!url1 || !url2) {
+          return false;
+        }
+        url1 = url1.toLowerCase();
+        url2 = url2.toLowerCase();
+        if(!url1.startsWith('http')) {
+            url1 = 'http://' + url1;
+        }
+        
+        if(!url2.startsWith('http')) {
+            url2 = 'http://' + url2;
+        }
+        
+        const u1 = new URL(url1);
+        const u2 = new URL(url2);
+
+        const parts1 = u1.host.split('.');
+        const parts2 = u2.host.split('.');
+        return parts1[parts1.length - 2].toLowerCase() === parts2[parts2.length - 2].toLowerCase();
+      }
 }
