@@ -17,6 +17,7 @@ export class RestaurantProfileComponent implements OnInit {
   uploadImageError: string;
   editing: boolean = false;
   address: Address;
+  apt: string;
 
   fields = [
     'name',
@@ -116,6 +117,11 @@ export class RestaurantProfileComponent implements OnInit {
     newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
     newObj.deliveryTimeEstimate = +this.deliveryTimeEstimate || undefined;
     newObj.pickupMinimum = +this.pickupMinimum || undefined;
+    if(this.googleAddress){
+      newObj.googleAddress=JSON.parse(JSON.stringify(this.googleAddress));
+      newObj.googleAddress.apt = this.apt;
+    }
+    
 
     newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;

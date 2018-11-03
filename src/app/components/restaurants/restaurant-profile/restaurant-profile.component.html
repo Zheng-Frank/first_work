@@ -15,10 +15,10 @@
 							<th class="text-right">Address</th>
 							<td class="pl-1">{{restaurant.googleAddress?.formatted_address}}</td>
 						</tr>
-						<!-- <tr>
+						<tr>
 							<th class="text-right">Address Extra</th>
 							<td class="pl-1">{{restaurant.googleAddress?.apt}}</td>
-						</tr> -->
+						</tr>
 						<tr>
 							<th class="text-right">ID</th>
 							<td class="pl-1">{{restaurant._id}}</td>
@@ -109,12 +109,12 @@
 								<q-address-picker [address]="address" (pick)="selectAddress($event)"></q-address-picker>
 							</td>
 						</tr>
-						<!-- <tr>
+						<tr>
 							<th class="text-right">Address Extra</th>
 							<td class="pl-1">
-								<input type="text" class="form-control" placeholder="eg. Suite 300" [(ngModel)]="googleAddress.apt">
+								<input type="text" class="form-control" placeholder="eg. Suite 300" [(ngModel)]="apt">
 							</td>
-						</tr> -->
+						</tr>
 						<tr>
 							<th class="text-right" style="width: 33%">Domain</th>
 							<td class="pl-1">
