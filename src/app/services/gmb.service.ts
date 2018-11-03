@@ -11,6 +11,7 @@ import { TaskService } from './task.service';
 import { mergeMap } from "rxjs/operators";
 import { GlobalService } from './global.service';
 import { AlertType } from '../classes/alert-type';
+import { Helper } from '../classes/helper';
 
 @Injectable({
   providedIn: 'root'
@@ -475,19 +476,14 @@ export class GmbService {
     }
     // handle bizManagedWebsite --> qmenu-gray
     if (crawledResult.gmbWebsite && gmbBiz.bizManagedWebsite) {
-      // same domain name \?
-      const u1 = new URL(crawledResult.gmbWebsite);
-      const u2 = new URL(gmbBiz.bizManagedWebsite);
-      const parts1 = u1.host.split('.');
-      const parts2 = u2.host.split('.');
-      if (parts1[parts1.length - 2] === parts2[parts2.length - 2]) {
+      if (Helper.areDomainsSame(crawledResult.gmbWebsite, gmbBiz.bizManagedWebsite)) {
         crawledResult.gmbOwner = 'qmenu';
       }
     }
     const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls'].map(key => ({ key: key, value: crawledResult[key] }));
 
-    // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite
-    if (crawledResult['gmbOwner'] === 'qmenu') {
+    // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
+    if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
       kvps.push({ key: 'qmenuWebsite', value: crawledResult['gmbWebsite'] });
     }
 

@@ -9,6 +9,7 @@ import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { mergeMap } from 'rxjs/operators';
 import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbService } from '../../../services/gmb.service';
+import { Helper } from '../../../classes/helper';
 
 @Component({
   selector: 'app-automation-dashboard',
@@ -75,7 +76,7 @@ export class AutomationDashboardComponent implements OnInit {
           if (!this.startTime) {
             break;
           }
-          // if (gmbAccount.email !== '2redpassion8797@gmail.com') {
+          // if (gmbAccount.email !== 'dtcharacter.1113@gmail.com') {
           //   continue;
           // }
           try {
@@ -107,35 +108,59 @@ export class AutomationDashboardComponent implements OnInit {
             const publishedLocations = locations.filter(loc => loc.status === 'Published');
             if (publishedLocations.length > 0) {
 
+              const bizListToBeUpdated = [];
               // find which gmbBiz needs update website: linked by place_id
-              const locationsNeedingUpdateWebsite = publishedLocations.filter(loc => {
+              publishedLocations.map(loc => {
                 const biz = gmbBizList.filter(b => b.place_id === loc.place_id)[0];
-
                 if (loc.homepage && biz && (biz.bizManagedWebsite || biz.qmenuWebsite)) {
-                  let bizUrl = biz.qmenuWebsite || biz.bizManagedWebsite;
-                  if (biz.useBizWebsite && biz.bizManagedWebsite) {
-                    bizUrl = biz.bizManagedWebsite;
+                  const mainWebsite = (biz.useBizWebsite && biz.bizManagedWebsite) || biz.qmenuWebsite;
+                  if (!Helper.areDomainsSame(loc.homepage, mainWebsite)) {
+                    bizListToBeUpdated.push(biz);
                   }
-                  // same domain name \?
-                  const u1 = new URL(loc.homepage);
-                  const u2 = new URL(bizUrl);
-
-                  const parts1 = u1.host.split('.');
-                  const parts2 = u2.host.split('.');
-                  return parts1[parts1.length - 2] !== parts2[parts2.length - 2];
-                } else {
-                  return false;
                 }
               });
 
-              for (let loc of locationsNeedingUpdateWebsite) {
+              // crawl published locations!
+              const publishedBizList = publishedLocations.map(loc => gmbBizList.filter(b => b.place_id === loc.place_id)[0]).filter(b => b) as GmbBiz[];
+
+              for (let biz of publishedBizList) {
                 try {
-                  const gmbBiz = new GmbBiz(gmbBizList.filter(b => b.place_id === loc.place_id)[0]);
+                  const crawlResult = await this._gmb.crawlOneGoogleListing(biz);
+                  const mainWebsite = (biz.useBizWebsite && biz.bizManagedWebsite) || biz.qmenuWebsite;
+                  const qmenuWebsite = biz.qmenuWebsite || biz.bizManagedWebsite;
+
+                  if (!mainWebsite) {
+                    continue;
+                  }
+
+
+                  if (
+                    !Helper.areDomainsSame(crawlResult.gmbWebsite, mainWebsite)
+                    || (crawlResult.menuUrls && !crawlResult.menuUrls.some(url => Helper.areDomainsSame(qmenuWebsite, url))) // we insist qmenu website here
+                    || (crawlResult.reservations && !crawlResult.reservations.some(url => Helper.areDomainsSame(qmenuWebsite, url))) // we insist qmenu website here
+                    // || (crawlResult.serviceProviders && !crawlResult.serviceProviders.some(url => Helper.areDomainsSame(qmenuWebsite, url)))
+                  ) {
+
+                    bizListToBeUpdated.push(biz);
+                  }
+
+                  // if main website is NOT mainWebsite or one of reservation URL, menu URL etc is not qmenu website, we need to update!
+                } catch (error) {
+                  console.log(error);
+                  this.addErrorMessage(`Error crawling ${biz.name}`);
+                }
+              }
+
+              const uniqueBizList = [...new Set(bizListToBeUpdated)];
+              console.log('need update website list,', uniqueBizList);
+
+              for (let gmbBiz of uniqueBizList) {
+                try {
                   this.addRunningMessage(`update website: ${gmbBiz.name}`);
                   await this._gmb.updateGmbWebsite(gmbBiz, false);
                   this.executedTasks++;
                 } catch (error) {
-                  this.addErrorMessage('ERROR ---> injecting ' + loc.name);
+                  this.addErrorMessage('ERROR ---> injecting ' + gmbBiz.name);
                 }
               }
             } // end publishedLocations.length > 0
