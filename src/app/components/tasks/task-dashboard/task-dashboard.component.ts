@@ -10,7 +10,7 @@ import { TaskService } from '../../../services/task.service';
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
 
-import { Address} from '@qmenu/ui';
+import { Address } from '@qmenu/ui';
 @Component({
   selector: 'app-task-dashboard',
   templateUrl: './task-dashboard.component.html',
@@ -46,7 +46,7 @@ export class TaskDashboardComponent {
 
   async toggleAction(action) {
     this.currentAction = this.currentAction === action ? null : action;
-    if(action === 'ADD' && this.restaurantList.length === 0) {
+    if (action === 'ADD' && this.restaurantList.length === 0) {
       this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {
@@ -96,11 +96,32 @@ export class TaskDashboardComponent {
 
   transfer;
 
+  hideClosedOldTasksDays = 7;
+
   refresh() {
     this.refreshing = true;
+    const daysAgo = function (days) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - days);
+      return d;
+    };
+
     zip(this._api.get(environment.adminApiUrl + "generic", {
       resource: "task",
-      query: {},
+      query: {
+        $or: [
+          {
+            resultAt: null
+          },
+          {
+            updatedAt: {
+              $gt: { $date: daysAgo(this.hideClosedOldTasksDays) }
+            }
+          }
+        ]
+
+      },
       limit: 10000,
       sort: {
         createdAt: -1
@@ -189,7 +210,7 @@ export class TaskDashboardComponent {
 
   updateTask(event) {
     // find and replace the task
-    console.log('event!')
+    console.log('update task event!')
     console.log(event);
     for (let i = 0; i < this.myTasks.length; i++) {
       if (this.myTasks[i]._id === event.task._id) {
@@ -251,14 +272,12 @@ export class TaskDashboardComponent {
     this.refresh();
   }
 
-  
-
   async createNewTask(task) {
     const taskCloned = JSON.parse(JSON.stringify(task));
     if (taskCloned.scheduledAt) {
       taskCloned.scheduledAt = { $date: taskCloned.scheduledAt }
     }
-    
+
     await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
     this._global.publishAlert(AlertType.Success, `Created ${task.name}`);
     this.toggleAction('ADD');
