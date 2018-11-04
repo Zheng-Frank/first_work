@@ -48,10 +48,7 @@ export class RestaurantOrdersComponent implements OnInit {
       d => this.showNotifier(d)
     );
 
-
-
-    console.log(this.restaurant);
-    this._api.get(environment.legacyApiUrl + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 500 }).
+    this._api.get(environment.legacyApiUrl + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 300 }).
       subscribe(d => {
         this.orders = d;
         this.orders = this.orders.map(o => new Order(o));

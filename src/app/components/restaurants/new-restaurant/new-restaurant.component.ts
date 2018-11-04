@@ -62,6 +62,7 @@ export class NewRestaurantComponent implements OnInit {
       }).pipe(mergeMap(result => {
         if (result.length > 0) {
           // now create this restaurant!
+          this._global.publishAlert(AlertType.Danger, 'Alias ' + event.object.alias + ' already exists.');
           throw ('Alias ' + event.object.alias + ' already exists.');
         } else {
           return this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [event.object]);

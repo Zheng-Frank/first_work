@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, ViewChild, OnChanges } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
+import { Restaurant, Address } from '@qmenu/ui';
 import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
@@ -16,9 +16,11 @@ export class RestaurantProfileComponent implements OnInit {
   @Input() restaurant: Restaurant;
   uploadImageError: string;
   editing: boolean = false;
-  address;
+  address: Address;
+  apt: string;
 
   fields = [
+    'name',
     'email',
     'taxRate',
     'surchargeAmount',
@@ -58,6 +60,7 @@ export class RestaurantProfileComponent implements OnInit {
   ccProcessingFlatFee: number;
   disableScheduling = false;
   timeZone;
+  googleAddress: Address;
   preferredLanguage;
 
   notification;
@@ -81,10 +84,11 @@ export class RestaurantProfileComponent implements OnInit {
   }
 
   selectAddress(address) {
-    this.address = address;
+    this.googleAddress = address;
   }
 
   toggleEditing() {
+    this.address = new Address(this.restaurant.googleAddress);
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
 
@@ -113,7 +117,11 @@ export class RestaurantProfileComponent implements OnInit {
     newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
     newObj.deliveryTimeEstimate = +this.deliveryTimeEstimate || undefined;
     newObj.pickupMinimum = +this.pickupMinimum || undefined;
-    newObj.googleAddress = this.address;
+    if(this.googleAddress){
+      newObj.googleAddress=JSON.parse(JSON.stringify(this.googleAddress));
+      newObj.googleAddress.apt = this.apt;
+    }
+    
 
     newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;

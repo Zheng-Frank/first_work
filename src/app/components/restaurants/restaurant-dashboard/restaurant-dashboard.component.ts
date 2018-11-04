@@ -42,7 +42,7 @@ export class RestaurantDashboardComponent implements OnInit {
         restaurantId:1,
         "phones.phoneNumber": 1,
         disabled: 1,
-        "googleAddress.formatted_address": 1
+        "googleAddress": 1
       },
       limit: 6000
     })
