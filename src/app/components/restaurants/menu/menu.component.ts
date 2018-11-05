@@ -385,7 +385,7 @@ export class MenuComponent implements OnInit {
     })));
 
 
-    const newMenus = JSON.parse(JSON.stringify(oldMenus));
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
     newMenus.map(eachMenu => {
       eachMenu.mcs.map(eachMc => {
         if (eachMc.id === mc.id) {

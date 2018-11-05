@@ -12,7 +12,7 @@ import { AlertType } from '../../../classes/alert-type';
   templateUrl: './restaurant-profile.component.html',
   styleUrls: ['./restaurant-profile.component.css']
 })
-export class RestaurantProfileComponent implements OnInit {
+export class RestaurantProfileComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   uploadImageError: string;
   editing: boolean = false;
@@ -83,6 +83,10 @@ export class RestaurantProfileComponent implements OnInit {
   ngOnInit() {
   }
 
+  ngOnChanges(params) {
+    // console.log(params);
+  }
+
   selectAddress(address) {
     this.googleAddress = address;
   }
@@ -93,7 +97,6 @@ export class RestaurantProfileComponent implements OnInit {
     this.fields.map(field => this[field] = this.restaurant[field]);
 
     // special fields
-    this.images = this.restaurant.images || [];
     this.timeZone = this.timeZones.filter(z => z.value === (this.restaurant.offsetToEST || 0))[0];
     this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
   }
@@ -103,7 +106,6 @@ export class RestaurantProfileComponent implements OnInit {
   }
 
   ok() {
-
     const oldObj = { _id: this.restaurant['_id'] };
     const newObj = { _id: this.restaurant['_id'] } as any;
     this.fields.map(field => {
@@ -117,15 +119,17 @@ export class RestaurantProfileComponent implements OnInit {
     newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
     newObj.deliveryTimeEstimate = +this.deliveryTimeEstimate || undefined;
     newObj.pickupMinimum = +this.pickupMinimum || undefined;
-    if(this.googleAddress){
-      newObj.googleAddress=JSON.parse(JSON.stringify(this.googleAddress));
+    if (this.googleAddress) {
+      newObj.googleAddress = JSON.parse(JSON.stringify(this.googleAddress));
       newObj.googleAddress.apt = this.apt;
     }
-    
 
     newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
     // update those two fields!
+
+    delete oldObj['images'];
+
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
@@ -133,21 +137,21 @@ export class RestaurantProfileComponent implements OnInit {
           new: newObj
         }])
       .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            "Updated successfully"
-          );
+      result => {
+        // let's update original, assuming everything successful
+        this._global.publishAlert(
+          AlertType.Success,
+          "Updated successfully"
+        );
 
-          // assign new values to restaurant
-          this.fields.map(f => this.restaurant[f] = newObj[f]);
+        // assign new values to restaurant
+        this.fields.map(f => this.restaurant[f] = newObj[f]);
 
-          this.editing = false;
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-        }
+        this.editing = false;
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      }
       );
 
     this.editing = false;
@@ -156,28 +160,6 @@ export class RestaurantProfileComponent implements OnInit {
   cancel() {
     this.editing = false;
   }
-
-  // upload logo or image
-
-  async onUpload(event, type) {
-
-    this.uploadImageError = undefined;
-    let files = event.target.files;
-    try {
-        const data: any = await Helper.uploadImage(files, this._api);
-
-        if (data && data.Location) {
-          this.images = this.images || [];
-          this.images.push(data.Location);
-        }
-    }
-    catch (err) {
-        this.uploadImageError = err;
-    }
-
-    
-  }
-
 
   deleteLogo(url) {
     this.logo = undefined;
@@ -199,5 +181,40 @@ export class RestaurantProfileComponent implements OnInit {
       }
     }
     return 'N/A';
+  }
+
+  async onUploadImage(event) {
+    this.uploadImageError = undefined;
+    let files = event.target.files;
+    try {
+      const data: any = await Helper.uploadImage(files, this._api);
+
+      if (data && data.Location) {
+        (this.images).push(data.Location);
+      }
+    }
+    catch (err) {
+      this.uploadImageError = err;
+    }
+
+  }
+
+
+  async onUploadLogo(event) {
+
+    this.uploadImageError = undefined;
+    let files = event.target.files;
+    try {
+      const data: any = await Helper.uploadImage(files, this._api);
+
+      if (data && data.Location) {
+        this.logo = data.Location;
+      }
+    }
+    catch (err) {
+      this.uploadImageError = err;
+    }
+
+
   }
 }
