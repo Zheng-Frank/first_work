@@ -95,6 +95,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.address = new Address(this.restaurant.googleAddress);
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
+    this.apt= this.restaurant.googleAddress?this.restaurant.googleAddress.apt:'';
 
     // special fields
     this.timeZone = this.timeZones.filter(z => z.value === (this.restaurant.offsetToEST || 0))[0];
