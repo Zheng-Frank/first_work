@@ -99,7 +99,8 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
       .subscribe(
         results => {
           this.restaurant = new Restaurant(results[0][0]);
-          const invoices = results[1].map(i => new Invoice(i));
+          let invoices = results[1].map(i => new Invoice(i));
+          invoices=(invoices || []).filter(each=>!each.isCanceled);
           // sort by end date!
           invoices.sort((i1, i2) => i2.toDate.valueOf() - i1.toDate.valueOf());
           this.restaurant.invoices = invoices;

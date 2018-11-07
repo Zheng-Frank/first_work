@@ -189,9 +189,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     let files = event.target.files;
     try {
       const data: any = await Helper.uploadImage(files, this._api);
-
       if (data && data.Location) {
-        (this.images).push(data.Location);
+        (this.images || []).push(data.Location);
       }
     }
     catch (err) {
