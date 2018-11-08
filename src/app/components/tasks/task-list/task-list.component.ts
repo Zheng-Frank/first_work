@@ -12,6 +12,8 @@ export class TaskListComponent implements OnInit, OnChanges {
   @Output() actionDone = new EventEmitter();
 
   now = new Date();
+  claimed;
+  assignee: string;
   myColumnDescriptors = [
     {
       label: "Scheduled At",
@@ -72,9 +74,9 @@ export class TaskListComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     console.log('on changes!!!')
-    if(this.taskList) {
-      this.taskNames = ['All',  ...Array.from(new Set(this.taskList.map(t => t.name)))];
-      if(this.taskNames.indexOf(this.selectedTaskName) < 0) {
+    if (this.taskList) {
+      this.taskNames = ['All', ...Array.from(new Set(this.taskList.map(t => t.name)))];
+      if (this.taskNames.indexOf(this.selectedTaskName) < 0) {
         this.selectedTaskName = 'All';
       }
       this.filter();
@@ -82,12 +84,32 @@ export class TaskListComponent implements OnInit, OnChanges {
   }
 
   filter() {
-    if(this.selectedTaskName === 'All') {
+    if (this.selectedTaskName === 'All') {
       this.filteredTasks = this.taskList;
     } else {
       this.filteredTasks = this.taskList.filter(t => t.name === this.selectedTaskName);
     }
+
+    switch (this.claimed) {
+      case 'Claimed':
+        this.filteredTasks = this.filteredTasks.filter(t => t.assignee);
+        break;
+      case 'Not Claimed':
+        this.filteredTasks = this.filteredTasks.filter(t => !t.assignee);
+        break;
+      case 'Any':
+        this.filteredTasks = this.filteredTasks;
+        break;
+      default:
+        break;
+    }
+
+
+    if (this.assignee && this.assignee !== "Any") {
+      this.filteredTasks = this.filteredTasks.filter(t => t.assignee == this.assignee);
+    }
   }
+
 
   getTaskClass(task) {
     const day = 24 * 3600 * 1000;
@@ -116,6 +138,12 @@ export class TaskListComponent implements OnInit, OnChanges {
 
   selectTask(item) {
     this.filter();
+  }
+
+  getAssigneeList() {
+    let agigneeList = this.taskList.map(t => t.assignee);
+    // reuturn unique
+    return Array.from(new Set(agigneeList)).sort().filter(e => e != null);
   }
 
 }

@@ -3,7 +3,25 @@
 </div>
 <q-simple-radio [(ngModel)]="selectedTaskName" [values]="taskNames" (ngModelChange)="selectTask($event)">
 </q-simple-radio>
-Count: {{filteredTasks.length}}
+<div class="float-left form-inline mt-2">
+<label class="mr-2"> Count:</label>
+<span class="mr-5" > {{filteredTasks.length}} </span>
+
+<label class="mr-2"> Status:</label>
+<select class="mr-5" [(ngModel)]="claimed" (change)="filter()">
+    <option>Any</option>
+    <option>Claimed</option>
+    <option>Not Claimed</option>
+</select>
+
+
+<label class="mr-2"> Assignee:</label>
+<select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
+    <option>Any</option>
+    <option *ngFor="let assignee of getAssigneeList()">{{assignee}}</option>
+</select>
+</div>
+
 <q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
     <tr *tableRowTemplate="let task;">
         <td>
@@ -22,8 +40,8 @@ Count: {{filteredTasks.length}}
                 <small>
                     {{task.description}} {{task.gmbBiz?.address}}
                     <div *ngIf="task.transfer && task.transfer.fromEmail">
-                        <app-gmb-account-hotlink [email]="task.transfer.fromEmail"></app-gmb-account-hotlink><span
-                            *ngIf="task.transfer.againstEmail">« {{task.transfer.againstEmail | emailName}}</span>
+                        <app-gmb-account-hotlink [email]="task.transfer.fromEmail"></app-gmb-account-hotlink>
+                        <span *ngIf="task.transfer.againstEmail">« {{task.transfer.againstEmail | emailName}}</span>
                     </div>
                     <div *ngIf="task.etc && task.etc.fromEmail">
                         <app-gmb-account-hotlink [email]="task.etc.fromEmail"></app-gmb-account-hotlink>
@@ -32,7 +50,9 @@ Count: {{filteredTasks.length}}
             </div>
         </td>
         <td>{{task.gmbBiz?.timeZone}}</td>
-        <td><i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i></td>
+        <td>
+            <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>
+        </td>
         <td>{{task.score}}</td>
         <td>{{getRoles(task)}}</td>
         <td>{{task.assignee}}</td>
