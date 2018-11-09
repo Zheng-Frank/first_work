@@ -40,11 +40,15 @@ export class RestaurantClosedHoursComponent implements OnInit {
   }
 
   addClosedHour() {
-    let newClosedHours =JSON.parse(JSON.stringify(this.restaurant.closedHours || []))
+    let newClosedHours = JSON.parse(JSON.stringify(this.restaurant.closedHours || []))
     const hourClone = new Hour(this.hourInEditing);
-    // adjust offsetToEST!
-    hourClone.fromTime.setHours(hourClone.fromTime.getHours() - (this.restaurant.offsetToEST || 0));
-    hourClone.toTime.setHours(hourClone.toTime.getHours() - (this.restaurant.offsetToEST || 0));
+
+    // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
+    const jan = new Date(new Date().getFullYear(), 0, 1);
+    const browserHoursAhead = 5 - (this.restaurant.offsetToEST || 0) - jan.getTimezoneOffset() / 60;
+
+    hourClone.fromTime.setHours(hourClone.fromTime.getHours() + browserHoursAhead);
+    hourClone.toTime.setHours(hourClone.toTime.getHours() + browserHoursAhead);
 
     newClosedHours.push(hourClone);
     this.toggleEditing();
@@ -90,19 +94,19 @@ export class RestaurantClosedHoursComponent implements OnInit {
 
 
   remove(hour) {
-    let newClosedHours =JSON.parse(JSON.stringify(this.restaurant.closedHours || []))
+    let newClosedHours = JSON.parse(JSON.stringify(this.restaurant.closedHours || []))
     newClosedHours = this.restaurant.closedHours.filter(h => h !== hour);
     this.patch(newClosedHours, this.restaurant.closedHours);
   }
 
   getError() {
-    if(!this.hourInEditing.fromTime) {
+    if (!this.hourInEditing.fromTime) {
       return 'Please select From time';
     }
-    if(!this.hourInEditing.toTime) {
+    if (!this.hourInEditing.toTime) {
       return 'Please select To time';
     }
-    if(this.hourInEditing.fromTime >= this.hourInEditing.toTime) {
+    if (this.hourInEditing.fromTime >= this.hourInEditing.toTime) {
       return 'To time must be larger than From time';
     }
   }
