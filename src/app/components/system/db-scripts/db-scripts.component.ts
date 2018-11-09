@@ -1079,4 +1079,46 @@ export class DbScriptsComponent implements OnInit {
     }
   }
 
+  async fixMissingBusinessPhones() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        phones: 1,
+        "googleAddress.formatted_address": 1
+      },
+      limit: 10000
+    }).toPromise();
+
+    console.log(restaurants);
+    const restaurantsMissingBizPhones = restaurants.filter(r => r.phones && !r.phones.some(p => p.type === 'Business'));
+
+    console.log(restaurantsMissingBizPhones);
+
+    for (let r of restaurantsMissingBizPhones) {
+      try {
+        const crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: `${r.name} ${r.googleAddress.formatted_address}` }).toPromise();
+        console.log(crawledResult);
+        if (crawledResult.phone) {
+          // inject phone!
+          // update qmenuId!
+          const existingPhones = r.phones || [];
+          const clonedPhones = existingPhones.slice(0);
+          clonedPhones.push({
+            phoneNumber: crawledResult.phone,
+            type: 'Business'
+          });
+
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+            {
+              old: { _id: r._id, phones: existingPhones },
+              new: { _id: r._id, phones: clonedPhones }
+            }]).toPromise();
+        }
+      } catch (error) {
+
+      }
+    }
+  }
+
 }

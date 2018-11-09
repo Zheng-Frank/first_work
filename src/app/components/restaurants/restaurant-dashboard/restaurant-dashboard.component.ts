@@ -29,17 +29,31 @@ export class RestaurantDashboardComponent implements OnInit {
     googleAddress: {}
   };
 
+
+  buttonVisibilityMap = {
+    NEW: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "MARKETER"],
+    CRAWL: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
+    REMOVE: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"]
+  }
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
-    // retrieve restaurant list
+    // retrieve MY restaurant list
+    const query = {};
+
+    if (!this._global.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0)) {
+      query["rateSchedules.agent"] = this._global.user.username
+    }
+    console.log(query);
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
+      query: query,
       projection: {
         name: 1,
         alias: 1,
         logo: 1,
-        restaurantId:1,
+        restaurantId: 1,
         "phones.phoneNumber": 1,
         disabled: 1,
         "googleAddress": 1
@@ -135,12 +149,16 @@ export class RestaurantDashboardComponent implements OnInit {
       );
   }
 
+  isButtonVisible(action) {
+    return this._global.user.roles.some(r => this.buttonVisibilityMap[action].indexOf(r) >= 0);
+  }
+
   isVisible(restaurant) {
-    if(this.phoneFilter){
-      this.phoneFilter=this.phoneFilter.replace(/\D/g,"");
+    if (this.phoneFilter) {
+      this.phoneFilter = this.phoneFilter.replace(/\D/g, "");
     }
     return (!this.nameFilter || (restaurant.name || '').toLowerCase().indexOf(this.nameFilter.toLowerCase()) >= 0) &&
-    (!this.restaurantIdFilter || this.restaurantIdFilter==restaurant.restaurantId) &&
+      (!this.restaurantIdFilter || this.restaurantIdFilter == restaurant.restaurantId) &&
       (!this.phoneFilter || (restaurant.phones || []).some(p => (p.phoneNumber || '').indexOf(this.phoneFilter) >= 0));
   }
 

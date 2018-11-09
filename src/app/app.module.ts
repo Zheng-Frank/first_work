@@ -119,6 +119,7 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
 import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-simple/hour-picker-simple.component';
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
 import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
+import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/restaurant-gmb.component';
  
 @NgModule({
   declarations: [
@@ -221,7 +222,8 @@ import { FutureDateTimePickerComponent } from './components/restaurants/future-d
     MyRestaurantComponent,
     AutomationDashboardComponent,
     HourPickerSimpleComponent,
-    FutureDateTimePickerComponent
+    FutureDateTimePickerComponent,
+    RestaurantGmbComponent
   ],
   imports: [
     BrowserModule,

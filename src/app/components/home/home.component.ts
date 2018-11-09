@@ -3,9 +3,8 @@ import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
-import { mergeMap } from "rxjs/operators";
 import { CacheService } from "../../services/cache.service";
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -18,7 +17,7 @@ export class HomeComponent implements OnInit {
 
   selectedRestaurant;
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _cache: CacheService) { }
+  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService, private _cache: CacheService) { }
 
   ngOnInit() {
     // retrieve restaurant list
@@ -68,8 +67,8 @@ export class HomeComponent implements OnInit {
       const restaurant = this.restaurantList[i];
       if (!this.searchTerm) {
         results.push(restaurant);
-      }else{
-        this.searchTerm=this.searchTerm.replace(/[^a-zA-Z 0-9]+/g,"");
+      } else {
+        this.searchTerm = this.searchTerm.replace(/[^a-zA-Z 0-9]+/g, "");
       }
     }
 
@@ -96,7 +95,7 @@ export class HomeComponent implements OnInit {
 
     for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
       const restaurant = this.restaurantList[i];
-      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.restaurantId==this.searchTerm)) {
+      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.restaurantId == this.searchTerm)) {
         results.push(restaurant);
       }
     }
@@ -122,9 +121,14 @@ export class HomeComponent implements OnInit {
   isVisible(section) {
     const sectionRolesMap = {
       email: ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      template: ['ADMIN', 'CSR', 'MENU_EDITOR']
+      template: ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      search: ['ADMIN', 'CSR', 'MENU_EDITOR']
     }
     return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
+  }
+
+  selectRestaurant(restaurant) {
+    this._router.navigate(['/restaurants/' + restaurant._id]);
   }
 
 }

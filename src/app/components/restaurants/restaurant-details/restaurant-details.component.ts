@@ -7,6 +7,7 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from "rxjs";
 import { Invoice } from '../../../classes/invoice';
+import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 declare var $: any;
 
 @Component({
@@ -16,23 +17,41 @@ declare var $: any;
 })
 export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy {
   restaurant: Restaurant;
+  gmbBiz: GmbBiz;
   displayTextReply = false;
   phoneNumber;
   message = '';
   textedPhoneNumber;
   @Input() id;
 
-  tabs = [
-    "Settings",
-    "Menus",
-    "Menu Options",
-    "Orders",
-    "Invoices",
-    "Logs"
-  ];
+  tabs = [];
   activeTab = 'Settings';
 
+  sectionVisibilityRolesMap = {
+    profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
+    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
+    rateSchedules: ['RATE_EDITOR', 'MARKETER'],
+    paymentMeans: ['ACCOUNTANT', 'CSR'],
+    serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    promotions: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    deliveryeSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER']
+  }
+
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
+    const tabVisibilityRolesMap = {
+      "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
+      "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      "Orders": ['ADMIN', 'CSR'],
+      "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
+      "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER']
+    }
+
+    this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
 
   }
 
@@ -44,7 +63,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     this._global.storeSet('restaurantDetailsTab', this.activeTab);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  async ngOnChanges(changes: SimpleChanges) {
     if (this.id) {
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
@@ -117,15 +136,44 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
         limit: 1
       })
         .subscribe(
-        results => {
-          this.restaurant = new Restaurant(results[0]);
-          console.log("Mega restaurant=",this.restaurant)
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, error);
-        }
+          results => {
+            this.restaurant = new Restaurant(results[0]);
+            console.log(this.computeRestaurantStatus(this.restaurant));
+            console.log("Mega restaurant=", this.restaurant)
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, error);
+          }
         );
+
+
+      // temp: also get gmbBiz to digg more info
+      this.gmbBiz = (await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          qmenuId: this.id
+        },
+        limit: 1
+      }).toPromise())[0];
     }
+
+  }
+
+  computeRestaurantStatus(restaurant: Restaurant) {
+    return {
+      menusOk: restaurant.menus && restaurant.menus.length > 0 && restaurant.menus.some(menu => !menu.disabled),
+      hoursOk: (restaurant.menus || []).every(menu => menu.hours && menu.hours.length > 0),
+      serviceSettingsOk: restaurant.serviceSettings && restaurant.serviceSettings.some(settings => settings.paymentMethods && settings.paymentMethods.length > 0),
+      emailOk: (restaurant.email || '').split(',').map(email => (email || '').trim()).filter(email => email).length > 0,
+      voiceOk: (restaurant.phones || []).some(phone => phone.callable),
+      smsOk: (restaurant.phones || []).some(phone => phone.textable),
+      faxOk: (restaurant.phones || []).some(phone => phone.faxable),
+      paymentMeansOk: restaurant.paymentMeans && restaurant.paymentMeans.length > 0,
+      rateScheduleOk: restaurant.rateSchedules && restaurant.rateSchedules.length > 0,
+      taxRateOk: !!restaurant.taxRate,
+      ownerInfoOk: restaurant.people && restaurant.people.some(person => person.roles && person.roles.indexOf('Owner') >= 0),
+      salesAgentOk: restaurant.rateSchedules && restaurant.rateSchedules.some(rs => !!rs.agent)
+    };
   }
 
   setActiveTab(tab) {
@@ -159,19 +207,19 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
       message: this.message,
       source: this.restaurant.id
     })
-    .subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        this._global.publishAlert(
-          AlertType.Success,
-          "Text Message Sent successfully"
-        );      
+      .subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          this._global.publishAlert(
+            AlertType.Success,
+            "Text Message Sent successfully"
+          );
 
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
-      }
-    );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
+        }
+      );
   }
 
   toggleTextReply() {
@@ -191,24 +239,13 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   isSectionVisible(sectionName) {
-    const visibilityRolesMap = {
-      profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR'],
-      contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR'],
-      rateSchedules: ['RATE_EDITOR'],
-      paymentMeans: ['ACCOUNTANT', 'CSR'],
-      serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      promotions: ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      phones: ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      deliveryeSettings: ['ADMIN', 'MENU_EDITOR', 'CSR']
-    }
     const roles = this._global.user.roles || [];
-    return visibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
+    return this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
   }
 
   getVisibleRoutes() {
-    const routes = [
+    const roles = this._global.user.roles || [];
+    const routeVisibilityRolesMap = [
       {
         title: 'Menus',
         route: '/restaurants/' + this.restaurant['_id'] + '/menus',
@@ -230,9 +267,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
         roles: ['ADMIN', 'ACCOUNTANT']
       }
     ];
-    const roles = this._global.user.roles || [];
-
-    return routes.filter(r => r.roles.some(role => roles.indexOf(role) >= 0));
+    return routeVisibilityRolesMap.filter(r => r.roles.some(role => roles.indexOf(role) >= 0));
   }
 
   getLine1(address: Address) {

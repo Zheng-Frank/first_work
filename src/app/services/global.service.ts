@@ -54,7 +54,7 @@ export class GlobalService {
           name: "Restaurants",
           href: "#/restaurants",
           fa: "fas fa-utensils",
-          accessibleRoles: ["ADMIN", "MENU_EDITOR", "CSR","ACCOUNTANT"]
+          accessibleRoles: ["ADMIN", "MENU_EDITOR", "CSR","ACCOUNTANT", "MARKETER"]
         },
         {
           name: "Logs",
@@ -84,7 +84,7 @@ export class GlobalService {
           name: "Tasks",
           href: "#/tasks",
           fa: "fas fa-tasks",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
           name: "GMBs",
