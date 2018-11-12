@@ -118,11 +118,7 @@ export class MenuOptionsComponent implements OnInit {
       .subscribe(
         result => {
           // let's update original, assuming everything successful
-          for (let i = 0; i < this.restaurant.menuOptions.length; i++) {
-            if (this.restaurant.menuOptions[i].id === mo.id) {
-              this.restaurant.menuOptions[i] = new MenuOption(mo);
-            }
-          }
+          this.restaurant.menuOptions = newMenuOptions;
           
           this._global.publishAlert(
             AlertType.Success,

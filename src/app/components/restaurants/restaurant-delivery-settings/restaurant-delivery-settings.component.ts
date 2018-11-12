@@ -102,6 +102,16 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       .subscribe(
         result => {
           this.restaurant.deliverySettings= newR.deliverySettings;
+          this.restaurant.blockedCities = newR.blockedCities;
+          this.restaurant.blockedZipCodes = newR.blockedZipCodes;
+          if (newR.deliveryFrom) {
+            this.restaurant.deliveryFromTime = newR.deliveryFromTime;
+          }
+          if (newR.deliveryEndMinutesBeforeClosing || +newR.deliveryEndMinutesBeforeClosing===0) {
+            this.restaurant.deliveryEndMinutesBeforeClosing = newR.deliveryEndMinutesBeforeClosing;
+          }  
+          
+
           // let's update original, assuming everything successful
           this._global.publishAlert(
             AlertType.Success,
