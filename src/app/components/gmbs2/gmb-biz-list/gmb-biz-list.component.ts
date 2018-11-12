@@ -92,6 +92,9 @@ export class GmbBizListComponent implements OnInit {
       label: "Tasks"
     },
     {
+      label: "Comments"
+    },
+    {
       label: "Actions"
     }
   ];
