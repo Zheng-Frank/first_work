@@ -167,7 +167,8 @@ export class GmbBizListComponent implements OnInit {
   }
 
   getEncodedGoogleSearchString(gmbBiz: GmbBiz) {
-    return encodeURI(gmbBiz.name + ' ' + gmbBiz.address);
+    //remove & specially, since it will cause search by restaurant name only
+    return encodeURI(gmbBiz.name.replace('&', '') + ' ' + gmbBiz.address);
   }
 
   debounce(event) {
