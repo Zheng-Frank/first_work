@@ -470,6 +470,13 @@ export class GmbService {
     const zipcodeEqual = crawledResult['address'].split(' ').pop() === gmbBiz.address.split(' ').pop();
     const place_idEqual = crawledResult['place_id'] === gmbBiz.place_id;
 
+    const phone=crawledResult['phone'];
+    //remove the country code like 16789900520
+    if(phone){
+      if(phone.toString().length>10){
+        crawledResult['phone']=phone.slice(-10);
+      }
+    }
 
     if (!place_idEqual && !nameEqual && !zipcodeEqual) {
       throw 'Crawl error: nothing matches, ' + gmbBiz.name;
