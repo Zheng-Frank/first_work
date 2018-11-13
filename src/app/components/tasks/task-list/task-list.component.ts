@@ -82,11 +82,7 @@ export class TaskListComponent implements OnInit, OnChanges {
         this.selectedTaskName = 'All';
       }
       this.filter();
-      this.assigneeList = this.taskList.map(t => t.assignee);
-      // reuturn unique
-      return Array.from(new Set(this.assigneeList)).sort().filter(e => e != null);
     }
-
   }
 
   filter() {
@@ -110,10 +106,13 @@ export class TaskListComponent implements OnInit, OnChanges {
         break;
     }
 
-
     if (this.assignee && this.assignee !== "Any") {
       this.filteredTasks = this.filteredTasks.filter(t => t.assignee == this.assignee);
     }
+
+    this.assigneeList = this.filteredTasks.map(t => t.assignee);
+    // reuturn unique
+    this.assigneeList= Array.from(new Set(this.assigneeList)).sort().filter(e => e != null);
   }
 
 
