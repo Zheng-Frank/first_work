@@ -14,6 +14,8 @@ export class TaskListComponent implements OnInit, OnChanges {
   now = new Date();
   claimed;
   assignee: string;
+
+  assigneeList=[];
   myColumnDescriptors = [
     {
       label: "Scheduled At",
@@ -80,7 +82,11 @@ export class TaskListComponent implements OnInit, OnChanges {
         this.selectedTaskName = 'All';
       }
       this.filter();
+      this.assigneeList = this.taskList.map(t => t.assignee);
+      // reuturn unique
+      return Array.from(new Set(this.assigneeList)).sort().filter(e => e != null);
     }
+
   }
 
   filter() {
@@ -140,10 +146,5 @@ export class TaskListComponent implements OnInit, OnChanges {
     this.filter();
   }
 
-  getAssigneeList() {
-    let agigneeList = this.taskList.map(t => t.assignee);
-    // reuturn unique
-    return Array.from(new Set(agigneeList)).sort().filter(e => e != null);
-  }
 
 }
