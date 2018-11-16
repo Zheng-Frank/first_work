@@ -81,7 +81,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
-    console.log("mega restaurant ",this.restaurant);
   }
 
   ngOnChanges(params) {

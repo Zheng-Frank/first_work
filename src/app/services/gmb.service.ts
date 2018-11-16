@@ -91,7 +91,7 @@ export class GmbService {
           gmbWebsite: 1,
           name: 1,
           place_id: 1,
-          gmbOwnerships: 1,
+          gmbOwnerships: { $slice: -4 },
           score: 1
         },
         limit: 5000
@@ -463,6 +463,9 @@ export class GmbService {
       crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
     }
 
+    if (gmbBiz.address) {
+      gmbBiz.address=gmbBiz.address.replace(', USA', '');
+    }
 
     const name1 = crawledResult['name'].toLowerCase();
     const name2 = gmbBiz.name.toLowerCase();
