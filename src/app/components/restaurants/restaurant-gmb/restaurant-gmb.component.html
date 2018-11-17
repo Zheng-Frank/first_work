@@ -1,3 +1,102 @@
-<p>
-  restaurant-gmb works!
-</p>
+<div class="card mb-2">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="fab fa-google"></i> Google Listing
+    <span class="text-success">✓</span>
+    <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: 12</h6>
+  </h3>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <table class="app-table w-100">
+        <tr>
+          <th></th>
+          <th>Google Listing</th>
+          <th>Good?</th>
+          <th>Insisted?</th>
+        </tr>
+        <tr>
+          <th>Website</th>
+          <td>http://googlg.eocm</td>
+          <td><span class="text-success">✓</span></td>
+          <td><input type="checkbox" checked></td>
+        </tr>
+        <tr>
+          <th>Menu</th>
+          <td>http://googlg.eocm</td>
+          <td><span class="text-success">✓</span></td>
+          <td><input type="checkbox" checked></td>
+        </tr>
+        <tr>
+          <th>Reservations</th>
+          <td>http://googlg.eocm</td>
+          <td><span class="text-danger">✗</span></td>
+          <td><input type="checkbox" checked></td>
+        </tr>
+        <tr>
+          <th>Order</th>
+          <td>http://googlg.eocm</td>
+          <td><span class="text-success">✓</span></td>
+          <td></td>
+        </tr>
+      </table>
+    </li>
+    <li class="list-group-item">
+      <!--displaying-->
+      <table class="app-table w-100">
+        <tr>
+          <th class="">Ownerships</th>
+          <td class="pl-1">A -> B -> C...</td>
+        </tr>
+        <tr>
+          <td class="pl-1" colspan="2">
+
+          </td>
+        </tr>
+        <tr>
+          <th class="">qMenu Managed Website</th>
+          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us"></td>
+        </tr>
+        <tr>
+          <th class="">Restaurant Managed Website</th>
+          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us"></td>
+        </tr>
+        <tr>
+          <th class="">Godaddy Pop3 Host</th>
+          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us"></td>
+        </tr>
+        <tr>
+          <th class="">Godaddy Pop3 Email</th>
+          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us"></td>
+        </tr>
+        <tr>
+          <th class="">Godaddy Pop3 Password</th>
+          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us">
+            <div class="text-right"><button class="btn btn-link">Retrieve Code</button></div>
+          </td>
+        </tr>
+
+
+        <tr>
+          <th class="">Outstanding Tasks</th>
+          <td class="pl-1">
+            <div>Task A</div>
+            <div>Task B</div>
+          </td>
+        </tr>
+        <tr>
+          <th class="">Last Crawled</th>
+          <td class="pl-1">5 mins ago</td>
+        </tr>
+        <tr>
+          <th class="">Last GMB Scanned</th>
+          <td class="pl-1">10 mins agao</td>
+        </tr>
+      </table>
+
+    </li>
+
+    <li class="list-group-item text-right">
+      <button *ngFor="let action of ['Refresh', 'GMB Login', 'Inject Info', 'View on Google']" class="btn btn-link">{{action}}</button>
+    </li>
+
+  </ul>
+</div>
