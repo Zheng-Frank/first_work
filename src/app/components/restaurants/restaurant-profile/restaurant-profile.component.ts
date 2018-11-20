@@ -37,6 +37,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'preferredLanguage',
     'pickupMinimum',
     'disableScheduling',
+    'isPilot',
     'notification',
     'ccProcessingRate',
     'ccProcessingFlatFee',
@@ -59,6 +60,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   ccProcessingRate: number;
   ccProcessingFlatFee: number;
   disableScheduling = false;
+  isPilot = false;
   timeZone;
   googleAddress: Address;
   preferredLanguage;

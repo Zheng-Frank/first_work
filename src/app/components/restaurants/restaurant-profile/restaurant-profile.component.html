@@ -92,6 +92,10 @@
 							<th class="text-right">Sales Agent</th>
 							<td class="pl-1">{{restaurant.rateSchedules ? restaurant.rateSchedules[0].agent:'N/A'}}</td>
 						</tr>
+						<tr>
+							<th class="text-right">isPilot</th>
+							<td class="pl-1">{{!!restaurant.isPilot}}</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -187,6 +191,13 @@
 								<th class="text-right">Disable Scheduling</th>
 								<td class="pl-1">
 									<input type="checkbox" [(ngModel)]="disableScheduling">
+								</td>
+							</tr>
+
+							<tr>
+								<th class="text-right">isPilot</th>
+								<td class="pl-1">
+									<input type="checkbox" [(ngModel)]="isPilot">
 								</td>
 							</tr>
 							<tr>
