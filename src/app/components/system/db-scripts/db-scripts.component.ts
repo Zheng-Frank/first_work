@@ -56,14 +56,14 @@ export class DbScriptsComponent implements OnInit {
 
       return this._api
         .patch(
-        environment.qmenuApiUrl + "generic?resource=restaurant",
-        myRestaurantsChanged.map(clone => ({
-          old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
-          new: clone
-        }))
+          environment.qmenuApiUrl + "generic?resource=restaurant",
+          myRestaurantsChanged.map(clone => ({
+            old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
+            new: clone
+          }))
         );
     })
-      ).subscribe(
+    ).subscribe(
       patchResult => {
         this._global.publishAlert(
           AlertType.Success,
@@ -101,24 +101,24 @@ export class DbScriptsComponent implements OnInit {
         limit: 6000
       })
       .subscribe(
-      result => {
-        const duplicatedIds = [];
-        const existingRestaurantIdSet = new Set();
-        result.map(lead => {
-          if (existingRestaurantIdSet.has(lead.restaurantId)) {
-            duplicatedIds.push(lead._id);
-          } else {
-            existingRestaurantIdSet.add(lead.restaurantId);
-          }
-        });
-        this.removeLeads(duplicatedIds);
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling gmb from API"
-        );
-      }
+        result => {
+          const duplicatedIds = [];
+          const existingRestaurantIdSet = new Set();
+          result.map(lead => {
+            if (existingRestaurantIdSet.has(lead.restaurantId)) {
+              duplicatedIds.push(lead._id);
+            } else {
+              existingRestaurantIdSet.add(lead.restaurantId);
+            }
+          });
+          this.removeLeads(duplicatedIds);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling gmb from API"
+          );
+        }
       );
   }
 
@@ -130,15 +130,15 @@ export class DbScriptsComponent implements OnInit {
         ids: leadIds
       })
       .subscribe(
-      result => {
-        this._global.publishAlert(
-          AlertType.Success,
-          result.length + " was removed"
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
+        result => {
+          this._global.publishAlert(
+            AlertType.Success,
+            result.length + " was removed"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
   }
 
@@ -176,19 +176,19 @@ export class DbScriptsComponent implements OnInit {
       );
     }))
       .subscribe(
-      result => {
+        result => {
 
-        this.removingOrphanPhones = false;
+          this.removingOrphanPhones = false;
 
-        // let's remove bad phones!
-      },
-      error => {
-        this.removingOrphanPhones = false;
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling gmb from API"
-        );
-      }
+          // let's remove bad phones!
+        },
+        error => {
+          this.removingOrphanPhones = false;
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling gmb from API"
+          );
+        }
       );
   }
 
@@ -227,7 +227,7 @@ export class DbScriptsComponent implements OnInit {
           "Error pulling leads from API"
         );
       }
-      )
+    )
   }
 
   migratePhones() {
@@ -271,14 +271,14 @@ export class DbScriptsComponent implements OnInit {
 
       return this._api
         .patch(
-        environment.qmenuApiUrl + "generic?resource=restaurant",
-        myRestaurantsChanged.map(clone => ({
-          old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
-          new: clone
-        }))
+          environment.qmenuApiUrl + "generic?resource=restaurant",
+          myRestaurantsChanged.map(clone => ({
+            old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
+            new: clone
+          }))
         );
     })
-      ).subscribe(
+    ).subscribe(
       patchResult => {
         this._global.publishAlert(
           AlertType.Success,
@@ -328,10 +328,10 @@ export class DbScriptsComponent implements OnInit {
           Object.assign(rClone.googleAddress, address);
           return this._api
             .patch(
-            environment.qmenuApiUrl + "generic?resource=restaurant", [{
-              old: rOrignal,
-              new: rClone
-            }]
+              environment.qmenuApiUrl + "generic?resource=restaurant", [{
+                old: rOrignal,
+                new: rClone
+              }]
             );
         })).subscribe(
           patchResult => {
@@ -411,7 +411,7 @@ export class DbScriptsComponent implements OnInit {
           "Error: " + JSON.stringify(error)
         );
       }
-      );
+    );
   } // end injectDeliveryBy
 
 
@@ -495,7 +495,7 @@ export class DbScriptsComponent implements OnInit {
           "Error: " + JSON.stringify(error)
         );
       }
-      );
+    );
   } // end injectDeliveryBy
 
   injectTotalEtcToInvoice() {
@@ -554,19 +554,19 @@ export class DbScriptsComponent implements OnInit {
           }));
       }))
       .subscribe(
-      updatedInvoices => {
-        console.log(updatedInvoices);
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated " + affectedInvoices.map(i => i.restaurant.name).join(', ')
-        );
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      }
+        updatedInvoices => {
+          console.log(updatedInvoices);
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated " + affectedInvoices.map(i => i.restaurant.name).join(', ')
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        }
       );
   } // injectTotalEtcToInvoice
 
@@ -674,11 +674,11 @@ export class DbScriptsComponent implements OnInit {
       console.log(oldNewPairs);
       return this._api
         .patch(
-        environment.qmenuApiUrl + "generic?resource=restaurant",
-        oldNewPairs
+          environment.qmenuApiUrl + "generic?resource=restaurant",
+          oldNewPairs
         );
     })
-      ).subscribe(
+    ).subscribe(
       patchResult => {
         this._global.publishAlert(
           AlertType.Success,
@@ -725,18 +725,18 @@ export class DbScriptsComponent implements OnInit {
 
         return this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', newGmbs);
       })).subscribe(
-      gmbIds => {
-        this._global.publishAlert(
-          AlertType.Success,
-          "Success! Total: " + gmbIds.length
-        );
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      });
+        gmbIds => {
+          this._global.publishAlert(
+            AlertType.Success,
+            "Success! Total: " + gmbIds.length
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        });
   }
 
   getStripeErrors() {
@@ -1108,12 +1108,161 @@ export class DbScriptsComponent implements OnInit {
     const gmbBizList = missingRt.map(each => ({
       name: each.name,
       qmenuId: each._id,
-      address: each.googleAddress? each.googleAddress.formatted_address : ''
+      address: each.googleAddress ? each.googleAddress.formatted_address : ''
     }));
 
     const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizList).toPromise();
     this._global.publishAlert(AlertType.Success, 'Created new GMB');
 
+  }
+
+  async fixMenu() {
+    const havingNullRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "menus.mcs.mis": null,
+        "menus": { $exists: 1 }
+      },
+      projection: {
+        name: 1,
+        "menus": 1
+      },
+      limit: 4000
+    }).toPromise();
+    console.log(havingNullRestaurants);
+    // remove mi, empty mc, and empty menu!
+
+    // havingNullRestaurants.length = 1;
+    // big patch
+    const patchList = havingNullRestaurants.map(r => {
+      const oldR = r;
+      const newR = JSON.parse(JSON.stringify(r));
+      console.log(newR.name)
+      // remove ALL empty or null mis
+      newR.menus.map(menu => (menu.mcs || []).map(mc => {
+        const beforeCount = (mc.mis || []).length;
+        mc.mis = (mc.mis || []).filter(mi => mi);
+        const afterCount = (mc.mis || []).length;
+        if (beforeCount !== afterCount) {
+          console.log('category with empty mi: ', mc.name);
+        }
+      }));
+      // remove ALL empty mcs
+      newR.menus.map(menu => {
+        const beforeCount = (menu.mcs || []).length;
+        menu.mcs = (menu.mcs || []).filter(mc => mc.mis.length > 0);
+        const afterCount = (menu.mcs || []).length;
+        if (beforeCount !== afterCount) {
+          console.log('menu with empty category: ', menu.name);
+        }
+
+      });
+      // remove ALL empty menus
+      if (newR.menus.some(menu => menu.mcs.length === 0)) {
+        console.log(newR.name, ' has empty menu');
+      }
+      newR.menus = (newR.menus || []).filter(menu => menu.mcs && menu.mcs.length > 0);
+
+      return ({
+        old: { _id: oldR._id },
+        new: { _id: newR._id, menus: newR.menus }
+      });
+    });
+    console.log(patchList);
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+
+    // find restaurants with duplicated menuIds
+    const allIdNames = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1
+      },
+      limit: 8000
+    }).toPromise();
+
+    const batchSize = 100;
+
+    const batchedIdNames = Array(Math.ceil(allIdNames.length / batchSize)).fill(0).map((i, index) => allIdNames.slice(index * batchSize, (index + 1) * batchSize));
+
+    const affectedRestaurants = [];
+
+    for (let idNames of batchedIdNames) {
+      const batchedRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          _id: {
+            $in: idNames.map(idName => ({ $oid: idName._id }))
+          }
+        },
+        projection: {
+          name: 1,
+          "menus.mcs.mis.id": 1,
+          "menus.mcs.mis.category": 1
+        },
+        limit: 4000
+      }).toPromise();
+
+      const restaurantWithDuplicatedMenuIds = batchedRestaurants.filter(r => {
+        const idSet = new Set();
+        let hasDuplicatedId = false;
+        (r.menus || []).map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
+          if (mi.id) {
+            if (idSet.has(mi.id)) {
+              hasDuplicatedId = true;
+              console.log(mi);
+              console.log(r.name, menu, mc);
+            }
+            idSet.add(mi.id);
+          }
+        })));
+
+        return hasDuplicatedId;
+      });
+      console.log(restaurantWithDuplicatedMenuIds);
+      affectedRestaurants.push(...restaurantWithDuplicatedMenuIds);
+    }
+    console.log('final: ', affectedRestaurants);
+
+    const affectedRestaurantsFull = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        _id: {
+          $in: affectedRestaurants.map(idName => ({ $oid: idName._id }))
+        }
+      },
+      projection: {
+        name: 1,
+        "menus": 1
+      },
+      limit: 4000
+    }).toPromise();
+
+    // remove duplicated ids
+    // affectedRestaurantsFull.length = 1;
+
+    console.log(affectedRestaurantsFull);
+    affectedRestaurantsFull.map(r => {
+      const idSet = new Set();
+      r.menus.map(menu => menu.mcs.map(mc => {
+        for (let i = (mc.mis || []).length - 1; i >= 0; i--) {
+          if (idSet.has(mc.mis[i].id)) {
+            //splice
+            console.log('found one!', mc.mis[i]);
+            mc.mis.splice(i, 1);
+          } else {
+            idSet.add(mc.mis[i].id)
+          }
+        }
+      }));
+
+      console.log(idSet);
+    });
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', affectedRestaurantsFull.map(r => ({
+      old: { _id: r._id },
+      new: { _id: r._id, menus: r.menus }
+    }))).toPromise();
   }
 
 }
