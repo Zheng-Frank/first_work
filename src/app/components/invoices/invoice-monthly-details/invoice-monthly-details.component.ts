@@ -101,7 +101,9 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
               isCanceled: 1,
               isPaymentCompleted: 1,
               isPaymentSent: 1,
-              isSent: 1
+              isSent: 1,
+              previousInvoiceId: 1,
+              previousBalance: 1
             },
             limit: 80000
           }),
@@ -241,7 +243,9 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
           isPaymentCompleted: 1,
           isPaymentSent: 1,
           isCanceled: 1,
-          "restaurant.offsetToEST": 1
+          "restaurant.offsetToEST": 1,
+          previousInvoiceId: 1,
+          previousBalance: 1
         },
         limit: 5000
       })

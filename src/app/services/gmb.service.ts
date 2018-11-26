@@ -250,8 +250,7 @@ export class GmbService {
         });
         return ({
           old: {
-            _id: b._id,
-            gmbOwnerships: b.gmbOwnerships
+            _id: b._id
           },
           new: {
             _id: b._id,
@@ -327,8 +326,7 @@ export class GmbService {
         });
         return ({
           old: {
-            _id: b._id,
-            gmbOwnerships: b.gmbOwnerships
+            _id: b._id
           },
           new: {
             _id: b._id,

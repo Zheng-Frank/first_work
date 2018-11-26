@@ -515,7 +515,9 @@ export class DbScriptsComponent implements OnInit {
         isCanceled: 1,
         isSent: 1,
         isPaymentSent: 1,
-        isPaymentCompleted: 1
+        isPaymentCompleted: 1,
+        previousInvoiceId: 1,
+        previousBalance: 1
 
       },
       limit: 50
@@ -821,7 +823,9 @@ export class DbScriptsComponent implements OnInit {
     //     isCanceled: 1,
     //     isSent: 1,
     //     isPaymentSent: 1,
-    //     isPaymentCompleted: 1
+    //     isPaymentCompleted: 1,
+    //    previousInvoiceId: 1,
+    //          previousBalance: 1
 
     //   },
     //   limit: 50

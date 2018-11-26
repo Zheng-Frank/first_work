@@ -1,9 +1,11 @@
 <div>
-  Keys: &#9632;<span class="text-white bg-dark"> Invoice Sent</span> | <span class="text-info">&#9632; Payment Sent</span> | <span class="text-success">&#9632; Payment Completed</span>
+  Keys: &#9632;<span class="text-white bg-dark"> Invoice Sent</span> | <span class="text-info">&#9632; Payment Sent</span>
+  | <span class="text-success">&#9632; Payment Completed</span>
 </div>
 <table class="table table-hover">
   <thead>
     <tr>
+      <th>Rolled</th>
       <th>Date Range</th>
 
       <!-- <th class="text-right">Subtotal</th> -->
@@ -20,6 +22,7 @@
   </thead>
   <tbody>
     <tr *ngFor="let invoice of invoices" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}}" role="button">
+      <td><span *ngIf="invoice.previousInvoiceId">✓ {{invoice.previousBalance | currency:'USD':'symbol'}}</span></td>
       <td>{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date: 'MMM dd'}}</td>
       <!-- <td class="text-right">{{invoice.subtotal | currency:'USD':'symbol'}}</td> -->
       <!--<td class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</td>
