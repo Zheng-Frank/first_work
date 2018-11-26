@@ -388,8 +388,7 @@ export class MenuComponent implements OnInit {
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          menus: oldMenus
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus
