@@ -17,4 +17,8 @@ export class InvoicesTableComponent implements OnInit {
     return invoice.isPaymentCompleted ? 'text-success' : (invoice.isPaymentSent ? 'text-info' : (invoice.isSent ? 'text-white bg-dark' : 'text-dark'));
   }
 
+  getPreviousInvoice(currentInvoice: Invoice) {
+    return (this.invoices || []).filter(i => (i.id || i['_id']) === (currentInvoice.previousInvoiceId || 'non-exist'))[0];
+  }
+
 }
