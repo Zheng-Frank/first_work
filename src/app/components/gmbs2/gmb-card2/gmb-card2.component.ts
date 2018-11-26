@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { FormEvent } from '@qmenu/ui';
+import { GmbBiz } from 'src/app/classes/gmb/gmb-biz';
 
 @Component({
   selector: 'app-gmb-card2',
@@ -43,6 +44,10 @@ export class GmbCard2Component implements OnInit, OnChanges {
         this.scanningRequests = false;
       }
     });
+  }
+
+  getPublishedBizList(bizList: GmbBiz[]) {
+    return bizList.filter(gmbBiz => (gmbBiz.getLastGmbOwnership() || {})['status'] === 'Published');
   }
 
   clickScanBizList() {
