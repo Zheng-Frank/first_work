@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -11,35 +11,65 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class FaxSettingsComponent implements OnInit {
 
+  @Input() system: any;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
-    try {
-      const systems = this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'system'
-      }).toPromise();
-      console.log(systems);
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Error querying system');
-    }
 
   }
 
-  async sendTestFax() {
+  async setDefault(faxProvider) {
     try {
-      await this._api.post(environment.qmenuApiUrl + 'messaging/fax', {
-        providerName: "twilio",
-        from: "6789091808",
-        to: "6785509237",
-        mediaUrl: "https://quez.herokuapp.com/utilities/order/5bafbfbf05a4681400059f63?format=pdf",
-        callbackUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/utils/phaxio-callback?orderId=5bafbfbf05a4681400059f63"
-      }).toPromise();
-      this._global.publishAlert(AlertType.Success, 'Successfully sent');
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
+        {
+          old: { _id: this.system._id, faxSettings: {} },
+          new: { _id: this.system._id, faxSettings: { defaultProviderName: faxProvider.name } }
+        }
+      ]).toPromise();
+      this.system.faxSettings.defaultProviderName = faxProvider.name;
+      await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
     }
     catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Failed! ' + JSON.stringify(error));
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Serious Error Happended. Please check errors.');
     }
   }
+
+  async deploy() {
+    try {
+      await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+    }
+    catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Failed deployment.');
+    }
+  }
+
+  async customizedUpdated(event) {
+
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
+        {
+          old: { _id: this.system._id, faxSettings: { customized: {} } },
+          new: { _id: this.system._id, faxSettings: { customized: this.system.faxSettings.customized } }
+        }
+      ]).toPromise();
+      await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+    }
+    catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Failed updating phone numbers. Please reload.');
+    }
+
+    if (event.some(p => p.length !== 10)) {
+      const illFormattedPhones = event.filter(p => p.length !== 10);
+      this._global.publishAlert(AlertType.Danger, 'Wrong format: ' + illFormattedPhones.join(', '));
+    }
+
+  }
+
 
 }
 
