@@ -5,7 +5,7 @@ import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { zip, Observable, from } from "rxjs";
 import { mergeMap } from "rxjs/operators";
-import { Restaurant } from '@qmenu/ui';
+import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { validateStyleParams } from "@angular/animations/browser/src/util";
 @Component({
@@ -1263,6 +1263,177 @@ export class DbScriptsComponent implements OnInit {
       old: { _id: r._id },
       new: { _id: r._id, menus: r.menus }
     }))).toPromise();
+  }
+
+
+  async handleHolidy() {
+
+
+
+    // 1. query restaurant with textable phones
+    // 2. test if thanksgiving is already closed. if no:
+    // 3. schedule a text (every 2 seconds apart??)
+    // 4. make a table to capture result?
+    // 
+
+    alert('DO NOT USE')
+    // const restaurants: Restaurant[] = (await this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: "restaurant",
+    //   projection: {
+    //     name: 1,
+    //     "phones.textable": 1,
+    //     "phones.phoneNumber": 1,
+    //     disabled: 1,
+    //     channels: 1,
+    //     closedHours: 1
+    //   },
+    //   limit: 6000
+    // }).toPromise()).map(r => new Restaurant(r));
+
+    // console.log('total: ', restaurants.length);
+
+    // const reachableRestaurants: any = restaurants.filter(r => (r.phones || []).some(p => p.textable) || (r.channels || []).some(c => c.type === 'SMS' || c.type === 'Email'));
+
+    // console.log('text or email reachable: ', reachableRestaurants.length);
+
+    // const checkPoint = new Date('Nov 22 2018 17:00:00 GMT-0500'); // 5PM
+    // const notAlreadyClosed: any = reachableRestaurants.filter(r => !r.closedHours || !r.closedHours.some(hr => hr.isOpenAtTime(checkPoint)));
+
+    // console.log('not already closed: ', notAlreadyClosed.length);
+
+    // // inject an closedHour: 
+    // const closedHour = new Hour({
+    //   occurence: 'ONE-TIME',
+    //   fromTime: new Date('Nov 22 2018 5:00:00 GMT-0500'),
+    //   toTime: new Date('Nov 23 2018 5:00:00 GMT-0500'),
+    //   comments: 'Happy Thanksgiving'
+    // });
+
+    // // reverse to remove preset closed hours
+    // // notAlreadyClosed.map(r => {
+    // //   r.closedHours = r.closedHours || [];
+    // //   // lets remove expired hours on our way
+    // //   const before = r.closedHours.length;
+    // //   // keep old hours
+    // //   r.closedHours = r.closedHours.filter(h => !(h.occurence === 'ONE-TIME' && h.fromTime.valueOf() === closedHour.valueOf()));
+
+    // // });
+
+    // notAlreadyClosed.map(r => {
+    //   r.closedHours = r.closedHours || [];
+    //   // lets remove expired hours on our way
+    //   const before = r.closedHours.length;
+    //   r.closedHours = r.closedHours.filter(h => h.occurence !== 'ONE-TIME' || h.toTime.valueOf() > new Date().valueOf());
+
+    //   const after = r.closedHours.length;
+    //   if (before > after) {
+    //     console.log(r.name, r.closedHours);
+    //   }
+    //   r.closedHours.push(closedHour);
+
+    // });
+
+
+    // // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', notAlreadyClosed.map(r => ({
+    // //   old: { _id: r._id },
+    // //   new: { _id: r._id, closedHours: r.closedHours }
+    // // }))).toPromise();
+
+    // // schedule text, or email events!
+    // const jobs = [];
+    // let scheduledAt = new Date().valueOf();
+    // reachableRestaurants.map(restaurant => {
+    //   // blast only unique phone numbers or emails
+    //   // emails!
+    //   const emailsInRestaurant = (restaurant.email || '').replace(/;/g, ',').split(',').filter(e => e).map(e => e.trim()).filter(e => e);
+    //   const emailsInChannels = (restaurant.channels || []).filter(c => c.type === 'Email' && c.notifications && Array.isArray(c.notifications) && c.notifications.indexOf('Order') >= 0).map(c => c.value);
+    //   const finalEmails = [...new Set([...emailsInChannels, ...emailsInRestaurant])];
+    //   // console.log('emails to send:', finalEmails);
+
+    //   // sms!
+    //   const smsNumbersInPhones = (restaurant.phones || []).filter(p => p.textable && p.phoneNumber).map(p => p.phoneNumber);
+    //   const smsNumbersInChannels = (restaurant.channels || []).filter(c => c.type === 'SMS' && c.notifications && Array.isArray(c.notifications) && c.notifications.indexOf('Order') >= 0).map(c => c.value);
+    //   let finalSmsNumbers = [...new Set([...smsNumbersInPhones, ...smsNumbersInChannels])];
+
+    //   // remove - of numbers
+
+    //   finalSmsNumbers = finalSmsNumbers.map(number => number.replace(/\D/g, '')).filter(number => number.length === 10);
+
+    //   const badFinalSmsNumbers = finalSmsNumbers.filter(number => !number || number.length !== 10);
+    //   // console.log('sms to send:', finalSmsNumbers);
+    //   if (badFinalSmsNumbers.length > 0) {
+    //     console.log(restaurant.name, badFinalSmsNumbers);
+    //   }
+
+    //   const businessPhoneNumber = ((restaurant.phones || [])[0] || {}).phoneNumber;
+
+    //   const smsMessage = 'From qMenu: If you will be OPEN on Thanksgiving day, please reply "OPEN" (without quotes) to this message by 10 PM Eastern time. If closed, you are all set and do NOT reply. Thank you.';
+
+    //   const emailSubject = `Thanksgiving hours (${businessPhoneNumber})`;
+    //   const emailContent = `
+    //   <html><body>
+    //   Dear restaurant owner,
+    //   <br>
+    //   <br>
+    //   If you will be OPEN on Thanksgiving day, please reply "OPEN" (without quotes) to this email by 6 PM Eastern time. Otherwise, do NOT reply to the email and we will mark your restaurant as closed for the day so no orders can be placed. This message sent by qMenu.
+    //   <br>
+    //   <br>
+    //   (For qMenu internal use only) Restaurant ID: [${restaurant._id}]
+    //   <br>
+    //   <br>
+    //   Thanks,
+    //   <br>
+    //   <br>
+    //   The qMenu Team`;
+
+    //   finalEmails.map(email => {
+    //     scheduledAt += 2000;
+    //     jobs.push({
+    //       name: "send-email",
+    //       scheduledAt: scheduledAt,
+    //       params: {
+    //         to: email,
+    //         subject: emailSubject,
+    //         html: emailContent
+    //       }
+    //     });
+    //   });
+
+    //   finalSmsNumbers.map(phone => {
+    //     scheduledAt += 2000;
+    //     jobs.push({
+    //       name: "send-sms",
+    //       scheduledAt: scheduledAt,
+    //       params: {
+    //         to: phone,
+    //         from: "8447935942",
+    //         providerName: "plivo",
+    //         message: smsMessage
+    //       }
+    //     });
+    //   });
+    // });
+
+    // console.log(jobs);
+
+    // const batchSize = 200;
+    // const sleep = (milliseconds) => {
+    //   return new Promise(resolve => setTimeout(resolve, milliseconds))
+    // }
+
+    // const batchedJobs = Array(Math.ceil(jobs.length / batchSize)).fill(0).map((i, index) => jobs.slice(index * batchSize, (index + 1) * batchSize));
+
+    // for (let bjobs of batchedJobs) {
+    //   try {
+    //     console.log('processing ', bjobs.length);
+    //     const addedJobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', bjobs).toPromise();
+    //     await sleep(2000);
+    //   } catch (error) {
+    //     console.log("error: ", bjobs)
+    //   }
+    // }
+    // this._global.publishAlert(AlertType.Success, 'Total notified: ', + notAlreadyClosed.length);
+
   }
 
 }
