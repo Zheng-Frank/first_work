@@ -1,5 +1,5 @@
-
-<app-data-health></app-data-health>
+<app-data-health>
+</app-data-health>
 <app-db-scripts></app-db-scripts>
 <div class="my-4">
     <h1 class="text-center">SMS Providers</h1>
@@ -9,6 +9,11 @@
     <h1 class="text-center">Fax Providers</h1>
     <app-fax-settings [system]="system"></app-fax-settings>
 </div>
+<div class="my-4">
+    <label class="col-4 col-form-label">Use Serverless For New Order</label>
+    <input type="checkbox" [(ngModel)]="system.useServerlessForNewOrder">
+</div>
+
 <div class="my-4">
     <h1 class="text-center">Stats</h1>
     <button class="btn btn-primary" (click)="getPhoneNumberStat()">Phone Number Stats</button>
