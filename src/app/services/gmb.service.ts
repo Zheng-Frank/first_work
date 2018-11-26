@@ -392,7 +392,7 @@ export class GmbService {
     // also update gmbScannedAt and total locations
     await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{
       old: { _id: gmbAccount._id },
-      new: { _id: gmbAccount._id, gmbScannedAt: { $date: new Date() }, allLocations: scanResult.allLocations, published: scanResult.published, suspended: scanResult.suspended }
+      new: { _id: gmbAccount._id, gmbScannedAt: { $date: new Date() }, pagerSize: scanResult.pagerSize, allLocations: scanResult.allLocations, published: scanResult.published, suspended: scanResult.suspended }
     }]).toPromise();
 
     // update original:

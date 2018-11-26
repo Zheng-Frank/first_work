@@ -6,7 +6,7 @@
     <div class="clearfix">
       <div class="float-left">
         <h2>{{gmbAccount.email | emailName}}</h2>
-        <h5 *ngIf="gmbAccount.pagerSize !== 100">Bad Pager Size: {{gmbAccount.pagerSize}}. Please login the account and change the pager size to 100!</h5>
+        <div *ngIf="gmbAccount.pagerSize !== 100" class="alert alert-danger">Bad Pager Size: {{gmbAccount.pagerSize}}. Please login the account and change the pager size to 100!</div>
         <div *ngIf="gmbAccount.comments"><small>{{gmbAccount.comments}}</small></div>
         <span class="{{gmbAccount.allLocations > 95 ? 'bg-danger text-light' : ''}}" *ngIf="gmbAccount.allLocations">Total
           {{gmbAccount.allLocations}}, </span>
