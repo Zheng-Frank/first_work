@@ -23,38 +23,25 @@ export class SystemDashboardComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
-    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', {resource: 'system'}).toPromise())[0];
-    console.log(this.system);
-    let a = new Address({
-      "_id": {
-          "$oid": "5ae47d50219ad2048633f828"
-      },
-      "place_id": "ChIJIUwDBch1K4cRlSekWG0ygSg",
-      "formatted_address": "15577 North Hayden Road, Scottsdale, AZ 85260, USA",
-      "lat": 33.6268709,
-      "lng": -111.8931338,
-      "street_number": "15577",
-      "route": "North Hayden Road",
-      "neighborhood": "North Scottsdale",
-      "locality": "Scottsdale",
-      "administrative_area_level_2": "Maricopa County",
-      "administrative_area_level_1": "AZ",
-      "country": "US",
-      "postal_code": "85260",
-      "timezone": "America/Phoenix",
-      "line1": "15577 North Hayden Road",
-      "city": "Scottsdale",
-      "zipCode": "85260",
-      "state": "AZ",
-      "createdAt": {
-          "$date": "2018-04-28T13:55:28.686Z"
-      },
-      "updatedAt": {
-          "$date": "2018-04-28T13:55:28.686Z"
-      }
-  });
-    console.log(a);
-  console.log(a.getLine1());
+    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0];
+
+  }
+
+  async updateSystemServerlessFlag() {
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
+        {
+          old: { _id: this.system._id },
+          new: { _id: this.system._id, useServerlessForNewOrder: !this.system.useServerlessForNewOrder }
+        }
+      ]).toPromise();
+      await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'FAILED!');
+    }
+
   }
 
   getPhoneNumberStat() {
