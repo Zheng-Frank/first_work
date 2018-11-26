@@ -400,6 +400,7 @@ export class GmbService {
     gmbAccount.allLocations = scanResult.allLocations;
     gmbAccount.published = scanResult.published;
     gmbAccount.suspended = scanResult.suspended;
+    gmbAccount.pagerSize = scanResult.pagerSize;
 
 
     // generate Appeal Suspended GMB task for those suspended
