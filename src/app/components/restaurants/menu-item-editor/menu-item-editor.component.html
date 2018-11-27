@@ -138,7 +138,7 @@
     <div *ngIf="mi.menuOptionIds" class="pl-1">
       <div *ngFor="let mo of menuOptions">
         <div *ngIf="!isMenuOptionSelectedInMc(mo)" (click)="toggleMenuOption(mo)" role="button" class="mb-1">
-          <span class="far {{isMenuOptionSelected(mo) ? 'fa-check-square' : 'fa-square'}}"></span> {{mo.name}}
+          <span class="far {{isMenuOptionSelected(mo) ? 'fa-check-square' : 'fa-square'}}"></span> {{mo.name}} ({{mo.id.substring(mo.id.length-4)}})
         </div>
         <div *ngIf="isMenuOptionSelectedInMc(mo)" class="text-muted alert-warning mb-1">
           <span class="far fa-check-square"></span> {{mo.name}} (in category)

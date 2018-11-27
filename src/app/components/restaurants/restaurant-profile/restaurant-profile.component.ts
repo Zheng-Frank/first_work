@@ -37,6 +37,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'preferredLanguage',
     'pickupMinimum',
     'disableScheduling',
+    'isPilot',
     'notification',
     'ccProcessingRate',
     'ccProcessingFlatFee',
@@ -59,6 +60,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   ccProcessingRate: number;
   ccProcessingFlatFee: number;
   disableScheduling = false;
+  isPilot = false;
   timeZone;
   googleAddress: Address;
   preferredLanguage;
@@ -98,6 +100,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.apt= this.restaurant.googleAddress?this.restaurant.googleAddress.apt:'';
 
     // special fields
+    this.images= this.restaurant.images || [];
     this.timeZone = this.timeZones.filter(z => z.value === (this.restaurant.offsetToEST || 0))[0];
     this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
   }
@@ -128,7 +131,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
     // update those two fields!
-
+    newObj.images=this.images;
     delete oldObj['images'];
 
     this._api
@@ -189,9 +192,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     let files = event.target.files;
     try {
       const data: any = await Helper.uploadImage(files, this._api);
-
       if (data && data.Location) {
-        (this.images).push(data.Location);
+        this.images.push(data.Location);
       }
     }
     catch (err) {

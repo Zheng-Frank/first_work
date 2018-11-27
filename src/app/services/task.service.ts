@@ -102,7 +102,7 @@ export class TaskService {
           _id: { $in: slice.map(id => ({ $oid: id })) },
         },
         projection: {
-          gmbOwnerships: 1
+          gmbOwnerships: { $slice: -4 }
         },
         limit: 5000
       }).toPromise();
@@ -183,7 +183,7 @@ export class TaskService {
           _id: { $in: slice.map(id => ({ $oid: id })) },
         },
         projection: {
-          gmbOwnerships: 1
+          gmbOwnerships: { $slice: -4 }
         },
         limit: 5000
       }).toPromise();
@@ -252,7 +252,7 @@ export class TaskService {
           _id: { $in: slice.map(id => ({ $oid: id })) },
         },
         projection: {
-          gmbOwnerships: 1
+          gmbOwnerships: { $slice: -4 }
         },
         limit: 5000
       }).toPromise();

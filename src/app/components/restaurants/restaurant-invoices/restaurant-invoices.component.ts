@@ -30,7 +30,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
 
     this._route.params.subscribe(
       params => {
-        if(!params ||  !params.id) {
+        if (!params || !params.id) {
           return;
         }
         this.populateData(params.id);
@@ -68,7 +68,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
             fromDate: 1,
             toDate: 1,
             total: 1,
-          commission: 1,
+            commission: 1,
             subtotal: 1,
             balance: 1,
             status: 1,
@@ -80,7 +80,9 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
             isCanceled: 1,
             isPaymentCompleted: 1,
             isPaymentSent: 1,
-            isSent: 1
+            isSent: 1,
+            previousInvoiceId: 1,
+            previousBalance: 1
 
           },
           limit: 100
@@ -99,7 +101,8 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
       .subscribe(
         results => {
           this.restaurant = new Restaurant(results[0][0]);
-          const invoices = results[1].map(i => new Invoice(i));
+          let invoices = results[1].map(i => new Invoice(i));
+          invoices = (invoices || []).filter(each => !each.isCanceled);
           // sort by end date!
           invoices.sort((i1, i2) => i2.toDate.valueOf() - i1.toDate.valueOf());
           this.restaurant.invoices = invoices;
@@ -114,7 +117,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if(this.restaurant) {
+    if (this.restaurant) {
       this.populateData(this.restaurant.id || this.restaurant['_id']);
     }
   }

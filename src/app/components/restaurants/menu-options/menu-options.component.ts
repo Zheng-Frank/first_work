@@ -108,8 +108,7 @@ export class MenuOptionsComponent implements OnInit {
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          menuOptions: this.restaurant.menuOptions
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           menuOptions: newMenuOptions
@@ -118,11 +117,7 @@ export class MenuOptionsComponent implements OnInit {
       .subscribe(
         result => {
           // let's update original, assuming everything successful
-          for (let i = 0; i < this.restaurant.menuOptions.length; i++) {
-            if (this.restaurant.menuOptions[i].id === mo.id) {
-              this.restaurant.menuOptions[i] = new MenuOption(mo);
-            }
-          }
+          this.restaurant.menuOptions = newMenuOptions;
           
           this._global.publishAlert(
             AlertType.Success,

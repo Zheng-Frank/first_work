@@ -12,6 +12,7 @@ export class GmbAccount {
     allLocations: number;
     published: number;
     suspended: number;
+    pagerSize: number;
     comments: string;
     bizList: GmbBiz[] = [];
     constructor(gmb?: any) {

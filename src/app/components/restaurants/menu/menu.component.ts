@@ -204,7 +204,7 @@ export class MenuComponent implements OnInit {
     let miCopy: Mi;
     if (!params.mi) {
       miCopy = new Mi();
-      miCopy.sortOrder = params.mc.mis ? params.mc.mis.length + 1 : 0;
+      miCopy.sortOrder = params.mc.mis ?  params.mc.mis.length + 1 : 0;
       miCopy.category = params.mc.id;
 
       // create default size (regular) options
@@ -229,20 +229,9 @@ export class MenuComponent implements OnInit {
   }
 
   miDone(mi: Mi) {
-    let action = mi.id ? 'UPDATE' : 'CREATE';
     // id == update, no id === new
-    const oldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    // we do not need everything!
-    oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
-      id: category.id,
-      name: category.name,
-      mis: category.mis.map(mi => ({
-        id: mi.id,
-        category: mi.category
-      }))
-    })));
-
-    const newMenus = JSON.parse(JSON.stringify(oldMenus));
+    let action = mi.id ? 'UPDATE' : 'CREATE';
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
 
     // in case there is category, we search for it
     if (!mi.category) {
@@ -278,11 +267,13 @@ export class MenuComponent implements OnInit {
         })));
     }
 
+    
+
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        //Just just new menus to overwrite
         old: {
           _id: this.restaurant['_id'],
-          menus: oldMenus
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus
@@ -338,14 +329,14 @@ export class MenuComponent implements OnInit {
     // menus -> menu -> mc
     const oldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
     // menus -> menu -> mc. We don't need to keep everything, just id is enough
-    oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
-      id: category.id,
-      mis: category.mis.map(item => item.id)
-    })));
+    // oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
+    //   id: category.id,
+    //   mis: category.mis.map(item => item.id)
+    // })));
 
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
 
-    newMenus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(item => item !== mi.id)));
+    newMenus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(item => item.id !== mi.id)));
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
@@ -379,10 +370,10 @@ export class MenuComponent implements OnInit {
     // menus -> menu -> mc
     const oldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
     // menus -> menu -> mc. We don't need to keep everything, just id is enough
-    oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
-      id: category.id,
-      mis: category.mis.map(item => item.id)
-    })));
+    // oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
+    //   id: category.id,
+    //   mis: category.mis.map(item => item.id)
+    // })));
 
 
     const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
@@ -397,8 +388,7 @@ export class MenuComponent implements OnInit {
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          menus: oldMenus
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus

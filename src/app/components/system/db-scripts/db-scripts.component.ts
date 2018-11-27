@@ -5,7 +5,7 @@ import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { zip, Observable, from } from "rxjs";
 import { mergeMap } from "rxjs/operators";
-import { Restaurant } from '@qmenu/ui';
+import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { validateStyleParams } from "@angular/animations/browser/src/util";
 @Component({
@@ -515,7 +515,9 @@ export class DbScriptsComponent implements OnInit {
         isCanceled: 1,
         isSent: 1,
         isPaymentSent: 1,
-        isPaymentCompleted: 1
+        isPaymentCompleted: 1,
+        previousInvoiceId: 1,
+        previousBalance: 1
 
       },
       limit: 50
@@ -821,7 +823,9 @@ export class DbScriptsComponent implements OnInit {
     //     isCanceled: 1,
     //     isSent: 1,
     //     isPaymentSent: 1,
-    //     isPaymentCompleted: 1
+    //     isPaymentCompleted: 1,
+    //    previousInvoiceId: 1,
+    //          previousBalance: 1
 
     //   },
     //   limit: 50
@@ -996,7 +1000,7 @@ export class DbScriptsComponent implements OnInit {
         cid: 1,
         place_id: 1,
         name: 1,
-        gmbOwnerships: 1
+        gmbOwnerships: { $slice: -4 }
       },
       limit: 5000
     }).toPromise();
@@ -1119,6 +1123,363 @@ export class DbScriptsComponent implements OnInit {
 
       }
     }
+  }
+  
+  async createApplyGmbTask() {
+    let restaurantList = [];
+
+    restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      projection: {
+        name: 1,
+        id: 1,
+        "googleAddress.formatted_address": 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const bizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        qmenuId: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    let missingRt = restaurantList.filter(each => !bizList.some(biz => biz.qmenuId == each._id));
+    //missingRt.length = 2;
+    //console.log('missingRt', missingRt);
+    //console.log("no googleAddress", missingRt.filter(each=> !each.googleAddress));
+
+    const gmbBizList = missingRt.map(each => ({
+      name: each.name,
+      qmenuId: each._id,
+      address: each.googleAddress ? each.googleAddress.formatted_address : ''
+    }));
+
+    const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizList).toPromise();
+    this._global.publishAlert(AlertType.Success, 'Created new GMB');
+
+  }
+
+  async fixMenu() {
+    const havingNullRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "menus.mcs.mis": null,
+        "menus": { $exists: 1 }
+      },
+      projection: {
+        name: 1,
+        "menus": 1
+      },
+      limit: 4000
+    }).toPromise();
+    console.log(havingNullRestaurants);
+    // remove mi, empty mc, and empty menu!
+
+    // havingNullRestaurants.length = 1;
+    // big patch
+    const patchList = havingNullRestaurants.map(r => {
+      const oldR = r;
+      const newR = JSON.parse(JSON.stringify(r));
+      console.log(newR.name)
+      // remove ALL empty or null mis
+      newR.menus.map(menu => (menu.mcs || []).map(mc => {
+        const beforeCount = (mc.mis || []).length;
+        mc.mis = (mc.mis || []).filter(mi => mi);
+        const afterCount = (mc.mis || []).length;
+        if (beforeCount !== afterCount) {
+          console.log('category with empty mi: ', mc.name);
+        }
+      }));
+      // remove ALL empty mcs
+      newR.menus.map(menu => {
+        const beforeCount = (menu.mcs || []).length;
+        menu.mcs = (menu.mcs || []).filter(mc => mc.mis.length > 0);
+        const afterCount = (menu.mcs || []).length;
+        if (beforeCount !== afterCount) {
+          console.log('menu with empty category: ', menu.name);
+        }
+
+      });
+      // remove ALL empty menus
+      if (newR.menus.some(menu => menu.mcs.length === 0)) {
+        console.log(newR.name, ' has empty menu');
+      }
+      newR.menus = (newR.menus || []).filter(menu => menu.mcs && menu.mcs.length > 0);
+
+      return ({
+        old: { _id: oldR._id },
+        new: { _id: newR._id, menus: newR.menus }
+      });
+    });
+    console.log(patchList);
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+
+    // find restaurants with duplicated menuIds
+    const allIdNames = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1
+      },
+      limit: 8000
+    }).toPromise();
+
+    const batchSize = 100;
+
+    const batchedIdNames = Array(Math.ceil(allIdNames.length / batchSize)).fill(0).map((i, index) => allIdNames.slice(index * batchSize, (index + 1) * batchSize));
+
+    const affectedRestaurants = [];
+
+    for (let idNames of batchedIdNames) {
+      const batchedRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          _id: {
+            $in: idNames.map(idName => ({ $oid: idName._id }))
+          }
+        },
+        projection: {
+          name: 1,
+          "menus.mcs.mis.id": 1,
+          "menus.mcs.mis.category": 1
+        },
+        limit: 4000
+      }).toPromise();
+
+      const restaurantWithDuplicatedMenuIds = batchedRestaurants.filter(r => {
+        const idSet = new Set();
+        let hasDuplicatedId = false;
+        (r.menus || []).map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
+          if (mi.id) {
+            if (idSet.has(mi.id)) {
+              hasDuplicatedId = true;
+              console.log(mi);
+              console.log(r.name, menu, mc);
+            }
+            idSet.add(mi.id);
+          }
+        })));
+
+        return hasDuplicatedId;
+      });
+      console.log(restaurantWithDuplicatedMenuIds);
+      affectedRestaurants.push(...restaurantWithDuplicatedMenuIds);
+    }
+    console.log('final: ', affectedRestaurants);
+
+    const affectedRestaurantsFull = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        _id: {
+          $in: affectedRestaurants.map(idName => ({ $oid: idName._id }))
+        }
+      },
+      projection: {
+        name: 1,
+        "menus": 1
+      },
+      limit: 4000
+    }).toPromise();
+
+    // remove duplicated ids
+    // affectedRestaurantsFull.length = 1;
+
+    console.log(affectedRestaurantsFull);
+    affectedRestaurantsFull.map(r => {
+      const idSet = new Set();
+      r.menus.map(menu => menu.mcs.map(mc => {
+        for (let i = (mc.mis || []).length - 1; i >= 0; i--) {
+          if (idSet.has(mc.mis[i].id)) {
+            //splice
+            console.log('found one!', mc.mis[i]);
+            mc.mis.splice(i, 1);
+          } else {
+            idSet.add(mc.mis[i].id)
+          }
+        }
+      }));
+
+      console.log(idSet);
+    });
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', affectedRestaurantsFull.map(r => ({
+      old: { _id: r._id },
+      new: { _id: r._id, menus: r.menus }
+    }))).toPromise();
+  }
+
+
+  async handleHolidy() {
+
+
+
+    // 1. query restaurant with textable phones
+    // 2. test if thanksgiving is already closed. if no:
+    // 3. schedule a text (every 2 seconds apart??)
+    // 4. make a table to capture result?
+    // 
+
+    alert('DO NOT USE')
+    // const restaurants: Restaurant[] = (await this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: "restaurant",
+    //   projection: {
+    //     name: 1,
+    //     "phones.textable": 1,
+    //     "phones.phoneNumber": 1,
+    //     disabled: 1,
+    //     channels: 1,
+    //     closedHours: 1
+    //   },
+    //   limit: 6000
+    // }).toPromise()).map(r => new Restaurant(r));
+
+    // console.log('total: ', restaurants.length);
+
+    // const reachableRestaurants: any = restaurants.filter(r => (r.phones || []).some(p => p.textable) || (r.channels || []).some(c => c.type === 'SMS' || c.type === 'Email'));
+
+    // console.log('text or email reachable: ', reachableRestaurants.length);
+
+    // const checkPoint = new Date('Nov 22 2018 17:00:00 GMT-0500'); // 5PM
+    // const notAlreadyClosed: any = reachableRestaurants.filter(r => !r.closedHours || !r.closedHours.some(hr => hr.isOpenAtTime(checkPoint)));
+
+    // console.log('not already closed: ', notAlreadyClosed.length);
+
+    // // inject an closedHour: 
+    // const closedHour = new Hour({
+    //   occurence: 'ONE-TIME',
+    //   fromTime: new Date('Nov 22 2018 5:00:00 GMT-0500'),
+    //   toTime: new Date('Nov 23 2018 5:00:00 GMT-0500'),
+    //   comments: 'Happy Thanksgiving'
+    // });
+
+    // // reverse to remove preset closed hours
+    // // notAlreadyClosed.map(r => {
+    // //   r.closedHours = r.closedHours || [];
+    // //   // lets remove expired hours on our way
+    // //   const before = r.closedHours.length;
+    // //   // keep old hours
+    // //   r.closedHours = r.closedHours.filter(h => !(h.occurence === 'ONE-TIME' && h.fromTime.valueOf() === closedHour.valueOf()));
+
+    // // });
+
+    // notAlreadyClosed.map(r => {
+    //   r.closedHours = r.closedHours || [];
+    //   // lets remove expired hours on our way
+    //   const before = r.closedHours.length;
+    //   r.closedHours = r.closedHours.filter(h => h.occurence !== 'ONE-TIME' || h.toTime.valueOf() > new Date().valueOf());
+
+    //   const after = r.closedHours.length;
+    //   if (before > after) {
+    //     console.log(r.name, r.closedHours);
+    //   }
+    //   r.closedHours.push(closedHour);
+
+    // });
+
+
+    // // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', notAlreadyClosed.map(r => ({
+    // //   old: { _id: r._id },
+    // //   new: { _id: r._id, closedHours: r.closedHours }
+    // // }))).toPromise();
+
+    // // schedule text, or email events!
+    // const jobs = [];
+    // let scheduledAt = new Date().valueOf();
+    // reachableRestaurants.map(restaurant => {
+    //   // blast only unique phone numbers or emails
+    //   // emails!
+    //   const emailsInRestaurant = (restaurant.email || '').replace(/;/g, ',').split(',').filter(e => e).map(e => e.trim()).filter(e => e);
+    //   const emailsInChannels = (restaurant.channels || []).filter(c => c.type === 'Email' && c.notifications && Array.isArray(c.notifications) && c.notifications.indexOf('Order') >= 0).map(c => c.value);
+    //   const finalEmails = [...new Set([...emailsInChannels, ...emailsInRestaurant])];
+    //   // console.log('emails to send:', finalEmails);
+
+    //   // sms!
+    //   const smsNumbersInPhones = (restaurant.phones || []).filter(p => p.textable && p.phoneNumber).map(p => p.phoneNumber);
+    //   const smsNumbersInChannels = (restaurant.channels || []).filter(c => c.type === 'SMS' && c.notifications && Array.isArray(c.notifications) && c.notifications.indexOf('Order') >= 0).map(c => c.value);
+    //   let finalSmsNumbers = [...new Set([...smsNumbersInPhones, ...smsNumbersInChannels])];
+
+    //   // remove - of numbers
+
+    //   finalSmsNumbers = finalSmsNumbers.map(number => number.replace(/\D/g, '')).filter(number => number.length === 10);
+
+    //   const badFinalSmsNumbers = finalSmsNumbers.filter(number => !number || number.length !== 10);
+    //   // console.log('sms to send:', finalSmsNumbers);
+    //   if (badFinalSmsNumbers.length > 0) {
+    //     console.log(restaurant.name, badFinalSmsNumbers);
+    //   }
+
+    //   const businessPhoneNumber = ((restaurant.phones || [])[0] || {}).phoneNumber;
+
+    //   const smsMessage = 'From qMenu: If you will be OPEN on Thanksgiving day, please reply "OPEN" (without quotes) to this message by 10 PM Eastern time. If closed, you are all set and do NOT reply. Thank you.';
+
+    //   const emailSubject = `Thanksgiving hours (${businessPhoneNumber})`;
+    //   const emailContent = `
+    //   <html><body>
+    //   Dear restaurant owner,
+    //   <br>
+    //   <br>
+    //   If you will be OPEN on Thanksgiving day, please reply "OPEN" (without quotes) to this email by 6 PM Eastern time. Otherwise, do NOT reply to the email and we will mark your restaurant as closed for the day so no orders can be placed. This message sent by qMenu.
+    //   <br>
+    //   <br>
+    //   (For qMenu internal use only) Restaurant ID: [${restaurant._id}]
+    //   <br>
+    //   <br>
+    //   Thanks,
+    //   <br>
+    //   <br>
+    //   The qMenu Team`;
+
+    //   finalEmails.map(email => {
+    //     scheduledAt += 2000;
+    //     jobs.push({
+    //       name: "send-email",
+    //       scheduledAt: scheduledAt,
+    //       params: {
+    //         to: email,
+    //         subject: emailSubject,
+    //         html: emailContent
+    //       }
+    //     });
+    //   });
+
+    //   finalSmsNumbers.map(phone => {
+    //     scheduledAt += 2000;
+    //     jobs.push({
+    //       name: "send-sms",
+    //       scheduledAt: scheduledAt,
+    //       params: {
+    //         to: phone,
+    //         from: "8447935942",
+    //         providerName: "plivo",
+    //         message: smsMessage
+    //       }
+    //     });
+    //   });
+    // });
+
+    // console.log(jobs);
+
+    // const batchSize = 200;
+    // const sleep = (milliseconds) => {
+    //   return new Promise(resolve => setTimeout(resolve, milliseconds))
+    // }
+
+    // const batchedJobs = Array(Math.ceil(jobs.length / batchSize)).fill(0).map((i, index) => jobs.slice(index * batchSize, (index + 1) * batchSize));
+
+    // for (let bjobs of batchedJobs) {
+    //   try {
+    //     console.log('processing ', bjobs.length);
+    //     const addedJobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', bjobs).toPromise();
+    //     await sleep(2000);
+    //   } catch (error) {
+    //     console.log("error: ", bjobs)
+    //   }
+    // }
+    // this._global.publishAlert(AlertType.Success, 'Total notified: ', + notAlreadyClosed.length);
+
   }
 
 }

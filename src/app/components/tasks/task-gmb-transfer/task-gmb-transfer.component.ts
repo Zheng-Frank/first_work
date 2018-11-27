@@ -63,7 +63,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         projection: {
-          "gmbOwnerships.email": 1,
+          "gmbOwnerships": { $slice: -2 },
           "phone": 1
         },
         limit: 5000

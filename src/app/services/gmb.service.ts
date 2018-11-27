@@ -91,7 +91,7 @@ export class GmbService {
           gmbWebsite: 1,
           name: 1,
           place_id: 1,
-          gmbOwnerships: 1,
+          gmbOwnerships: { $slice: -4 },
           score: 1
         },
         limit: 5000
@@ -250,8 +250,7 @@ export class GmbService {
         });
         return ({
           old: {
-            _id: b._id,
-            gmbOwnerships: b.gmbOwnerships
+            _id: b._id
           },
           new: {
             _id: b._id,
@@ -327,8 +326,7 @@ export class GmbService {
         });
         return ({
           old: {
-            _id: b._id,
-            gmbOwnerships: b.gmbOwnerships
+            _id: b._id
           },
           new: {
             _id: b._id,
@@ -392,7 +390,7 @@ export class GmbService {
     // also update gmbScannedAt and total locations
     await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{
       old: { _id: gmbAccount._id },
-      new: { _id: gmbAccount._id, gmbScannedAt: { $date: new Date() }, allLocations: scanResult.allLocations, published: scanResult.published, suspended: scanResult.suspended }
+      new: { _id: gmbAccount._id, gmbScannedAt: { $date: new Date() }, pagerSize: scanResult.pagerSize, allLocations: scanResult.allLocations, published: scanResult.published, suspended: scanResult.suspended }
     }]).toPromise();
 
     // update original:
@@ -400,6 +398,7 @@ export class GmbService {
     gmbAccount.allLocations = scanResult.allLocations;
     gmbAccount.published = scanResult.published;
     gmbAccount.suspended = scanResult.suspended;
+    gmbAccount.pagerSize = scanResult.pagerSize;
 
 
     // generate Appeal Suspended GMB task for those suspended
@@ -463,6 +462,9 @@ export class GmbService {
       crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
     }
 
+    if (gmbBiz.address) {
+      gmbBiz.address=gmbBiz.address.replace(', USA', '');
+    }
 
     const name1 = crawledResult['name'].toLowerCase();
     const name2 = gmbBiz.name.toLowerCase();
@@ -470,6 +472,13 @@ export class GmbService {
     const zipcodeEqual = crawledResult['address'].split(' ').pop() === gmbBiz.address.split(' ').pop();
     const place_idEqual = crawledResult['place_id'] === gmbBiz.place_id;
 
+    const phone=crawledResult['phone'];
+    //remove the country code like 16789900520
+    if(phone){
+      if(phone.toString().length>10){
+        crawledResult['phone']=phone.slice(-10);
+      }
+    }
 
     if (!place_idEqual && !nameEqual && !zipcodeEqual) {
       throw 'Crawl error: nothing matches, ' + gmbBiz.name;

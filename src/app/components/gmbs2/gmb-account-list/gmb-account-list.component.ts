@@ -45,6 +45,7 @@ export class GmbAccountListComponent implements OnInit {
       resource: "gmbBiz",
       projection: {
         "gmbOwnerships.email": 1,
+        "gmbOwnerships.status": 1,
         "phone": 1,
         "address": 1,
         "name": 1

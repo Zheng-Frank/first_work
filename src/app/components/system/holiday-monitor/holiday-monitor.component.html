@@ -1,0 +1,38 @@
+Total: {{rows.length}}
+<table>
+  <tr>
+    <th>Restaurant</th>
+    <th>Phone</th>
+    <th class="text-right pr-2">Text</th>
+    <th>Current Setting</th>
+    <th>Toggle</th>
+  </tr>
+  <tr *ngFor="let row of rows">
+    <td>
+      <a target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+    </td>
+    <td>
+      {{row.phone }}
+    </td>
+    <td class="text-right pr-2 {{matchOpen(row) ? 'text-success' : 'text-danger'}}">
+      {{row.text}}
+    </td>
+
+    <td>
+      {{isClosed(row.restaurant) ? 'Closed' : 'Open'}}
+    </td>
+    <td>
+      <button class="btn btn-primary" (click)="toggle(row.restaurant)">Toggle</button>
+
+    </td>
+
+    <td>
+      <div *ngFor="let hour of row.restaurant.closedHours || []" class="text-nowrap"><strong>
+          {{hour.fromTime | MMMd : row.restaurant.offsetToEST}} {{hour.fromTime | shortTime :
+          row.restaurant.offsetToEST}}
+          -
+          {{hour.toTime | MMMd : row.restaurant.offsetToEST}} {{hour.toTime | shortTime : row.restaurant.offsetToEST}}</strong></div>
+
+    </td>
+  </tr>
+</table>

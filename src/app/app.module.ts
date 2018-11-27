@@ -120,6 +120,7 @@ import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
 import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
 import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/restaurant-gmb.component';
+import { HolidayMonitorComponent } from './components/system/holiday-monitor/holiday-monitor.component';
  
 @NgModule({
   declarations: [
@@ -223,7 +224,8 @@ import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/
     AutomationDashboardComponent,
     HourPickerSimpleComponent,
     FutureDateTimePickerComponent,
-    RestaurantGmbComponent
+    RestaurantGmbComponent,
+    HolidayMonitorComponent
   ],
   imports: [
     BrowserModule,

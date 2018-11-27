@@ -212,7 +212,7 @@ export class AutomationDashboardComponent implements OnInit {
         const gmbBizList = (await this._api.get(environment.adminApiUrl + 'generic', {
           resource: 'gmbBiz',
           projection: {
-            gmbOwnerships: 1,
+            gmbOwnerships: { $slice: -4 },
             name: 1,
             score: 1
           },
