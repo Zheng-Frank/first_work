@@ -48,7 +48,7 @@
     </div>
     <div *ngIf="order.timeToDeliver" class="text-sm-center card-text alert-success">
       <span class="fa fa-clock-o"></span>
-      <strong> scheduled: {{order.timeToDeliver | MMMd : order.restaurant.offsetToEST}} {{order.timeToDeliver | shortTime: order.restaurant.offsetToEST}}</strong>
+      <strong> scheduled: {{order.timeToDeliver | MMMd : restaurant.offsetToEST}} {{order.timeToDeliver | shortTime: restaurant.offsetToEST}}</strong>
     </div>
 
     <small>
