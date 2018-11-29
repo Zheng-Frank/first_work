@@ -1020,10 +1020,13 @@ export class DbScriptsComponent implements OnInit {
       if (values.length > 1) {
         console.log('duplicated', values);
         const localSortedValues = values.sort((v1, v2) => {
-          const published1 = (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
-          const possessedAt1 = (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).possessedAt;
-          const published2 = (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
-          const possessedAt2 = (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).possessedAt;
+          if(!v1.gmbOwnerships) {
+            console.log(v1)
+          }
+          const published1 = v1.gmbOwnerships && (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
+          const possessedAt1 = v1.gmbOwnerships && (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).possessedAt;
+          const published2 = v2.gmbOwnerships && (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
+          const possessedAt2 = v2.gmbOwnerships && (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).possessedAt;
 
           // only one published
           if (published1 != published2) {
@@ -1035,7 +1038,7 @@ export class DbScriptsComponent implements OnInit {
             return new Date(possessedAt2).valueOf() - new Date(possessedAt1).valueOf();
           }
           // keep whoever gets more history
-          return v2.gmbOwnerships.length - v1.gmbOwnerships.length;
+          return (v2.gmbOwnerships ? v2.gmbOwnerships.length : 0) - (v1.gmbOwnerships? v1.gmbOwnerships.length : 0);
         });
 
         // 1. get FIRST _id
