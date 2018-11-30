@@ -1,4 +1,5 @@
 <h1 class="text-center">Logs</h1>
+<!-- <app-log-editor></app-log-editor> -->
 <div class="clearfix">
     <div class="float-left form-inline">
         Restaurant Filter:
@@ -6,7 +7,8 @@
             [(ngModel)]="searchFilter"> &nbsp;&nbsp;
         <div class="checkbox">
             <label class="text-danger">
-                <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="unresolvedOnlyChange()">&nbsp;Only Unresolved
+                <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="unresolvedOnlyChange()">&nbsp;Only
+                Unresolved
             </label>
         </div>
     </div>
@@ -18,11 +20,10 @@
     </div>
 </div>
 
-
 <table class="table table-sm">
     <thead>
         <tr>
-
+            <th></th>
             <th scope="col">User</th>
             <th scope="col">Date</th>
             <th scope="col">Restaurant</th>
@@ -36,6 +37,9 @@
         <tr *ngFor="let rl of filteredRestaurantLogs; let i = index" class="list-group-item-action {{rl.log.resolved ? '' : 'alert-danger'}}"
             (click)="edit(rl)">
 
+            <td>
+                <i class="fas fa-dollar-sign" *ngIf="rl.log.hasAdjustment"></i>
+            </td>
             <td>{{rl.log.username}}</td>
             <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
                 <div class="text-muted"><small>{{rl.log.time | date: 'shortTime'}}</small></div>
@@ -60,6 +64,6 @@
 
 <!--the editing modal-->
 <q-modal #logEditingModal>
-    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing" (success)="onSuccessCreation($event)"
-        (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
+    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
+        (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
 </q-modal>

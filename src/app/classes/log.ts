@@ -1,30 +1,33 @@
 export class Log {
-    time: Date;
-    username: string;
-    
-    callerName: string;
-    callerPhone: string;
+  time: Date;
+  username: string;
 
-    relatedOrderIds: string;
+  callerName: string;
+  callerPhone: string;
 
-    problem: string;
-    response: string;
-    resolved: boolean; // deterines stickiness
-  
-    constructor(log?: any) {
-      if (log) {
-        // copy every fields
-        for (const k in log) {
-          if (log.hasOwnProperty(k)) {
-            this[k] = log[k];
-          }
+  relatedOrderIds: string;
+
+  problem: string;
+  response: string;
+  resolved: boolean; // deterines stickiness
+
+  hasAdjustment: boolean;
+  adjustmentAmount: number;
+  adjustmentReason: string;
+
+  constructor(log?: any) {
+    if (log) {
+      // copy every fields
+      for (const k in log) {
+        if (log.hasOwnProperty(k)) {
+          this[k] = log[k];
         }
-  
-        // convert time string here!
-        if (this.time && !(this.time instanceof Date)) {
-          this.time = new Date(this.time);
-        }
+      }
+
+      // convert time string here!
+      if (this.time && !(this.time instanceof Date)) {
+        this.time = new Date(this.time);
       }
     }
   }
-  
+}

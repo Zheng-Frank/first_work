@@ -54,7 +54,7 @@ export class GlobalService {
           name: "Restaurants",
           href: "#/restaurants",
           fa: "fas fa-utensils",
-          accessibleRoles: ["ADMIN", "MENU_EDITOR", "CSR","ACCOUNTANT", "MARKETER"]
+          accessibleRoles: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "MARKETER"]
         },
         {
           name: "Logs",
@@ -66,7 +66,7 @@ export class GlobalService {
           name: "Payments",
           href: "#/payments",
           fa: "fas fa-hand-holding-usd",
-          accessibleRoles: ["ADMIN","ACCOUNTANT", "CSR"]
+          accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
         },
         {
           name: "Invoices",
@@ -105,9 +105,9 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER"]
         },
         {
-          name: "System",
-          href: "#/system",
-          fa: "fas fa-heartbeat",
+          name: "Users",
+          href: "#/users",
+          fa: "fas fa-users",
           accessibleRoles: ["ADMIN"]
         },
         {
@@ -117,9 +117,15 @@ export class GlobalService {
           accessibleRoles: ["ADMIN"]
         },
         {
-          name: "Users",
-          href: "#/users",
-          fa: "fas fa-users",
+          name: "Monitoring",
+          href: "#/monitoring",
+          fa: "fas fa-heartbeat",
+          accessibleRoles: ["ADMIN"]
+        },
+        {
+          name: "System",
+          href: "#/system",
+          fa: "fas fa-cog",
           accessibleRoles: ["ADMIN"]
         },
         { name: "Me", href: "#/profile", fa: "fas fa-user" }
@@ -168,7 +174,7 @@ export class GlobalService {
     this._alerts = this._alerts.filter(a => a !== alert);
   }
 
-  
+
   modal: ModalComponent;
 
   registerModal(modal: ModalComponent) {

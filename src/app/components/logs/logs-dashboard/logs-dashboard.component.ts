@@ -97,7 +97,7 @@ export class LogsDashboardComponent implements OnInit {
       updatedRestaurant.logs.push(new Log(data.log));
     }
 
-    this.patch(oldRestaurant, updatedRestaurant, data.formEvent.acknowledge);
+    this.patch({ _id: this.restaurant._id }, { _id: this.restaurant._id, logs: updatedRestaurant.logs }, data.formEvent.acknowledge);
 
   }
 
@@ -156,7 +156,7 @@ export class LogsDashboardComponent implements OnInit {
     // let make a copy and preserve the original
     this.logInEditing = new Log(restaurantLog.log);
     // fix: sometimes log time is missing
-    if(!this.logInEditing.time) {
+    if (!this.logInEditing.time) {
       this.logInEditing.time = new Date();
     }
     this.logInEditingOriginal = restaurantLog.log;
@@ -170,9 +170,10 @@ export class LogsDashboardComponent implements OnInit {
 
     if (this.restaurant && this.restaurant.logs && this.restaurant.logs.indexOf(this.logInEditingOriginal) >= 0) {
       const newLogs = this.restaurant.logs.filter(log => log !== this.logInEditingOriginal);
+
       const updatedRestaurant = JSON.parse(JSON.stringify(this.restaurant));
       updatedRestaurant.logs = newLogs;
-      this.patch(this.restaurant, updatedRestaurant, event.formEvent.acknowledge);
+      this.patch({ _id: this.restaurant._id }, { _id: this.restaurant._id, logs: newLogs }, event.formEvent.acknowledge);
 
     } else {
       event.formEvent.acknowledge('Missing restaurant, or restaurant logs');

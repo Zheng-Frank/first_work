@@ -16,8 +16,9 @@ export class LogEditorComponent implements OnInit {
 
   @Input() log = {} as Log;
   @Input() restaurant;
-
   @Input() restaurantList;
+
+  adjustmentDirection = 'Credit to Restaurant';
 
   @ViewChild('myRestaurantPicker') set picker(picker) {
     this.myRestaurantPicker = picker;
@@ -54,12 +55,6 @@ export class LogEditorComponent implements OnInit {
       label: "Response",
       required: true,
       inputType: "textarea"
-    },
-    {
-      field: "resolved",
-      label: "Resolved",
-      required: false,
-      inputType: "checkbox"
     }
 
   ];

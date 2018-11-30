@@ -5,6 +5,7 @@
 <table class="table table-sm" *ngIf="logs && logs.length > 0">
   <thead>
     <tr>
+      <th></th>
       <th scope="col">User</th>
       <th scope="col">Date</th>
       <th scope="col">Caller</th>
@@ -14,7 +15,9 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let log of logs; let i = index" class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}" (click)="clickRow(log)">
+    <tr *ngFor="let log of logs; let i = index" class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}"
+      (click)="clickRow(log)">
+      <td><i class="fas fa-dollar-sign pr-2" *ngIf="log.hasAdjustment"></i></td>
       <td>{{log.username}}</td>
       <td class="text-nowrap">{{log.time | date: 'shortDate'}}
         <div class="text-muted"><small>{{log.time | date: 'shortTime'}}</small></div>
