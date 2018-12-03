@@ -131,6 +131,13 @@
             <button class="btn btn-primary" (click)="removeRedundantGmbBiz()">Remove</button>
         </div>
     </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Fix Missing Business Phone</h5>
+            <p class="card-text">Find restaurant missing business phone and patch. Check console.</p>
+            <button class="btn btn-primary" (click)="fixMissingBusinessPhones()">Fix</button>
+        </div>
+    </div>
 
     <div class="card">
         <div class="card-body">
@@ -152,6 +159,30 @@
             <p class="card-text">This will add ALL closed hours for every restaurant. Send sms, using 8447935942. If
                 restaurant replies 'open', system will remove the hours. </p>
             <button class="btn btn-primary" (click)="handleHolidy()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Fix Price String Type</h5>
+            <p class="card-text">Some item's price is sting instead of number. </p>
+            <button class="btn btn-primary" (click)="fixPriceDataType()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Fix Godaddy</h5>
+            <p class="card-text">Find out problems of godaddy. </p>
+            <button class="btn btn-primary" (click)="fixGodaddy()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Remove Unused Invoices from Restaurant Object</h5>
+            <p class="card-text">Invoices are accidentally updated to be part of restaurant body. They should be removed. No side effect.</p>
+            <button class="btn btn-primary" (click)="removeInvoiceFromRestaurant()">Execute</button>
         </div>
     </div>
 

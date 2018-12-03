@@ -68,7 +68,7 @@ export class MenuOptionEditorComponent implements OnInit, OnChanges {
       const sizeSet = new Set();
       const amountSet = new Set();
       const placementSet = new Set();
-      const clonedItems: Item[] = this.menuOption.items.map(i => {
+      const clonedItems: Item[] = (this.menuOption.items || []).map(i => {
         const item = new Item(i);
         delete item.selected;
         item.forSize = item.forSize || "regular";

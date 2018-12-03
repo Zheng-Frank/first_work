@@ -3,6 +3,13 @@
 <!-- <app-holiday-monitor></app-holiday-monitor> -->
 
 <div class="card-group">
+    <div class="card" *ngIf="isVisible('search')">
+        <div class="card-body">
+            <label>Search Restaurant:</label>
+            <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
+        </div>
+    </div>
+
     <div class="card" *ngIf="isVisible('email')">
         <div class="card-body">
             <h5 class="card-title"><i class="far fa-envelope"></i> Check Email</h5>

@@ -52,13 +52,11 @@ export class RestaurantOrdersComponent implements OnInit {
       subscribe(d => {
         this.orders = d;
         this.orders = this.orders.map(o => new Order(o));
-
-        console.log(this.orders);
       },
-      e => {
-        console.log(e);
-        console.log('refresh failed!');
-      }
+        e => {
+          console.log(e);
+          console.log('refresh failed!');
+        }
       );
     this.setSocket(this.restaurant);
   }
@@ -173,15 +171,15 @@ export class RestaurantOrdersComponent implements OnInit {
 
       this._api.post(environment.legacyApiUrl + "order/paymentDetails", { orderId: order.id })
         .subscribe(
-        payment => {
-          Object.assign(this.payment, payment);
-          this.paymentModal.show();
-        },
-        error => {
-          console.log(error);
-          let errorString = error._body || 'error in retrieving creditcard';
-          alert(errorString);
-        });
+          payment => {
+            Object.assign(this.payment, payment);
+            this.paymentModal.show();
+          },
+          error => {
+            console.log(error);
+            let errorString = error._body || 'error in retrieving creditcard';
+            alert(errorString);
+          });
     }
   }
 
@@ -233,8 +231,8 @@ export class RestaurantOrdersComponent implements OnInit {
     if (this.orderForModal && this.orderForModal.customer) {
       this._api.post(environment.legacyApiUrl + "customer/ban", { customer: this.orderForModal.customer, reasons: reasons })
         .subscribe(
-        d => { this.banModal.hide(); },
-        error => console.log(error));
+          d => { this.banModal.hide(); },
+          error => console.log(error));
     } else {
       alert('no customer found');
     }
@@ -250,11 +248,11 @@ export class RestaurantOrdersComponent implements OnInit {
 
     this._api.post(environment.legacyApiUrl + "order/adjust", adjustment)
       .subscribe(
-      resultedOrder => {
-        this.orderForModal.tip = resultedOrder.tip;
-        this.orderForModal.orderItems = resultedOrder.orderItems.map(oi => new OrderItem(oi));
-      },
-      error => { console.log(error); alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.'); }
+        resultedOrder => {
+          this.orderForModal.tip = resultedOrder.tip;
+          this.orderForModal.orderItems = resultedOrder.orderItems.map(oi => new OrderItem(oi));
+        },
+        error => { console.log(error); alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.'); }
       );
   }
 

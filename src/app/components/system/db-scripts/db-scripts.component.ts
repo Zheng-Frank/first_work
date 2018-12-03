@@ -7,7 +7,6 @@ import { zip, Observable, from } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
-import { validateStyleParams } from "@angular/animations/browser/src/util";
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -1020,10 +1019,13 @@ export class DbScriptsComponent implements OnInit {
       if (values.length > 1) {
         console.log('duplicated', values);
         const localSortedValues = values.sort((v1, v2) => {
-          const published1 = (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
-          const possessedAt1 = (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).possessedAt;
-          const published2 = (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
-          const possessedAt2 = (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).possessedAt;
+          if (!v1.gmbOwnerships) {
+            console.log(v1)
+          }
+          const published1 = v1.gmbOwnerships && (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
+          const possessedAt1 = v1.gmbOwnerships && (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).possessedAt;
+          const published2 = v2.gmbOwnerships && (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
+          const possessedAt2 = v2.gmbOwnerships && (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).possessedAt;
 
           // only one published
           if (published1 != published2) {
@@ -1035,7 +1037,7 @@ export class DbScriptsComponent implements OnInit {
             return new Date(possessedAt2).valueOf() - new Date(possessedAt1).valueOf();
           }
           // keep whoever gets more history
-          return v2.gmbOwnerships.length - v1.gmbOwnerships.length;
+          return (v2.gmbOwnerships ? v2.gmbOwnerships.length : 0) - (v1.gmbOwnerships ? v1.gmbOwnerships.length : 0);
         });
 
         // 1. get FIRST _id
@@ -1078,6 +1080,48 @@ export class DbScriptsComponent implements OnInit {
           resource: 'gmbBiz',
           ids: otherIds
         }).toPromise();
+
+      }
+    }
+  }
+
+  async fixMissingBusinessPhones() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        phones: 1,
+        "googleAddress.formatted_address": 1
+      },
+      limit: 10000
+    }).toPromise();
+
+    console.log(restaurants);
+    const restaurantsMissingBizPhones = restaurants.filter(r => r.phones && !r.phones.some(p => p.type === 'Business'));
+
+    console.log(restaurantsMissingBizPhones);
+
+    for (let r of restaurantsMissingBizPhones) {
+      try {
+        const crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: `${r.name} ${r.googleAddress.formatted_address}` }).toPromise();
+        console.log(crawledResult);
+        if (crawledResult.phone) {
+          // inject phone!
+          // update qmenuId!
+          const existingPhones = r.phones || [];
+          const clonedPhones = existingPhones.slice(0);
+          clonedPhones.push({
+            phoneNumber: crawledResult.phone,
+            type: 'Business'
+          });
+
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+            {
+              old: { _id: r._id, phones: existingPhones },
+              new: { _id: r._id, phones: clonedPhones }
+            }]).toPromise();
+        }
+      } catch (error) {
 
       }
     }
@@ -1437,6 +1481,325 @@ export class DbScriptsComponent implements OnInit {
     //   }
     // }
     // this._global.publishAlert(AlertType.Success, 'Total notified: ', + notAlreadyClosed.length);
+
+  }
+
+  async fixPriceDataType() {
+
+
+
+    const restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      // query: {
+      //   "menus.mcs.mis.sizeOptions.price": { $type: "string" }
+      // },
+      projection: {
+        name: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const batchSize = 100;
+
+    const batchedIds = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedIds) {
+      const restaurants = (await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          _id: {
+            $in: batch.map(rid => ({ $oid: rid._id }))
+          }
+        },
+        projection: {
+          name: 1,
+          "menus.mcs.mis.sizeOptions.price": 1,
+          "menuOptions.items.price": 1
+        },
+        limit: batchSize
+      }).toPromise()).map(r => new Restaurant(r));
+
+      const badRestaurants = restaurants.filter(r => r.menus.some(menu => menu.mcs.some(mc => mc.mis.some(mi => mi.sizeOptions.some(so => typeof so.price === 'string')))));
+      console.log(badRestaurants);
+      // break;
+      if (badRestaurants.length > 0) {
+        // patch!
+        const fixedRestaurant = function (restaurant) {
+          const clone = JSON.parse(JSON.stringify(restaurant));
+          clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions.map(so => so.price = +so.price))));
+          return clone;
+        }
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', badRestaurants.map(r => ({
+          old: r,
+          new: fixedRestaurant(r)
+        }))).toPromise();
+      }
+
+    }
+
+
+  }
+
+  async fixGodaddy() {
+    const siteString = `168SzechuanHouston.com
+168restaurantrichmond.com
+1stchopsueytogo.com
+21ShanghaiHouseNY.com
+22thainewyork.com
+2bacipizzeriatogo.com
+3FortunesRestaurant.com
+4sonspizzaandgrill.com
+527bbq.com
+5iphoCulverCity.com
+64stGardenCafetogo.com
+888ChineseTogo.com
+88chinamo.com
+A1ChineseHibachiTogo.com
+A1DeliTogo.com
+AberdeenStirFry88.com
+AbyssiniaPhoenix.com
+AchioteGrillMexican.com
+AjiSushiAstoria.com
+AkiSuShiEnglewood.com
+AkimotoSushiTogo.com
+AlNoorHalalbrooklyn.com
+Aladinospizzatogo.com
+Aldositaliantogo.com
+AlexandriaChinaCafe.com
+AlexandriaHunanKitchen.com
+AlexandriaKensAsianBistro.com
+AlexandriaShanghaiPeking.com
+AlexandriaSzechuanDelight.com
+AllMediterraneanGrill.com
+AlohaTeriyakiGroton.com
+Americanwingsandhibachi.com
+AmericasBestWingstogo.com
+AmherstPandaEast.com
+AmigaChineseNewark.com
+AmyCathyBayside.com
+AnaheimChinaKitchen.com
+AnchorageJimmySushi.com
+AntiochKirinSushi.com
+AntojitosLocosTogo.com
+AnzaiEastMeadow.com
+ArashiSushitogo.com
+ArcadiaGoldenDragon.com
+ArlingtonPizzaPieMe.com
+ArlintongYoungChow.com
+AromaIndianUpland.com
+AroyDeeThaiCuisinetogo.com
+ArvadaPudgeBrosPizza.com
+AryanaMediterraneanCuisinetogo.com
+AsaiWokAllston.com
+AshevilleDragonChina.com
+AsiaBarBQueTogo.com
+AsiaGardenFood.com
+AsiaGardenNJ.com
+AsiaKitchenBaldwinPark.com
+AsiaWokTogo.com
+AuburnNewChina.com
+CatonsvilleDragonChina.com
+ChinaSPringsTogo.com
+GoldenDragonColumbia.com
+MainMoonChineseTogo.com
+OceanPizzaHala.com
+SweetGingerTogo.com3
+TotinozpizzaInglewood.com
+arlingtonthaieatery.com
+bakersfieldpizza.us
+baltimorechinadrahon.com
+bambinospizzaria.us
+bellaromaonline.us
+blueelephant.miami
+bowlkitchentogo.com
+cafepragueofsanfrancisco.com
+cantonphoenixtogo.info
+cathcoffeeandtea.com
+chicagostpizza.com
+chinaexpresskansas.com
+chinahallga.com
+chinaonetakeout.net
+ciceroshesperia.com
+combospizzaonline.com
+dynastyalpharettadelivery.com
+easternpavillionsetauket.com
+eastthainoodlehousemiami.com
+goldengarden.com
+goodtastetogo.ccom
+goodtastetogoccom.com
+happylandbuffet.com
+happystarpa.com
+joesseafoodandbar.com
+nobleromanspizza.us
+norijapanchesapeake.com
+papasamschicagostylepizza.info
+qmenu365.com
+starofindia.qmenu.us
+sunshinasiancuisinetogo.com
+unclemaddiosga.com
+unclemaddiosga.us
+whatapizzaonline.com
+www.dishoutrestaurant.us
+www.johnscreekchineserestaurant.com
+yardbirddenver.us
+ElRinconcitoLatino.com
+MyNewChinaAl.com
+MyWishDishCafe.com
+PandaFoodDelivery.com
+WoodbridgeBrothersPizza.com
+ajiaosichuanny.com
+blackpearliitogo.com
+buonapizzabronx.com
+capripizzaandgrill.com
+chicknshop.com
+chilichutney.us
+chinacafepawhuska.com
+chinaheavenatl.com
+chinaokgonv.com
+cotatifuzhou.com
+crazybearspizzatogo.com
+franklinphillymancheesesteak.com
+gaithersburgchickenburger.com
+generaltsostogo.com
+gingerworkyardley.com
+goldedragoncolumbia.com
+great-wall-chinese-express.business.site
+hanhinplainfield.com
+hotkitchentogo.com
+httpcafepragueofsanfrancisco.com
+imm-thai-on-9th.business.site
+inchinbamboogarden.com
+jadedragontogo.com
+jimmysperuviansacramento.com
+kisorotogo.com
+lamsgardentogocom.com
+mamamiacucinahollywood.com
+marusushitogo.com
+matteospizza.us
+maxsmukhaasetogo.com
+maywahchinesetogo.com
+mychopstixchinese.com
+newchinadavenport.com
+newmillenniumpizza.com
+newmillenniumpizza.info
+ninos-pizza.com
+nypizzeriacompany.us
+pizzalandva.com
+potpanchicago.com
+ricebarwashingtondc.info
+shishtown.com
+snowpeachinesetogo.com
+stuftpizzatogo.info
+sushiasiancuisine.com
+sweetgingermidvale.com
+takewayne.com
+teaussushiburritoflushing.com
+theburpkitchenguttenberg.com
+triopizzaandpastatx.com
+ulikechinesetogo.com
+valentinospizzeriaca.net
+whatapizza.info
+www.godavarius.us
+www.wokandroll-sanmarcos.com
+yamatosteakhousems.com
+yinglichulavista.com
+yumisushitogo.com
+zealrestaurant.us`;
+
+    const domains = siteString.split('\n').map(s => s.trim()).filter(s => s);
+    console.log(domains.length);
+    const templateMap = {
+      "Pizza Restaurant Template": ["pizza", "pizzeria"],
+      "Japanese Restaurant Template": ["sushi", "japan", "teriyaki"],
+      "Chinese Restaurant Template": ["fortune", "wok", "rice", "garden", "happy", "chuan", "china", "chinese", "wall", "dragon", "asia", "asian", "chow", "panda", "orient", "shanghai", "peking", "szechuan", "canton"],
+      "Thai Restaurant Template": ["thai"],
+      "Indian Restaurant Template": ["indian"],
+      "Italian Restaurant Template": ["italian"],
+      "Mexico Restaurant Template": ["mexican"]
+    }
+
+    const mapped = domains.filter(domain => Object.keys(templateMap).some(template => templateMap[template].some(keyword => domain.toLocaleLowerCase().indexOf(keyword) >= 0)));
+
+    console.log('mapped', mapped.length);
+    const nonMapped = domains.filter(domain => mapped.indexOf(domain) < 0);
+
+    console.log('non-mapped', nonMapped.length);
+    console.log(nonMapped);
+
+    // get ALL GMB domains
+    const gmbs = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: 'gmbBiz',
+      query: {
+        qmenuWebsite: { $exists: true },
+        qmenuId: { $exists: true }
+      },
+      projection: {
+        name: 1,
+        gmbOwner: 1,
+        gmbWebsite: 1,
+        qmenuWebsite: 1,
+        qmenuId: 1,
+        score: 1,
+        gmbOwnerships: 1,
+        phone: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    // find those in GMB
+    const topGmbs = gmbs.filter(gmb => domains.some(domain => gmb.qmenuWebsite.toLowerCase().indexOf(domain.toLowerCase()) >= 0));
+    const mappedRows = topGmbs.map((gmb, index) => {
+      return `|${gmb.phone}|${gmb.name}|${domains.filter(domain => gmb.qmenuWebsite.toLowerCase().indexOf(domain.toLowerCase()) >= 0)[0]}|${(gmb.gmbOwnerships || []).length > 0 ? gmb.gmbOwnerships[gmb.gmbOwnerships.length - 1].email : 'N/A'}|${gmb.score}`;
+    });
+
+    console.log(mappedRows);
+    // console.log(gmbs.length);
+    // const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: 'restaurant',
+    //   query: {
+    //     _id: { $in: gmbs.map(gmb => ({ $oid: gmb.qmenuId })) }
+    //   },
+    //   projection: {
+    //     name: 1,
+    //     "phones.phoneNumber": 1
+    //   },
+    //   limit: 6000
+    // }).toPromise();
+
+    // restaurant, gmb-website, godaddy domain mapping
+    // const highPriorityList = gmbs.map(gmb => {
+    //   const restaurant = restaurants.filter(r => r._id === gmb.qmenuId)[0];
+    //   const godaddyDomain = domains.filter(domain => gmb.qmenuWebsite.toLowerCase().indexOf(domain.toLowerCase()) >= 0)[0];
+    //   return ({
+    //     gmb: gmb,
+    //     restaurant: restaurant,
+    //     godaddyDomain: godaddyDomain
+    //   })
+    // }).filter(obj => obj.restaurant && obj.godaddyDomain);
+
+    // console.log(highPriorityList.map((obj, index) => index + '\t' + obj.restaurant.name + '\t' + obj.godaddyDomain));
+  }
+
+  async removeInvoiceFromRestaurant() {
+    const limit = 100;
+    const restaurantsWithInvoicesAttribute = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        'invoices.0': { $exists: true }
+      },
+      projection: {
+        name: 1,
+        invoices: 1
+      },
+      limit: limit
+    }).toPromise();
+
+    console.log(restaurantsWithInvoicesAttribute);
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', restaurantsWithInvoicesAttribute.map(r => ({
+      old: { _id: r._id, invoices: [] },
+      new: { _id: r._id }
+    }))).toPromise();
 
   }
 

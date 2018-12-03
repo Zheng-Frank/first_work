@@ -32,9 +32,9 @@ export class RestaurantLogsComponent implements OnInit {
     this.logEditingModal.show();
   }
 
-  select(log) {
-    this.logInEditing = new Log(log);
-    this.logInEditingOriginal = log;
+  select(restaurantLog) {
+    this.logInEditing = new Log(restaurantLog.log);
+    this.logInEditingOriginal = restaurantLog.log;
     this.logEditingModal.show();
   }
 
@@ -78,11 +78,14 @@ export class RestaurantLogsComponent implements OnInit {
   }
 
   getReversedLogs(restaurant) {
-    return (restaurant.logs || []).slice().reverse();
+    return (restaurant.logs || []).slice().reverse().map(log => ({
+      log: log,
+      restaurant: this.restaurant
+    }));
   }
 
   patch(oldRestaurant, updatedRestaurant, acknowledge) {
-    this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
+    this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: oldRestaurant._id }, new: { _id: updatedRestaurant._id, logs: updatedRestaurant.logs } }]).subscribe(
       result => {
         // let's update original, assuming everything successful
         this.restaurant.logs = updatedRestaurant.logs;

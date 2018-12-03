@@ -130,7 +130,7 @@ export class MyRestaurantComponent implements OnInit {
 
     openTasks.map(task => {
       task.scheduledAt = new Date(task.scheduledAt);
-      const gmbBizId = task.relatedMap.gmbBizId;
+      const gmbBizId = (task.relatedMap || {}).gmbBizId;
       if (gmbBizMap[gmbBizId]) {
         restaurantMap[gmbBizMap[gmbBizId].qmenuId].outstandingTasks.push(task);
       }

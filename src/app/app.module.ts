@@ -119,7 +119,10 @@ import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my
 import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-simple/hour-picker-simple.component';
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
 import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
+import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/restaurant-gmb.component';
 import { HolidayMonitorComponent } from './components/system/holiday-monitor/holiday-monitor.component';
+import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
+import { MonitoringGodaddyComponent } from './components/monitoring/monitoring-godaddy/monitoring-godaddy.component';
  
 @NgModule({
   declarations: [
@@ -223,7 +226,10 @@ import { HolidayMonitorComponent } from './components/system/holiday-monitor/hol
     AutomationDashboardComponent,
     HourPickerSimpleComponent,
     FutureDateTimePickerComponent,
-    HolidayMonitorComponent
+    RestaurantGmbComponent,
+    HolidayMonitorComponent,
+    MonitoringDashboardComponent,
+    MonitoringGodaddyComponent
   ],
   imports: [
     BrowserModule,

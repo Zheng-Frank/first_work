@@ -1,4 +1,4 @@
-import { Component, OnInit, EventEmitter, Output, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, EventEmitter, Output, Input, ViewChild, SimpleChanges } from '@angular/core';
 import { FormEvent } from '../../../classes/form-event';
 
 import { Restaurant } from '@qmenu/ui';
@@ -16,9 +16,9 @@ export class LogEditorComponent implements OnInit {
 
   @Input() log = {} as Log;
   @Input() restaurant;
-
   @Input() restaurantList;
 
+  hasAdjustment;
   @ViewChild('myRestaurantPicker') set picker(picker) {
     this.myRestaurantPicker = picker;
   }
@@ -54,12 +54,6 @@ export class LogEditorComponent implements OnInit {
       label: "Response",
       required: true,
       inputType: "textarea"
-    },
-    {
-      field: "resolved",
-      label: "Resolved",
-      required: false,
-      inputType: "checkbox"
     }
 
   ];
@@ -73,6 +67,17 @@ export class LogEditorComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    this.hasAdjustment = this.log && this.log.adjustmentAmount;
+  }
+
+  changeHasAdjustment() {
+    if (!this.hasAdjustment) {
+      this.log.adjustmentAmount = undefined;
+      this.log.adjustmentReason = undefined;
+    }
   }
 
   reset() {
@@ -115,6 +120,10 @@ export class LogEditorComponent implements OnInit {
   submit(event: FormEvent) {
     if (!this.restaurant) {
       event.acknowledge('Please select a restaurant.');
+    } else if (this.hasAdjustment && !this.log.adjustmentAmount) {
+      event.acknowledge('Please input adjustment amount.');
+    } else if (this.hasAdjustment && !this.log.adjustmentReason) {
+      event.acknowledge('Please input adjustment reason.');
     } else {
       this.success.emit({
         formEvent: event,

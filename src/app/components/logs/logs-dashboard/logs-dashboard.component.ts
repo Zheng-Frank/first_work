@@ -32,43 +32,46 @@ export class LogsDashboardComponent implements OnInit {
   restaurant = undefined;
   restaurantList = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "restaurant",
-      query: {
-        disabled: {
-          $ne: true
-        }
-      },
-      projection: {
-        name: 1,
-        alias: 1,
-        logs: 1,
-        logo: 1,
-        "phones.phoneNumber": 1,
-        "channels.value": 1,
-        "googleAddress.formatted_address": 1
-      },
-      limit: 6000
-    }).subscribe(
-      restaurants => {
-        this.restaurantList = restaurants;
-        // convert log to type of Log
-        this.restaurantList.map(r => {
-          if (r.logs) {
-            r.logs = r.logs.map(log => new Log(log));
-          }
-        });
+    this.populate();
+  }
 
-        // sort logs
-        this.computeFilteredLogs();
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling restaurants"
-        )
+  async populate() {
+    try {
+
+      this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          disabled: {
+            $ne: true
+          }
+        },
+        projection: {
+          name: 1,
+          alias: 1,
+          logs: 1,
+          logo: 1,
+          "phones.phoneNumber": 1,
+          "channels.value": 1,
+          "googleAddress.formatted_address": 1
+        },
+        limit: 6000
+      }).toPromise();
+
+      // convert log to type of Log
+      this.restaurantList.map(r => {
+        if (r.logs) {
+          r.logs = r.logs.map(log => new Log(log));
+        }
       });
 
+      // sort logs
+      this.computeFilteredLogs();
+    } catch (error) {
+      this._global.publishAlert(
+        AlertType.Danger,
+        "Error pulling restaurants"
+      )
+    }
   }
 
   ngOnInit() {
@@ -79,7 +82,8 @@ export class LogsDashboardComponent implements OnInit {
   }
 
   onSuccessCreation(data) {
-    const oldRestaurant = this.restaurantList.filter(r => r._id === data.restaurant._id)[0];
+    console.log(data);
+    const oldRestaurant = data.restaurant;
     const updatedRestaurant = JSON.parse(JSON.stringify(oldRestaurant));
     updatedRestaurant.logs = updatedRestaurant.logs || [];
     if (!data.log.time) {
@@ -96,8 +100,7 @@ export class LogsDashboardComponent implements OnInit {
     } else {
       updatedRestaurant.logs.push(new Log(data.log));
     }
-
-    this.patch(oldRestaurant, updatedRestaurant, data.formEvent.acknowledge);
+    this.patch({ _id: oldRestaurant._id }, { _id: oldRestaurant._id, logs: updatedRestaurant.logs }, data.formEvent.acknowledge);
 
   }
 
@@ -118,9 +121,13 @@ export class LogsDashboardComponent implements OnInit {
             log: log
           });
         }
-
       });
     });
+
+    const now = new Date();
+    // Hide outdated logs! (more than 60 days and resolved)
+    const visibleMs = 7 * 24 * 3600 * 1000;
+    this.filteredRestaurantLogs = this.filteredRestaurantLogs.filter(rl => !rl.log.resolved || now.valueOf() - (rl.log.time || new Date(0)).valueOf() < visibleMs);
 
     // sort DESC by time!
     // one without time
@@ -156,7 +163,7 @@ export class LogsDashboardComponent implements OnInit {
     // let make a copy and preserve the original
     this.logInEditing = new Log(restaurantLog.log);
     // fix: sometimes log time is missing
-    if(!this.logInEditing.time) {
+    if (!this.logInEditing.time) {
       this.logInEditing.time = new Date();
     }
     this.logInEditingOriginal = restaurantLog.log;
@@ -170,9 +177,10 @@ export class LogsDashboardComponent implements OnInit {
 
     if (this.restaurant && this.restaurant.logs && this.restaurant.logs.indexOf(this.logInEditingOriginal) >= 0) {
       const newLogs = this.restaurant.logs.filter(log => log !== this.logInEditingOriginal);
+
       const updatedRestaurant = JSON.parse(JSON.stringify(this.restaurant));
       updatedRestaurant.logs = newLogs;
-      this.patch(this.restaurant, updatedRestaurant, event.formEvent.acknowledge);
+      this.patch({ _id: this.restaurant._id }, { _id: this.restaurant._id, logs: newLogs }, event.formEvent.acknowledge);
 
     } else {
       event.formEvent.acknowledge('Missing restaurant, or restaurant logs');
@@ -183,7 +191,11 @@ export class LogsDashboardComponent implements OnInit {
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
       result => {
         // let's update original, assuming everything successful
-        oldRestaurant.logs = updatedRestaurant.logs;
+        this.restaurantList.map(r => {
+          if (r._id === oldRestaurant._id) {
+            r.logs = updatedRestaurant.logs;
+          }
+        });
         this._global.publishAlert(
           AlertType.Success,
           'Successfully created new log.'

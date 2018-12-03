@@ -1,6 +1,11 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { Log } from '../../../classes/log';
+import { Restaurant } from '@qmenu/ui';
+import { Log } from 'src/app/classes/log';
 
+interface RestaurantLog {
+  restaurant: Restaurant;
+  log: Log;
+}
 @Component({
   selector: 'app-logs-table',
   templateUrl: './logs-table.component.html',
@@ -8,15 +13,16 @@ import { Log } from '../../../classes/log';
 })
 export class LogsTableComponent implements OnInit {
 
-  @Input() logs: Log[];
+  @Input() restaurantLogs: RestaurantLog[];
+  @Input() showRestaurant = true;
   @Output() select = new EventEmitter<Log>();
   constructor() { }
 
   ngOnInit() {
   }
 
-  clickRow(log) {
-    this.select.emit(log);
+  clickRow(restaurantLog) {
+    this.select.emit(restaurantLog);
   }
 
 }

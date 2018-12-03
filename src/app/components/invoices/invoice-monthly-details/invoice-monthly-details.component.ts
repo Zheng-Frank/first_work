@@ -20,7 +20,6 @@ import { CacheService } from '../../../services/cache.service';
 })
 export class InvoiceMonthlyDetailsComponent implements OnInit {
 
-  @ViewChild('myInvoiceEditor') myInvoiceEditor: InvoiceEditorComponent;
   @ViewChild('myInvoiceOptionEditor') myInvoiceOptionEditor: InvoiceOptionEditorComponent;
   @ViewChild('invoiceModal') invoiceModal: ModalComponent;
   @ViewChild('invoiceOptionModal') invoiceOptionModal: ModalComponent;
@@ -43,6 +42,8 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
     { label: 'Payment Completed?', value: 'any', css: 'text-success', status: 'isPaymentCompleted' },
     { label: 'Invoice Canceled?', value: 'any', css: 'text-danger', status: 'isCanceled' },
   ];
+
+  restaurantIdInEditing;
 
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private _cache: CacheService) {
     const self = this;
@@ -197,70 +198,12 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
 
 
   createClicked(restaurantId) {
-    // let's make a dummy restaurant first, then request actual body!
-    let restaurant = new Restaurant();
-    this.myInvoiceEditor.setRestaurant(restaurant);
-    // pre-set fromDate and toDate
-    const date = this.startDate;
-    this.myInvoiceEditor.fromDate = this.formatDate(new Date(date.getFullYear(), date.getMonth(), 1));
-    this.myInvoiceEditor.toDate = this.formatDate(new Date(date.getFullYear(), date.getMonth() + 1, 0));
-    // request the body asyn
-    let self = this;
-
-    zip(
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: {
-          _id: { $oid: restaurantId }
-        },
-        projection: {
-          name: 1,
-          offsetToEST: 1,
-          rateSchedules: 1
-        },
-        limit: 1
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
-        query: {
-          restaurant: { $oid: restaurantId }
-        },
-        projection: {
-          createdAt: 1
-        },
-        limit: 20000
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "invoice",
-        query: {
-          "restaurant.id": restaurantId
-        },
-        projection: {
-          createdAt: 1,
-          fromDate: 1,
-          toDate: 1,
-          balance: 1,
-          isPaymentCompleted: 1,
-          isPaymentSent: 1,
-          isCanceled: 1,
-          "restaurant.offsetToEST": 1,
-          previousInvoiceId: 1,
-          previousBalance: 1
-        },
-        limit: 5000
-      })
-    ).subscribe(
-      results => {
-        let r = results[0][0];
-        r.orders = results[1].map(o => new Order(o));
-        r.invoices = results[2].map(i => new Invoice(i)).filter(i => i.hasOwnProperty('balance') && !i.isCanceled);
-        r.invoices.sort((i1, i2) => i1.toDate.valueOf() - i2.toDate.valueOf());
-        Object.assign(restaurant, r);
-      },
-      error => this._global.publishAlert(AlertType.Danger, "Error Pulling Data from API")
-    );
-
-    this.invoiceModal.show();
+    // reset restaurantId first
+    this.restaurantIdInEditing = undefined;
+    setTimeout(() => {
+      this.restaurantIdInEditing = restaurantId;
+      this.invoiceModal.show();
+    }, 0);
   }
 
   invoiceClicked(restaurantId) {
@@ -301,44 +244,15 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
     return [year, month, day].join('-');
   }
 
-  createNewInvoice(i) {
-    this._api.post(environment.legacyApiUrl + 'invoice', {
-      restaurantId: i.restaurant._id,
-      fromDate: new Date(i.fromDate),
-      toDate: new Date(i.toDate),
-      previousInvoiceId: i.previousInvoiceId,
-      previousBalance: i.previousBalance,
-      payments: i.payments,
-      username: this._global.user.username
-    }).pipe(
-      mergeMap(invoice => {
-        invoice._id = invoice._id || invoice.id; // legacy returns id instead of _id
-        // we need to update calculated fields!
-        const originInvoice = JSON.parse(JSON.stringify(invoice));
-        const newInvoice = new Invoice(invoice);
-        newInvoice.computeDerivedValues();
-        this.restaurantInvoices.map(ri => {
-          if (ri.restaurant._id === invoice.restaurant.id) {
-            ri.invoices = ri.invoices || [];
-            ri.invoices.push(new Invoice(newInvoice));
-          }
-        });
-
-        return this._api
-          .patch(environment.qmenuApiUrl + "generic?resource=invoice", [{
-            old: originInvoice,
-            new: newInvoice
-          }]);
-
-      }))
-      .subscribe(
-        invoiceIds => {
-
-          this._global.publishAlert(AlertType.Success, "Created invoice for " + i.restaurant.name);
-          this.invoiceModal.hide();
-        },
-        err => this._global.publishAlert(AlertType.Danger, "Error Creating Invoice")
-      );
+  createNewInvoice(result) {
+    // result: {invoice: xxx, restaurant: xxx}
+    this.restaurantInvoices.map(ri => {
+      if (ri.restaurant._id === result.invoice.restaurant.id) {
+        ri.invoices = ri.invoices || [];
+        ri.invoices.push(new Invoice(result.invoice));
+      }
+    });
+    this.invoiceModal.hide();
   }
 
   private desc = false;

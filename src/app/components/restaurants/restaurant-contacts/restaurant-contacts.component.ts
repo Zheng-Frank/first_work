@@ -115,7 +115,6 @@ export class RestaurantContactsComponent implements OnInit {
   ngOnInit() {
     this.resetPersonFieldDescriptors();
     this.notes=this.restaurant.notes;
-    console.log(this.restaurant);
   }
 
   resetPersonFieldDescriptors() {
