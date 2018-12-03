@@ -17,5 +17,5 @@
       <app-invoice-editor [restaurantId]="restaurant._id" (create)="createNewInvoice($event)" (cancel)="showInvoiceCreation = false"></app-invoice-editor>
     </div>
   </div>
-  <app-invoices-table [invoices]="restaurant.invoices"></app-invoices-table>
+  <app-invoices-table [invoices]="invoices"></app-invoices-table>
 </div>

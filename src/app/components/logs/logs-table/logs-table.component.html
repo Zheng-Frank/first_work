@@ -22,7 +22,7 @@
       <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
         <div class="text-muted"><small>{{rl.log.time | date: 'shortTime'}}</small></div>
       </td>
-      <td *ngIf="showRestaurant">
+      <td *ngIf="showRestaurant" class="text-info" routerLink="/restaurants/{{rl.restaurant._id}}">
         <q-restaurant-media-object [restaurant]="rl.restaurant" [showPhones]="false" [showLogo]="false"></q-restaurant-media-object>
       </td>
       <td>{{rl.log.callerName}}

@@ -20,7 +20,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let invoice of invoices" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}}" role="button">
+    <tr *ngFor="let invoice of invoices" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}} {{invoice.isCanceled ?  'canceled' : ''}}" role="button">
       <td>{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date: 'MMM dd'}}</td>
       <td><small *ngIf="getPreviousInvoice(invoice)">{{getPreviousInvoice(invoice).fromDate | date: 'MMM dd'}} - {{getPreviousInvoice(invoice).toDate | date: 'MMM dd'}}</small></td>
       <!-- <td class="text-right">{{invoice.subtotal | currency:'USD':'symbol'}}</td> -->

@@ -6,6 +6,7 @@ import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
+import { Log } from 'src/app/classes/log';
 
 @Component({
   selector: 'app-invoice-editor',
@@ -125,7 +126,7 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
     }
   }
 
-  createNewInvoice() {
+  async createNewInvoice() {
     // do some cheap validation here.It should be done as form validation
     if (!this.fromDate || !this.toDate) {
       return alert('From Date and To Date are required!');
@@ -145,17 +146,67 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
       toDate: this.toDate,
       previousInvoiceId: this.previousInvoice ? this.previousInvoice._id : undefined,
       previousBalance: this.previousInvoice ? this.previousInvoice.balance : undefined,
-      payments: this.previousInvoice && this.previousInvoice.isPaymentCompleted ? [{ amount: this.previousInvoice.balance }] : undefined
-    };
-    const adjustments = this.outstandingAdjustmentLogs.filter(adj => adj.selected);
-    if (adjustments.length > 0) {
-      i['adjustments'] = adjustments.map(adj => ({
+      payments: this.previousInvoice && this.previousInvoice.isPaymentCompleted ? [{ amount: this.previousInvoice.balance }] : undefined,
+      adjustments: this.outstandingAdjustmentLogs.filter(adj => adj.selected).map(adj => ({
         name: adj.log.adjustmentReason,
         amount: adj.log.adjustmentAmount,
         time: adj.log.time
       }))
+    };
+
+    try {
+      const invoice = await this._api.post(environment.legacyApiUrl + 'invoice', {
+        restaurantId: i.restaurant._id,
+        fromDate: new Date(i.fromDate),
+        toDate: new Date(i.toDate),
+        previousInvoiceId: i.previousInvoiceId,
+        previousBalance: i.previousBalance,
+        payments: i.payments,
+        username: this._global.user.username,
+        adjustments: i.adjustments
+      }).toPromise();
+
+      invoice._id = invoice._id || invoice.id; // legacy returns id instead of _id
+      // we need to update calculated fields!
+      const originInvoice = JSON.parse(JSON.stringify(invoice));
+      const newInvoice = new Invoice(invoice);
+      newInvoice.computeDerivedValues();
+
+      const invoiceIds = await this._api
+        .patch(environment.qmenuApiUrl + "generic?resource=invoice", [{
+          old: originInvoice,
+          new: newInvoice
+        }]).toPromise();
+
+      this._global.publishAlert(AlertType.Success, "Created invoice for " + i.restaurant.name);
+
+
+      // mark adjustment logs as resolved
+      if (i.adjustments && i.adjustments.length > 0 && this.restaurant.logs) {
+        const oldLogs = this.restaurant.logs;
+        const newLogs = JSON.parse(JSON.stringify(oldLogs));
+        newLogs.map(log => i.adjustments.map(adjustment => {
+          if (adjustment.time === log.time) {
+            log.resolved = true;
+          }
+        }));
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: { _id: this.restaurant['_id'] },
+          new: { _id: this.restaurant['_id'], logs: newLogs }
+        }]).toPromise();
+        this.restaurant.logs = newLogs.map(log => new Log(log));
+      }
+
+      this.create.emit({
+        invoice: newInvoice,
+        restaurant: this.restaurant
+      });
+
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Error Creating Invoice")
     }
-    this.create.emit(i);
+
   }
 
   // return 2017-2-12

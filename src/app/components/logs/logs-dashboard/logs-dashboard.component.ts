@@ -32,43 +32,46 @@ export class LogsDashboardComponent implements OnInit {
   restaurant = undefined;
   restaurantList = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "restaurant",
-      query: {
-        disabled: {
-          $ne: true
-        }
-      },
-      projection: {
-        name: 1,
-        alias: 1,
-        logs: 1,
-        logo: 1,
-        "phones.phoneNumber": 1,
-        "channels.value": 1,
-        "googleAddress.formatted_address": 1
-      },
-      limit: 6000
-    }).subscribe(
-      restaurants => {
-        this.restaurantList = restaurants;
-        // convert log to type of Log
-        this.restaurantList.map(r => {
-          if (r.logs) {
-            r.logs = r.logs.map(log => new Log(log));
-          }
-        });
+    this.populate();
+  }
 
-        // sort logs
-        this.computeFilteredLogs();
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling restaurants"
-        )
+  async populate() {
+    try {
+
+      this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          disabled: {
+            $ne: true
+          }
+        },
+        projection: {
+          name: 1,
+          alias: 1,
+          logs: 1,
+          logo: 1,
+          "phones.phoneNumber": 1,
+          "channels.value": 1,
+          "googleAddress.formatted_address": 1
+        },
+        limit: 6000
+      }).toPromise();
+
+      // convert log to type of Log
+      this.restaurantList.map(r => {
+        if (r.logs) {
+          r.logs = r.logs.map(log => new Log(log));
+        }
       });
 
+      // sort logs
+      this.computeFilteredLogs();
+    } catch (error) {
+      this._global.publishAlert(
+        AlertType.Danger,
+        "Error pulling restaurants"
+      )
+    }
   }
 
   ngOnInit() {
@@ -118,9 +121,13 @@ export class LogsDashboardComponent implements OnInit {
             log: log
           });
         }
-
       });
     });
+
+    const now = new Date();
+    // Hide outdated logs! (more than 60 days and resolved)
+    const visibleMs = 7 * 24 * 3600 * 1000;
+    this.filteredRestaurantLogs = this.filteredRestaurantLogs.filter(rl => !rl.log.resolved || now.valueOf() - (rl.log.time || new Date(0)).valueOf() < visibleMs);
 
     // sort DESC by time!
     // one without time

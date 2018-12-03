@@ -145,7 +145,6 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           }
         );
 
-
       // temp: also get gmbBiz to digg more info
       this.gmbBiz = (await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbBiz',
