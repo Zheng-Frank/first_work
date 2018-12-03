@@ -30,7 +30,7 @@
               {{amount}}
             </td>
             <td *ngFor="let size of sizes">
-              {{row.pricing[placement][amount][size] || 0 | currency:'USD':true:'1.2-2'}}
+              {{row.pricing[placement][amount][size] || 0 | currency:'USD':'symbol'}}
             </td>
           </tr>
         </ng-container>

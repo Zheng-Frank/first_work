@@ -6,7 +6,9 @@ import { AlertType } from "../classes/alert-type";
 import { User } from "../classes/user";
 import { ModalType } from "../classes/modal-type";
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-
+import { CacheService } from "./cache.service";
+import { environment } from "../../environments/environment";
+import { Restaurant } from "@qmenu/ui";
 declare var store: any;
 
 @Injectable()
@@ -36,7 +38,7 @@ export class GlobalService {
     return this._alerts;
   }
 
-  constructor(private _api: ApiService) {
+  constructor(private _api: ApiService, private _cache: CacheService) {
     this.storeRetrieve();
   }
 
@@ -54,7 +56,7 @@ export class GlobalService {
           name: "Restaurants",
           href: "#/restaurants",
           fa: "fas fa-utensils",
-          accessibleRoles: ["ADMIN", "MENU_EDITOR", "CSR","ACCOUNTANT"]
+          accessibleRoles: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "MARKETER"]
         },
         {
           name: "Logs",
@@ -66,7 +68,7 @@ export class GlobalService {
           name: "Payments",
           href: "#/payments",
           fa: "fas fa-hand-holding-usd",
-          accessibleRoles: ["ADMIN","ACCOUNTANT", "CSR"]
+          accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
         },
         {
           name: "Invoices",
@@ -84,7 +86,7 @@ export class GlobalService {
           name: "Tasks",
           href: "#/tasks",
           fa: "fas fa-tasks",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
           name: "GMBs",
@@ -105,9 +107,9 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER"]
         },
         {
-          name: "System",
-          href: "#/system",
-          fa: "fas fa-heartbeat",
+          name: "Users",
+          href: "#/users",
+          fa: "fas fa-users",
           accessibleRoles: ["ADMIN"]
         },
         {
@@ -117,9 +119,15 @@ export class GlobalService {
           accessibleRoles: ["ADMIN"]
         },
         {
-          name: "Users",
-          href: "#/users",
-          fa: "fas fa-users",
+          name: "Monitoring",
+          href: "#/monitoring",
+          fa: "fas fa-heartbeat",
+          accessibleRoles: ["ADMIN"]
+        },
+        {
+          name: "System",
+          href: "#/system",
+          fa: "fas fa-cog",
           accessibleRoles: ["ADMIN"]
         },
         { name: "Me", href: "#/profile", fa: "fas fa-user" }
@@ -168,7 +176,7 @@ export class GlobalService {
     this._alerts = this._alerts.filter(a => a !== alert);
   }
 
-  
+
   modal: ModalComponent;
 
   registerModal(modal: ModalComponent) {
@@ -198,5 +206,40 @@ export class GlobalService {
     slicelife: "slicelife.png",
     seamless: "seamless.png",
     ubereats: "ubereats.png"
+  }
+
+  async getCachedVisibleRestaurantList() {
+
+    if (this._cache.get('restaurants')) {
+      return this._cache.get('restaurants');
+    } else {
+      const query = {};
+      if (!this.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0)) {
+        query["rateSchedules.agent"] = this.user.username
+      }
+
+      const result = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: query,
+        projection: {
+          name: 1,
+          alias: 1,
+          logo: 1,
+          restaurantId: 1,
+          "phones.phoneNumber": 1,
+          domain: 1,
+          websiteTemplateName: 1,
+          disabled: 1,
+          "googleAddress.formatted_address": 1
+        },
+        limit: 6000
+      }).toPromise();
+
+      const restaurants = result.map(r => new Restaurant(r));
+      restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
+
+      this._cache.set('restaurants', restaurants, 30 * 60);
+      return restaurants;
+    }
   }
 }

@@ -1,4 +1,6 @@
 <h1 class="text-center">Logs</h1>
+<div class="text-center text-muted"><small>(For past 7 days or unresolved. To see more logs, visit restaurant details)</small></div>
+<!-- <app-log-editor></app-log-editor> -->
 <div class="clearfix">
     <div class="float-left form-inline">
         Restaurant Filter:
@@ -6,7 +8,8 @@
             [(ngModel)]="searchFilter"> &nbsp;&nbsp;
         <div class="checkbox">
             <label class="text-danger">
-                <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="unresolvedOnlyChange()">&nbsp;Only Unresolved
+                <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="unresolvedOnlyChange()">&nbsp;Only
+                Unresolved
             </label>
         </div>
     </div>
@@ -18,48 +21,11 @@
     </div>
 </div>
 
+<app-logs-table [restaurantLogs]="filteredRestaurantLogs" (select)="edit($event)"></app-logs-table>
 
-<table class="table table-sm">
-    <thead>
-        <tr>
-
-            <th scope="col">User</th>
-            <th scope="col">Date</th>
-            <th scope="col">Restaurant</th>
-            <th scope="col">Caller</th>
-            <th scope="col">Order#</th>
-            <th scope="col">Problem</th>
-            <th scope="col">Response</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let rl of filteredRestaurantLogs; let i = index" class="list-group-item-action {{rl.log.resolved ? '' : 'alert-danger'}}"
-            (click)="edit(rl)">
-
-            <td>{{rl.log.username}}</td>
-            <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
-                <div class="text-muted"><small>{{rl.log.time | date: 'shortTime'}}</small></div>
-            </td>
-            <td>
-                <q-restaurant-media-object [restaurant]="rl.restaurant" [showPhones]="false" [showLogo]="false"></q-restaurant-media-object>
-
-                <!-- <b>{{rl.restaurant.name}}</b>
-                <div class="text-muted">
-                    <small>{{getAddress(rl.restaurant)}}</small>
-                </div> -->
-            </td>
-            <td>{{rl.log.callerName}}
-                <div class="text-nowrap">{{rl.log.callerPhone | tel}}</div>
-            </td>
-            <td>{{rl.log.relatedOrders}}</td>
-            <td style="white-space: pre-wrap">{{rl.log.problem}}</td>
-            <td style="white-space: pre-wrap">{{rl.log.response}}</td>
-        </tr>
-    </tbody>
-</table>
 
 <!--the editing modal-->
 <q-modal #logEditingModal>
-    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing" (success)="onSuccessCreation($event)"
-        (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
+    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
+        (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
 </q-modal>

@@ -2,11 +2,11 @@
 <!-- <app-restaurant-menu-shuffler [restaurant1]="fakeRestaurant1"  [restaurant2]="fakeRestaurant2"></app-restaurant-menu-shuffler> -->
 <div class="text-right mb-2">
   <div class="pb-2">
-    <button class="btn btn-primary" (click)="setAction('NEW')">
+    <button class="btn btn-primary" (click)="setAction('NEW')" *ngIf="isButtonVisible('NEW')">
       <i class="fas fa-plus"></i> Add New Restaurant</button>
-    <button class="btn btn-info" (click)="setAction('CRAWL')">
+    <button class="btn btn-info" (click)="setAction('CRAWL')" *ngIf="isButtonVisible('CRAWL')">
       <i class="fas fa-download"></i> Crawl Restaurant Data</button>
-    <button class="btn btn-danger" (click)="setAction('REMOVE')">
+    <button class="btn btn-danger" (click)="setAction('REMOVE')" *ngIf="isButtonVisible('REMOVE')">
       <i class="fas fa-times"></i> Delete Restaurant</button>
   </div>
 
@@ -42,21 +42,16 @@
 <div class="row my-2">
   <div class="col form-inline">
     Search Filter:
-    <input type="text" class="form-control ml-2" placeholder="Restauran Name" [(ngModel)]="nameFilter">
-    <input type="tel" class="form-control ml-2" placeholder="Restauran Phone" [(ngModel)]="phoneFilter">
-    <input type="tel" class="form-control ml-2" placeholder="Restauran Id" [(ngModel)]="restaurantIdFilter">
-
+    <input type="text" class="form-control ml-2" placeholder="name, phone, alias, ID..." [ngModel]="searchTerm" [qDebounce]="500" (debounce)="debounce($event)">
   </div>
   <div class="col-auto form-inline text-right">
     <div style="width: 100%">Total: {{getEnabledCount()}} / {{restaurantList.length}}</div>
   </div>
 </div>
 
-
-
 <ul class="list-group">
-  <ng-container *ngFor="let r of restaurantList">
-    <li *ngIf="isVisible(r)" class="list-group-item d-flex justify-content-between align-items-center {{r.disabled ? 'line-through' : ''}}">
+  <ng-container *ngFor="let r of filteredRestaurantList">
+    <li class="list-group-item d-flex justify-content-between align-items-center {{r.disabled ? 'line-through' : ''}}">
       <span>
         <span class="thumb-container">
           <img src="{{r.logo}}" alt="{{r.name}}" class="thumb-img" *ngIf="r.logo">

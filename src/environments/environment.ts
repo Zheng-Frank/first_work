@@ -1,5 +1,5 @@
 export const environment = {
-  production: false,
+   production: false,
   env: "dev",
   adminApiUrl: 'https://swozix2epl.execute-api.us-east-2.amazonaws.com/dev/',
   qmenuApiUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',

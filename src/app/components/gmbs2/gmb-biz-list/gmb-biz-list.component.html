@@ -84,7 +84,7 @@
       <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
     </td>
     <td>
-      <ng-container *ngIf="biz.qmenuIdDays">{{biz.qmenuIdDays}} days</ng-container>
+      <ng-container *ngIf="biz.qmenuIdDays >= 0">{{biz.qmenuIdDays}} days</ng-container>
       <div class="badge badge-pill badge-danger" *ngIf="biz.lostDate">
         <small>Lost: {{biz.lostDate | ago: now}}</small>
       </div>

@@ -13,9 +13,9 @@
   </div>
 
   <div *qIf="showInvoiceCreation">
-    <div class="card card-body  bg-light">
-      <app-invoice-editor [restaurant]="restaurant" (onNewInvoice)="createNewInvoice($event)" (onCancel)="showInvoiceCreation = false"></app-invoice-editor>
+    <div class="card card-body bg-light mb-4">
+      <app-invoice-editor [restaurantId]="restaurant._id" (create)="createNewInvoice($event)" (cancel)="showInvoiceCreation = false"></app-invoice-editor>
     </div>
   </div>
-  <app-invoices-table [invoices]="restaurant.invoices"></app-invoices-table>
+  <app-invoices-table [invoices]="invoices"></app-invoices-table>
 </div>
