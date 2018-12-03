@@ -35,7 +35,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   invoiceChannels = [];
 
-  display = '';
+  display = 'paymentMeans';
 
   adjustmentDescription;
   adjustmentIsCredit = true;

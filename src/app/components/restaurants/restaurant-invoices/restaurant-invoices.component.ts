@@ -80,6 +80,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
     this.invoices.unshift(result.invoice);
     // also updated restaurant logs!
     this.restaurant.logs = result.restaurant.logs;
+    this.showInvoiceCreation = false;
 
   }
 
