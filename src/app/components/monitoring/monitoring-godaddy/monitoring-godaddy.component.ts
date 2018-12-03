@@ -3,7 +3,6 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { timingSafeEqual } from 'crypto';
 
 @Component({
   selector: 'app-monitoring-godaddy',
@@ -28,18 +27,25 @@ export class MonitoringGodaddyComponent implements OnInit {
   //   "status": "ACTIVE",
   //   "transferProtected": false
   // };
+  redOnly = false;
   apiRequesting = false;
   rows = [];
 
   restaurants = [];
   gmbBizList = [];
   domains = [];
+  folders = [];
   myColumnDescriptors = [
 
     {
       label: "Domain",
       paths: ['godaddy', 'domain'],
       sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
+    },
+    {
+      label: "Has Folder",
+      paths: ['hasFolder'],
+      sort: (a, b) => +a > +b ? 1 : (+a < +b ? -1 : 0)
     },
     {
       label: "qMenu Entry",
@@ -53,11 +59,6 @@ export class MonitoringGodaddyComponent implements OnInit {
     },
     {
       label: "qMenu GMB Linked"
-    },
-    {
-      label: "GMB Entry",
-      paths: ['gmbBiz', 'name'],
-      sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
     },
     {
       label: "Status",
@@ -78,7 +79,9 @@ export class MonitoringGodaddyComponent implements OnInit {
   }
 
   async reload() {
-    this.domains = await this._api.get(environment.qmenuApiUrl + 'utils/godaddy-domains', {}).toPromise();
+    const godaddyData = await this._api.get(environment.qmenuApiUrl + 'utils/godaddy-domains', {}).toPromise();
+    this.domains = godaddyData.domains;
+    this.folders = godaddyData.folders.domains;
     this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
@@ -102,8 +105,10 @@ export class MonitoringGodaddyComponent implements OnInit {
 
     this.rows = this.domains.map(domain => ({
       godaddy: domain,
+      hasFolder: this.folders.some(folder => folder.toLowerCase() === domain.domain.toLowerCase()),
       restaurant: this.restaurants.filter(r => r.domain && r.domain.toLowerCase().indexOf(domain.domain.toLowerCase()) >= 0)[0] || {},
       gmbBiz: this.gmbBizList.filter(gmbBiz => gmbBiz.qmenuWebsite && gmbBiz.qmenuWebsite.toLowerCase().indexOf(domain.domain.toLowerCase()) >= 0)[0] || {},
+
     }));
 
     console.log(this.rows);
@@ -144,5 +149,14 @@ export class MonitoringGodaddyComponent implements OnInit {
     this.apiRequesting = false;
     await this.reload();
   }
+
+  getFilteredRows() {
+    if (this.redOnly) {
+      return this.rows.filter(r => !r.hasFolder || r.gmbBiz.qmenuId !== r.restaurant._id || !r.gmbBiz.name || !r.restaurant.name || r.godaddy.status !== 'ACTIVE');
+    } else {
+      return this.rows;
+    }
+  }
+
 
 }

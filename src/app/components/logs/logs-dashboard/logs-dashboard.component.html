@@ -20,47 +20,8 @@
     </div>
 </div>
 
-<table class="table table-sm">
-    <thead>
-        <tr>
-            <th></th>
-            <th scope="col">User</th>
-            <th scope="col">Date</th>
-            <th scope="col">Restaurant</th>
-            <th scope="col">Caller</th>
-            <th scope="col">Order#</th>
-            <th scope="col">Problem</th>
-            <th scope="col">Response</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let rl of filteredRestaurantLogs; let i = index" class="list-group-item-action {{rl.log.resolved ? '' : 'alert-danger'}}"
-            (click)="edit(rl)">
+<app-logs-table [restaurantLogs]="filteredRestaurantLogs" (select)="edit($event)"></app-logs-table>
 
-            <td>
-                <i class="fas fa-dollar-sign" *ngIf="rl.log.hasAdjustment"></i>
-            </td>
-            <td>{{rl.log.username}}</td>
-            <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
-                <div class="text-muted"><small>{{rl.log.time | date: 'shortTime'}}</small></div>
-            </td>
-            <td>
-                <q-restaurant-media-object [restaurant]="rl.restaurant" [showPhones]="false" [showLogo]="false"></q-restaurant-media-object>
-
-                <!-- <b>{{rl.restaurant.name}}</b>
-                <div class="text-muted">
-                    <small>{{getAddress(rl.restaurant)}}</small>
-                </div> -->
-            </td>
-            <td>{{rl.log.callerName}}
-                <div class="text-nowrap">{{rl.log.callerPhone | tel}}</div>
-            </td>
-            <td>{{rl.log.relatedOrders}}</td>
-            <td style="white-space: pre-wrap">{{rl.log.problem}}</td>
-            <td style="white-space: pre-wrap">{{rl.log.response}}</td>
-        </tr>
-    </tbody>
-</table>
 
 <!--the editing modal-->
 <q-modal #logEditingModal>

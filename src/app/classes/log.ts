@@ -9,9 +9,8 @@ export class Log {
 
   problem: string;
   response: string;
-  resolved: boolean; // deterines stickiness
+  resolved: boolean;
 
-  hasAdjustment: boolean;
   adjustmentAmount: number;
   adjustmentReason: string;
 

@@ -1,9 +1,10 @@
 <div class="container" *ngIf="invoice">
   <!--<h1 style="position:absolute; color: lightgray; font-style: italic;">PAID</h1>-->
   <h3 class="text-center">QMENU INVOICE</h3>
-  <h6 class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate'}} -{{invoice.toDate | date: 'mediumDate'}}</h6>
+  <h6 class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate'}} -{{invoice.toDate | date:
+    'mediumDate'}}</h6>
 
-  <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6"  [innerHTML]="invoice.paymentInstructions">
+  <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6" [innerHTML]="invoice.paymentInstructions">
   </div>
 
   <table class="table table-bordered">
@@ -33,8 +34,10 @@
     </tr>
   </table>
 
-  <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() >= 0">Balance Due: {{invoice.getBalance() | currency:'USD':'symbol' }}</h3>
-  <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() < 0 ">Credit: {{-invoice.getBalance() | currency:'USD':'symbol' }}</h3>
+  <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() >= 0">Balance Due: {{invoice.getBalance() |
+    currency:'USD':'symbol' }}</h3>
+  <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() < 0 ">Credit: {{-invoice.getBalance() |
+    currency:'USD':'symbol' }}</h3>
 
   <div class="row">
     <div class="col-6">
@@ -96,7 +99,8 @@
 
         <tr>
           <th>Restaurant Collected</th>
-          <td class="text-right">{{invoice.getCashCollected() + invoice.getRestaurantCcCollected() | currency:'USD':'symbol'}}</td>
+          <td class="text-right">{{invoice.getCashCollected() + invoice.getRestaurantCcCollected() |
+            currency:'USD':'symbol'}}</td>
         </tr>
 
         <tr>
@@ -118,9 +122,10 @@
         </tr>
         <tr *ngIf="invoice.getAdjustment() !== 0">
           <th>
-            Adjustment Credit
+            Adjustments
           </th>
-          <td class="text-right">{{invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="invoice.getAdjustment() >= 0">(credit) {{invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="invoice.getAdjustment() < 0">(debit) {{-invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
         </tr>
         <ng-container *ngIf="invoice.getThirdPartyDeliveryCharge() > 0 || invoice.getThirdPartyDeliveryTip() > 0">
           <tr>
@@ -141,7 +146,8 @@
             <th>
               Pay TME Total
             </th>
-            <th class="text-right">{{invoice.getThirdPartyDeliveryCharge()+invoice.getThirdPartyDeliveryTip() | currency:'USD':'symbol'}}</th>
+            <th class="text-right">{{invoice.getThirdPartyDeliveryCharge()+invoice.getThirdPartyDeliveryTip() |
+              currency:'USD':'symbol'}}</th>
           </tr>
         </ng-container>
 
@@ -162,11 +168,12 @@
   </div>
   <!--adjustments section-->
   <div *ngIf="invoice.adjustments && invoice.adjustments.length > 0">
-    <h3 class="text-center">Adjustment (credit)</h3>
+    <h3 class="text-center">Adjustments</h3>
     <table class="table">
       <tr *ngFor="let adjustment of invoice.adjustments">
+        <td *ngIf="adjustment.amount >= 0">{{adjustment.amount | currency:'USD':'symbol' }} (credit)</td>
+        <td *ngIf="adjustment.amount < 0">{{-adjustment.amount | currency:'USD':'symbol' }} (debit)</td>
         <th>{{adjustment.name}}</th>
-        <td>{{adjustment.amount | currency:'USD':'symbol' }}</td>
       </tr>
     </table>
   </div>
@@ -179,9 +186,11 @@
         <td>
           <div>
             The taxes for the orders listed below is
-            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong>. qMenu does not hold any amount of the taxes. As part
+            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong>. qMenu does not hold any amount of the
+            taxes. As part
             of your normal periodic tax return filing, it is your responsibility to pay
-            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong> to the proper taxing authority for such orders.
+            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong> to the proper taxing authority for such
+            orders.
           </div>
 
         </td>
@@ -191,7 +200,8 @@
 
 
   <h3 class="text-center">Valid Orders ({{getValidOrders().length}})</h3>
-  <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders ({{invoice.orders.length - getValidOrders().length}}) are crossed, ingored, and NOT calculated.</div>
+  <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders ({{invoice.orders.length -
+    getValidOrders().length}}) are crossed, ingored, and NOT calculated.</div>
   <table class="table app-scaled-table">
     <tr>
       <th>Date Time</th>
@@ -237,7 +247,8 @@
       <th class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</th>
-      <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">{{invoice.getCcProcessingFee() | currency:'USD':'symbol'}}</th>
+      <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">{{invoice.getCcProcessingFee() |
+        currency:'USD':'symbol'}}</th>
       <th class="text-right" *ngIf="invoice.getSurcharge() > 0">{{invoice.getSurcharge() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getTotal() | currency:'USD':'symbol'}}</th>
     </tr>

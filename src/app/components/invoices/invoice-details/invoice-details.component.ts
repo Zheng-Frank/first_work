@@ -165,27 +165,37 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
-  setInvoiceStatus(field, value) {
+  async setInvoiceStatus(field, value) {
+
     if (field !== 'isCanceled' || confirm('Are you sure to cancel the invoice?')) {
 
       const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
       const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
       updatedInvoice[field] = value;
 
-      this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this.invoice[field] = updatedInvoice[field];
-          this._global.publishAlert(
-            AlertType.Success,
-            field + " was updated"
-          );
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-        }
-      );
+      try {
+        const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
+        this.invoice[field] = updatedInvoice[field];
+        this._global.publishAlert(
+          AlertType.Success,
+          field + " was updated"
+        );
+        if (field === 'isCanceled' && this.invoice.adjustments && this.invoice.adjustments.length > 0) {
+          // we need to reverse adjustment logs to be un-resolved!
+          const updatedLogs = JSON.parse(JSON.stringify(this.restaurantLogs)).map(log => new Log(log));
 
+          updatedLogs.map(log => {
+            if (this.invoice.adjustments.some(adjustment => new Date(adjustment.time).valueOf() === log.time.valueOf())) {
+              log.resolved = false;
+            }
+          });
+
+          const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: this.restaurantId }, new: { _id: this.restaurantId, logs: updatedLogs } }]).toPromise();
+        }
+
+      } catch (error) {
+        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      }
     }
   }
 

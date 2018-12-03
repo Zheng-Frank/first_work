@@ -79,7 +79,8 @@ export class LogsDashboardComponent implements OnInit {
   }
 
   onSuccessCreation(data) {
-    const oldRestaurant = this.restaurantList.filter(r => r._id === data.restaurant._id)[0];
+    console.log(data);
+    const oldRestaurant = data.restaurant;
     const updatedRestaurant = JSON.parse(JSON.stringify(oldRestaurant));
     updatedRestaurant.logs = updatedRestaurant.logs || [];
     if (!data.log.time) {
@@ -96,8 +97,7 @@ export class LogsDashboardComponent implements OnInit {
     } else {
       updatedRestaurant.logs.push(new Log(data.log));
     }
-
-    this.patch({ _id: this.restaurant._id }, { _id: this.restaurant._id, logs: updatedRestaurant.logs }, data.formEvent.acknowledge);
+    this.patch({ _id: oldRestaurant._id }, { _id: oldRestaurant._id, logs: updatedRestaurant.logs }, data.formEvent.acknowledge);
 
   }
 
@@ -184,7 +184,11 @@ export class LogsDashboardComponent implements OnInit {
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
       result => {
         // let's update original, assuming everything successful
-        oldRestaurant.logs = updatedRestaurant.logs;
+        this.restaurantList.map(r => {
+          if (r._id === oldRestaurant._id) {
+            r.logs = updatedRestaurant.logs;
+          }
+        });
         this._global.publishAlert(
           AlertType.Success,
           'Successfully created new log.'

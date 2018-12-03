@@ -1780,4 +1780,27 @@ zealrestaurant.us`;
     // console.log(highPriorityList.map((obj, index) => index + '\t' + obj.restaurant.name + '\t' + obj.godaddyDomain));
   }
 
+  async removeInvoiceFromRestaurant() {
+    const limit = 100;
+    const restaurantsWithInvoicesAttribute = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        'invoices.0': { $exists: true }
+      },
+      projection: {
+        name: 1,
+        invoices: 1
+      },
+      limit: limit
+    }).toPromise();
+
+    console.log(restaurantsWithInvoicesAttribute);
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', restaurantsWithInvoicesAttribute.map(r => ({
+      old: { _id: r._id, invoices: [] },
+      new: { _id: r._id }
+    }))).toPromise();
+
+  }
+
 }

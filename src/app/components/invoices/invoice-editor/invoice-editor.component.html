@@ -1,5 +1,5 @@
-<h5 class="text-center">{{restaurant.name}}</h5>
-<div *ngIf="restaurant.invoices && restaurant.invoices.length > 0">
+<h5 class="text-center">{{restaurant?.name}}</h5>
+<div *ngIf="invoices && invoices.length > 0">
   Select A Previous Invoice If Applicable:
   <table class="table">
     <tr>
@@ -19,7 +19,7 @@
         <td class="text-center">
           <input class="form-check-input" type="checkbox" [checked]="previousInvoice === invoice" (change)="setPreviousInvoice(invoice)">
         </td>
-        <td>{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date: 'MMM dd'}}</td>
+        <td>{{invoice.fromDate | date: 'MMM dd yyyy'}} - {{invoice.toDate | date: 'MMM dd yyyy'}}</td>
         <td><small *ngIf="invoice.previousInvoiceId">{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date:
             'MMM dd'}}</small></td>
         <td>{{invoice.balance | currency:'USD':'symbol'}}</td>
@@ -28,7 +28,6 @@
     </ng-container>
   </table>
 </div>
-
 <div class="form-group row">
   <label for="from-date" class="col-4 col-form-label">From Date</label>
   <div class="col-8">
@@ -55,7 +54,7 @@
     <p>
       <span *ngFor="let rs of getRateSchedules()">
         <span *ngIf="rs.rate">{{rs.rate | percentage }}</span>
-        <span *ngIf="rs.fixed">{{rs.fixed | currency:'USD':'symbol':'1.2-2' }}</span>
+        <span *ngIf="rs.fixed">{{rs.fixed | currency:'USD':'symbol' }}</span>
         <span *ngIf="!(rs.fixed || rs.rate)">0</span>
         &nbsp;since {{rs.date}} &nbsp;
       </span>
@@ -64,17 +63,19 @@
 </div>
 <div class="form-group row">
   <label class="col-4 col-form-label">Outstanding Adjustments</label>
+  <div class="col-8" *ngIf="outstandingAdjustmentLogs.length === 0">
+    No adjustments found
+  </div>
   <div class="col-8">
-    <div *ngFor="let adjustment of [1, 2, 3]">
+    <div *ngFor="let adjustment of outstandingAdjustmentLogs">
       <div class="row">
-        <div class="col-4">
-
-          <label class="form-check-label"><input class="form-check-input" type="checkbox"> $49.28</label>
-
+        <div class="col-3">
+          <label class="form-check-label">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="adjustment.selected">
+            {{adjustment.log.adjustmentAmount | currency:'USD':'symbol'}}</label>
         </div>
-        <div class="col-8">
-          Order refund of stripe 123 asf asd fasd fasd fads fads fasd fasdf asd fasd fasd
-          asdf asdf asdf adsf asdf sad fasdf sadf asd fas dfarefadxfdsafasdf adsf as
+        <div class="col-9">
+          {{adjustment.log.adjustmentReason}}
         </div>
       </div>
     </div>
@@ -84,6 +85,6 @@
   <p *ngIf="getError()">
     <small class="text-danger pb-1">{{getError()}}</small>
   </p>
-  <button class="btn btn-default" (click)="cancel()">Cancel</button>
+  <button class="btn btn-default" (click)="clickCancel()">Cancel</button>
   <button [disabled]="getError()" class="btn btn-primary" (click)="createNewInvoice()">Submit</button>
 </div>

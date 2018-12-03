@@ -54,7 +54,8 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
             images: true,
             offsetToEST: 1,
             rateSchedules: 1,
-            paymentMeans: 1
+            paymentMeans: 1,
+            logs: 1
           },
           limit: 1
         }),
@@ -95,7 +96,10 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
         projection: {
           createdAt: 1
         },
-        limit: 10000
+        sort: {
+          createdAt: -1
+        },
+        limit: 500
       })
     )
       .subscribe(
@@ -132,40 +136,57 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
     return [year, month, day].join('-');
   }
 
-  createNewInvoice(i) {
-    this._api.post(environment.legacyApiUrl + 'invoice', {
-      restaurantId: i.restaurant._id,
-      fromDate: new Date(i.fromDate),
-      toDate: new Date(i.toDate),
-      previousInvoiceId: i.previousInvoiceId,
-      previousBalance: i.previousBalance,
-      payments: i.payments,
-      username: this._global.user.username
-    }).pipe(
-      mergeMap(invoice => {
-        invoice._id = invoice._id || invoice.id; // legacy returns id instead of _id
-        // we need to update calculated fields!
-        const originInvoice = JSON.parse(JSON.stringify(invoice));
-        const newInvoice = new Invoice(invoice);
-        newInvoice.computeDerivedValues();
+  async createNewInvoice(i) {
+    try {
+      const invoice = await this._api.post(environment.legacyApiUrl + 'invoice', {
+        restaurantId: i.restaurant._id,
+        fromDate: new Date(i.fromDate),
+        toDate: new Date(i.toDate),
+        previousInvoiceId: i.previousInvoiceId,
+        previousBalance: i.previousBalance,
+        payments: i.payments,
+        username: this._global.user.username,
+        adjustments: i.adjustments
+      }).toPromise();
 
-        this.restaurant.invoices.unshift(new Invoice(newInvoice));
+      invoice._id = invoice._id || invoice.id; // legacy returns id instead of _id
+      // we need to update calculated fields!
+      const originInvoice = JSON.parse(JSON.stringify(invoice));
+      const newInvoice = new Invoice(invoice);
+      newInvoice.computeDerivedValues();
 
-        return this._api
-          .patch(environment.qmenuApiUrl + "generic?resource=invoice", [{
-            old: originInvoice,
-            new: newInvoice
-          }]);
+      this.restaurant.invoices.unshift(new Invoice(newInvoice));
 
-      }))
-      .subscribe(
-        invoiceIds => {
+      const invoiceIds = await this._api
+        .patch(environment.qmenuApiUrl + "generic?resource=invoice", [{
+          old: originInvoice,
+          new: newInvoice
+        }]).toPromise();
 
-          this._global.publishAlert(AlertType.Success, "Created invoice for " + i.restaurant.name);
-          this.showInvoiceCreation = false;
-        },
-        err => this._global.publishAlert(AlertType.Danger, "Error Creating Invoice")
-      );
+      this._global.publishAlert(AlertType.Success, "Created invoice for " + i.restaurant.name);
+      this.showInvoiceCreation = false;
+
+      // mark adjustment logs as resolved
+      if (i.adjustments && i.adjustments.length > 0 && this.restaurant.logs) {
+        const oldLogs = this.restaurant.logs;
+        const newLogs = JSON.parse(JSON.stringify(oldLogs));
+        newLogs.map(log => i.adjustments.map(adjustment => {
+          if (adjustment.time === log.time) {
+            log.resolved = true;
+          }
+        }));
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: { _id: this.restaurant['_id'] },
+          new: { _id: this.restaurant['_id'], logs: newLogs }
+        }]).toPromise();
+        this.restaurant.logs = newLogs;
+      }
+
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Error Creating Invoice")
+    }
+
   }
 
 

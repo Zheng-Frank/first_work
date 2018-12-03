@@ -1,33 +1,44 @@
-<div class="alert alert-info" *ngIf="!logs || logs.length === 0">
+<div class="alert alert-info" *ngIf="!restaurantLogs || restaurantLogs.length === 0">
   No logs.
 </div>
 
-<table class="table table-sm" *ngIf="logs && logs.length > 0">
+<table class="table table-sm" *ngIf="restaurantLogs && restaurantLogs.length > 0">
   <thead>
     <tr>
-      <th></th>
-      <th scope="col">User</th>
-      <th scope="col">Date</th>
-      <th scope="col">Caller</th>
-      <th scope="col">Order#</th>
-      <th scope="col">Problem</th>
-      <th scope="col">Response</th>
+      <th>User</th>
+      <th>Date</th>
+      <th *ngIf="showRestaurant">Restaurant</th>
+      <th>Caller</th>
+      <th>Order#</th>
+      <th>Problem</th>
+      <th>Response</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let log of logs; let i = index" class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}"
-      (click)="clickRow(log)">
-      <td><i class="fas fa-dollar-sign pr-2" *ngIf="log.hasAdjustment"></i></td>
-      <td>{{log.username}}</td>
-      <td class="text-nowrap">{{log.time | date: 'shortDate'}}
-        <div class="text-muted"><small>{{log.time | date: 'shortTime'}}</small></div>
+    <tr *ngFor="let rl of restaurantLogs; let i = index" class="list-group-item-action {{rl.log.resolved ? '' : 'alert-danger'}}"
+      (click)="clickRow(rl)">
+
+      <td>{{rl.log.username}}</td>
+      <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
+        <div class="text-muted"><small>{{rl.log.time | date: 'shortTime'}}</small></div>
       </td>
-      <td>{{log.callerName}}
-        <div class="text-nowrap">{{log.callerPhone | tel}}</div>
+      <td *ngIf="showRestaurant">
+        <q-restaurant-media-object [restaurant]="rl.restaurant" [showPhones]="false" [showLogo]="false"></q-restaurant-media-object>
       </td>
-      <td>{{log.relatedOrders}}</td>
-      <td>{{log.problem}}</td>
-      <td>{{log.response}}</td>
+      <td>{{rl.log.callerName}}
+        <div class="text-nowrap">{{rl.log.callerPhone | tel}}</div>
+      </td>
+      <td>{{rl.log.relatedOrders}}</td>
+      <td>{{rl.log.problem}}
+
+        <div *ngIf="rl.log.adjustmentAmount" class="alert alert-info p-0 m-0">
+          <strong>Adjustment {{rl.log.adjustmentAmount | currency:'USD':'symbol'}}:</strong>
+          {{rl.log.adjustmentReason}}
+        </div>
+
+      </td>
+
+      <td>{{rl.log.response}}</td>
     </tr>
   </tbody>
 </table>

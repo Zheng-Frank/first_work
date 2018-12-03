@@ -137,7 +137,7 @@
   <h4 class="text-center">Create Invoice</h4>
   <hr>
 
-  <app-invoice-editor #myInvoiceEditor (onNewInvoice)="createNewInvoice($event)" (onCancel)="invoiceModal.hide()"></app-invoice-editor>
+  <app-invoice-editor [restaurantId]="restaurantIdInEditing" (create)="createNewInvoice($event)" (cancel)="invoiceModal.hide()"></app-invoice-editor>
 </q-modal>
 
 <q-modal #invoiceOptionModal>

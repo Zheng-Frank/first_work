@@ -4,10 +4,10 @@
       <i class="fas fa-plus"></i> Add New Log</button>
   </div>
 
-  <app-logs-table [logs]="getReversedLogs(restaurant)" (select)="select($event)"></app-logs-table>
+  <app-logs-table [restaurantLogs]="getReversedLogs(restaurant)" [showRestaurant]="false" (select)="select($event)"></app-logs-table>
   <!--the editing modal-->
   <q-modal #logEditingModal>
-    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
-      (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
+    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing" (success)="onSuccessCreation($event)"
+      (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
   </q-modal>
 </div>

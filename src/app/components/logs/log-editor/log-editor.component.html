@@ -17,12 +17,12 @@
 
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-adjustment" [(ngModel)]="log.hasAdjustment">
+      <input class="form-check-input" type="checkbox" id="id-adjustment" [(ngModel)]="hasAdjustment" (change)="changeHasAdjustment()">
       <label class="form-check-label" for="id-adjustment"> Credit or Debit Adjustment</label>
     </div>
   </div>
 
-  <div class="card border-info mb-3" *qIf="log.hasAdjustment">
+  <div class="card border-info mb-3" *qIf="hasAdjustment">
     <div class="card-header"><i class="fas fa-exclamation"></i> DO NOT ADJUST CUSTOMER AND RESTAURANT AGREED ORDER
       CHANGES HERE. Only input qMenu and restaurant mutually agreed adjustment here. The adjustment will be included in
       next invoice
@@ -45,7 +45,7 @@
     </div>
   </div>
 
-  <div class="mb-3" *ngIf="!log.hasAdjustment">
+  <div class="mb-3" *ngIf="!hasAdjustment">
     <div class="form-check">
       <input class="form-check-input" type="checkbox" id="id-resolved" [(ngModel)]="log.resolved">
       <label class="form-check-label" for="id-resolved"> Resolved</label>
