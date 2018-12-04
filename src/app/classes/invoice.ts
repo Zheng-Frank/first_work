@@ -153,7 +153,7 @@ export class Invoice {
   // balance: from restaurant to qMenu
   getBalance() {
 
-    return (this.previousBalance || 0) - this.getTotalPayments() + this.getStripeFee() - this.getQMenuCcCollected() + this.getCommission() - this.getAdjustment() + this.getThirdPartyDeliveryTip() + this.getThirdPartyDeliveryCharge();
+    return (this.previousBalance || 0) - this.getPreviousPayments() + this.getStripeFee() - this.getQMenuCcCollected() + this.getCommission() - this.getAdjustment() + this.getThirdPartyDeliveryTip() + this.getThirdPartyDeliveryCharge();
   }
 
   hasCanceledOrders() {
@@ -166,6 +166,10 @@ export class Invoice {
 
   getTotalPayments() {
     return (this.payments || []).reduce((sum, o) => sum + (+(+o.amount).toFixed(2) || 0), 0);
+  }
+
+  getPreviousPayments() {
+    return (this.payments || []).filter(payment => !payment.date || new Date(payment.date) <= new Date(this.createdAt)).reduce((sum, o) => sum + (+(+o.amount).toFixed(2) || 0), 0);
   }
 
 }

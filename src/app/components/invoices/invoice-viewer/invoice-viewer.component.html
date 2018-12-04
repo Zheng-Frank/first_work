@@ -48,8 +48,8 @@
             <td class="text-right">{{getAbs(invoice.previousBalance || 0) | currency:'USD':'symbol'}}</td>
           </tr>
           <tr>
-            <th>{{invoice.getTotalPayments() >= 0 ? 'You Paid' : 'qMenu Paid You'}}</th>
-            <td class="text-right">{{getAbs(invoice.getTotalPayments()) | currency:'USD':'symbol'}}</td>
+            <th>{{invoice.getPreviousPayments() >= 0 ? 'You Paid' : 'qMenu Paid You'}}</th>
+            <td class="text-right">{{getAbs(invoice.getPreviousPayments()) | currency:'USD':'symbol'}}</td>
           </tr>
         </ng-container>
 

@@ -3,6 +3,7 @@
  */
 export interface InvoicePayment {
     time: Date;
+    date: Date;  // some data inconsistency issue, should be fixed later
     amount: number;
     paymentMethod: string;
 }
