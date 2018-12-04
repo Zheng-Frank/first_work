@@ -155,7 +155,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
                 restaurant: r,
                 invoices: (restaurantInvoiceDict[r._id] || []).filter(invoice =>
                   r._id && r._id === invoice.restaurant.id
-                  && Math.max(new Date(invoice.fromDate).valueOf(), this.startDate.valueOf()) < Math.min(new Date(invoice.toDate).valueOf(), endDate.valueOf())).map(i => new Invoice(i)),
+                  && Math.max(new Date(invoice.fromDate).valueOf(), this.startDate.valueOf()) < Math.min(new Date(invoice.toDate).valueOf(), endDate.valueOf())).map(i => new Invoice(i)).filter(each=>!each.isCanceled),
                 orders: results[2].filter(o => r._id === o.restaurant)
               };
 

@@ -111,6 +111,8 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
           },
           limit: 5000
         }).toPromise()).map(i => new Invoice(i));
+        
+        this.invoices=(this.invoices || []).filter(each=>!each.isCanceled);
 
         // try to set default previous rolled invoice
         const recentInvoices = this.getNonCanceledAndSortedDESCInvoices();
