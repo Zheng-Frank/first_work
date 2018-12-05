@@ -1,21 +1,73 @@
 <h1 class="text-center">Go Daddy</h1>
-<div class="text-right mb-2">
-  <span class="mr-4">Total: {{getFilteredRows().length}} </span>
-  <label class="form-check-label">
-    <input class="form-check-input" type="checkbox" [(ngModel)]="redOnly">
-    Red Only
-  </label>
-  <button class="btn btn-primary" (click)="sync()"><i class="fas fa-sync-alt" [qLoading]="apiRequesting"></i> Sync</button>
+<div class="clearfix my-2">
+  <div class="float-left form-inline">
+    <span class="mr-4">Total: {{filteredRows.length}} </span>
+
+    <label class="mr-2"> Domain:</label>
+    <select class="form-control mr-4" [(ngModel)]="domainType" (change)="filter()">
+      <option>any</option>
+      <option>normal</option>
+      <option>subdomain</option>
+      <option>no domain</option>
+    </select>
+
+    <label class="mr-2"> Domain Status:</label>
+    <select class="form-control mr-4" [(ngModel)]="domainStatus" (change)="filter()">
+      <option>any</option>
+      <option>ACTIVE</option>
+      <option>NON-ACTIVE</option>
+    </select>
+
+    <label class="mr-2"> Domain Folder:</label>
+    <select class="form-control mr-4" [(ngModel)]="domainFolder" (change)="filter()">
+      <option>any</option>
+      <option>has folder</option>
+      <option>no folder</option>
+    </select>
+
+    <label class="mr-2"> Folder Status:</label>
+    <select class="form-control mr-4" [(ngModel)]="folderStatus" (change)="filter()">
+      <option>any</option>
+      <option>missing index.html</option>
+    </select>
+
+    <label class="mr-2"> Restaurant Status:</label>
+    <select class="form-control mr-4" [(ngModel)]="restaurantStatus" (change)="filter()">
+      <option>any</option>
+      <option>has domain</option>
+      <option>no domain</option>
+    </select>
+
+    <label class="mr-2"> GMB Biz Status:</label>
+    <select class="form-control mr-4" [(ngModel)]="gmbBizStatus" (change)="filter()">
+      <option>any</option>
+      <option>has domain</option>
+      <option>no domain</option>
+    </select>
+
+  </div>
+  <div class="float-right">
+    <button class="btn btn-primary" (click)="sync()"><i class="fas fa-sync-alt" [qLoading]="apiRequesting"></i> Sync</button>
+    <button class="btn btn-primary" (click)="diagnose()"><i class="fas fa-sync-alt" [qLoading]="apiRequesting"></i>
+      Diagnose</button>
+  </div>
 </div>
 
-<q-table [rows]="getFilteredRows()" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let r;" class="{{!r.hasFolder || r.gmbBiz.qmenuId !== r.restaurant._id || !r.gmbBiz.name || !r.restaurant.name || r.godaddy.status !=='ACTIVE' ? 'bg-danger text-light' : ''}}">
-    <td>{{r.godaddy.domain}}</td>
-    <td>{{r.hasFolder}}</td>
-    <td>{{r.restaurant.name}}</td>
-    <td>{{r.gmbBiz.name}}</td>
-    <td>{{r.gmbBiz.qmenuId === r.restaurant._id}}</td>
-    <td>{{r.godaddy.status}}</td>
-    <td>{{r.godaddy.createdAt | date: "shortDate"}}</td>
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+  <tr *tableRowTemplate="let r;" class="{{highlighted(r) ? 'bg-danger text-light' : ''}}">
+    <td>{{r.domain?.domain}}</td>
+    <td>{{r.domain?.status}}</td>
+    <td>{{r.domain?.createdAt | date: "shortDate"}}</td>
+    <td>{{r.domain?.isSubdomain ? 'Subdomain' : ''}}</td>
+    <td>{{r.folder?.name}}</td>
+    <td>{{r.folder?.date | date: "MMM d"}}</td>
+    <td>{{r.restaurant?.domain}}
+      <div class="text-muted"><small>{{r.restaurant?.name}}</small></div>
+    </td>
+    <td>{{r.gmbBiz?.qmenuWebsite}}
+      <div class="text-muted"><small>{{r.gmbBiz?.name}}</small></div>
+    </td>
+    <td><i class="fas fa-unlink" *ngIf="r.gmbBiz && r.restaurant && r.gmbBiz.qmenuId !== r.restaurant._id"></i></td>
+    <td>{{r.folder && !r.folder?.hasIndex ? 'missing' : ''}}</td>
   </tr>
 </q-table>

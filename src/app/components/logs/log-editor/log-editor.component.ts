@@ -125,6 +125,10 @@ export class LogEditorComponent implements OnInit {
     } else if (this.hasAdjustment && !this.log.adjustmentReason) {
       event.acknowledge('Please input adjustment reason.');
     } else {
+      // alway make it unresolved if it is adjustment
+      if (this.hasAdjustment) {
+        this.log.resolved = false;
+      }
       this.success.emit({
         formEvent: event,
         restaurant: this.restaurant,
