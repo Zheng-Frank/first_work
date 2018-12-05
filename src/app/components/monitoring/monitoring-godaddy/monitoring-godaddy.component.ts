@@ -45,6 +45,10 @@ export class MonitoringGodaddyComponent implements OnInit {
   domainStatus;
   domainType;
 
+  godaddyScannedAt;
+
+  now = new Date();
+
   myColumnDescriptors = [
     {
       label: "Domain",
@@ -118,6 +122,7 @@ export class MonitoringGodaddyComponent implements OnInit {
       },
       limit: 1
     }).toPromise())[0];
+    this.godaddyScannedAt = new Date(godaddyData.createdAt);
 
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -133,7 +138,8 @@ export class MonitoringGodaddyComponent implements OnInit {
       projection: {
         name: 1,
         qmenuWebsite: 1,
-        qmenuId: 1
+        qmenuId: 1,
+        gmbOwnerships: { $slice: -1 }
       },
       limit: 6000
     }).toPromise();
@@ -142,10 +148,14 @@ export class MonitoringGodaddyComponent implements OnInit {
     godaddyData.domains.map(domain => {
       domain.createdAt = new Date(domain.createdAt);
     });
+
+    // compute attributes
     godaddyData.folders.map(folder => {
       folder.date = new Date(folder.date);
       folder.hasIndex = folder.files.some(f => f === 'index.html')
     });
+
+    gmbBizList.map(gmbBiz => gmbBiz.hasGmbOwnership = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email);
 
     // create rows!
     this.rows.length = 0;
@@ -235,39 +245,40 @@ export class MonitoringGodaddyComponent implements OnInit {
   }
 
   async sync() {
-    // this.apiRequesting = true;
-    // // gmbBiz --> restaurant
-    // // 1. gmbBiz has qmenuId, but restaurant doesn't have 
-    // const restaurantRowsToBeUpdated = this.rows.filter(row => row.gmbBiz.qmenuId && !row.restaurant.name).map(row => {
-    //   const restaurant = this.restaurants.filter(r => r._id === row.gmbBiz.qmenuId)[0];
-    //   return ({
-    //     restaurant: restaurant,
-    //     godaddy: row.godaddy
-    //   })
-    // }).filter(row => row.restaurant);
-    // console.log(restaurantRowsToBeUpdated);
+    this.apiRequesting = true;
+    // gmbBiz --> restaurant
+    // 1. gmbBiz has qmenuId, but restaurant doesn't have 
+    const restaurantsToBeUpdated = this.rows.filter(row => row.domain && row.gmbBiz && row.gmbBiz.qmenuId && !row.restaurant).map(row => {
+      const restaurant = this.rows.filter(searchRow => searchRow.restaurant && searchRow.restaurant._id === row.gmbBiz.qmenuId).map(row => row.restaurant)[0];
+      return ({
+        restaurant: restaurant,
+        domainName: row.domain.domain
+      })
+    }).filter(row => row.restaurant);
+    console.log('updated restaurant', restaurantsToBeUpdated);
 
-    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', restaurantRowsToBeUpdated.map(row => ({
-    //   old: { _id: row.restaurant._id },
-    //   new: { _id: row.restaurant._id, domain: row.godaddy.domain }
-    // }))).toPromise();
-    // // restaurant --> gmbBiz
-    // const gmbBizToBeUpdated = this.rows.filter(row => row.restaurant.name && !row.gmbBiz.name).map(row => {
-    //   const gmbBiz = this.gmbBizList.filter(gmb => gmb.qmenuId === row.restaurant._id)[0];
-    //   return ({
-    //     gmbBiz: gmbBiz,
-    //     godaddy: row.godaddy
-    //   })
-    // }).filter(row => row.gmbBiz);
-    // console.log(gmbBizToBeUpdated);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', restaurantsToBeUpdated.map(row => ({
+      old: { _id: row.restaurant._id },
+      new: { _id: row.restaurant._id, domain: row.domainName }
+    }))).toPromise();
 
-    // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizToBeUpdated.map(row => ({
-    //   old: { _id: row.gmbBiz._id },
-    //   new: { _id: row.gmbBiz._id, qmenuWebsite: 'http://' + row.godaddy.domain }
-    // }))).toPromise();
+    // restaurant --> gmbBiz
+    const gmbBizToBeUpdated = this.rows.filter(row => row.domain && row.restaurant && !row.gmbBiz).map(row => {
+      const gmbBiz = this.rows.filter(searchRow => searchRow.gmbBiz && searchRow.gmbBiz.qmenuId === row.restaurant._id).map(row => row.gmbBiz)[0];
+      return ({
+        gmbBiz: gmbBiz,
+        domainName: row.domain.domain
+      })
+    }).filter(row => row.gmbBiz);
+    console.log('updated gmbBiz', gmbBizToBeUpdated);
 
-    // this.apiRequesting = false;
-    // await this.reload();
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizToBeUpdated.map(row => ({
+      old: { _id: row.gmbBiz._id },
+      new: { _id: row.gmbBiz._id, qmenuWebsite: 'http://' + row.domainName }
+    }))).toPromise();
+
+    this.apiRequesting = false;
+    await this.reload();
   }
 
   filter() {
@@ -335,6 +346,11 @@ export class MonitoringGodaddyComponent implements OnInit {
       case 'has domain':
         this.filteredRows = this.filteredRows.filter(row => row.gmbBiz && row.domain);
         break;
+
+      case 'has GMB ownership':
+        this.filteredRows = this.filteredRows.filter(row => row.gmbBiz && row.gmbBiz.hasGmbOwnership);
+        break;
+
       default:
         break;
     }
