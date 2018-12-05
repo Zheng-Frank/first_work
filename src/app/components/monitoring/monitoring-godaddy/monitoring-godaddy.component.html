@@ -57,7 +57,7 @@
 </div>
 
 <q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let r;" class="{{highlighted(r) ? 'bg-danger text-light' : ''}}">
+  <tr *tableRowTemplate="let r;" class="{{highlighted(r) ? 'bg-warning' : ''}}">
     <td>{{r.domain?.domain}}</td>
     <td>{{r.domain?.status}}</td>
     <td>{{r.domain?.createdAt | date: "shortDate"}}</td>
@@ -65,7 +65,7 @@
     <td>{{r.folder?.name}}</td>
     <td>{{r.folder?.date | date: "MMM d"}}</td>
     <td>{{r.restaurant?.domain}}
-      <div class="text-muted"><small>{{r.restaurant?.name}}</small></div>
+      <div><small>{{r.restaurant?.name}}</small></div>
     </td>
     <td>{{r.gmbBiz?.qmenuWebsite}}
       <div class="text-muted"><small>{{r.gmbBiz?.name}}</small></div>
