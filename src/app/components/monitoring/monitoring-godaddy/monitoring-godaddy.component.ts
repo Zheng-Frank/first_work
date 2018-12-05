@@ -347,13 +347,14 @@ export class MonitoringGodaddyComponent implements OnInit {
   }
 
   async diagnose() {
-    alert('Script will be running in background for about 10 minutes. Refresh this page after 10 minutes to get the last state of Godaddy account.');
-    this.apiRequesting = true;
-    const addedJobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-      "name": "diagnose-godaddy",
-      "params": {}
-    }]).toPromise();
-    this.apiRequesting = false;
+    if (confirm('Script will be running in background for about 10 minutes. Refresh this page after 10 minutes to get the last state of Godaddy account. Are you sure?')) {
+      this.apiRequesting = true;
+      const addedJobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+        "name": "diagnose-godaddy",
+        "params": {}
+      }]).toPromise();
+      this.apiRequesting = false;
+    }
   }
 
 }
