@@ -347,9 +347,4 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
   getFax(restaurant) {
     return ((restaurant.phones || []).filter(p => p.faxable)[0] || {}).phoneNumber;
   }
-
-  // async diagnose() {
-  //   this.diagnosing = true;
-  //   // find those restaurant that has order but not have invoice send
-  // }
 }
