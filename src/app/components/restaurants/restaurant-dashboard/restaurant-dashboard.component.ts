@@ -5,6 +5,7 @@ import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { mergeMap } from "rxjs/operators";
 import { zip } from "rxjs";
+import { Router } from "@angular/router";
 
 @Component({
   selector: "app-restaurant-dashboard",
@@ -37,7 +38,7 @@ export class RestaurantDashboardComponent implements OnInit {
     REMOVE: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"]
   }
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     // retrieve MY restaurant list
@@ -218,6 +219,12 @@ export class RestaurantDashboardComponent implements OnInit {
 
     this.filteredRestaurantList = results;
 
+  }
+
+  selectRestaurant(restaurant) {
+    if (restaurant && restaurant._id) {
+      this._router.navigate(['/restaurants/' + restaurant._id]);
+    }
   }
 
 }
