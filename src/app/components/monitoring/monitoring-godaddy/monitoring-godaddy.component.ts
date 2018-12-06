@@ -385,9 +385,11 @@ export class MonitoringGodaddyComponent implements OnInit {
       case 'has domain':
         this.filteredRows = this.filteredRows.filter(row => row.gmbBiz && row.domain);
         break;
-
       case 'has GMB ownership':
         this.filteredRows = this.filteredRows.filter(row => row.gmbBiz && row.gmbBiz.hasGmbOwnership);
+        break;
+      case 'no GMB ownership':
+        this.filteredRows = this.filteredRows.filter(row => row.gmbBiz && !row.gmbBiz.hasGmbOwnership);
         break;
 
       default:
