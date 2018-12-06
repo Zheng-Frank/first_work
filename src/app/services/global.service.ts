@@ -227,6 +227,7 @@ export class GlobalService {
           logo: 1,
           restaurantId: 1,
           "phones.phoneNumber": 1,
+          "channels.value": 1,
           domain: 1,
           websiteTemplateName: 1,
           disabled: 1,

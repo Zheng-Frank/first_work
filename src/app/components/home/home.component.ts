@@ -106,7 +106,9 @@ export class HomeComponent implements OnInit {
   }
 
   selectRestaurant(restaurant) {
-    this._router.navigate(['/restaurants/' + restaurant._id]);
+    if (restaurant && restaurant._id) {
+      this._router.navigate(['/restaurants/' + restaurant._id]);
+    }
   }
 
 }

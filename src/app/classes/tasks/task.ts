@@ -49,6 +49,10 @@ export class Task {
                 }
             });
 
+            if (!this.scheduledAt) {
+                this.scheduledAt = new Date();
+            }
+
             if (task.steps) {
                 this.steps = task.steps.map(step => new Step(step));
             }
@@ -58,8 +62,8 @@ export class Task {
             }
 
             // BAD code: very specific dates conversion
-            if(task.etc && task.etc.appealedAt) {
-                task.etc.appealedAt =  new Date((Date.parse(task.etc.appealedAt)));
+            if (task.etc && task.etc.appealedAt) {
+                task.etc.appealedAt = new Date((Date.parse(task.etc.appealedAt)));
             }
         }
 
@@ -135,4 +139,54 @@ export class Task {
         actions.push(...this.getActionsOnlyForAssignee(user.username));
         return actions;
     }
+
+    static predefinedTasks =
+        [
+            {
+                name: 'Gain GMB Ownership',
+                roles: ['ADMIN', 'GMB'],
+                // assignee: 'ted',
+                scheduledAt: new Date()
+            },
+            {
+                name: 'Input Google PIN',
+                roles: ['ADMIN', 'GMB'],
+                // assignee: 'ted',
+                scheduledAt: new Date()
+            },
+            {
+                name: 'Update Menu',
+                roles: ['ADMIN', 'MENU_EDITOR'],
+                scheduledAt: new Date()
+            },
+            {
+                name: 'Update Temporary Hours',
+                roles: ['ADMIN', 'MENU_EDITOR'],
+                scheduledAt: new Date()
+            },
+            {
+                name: 'Resolve Billing or Invoicing',
+                roles: ['ADMIN', 'ACCOUNTANT'],
+                scheduledAt: new Date()
+            },
+            {
+                name: 'Cancel qMenu Service',
+                roles: ['ADMIN'],
+                assignee: 'chris',
+                scheduledAt: new Date()
+            },
+            {
+                name: 'Escalade to Chris',
+                roles: ['ADMIN'],
+                assignee: 'chris',
+                scheduledAt: new Date()
+            },
+            {
+                name: 'Escalade to Dixon',
+                roles: ['ADMIN'],
+                assignee: 'dixon',
+                scheduledAt: new Date()
+            },
+        ].sort((a, b) => a.name > b.name ? 1 : -1);
+
 }

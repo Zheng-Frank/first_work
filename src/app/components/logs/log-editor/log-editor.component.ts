@@ -3,6 +3,11 @@ import { FormEvent } from '../../../classes/form-event';
 
 import { Restaurant } from '@qmenu/ui';
 import { Log } from '../../../classes/log';
+import { ApiService } from "../../../services/api.service";
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from "../../../services/global.service";
+import { AlertType } from "../../../classes/alert-type";
+import { Task } from 'src/app/classes/tasks/task';
 
 @Component({
   selector: 'app-log-editor',
@@ -19,6 +24,10 @@ export class LogEditorComponent implements OnInit {
   @Input() restaurantList;
 
   hasAdjustment;
+  hasTask;
+  selectedTaskTemplate;
+  predefinedTasks = Task.predefinedTasks;
+
   @ViewChild('myRestaurantPicker') set picker(picker) {
     this.myRestaurantPicker = picker;
   }
@@ -62,7 +71,7 @@ export class LogEditorComponent implements OnInit {
   customerPhone: string;
   relatedOrderIds: string[];
 
-  constructor() {
+  constructor(private _api: ApiService, private _global: GlobalService) {
 
   }
 
@@ -78,6 +87,9 @@ export class LogEditorComponent implements OnInit {
       this.log.adjustmentAmount = undefined;
       this.log.adjustmentReason = undefined;
     }
+  }
+
+  changeHasTask() {
   }
 
   reset() {
@@ -117,7 +129,7 @@ export class LogEditorComponent implements OnInit {
     setTimeout(() => this.myRestaurantPicker.reset(), 100);
   }
 
-  submit(event: FormEvent) {
+  async submit(event: FormEvent) {
     if (!this.restaurant) {
       event.acknowledge('Please select a restaurant.');
     } else if (this.hasAdjustment && !this.log.adjustmentAmount) {
@@ -125,6 +137,24 @@ export class LogEditorComponent implements OnInit {
     } else if (this.hasAdjustment && !this.log.adjustmentReason) {
       event.acknowledge('Please input adjustment reason.');
     } else {
+      if (this.hasTask) {
+        // create a task!
+        if (!this.selectedTaskTemplate) {
+          return event.acknowledge('Please choose a task template');
+        } else {
+          const task = {
+            comments: 'Restaurant: ' + this.restaurant.name + ', ' + this.restaurant._id + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
+            relatedMap: {
+              restaurantId: this.restaurant._id
+            }
+          };
+          Object.assign(task, this.selectedTaskTemplate);
+          await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+          // make it resolved because task will track its progress
+          this.log.resolved = true;
+          this._global.publishAlert(AlertType.Success, 'Created Task ' + task['name']);
+        }
+      }
       // alway make it unresolved if it is adjustment
       if (this.hasAdjustment) {
         this.log.resolved = false;
@@ -136,6 +166,10 @@ export class LogEditorComponent implements OnInit {
       });
     }
 
+  }
+
+  isNewLog() {
+    return !this.log.username && !this.log.time;
   }
 
 }

@@ -23,21 +23,7 @@ export class TaskGeneratorComponent implements OnInit {
 
   selectedTemplate;
 
-  predefinedTasks = [
-    {
-      name: 'Task A',
-      description: 'a description',
-      roles: ['ADMIN'],
-      assignee: 'ted',
-      scheduledAt: new Date()
-    },
-    {
-      name: 'Task B',
-      description: 'b description',
-      roles: ['ADMIN', 'MENU_EDITOR'],
-      scheduledAt: new Date()
-    }
-  ];
+  predefinedTasks = Task.predefinedTasks;
 
   obj = {} as any;
   fieldDescriptors = [
@@ -47,12 +33,12 @@ export class TaskGeneratorComponent implements OnInit {
       required: true,
       inputType: "text"
     },
-    {
-      field: "description", //
-      label: "Description",
-      required: false,
-      inputType: "text"
-    },
+    // {
+    //   field: "description", //
+    //   label: "Description",
+    //   required: false,
+    //   inputType: "text"
+    // },
     {
       field: "roles", //
       label: "Roles",
@@ -60,7 +46,9 @@ export class TaskGeneratorComponent implements OnInit {
       inputType: "multi-select",
       items: [
         { object: "ADMIN", text: "ADMIN", selected: false },
-        { object: "MENU_EDITOR", text: "MENU_EDITOR", selected: false }
+        { object: "ACCOUNTANT", text: "ACCOUNTANT", selected: false },
+        { object: "GMB", text: "GMB", selected: false },
+        { object: "MENU_EDITOR", text: "MENU_EDITOR", selected: false },
       ]
     }];
 
@@ -104,7 +92,7 @@ export class TaskGeneratorComponent implements OnInit {
     const task = {
       name: this.obj.name,
       description: this.obj.description,
-      scheduledAt: this.obj.scheduledAt,
+      scheduledAt: this.obj.scheduledAt || new Date(),
       assignee: this.obj.assignee,
       roles: this.obj.roles.slice(),
       comments: this.obj.comments,
