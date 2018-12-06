@@ -111,8 +111,8 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
           },
           limit: 5000
         }).toPromise()).map(i => new Invoice(i));
-        
-        this.invoices=(this.invoices || []).filter(each=>!each.isCanceled);
+
+        this.invoices = (this.invoices || []).filter(each => !each.isCanceled);
 
         // try to set default previous rolled invoice
         const recentInvoices = this.getNonCanceledAndSortedDESCInvoices();
@@ -250,6 +250,14 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
 
   clickCancel() {
     this.cancel.emit();
+  }
+
+  togglePreviousInvoice(invoice) {
+    if (this.previousInvoice === invoice) {
+      this.previousInvoice = undefined;
+    } else {
+      this.setPreviousInvoice(invoice);
+    }
   }
 
   setPreviousInvoice(invoice) {

@@ -17,7 +17,7 @@
     <ng-container *ngFor="let invoice of getNonCanceledAndSortedDESCInvoices(); let i = index">
       <tr *ngIf="allDisplayed || i >= getNonCanceledAndSortedDESCInvoices().length - startRows">
         <td class="text-center">
-          <input class="form-check-input" type="checkbox" [checked]="previousInvoice === invoice" (change)="setPreviousInvoice(invoice)">
+          <input class="form-check-input" type="checkbox" [checked]="previousInvoice === invoice" (change)="togglePreviousInvoice(invoice)">
         </td>
         <td>{{invoice.fromDate | date: 'MMM dd yyyy'}} - {{invoice.toDate | date: 'MMM dd yyyy'}}</td>
         <td><small *ngIf="invoice.previousInvoiceId">{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date:
@@ -88,3 +88,5 @@
   <button class="btn btn-default" (click)="clickCancel()">Cancel</button>
   <button [disabled]="getError()" class="btn btn-primary" (click)="createNewInvoice()">Submit</button>
 </div>
+
+{{previousInvoice | json}}

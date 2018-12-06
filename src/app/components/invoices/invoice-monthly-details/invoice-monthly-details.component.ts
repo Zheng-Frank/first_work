@@ -36,6 +36,8 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
 
   nameFilter = undefined;
 
+  diagnosing = false;
+
   invoiceStates = [
     { label: 'Invoice Sent?', value: 'any', css: 'text-info', status: 'isSent' },
     { label: 'Payment Sent?', value: 'any', css: 'text-warning', status: 'isPaymentSent' },
@@ -155,7 +157,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
                 restaurant: r,
                 invoices: (restaurantInvoiceDict[r._id] || []).filter(invoice =>
                   r._id && r._id === invoice.restaurant.id
-                  && Math.max(new Date(invoice.fromDate).valueOf(), this.startDate.valueOf()) < Math.min(new Date(invoice.toDate).valueOf(), endDate.valueOf())).map(i => new Invoice(i)).filter(each=>!each.isCanceled),
+                  && Math.max(new Date(invoice.fromDate).valueOf(), this.startDate.valueOf()) < Math.min(new Date(invoice.toDate).valueOf(), endDate.valueOf())).map(i => new Invoice(i)).filter(each => !each.isCanceled),
                 orders: results[2].filter(o => r._id === o.restaurant)
               };
 
@@ -346,4 +348,8 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
     return ((restaurant.phones || []).filter(p => p.faxable)[0] || {}).phoneNumber;
   }
 
+  // async diagnose() {
+  //   this.diagnosing = true;
+  //   // find those restaurant that has order but not have invoice send
+  // }
 }
