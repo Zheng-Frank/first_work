@@ -4,7 +4,6 @@ import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
-
 @Component({
   selector: 'app-task-generator',
   templateUrl: './task-generator.component.html',
@@ -23,21 +22,7 @@ export class TaskGeneratorComponent implements OnInit {
 
   selectedTemplate;
 
-  predefinedTasks = [
-    {
-      name: 'Task A',
-      description: 'a description',
-      roles: ['ADMIN'],
-      assignee: 'ted',
-      scheduledAt: new Date()
-    },
-    {
-      name: 'Task B',
-      description: 'b description',
-      roles: ['ADMIN', 'MENU_EDITOR'],
-      scheduledAt: new Date()
-    }
-  ];
+  predefinedTasks = Task.predefinedTasks;
 
   obj = {} as any;
   fieldDescriptors = [
@@ -47,12 +32,12 @@ export class TaskGeneratorComponent implements OnInit {
       required: true,
       inputType: "text"
     },
-    {
-      field: "description", //
-      label: "Description",
-      required: false,
-      inputType: "text"
-    },
+    // {
+    //   field: "description", //
+    //   label: "Description",
+    //   required: false,
+    //   inputType: "text"
+    // },
     {
       field: "roles", //
       label: "Roles",
@@ -60,7 +45,9 @@ export class TaskGeneratorComponent implements OnInit {
       inputType: "multi-select",
       items: [
         { object: "ADMIN", text: "ADMIN", selected: false },
-        { object: "MENU_EDITOR", text: "MENU_EDITOR", selected: false }
+        { object: "ACCOUNTANT", text: "ACCOUNTANT", selected: false },
+        { object: "GMB", text: "GMB", selected: false },
+        { object: "MENU_EDITOR", text: "MENU_EDITOR", selected: false },
       ]
     }];
 
@@ -104,15 +91,20 @@ export class TaskGeneratorComponent implements OnInit {
     const task = {
       name: this.obj.name,
       description: this.obj.description,
-      scheduledAt: this.obj.scheduledAt,
+      scheduledAt: this.obj.scheduledAt || new Date(),
       assignee: this.obj.assignee,
       roles: this.obj.roles.slice(),
       comments: this.obj.comments,
       relatedMap: {
-        gmbBizId: (this.gmbBiz || {})['_id']
+        gmbBizId: (this.gmbBiz || {})['_id'],
+        restaurantId: (this.restaurant || {})['_id'] || (this.restaurant || {})['id']
       }
     } as Task;
 
+    if (this.restaurant) {
+      task.comments += '\n' + this.restaurant.name + ', ' + (this.restaurant.id || this.restaurant._id);
+    }
+    task.comments += '\nCreated By ' + this._global.user.username;
     this.submit.emit(task);
   }
 

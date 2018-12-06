@@ -45,7 +45,26 @@
     </div>
   </div>
 
-  <div class="mb-3" *ngIf="!hasAdjustment">
+  <!-- Create New Task Option -->
+  <div class="mb-3" *ngIf="isNewLog()">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-task" [(ngModel)]="hasTask" (change)="changeHasTask()">
+      <label class="form-check-label" for="id-task"> Delegate to Task</label>
+    </div>
+  </div>
+
+  <div class="card border-info mb-3" *qIf="hasTask">
+    <div class="card-header my-2"><i class="fas fa-exclamation"></i> Write down any comments in Response field and the text
+      in Reponse field will be copied to task comments.
+      <div><strong>* Select a task template below:</strong></div>
+    </div>
+    <select class="form-control mr-4" [(ngModel)]="selectedTaskTemplate">
+      <option></option>
+      <option *ngFor="let t of predefinedTasks" [ngValue]="t">{{t.name}}</option>
+    </select>
+  </div>
+
+  <div class="mb-3" *ngIf="!hasAdjustment && !hasTask">
     <div class="form-check">
       <input class="form-check-input" type="checkbox" id="id-resolved" [(ngModel)]="log.resolved">
       <label class="form-check-label" for="id-resolved"> Resolved</label>
