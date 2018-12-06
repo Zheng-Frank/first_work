@@ -88,6 +88,7 @@
       <div class="badge badge-pill badge-danger" *ngIf="biz.lostDate">
         <small>Lost: {{biz.lostDate | ago: now}}</small>
       </div>
+      <div class="text-muted"><small>{{biz.gmbBiz?.qmenuId}}</small></div>
     </td>
     <td>{{biz.gmbBiz.score}}</td>
     <!-- <td>{{biz.ownershipPercentage}}%</td> -->

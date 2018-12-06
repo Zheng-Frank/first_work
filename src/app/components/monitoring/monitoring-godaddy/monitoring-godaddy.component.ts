@@ -189,8 +189,32 @@ export class MonitoringGodaddyComponent implements OnInit {
       }
 
       let gmbBiz;
+      let sameDomain = function (d1: string, d2: string) {
+        // stripe remove things before / and after /
+        if (!d1.startsWith('http:') && !d1.startsWith('https:')) {
+          d1 = 'http://' + d1;
+        }
+
+        if (!d2.startsWith('http:') && !d2.startsWith('https:')) {
+          d2 = 'http://' + d2;
+        }
+
+        let host1 = new URL(d1).host;
+        let host2 = new URL(d2).host;
+
+        // treating www as nothing
+        if (!host1.startsWith('www.')) {
+          host1 = 'www.' + host1;
+        }
+        if (!host2.startsWith('www.')) {
+          host2 = 'www.' + host2;
+        }
+
+        return host1 === host2;
+      }
+
       for (let i = gmbBizList.length - 1; i >= 0; i--) {
-        if (gmbBizList[i].qmenuWebsite && gmbBizList[i].qmenuWebsite.toLowerCase().indexOf(domain.domain.toLowerCase()) >= 0) {
+        if (gmbBizList[i].qmenuWebsite && sameDomain(gmbBizList[i].qmenuWebsite, domain.domain)) {
           gmbBiz = gmbBizList[i];
           gmbBizList.splice(i, 1);
           break;
@@ -233,12 +257,13 @@ export class MonitoringGodaddyComponent implements OnInit {
     });
 
     console.log('gmbBiz left: ', gmbBizList.length);
+
     // forth round: only gmbBiz
     gmbBizList.map(gmbBiz => {
       const row = {
         gmbBiz: gmbBiz
       };
-      this.rows.push({ row });
+      this.rows.push(row);
     });
 
     this.filter();
@@ -247,36 +272,50 @@ export class MonitoringGodaddyComponent implements OnInit {
   async sync() {
     this.apiRequesting = true;
     // gmbBiz --> restaurant
-    // 1. gmbBiz has qmenuId, but restaurant doesn't have 
+    // 1. gmbBiz has qmenuId, but restaurant doesn't have domain
     const restaurantsToBeUpdated = this.rows.filter(row => row.domain && row.gmbBiz && row.gmbBiz.qmenuId && !row.restaurant).map(row => {
       const restaurant = this.rows.filter(searchRow => searchRow.restaurant && searchRow.restaurant._id === row.gmbBiz.qmenuId).map(row => row.restaurant)[0];
+      if (restaurant && restaurant.domain) {
+        console.log('domain tested: ', row.domain.domain);
+        console.log('restaurant already has different domain: ', restaurant);
+      }
       return ({
         restaurant: restaurant,
         domainName: row.domain.domain
       })
-    }).filter(row => row.restaurant);
-    console.log('updated restaurant', restaurantsToBeUpdated);
+    }).filter(row => row.restaurant && !row.restaurant.domain);
 
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', restaurantsToBeUpdated.map(row => ({
-      old: { _id: row.restaurant._id },
-      new: { _id: row.restaurant._id, domain: row.domainName }
-    }))).toPromise();
+    if (restaurantsToBeUpdated.length > 0) {
+      console.log('updated restaurants', restaurantsToBeUpdated);
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', restaurantsToBeUpdated.map(row => ({
+        old: { _id: row.restaurant._id },
+        new: { _id: row.restaurant._id, domain: row.domainName }
+      }))).toPromise();
+    }
 
-    // restaurant --> gmbBiz
+
+    // // restaurant --> gmbBiz
     const gmbBizToBeUpdated = this.rows.filter(row => row.domain && row.restaurant && !row.gmbBiz).map(row => {
       const gmbBiz = this.rows.filter(searchRow => searchRow.gmbBiz && searchRow.gmbBiz.qmenuId === row.restaurant._id).map(row => row.gmbBiz)[0];
+      if (gmbBiz && gmbBiz.qmenuWebsite) {
+        console.log('domain tested: ', row.domain);
+        console.log('restaurant tested: ', row.restaurant);
+        console.log('but gmbBiz already has domain: ', gmbBiz);
+      }
       return ({
         gmbBiz: gmbBiz,
         domainName: row.domain.domain
       })
-    }).filter(row => row.gmbBiz);
+    }).filter(row => row.gmbBiz && !row.gmbBiz.qmenuWebsite);
     console.log('updated gmbBiz', gmbBizToBeUpdated);
 
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizToBeUpdated.map(row => ({
-      old: { _id: row.gmbBiz._id },
-      new: { _id: row.gmbBiz._id, qmenuWebsite: 'http://' + row.domainName }
-    }))).toPromise();
+    if (gmbBizToBeUpdated.length > 0) {
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizToBeUpdated.map(row => ({
+        old: { _id: row.gmbBiz._id },
+        new: { _id: row.gmbBiz._id, qmenuWebsite: 'http://' + row.domainName }
+      }))).toPromise();
 
+    }
     this.apiRequesting = false;
     await this.reload();
   }
