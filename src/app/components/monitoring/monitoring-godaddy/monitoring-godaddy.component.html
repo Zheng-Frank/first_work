@@ -68,7 +68,7 @@
       <div><small>{{r.restaurant?.name}}</small></div>
     </td>
     <td>{{r.gmbBiz?.qmenuWebsite}}
-      <div class="text-muted"><small>{{r.gmbBiz?.name}}</small></div>
+      <div><small>{{r.gmbBiz?.name}}</small></div>
     </td>
     <td><i class="fas fa-unlink" *ngIf="r.gmbBiz && r.restaurant && r.gmbBiz.qmenuId !== r.restaurant._id"></i></td>
     <td>{{r.folder && !r.folder?.hasIndex ? 'missing' : ''}}</td>
