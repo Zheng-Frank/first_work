@@ -189,6 +189,9 @@ export class GmbBizListComponent implements OnInit {
 
           // search account
           || (biz.gmbOwnerships || []).some(o => (o.email || '').indexOf(this.searchFilter) === 0)
+
+          // search by qmenuId
+          || (biz.qmenuId === this.searchFilter)
         );
     }
 
@@ -283,7 +286,7 @@ export class GmbBizListComponent implements OnInit {
         break;
       case 'transfer':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].some(task => task === 'Transfer GMB Ownership'));
-  
+
         break;
       default:
         break;

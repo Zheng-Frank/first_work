@@ -4,7 +4,6 @@ import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
-
 @Component({
   selector: 'app-task-generator',
   templateUrl: './task-generator.component.html',
@@ -97,10 +96,15 @@ export class TaskGeneratorComponent implements OnInit {
       roles: this.obj.roles.slice(),
       comments: this.obj.comments,
       relatedMap: {
-        gmbBizId: (this.gmbBiz || {})['_id']
+        gmbBizId: (this.gmbBiz || {})['_id'],
+        restaurantId: (this.restaurant || {})['_id'] || (this.restaurant || {})['id']
       }
     } as Task;
 
+    if (this.restaurant) {
+      task.comments += '\n' + this.restaurant.name + ', ' + (this.restaurant.id || this.restaurant._id);
+    }
+    task.comments += '\nCreated By ' + this._global.user.username;
     this.submit.emit(task);
   }
 
