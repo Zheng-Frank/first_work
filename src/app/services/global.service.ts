@@ -208,9 +208,9 @@ export class GlobalService {
     ubereats: "ubereats.png"
   }
 
-  async getCachedVisibleRestaurantList() {
+  async getCachedVisibleRestaurantList(forceRefresh?: boolean) {
 
-    if (this._cache.get('restaurants')) {
+    if (this._cache.get('restaurants') && !forceRefresh) {
       return this._cache.get('restaurants');
     } else {
       const query = {};

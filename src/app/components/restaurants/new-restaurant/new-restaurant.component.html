@@ -35,10 +35,21 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <label>Alias (*without space and special characters)</label>
+      <div>
+        <input class="form-control" type="text" placeholder="eg. sichuan-house" [(ngModel)]="restaurant.alias">
+      </div>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-gmb" [(ngModel)]="applyGmb">
+      <label class="form-check-label" for="id-gmb"> Create GMB Application Task</label>
+    </div>
     <div class="form-group text-right">
       <button class="btn btn-secondary" (click)="clickCancel()" [disabled]="apiRequesting">Cancel</button>
       <button class="btn btn-primary" (click)="clickCreate()" [qLoading]="apiRequesting">Create Restaurant</button>
     </div>
-
+{{applyGmb}}
+{{restaurant | json}}
   </div>
 </div>

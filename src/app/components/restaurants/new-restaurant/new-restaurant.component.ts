@@ -6,6 +6,7 @@ import { AlertType } from "../../../classes/alert-type";
 import { Restaurant } from '@qmenu/ui';
 import { Router } from '@angular/router';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
+import { GmbBizEditorComponent } from '../../gmbs2/gmb-biz-editor/gmb-biz-editor.component';
 @Component({
   selector: 'app-new-restaurant',
   templateUrl: './new-restaurant.component.html',
@@ -18,6 +19,7 @@ export class NewRestaurantComponent implements OnInit {
     name: 'sichuan house',
     googleAddress: { formatted_address: '5900 State Bridge Rd, Duluth, GA 30097' }
   };
+  applyGmb = true;
   restaurantFieldDescriptors = [
     {
       field: "name",
@@ -83,6 +85,7 @@ export class NewRestaurantComponent implements OnInit {
     }
 
     if (!crawledResult || !crawledResult.place_id) {
+      console.log(crawledResult);
       this.apiRequesting = false;
       this.checkExistenceError = "Error: not able to locate google listing.";
       return;
@@ -139,15 +142,27 @@ export class NewRestaurantComponent implements OnInit {
       this.restaurant.cuisine = crawledResult.cuisine.split(' ').filter(c => c);
     }
     // handle phone, as business type
-    this.restaurant.phones = [
-      {
-        "phoneNumber": crawledResult.phone,
-        "callable": true,
-        "faxable": false,
-        "textable": false,
-        "type": "Business"
-      }
-    ];
+    if (crawledResult.phone) {
+      this.restaurant.phones = [
+        {
+          "phoneNumber": crawledResult.phone,
+          "callable": true,
+          "faxable": false,
+          "textable": false,
+          "type": "Business"
+        }
+      ];
+
+      // handle phone, as business type
+      this.restaurant.channels = [
+        {
+          "value": crawledResult.phone,
+          "type": 'Phone',
+          "notifications": ['Order']
+        }
+      ];
+    }
+
   }
 
   clickCancel() {
@@ -155,6 +170,9 @@ export class NewRestaurantComponent implements OnInit {
   }
 
   async clickCreate() {
+    if (!this.restaurant.name || !this.restaurant.alias) {
+      return alert('Please input Name and Alias!');
+    }
     this.apiRequesting = true;
 
     // making sure we are creating a unique alias!
@@ -192,6 +210,8 @@ export class NewRestaurantComponent implements OnInit {
 
       this._global.publishAlert(AlertType.Success, 'Created restaurant');
 
+      // force refreshing global restaurant list!
+      await this._global.getCachedVisibleRestaurantList(true);
       // create GMB here!
       const existingGmbs = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbBiz',
@@ -203,6 +223,7 @@ export class NewRestaurantComponent implements OnInit {
           phone: 1
         }
       }).toPromise();
+
 
       let gmbBiz;
       if (existingGmbs.length > 0) {
@@ -231,7 +252,7 @@ export class NewRestaurantComponent implements OnInit {
       }
 
       // see if we need to create Apply GMB task!
-      if (gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length === 0) {
+      if (this.applyGmb && (!gmbBiz.gmbOwnerships || gmbBiz.gmbOwnerships.length === 0)) {
         const task = {
           name: 'Apply GMB Ownership',
           scheduledAt: { $date: new Date() },
@@ -243,6 +264,8 @@ export class NewRestaurantComponent implements OnInit {
 
         await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Created new Apply GMB Ownership task');
+      } else {
+        this._global.publishAlert(AlertType.Info, 'No apply GMB ownership task is created!');
       }
 
       // redirect to details page

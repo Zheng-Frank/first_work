@@ -44,8 +44,8 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     const tabVisibilityRolesMap = {
       "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+      "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER']
@@ -65,11 +65,16 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
 
   async ngOnChanges(changes: SimpleChanges) {
     if (this.id) {
+      const query = {
+        _id: { $oid: this.id }
+      };
+      if (!this._global.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0)) {
+        query["rateSchedules.agent"] = this._global.user.username
+      }
+
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
-        query: {
-          _id: { $oid: this.id }
-        },
+        query: query,
         projection: {
           name: 1,
           alias: 1,
@@ -138,7 +143,10 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
       })
         .subscribe(
           results => {
-            this.restaurant = new Restaurant(results[0]);
+            this.restaurant = results[0] ? new Restaurant(results[0]) : undefined;
+            if (!this.restaurant) {
+              this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
+            }
           },
           error => {
             this._global.publishAlert(AlertType.Danger, error);
@@ -247,12 +255,12 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
       {
         title: 'Menus',
         route: '/restaurants/' + this.restaurant['_id'] + '/menus',
-        roles: ['ADMIN', 'MENU_EDITOR']
+        roles: ['ADMIN', 'MENU_EDITOR', 'MARKETER']
       },
       {
         title: 'Menu Options',
         route: '/restaurants/' + this.restaurant['_id'] + '/menu-options',
-        roles: ['ADMIN', 'MENU_EDITOR']
+        roles: ['ADMIN', 'MENU_EDITOR', 'MARKETER']
       },
       {
         title: 'Orders',
