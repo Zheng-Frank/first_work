@@ -39,6 +39,7 @@ export class GmbBiz {
     ignoreGmbOwnershipRequest: boolean;
 
     comments: string;
+    closed?: boolean;
 
     crawledAt: Date;
     updatedAt: Date;

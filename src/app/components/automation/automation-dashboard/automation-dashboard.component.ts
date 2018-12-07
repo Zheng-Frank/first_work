@@ -59,7 +59,7 @@ export class AutomationDashboardComponent implements OnInit {
     this.executedTasks = 0;
     this.addRunningMessage('start');
     while (this.startTime) {
-      // retrieve all accounts:
+      //  retrieve all accounts:
       try {
         this.addRunningMessage('retrieve all accounts')
         const gmbAccounts = await this._api.get(environment.adminApiUrl + "generic", {
@@ -76,9 +76,6 @@ export class AutomationDashboardComponent implements OnInit {
           if (!this.startTime) {
             break;
           }
-          // if (gmbAccount.email !== 'dtcharacter.1113@gmail.com') {
-          //   continue;
-          // }
           try {
             // 1. scan gmb locations
             this.addRunningMessage(`scan: ${gmbAccount.email}`);
@@ -111,7 +108,7 @@ export class AutomationDashboardComponent implements OnInit {
               const bizListToBeUpdated = [];
               // find which gmbBiz needs update website: linked by place_id
               publishedLocations.map(loc => {
-                const biz = gmbBizList.filter(b => b.place_id === loc.place_id)[0];
+                const biz = gmbBizList.filter(b => b.place_id && b.place_id === loc.place_id)[0];
                 if (loc.homepage && biz && (biz.bizManagedWebsite || biz.qmenuWebsite)) {
                   const mainWebsite = (biz.useBizWebsite && biz.bizManagedWebsite) || biz.qmenuWebsite;
                   if (!Helper.areDomainsSame(loc.homepage, mainWebsite)) {
@@ -121,7 +118,7 @@ export class AutomationDashboardComponent implements OnInit {
               });
 
               // crawl published locations!
-              const publishedBizList = publishedLocations.map(loc => gmbBizList.filter(b => b.place_id === loc.place_id)[0]).filter(b => b) as GmbBiz[];
+              const publishedBizList = publishedLocations.map(loc => gmbBizList.filter(b => b.place_id && b.place_id === loc.place_id)[0]).filter(b => b) as GmbBiz[];
 
               for (let biz of publishedBizList) {
                 try {
@@ -243,12 +240,17 @@ export class AutomationDashboardComponent implements OnInit {
         }).toPromise();
 
 
-        const shouldApplyList = notOwnedList.filter(biz => !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id));
+        // should apply GMB:
+        // 1. restaurant is not closed;
+        // 2. gmbBiz has place_id;
+        // 3. not already existed
+
+        const shouldApplyList = notOwnedList.filter(biz => !biz.closed && biz.place_id && !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id));
 
         console.log('should apply gmb', shouldApplyList);
         if (shouldApplyList.length > 0) {
           this.addRunningMessage('add new gmb task, ' + shouldApplyList.map(biz => biz.name).join(', '));
-          await this.createApplyTasks(shouldApplyList);
+          // await this.createApplyTasks(shouldApplyList);
           this.executedTasks++;
         }
 
