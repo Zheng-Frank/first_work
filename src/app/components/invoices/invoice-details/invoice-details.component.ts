@@ -153,13 +153,29 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     window.print();
   }
 
-  toggleInvoiceStatus(field) {
+  async toggleInvoiceStatus(field) {
     if (field === 'isCanceled' && !this.invoice.isCanceled) {
       if (!confirm("Are you sure to cancel this invoice?")) {
         return;
       }
       if (this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) {
         return alert('Payment is already sent or completed. Failed to cancel.');
+      }
+      const dependentInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        query: {
+          previousInvoiceId: this.invoice['_id'] || this.invoice.id
+        },
+        projection: {
+          fromDate: 1,
+          isCanceled: 1
+        },
+        limit: 1000
+      }).toPromise();
+
+      console.log(dependentInvoices)
+      if (dependentInvoices.some(i => !i.isCanceled)) {
+        return alert('There are other invoices depending on this one. Failed to cancel.');
       }
     }
     this.setInvoiceStatus(field, !this.invoice[field]);

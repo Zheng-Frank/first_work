@@ -1,6 +1,9 @@
 <div>
   Keys: &#9632;<span class="text-white bg-dark"> Invoice Sent</span> | <span class="text-info">&#9632; Payment Sent</span>
   | <span class="text-success">&#9632; Payment Completed</span>
+  <div class="checkbox d-inline ml-4">
+    <label><input type="checkbox" [(ngModel)]="showCanceled"> Show canceled invoices</label>
+  </div>
 </div>
 <table class="table table-hover">
   <thead>
@@ -20,9 +23,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let invoice of invoices" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}} {{invoice.isCanceled ?  'canceled' : ''}}" role="button">
+    <tr *ngFor="let invoice of getFilteredInvoices()" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}} {{invoice.isCanceled ?  'canceled' : ''}}"
+      role="button">
       <td>{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date: 'MMM dd'}}</td>
-      <td><small *ngIf="getPreviousInvoice(invoice)">{{getPreviousInvoice(invoice).fromDate | date: 'MMM dd'}} - {{getPreviousInvoice(invoice).toDate | date: 'MMM dd'}}</small></td>
+      <td><small *ngIf="getPreviousInvoice(invoice)">{{getPreviousInvoice(invoice).fromDate | date: 'MMM dd'}} -
+          {{getPreviousInvoice(invoice).toDate | date: 'MMM dd'}}</small></td>
       <!-- <td class="text-right">{{invoice.subtotal | currency:'USD':'symbol'}}</td> -->
       <!--<td class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</td>
       <td class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</td>

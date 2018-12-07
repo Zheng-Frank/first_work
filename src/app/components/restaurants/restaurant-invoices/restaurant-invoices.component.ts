@@ -68,7 +68,6 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
         }
       }).toPromise();
     this.invoices = data.map(i => new Invoice(i));
-    this.invoices=(this.invoices || []).filter(each=>!each.isCanceled);
   }
 
   ngOnChanges(changes: SimpleChanges) {
