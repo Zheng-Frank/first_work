@@ -1,7 +1,8 @@
 <div *ngIf="invoice" class="card mt-2 no-print">
     <div class="card-body">
         <div *ngIf="invoice.isCanceled" class="text-danger app-invoice-canceled text-muted">
-            <h5>CANCELED</h5>
+           <h5>CANCELED</h5>
+           <button class="btn btn-link" (click)="toggleInvoiceStatus('isCanceled')">Uncancel</button> 
         </div>
         <div *ngIf="!invoice.isCanceled">
             <div class="form-check form-check-inline">
