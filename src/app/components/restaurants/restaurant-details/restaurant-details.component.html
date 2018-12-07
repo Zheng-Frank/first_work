@@ -55,7 +55,11 @@
         <app-restaurant-orders [restaurant]="restaurant"></app-restaurant-orders>
       </div>
       <div *ngIf="activeTab === 'GMB'">
+        No Google Listing found. <button class="btn btn-primary">Create GMB and Task to Apply Ownership</button>
+        
         <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
+        <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
+
       </div>
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
 

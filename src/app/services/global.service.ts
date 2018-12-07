@@ -145,6 +145,7 @@ export class GlobalService {
     const username = store.get("username");
     store.clearAll();
     store.set("username", username);
+    this._cache.clearAll();
     this._token = undefined;
     this._user = undefined;
     this._menus = [];

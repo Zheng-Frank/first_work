@@ -16,8 +16,8 @@ export class NewRestaurantComponent implements OnInit {
   @Output() cancel = new EventEmitter();
   @Output() success = new EventEmitter<Restaurant>();
   @Input() restaurant: any = {
-    name: 'sichuan house',
-    googleAddress: { formatted_address: '5900 State Bridge Rd, Duluth, GA 30097' }
+    name: '',
+    googleAddress: { formatted_address: '' }
   };
   applyGmb = true;
   restaurantFieldDescriptors = [
