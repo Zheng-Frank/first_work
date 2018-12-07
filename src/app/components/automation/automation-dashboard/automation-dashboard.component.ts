@@ -175,7 +175,7 @@ export class AutomationDashboardComponent implements OnInit {
             }).toPromise();
 
             const dueAppealTasks = appealTasks.filter(t => new Date(t.scheduledAt || 0) < this.now);
-            console.log('due appeal takss');
+            console.log('due appeal tasks');
             console.log(dueAppealTasks)
 
             for (let task of dueAppealTasks) {
