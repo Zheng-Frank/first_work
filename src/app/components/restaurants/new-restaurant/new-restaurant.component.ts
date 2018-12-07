@@ -19,7 +19,7 @@ export class NewRestaurantComponent implements OnInit {
     name: '',
     googleAddress: { formatted_address: '' }
   };
-  applyGmb = true;
+  applyGmb = false;
   restaurantFieldDescriptors = [
     {
       field: "name",

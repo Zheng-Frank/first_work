@@ -154,6 +154,14 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   toggleInvoiceStatus(field) {
+    if (field === 'isCanceled' && !this.invoice.isCanceled) {
+      if (!confirm("Are you sure to cancel this invoice?")) {
+        return;
+      }
+      if (this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) {
+        return alert('Payment is already sent or completed. Failed to cancel.');
+      }
+    }
     this.setInvoiceStatus(field, !this.invoice[field]);
     this.addLog(
       {
