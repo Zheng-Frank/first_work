@@ -2,9 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { Lead } from "../../../classes/lead";
 import { AlertType } from "../../../classes/alert-type";
-import { CallLog } from "../../../classes/call-log";
 import {
   ModalComponent,
   AddressPickerComponent
@@ -45,7 +43,7 @@ export class OrderDashboardComponent implements OnInit {
         resource: "order",
         query: {
           createdAt: {
-            $gte: {$date: startDate}
+            $gte: { $date: startDate }
           }
         },
         projection: {
@@ -66,33 +64,37 @@ export class OrderDashboardComponent implements OnInit {
         },
         projection: {
           name: 1,
-          rateSchedules: 1
+          rateSchedules: 1,
+          "googleAddress.formatted_address": 1
         },
         limit: 6000
       }),
       this._api.get(environment.adminApiUrl + "generic", {
-        resource: "lead",
+        resource: "gmbBiz",
         query: {
-          restaurantId: {
+          qmenuId: {
             $exists: true
           }
         },
         projection: {
-          restaurantId: 1,
-          gmbAccountOwner: 1,
-          gmbOwner: 1,
+          gmbOwnerships: { $slice: -1 },
+          "gmbOwnerships.email": 1,
+          "gmbOwnerships.status": 1,
           gmbWebsite: 1,
-          phones: 1,
-          address: 1,
-          fax: 1
+          qmenuId: 1,
+          gmbOpen: 1,
+          gmbOwner: 1,
+          bizManagedWebsite: 1,
+          useBizWebsite: 1
         },
         limit: 6000
       })
     ).subscribe(
       result => {
+        const start = new Date();
         const orders = result[0];
         const restaurants = result[1];
-        const leads = result[2];
+        const gmbBizList = result[2];
         this.rows = [];
         const restaurantMap = {};
         restaurants.map(r => {
@@ -113,12 +115,6 @@ export class OrderDashboardComponent implements OnInit {
               restaurantMap[o.restaurant].orders.push(o);
               this.totalOrders++;
             }
-          }
-        });
-
-        leads.map(lead => {
-          if (restaurantMap[lead.restaurantId]) {
-            restaurantMap[lead.restaurantId].lead = lead;
           }
         });
 
@@ -146,24 +142,35 @@ export class OrderDashboardComponent implements OnInit {
           r => r["orders"].length === 0
         ).length;
 
+        // match gmbBiz:
+        const dict2 = {};
+        gmbBizList.map(biz => {
+          biz.published = biz.gmbOwnerships && biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].status === 'Published';
+          biz.suspended = biz.gmbOwnerships && biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].status === 'Suspended';
+          dict2[biz.qmenuId] = biz;
+        });
+        this.rows.map(row => {
+          row.gmbBiz = dict2[row.restaurant._id || row.restaurant.id] || {};
+        });
+
         // stats of agents
         const agentDict = {};
         this.rows.map(row => {
           let agent = 'none';
-          if(row.restaurant.rateSchedules && row.restaurant.rateSchedules.length > 0) {
+          if (row.restaurant.rateSchedules && row.restaurant.rateSchedules.length > 0) {
             agent = row.restaurant.rateSchedules[0].agent;
           }
           agentDict[agent] = agentDict[agent] || {
-
             restaurant: 0,
             restaurantWithOrders: 0,
             orders: 0
           };
           agentDict[agent].restaurant = agentDict[agent].restaurant + 1;
           agentDict[agent].orders = agentDict[agent].orders + row.orders.length + row.yesterdayOrders.length;
-          agentDict[agent].restaurantWithOrders = agentDict[agent].restaurantWithOrders + (row.orders.length + row.yesterdayOrders.length > 0 ? 1: 0) ;
+          agentDict[agent].restaurantWithOrders = agentDict[agent].restaurantWithOrders + (row.orders.length + row.yesterdayOrders.length > 0 ? 1 : 0);
         });
         console.log(agentDict);
+
       },
       error =>
         this._global.publishAlert(
@@ -173,22 +180,18 @@ export class OrderDashboardComponent implements OnInit {
     );
   }
 
-  getLogo(lead) {
-    return GlobalService.serviceProviderMap[lead.gmbOwner];
-  }
   getGoogleQuery(row) {
-    if (row.lead && row.lead.address) {
-      return (
-        "https://www.google.com/search?q=" +
-        encodeURIComponent(
-          row.restaurant["name"] + " " + row.lead["address"]["formatted_address"]
-        )
-      );
-    }
     return (
       "https://www.google.com/search?q=" +
-      encodeURIComponent(row.restaurant["name"])
+      encodeURIComponent(row.restaurant["name"] + " " + (row.restaurant.googleAddress || {}).formatted_address)
     );
+  }
+
+  getLogo(gmbBiz) {
+    if (gmbBiz.bizManagedWebsite && gmbBiz.gmbOwner === 'qmenu') {
+      return GlobalService.serviceProviderMap['qmenu-gray'];
+    }
+    return GlobalService.serviceProviderMap[gmbBiz.gmbOwner];
   }
 
   downloadStats() {
@@ -203,43 +206,43 @@ export class OrderDashboardComponent implements OnInit {
       limit: 30000,
       sort: { createdAt: -1 }
     })
-    // this._api.get(environment.legacyApiUrl + "order/stat", {
-    //   limit: 500000
-    // })
-    .subscribe(orders => {
-      let dMap = {};
-      let wMap = {};
-      let d = new Date(orders[0].createdAt);
-      let w = new Date(orders[0].createdAt);
+      // this._api.get(environment.legacyApiUrl + "order/stat", {
+      //   limit: 500000
+      // })
+      .subscribe(orders => {
+        let dMap = {};
+        let wMap = {};
+        let d = new Date(orders[0].createdAt);
+        let w = new Date(orders[0].createdAt);
 
-      const DAY_SPAN = 24 * 3600 * 1000;
-      const WEEK_SPAN = 7 * 24 * 3600 * 1000;
+        const DAY_SPAN = 24 * 3600 * 1000;
+        const WEEK_SPAN = 7 * 24 * 3600 * 1000;
 
-      for (let i = 0; i < orders.length; i++) {
-        let t = new Date(orders[i].createdAt);
-        d.setDate(d.getDate() - Math.floor((d.valueOf() - t.valueOf()) / DAY_SPAN));
-        if (!dMap[d.toLocaleDateString()]) {
-          dMap[d.toLocaleDateString()] = 1;
-        } else {
-          dMap[d.toLocaleDateString()] = dMap[d.toLocaleDateString()] + 1;
+        for (let i = 0; i < orders.length; i++) {
+          let t = new Date(orders[i].createdAt);
+          d.setDate(d.getDate() - Math.floor((d.valueOf() - t.valueOf()) / DAY_SPAN));
+          if (!dMap[d.toLocaleDateString()]) {
+            dMap[d.toLocaleDateString()] = 1;
+          } else {
+            dMap[d.toLocaleDateString()] = dMap[d.toLocaleDateString()] + 1;
+          }
+
+          w.setDate(w.getDate() - 7 * (Math.floor((w.valueOf() - t.valueOf()) / WEEK_SPAN)));
+          if (!wMap[w.toLocaleDateString()]) {
+            wMap[w.toLocaleDateString()] = 1;
+          } else {
+            wMap[w.toLocaleDateString()] = wMap[w.toLocaleDateString()] + 1;
+          }
         }
 
-        w.setDate(w.getDate() - 7 * (Math.floor((w.valueOf() - t.valueOf()) / WEEK_SPAN)));
-        if (!wMap[w.toLocaleDateString()]) {
-          wMap[w.toLocaleDateString()] = 1;
-        } else {
-          wMap[w.toLocaleDateString()] = wMap[w.toLocaleDateString()] + 1;
-        }
-      }
-
-      const filename = 'order-stats.json';
-      const blob = new Blob([JSON.stringify({daily: dMap, weekly: wMap})], { type: 'text/plain' });
-      saveAs(blob, filename);
-    }, error => {
-      this._global.publishAlert(
-        AlertType.Danger,
-        "Error pulling orders"
-      )
-    })
+        const filename = 'order-stats.json';
+        const blob = new Blob([JSON.stringify({ daily: dMap, weekly: wMap })], { type: 'text/plain' });
+        saveAs(blob, filename);
+      }, error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling orders"
+        )
+      })
   }
 }

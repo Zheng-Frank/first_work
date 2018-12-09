@@ -78,10 +78,13 @@ export class GmbBizListComponent implements OnInit {
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
     {
-      label: "GMB"
+      label: "GMB Owner"
     },
     {
       label: "Website"
+    },
+    {
+      label: "qMenu Website"
     },
     {
       label: "Crawled",
