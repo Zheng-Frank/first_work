@@ -231,6 +231,11 @@ export class GmbBizListComponent implements OnInit {
         this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.published && !b.suspended);
         break;
 
+      case 'recently lost':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.lostDate && this.now.valueOf() - b.lostDate.valueOf() < 24 * 3600000);
+        break;
+
+
       default:
         break;
     }
