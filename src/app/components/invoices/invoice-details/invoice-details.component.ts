@@ -153,7 +153,39 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     window.print();
   }
 
-  toggleInvoiceStatus(field) {
+  async toggleInvoiceStatus(field) {
+    if (field === 'isCanceled' && this.invoice.isCanceled) {
+      if (!confirm('Are you sure to uncancel?') || this.invoice.adjustments) {
+        return alert('Not canceled or because order has adjustments.');
+      }
+    }
+
+    if (field === 'isCanceled' && !this.invoice.isCanceled) {
+      if (!confirm("Are you sure to cancel this invoice?")) {
+        return;
+      }
+      if (this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) {
+        return alert('Payment is already sent or completed. Failed to cancel.');
+      }
+      const dependentInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        query: {
+          previousInvoiceId: this.invoice['_id'] || this.invoice.id
+        },
+        projection: {
+          fromDate: 1,
+          isCanceled: 1
+        },
+        limit: 1000
+      }).toPromise();
+
+      console.log(dependentInvoices)
+      if (dependentInvoices.some(i => !i.isCanceled)) {
+        return alert('There are other invoices depending on this one. Failed to cancel.');
+      }
+    }
+
+
     this.setInvoiceStatus(field, !this.invoice[field]);
     this.addLog(
       {
@@ -167,35 +199,32 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   async setInvoiceStatus(field, value) {
 
-    if (field !== 'isCanceled' || confirm('Are you sure to cancel the invoice?')) {
+    const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
+    const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
+    updatedInvoice[field] = value;
 
-      const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
-      const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
-      updatedInvoice[field] = value;
+    try {
+      const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
+      this.invoice[field] = updatedInvoice[field];
+      this._global.publishAlert(
+        AlertType.Success,
+        field + " was updated"
+      );
+      if (field === 'isCanceled' && this.invoice.adjustments && this.invoice.adjustments.length > 0) {
+        // we need to reverse adjustment logs to be un-resolved!
+        const updatedLogs = JSON.parse(JSON.stringify(this.restaurantLogs)).map(log => new Log(log));
 
-      try {
-        const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
-        this.invoice[field] = updatedInvoice[field];
-        this._global.publishAlert(
-          AlertType.Success,
-          field + " was updated"
-        );
-        if (field === 'isCanceled' && this.invoice.adjustments && this.invoice.adjustments.length > 0) {
-          // we need to reverse adjustment logs to be un-resolved!
-          const updatedLogs = JSON.parse(JSON.stringify(this.restaurantLogs)).map(log => new Log(log));
+        updatedLogs.map(log => {
+          if (this.invoice.adjustments.some(adjustment => new Date(adjustment.time).valueOf() === log.time.valueOf())) {
+            log.resolved = false;
+          }
+        });
 
-          updatedLogs.map(log => {
-            if (this.invoice.adjustments.some(adjustment => new Date(adjustment.time).valueOf() === log.time.valueOf())) {
-              log.resolved = false;
-            }
-          });
-
-          const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: this.restaurantId }, new: { _id: this.restaurantId, logs: updatedLogs } }]).toPromise();
-        }
-
-      } catch (error) {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: this.restaurantId }, new: { _id: this.restaurantId, logs: updatedLogs } }]).toPromise();
       }
+
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, "Error updating to DB");
     }
   }
 

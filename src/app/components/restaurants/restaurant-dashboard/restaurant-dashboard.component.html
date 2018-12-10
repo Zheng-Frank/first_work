@@ -38,7 +38,13 @@
     </div>
   </div>
 </div>
-
+<div class="card">
+  <div class="card-body">
+    <label>Search Restaurant:</label>
+    <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
+  </div>
+</div>
+<!-- 
 <div class="row my-2">
   <div class="col form-inline">
     Search Filter:
@@ -71,4 +77,4 @@
       </span>
     </li>
   </ng-container>
-</ul>
+</ul> -->

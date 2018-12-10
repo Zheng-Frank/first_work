@@ -7,7 +7,7 @@
 <div class="form-group">
   <label>Address <span class="text-danger">*</span></label>
   <div>
-    <input class="form-control" type="text" placeholder="5900 State Bridge Rd, Duluth, GA 30097" [(ngModel)]="restaurant.googleAddress.formatted_address"
+    <input class="form-control" type="text" placeholder="eg. 5900 State Bridge Rd, Duluth, GA 30097" [(ngModel)]="restaurant.googleAddress.formatted_address"
       (change)="formInputChanged($event)">
   </div>
 </div>
@@ -34,11 +34,13 @@
         <input class="form-control" type="text" placeholder="eg. sichuan-house" [(ngModel)]="restaurant.alias">
       </div>
     </div>
-
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-gmb" [(ngModel)]="applyGmb">
+      <label class="form-check-label" for="id-gmb"> Create GMB Application Task</label>
+    </div>
     <div class="form-group text-right">
       <button class="btn btn-secondary" (click)="clickCancel()" [disabled]="apiRequesting">Cancel</button>
       <button class="btn btn-primary" (click)="clickCreate()" [qLoading]="apiRequesting">Create Restaurant</button>
     </div>
-
   </div>
 </div>

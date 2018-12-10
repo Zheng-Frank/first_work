@@ -8,6 +8,7 @@ import { Invoice } from '../../../classes/invoice';
 })
 export class InvoicesTableComponent implements OnInit {
   @Input() invoices: Invoice[] = [];
+  showCanceled = false;
   constructor() { }
 
   ngOnInit() {
@@ -19,6 +20,14 @@ export class InvoicesTableComponent implements OnInit {
 
   getPreviousInvoice(currentInvoice: Invoice) {
     return (this.invoices || []).filter(i => (i.id || i['_id']) === (currentInvoice.previousInvoiceId || 'non-exist'))[0];
+  }
+
+  getFilteredInvoices() {
+    if (this.showCanceled) {
+      return this.invoices;
+    } else {
+      return (this.invoices || []).filter(i => !i.isCanceled);
+    }
   }
 
 }

@@ -145,6 +145,7 @@ export class GlobalService {
     const username = store.get("username");
     store.clearAll();
     store.set("username", username);
+    this._cache.clearAll();
     this._token = undefined;
     this._user = undefined;
     this._menus = [];
@@ -208,9 +209,9 @@ export class GlobalService {
     ubereats: "ubereats.png"
   }
 
-  async getCachedVisibleRestaurantList() {
+  async getCachedVisibleRestaurantList(forceRefresh?: boolean) {
 
-    if (this._cache.get('restaurants')) {
+    if (this._cache.get('restaurants') && !forceRefresh) {
       return this._cache.get('restaurants');
     } else {
       const query = {};

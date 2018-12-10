@@ -10,6 +10,7 @@
       <option>qmenu: published</option>
       <option>qmenu: suspended</option>
       <option>NOT qmenu</option>
+      <option>recently lost</option>
 
     </select>
 
@@ -58,8 +59,8 @@
       <i class="fas fa-sync-alt"></i> Reload</button>
     <button class="btn btn-primary" (click)="crawlAll()" [qLoading]="crawling">
       <i class="fab fa-google"></i> Crawl All</button>
-      <button class="btn btn-primary" (click)="injectAll()" [qLoading]="injecting">
-        <i class="fab fa-file-download"></i> Inject All</button>  
+    <button class="btn btn-primary" (click)="injectAll()" [qLoading]="injecting">
+      <i class="fab fa-file-download"></i> Inject All</button>
   </div>
 </div>
 
@@ -94,8 +95,10 @@
     <!-- <td>{{biz.ownershipPercentage}}%</td> -->
     <td>
       <small>
-        <span *ngFor="let o of (biz.gmbBiz.gmbOwnerships || []); let i=index"><app-gmb-account-hotlink [email]="o.email" [muted]="o.status === 'Suspended'"></app-gmb-account-hotlink><span
-            *ngIf="i < biz.gmbBiz.gmbOwnerships.length - 1">→</span></span>
+        <span *ngFor="let o of (biz.gmbBiz.gmbOwnerships || []); let i=index">
+          <app-gmb-account-hotlink [email]="o.email" [muted]="o.status === 'Suspended'"></app-gmb-account-hotlink><span
+            *ngIf="i < biz.gmbBiz.gmbOwnerships.length - 1">→</span>
+        </span>
       </small>
       <!-- {{biz.transfers}} -->
     </td>
@@ -107,9 +110,13 @@
     <td class="text-center">
       <a href="{{biz.gmbBiz.gmbWebsite}}" title="{{biz.gmbBiz.gmbWebsite}}" target="_blank">
         <i *ngIf="!getLogo(biz.gmbBiz) && biz.gmbBiz.gmbOwner" class="fas fa-question text-danger"></i>
-        <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" [attr.alt]="biz.gmbBiz.gmbOwner" height="16px">
+        <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" [attr.alt]="biz.gmbBiz.gmbOwner"
+          height="16px">
         <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
       </a>
+    </td>
+    <td>
+      <a href="{{biz.gmbBiz.qmenuWebsite}}" title="{{biz.gmbBiz.qmenuWebsite}}" target="_blank">{{biz.gmbBiz.qmenuWebsite}}</a>
     </td>
     <td>
       <div *ngIf="biz.gmbBiz.crawledAt" class="text-muted text-nowrap">
@@ -129,11 +136,13 @@
         </button>
         <div class="dropdown-menu dropdown-menu-right">
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="inject(biz.gmbBiz)">Inject qMenu</button>
-          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="suggest(biz.gmbBiz)">Suggest qMenu</button>
+          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="suggest(biz.gmbBiz)">Suggest
+            qMenu</button>
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="crawl(biz.gmbBiz)">G-Crawl</button>
           <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="createApplyTask(biz.gmbBiz)">Create
             Apply-GMB Task</button>
-          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="injectScore(biz.gmbBiz)">Inject Score</button>
+          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="injectScore(biz.gmbBiz)">Inject
+            Score</button>
           <button class="dropdown-item" (click)="edit(biz.gmbBiz)">Edit</button>
         </div>
       </div>

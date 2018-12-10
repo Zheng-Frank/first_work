@@ -268,7 +268,7 @@ export class GmbService {
     // (no place_id match, no address match, NOT duplicate) => new;
     // what about duplicated ?? let's skip because we've previously scanned them in
     const locationsToInsert: GmbLocation[] =
-      locations.filter(loc => loc.status !== 'Duplicate' && !existingGmbBizList.some(biz => biz.place_id === loc.place_id || biz.address === loc.address));
+      locations.filter(loc => loc.status !== 'Duplicate' && loc.place_id && loc.address && !existingGmbBizList.some(biz => loc.place_id && biz.place_id === loc.place_id || biz.address === loc.address));
     const newBizList = locationsToInsert.map(loc => ({
       address: loc.address,
       appealId: loc.appealId,
@@ -463,7 +463,7 @@ export class GmbService {
     }
 
     if (gmbBiz.address) {
-      gmbBiz.address=gmbBiz.address.replace(', USA', '');
+      gmbBiz.address = gmbBiz.address.replace(', USA', '');
     }
 
     const name1 = crawledResult['name'].toLowerCase();
@@ -472,11 +472,11 @@ export class GmbService {
     const zipcodeEqual = crawledResult['address'].split(' ').pop() === gmbBiz.address.split(' ').pop();
     const place_idEqual = crawledResult['place_id'] === gmbBiz.place_id;
 
-    const phone=crawledResult['phone'];
+    const phone = crawledResult['phone'];
     //remove the country code like 16789900520
-    if(phone){
-      if(phone.toString().length>10){
-        crawledResult['phone']=phone.slice(-10);
+    if (phone) {
+      if (phone.toString().length > 10) {
+        crawledResult['phone'] = phone.slice(-10);
       }
     }
 
@@ -489,7 +489,7 @@ export class GmbService {
         crawledResult.gmbOwner = 'qmenu';
       }
     }
-    const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls'].map(key => ({ key: key, value: crawledResult[key] }));
+    const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed'].map(key => ({ key: key, value: crawledResult[key] }));
 
     // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
     if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {

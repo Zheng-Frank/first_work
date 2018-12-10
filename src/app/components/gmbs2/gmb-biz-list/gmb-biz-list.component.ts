@@ -78,10 +78,13 @@ export class GmbBizListComponent implements OnInit {
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
     {
-      label: "GMB"
+      label: "GMB Owner"
     },
     {
       label: "Website"
+    },
+    {
+      label: "qMenu Website"
     },
     {
       label: "Crawled",
@@ -227,6 +230,11 @@ export class GmbBizListComponent implements OnInit {
       case 'NOT qmenu':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.published && !b.suspended);
         break;
+
+      case 'recently lost':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.lostDate && this.now.valueOf() - b.lostDate.valueOf() < 24 * 3600000);
+        break;
+
 
       default:
         break;
