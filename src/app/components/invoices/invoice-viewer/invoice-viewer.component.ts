@@ -32,16 +32,20 @@ export class InvoiceViewerComponent implements OnInit {
     return this.invoice.orders.filter(o => !o.canceled);
   }
 
-  getAddressLine1(address) {
-    return ((address.line1 ? address.line1 : '') + (address.line2 ? ' ' + address.line2 : '')) || ((address.street_number ? address.street_number : '') +
-      + (address.route ? ' ' + address.route : '') +
-      (address.apt ? ', ' + address.apt : ''));
+    getAddressLine() {
+    return this.invoice.restaurant.address.formatted_address.replace(', USA', '');
   }
 
-  getAddressLine2(address) {
-    return (address.city + ' ' + address.state + ' ' + address.zipCode) || ((address.locality ? address.locality + ', ' : (address.sublocality ? address.sublocality + ', ' : ''))
-      + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
-      + ' ' + address.postal_code);
-  }
+  // getAddressLine1(address) {
+  //   return ((address.line1 ? address.line1 : '') + (address.line2 ? ' ' + address.line2 : '')) || ((address.street_number ? address.street_number : '') +
+  //     + (address.route ? ' ' + address.route : '') +
+  //     (address.apt ? ', ' + address.apt : ''));
+  // }
+
+  // getAddressLine2(address) {
+  //   return (address.city + ' ' + address.state + ' ' + address.zipCode) || ((address.locality ? address.locality + ', ' : (address.sublocality ? address.sublocality + ', ' : ''))
+  //     + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
+  //     + ' ' + address.postal_code);
+  // }
 
 }
