@@ -33,6 +33,7 @@
         <th>Gapped</th>
         <th>Uninvoiced Orders</th>
         <th>Payment Methods</th>
+        <th>Total Invoices</th>
       </tr>
 
       <tr *ngFor="let row  of rows" class="{{row.overlappedInvoices.length > 0 || row.gappedInvoices.length > 0 ? 'text-danger' : ''}} {{row.restaurant.disabled? 'app-muted' : ''}}">
@@ -56,6 +57,10 @@
         <td>
           {{row.paymentMethods}}
         </td>
+        <td>
+          {{row.invoices.length}}
+        </td>
+
       </tr>
     </table>
 

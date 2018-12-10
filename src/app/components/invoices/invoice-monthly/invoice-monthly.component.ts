@@ -52,6 +52,7 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async findMissingInvoices() {
+    this.apiRequesting = true;
     if (!this.toDate) {
       return alert('To Date is required!');
     }
@@ -152,9 +153,10 @@ export class InvoiceMonthlyComponent implements OnInit {
     rowsWithMissingLastWithInvoices = rowsWithMissingLastWithInvoices.filter(r => r.restaurant._id !== '57e9574c1d1ef2110045e665');
 
 
-    const batchSize = 100;
+    const batchSize = 150;
 
-    const batchedRows = Array(Math.ceil(rowsWithMissingLastWithInvoices.length / batchSize)).fill(0).map((i, index) => rowsWithMissingLastWithInvoices.slice(index * batchSize, (index + 1) * batchSize));
+    // const batchedRows = Array(Math.ceil(rowsWithMissingLastWithInvoices.length / batchSize)).fill(0).map((i, index) => rowsWithMissingLastWithInvoices.slice(index * batchSize, (index + 1) * batchSize));
+    const batchedRows = Array(Math.ceil(this.rows.length / batchSize)).fill(0).map((i, index) => this.rows.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedRows) {
       const toDateE = new Date(this.toDate);
@@ -178,21 +180,24 @@ export class InvoiceMonthlyComponent implements OnInit {
           createdAt: 1,
           restaurant: 1
         },
-        limit: 100000
+        sort: {
+          createdAt: -1
+        },
+        limit: 4000
       }).toPromise();
 
       console.log(orders.length);
       // match orders back to rows!
       orders.map(order => {
         const row = restaurantInvoicesDict[order.restaurant];
-        if (row && new Date(order.createdAt) > row.invoices[row.invoices.length - 1].toDate) {
+        if (row && (row.invoices.length === 0 || new Date(order.createdAt) > row.invoices[row.invoices.length - 1].toDate)) {
           row.orders.push(order);
         }
       });
+      // sort by order numbers!
+      this.rows.sort((r1, r2) => r2.orders.length - r1.orders.length);
     }
 
-    // sort by order numbers!
-    this.rows.sort((r1, r2) => r2.orders.length - r1.orders.length);
-
+    this.apiRequesting = false;
   }
 }
