@@ -132,7 +132,9 @@ export class GmbBizListComponent implements OnInit {
           "disabled": 1,
           "serviceSettings.paymentMethods": 1,
           "menus.hours": 1,
-          "menus.disabled": 1
+          "menus.disabled": 1,
+          "rateSchedules.rate": 1,
+          "rateSchedules.fixed": 1
         },
         limit: 5000
       })
@@ -301,6 +303,11 @@ export class GmbBizListComponent implements OnInit {
         // bad: 1. no menu at all
         // 2. menus are ALL disabled
         this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.menus || b.restaurant.menus.filter(menu => !menu.disabled).length === 0));
+        break;
+      case 'bad rate schedules':
+        // bad: 1. no rateSchedules
+        // 2. rateSchedules have no value for rate or fixed
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.rateSchedules || b.restaurant.rateSchedules.filter(rs => !isNaN(rs.fixed) || !isNaN(rs.rate)).length === 0));
         break;
       default:
         break;
