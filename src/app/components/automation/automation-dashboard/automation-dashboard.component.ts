@@ -216,6 +216,16 @@ export class AutomationDashboardComponent implements OnInit {
           limit: 10000
         }).toPromise()).map(biz => new GmbBiz(biz));
 
+        const disabledRestaurants = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          query: {
+            disabled: true
+          },
+          projection: {
+            name: 1
+          },
+          limit: 10000
+        }).toPromise());
 
         const notOwnedList = gmbBizList.filter(biz => !biz.gmbOwnerships || biz.gmbOwnerships.length === 0 || !biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email);
 
@@ -245,7 +255,7 @@ export class AutomationDashboardComponent implements OnInit {
         // 2. gmbBiz has place_id;
         // 3. not already existed
 
-        const shouldApplyList = notOwnedList.filter(biz => !biz.closed && biz.place_id && !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id));
+        const shouldApplyList = notOwnedList.filter(biz => !biz.closed && biz.place_id && !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id)).filter(gmbBiz => !disabledRestaurants.some(r => r._id === gmbBiz.qmenuId));
 
         console.log('should apply gmb', shouldApplyList);
         if (shouldApplyList.length > 0) {

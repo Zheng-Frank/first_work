@@ -8,9 +8,9 @@
       <h2>{{restaurant.name}}</h2>
 
       <div class="small">
-        {{getLine1(restaurant.googleAddress)}}
-        <br> {{getLine2(restaurant.googleAddress)}}
+        {{restaurant.googleAddress.formatted_address}}
       </div>
+      <h1 *ngIf="restaurant.disabled" class="alert alert-danger">DISABLED</h1>
     </q-banner>
   </div>
 
@@ -55,11 +55,7 @@
         <app-restaurant-orders [restaurant]="restaurant"></app-restaurant-orders>
       </div>
       <div *ngIf="activeTab === 'GMB'">
-        No Google Listing found. <button class="btn btn-primary">Create GMB and Task to Apply Ownership</button>
-        
         <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
-        <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
-
       </div>
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
 

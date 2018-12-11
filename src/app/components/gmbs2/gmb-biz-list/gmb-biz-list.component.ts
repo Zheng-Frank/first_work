@@ -18,6 +18,7 @@ interface myBiz {
   ownershipPercentage?: number;
   lostDate?: Date;
   transfers?: string; // A <- B <- C
+  restaurant: any
 }
 
 @Component({
@@ -31,6 +32,8 @@ export class GmbBizListComponent implements OnInit {
 
   bizList: GmbBiz[] = [];
   myEmails: string[] = [];
+
+  myBizList: myBiz[] = [];
 
   searchFilter;
   gmbOwnership;
@@ -69,9 +72,6 @@ export class GmbBizListComponent implements OnInit {
       paths: ['gmbBiz', 'score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
-    // {
-    //   label: "Possessed"
-    // },
     {
       label: "Accounts",
       paths: ['transfers'],
@@ -125,6 +125,16 @@ export class GmbBizListComponent implements OnInit {
           email: 1
         },
         limit: 5000
+      }),
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        projection: {
+          "disabled": 1,
+          "serviceSettings.paymentMethods": 1,
+          "menus.hours": 1,
+          "menus.disabled": 1
+        },
+        limit: 5000
       })
     )
       .subscribe(
@@ -137,7 +147,35 @@ export class GmbBizListComponent implements OnInit {
               biz.gmbOwnerships = biz.gmbOwnerships.slice(biz.gmbOwnerships.length - 6, biz.gmbOwnerships.length)
             }
           });
+
           this.myEmails = results[1].map(account => account.email);
+
+          const restaurantIdDict = {};
+          results[2].map(r => restaurantIdDict[r._id] = r);
+
+          // make myBizList:
+          this.myBizList = this.bizList.map(biz => ({
+            gmbBiz: biz,
+            transfers: (biz.gmbOwnerships || []).map(o => (o.email || 'N/A').split('@')[0]).join('→ '),
+            published: biz.publishedIn(this.myEmails),
+            suspended: biz.suspendedIn(this.myEmails),
+            qmenuIdDays: biz.qmenuId ? Math.floor((this.now.valueOf() - parseInt(biz.qmenuId.substring(0, 8), 16) * 1000) / (24 * 3600000)) : undefined,
+            ownershipPercentage: ((biz) => {
+              let possesedTime = 1;
+              let nonPossesedTime = 1000;
+              for (let i = 0; i < (biz.gmbOwnerships || []).length; i++) {
+                const owned = this.myEmails.indexOf(biz.gmbOwnerships[i].email) >= 0;
+                const nextStart = i < biz.gmbOwnerships.length - 1 ? biz.gmbOwnerships[i + 1].possessedAt : new Date();
+                const span = nextStart.valueOf() - biz.gmbOwnerships[i].possessedAt.valueOf();
+                possesedTime += owned ? span : 0;
+                nonPossesedTime += owned ? 0 : span;
+              }
+              return Math.round(possesedTime * 100 / (possesedTime + nonPossesedTime));
+            })(biz),
+            lostDate: biz.getLastGmbOwnership() && (biz.getLastGmbOwnership().status === 'Suspended' || !biz.getAccountEmail) ? biz.getLastGmbOwnership().possessedAt : undefined,
+            restaurant: restaurantIdDict[biz.qmenuId]
+          }));
+
           this.filterBizList();
         },
         error => {
@@ -180,44 +218,24 @@ export class GmbBizListComponent implements OnInit {
 
   filterBizList() {
     const start = new Date();
-    let filteredBizList = this.bizList;
+    this.filteredMyBizList = this.myBizList
     if (this.searchFilter) {
-      filteredBizList = this.bizList
-        .filter(biz => (
+
+      this.filteredMyBizList = this.filteredMyBizList
+        .filter(mybiz => (
           // search name
-          biz.name.toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0)
+          mybiz.gmbBiz.name.toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0)
 
           // search phone
-          || (biz.phone || '').indexOf(this.searchFilter) === 0
+          || (mybiz.gmbBiz.phone || '').indexOf(this.searchFilter) === 0
 
           // search account
-          || (biz.gmbOwnerships || []).some(o => (o.email || '').indexOf(this.searchFilter) === 0)
+          || (mybiz.gmbBiz.gmbOwnerships || []).some(o => (o.email || '').indexOf(this.searchFilter) === 0)
 
           // search by qmenuId
-          || (biz.qmenuId === this.searchFilter)
+          || (mybiz.gmbBiz.qmenuId === this.searchFilter)
         );
     }
-
-    this.filteredMyBizList = filteredBizList.map(biz => ({
-      gmbBiz: biz,
-      transfers: (biz.gmbOwnerships || []).map(o => (o.email || 'N/A').split('@')[0]).join('→ '),
-      published: biz.publishedIn(this.myEmails),
-      suspended: biz.suspendedIn(this.myEmails),
-      qmenuIdDays: biz.qmenuId ? Math.floor((this.now.valueOf() - parseInt(biz.qmenuId.substring(0, 8), 16) * 1000) / (24 * 3600000)) : undefined,
-      ownershipPercentage: ((biz) => {
-        let possesedTime = 1;
-        let nonPossesedTime = 1000;
-        for (let i = 0; i < (biz.gmbOwnerships || []).length; i++) {
-          const owned = this.myEmails.indexOf(biz.gmbOwnerships[i].email) >= 0;
-          const nextStart = i < biz.gmbOwnerships.length - 1 ? biz.gmbOwnerships[i + 1].possessedAt : new Date();
-          const span = nextStart.valueOf() - biz.gmbOwnerships[i].possessedAt.valueOf();
-          possesedTime += owned ? span : 0;
-          nonPossesedTime += owned ? 0 : span;
-        }
-        return Math.round(possesedTime * 100 / (possesedTime + nonPossesedTime));
-      })(biz),
-      lostDate: biz.getLastGmbOwnership() && (biz.getLastGmbOwnership().status === 'Suspended' || !biz.getAccountEmail) ? biz.getLastGmbOwnership().possessedAt : undefined
-    }));
 
     //
     switch (this.gmbOwnership) {
@@ -274,6 +292,15 @@ export class GmbBizListComponent implements OnInit {
         break;
       case 'not in qMenu DB':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.qmenuId);
+        break;
+
+      case 'bad service settings':
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.serviceSettings || !b.restaurant.serviceSettings.some(setting => setting.paymentMethods && setting.paymentMethods.length > 0)));
+        break;
+      case 'bad menus':
+        // bad: 1. no menu at all
+        // 2. menus are ALL disabled
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.menus || b.restaurant.menus.filter(menu => !menu.disabled).length === 0));
         break;
       default:
         break;

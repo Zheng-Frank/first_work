@@ -1,7 +1,13 @@
 <div class="alert alert-danger">
   <h1>DO NOT USE. UNDERCONSTRUCTION</h1>
 </div>
-<div class="card mb-2">
+{{this.gmbs | json}}
+<div *ngIf="gmbs.length === 0">
+  No Google Listing found. <button class="btn btn-primary" (click)="matchOrCreateGmb()">Create GMB and Ownership
+    Application Task</button>
+</div>
+
+<div class="card mb-2" *ngFor="let gmb of gmbs">
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="fab fa-google"></i> Google Listing
     <span class="text-success">✓</span>

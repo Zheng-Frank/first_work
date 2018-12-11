@@ -37,7 +37,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'preferredLanguage',
     'pickupMinimum',
     'disableScheduling',
-    'isPilot',
+    'disabled',
     'notification',
     'ccProcessingRate',
     'ccProcessingFlatFee',
@@ -60,7 +60,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   ccProcessingRate: number;
   ccProcessingFlatFee: number;
   disableScheduling = false;
-  isPilot = false;
+  disabled = false;
   timeZone;
   googleAddress: Address;
   preferredLanguage;
@@ -97,10 +97,10 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.address = new Address(this.restaurant.googleAddress);
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
-    this.apt= this.restaurant.googleAddress?this.restaurant.googleAddress.apt:'';
+    this.apt = this.restaurant.googleAddress ? this.restaurant.googleAddress.apt : '';
 
     // special fields
-    this.images= this.restaurant.images || [];
+    this.images = this.restaurant.images || [];
     this.timeZone = this.timeZones.filter(z => z.value === (this.restaurant.offsetToEST || 0))[0];
     this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
   }
@@ -131,7 +131,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
     // update those two fields!
-    newObj.images=this.images;
+    newObj.images = this.images;
     delete oldObj['images'];
 
     this._api
@@ -141,21 +141,21 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
           new: newObj
         }])
       .subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated successfully"
-        );
+        result => {
+          // let's update original, assuming everything successful
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
 
-        // assign new values to restaurant
-        this.fields.map(f => this.restaurant[f] = newObj[f]);
+          // assign new values to restaurant
+          this.fields.map(f => this.restaurant[f] = newObj[f]);
 
-        this.editing = false;
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
+          this.editing = false;
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
 
     this.editing = false;
