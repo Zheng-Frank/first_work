@@ -11,11 +11,13 @@ import { Invoice } from 'src/app/classes/invoice';
 export class InvoiceMonthlyComponent implements OnInit {
   startDatesOfEachMonth: Date[] = [];
 
-  showFind = false;
+  action;
   apiRequesting = false;
   toDate;
 
   rows = [];
+
+  overdueRows = [];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     // we start from now and back unti 10/1/2016
@@ -29,6 +31,126 @@ export class InvoiceMonthlyComponent implements OnInit {
   ngOnInit() {
     this.toDate = this.guessInvoiceDates(new Date());
     console.log(this.toDate)
+  }
+
+  async toggleAction(action) {
+    if (this.action === action) {
+      this.action = undefined;
+    } else {
+      this.action = action;
+    }
+
+    if (this.action === 'overdue') {
+      this.populateOverdue();
+
+    }
+  }
+
+  async populateOverdue() {
+
+    // non-canceled,
+    // not payment completed
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isPaymentCompleted: { $ne: true },
+        isCanceled: { $ne: true },
+        isSent: true,
+        balance: { $gt: 0 } // only when they owe use money!
+      },
+      projection: {
+        "logs.time": 1,
+        "logs.action": 1,
+        "logs.user": 1,
+        balance: 1,
+        commission: 1,
+        "restaurant.id": 1,
+        "restaurant.name": 1,
+        fromDate: 1,
+        toDate: 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    console.log(invoices);
+
+    // organize by restaurant id
+    const idRowMap = {};
+    invoices.map(invoice => {
+      if (idRowMap[invoice.restaurant.id]) {
+        idRowMap[invoice.restaurant.id].invoices.push(new Invoice(invoice));
+      } else {
+        idRowMap[invoice.restaurant.id] = {
+          restaurant: invoice.restaurant,
+          invoices: [new Invoice(invoice)]
+        };
+      }
+    });
+
+    const collectionLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "logs.type": "collection"
+      },
+      projection: {
+        "logs.time": 1,
+        "logs.response": 1,
+        "logs.username": 1,
+        "logs.type": 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    collectionLogs.map(restaurant => {
+      if (idRowMap[restaurant._id]) {
+        idRowMap[restaurant._id].logs = (restaurant.logs || []).filter(log => log.type === 'collection');
+      }
+    });
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        "gmbOwnerships.status": 'Published',
+        qmenuId: { $exists: 1 }
+      },
+      projection: {
+        qmenuId: 1,
+        "gmbOwnerships.status": 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    const ownedGmbBizList = gmbBizList.filter(gmbBiz => gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published');
+    console.log(ownedGmbBizList);
+
+    ownedGmbBizList.map(biz => {
+      if (idRowMap[biz.qmenuId]) {
+        idRowMap[biz.qmenuId].ownedGmb = true;
+      }
+    });
+
+    collectionLogs.map(restaurant => {
+      if (idRowMap[restaurant._id]) {
+        idRowMap[restaurant._id].logs = (restaurant.logs || []).filter(log => log.type === 'collection');
+      }
+    });
+
+    // now lets filter:
+    // 1. more than 2 month of recent invoice
+    // 2. or having more than one!
+
+    this.overdueRows = Object.keys(idRowMap).map(id => idRowMap[id]);
+    const overdueSpan = 48 * 24 * 3600000;
+    this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 1 || (row.invoices[0] && row.invoices[0].toDate.valueOf() - row.invoices[0].fromDate.valueOf() > overdueSpan));
+    // sort by name
+    // this.overdueRows.sort((row1, row2) => row1.restaurant.name > row2.restaurant.name ? 1 : (row1.restaurant.name < row2.restaurant.name ? -1 : 0));
+    // sort by total commission
+    this.overdueRows.map(row => row.totalCommission = row.invoices.reduce((sum, invoice) => sum + invoice.commission, 0));
+    this.overdueRows.sort((row1, row2) => row2.totalCommission - row1.totalCommission);
+  }
+
+  getTotalUnpaid() {
+    return this.overdueRows.reduce((sum, row) => sum + row.totalCommission, 0);
   }
 
   guessInvoiceDates(someDate) {

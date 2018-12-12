@@ -172,4 +172,8 @@ export class LogEditorComponent implements OnInit {
     return !this.log.username && !this.log.time;
   }
 
+  toggleIsCollection() {
+    this.log.type === 'collection' ? this.log.type = undefined : this.log.type = 'collection';
+  }
+
 }

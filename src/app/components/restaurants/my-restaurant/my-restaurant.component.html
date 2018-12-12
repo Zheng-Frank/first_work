@@ -1,68 +1,79 @@
-<h1 class="text-center">My Restaurants</h1>
-<div class="form-inline mb-2">
-  <label class="mr-2"> GMB:</label>
-  <select class="form-control mr-4" [(ngModel)]="gmbOwnership" (change)="filter()">
-    <option>any</option>
-    <option>qmenu</option>
-    <option>NOT qmenu</option>
-
+<div *ngIf="isSuperUser">
+  <label>Impersonate:</label>
+  <select class="form-control mr-4" [(ngModel)]="username" (change)="changeUser()">
+    <option *ngFor="let username of usernames">{{username}}</option>
   </select>
-
-  <label class="mr-2"> Google Listing:</label>
-  <select class="form-control mr-4" [(ngModel)]="googleListingOwner" (change)="filter()">
-    <option>any</option>
-    <option>qmenu</option>
-    <option>NOT qmenu</option>
-  </select>
-
-  <label class="mr-2">Oustanding Task:</label>
-  <select class="form-control mr-4" [(ngModel)]="outstandingTask" (change)="filter()">
-    <option>any</option>
-    <option>exist</option>
-    <option>non-exist</option>
-  </select>
-
-
-  Total: {{filteredList.length}} GMB: {{getGmbCount()}}
 </div>
-<q-table [rows]="filteredList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let biz;">
+
+<h1 class="text-center">My Restaurants ({{rows.length}})</h1>
+<table class="table" *ngIf="isSuperUser">
+  <tr>
+    <th>Name</th>
+    <th>Created At</th>
+    <th>GMB Owner</th>
+    <th>Websites</th>
+    <th>Ongoing Tasks</th>
+    <th>Invoices</th>
+    <th>Not Collected</th>
+    <th>Collected</th>
+    <th>Rate</th>
+    <th>Earned</th>
+  </tr>
+  <tr *ngFor="let row of rows" class="{{row.restaurant.disabled ? 'bg-warning' : ''}}">
+    <td class="text-nowrap {{row.restaurant.disabled ? 'app-muted' : ''}}">
+      <a *ngIf="isSuperUser" target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+      <span *ngIf="!isSuperUser">{{row.restaurant.name}}</span>
+      <div><small>{{row.restaurant.googleAddress?.formatted_address | removeUsa}}</small></div>
+      <div *ngIf="row.phone"><small>{{row.phone | phone}}</small></div>
+    </td>
+    <td>{{row.restaurant.createdAt | date: 'shortDate' }}</td>
+    <td class="text-center">
+      <img *ngIf="row.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+      <img *ngIf="row.suspended" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
+      <span *ngIf="!row.published && !row.suspended">?</span>
+      <i class="fas fa-lock-open text-info" *ngIf="row.gmbBiz?.gmbOpen"></i>
+    </td>
     <td>
-      <div class="dropdown">
-        <button class="btn btn-link dropdown-toggle font-weight-bold pl-0" type="button" data-toggle="dropdown">
-          {{biz.restaurant.name}}
-        </button>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" target="_blank" href="#/restaurants/{{biz.restaurant._id}}">qMenu Restaurant Details</a>
-          <a class="dropdown-item" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
-            Listing
-          </a>
-        </div>
-      </div>
-      <div class="text-muted">
-        <small>{{biz.gmbBiz?.address || biz.restaurant.googleAddress?.formatted_address}}</small>
+      <div>
+        Google: <a href="{{row.gmbBiz?.gmbWebsite}}" title="{{row.gmbBiz?.gmbWebsite}}" target="_blank">{{row.gmbBiz?.gmbWebsite}}</a>
       </div>
 
-      <small class="text-muted text-nowrap">{{biz.gmbBiz?.phone | tel}}</small>
-    </td>
-    <td>
-      {{biz.gmbBiz?.score}}
-    </td>
-    <td>
-      {{biz.restaurant.createdAt | ago: now}}
-    </td>
-    <td>
-      <img *ngIf="biz.gmbBiz?.getAccountEmail()" [attr.src]="'/assets/images/qmenu.png'" height="16px">
-    </td>
-    <td>
-      <a *ngIf="biz.gmbBiz" href="{{biz.gmbBiz?.gmbWebsite}}" title="{{biz.gmbBiz?.gmbWebsite}}" target="_blank">
-        <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" height="16px">
-      </a>
-    </td>
-    <td>
-      <div *ngFor="let task of (biz.outstandingTasks || [])">{{task.name}}
-        <br><span class="badge badge-{{getTaskClass(task)}}">{{task.scheduledAt | ago: now}}</span>
+      <div>
+        qMenu: <a href="{{row.gmbBiz?.qmenuWebsite}}" title="{{row.gmbBiz?.qmenuWebsite}}" target="_blank">{{row.gmbBiz?.qmenuWebsite}}</a>
       </div>
     </td>
+    <td>
+      <div *ngFor="let task of row.tasks">{{task.name}}</div>
+    </td>
+    <td class="text-nowrap">
+      <button class="btn btn-link" (click)="row.showDetails = !row.showDetails">{{row.invoices.length}} <i class="fas fa-caret-down"></i></button>
+      <table class="table table-borderless table-sm" *ngIf="row.showDetails">
+        <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : ''}}">
+          <td>
+            {{invoice.fromDate | date:'MMM d yyyy'}} - {{invoice.toDate | date:'MMM d'}}
+          </td>
+          <td>
+            {{invoice.commission |
+            currency:'USD':'symbol'}}
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>{{row.notCollected | currency:'USD':'symbol'}}</td>
+    <td>{{row.collected | currency:'USD':'symbol'}}</td>
+    <td>{{row.commission | percent}}</td>
+    <td>{{row.earned | currency:'USD':'symbol'}}</td>
   </tr>
-</q-table>
+  <tr>
+    <th></th>
+    <th> </th>
+    <th> </th>
+    <th></th>
+    <th></th>
+    <th>Sum</th>
+    <th>{{getTotal('notCollected') | currency:'USD':'symbol'}}</th>
+    <th>{{getTotal('collected') | currency:'USD':'symbol'}}</th>
+    <th></th>
+    <th>{{getTotal('earned') | currency:'USD':'symbol'}}</th>
+  </tr>
+</table>

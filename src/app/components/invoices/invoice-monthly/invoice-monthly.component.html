@@ -6,13 +6,69 @@
   </div>
   <div class="float-right">
     <div class="pb-2">
-      <button class="btn btn-primary" (click)="showFind = !showFind">
-        <i class="fas fa-search"></i> Find Missing Invoices</button>
+      <button class="btn btn-primary" (click)="toggleAction('overdue')">Find Overdue Invoices</button>
+      <button class="btn btn-primary" (click)="toggleAction('missing')">Find Missing/Gapped Invoices</button>
     </div>
   </div>
 </div>
-
-<div class="card text-left bg-light" *qIf="showFind">
+<div class="card text-left bg-light" *qIf="action==='overdue'">
+  <div class="card-body">
+    * Last invoice spans over 2+ months, or having two consequent unpaid invoices. <strong>Total unpaied =
+      {{getTotalUnpaid() | currency:'USD':'symbol'}}</strong>
+    <div class="text-right">
+      <div class="pb-2">
+        <button class="btn btn-primary" (click)="populateOverdue()"><i class="fas fa-sync-alt"></i> Reload</button>
+      </div>
+    </div>
+    <table class="table">
+      <tr>
+        <th>Restaurant</th>
+        <th>Invoices</th>
+        <th>Commission Total</th>
+        <th>GMB</th>
+        <th>Collection Logs</th>
+      </tr>
+      <tr *ngFor="let row of overdueRows">
+        <td>
+          <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
+          <div><small>{{row.restaurant.id}}</small></div>
+        </td>
+        <td>
+          <table class="table table-borderless table-sm">
+            <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : ''}}">
+              <td>
+                {{invoice.fromDate | date:'MMM d yyyy'}} - {{invoice.toDate | date:'MMM d'}}
+              </td>
+              <td>
+                {{invoice.commission | currency:'USD':'symbol'}}
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td>{{row.totalCommission | currency:'USD':'symbol'}}</td>
+        <td>
+          <img *ngIf="row.ownedGmb" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+        </td>
+        <td>
+          <table class="table table-borderless table-sm">
+            <tr *ngFor="let log of row.logs">
+              <td>
+                {{log.username}}
+              </td>
+              <td>
+                {{log.time | date:'MMM d'}}
+              </td>
+              <td>
+                {{log.response}}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+<div class="card text-left bg-light" *qIf="action==='missing'">
   <div class="card-body">
     <div class="form-group row">
       <label for="to-date" class="col-4 col-form-label">To Date</label>
@@ -25,7 +81,7 @@
       <button class="btn btn-primary" (click)="findMissingInvoices()" [qLoading]="apiRequesting">Submit</button>
     </div>
 
-    <table>
+    <table class="table">
       <tr>
         <th>Restaurant</th>
         <th>ID</th>
