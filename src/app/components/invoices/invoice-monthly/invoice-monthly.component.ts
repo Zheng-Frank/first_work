@@ -125,7 +125,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         isPaymentCompleted: { $ne: true },
         isCanceled: { $ne: true },
         isSent: true,
-        balance: { $gt: 0 } // only when they owe use money!
+        // balance: { $lt: 0 } // only when they owe us money!
       },
       projection: {
         "logs.time": 1,

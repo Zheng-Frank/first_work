@@ -78,8 +78,6 @@ export class MyRestaurantComponent implements OnInit {
       return row;
     });
 
-    this.rows.sort((r1, r2) => r1.name > r2.name ? 1 : (r1.name < r2.name ? -1 : 0));
-
     const batchSize = 200;
     const batchedRestaurants = Array(Math.ceil(myRestaurants.length / batchSize)).fill(0).map((i, index) => myRestaurants.slice(index * batchSize, (index + 1) * batchSize));
 
@@ -121,7 +119,7 @@ export class MyRestaurantComponent implements OnInit {
           isPaymentCompleted: 1,
           "restaurant.id": 1
         },
-        limit: 2000
+        limit: 200000
       }).toPromise();
       invoices = invoices.filter(i => !i.isCanceled);
       invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(new Invoice(i)));
@@ -131,7 +129,10 @@ export class MyRestaurantComponent implements OnInit {
       this.rows.map(row => {
         row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
         row.earned = row.commission * row.collected;
+        row.notEarned = row.commission * row.notCollected;
       });
+
+      this.rows.sort((r1, r2) => r2.earned - r1.earned);
     }
 
     // query open Tasks
