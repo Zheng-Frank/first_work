@@ -123,6 +123,7 @@ import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/
 import { HolidayMonitorComponent } from './components/system/holiday-monitor/holiday-monitor.component';
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
 import { MonitoringGodaddyComponent } from './components/monitoring/monitoring-godaddy/monitoring-godaddy.component';
+import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
  
 @NgModule({
   declarations: [
@@ -229,7 +230,8 @@ import { MonitoringGodaddyComponent } from './components/monitoring/monitoring-g
     RestaurantGmbComponent,
     HolidayMonitorComponent,
     MonitoringDashboardComponent,
-    MonitoringGodaddyComponent
+    MonitoringGodaddyComponent,
+    MonitoringFaxComponent
   ],
   imports: [
     BrowserModule,

@@ -20,8 +20,6 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   overdueRows = [];
 
-  wronglyClickedRows = [];
-
   constructor(private _api: ApiService, private _global: GlobalService) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
@@ -54,65 +52,6 @@ export class InvoiceMonthlyComponent implements OnInit {
     if (this.action === 'overdue') {
       this.populateOverdue();
     }
-    if (this.action === 'wrongClick') {
-      this.populateWrongRows();
-    }
-  }
-
-  async populateWrongRows() {
-
-    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'invoice',
-      query: {
-        isCanceled: { $ne: true }
-      },
-      projection: {
-        isPaymentCompleted: 1,
-        previousInvoiceId: 1,
-        previousBalance: 1,
-        payments: [],
-        "restaurant.id": 1,
-        "restaurant.name": 1,
-        fromDate: 1,
-        toDate: 1,
-        "logs.user": 1,
-        // "logs.value": 1,
-        // "logs.action": 1,
-      },
-      limit: 40000
-    }).toPromise();
-
-    // let's make a map
-    const previousInvoiceIdMap = {};
-    invoices.map(invoice => {
-      if (invoice.previousInvoiceId) {
-        previousInvoiceIdMap[invoice.previousInvoiceId] = invoice;
-      }
-    });
-
-    console.log(previousInvoiceIdMap);
-
-    this.wronglyClickedRows = invoices.filter(invoice => {
-      // 1. as some one's previous invoice
-      // 2. this invoice marked as payment complete!
-      // 3. next's payments DOESNT inlcude this payment
-      const next = previousInvoiceIdMap[invoice._id];
-      if (!next) {
-        return false;
-      }
-
-      const nextPaymentsIncludeThis = next.payments && next.payments.some(p => Math.abs(p.amount - next.previousBalance) < 0.02);
-      // if (invoice._id === '5bda4701510879021e993003') {
-      if (invoice._id === '5ac6ce1f29d1581400d3b0f5') {
-
-        console.log(invoice);
-        console.log(next);
-        console.log(nextPaymentsIncludeThis);
-      }
-      return next && invoice.isPaymentCompleted && !nextPaymentsIncludeThis;
-
-    });
-
   }
 
   async populateOverdue() {
@@ -132,20 +71,23 @@ export class InvoiceMonthlyComponent implements OnInit {
         "logs.action": 1,
         "logs.user": 1,
         balance: 1,
-        commission: 1,
         "restaurant.id": 1,
         "restaurant.name": 1,
         fromDate: 1,
-        toDate: 1
+        toDate: 1,
+        previousInvoiceId: 1,
+        "payments.amount": 1
       },
-      limit: 20000
+      limit: 80000
     }).toPromise();
-
-    console.log(invoices);
 
     // organize by restaurant id
     const idRowMap = {};
+    const beingReferencedIds = new Set();
     invoices.map(invoice => {
+      if (invoice.previousInvoiceId) {
+        beingReferencedIds.add(invoice.previousInvoiceId);
+      }
       if (idRowMap[invoice.restaurant.id]) {
         idRowMap[invoice.restaurant.id].invoices.push(new Invoice(invoice));
       } else {
@@ -190,7 +132,6 @@ export class InvoiceMonthlyComponent implements OnInit {
     }).toPromise();
 
     const ownedGmbBizList = gmbBizList.filter(gmbBiz => gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published');
-    console.log(ownedGmbBizList);
 
     ownedGmbBizList.map(biz => {
       if (idRowMap[biz.qmenuId]) {
@@ -205,21 +146,26 @@ export class InvoiceMonthlyComponent implements OnInit {
     });
 
     // now lets filter:
-    // 1. more than 2 month of recent invoice
-    // 2. or having more than one!
+    // 1. more than 2 non-paid
+    // 2. or one-nonpaid but having no payments
 
     this.overdueRows = Object.keys(idRowMap).map(id => idRowMap[id]);
+    // remove being referenced invoices because they are handled!
+
+    this.overdueRows.map(row => row.invoices = row.invoices.filter(i => !beingReferencedIds.has(i._id)));
+
     const overdueSpan = 48 * 24 * 3600000;
-    this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 1 || (row.invoices[0] && row.invoices[0].toDate.valueOf() - row.invoices[0].fromDate.valueOf() > overdueSpan));
-    // sort by name
-    // this.overdueRows.sort((row1, row2) => row1.restaurant.name > row2.restaurant.name ? 1 : (row1.restaurant.name < row2.restaurant.name ? -1 : 0));
-    // sort by total commission
-    this.overdueRows.map(row => row.totalCommission = row.invoices.reduce((sum, invoice) => sum + invoice.commission, 0));
-    this.overdueRows.sort((row1, row2) => row2.totalCommission - row1.totalCommission);
+    this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 1 || (row.invoices[0] && row.invoices[0].toDate.valueOf() - row.invoices[0].fromDate.valueOf() > overdueSpan) || !row.invoices[0].payments || row.invoices[0].payments.length === 0);
+
+    // for each row, let's remove being rolled ones!
+
+    // sort by total unpaid desc
+    this.overdueRows.map(row => row.unpaidBalance = row.invoices.reduce((sum, invoice) => sum + invoice.balance, 0));
+    this.overdueRows.sort((row1, row2) => row2.unpaidBalance - row1.unpaidBalance);
   }
 
   getTotalUnpaid() {
-    return this.overdueRows.reduce((sum, row) => sum + row.totalCommission, 0);
+    return this.overdueRows.reduce((sum, row) => sum + row.unpaidBalance, 0);
   }
 
   guessInvoiceDates(someDate) {
@@ -409,5 +355,19 @@ export class InvoiceMonthlyComponent implements OnInit {
     }
 
     this.apiRequesting = false;
+  }
+
+  async refreshOverdueRowLogs(row) {
+    const restaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        _id: { $oid: row.restaurant.id }
+      },
+      projection: {
+        logs: 1,
+        name: 1
+      }
+    }).toPromise())[0];
+    row.logs = (restaurant.logs || []).filter(log => log.type === 'collection');
   }
 }
