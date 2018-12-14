@@ -16,8 +16,11 @@ export class InvoiceMonthlyComponent implements OnInit {
   toDate;
 
   rows = [];
+  overlappedOrGappedOnly = false;
 
   overdueRows = [];
+
+  wronglyClickedRows = [];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     // we start from now and back unti 10/1/2016
@@ -33,17 +36,83 @@ export class InvoiceMonthlyComponent implements OnInit {
     console.log(this.toDate)
   }
 
+  getOverlappedOrgappedRows() {
+    if (this.overlappedOrGappedOnly) {
+      return this.rows.filter(r => r.gappedInvoices.length > 0 || r.overlappedInvoices.length > 0);
+    } else {
+      return this.rows;
+    }
+  }
+
   async toggleAction(action) {
     if (this.action === action) {
-      this.action = undefined;
+      return this.action = undefined;
     } else {
       this.action = action;
     }
 
     if (this.action === 'overdue') {
       this.populateOverdue();
-
     }
+    if (this.action === 'wrongClick') {
+      this.populateWrongRows();
+    }
+  }
+
+  async populateWrongRows() {
+
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isCanceled: { $ne: true }
+      },
+      projection: {
+        isPaymentCompleted: 1,
+        previousInvoiceId: 1,
+        previousBalance: 1,
+        payments: [],
+        "restaurant.id": 1,
+        "restaurant.name": 1,
+        fromDate: 1,
+        toDate: 1,
+        "logs.user": 1,
+        // "logs.value": 1,
+        // "logs.action": 1,
+      },
+      limit: 40000
+    }).toPromise();
+
+    // let's make a map
+    const previousInvoiceIdMap = {};
+    invoices.map(invoice => {
+      if (invoice.previousInvoiceId) {
+        previousInvoiceIdMap[invoice.previousInvoiceId] = invoice;
+      }
+    });
+
+    console.log(previousInvoiceIdMap);
+
+    this.wronglyClickedRows = invoices.filter(invoice => {
+      // 1. as some one's previous invoice
+      // 2. this invoice marked as payment complete!
+      // 3. next's payments DOESNT inlcude this payment
+      const next = previousInvoiceIdMap[invoice._id];
+      if (!next) {
+        return false;
+      }
+
+      const nextPaymentsIncludeThis = next.payments && next.payments.some(p => Math.abs(p.amount - next.previousBalance) < 0.02);
+      // if (invoice._id === '5bda4701510879021e993003') {
+      if (invoice._id === '5ac6ce1f29d1581400d3b0f5') {
+
+        console.log(invoice);
+        console.log(next);
+        console.log(nextPaymentsIncludeThis);
+      }
+      return next && invoice.isPaymentCompleted && !nextPaymentsIncludeThis;
+
+    });
+
   }
 
   async populateOverdue() {
@@ -200,6 +269,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         invoices: [],
         overlappedInvoices: [],
         gappedInvoices: [],
+        gaps: [],
         hasLast: false,
         orders: []
       };
@@ -224,7 +294,9 @@ export class InvoiceMonthlyComponent implements OnInit {
         "restaurant.id": 1,
         "restaurant.name": 1,
         "rateSchedules.commission": 1,
-        "total": 1
+        "total": 1,
+        isPaymentCompleted: 1,
+        balance: 1
       },
       limit: 20000
     }).toPromise();
@@ -250,6 +322,15 @@ export class InvoiceMonthlyComponent implements OnInit {
         }
         if (item.invoices[i + 1].fromDate.valueOf() > item.invoices[i].toDate.valueOf() + 48 * 3600000) {
           item.gappedInvoices.push(item.invoices[i + 1]);
+          const fromDate = new Date(item.invoices[i].toDate);
+          const toDate = new Date(item.invoices[i + 1].fromDate);
+          fromDate.setDate(fromDate.getDate() + 1);
+          toDate.setDate(toDate.getDate() - 1);
+          item.gaps.push({
+            fromDate: fromDate,
+            toDate: toDate,
+            orders: []
+          })
         }
       }
 
@@ -258,7 +339,6 @@ export class InvoiceMonthlyComponent implements OnInit {
       item.hasLast = item.invoices.some(i => i.fromDate.valueOf() < conservativeToDate.valueOf() && i.toDate.valueOf() > conservativeToDate.valueOf());
       // never had invoices: query last 30 days
       this.rows.push(item);
-
 
     });
 
@@ -312,8 +392,16 @@ export class InvoiceMonthlyComponent implements OnInit {
       // match orders back to rows!
       orders.map(order => {
         const row = restaurantInvoicesDict[order.restaurant];
-        if (row && (row.invoices.length === 0 || new Date(order.createdAt) > row.invoices[row.invoices.length - 1].toDate)) {
+        const createdAt = new Date(order.createdAt);
+        if (row && (row.invoices.length === 0 || createdAt > row.invoices[row.invoices.length - 1].toDate)) {
           row.orders.push(order);
+        }
+        if (row) {
+          row.gaps.map(gap => {
+            if (gap.fromDate < createdAt && createdAt < gap.toDate) {
+              gap.orders.push(order);
+            }
+          });
         }
       });
       // sort by order numbers!

@@ -7,8 +7,25 @@
   <div class="float-right">
     <div class="pb-2">
       <button class="btn btn-primary" (click)="toggleAction('overdue')">Find Overdue Invoices</button>
+      <!-- <button class="btn btn-primary" (click)="toggleAction('wrongClick')">Find Mistaken Invoices</button> -->
       <button class="btn btn-primary" (click)="toggleAction('missing')">Find Missing/Gapped Invoices</button>
     </div>
+  </div>
+</div>
+<div class="card text-left bg-light" *qIf="action==='wrongClick'">
+  <div class="card-body">
+    <table class="table">
+      <tr>
+        <th>Restaurant</th>
+      </tr>
+      <tr *ngFor="let row of wronglyClickedRows">
+        <td>
+          <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
+          <div><small>{{row.restaurant.id}}</small></div>
+        </td>
+      </tr>
+
+    </table>
   </div>
 </div>
 <div class="card text-left bg-light" *qIf="action==='overdue'">
@@ -24,7 +41,7 @@
       <tr>
         <th>Restaurant</th>
         <th>Invoices</th>
-        <th>Commission Total</th>
+        <th>Unpaid Balance</th>
         <th>GMB</th>
         <th>Collection Logs</th>
       </tr>
@@ -81,6 +98,9 @@
       <button class="btn btn-primary" (click)="findMissingInvoices()" [qLoading]="apiRequesting">Submit</button>
     </div>
 
+    <label class="checkbox-inline">
+      <input type="checkbox" [(ngModel)]="overlappedOrGappedOnly"> Show overlapped or gapped only</label>
+
     <table class="table">
       <tr>
         <th>Restaurant</th>
@@ -92,7 +112,7 @@
         <th>Total Invoices</th>
       </tr>
 
-      <tr *ngFor="let row  of rows" class="{{row.overlappedInvoices.length > 0 || row.gappedInvoices.length > 0 ? 'text-danger' : ''}} {{row.restaurant.disabled? 'app-muted' : ''}}">
+      <tr *ngFor="let row  of getOverlappedOrgappedRows()" class="{{row.overlappedInvoices.length > 0 || row.gappedInvoices.length > 0 ? 'text-danger' : ''}} {{row.restaurant.disabled? 'app-muted' : ''}}">
         <td>
           {{row.restaurant.name}}
         </td>
@@ -101,11 +121,18 @@
         </td>
         <td>
           <span class="badge badge-danger mx-1" *ngFor="let i of row.overlappedInvoices">{{i.fromDate | date:
-            "shortDate"}}</span>
+            "shortDate"}}
+            <span *ngIf="i.isPaymentCompleted && i.balance < 0">
+              overpaid
+            </span>
+            <span *ngIf="i.isPaymentCompleted && i.balance > 0">
+              overcharged
+            </span>
+          </span>
         </td>
         <td>
-          <span class="badge badge-danger mx-1" *ngFor="let i of row.gappedInvoices">{{i.fromDate | date:
-            "shortDate"}}</span>
+          <span class="badge badge-danger mx-1" *ngFor="let gap of row.gaps">{{gap.fromDate | date: "shortDate"}} -
+            {{gap.toDate | date: "shortDate"}} ({{gap.orders.length}})</span>
         </td>
         <td>
           {{row.orders.length}}
