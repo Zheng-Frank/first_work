@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
+import { environment } from "../../../../environments/environment";
+import { Invoice } from 'src/app/classes/invoice';
 @Component({
   selector: 'app-invoice-monthly',
   templateUrl: './invoice-monthly.component.html',
@@ -7,7 +10,19 @@ import { Component, OnInit } from '@angular/core';
 })
 export class InvoiceMonthlyComponent implements OnInit {
   startDatesOfEachMonth: Date[] = [];
-  constructor() {
+
+  action;
+  apiRequesting = false;
+  toDate;
+
+  rows = [];
+  overlappedOrGappedOnly = false;
+
+  overdueRows = [];
+
+  wronglyClickedRows = [];
+
+  constructor(private _api: ApiService, private _global: GlobalService) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
     while (d < new Date()) {
@@ -17,6 +32,382 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.toDate = this.guessInvoiceDates(new Date());
+    console.log(this.toDate)
   }
 
+  getOverlappedOrgappedRows() {
+    if (this.overlappedOrGappedOnly) {
+      return this.rows.filter(r => r.gappedInvoices.length > 0 || r.overlappedInvoices.length > 0);
+    } else {
+      return this.rows;
+    }
+  }
+
+  async toggleAction(action) {
+    if (this.action === action) {
+      return this.action = undefined;
+    } else {
+      this.action = action;
+    }
+
+    if (this.action === 'overdue') {
+      this.populateOverdue();
+    }
+    if (this.action === 'wrongClick') {
+      this.populateWrongRows();
+    }
+  }
+
+  async populateWrongRows() {
+
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isCanceled: { $ne: true }
+      },
+      projection: {
+        isPaymentCompleted: 1,
+        previousInvoiceId: 1,
+        previousBalance: 1,
+        payments: [],
+        "restaurant.id": 1,
+        "restaurant.name": 1,
+        fromDate: 1,
+        toDate: 1,
+        "logs.user": 1,
+        // "logs.value": 1,
+        // "logs.action": 1,
+      },
+      limit: 40000
+    }).toPromise();
+
+    // let's make a map
+    const previousInvoiceIdMap = {};
+    invoices.map(invoice => {
+      if (invoice.previousInvoiceId) {
+        previousInvoiceIdMap[invoice.previousInvoiceId] = invoice;
+      }
+    });
+
+    console.log(previousInvoiceIdMap);
+
+    this.wronglyClickedRows = invoices.filter(invoice => {
+      // 1. as some one's previous invoice
+      // 2. this invoice marked as payment complete!
+      // 3. next's payments DOESNT inlcude this payment
+      const next = previousInvoiceIdMap[invoice._id];
+      if (!next) {
+        return false;
+      }
+
+      const nextPaymentsIncludeThis = next.payments && next.payments.some(p => Math.abs(p.amount - next.previousBalance) < 0.02);
+      // if (invoice._id === '5bda4701510879021e993003') {
+      if (invoice._id === '5ac6ce1f29d1581400d3b0f5') {
+
+        console.log(invoice);
+        console.log(next);
+        console.log(nextPaymentsIncludeThis);
+      }
+      return next && invoice.isPaymentCompleted && !nextPaymentsIncludeThis;
+
+    });
+
+  }
+
+  async populateOverdue() {
+
+    // non-canceled,
+    // not payment completed
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isPaymentCompleted: { $ne: true },
+        isCanceled: { $ne: true },
+        isSent: true,
+        balance: { $gt: 0 } // only when they owe use money!
+      },
+      projection: {
+        "logs.time": 1,
+        "logs.action": 1,
+        "logs.user": 1,
+        balance: 1,
+        commission: 1,
+        "restaurant.id": 1,
+        "restaurant.name": 1,
+        fromDate: 1,
+        toDate: 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    console.log(invoices);
+
+    // organize by restaurant id
+    const idRowMap = {};
+    invoices.map(invoice => {
+      if (idRowMap[invoice.restaurant.id]) {
+        idRowMap[invoice.restaurant.id].invoices.push(new Invoice(invoice));
+      } else {
+        idRowMap[invoice.restaurant.id] = {
+          restaurant: invoice.restaurant,
+          invoices: [new Invoice(invoice)]
+        };
+      }
+    });
+
+    const collectionLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "logs.type": "collection"
+      },
+      projection: {
+        "logs.time": 1,
+        "logs.response": 1,
+        "logs.username": 1,
+        "logs.type": 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    collectionLogs.map(restaurant => {
+      if (idRowMap[restaurant._id]) {
+        idRowMap[restaurant._id].logs = (restaurant.logs || []).filter(log => log.type === 'collection');
+      }
+    });
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        "gmbOwnerships.status": 'Published',
+        qmenuId: { $exists: 1 }
+      },
+      projection: {
+        qmenuId: 1,
+        "gmbOwnerships.status": 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    const ownedGmbBizList = gmbBizList.filter(gmbBiz => gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published');
+    console.log(ownedGmbBizList);
+
+    ownedGmbBizList.map(biz => {
+      if (idRowMap[biz.qmenuId]) {
+        idRowMap[biz.qmenuId].ownedGmb = true;
+      }
+    });
+
+    collectionLogs.map(restaurant => {
+      if (idRowMap[restaurant._id]) {
+        idRowMap[restaurant._id].logs = (restaurant.logs || []).filter(log => log.type === 'collection');
+      }
+    });
+
+    // now lets filter:
+    // 1. more than 2 month of recent invoice
+    // 2. or having more than one!
+
+    this.overdueRows = Object.keys(idRowMap).map(id => idRowMap[id]);
+    const overdueSpan = 48 * 24 * 3600000;
+    this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 1 || (row.invoices[0] && row.invoices[0].toDate.valueOf() - row.invoices[0].fromDate.valueOf() > overdueSpan));
+    // sort by name
+    // this.overdueRows.sort((row1, row2) => row1.restaurant.name > row2.restaurant.name ? 1 : (row1.restaurant.name < row2.restaurant.name ? -1 : 0));
+    // sort by total commission
+    this.overdueRows.map(row => row.totalCommission = row.invoices.reduce((sum, invoice) => sum + invoice.commission, 0));
+    this.overdueRows.sort((row1, row2) => row2.totalCommission - row1.totalCommission);
+  }
+
+  getTotalUnpaid() {
+    return this.overdueRows.reduce((sum, row) => sum + row.totalCommission, 0);
+  }
+
+  guessInvoiceDates(someDate) {
+    // 1 - 15 --> previous month: 16 - month end
+    // otherwise 1 - 15 of same month
+    if (someDate.getDate() > 15) {
+      return this.formatDate(new Date(someDate.getFullYear(), someDate.getMonth(), 15))
+    } else {
+      return this.formatDate(new Date(someDate.getFullYear(), someDate.getMonth(), 0))
+    }
+  }
+
+  // return 2017-2-12
+  private formatDate(d) {
+    let month = '' + (d.getMonth() + 1);
+    let day = '' + d.getDate();
+    const year = d.getFullYear();
+    if (month.length < 2) { month = '0' + month; }
+    if (day.length < 2) { day = '0' + day; }
+    return [year, month, day].join('-');
+  }
+
+  async findMissingInvoices() {
+    this.apiRequesting = true;
+    if (!this.toDate) {
+      return alert('To Date is required!');
+    }
+
+    const uptoDate = new Date(this.toDate);
+
+    // find all invoices that are not canceled
+    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        disabled: 1,
+        "serviceSettings.paymentMethods": 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    // calculate the list!
+    const restaurantInvoicesDict = {};
+    allRestaurants.map(r => {
+      restaurantInvoicesDict[r._id] = {
+        restaurant: r,
+        invoices: [],
+        overlappedInvoices: [],
+        gappedInvoices: [],
+        gaps: [],
+        hasLast: false,
+        orders: []
+      };
+
+      // get payments
+      const paymentMethods = [];
+      (r.serviceSettings || []).map(ss => paymentMethods.push(...ss.paymentMethods || []));
+      // remove cash!
+      restaurantInvoicesDict[r._id].paymentMethods = [...new Set(paymentMethods)].filter(p => p !== 'CASH');
+    });
+
+
+    // find all invoices that are not canceled, upto the toDate
+    const nonCanceledInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isCanceled: { $ne: true }
+      },
+      projection: {
+        fromDate: 1,
+        toDate: 1,
+        "restaurant.id": 1,
+        "restaurant.name": 1,
+        "rateSchedules.commission": 1,
+        "total": 1,
+        isPaymentCompleted: 1,
+        balance: 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    nonCanceledInvoices.map(i => {
+      const item = restaurantInvoicesDict[i.restaurant.id];
+      if (!item) {
+        console.log('No restaurant found: ', i.restaurant.name);
+      } else {
+        item.invoices.push(new Invoice(i));
+      }
+    });
+
+    // let's compute end result
+    allRestaurants.map(r => {
+      const item = restaurantInvoicesDict[r._id];
+      // sort invoices by startDate
+      item.invoices.sort((i1, i2) => i1.fromDate.valueOf() - i2.fromDate.valueOf());
+
+      for (let i = 0; i < item.invoices.length - 1; i++) {
+        if (item.invoices[i + 1].fromDate.valueOf() < item.invoices[i].toDate.valueOf()) {
+          item.overlappedInvoices.push(item.invoices[i + 1]);
+        }
+        if (item.invoices[i + 1].fromDate.valueOf() > item.invoices[i].toDate.valueOf() + 48 * 3600000) {
+          item.gappedInvoices.push(item.invoices[i + 1]);
+          const fromDate = new Date(item.invoices[i].toDate);
+          const toDate = new Date(item.invoices[i + 1].fromDate);
+          fromDate.setDate(fromDate.getDate() + 1);
+          toDate.setDate(toDate.getDate() - 1);
+          item.gaps.push({
+            fromDate: fromDate,
+            toDate: toDate,
+            orders: []
+          })
+        }
+      }
+
+      const conservativeToDate = new Date(this.toDate);
+
+      item.hasLast = item.invoices.some(i => i.fromDate.valueOf() < conservativeToDate.valueOf() && i.toDate.valueOf() > conservativeToDate.valueOf());
+      // never had invoices: query last 30 days
+      this.rows.push(item);
+
+    });
+
+    // query orders for those missing last invoice!
+
+    let rowsWithMissingLastWithoutInvoices = this.rows.filter(r => !r.hasLast && r.invoices.length === 0);
+    let rowsWithMissingLastWithInvoices = this.rows.filter(r => !r.hasLast && r.invoices.length > 0);
+
+    console.log(rowsWithMissingLastWithInvoices.length);
+    console.log(rowsWithMissingLastWithoutInvoices.length);
+
+    // already having invoices: query since last invoice date
+    // remove Peking Restaurant (free)
+    rowsWithMissingLastWithInvoices = rowsWithMissingLastWithInvoices.filter(r => r.restaurant._id !== '57e9574c1d1ef2110045e665');
+
+
+    const batchSize = 150;
+
+    // const batchedRows = Array(Math.ceil(rowsWithMissingLastWithInvoices.length / batchSize)).fill(0).map((i, index) => rowsWithMissingLastWithInvoices.slice(index * batchSize, (index + 1) * batchSize));
+    const batchedRows = Array(Math.ceil(this.rows.length / batchSize)).fill(0).map((i, index) => this.rows.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedRows) {
+      const toDateE = new Date(this.toDate);
+      toDateE.setDate(toDateE.getDate() + 1);
+      const fromDateE = new Date(this.toDate);
+      fromDateE.setDate(fromDateE.getDate() - 180);
+
+      const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: {
+          restaurant: { $in: batch.map(row => ({ $oid: row.restaurant._id })) },
+          $and: [
+            {
+              createdAt: { $lte: { $date: toDateE } }
+            },
+            {
+              createdAt: { $gte: { $date: fromDateE } }
+            }]
+        },
+        projection: {
+          createdAt: 1,
+          restaurant: 1
+        },
+        sort: {
+          createdAt: -1
+        },
+        limit: 4000
+      }).toPromise();
+
+      console.log(orders.length);
+      // match orders back to rows!
+      orders.map(order => {
+        const row = restaurantInvoicesDict[order.restaurant];
+        const createdAt = new Date(order.createdAt);
+        if (row && (row.invoices.length === 0 || createdAt > row.invoices[row.invoices.length - 1].toDate)) {
+          row.orders.push(order);
+        }
+        if (row) {
+          row.gaps.map(gap => {
+            if (gap.fromDate < createdAt && createdAt < gap.toDate) {
+              gap.orders.push(order);
+            }
+          });
+        }
+      });
+      // sort by order numbers!
+      this.rows.sort((r1, r2) => r2.orders.length - r1.orders.length);
+    }
+
+    this.apiRequesting = false;
+  }
 }

@@ -93,8 +93,8 @@
 							<td class="pl-1">{{(restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}</td>
 						</tr>
 						<tr>
-							<th class="text-right">isPilot</th>
-							<td class="pl-1">{{!!restaurant.isPilot}}</td>
+							<th class="text-right">Disabled</th>
+							<td class="pl-1">{{!!restaurant.disabled}}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -195,9 +195,9 @@
 							</tr>
 
 							<tr>
-								<th class="text-right">isPilot</th>
+								<th class="text-right">Disabled</th>
 								<td class="pl-1">
-									<input type="checkbox" [(ngModel)]="isPilot">
+									<input type="checkbox" [(ngModel)]="disabled">
 								</td>
 							</tr>
 							<tr>

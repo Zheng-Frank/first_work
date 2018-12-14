@@ -26,6 +26,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
 
   tabs = [];
   activeTab = 'Settings';
+  apiRequesting = false;
 
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
@@ -134,10 +135,10 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           deliveryEndMinutesBeforeClosing: 1,
           offsetToEST: 1,
           disableScheduling: 1,
-          isPilot: 1,
           domain: 1,
           websiteTemplateName: 1,
-          closedHours: 1
+          closedHours: 1,
+          disabled: 1
         },
         limit: 1
       })

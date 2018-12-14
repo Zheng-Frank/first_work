@@ -5,6 +5,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
+import { Invoice } from 'src/app/classes/invoice';
 
 @Component({
   selector: 'app-my-restaurant',
@@ -13,206 +14,150 @@ import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 })
 export class MyRestaurantComponent implements OnInit {
 
-  myList = [];
-
-  filteredList = [];
-
+  rows = [];
   now = new Date();
 
-  gmbOwnership;
-  googleListingOwner;
-  outstandingTask;
+  isSuperUser = false;
+  username;
+  usernames = [];
 
+  constructor(private _api: ApiService, private _global: GlobalService) {
 
-  myColumnDescriptors = [
-    {
-      label: "Name",
-      paths: ['restaurant', 'name'],
-      sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
-    },
-    {
-      label: "Score",
-      paths: ['gmbBiz', 'score'],
-      sort: (a, b) => (a || 0) - (b || 0)
-    },
-    {
-      label: "Created",
-      paths: ['restaurant', 'createdAt'],
-      sort: (a, b) => a.valueOf() - b.valueOf()
-    },
-    {
-      label: "GMB",
-      paths: ['gmbBiz'],
-      sort: (a, b) => {
-        if (a === b) {
-          return 0;
-        }
-        if (!a) {
-          return -1;
-        }
-        if (!b) {
-          return 1;
-        }
-        if (a.getAccountEmail() > b.getAccountEmail()) {
-          return 1;
-        }
-        if (a.getAccountEmail() < b.getAccountEmail()) {
-          return -1;
-        }
-        return 0;
-      }
-    },
-    {
-      label: "Website"
-    },
-    {
-      label: "Tasks"
-    }
-  ];
+  }
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
-
-  myRestaurants = [];
   async ngOnInit() {
-    const myUsername = this._global.user.username;
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    this.isSuperUser = ['gary', 'chris', 'dixon'].indexOf(this._global.user.username) >= 0;
+    this.username = this._global.user.username;
+    this.usernames = [this.username];
+    if (this.isSuperUser) {
+      const users = await this._api.get(environment.adminApiUrl + 'generic', { resource: 'user', limit: 1000 }).toPromise();
+      this.usernames = users.map(user => user.username);
+      this.usernames.sort();
+    }
+    this.populate();
+
+  }
+
+  changeUser() {
+    this.populate();
+  }
+
+  async populate() {
+    const myUsername = this.username;
+    const myRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
+      query: {
+        "$or": [
+          { "rateSchedules.agent": myUsername.toLowerCase() },
+          { "rateSchedules.agent": myUsername[0].toUpperCase() + myUsername.toLowerCase().slice(1) }
+        ]
+      },
       projection: {
         name: 1,
-        'rateSchedules.agent': 1,
-        'googleAddress.formatted_address': 1,
-        createdAt: 1
+        "googleAddress.formatted_address": 1,
+        "phones.phoneNumber": 1,
+        "phones.type": 1,
+        disabled: 1,
+        createdAt: 1,
+        rateSchedules: 1
       },
-      limit: 8000
+      limit: 6000
     }).toPromise();
 
-    const myRestaurants = restaurants.filter(r => (r.rateSchedules || []).some(rs => (rs.agent || '').toLowerCase() === myUsername));
+    const restaurantRowMap = {};
+
+    this.rows = myRestaurants.map(r => {
+      const row = {
+        restaurant: new Restaurant(r),
+        phone: (r.phones || []).filter(p => p.type === 'Business').map(p => p.phoneNumber)[0],
+        tasks: [],
+        invoices: [],
+        showDetails: false
+      };
+      restaurantRowMap[r._id] = row;
+      return row;
+    });
+
+    this.rows.sort((r1, r2) => r1.name > r2.name ? 1 : (r1.name < r2.name ? -1 : 0));
 
     const batchSize = 200;
     const batchedRestaurants = Array(Math.ceil(myRestaurants.length / batchSize)).fill(0).map((i, index) => myRestaurants.slice(index * batchSize, (index + 1) * batchSize));
 
-    const myGmbBizList = [];
+    const gmbBizIdMap = {};
 
     for (let batch of batchedRestaurants) {
       const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
-          qmenuId: { $in: batch.map(r => r._id) }
+          qmenuId: { $in: batch.map(r => r._id) },
+          isCanceled: { $ne: true }
+        },
+        projection: {
+          gmbOwnerships: { $slice: -1 },
         },
         limit: batchSize
       }).toPromise();
-      myGmbBizList.push(...gmbBizList.map(gmb => new GmbBiz(gmb)));
-    }
-    // query open Tasks
+      gmbBizList.map(gmbBiz => {
+        if (gmbBiz.qmenuId && restaurantRowMap[gmbBiz.qmenuId]) {
+          gmbBizIdMap[gmbBiz._id] = gmbBiz;
 
+          const row = restaurantRowMap[gmbBiz.qmenuId];
+          row.gmbBiz = gmbBiz;
+          row.published = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published';
+          row.suspended = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Suspended';
+        }
+      });
+
+      let invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        query: {
+          "restaurant.id": { $in: batch.map(r => r._id) }
+        },
+        projection: {
+          isCanceled: 1,
+          commission: 1,
+          fromDate: 1,
+          toDate: 1,
+          isPaymentCompleted: 1,
+          "restaurant.id": 1
+        },
+        limit: 2000
+      }).toPromise();
+      invoices = invoices.filter(i => !i.isCanceled);
+      invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(new Invoice(i)));
+
+      this.rows.map(row => row.collected = row.invoices.filter(i => i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
+      this.rows.map(row => row.notCollected = row.invoices.filter(i => !i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
+      this.rows.map(row => {
+        row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
+        row.earned = row.commission * row.collected;
+      });
+    }
+
+    // query open Tasks
     const openTasks = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'task',
       query: {
-        result: null
+        result: null,
+        "relatedMap.gmbBizId": { $exists: 1 }
       },
       projection: {
         name: 1,
         "relatedMap.gmbBizId": 1,
         resultAt: 1,
-        createdAt: 1,
-        scheduledAt: 1
       },
       limit: 2000
     }).toPromise();
 
-    const restaurantMap = {};
-    const gmbBizMap = {};
-
-    myRestaurants.map(r => { restaurantMap[r._id] = { restaurant: r }; restaurantMap[r._id].outstandingTasks = []; r.createdAt = new Date(r.createdAt); });
-    myGmbBizList.map(gmbBiz => restaurantMap[gmbBiz.qmenuId].gmbBiz = gmbBiz);
-
-    myGmbBizList.map(gmb => gmbBizMap[gmb._id] = gmb);
-
     openTasks.map(task => {
-      task.scheduledAt = new Date(task.scheduledAt);
-      const gmbBizId = (task.relatedMap || {}).gmbBizId;
-      if (gmbBizMap[gmbBizId]) {
-        restaurantMap[gmbBizMap[gmbBizId].qmenuId].outstandingTasks.push(task);
+      if (gmbBizIdMap[task.relatedMap.gmbBizId] && restaurantRowMap[gmbBizIdMap[task.relatedMap.gmbBizId].qmenuId]) {
+        restaurantRowMap[gmbBizIdMap[task.relatedMap.gmbBizId].qmenuId].tasks.push(task);
       }
     });
-
-    this.myList = Object.values(restaurantMap);
-    this.myList.sort((a, b) => a.restaurant.name > b.restaurant.name ? 1 : (a.restaurant.name < b.restaurant.name ? -1 : 0));
-
-    this.filter();
   }
 
-  filter() {
-    this.filteredList = this.myList;
-    switch (this.gmbOwnership) {
-      case 'qmenu':
-        this.filteredList = this.filteredList.filter(b => b.gmbBiz && b.gmbBiz.getAccountEmail());
-        break;
-      case 'NOT qmenu':
-        this.filteredList = this.filteredList.filter(b => !b.gmbBiz || !b.gmbBiz.getAccountEmail());
-        break;
-      default:
-        break;
-    }
-
-    switch (this.googleListingOwner) {
-      case 'qmenu':
-        this.filteredList = this.filteredList.filter(b => b.gmbBiz && b.gmbBiz.gmbOwner === 'qmenu');
-        break;
-
-      case 'NOT qmenu':
-        this.filteredList = this.filteredList.filter(b => !b.gmbBiz || b.gmbBiz.gmbOwner !== 'qmenu');
-        break;
-
-      default:
-        break;
-    }
-
-    switch (this.outstandingTask) {
-      case 'exist':
-        this.filteredList = this.filteredList.filter(b => b.outstandingTasks && b.outstandingTasks.length > 0);
-        break;
-      case 'non-exist':
-        this.filteredList = this.filteredList.filter(b => !b.outstandingTasks || b.outstandingTasks.length === 0);
-        break;
-      default:
-        break;
-    }
-
-  }
-
-  getEncodedGoogleSearchString(gmbBiz: GmbBiz) {
-    if (gmbBiz) {
-      return encodeURI(gmbBiz.name + ' ' + gmbBiz.address);
-    }
-  }
-
-  getGmbCount() {
-    return this.filteredList.filter(l => l.gmbBiz && l.gmbBiz.getAccountEmail()).length;
-  }
-
-  getLogo(gmbBiz: GmbBiz) {
-    if (gmbBiz.bizManagedWebsite && gmbBiz.gmbOwner === 'qmenu') {
-      return GlobalService.serviceProviderMap['qmenu-gray'];
-    }
-    return GlobalService.serviceProviderMap[gmbBiz.gmbOwner];
-  }
-
-  getTaskClass(task) {
-    const day = 24 * 3600 * 1000;
-    const diff = this.now.valueOf() - task.scheduledAt.valueOf();
-    if (diff > day) {
-      return 'danger';
-    }
-
-    if (diff > 0) {
-      return 'warning';
-    }
-
-    if (diff > -1 * day) {
-      return 'info';
-    }
-    return 'success';
+  getTotal(field) {
+    return this.rows.reduce((sum, row) => sum + row[field], 0);
   }
 
 }

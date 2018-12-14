@@ -45,6 +45,14 @@
     </div>
   </div>
 
+  <div class="mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-task" [checked]="log.type === 'collection'" (change)="toggleIsCollection()">
+      <label class="form-check-label" for="id-task"> Invoice Debt Collection</label>
+    </div>
+  </div>
+
+
   <!-- Create New Task Option -->
   <div class="mb-3" *ngIf="isNewLog()">
     <div class="form-check">
@@ -54,7 +62,8 @@
   </div>
 
   <div class="card border-info mb-3" *qIf="hasTask">
-    <div class="card-header my-2"><i class="fas fa-exclamation"></i> Write down any comments in Response field and the text
+    <div class="card-header my-2"><i class="fas fa-exclamation"></i> Write down any comments in Response field and the
+      text
       in Reponse field will be copied to task comments.
       <div><strong>* Select a task template below:</strong></div>
     </div>

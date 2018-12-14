@@ -647,12 +647,23 @@ export class GmbService {
 
     // conditions to create a account transfer  task:
     // 1. requester is not qmenu;
-    // 2. and no outstanding similar task pending (not closed)
-    // 3. and restaurant is not qmenu partner (ignoreGmbRequest = true)
-
+    // 2. and no outstanding similar task pending (not closed)    
+    // 3. restaurant not disabled!
+    // 4. and restaurant is not qmenu partner (ignoreGmbRequest = true)
     const myAccountEmails = idsAndTasksAndAccounts[2].map(a => a.email);
     const nonQmenuRequest = matchedNewRequests.filter(r => myAccountEmails.indexOf(r.email.toLowerCase()) < 0);
-    const afterIgnore = nonQmenuRequest.filter(r => bizMap[r.gmbBizId] && !bizMap[r.gmbBizId].ignoreGmbOwnershipRequest);
+    const disabledRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        disabled: true
+      },
+      projection: {
+        name: 1
+      },
+      limit: 1000
+    }).toPromise();
+    const onlyRestaurantEnabled = nonQmenuRequest.filter(r => bizMap[r.gmbBizId] && (!bizMap[r.gmbBizId].qmenuId || !disabledRestaurants.some(restaurant => restaurant._id === bizMap[r.gmbBizId].qmenuId)));
+    const afterIgnore = onlyRestaurantEnabled.filter(r => bizMap[r.gmbBizId] && !bizMap[r.gmbBizId].ignoreGmbOwnershipRequest);
 
     const afterIgnoreAsending = afterIgnore.sort((r1, r2) => (r1.date['$date'] || r1.date).valueOf() - (r2.date['$date'] || r2.date).valueOf());
     console.log('afterIgnoreAsending:', afterIgnoreAsending);

@@ -44,6 +44,11 @@
       <option>any</option>
       <option>in qMenu DB</option>
       <option>not in qMenu DB</option>
+
+      <option>bad service settings</option>
+      <option>bad menus</option>
+      <option>bad rate schedules</option>
+      
     </select>
 
     <div class="form-check ml-4">
@@ -65,24 +70,25 @@
 </div>
 
 <q-table [rows]="filteredMyBizList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let biz;">
+  <tr *tableRowTemplate="let biz;" class="{{biz.restaurant && biz.restaurant.disabled ? 'app-muted' : ''}}">
     <td>
       <div class="dropdown">
         <button class="btn btn-link dropdown-toggle font-weight-bold pl-0" type="button" data-toggle="dropdown">
           {{biz.gmbBiz.name}}
         </button>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" target="_blank" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">qMenu Restaurant Details</a>
-          <a class="dropdown-item" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
-            Listing
-          </a>
-        </div>
-      </div>
-      <div class="text-muted">
-        <small>{{biz.gmbBiz.address}}</small>
-      </div>
+        <div class="
+    dropdown-menu">
+    <a class="dropdown-item" target="_blank" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">qMenu Restaurant Details</a>
+    <a class="dropdown-item" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
+      Listing
+    </a>
+    </div>
+    </div>
+    <div class="text-muted">
+      <small>{{biz.gmbBiz.address}}</small>
+    </div>
 
-      <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
+    <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
     </td>
     <td>
       <ng-container *ngIf="biz.qmenuIdDays >= 0">{{biz.qmenuIdDays}} days</ng-container>

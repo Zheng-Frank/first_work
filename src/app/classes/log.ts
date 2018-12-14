@@ -14,6 +14,8 @@ export class Log {
   adjustmentAmount: number;
   adjustmentReason: string;
 
+  type: string;
+
   constructor(log?: any) {
     if (log) {
       // copy every fields

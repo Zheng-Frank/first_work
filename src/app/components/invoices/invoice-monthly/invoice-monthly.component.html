@@ -1,4 +1,155 @@
 <h1 class="text-center">Monthly Invoices</h1>
+<!-- <app-log-editor></app-log-editor> -->
+<div class="clearfix">
+  <div class="float-left form-inline">
+
+  </div>
+  <div class="float-right">
+    <div class="pb-2">
+      <button class="btn btn-primary" (click)="toggleAction('overdue')">Find Overdue Invoices</button>
+      <!-- <button class="btn btn-primary" (click)="toggleAction('wrongClick')">Find Mistaken Invoices</button> -->
+      <button class="btn btn-primary" (click)="toggleAction('missing')">Find Missing/Gapped Invoices</button>
+    </div>
+  </div>
+</div>
+<div class="card text-left bg-light" *qIf="action==='wrongClick'">
+  <div class="card-body">
+    <table class="table">
+      <tr>
+        <th>Restaurant</th>
+      </tr>
+      <tr *ngFor="let row of wronglyClickedRows">
+        <td>
+          <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
+          <div><small>{{row.restaurant.id}}</small></div>
+        </td>
+      </tr>
+
+    </table>
+  </div>
+</div>
+<div class="card text-left bg-light" *qIf="action==='overdue'">
+  <div class="card-body">
+    * Last invoice spans over 2+ months, or having two consequent unpaid invoices. <strong>Total unpaied =
+      {{getTotalUnpaid() | currency:'USD':'symbol'}}</strong>
+    <div class="text-right">
+      <div class="pb-2">
+        <button class="btn btn-primary" (click)="populateOverdue()"><i class="fas fa-sync-alt"></i> Reload</button>
+      </div>
+    </div>
+    <table class="table">
+      <tr>
+        <th>Restaurant</th>
+        <th>Invoices</th>
+        <th>Unpaid Balance</th>
+        <th>GMB</th>
+        <th>Collection Logs</th>
+      </tr>
+      <tr *ngFor="let row of overdueRows">
+        <td>
+          <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
+          <div><small>{{row.restaurant.id}}</small></div>
+        </td>
+        <td>
+          <table class="table table-borderless table-sm">
+            <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : ''}}">
+              <td>
+                {{invoice.fromDate | date:'MMM d yyyy'}} - {{invoice.toDate | date:'MMM d'}}
+              </td>
+              <td>
+                {{invoice.commission | currency:'USD':'symbol'}}
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td>{{row.totalCommission | currency:'USD':'symbol'}}</td>
+        <td>
+          <img *ngIf="row.ownedGmb" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+        </td>
+        <td>
+          <table class="table table-borderless table-sm">
+            <tr *ngFor="let log of row.logs">
+              <td>
+                {{log.username}}
+              </td>
+              <td>
+                {{log.time | date:'MMM d'}}
+              </td>
+              <td>
+                {{log.response}}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+<div class="card text-left bg-light" *qIf="action==='missing'">
+  <div class="card-body">
+    <div class="form-group row">
+      <label for="to-date" class="col-4 col-form-label">To Date</label>
+      <div class="col-8">
+        <input class="form-control" id="to-date" type="date" [(ngModel)]="toDate">
+      </div>
+    </div>
+    <div class="text-right mt-1">
+      <button type="button" class="btn btn-secondary" (click)="showFind = false">Cancel</button>
+      <button class="btn btn-primary" (click)="findMissingInvoices()" [qLoading]="apiRequesting">Submit</button>
+    </div>
+
+    <label class="checkbox-inline">
+      <input type="checkbox" [(ngModel)]="overlappedOrGappedOnly"> Show overlapped or gapped only</label>
+
+    <table class="table">
+      <tr>
+        <th>Restaurant</th>
+        <th>ID</th>
+        <th>Overlapped</th>
+        <th>Gapped</th>
+        <th>Uninvoiced Orders</th>
+        <th>Payment Methods</th>
+        <th>Total Invoices</th>
+      </tr>
+
+      <tr *ngFor="let row  of getOverlappedOrgappedRows()" class="{{row.overlappedInvoices.length > 0 || row.gappedInvoices.length > 0 ? 'text-danger' : ''}} {{row.restaurant.disabled? 'app-muted' : ''}}">
+        <td>
+          {{row.restaurant.name}}
+        </td>
+        <td>
+          <a target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant._id}}</a>
+        </td>
+        <td>
+          <span class="badge badge-danger mx-1" *ngFor="let i of row.overlappedInvoices">{{i.fromDate | date:
+            "shortDate"}}
+            <span *ngIf="i.isPaymentCompleted && i.balance < 0">
+              overpaid
+            </span>
+            <span *ngIf="i.isPaymentCompleted && i.balance > 0">
+              overcharged
+            </span>
+          </span>
+        </td>
+        <td>
+          <span class="badge badge-danger mx-1" *ngFor="let gap of row.gaps">{{gap.fromDate | date: "shortDate"}} -
+            {{gap.toDate | date: "shortDate"}} ({{gap.orders.length}})</span>
+        </td>
+        <td>
+          {{row.orders.length}}
+        </td>
+        <td>
+          {{row.paymentMethods}}
+        </td>
+        <td>
+          {{row.invoices.length}}
+        </td>
+
+      </tr>
+    </table>
+
+  </div>
+</div>
+
 <div *ngFor="let date of startDatesOfEachMonth" class="card text-center hvr-underline-reveal mx-1 mt-2" style="width: 20rem; display: inline-block; cursor: pointer;">
   <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
     <h4 class="card-title">{{date | date:'MMMM y' }}</h4>
