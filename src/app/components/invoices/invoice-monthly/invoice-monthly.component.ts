@@ -83,11 +83,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
     // organize by restaurant id
     const idRowMap = {};
-    const beingReferencedIds = new Set();
     invoices.map(invoice => {
-      if (invoice.previousInvoiceId) {
-        beingReferencedIds.add(invoice.previousInvoiceId);
-      }
       if (idRowMap[invoice.restaurant.id]) {
         idRowMap[invoice.restaurant.id].invoices.push(new Invoice(invoice));
       } else {
@@ -97,6 +93,22 @@ export class InvoiceMonthlyComponent implements OnInit {
         };
       }
     });
+
+
+    const havingReferenceInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        previousInvoiceId: { $exists: true }
+      },
+      projection: {
+        previousInvoiceId: 1
+      },
+      limit: 80000
+    }).toPromise();
+
+
+    const beingReferencedIds = new Set(havingReferenceInvoices.map(i => i.previousInvoiceId));
+
 
     const collectionLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -146,17 +158,26 @@ export class InvoiceMonthlyComponent implements OnInit {
     });
 
     // now lets filter:
-    // 1. more than 2 non-paid
-    // 2. or one-nonpaid but having no payments
 
     this.overdueRows = Object.keys(idRowMap).map(id => idRowMap[id]);
     // remove being referenced invoices because they are handled!
 
+    console.log('before', this.overdueRows.length);
+
+    // treating rolled as paid
     this.overdueRows.map(row => row.invoices = row.invoices.filter(i => !beingReferencedIds.has(i._id)));
+    this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 0);
+    console.log('after', this.overdueRows.length);
 
     const overdueSpan = 48 * 24 * 3600000;
-    this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 1 || (row.invoices[0] && row.invoices[0].toDate.valueOf() - row.invoices[0].fromDate.valueOf() > overdueSpan) || !row.invoices[0].payments || row.invoices[0].payments.length === 0);
+    this.overdueRows = this.overdueRows.filter(row =>
+      // over timespan
+      row.invoices[row.invoices.length - 1].toDate.valueOf() - row.invoices[0].fromDate.valueOf() > overdueSpan
+      // previous is not paid (rolled over)
+      || (row.invoices[0].previousInvoiceId && (row.invoices[0].payments || []).length === 0)
+    );
 
+    console.log('after 2', this.overdueRows.length);
     // for each row, let's remove being rolled ones!
 
     // sort by total unpaid desc
@@ -165,8 +186,9 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   getTotalUnpaid() {
-    return this.overdueRows.reduce((sum, row) => sum + row.unpaidBalance, 0);
+    return this.overdueRows.reduce((sum, row) => sum + (row.unpaidBalance > 0 ? row.unpaidBalance : 0), 0);
   }
+
 
   guessInvoiceDates(someDate) {
     // 1 - 15 --> previous month: 16 - month end
