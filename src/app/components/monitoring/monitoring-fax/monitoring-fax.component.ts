@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { count } from 'rxjs/operators';
 
 @Component({
   selector: 'app-monitoring-fax',
@@ -16,13 +17,16 @@ export class MonitoringFaxComponent implements OnInit {
       label: "Restaurant"
     },
     {
-      label: "Customized"
-    },
-    {
       label: "Fax Number"
     },
     {
+      label: "Error Count"
+    },
+    {
       label: "Errors"
+    },
+    {
+      label: "Succeeded Once"
     }
   ];
 
@@ -36,7 +40,8 @@ export class MonitoringFaxComponent implements OnInit {
       resource: 'event',
       query: {
         "name": "fax-status",
-        "params.body.success": "false"
+        "params.body.success": "false",
+        "createdAt": { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
       },
       projection: {
         "params.body": 1
@@ -92,19 +97,45 @@ export class MonitoringFaxComponent implements OnInit {
         }
       });
     });
-    // sort?
-    this.rows.sort((r1, r2) => (r1.restaurant || {}).name > (r2.restaurant || {}).name ? 1 : ((r1.restaurant || {}).name < (r2.restaurant || {}).name ? -1 : 0));
 
-    const settings = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'system'
+    // const settings = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'system'
+    // }).toPromise();
+
+    // settings[0].faxSettings.customized[0].toPhones.map(phone => {
+    //   if (numberFailureLogs[phone]) {
+    //     numberFailureLogs[phone].customized = true;
+    //   }
+    // });
+
+    // once succeeded numbers!
+    const onceSucceededJobs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'job',
+      query: {
+        "name": "send-order-fax",
+        "logs.status": "success",
+        "params.to": { $in: this.rows.map(row => row.phone) },
+        "createdAt": { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
+      },
+      projection: {
+        "params.to": 1
+      },
+      limit: 30000
     }).toPromise();
 
-    settings[0].faxSettings.customized[0].toPhones.map(phone => {
-      if (numberFailureLogs[phone]) {
-        numberFailureLogs[phone].customized = true;
-      }
+    const onceSucceededNumbers = [...new Set(onceSucceededJobs.map(job => job.params.to))];
+    console.log(onceSucceededJobs);
+    this.rows.map(row => {
+      row.succeededOnce = onceSucceededNumbers.some(number => number === row.phone);
     });
 
+    // sort?
+    this.rows.sort((r1, r2) => this.getErrorsCount(r2) - this.getErrorsCount(r1));
+
+  }
+
+  getErrorsCount(row) {
+    return Object.keys(row.errors).map(key => row.errors[key]).reduce((sum, count) => sum + count, 0);
   }
 
 }
