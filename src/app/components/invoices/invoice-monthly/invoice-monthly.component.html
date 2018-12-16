@@ -7,25 +7,8 @@
   <div class="float-right">
     <div class="pb-2">
       <button class="btn btn-primary" (click)="toggleAction('overdue')">Find Overdue Invoices</button>
-      <!-- <button class="btn btn-primary" (click)="toggleAction('wrongClick')">Find Mistaken Invoices</button> -->
       <button class="btn btn-primary" (click)="toggleAction('missing')">Find Missing/Gapped Invoices</button>
     </div>
-  </div>
-</div>
-<div class="card text-left bg-light" *qIf="action==='wrongClick'">
-  <div class="card-body">
-    <table class="table">
-      <tr>
-        <th>Restaurant</th>
-      </tr>
-      <tr *ngFor="let row of wronglyClickedRows">
-        <td>
-          <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
-          <div><small>{{row.restaurant.id}}</small></div>
-        </td>
-      </tr>
-
-    </table>
   </div>
 </div>
 <div class="card text-left bg-light" *qIf="action==='overdue'">
@@ -44,6 +27,7 @@
         <th>Unpaid Balance</th>
         <th>GMB</th>
         <th>Collection Logs</th>
+        <th></th>
       </tr>
       <tr *ngFor="let row of overdueRows">
         <td>
@@ -54,15 +38,16 @@
           <table class="table table-borderless table-sm">
             <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : ''}}">
               <td>
-                {{invoice.fromDate | date:'MMM d yyyy'}} - {{invoice.toDate | date:'MMM d'}}
+                <a target="_blank" href="#/invoices/{{invoice._id}}"> {{invoice.fromDate | date:'MMM d yyyy'}} -
+                  {{invoice.toDate | date:'MMM d'}}</a>
               </td>
               <td>
-                {{invoice.commission | currency:'USD':'symbol'}}
+                {{invoice.balance | currency:'USD':'symbol'}}
               </td>
             </tr>
           </table>
         </td>
-        <td>{{row.totalCommission | currency:'USD':'symbol'}}</td>
+        <td>{{row.unpaidBalance | currency:'USD':'symbol'}}</td>
         <td>
           <img *ngIf="row.ownedGmb" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
         </td>
@@ -80,6 +65,9 @@
               </td>
             </tr>
           </table>
+        </td>
+        <td>
+          <button class="btn btn-info" (click)="refreshOverdueRowLogs(row)">Refresh Logs</button>
         </td>
       </tr>
     </table>
