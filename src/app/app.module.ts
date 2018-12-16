@@ -86,7 +86,7 @@ import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb
 import { GmbBizEditorComponent } from './components/gmbs2/gmb-biz-editor/gmb-biz-editor.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { EmailCodeReaderComponent } from './components/gmbs2/email-code-reader/email-code-reader.component';
 import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/task-gmb-transfer.component';
 import { GmbService } from './services/gmb.service';
@@ -124,7 +124,8 @@ import { HolidayMonitorComponent } from './components/system/holiday-monitor/hol
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
 import { MonitoringGodaddyComponent } from './components/monitoring/monitoring-godaddy/monitoring-godaddy.component';
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
- 
+import { MonitoringEmailComponent } from './components/monitoring/monitoring-email/monitoring-email.component';
+
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -231,7 +232,9 @@ import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/m
     HolidayMonitorComponent,
     MonitoringDashboardComponent,
     MonitoringGodaddyComponent,
-    MonitoringFaxComponent
+    MonitoringFaxComponent,
+    MonitoringEmailComponent,
+    
   ],
   imports: [
     BrowserModule,
