@@ -19,6 +19,7 @@ export class InvoiceMonthlyComponent implements OnInit {
   overlappedOrGappedOnly = false;
 
   overdueRows = [];
+  rolledButLaterCompletedRows = [];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     // we start from now and back unti 10/1/2016
@@ -52,6 +53,52 @@ export class InvoiceMonthlyComponent implements OnInit {
     if (this.action === 'overdue') {
       this.populateOverdue();
     }
+
+    if (this.action === 'rolledButLaterPaid') {
+      this.populateRolledButLaterPaid();
+    }
+
+  }
+
+  async populateRolledButLaterPaid() {
+    this.rolledButLaterCompletedRows = [];
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isCanceled: { $ne: true }
+      },
+      projection: {
+        createdAt: 1,
+        fromDate: 1,
+        toDate: 1,
+        previousInvoiceId: 1,
+        balance: 1,
+        "logs.time": 1,
+        "logs.value": 1,
+        isPaymentCompleted: 1,
+        isPaymentSent: 1,
+        "restaurant.name": 1,
+        "restaurant.id": 1
+      },
+      limit: 200000
+    }).toPromise();
+
+    const dict = {};
+    invoices.map(invoice => dict[invoice._id] = invoice);
+
+    invoices.map(invoice => {
+      const previousInvoice = dict[invoice.previousInvoiceId];
+      if (previousInvoice && previousInvoice.balance !== 0) {
+        // test if the action was done AFTER current invoice is created
+        if (previousInvoice.isPaymentCompleted && previousInvoice.logs.some(log => typeof log.value === 'string' && log.value.startsWith('isPaymentCompleted') && new Date(log.time) > new Date(invoice.createdAt))) {
+          this.rolledButLaterCompletedRows.push(invoice);
+        } else if (previousInvoice.isPaymentSent && !previousInvoice.isPaymentCompleted) { // send is same as paid
+          this.rolledButLaterCompletedRows.push(invoice);
+        }
+      }
+    });
+
+    console.log(this.rolledButLaterCompletedRows);
   }
 
   async populateOverdue() {
