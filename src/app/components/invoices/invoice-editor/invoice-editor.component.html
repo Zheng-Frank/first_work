@@ -15,7 +15,7 @@
       </td>
     </tr>
     <ng-container *ngFor="let invoice of getNonCanceledAndSortedDESCInvoices(); let i = index">
-      <tr *ngIf="allDisplayed || i >= getNonCanceledAndSortedDESCInvoices().length - startRows">
+      <tr *ngIf="allDisplayed || i >= getNonCanceledAndSortedDESCInvoices().length - startRows" class="{{invoice.isPaymentCompleted ? '' : 'text-light bg-warning'}}">
         <td class="text-center">
           <input class="form-check-input" type="checkbox" [checked]="previousInvoice === invoice" (change)="togglePreviousInvoice(invoice)">
         </td>
@@ -23,7 +23,7 @@
         <td><small *ngIf="invoice.previousInvoiceId">{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date:
             'MMM dd'}}</small></td>
         <td>{{invoice.balance | currency:'USD':'symbol'}}</td>
-        <td>{{invoice.isPaymentCompleted}}</td>
+        <td>{{invoice.isPaymentCompleted ? 'Yes' : 'Payment NOT CLEARED'}}</td>
       </tr>
     </ng-container>
   </table>

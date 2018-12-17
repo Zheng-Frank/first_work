@@ -20,6 +20,9 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   overdueRows = [];
   rolledButLaterCompletedRows = [];
+  paymentSentButNotCompletedRows = [];
+
+  beingRolledInvoiceSet = new Set();
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     // we start from now and back unti 10/1/2016
@@ -58,6 +61,53 @@ export class InvoiceMonthlyComponent implements OnInit {
       this.populateRolledButLaterPaid();
     }
 
+    if (this.action === 'paymentSentButNotCompleted') {
+      this.populatePaymentSentButNotCompleted();
+    }
+
+  }
+
+  async populatePaymentSentButNotCompleted() {
+
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isCanceled: { $ne: true },
+        isPaymentSent: true,
+        isPaymentCompleted: { $ne: true },
+      },
+      projection: {
+        createdAt: 1,
+        fromDate: 1,
+        toDate: 1,
+        balance: 1,
+        "restaurant.name": 1,
+        "restaurant.id": 1
+      },
+      limit: 200000
+    }).toPromise();
+
+    const beingRolledInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        previousInvoiceId: { $exists: true },
+        isCanceled: { $ne: true },
+      },
+      projection: {
+        previousInvoiceId: 1
+      },
+      limit: 200000
+    }).toPromise();
+
+    this.beingRolledInvoiceSet = new Set(beingRolledInvoices.map(invoice => invoice.previousInvoiceId));
+    this.paymentSentButNotCompletedRows = invoices;
+    // sort by balance
+    this.paymentSentButNotCompletedRows.sort((i1, i2) => i1.balance - i2.balance);
+    console.log(this.beingRolledInvoiceSet);
+  }
+
+  beingRolled(invoice) {
+    return this.beingRolledInvoiceSet.has(invoice._id);
   }
 
   async populateRolledButLaterPaid() {

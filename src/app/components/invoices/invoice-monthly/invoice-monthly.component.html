@@ -6,11 +6,46 @@
   </div>
   <div class="float-right">
     <div class="pb-2">
+      <button class="btn btn-primary" (click)="toggleAction('paymentSentButNotCompleted')">Find Payment Sent but not
+        Complete
+        Invoices</button>
       <button class="btn btn-primary" (click)="toggleAction('rolledButLaterPaid')">Find Rolled but Later Completed
         Invoices</button>
       <button class="btn btn-primary" (click)="toggleAction('overdue')">Find Overdue Invoices</button>
       <button class="btn btn-primary" (click)="toggleAction('missing')">Find Missing/Gapped Invoices</button>
     </div>
+  </div>
+</div>
+
+
+<div class="card text-left bg-light" *qIf="action==='paymentSentButNotCompleted'">
+  <div class="card-body">
+    * Payment sent but not yet completed. Total {{paymentSentButNotCompletedRows.length}}
+
+    <table class="table">
+      <tr>
+        <th>Restaurant</th>
+        <th>Invoice</th>
+        <th>Balance</th>
+        <th>Has Next Invoice</th>
+
+      </tr>
+      <tr *ngFor="let row of paymentSentButNotCompletedRows" class="{{beingRolled(row) ? 'text-danger' : ''}}">
+        <td> <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
+          <div><small>{{row.restaurant.id}}</small></div>
+        </td>
+        <td>
+          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | date:'MMM d yyyy'}} -
+            {{row.toDate | date:'MMM d'}}</a>
+        </td>
+        <td>
+          {{row.balance | currency:'USD':'symbol'}}
+        </td>
+        <td>
+          {{beingRolled(row)}}
+        </td>
+      </tr>
+    </table>
   </div>
 </div>
 
