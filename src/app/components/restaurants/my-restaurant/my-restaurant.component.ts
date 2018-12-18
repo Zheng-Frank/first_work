@@ -21,6 +21,64 @@ export class MyRestaurantComponent implements OnInit {
   username;
   usernames = [];
 
+
+  myColumnDescriptors = [
+    {
+      label: 'Name',
+      paths: ['restaurant', 'name'],
+      sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
+    },
+    {
+      label: 'Created At',
+      paths: ['restaurant', 'createdAt'],
+      sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf()
+    },
+    {
+      label: 'GMB Owner'
+    },
+    {
+      label: 'Websites'
+    },
+    {
+      label: 'Ongoing Tasks'
+    },
+    {
+      label: 'Invoices'
+    },
+    {
+      label: 'Not Collected'
+    },
+    {
+      label: 'Collected'
+    },
+    {
+      label: 'Restaurant Rate'
+    },
+    {
+      label: 'Your Cut'
+    },
+    {
+      label: 'Earned',
+      paths: ['earned'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'Not Earned',
+      paths: ['notEarned'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'Onetime Sale'
+    },
+    {
+      label: 'Bonus'
+    },
+    {
+      label: 'Subtotal'
+    }
+
+  ];
+
   constructor(private _api: ApiService, private _global: GlobalService) {
 
   }
@@ -59,7 +117,10 @@ export class MyRestaurantComponent implements OnInit {
         "phones.type": 1,
         disabled: 1,
         createdAt: 1,
-        rateSchedules: 1
+        rateSchedules: 1,
+        agent: 1,
+        onetimeCommision: 1,
+        bonusCommission: 1
       },
       limit: 6000
     }).toPromise();
@@ -128,6 +189,9 @@ export class MyRestaurantComponent implements OnInit {
       this.rows.map(row => row.notCollected = row.invoices.filter(i => !i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
       this.rows.map(row => {
         row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
+        row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
+        row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
+
         row.earned = row.commission * row.collected;
         row.notEarned = row.commission * row.notCollected;
       });
