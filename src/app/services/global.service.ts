@@ -130,6 +130,12 @@ export class GlobalService {
           fa: "fas fa-cog",
           accessibleRoles: ["ADMIN"]
         },
+        {
+          name: "Transactions",
+          href: "#/transaction",
+          fa: "fas fa-dollar-sign",
+          accessibleRoles: ["ADMIN"]
+        },
         { name: "Me", href: "#/profile", fa: "fas fa-user" }
       ];
 

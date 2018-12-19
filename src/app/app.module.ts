@@ -125,6 +125,7 @@ import { MonitoringDashboardComponent } from './components/monitoring/monitoring
 import { MonitoringGodaddyComponent } from './components/monitoring/monitoring-godaddy/monitoring-godaddy.component';
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
 import { MonitoringEmailComponent } from './components/monitoring/monitoring-email/monitoring-email.component';
+import { TransactionDashboardComponent } from './components/transaction/transaction-dashboard/transaction-dashboard.component';
 
 @NgModule({
   declarations: [
@@ -234,6 +235,7 @@ import { MonitoringEmailComponent } from './components/monitoring/monitoring-ema
     MonitoringGodaddyComponent,
     MonitoringFaxComponent,
     MonitoringEmailComponent,
+    TransactionDashboardComponent,
     
   ],
   imports: [

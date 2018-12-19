@@ -29,6 +29,7 @@ import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-lis
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
+import { TransactionDashboardComponent } from './components/transaction/transaction-dashboard/transaction-dashboard.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
@@ -60,7 +61,7 @@ const routes: Routes = [
   { path: 'gmb-requests', component: GmbRequestListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   
   { path: 'automation', component: AutomationDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
-
+  { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: '**', redirectTo: '/home' }
 ];
 

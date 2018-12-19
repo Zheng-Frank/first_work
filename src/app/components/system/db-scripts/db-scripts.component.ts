@@ -1854,7 +1854,7 @@ zealrestaurant.us`;
         {
           from: new Date('1/1/2019'),
           base: 75,
-          bonusTiers: {
+          bonusThresholds: {
             4: 150,
             2: 75,
             1: 50
@@ -1870,7 +1870,7 @@ zealrestaurant.us`;
         {
           from: new Date('7/17/2018'),
           base: 60,
-          bonusTiers: {
+          bonusThresholds: {
             2: 150,
             1: 50
           }
@@ -1880,7 +1880,7 @@ zealrestaurant.us`;
       jason: [
         {
           base: 50,
-          bonusTiers: {
+          bonusThresholds: {
             2: 150,
             1: 50
           }
@@ -1890,7 +1890,7 @@ zealrestaurant.us`;
         {
           from: new Date('7/1/2018'),
           base: 50,
-          bonusTiers: {
+          bonusThresholds: {
             2: 150,
             1: 50
           }
@@ -1910,7 +1910,7 @@ zealrestaurant.us`;
         {
           from: new Date('7/1/2018'),
           base: 40,
-          bonusTiers: {
+          bonusThresholds: {
             3: 40
           }
         },
@@ -1935,9 +1935,9 @@ zealrestaurant.us`;
       limit: 6000
     }).toPromise();
 
-    // uncomputedRestaurants = uncomputedRestaurants.filter(r => r._id === '5b44768aaa01a61400cd6458');
+    // uncomputedRestaurants = uncomputedRestaurants.filter(r => r._id === '5b5bfd764f600614008fcff5');
 
-    
+    console.log(uncomputedRestaurants);
     // uncomputedRestaurants.length = 80;
     // update salesBase
     const updatedRestaurantPairs = [];
@@ -1953,17 +1953,18 @@ zealrestaurant.us`;
           const policy = policies[i];
           const from = policy.from || new Date(0);
           const to = policy.to || new Date();
-          if (createdAt > from && createdAt < to && r.salesBase !== policy.base) {
-            r.salesBase = policy.base;
-            updated = true;
+          if (createdAt > from && createdAt < to) {
             appliedPolicy = policy;
-            break;
+            if (r.salesBase !== policy.base) {
+              r.salesBase = policy.base;
+              updated = true;
+              break;
+            }
           }
         }
       }
-
       // compute three month thing!
-      if (appliedPolicy && appliedPolicy.bonusTiers && new Date().valueOf() - createdAt.valueOf() > 4 * 30 * 24 * 3600000) {
+      if (appliedPolicy && appliedPolicy.bonusThresholds && new Date().valueOf() - createdAt.valueOf() > 4 * 30 * 24 * 3600000) {
         // query orders and apply calculations
         const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'order',
@@ -1992,9 +1993,11 @@ zealrestaurant.us`;
           });
           r.salesThreeMonthAverage = counter / 90.0;
 
-          for (let key of Object.keys(appliedPolicy.bonusTiers)) {
-            if (r.salesThreeMonthAverage > +key) {
-              r.salesBonus = appliedPolicy.bonusTiers[key];
+          const thresholds = Object.keys(appliedPolicy.bonusThresholds).map(key => +key);
+          thresholds.sort().reverse();
+          for (let threshold of thresholds) {
+            if (r.salesThreeMonthAverage > threshold) {
+              r.salesBonus = appliedPolicy.bonusThresholds[threshold + ''];
               console.log('Found bonus!');
               console.log(r);
               break;

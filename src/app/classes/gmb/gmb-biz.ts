@@ -45,6 +45,8 @@ export class GmbBiz {
     updatedAt: Date;
     createdAt: Date;
 
+    disableAutoTask: boolean;
+
     constructor(biz?: any) {
         if (biz) {
             // copy every fields

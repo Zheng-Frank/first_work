@@ -244,6 +244,9 @@ export class NewRestaurantComponent implements OnInit {
         const newGmbBiz = { gmbOwnerships: [] };
         ['address', 'cid', 'gmbWebsite', 'name', 'place_id', 'phone'].map(field => newGmbBiz[field] = this.restaurant.googleListing[field]);
         newGmbBiz['qmenuId'] = this.restaurant._id;
+        if (!this.applyGmb) {
+          newGmbBiz['disableAutoTask'] = true;
+        }
         const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [newGmbBiz]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Created new GMB');
         newGmbBiz['_id'] = bizs[0];
@@ -265,6 +268,7 @@ export class NewRestaurantComponent implements OnInit {
         await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Created new Apply GMB Ownership task');
       } else {
+
         this._global.publishAlert(AlertType.Info, 'No apply GMB ownership task is created!');
       }
 
