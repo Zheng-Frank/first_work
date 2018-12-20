@@ -45,7 +45,9 @@
     <td>{{transaction.currency}}</td>
     <td>{{transaction.exchangeRate}}</td>
     <td>{{transaction.means}}</td>
-    <td>{{transaction.description}}</td>
+    <td class="text-truncate">
+      <pre>{{transaction.description}}</pre>
+    </td>
     <td>{{transaction.inputUsername}}</td>
     <td>{{transaction.inputTime | date : 'shortDate'}}</td>
   </tr>

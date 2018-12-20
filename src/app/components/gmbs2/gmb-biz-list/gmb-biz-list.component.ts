@@ -130,7 +130,10 @@ export class GmbBizListComponent implements OnInit {
         resource: "restaurant",
         projection: {
           "disabled": 1,
+          "serviceSettings.name": 1,
           "serviceSettings.paymentMethods": 1,
+          "deliverySettings.charge": 1,
+          "deliverySettings": { $slice: -1 },
           "menus.hours": 1,
           "menus.disabled": 1,
           "rateSchedules.rate": 1,
@@ -298,6 +301,11 @@ export class GmbBizListComponent implements OnInit {
 
       case 'bad service settings':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.serviceSettings || !b.restaurant.serviceSettings.some(setting => setting.paymentMethods && setting.paymentMethods.length > 0)));
+        break;
+      case 'bad delivery settings':
+        // has delivery in service settings, but no deliverySettings found!
+        this.filteredMyBizList = this.filteredMyBizList.filter(
+          b => b.restaurant && b.restaurant.serviceSettings && b.restaurant.serviceSettings.some(ss => ss.name === 'Delivery' && ss.paymentMethods.length > 0) && (!b.restaurant.deliverySettings || b.restaurant.deliverySettings.length === 0));
         break;
       case 'bad menus':
         // bad: 1. no menu at all

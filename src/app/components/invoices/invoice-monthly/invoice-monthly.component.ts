@@ -315,8 +315,14 @@ export class InvoiceMonthlyComponent implements OnInit {
 
     const uptoDate = new Date(this.toDate);
 
+    console.log(uptoDate);
+
+    // if(uptoDate) {
+    //   throw 'test'
+    // }
+
     // find all invoices that are not canceled
-    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
         name: 1,
@@ -346,6 +352,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       restaurantInvoicesDict[r._id].paymentMethods = [...new Set(paymentMethods)].filter(p => p !== 'CASH');
     });
 
+    // allRestaurants = allRestaurants.filter(r => r.serviceSettings && r.serviceSettings.some(ss => ss.paymentMethods.indexOf('QMENU') >= 0))
 
     // find all invoices that are not canceled, upto the toDate
     const nonCanceledInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -426,7 +433,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     const batchedRows = Array(Math.ceil(this.rows.length / batchSize)).fill(0).map((i, index) => this.rows.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedRows) {
-      const toDateE = new Date(this.toDate);
+      const toDateE = new Date(uptoDate);
       toDateE.setDate(toDateE.getDate() + 1);
       const fromDateE = new Date(this.toDate);
       fromDateE.setDate(fromDateE.getDate() - 180);
@@ -455,16 +462,23 @@ export class InvoiceMonthlyComponent implements OnInit {
 
       console.log(orders.length);
       // match orders back to rows!
+
+    
       orders.map(order => {
         const row = restaurantInvoicesDict[order.restaurant];
         const createdAt = new Date(order.createdAt);
-        if (row && (row.invoices.length === 0 || createdAt > row.invoices[row.invoices.length - 1].toDate)) {
+        // if (row && (row.invoices.length === 0 || createdAt > row.invoices[row.invoices.length - 1].toDate)) {
+        if (row && createdAt < uptoDate && !(row.invoices || []).some(invoice => invoice.fromDate < createdAt && invoice.toDate.valueOf() + 24 * 3600000 > createdAt.valueOf())) {
           row.orders.push(order);
+
+          console.log(uptoDate);
+          console.log(createdAt);
+          console.log(createdAt < uptoDate)
         }
         if (row) {
           row.gaps.map(gap => {
             if (gap.fromDate < createdAt && createdAt < gap.toDate) {
-              gap.orders.push(order);
+              console.log(order);
             }
           });
         }

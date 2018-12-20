@@ -140,6 +140,7 @@ export class TransactionDashboardComponent implements OnInit {
       limit: 60000
     }).toPromise();
     this.transactions = transactions.map(t => new Transaction(t));
+    this.transactions.sort((t1, t2) => t1.time.valueOf() - t2.time.valueOf());
   }
 
 
