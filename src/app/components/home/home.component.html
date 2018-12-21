@@ -25,13 +25,13 @@
 
 </div>
 
-<div class="card">
+<div class="card" *ngIf="isVisible('fax-problems')">
     <div class="card-body">
         <h5 class="card-title"><i class="fas fa-globe"></i> Fax Problems</h5>
         <app-monitoring-fax></app-monitoring-fax>
     </div>
 </div>
-<div class="card">
+<div class="card" *ngIf="isVisible('email-problems')">
     <div class="card-body">
         <h5 class="card-title"><i class="fas fa-globe"></i> Email Problems</h5>
         <app-monitoring-email></app-monitoring-email>

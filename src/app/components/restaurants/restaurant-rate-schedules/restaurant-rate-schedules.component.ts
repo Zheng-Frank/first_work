@@ -42,8 +42,8 @@ export class RestaurantRateSchedulesComponent implements OnInit {
       rs.agent = (rs.agent || '').trim().toLowerCase();
     });
 
-    const oldR = { _id: this.restaurant.id };
-    const newR: any = { _id: this.restaurant.id };
+    const oldR = { _id: this.restaurant.id || this.restaurant['_id'] };
+    const newR: any = { _id: this.restaurant.id || this.restaurant['_id'] };
     newR.rateSchedules = this.rateSchedulesInEditing.filter(rs => rs.date);
 
     this._api

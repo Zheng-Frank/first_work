@@ -1,8 +1,101 @@
-<div *ngIf="invoice" class="card mt-2 no-print">
+<!-- View ONLY panel -->
+
+<div *ngIf="invoice && !canEdit() && canView()" class="card mt-2 no-print">
     <div class="card-body">
         <div *ngIf="invoice.isCanceled" class="text-danger app-invoice-canceled text-muted">
-           <h5>CANCELED</h5>
-           <button class="btn btn-link" (click)="toggleInvoiceStatus('isCanceled')">Uncancel</button> 
+            <h5>CANCELED</h5>
+        </div>
+        <div *ngIf="!invoice.isCanceled">
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input [disabled]="true" class="form-check-input" type="checkbox" [checked]="invoice.isSent">
+                    Invoice Sent
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input [disabled]="true" class="form-check-input" type="checkbox" [checked]="invoice.isPaymentSent">
+                    Payment Sent
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input [disabled]="true" class="form-check-input" type="checkbox" [checked]="invoice.isPaymentCompleted">
+                    Payment Completed
+                </label>
+            </div>
+            <a routerLink="/restaurants/{{restaurantId}}">Restaurant Details</a>
+        </div>
+
+        <div class="mt-2">
+            <button class="btn btn-info" (click)="setDisplay('logs')">
+                <i class="fas fa-history"></i> Show Logs({{getUnresolvedLogs().length}})</button>
+        </div>
+
+        <div *qIf="display === 'logs'">
+            <h4>Restaurant Logs
+                <small>(*click to edit)</small>
+            </h4>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Order#</th>
+                        <th scope="col">Problem</th>
+                        <th scope="col">Response</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let log of restaurantLogs" class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}">
+
+                        <td class="text-nowrap">{{log.time | date: 'shortDate'}}
+                            <div class="text-muted">
+                                <small>{{log.time | date: 'shortTime'}}</small>
+                            </div>
+                        </td>
+                        <td>{{log.relatedOrders}}</td>
+                        <td>{{log.problem}}</td>
+                        <td>{{log.response}}</td>
+
+                        <td>
+                            <button *ngIf="!log.resolved" class="btn btn-link p-0" (click)="resolve(log)">Mark as
+                                Resolved</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Invoice Logs</h4>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let log of invoice.logs">
+                        <td>{{log.user}}</td>
+                        <td>{{log.time | date: 'short'}}</td>
+                        <td>{{log.action}}</td>
+                        <td>{{log.value || log.result?.fax?.status}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- ACCOUNTANT PANEL -->
+<div *ngIf="invoice && canEdit()" class="card mt-2 no-print">
+    <div class="card-body">
+        <div *ngIf="invoice.isCanceled" class="text-danger app-invoice-canceled text-muted">
+            <h5>CANCELED</h5>
+            <button class="btn btn-link" (click)="toggleInvoiceStatus('isCanceled')">Uncancel</button>
         </div>
         <div *ngIf="!invoice.isCanceled">
             <div class="form-check form-check-inline">

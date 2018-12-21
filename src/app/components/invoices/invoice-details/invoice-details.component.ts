@@ -35,7 +35,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   invoiceChannels = [];
 
-  display = 'paymentMeans';
+  display;
 
   adjustmentDescription;
   adjustmentIsCredit = true;
@@ -47,6 +47,17 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) {
     this.loadInvoice();
+    if (this.canEdit) {
+      this.display = 'paymentMeans';
+    }
+  }
+
+  canEdit() {
+    return this._global.user.roles.some(r => ['ADMIN', 'ACCOUNTANT'].indexOf(r) >= 0);
+  }
+
+  canView() {
+    return this._global.user.roles.some(r => r === 'INVOICE_VIEWER');
   }
 
   isCreditCardOrStripe() {

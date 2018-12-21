@@ -194,7 +194,7 @@ export class GlobalService {
   }
 
   isUserInRoles(roles) {
-    return this._user.roles.some(role => roles.indexOf(role) >= 0);
+    return (this._user.roles || []).some(role => roles.indexOf(role) >= 0);
   }
 
   static serviceProviderMap = {

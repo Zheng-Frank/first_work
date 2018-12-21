@@ -17,6 +17,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   rows = [];
   overlappedOrGappedOnly = false;
+  qmenuCollectedOnly = false;
 
   overdueRows = [];
   rolledButLaterCompletedRows = [];
@@ -38,12 +39,18 @@ export class InvoiceMonthlyComponent implements OnInit {
     console.log(this.toDate)
   }
 
-  getOverlappedOrgappedRows() {
+  getUninvoicedRows() {
+    let rows = this.rows;
+
     if (this.overlappedOrGappedOnly) {
-      return this.rows.filter(r => r.gappedInvoices.length > 0 || r.overlappedInvoices.length > 0);
-    } else {
-      return this.rows;
+      rows = rows.filter(r => r.gappedInvoices.length > 0 || r.overlappedInvoices.length > 0);
     }
+
+    if (this.qmenuCollectedOnly) {
+      rows = rows.filter(r => r.paymentMethods.some(pm => pm === 'QMENU'));
+    }
+
+    return rows;
   }
 
   async toggleAction(action) {
@@ -463,7 +470,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       console.log(orders.length);
       // match orders back to rows!
 
-    
+
       orders.map(order => {
         const row = restaurantInvoicesDict[order.restaurant];
         const createdAt = new Date(order.createdAt);
