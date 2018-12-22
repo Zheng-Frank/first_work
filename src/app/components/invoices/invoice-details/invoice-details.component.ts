@@ -53,7 +53,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   canEdit() {
-    return this._global.user.roles.some(r => ['ADMIN', 'ACCOUNTANT'].indexOf(r) >= 0);
+    return this._global.user.roles.some(r => ['ADMIN', 'ACCOUNTANT', 'CSR'].indexOf(r) >= 0);
   }
 
   canView() {

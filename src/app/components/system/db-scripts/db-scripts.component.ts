@@ -1877,6 +1877,22 @@ zealrestaurant.us`;
         },
       ],
 
+      
+      james: [
+        {
+          to: new Date('6/1/2018'),
+          base: 150
+        },
+        {
+          from: new Date('7/1/2018'),
+          base: 50,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+      ],
+
       jason: [
         {
           base: 50,
@@ -1905,6 +1921,11 @@ zealrestaurant.us`;
         {
           base: 0
         },
+      ],
+      mike: [
+        {
+          base: 150
+        }
       ],
       charity: [
         {
@@ -1964,7 +1985,7 @@ zealrestaurant.us`;
         }
       }
       // compute three month thing!
-      if (appliedPolicy && appliedPolicy.bonusThresholds && new Date().valueOf() - createdAt.valueOf() > 4 * 30 * 24 * 3600000) {
+      if (appliedPolicy && appliedPolicy.bonusThresholds && new Date().valueOf() - createdAt.valueOf() > 3 * 30 * 24 * 3600000) {
         // query orders and apply calculations
         const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'order',

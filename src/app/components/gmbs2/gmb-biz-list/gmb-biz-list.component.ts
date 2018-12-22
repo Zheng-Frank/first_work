@@ -254,6 +254,20 @@ export class GmbBizListComponent implements OnInit {
         this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.published && !b.suspended);
         break;
 
+      case 'problematic ownerships':
+        // keep switching account in short time
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => {
+          if (b.gmbBiz.gmbOwnerships && b.gmbBiz.gmbOwnerships.length > 3) {
+            // last 3 gmbownerships is very close and all being published or suspended
+            const ownerships = b.gmbBiz.gmbOwnerships.slice(-3);
+            if (new Date().valueOf() - new Date(ownerships[0].possessedAt).valueOf() < 7200000 && new Date(ownerships[2].possessedAt).valueOf() - new Date(ownerships[0].possessedAt).valueOf() < 3600000) {
+              return ownerships.every(ownership => ownership.status === 'Suspended' || ownership.status === 'Published');
+            }
+          }
+          return false;
+        });
+        break;
+
       case 'recently lost':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => b.lostDate && this.now.valueOf() - b.lostDate.valueOf() < 24 * 3600000);
         break;
