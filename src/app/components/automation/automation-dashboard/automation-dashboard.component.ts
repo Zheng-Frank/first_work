@@ -90,6 +90,7 @@ export class AutomationDashboardComponent implements OnInit {
               projection: {
                 bizManagedWebsite: 1,
                 useBizWebsite: 1,
+                useBizWebsiteForAll: 1,
                 qmenuWebsite: 1,
                 place_id: 1,
                 name: 1,

@@ -786,7 +786,8 @@ export class DbScriptsComponent implements OnInit {
       projection: {
         name: 1,
         bizManagedWebsite: 1,
-        useBizWebsite: 1
+        useBizWebsite: 1,
+        useBizWebsiteForAll: 1
       },
       limit: 5000
     }).toPromise();
