@@ -6,35 +6,133 @@
 </div>
 
 <h1 class="text-center">My Restaurants ({{rows.length}})</h1>
-
-<div>
-  Earned Total: {{getTotal('earned') | currency:'USD':'symbol'}}
-</div>
-<div>
-  Not Earned Total: {{getTotal('notEarned') | currency:'USD':'symbol'}}
-</div>
-<table class="table">
+<table class="table-boarderless card card-body mb-4">
   <tr>
-    <th>Name</th>
-    <th>Created At</th>
-    <th>GMB Owner</th>
-    <th>Websites</th>
-    <th>Ongoing Tasks</th>
-    <th>Invoices</th>
-    <th>Not Collected</th>
-    <th>Collected</th>
-    <th>Rate</th>
-    <th>Earned</th>
-    <th>Not Earned</th>
+    <td>
+      Earned Order Commission Total（订单分成）
+    </td>
+    <th class="text-right">
+      {{getTotal('earned') | currency:'USD':'symbol'}}
+    </th>
   </tr>
-  <tr *ngFor="let row of rows" class="{{row.restaurant.disabled ? 'bg-warning' : ''}}">
+  <tr>
+    <td>
+      One-time Sales Total （有效销售）
+    </td>
+    <th class="text-right">
+      {{getTotal('qualifiedSalesBase') | currency:'USD':'symbol'}}
+    </th>
+  </tr>
+
+  <tr>
+    <td>
+      3 Months Bonus Total（高质奖励）
+    </td>
+    <th class="text-right">
+      {{getTotal('qualifiedSalesBonus') | currency:'USD':'symbol'}}
+    </th>
+
+  </tr>
+
+  <tr>
+    <th class="text-right">
+      Total（总计）
+    </th>
+    <th class="text-right">
+      {{getTotal('subtotal') | currency:'USD':'symbol'}}
+    </th>
+  </tr>
+  <tr>
+    <td>
+      Not Earned Commissions（商家未付的潜在分成）
+    </td>
+    <th class="text-right">
+      {{getTotal('notEarned') | currency:'USD':'symbol'}}
+    </th>
+  </tr>
+  <tr>
+    <td>
+      Not Earned Sales（商家尚未付任何佣金）
+    </td>
+    <th class="text-right">
+      {{getTotal('unqualifiedSalesBase') | currency:'USD':'symbol'}}
+    </th>
+  </tr>
+  <tr>
+    <td>
+      Not Earned Bonuses（商家尚未付任何佣金）
+    </td>
+    <th class="text-right">
+      {{getTotal('unqualifiedSalesBonus') | currency:'USD':'symbol'}}
+    </th>
+  </tr>
+  <tr>
+    <th class="text-right">
+      Total（总计）
+    </th>
+    <th class="text-right">
+      {{getTotal('unqualifiedSubtotal') | currency:'USD':'symbol'}}
+    </th>
+  </tr>
+  <tr *ngIf="isSuperUser">
+    <th class="text-right">
+      ADMIN ONLY: Collected Commissions（总计）
+    </th>
+    <th class="text-right">
+      {{getTotal('collected') | currency:'USD':'symbol'}}
+    </th>
+  </tr>
+  <tr *ngIf="isSuperUser">
+    <th class="text-right">
+      ADMIN ONLY: Not Collected Commissions（总计）
+    </th>
+    <th class="text-right">
+      {{getTotal('notCollected') | currency:'USD':'symbol'}}
+    </th>
+  </tr>
+</table>
+
+<q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+  <tr *tableRowTemplate="let row;" class="{{row.restaurant.disabled ? 'bg-warning' : ''}}">
+    <th>{{rows.indexOf(row) + 1}}</th>
     <td class="text-nowrap {{row.restaurant.disabled ? 'app-muted' : ''}}">
-      <a *ngIf="isSuperUser" target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
-      <span *ngIf="!isSuperUser">{{row.restaurant.name}}</span>
+      <a target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
       <div><small>{{row.restaurant.googleAddress?.formatted_address | removeUsa}}</small></div>
       <div *ngIf="row.phone"><small>{{row.phone | phone}}</small></div>
     </td>
     <td>{{row.restaurant.createdAt | date: 'shortDate' }}</td>
+
+    <td class="text-nowrap">
+      <button class="btn btn-link" (click)="row.showDetails = !row.showDetails">{{row.invoices.length}} <i class="fas fa-caret-down"></i></button>
+      <table class="table table-borderless table-sm" *ngIf="row.showDetails">
+        <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : 'text-danger'}}">
+          <td>
+            <a target="_blank" href="#/invoices/{{invoice._id}}">{{invoice.fromDate | date:'MMM d yyyy'}} -
+              {{invoice.toDate | date:'MMM d'}}</a>
+          </td>
+          <td>
+            {{invoice.commission |
+            currency:'USD':'symbol'}}
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>{{row.rate | percent}}<span *ngIf="row.fixed"> + {{row.fixed | currency:'USD':'symbol'}}</span></td>
+    <td>{{row.notCollected | currency:'USD':'symbol'}}</td>
+
+    <td>{{row.collected | currency:'USD':'symbol'}}</td>
+    <td>{{row.commission | percent}}</td>
+    <td>{{row.earned | currency:'USD':'symbol'}}</td>
+    <td>{{row.notEarned | currency:'USD':'symbol'}}</td>
+    <td><span *ngIf="row.restaurant.salesBase">{{row.qualifiedSalesBase | currency:'USD':'symbol'}}</span></td>
+    <td><span *ngIf="row.restaurant.salesBonus">
+      {{row.restaurant.salesBonus}} --> {{row.qualifiedSalesBonus}}
+      {{row.qualifiedSalesBonus | currency:'USD':'symbol'}}
+        <div><small>avg. {{row.restaurant.salesThreeMonthAverage | number:'1.1-1'}} / day</small></div></span>
+    </td>
+    <th>{{row.subtotal | currency:'USD':'symbol'}}</th>
+
+
     <td class="text-center">
       <img *ngIf="row.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
       <img *ngIf="row.suspended" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
@@ -53,37 +151,7 @@
     <td>
       <div *ngFor="let task of row.tasks">{{task.name}}</div>
     </td>
-    <td class="text-nowrap">
-      <button class="btn btn-link" (click)="row.showDetails = !row.showDetails">{{row.invoices.length}} <i class="fas fa-caret-down"></i></button>
-      <table class="table table-borderless table-sm" *ngIf="row.showDetails">
-        <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : ''}}">
-          <td>
-            {{invoice.fromDate | date:'MMM d yyyy'}} - {{invoice.toDate | date:'MMM d'}}
-          </td>
-          <td>
-            {{invoice.commission |
-            currency:'USD':'symbol'}}
-          </td>
-        </tr>
-      </table>
-    </td>
-    <td>{{row.notCollected | currency:'USD':'symbol'}}</td>
-    <td>{{row.collected | currency:'USD':'symbol'}}</td>
-    <td>{{row.commission | percent}}</td>
-    <td>{{row.earned | currency:'USD':'symbol'}}</td>
-    <td>{{row.notEarned | currency:'USD':'symbol'}}</td>
+
   </tr>
-  <tr>
-    <th></th>
-    <th> </th>
-    <th> </th>
-    <th></th>
-    <th></th>
-    <th>Sum</th>
-    <th>{{getTotal('notCollected') | currency:'USD':'symbol'}}</th>
-    <th>{{getTotal('collected') | currency:'USD':'symbol'}}</th>
-    <th></th>
-    <th>{{getTotal('earned') | currency:'USD':'symbol'}}</th>
-    <th>{{getTotal('notEarned') | currency:'USD':'symbol'}}</th>
-  </tr>
-</table>
+
+</q-table>

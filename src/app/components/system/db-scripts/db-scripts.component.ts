@@ -786,7 +786,8 @@ export class DbScriptsComponent implements OnInit {
       projection: {
         name: 1,
         bizManagedWebsite: 1,
-        useBizWebsite: 1
+        useBizWebsite: 1,
+        useBizWebsiteForAll: 1
       },
       limit: 5000
     }).toPromise();
@@ -1175,7 +1176,7 @@ export class DbScriptsComponent implements OnInit {
         name: 1,
         "menus": 1
       },
-      limit: 4000
+      limit: 6000
     }).toPromise();
     console.log(havingNullRestaurants);
     // remove mi, empty mc, and empty menu!
@@ -1248,7 +1249,7 @@ export class DbScriptsComponent implements OnInit {
           "menus.mcs.mis.id": 1,
           "menus.mcs.mis.category": 1
         },
-        limit: 4000
+        limit: 6000
       }).toPromise();
 
       const restaurantWithDuplicatedMenuIds = batchedRestaurants.filter(r => {
@@ -1283,7 +1284,7 @@ export class DbScriptsComponent implements OnInit {
         name: 1,
         "menus": 1
       },
-      limit: 4000
+      limit: 6000
     }).toPromise();
 
     // remove duplicated ids
@@ -1803,4 +1804,262 @@ zealrestaurant.us`;
 
   }
 
+  async fixRateSchedules() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        rateSchedules: 1,
+        name: 1
+      },
+      limit: 6000
+    }).toPromise();
+    const updatedOldNewPairs = [];
+    const updates = restaurants.map(r => {
+      let updated = false;
+      r.rateSchedules = r.rateSchedules || [];
+      r.rateSchedules.map(rs => {
+        let agent = (rs.agent || '').trim().toLowerCase();
+        if (agent === 'hannah') {
+          agent = 'charity';
+        };
+        if (agent === '') {
+          agent = 'none';
+        }
+        if (agent !== rs.agent) {
+          updated = true;
+          rs.agent = agent;
+        }
+      });
+
+      if (updated) {
+        updatedOldNewPairs.push({
+          old: { _id: r._id, name: r.name },
+          new: { _id: r._id, name: r.name, rateSchedules: r.rateSchedules }
+        });
+      }
+    });
+    console.log(updatedOldNewPairs);
+    if (updatedOldNewPairs.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedOldNewPairs).toPromise();
+    }
+  }
+
+  async computeBonuse() {
+    // see google doc: https://docs.google.com/spreadsheets/d/1qEVa0rMYZsVZZs0Fpu1ItnaNsYfwt6i51EdQuDt753A/edit#gid=0
+    const policiesMap = {
+      sam: [
+        {
+          to: new Date('12/16/2018'),
+          base: 150
+        },
+        {
+          from: new Date('1/1/2019'),
+          base: 75,
+          bonusThresholds: {
+            4: 150,
+            2: 75,
+            1: 50
+          }
+        },
+      ],
+
+      kevin: [
+        {
+          to: new Date('7/16/2018'),
+          base: 150
+        },
+        {
+          from: new Date('7/17/2018'),
+          base: 60,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+      ],
+
+      
+      james: [
+        {
+          to: new Date('6/1/2018'),
+          base: 150
+        },
+        {
+          from: new Date('7/1/2018'),
+          base: 50,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+      ],
+
+      jason: [
+        {
+          base: 50,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+      ],
+      andy: [
+        {
+          from: new Date('7/1/2018'),
+          base: 50,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+        {
+          to: new Date('6/1/2018'),
+          base: 150
+        },
+      ],
+
+      billy: [
+        {
+          base: 0
+        },
+      ],
+      mike: [
+        {
+          base: 150
+        }
+      ],
+      charity: [
+        {
+          from: new Date('7/1/2018'),
+          base: 40,
+          bonusThresholds: {
+            3: 40
+          }
+        },
+        {
+          to: new Date('6/1/2018'),
+          base: 80
+        },
+      ],
+    };
+
+    let uncomputedRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        salesBonus: null
+      },
+      projection: {
+        name: 1,
+        salesBase: 1,
+        rateSchedules: 1,
+        createdAt: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    // uncomputedRestaurants = uncomputedRestaurants.filter(r => r._id === '5b5bfd764f600614008fcff5');
+
+    console.log(uncomputedRestaurants);
+    // uncomputedRestaurants.length = 80;
+    // update salesBase
+    const updatedRestaurantPairs = [];
+    for (let r of uncomputedRestaurants) {
+      const createdAt = new Date(r.createdAt);
+      let updated = false;
+      let appliedPolicy;
+      if (r.rateSchedules && r.rateSchedules.length > 0) {
+        const agent = r.rateSchedules[r.rateSchedules.length - 1].agent;
+
+        const policies = policiesMap[agent] || [];
+        for (let i = 0; i < policies.length; i++) {
+          const policy = policies[i];
+          const from = policy.from || new Date(0);
+          const to = policy.to || new Date();
+          if (createdAt > from && createdAt < to) {
+            appliedPolicy = policy;
+            if (r.salesBase !== policy.base) {
+              r.salesBase = policy.base;
+              updated = true;
+              break;
+            }
+          }
+        }
+      }
+      // compute three month thing!
+      if (appliedPolicy && appliedPolicy.bonusThresholds && new Date().valueOf() - createdAt.valueOf() > 3 * 30 * 24 * 3600000) {
+        // query orders and apply calculations
+        const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'order',
+          query: {
+            restaurant: { $oid: r._id },
+          },
+          projection: {
+            createdAt: 1
+          },
+          limit: 500, // 4 * 120 = max 480
+          sort: {
+            createdAt: 1
+          }
+        }).toPromise();
+        r.salesBonus = 0;
+        r.salesThreeMonthAverage = 0;
+
+        if (orders.length > 0) {
+          const firstCreatedAt = new Date(orders[0].createdAt);
+          let counter = 1;
+          const months3 = 90 * 24 * 3600000;
+          orders.map(order => {
+            if (new Date(order.createdAt).valueOf() - months3 < firstCreatedAt.valueOf()) {
+              counter++;
+            }
+          });
+          r.salesThreeMonthAverage = counter / 90.0;
+
+          const thresholds = Object.keys(appliedPolicy.bonusThresholds).map(key => +key);
+          thresholds.sort().reverse();
+          for (let threshold of thresholds) {
+            if (r.salesThreeMonthAverage > threshold) {
+              r.salesBonus = appliedPolicy.bonusThresholds[threshold + ''];
+              console.log('Found bonus!');
+              console.log(r);
+              break;
+            }
+          }
+        }
+        updated = true;
+      }
+
+      if (updated) {
+
+        const newR: any = {
+          _id: r._id,
+          salesBase: r.salesBase
+        };
+
+        if (r.salesBonus !== undefined) {
+          newR.salesBonus = r.salesBonus;
+        }
+
+        if (r.salesThreeMonthAverage !== undefined) {
+          newR.salesThreeMonthAverage = r.salesThreeMonthAverage;
+        }
+
+        updatedRestaurantPairs.push({
+          old: {
+            _id: r._id
+          },
+          new: newR
+        });
+      }
+    }; // end for each restaurant
+
+    console.log(updatedRestaurantPairs);
+
+    if (updatedRestaurantPairs.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurantPairs).toPromise();
+    }
+
+  }
+
 }
+

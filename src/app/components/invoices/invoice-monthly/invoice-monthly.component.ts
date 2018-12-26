@@ -17,8 +17,13 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   rows = [];
   overlappedOrGappedOnly = false;
+  qmenuCollectedOnly = false;
 
   overdueRows = [];
+  rolledButLaterCompletedRows = [];
+  paymentSentButNotCompletedRows = [];
+
+  beingRolledInvoiceSet = new Set();
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     // we start from now and back unti 10/1/2016
@@ -34,12 +39,18 @@ export class InvoiceMonthlyComponent implements OnInit {
     console.log(this.toDate)
   }
 
-  getOverlappedOrgappedRows() {
+  getUninvoicedRows() {
+    let rows = this.rows;
+
     if (this.overlappedOrGappedOnly) {
-      return this.rows.filter(r => r.gappedInvoices.length > 0 || r.overlappedInvoices.length > 0);
-    } else {
-      return this.rows;
+      rows = rows.filter(r => r.gappedInvoices.length > 0 || r.overlappedInvoices.length > 0);
     }
+
+    if (this.qmenuCollectedOnly) {
+      rows = rows.filter(r => r.paymentMethods.some(pm => pm === 'QMENU'));
+    }
+
+    return rows;
   }
 
   async toggleAction(action) {
@@ -52,6 +63,99 @@ export class InvoiceMonthlyComponent implements OnInit {
     if (this.action === 'overdue') {
       this.populateOverdue();
     }
+
+    if (this.action === 'rolledButLaterPaid') {
+      this.populateRolledButLaterPaid();
+    }
+
+    if (this.action === 'paymentSentButNotCompleted') {
+      this.populatePaymentSentButNotCompleted();
+    }
+
+  }
+
+  async populatePaymentSentButNotCompleted() {
+
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isCanceled: { $ne: true },
+        isPaymentSent: true,
+        isPaymentCompleted: { $ne: true },
+      },
+      projection: {
+        createdAt: 1,
+        fromDate: 1,
+        toDate: 1,
+        balance: 1,
+        "restaurant.name": 1,
+        "restaurant.id": 1
+      },
+      limit: 200000
+    }).toPromise();
+
+    const beingRolledInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        previousInvoiceId: { $exists: true },
+        isCanceled: { $ne: true },
+      },
+      projection: {
+        previousInvoiceId: 1
+      },
+      limit: 200000
+    }).toPromise();
+
+    this.beingRolledInvoiceSet = new Set(beingRolledInvoices.map(invoice => invoice.previousInvoiceId));
+    this.paymentSentButNotCompletedRows = invoices;
+    // sort by balance
+    this.paymentSentButNotCompletedRows.sort((i1, i2) => i1.balance - i2.balance);
+    console.log(this.beingRolledInvoiceSet);
+  }
+
+  beingRolled(invoice) {
+    return this.beingRolledInvoiceSet.has(invoice._id);
+  }
+
+  async populateRolledButLaterPaid() {
+    this.rolledButLaterCompletedRows = [];
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isCanceled: { $ne: true }
+      },
+      projection: {
+        createdAt: 1,
+        fromDate: 1,
+        toDate: 1,
+        previousInvoiceId: 1,
+        balance: 1,
+        "logs.time": 1,
+        "logs.value": 1,
+        isPaymentCompleted: 1,
+        isPaymentSent: 1,
+        "restaurant.name": 1,
+        "restaurant.id": 1
+      },
+      limit: 200000
+    }).toPromise();
+
+    const dict = {};
+    invoices.map(invoice => dict[invoice._id] = invoice);
+
+    invoices.map(invoice => {
+      const previousInvoice = dict[invoice.previousInvoiceId];
+      if (previousInvoice && previousInvoice.balance !== 0) {
+        // test if the action was done AFTER current invoice is created
+        if (previousInvoice.isPaymentCompleted && previousInvoice.logs.some(log => typeof log.value === 'string' && log.value.startsWith('isPaymentCompleted') && new Date(log.time) > new Date(invoice.createdAt))) {
+          this.rolledButLaterCompletedRows.push(invoice);
+        } else if (previousInvoice.isPaymentSent && !previousInvoice.isPaymentCompleted) { // send is same as paid
+          this.rolledButLaterCompletedRows.push(invoice);
+        }
+      }
+    });
+
+    console.log(this.rolledButLaterCompletedRows);
   }
 
   async populateOverdue() {
@@ -218,8 +322,14 @@ export class InvoiceMonthlyComponent implements OnInit {
 
     const uptoDate = new Date(this.toDate);
 
+    console.log(uptoDate);
+
+    // if(uptoDate) {
+    //   throw 'test'
+    // }
+
     // find all invoices that are not canceled
-    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
         name: 1,
@@ -249,6 +359,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       restaurantInvoicesDict[r._id].paymentMethods = [...new Set(paymentMethods)].filter(p => p !== 'CASH');
     });
 
+    // allRestaurants = allRestaurants.filter(r => r.serviceSettings && r.serviceSettings.some(ss => ss.paymentMethods.indexOf('QMENU') >= 0))
 
     // find all invoices that are not canceled, upto the toDate
     const nonCanceledInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -329,7 +440,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     const batchedRows = Array(Math.ceil(this.rows.length / batchSize)).fill(0).map((i, index) => this.rows.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedRows) {
-      const toDateE = new Date(this.toDate);
+      const toDateE = new Date(uptoDate);
       toDateE.setDate(toDateE.getDate() + 1);
       const fromDateE = new Date(this.toDate);
       fromDateE.setDate(fromDateE.getDate() - 180);
@@ -358,16 +469,23 @@ export class InvoiceMonthlyComponent implements OnInit {
 
       console.log(orders.length);
       // match orders back to rows!
+
+
       orders.map(order => {
         const row = restaurantInvoicesDict[order.restaurant];
         const createdAt = new Date(order.createdAt);
-        if (row && (row.invoices.length === 0 || createdAt > row.invoices[row.invoices.length - 1].toDate)) {
+        // if (row && (row.invoices.length === 0 || createdAt > row.invoices[row.invoices.length - 1].toDate)) {
+        if (row && createdAt < uptoDate && !(row.invoices || []).some(invoice => invoice.fromDate < createdAt && invoice.toDate.valueOf() + 24 * 3600000 > createdAt.valueOf())) {
           row.orders.push(order);
+
+          console.log(uptoDate);
+          console.log(createdAt);
+          console.log(createdAt < uptoDate)
         }
         if (row) {
           row.gaps.map(gap => {
             if (gap.fromDate < createdAt && createdAt < gap.toDate) {
-              gap.orders.push(order);
+              console.log(order);
             }
           });
         }

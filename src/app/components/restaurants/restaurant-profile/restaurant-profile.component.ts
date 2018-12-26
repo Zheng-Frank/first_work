@@ -93,6 +93,10 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.googleAddress = address;
   }
 
+  getMongoDate(mongoId) {
+    return new Date(parseInt(mongoId.substring(0, 8), 16) * 1000);
+  }
+
   toggleEditing() {
     this.address = new Address(this.restaurant.googleAddress);
     this.editing = !this.editing;

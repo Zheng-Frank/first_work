@@ -41,7 +41,7 @@ export class MonitoringFaxComponent implements OnInit {
       query: {
         "name": "fax-status",
         "params.body.success": "false",
-        "createdAt": { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
+        "createdAt": { $gt: new Date().valueOf() - 1 * 24 * 3600000 }
       },
       projection: {
         "params.body": 1
@@ -115,7 +115,7 @@ export class MonitoringFaxComponent implements OnInit {
         "name": "send-order-fax",
         "logs.status": "success",
         "params.to": { $in: this.rows.map(row => row.phone) },
-        "createdAt": { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
+        "createdAt": { $gt: new Date().valueOf() - 1 * 24 * 3600000 }
       },
       projection: {
         "params.to": 1

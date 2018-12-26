@@ -365,7 +365,11 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             environment.autoGmbUrl + 'updateWebsite', {
               email: toGmbAccount.email,
               password: toPassword,
-              website: gmbBiz.qmenuWebsite,
+              websiteUrl: (gmbBiz.useBizWebsite ? gmbBiz.bizManagedWebsite : undefined) || gmbBiz.qmenuWebsite,
+              menuUrl: (gmbBiz.useBizWebsiteForAll ? gmbBiz.bizManagedWebsite : undefined) || gmbBiz.qmenuWebsite,
+              orderAheadUrl: (gmbBiz.useBizWebsiteForAll ? gmbBiz.bizManagedWebsite : undefined) || gmbBiz.qmenuWebsite,
+              reservationsUrl: (gmbBiz.useBizWebsiteForAll ? gmbBiz.bizManagedWebsite : undefined) || gmbBiz.qmenuWebsite,
+
               appealId: this.transfer.appealId
             }
           ).toPromise();

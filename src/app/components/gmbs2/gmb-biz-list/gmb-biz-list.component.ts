@@ -130,7 +130,10 @@ export class GmbBizListComponent implements OnInit {
         resource: "restaurant",
         projection: {
           "disabled": 1,
+          "serviceSettings.name": 1,
           "serviceSettings.paymentMethods": 1,
+          "deliverySettings.charge": 1,
+          "deliverySettings": { $slice: -1 },
           "menus.hours": 1,
           "menus.disabled": 1,
           "rateSchedules.rate": 1,
@@ -210,8 +213,9 @@ export class GmbBizListComponent implements OnInit {
   }
 
   getEncodedGoogleSearchString(gmbBiz: GmbBiz) {
-    //remove & specially, since it will cause search by restaurant name only
-    return encodeURI(gmbBiz.name.replace('&', '') + ' ' + gmbBiz.address);
+    // keep ONLY alpha numberical + space characters
+    // return encodeURI(gmbBiz.name.replace('&', '') + ' ' + gmbBiz.address);
+    return encodeURI((gmbBiz.name + ' ' + gmbBiz.address).replace(/[^a-zA-Z 0-9\-]+/g, ""));
   }
 
   debounce(event) {
@@ -249,6 +253,26 @@ export class GmbBizListComponent implements OnInit {
         break;
       case 'NOT qmenu':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.published && !b.suspended);
+        break;
+
+      case 'problematic ownerships':
+        // keep switching account in short time
+        this.filteredMyBizList = this.filteredMyBizList.filter(b => {
+          if (b.gmbBiz.gmbOwnerships && b.gmbBiz.gmbOwnerships.length > 3) {
+            // last 3 gmbownerships is very close and all being published or suspended, and the last scan was no more than 4 hours ago!
+            const ownerships = b.gmbBiz.gmbOwnerships.slice(-3);
+            if (new Date().valueOf() - new Date(ownerships[0].possessedAt).valueOf() < 14400000 && new Date(ownerships[2].possessedAt).valueOf() - new Date(ownerships[0].possessedAt).valueOf() < 3600000) {
+              return ownerships.every(ownership => ownership.status === 'Suspended' || ownership.status === 'Published');
+            }
+          }
+          // if suspended LONG time (> 30 days?)
+          if (b.gmbBiz.gmbOwnerships && b.gmbBiz.gmbOwnerships.length > 0) {
+            const lastOwnership = b.gmbBiz.gmbOwnerships[b.gmbBiz.gmbOwnerships.length - 1];
+            return lastOwnership.status === 'Suspended' && new Date().valueOf() - new Date(lastOwnership.possessedAt).valueOf() > 30 * 24 * 3600000;
+          }
+
+          return false;
+        });
         break;
 
       case 'recently lost':
@@ -298,6 +322,11 @@ export class GmbBizListComponent implements OnInit {
 
       case 'bad service settings':
         this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.serviceSettings || !b.restaurant.serviceSettings.some(setting => setting.paymentMethods && setting.paymentMethods.length > 0)));
+        break;
+      case 'bad delivery settings':
+        // has delivery in service settings, but no deliverySettings found!
+        this.filteredMyBizList = this.filteredMyBizList.filter(
+          b => b.restaurant && b.restaurant.serviceSettings && b.restaurant.serviceSettings.some(ss => ss.name === 'Delivery' && ss.paymentMethods.length > 0) && (!b.restaurant.deliverySettings || b.restaurant.deliverySettings.length === 0));
         break;
       case 'bad menus':
         // bad: 1. no menu at all
@@ -406,6 +435,10 @@ export class GmbBizListComponent implements OnInit {
 
   done(event: FormEvent) {
     const biz = event.object as GmbBiz;
+    // if for ALL, let's also set useBizWebsite === true
+    if (biz.useBizWebsiteForAll) {
+      biz.useBizWebsite = true;
+    }
     this.apiError = undefined;
     this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: biz.qmenuPop3Email || 'n/a', phrase: biz.qmenuPop3Password || 'n/a' }).pipe(mergeMap(result => {
       const oldBiz = JSON.parse(JSON.stringify(this.bizList.filter(b => b._id === biz._id)[0]));

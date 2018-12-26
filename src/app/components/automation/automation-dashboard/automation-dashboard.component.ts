@@ -90,6 +90,7 @@ export class AutomationDashboardComponent implements OnInit {
               projection: {
                 bizManagedWebsite: 1,
                 useBizWebsite: 1,
+                useBizWebsiteForAll: 1,
                 qmenuWebsite: 1,
                 place_id: 1,
                 name: 1,
@@ -255,7 +256,10 @@ export class AutomationDashboardComponent implements OnInit {
         // 2. gmbBiz has place_id;
         // 3. not already existed
 
-        const shouldApplyList = notOwnedList.filter(biz => !biz.closed && biz.place_id && !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id)).filter(gmbBiz => !disabledRestaurants.some(r => r._id === gmbBiz.qmenuId));
+        const shouldApplyList = notOwnedList
+          .filter(biz => !biz.disableAutoTask && (!biz.gmbOwnerships || biz.gmbOwnerships.length === 0))
+          .filter(biz => !biz.closed && biz.place_id && !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id))
+          .filter(gmbBiz => !disabledRestaurants.some(r => r._id === gmbBiz.qmenuId));
 
         console.log('should apply gmb', shouldApplyList);
         if (shouldApplyList.length > 0) {

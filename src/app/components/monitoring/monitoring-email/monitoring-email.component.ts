@@ -35,7 +35,7 @@ export class MonitoringEmailComponent implements OnInit {
       query: {
         "name": "sns",
         "params.mail": { $exists: true },
-        createdAt: { $gt: new Date().valueOf() - 2 * 24 * 3600000 }
+        createdAt: { $gt: new Date().valueOf() - 1 * 24 * 3600000 }
       },
       projection: {
         "params.notificationType": 1,
@@ -60,6 +60,13 @@ export class MonitoringEmailComponent implements OnInit {
       const finalEmails = [...new Set([...emailsInChannels, ...emailsInRestaurant])];
       finalEmails.map(email => this.emailRestaurantDict[email] = restaurant);
     });
+
+    // distinct by email!
+    for (let i = this.badSnsEventRows.length - 1; i > 0; i--) {
+      if (this.badSnsEventRows.slice(0, i).some(row => row.params.mail.destination[0] === this.badSnsEventRows[i].params.mail.destination[0])) {
+        this.badSnsEventRows.splice(i, 1);
+      }
+    }
 
   }
 

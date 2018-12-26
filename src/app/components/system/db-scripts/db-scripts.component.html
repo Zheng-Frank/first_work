@@ -181,9 +181,24 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Remove Unused Invoices from Restaurant Object</h5>
-            <p class="card-text">Invoices are accidentally updated to be part of restaurant body. They should be removed. No side effect.</p>
+            <p class="card-text">Invoices are accidentally updated to be part of restaurant body. They should be
+                removed. No side effect.</p>
             <button class="btn btn-primary" (click)="removeInvoiceFromRestaurant()">Execute</button>
         </div>
     </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Fix Rate Schedules</h5>
+            <p class="card-text">Remove special characters in agent names and turn eveything name lower case.</p>
+            <button class="btn btn-primary" (click)="fixRateSchedules()">Execute</button>
+        </div>
+    </div>
 
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Compute Sales Bonus</h5>
+            <p class="card-text">Using given rules to compute qualified sales and bonuses.</p>
+            <button class="btn btn-primary" (click)="computeBonuse()">Execute</button>
+        </div>
+    </div>
 </div>

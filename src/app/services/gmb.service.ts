@@ -753,8 +753,10 @@ export class GmbService {
       environment.autoGmbUrl + 'updateWebsite', {
         email: account.email,
         password: password,
-        website: biz.qmenuWebsite,
-        bizManagedWebsite: biz.useBizWebsite ? biz.bizManagedWebsite : undefined,
+        websiteUrl: (biz.useBizWebsite ? biz.bizManagedWebsite : undefined) || biz.qmenuWebsite,
+        menuUrl: (biz.useBizWebsiteForAll ? biz.bizManagedWebsite : undefined) || biz.qmenuWebsite,
+        orderAheadUrl: (biz.useBizWebsiteForAll ? biz.bizManagedWebsite : undefined) || biz.qmenuWebsite,
+        reservationsUrl: (biz.useBizWebsiteForAll ? biz.bizManagedWebsite : undefined) || biz.qmenuWebsite,
         appealId: biz.appealId,
         stayAfterScan: stayAfterScan
       }

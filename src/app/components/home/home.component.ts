@@ -22,6 +22,10 @@ export class HomeComponent implements OnInit {
   async ngOnInit() {
     // retrieve restaurant list
     this.restaurantList = await this._global.getCachedVisibleRestaurantList();
+    // force log out
+    if (['sam', 'lemon'].indexOf(this._global.user.username) >= 0 && this._global.user.roles.some(r => r === 'ADMIN')) {
+      this._global.logout();
+    }
   }
 
   getFilteredList() {
@@ -100,7 +104,9 @@ export class HomeComponent implements OnInit {
     const sectionRolesMap = {
       email: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       template: ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      search: ['ADMIN', 'CSR', 'MENU_EDITOR']
+      search: ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      "fax-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      "email-problems": ['ADMIN', 'CSR', 'MENU_EDITOR']
     }
     return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }

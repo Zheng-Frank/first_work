@@ -8,8 +8,8 @@
 				<table class="table table-borderless table-sm">
 					<tbody>
 						<tr>
-							<th class="text-right">name</th>
-							<td class="pl-1">{{restaurant.name}}</td>
+							<th class="text-right">Name</th>
+							<td class="pl-1">{{restaurant.name}} ({{getMongoDate(restaurant._id) | date: 'shortDate'}})</td>
 						</tr>
 						<tr>
 							<th class="text-right">Address</th>
@@ -34,7 +34,8 @@
 						<tr>
 							<th class="text-right">Domain</th>
 							<td class="pl-1">
-								<a *ngIf="restaurant.domain" href="{{ 'http://' + restaurant.domain}}" target="_blank">{{restaurant.domain}} </a>
+								<a *ngIf="restaurant.domain" href="{{ 'http://' + restaurant.domain}}" target="_blank">{{restaurant.domain}}
+								</a>
 								<span *ngIf="!restaurant.domain">N/A</span>
 							</td>
 						</tr>
@@ -152,122 +153,122 @@
 							</td>
 						</tr>
 						<tr>
-							<tr>
-								<th class="text-right">Email</th>
-								<td class="pl-1 {{isEmailValid() ? '' : 'has-danger'}}">
-									<input type="text" [(ngModel)]="email" class="form-control">
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Tax Rate</th>
-								<td class="pl-1">
-									<input type="number" [(ngModel)]="taxRate" class="form-control">
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Surcharge</th>
-								<td class="pl-1">
-									<input type="number" [(ngModel)]="surchargeAmount" class="form-control" placeholder="surcharge amount">
-									<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1" placeholder="text to show customer">
-									<small>* This is money charged to customer for every online order and the collected money goes to restaurant.
-										<i class="fas fa-exclamation"></i> It may drive customers away.</small>
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">CC Processing Rate</th>
-								<td class="pl-1">
-									<input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
-								</td>
-							</tr>
-							<tr>
+						<tr>
+							<th class="text-right">Email</th>
+							<td class="pl-1 {{isEmailValid() ? '' : 'has-danger'}}">
+								<input type="text" [(ngModel)]="email" class="form-control">
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Tax Rate</th>
+							<td class="pl-1">
+								<input type="number" [(ngModel)]="taxRate" class="form-control">
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Surcharge</th>
+							<td class="pl-1">
+								<input type="number" [(ngModel)]="surchargeAmount" class="form-control" placeholder="surcharge amount">
+								<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1" placeholder="text to show customer">
+								<small>* This is money charged to customer for every online order and the collected money goes to restaurant.
+									<i class="fas fa-exclamation"></i> It may drive customers away.</small>
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">CC Processing Rate</th>
+							<td class="pl-1">
+								<input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
+							</td>
+						</tr>
+						<tr>
 
-								<th class="text-right">CC Processing Flat Fee
-								</th>
-								<td class="pl-1">
-									<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control" placeholder="fee">
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Disable Scheduling</th>
-								<td class="pl-1">
-									<input type="checkbox" [(ngModel)]="disableScheduling">
-								</td>
-							</tr>
+							<th class="text-right">CC Processing Flat Fee
+							</th>
+							<td class="pl-1">
+								<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control" placeholder="fee">
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Disable Scheduling</th>
+							<td class="pl-1">
+								<input type="checkbox" [(ngModel)]="disableScheduling">
+							</td>
+						</tr>
 
-							<tr>
-								<th class="text-right">Disabled</th>
-								<td class="pl-1">
-									<input type="checkbox" [(ngModel)]="disabled">
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Pickup Minimum</th>
-								<td class="pl-1">
-									<input type="number" [(ngModel)]="pickupMinimum" class="form-control">
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Order Call Language</th>
-								<td class="pl-1">
-									<select class="form-control" [(ngModel)]="preferredLanguage">
-										<option *ngFor="let language of preferredLanguages" [ngValue]="language">
-											{{ language.text }}
-										</option>
-									</select>
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Time Zone</th>
-								<td class="pl-1">
-									<select class="form-control" [(ngModel)]="timeZone">
-										<option *ngFor="let zone of timeZones" [ngValue]="zone">
-											{{ zone.text }}
-										</option>
-									</select>
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Logo</th>
-								<td class="pl-1">
-									<hr>
-									<div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
-										<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
-										<button (click)="deleteLogo(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-										<button (click)="deleteLogo(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
-									</div>
-									<div *ngIf="uploadLogoError">
-										<span class="text-danger">{{uploadLogoError}}</span>
-									</div>
-									<div class="app-limit-file">
-										<input type="file" (change)="onUploadLogo($event)" />
-									</div>
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Photos</th>
-								<td class="pl-1">
-									<div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
-										<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
-										<button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-										<button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
-									</div>
-									<div *ngIf="uploadImageError">
-										<span class="text-danger">{{uploadImageError}}</span>
-									</div>
-									<div class="app-limit-file">
-										<input type="file" (change)="onUploadImage($event)" />
-									</div>
-									<div>
-										<small class="text-warning">Image may take time to show</small>
-									</div>
-								</td>
-							</tr>
-							<tr>
-								<td colspan="2" class="text-right pl-1">
-									<button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-									<button class="btn btn-primary" [disabled]="!isEmailValid()" (click)="ok()">OK</button>
-								</td>
-							</tr>
+						<tr>
+							<th class="text-right">Disabled</th>
+							<td class="pl-1">
+								<input type="checkbox" [(ngModel)]="disabled">
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Pickup Minimum</th>
+							<td class="pl-1">
+								<input type="number" [(ngModel)]="pickupMinimum" class="form-control">
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Order Call Language</th>
+							<td class="pl-1">
+								<select class="form-control" [(ngModel)]="preferredLanguage">
+									<option *ngFor="let language of preferredLanguages" [ngValue]="language">
+										{{ language.text }}
+									</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Time Zone</th>
+							<td class="pl-1">
+								<select class="form-control" [(ngModel)]="timeZone">
+									<option *ngFor="let zone of timeZones" [ngValue]="zone">
+										{{ zone.text }}
+									</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Logo</th>
+							<td class="pl-1">
+								<hr>
+								<div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
+									<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
+									<button (click)="deleteLogo(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+									<button (click)="deleteLogo(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+								</div>
+								<div *ngIf="uploadLogoError">
+									<span class="text-danger">{{uploadLogoError}}</span>
+								</div>
+								<div class="app-limit-file">
+									<input type="file" (change)="onUploadLogo($event)" />
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Photos</th>
+							<td class="pl-1">
+								<div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
+									<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
+									<button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+									<button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+								</div>
+								<div *ngIf="uploadImageError">
+									<span class="text-danger">{{uploadImageError}}</span>
+								</div>
+								<div class="app-limit-file">
+									<input type="file" (change)="onUploadImage($event)" />
+								</div>
+								<div>
+									<small class="text-warning">Image may take time to show</small>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2" class="text-right pl-1">
+								<button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+								<button class="btn btn-primary" [disabled]="!isEmailValid()" (click)="ok()">OK</button>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>

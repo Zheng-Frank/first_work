@@ -2,9 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
-import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
+import { GlobalService } from "../../../services/global.service";;
 import { Invoice } from 'src/app/classes/invoice';
 
 @Component({
@@ -21,6 +19,79 @@ export class MyRestaurantComponent implements OnInit {
   username;
   usernames = [];
 
+
+  myColumnDescriptors = [
+    {
+      label: 'Number'
+    },
+    {
+      label: 'Name',
+      paths: ['restaurant', 'name'],
+      sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
+    },
+    {
+      label: 'Created At',
+      paths: ['restaurant', 'createdAt'],
+      sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf()
+    },
+    {
+      label: 'Invoices',
+      paths: ['invoices'],
+      sort: (a, b) => a.length - b.length
+    },
+    {
+      label: 'Restaurant Rate'
+    },
+    {
+      label: 'Not Collected',
+      paths: ['notCollected'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'Collected',
+      paths: ['collected'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'Your Cut'
+    },
+    {
+      label: 'Earned',
+      paths: ['earned'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'Not Earned',
+      paths: ['notEarned'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'Onetime Commission',
+      paths: ['qualifiedSalesBase'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: '3 Months Bonus',
+      paths: ['qualifiedSalesBonus'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'Subtotal',
+      paths: ['subtotal'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'GMB Owner'
+    },
+    {
+      label: 'Websites'
+    },
+    {
+      label: 'Ongoing Tasks'
+    }
+
+  ];
+
   constructor(private _api: ApiService, private _global: GlobalService) {
 
   }
@@ -30,8 +101,23 @@ export class MyRestaurantComponent implements OnInit {
     this.username = this._global.user.username;
     this.usernames = [this.username];
     if (this.isSuperUser) {
-      const users = await this._api.get(environment.adminApiUrl + 'generic', { resource: 'user', limit: 1000 }).toPromise();
-      this.usernames = users.map(user => user.username);
+      const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        projection: {
+          "rateSchedules.agent": 1
+        },
+        limit: 6000
+      }).toPromise();
+      const userSet = new Set();
+      restaurants.map(r => {
+        (r.rateSchedules || []).map(rs => {
+          if (rs.agent) {
+            userSet.add(rs.agent);
+          }
+        });
+      });
+
+      this.usernames = [...userSet];
       this.usernames.sort();
     }
     this.populate();
@@ -59,7 +145,10 @@ export class MyRestaurantComponent implements OnInit {
         "phones.type": 1,
         disabled: 1,
         createdAt: 1,
-        rateSchedules: 1
+        rateSchedules: 1,
+        salesBase: 1,
+        salesBonus: 1,
+        salesThreeMonthAverage: 1
       },
       limit: 6000
     }).toPromise();
@@ -128,11 +217,26 @@ export class MyRestaurantComponent implements OnInit {
       this.rows.map(row => row.notCollected = row.invoices.filter(i => !i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
       this.rows.map(row => {
         row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
+        row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
+        row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
+
         row.earned = row.commission * row.collected;
         row.notEarned = row.commission * row.notCollected;
+        row.qualifiedSalesBase = row.collected > 0 ? row.restaurant.salesBase : 0;
+        row.qualifiedSalesBonus = row.collected > 0 ? row.restaurant.salesBonus : 0;
+        row.unqualifiedSalesBase = (row.restaurant.salesBase || 0) - (row.qualifiedSalesBase || 0);
+        row.unqualifiedSalesBonus = (row.restaurant.salesBonus || 0) - (row.qualifiedSalesBonus || 0);
+
       });
 
-      this.rows.sort((r1, r2) => r2.earned - r1.earned);
+
+      // compute subtotal
+      this.rows.map(row => {
+        row.subtotal = (row.earned || 0) + (row.qualifiedSalesBase || 0) + (row.qualifiedSalesBonus || 0);
+        row.unqualifiedSubtotal = (row.notEarned || 0) + (row.unqualifiedSalesBase || 0) + (row.unqualifiedSalesBonus || 0);
+      });
+
+      this.rows.sort((r1, r2) => r2.subtotal - r1.subtotal);
     }
 
     // query open Tasks
@@ -158,7 +262,7 @@ export class MyRestaurantComponent implements OnInit {
   }
 
   getTotal(field) {
-    return this.rows.reduce((sum, row) => sum + row[field], 0);
+    return this.rows.reduce((sum, row) => sum + (row[field] || 0), 0);
   }
 
 }

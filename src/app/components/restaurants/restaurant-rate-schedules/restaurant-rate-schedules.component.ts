@@ -39,10 +39,11 @@ export class RestaurantRateSchedulesComponent implements OnInit {
       rs.rate = (+rs.rate) ? +rs.rate : 0;
       rs.fixed = (+rs.fixed) ? +rs.fixed : 0;
       rs.commission = (+rs.commission) ? +rs.commission : 0;
+      rs.agent = (rs.agent || '').trim().toLowerCase();
     });
 
-    const oldR = JSON.parse(JSON.stringify(this.restaurant));
-    const newR = JSON.parse(JSON.stringify(this.restaurant));
+    const oldR = { _id: this.restaurant.id || this.restaurant['_id'] };
+    const newR: any = { _id: this.restaurant.id || this.restaurant['_id'] };
     newR.rateSchedules = this.rateSchedulesInEditing.filter(rs => rs.date);
 
     this._api
@@ -58,7 +59,7 @@ export class RestaurantRateSchedulesComponent implements OnInit {
             AlertType.Success,
             "Updated successfully"
           );
-          this.restaurant.rateSchedules = this.rateSchedulesInEditing.filter(rs => rs.date);
+          this.restaurant.rateSchedules = newR.rateSchedules;
           this.editing = false;
           this.rateSchedulesInEditing = [];
         },

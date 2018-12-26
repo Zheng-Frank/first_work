@@ -54,19 +54,25 @@ export class GmbBizEditorComponent implements OnInit, OnChanges {
         autocomplete: "new-password" // this will disable password autocomplete!
       },
       {
-        field: "ignoreGmbOwnershipRequest",
-        label: "Ignore GMB Requests",
-        inputType: "checkbox",
-        required: false
-      },
-      {
         field: "bizManagedWebsite",
         label: "Restaurant Managed Website",
         required: false
       },
       {
         field: "useBizWebsite",
-        label: "Insisted",
+        label: "Insisted only website",
+        inputType: "checkbox",
+        required: false
+      },
+      {
+        field: "useBizWebsiteForAll",
+        label: "Insisted ALL",
+        inputType: "checkbox",
+        required: false
+      },
+      {
+        field: "ignoreGmbOwnershipRequest",
+        label: "Ignore GMB Requests",
         inputType: "checkbox",
         required: false
       },

@@ -25,6 +25,8 @@ export class GmbBiz {
     // 
     bizManagedWebsite: string;
     useBizWebsite: boolean;
+    useBizWebsiteForAll: boolean;
+    
     // qMenu related information (injected to listing once we have ownership)
     qmenuWebsite: string;
     qmenuPop3Email: string;
@@ -44,6 +46,8 @@ export class GmbBiz {
     crawledAt: Date;
     updatedAt: Date;
     createdAt: Date;
+
+    disableAutoTask: boolean;
 
     constructor(biz?: any) {
         if (biz) {

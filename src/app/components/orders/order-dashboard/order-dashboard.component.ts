@@ -85,7 +85,8 @@ export class OrderDashboardComponent implements OnInit {
           gmbOpen: 1,
           gmbOwner: 1,
           bizManagedWebsite: 1,
-          useBizWebsite: 1
+          useBizWebsite: 1,
+          useBizWebsiteForAll: 1
         },
         limit: 6000
       })
