@@ -26,6 +26,8 @@ export class HomeComponent implements OnInit {
     if (['sam', 'lemon'].indexOf(this._global.user.username) >= 0 && this._global.user.roles.some(r => r === 'ADMIN')) {
       this._global.logout();
     }
+    const result = await this._api.get2(environment.adminApiUrl + 'generic2', {a: 123, b: 456, c: 789}).toPromise();
+    console.log(result);
   }
 
   getFilteredList() {
