@@ -29,7 +29,8 @@ export class InjectWebsiteComponent implements OnInit {
     field: "domain", //
     label: "Domain",
     required: true,
-    inputType: "text"
+    inputType: "text",
+    placeholder: "eg. chinagarden.com. DO NOT input http"
   }];
 
   templateNames = [];
@@ -40,7 +41,7 @@ export class InjectWebsiteComponent implements OnInit {
     this.templateNames = await this._api.get(environment.qmenuApiUrl + 'utils/list-template').toPromise();
     // we like to move Chinese Restaurant Template to top
     const cindex = this.templateNames.indexOf('Chinese Restaurant Template');
-    if( cindex > 0) {
+    if (cindex > 0) {
       this.templateNames.splice(cindex, 1);
       this.templateNames.unshift('Chinese Restaurant Template');
     }
@@ -67,6 +68,7 @@ export class InjectWebsiteComponent implements OnInit {
         // update original so no refresh is needed
         this.restaurant.domain = this.myObj.domain;
         this.restaurant.websiteTemplateName = this.myObj.websiteTemplateName;
+
       }
 
       // call API
@@ -75,6 +77,35 @@ export class InjectWebsiteComponent implements OnInit {
         templateName: this.myObj.websiteTemplateName,
         restaurantId: this.restaurant._id
       }).toPromise();
+
+      // replace GMB Biz's qmenuWebsite if there are matched
+      let gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          qmenuId: this.restaurant._id
+        },
+        projection: {
+          qmenuWebsite: 1
+        },
+        limit: 10
+      }).toPromise();
+
+      // keep only empty or non-qmenu.us ones
+      gmbBizList = gmbBizList.filter(biz => !biz.qmenuWebsite || biz.qmenuWebsite.indexOf('qmenu.us') >= 0);
+
+      if (gmbBizList.length > 0) {
+        const qmenuWebsite = "http://" + this.myObj.domain;
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizList.map(biz => ({
+          old: {
+            _id: biz._id
+          },
+          new: {
+            _id: biz._id,
+            qmenuWebsite: qmenuWebsite
+          }
+        }))).toPromise();
+
+      }
 
       this._global.publishAlert(AlertType.Success, 'Success');
       event.acknowledge(null);
