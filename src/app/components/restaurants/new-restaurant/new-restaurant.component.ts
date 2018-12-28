@@ -248,9 +248,12 @@ export class NewRestaurantComponent implements OnInit {
         if (!this.applyGmb) {
           newGmbBiz['disableAutoTask'] = true;
         }
+        newGmbBiz['qmenuWebsite'] = environment.customerUrl + this.restaurant.alias;
+
         const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [newGmbBiz]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Created new GMB');
         newGmbBiz['_id'] = bizs[0];
+
         gmbBiz = newGmbBiz;
 
       }
