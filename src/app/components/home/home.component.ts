@@ -26,8 +26,8 @@ export class HomeComponent implements OnInit {
     if (['sam', 'lemon'].indexOf(this._global.user.username) >= 0 && this._global.user.roles.some(r => r === 'ADMIN')) {
       this._global.logout();
     }
-    const result = await this._api.get2(environment.adminApiUrl + 'generic2', {a: 123, b: 456, c: 789}).toPromise();
-    console.log(result);
+    // const result = await this._api.get2(environment.adminApiUrl + 'generic2', {a: 123, b: 456, c: 789}).toPromise();
+    // console.log(result);
   }
 
   getFilteredList() {
@@ -108,7 +108,8 @@ export class HomeComponent implements OnInit {
       template: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       search: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       "fax-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      "email-problems": ['ADMIN', 'CSR', 'MENU_EDITOR']
+      "email-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      "unconfirmed-orders": ['ADMIN', 'CSR']
     }
     return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }

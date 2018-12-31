@@ -1,0 +1,6 @@
+<p>
+  monitoring-unconfirmed-orders works!
+</p>
+<div *ngFor="let orderStatus of unconfirmedOrderStatuses">
+  {{orderStatus.order}} {{orderStatus.createdAt | ago: now}}
+</div>
