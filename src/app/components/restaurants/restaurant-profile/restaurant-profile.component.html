@@ -233,8 +233,8 @@
 								<hr>
 								<div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
 									<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
-									<button (click)="deleteLogo(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-									<button (click)="deleteLogo(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+									<button (click)="deleteLogo(img)" class="btn btn-secondary close-button transparent"><i class="fas fa-times"></i></button>
+									<button (click)="deleteLogo(img)" class="btn btn-link close-button text-danger"><i class="fas fa-times"></i></button>
 								</div>
 								<div *ngIf="uploadLogoError">
 									<span class="text-danger">{{uploadLogoError}}</span>
@@ -249,8 +249,8 @@
 							<td class="pl-1">
 								<div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
 									<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
-									<button (click)="deleteImage(img)" class="btn btn-secondary fa fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-									<button (click)="deleteImage(img)" class="btn btn-link fa fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+									<button (click)="deleteImage(img)" class="btn btn-secondary close-button transparent"><i class="fas fa-times"></i></button>
+									<button (click)="deleteImage(img)" class="btn btn-link close-button text-danger"><i class="fas fa-times"></i></button>
 								</div>
 								<div *ngIf="uploadImageError">
 									<span class="text-danger">{{uploadImageError}}</span>

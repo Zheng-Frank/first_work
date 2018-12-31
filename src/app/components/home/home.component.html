@@ -3,6 +3,15 @@
 <!-- <app-holiday-monitor></app-holiday-monitor> -->
 
 <div class="card-group">
+
+    <div class="card" *ngIf="isVisible('image-manager')">
+        <div class="card-body">
+            <h5 class="card-title"><i class="far fa-images"></i> Manage Images</h5>
+            <app-image-manager></app-image-manager>
+        </div>
+    </div>
+</div>
+<div class="card-group">
     <div class="card" *ngIf="isVisible('search')">
         <div class="card-body">
             <label>Search Restaurant:</label>
