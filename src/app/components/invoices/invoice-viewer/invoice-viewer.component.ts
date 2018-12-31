@@ -32,20 +32,27 @@ export class InvoiceViewerComponent implements OnInit {
     return this.invoice.orders.filter(o => !o.canceled);
   }
 
-    getAddressLine() {
+  getAddressLine() {
     return this.invoice.restaurant.address.formatted_address.replace(', USA', '');
   }
 
-  // getAddressLine1(address) {
-  //   return ((address.line1 ? address.line1 : '') + (address.line2 ? ' ' + address.line2 : '')) || ((address.street_number ? address.street_number : '') +
-  //     + (address.route ? ' ' + address.route : '') +
-  //     (address.apt ? ', ' + address.apt : ''));
-  // }
+  cachedRateSchedules = [];
+  getRateSchedules() {
+    if (this.cachedRateSchedules.length === 0 && this.invoice && this.invoice.orders) {
+      // createdAt, rate, fixed
+      for (let order of this.invoice.orders) {
+        const lastRateSchedule = this.cachedRateSchedules[this.cachedRateSchedules.length - 1];
+        if (!lastRateSchedule || lastRateSchedule.fixed !== order.fixed || lastRateSchedule.rate !== order.rate) {
+          this.cachedRateSchedules.push({
+            date: new Date(order.createdAt),
+            rate: order.rate,
+            fixed: order.fixed
+          });
+        }
+      }
+    }
 
-  // getAddressLine2(address) {
-  //   return (address.city + ' ' + address.state + ' ' + address.zipCode) || ((address.locality ? address.locality + ', ' : (address.sublocality ? address.sublocality + ', ' : ''))
-  //     + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
-  //     + ' ' + address.postal_code);
-  // }
+    return this.cachedRateSchedules;
+  }
 
 }

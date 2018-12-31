@@ -10,12 +10,13 @@
         </div>
     </div>
 
-    <div class="card" *ngIf="isVisible('email')">
+    <!-- <div class="card" *ngIf="isVisible('email')">
         <div class="card-body">
             <h5 class="card-title"><i class="far fa-envelope"></i> Check Email</h5>
             <app-check-email [restaurantList]="restaurantList"></app-check-email>
         </div>
-    </div>
+    </div> -->
+
     <div class="card" *ngIf="isVisible('template')">
         <div class="card-body">
             <h5 class="card-title"><i class="fas fa-globe"></i> Inject Website from Templates</h5>
@@ -24,7 +25,12 @@
     </div>
 
 </div>
-
+<div class="card" *ngIf="isVisible('unconfirmed-orders')">
+    <div class="card-body">
+        <h5 class="card-title"><i class="fas fa-globe"></i> Unconfirmed Orders</h5>
+        <app-monitoring-unconfirmed-orders></app-monitoring-unconfirmed-orders>
+    </div>
+</div>
 <div class="card" *ngIf="isVisible('fax-problems')">
     <div class="card-body">
         <h5 class="card-title"><i class="fas fa-globe"></i> Fax Problems</h5>

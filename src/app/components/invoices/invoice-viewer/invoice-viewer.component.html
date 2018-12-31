@@ -1,7 +1,8 @@
 <div class="container" *ngIf="invoice">
   <!--<h1 style="position:absolute; color: lightgray; font-style: italic;">PAID</h1>-->
   <h3 class="text-center">QMENU INVOICE</h3>
-  <h6 class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate'}} -{{invoice.toDate | date: 'mediumDate'}}
+  <h6 class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate'}} -{{invoice.toDate | date:
+    'mediumDate'}}
   </h6>
 
   <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6" [innerHTML]="invoice.paymentInstructions">
@@ -34,8 +35,10 @@
     </tr>
   </table>
 
-  <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() >= 0">Balance Due: {{invoice.getBalance() | currency:'USD':'symbol' }}</h3>
-  <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() < 0 ">Credit: {{-invoice.getBalance() | currency:'USD':'symbol' }}</h3>
+  <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() >= 0">Balance Due: {{invoice.getBalance() |
+    currency:'USD':'symbol' }}</h3>
+  <h3 class="pt-1 text-center" *ngIf="invoice.getBalance() < 0 ">Credit: {{-invoice.getBalance() |
+    currency:'USD':'symbol' }}</h3>
 
   <div class="row">
     <div class="col-6">
@@ -97,7 +100,8 @@
 
         <tr>
           <th>Restaurant Collected</th>
-          <td class="text-right">{{invoice.getCashCollected() + invoice.getRestaurantCcCollected() | currency:'USD':'symbol'}}
+          <td class="text-right">{{invoice.getCashCollected() + invoice.getRestaurantCcCollected() |
+            currency:'USD':'symbol'}}
           </td>
         </tr>
 
@@ -110,20 +114,32 @@
           <td class="text-right">{{invoice.getStripeFee() | currency:'USD':'symbol'}}</td>
         </tr>
         <tr>
-          <th>
-            Commission
-            <span *ngIf="invoice.getRateAverage() <= 0.05">{{invoice.getRateAverage() | percentage}}
-              <br>
+          <td>
+            <b>Commission</b>
+            <span *ngIf="getRateSchedules().length === 1">
+              <span *ngIf="getRateSchedules()[0].rate">{{getRateSchedules()[0].rate | percentage }}</span>
+              <span *ngIf="getRateSchedules()[0].rate && getRateSchedules()[0].fixed">+</span>
+              <span *ngIf="getRateSchedules()[0].fixed">{{getRateSchedules()[0].fixed | currency:'USD':'symbol' }}</span>
             </span>
-          </th>
+            <span *ngIf="getRateSchedules().length > 1">
+              <div *ngFor="let rs of getRateSchedules()">
+                <span *ngIf="rs.rate">{{rs.rate | percentage }}</span>
+                <span *ngIf="rs.rate && rs.fixed">+</span>
+                <span *ngIf="rs.fixed">{{rs.fixed | currency:'USD':'symbol' }}</span>
+                since <span>{{rs.date | date: 'shortDate'}}</span>
+              </div>
+            </span>
+          </td>
           <td class="text-right">{{invoice.getCommission() | currency:'USD':'symbol' }}</td>
         </tr>
         <tr *ngIf="invoice.getAdjustment() !== 0">
           <th>
             Adjustments
           </th>
-          <td class="text-right" *ngIf="invoice.getAdjustment() >= 0">(credit) {{invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
-          <td class="text-right" *ngIf="invoice.getAdjustment() < 0">(debit) {{-invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="invoice.getAdjustment() >= 0">(credit) {{invoice.getAdjustment() |
+            currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="invoice.getAdjustment() < 0">(debit) {{-invoice.getAdjustment() |
+            currency:'USD':'symbol' }}</td>
         </tr>
         <ng-container *ngIf="invoice.getThirdPartyDeliveryCharge() > 0 || invoice.getThirdPartyDeliveryTip() > 0">
           <tr>
@@ -144,7 +160,8 @@
             <th>
               Pay TME Total
             </th>
-            <th class="text-right">{{invoice.getThirdPartyDeliveryCharge()+invoice.getThirdPartyDeliveryTip() | currency:'USD':'symbol'}}
+            <th class="text-right">{{invoice.getThirdPartyDeliveryCharge()+invoice.getThirdPartyDeliveryTip() |
+              currency:'USD':'symbol'}}
             </th>
           </tr>
         </ng-container>
@@ -184,9 +201,11 @@
         <td>
           <div>
             The taxes for the orders listed below is
-            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong>. qMenu does not hold any amount of the taxes. As part
+            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong>. qMenu does not hold any amount of the
+            taxes. As part
             of your normal periodic tax return filing, it is your responsibility to pay
-            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong> to the proper taxing authority for such orders.
+            <strong>{{invoice.getTax() | currency:'USD':'symbol'}}</strong> to the proper taxing authority for such
+            orders.
           </div>
 
         </td>
@@ -196,7 +215,8 @@
 
 
   <h3 class="text-center">Valid Orders ({{getValidOrders().length}})</h3>
-  <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders ({{invoice.orders.length - getValidOrders().length}}) are crossed, ingored, and NOT calculated.</div>
+  <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders ({{invoice.orders.length -
+    getValidOrders().length}}) are crossed, ingored, and NOT calculated.</div>
   <table class="table app-scaled-table">
     <tr>
       <th>Date Time</th>
@@ -242,7 +262,8 @@
       <th class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</th>
-      <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">{{invoice.getCcProcessingFee() | currency:'USD':'symbol'}}
+      <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">{{invoice.getCcProcessingFee() |
+        currency:'USD':'symbol'}}
       </th>
       <th class="text-right" *ngIf="invoice.getSurcharge() > 0">{{invoice.getSurcharge() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getTotal() | currency:'USD':'symbol'}}</th>

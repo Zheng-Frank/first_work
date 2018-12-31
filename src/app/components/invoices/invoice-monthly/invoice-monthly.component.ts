@@ -202,7 +202,8 @@ export class InvoiceMonthlyComponent implements OnInit {
     const havingReferenceInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
-        previousInvoiceId: { $exists: true }
+        previousInvoiceId: { $exists: true },
+        isCanceled: { $ne: true }
       },
       projection: {
         previousInvoiceId: 1
@@ -212,7 +213,6 @@ export class InvoiceMonthlyComponent implements OnInit {
 
 
     const beingReferencedIds = new Set(havingReferenceInvoices.map(i => i.previousInvoiceId));
-
 
     const collectionLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -267,8 +267,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     // remove being referenced invoices because they are handled!
 
     console.log('before', this.overdueRows.length);
-
-    // treating rolled as paid
+ // treating rolled as paid
     this.overdueRows.map(row => row.invoices = row.invoices.filter(i => !beingReferencedIds.has(i._id)));
     this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 0);
     console.log('after', this.overdueRows.length);

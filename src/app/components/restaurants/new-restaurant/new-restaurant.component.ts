@@ -220,7 +220,8 @@ export class NewRestaurantComponent implements OnInit {
         },
         projection: {
           name: 1,
-          phone: 1
+          phone: 1,
+          qmenuWebsite: 1
         }
       }).toPromise();
 
@@ -232,7 +233,7 @@ export class NewRestaurantComponent implements OnInit {
         await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', existingGmbs.map(biz =>
           ({
             old: { _id: biz._id },
-            new: { _id: biz._id, qmenuId: this.restaurant._id }
+            new: { _id: biz._id, qmenuId: this.restaurant._id, qmenuWebsite: biz.qmenuWebsite || (environment.customerUrl + this.restaurant.alias) }
           }))).toPromise();
         this._global.publishAlert(AlertType.Info, 'Found matching GMB Biz');
         // assign newly created id back to original object
@@ -247,9 +248,12 @@ export class NewRestaurantComponent implements OnInit {
         if (!this.applyGmb) {
           newGmbBiz['disableAutoTask'] = true;
         }
+        newGmbBiz['qmenuWebsite'] = environment.customerUrl + this.restaurant.alias;
+
         const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [newGmbBiz]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Created new GMB');
         newGmbBiz['_id'] = bizs[0];
+
         gmbBiz = newGmbBiz;
 
       }

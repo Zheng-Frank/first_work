@@ -11,7 +11,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 import { map, filter, tap, share } from 'rxjs/operators';
-
+import * as lzString from 'lz-string';
 @Injectable()
 export class ApiService {
 
@@ -58,6 +58,13 @@ export class ApiService {
     return this.apiRequest('delete', api, payload);
   }
 
+  get2(api: string, payload) {
+    const stringValue = JSON.stringify(payload);
+    const compressed = lzString.compressToEncodedURIComponent(stringValue);
+    console.log(lzString);
+    return this.get(api + '?q=' + compressed);
+  }
+
   private apiRequest(method: string, api: string, payload?: any) {
     payload = payload || {};
     const url = method + api + JSON.stringify(payload);
@@ -88,8 +95,8 @@ export class ApiService {
           }
           // Only strigify Object, not primitives
           api += Object.keys(payload)
-          .map(key =>
-            key + '=' + encodeURIComponent( (Object(payload[key]) === payload[key] ? JSON.stringify(payload[key]) : payload[key])))
+            .map(key =>
+              key + '=' + encodeURIComponent((Object(payload[key]) === payload[key] ? JSON.stringify(payload[key]) : payload[key])))
             .join('&');
         }
         observable = this.http[method](api, { headers: headers });

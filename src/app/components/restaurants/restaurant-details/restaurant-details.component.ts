@@ -78,6 +78,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
         query: query,
         projection: {
           name: 1,
+          createdAt: 1,
           alias: 1,
           images: 1,
           channels: 1,
@@ -248,6 +249,12 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
   isSectionVisible(sectionName) {
     const roles = this._global.user.roles || [];
     return this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
+  }
+
+  isMarketerAndCreatedLessThan14Days() {
+    const createdAt = new Date((this.restaurant || {})['createdAt'] || 0);
+
+    return this._global.user.roles.indexOf('MARKETER') >= 0 && new Date().valueOf() - createdAt.valueOf() < 14 * 24 * 3600000;
   }
 
   getVisibleRoutes() {

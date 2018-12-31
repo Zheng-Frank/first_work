@@ -126,6 +126,7 @@ import { MonitoringGodaddyComponent } from './components/monitoring/monitoring-g
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
 import { MonitoringEmailComponent } from './components/monitoring/monitoring-email/monitoring-email.component';
 import { TransactionDashboardComponent } from './components/transaction/transaction-dashboard/transaction-dashboard.component';
+import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/monitoring-unconfirmed-orders/monitoring-unconfirmed-orders.component';
 
 @NgModule({
   declarations: [
@@ -236,6 +237,7 @@ import { TransactionDashboardComponent } from './components/transaction/transact
     MonitoringFaxComponent,
     MonitoringEmailComponent,
     TransactionDashboardComponent,
+    MonitoringUnconfirmedOrdersComponent,
     
   ],
   imports: [
