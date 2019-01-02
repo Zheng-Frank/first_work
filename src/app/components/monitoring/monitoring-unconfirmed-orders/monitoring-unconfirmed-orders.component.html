@@ -1,6 +1,18 @@
-<p>
-  monitoring-unconfirmed-orders works!
-</p>
-<div *ngFor="let orderStatus of unconfirmedOrderStatuses">
-  {{orderStatus.order}} {{orderStatus.createdAt | ago: now}}
-</div>
+<table class="table">
+  <tr>
+    <th>Restaurant</th>
+    <th>Order Numbers</th>
+  </tr>
+  <tr *ngFor="let row of rows">
+    <td>
+      <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+      <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
+    </td>
+    <td>
+      <div *ngFor="let order of row.orders">
+        {{order.orderNumber}} <small class="text-warning">{{order.createdAt | ago : now}}</small>
+      </div>
+    </td>
+  </tr>
+
+</table>
