@@ -82,12 +82,13 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       },
       projection: {
         name: 1,
-        googleAddress: 1
+        googleAddress: 1,
+        skipOrderConfirmation: 1
       },
       limit: 100
     }).toPromise();
 
-    this.rows = restaurants.map(restaurant => ({
+    this.rows = restaurants.filter(r => !r.skipOrderConfirmation).map(restaurant => ({
       restaurant: restaurant,
       orders: unconfirmedOrders.filter(o => o.restaurant === restaurant._id)
     }));

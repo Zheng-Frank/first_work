@@ -42,7 +42,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'ccProcessingRate',
     'ccProcessingFlatFee',
     'deliveryBy',
-    'domain'
+    'domain',
+    'skipOrderConfirmation'
   ];
 
   uploadError: string;
@@ -64,6 +65,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   timeZone;
   googleAddress: Address;
   preferredLanguage;
+  skipOrderConfirmation;
 
   notification;
   timeZones = [
