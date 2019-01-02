@@ -503,7 +503,8 @@ export class DbScriptsComponent implements OnInit {
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "invoice",
       query: {
-        balance: { $exists: false }
+        balance: { $exists: false },
+        // "restaurant.id" : "5bf60c483bec68140070fbe3"
       },
       projection: {
         "restaurant.name": 1,
@@ -522,6 +523,7 @@ export class DbScriptsComponent implements OnInit {
       limit: 50
     })
       .pipe(mergeMap(invoices => {
+        console.log(invoices);
         affectedInvoices = invoices;
         const originInvoices = JSON.parse(JSON.stringify(invoices)).map(i => new Invoice(i));
         const newInvoices = invoices.map(i => {

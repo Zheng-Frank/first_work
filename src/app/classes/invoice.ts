@@ -45,7 +45,7 @@ export class Invoice {
       'subtotal', 'adjustment', 'total', 'cashCollected',
       'qMenuCcCollected', 'restaurantCcCollected', 'ccProcessingFee',
       'stripeFee', 'commission', 'balance', 'rateAverage', 'totalPayments']
-      .map(field => this[field] = this['get' + field[0].toUpperCase() + field.substr(1)]());
+      .map(field => { console.log(field); console.log(this); this[field] = this['get' + field[0].toUpperCase() + field.substr(1)]() });
   }
 
   previousBalance: number;

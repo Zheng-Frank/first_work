@@ -30,8 +30,6 @@ export class ImageManagerComponent implements OnInit {
       resource: 'image',
       limit: 6000
     }).toPromise();
-
-    console.log(this.rows)
   }
 
   async deleteRow(row) {
