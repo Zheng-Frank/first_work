@@ -44,7 +44,7 @@
   </tr>
   <tr>
     <td>
-      Not Earned Commissions（商家未付的潜在分成）
+      Not Earned Commissions（商家尚未付任何佣金，潜在分成）
     </td>
     <th class="text-right">
       {{getTotal('notEarned') | currency:'USD':'symbol'}}
@@ -52,7 +52,7 @@
   </tr>
   <tr>
     <td>
-      Not Earned Sales（商家尚未付任何佣金）
+      Not Earned Sales（系统未曾拥有餐馆的GMB）
     </td>
     <th class="text-right">
       {{getTotal('unqualifiedSalesBase') | currency:'USD':'symbol'}}
@@ -60,7 +60,7 @@
   </tr>
   <tr>
     <td>
-      Not Earned Bonuses（商家尚未付任何佣金）
+      Not Earned Bonuses（系统未曾拥有餐馆的GMB）
     </td>
     <th class="text-right">
       {{getTotal('unqualifiedSalesBonus') | currency:'USD':'symbol'}}
@@ -126,12 +126,16 @@
     <td>{{row.notEarned | currency:'USD':'symbol'}}</td>
     <td><span *ngIf="row.restaurant.salesBase">{{row.qualifiedSalesBase | currency:'USD':'symbol'}}</span></td>
     <td><span *ngIf="row.restaurant.salesBonus">
-      {{row.restaurant.salesBonus}} --> {{row.qualifiedSalesBonus}}
-      {{row.qualifiedSalesBonus | currency:'USD':'symbol'}}
+      
+        {{row.qualifiedSalesBonus | currency:'USD':'symbol'}}
         <div><small>avg. {{row.restaurant.salesThreeMonthAverage | number:'1.1-1'}} / day</small></div></span>
     </td>
     <th>{{row.subtotal | currency:'USD':'symbol'}}</th>
 
+    <td>
+      <span class="text-success" *ngIf="row.gmbOnceOwned">✔</span>
+      <span class="text-danger" *ngIf="!row.gmbOnceOwned">✘</span>
+    </td>
 
     <td class="text-center">
       <img *ngIf="row.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">

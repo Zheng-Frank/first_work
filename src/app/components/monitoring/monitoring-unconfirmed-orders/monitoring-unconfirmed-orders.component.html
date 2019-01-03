@@ -1,12 +1,16 @@
 <table class="table">
   <tr>
     <th>Restaurant</th>
+    <th>Created</th>
     <th>Order Numbers</th>
   </tr>
   <tr *ngFor="let row of rows">
     <td>
       <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
       <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
+    </td>
+    <td>
+      {{getDaysFromId(row.restaurant._id)}} days ago
     </td>
     <td>
       <div *ngFor="let order of row.orders">

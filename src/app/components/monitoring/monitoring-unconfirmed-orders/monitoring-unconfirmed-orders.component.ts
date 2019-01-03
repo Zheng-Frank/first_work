@@ -101,4 +101,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   }
 
+  getDaysFromId(mongoId) {
+    return Math.floor((this.now.valueOf() - parseInt(mongoId.substring(0, 8), 16) * 1000) / (24 * 3600000));
+  }
+
 }
