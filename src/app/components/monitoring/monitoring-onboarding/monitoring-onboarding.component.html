@@ -7,10 +7,11 @@
 <div>
     <img [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px"> Owned GMB but Lost Now
 </div>
-<table class="table">
+<table class="table my-2">
     <tr>
         <th>Restaurant</th>
         <th>Created</th>
+        <th class="text-nowrap">Sales Agent</th>
         <th>GMB</th>
         <th class="text-nowrap">Has Menu</th>
         <th class="text-nowrap">Has Order</th>
@@ -24,8 +25,12 @@
             {{getDaysFromId(row.restaurant._id)}} days ago
         </td>
         <td>
+            {{row.agent}}
+        </td>
+        <td class="text-nowrap">
             <img *ngIf="row.hasGmb" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
             <img *ngIf="!row.hasGmb && row.hadGmb" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
+            <span *ngIf="!row.matchedGmb">No GMB</span>
         </td>
         <td class="{{row.hadGmb && row.noMenu ? 'bg-warning' : ''}}">
             <span *ngIf="row.noMenu" class="text-danger">?</span>

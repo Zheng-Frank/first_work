@@ -30,7 +30,8 @@ export class MonitoringOnboardingComponent implements OnInit {
         alias: 1,
         disabled: 1,
         "menus.disabled": 1,
-        createdAt: 1
+        createdAt: 1,
+        "rateSchedules.agent": 1
       },
       limit: 200000
     }).toPromise();
@@ -64,10 +65,14 @@ export class MonitoringOnboardingComponent implements OnInit {
       const hadGmb = biz.gmbOwnerships && (biz.gmbOwnerships.length > 1 || (biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email));
       dict[biz.qmenuId].hasGmb = hasGmb;
       dict[biz.qmenuId].hadGmb = hadGmb;
+      dict[biz.qmenuId].matchedGmb = true;
     });
 
     this.rows = Object.keys(dict).map(id => dict[id]);
-    this.rows.map(row => row.restaurant.createdAt = new Date(row.restaurant.createdAt));
+    this.rows.map(row => {
+      row.restaurant.createdAt = new Date(row.restaurant.createdAt);
+      row.agent = ((row.restaurant.rateSchedules || [])[0] || {}).agent;
+    });
     this.rows.sort((r1, r2) => r2.restaurant.createdAt.valueOf() - r1.restaurant.createdAt.valueOf())
     console.log(gmbBizList);
 
