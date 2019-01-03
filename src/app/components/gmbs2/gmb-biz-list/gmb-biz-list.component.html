@@ -50,9 +50,15 @@
       <option>bad menus</option>
       <option>bad rate schedules</option>
       <option>bad delivery settings</option>
-      
+
     </select>
 
+    <label class="mr-2">Agent:</label>
+    <select class="form-control mr-4" [(ngModel)]="agent" (change)="filterBizList()">
+      <option value="">any</option>
+      <option *ngFor="let agent of agents">{{agent}}</option>
+    </select>
+    {{agent}}
     <div class="form-check ml-4">
       <input class="form-check-input" type="checkbox" [(ngModel)]="onlyGmbOpen" (change)="filterBizList()" id="onlyGmbOpen">
       <label class="form-check-label" for="onlyGmbOpen">
@@ -80,17 +86,17 @@
         </button>
         <div class="
     dropdown-menu">
-    <a class="dropdown-item" target="_blank" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">qMenu Restaurant Details</a>
-    <a class="dropdown-item" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
-      Listing
-    </a>
-    </div>
-    </div>
-    <div class="text-muted">
-      <small>{{biz.gmbBiz.address}}</small>
-    </div>
+          <a class="dropdown-item" target="_blank" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">qMenu Restaurant Details</a>
+          <a class="dropdown-item" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
+            Listing
+          </a>
+        </div>
+      </div>
+      <div class="text-muted">
+        <small>{{biz.gmbBiz.address}}</small>
+      </div>
 
-    <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
+      <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
     </td>
     <td>
       <ng-container *ngIf="biz.qmenuIdDays >= 0">{{biz.qmenuIdDays}} days</ng-container>

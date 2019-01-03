@@ -35,6 +35,10 @@ export class GmbBizListComponent implements OnInit {
 
   myBizList: myBiz[] = [];
 
+  agents = [];
+
+  agent; // selected agent
+
   searchFilter;
   gmbOwnership;
   googleListingOwner;
@@ -137,7 +141,8 @@ export class GmbBizListComponent implements OnInit {
           "menus.hours": 1,
           "menus.disabled": 1,
           "rateSchedules.rate": 1,
-          "rateSchedules.fixed": 1
+          "rateSchedules.fixed": 1,
+          "rateSchedules.agent": 1
         },
         limit: 5000
       })
@@ -180,6 +185,10 @@ export class GmbBizListComponent implements OnInit {
             lostDate: biz.getLastGmbOwnership() && (biz.getLastGmbOwnership().status === 'Suspended' || !biz.getAccountEmail) ? biz.getLastGmbOwnership().possessedAt : undefined,
             restaurant: restaurantIdDict[biz.qmenuId]
           }));
+
+          this.agents = results[2].map(r => ((r.rateSchedules || [])[0] || {}).agent).filter(agent => agent);
+          this.agents = [... new Set(this.agents)];
+          this.agents.sort();
 
           this.filterBizList();
         },
@@ -361,6 +370,10 @@ export class GmbBizListComponent implements OnInit {
         break;
       default:
         break;
+    }
+
+    if (this.agent) {
+      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && b.restaurant.rateSchedules && b.restaurant.rateSchedules.length > 0 && b.restaurant.rateSchedules[0].agent === this.agent);
     }
 
     console.log('filter time: ', new Date().valueOf() - start.valueOf());

@@ -68,12 +68,12 @@ export class MyRestaurantComponent implements OnInit {
     {
       label: 'Onetime Commission',
       paths: ['qualifiedSalesBase'],
-      sort: (a, b) => a - b
+      sort: (a, b) => (a || 0) - (b || 0)
     },
     {
       label: '3 Months Bonus',
       paths: ['qualifiedSalesBonus'],
-      sort: (a, b) => a - b
+      sort: (a, b) => (a || 0) - (b || 0)
     },
     {
       label: 'Subtotal',
@@ -81,7 +81,12 @@ export class MyRestaurantComponent implements OnInit {
       sort: (a, b) => a - b
     },
     {
-      label: 'GMB Owner'
+      label: 'Had GMB',
+      paths: ['gmbOnceOwned'],
+      sort: (a, b) => (+a) - (+b)
+    },
+    {
+      label: 'Current GMB'
     },
     {
       label: 'Websites'
@@ -161,7 +166,8 @@ export class MyRestaurantComponent implements OnInit {
         phone: (r.phones || []).filter(p => p.type === 'Business').map(p => p.phoneNumber)[0],
         tasks: [],
         invoices: [],
-        showDetails: false
+        showDetails: false,
+        gmbOnceOwned: (new Date(r.createdAt) < new Date('2018-09-6')) // we only track GMB after 2018-9-6
       };
       restaurantRowMap[r._id] = row;
       return row;
@@ -180,18 +186,22 @@ export class MyRestaurantComponent implements OnInit {
           isCanceled: { $ne: true }
         },
         projection: {
-          gmbOwnerships: { $slice: -1 },
+          // project everything. get at least 2 ownerships to make sure we had qMenu
+          gmbOwnerships: { $slice: -2 }
         },
         limit: batchSize
       }).toPromise();
       gmbBizList.map(gmbBiz => {
         if (gmbBiz.qmenuId && restaurantRowMap[gmbBiz.qmenuId]) {
           gmbBizIdMap[gmbBiz._id] = gmbBiz;
-
           const row = restaurantRowMap[gmbBiz.qmenuId];
+          row.gmbOnceOwned = row.gmbOnceOwned || (gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && (gmbBiz.gmbOwnerships.length > 1 || gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published'));
           row.gmbBiz = gmbBiz;
           row.published = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published';
           row.suspended = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Suspended';
+          if (row.restaurant.name === 'Zen Fusion Cuisine') {
+            console.log(row);
+          }
         }
       });
 
@@ -222,8 +232,8 @@ export class MyRestaurantComponent implements OnInit {
 
         row.earned = row.commission * row.collected;
         row.notEarned = row.commission * row.notCollected;
-        row.qualifiedSalesBase = row.collected > 0 ? row.restaurant.salesBase : 0;
-        row.qualifiedSalesBonus = row.collected > 0 ? row.restaurant.salesBonus : 0;
+        row.qualifiedSalesBase = row.gmbOnceOwned ? row.restaurant.salesBase : 0;
+        row.qualifiedSalesBonus = row.gmbOnceOwned ? row.restaurant.salesBonus : 0;
         row.unqualifiedSalesBase = (row.restaurant.salesBase || 0) - (row.qualifiedSalesBase || 0);
         row.unqualifiedSalesBonus = (row.restaurant.salesBonus || 0) - (row.qualifiedSalesBonus || 0);
 

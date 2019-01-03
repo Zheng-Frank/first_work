@@ -1,0 +1,45 @@
+<div>
+    <i class="fas fa-square text-warning"></i> Need Action Immediately!
+</div>
+<div>
+    <img [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px"> Currently Owning GMB
+</div>
+<div>
+    <img [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px"> Owned GMB but Lost Now
+</div>
+<table class="table my-2">
+    <tr>
+        <th>Restaurant</th>
+        <th>Created</th>
+        <th class="text-nowrap">Sales Agent</th>
+        <th>GMB</th>
+        <th class="text-nowrap">Has Menu</th>
+        <th class="text-nowrap">Has Order</th>
+    </tr>
+    <tr *ngFor="let row of rows">
+        <td>
+            <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+            <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
+        </td>
+        <td class="text-nowrap">
+            {{getDaysFromId(row.restaurant._id)}} days ago
+        </td>
+        <td>
+            {{row.agent}}
+        </td>
+        <td class="text-nowrap">
+            <img *ngIf="row.hasGmb" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+            <img *ngIf="!row.hasGmb && row.hadGmb" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
+            <span *ngIf="!row.matchedGmb">No GMB</span>
+        </td>
+        <td class="{{row.hadGmb && row.noMenu ? 'bg-warning' : ''}}">
+            <span *ngIf="row.noMenu" class="text-danger">?</span>
+            <span *ngIf="!row.noMenu" class="text-success">✓</span>
+        </td>
+        <td class="{{!row.noMenu && row.hadGmb && row.noOrder ? 'bg-warning' : ''}}">
+            <span *ngIf="row.noOrder" class="text-danger">?</span>
+            <span *ngIf="!row.noOrder" class="text-success">✓</span>
+        </td>
+    </tr>
+
+</table>

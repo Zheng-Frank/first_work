@@ -128,6 +128,7 @@ import { MonitoringEmailComponent } from './components/monitoring/monitoring-ema
 import { TransactionDashboardComponent } from './components/transaction/transaction-dashboard/transaction-dashboard.component';
 import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/monitoring-unconfirmed-orders/monitoring-unconfirmed-orders.component';
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
+import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 
 @NgModule({
   declarations: [
@@ -240,6 +241,7 @@ import { ImageManagerComponent } from './components/utilities/image-manager/imag
     TransactionDashboardComponent,
     MonitoringUnconfirmedOrdersComponent,
     ImageManagerComponent,
+    MonitoringOnboardingComponent,
     
   ],
   imports: [
