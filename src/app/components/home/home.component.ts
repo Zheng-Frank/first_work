@@ -114,7 +114,8 @@ export class HomeComponent implements OnInit {
       "fax-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
       "email-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
       "unconfirmed-orders": ['ADMIN', 'CSR'],
-      "image-manager": ['ADMIN', 'CSR', 'MENU_EDITOR']
+      "image-manager": ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      "awaiting-onboarding": ['ADMIN', 'CSR', 'MENU_EDITOR']
     }
     return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
