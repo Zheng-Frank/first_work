@@ -142,6 +142,23 @@ export class TaskDashboardComponent {
       this.bizList = results;
       this.refreshing = false;
       const tasks = results[0].map(t => new Task(t));
+
+      // stats:
+      const closedTasks = tasks.filter(t => t.result === 'CLOSED');
+      closedTasks.sort((t2, t1) => new Date(t1.updatedAt).valueOf() - new Date(t2.updatedAt).valueOf());
+      const spanDays = Math.ceil((new Date(closedTasks[0].updatedAt).valueOf() - new Date(closedTasks[closedTasks.length - 1].updatedAt).valueOf()) / (3600000 * 24));
+
+      const userDict = {};
+      closedTasks.map(t => {
+        const user = t.assignee || 'system';
+        userDict[user] = (userDict[user] || 0) + 1;
+      });
+
+      console.log(`User Stats over ${spanDays} days: `);
+      Object.keys(userDict).map(user => {
+        console.log(`${user} ${userDict[user]} avg ${(userDict[user] / spanDays).toFixed(2)}/day`);
+      });
+
       this.myTasks = tasks.filter(t =>
         t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
 

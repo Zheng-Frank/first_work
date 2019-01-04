@@ -16,137 +16,123 @@ import { Task } from '../../../classes/tasks/task';
 })
 export class GmbRequestListComponent implements OnInit {
 
-  requests: any[] = [];
-  filteredRequests: any[] = [];
-
+  averageRequestsPerDay = 0;
+  rows = [];
   now = new Date();
-  user;
 
-  refreshing = false;
-
-  crawling = false;
-
-  includeHandled = false;
+  emailGroupedRows = [];
 
   myColumnDescriptors = [
     {
-      label: "Date"
-    },
-
-    {
-      label: "Name"
-    },
-    {
-      label: "Score"
+      label: "Biz Name"
     },
     {
       label: "Account"
     },
     {
-      label: "Requester"
-    },
-    {
-      label: "Comments"
-    },
-    {
-      label: "Actions"
+      label: "Requests"
     }
   ];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
-    this.user = _global.user;
     this.refresh();
   }
 
   ngOnInit() {
   }
 
-  refresh() {
+  async refresh() {
     this.now = new Date();
-    this.refreshing = true;
-    zip(
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbBiz",
-        limit: 5000
-      }),
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbAccount",
-        projection: {
-          email: 1
-        },
-        limit: 5000
-      }),
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbRequest",
-        limit: 5000
-      }),
-      // also find those tasks with requestId
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "task",
-        query: {
-          "relatedMap.gmbRequestId": {$exists: 1}
-        },
-        sort: {
-          createdAt: -1
-        },
-        limit: 500
-      }),
-    )
-      .subscribe(
-        results => {
-          this.refreshing = false;
 
-          const bizMap = {};
-          const accountMap = {};
-          const taskMap = {};
-          results[0].map(b => new GmbBiz(b)).map(b => bizMap[b._id] = b);
-          results[1].map(a => new GmbAccount(a)).map(a => accountMap[a._id] = a);
-          (results[3] as Task[]).map(t => t.relatedMap && t.relatedMap['gmbRequestId'] ? (taskMap[t.relatedMap['gmbRequestId']] = t) : (null));
-          const now = new Date();
+    const requests = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbRequest',
+      query: {
+        isReminder: false
+      },
+      projection: {
+        date: 1,
+        business: 1,
+        email: 1,
+        isReminder: 1,
+        requester: 1,
+        gmbAccountId: 1,
+        gmbBizId: 1
+      },
+      sort: {
+        date: -1
+      },
+      limit: 6000
+    }).toPromise();
 
-          const getState = (date: Date) => {
-            const timePassed = now.valueOf() - date.valueOf();
-            const daySpan = 24 * 3600 * 1000;
-            if (timePassed > 7 * daySpan) {
-              return 'danger';
-            } else if (timePassed > 5 * daySpan) {
-              return 'warning';
-            } else if (timePassed > 3 * daySpan) {
-              return 'info';
-            }
-          }
-          this.requests = results[2]
-            .map(r => new GmbRequest(r))
-            .map(r => ({
-              request: r,
-              biz: bizMap[r.gmbBizId],
-              isQmenuRequest: results[1].some(a => a.email === r.email),
-              account: accountMap[r.gmbAccountId],
-              accountEmail: (accountMap[r.gmbAccountId] || {}).email,
-              task: new Task(taskMap[r._id]),
-              state: getState(r.date)
-            }))
-            .sort((a, b) => b.request.date - a.request.date);
-          this.applyFilter();
-        },
-        error => {
-          this.refreshing = false;
-          this._global.publishAlert(AlertType.Danger, error);
-        }
-      );
-  }
+    requests.map(req => req.date = new Date(req.date));
 
-  applyFilter() {
-    this.filteredRequests = this.requests.filter(r => this.includeHandled ? this.requests : this.requests.filter(r => !r.request.handledAt));
-  }
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        name: 1
+      },
+      limit: 6000
+    }).toPromise();
 
-  taskUpdated(event) {
-    // ideally this can apply only to affected entities
-    this.refresh();
-  }
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1
+      },
+      limit: 6000
+    }).toPromise();
 
-  crawlAll() {
-    alert('not done yet');
+    const myEmailSet = new Set(gmbAccounts.map(a => a.email));
+    const attackingRequests = requests.filter(req => !req.isReminder && !myEmailSet.has(req.email));
+    const firstAttackDate = new Date(attackingRequests[attackingRequests.length - 1].date);
+    const lastAttackdate = new Date(attackingRequests[0].date);
+    this.averageRequestsPerDay = Math.ceil(attackingRequests.length / (1 + (lastAttackdate.valueOf() - firstAttackDate.valueOf()) / (24 * 3600000)));
+
+
+
+    const gmbAccountIdDict = {};
+    gmbAccounts.map(account => gmbAccountIdDict[account._id] = account);
+    const gmbBizIdDict = {};
+    gmbBizList.map(biz => gmbBizIdDict[biz._id] = biz);
+
+    requests.map(req => {
+      req.isQmenu = myEmailSet.has(req.email);
+      req.gmbAccount = gmbAccountIdDict[req.gmbAccountId];
+      req.gmbBiz = gmbBizIdDict[req.gmbBizId];
+    });
+
+    // group by gmbBizId + gmbAccountId
+    const dict = {};
+    requests.map(request => {
+      const key = request.gmbAccountId + request.gmbBizId;
+      if (!dict[key]) {
+        dict[key] = {
+          requests: [],
+          gmbAccount: gmbAccounts.filter(acct => acct._id === request.gmbAccountId)[0],
+          gmbBiz: gmbBizList.filter(biz => biz._id === request.gmbBizId)[0],
+        };
+      }
+      dict[key].requests.push(request);
+    });
+
+
+    this.rows = Object.keys(dict).map(k => dict[k]);
+
+    // group by email!
+    const emailDict = {};
+    requests.map(request => {
+      const key = request.email;
+      if (!emailDict[key]) {
+        emailDict[key] = {
+          requests: [],
+          requesterEmail: key,
+          isQmenu: myEmailSet.has(key)
+        };
+      }
+      emailDict[key].requests.push(request);
+    });
+    this.emailGroupedRows = Object.keys(emailDict).map(k => emailDict[k]);
+
   }
 
 }

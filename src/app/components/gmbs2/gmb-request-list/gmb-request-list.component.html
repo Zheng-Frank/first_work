@@ -1,31 +1,35 @@
 <h2 class="text-center">GMB: Requests</h2>
-<div class="clearfix my-2">
-  <!-- <div class="float-left form-inline">
-    <label class="checkbox-inline">
-      <input type="checkbox" [(ngModel)]="includeHandled" (change)="applyFilter()">&nbsp;Include Handled</label>
-  </div> -->
-  <div class="float-right">
-    <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
-      <i class="fas fa-sync-alt"></i> Reload</button>
-    <button class="btn btn-primary" (click)="crawlAll()" [qLoading]="crawling">
-      <i class="fab fa-google"></i> Crawl All</button>
+<div class="text-center">avg. {{averageRequestsPerDay}}/day</div>
+<div class="row">
+  <div class="col-6 px-2">
+    <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+      <tr *tableRowTemplate="let r;">
+        <td>{{r.requests[0].business}}</td>
+        <td>{{r.gmbAccount?.email | emailName}}</td>
+        <td>
+          <div *ngFor="let req of r.requests" class="{{req.isQmenu ? 'bg-success' : ''}}">
+            {{req.date | ago : now}} | {{req.email | emailName}} | {{req.requester}}
+          </div>
+        </td>
+      </tr>
+    </q-table>
+  </div>
+  <div class="col-6 px-2">
+    <table class="table">
+      <tr>
+        <th>Requester</th>
+        <th>Requests</th>
+      </tr>
+      <tr *ngFor="let row of emailGroupedRows">
+        <td class="{{row.isQmenu ? 'bg-success' : ''}}">
+          <span>{{row.requesterEmail | emailName}}</span>
+        </td>
+        <td>
+          <div *ngFor="let req of row.requests">
+            {{req.date | ago : now}} | {{req.business}} @ {{req.gmbAccount?.email | emailName}}
+          </div>
+        </td>
+      </tr>
+    </table>
   </div>
 </div>
-<q-table [rows]="filteredRequests" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let r;" class="{{'list-group-item-' + r.state}}">
-    <td>{{r.request.date | ago: now}}</td>
-    <td>{{r.request.business}}</td>
-    <td>{{r.biz?.score}}</td>
-    <td><app-gmb-account-hotlink [email]="r.accountEmail"></app-gmb-account-hotlink></td>
-    <td>{{r.request.email | emailName}} <img *ngIf="r.isQmenuRequest" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px"></td>
-    <td>
-      {{r.task?.comments}}
-      <div class="text-muted" *ngIf="r.task && r.task.resultAt">
-        <small>✓ &nbsp;{{r.task.resultAt | ago: now}}</small>
-      </div>
-    </td>
-    <td>
-      <app-task-action-bar [task]="r.task" [user]="user" (actionDone)="taskUpdated($event)"></app-task-action-bar>
-    </td>
-  </tr>
-</q-table>
