@@ -21,17 +21,127 @@ export class GmbService {
   constructor(private _api: ApiService, private _task: TaskService, private _global: GlobalService) {
   }
 
-  async getInvalidTransferTasks() {
-    const runningTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+  async computeToBeRescheduledTasks() {
+    // transfer tasks that are NOT in original accounts anymore!
+    const runningTransferTasksWithCode = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Transfer GMB Ownership',
+        result: null,
+        'transfer.code': { $exists: true }
+      },
+      limit: 1000
+    }).toPromise();
+    // console.log('runningTransferTasksWithCode', runningTransferTasksWithCode);
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        gmbOwnerships: { $slice: -1 },
+        "gmbOwnerships.email": 1
+      },
+      limit: 3000
+    }).toPromise();
+
+    const gmbBizIdMap = {};
+    gmbBizList.map(biz => gmbBizIdMap[biz._id] = biz);
+
+    const lostList = runningTransferTasksWithCode.filter(task => {
+      const gmbBiz = gmbBizIdMap[task.relatedMap.gmbBizId];
+      if (!gmbBiz) {
+        console.log(task);
+      }
+      return gmbBiz && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email !== task.transfer.fromEmail;
+    });
+
+    // console.log(lostList);
+
+    // now reschedule those by systems!
+
+    if (lostList.length > 0) {
+      const pairs = [];
+      pairs.push(...lostList.map(t => ({
+        old: {
+          _id: t._id
+        },
+        new: {
+          _id: t._id,
+          scheduledAt: { $date: new Date() },
+          comments: (!t.comments || t.comments.indexOf('[rescheduled by system]') < 0) ? (t.comments || '') + ' [rescheduled by system]' : t.comments
+        }
+      })));
+
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+    }
+  }
+
+  async getInvalidTransferTasks() {
+    const oldTransferDate = new Date();
+    oldTransferDate.setDate(oldTransferDate.getDate() - 30);
+
+    const oldRunningTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Transfer GMB Ownership',
+        createdAt: { $lt: { $date: oldTransferDate } },
         result: null
       },
       limit: 1000
     }).toPromise();
 
-    console.log(runningTransferTasks)
+    console.log('old running tasks: ', oldRunningTransferTasks);
+
+    const myAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1
+      },
+      limit: 2000
+    }).toPromise();
+
+    const myEmails = new Set(myAccounts.map(a => a.email));
+    // no non-self requests after first requests!
+    const latestDate = new Date();
+    latestDate.setDate(latestDate.getDate() - 45);
+    const latestRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbRequest',
+      query: {
+        date: {
+          $gt: { $date: latestDate }
+        }
+      },
+      projection: {
+        email: 1,
+        gmbAccountId: 1,
+        gmbBizId: 1
+      },
+      limit: 10000
+    }).toPromise();
+
+    // const bizAccountIdRequestMap = {};
+    // latestRequests.map(request => bizAccountIdRequestMap[request.gmbBiz + request.gmbAccountId] = request);
+
+    // find 30 days transfer but with no new requests!
+
+    const requestsWithoutSubsequentRequests = oldRunningTransferTasks.filter(task => {
+      const theRequest = latestRequests.filter(r => r._id === task.relatedMap.gmbRequestId)[0];
+      if (theRequest) {
+        const relevantRequests = latestRequests.filter(r => new Date(r.date) > new Date(theRequest.date) && r.gmbAccountId === task.relatedMap.gmbAccountId && r.gmbBizId === task.relatedMap.gmbBizId);
+        const competitorsRequests = relevantRequests.filter(r => !myEmails.has(r.email));
+        return competitorsRequests.length === 0;
+      }
+    });
+
+    console.log('requestsWithoutSubsequentRequests: ', requestsWithoutSubsequentRequests);
+
+    const requestsWithoutSubsequentRequestsWithoutCode = requestsWithoutSubsequentRequests.filter(r => !r.transfer || !r.transfer.code);
+    console.log('requestsWithoutSubsequentRequestsWithoutCode', requestsWithoutSubsequentRequestsWithoutCode);
+
+    // over 30 days, still no code, not lost yet --> close???
+
+    const requestsWithoutSubsequentRequestsWithCode = requestsWithoutSubsequentRequests.filter(r => r.transfer && r.transfer.code);
+    console.log('requestsWithoutSubsequentRequestsWithCode', requestsWithoutSubsequentRequestsWithCode);
+
   }
 
   async scanOneGmbAccountLocations(gmbAccount: GmbAccount) {

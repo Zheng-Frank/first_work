@@ -60,6 +60,10 @@ export class AutomationDashboardComponent implements OnInit {
     this.addRunningMessage('start');
     while (this.startTime) {
 
+      // rescheduledBySystem:
+
+      await this._gmb.computeToBeRescheduledTasks();
+
       //  retrieve all accounts:
       try {
         this.addRunningMessage('retrieve all accounts')

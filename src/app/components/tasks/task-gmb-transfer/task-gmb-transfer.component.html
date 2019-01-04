@@ -1,7 +1,14 @@
 <ng-container *ngIf="transfer">
-  <div *ngIf="isTaskExpired()" class="alert alert-danger">
-    EXPIRED TASK. PLEASE CLOSE.
+  <div class="alert alert-info">
+    Created: {{getTaskDate() | ago : now}}
+    <div *ngFor="let request of newCompetitorsRequests">
+      <small>New attack: {{request.email}}, {{request.date | ago: now}}</small>
+    </div>
   </div>
+  <div *ngIf="getInvalidReason()" class="alert alert-danger">
+    Please Close: {{getInvalidReason()}}
+  </div>
+
   <div class="mb-4">
     <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests".
       You
