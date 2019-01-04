@@ -21,6 +21,19 @@ export class GmbService {
   constructor(private _api: ApiService, private _task: TaskService, private _global: GlobalService) {
   }
 
+  async getInvalidTransferTasks() {
+    const runningTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Transfer GMB Ownership',
+        result: null
+      },
+      limit: 1000
+    }).toPromise();
+
+    console.log(runningTransferTasks)
+  }
+
   async scanOneGmbAccountLocations(gmbAccount: GmbAccount) {
     let password = gmbAccount.password;
     if (password.length > 20) {
