@@ -19,7 +19,8 @@ export class HomeComponent implements OnInit {
   selectedRestaurant;
 
   constructor(private gmbService: GmbService, private _router: Router, private _api: ApiService, private _global: GlobalService, private _cache: CacheService) {
-    gmbService.getInvalidTransferTasks();
+    // gmbService.getInvalidTransferTasks();
+    // gmbService.computeToBeRescheduledTasks();
   }
 
   async ngOnInit() {

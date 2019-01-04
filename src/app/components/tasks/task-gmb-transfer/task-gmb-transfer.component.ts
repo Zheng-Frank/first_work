@@ -57,49 +57,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   dropdownVisible = false;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
-
-    // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
-    zip(
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbBiz",
-        projection: {
-          "gmbOwnerships": { $slice: -2 },
-          "phone": 1
-        },
-        limit: 5000
-      }),
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbAccount",
-        projection: {
-          email: 1,
-          allLocations: 1
-        },
-        limit: 5000
-      })
-    )
-      .subscribe(
-        results => {
-          const accountMap = {};
-          results[1].map(a => {
-            accountMap[a.email] = a;
-          });
-          results[0].map(biz => {
-            if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
-              const email = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
-              if (accountMap[email]) {
-                accountMap[email].bizCount = (accountMap[email].bizCount || 0) + 1;
-              }
-            }
-          });
-
-          this.accounts = results[1].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
-
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, error);
-        }
-      );
-
+    this.populate();
     // to refresh 'now' every minute
     setInterval(() => {
       this.now = new Date();
@@ -113,6 +71,70 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   gmbRequest;
   gmbAccount;
   restaurantLogs: Log[] = [];
+  newCompetitorsRequests = [];
+
+  async populate() { // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: "gmbBiz",
+      projection: {
+        "gmbOwnerships": { $slice: -2 },
+        "phone": 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: "gmbAccount",
+      projection: {
+        email: 1,
+        allLocations: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+
+    const accountMap = {};
+    gmbAccounts.map(a => {
+      accountMap[a.email] = a;
+    });
+
+    gmbBizList.map(biz => {
+      if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
+        const email = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
+        if (accountMap[email]) {
+          accountMap[email].bizCount = (accountMap[email].bizCount || 0) + 1;
+        }
+      }
+    });
+
+    this.accounts = gmbAccounts.sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
+
+    // find the lastest request against this:
+
+    const requests = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbRequest',
+      query: {
+        date: {
+          $gt: { $date: new Date(this.task.createdAt) }
+        },
+        gmbAccountId: this.task.relatedMap.gmbAccountId,
+        gmbBizId: this.task.relatedMap.gmbBizId
+      },
+      projection: {
+        email: 1,
+        gmbAccountId: 1,
+        gmbBizId: 1,
+        date: 1
+      },
+
+      limit: 100
+    }).toPromise();
+
+    this.newCompetitorsRequests = requests.filter(request => !gmbAccounts.some(account => account.email === request.email));
+    this.newCompetitorsRequests.map(r => r.date = new Date(r.date));
+    this.newCompetitorsRequests.sort((a, b) => a.date.valueOf() - b.date.valueOf());
+  }
   refreshRelated() {
     this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'user',
@@ -167,7 +189,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   getFilteredAccounts() {
     if (this.transfer) {
-      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90 );
+      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
     }
     return this.accounts;
   }
@@ -556,13 +578,20 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
     this.ok.emit();
   }
 
-  isTaskExpired() {
-    const days60 = 30 * 24 * 3600 * 1000;
-    if (this.task.transfer.appealedAt) {
-      return this.now.valueOf() - this.task.transfer.appealedAt.valueOf() >= days60;
+  getTaskDate() {
+    return new Date(this.task.createdAt);
+  }
+
+  getInvalidReason() {
+
+    if (!this.transfer.code && this.newCompetitorsRequests.length === 0 && this.now.valueOf() - this.getTaskDate().valueOf() > 30 * 24 * 3600000) {
+      return 'No new attackers and task is too old';
     }
 
-    return false;
+    if (!this.transfer.code && this.newCompetitorsRequests.length > 0 && this.now.valueOf() - this.newCompetitorsRequests[this.newCompetitorsRequests.length - 1].date.valueOf() > 30 * 24 * 3600000) {
+      return 'Latest attack is more than 30 days and task is too old';
+    }
+
   }
 
 
