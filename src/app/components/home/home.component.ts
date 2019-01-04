@@ -5,6 +5,7 @@ import { GlobalService } from "../../services/global.service";
 import { AlertType } from "../../classes/alert-type";
 import { CacheService } from "../../services/cache.service";
 import { Router } from '@angular/router';
+import { GmbService } from "src/app/services/gmb.service";
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -17,7 +18,9 @@ export class HomeComponent implements OnInit {
 
   selectedRestaurant;
 
-  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService, private _cache: CacheService) { }
+  constructor(private gmbService: GmbService, private _router: Router, private _api: ApiService, private _global: GlobalService, private _cache: CacheService) {
+    gmbService.getInvalidTransferTasks();
+  }
 
   async ngOnInit() {
     // retrieve restaurant list

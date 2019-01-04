@@ -59,6 +59,7 @@ export class AutomationDashboardComponent implements OnInit {
     this.executedTasks = 0;
     this.addRunningMessage('start');
     while (this.startTime) {
+
       //  retrieve all accounts:
       try {
         this.addRunningMessage('retrieve all accounts')
@@ -205,6 +206,7 @@ export class AutomationDashboardComponent implements OnInit {
         console.log(error);
       } // end one BIG loop
 
+
       // find the newly LOST gmb!
       try {
         const gmbBizList = (await this._api.get(environment.adminApiUrl + 'generic', {
@@ -212,7 +214,8 @@ export class AutomationDashboardComponent implements OnInit {
           projection: {
             gmbOwnerships: { $slice: -4 },
             name: 1,
-            score: 1
+            score: 1,
+            place_id: 1
           },
           limit: 10000
         }).toPromise()).map(biz => new GmbBiz(biz));
@@ -256,15 +259,15 @@ export class AutomationDashboardComponent implements OnInit {
         // 2. gmbBiz has place_id;
         // 3. not already existed
 
-        const shouldApplyList = notOwnedList
-          .filter(biz => !biz.disableAutoTask && (!biz.gmbOwnerships || biz.gmbOwnerships.length === 0))
+        const shouldApplyList = filteredList
+          .filter(biz => !biz.disableAutoTask)
           .filter(biz => !biz.closed && biz.place_id && !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id))
           .filter(gmbBiz => !disabledRestaurants.some(r => r._id === gmbBiz.qmenuId));
 
         console.log('should apply gmb', shouldApplyList);
         if (shouldApplyList.length > 0) {
           this.addRunningMessage('add new gmb task, ' + shouldApplyList.map(biz => biz.name).join(', '));
-          // await this.createApplyTasks(shouldApplyList);
+          await this.createApplyTasks(shouldApplyList);
           this.executedTasks++;
         }
 

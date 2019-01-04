@@ -39,9 +39,7 @@ export class MonitoringOnboardingComponent implements OnInit {
     // restaurantIdsWith
     const havingOrderRestaurantIdSet = new Set(await this._api.get(environment.legacyApiUrl + 'utilities/distinctOrderRestaurantIds').toPromise());
     const restaurantsWithoutValidMenusAndNotDisabled = allRestaurants.filter(r => !r.disabled && (!r.menus || r.menus.filter(menu => !menu.disabled).length === 0));
-    console.log('no menu: ', restaurantsWithoutValidMenusAndNotDisabled);
     const restaurantsWithoutAnyOrder = allRestaurants.filter(r => !havingOrderRestaurantIdSet.has(r._id));
-    console.log('no order: ', restaurantsWithoutAnyOrder);
 
     const dict = {};
     restaurantsWithoutValidMenusAndNotDisabled.map(r => dict[r._id] = { restaurant: r, noMenu: true });
@@ -74,7 +72,6 @@ export class MonitoringOnboardingComponent implements OnInit {
       row.agent = ((row.restaurant.rateSchedules || [])[0] || {}).agent;
     });
     this.rows.sort((r1, r2) => r2.restaurant.createdAt.valueOf() - r1.restaurant.createdAt.valueOf())
-    console.log(gmbBizList);
 
   }
 
