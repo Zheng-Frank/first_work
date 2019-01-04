@@ -15,7 +15,7 @@ export class TaskListComponent implements OnInit, OnChanges {
   claimed;
   assignee: string;
 
-  assigneeList=[];
+  assigneeList = [];
   myColumnDescriptors = [
     {
       label: "Scheduled At",
@@ -60,6 +60,11 @@ export class TaskListComponent implements OnInit, OnChanges {
     },
     {
       label: "Actions"
+    },
+    {
+      label: "Created",
+      paths: ['createdAt'],
+      sort: (a, b) => a.valueOf() - b.valueOf()
     }
   ];
 
@@ -111,7 +116,7 @@ export class TaskListComponent implements OnInit, OnChanges {
 
     this.assigneeList = this.filteredTasks.map(t => t.assignee);
     // reuturn unique
-    this.assigneeList= Array.from(new Set(this.assigneeList)).sort().filter(e => e != null);
+    this.assigneeList = Array.from(new Set(this.assigneeList)).sort().filter(e => e != null);
   }
 
 

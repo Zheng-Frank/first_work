@@ -4,22 +4,22 @@
 <q-simple-radio [(ngModel)]="selectedTaskName" [values]="taskNames" (ngModelChange)="selectTask($event)">
 </q-simple-radio>
 <div class="float-left form-inline mt-2">
-<label class="mr-2"> Count:</label>
-<span class="mr-5" > {{filteredTasks.length}} </span>
+    <label class="mr-2"> Count:</label>
+    <span class="mr-5"> {{filteredTasks.length}} </span>
 
-<label class="mr-2"> Status:</label>
-<select class="mr-5" [(ngModel)]="claimed" (change)="filter()">
-    <option>Any</option>
-    <option>Claimed</option>
-    <option>Not Claimed</option>
-</select>
+    <label class="mr-2"> Status:</label>
+    <select class="mr-5" [(ngModel)]="claimed" (change)="filter()">
+        <option>Any</option>
+        <option>Claimed</option>
+        <option>Not Claimed</option>
+    </select>
 
 
-<label class="mr-2"> Assignee:</label>
-<select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
-    <option>Any</option>
-    <option *ngFor="let assignee of assigneeList">{{assignee}}</option>
-</select>
+    <label class="mr-2"> Assignee:</label>
+    <select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
+        <option>Any</option>
+        <option *ngFor="let assignee of assigneeList">{{assignee}}</option>
+    </select>
 </div>
 
 <q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
@@ -64,6 +64,9 @@
         </td>
         <td>
             <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)"></app-task-action-bar>
+        </td>
+        <td class="text-nowrap">
+            {{task.createdAt | ago:now}}
         </td>
     </tr>
 </q-table>

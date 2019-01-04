@@ -40,7 +40,7 @@ export class GmbService {
         gmbOwnerships: { $slice: -1 },
         "gmbOwnerships.email": 1
       },
-      limit: 3000
+      limit: 6000
     }).toPromise();
 
     const gmbBizIdMap = {};
