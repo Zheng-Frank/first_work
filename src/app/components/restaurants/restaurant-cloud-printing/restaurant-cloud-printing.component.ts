@@ -104,7 +104,7 @@ export class RestaurantCloudPrintingComponent implements OnInit {
 
   queryPrinters() {
     this.queryPrintersError = null;
-    this._api.put(environment.legacyApiUrl + "restaurant/queryPrinters")
+    this._api.post(environment.legacyApiUrl + "restaurant/queryPrinters/"+ this.restaurant['_id'])
     .subscribe(printers => {
       this.printers = [{ name: '(leave empty)' }];
       printers.map(p => {
