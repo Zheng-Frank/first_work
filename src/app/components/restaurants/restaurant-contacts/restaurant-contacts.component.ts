@@ -265,11 +265,6 @@ export class RestaurantContactsComponent implements OnInit {
     this.modalChannel.hide();
   }
 
-  submitNotes() {
-    this.patchDiff('notes', this.notes);
-  }
-
-
   patchDiff(field, newValue) {
     if (Helper.areObjectsEqual(this.restaurant[field], newValue)) {
       this._global.publishAlert(

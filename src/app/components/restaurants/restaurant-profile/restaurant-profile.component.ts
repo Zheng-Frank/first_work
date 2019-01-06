@@ -42,8 +42,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'ccProcessingRate',
     'ccProcessingFlatFee',
     'deliveryBy',
-    'domain',
-    'skipOrderConfirmation'
+    'domain',    
+    'skipOrderConfirmation',
+    'notes'
   ];
 
   uploadError: string;
