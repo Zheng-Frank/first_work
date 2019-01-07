@@ -76,16 +76,14 @@ export class OrderCardComponent implements OnInit {
   }
 
   canCancel(order: Order) {
-    // status are not completed, not canceled, and time is not over 2 days
-    // 1000 * 3600 * 48 = 172800000
-    return true;
-    //return !(order.statusEqual('CANCELED')) &&  (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 10* 24 * 3600 * 1000);
+    // status are not completed, not canceled, and time is not over 3 days
+    //return true;
+    return !(order.statusEqual('CANCELED')) &&  (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 3* 24 * 3600 * 1000);
   }
 
   canShowAdjust(order: Order) {
     // we can only adjust order within 3 days
-    // 1000 * 3600 * 24 * 10 = 259200000
-    return !order.statusEqual('CANCELED') && new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 864000000;
+    return !order.statusEqual('CANCELED') && new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 3* 24 * 3600 * 1000;
   }
 
   canPrint() {
