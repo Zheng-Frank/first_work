@@ -755,7 +755,7 @@ export class GmbService {
       }),
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbAccount",
-        query: {
+        projection: {
           email: 1
         },
         limit: 1000

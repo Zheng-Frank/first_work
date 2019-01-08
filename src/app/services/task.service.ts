@@ -90,12 +90,16 @@ export class TaskService {
     console.log('Open transfer tasks: ', openTransferTasks);
 
     const bizIds = openTransferTasks.map(task => task.relatedMap.gmbBizId);
+    const requestIds = openTransferTasks.map(task => task.relatedMap.gmbRequestId);
 
     const gmbBizList = [];
 
     const batchSize = 100;
+
+    const requests = [];
     while (bizIds.length > 0) {
       const slice = bizIds.splice(0, batchSize);
+
       const list = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
@@ -106,8 +110,41 @@ export class TaskService {
         },
         limit: 5000
       }).toPromise();
+
       gmbBizList.push(...list);
+
+      const requestsSlice = requestIds.splice(0, batchSize);
+      const batchedRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbRequest',
+        query: {
+          _id: { $in: requestsSlice.map(id => ({ $oid: id })) },
+        },
+        projection: {
+          email: 1
+        },
+        limit: 5000
+      }).toPromise();
+      requests.push(...batchedRequests);
     }
+
+    const myAccounts = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: "gmbAccount",
+      projection: {
+        email: 1
+      },
+      limit: 1000
+    }).toPromise();
+
+    const myEmailsSet = new Set(myAccounts.map(a => a.email));
+    console.log('myemails', myEmailsSet);
+    console.log('requests', requests);
+    const myRequestIdsSet = new Set(requests.filter(request => myEmailsSet.has(request.email)).map(r => r._id));
+
+    console.log('myRequestIdSet', myRequestIdsSet)
+    // // some tasks were wrongly created to against self :(
+    const againMyselfTasks = openTransferTasks.filter(t => myRequestIdsSet.has(t.relatedMap.gmbRequestId) && (!t.transfer || !t.transfer.code));
+
+    console.log('against myself tasks, no code yet ', againMyselfTasks);
 
     const bizMap = {};
 
@@ -136,14 +173,14 @@ export class TaskService {
     console.log('To be closed: ', toBeClosed);
 
     // patch those tasks to be closed! by system
-    const pairs = toBeClosed.map(t => ({
+    const pairs = [...toBeClosed, ...againMyselfTasks].map(t => ({
       old: {
         _id: t._id
       },
       new: {
         _id: t._id,
         assignee: 'system',
-        comments: (t.comments || '') + '\n[closed by system: NOT postcard, NO code, GMB lost.]',
+        comments: (t.comments || '') + '\n[closed by system: NOT postcard, NO code, GMB lost, or against self]',
         result: 'CANCELED',
         resultAt: { $date: new Date() }
       }
@@ -336,12 +373,12 @@ export class TaskService {
 
     const taskBizIdSet = new Set(openTasks.filter(t => t.relatedMap && t.relatedMap.gmbBizId).map(t => t.relatedMap.gmbBizId));
     const bizIdSet = new Set(bizList.map(b => b._id));
-    
+
     const missingInBizSet = new Set([...taskBizIdSet].filter(id => !bizIdSet.has(id)));
 
     const toBeRemovedTasks = openTasks.filter(t => t.relatedMap && missingInBizSet.has(t.relatedMap.gmbBizId));
     console.log(toBeRemovedTasks);
-    
+
     await this._api.delete(environment.adminApiUrl + 'generic', {
       resource: 'task',
       ids: toBeRemovedTasks.map(t => t._id)
