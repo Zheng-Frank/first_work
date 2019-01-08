@@ -676,7 +676,8 @@ export class GmbService {
     // already sort normally (original is DESC)
     const requests: GmbRequest[] = abc[0].map(r => new GmbRequest(r)).reverse();
     // to compare and delete useless (duplicated ones), we need to work backward
-    const before = requests.map(r => r);
+    // filter out things more than 15 days since it's constantly running
+    let before = requests.filter(r => now.valueOf() - r.date.valueOf() < 15 * 24 * 3600 * 1000);
     console.log('before', before);
     for (let i = requests.length - 1; i >= 0; i--) {
       const requesterEmail = requests[i].email;
