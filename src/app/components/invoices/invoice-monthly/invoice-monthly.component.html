@@ -162,6 +162,7 @@
         <th>ID</th>
         <th>Overlapped</th>
         <th>Gapped</th>
+        <th>Outstanding Balance</th>
         <th>Uninvoiced Orders</th>
         <th>Payment Methods</th>
         <th>Total Invoices</th>
@@ -188,6 +189,12 @@
         <td>
           <span class="badge badge-danger mx-1" *ngFor="let gap of row.gaps">{{gap.fromDate | date: "shortDate"}} -
             {{gap.toDate | date: "shortDate"}} ({{gap.orders.length}})</span>
+        </td>
+        <td>
+          <span *ngIf="row.outstandingBalance < 0.005 && row.outstandingBalance > -0.005">0</span>
+          <span *ngIf="row.outstandingBalance >= 0.005 || row.outstandingBalance <= -0.005">
+            {{row.outstandingBalance | currency:'USD':'symbol'}}
+          </span>
         </td>
         <td>
           {{row.orders.length}}

@@ -3,6 +3,7 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { Invoice } from 'src/app/classes/invoice';
+import { convertInjectableProviderToFactory } from '@angular/core/src/di/injectable';
 @Component({
   selector: 'app-invoice-monthly',
   templateUrl: './invoice-monthly.component.html',
@@ -267,7 +268,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     // remove being referenced invoices because they are handled!
 
     console.log('before', this.overdueRows.length);
- // treating rolled as paid
+    // treating rolled as paid
     this.overdueRows.map(row => row.invoices = row.invoices.filter(i => !beingReferencedIds.has(i._id)));
     this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 0);
     console.log('after', this.overdueRows.length);
@@ -374,7 +375,8 @@ export class InvoiceMonthlyComponent implements OnInit {
         "rateSchedules.commission": 1,
         "total": 1,
         isPaymentCompleted: 1,
-        balance: 1
+        balance: 1,
+        previousInvoiceId: 1
       },
       limit: 20000
     }).toPromise();
@@ -415,6 +417,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       const conservativeToDate = new Date(this.toDate);
 
       item.hasLast = item.invoices.some(i => i.fromDate.valueOf() < conservativeToDate.valueOf() && i.toDate.valueOf() > conservativeToDate.valueOf());
+      item.outstandingBalance = item.invoices.reduce((sum, invoice) => sum + ((invoice.isPaymentCompleted || item.invoices.some(i => i.previousInvoiceId === invoice._id)) ? 0 : invoice.balance), 0);
       // never had invoices: query last 30 days
       this.rows.push(item);
 
