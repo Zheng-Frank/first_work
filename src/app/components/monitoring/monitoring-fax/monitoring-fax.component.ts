@@ -70,25 +70,17 @@ export class MonitoringFaxComponent implements OnInit {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        "phones.phoneNumber": { $in: this.rows.map(row => row.phone) },
         "channels.value": { $in: this.rows.map(row => row.phone) }
       },
       projection: {
-        "name": 1,
-        "phones": 1,
-        "channels": 1
+        name: 1,
+        channels: 1
       },
       limit: 30000
     }).toPromise();
 
     // match back!
     restaurants.map(restaurant => {
-      (restaurant.phones || []).map(phone => {
-        if (numberFailureLogs[phone.phoneNumber]) {
-          numberFailureLogs[phone.phoneNumber].restaurant = restaurant;
-        }
-      });
-
       (restaurant.channels || []).map(channel => {
         if (numberFailureLogs[channel.value]) {
           numberFailureLogs[channel.value].restaurant = restaurant;

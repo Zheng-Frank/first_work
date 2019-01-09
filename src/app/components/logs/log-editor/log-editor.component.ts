@@ -115,15 +115,6 @@ export class LogEditorComponent implements OnInit {
     this.restaurant = new Restaurant(restaurant);
   }
 
-  getPhones(r: Restaurant) {
-    if (!r) {
-      return [];
-    }
-    const phones = (r.phones || []).map(p => p.phoneNumber);
-    const channels = (r.channels || []).map(c => c.value);
-    return Array.from(new Set(phones.concat(channels)));
-  }
-
   resetRestaurant() {
     this.restaurant = undefined;
     setTimeout(() => this.myRestaurantPicker.reset(), 100);

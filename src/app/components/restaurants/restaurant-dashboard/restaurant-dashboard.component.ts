@@ -43,7 +43,6 @@ export class RestaurantDashboardComponent implements OnInit {
   async ngOnInit() {
     // retrieve MY restaurant list
     this.restaurantList = await this._global.getCachedVisibleRestaurantList();
-    this.computeFilteredRestaurantList();
   }
 
   calculateDuplicated() {
@@ -114,8 +113,6 @@ export class RestaurantDashboardComponent implements OnInit {
           this.requesting = false;
           // let's remove this restaurant from the list!
           this.restaurantList = this.restaurantList.filter(r => r._id !== this.removeId);
-
-          this.computeFilteredRestaurantList();
         },
         error => {
           this.requesting = false;
@@ -138,7 +135,6 @@ export class RestaurantDashboardComponent implements OnInit {
     this.newRestaurant = {
       googleAddress: {}
     };
-    this.computeFilteredRestaurantList();
   }
 
   onCancelCreation() {
@@ -146,79 +142,6 @@ export class RestaurantDashboardComponent implements OnInit {
     this.newRestaurant = {
       googleAddress: {}
     };
-  }
-
-  debounce(event) {
-    this.searchTerm = event;
-    this.computeFilteredRestaurantList();
-  }
-
-  computeFilteredRestaurantList() {
-
-    this.calculateDuplicated();
-
-    let results = [];
-    let limit = 20;
-    // Follow those importance
-    // 1. empty
-    // 2. starts with
-    // 3. phones starts with
-    // 4. name.indexOf
-    // 5. phones indexOf
-
-    for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
-      const restaurant = this.restaurantList[i];
-      if (!this.searchTerm) {
-        results.push(restaurant);
-      } else {
-        this.searchTerm = this.searchTerm.replace(/[^a-zA-Z 0-9]+/g, "");
-      }
-    }
-
-    for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
-      const restaurant = this.restaurantList[i];
-      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.name.toLowerCase().indexOf(this.searchTerm.toLocaleLowerCase()) === 0)) {
-        results.push(restaurant);
-      }
-    }
-
-    for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
-      const restaurant = this.restaurantList[i];
-      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.phones || []).some(phone => (phone.phoneNumber || '').indexOf(this.searchTerm) === 0)) {
-        results.push(restaurant);
-      }
-    }
-
-    for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
-      const restaurant = this.restaurantList[i];
-      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.name.toLowerCase().indexOf(this.searchTerm.toLocaleLowerCase()) >= 0)) {
-        results.push(restaurant);
-      }
-    }
-
-    for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
-      const restaurant = this.restaurantList[i];
-      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.restaurantId == this.searchTerm)) {
-        results.push(restaurant);
-      }
-    }
-
-    for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
-      const restaurant = this.restaurantList[i];
-      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant.phones || []).some(phone => (phone.phoneNumber || '').indexOf(this.searchTerm) >= 0)) {
-        results.push(restaurant);
-      }
-    }
-
-    for (let i = 0; i < this.restaurantList.length && results.length < limit; i++) {
-      const restaurant = this.restaurantList[i];
-      if (results.indexOf(restaurant) < 0 && this.searchTerm && (restaurant._id.toLowerCase().startsWith(this.searchTerm.toLocaleLowerCase()) || restaurant._id.toLowerCase().endsWith(this.searchTerm.toLocaleLowerCase()))) {
-        results.push(restaurant);
-      }
-    }
-
-    this.filteredRestaurantList = results;
-
   }
 
   selectRestaurant(restaurant) {
