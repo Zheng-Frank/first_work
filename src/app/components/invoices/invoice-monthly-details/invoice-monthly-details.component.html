@@ -58,7 +58,6 @@
                   <i class="fas {{record.showContact ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
                 </button>
                 <div *ngIf="record.showContact">
-                  <div>Email: {{record.restaurant.email}}</div>
                   <div>Fax: {{getFax(record.restaurant) | tel}}</div>
                   <div>Text: {{getText(record.restaurant) | tel}}</div>
                   <div>{{getLine1(record.restaurant.googleAddress)}}</div>
@@ -95,7 +94,6 @@
                 <i class="fas {{record.showContact ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
               </button>
               <div *ngIf="record.showContact">
-                <div>Email: {{record.restaurant.email}}</div>
                 <div>Fax: {{getFax(record.restaurant) | tel}}</div>
                 <div>Text: {{getText(record.restaurant) | tel}}</div>
                 <div>{{getLine1(record.restaurant.googleAddress)}}</div>

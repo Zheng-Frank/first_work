@@ -199,7 +199,7 @@ export class Gmb2DashboardComponent implements OnInit {
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         projection: {
-          "phones.phoneNumber": 1,
+          "channels.value": 1,
           name: 1
         },
         limit: 5000
@@ -217,7 +217,7 @@ export class Gmb2DashboardComponent implements OnInit {
     ).pipe(mergeMap(
       results => {
         const phoneRestaurantMap = {};
-        results[0].map(r => (r.phones || []).map(phone => phoneRestaurantMap[phone.phoneNumber] = r._id));
+        results[0].map(r => (r.channels || []).filter(c => c.type !== 'Email').map(channel => phoneRestaurantMap[channel.value] = r._id));
         const bizList = results[1] as GmbBiz[];
         bizList.map(biz => biz.qmenuId = phoneRestaurantMap[biz.phone]);
 

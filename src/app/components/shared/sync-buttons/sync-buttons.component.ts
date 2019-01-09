@@ -34,13 +34,9 @@ export class SyncButtonsComponent implements OnInit {
         resource: "restaurant",
         projection: {
           name: 1,
-          address: 1
+          address: 1,
+          channels: 1
         },
-        limit: 5000
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "phone",
-        projection: {},
         limit: 5000
       })
     ).subscribe(
@@ -51,17 +47,16 @@ export class SyncButtonsComponent implements OnInit {
 
         const gmbs = result[0];
         const restaurants = result[1];
-        const phones = result[2];
 
         const gmbsClone = JSON.parse(JSON.stringify(gmbs));
         // let's match by phone number!
         gmbsClone.map(gmb =>
           (gmb.businesses || []).map(business => {
             let foundOne = false;
-            for (let i = 0; i < phones.length; i++) {
-              if (phones[i].phoneNumber === business.phone) {
+            for (let i = 0; i < restaurants.length; i++) {
+              if ((restaurants[i].channels || []).some(c => c.value === business.phone)) {
                 foundOne = true;
-                business.restaurantId = phones[i].restaurant;
+                business.restaurantId = restaurants[i]._id;
                 matched.push(business);
                 break;
               }
@@ -119,98 +114,7 @@ export class SyncButtonsComponent implements OnInit {
     // 2. get all restaurants
     // 3. get restaurants without lead.restaurantId counter part
     // 4. if not matched, create new lead!
-
-    this.restaurantToLeadSyncing = true;
-    zip(
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "lead",
-        query: {
-          restaurantId: { $exists: true }
-        },
-        projection: {
-          name: 1,
-          address: 1,
-          phones: 1,
-          restaurantId: 1
-        },
-        limit: 4000
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        projection: {
-          name: 1,
-          address: 1,
-          email: 1,
-          alias: 1
-        },
-        limit: 5000
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "phone",
-        projection: {},
-        limit: 5000
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "address",
-        projection: {},
-        limit: 5000
-      })
-    ).subscribe(
-      result => {
-        this.restaurantToLeadSyncing = false;
-        const matched = [];
-        const nonmatched = [];
-
-        const leadsWithRestaurantIdSet = new Set(
-          result[0].map(lead => lead.restaurantId)
-        );
-        const restaurants = result[1];
-        const phones = result[2];
-        const addresses = result[3];
-
-        const restaurantsRemaining = restaurants.filter(
-          r => !leadsWithRestaurantIdSet.has(r._id)
-        );
-
-        // mary restaurant and phones
-        const restaurantMap = {};
-        restaurantsRemaining.map(r => (restaurantMap[r._id] = r));
-        phones.map(phone => {
-          if (phone.restaurant && restaurantMap[phone.restaurant]) {
-            const r = restaurantMap[phone.restaurant];
-            r.phones = r.phones || [];
-            r.phones.push(phone.phoneNumber);
-          }
-        });
-
-        // mary restaurant and address
-
-        addresses.map(address => {
-          restaurantsRemaining.map(r => {
-            if (r.address === address._id) {
-              r.address = address;
-            }
-          });
-        });
-
-        // inject a field to indicate in qmenu
-        restaurantsRemaining.map(r => {
-          r.inQmenu = true;
-          r.restaurantId = r._id;
-          // remove _id so that lead will create new id!
-          delete r._id;
-        });
-        // inject those restaurants to leads!
-        this.injectLeads(restaurantsRemaining);
-      },
-      error => {
-        this.restaurantToLeadSyncing = false;
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling gmb from API"
-        );
-      }
-    );
+    alert('to be implemented')
   }
 
   injectLeads(leadsArray) {

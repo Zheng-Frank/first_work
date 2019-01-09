@@ -50,8 +50,7 @@ export class LogsDashboardComponent implements OnInit {
           alias: 1,
           logs: 1,
           logo: 1,
-          "phones.phoneNumber": 1,
-          "channels.value": 1,
+          channels: 1,
           "googleAddress.formatted_address": 1
         },
         limit: 6000
@@ -113,7 +112,6 @@ export class LogsDashboardComponent implements OnInit {
         const b1 = !this.unresolvedOnly || !log.resolved;
         const b2 = b1 && (!filter || (r.name.toLowerCase().startsWith(filter)
           || (log.callerPhone || '').startsWith(filter)
-          || (r.phones && r.phones.some(p => p.phoneNumber.startsWith(filter)))
           || (r.channels && r.channels.some(c => c.value.startsWith(filter)))));
         if (b1 && b2) {
           this.filteredRestaurantLogs.push({

@@ -146,8 +146,7 @@ export class MyRestaurantComponent implements OnInit {
       projection: {
         name: 1,
         "googleAddress.formatted_address": 1,
-        "phones.phoneNumber": 1,
-        "phones.type": 1,
+        channels: 1,
         disabled: 1,
         createdAt: 1,
         rateSchedules: 1,
@@ -163,7 +162,7 @@ export class MyRestaurantComponent implements OnInit {
     this.rows = myRestaurants.map(r => {
       const row = {
         restaurant: new Restaurant(r),
-        phone: (r.phones || []).filter(p => p.type === 'Business').map(p => p.phoneNumber)[0],
+        phone: (r.channels || []).filter(c => c.type === 'Phone' && (c.notifications || []).some(n => n === 'Business')).map(c => c.value)[0],
         tasks: [],
         invoices: [],
         showDetails: false,

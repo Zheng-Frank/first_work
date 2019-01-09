@@ -48,17 +48,14 @@ export class MonitoringEmailComponent implements OnInit {
       resource: 'restaurant',
       projection: {
         name: 1,
-        email: 1,
-        "channels": 1
+        channels: 1
       },
       limit: 6000
     }).toPromise();
 
     restaurants.map(restaurant => {
-      const emailsInRestaurant = (restaurant.email || '').replace(/;/g, ',').split(',').filter(e => e).map(e => e.trim()).filter(e => e).map(e => e.toLowerCase());
       const emailsInChannels = (restaurant.channels || []).filter(c => c.type === 'Email' && c.notifications && c.notifications.indexOf('Order') >= 0).map(c => c.value).map(e => e.toLowerCase());
-      const finalEmails = [...new Set([...emailsInChannels, ...emailsInRestaurant])];
-      finalEmails.map(email => this.emailRestaurantDict[email] = restaurant);
+      emailsInChannels.map(email => this.emailRestaurantDict[email] = restaurant);
     });
 
     // distinct by email!

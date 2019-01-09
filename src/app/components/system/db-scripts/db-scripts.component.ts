@@ -229,75 +229,6 @@ export class DbScriptsComponent implements OnInit {
     )
   }
 
-  migratePhones() {
-    // let's batch 5 every time
-    const batchSize = 100;
-    let myRestaurants;
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "restaurant",
-      query: {
-        phones: { $exists: false },
-      },
-      projection: {
-        name: 1
-      },
-      limit: batchSize
-    }).pipe(mergeMap(restaurants => {
-      myRestaurants = restaurants;
-      return this._api
-        .get(environment.qmenuApiUrl + "generic", {
-          resource: "phone",
-          query: {
-            restaurant: { $in: restaurants.map(r => ({ $oid: r._id })) },
-          },
-          limit: batchSize
-        });
-    })).pipe(mergeMap(phones => {
-      if (phones.length === 0) {
-        throw 'No referenced phones found for restaurants ' + myRestaurants.map(r => r.name).join(', ');
-      }
-      const myRestaurantsOriginal = JSON.parse(JSON.stringify(myRestaurants));
-      const myRestaurantsChanged = JSON.parse(JSON.stringify(myRestaurants));
-
-      const rMap = {};
-      myRestaurantsChanged.map(r => rMap[r._id] = r);
-
-      phones.map(p => {
-        let r = rMap[p.restaurant];
-        r.phones = r.phones || [];
-        r.phones.push(p);
-      });
-
-      return this._api
-        .patch(
-          environment.qmenuApiUrl + "generic?resource=restaurant",
-          myRestaurantsChanged.map(clone => ({
-            old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
-            new: clone
-          }))
-        );
-    })
-    ).subscribe(
-      patchResult => {
-        this._global.publishAlert(
-          AlertType.Success,
-          "Migrated: " + myRestaurants.filter(r => patchResult.indexOf(r._id) >= 0).map(r => r.name).join(', ')
-        );
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Non-Migrated: " + myRestaurants.filter(r => patchResult.indexOf(r._id) < 0).map(r => r.name).join(', ')
-        );
-      },
-      error => {
-        console.log(error);
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      });
-
-  }
-
   fixAddress() {
     // let's batch 20 every time
     const batchSize = 20;
@@ -594,8 +525,7 @@ export class DbScriptsComponent implements OnInit {
       projection: {
         channels: 1,
         name: 1,
-        email: 1,
-        phones: 1
+        email: 1
       },
       limit: batchSize
     }).pipe(mergeMap(restaurants => {
@@ -1093,14 +1023,14 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       projection: {
         name: 1,
-        phones: 1,
+        channels: 1,
         "googleAddress.formatted_address": 1
       },
       limit: 10000
     }).toPromise();
 
     console.log(restaurants);
-    const restaurantsMissingBizPhones = restaurants.filter(r => r.phones && !r.phones.some(p => p.type === 'Business'));
+    const restaurantsMissingBizPhones = restaurants.filter(r => r.channels && !r.channels.some(c => c.type === 'Phone' && (c.notifications || []).some(n => n === 'Business')));
 
     console.log(restaurantsMissingBizPhones);
 
@@ -1111,17 +1041,18 @@ export class DbScriptsComponent implements OnInit {
         if (crawledResult.phone) {
           // inject phone!
           // update qmenuId!
-          const existingPhones = r.phones || [];
-          const clonedPhones = existingPhones.slice(0);
-          clonedPhones.push({
-            phoneNumber: crawledResult.phone,
-            type: 'Business'
+          const existingChannels = r.channels || [];
+          const clonedChannels = existingChannels.slice(0);
+          clonedChannels.push({
+            value: crawledResult.phone,
+            notifications: ['Business', 'Order'],
+            type: 'Phone'
           });
 
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
             {
-              old: { _id: r._id, phones: existingPhones },
-              new: { _id: r._id, phones: clonedPhones }
+              old: { _id: r._id },
+              new: { _id: r._id, channels: clonedChannels }
             }]).toPromise();
         }
       } catch (error) {
@@ -1333,7 +1264,6 @@ export class DbScriptsComponent implements OnInit {
     //   projection: {
     //     name: 1,
     //     "phones.textable": 1,
-    //     "phones.phoneNumber": 1,
     //     disabled: 1,
     //     channels: 1,
     //     closedHours: 1
@@ -1764,7 +1694,7 @@ zealrestaurant.us`;
     //   },
     //   projection: {
     //     name: 1,
-    //     "phones.phoneNumber": 1
+    //     "channels.value": 1
     //   },
     //   limit: 6000
     // }).toPromise();
@@ -1880,7 +1810,7 @@ zealrestaurant.us`;
         },
       ],
 
-      
+
       james: [
         {
           to: new Date('6/1/2018'),
