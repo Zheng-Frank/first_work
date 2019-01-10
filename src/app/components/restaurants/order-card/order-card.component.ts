@@ -138,8 +138,8 @@ export class OrderCardComponent implements OnInit {
   }
 
   sendEmail() {
-    const email = this.restaurant.channels.filter(c => c.type === 'Email' && (c.notifications || []).some(n => n === 'Order'));
-    this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: email, orderId: this.order.id, orderNumber: this.order.orderNumber })
+    const email = this.restaurant.channels.filter(c => c.type == 'Email' && (c.notifications || []).indexOf('Order') >= 0).map(c => c.value).join(',');
+    this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: email, orderId: this.order.id, orderNumber: this.order.orderNumber})
       .subscribe(
         d => {
           this._global.publishAlert(
