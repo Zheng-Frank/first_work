@@ -55,7 +55,6 @@ export class NewRestaurantComponent implements OnInit {
 
   async checkExistence() {
     this.restaurant.googleListing = {};
-    this.restaurant.phones = [];
     this.restaurant.channels = [];
 
     this.checkExistenceError = undefined;
@@ -107,14 +106,9 @@ export class NewRestaurantComponent implements OnInit {
     const existingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
       query: {
-        $or: [{
-          "phones.phoneNumber": crawledResult.phone
-        }, {
-          "channels.value": crawledResult.phone
-        }]
+        "channels.value": crawledResult.phone
       },
       projection: {
-        phones: 1,
         channels: 1,
         name: 1
       },
@@ -143,16 +137,6 @@ export class NewRestaurantComponent implements OnInit {
     }
     // handle phone, as business type
     if (crawledResult.phone) {
-      this.restaurant.phones = [
-        {
-          "phoneNumber": crawledResult.phone,
-          "callable": true,
-          "faxable": false,
-          "textable": false,
-          "type": "Business"
-        }
-      ];
-
       // handle phone, as business type
       this.restaurant.channels = [
         {

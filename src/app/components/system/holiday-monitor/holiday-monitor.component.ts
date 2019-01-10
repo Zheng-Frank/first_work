@@ -33,8 +33,6 @@ export class HolidayMonitorComponent implements OnInit {
       resource: "restaurant",
       projection: {
         name: 1,
-        "phones.textable": 1,
-        "phones.phoneNumber": 1,
         disabled: 1,
         channels: 1,
         closedHours: 1,
@@ -47,10 +45,8 @@ export class HolidayMonitorComponent implements OnInit {
       const phone = reply.params.body.From.substring(1);
       const text = reply.params.body.Text;
       const restaurant = restaurants.filter(r => {
-        const foundPhone = (r.phones || []).some(p => p.phoneNumber.replace(/\D/g, '') === phone);
-
         const foundChannel = r.channels && Array.isArray(r.channels) && r.channels.some(c => c.value.replace(/\D/g, '') === phone);
-        return foundPhone || foundChannel;
+        return foundChannel;
 
       })[0];
 

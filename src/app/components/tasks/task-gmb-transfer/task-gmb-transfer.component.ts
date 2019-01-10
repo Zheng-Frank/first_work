@@ -247,8 +247,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         },
         projection: {
           people: 1,
-          channels: 1,
-          phones: 1
+          channels: 1
         },
         limit: 1
       }).subscribe(results => {

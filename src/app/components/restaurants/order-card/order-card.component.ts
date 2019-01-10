@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Order, Payment, CreditCard, Customer, Restaurant }  from '@qmenu/ui';
+import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from "../../../services/global.service";
@@ -28,7 +28,7 @@ export class OrderCardComponent implements OnInit {
   confirmTitle;
   confirmBodyText;
   phoneNumberToText;
-  showTexting:boolean=false;
+  showTexting: boolean = false;
 
 
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -39,7 +39,7 @@ export class OrderCardComponent implements OnInit {
 
 
   getSubmittedTime(order: Order) {
-      return new Date(order.createdAt);   
+    return new Date(order.createdAt);
   }
 
   getCustomerName(order: Order) {
@@ -71,19 +71,19 @@ export class OrderCardComponent implements OnInit {
     return order.payment.paymentType === 'CREDITCARD';
   }
 
-  canSendEmail(order: Order){
-    return  this.restaurant && this.restaurant.email; 
+  canSendEmail(order: Order) {
+    return this.restaurant && (this.restaurant.channels || []).some(c => c.type === 'Email' && (c.notifications || []).some(n => n === 'Order'));
   }
 
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 3 days
     //return true;
-    return !(order.statusEqual('CANCELED')) &&  (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 3* 24 * 3600 * 1000);
+    return !(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 3 * 24 * 3600 * 1000);
   }
 
   canShowAdjust(order: Order) {
     // we can only adjust order within 3 days
-    return !order.statusEqual('CANCELED') && new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 3* 24 * 3600 * 1000;
+    return !order.statusEqual('CANCELED') && new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 3 * 24 * 3600 * 1000;
   }
 
   canPrint() {
@@ -96,7 +96,7 @@ export class OrderCardComponent implements OnInit {
   canFax() {
     // within 2 days
     // 1000 * 3600 * 48 = 43200000
-    return  this.restaurant && this.restaurant.phones && this.restaurant.phones.some(p => p.faxable);    
+    return this.restaurant && (this.restaurant.channels || []).some(c => c.type === 'Fax' && (c.notifications || []).some(n => n === 'Order'));
   }
 
   print() {
@@ -114,13 +114,13 @@ export class OrderCardComponent implements OnInit {
     this.confirmModal.show();
   }
 
-  setTexting(){
-    this.showTexting=!this.showTexting;
+  setTexting() {
+    this.showTexting = !this.showTexting;
   }
 
-  sendText(){
-    this._api.post(environment.legacyApiUrl + 'utilities/sendOrderSMS', { orderId: this.order.id, orderNumber: this.order.orderNumber, phones: this.phoneNumberToText.split()})
-    .subscribe(
+  sendText() {
+    this._api.post(environment.legacyApiUrl + 'utilities/sendOrderSMS', { orderId: this.order.id, orderNumber: this.order.orderNumber, phones: this.phoneNumberToText.split() })
+      .subscribe(
         d => {
           this._global.publishAlert(
             AlertType.Success,
@@ -134,12 +134,13 @@ export class OrderCardComponent implements OnInit {
   }
 
   isPhoneValid() {
-    return this.phoneNumberToText  && this.phoneNumberToText.match(/^[2-9]\d{2}[2-9]\d{2}\d{4}$/);
+    return this.phoneNumberToText && this.phoneNumberToText.match(/^[2-9]\d{2}[2-9]\d{2}\d{4}$/);
   }
 
-  sendEmail(){
-    this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: this.restaurant.email, orderId: this.order.id, orderNumber: this.order.orderNumber})
-    .subscribe(
+  sendEmail() {
+    const email = this.restaurant.channels.filter(c => c.type === 'Email' && (c.notifications || []).some(n => n === 'Order'));
+    this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: email, orderId: this.order.id, orderNumber: this.order.orderNumber })
+      .subscribe(
         d => {
           this._global.publishAlert(
             AlertType.Success,
@@ -155,26 +156,26 @@ export class OrderCardComponent implements OnInit {
   confirm() {
     switch (this.confirmAction) {
       case 'PRINT':
-      this._api.post(environment.legacyApiUrl + 'order/printOrderDetailsByOrderId', { orderId: this.order.id })
-        .subscribe(
-          d => {
-            //console.log(d);
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, "Failed to Print");
-          }
-        );
+        this._api.post(environment.legacyApiUrl + 'order/printOrderDetailsByOrderId', { orderId: this.order.id })
+          .subscribe(
+            d => {
+              //console.log(d);
+            },
+            error => {
+              this._global.publishAlert(AlertType.Danger, "Failed to Print");
+            }
+          );
         break;
       case 'FAX':
-      this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { orderId: this.order.id, faxNumber: this.restaurant.phones.find(p => p.faxable).phoneNumber })
-      .subscribe(
-          d => {
-            //console.log(d);
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, "Failed to fax");
-          }
-        );
+        this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { orderId: this.order.id, faxNumber: this.restaurant.channels.find(c => c.type === 'Fax' && (c.notifications || []).some(n => n === 'Order')).value })
+          .subscribe(
+            d => {
+              //console.log(d);
+            },
+            error => {
+              this._global.publishAlert(AlertType.Danger, "Failed to fax");
+            }
+          );
         break;
       default:
         break;
@@ -202,8 +203,8 @@ export class OrderCardComponent implements OnInit {
     return this.order && this.order.customer && this.order.customer.bannedReasons && this.order.customer.bannedReasons.join(', ');
   }
 
-  getOrderLink(){
-    return environment.legacyApiUrl+'utilities/order/'+this.order.id;
+  getOrderLink() {
+    return environment.legacyApiUrl + 'utilities/order/' + this.order.id;
   }
 
   isCanceled(order: Order) {

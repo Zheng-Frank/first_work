@@ -48,7 +48,7 @@ export class SystemDashboardComponent implements OnInit {
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       projection: {
-        phones: 1,
+        channels: 1,
         name: 1
       },
       limit: 5000
@@ -56,9 +56,11 @@ export class SystemDashboardComponent implements OnInit {
       let phoneRestaurantsDict = {};
 
       restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
-      restaurants.map(r => (r.phones || []).map(phone => {
-        phoneRestaurantsDict[phone.phoneNumber] = phoneRestaurantsDict[phone.phoneNumber] || [];
-        phoneRestaurantsDict[phone.phoneNumber].push(r);
+      restaurants.map(r => (r.channels || []).map(channel => {
+        if (channel.type !== 'Email') {
+          phoneRestaurantsDict[channel.value] = phoneRestaurantsDict[channel.value] || [];
+          phoneRestaurantsDict[channel.value].push(r);
+        }
       }));
 
       const temp = Object.keys(phoneRestaurantsDict).map(p => ({
@@ -310,75 +312,6 @@ export class SystemDashboardComponent implements OnInit {
     )
   }
 
-  migratePhones() {
-    // let's batch 5 every time
-    const batchSize = 100;
-    let myRestaurants;
-    this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "restaurant",
-      query: {
-        phones: { $exists: false },
-      },
-      projection: {
-        name: 1
-      },
-      limit: batchSize
-    }).pipe(mergeMap(restaurants => {
-      myRestaurants = restaurants;
-      return this._api
-        .get(environment.qmenuApiUrl + "generic", {
-          resource: "phone",
-          query: {
-            restaurant: { $in: restaurants.map(r => ({ $oid: r._id })) },
-          },
-          limit: batchSize
-        });
-    })).pipe(mergeMap(phones => {
-      if (phones.length === 0) {
-        throw 'No referenced phones found for restaurants ' + myRestaurants.map(r => r.name).join(', ');
-      }
-      const myRestaurantsOriginal = JSON.parse(JSON.stringify(myRestaurants));
-      const myRestaurantsChanged = JSON.parse(JSON.stringify(myRestaurants));
-
-      const rMap = {};
-      myRestaurantsChanged.map(r => rMap[r._id] = r);
-
-      phones.map(p => {
-        let r = rMap[p.restaurant];
-        r.phones = r.phones || [];
-        r.phones.push(p);
-      });
-
-      return this._api
-        .patch(
-          environment.qmenuApiUrl + "generic?resource=restaurant",
-          myRestaurantsChanged.map(clone => ({
-            old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
-            new: clone
-          }))
-        );
-    })
-    ).subscribe(
-      patchResult => {
-        this._global.publishAlert(
-          AlertType.Success,
-          "Migrated: " + myRestaurants.filter(r => patchResult.indexOf(r._id) >= 0).map(r => r.name).join(', ')
-        );
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Non-Migrated: " + myRestaurants.filter(r => patchResult.indexOf(r._id) < 0).map(r => r.name).join(', ')
-        );
-      },
-      error => {
-        console.log(error);
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      });
-
-  }
-
   async getRestaurantLocations() {
 
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -402,10 +335,10 @@ export class SystemDashboardComponent implements OnInit {
     let restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        "phones.phoneNumber": phone
+        "channels.value": phone
       },
       projection: {
-        phones: 1,
+        channels: 1,
         name: 1
       },
       limit: 5000
@@ -417,7 +350,7 @@ export class SystemDashboardComponent implements OnInit {
 
     const pairs = restaurants.map(r => {
       let newR = JSON.parse(JSON.stringify(r));
-      newR.phones = newR.phones.filter(p => p.phoneNumber !== phone);
+      newR.channels = newR.channels.filter(c => c.value !== phone);
       let oldR = r;
       delete oldR.phones;
       delete oldR.name;
