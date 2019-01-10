@@ -24,12 +24,13 @@ export class RestaurantGmbComponent implements OnInit {
 
   async ngOnChanges(changes: SimpleChanges) {
     if (this.restaurant) {
-      const gmbs = await this._api.get(environment.adminApiUrl + 'generic', {
+      this.gmbs = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
           qmenuId: this.restaurant['_id'] || this.restaurant.id
         }
       }).toPromise();
+
     }
   }
 
@@ -76,6 +77,10 @@ export class RestaurantGmbComponent implements OnInit {
 
     console.log(crawledResult);
 
+  }
+
+  getLastOwnership(gmbBiz: GmbBiz) {
+    return (gmbBiz.gmbOwnerships || []).slice(-1)[0] || {};
   }
 
 

@@ -4,6 +4,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";;
 import { Invoice } from 'src/app/classes/invoice';
+import { RouterLinkWithHref } from '@angular/router';
 
 @Component({
   selector: 'app-my-restaurant',
@@ -19,7 +20,7 @@ export class MyRestaurantComponent implements OnInit {
   username;
   usernames = [];
 
-
+  rolledInvoiceIdsSet = new Set();
   myColumnDescriptors = [
     {
       label: 'Number'
@@ -172,81 +173,81 @@ export class MyRestaurantComponent implements OnInit {
       return row;
     });
 
-    const batchSize = 200;
-    const batchedRestaurants = Array(Math.ceil(myRestaurants.length / batchSize)).fill(0).map((i, index) => myRestaurants.slice(index * batchSize, (index + 1) * batchSize));
-
     const gmbBizIdMap = {};
 
-    for (let batch of batchedRestaurants) {
-      const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        query: {
-          qmenuId: { $in: batch.map(r => r._id) },
-          isCanceled: { $ne: true }
-        },
-        projection: {
-          // project everything. get at least 2 ownerships to make sure we had qMenu
-          gmbOwnerships: { $slice: -2 }
-        },
-        limit: batchSize
-      }).toPromise();
-      gmbBizList.map(gmbBiz => {
-        if (gmbBiz.qmenuId && restaurantRowMap[gmbBiz.qmenuId]) {
-          gmbBizIdMap[gmbBiz._id] = gmbBiz;
-          const row = restaurantRowMap[gmbBiz.qmenuId];
-          row.gmbOnceOwned = row.gmbOnceOwned || (gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && (gmbBiz.gmbOwnerships.length > 1 || gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published'));
-          row.gmbBiz = gmbBiz;
-          row.published = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published';
-          row.suspended = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Suspended';
-          if (row.restaurant.name === 'Zen Fusion Cuisine') {
-            console.log(row);
-          }
-        }
-      });
-
-      let invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'invoice',
-        query: {
-          "restaurant.id": { $in: batch.map(r => r._id) }
-        },
-        projection: {
-          isCanceled: 1,
-          commission: 1,
-          fromDate: 1,
-          toDate: 1,
-          isPaymentCompleted: 1,
-          "restaurant.id": 1
-        },
-        limit: 200000
-      }).toPromise();
-      invoices = invoices.filter(i => !i.isCanceled);
-      invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(new Invoice(i)));
-
-      this.rows.map(row => row.collected = row.invoices.filter(i => i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
-      this.rows.map(row => row.notCollected = row.invoices.filter(i => !i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
-      this.rows.map(row => {
-        row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
-        row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
-        row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
-
-        row.earned = row.commission * row.collected;
-        row.notEarned = row.commission * row.notCollected;
-        row.qualifiedSalesBase = row.gmbOnceOwned ? row.restaurant.salesBase : 0;
-        row.qualifiedSalesBonus = row.gmbOnceOwned ? row.restaurant.salesBonus : 0;
-        row.unqualifiedSalesBase = (row.restaurant.salesBase || 0) - (row.qualifiedSalesBase || 0);
-        row.unqualifiedSalesBonus = (row.restaurant.salesBonus || 0) - (row.qualifiedSalesBonus || 0);
-
-      });
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        // project everything. get at least 2 ownerships to make sure we had qMenu
+        gmbOwnerships: { $slice: -2 },
+        name: 1,
+        qmenuId: 1,
+        gmbWebsite: 1,
+        qmenuWebsite: 1,
+        gmbOpen: 1,
+        "gmbOwnerships.status": 1,
+        "gmbOwnerships.email": 1
+      },
+      limit: 6000
+    }).toPromise();
+    gmbBizList.map(gmbBiz => {
+      if (gmbBiz.qmenuId && restaurantRowMap[gmbBiz.qmenuId]) {
+        gmbBizIdMap[gmbBiz._id] = gmbBiz;
+        const row = restaurantRowMap[gmbBiz.qmenuId];
+        row.gmbOnceOwned = row.gmbOnceOwned || (gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && (gmbBiz.gmbOwnerships.length > 1 || gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published'));
+        row.gmbBiz = gmbBiz;
+        row.published = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published';
+        row.suspended = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Suspended';
+      }
+    });
 
 
-      // compute subtotal
-      this.rows.map(row => {
-        row.subtotal = (row.earned || 0) + (row.qualifiedSalesBase || 0) + (row.qualifiedSalesBonus || 0);
-        row.unqualifiedSubtotal = (row.notEarned || 0) + (row.unqualifiedSalesBase || 0) + (row.unqualifiedSalesBonus || 0);
-      });
+    let invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        isCanceled: { $ne: true }
+      },
+      projection: {
+        isCanceled: 1,
+        commission: 1,
+        fromDate: 1,
+        toDate: 1,
+        isPaymentCompleted: 1,
+        "restaurant.id": 1,
+        previousInvoiceId: 1,
+        previousBalance: 1
+      },
+      limit: 200000
+    }).toPromise();
+    invoices = invoices.filter(i => !i.isCanceled).filter(i => restaurantRowMap[i.restaurant.id]);
+    invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(new Invoice(i)));
 
-      this.rows.sort((r1, r2) => r2.subtotal - r1.subtotal);
-    }
+    this.rolledInvoiceIdsSet = new Set(invoices.filter(invoice => invoice.previousInvoiceId).map(invoice => invoice.previousInvoiceId));
+    this.rows.map(row => row.collected = row.invoices.filter(i => i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
+    this.rows.map(row => row.notCollected = row.invoices.filter(i => !i.isPaymentCompleted).reduce((sum, invoice) => sum + (this.rolledInvoiceIdsSet.has(invoice._id) ? 0 : invoice.commission), 0));
+
+    this.rows.map(row => {
+      row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
+      row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
+      row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
+
+      row.earned = row.commission * row.collected;
+      row.notEarned = row.commission * row.notCollected;
+      row.qualifiedSalesBase = row.gmbOnceOwned ? row.restaurant.salesBase : 0;
+      row.qualifiedSalesBonus = row.gmbOnceOwned ? row.restaurant.salesBonus : 0;
+      row.unqualifiedSalesBase = (row.restaurant.salesBase || 0) - (row.qualifiedSalesBase || 0);
+      row.unqualifiedSalesBonus = (row.restaurant.salesBonus || 0) - (row.qualifiedSalesBonus || 0);
+
+      row.invoices.reverse();
+    });
+
+    // compute subtotal
+    this.rows.map(row => {
+      row.subtotal = (row.earned || 0) + (row.qualifiedSalesBase || 0) + (row.qualifiedSalesBonus || 0);
+      row.unqualifiedSubtotal = (row.notEarned || 0) + (row.unqualifiedSalesBase || 0) + (row.unqualifiedSalesBonus || 0);
+    });
+
+    this.rows.sort((r1, r2) => r2.subtotal - r1.subtotal);
 
     // query open Tasks
     const openTasks = await this._api.get(environment.adminApiUrl + 'generic', {
@@ -272,6 +273,10 @@ export class MyRestaurantComponent implements OnInit {
 
   getTotal(field) {
     return this.rows.reduce((sum, row) => sum + (row[field] || 0), 0);
+  }
+
+  isRolledOrPaid(invoice) {
+    return invoice.isPaymentCompleted || this.rolledInvoiceIdsSet.has(invoice._id);
   }
 
 }
