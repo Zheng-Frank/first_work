@@ -105,7 +105,7 @@
     <td class="text-nowrap">
       <button class="btn btn-link" (click)="row.showDetails = !row.showDetails">{{row.invoices.length}} <i class="fas fa-caret-down"></i></button>
       <table class="table table-borderless table-sm" *ngIf="row.showDetails">
-        <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : 'text-danger'}}">
+        <tr *ngFor="let invoice of row.invoices" class="{{isRolledOrPaid(invoice) ? 'text-success' : 'text-danger'}}">
           <td>
             <a target="_blank" href="#/invoices/{{invoice._id}}">{{invoice.fromDate | date:'MMM d yyyy'}} -
               {{invoice.toDate | date:'MMM d'}}</a>
@@ -126,7 +126,7 @@
     <td>{{row.notEarned | currency:'USD':'symbol'}}</td>
     <td><span *ngIf="row.restaurant.salesBase">{{row.qualifiedSalesBase | currency:'USD':'symbol'}}</span></td>
     <td><span *ngIf="row.restaurant.salesBonus">
-      
+
         {{row.qualifiedSalesBonus | currency:'USD':'symbol'}}
         <div><small>avg. {{row.restaurant.salesThreeMonthAverage | number:'1.1-1'}} / day</small></div></span>
     </td>

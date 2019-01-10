@@ -7,11 +7,13 @@
     Application Task</button>
 </div>
 
-<div class="card mb-2" *ngFor="let gmb of gmbs">
+<div class="card mb-2" *ngFor="let gmbBiz of gmbs">
   <h3 class="card-title text-center pt-4 pb-2">
-    <i class="fab fa-google"></i> Google Listing
-    <span class="text-success">✓</span>
-    <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: 12</h6>
+    <i class="fab fa-google"></i>
+    <span class="text-success" *ngIf="getLastOwnership(gmbBiz).status === 'Published'">Published ✓</span>
+    <span class="text-warning" *ngIf="getLastOwnership(gmbBiz).status === 'Suspended'">Suspended ✓</span>
+    <span class="text-danger" *ngIf="!getLastOwnership(gmbBiz).email">No Ownership ✗</span>
+    <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{gmbBiz.score}}</h6>
   </h3>
 
   <ul class="list-group list-group-flush">
@@ -25,19 +27,27 @@
         </tr>
         <tr>
           <th>Website</th>
-          <td>http://googlg.eocm</td>
+          <td><a href="{{gmbBiz.gmbWebsite}}" title="{{gmbBiz.gmbWebsite}}" target="_blank">{{gmbBiz.gmbWebsite}}</a></td>
           <td><span class="text-success">✓</span></td>
           <td><input type="checkbox" checked></td>
         </tr>
         <tr>
-          <th>Menu</th>
-          <td>http://googlg.eocm</td>
+          <th>Menu URLs</th>
+          <td>
+            <div *ngFor="let menuUrl of gmbBiz.menuUrls">
+              <a href="{{menuUrl.startsWith('http') ? menuUrl : 'http://' + menuUrl}}" title="{{menuUrl}}" target="_blank">{{menuUrl}}</a>
+            </div>
+          </td>
           <td><span class="text-success">✓</span></td>
           <td><input type="checkbox" checked></td>
         </tr>
         <tr>
           <th>Reservations</th>
-          <td>http://googlg.eocm</td>
+          <td>
+            <div *ngFor="let reservationUrl of gmbBiz.menuUrls">
+              <a href="{{menuUrl.startsWith('http') ? menuUrl : 'http://' + menuUrl}}" title="{{menuUrl}}" target="_blank">{{menuUrl}}</a>
+            </div>
+          </td>
           <td><span class="text-danger">✗</span></td>
           <td><input type="checkbox" checked></td>
         </tr>
