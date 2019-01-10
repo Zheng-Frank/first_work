@@ -1,0 +1,24 @@
+<table class="table">
+    <thead>
+        <tr>
+            <!-- <th scope="col">Agent</th> -->
+            <th>Restaurant</th>
+            <th>From</th>
+            <th>PIN</th>
+            <th>Done</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let row of rows;">
+            <td>
+                <div *ngFor="let rt of row.restaurant">{{rt.name}} | {{rt.googleAddress.formatted_address}}</div>
+            </td>
+            <td>{{row.from}}</td>
+            <td>{{row.text}}</td>
+            <td>
+                <span class="text-success" *ngIf="row.done">✔</span>
+                <span class="text-danger" *ngIf="!row.done">✘</span>
+            </td>
+        </tr>
+    </tbody>
+</table>

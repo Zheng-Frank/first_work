@@ -3,9 +3,7 @@
     EXPIRED TASK. PLEASE CLOSE.
   </div>
   <div class="mb-4">
-    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests".
-      You
-      can complete the task directly.</div>
+    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests". You can complete the task directly.</div>
     <!-- <h4 class="mb-3">GMB Transfer Steps</h4> -->
     <app-gmb-account-hotlink [email]="transfer.fromEmail"></app-gmb-account-hotlink>
     →
@@ -23,8 +21,7 @@
 
     <select [(ngModel)]="transfer.toEmail" class="form-control" (change)="handleUpdate('select')">
       <option></option>
-      <option *ngFor="let account of getFilteredAccounts()" [ngValue]="account.email">{{account.email | emailName}}
-        (total: {{account.allLocations}})</option>
+      <option *ngFor="let account of getFilteredAccounts()" [ngValue]="account.email">{{account.email | emailName}} (total: {{account.allLocations}})</option>
     </select>
   </div>
 
@@ -33,8 +30,7 @@
       Let B Request Ownership
     </label>
     <div *ngIf="!transfer.request">
-      <button class="btn btn-sm btn-info" [qLoading]="gmbRequesting" [disabled]="!transfer.toEmail" (click)="handleUpdate('request', 'requestedAt', 'gmbRequesting')">Request
-        Ownership
+      <button class="btn btn-sm btn-info" [qLoading]="gmbRequesting" [disabled]="!transfer.toEmail" (click)="handleUpdate('request', 'requestedAt', 'gmbRequesting')">Request Ownership
       </button>
     </div>
 
@@ -55,10 +51,8 @@
       <button class="btn btn-link pl-0" (click)="toggleManualAppeal = !toggleManualAppeal">Manually input appeal ID?</button>
       <div *qIf="toggleManualAppeal">
         <div class="form-inline">
-          <input [(ngModel)]="transfer.appealId" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;"
-            placeholder="appeal ID goes here">
-          <button class="btn btn-sm btn-info mb-2" [qLoading]="savingAppealId" (click)="handleUpdate('saveAppealId', 'appealedAt', 'savingAppealId')">Save
-            Appeal ID
+          <input [(ngModel)]="transfer.appealId" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;" placeholder="appeal ID goes here">
+          <button class="btn btn-sm btn-info mb-2" [qLoading]="savingAppealId" (click)="handleUpdate('saveAppealId', 'appealedAt', 'savingAppealId')">Save Appeal ID
           </button>
         </div>
       </div>
@@ -67,18 +61,16 @@
     <div *ngIf="transfer.appealedAt">
       Appealed {{transfer.appealedAt | ago: now}} ID: {{transfer.appealId}}
       <div>
-        <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing"
-          (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Re-Appeal</button>
+        <button class="btn btn-link px-0 fix-v-align" [qLoading]="gmbAppealing" (click)="handleUpdate('appeal', 'appealedAt', 'gmbAppealing')">Re-Appeal</button>
       </div>
       Selected Verification Method:
       <div>
-        <q-simple-radio [(ngModel)]="transfer.verificationMethod" [equalWidth]="true" [values]="['Email', 'Call', 'Postcard']"
-          (ngModelChange)="handleUpdate('selectVerificationMethod')">
+        <q-simple-radio [(ngModel)]="transfer.verificationMethod" [equalWidth]="true" [values]="['Email', 'Call', 'Postcard']" (ngModelChange)="handleUpdate('selectVerificationMethod')">
         </q-simple-radio>
       </div>
       <div class="card card-body" *ngIf="transfer.verificationMethod === 'Email'">
-        <app-email-code-reader [email]="emailSettings.email" [host]="emailSettings.host" [password]="emailSettings.password"
-          (retrieve)="retrieveEmailCode($event)" [gmbBiz]="gmbBiz"></app-email-code-reader>
+        <app-email-code-reader [email]="emailSettings.email" [host]="emailSettings.host" [password]="emailSettings.password" (retrieve)="retrieveEmailCode($event)"
+          [gmbBiz]="gmbBiz"></app-email-code-reader>
       </div>
       <div class="card card-body" *ngIf="transfer.verificationMethod === 'Call' || transfer.verificationMethod === 'Postcard'">
         <div *ngIf="gmbBiz?.phone">
@@ -86,14 +78,17 @@
         </div>
 
         <div *ngIf="restaurant && restaurant.people">
-          <span class="d-inline-block mr-2" *ngFor="let person of restaurant.people"><i class="fas fa-user mr-2"></i>{{person.title}}
-            {{person.name}} <span class="text-muted" *ngIf="person.roles && person.roles.length > 0"><small>{{person.roles}}</small></span></span>
+          <span class="d-inline-block mr-2" *ngFor="let person of restaurant.people">
+            <i class="fas fa-user mr-2"></i>{{person.title}} {{person.name}}
+            <span class="text-muted" *ngIf="person.roles && person.roles.length > 0">
+              <small>{{person.roles}}</small>
+            </span>
+          </span>
         </div>
 
         <div class="my-4">
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" [checked]="!!transfer.bizNotifiedAt"
-              (change)="handleUpdate('notify', 'bizNotifiedAt', null)">
+            <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" [checked]="!!transfer.bizNotifiedAt" (change)="handleUpdate('notify', 'bizNotifiedAt', null)">
             <label class="form-check-label" for="defaultCheck1">
               Notified Restaurant
               <span *ngIf="transfer.bizNotifiedAt" style="font-weight: normal">{{transfer.bizNotifiedAt | ago: now}}</span>
@@ -111,10 +106,8 @@
     </label>
 
     <div class="form-inline">
-      <input [(ngModel)]="transfer.code" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;"
-        placeholder="code goes here">
-      <button class="btn btn-sm btn-info mb-2" [qLoading]="savingCode" (click)="handleUpdate('saveCode', null, 'savingCode')">Save
-        Code
+      <input [(ngModel)]="transfer.code" class="form-control mb-2 mr-2" type="tel" style="max-width: 12rem;" placeholder="code goes here">
+      <button class="btn btn-sm btn-info mb-2" [qLoading]="savingCode" (click)="handleUpdate('saveCode', null, 'savingCode')">Save Code
       </button>
     </div>
   </div>
@@ -125,8 +118,7 @@
     </label>
 
     <div *ngIf="!transfer.verifiedAt">
-      <button class="btn btn-sm btn-info" [qLoading]="verifyingCode" [disabled]="!transfer.code" (click)="handleUpdate('verify', 'verifiedAt', 'verifyingCode')">Verify
-        Code
+      <button class="btn btn-sm btn-info" [qLoading]="verifyingCode" [disabled]="!transfer.code" (click)="handleUpdate('verify', 'verifiedAt', 'verifyingCode')">Verify Code
       </button>
     </div>
     <div *ngIf="transfer.verifiedAt">
@@ -162,13 +154,17 @@
   </div>
   <div class="form-group">
     <label>Schedule Followup At:</label>
-    <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt"
-      (ngModelChange)="scheduledAtUpdated($event)">
+    <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt" (ngModelChange)="scheduledAtUpdated($event)">
     <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
     <div class="py-1 text-right">
-      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 5, 7, 30]" (click)="plusDay(i)">Today
-        + {{i}}</button>
+      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [3, 5, 7, 30]" (click)="plusDay(i)">Today + {{i}}</button>
     </div>
+  </div>
+
+
+  <div class="form-group">
+    <label>Notify Restaurant:</label>
+    <send-google-pin [restaurant]="restaurant"></send-google-pin>
   </div>
   <div class="form-group">
     <label>Comments:</label>
@@ -184,62 +180,63 @@
     <button class="btn btn-primary" (click)="clickOk()">OK</button>
   </div>
 
-  <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
-      details...'}}</button>
-    <div class="card border-info" *qIf="showDetails">
-      <div class="card-body">
-        <h4>More Details</h4>
-        <ng-container *ngIf="gmbBiz">
-          <hr>
-          <label>Restaurant:</label>
+  <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}
+  </button>
+  <div class="card border-info" *qIf="showDetails">
+    <div class="card-body">
+      <h4>More Details</h4>
+      <ng-container *ngIf="gmbBiz">
+        <hr>
+        <label>Restaurant:</label>
+        <h6>
+          <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+        </h6>
+        <label>qMenu Web Site:</label>
+        <h6>
+          {{gmbBiz.gmbWebsite}}
+        </h6>
+        <div *ngIf="gmbBiz.bizManagedWebsite">
+          <label>Restaurant Managed Website:</label>
           <h6>
-            <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+            {{gmbBiz.bizManagedWebsite}}
           </h6>
-          <label>qMenu Web Site:</label>
-          <h6>
-            {{gmbBiz.gmbWebsite}}
-          </h6>
-          <div *ngIf="gmbBiz.bizManagedWebsite">
-            <label>Restaurant Managed Website:</label>
-            <h6>
-              {{gmbBiz.bizManagedWebsite}}
-            </h6>
-          </div>
-          <app-restaurant-contacts [restaurant]="restaurant" [viewOnly]="true"></app-restaurant-contacts>
-          <table class="table table-sm" *ngIf="restaurantLogs && restaurantLogs.length > 0">
-            <thead>
-              <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Problem</th>
-                <th scope="col">Response</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let log of restaurantLogs">
-                <td>{{log.time | date: 'short'}}</td>
-                <td>{{log.problem}}</td>
-                <td>{{log.response}}</td>
-              </tr>
-            </tbody>
-          </table>
-  
-        </ng-container>
-        <ng-container *ngIf="gmbAccount">
-          <hr>
-          <label>GMB Account:</label>
-          <h6>
-            <app-gmb-account-hotlink [email]="gmbAccount.email"></app-gmb-account-hotlink>
-          </h6>
-        </ng-container>
-        <ng-container *ngIf="gmbRequest">
-          <hr>
-          <label>Requester Email:</label>
-          <h6>{{gmbRequest.email}}</h6>
-          <label>Request Date:</label>
-          <h6>{{gmbRequest.date | date: 'short'}}</h6>
-        </ng-container>
-  
-      </div>
+        </div>
+
+        <app-restaurant-contacts [restaurant]="restaurant" [viewOnly]="true"></app-restaurant-contacts>
+        <table class="table table-sm" *ngIf="restaurantLogs && restaurantLogs.length > 0">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Problem</th>
+              <th scope="col">Response</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of restaurantLogs">
+              <td>{{log.time | date: 'short'}}</td>
+              <td>{{log.problem}}</td>
+              <td>{{log.response}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </ng-container>
+      <ng-container *ngIf="gmbAccount">
+        <hr>
+        <label>GMB Account:</label>
+        <h6>
+          <app-gmb-account-hotlink [email]="gmbAccount.email"></app-gmb-account-hotlink>
+        </h6>
+      </ng-container>
+      <ng-container *ngIf="gmbRequest">
+        <hr>
+        <label>Requester Email:</label>
+        <h6>{{gmbRequest.email}}</h6>
+        <label>Request Date:</label>
+        <h6>{{gmbRequest.date | date: 'short'}}</h6>
+      </ng-container>
+
     </div>
+  </div>
 
 </ng-container>

@@ -1,0 +1,13 @@
+<div *ngIf="restaurant" class="form-group mt-3">
+  <label>SMS/EMail</label>
+  <select (change)="onChange()" [(ngModel)]="messageTo" class="form-control">
+    <option *ngFor="let c of contactList" [ngValue]="c">{{c.value}}</option>
+  </select>
+  <div class="form-group">
+      <label>Contents:</label>
+      <textarea class="form-control" rows="6" [(ngModel)]="contents"></textarea>
+    </div>
+    <div class="text-right">
+      <button class="btn btn-link mr-2" (click)="sendMessage()">Send</button>
+    </div>
+</div>

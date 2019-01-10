@@ -16,6 +16,13 @@
   (cancel)="clickCancel()" (remove)="clickRemove($event)">
 
   <div class="mb-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="id-task" [checked]="log.type === 'google-pin'">
+        <label class="form-check-label" for="id-task"> Google PIN</label>
+      </div>
+    </div>
+
+  <div class="mb-3">
     <div class="form-check">
       <input class="form-check-input" type="checkbox" id="id-adjustment" [(ngModel)]="hasAdjustment" (change)="changeHasAdjustment()">
       <label class="form-check-label" for="id-adjustment"> Credit or Debit Adjustment</label>

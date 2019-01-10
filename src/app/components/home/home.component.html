@@ -8,6 +8,13 @@
             <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
         </div>
     </div>
+    <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-globe"></i> Google PIN</h5>
+                <show-google-pin></show-google-pin>
+            </div>
+    </div>
 
     <!-- <div class="card" *ngIf="isVisible('email')">
         <div class="card-body">
