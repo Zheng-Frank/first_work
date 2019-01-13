@@ -1,0 +1,18 @@
+<!-- <div class="row">
+  <div class="col-3">Due: 28 days ago</div>
+  <div class="col-6">Transfer GMB Ownership</div>
+  <div class="col-1">Windy</div>
+  <div class="col-2">View</div>
+</div> -->
+
+<div class="card" *ngIf="task">
+  <div class="card-body">
+    <div class="bottom-right">created: {{task.createdAt | ago : now}}</div>
+    <h5 class="card-title">{{task.name}}</h5>
+    <h6 class="card-subtitle mb-2"><span class="badge {{task.scheduledAt.valueOf() - now.valueOf() > 86400000 ? 'badge-success' : (task.scheduledAt.valueOf() - now.valueOf() > 0 ? 'badge-warning' : 'badge-danger')}}">Due:
+        {{task.scheduledAt | ago : now}}</span></h6>
+    <pre>{{task.comments}}</pre>
+    <a href="#" class="card-link">Claim</a>
+    <a href="#" class="card-link">View</a>
+  </div>
+</div>

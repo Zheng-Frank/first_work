@@ -1,13 +1,10 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Address } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { zip } from "rxjs";
-import { Invoice } from '../../../classes/invoice';
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 declare var $: any;
 
 @Component({
@@ -15,9 +12,8 @@ declare var $: any;
   templateUrl: './restaurant-details.component.html',
   styleUrls: ['./restaurant-details.component.css']
 })
-export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy {
+export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   restaurant: Restaurant;
-  gmbBiz: GmbBiz;
   displayTextReply = false;
   phoneNumber;
   message = '';
@@ -41,7 +37,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     deliveryeSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER']
   }
 
-  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
+  constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
       "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR'],
@@ -54,6 +50,12 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
 
+    this._route.params.subscribe(
+      params => {
+        this.id = params['id'];
+        console.log(params);
+        this.loadDetails();
+      });
   }
 
   ngOnInit() {
@@ -64,7 +66,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     this._global.storeSet('restaurantDetailsTab', this.activeTab);
   }
 
-  async ngOnChanges(changes: SimpleChanges) {
+  async loadDetails() {
     if (this.id) {
       const query = {
         _id: { $oid: this.id }
@@ -137,7 +139,8 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           websiteTemplateName: 1,
           closedHours: 1,
           skipOrderConfirmation: 1,
-          disabled: 1
+          disabled: 1,
+          googleListing: 1
         },
         limit: 1
       })
@@ -152,18 +155,11 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
             this._global.publishAlert(AlertType.Danger, error);
           }
         );
-
-      // temp: also get gmbBiz to digg more info
-      this.gmbBiz = (await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        query: {
-          qmenuId: this.id
-        },
-        limit: 1
-      }).toPromise())[0];
     }
 
   }
+
+
 
   computeRestaurantStatus(restaurant: Restaurant) {
     return {
