@@ -191,6 +191,35 @@ export class TaskService {
     return toBeClosed;
   }
 
+  /** Some tasks's gmbBizId is already missing */
+  async purgeMissingIdsTasks() {
+    const openTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        result: null
+      },
+      projection: {
+        relatedMap: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        name: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const dict = {};
+    gmbBizList.map(biz => dict[biz._id] = biz);
+
+    const missingGmbBizIdTasks = openTasks.filter(t => t.relatedMap && t.relatedMap.gmbBizId && !dict[t.relatedMap.gmbBizId]);
+
+    console.log(missingGmbBizIdTasks)
+  }
+
   /**
  * This will remove non-claimed, non-closed, invalid transfer task (where original GMB ownership's lost!)
  */

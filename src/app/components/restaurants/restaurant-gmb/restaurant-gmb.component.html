@@ -1,21 +1,42 @@
 <div class="alert alert-danger">
   <h1>DO NOT USE. UNDERCONSTRUCTION</h1>
 </div>
-{{this.gmbs | json}}
-<div *ngIf="gmbs.length === 0">
-  No Google Listing found. <button class="btn btn-primary" (click)="matchOrCreateGmb()">Create GMB and Ownership
-    Application Task</button>
+<div *ngIf="gmbRows.length === 0">
+  No GMB found for the restaurant.
+</div>
+<div class="alert alert-info" *ngIf="gmbRows.length > 1">
+  <h1>{{gmbRows.length}} GMBs</h1>
 </div>
 
-<div class="card mb-2" *ngFor="let gmbBiz of gmbs">
-  <h3 class="card-title text-center pt-4 pb-2">
+<div class="text-right mb-2">
+  <div class="pb-2">
+    <span *ngIf="restaurant.googleListing" class="px-4">Main cid: {{restaurant.googleListing?.cid}} | Crawled:
+      {{restaurant.googleListing.crawledAt | ago : now}}</span>
+    <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Crawl Main Listing</button>
+  </div>
+</div>
+<div class="card mb-2" *ngFor="let row of gmbRows">
+  <h3 class="card-title text-center pt-4 pb-0">
     <i class="fab fa-google"></i>
-    <span class="text-success" *ngIf="getLastOwnership(gmbBiz).status === 'Published'">Published ✓</span>
-    <span class="text-warning" *ngIf="getLastOwnership(gmbBiz).status === 'Suspended'">Suspended ✓</span>
-    <span class="text-danger" *ngIf="!getLastOwnership(gmbBiz).email">No Ownership ✗</span>
-    <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{gmbBiz.score}}</h6>
+    <span class="text-success" *ngIf="getLastOwnership(row.gmbBiz).status === 'Published'">Published ✓</span>
+    <span class="text-warning" *ngIf="getLastOwnership(row.gmbBiz).status === 'Suspended'">Suspended ✓</span>
+    <span class="text-danger" *ngIf="!getLastOwnership(row.gmbBiz).email">No Ownership ✗</span>
+    <h6 style="position: absolute; top: 0; left: 0" class="p-2 text-left">cid: {{row.gmbBiz.cid}}<br>
+      <span *ngIf="row.gmbBiz.cid === restaurant.googleListing?.cid" class="text-success">Main</span>
+      <span *ngIf="restaurant.googleListing && row.gmbBiz.cid !== restaurant.googleListing.cid" class="text-danger">Secondary</span>
+    </h6>
+    <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{row.gmbBiz.score}}</h6>
   </h3>
-
+  <div class="text-center">
+    <small>
+      {{row.gmbBiz.address}}
+    </small></div>
+  <div class="text-center">
+    <small>
+      Listing crawled: {{row.gmbBiz.crawledAt | ago : now}}
+      | Account scanned: {{row.gmbAccount?.gmbScannedAt | ago : now}}
+      | Email scanned: {{row.gmbAccount?.emailScannedAt | ago : now}}
+    </small></div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <table class="app-table w-100">
@@ -27,94 +48,176 @@
         </tr>
         <tr>
           <th>Website</th>
-          <td><a href="{{gmbBiz.gmbWebsite}}" title="{{gmbBiz.gmbWebsite}}" target="_blank">{{gmbBiz.gmbWebsite}}</a></td>
-          <td><span class="text-success">✓</span></td>
-          <td><input type="checkbox" checked></td>
+          <td><a href="{{row.gmbBiz.gmbWebsite}}" title="{{row.gmbBiz.gmbWebsite}}" target="_blank">{{row.gmbBiz.gmbWebsite}}</a></td>
+          <td>
+            <span *ngIf="isWebsiteOk(row.gmbBiz)" class="text-success">✓</span>
+            <span *ngIf="!isWebsiteOk(row.gmbBiz)" class="text-danger">✗</span>
+          </td>
+          <td>
+            {{row.gmbBiz.useBizWebsite || row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
+          </td>
         </tr>
         <tr>
           <th>Menu URLs</th>
           <td>
-            <div *ngFor="let menuUrl of gmbBiz.menuUrls">
-              <a href="{{menuUrl.startsWith('http') ? menuUrl : 'http://' + menuUrl}}" title="{{menuUrl}}" target="_blank">{{menuUrl}}</a>
+            <div *ngFor="let menuUrl of row.gmbBiz.menuUrls">
+              <a href="{{menuUrl}}" title="{{menuUrl}}" target="_blank">{{menuUrl | host}}</a>
             </div>
           </td>
-          <td><span class="text-success">✓</span></td>
-          <td><input type="checkbox" checked></td>
+          <td>
+            <span *ngIf="isOthersOk(row.gmbBiz, 'menuUrls')" class="text-success">✓</span>
+            <span *ngIf="!isOthersOk(row.gmbBiz, 'menuUrls')" class="text-danger">✗</span>
+          </td>
+          <td>
+            {{row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
+          </td>
         </tr>
         <tr>
           <th>Reservations</th>
           <td>
-            <div *ngFor="let reservationUrl of gmbBiz.menuUrls">
-              <a href="{{menuUrl.startsWith('http') ? menuUrl : 'http://' + menuUrl}}" title="{{menuUrl}}" target="_blank">{{menuUrl}}</a>
+            <div *ngFor="let reservationUrl of row.gmbBiz.menuUrls">
+              <a href="{{reservationUrl}}" title="{{reservationUrl}}" target="_blank">{{reservationUrl | host}}</a>
             </div>
           </td>
-          <td><span class="text-danger">✗</span></td>
-          <td><input type="checkbox" checked></td>
+          <td>
+            <span *ngIf="isOthersOk(row.gmbBiz, 'reservations')" class="text-success">✓</span>
+            <span *ngIf="!isOthersOk(row.gmbBiz, 'reservations')" class="text-danger">✗</span>
+          </td>
+          <td>
+            {{row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
+          </td>
         </tr>
         <tr>
           <th>Order</th>
-          <td>http://googlg.eocm</td>
-          <td><span class="text-success">✓</span></td>
-          <td></td>
+          <td>
+            <div *ngFor="let orderUrl of row.gmbBiz.serviceProviders">
+              <a href="{{orderUrl}}" title="{{orderUrl}}" target="_blank">{{orderUrl | host}}</a>
+            </div>
+          </td>
+          <td>
+            <span *ngIf="isOthersOk(row.gmbBiz, 'serviceProviders')" class="text-success">✓</span>
+            <span *ngIf="!isOthersOk(row.gmbBiz, 'serviceProviders')" class="text-danger">✗</span>
+          </td>
+          <td>
+            {{row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
+          </td>
         </tr>
+        <!-- <tr>
+          <th>qMenu Website</th>
+          <td colspan="3">
+            <a *ngIf="row.gmbBiz.qmenuWebsite" href="{{row.gmbBiz.qmenuWebsite}}" title="{{row.gmbBiz.qmenuWebsite}}"
+              target="_blank">{{row.gmbBiz.qmenuWebsite}}</a>
+          </td>
+        </tr> -->
       </table>
     </li>
     <li class="list-group-item">
-      <!--displaying-->
       <table class="app-table w-100">
         <tr>
-          <th class="">Ownerships</th>
-          <td class="pl-1">A -> B -> C...</td>
-        </tr>
-        <tr>
-          <td class="pl-1" colspan="2">
-
-          </td>
-        </tr>
-        <tr>
           <th class="">qMenu Managed Website</th>
-          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us"></td>
-        </tr>
-        <tr>
-          <th class="">Restaurant Managed Website</th>
-          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us"></td>
+          <td class="pl-1">
+            <q-edit-label [value]="row.gmbBiz.qmenuWebsite" (edit)="onEdit($event, row.gmbBiz, 'qmenuWebsite')"></q-edit-label>
+          </td>
         </tr>
         <tr>
           <th class="">Godaddy Pop3 Host</th>
-          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us"></td>
+          <td class="pl-1">
+            <q-edit-label [value]="row.gmbBiz.qmenuPop3Host" (edit)="onEdit($event, row.gmbBiz, 'qmenuPop3Host')"></q-edit-label>
+          </td>
         </tr>
         <tr>
           <th class="">Godaddy Pop3 Email</th>
-          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us"></td>
-        </tr>
-        <tr>
-          <th class="">Godaddy Pop3 Password</th>
-          <td class="pl-1"><input class="form-control" type="text" value="http://qmenu.us">
-            <div class="text-right"><button class="btn btn-link">Retrieve Code</button></div>
-          </td>
-        </tr>
-
-        <tr>
-          <th class="">Outstanding Tasks</th>
           <td class="pl-1">
-            <div>Task A</div>
-            <div>Task B</div>
+            <q-edit-label [value]="row.gmbBiz.qmenuPop3Email" (edit)="onEdit($event, row.gmbBiz, 'qmenuPop3Email')"></q-edit-label>
           </td>
         </tr>
         <tr>
-          <th class="">Last Crawled</th>
-          <td class="pl-1">5 mins ago</td>
+          <th class="">Godaddy Pop3 Password<div><small class="text-muted">Maybe encrypted</small></div>
+          </th>
+          <td class="pl-1">
+            <q-edit-label [value]="row.gmbBiz.qmenuPop3Password" (edit)="onEdit($event, row.gmbBiz, 'qmenuPop3Password')"></q-edit-label>
+            <div class="text-right">
+              <button class="btn btn-link px-0" [disabled]="!row.gmbBiz.qmenuPop3Host || !row.gmbBiz.qmenuPop3Email"
+                (click)="retrieveCode(row)">Retrieve Lastest Code </button>
+              <div><small class="text-muted">auto-gmb must be running</small></div>
+              <div *ngIf="row.retrievedCodeObject">
+                Code: {{row.retrievedCodeObject.code}}<br>
+                Restaurant: {{row.retrievedCodeObject.name}}<br>
+                Email: {{row.retrievedCodeObject.email | emailName}}<br>
+                Time: {{row.retrievedCodeObject.time | ago : now}}
+              </div>
+            </div>
+          </td>
         </tr>
         <tr>
-          <th class="">Last GMB Scanned</th>
-          <td class="pl-1">10 mins agao</td>
+          <th class="">Restaurant Managed Website</th>
+          <td class="pl-1">
+            <q-edit-label [value]="row.gmbBiz.bizManagedWebsite" (edit)="onEdit($event, row.gmbBiz, 'bizManagedWebsite')"></q-edit-label>
+            <div *ngIf="row.gmbBiz.bizManagedWebsite">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="id_useBizWebsite" [checked]="row.gmbBiz.useBizWebsite"
+                  (change)="toggle($event, row.gmbBiz, 'useBizWebsite')">
+                <label class="form-check-label" for="id_useBizWebsite"> Insisted Only Website</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="id_useBizWebsiteForAll" [checked]="row.gmbBiz.useBizWebsiteForAll"
+                  (change)="toggle($event, row.gmbBiz, 'useBizWebsiteForAll')">
+                <label class="form-check-label" for="id_useBizWebsiteForAll"> Insisted All</label>
+              </div>
+            </div>
+          </td>
         </tr>
       </table>
+    </li>
 
+    <li class="list-group-item">
+      <table class="app-table w-100">
+        <tr>
+          <th class="">Ownerships<div><small>* click account to login</small></div>
+          </th>
+          <td class="pl-1">
+            <ng-container *ngFor="let ownership of (row.gmbBiz.gmbOwnerships || [])">
+
+              <div class="d-inline-block alert alert-{{ownership.status === 'Published' ? 'success' : (ownership.status === 'Suspended' ? 'warning' : 'danger')}} p-2">
+                <span *ngIf="!ownership.email" class="btn btn-link">lost</span>
+                <app-gmb-account-hotlink *ngIf="ownership.email" [email]="ownership.email"></app-gmb-account-hotlink>
+                <hr class="my-0"><small>{{ownership.possessedAt | ago : now}}</small>
+              </div>
+            </ng-container>
+          </td>
+        </tr>
+        <tr>
+          <th class="">GMB Requests<div></div>
+          </th>
+          <td class="pl-1">
+
+          </td>
+        </tr>
+        <tr>
+          <th class="">Outstanding Tasks<div></div>
+          </th>
+          <td class="pl-1">
+            <app-task-bar *ngFor="let task of row.outstandingTasks" [task]="task"></app-task-bar>
+          </td>
+        </tr>
+        <tr>
+          <th class="">Email Requests<div></div>
+          </th>
+          <td class="pl-1">
+            <div *ngFor="let gmbRequest of row.gmbRequests" class="{{gmbRequest.isSelf ? 'text-success' : ''}}">
+              {{gmbRequest.date | ago : now}} {{gmbRequest.email | emailName}}
+            </div>
+          </td>
+        </tr>
+      </table>
     </li>
 
     <li class="list-group-item text-right">
-      <button *ngFor="let action of ['Refresh', 'GMB Login', 'Inject Info', 'View on Google']" class="btn btn-link">{{action}}</button>
+      <button class="btn btn-link" (click)="refreshListing(row.gmbBiz)">Refresh Listing</button>
+      <button class="btn btn-link" (click)="injectInfo(row.gmbBiz)" [disabled]="!row.gmbAccount">Inject Info</button>
+      <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name}}" target="_blank" class="btn btn-link">
+        View on Google</a>
+
     </li>
 
   </ul>

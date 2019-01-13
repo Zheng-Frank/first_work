@@ -571,18 +571,26 @@ export class GmbService {
   }
 
 
-  async crawlOneGoogleListing(gmbBiz: GmbBiz) {
+  async crawlOneGoogleListing(gmbBiz: GmbBiz, useCid?: boolean) {
     // we need to fillup gmbBiz's phone, matching place_id, and websites info
     let crawledResult;
     try {
-      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [gmbBiz.name, gmbBiz.address].join(" ") }).toPromise();
+      const query = { q: [gmbBiz.name, gmbBiz.address].join(" ") };
+      if (useCid) {
+        query['ludocid'] = gmbBiz.cid;
+      }
+      crawledResult = await this._api.get(environment.east1Url + "utils/scan-gmb", query).toPromise();
     }
     catch (error) {
       // use only city state and zip code!
       // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
       const addressTokens = gmbBiz.address.split(", ");
-      const q = gmbBiz.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
-      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
+      const query = { q: gmbBiz.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
+      if (useCid) {
+        query['ludocid'] = gmbBiz.cid;
+      }
+
+      crawledResult = await this._api.get(environment.east1Url + "utils/scan-gmb", query).toPromise();
     }
 
     if (gmbBiz.address) {
@@ -612,7 +620,7 @@ export class GmbService {
         crawledResult.gmbOwner = 'qmenu';
       }
     }
-    const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed'].map(key => ({ key: key, value: crawledResult[key] }));
+    const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
 
     // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
     if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
