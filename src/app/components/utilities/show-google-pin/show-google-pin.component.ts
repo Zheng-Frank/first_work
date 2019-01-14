@@ -21,7 +21,7 @@ export class ShowGooglePINComponent implements OnInit {
     constructor(private _api: ApiService, private _global: GlobalService) { }
 
     async ngOnInit() {
-        this.restaurantList = await this._global.getCachedVisibleRestaurantList();
+        this.restaurantList = await this._global.getCachedVisibleRestaurantList(true);
         this.populate();
     }
 
@@ -52,8 +52,24 @@ export class ShowGooglePINComponent implements OnInit {
         }).toPromise();
 
         let codes = codeList.map(each => each.transfer.code);
+
+        for (let i = 0; i < this.restaurantList.length; i++) {
+            let restaurant = this.restaurantList[i];
+            (restaurant.logs || []).map(eachLog=>{
+                if(eachLog.type==='google-pin'){
+                    this.rows.push({
+                        restaurant: [restaurant],
+                        from:'Call Log',
+                        text: eachLog.response,
+                        done: codes.some(code => code == eachLog.response)
+                    })
+                    //console.log('this.rows', this.rows);
+                }
+            })
+        }
         
         const results = await this._api.get(environment.qmenuApiUrl + 'generic', {
+            
             resource: 'event',
             query: {
                 "name": "google-pin"
@@ -64,14 +80,15 @@ export class ShowGooglePINComponent implements OnInit {
             },
             limit: 10000
         }).toPromise();
-        this.rows = results.map(each => {
+        this.rows = this.rows.concat(results.map(each => {
             return {
                 restaurant: this.getRestaurant(each.params.body.From),
                 from: each.params.body.From.length == 11 ? each.params.body.From.toString().substring(1) : each.params.body.From,
                 text: each.params.body.Text,
                 done: codes.some(code => code == each.params.body.Text)
             }
-        })
+        }));
+        //console.log('final result', this.rows);
     }
 
     getRestaurant(phoneNumber) {

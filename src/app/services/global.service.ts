@@ -238,6 +238,7 @@ export class GlobalService {
           domain: 1,
           websiteTemplateName: 1,
           disabled: 1,
+          logs:1,
           "googleAddress.formatted_address": 1
         },
         limit: 6000
