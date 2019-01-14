@@ -80,8 +80,7 @@ export class PaymentsDashboardComponent implements OnInit {
         alias: 1,
         paymentMeans: 1,
         logo: 1,
-        "phones.phoneNumber": 1,
-        "channels.value": 1,
+        channels: 1,
         "googleAddress.formatted_address": 1
       },
       limit: 6000
@@ -141,7 +140,6 @@ export class PaymentsDashboardComponent implements OnInit {
 
         const b2 = b1 && b3 && (!filter || (r.name.toLowerCase().startsWith(filter)
           || (pm.callerPhone || '').startsWith(filter)
-          || (r.phones && r.phones.some(p => p.phoneNumber.startsWith(filter)))
           || (r.channels && r.channels.some(c => c.value.startsWith(filter)))));
         if (b1 && b2 && b3) {
           this.filteredRestaurantPaymentMeans.push({

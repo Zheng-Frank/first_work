@@ -49,7 +49,6 @@ import { RestaurantInvoicesComponent } from './components/restaurants/restaurant
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
 import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
-import { RestaurantDetailsHostComponent } from './components/restaurants/restaurant-details-host/restaurant-details-host.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
 import { RestaurantPaymentMeansComponent } from './components/restaurants/restaurant-payment-means/restaurant-payment-means.component';
 import { RestaurantServiceSettingsComponent } from './components/restaurants/restaurant-service-settings/restaurant-service-settings.component';
@@ -101,8 +100,6 @@ import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor
 import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
 import { LogsTableComponent } from './components/logs/logs-table/logs-table.component';
 import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
-import { RestaurantPhoneComponent } from './components/restaurants/restaurant-phone/restaurant-phone.component';
-import { RestaurantPhoneEditorComponent } from './components/restaurants/restaurant-phone-editor/restaurant-phone-editor.component';
 import { OrderActionBarComponent } from './components/restaurants/order-action-bar/order-action-bar.component';
 import { OrderItemsComponent } from './components/restaurants/order-items/order-items.component';
 import { OrderAdjustmentComponent } from './components/restaurants/order-adjustment/order-adjustment.component';
@@ -131,6 +128,7 @@ import { TransactionDashboardComponent } from './components/transaction/transact
 import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/monitoring-unconfirmed-orders/monitoring-unconfirmed-orders.component';
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
+import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 
 @NgModule({
   declarations: [
@@ -170,7 +168,6 @@ import { MonitoringOnboardingComponent } from './components/monitoring/monitorin
     RestaurantInvoicesComponent,
     RestaurantOrdersComponent,
     RestaurantContactsComponent,
-    RestaurantDetailsHostComponent,
     RestaurantRateSchedulesComponent,
     RestaurantPaymentMeansComponent,
     RestaurantServiceSettingsComponent,
@@ -224,8 +221,6 @@ import { MonitoringOnboardingComponent } from './components/monitoring/monitorin
     OrderAdjustmentComponent,
     OrderRejectBarComponent,
     BanCustomerComponent,
-    RestaurantPhoneComponent,
-    RestaurantPhoneEditorComponent,
     RestaurantDeliverySettingsComponent,
     StripeComponent,
     CheckEmailComponent,
@@ -246,6 +241,7 @@ import { MonitoringOnboardingComponent } from './components/monitoring/monitorin
     MonitoringUnconfirmedOrdersComponent,
     ImageManagerComponent,
     MonitoringOnboardingComponent,
+    TaskBarComponent,
     
   ],
   imports: [

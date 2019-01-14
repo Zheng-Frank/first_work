@@ -59,8 +59,7 @@ export class TaskDashboardComponent {
           alias: 1,
           logs: 1,
           logo: 1,
-          "phones.phoneNumber": 1,
-          "channels.value": 1,
+          channels: 1,
           "googleAddress.formatted_address": 1
         },
         limit: 6000

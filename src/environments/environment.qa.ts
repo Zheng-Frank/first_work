@@ -11,4 +11,5 @@ export const environment = {
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
   stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg',
+  east1Url: "https://9v8upsmsai.execute-api.us-east-1.amazonaws.com/prod/"
 };

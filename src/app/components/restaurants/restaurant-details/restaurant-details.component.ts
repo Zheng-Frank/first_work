@@ -1,13 +1,10 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Address } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { zip } from "rxjs";
-import { Invoice } from '../../../classes/invoice';
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 declare var $: any;
 
 @Component({
@@ -15,9 +12,8 @@ declare var $: any;
   templateUrl: './restaurant-details.component.html',
   styleUrls: ['./restaurant-details.component.css']
 })
-export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy {
+export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   restaurant: Restaurant;
-  gmbBiz: GmbBiz;
   displayTextReply = false;
   phoneNumber;
   message = '';
@@ -41,7 +37,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     deliveryeSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER']
   }
 
-  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
+  constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
       "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR'],
@@ -54,6 +50,12 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
 
+    this._route.params.subscribe(
+      params => {
+        this.id = params['id'];
+        console.log(params);
+        this.loadDetails();
+      });
   }
 
   ngOnInit() {
@@ -64,7 +66,7 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
     this._global.storeSet('restaurantDetailsTab', this.activeTab);
   }
 
-  async ngOnChanges(changes: SimpleChanges) {
+  async loadDetails() {
     if (this.id) {
       const query = {
         _id: { $oid: this.id }
@@ -100,8 +102,6 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           printers: 1,
 
           // profile needed fields
-
-          email: 1,
           taxRate: 1,
           surchargeAmount: 1,
           surchargeName: 1,
@@ -122,7 +122,6 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           stripePublishableKey: 1,
           preferredLanguage: 1,
           deliveryByTme: 1,
-          phones: 1,
           menus: 1,
           menuOptions: 1,
           notes: 1,
@@ -140,7 +139,8 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
           websiteTemplateName: 1,
           closedHours: 1,
           skipOrderConfirmation: 1,
-          disabled: 1
+          disabled: 1,
+          googleListing: 1
         },
         limit: 1
       })
@@ -155,28 +155,21 @@ export class RestaurantDetailsComponent implements OnInit, OnChanges, OnDestroy 
             this._global.publishAlert(AlertType.Danger, error);
           }
         );
-
-      // temp: also get gmbBiz to digg more info
-      this.gmbBiz = (await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        query: {
-          qmenuId: this.id
-        },
-        limit: 1
-      }).toPromise())[0];
     }
 
   }
+
+
 
   computeRestaurantStatus(restaurant: Restaurant) {
     return {
       menusOk: restaurant.menus && restaurant.menus.length > 0 && restaurant.menus.some(menu => !menu.disabled),
       hoursOk: (restaurant.menus || []).every(menu => menu.hours && menu.hours.length > 0),
       serviceSettingsOk: restaurant.serviceSettings && restaurant.serviceSettings.some(settings => settings.paymentMethods && settings.paymentMethods.length > 0),
-      emailOk: (restaurant.email || '').split(',').map(email => (email || '').trim()).filter(email => email).length > 0,
-      voiceOk: (restaurant.phones || []).some(phone => phone.callable),
-      smsOk: (restaurant.phones || []).some(phone => phone.textable),
-      faxOk: (restaurant.phones || []).some(phone => phone.faxable),
+      emailOk: (restaurant.channels || []).some(c => c.type === 'Email' && (c.notifications || []).some(n => n === 'Order')),
+      voiceOk: (restaurant.channels || []).some(c => c.type === 'Phone' && (c.notifications || []).some(n => n === 'Order')),
+      smsOk: (restaurant.channels || []).some(c => c.type === 'SMS' && (c.notifications || []).some(n => n === 'Order')),
+      faxOk: (restaurant.channels || []).some(c => c.type === 'Fax' && (c.notifications || []).some(n => n === 'Order')),
       paymentMeansOk: restaurant.paymentMeans && restaurant.paymentMeans.length > 0,
       rateScheduleOk: restaurant.rateSchedules && restaurant.rateSchedules.length > 0,
       taxRateOk: !!restaurant.taxRate,

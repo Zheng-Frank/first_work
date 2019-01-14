@@ -44,37 +44,3 @@
     <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
   </div>
 </div>
-<!-- 
-<div class="row my-2">
-  <div class="col form-inline">
-    Search Filter:
-    <input type="text" class="form-control ml-2" placeholder="name, phone, alias, ID..." [ngModel]="searchTerm" [qDebounce]="500" (debounce)="debounce($event)">
-  </div>
-  <div class="col-auto form-inline text-right">
-    <div style="width: 100%">Total: {{getEnabledCount()}} / {{restaurantList.length}}</div>
-  </div>
-</div>
-
-<ul class="list-group">
-  <ng-container *ngFor="let r of filteredRestaurantList">
-    <li class="list-group-item d-flex justify-content-between align-items-center {{r.disabled ? 'line-through' : ''}}">
-      <span>
-        <span class="thumb-container">
-          <img src="{{r.logo}}" alt="{{r.name}}" class="thumb-img" *ngIf="r.logo">
-          <i class="fas fa-coffee" *ngIf="!r.logo"></i>
-        </span>
-        <a routerLink="/restaurants/{{r._id }}">{{r.name}}</a>
-        <div class="{{r.duplicated ? 'text-danger' : 'text-muted'}}">
-          <small>
-            <span class="thumb-container"></span>
-            {{r.googleAddress?.formatted_address}} <span *ngFor="let p of (r.phones || [])">{{p.phoneNumber | tel}} &nbsp;</span>
-          </small>
-
-        </div>
-      </span>
-      <span>{{r.alias}}
-        <div class="text-muted"><small>{{r._id}}</small></div>
-      </span>
-    </li>
-  </ng-container>
-</ul> -->

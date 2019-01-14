@@ -118,10 +118,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
               serviceSettings: 1,
               disabled: 1,
               offsetToEST: 1,
-              email: 1,
-              "phones.faxable": 1,
-              "phones.phoneNumber": 1,
-              "phones.textable": 1,
+              channels: 1,
               googleAddress: 1
             },
             limit: 10000
@@ -341,10 +338,10 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
   }
 
   getText(restaurant) {
-    return ((restaurant.phones || []).filter(p => p.textable)[0] || {}).phoneNumber;
+    return ((restaurant.channels || []).filter(c => c.type === 'SMS' && (c.notifications || []).some(n => n === 'Invoice'))[0] || {}).value;
   }
 
   getFax(restaurant) {
-    return ((restaurant.phones || []).filter(p => p.faxable)[0] || {}).phoneNumber;
+    return ((restaurant.channels || []).filter(c => c.type === 'Fax' && (c.notifications || []).some(n => n === 'Invoice'))[0] || {}).value;
   }
 }
