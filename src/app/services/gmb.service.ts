@@ -575,22 +575,24 @@ export class GmbService {
     // we need to fillup gmbBiz's phone, matching place_id, and websites info
     let crawledResult;
     try {
-      const query = { q: [gmbBiz.name, gmbBiz.address].join(" ") };
       if (useCid) {
-        query['ludocid'] = gmbBiz.cid;
+        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: 'W' }).toPromise();
+      } else {
+        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [gmbBiz.name, gmbBiz.address].join(" ") }).toPromise();
       }
-      crawledResult = await this._api.get(environment.east1Url + "utils/scan-gmb", query).toPromise();
     }
     catch (error) {
       // use only city state and zip code!
       // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
-      const addressTokens = gmbBiz.address.split(", ");
-      const query = { q: gmbBiz.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
-      if (useCid) {
-        query['ludocid'] = gmbBiz.cid;
-      }
+      // const addressTokens = gmbBiz.address.split(", ");
+      // const query = { q: gmbBiz.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
+      // if (useCid) {
+      //   query['ludocid'] = gmbBiz.cid;
+      // }
 
-      crawledResult = await this._api.get(environment.east1Url + "utils/scan-gmb", query).toPromise();
+      // crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", query).toPromise();
+      this._global.publishAlert(AlertType.Danger, 'Crawl Error: ' + gmbBiz.name);
+      throw 'Error crawling ' + gmbBiz.name;
     }
 
     if (gmbBiz.address) {

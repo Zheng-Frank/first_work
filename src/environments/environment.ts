@@ -6,8 +6,8 @@ export const environment = {
   // legacyApiUrl: "http://localhost:1337/",
   // autoGmbUrl: "http://localhost:3000/",
   // socketUrl: "http://localhost:1337/",
-  // bizUrl: 'https://restaurant-quez.herokuapp.com/',
-  // customerUrl: 'https://customer-app.herokuapp.com/',
+  // bizUrl: 'https://qa-biz.herokuapp.com/',
+  // customerUrl: 'https://qa-customer.herokuapp.com/',
   // thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   // normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
   // stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg',
@@ -23,5 +23,4 @@ export const environment = {
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
   stripePublishableKey: 'pk_live_uSs2MVVyG0vn6TICsTIyXG6Y',
-  east1Url: "https://9v8upsmsai.execute-api.us-east-1.amazonaws.com/prod/"
 };

@@ -943,7 +943,6 @@ export class DbScriptsComponent implements OnInit {
     for (let values of sortedValues) {
       if (values.length > 1) {
         console.log('duplicated', values);
-        throw 'TEST'
         const localSortedValues = values.sort((v1, v2) => {
           if (!v1.gmbOwnerships) {
             console.log(v1)
