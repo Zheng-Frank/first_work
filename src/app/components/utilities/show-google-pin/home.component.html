@@ -1,0 +1,236 @@
+<h1 class="text-center">qMenu Portal</h1>
+
+<!-- <app-holiday-monitor></app-holiday-monitor> -->
+<div class="card-group">
+    <div class="card" *ngIf="isVisible('search')">
+        <div class="card-body">
+            <label>Search Restaurant:</label>
+            <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
+        </div>
+    </div>
+
+    <!-- <div class="card" *ngIf="isVisible('email')">
+        <div class="card-body">
+            <h5 class="card-title"><i class="far fa-envelope"></i> Check Email</h5>
+            <app-check-email [restaurantList]="restaurantList"></app-check-email>
+        </div>
+    </div> -->
+
+    <div class="card" *ngIf="isVisible('template')">
+        <div class="card-body">
+            <h5 class="card-title"><i class="fas fa-globe"></i> Inject Website from Templates</h5>
+            <app-inject-website [restaurantList]="restaurantList"></app-inject-website>
+        </div>
+    </div>
+
+</div>
+
+<div class="card-group">
+    <div class="card" >
+        <div class="card-body">
+            <h5 class="card-title"><i class="fas fa-globe"></i> Google PIN</h5>
+            <show-google-pin></show-google-pin>
+        </div>
+    </div>
+
+</div>
+
+<div class="card-group">
+
+    <div class="card" *ngIf="isVisible('fax-problems')">
+        <div class="card-body">
+                <h1 class="text-center">qMenu Portal</h1>
+
+                <!-- <app-holiday-monitor></app-holiday-monitor> -->
+                <div class="card-group">
+                    <div class="card" *ngIf="isVisible('search')">
+                        <div class="card-body">
+                            <label>Search Restaurant:</label>
+                            <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
+                        </div>
+                    </div>
+                
+                    <!-- <div class="card" *ngIf="isVisible('email')">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="far fa-envelope"></i> Check Email</h5>
+                            <app-check-email [restaurantList]="restaurantList"></app-check-email>
+                        </div>
+                    </div> -->
+                
+                    <div class="card" *ngIf="isVisible('template')">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-globe"></i> Inject Website from Templates</h5>
+                            <app-inject-website [restaurantList]="restaurantList"></app-inject-website>
+                        </div>
+                    </div>
+                
+                </div>
+
+                <div class="card-group">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-globe"></i> Google PIN</h5>
+                                <show-google-pin></show-google-pin>
+                            </div>
+                        </div>
+                    </div>
+                
+                
+                <div class="card-group">
+                    <div class="card" *ngIf="isVisible('unconfirmed-orders')">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-globe"></i> Unconfirmed Orders</h5>
+                            <app-monitoring-unconfirmed-orders></app-monitoring-unconfirmed-orders>
+                        </div>
+                    </div>
+                    <div class="card" *ngIf="isVisible('awaiting-onboarding')">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-globe"></i> Awaiting Restaurant to Go Live</h5>
+                            <app-monitoring-onboarding></app-monitoring-onboarding>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-group">
+                
+                    <div class="card" *ngIf="isVisible('fax-problems')">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-globe"></i> Fax Problems</h5>
+                            <app-monitoring-fax></app-monitoring-fax>
+                        </div>
+                    </div>
+                    <div class="card" *ngIf="isVisible('email-problems')">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-globe"></i> Email Problems</h5>
+                            <app-monitoring-email></app-monitoring-email>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- <div class="row">
+                    <div class="col-sm-2">
+                        <div style="position: relative;">
+                            <input class="form-control" placeholder="name or phone" [(ngModel)]="searchTerm">
+                            <div class="search-overlay">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                        
+                        <div style="max-height: 600px; overflow: auto" class="mt-2">
+                            <div *ngFor="let restaurant of getFilteredList()" class="card hvr-underline-reveal mb-2 {{selectedRestaurant === restaurant ? 'bg-light' : ''}}"
+                                style="cursor: pointer;" (click)="select(restaurant)">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{restaurant.name}}</h5>
+                                    <small>{{restaurant.googleAddress?.formatted_address | removeUsa}}</small>
+                                </div>
+                            </div>
+                        </div>
+                
+                
+                    </div>
+                    <div class="col-sm-10 bg-light">
+                        <div *ngIf="!selectedRestaurant" class="py-4">No restaurant selected. Please search and select restaurant.</div>
+                        <div *ngIf="selectedRestaurant">
+                            <app-restaurant-details [id]="selectedRestaurant?._id"></app-restaurant-details>
+                        </div>
+                
+                    </div>
+                
+                </div> -->
+                
+                
+                <!-- <div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
+                    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
+                        <h4 class="card-title"><i class="fas fa-hand-holding-usd"></i> Payments Received</h4>
+                    </div>
+                </div>
+                <div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
+                    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
+                        <h4 class="card-title"><i class="fas fa-paper-plane"></i> Payments Sent</h4>
+                    </div>
+                </div>
+                
+                <div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
+                    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
+                        <h4 class="card-title"><i class="fas fa-edit"></i> Restaurant Notes</h4>
+                    </div>
+                </div> -->
+                
+                <div class="card-group">
+                
+                    <div class="card" *ngIf="isVisible('image-manager')">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="far fa-images"></i> Manage Images</h5>
+                            <app-image-manager></app-image-manager>
+                        </div>
+                    </div>
+                </div>  <h5 class="card-title"><i class="fas fa-globe"></i> Fax Problems</h5>
+            <app-monitoring-fax></app-monitoring-fax>
+        </div>
+    </div>
+    <div class="card" *ngIf="isVisible('email-problems')">
+        <div class="card-body">
+            <h5 class="card-title"><i class="fas fa-globe"></i> Email Problems</h5>
+            <app-monitoring-email></app-monitoring-email>
+        </div>
+    </div>
+</div>
+
+<!-- <div class="row">
+    <div class="col-sm-2">
+        <div style="position: relative;">
+            <input class="form-control" placeholder="name or phone" [(ngModel)]="searchTerm">
+            <div class="search-overlay">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+        
+        <div style="max-height: 600px; overflow: auto" class="mt-2">
+            <div *ngFor="let restaurant of getFilteredList()" class="card hvr-underline-reveal mb-2 {{selectedRestaurant === restaurant ? 'bg-light' : ''}}"
+                style="cursor: pointer;" (click)="select(restaurant)">
+                <div class="card-body">
+                    <h5 class="card-title">{{restaurant.name}}</h5>
+                    <small>{{restaurant.googleAddress?.formatted_address | removeUsa}}</small>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    <div class="col-sm-10 bg-light">
+        <div *ngIf="!selectedRestaurant" class="py-4">No restaurant selected. Please search and select restaurant.</div>
+        <div *ngIf="selectedRestaurant">
+            <app-restaurant-details [id]="selectedRestaurant?._id"></app-restaurant-details>
+        </div>
+
+    </div>
+
+</div> -->
+
+
+<!-- <div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
+    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
+        <h4 class="card-title"><i class="fas fa-hand-holding-usd"></i> Payments Received</h4>
+    </div>
+</div>
+<div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
+    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
+        <h4 class="card-title"><i class="fas fa-paper-plane"></i> Payments Sent</h4>
+    </div>
+</div>
+
+<div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
+    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
+        <h4 class="card-title"><i class="fas fa-edit"></i> Restaurant Notes</h4>
+    </div>
+</div> -->
+
+<div class="card-group">
+
+    <div class="card" *ngIf="isVisible('image-manager')">
+        <div class="card-body">
+            <h5 class="card-title"><i class="far fa-images"></i> Manage Images</h5>
+            <app-image-manager></app-image-manager>
+        </div>
+    </div>
+</div>

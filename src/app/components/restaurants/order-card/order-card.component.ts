@@ -137,10 +137,10 @@ export class OrderCardComponent implements OnInit {
     return this.phoneNumberToText && this.phoneNumberToText.match(/^[2-9]\d{2}[2-9]\d{2}\d{4}$/);
   }
 
-  sendEmail() {
+  sendEmail(){
     const email = this.restaurant.channels.filter(c => c.type == 'Email' && (c.notifications || []).indexOf('Order') >= 0).map(c => c.value).join(',');
     this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: email, orderId: this.order.id, orderNumber: this.order.orderNumber})
-      .subscribe(
+    .subscribe(
         d => {
           this._global.publishAlert(
             AlertType.Success,
