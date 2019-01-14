@@ -1,0 +1,31 @@
+<table class="table">
+    <thead>
+        <tr>
+            <!-- <th scope="col">Agent</th> -->
+            <th>Restaurant</th>
+            <th>From</th>
+            <th>PIN</th>
+            <th>Done</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let row of rows;">
+            <td>
+                <div *ngFor="let rt of row.restaurant">
+                        <a routerLink="/restaurants/{{rt._id}}">{{rt.name}}</a>
+                        <div class="text-muted"><small>{{rt.googleAddress.formatted_address}}</small></div>                   
+                </div>
+            </td>
+            <!-- <td>
+                    <a routerLink="/restaurants/{{row.restaurant._id}}">{{rt.name}}</a>
+                    <div class="text-muted"><small>{{rt.googleAddress.formatted_address}}</small></div>
+                  </td> -->
+            <td>{{row.from}}</td>
+            <td>{{row.text}}</td>
+            <td>
+                <span class="text-success" *ngIf="row.done">✔</span>
+                <span class="text-danger" *ngIf="!row.done">✘</span>
+            </td>
+        </tr>
+    </tbody>
+</table>

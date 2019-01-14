@@ -196,6 +196,11 @@
   </div>
 
   <div class="form-group">
+      <label>Notify Restaurant:</label>
+      <send-google-pin [restaurant]="restaurant"></send-google-pin>
+    </div>
+
+  <div class="form-group">
     <label>Comments:</label>
     <textarea class="form-control" rows="3" [(ngModel)]="comments" placeholder="extra comments"></textarea>
   </div>

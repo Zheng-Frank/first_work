@@ -112,6 +112,8 @@ import { RestaurantClosedHoursComponent } from './components/restaurants/restaur
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
 import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
+import { SendGooglePINComponent } from './components/utilities/send-google-pin/send-google-pin.component';
+import { ShowGooglePINComponent } from './components/utilities/show-google-pin/show-google-pin.component';
 import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
 import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-simple/hour-picker-simple.component';
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
@@ -223,6 +225,8 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     StripeComponent,
     CheckEmailComponent,
     InjectWebsiteComponent,
+    SendGooglePINComponent,
+    ShowGooglePINComponent,
     MyRestaurantComponent,
     AutomationDashboardComponent,
     HourPickerSimpleComponent,

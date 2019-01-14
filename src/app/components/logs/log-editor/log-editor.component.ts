@@ -150,6 +150,7 @@ export class LogEditorComponent implements OnInit {
       if (this.hasAdjustment) {
         this.log.resolved = false;
       }
+      console.log('log: this.log', this.log);
       this.success.emit({
         formEvent: event,
         restaurant: this.restaurant,
@@ -165,6 +166,9 @@ export class LogEditorComponent implements OnInit {
 
   toggleIsCollection() {
     this.log.type === 'collection' ? this.log.type = undefined : this.log.type = 'collection';
+  }
+  toggleIsGooglePIN(){
+    this.log.type === 'google-pin' ? this.log.type = undefined : this.log.type = 'google-pin';
   }
 
 }
