@@ -11,6 +11,7 @@ import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbService } from '../../../services/gmb.service';
 import { Helper } from '../../../classes/helper';
 
+const FOUR_HOURS = 345600000; // 4 hours
 @Component({
   selector: 'app-automation-dashboard',
   templateUrl: './automation-dashboard.component.html',
@@ -307,4 +308,99 @@ export class AutomationDashboardComponent implements OnInit {
     await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks).toPromise();
     return tasks;
   }
+
+  /** */
+  async crawlRestaurantGoogleListings() {
+    
+    let restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      query: {
+        "googleAddress.formatted_address": { $exists: 1 }
+      },
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        "googleListing.crawledAt": 1,
+        "googleAddress.formatted_address": 1
+      },
+      limit: 80000
+    }).toPromise();
+
+    // sort by crawledAt:
+    restaurants.sort((r1, r2) => new Date((r1.googleListing || {}).crawledAt || 0).valueOf() - new Date((r2.googleListing || {}).crawledAt || 0).valueOf());
+
+    console.log('skip restaurants crawled within 4 hours!');
+
+    const now = new Date();
+    restaurants = restaurants.filter(r => !r.googleListing || !r.googleListing.crawledAt || now.valueOf() - new Date(r.googleListing.crawledAt).valueOf() > FOUR_HOURS);
+
+    restaurants.length = 2;
+
+    const patchListing = (restaurant, result) => {
+      result['crawledAt'] = new Date();
+      //patch restaurant googleListing crawledAt:
+      return this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+        {
+          old: { _id: restaurant._id },
+          new: { _id: restaurant._id, googleListing: result }
+        }
+      ]).toPromise();
+    }
+
+    for (let i = 0; i < restaurants.length; i++) {
+      const r = restaurants[i];
+      console.log(`crawling ${i + 1} of ${restaurants.length} ${r.name} ${r._id}`);
+
+      let result = {} as any;
+      try {
+        result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", {
+          q: r.name + " " + r.googleAddress.formatted_address
+        }).toPromise();
+        await patchListing(r, result);
+
+        const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+          resource: 'gmbBiz',
+          query: {
+            cid: result.cid
+          },
+          projection: {
+            name: 1,
+            qmenuId: 1
+          },
+          limit: 10
+        }).toPromise();
+
+        if (gmbBizList.some(biz => biz.qmenuId && biz.qmenuId !== r._id)) {
+          console.log('FOUND cid matched on DIFFERENT restaurant.');
+          console.log(gmbBizList);
+          console.log(r);
+          break;
+        }
+
+        if (gmbBizList.length > 0) {
+          await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
+            gmbBizList.map(gmbBiz => ({
+              old: { _id: gmbBiz._id },
+              new: { _id: gmbBiz._id, ...result, crawledAt: new Date(), qmenuId: r._id }
+            }))
+          ).toPromise();
+        } else {
+          // case no matching gmbs
+        }
+
+      } catch (error) {
+        console.log('error crawling ' + r.name + ' ' + r._id);
+        if (error.status !== 400) {
+          console.log(error);
+          console.log('Service unhandled error, stopped.')
+          break;
+        } else {
+          await patchListing(r, {});
+        }
+      }
+    }
+    console.log(restaurants);
+  }
+
+  // crawlGmbBizGoogleListings
+
 }

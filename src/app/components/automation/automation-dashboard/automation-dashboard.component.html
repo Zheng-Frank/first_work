@@ -13,3 +13,8 @@
     <div *ngFor="let message of runningMessages">{{message}}</div>
   </div>
 </div>
+
+<div>
+  <button class="btn btn-primary" (click)="crawlRestaurantGoogleListings()">Crawl Restaurants Google Listings</button>
+  <button class="btn btn-primary" (click)="crawlGmbBizGoogleListings()">Crawl GMB Biz Google Listings</button>
+</div>

@@ -701,20 +701,48 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async genericTesting() {
-    //find bizManagedWebsite
-    const havingBizWebsite = await this._api.get(environment.adminApiUrl + 'generic', {
+    // find same placeId gmbs
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
-      query: {
-        bizManagedWebsite: { $exists: 1 }
-      },
       projection: {
         name: 1,
-        bizManagedWebsite: 1,
-        useBizWebsite: 1,
-        useBizWebsiteForAll: 1
+        address: 1,
+        place_id: 1,
+        cid: 1,
+        qmenuId: 1
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
+
+    console.log(gmbBizList)
+    const place_idMap = {};
+    gmbBizList.map(biz => {
+      place_idMap[biz.place_id] = place_idMap[biz.place_id] || { bizList: [] };
+      place_idMap[biz.place_id].bizList.push(biz);
+    });
+
+
+    console.log(place_idMap)
+    const duplicatedList = Object.keys(place_idMap).map(k => place_idMap[k]).filter(item => item.bizList.length > 1);
+    console.log(duplicatedList);
+
+    const trueDuplicates = duplicatedList.filter(item => item.bizList.slice(1).some(i => i.cid !== item.bizList[0].cid));
+
+    console.log(trueDuplicates);
+    //find bizManagedWebsite
+    // const havingBizWebsite = await this._api.get(environment.adminApiUrl + 'generic', {
+    //   resource: 'gmbBiz',
+    //   query: {
+    //     bizManagedWebsite: { $exists: 1 }
+    //   },
+    //   projection: {
+    //     name: 1,
+    //     bizManagedWebsite: 1,
+    //     useBizWebsite: 1,
+    //     useBizWebsiteForAll: 1
+    //   },
+    //   limit: 5000
+    // }).toPromise();
     // // update gmbBiz to make
     // CAREFUL: SET useBizWebsite = true
     // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
@@ -728,7 +756,7 @@ export class DbScriptsComponent implements OnInit {
     //     }
     //   }))
     // ).toPromise();
-    console.log(havingBizWebsite);
+    // console.log(havingBizWebsite);
     // // find out invoice having Fax-phaxio-callback as log
     // let affectedInvoices = [];
     // this._api.get(environment.qmenuApiUrl + "generic", {
