@@ -266,7 +266,8 @@ export class AutomationDashboardComponent implements OnInit {
         const shouldApplyList = filteredList
           .filter(biz => !biz.disableAutoTask)
           .filter(biz => !biz.closed && biz.place_id && !outstandingApplyTasks.some(t => t.relatedMap && t.relatedMap.gmbBizId === biz._id))
-          .filter(gmbBiz => !disabledRestaurants.some(r => r._id === gmbBiz.qmenuId));
+          .filter(gmbBiz => !disabledRestaurants.some(r => r._id === gmbBiz.qmenuId))
+          .filter(biz=> !biz.ignoreGmbOwnershipRequest);
 
         console.log('should apply gmb', shouldApplyList);
         if (shouldApplyList.length > 0) {
