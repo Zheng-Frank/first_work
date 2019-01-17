@@ -12,6 +12,9 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class ShowGooglePINComponent implements OnInit {
     @Input() restaurant;
+    @Input() bizList;
+    @Input() tasks;
+    
     restaurantList = [];
     rows = [];
     messageTo;

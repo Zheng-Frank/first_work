@@ -78,7 +78,8 @@ export class TaskDashboardComponent {
     { value: 'Due', label: 'Due (0)' },
     { value: 'Mine', label: 'Mine (0)' },
     { value: 'Closed', label: 'Closed (0)' },
-    { value: 'Statistics', label: 'Statistics' }
+    { value: 'Statistics', label: 'Statistics' },
+    { value: 'Google PIN', label: 'Google PIN' }
   ];
 
   activeTabValue = 'Open';
@@ -130,6 +131,7 @@ export class TaskDashboardComponent {
         resource: "gmbBiz",
         query: {},
         projection: {
+          qmenuId: 1,
           address: 1,
           gmbOpen: 1,
           phone: 1,
@@ -138,7 +140,7 @@ export class TaskDashboardComponent {
         limit: 10000
       }),
     ).subscribe(results => {
-      this.bizList = results;
+      this.bizList = results[1];
       this.refreshing = false;
       const tasks = results[0].map(t => new Task(t));
 
