@@ -90,6 +90,9 @@ export class NewRestaurantComponent implements OnInit {
       return;
     }
 
+
+    crawledResult.crawledAt = new Date();
+
     // query address details by place_id
     try {
       const addressDetails = await this._api.get(environment.adminApiUrl + "utils/google-address", {
@@ -123,6 +126,7 @@ export class NewRestaurantComponent implements OnInit {
     this.apiRequesting = false;
 
     this.restaurant.googleListing = crawledResult;
+
     this.restaurant.name = crawledResult.name;
 
     // suggest and alias!
@@ -200,11 +204,10 @@ export class NewRestaurantComponent implements OnInit {
       const existingGmbs = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
-          phone: this.restaurant.googleListing.phone
+          cid: this.restaurant.googleListing.cid
         },
         projection: {
           name: 1,
-          phone: 1,
           qmenuWebsite: 1
         }
       }).toPromise();
@@ -226,9 +229,7 @@ export class NewRestaurantComponent implements OnInit {
       } else {
         // create new gmbBiz!
 
-        const newGmbBiz = { gmbOwnerships: [] };
-        ['address', 'cid', 'gmbWebsite', 'name', 'place_id', 'phone'].map(field => newGmbBiz[field] = this.restaurant.googleListing[field]);
-        newGmbBiz['qmenuId'] = this.restaurant._id;
+        const newGmbBiz = { ...this.restaurant.googleListing, gmbOwnerships: [], qmenuId: this.restaurant._id };
         if (!this.applyGmb) {
           newGmbBiz['disableAutoTask'] = true;
         }

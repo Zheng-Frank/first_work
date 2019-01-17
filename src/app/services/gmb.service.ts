@@ -273,7 +273,8 @@ export class GmbService {
           },
           new: {
             _id: biz._id,
-            place_id: loc.place_id
+            place_id: loc.place_id,
+            cid: loc.cid
           }
         };
       });
@@ -301,7 +302,8 @@ export class GmbService {
           },
           new: {
             _id: biz._id,
-            appealId: loc.appealId
+            appealId: loc.appealId,
+            cid: loc.cid
           }
         };
       });
@@ -622,7 +624,8 @@ export class GmbService {
         crawledResult.gmbOwner = 'qmenu';
       }
     }
-    const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
+    // except cid because we'd like to have scan account's cid instead?
+    const kvps = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
 
     // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
     if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {

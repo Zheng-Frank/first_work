@@ -5,6 +5,7 @@ import { environment } from "../../../../environments/environment";
 import { Invoice } from 'src/app/classes/invoice';
 
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { AlertType } from 'src/app/classes/alert-type';
 @Component({
   selector: 'app-invoice-monthly',
   templateUrl: './invoice-monthly.component.html',
@@ -231,7 +232,7 @@ export class InvoiceMonthlyComponent implements OnInit {
             `on ${this._datePipe.transform(orderTime, 'shortDate')}, and paid you the amount of ${this._currencyPipe.transform(adjustmentAmount, 'USD')} (recorded on the ` +
             `invoice from ${this._datePipe.transform(invoiceFromDate, 'shortDate')}-${this._datePipe.transform(invoiceToDate, 'shortDate')}). ` +
             `However, you canceled the order on ${this._datePipe.transform(canceledAt, 'shortDate')} (AFTER the invoice was made), and due to the cancelation, ` +
-            `qMenu refunded the customer the full order amount ${this._currencyPipe.transform(orderTotal, 'USD')} on your hehalf. ` +
+            `qMenu refunded the customer the full order amount ${this._currencyPipe.transform(orderTotal, 'USD')} on your behalf. ` +
             `Therefore, qMenu also needs to retract the previous issued credit of ${this._currencyPipe.transform(adjustmentAmount, 'USD')} from current billing cycle. ` +
             `More details: Order Amount: ${this._currencyPipe.transform(orderTotal, 'USD')}, CC Processing (2.9% + 0.30): ${this._currencyPipe.transform(ccFee, 'USD')}, ` +
             `Commission (${orderFixed ? this._currencyPipe.transform(orderFixed, 'USD') : ((orderRate * 100).toFixed(0) + '%')} of subtotal ${this._currencyPipe.transform(orderSubtotal, 'USD')}): ${this._currencyPipe.transform(commission, 'USD')}, ` +
@@ -291,6 +292,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       console.log('adjusted ' + restaurant.name)
     }
 
+    this._global.publishAlert(AlertType.Success, 'Success');
 
   }
 

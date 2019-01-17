@@ -309,9 +309,14 @@ export class AutomationDashboardComponent implements OnInit {
     return tasks;
   }
 
-  /** */
+  /** 
+   * 1. skip ones that crawled within 4 hours
+   * 2. also update gmbBiz's if same cid found!
+   * 3. break, if service is down
+   * 4. break if found same cid for two qmenu restaurants
+  */
   async crawlRestaurantGoogleListings() {
-    
+
     let restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       query: {
         "googleAddress.formatted_address": { $exists: 1 }
@@ -321,6 +326,17 @@ export class AutomationDashboardComponent implements OnInit {
         name: 1,
         "googleListing.crawledAt": 1,
         "googleAddress.formatted_address": 1
+      },
+      limit: 80000
+    }).toPromise();
+
+    let gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        cid: 1,
+        name: 1,
+        crawledAt: 1,
+        qmenuId: 1
       },
       limit: 80000
     }).toPromise();
@@ -357,34 +373,28 @@ export class AutomationDashboardComponent implements OnInit {
         }).toPromise();
         await patchListing(r, result);
 
-        const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-          resource: 'gmbBiz',
-          query: {
-            cid: result.cid
-          },
-          projection: {
-            name: 1,
-            qmenuId: 1
-          },
-          limit: 10
-        }).toPromise();
-
-        if (gmbBizList.some(biz => biz.qmenuId && biz.qmenuId !== r._id)) {
+        if (gmbBizList.some(biz => biz.qmenuId && biz.qmenuId !== r._id && biz.cid === result.cid)) {
           console.log('FOUND cid matched on DIFFERENT restaurant.');
-          console.log(gmbBizList);
           console.log(r);
+          console.log(gmbBizList.filter(biz => biz.qmenuId && biz.qmenuId !== r._id && biz.cid === result.cid));
           break;
         }
 
-        if (gmbBizList.length > 0) {
+        const affectedBizList = gmbBizList.filter(biz => biz.cid === result.cid);
+        if (affectedBizList.length > 0) {
           await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
-            gmbBizList.map(gmbBiz => ({
+            affectedBizList.map(gmbBiz => ({
               old: { _id: gmbBiz._id },
               new: { _id: gmbBiz._id, ...result, crawledAt: new Date(), qmenuId: r._id }
             }))
           ).toPromise();
+
+          // also update biz crawledAt so that later we don't crawl it again!
+          affectedBizList.map(biz => biz.crawledAt = new Date());
+
         } else {
           // case no matching gmbs
+          console.log('No gmb found for ' + r.name);
         }
 
       } catch (error) {
@@ -398,9 +408,339 @@ export class AutomationDashboardComponent implements OnInit {
         }
       }
     }
-    console.log(restaurants);
+
+    // now let's crawl gmbBiz list
+    gmbBizList.length = 2;
+    alert('need to crawl accounts, then gmbList to make sure it has correct cid!, also, not inject cid?');
   }
 
-  // crawlGmbBizGoogleListings
+  async scanGmbAccounts() {
+
+    let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        gmbScannedAt: 1,
+        password: 1,
+        email: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    gmbAccounts.sort((a1, a2) => new Date(a1.gmbScannedAt).valueOf() - new Date(a2.gmbScannedAt).valueOf());
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        name: 1,
+        accounts: 1,
+        cid: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+
+    // debug
+    gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('qmenu06'));
+
+    for (let i = 0; i < gmbAccounts.length; i++) {
+      const account = gmbAccounts[i];
+      console.log(`${i + 1}/${gmbAccounts.length} ${account.email}...`);
+      let password = account.password;
+      if (password.length > 20) {
+        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
+      }
+
+      // scan locations
+      const scanResult = await this._api.post(environment.autoGmbUrl + 'retrieveGmbLocations', { email: account.email, password: password, stayAfterScan: true }).toPromise();
+      const locations = scanResult.locations;
+
+      // 10/28/2018 Treating Pending edits as Published!
+      locations.map(loc => {
+        if (loc.status === 'Pending edits') {
+          loc.status = 'Published';
+        }
+      });
+
+      // we need to sort so that Published override others in case there are multiple locations for same restaurant
+      const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
+      locations.sort((l1, l2) => statusOrder.indexOf(l1.status) - statusOrder.indexOf(l2.status));
+
+      console.log('scanned locations: ', locations);
+      // SKIP handling of duplicated cid listings: We keep ONLY the last appeared ones!
+      const uniqueLocations = [];
+      for (let j = 0; j < locations.length; j++) {
+        if (!locations.slice(j + 1).some(loc => loc.cid === locations[j].cid)) {
+          uniqueLocations.push(locations[j]);
+        }
+      }
+
+      console.log('unique locations: ', uniqueLocations);
+
+      // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', []).toPromise();
+
+      // update strategy:
+      // 1. Find ALL related gmbBiz having this account, update last status if not same!
+      //    a. if NOT found, attach a 'Removed' status;
+      //    b. otherwise attach latest status
+      // 2. For Suspended or Published, and NOT finding any matching GMB Biz, create a GMB biz and attach this status
+
+      const updatedGmbBizList = [];
+      const noMatchingLocations = [];
+
+      // find those gmbBiz that used to have this account history but now don't, we attached a history with an artificial status 'Removed'
+
+      gmbBizList.map(biz => (biz.accounts || []).map(acct => {
+        if (acct.email === account.email && !uniqueLocations.some(loc => loc.cid === biz.cid)) {
+          acct.history = acct.history || [];
+          if (acct.history.length === 0 || acct.history[acct.history.length - 1].status !== 'Removed') {
+            acct.history.push({
+              time: new Date(),
+              status: 'Removed'
+            });
+            updatedGmbBizList.push(biz);
+            console.log(biz.name + ' was removed');
+          }
+        }
+      }));
+
+      uniqueLocations.map(loc => {
+        const matchedBizList = gmbBizList.filter(biz => biz.cid === loc.cid);
+        if (matchedBizList.length === 0) {
+          noMatchingLocations.push(loc);
+        } else {
+          // found matching locations! let's test if they need update
+          matchedBizList.map(biz => {
+            let acct = (biz.accounts || []).filter(a => a.email === account.email)[0];
+            let updated = false;
+            if (!acct) {
+              biz.accounts = biz.accounts || [];
+              acct = {
+                email: account.email,
+                id: account._id,
+                history: []
+              };
+              biz.accounts.push(acct);
+              updated = true;
+            }
+            acct.history = acct.history || [];
+            if (acct.history.length === 0 || acct.history[acct.history.length - 1].status !== loc.status) {
+              acct.history.push({
+                time: new Date(),
+                status: loc.status
+              });
+              updated = true;
+            }
+
+            if (updated) {
+              updatedGmbBizList.push(biz);
+            }
+          });
+        } // end else block
+
+      }); // end unique locations iteration
+
+      if (noMatchingLocations.length > 0) {
+        const newGmbBizList = noMatchingLocations.map(loc => ({
+          accounts: [{
+            email: account.email,
+            id: account._id,
+            history: [{
+              time: new Date(),
+              status: loc.status
+            }]
+          }],
+
+          address: loc.address,
+          appealId: loc.appealId,
+          cid: loc.cid,
+          gmbWebsite: loc.homepage,
+          name: loc.name,
+          place_id: loc.place_id,
+        }));
+
+        const newIds = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', newGmbBizList).toPromise();
+        // inject Ids to
+        console.log('biz IDs before: ', gmbBizList.map(biz => biz._id));
+        newIds.map((id, index) => newGmbBizList[index]['_id'] = id);
+        gmbBizList.push(...newGmbBizList);
+        console.log('biz IDs after', gmbBizList.map(biz => biz._id));
+      }
+
+      if (updatedGmbBizList.length > 0) {
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', updatedGmbBizList.map(biz => ({
+          old: { _id: biz._id },
+          new: { _id: biz._id, accounts: biz.accounts }
+        }))).toPromise();
+        console.log('updated biz: ', updatedGmbBizList);
+      }
+      break;
+    } // end gmbAccounts iteration
+
+  } // end scanGmbAccounts
+
+  async scanEmailsForRequests() {
+    console.log('emails');
+
+    let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        gmbScannedAt: 1,
+        password: 1,
+        email: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt).valueOf() - new Date(a2.emailScannedAt).valueOf());
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        name: 1,
+        accounts: 1,
+        cid: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+
+    // debug
+    gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('qmenu06'));
+
+    for (let i = 0; i < gmbAccounts.length; i++) {
+      const account = gmbAccounts[i];
+      console.log(`${i + 1}/${gmbAccounts.length} ${account.email}...`);
+      let password = account.password;
+      if (password.length > 20) {
+        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
+      }
+
+      // scan locations
+      const scanResult = await this._api.post(environment.autoGmbUrl + 'retrieveGmbLocations', { email: account.email, password: password, stayAfterScan: true }).toPromise();
+      const locations = scanResult.locations;
+
+      // 10/28/2018 Treating Pending edits as Published!
+      locations.map(loc => {
+        if (loc.status === 'Pending edits') {
+          loc.status = 'Published';
+        }
+      });
+
+      // we need to sort so that Published override others in case there are multiple locations for same restaurant
+      const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
+      locations.sort((l1, l2) => statusOrder.indexOf(l1.status) - statusOrder.indexOf(l2.status));
+
+      console.log('scanned locations: ', locations);
+      // SKIP handling of duplicated cid listings: We keep ONLY the last appeared ones!
+      const uniqueLocations = [];
+      for (let j = 0; j < locations.length; j++) {
+        if (!locations.slice(j + 1).some(loc => loc.cid === locations[j].cid)) {
+          uniqueLocations.push(locations[j]);
+        }
+      }
+
+      console.log('unique locations: ', uniqueLocations);
+
+      // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', []).toPromise();
+
+      // update strategy:
+      // 1. Find ALL related gmbBiz having this account, update last status if not same!
+      //    a. if NOT found, attach a 'Removed' status;
+      //    b. otherwise attach latest status
+      // 2. For Suspended or Published, and NOT finding any matching GMB Biz, create a GMB biz and attach this status
+
+      const updatedGmbBizList = [];
+      const noMatchingLocations = [];
+
+      // find those gmbBiz that used to have this account history but now don't, we attached a history with an artificial status 'Removed'
+
+      gmbBizList.map(biz => (biz.accounts || []).map(acct => {
+        if (acct.email === account.email && !uniqueLocations.some(loc => loc.cid === biz.cid)) {
+          acct.history = acct.history || [];
+          if (acct.history.length === 0 || acct.history[acct.history.length - 1].status !== 'Removed') {
+            acct.history.push({
+              time: new Date(),
+              status: 'Removed'
+            });
+            updatedGmbBizList.push(biz);
+            console.log(biz.name + ' was removed');
+          }
+        }
+      }));
+
+      uniqueLocations.map(loc => {
+        const matchedBizList = gmbBizList.filter(biz => biz.cid === loc.cid);
+        if (matchedBizList.length === 0) {
+          noMatchingLocations.push(loc);
+        } else {
+          // found matching locations! let's test if they need update
+          matchedBizList.map(biz => {
+            let acct = (biz.accounts || []).filter(a => a.email === account.email)[0];
+            let updated = false;
+            if (!acct) {
+              biz.accounts = biz.accounts || [];
+              acct = {
+                email: account.email,
+                id: account._id,
+                history: []
+              };
+              biz.accounts.push(acct);
+              updated = true;
+            }
+            acct.history = acct.history || [];
+            if (acct.history.length === 0 || acct.history[acct.history.length - 1].status !== loc.status) {
+              acct.history.push({
+                time: new Date(),
+                status: loc.status
+              });
+              updated = true;
+            }
+
+            if (updated) {
+              updatedGmbBizList.push(biz);
+            }
+          });
+        } // end else block
+
+      }); // end unique locations iteration
+
+      if (noMatchingLocations.length > 0) {
+        const newGmbBizList = noMatchingLocations.map(loc => ({
+          accounts: [{
+            email: account.email,
+            id: account._id,
+            history: [{
+              time: new Date(),
+              status: loc.status
+            }]
+          }],
+
+          address: loc.address,
+          appealId: loc.appealId,
+          cid: loc.cid,
+          gmbWebsite: loc.homepage,
+          name: loc.name,
+          place_id: loc.place_id,
+        }));
+
+        const newIds = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', newGmbBizList).toPromise();
+        // inject Ids to
+        console.log('biz IDs before: ', gmbBizList.map(biz => biz._id));
+        newIds.map((id, index) => newGmbBizList[index]['_id'] = id);
+        gmbBizList.push(...newGmbBizList);
+        console.log('biz IDs after', gmbBizList.map(biz => biz._id));
+      }
+
+      if (updatedGmbBizList.length > 0) {
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', updatedGmbBizList.map(biz => ({
+          old: { _id: biz._id },
+          new: { _id: biz._id, accounts: biz.accounts }
+        }))).toPromise();
+        console.log('updated biz: ', updatedGmbBizList);
+      }
+      break;
+    } // end gmbAccounts iteration
+
+  } // scan emails
 
 }
