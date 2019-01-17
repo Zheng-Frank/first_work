@@ -27,7 +27,7 @@
       <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
     </h5>
     <div class="text-sm-center card-text">
-      <span>{{getSubmittedTime(order) | MMMd : order.restaurant.offsetToEST}} {{getSubmittedTime(order) | shortTime: order.restaurant.offsetToEST}}</span>
+      <span>{{getSubmittedTime(order) | MMMd : order.restaurant.offsetToEST}} {{getSubmittedTime(order) | shortTime: restaurant.offsetToEST}}</span>
       |
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
