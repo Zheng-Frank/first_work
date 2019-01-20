@@ -53,7 +53,7 @@ export class ShowGooglePINComponent implements OnInit {
             }
         }).toPromise();
 
-        let codes = codeList.map(each => each.transfer.code);
+        let codes = codeList.map(each => each.transfer.code && each.transfer.code.replace(/\+/g, ' ').trim());
 
         //Retrieve Google PIn which got from SMS reply
         const googlePinEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -62,6 +62,7 @@ export class ShowGooglePINComponent implements OnInit {
                 "name": "google-pin"
             },
             projection: {
+                _id: 1,
                 name: 1,
                 params: 1,
                 createdAt: 1
@@ -78,8 +79,8 @@ export class ShowGooglePINComponent implements OnInit {
                         gmbBiz: this.getGmbBizFromRestaurant(restaurant),
                         from: 'Call Log',
                         text: eachLog.response,
-                        time: eachLog.time,
-                        done: codes.some(code => code == eachLog.response)
+                        time: this.convertTimeToMilliseconds(eachLog.time),
+                        done: codes.some(code => code == (eachLog.response || eachLog.response.trim()))
                     })
                     //console.log('this.rows', this.rows);
                 }
@@ -88,14 +89,26 @@ export class ShowGooglePINComponent implements OnInit {
         //Populatge Google PIN from SMS reply
         this.rows = this.rows.concat(googlePinEvents.map(each => {
             return {
+                id: each['_id'],
                 gmbBiz: this.getGmbBizFromPhone(each.params.body.From),
                 from: each.params.body.From.length == 11 ? each.params.body.From.toString().substring(1) : each.params.body.From,
-                text: each.params.body.Text,
+                text: each.params.body.Text.replace(/\+/g, ' ').trim(),
                 time: each.createdAt,
-                done: codes.some(code => code == each.params.body.Text)
+                done: codes.some(code => code == each.params.body.Text.replace(/\+/g, ' ').trim())
             }
         }));
-        //console.log('rows', JSON.stringify(this.rows));
+        console.log('rows', this.rows);
+
+        this.rows.sort((o1, o2) => new Date(o2.time).valueOf() - new Date(o1.time).valueOf());
+    }
+
+    convertTimeToMilliseconds(time) {
+        let regexp = /^\d+$/;
+        //only convert time format is not milliseconds
+        if (!regexp.test(time)) {
+            return Date.parse(time)
+        }
+
     }
 
     getTime(time) {
@@ -103,36 +116,12 @@ export class ShowGooglePINComponent implements OnInit {
     }
 
     getGmbBizFromRestaurant(restaurant) {
-
         return [{
             restaurant: restaurant,
             tasks: this.tasks.filter(t => t.gmbBiz && t.gmbBiz.qmenuId === restaurant['_id'])
         }
 
         ]
-
-
-
-        // let mathingBiz=[];
-
-        //     for (let k = 0; k < this.tasks.length; k++) {
-        //             if (this.tasks[k].gmbBiz && this.tasks[k].gmbBiz.qmenuId === restaurant['_id']) {
-        //                 mathingBiz.push({
-        //                     restaurant: restaurant,
-        //                     task: this.tasks[k]
-        //                 })
-
-        //             }
-
-        //     }
-
-
-        //     //Find matching 
-        //     console.log('mathingBiz', mathingBiz);
-        //     return mathingBiz;
-
-
-
     }
     getGmbBizFromPhone(input) {
         if (input.toString().length == 11) {
@@ -160,51 +149,26 @@ export class ShowGooglePINComponent implements OnInit {
 
         //console.log('result', result);
         return result;
-
-
-
-
     }
 
-    // getGmbBizFromPhone(phoneNumber) {
-    //     let mathingBiz=[];
-    //     let matchingRTs=[];
-    //     if (phoneNumber.toString().length == 11) {
-    //         phoneNumber = phoneNumber.toString().substring(1);
-    //     }
-
-    //     //Find matching restaurant with the SMS number
-    //     for (let i = 0; i < this.restaurantList.length; i++) {
-    //         const restaurant = this.restaurantList[i];
-    //         if ((restaurant.phones || []).some(phone => (phone.phoneNumber || '').indexOf(phoneNumber) === 0)) {
-    //         matchingRTs.push(restaurant)
-
-    //         }
-    //     }
-
-    //     for (let i = 0; i < matchingRTs.length; i++) {
-    //         for (let k = 0; k < this.tasks.length; k++) {
-    //                 if (this.tasks[k].gmbBiz && this.tasks[k].gmbBiz.qmenuId === matchingRTs[i]['_id']) {
-    //                     mathingBiz.push({
-    //                         restaurant: matchingRTs[i],
-    //                         task: this.tasks[k]
-    //                     })
-
-    //                 }
-
-    //         }
-
-
-    //         //Find matching 
-    //         console.log('mathingBiz', mathingBiz);
-    //         return mathingBiz;
-
-
-    //     }
-
-
-    // }
-
-
+    deleteRow(row) {
+        // api delete here...
+        this._api.delete(environment.adminApiUrl + 'generic',
+          {
+            resource: 'event',
+            ids: [row.id]
+          }).subscribe(
+            result => {
+                this.rows.filter(each=> !each.id===row.id);
+                this._global.publishAlert(
+                    AlertType.Success,
+                    "Delete successfully"
+                );
+            },
+            error => {
+                this._global.publishAlert(AlertType.Danger, "Error deleting");
+            }
+            );
+      }
 
 }
