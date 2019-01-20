@@ -517,7 +517,8 @@ export class AutomationDashboardComponent implements OnInit {
       projection: {
         gmbScannedAt: 1,
         password: 1,
-        email: 1
+        email: 1,
+        migrated: 1
       },
       limit: 6000
     }).toPromise();
@@ -558,11 +559,10 @@ export class AutomationDashboardComponent implements OnInit {
 
         // scan locations
         // for each biz, MUST: name, address, appealId, and accounts for matching
-        
-        // const scanResult = await this._api.post(environment.autoGmbUrl + 'scanLocations2', { email: account.email, password: password, knownGmbBizList: gmbBizList, stayAfterScan: false }).toPromise();
-        // TEMP: retrieve cids!
-        const scanResult = await this._api.post(environment.autoGmbUrl + 'scanLocations2', { email: account.email, password: password, knownGmbBizList: [], stayAfterScan: false }).toPromise();
-        
+        // if NOT migrated, we'd like to rescan for cids!
+        const knownGmbBizList = account.migrated ? gmbBizList : [];
+        const scanResult = await this._api.post(environment.autoGmbUrl + 'scanLocations2', { email: account.email, password: password, knownGmbBizList: knownGmbBizList, stayAfterScan: false }).toPromise();
+
         const locations = scanResult.locations;
 
         console.log(scanResult);
@@ -710,7 +710,7 @@ export class AutomationDashboardComponent implements OnInit {
         await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [
           {
             old: { _id: account._id },
-            new: { _id: account._id, gmbScannedAt: { $date: new Date() }, pagerSize: scanResult.pagerSize, allLocations: scanResult.allLocations, published: scanResult.published, suspended: scanResult.suspended }
+            new: { _id: account._id, migrated: true, gmbScannedAt: { $date: new Date() }, pagerSize: scanResult.pagerSize, allLocations: scanResult.allLocations, published: scanResult.published, suspended: scanResult.suspended }
           }
         ]).toPromise();
         console.log('updated gmbScannedAt for ' + account.email);
@@ -749,7 +749,7 @@ export class AutomationDashboardComponent implements OnInit {
     gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt).valueOf() - new Date(a2.emailScannedAt).valueOf());
 
     // debug
-    gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('qmenu06'));
+    // gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('qmenu06'));
 
     const existingRequests = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbRequest',
@@ -1050,7 +1050,7 @@ export class AutomationDashboardComponent implements OnInit {
     // 2. not disabled
     // 3. not already an apply task existed
     // 4. skip sale's agent flagged (unless more than xx days created)
-  
+
   } // end scan
 
   async injectModifiedWebsites() {
