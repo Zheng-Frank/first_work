@@ -12,7 +12,7 @@
     <h6 class="card-subtitle mb-2"><span class="badge {{task.scheduledAt.valueOf() - now.valueOf() > 86400000 ? 'badge-success' : (task.scheduledAt.valueOf() - now.valueOf() > 0 ? 'badge-warning' : 'badge-danger')}}">Due:
         {{task.scheduledAt | ago : now}}</span></h6>
     <pre>{{task.comments}}</pre>
-    <a href="#" class="card-link">Claim</a>
-    <a href="#" class="card-link">View</a>
+    <a class="card-link" (click)="alert('comming soon')">Claim</a>
+    <a class="card-link" (click)="alert('comming soon')">View</a>
   </div>
 </div>

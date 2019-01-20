@@ -273,7 +273,8 @@ export class GmbService {
           },
           new: {
             _id: biz._id,
-            place_id: loc.place_id
+            place_id: loc.place_id,
+            cid: loc.cid
           }
         };
       });
@@ -301,7 +302,8 @@ export class GmbService {
           },
           new: {
             _id: biz._id,
-            appealId: loc.appealId
+            appealId: loc.appealId,
+            cid: loc.cid
           }
         };
       });
@@ -575,22 +577,24 @@ export class GmbService {
     // we need to fillup gmbBiz's phone, matching place_id, and websites info
     let crawledResult;
     try {
-      const query = { q: [gmbBiz.name, gmbBiz.address].join(" ") };
       if (useCid) {
-        query['ludocid'] = gmbBiz.cid;
+        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name }).toPromise();
+      } else {
+        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [gmbBiz.name, gmbBiz.address].join(" ") }).toPromise();
       }
-      crawledResult = await this._api.get(environment.east1Url + "utils/scan-gmb", query).toPromise();
     }
     catch (error) {
       // use only city state and zip code!
       // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
-      const addressTokens = gmbBiz.address.split(", ");
-      const query = { q: gmbBiz.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
-      if (useCid) {
-        query['ludocid'] = gmbBiz.cid;
-      }
+      // const addressTokens = gmbBiz.address.split(", ");
+      // const query = { q: gmbBiz.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
+      // if (useCid) {
+      //   query['ludocid'] = gmbBiz.cid;
+      // }
 
-      crawledResult = await this._api.get(environment.east1Url + "utils/scan-gmb", query).toPromise();
+      // crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", query).toPromise();
+      this._global.publishAlert(AlertType.Danger, 'Crawl Error: ' + gmbBiz.name);
+      throw 'Error crawling ' + gmbBiz.name;
     }
 
     if (gmbBiz.address) {
@@ -620,7 +624,8 @@ export class GmbService {
         crawledResult.gmbOwner = 'qmenu';
       }
     }
-    const kvps = ['phone', 'place_id', 'cid', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
+    // except cid because we'd like to have scan account's cid instead?
+    const kvps = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
 
     // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
     if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {

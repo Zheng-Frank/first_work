@@ -3,12 +3,16 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { Invoice } from 'src/app/classes/invoice';
-import { convertInjectableProviderToFactory } from '@angular/core/src/di/injectable';
+
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { AlertType } from 'src/app/classes/alert-type';
 @Component({
   selector: 'app-invoice-monthly',
   templateUrl: './invoice-monthly.component.html',
-  styleUrls: ['./invoice-monthly.component.css']
+  styleUrls: ['./invoice-monthly.component.css'],
+  providers: [CurrencyPipe, DatePipe]
 })
+
 export class InvoiceMonthlyComponent implements OnInit {
   startDatesOfEachMonth: Date[] = [];
 
@@ -23,10 +27,11 @@ export class InvoiceMonthlyComponent implements OnInit {
   overdueRows = [];
   rolledButLaterCompletedRows = [];
   paymentSentButNotCompletedRows = [];
-
   beingRolledInvoiceSet = new Set();
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  invoicedButLaterCanceledRows = [];
+
+  constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
     while (d < new Date()) {
@@ -72,6 +77,222 @@ export class InvoiceMonthlyComponent implements OnInit {
     if (this.action === 'paymentSentButNotCompleted') {
       this.populatePaymentSentButNotCompleted();
     }
+
+    if (this.action === 'invoicedButLaterCanceled') {
+      this.populateInvoicedButLaterCanceled();
+    }
+
+  }
+
+  async populateInvoicedButLaterCanceled() {
+    // query order status === canceled, then match invoice?
+    const canceledOrderStatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: "orderstatus",
+      query: {
+        status: "CANCELED"
+      },
+      projection: {
+        order: 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    const span = 8 * 24 * 3600;
+    const canceledAfterSpan = canceledOrderStatuses.filter(os => {
+      const statusAt = parseInt(os._id.substring(0, 8), 16);
+      const orderCreatedAt = parseInt(os.order.substring(0, 8), 16);
+      return statusAt - orderCreatedAt > span;
+    });
+
+    const idOsDict = {};
+    canceledAfterSpan.map(os => idOsDict[os.order] = os);
+
+    // we need to make sure NOT double counting the adjusted order, so query restaurant logs
+    const adjustmentLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "logs.orderId": { $exists: 1 },
+        "logs.adjustmentReason": { $exists: 1 }
+      },
+      projection: {
+        "logs.orderId": 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const adjustedOrderIds = new Set();
+    adjustmentLogs.map(r => r.logs.map(log => {
+      if (log.orderId) {
+        adjustedOrderIds.add(log.orderId);
+      }
+    }));
+
+    console.log('adjusted: ', adjustedOrderIds);
+
+    // finally unhandled ids
+    const canceledAfterSpanWithoutAdjusted = canceledAfterSpan.filter(os => !adjustedOrderIds.has(os.order));
+    const idSet = new Set(canceledAfterSpanWithoutAdjusted.map(os => os.order));
+    console.log(idSet);
+
+
+    const batchSize = 100;
+    const batchedOrderIds = Array(Math.ceil(canceledAfterSpanWithoutAdjusted.length / batchSize)).fill(0).map((i, index) => canceledAfterSpanWithoutAdjusted.slice(index * batchSize, (index + 1) * batchSize).map(os => os.order));
+
+    const affectedInvoiceIdDict = {};
+    for (let batch of batchedOrderIds) {
+
+      const mayAffectedInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        query: {
+          "orders.id": { $in: batch },
+          "orders.payee": "qMenu",
+          isCanceled: { $ne: true }
+        },
+        projection: {
+          fromDate: 1,
+          toDate: 1,
+          balance: 1,
+          "orders.id": 1,
+          "orders.orderNumber": 1,
+          "orders.total": 1,
+          "orders.canceled": 1,
+          "orders.rate": 1,
+          "orders.fixed": 1,
+          "orders.subtotal": 1,
+          "restaurant.name": 1,
+          "restaurant.id": 1
+        },
+        limit: batch.length
+      }).toPromise();
+
+      // order 5c22bf3407f5110526836feb
+      // invoice: 5c2b8a0fc0bdebae7295b775
+
+      const affectedInvoices = mayAffectedInvoices.filter(i => i.orders.some(order => order.canceled === false && idSet.has(order.id)));
+
+      affectedInvoices.map(i => {
+        affectedInvoiceIdDict[i._id] = { invoice: i, affectedOrders: [] };
+      });
+
+      console.log(affectedInvoices);
+    }
+
+    const results = Object.keys(affectedInvoiceIdDict).map(id => {
+      const invoice = affectedInvoiceIdDict[id].invoice;
+      console.log(id, invoice);
+      if (!invoice.orders) {
+        console.log('Found!');
+
+      }
+      const affectedOrders = invoice.orders.filter(order => idSet.has(order.id));
+      return {
+        invoice: invoice,
+        affectedOrders: affectedOrders
+      }
+    });
+
+    console.log(results);
+    console.log(results.reduce((sum, row) => sum + row.affectedOrders.reduce((sub, order) => sub + order.total, 0), 0));
+
+    // group by restaurant
+    const restaurantDict = {};
+    results.map(result => {
+      restaurantDict[result.invoice.restaurant.id] = restaurantDict[result.invoice.restaurant.id] || { invoiceAndAffectedOrders: [] };
+      restaurantDict[result.invoice.restaurant.id].invoiceAndAffectedOrders.push(result);
+    });
+
+    const groupedByRestaurant = Object.keys(restaurantDict).map(k => ({
+      restaurant: restaurantDict[k].invoiceAndAffectedOrders[0].invoice.restaurant,
+      invoiceAndAffectedOrders: restaurantDict[k].invoiceAndAffectedOrders,
+      adjustments: []
+    }));
+
+    // restaurant -> invoices --> affected orders
+    groupedByRestaurant.map(gr => {
+      gr.invoiceAndAffectedOrders.map(item => {
+        const invoice = item.invoice;
+        item.affectedOrders.map(order => {
+          const orderTotal = +(order.total.toFixed(2));
+          const orderNumber = order.orderNumber;
+          const orderTime = new Date(parseInt(order.id.substring(0, 8), 16) * 1000);
+          const orderSubtotal = +(order.subtotal.toFixed(2));
+          const orderRate = order.rate;
+          const orderFixed = order.fixed;
+          const canceledAt = new Date(parseInt(idOsDict[order.id]._id.substring(0, 8), 16) * 1000);
+
+          const ccFee = (+((+(+orderTotal).toFixed(2)) * 0.029 + 0.30).toFixed(2) || 0);
+          const commission = +(orderSubtotal * (orderRate || 0) + (orderFixed || 0)).toFixed(2);
+
+          const invoiceFromDate = new Date(invoice.fromDate);
+          const invoiceToDate = new Date(invoice.toDate);
+
+          const adjustmentAmount = orderTotal - ccFee - commission;
+          const amount = -(+adjustmentAmount.toFixed(2));
+          const reason = `During our annual auditing process, we discovered that qMenu collected credit card payment (prepaid) for order #${orderNumber} ` +
+            `on ${this._datePipe.transform(orderTime, 'shortDate')}, and paid you the amount of ${this._currencyPipe.transform(adjustmentAmount, 'USD')} (recorded on the ` +
+            `invoice from ${this._datePipe.transform(invoiceFromDate, 'shortDate')}-${this._datePipe.transform(invoiceToDate, 'shortDate')}). ` +
+            `However, you canceled the order on ${this._datePipe.transform(canceledAt, 'shortDate')} (AFTER the invoice was made), and due to the cancelation, ` +
+            `qMenu refunded the customer the full order amount ${this._currencyPipe.transform(orderTotal, 'USD')} on your behalf. ` +
+            `Therefore, qMenu also needs to retract the previous issued credit of ${this._currencyPipe.transform(adjustmentAmount, 'USD')} from current billing cycle. ` +
+            `More details: Order Amount: ${this._currencyPipe.transform(orderTotal, 'USD')}, CC Processing (2.9% + 0.30): ${this._currencyPipe.transform(ccFee, 'USD')}, ` +
+            `Commission (${orderFixed ? this._currencyPipe.transform(orderFixed, 'USD') : ((orderRate * 100).toFixed(0) + '%')} of subtotal ${this._currencyPipe.transform(orderSubtotal, 'USD')}): ${this._currencyPipe.transform(commission, 'USD')}, ` +
+            `Net: ${this._currencyPipe.transform(adjustmentAmount, 'USD')} = ${this._currencyPipe.transform(orderTotal, 'USD')} - ${this._currencyPipe.transform(ccFee, 'USD')} - ${this._currencyPipe.transform(commission, 'USD')}. ` +
+            `If you have any questions, please call 404-382-9768. Thank you for your business.`
+
+          gr.adjustments.push({
+            amount: amount,
+            reason: reason,
+            orderId: order.id,
+            orderNumber: orderNumber
+          });
+
+        });
+      });
+    });
+
+
+    // groupedByRestaurant.length = 10;
+
+    console.log(groupedByRestaurant);
+
+    // create the adjustment!!!
+    for (let row of groupedByRestaurant) {
+      const restaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          _id: { $oid: row.restaurant.id }
+        },
+        projection: {
+          name: 1,
+          logs: 1
+        },
+        limit: 1
+      }).toPromise())[0];
+
+      const adjustmentLogs = row.adjustments.map(adj => ({
+        problem: "invoiced but later canceld order adjustment",
+        response: "auto generated adjustment",
+        adjustmentAmount: adj.amount,
+        adjustmentReason: adj.reason,
+        resolved: false,
+        time: new Date(),
+        username: this._global.user.username,
+        orderId: adj.orderId,
+        orderNumber: adj.orderNumber
+      }));
+      restaurant.logs = restaurant.logs || [];
+      restaurant.logs.push(...adjustmentLogs);
+      console.log(restaurant.logs)
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: restaurant._id },
+        new: { _id: restaurant._id, logs: restaurant.logs }
+      }]).toPromise();
+
+      console.log('adjusted ' + restaurant.name)
+    }
+
+    this._global.publishAlert(AlertType.Success, 'Success');
 
   }
 
@@ -135,8 +356,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         "logs.value": 1,
         isPaymentCompleted: 1,
         isPaymentSent: 1,
-        "restaurant.name": 1,
-        "restaurant.id": 1
+        "restaurant.name": 1
       },
       limit: 200000
     }).toPromise();

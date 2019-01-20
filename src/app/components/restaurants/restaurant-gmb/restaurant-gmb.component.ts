@@ -7,6 +7,7 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { GmbService } from 'src/app/services/gmb.service';
 import { Task } from 'src/app/classes/tasks/task';
+import { GmbRequest } from 'src/app/classes/gmb/gmb-request';
 @Component({
   selector: 'app-restaurant-gmb',
   templateUrl: './restaurant-gmb.component.html',
@@ -16,7 +17,11 @@ export class RestaurantGmbComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
 
-  gmbRows = [];
+  relevantGmbRequests: any[] = [];
+
+  emailAccountDict = {} as any;
+
+  gmbRows;
   apiRequesting = false;
   now = new Date();
 
@@ -26,6 +31,10 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   async ngOnChanges(changes: SimpleChanges) {
+    this.populate();
+  }
+
+  async populate() {
     if (this.restaurant) {
       // temp: also get gmbBiz to digg more info
       const gmbBizList = (await this._api.get(environment.adminApiUrl + 'generic', {
@@ -33,9 +42,8 @@ export class RestaurantGmbComponent implements OnInit {
         query: {
           qmenuId: this.restaurant.id || this.restaurant['_id']
         },
-        projection: {
-          gmbOwnerships: { $slice: -4 }
-        },
+        // projection: { since we don't expect lots of data, no projection is OK
+        // },
         limit: 10
       }).toPromise());
 
@@ -50,52 +58,67 @@ export class RestaurantGmbComponent implements OnInit {
         limit: 20
       }).toPromise()).map(t => new Task(t));
 
+      console.log(gmbBizList)
+      // const relevantEmails = gmbBizList.reduce((emails, biz) => { emails.push(...(biz.accounts || []).map(acct => acct.email)); return emails; }, []);
+
       const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbAccount',
-        query: {},
+        // query ALL because we need to tell if it is self!
+        // query: {
+        //   //email: { $in: [...new Set(relevantEmails)] }
+        // },
         projection: {
           email: 1,
           gmbScannedAt: 1,
           emailScannedAt: 1
         },
-        limit: 100
+        limit: 1000
       }).toPromise();
 
-      // get ALL requests against this gmbOwnership
-      const relevantGmbRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+      accounts.map(acct => this.emailAccountDict[acct.email] = acct);
+
+      // get ALL requests against this gmb listing
+      this.relevantGmbRequests = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbRequest',
         query: {
           gmbBizId: { $in: gmbBizList.map(biz => biz._id) }
         },
-        limit: 100
+        limit: 1000
       }).toPromise();
 
       // inject isSelf to request
-      relevantGmbRequests.map(request => request.isSelf = accounts.some(account => account.email === request.email));
+      this.relevantGmbRequests.map(request => request.isSelf = accounts.some(account => account.email === request.email));
+
+      this.relevantGmbRequests.sort((r1, r2) => new Date(r2.date).valueOf() - new Date(r1.date).valueOf());
 
       this.gmbRows = gmbBizList.map(gmbBiz => ({
         gmbBiz: gmbBiz,
-        outstandingTasks: outstandingTasks.filter(t => t.relatedMap.gmbBizId === gmbBiz._id),
-        gmbRequests: this.getRequests(gmbBiz, relevantGmbRequests),
-        gmbAccount: accounts.filter(a => a.email === this.getLastOwnership(gmbBiz).email)[0]
+        outstandingTasks: outstandingTasks.filter(t => t.relatedMap.gmbBizId === gmbBiz._id)
       }));
     } else {
       this.gmbRows = [];
     }
   }
 
-  private getRequests(gmbBiz, relevantGmbRequests) {
-    // get last ownership time
-    const lastTime = (gmbBiz.gmbOwnerships || []).filter(ownership => ownership.email).map(o => o.possessedAt).slice(-1)[0];
-    if (lastTime) {
-      const requests = relevantGmbRequests.filter(r => r.gmbBizId === gmbBiz._id && new Date(lastTime) < new Date(r.date));
-      requests.sort((r1, r2) => new Date(r2.date).valueOf() - new Date(r1.date).valueOf());
-      return requests;
-    } else {
-      return [];
-    }
+  getGmbAccount(email) {
+    return this.emailAccountDict[email];
   }
 
+  // private getRequests(gmbBiz, relevantGmbRequests) {
+  //   // get last ownership time
+  //   const lastTime = (gmbBiz.gmbOwnerships || []).filter(ownership => ownership.email).map(o => o.possessedAt).slice(-1)[0];
+  //   if (lastTime) {
+  //     const requests = relevantGmbRequests.filter(r => r.gmbBizId === gmbBiz._id && new Date(lastTime) < new Date(r.date));
+  //     requests.sort((r1, r2) => new Date(r2.date).valueOf() - new Date(r1.date).valueOf());
+  //     return requests;
+  //   } else {
+  //     return [];
+  //   }
+  // }
+
+  getGmbRequests(gmbBiz: GmbBiz, email) {
+    return this.relevantGmbRequests.filter(request => request.gmbBizId === gmbBiz._id && request.gmbAccountId === (this.getGmbAccount(email) || {})._id);
+  }
 
   async refreshMainListing() {
     if (!this.restaurant.googleAddress || !this.restaurant.googleAddress.formatted_address) {
@@ -110,7 +133,7 @@ export class RestaurantGmbComponent implements OnInit {
     let crawledResult;
     try {
       const query = { q: [name, address].join(" ") };
-      crawledResult = await this._api.get(environment.east1Url + "utils/scan-gmb", query).toPromise();
+      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", query).toPromise();
     }
     catch (error) {
     }
@@ -121,7 +144,7 @@ export class RestaurantGmbComponent implements OnInit {
       const addressTokens = address.split(", ");
       try {
         const query = { q: name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
-        crawledResult = await this._api.get(environment.east1Url + "utils/scan-gmb", query).toPromise();
+        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", query).toPromise();
       }
       catch (error) {
       }
@@ -142,61 +165,65 @@ export class RestaurantGmbComponent implements OnInit {
         }
       }]).toPromise();
       this.restaurant.googleListing = crawledResult;
-      this._global.publishAlert(AlertType.Danger, 'GMB crawled: ' + this.restaurant.name);
+      this._global.publishAlert(AlertType.Success, 'GMB crawled: ' + this.restaurant.name);
     }
 
     this.apiRequesting = false;
   }
 
-  async matchOrCreateGmb() {
+  async createOrMatchMainGmb() {
     this.apiRequesting = true;
-    let crawledResult;
+
+    // match from existing list!
     try {
-      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
-    }
-    catch (error) {
-      // try to use only city state and zip code!
-      // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
-      const addressTokens = this.restaurant.googleAddress.formatted_address.split(", ");
-      const q = this.restaurant.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
-      try {
-        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
-      } catch (error) { }
-    }
+      const existingGmbs = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          cid: this.restaurant.googleListing.cid,
+        },
+        projection: {
+          accounts: 1
+        }
+      }).toPromise();
 
-    this.apiRequesting = false;
-
-    // see if such GMB's already existed!
-    if (!crawledResult) {
-      return this._global.publishAlert(AlertType.Danger, 'Failed to find a google listing of the restaurant!');
-    }
-
-    this.apiRequesting = true;
-    const existingGmbs = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      query: {
-        "$or": [
+      if (existingGmbs[0]) {
+        const gmbBiz = existingGmbs[0];
+        // update this gmb's qmenuId to be the id
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [
           {
-            qmenuId: this.restaurant['_id'] || this.restaurant.id
-          }, {
-            place_id: crawledResult.place_id
+            old: { _id: gmbBiz._id },
+            new: { _id: gmbBiz._id, qmenuId: this.restaurant.id || this.restaurant['_id'] }
           }
-        ]
+        ]).toPromise();
+        this._global.publishAlert(AlertType.Success, 'Matched existing GMB');
+
+      } else {
+        await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [
+          { ...this.restaurant.googleListing, qmenuId: this.restaurant.id || this.restaurant['_id'], qmenuWebsite: this.restaurant.domain ? ('http://' + this.restaurant.domain) : (environment.customerUrl + '/#' + this.restaurant.alias) }
+        ]).toPromise();
+        this._global.publishAlert(AlertType.Success, 'Not Matched existing GMB. Created new');
       }
-    }).toPromise();
-    this.apiRequesting = false;
-    if (existingGmbs.length > 0) {
-      return this._global.publishAlert(AlertType.Success, 'Matched existing GMB!');
+      this.populate();
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, error);
     }
 
+    this.apiRequesting = false;
+
   }
 
-  getLastOwnership(gmbBiz: GmbBiz): any {
-    return (gmbBiz.gmbOwnerships || []).slice(-1)[0] || {};
+  isPublished(gmbBiz: GmbBiz) {
+    return (gmbBiz.accounts || []).some(acct => ((acct.history || []).slice(-1)[0] || {}).status === 'Published');
   }
 
+  hasMainGmb() {
+    return this.gmbRows.some(r => r.gmbBiz.cid === this.restaurant.googleListing.cid);
+  }
 
   async onEdit(event, gmbBiz: GmbBiz, field: string) {
+
+    const newValue = (event.newValue || '').trim();
+
     if (field === 'qmenuPop3Password' && !gmbBiz.qmenuPop3Email) {
       this._global.publishAlert(AlertType.Danger, 'Error: please ALWAYS enter password AFTER entering email');
       return;
@@ -204,7 +231,7 @@ export class RestaurantGmbComponent implements OnInit {
     try {
       const old = { _id: gmbBiz._id };
       const updated = { _id: gmbBiz._id };
-      updated[field] = event.newValue;
+      updated[field] = newValue;
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
         updated[field] = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: gmbBiz.qmenuPop3Email, phrase: event.newValue }).toPromise();
       }
@@ -213,7 +240,7 @@ export class RestaurantGmbComponent implements OnInit {
         new: updated
       }]).toPromise();
 
-      gmbBiz[field] = event.newValue;
+      gmbBiz[field] = newValue;
 
       this._global.publishAlert(AlertType.Success, 'Updated');
     } catch (error) {
@@ -254,9 +281,7 @@ export class RestaurantGmbComponent implements OnInit {
       if (password.length > 20) {
         password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
       }
-
       row.retrievedCodeObject = await this._api.post(environment.autoGmbUrl + 'retrieveGodaddyEmailVerificationCode', { host: host, email: email, password: password }).toPromise();
-
     } catch (error) {
       alert('Error retrieving email: ' + JSON.stringify(error));
     }
@@ -298,7 +323,6 @@ export class RestaurantGmbComponent implements OnInit {
     }
   }
 
-
   private sameDomain(d1: string, d2: string) {
     if (!d1 || !d2) {
       return false;
@@ -314,7 +338,6 @@ export class RestaurantGmbComponent implements OnInit {
 
     let host1 = new URL(d1).host;
     let host2 = new URL(d2).host;
-
     // treating www as nothing
     if (!host1.startsWith('www.')) {
       host1 = 'www.' + host1;
@@ -322,7 +345,6 @@ export class RestaurantGmbComponent implements OnInit {
     if (!host2.startsWith('www.')) {
       host2 = 'www.' + host2;
     }
-
     return host1 === host2;
   }
 }

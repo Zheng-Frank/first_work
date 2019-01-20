@@ -7,6 +7,7 @@ import { zip, Observable, from } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
+
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -701,20 +702,48 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async genericTesting() {
-    //find bizManagedWebsite
-    const havingBizWebsite = await this._api.get(environment.adminApiUrl + 'generic', {
+    // find same placeId gmbs
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
-      query: {
-        bizManagedWebsite: { $exists: 1 }
-      },
       projection: {
         name: 1,
-        bizManagedWebsite: 1,
-        useBizWebsite: 1,
-        useBizWebsiteForAll: 1
+        address: 1,
+        place_id: 1,
+        cid: 1,
+        qmenuId: 1
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
+
+    console.log(gmbBizList)
+    const place_idMap = {};
+    gmbBizList.map(biz => {
+      place_idMap[biz.place_id] = place_idMap[biz.place_id] || { bizList: [] };
+      place_idMap[biz.place_id].bizList.push(biz);
+    });
+
+
+    console.log(place_idMap)
+    const duplicatedList = Object.keys(place_idMap).map(k => place_idMap[k]).filter(item => item.bizList.length > 1);
+    console.log(duplicatedList);
+
+    const trueDuplicates = duplicatedList.filter(item => item.bizList.slice(1).some(i => i.cid !== item.bizList[0].cid));
+
+    console.log(trueDuplicates);
+    //find bizManagedWebsite
+    // const havingBizWebsite = await this._api.get(environment.adminApiUrl + 'generic', {
+    //   resource: 'gmbBiz',
+    //   query: {
+    //     bizManagedWebsite: { $exists: 1 }
+    //   },
+    //   projection: {
+    //     name: 1,
+    //     bizManagedWebsite: 1,
+    //     useBizWebsite: 1,
+    //     useBizWebsiteForAll: 1
+    //   },
+    //   limit: 5000
+    // }).toPromise();
     // // update gmbBiz to make
     // CAREFUL: SET useBizWebsite = true
     // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
@@ -728,7 +757,7 @@ export class DbScriptsComponent implements OnInit {
     //     }
     //   }))
     // ).toPromise();
-    console.log(havingBizWebsite);
+    // console.log(havingBizWebsite);
     // // find out invoice having Fax-phaxio-callback as log
     // let affectedInvoices = [];
     // this._api.get(environment.qmenuApiUrl + "generic", {
@@ -2011,6 +2040,113 @@ zealrestaurant.us`;
     }
 
   }
+
+
+  async migrateGmbOwnerships() {
+
+    // erase ALL accounts attached to gmbBiz
+    // const allGmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    //   resource: 'gmbBiz',
+    //   projection: {
+    //     name: 1
+    //   },
+    //   limit: 6000
+    // }).toPromise();
+
+    // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', allGmbBizList.map(biz => ({
+    //   old: { _id: biz._id, accounts: 1 },
+    //   new: { _id: biz._id }
+    // }))).toPromise();
+    // if (new Date()) {
+    //   throw 'temp!'
+    // }
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const emailAccountMap = gmbAccounts.reduce((map, acct) => (map[acct.email] = acct, map), {});
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        // name: "Asian Kitchen",
+        // cid: "18268123258939097031",
+        accounts: null
+      },
+      projection: {
+        gmbOwnerships: 1,
+        accounts: 1
+      },
+      limit: 500
+    }).toPromise();
+
+    gmbBizList.map(biz => {
+      const accountDict = {};
+      let previousOwnership = {} as any;
+      for (let i = 0; i < (biz.gmbOwnerships || []).length; i++) {
+        const ownership = biz.gmbOwnerships[i];
+        if (ownership.email !== previousOwnership.email) {
+          // treat this time as previousOwnership's Lost time
+          if (previousOwnership.email) {
+            accountDict[previousOwnership.email].push({
+              time: ownership.possessedAt,
+              status: 'Lost'
+            })
+          }
+        }
+        if (ownership.email) {
+          accountDict[ownership.email] = accountDict[ownership.email] || [];
+          accountDict[ownership.email].push({
+            time: ownership.possessedAt,
+            status: ownership.status || 'Published'     // no status means Published in early version
+          });
+        }
+        previousOwnership = ownership;
+      }
+
+      // map to accounts!
+      const accounts = Object.keys(accountDict).map(email => {
+        const history = accountDict[email];
+        // remove oscillating ones A - Lost - A....
+        for (let i = 1; i < history.length - 1; i++) {
+          if (history[i - 1].status === history[i + 1].status && history[i].status === 'Lost') {
+            history[i].isOscillating = true;
+          }
+        }
+
+        const removeOscillated = history.filter(h => !h.isOscillating);
+
+        // remove duplicated status sequence
+        for (let i = 1; i < removeOscillated.length; i++) {
+          if (removeOscillated[i].status === removeOscillated[i - 1].status) {
+            removeOscillated[i].isDuplicate = true;
+          }
+        }
+        const purgedHistory = removeOscillated.filter(h => !h.isDuplicate);
+        return {
+          email: email,
+          id: (emailAccountMap[email] || {})._id,
+          history: purgedHistory
+        };
+      });
+
+      biz.accounts = accounts;
+      console.log(accounts);
+    });
+
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizList.map(biz => ({
+      old: { _id: biz._id },
+      new: { _id: biz._id, accounts: biz.accounts }
+    }))).toPromise();
+
+
+  }
+
 
 }
 

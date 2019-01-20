@@ -10,6 +10,5 @@ export const environment = {
   customerUrl: 'https://qmenu.us/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
-  stripePublishableKey: 'pk_live_uSs2MVVyG0vn6TICsTIyXG6Y',
-  east1Url: "https://9v8upsmsai.execute-api.us-east-1.amazonaws.com/prod/"
+  stripePublishableKey: 'pk_live_uSs2MVVyG0vn6TICsTIyXG6Y'
 };

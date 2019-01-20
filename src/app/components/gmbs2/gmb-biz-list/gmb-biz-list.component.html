@@ -79,6 +79,7 @@
 
 <q-table [rows]="filteredMyBizList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
   <tr *tableRowTemplate="let biz;" class="{{biz.restaurant && biz.restaurant.disabled ? 'app-muted' : ''}}">
+    <td>{{filteredMyBizList.indexOf(biz) + 1}}</td>
     <td>
       <div class="dropdown">
         <button class="btn btn-link dropdown-toggle font-weight-bold pl-0" type="button" data-toggle="dropdown">

@@ -6,6 +6,8 @@
   </div>
   <div class="float-right">
     <div class="pb-2">
+      <button class="btn btn-primary" (click)="toggleAction('invoicedButLaterCanceled')">Find Invoiced but Later
+        Canceled Orders</button>
       <button class="btn btn-primary" (click)="toggleAction('paymentSentButNotCompleted')">Find Payment Sent but not
         Complete
         Invoices</button>
@@ -46,6 +48,12 @@
         </td>
       </tr>
     </table>
+  </div>
+</div>
+
+<div class="card text-left bg-light" *qIf="action==='invoicedButLaterCanceled'">
+  <div class="card-body">
+    * Invoiced but later canceled orders. Please check browser console for affected restaurants.
   </div>
 </div>
 

@@ -64,6 +64,9 @@ export class GmbBizListComponent implements OnInit {
 
   myColumnDescriptors = [
     {
+      label: "#",
+    },
+    {
       label: "Name",
       paths: ['gmbBiz', 'name'],
       sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
@@ -85,7 +88,9 @@ export class GmbBizListComponent implements OnInit {
       label: "GMB Owner"
     },
     {
-      label: "Website"
+      label: "Website",
+      paths: ['gmbBiz', 'gmbOwner'],
+      sort: (a, b) => (GlobalService.serviceProviderMap[a] || '') > (GlobalService.serviceProviderMap[b] || '') ? 1 : ((GlobalService.serviceProviderMap[a] || '') < (GlobalService.serviceProviderMap[b] || '') ? -1 : 0)
     },
     {
       label: "qMenu Website"

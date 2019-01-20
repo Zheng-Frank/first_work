@@ -49,6 +49,8 @@ export class GmbBiz {
 
     disableAutoTask: boolean;
 
+    accounts: any;  // email, id, history {scannedAt, status}
+
     constructor(biz?: any) {
         if (biz) {
             // copy every fields
