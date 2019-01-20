@@ -78,7 +78,7 @@ export class OrderCardComponent implements OnInit {
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 3 days
     //return true;
-    return !(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 3 * 24 * 3600 * 1000);
+    return !(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000);
   }
 
   canShowAdjust(order: Order) {

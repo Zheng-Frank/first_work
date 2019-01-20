@@ -67,7 +67,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       projection: {
         orderNumber: 1,
         restaurant: 1,
-        createdAt: 1
+        createdAt: 1,
+        timeToDeliver: 1
       },
       limit: 100
     }).toPromise();

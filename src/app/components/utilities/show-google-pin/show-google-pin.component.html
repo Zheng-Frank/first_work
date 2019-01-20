@@ -3,29 +3,53 @@
         <tr>
             <!-- <th scope="col">Agent</th> -->
             <th>Restaurant</th>
+            <th>Task</th>
+            <th>Assignee</th>
             <th>From</th>
             <th>PIN</th>
             <th>Done</th>
+            <th>PIN Received</th>
+            
         </tr>
     </thead>
     <tbody>
         <tr *ngFor="let row of rows;">
             <td>
-                <div *ngFor="let rt of row.restaurant">
-                        <a routerLink="/restaurants/{{rt._id}}">{{rt.name}}</a>
-                        <div class="text-muted"><small>{{rt.googleAddress.formatted_address}}</small></div>                   
+                <div *ngFor="let biz of row.gmbBiz;">
+                    <a routerLink="/restaurants/{{biz.restaurant['_id']}}">{{biz.restaurant.name}}</a>
+                    <div class="text-muted">
+                        <small>{{biz.restaurant.googleAddress.formatted_address}}</small>
+                    </div>
+                </div>
+
+            </td>
+            <td>
+                    <div *ngFor="let biz of row.gmbBiz;">
+                        <div *ngFor="let task of biz.tasks;">
+                            {{task.name}}
+                        </div>
+                    </div>
+                </td>
+
+            <td>
+                <div *ngFor="let biz of row.gmbBiz;">
+                    <div *ngFor="let task of biz.tasks;">
+                        {{task.assignee}}
+                    </div>
                 </div>
             </td>
-            <!-- <td>
-                    <a routerLink="/restaurants/{{row.restaurant._id}}">{{rt.name}}</a>
-                    <div class="text-muted"><small>{{rt.googleAddress.formatted_address}}</small></div>
-                  </td> -->
             <td>{{row.from}}</td>
             <td>{{row.text}}</td>
             <td>
                 <span class="text-success" *ngIf="row.done">✔</span>
                 <span class="text-danger" *ngIf="!row.done">✘</span>
             </td>
+            <td>
+                    {{getTime(row.time) | MMMd }} {{getTime(row.time) | shortTime}}
+            </td>
+            <!-- <td *ngIf='_global.user.roles.indexOf("ADMIN")>0'>
+                <button class="btn btn-sm btn-primary" (click)="deleteRow(row)">Delete</button>
+            </td> -->
         </tr>
     </tbody>
 </table>

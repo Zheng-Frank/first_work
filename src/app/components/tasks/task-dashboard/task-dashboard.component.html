@@ -44,7 +44,13 @@
     </div>
 
 
-    <div class="card-body text-left"z>
+    <div class="card-body text-left" z>
+        <div *ngIf="'Google PIN' === activeTabValue">
+                <show-google-pin [tasks]='myOpenTasks' [bizList]='bizList'></show-google-pin>
+        </div>
+    </div>
+
+    <div class="card-body text-left" z>
         <div *ngIf="'Statistics' === activeTabValue">
             <!-- grouped by task name -->
             <div *ngFor="let nameEntry of groupedTasks" class="mb-4">
