@@ -23,9 +23,10 @@
   <div class="card mb-2" *ngFor="let row of gmbRows">
     <h3 class="card-title text-center pt-4 pb-0">
       <i class="fab fa-google"></i>
-      <span class="text-success" *ngIf="getLastOwnership(row.gmbBiz).status === 'Published'">Published ✓</span>
-      <span class="text-warning" *ngIf="getLastOwnership(row.gmbBiz).status === 'Suspended'">Suspended ✓</span>
-      <span class="text-danger" *ngIf="!getLastOwnership(row.gmbBiz).email">No Ownership ✗</span>
+      <span class="text-success" *ngIf="isPublished(row.gmbBiz); else notPublished">Published ✓</span>
+      <ng-template #notPublished>
+        <span class="text-danger">No Ownership ✗</span>
+      </ng-template>
       <h6 style="position: absolute; top: 0; left: 0" class="p-2 text-left">cid: {{row.gmbBiz.cid}}<br>
         <span *ngIf="row.gmbBiz.cid === restaurant.googleListing?.cid" class="text-success">Main</span>
         <span *ngIf="restaurant.googleListing && row.gmbBiz.cid !== restaurant.googleListing.cid" class="text-danger">Secondary</span>
@@ -39,8 +40,6 @@
     <div class="text-center">
       <small>
         Listing crawled: {{row.gmbBiz.crawledAt | ago : now}}
-        | Account scanned: {{row.gmbAccount?.gmbScannedAt | ago : now}}
-        | Email scanned: {{row.gmbAccount?.emailScannedAt | ago : now}}
       </small></div>
     <ul class="list-group list-group-flush">
       <li class="list-group-item">
@@ -172,48 +171,69 @@
               </div>
             </td>
           </tr>
+
+          <tr>
+            <td class="pl-1" colspan="2">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="id_ignoreGmbOwnershipRequest" [checked]="row.gmbBiz.ignoreGmbOwnershipRequest"
+                  (change)="toggle($event, row.gmbBiz, 'ignoreGmbOwnershipRequest')">
+                <label class="form-check-label" for="id_ignoreGmbOwnershipRequest"> Ignore GMB Ownership Requests
+                  (restaurant won't give ownerhsip to other companies)</label>
+              </div>
+
+            </td>
+          </tr>
+
         </table>
       </li>
 
       <li class="list-group-item">
+
         <table class="app-table w-100">
-          <tr>
-            <th class="">Ownerships<div><small>* click account to login</small></div>
-            </th>
-            <td class="pl-1">
-              <ng-container *ngFor="let ownership of (row.gmbBiz.gmbOwnerships || [])">
-
-                <div class="d-inline-block alert alert-{{ownership.status === 'Published' ? 'success' : (ownership.status === 'Suspended' ? 'warning' : 'danger')}} p-2">
-                  <span *ngIf="!ownership.email" class="btn btn-link">lost</span>
-                  <app-gmb-account-hotlink *ngIf="ownership.email" [email]="ownership.email"></app-gmb-account-hotlink>
-                  <hr class="my-0"><small>{{ownership.possessedAt | ago : now}}</small>
+          <ng-container *ngFor="let account of (row.gmbBiz.accounts || []); let i = index;">
+            <tr>
+              <th class="bold-button">
+                <app-gmb-account-hotlink [email]="account.email"></app-gmb-account-hotlink>
+                <div class="text-muted">
+                  <small>Scanned: {{getGmbAccount(account.email)?.gmbScannedAt | ago : now}}</small>
                 </div>
-              </ng-container>
-            </td>
-          </tr>
-          <tr>
-            <th class="">GMB Requests<div></div>
-            </th>
-            <td class="pl-1">
 
-            </td>
-          </tr>
-          <tr>
+              </th>
+              <td class="pl-1">
+                <ng-container *ngFor="let record of (account.history || [])">
+                  <div class="d-inline-block alert alert-{{record.status === 'Published' ? 'success' : (record.status === 'Suspended' ? 'warning' : 'danger')}} p-2">
+                    <span>{{record.status}}</span>
+                    <hr class="my-0"><small>{{record.time | ago : now}}</small>
+                  </div>
+                </ng-container>
+              </td>
+            </tr>
+            <!-- <tr>
             <th class="">Outstanding Tasks<div></div>
             </th>
             <td class="pl-1">
               <app-task-bar *ngFor="let task of row.outstandingTasks" [task]="task"></app-task-bar>
             </td>
-          </tr>
-          <tr>
-            <th class="">Email Requests<div></div>
-            </th>
-            <td class="pl-1">
-              <div *ngFor="let gmbRequest of row.gmbRequests" class="{{gmbRequest.isSelf ? 'text-success' : ''}}">
-                {{gmbRequest.date | ago : now}} {{gmbRequest.email | emailName}}
-              </div>
-            </td>
-          </tr>
+          </tr>-->
+            <tr>
+              <th class="">Email Requests
+                <div class="text-muted">
+                  <small>Scanned: {{getGmbAccount(account.email)?.emailScannedAt | ago : now}}</small>
+                </div>
+              </th>
+              <td class="pl-1">
+                <div *ngFor="let gmbRequest of getGmbRequests(row.gmbBiz, account.email)" class="{{gmbRequest.isSelf ? 'text-success' : ''}}">
+                  {{gmbRequest.date | ago : now}} {{gmbRequest.email | emailName}}
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="i !== row.gmbBiz.accounts.length - 1">
+              <td colspan="2">
+                <hr>
+              </td>
+            </tr>
+          </ng-container>
+
         </table>
       </li>
 

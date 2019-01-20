@@ -578,7 +578,7 @@ export class GmbService {
     let crawledResult;
     try {
       if (useCid) {
-        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: 'W' }).toPromise();
+        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name }).toPromise();
       } else {
         crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [gmbBiz.name, gmbBiz.address].join(" ") }).toPromise();
       }

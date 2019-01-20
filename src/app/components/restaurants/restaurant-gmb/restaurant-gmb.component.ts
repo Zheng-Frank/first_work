@@ -7,6 +7,7 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { GmbService } from 'src/app/services/gmb.service';
 import { Task } from 'src/app/classes/tasks/task';
+import { GmbRequest } from 'src/app/classes/gmb/gmb-request';
 @Component({
   selector: 'app-restaurant-gmb',
   templateUrl: './restaurant-gmb.component.html',
@@ -15,6 +16,10 @@ import { Task } from 'src/app/classes/tasks/task';
 export class RestaurantGmbComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
+
+  relevantGmbRequests: any[] = [];
+
+  emailAccountDict = {} as any;
 
   gmbRows;
   apiRequesting = false;
@@ -37,9 +42,8 @@ export class RestaurantGmbComponent implements OnInit {
         query: {
           qmenuId: this.restaurant.id || this.restaurant['_id']
         },
-        projection: {
-          gmbOwnerships: { $slice: -4 }
-        },
+        // projection: { since we don't expect lots of data, no projection is OK
+        // },
         limit: 10
       }).toPromise());
 
@@ -54,52 +58,67 @@ export class RestaurantGmbComponent implements OnInit {
         limit: 20
       }).toPromise()).map(t => new Task(t));
 
+      console.log(gmbBizList)
+      // const relevantEmails = gmbBizList.reduce((emails, biz) => { emails.push(...(biz.accounts || []).map(acct => acct.email)); return emails; }, []);
+
       const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbAccount',
-        query: {},
+        // query ALL because we need to tell if it is self!
+        // query: {
+        //   //email: { $in: [...new Set(relevantEmails)] }
+        // },
         projection: {
           email: 1,
           gmbScannedAt: 1,
           emailScannedAt: 1
         },
-        limit: 100
+        limit: 1000
       }).toPromise();
 
-      // get ALL requests against this gmbOwnership
-      const relevantGmbRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+      accounts.map(acct => this.emailAccountDict[acct.email] = acct);
+
+      // get ALL requests against this gmb listing
+      this.relevantGmbRequests = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbRequest',
         query: {
           gmbBizId: { $in: gmbBizList.map(biz => biz._id) }
         },
-        limit: 100
+        limit: 1000
       }).toPromise();
 
       // inject isSelf to request
-      relevantGmbRequests.map(request => request.isSelf = accounts.some(account => account.email === request.email));
+      this.relevantGmbRequests.map(request => request.isSelf = accounts.some(account => account.email === request.email));
+
+      this.relevantGmbRequests.sort((r1, r2) => new Date(r2.date).valueOf() - new Date(r1.date).valueOf());
 
       this.gmbRows = gmbBizList.map(gmbBiz => ({
         gmbBiz: gmbBiz,
-        outstandingTasks: outstandingTasks.filter(t => t.relatedMap.gmbBizId === gmbBiz._id),
-        gmbRequests: this.getRequests(gmbBiz, relevantGmbRequests),
-        gmbAccount: accounts.filter(a => a.email === this.getLastOwnership(gmbBiz).email)[0]
+        outstandingTasks: outstandingTasks.filter(t => t.relatedMap.gmbBizId === gmbBiz._id)
       }));
     } else {
       this.gmbRows = [];
     }
   }
 
-  private getRequests(gmbBiz, relevantGmbRequests) {
-    // get last ownership time
-    const lastTime = (gmbBiz.gmbOwnerships || []).filter(ownership => ownership.email).map(o => o.possessedAt).slice(-1)[0];
-    if (lastTime) {
-      const requests = relevantGmbRequests.filter(r => r.gmbBizId === gmbBiz._id && new Date(lastTime) < new Date(r.date));
-      requests.sort((r1, r2) => new Date(r2.date).valueOf() - new Date(r1.date).valueOf());
-      return requests;
-    } else {
-      return [];
-    }
+  getGmbAccount(email) {
+    return this.emailAccountDict[email];
   }
 
+  // private getRequests(gmbBiz, relevantGmbRequests) {
+  //   // get last ownership time
+  //   const lastTime = (gmbBiz.gmbOwnerships || []).filter(ownership => ownership.email).map(o => o.possessedAt).slice(-1)[0];
+  //   if (lastTime) {
+  //     const requests = relevantGmbRequests.filter(r => r.gmbBizId === gmbBiz._id && new Date(lastTime) < new Date(r.date));
+  //     requests.sort((r1, r2) => new Date(r2.date).valueOf() - new Date(r1.date).valueOf());
+  //     return requests;
+  //   } else {
+  //     return [];
+  //   }
+  // }
+
+  getGmbRequests(gmbBiz: GmbBiz, email) {
+    return this.relevantGmbRequests.filter(request => request.gmbBizId === gmbBiz._id && request.gmbAccountId === (this.getGmbAccount(email) || {})._id);
+  }
 
   async refreshMainListing() {
     if (!this.restaurant.googleAddress || !this.restaurant.googleAddress.formatted_address) {
@@ -163,7 +182,7 @@ export class RestaurantGmbComponent implements OnInit {
           cid: this.restaurant.googleListing.cid,
         },
         projection: {
-          gmbOwnerships: { $slice: -4 }
+          accounts: 1
         }
       }).toPromise();
 
@@ -193,8 +212,8 @@ export class RestaurantGmbComponent implements OnInit {
 
   }
 
-  getLastOwnership(gmbBiz: GmbBiz): any {
-    return (gmbBiz.gmbOwnerships || []).slice(-1)[0] || {};
+  isPublished(gmbBiz: GmbBiz) {
+    return (gmbBiz.accounts || []).some(acct => ((acct.history || []).slice(-1)[0] || {}).status === 'Published');
   }
 
   hasMainGmb() {
@@ -262,9 +281,7 @@ export class RestaurantGmbComponent implements OnInit {
       if (password.length > 20) {
         password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
       }
-
       row.retrievedCodeObject = await this._api.post(environment.autoGmbUrl + 'retrieveGodaddyEmailVerificationCode', { host: host, email: email, password: password }).toPromise();
-
     } catch (error) {
       alert('Error retrieving email: ' + JSON.stringify(error));
     }
@@ -305,7 +322,6 @@ export class RestaurantGmbComponent implements OnInit {
       return (gmbBiz[item] || []).some(url => this.sameDomain(url, gmbBiz.qmenuWebsite));
     }
   }
-
 
   private sameDomain(d1: string, d2: string) {
     if (!d1 || !d2) {
