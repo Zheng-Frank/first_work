@@ -173,7 +173,8 @@ export class GmbAccountListComponent implements OnInit {
 
     const gmb = event.object;
     try {
-      const result = await this._gmb.scanOneGmbAccountLocations(gmb);
+      alert('COMING SOON')
+      // const result = await this._gmb.scanOneGmbAccountLocations(gmb);
       this._global.publishAlert(AlertType.Success, "Success");
       event.acknowledge(null);
     }
@@ -185,14 +186,17 @@ export class GmbAccountListComponent implements OnInit {
 
   async scanAllPublishedLocations() {
     this.scanningAll = true;
-    for (let gmbAccount of this.gmbAccounts) {
-      try {
-        this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
-        await this._gmb.scanOneGmbAccountLocations(gmbAccount);
-      }
-      catch (error) { }
-    }
-    this.scanningAll = false;
+    alert('COMING SOON');
+    return;
+
+    // for (let gmbAccount of this.gmbAccounts) {
+    //   try {
+    //     this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
+    //     await this._gmb.scanOneGmbAccountLocations(gmbAccount);
+    //   }
+    //   catch (error) { }
+    // }
+    // this.scanningAll = false;
   }
 
 

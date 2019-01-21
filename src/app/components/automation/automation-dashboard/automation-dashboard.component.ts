@@ -11,7 +11,7 @@ import { Helper } from '../../../classes/helper';
 import { RouterLinkWithHref } from '@angular/router';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 
-const FOUR_HOURS = 14400000; // 4 hours
+const TWELEVE_HOURS = 14400000; // 4 hours
 @Component({
   selector: 'app-automation-dashboard',
   templateUrl: './automation-dashboard.component.html',
@@ -280,7 +280,6 @@ export class AutomationDashboardComponent implements OnInit {
         this.addErrorMessage(gmbBizCrawlingResult.abortionMessage);
       }
 
-
       // if we had postcard code and the ownership was lost, immediately schedule it to grab it back!
       this.addRunningMessage('Reschedule tasks with postcard verification code and ownership just lost...');
       const lostList = await this._gmb3.computePostcardTasksThatJustLost();
@@ -356,7 +355,7 @@ export class AutomationDashboardComponent implements OnInit {
     console.log('before: ', restaurants.length);
     console.log('skip restaurants crawled within 4 hours!');
     const now = new Date();
-    restaurants = restaurants.filter(r => !r.googleListing || !r.googleListing.crawledAt || now.valueOf() - new Date(r.googleListing.crawledAt).valueOf() > FOUR_HOURS);
+    restaurants = restaurants.filter(r => !r.googleListing || !r.googleListing.crawledAt || now.valueOf() - new Date(r.googleListing.crawledAt).valueOf() > TWELEVE_HOURS);
     console.log('after: ', restaurants.length);
 
     const patchListing = (restaurant, result) => {
@@ -390,7 +389,13 @@ export class AutomationDashboardComponent implements OnInit {
           console.log(r);
           console.log(gmbBizList.filter(biz => biz.qmenuId && biz.qmenuId !== r._id && biz.cid === result.cid));
           abortionMessage = 'FOUND cid matched on DIFFERENT restaurant.';
-          break;
+
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+            old: { _id: r._id },
+            new: { _id: r._id, error: 'cid matched to different biz with different qmenuId. cid=' + result.cid }
+          }]).toPromise();
+          continue;
+
         }
 
         const affectedBizList = gmbBizList.filter(biz => biz.cid === result.cid);
@@ -415,12 +420,19 @@ export class AutomationDashboardComponent implements OnInit {
       } catch (error) {
 
         failedRestaurants.push(r);
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+          {
+            old: { _id: r._id },
+            new: { _id: r._id, error: error }
+          }
+        ]).toPromise();
+
         console.log('error crawling ' + r.name + ' ' + r._id);
         if (error.status !== 400) {
           console.log(error);
           console.log('Service unhandled error, stopped.');
           abortionMessage = 'Service unhandled error, stopped.';
-          break;
+          // break;
         } else {
           await patchListing(r, {});
         }
@@ -458,7 +470,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log('before 4 hours filter: ', + gmbBizList.length);
     console.log('skip gmbBiz crawled within 4 hours!');
-    gmbBizList = gmbBizList.filter(b => !b.crawledAt || new Date().valueOf() - new Date(b.crawledAt).valueOf() > FOUR_HOURS);
+    gmbBizList = gmbBizList.filter(b => !b.crawledAt || new Date().valueOf() - new Date(b.crawledAt).valueOf() > TWELEVE_HOURS);
     console.log('after: ', + gmbBizList.length);
 
     const failedGmbBizList = [];
@@ -474,10 +486,18 @@ export class AutomationDashboardComponent implements OnInit {
           ludocid: biz.cid
         }).toPromise();
 
-        if (result.cid !== biz.cid) {
+        if (result.cid !== biz.cid && result.name !== biz.name) {
           console.log(biz);
           console.log(result);
-          throw 'cid NOT same after scan!';
+
+          await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [
+            {
+              old: { _id: biz._id },
+              new: { _id: biz._id, error: 'cid NOT same after using lucid scan' }
+            }
+          ]).toPromise();
+          continue;
+
         }
 
         await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
@@ -493,12 +513,20 @@ export class AutomationDashboardComponent implements OnInit {
         failedGmbBizList.push(biz);
         if (error.status && error.status !== 400) {
           abortionMessage = 'Service unhandled error, stopped.';
-          break;
+
         }
         if (!error.status) {
           abortionMessage = error;
-          break;
+
         }
+
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [
+          {
+            old: { _id: biz._id },
+            new: { _id: biz._id, error: error }
+          }
+        ]).toPromise();
+
       }
     }
 
@@ -523,8 +551,9 @@ export class AutomationDashboardComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    gmbAccounts.sort((a1, a2) => new Date(a1.gmbScannedAt).valueOf() - new Date(a2.gmbScannedAt).valueOf());
+    gmbAccounts.sort((a1, a2) => new Date(a1.gmbScannedAt || 0).valueOf() * (a1.migrated ? 1 : 0) - new Date(a2.gmbScannedAt || 0).valueOf() * (a2.migrated ? 1 : 0));
 
+    console.log(gmbAccounts);
 
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
@@ -535,13 +564,14 @@ export class AutomationDashboardComponent implements OnInit {
         appealId: 1,
         accounts: 1,
         cid: 1,
+        qmenuId: 1
       },
       limit: 6000
     }).toPromise();
 
 
     // debug
-    gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('qmenu06'));
+    // gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('weborders88'));
     const succeededAccounts = [];
     const failedAccounts = [];
     const newPublishedList = [];
@@ -574,6 +604,11 @@ export class AutomationDashboardComponent implements OnInit {
           }
         });
 
+        // skip if there is nothing in the account!
+        if (scanResult.length === 0) {
+          continue;
+        }
+
         // we need to sort so that Published override others in case there are multiple locations for same restaurant
         const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
         locations.sort((l1, l2) => statusOrder.indexOf(l1.status) - statusOrder.indexOf(l2.status));
@@ -603,7 +638,7 @@ export class AutomationDashboardComponent implements OnInit {
         // find those gmbBiz that used to have this account history but now don't, we attached a history with an artificial status 'Removed'
 
         gmbBizList.map(biz => (biz.accounts || []).map(acct => {
-          if (acct.email === account.email && !uniqueLocations.some(loc => loc.cid === biz.cid)) {
+          if (acct.email === account.email && !uniqueLocations.some(loc => (loc.cid && loc.cid === biz.cid) || (loc.appealId && loc.appealId === biz.appealId))) {
             acct.history = acct.history || [];
             if (acct.history.length === 0 || acct.history[acct.history.length - 1].status !== 'Removed') {
               acct.history.push({
@@ -617,9 +652,12 @@ export class AutomationDashboardComponent implements OnInit {
         }));
 
         uniqueLocations.map(loc => {
-          const matchedBizList = gmbBizList.filter(biz => biz.cid === loc.cid);
+          const matchedBizList = gmbBizList.filter(biz => (loc.cid && biz.cid === loc.cid) || (loc.appealId && biz.appealId === loc.appealId));
           if (matchedBizList.length === 0) {
-            noMatchingLocations.push(loc);
+            // only we hav cid
+            if (loc.cid) {
+              noMatchingLocations.push(loc);
+            }
           } else {
             // found matching locations! let's test if they need update
             matchedBizList.map(biz => {
@@ -630,7 +668,7 @@ export class AutomationDashboardComponent implements OnInit {
                 acct = {
                   email: account.email,
                   id: account._id,
-                  history: []
+                  history: [] // empty is OK because the following will fill it up
                 };
                 biz.accounts.push(acct);
                 updated = true;
@@ -641,6 +679,12 @@ export class AutomationDashboardComponent implements OnInit {
                   time: new Date(),
                   status: loc.status
                 });
+                updated = true;
+              }
+
+              if (loc.cid && biz.cid !== loc.cid) {
+                // we MUST have matched by appealId
+                biz.cid = loc.cid;
                 updated = true;
               }
 
@@ -689,7 +733,7 @@ export class AutomationDashboardComponent implements OnInit {
         if (updatedGmbBizList.length > 0) {
           await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', updatedGmbBizList.map(biz => ({
             old: { _id: biz._id },
-            new: { _id: biz._id, accounts: biz.accounts }
+            new: { _id: biz._id, accounts: biz.accounts, cid: biz.cid } // because cid might have been changed back to account assigned cid. We used to have main cid scanned into account's cid
           }))).toPromise();
 
           // also findout newly lost
@@ -739,20 +783,27 @@ export class AutomationDashboardComponent implements OnInit {
     let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
-        gmbScannedAt: 1,
+        emailScannedAt: 1,
         password: 1,
         email: 1
       },
       limit: 6000
     }).toPromise();
 
-    gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt).valueOf() - new Date(a2.emailScannedAt).valueOf());
+    gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt || 0).valueOf() - new Date(a2.emailScannedAt || 0).valueOf());
 
+    console.log(gmbAccounts);
     // debug
-    // gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('qmenu06'));
+    // gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('weborders88'));
 
+    // let's only scan emails within 15 days (ignore 15 days or earlier ones)
+    const daysAgo15 = new Date();
+    daysAgo15.setDate(daysAgo15.getDate() - 15);
     const existingRequests = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbRequest',
+      query: {
+        createdAt: { $gte: { $date: daysAgo15 } }
+      },
       projection: {
         gmbBizId: 1,
         gmbAccountId: 1,
@@ -761,17 +812,20 @@ export class AutomationDashboardComponent implements OnInit {
         email: 1
       },
       sort: {
-        date: -1
+        createdAt: -1
       },
-      limit: 101 // we can scan at most 100 items anyway
+      limit: 100000
     }).toPromise();
     existingRequests.sort((r1, r2) => new Date(r1.date).valueOf() - new Date(r2.date).valueOf());
 
+    console.log('queried existing requests within 15 days: ', existingRequests.length);
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         name: 1,
-        accounts: 1
+        accounts: 1,
+        cid: 1,
+        qmenuId: 1
       },
       limit: 6000
     }).toPromise();
@@ -798,8 +852,11 @@ export class AutomationDashboardComponent implements OnInit {
         // convert date to $date
         scanResult.map(sr => sr.date = new Date(sr.date));
 
+        // remove those that are more than 15 days old!
+        const scanResultWithin15Days = scanResult.filter(item => new Date(item.date).valueOf() > daysAgo15.valueOf());
+        console.log('within 15 days ', scanResultWithin15Days);
         // SAME email, business, and date --> same request!
-        const newItems = scanResult.filter(item => !existingRequests.some(r => r.business === item.business && r.email === item.email && new Date(r.date).valueOf() === new Date(item.date).valueOf()));
+        const newItems = scanResultWithin15Days.filter(item => !existingRequests.some(r => r.business === item.business && r.email === item.email && new Date(r.date).valueOf() === new Date(item.date).valueOf()));
         console.log('new items: ', newItems);
         // match gmbBizId: (by name under account??? what if duplicate?)
         // if we didn't find a match, skip it. This may due to outdated account scan (gmbBiz doesn't register yet)
@@ -807,24 +864,49 @@ export class AutomationDashboardComponent implements OnInit {
 
         newItems.map(item => {
           // biz match strategy: same name, same account email, and first encounter of status before this item's date is Published!
-          const matchedBizList = gmbBizList.filter(biz => {
-            const nameMatched = biz.name === item.business;
-            const holdingAccountHistoryBefore = (((biz.accounts || []).filter(acct => acct.email === account.email)[0] || {}).history || []).filter(h => new Date(h.time).valueOf() < new Date(item.date).valueOf());
+          const matchedBiz = gmbBizList.map(biz => {
+            const exactNameMatched = biz.name.toLowerCase() === item.business.toLowerCase();
+            const skippedKeywords = ['the', 'restaurant', '&', 'and'];
+            const fuzzyNameMatched = biz.name.toLowerCase().split(' ').filter(t => t && skippedKeywords.indexOf(t) < 0).join(',') === item.business.toLowerCase().split(' ').filter(t => t && skippedKeywords.indexOf(t) < 0).join(',');
 
+            const matchedAccount = (biz.accounts || []).filter(acct => acct.email === account.email)[0];
+            const matchedAccountHistory = (matchedAccount || {}).history || [];
+            const lastIsPublished = (matchedAccountHistory[matchedAccountHistory.length - 1] || {}).status === 'Published';
+
+            const holdingAccountHistoryBefore = matchedAccountHistory.filter(h => new Date(h.time).valueOf() < new Date(item.date).valueOf());
             const wasPublished = (holdingAccountHistoryBefore[holdingAccountHistoryBefore.length - 1] || {}).status === 'Published';
 
-            if (nameMatched && wasPublished) {
-              item.gmbBizId = biz._id;
-              item.cid = biz.cid;
-              item.accountId = account._id;
-              item.accountEmail = account.email;
-            }
+            const matchScore = 0;
+            const matchScoreMap = {
+              exactNameMatched: 10,
+              fuzzyNameMatched: 8,
+              matchedAccount: 8,
+              lastIsPublished: 5,
+              wasPublished: 5
+            };
 
-            return nameMatched && wasPublished;
+            const nameScore = exactNameMatched ? 10 : (fuzzyNameMatched ? 8 : 0);
+            const accountScore = matchedAccount ? (wasPublished || lastIsPublished ? 13 : 8) : 0;
 
-          });
+            return {
+              score: nameScore + accountScore,
+              biz: biz
+            };
+          }).sort((r1, r2) => r2.score - r1.score)[0];
 
-          console.log(item.business + ' matched to ', matchedBizList);
+          if (!matchedBiz) {
+            console.log('NO MATCH');
+            console.log(account.email);
+            console.log(gmbBizList);
+            console.log(item);
+            throw 'NOT MATCHED ANYTHING'
+          }
+
+          item.gmbBizId = matchedBiz.biz._id;
+          item.cid = matchedBiz.biz.cid;
+          item.gmbAccountId = account._id;
+          item.gmbAccountEmail = account.email;
+
         });
 
         // now let's save ALL to gmbRequest table!
