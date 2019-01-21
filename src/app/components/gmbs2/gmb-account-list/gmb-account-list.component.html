@@ -9,11 +9,6 @@
 
     <button class="btn btn-primary" (click)="addNew()">
       <i class="fas fa-plus"></i> Add GMB Account</button>
-    <button class="btn btn-primary" (click)="scanAllPublishedLocations()" [qLoading]="scanningAll">
-      <i class="fas fa-sync"></i> Scan All Published</button>
-    <button class="btn btn-primary" (click)="scanAllEmails()" [qLoading]="scanningAll">
-      <i class="fas fa-sync"></i> Scan All Emails</button>
-      <button class="btn btn-primary" (click)="test()">TEST</button>
   </div>
 </div>
 <div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
