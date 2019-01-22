@@ -64,6 +64,9 @@ export class GmbBizListComponent implements OnInit {
 
   myColumnDescriptors = [
     {
+      label: "#",
+    },
+    {
       label: "Name",
       paths: ['gmbBiz', 'name'],
       sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
@@ -85,7 +88,9 @@ export class GmbBizListComponent implements OnInit {
       label: "GMB Owner"
     },
     {
-      label: "Website"
+      label: "Website",
+      paths: ['gmbBiz', 'gmbOwner'],
+      sort: (a, b) => (GlobalService.serviceProviderMap[a] || '') > (GlobalService.serviceProviderMap[b] || '') ? 1 : ((GlobalService.serviceProviderMap[a] || '') < (GlobalService.serviceProviderMap[b] || '') ? -1 : 0)
     },
     {
       label: "qMenu Website"
@@ -562,77 +567,82 @@ export class GmbBizListComponent implements OnInit {
   }
 
   async injectAll() {
-    this.injecting = true;
 
-    // updated ALL locations first
-    const uniqueEmails = [...new Set(this.filteredMyBizList.map(b => b.gmbBiz.getAccountEmail()).filter(email => email))];
+    alert('coming soon');
 
-    console.log(uniqueEmails);
+    return;
 
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic',
-      {
-        resource: 'gmbAccount',
-        query: {
-          email: { $in: uniqueEmails }
-        },
-        limit: 1000
-      }).toPromise();
+    // this.injecting = true;
 
-    console.log(gmbAccounts);
+    // // updated ALL locations first
+    // const uniqueEmails = [...new Set(this.filteredMyBizList.map(b => b.gmbBiz.getAccountEmail()).filter(email => email))];
 
-    const batchSize = 4;
-    const batchedAccounts = Array(Math.ceil(gmbAccounts.length / batchSize)).fill(0).map((i, index) => gmbAccounts.slice(index * batchSize, (index + 1) * batchSize));
+    // console.log(uniqueEmails);
 
-    for (let batch of batchedAccounts) {
-      try {
-        await Promise.all(batch.map(account =>
-          new Promise((resolve, reject) => {
-            this._gmb.scanOneGmbAccountLocations(account).then(ok => {
-              resolve();
-              this._global.publishAlert(AlertType.Success, '✓ ' + account.email, 2000);
-            }).catch(error => {
-              this._global.publishAlert(AlertType.Danger, '✗ ' + account.email);
-              resolve();
-            }
-            );
-          })
-        ));
-      }
-      catch (error) {
-        console.log(error);
-        this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(account => account.email).join(', '), 2000);
-      }
-    }
+    // const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic',
+    //   {
+    //     resource: 'gmbAccount',
+    //     query: {
+    //       email: { $in: uniqueEmails }
+    //     },
+    //     limit: 1000
+    //   }).toPromise();
 
-    this.refresh();
-    this.filterBizList();
-    this._ref.detectChanges();
+    // console.log(gmbAccounts);
 
-    const batchedFilteredMyBizList = Array(Math.ceil(this.filteredMyBizList.length / batchSize)).fill(0).map((i, index) => this.filteredMyBizList.slice(index * batchSize, (index + 1) * batchSize));
+    // const batchSize = 4;
+    // const batchedAccounts = Array(Math.ceil(gmbAccounts.length / batchSize)).fill(0).map((i, index) => gmbAccounts.slice(index * batchSize, (index + 1) * batchSize));
 
-    for (let batch of batchedFilteredMyBizList) {
-      try {
-        await Promise.all(batch.map(b =>
-          new Promise((resolve, reject) => {
-            this._gmb.updateGmbWebsite(b.gmbBiz, false).then(ok => {
-              resolve();
-              this._global.publishAlert(AlertType.Success, '✓ ' + b.gmbBiz.name, 2000);
-            }).catch(error => {
-              this._global.publishAlert(AlertType.Danger, '✗ ' + b.gmbBiz.name);
-              resolve();
-            }
-            );
-          })
-        ));
-      }
-      catch (error) {
-        console.log(error);
-        this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(b => b.gmbBiz.name).join(', '), 2000);
-      }
-    }
+    // for (let batch of batchedAccounts) {
+    //   try {
+    //     await Promise.all(batch.map(account =>
+    //       new Promise((resolve, reject) => {
+    //         this._gmb.scanOneGmbAccountLocations(account).then(ok => {
+    //           resolve();
+    //           this._global.publishAlert(AlertType.Success, '✓ ' + account.email, 2000);
+    //         }).catch(error => {
+    //           this._global.publishAlert(AlertType.Danger, '✗ ' + account.email);
+    //           resolve();
+    //         }
+    //         );
+    //       })
+    //     ));
+    //   }
+    //   catch (error) {
+    //     console.log(error);
+    //     this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(account => account.email).join(', '), 2000);
+    //   }
+    // }
 
-    this._ref.detectChanges();
-    this.injecting = false;
+    // this.refresh();
+    // this.filterBizList();
+    // this._ref.detectChanges();
+
+    // const batchedFilteredMyBizList = Array(Math.ceil(this.filteredMyBizList.length / batchSize)).fill(0).map((i, index) => this.filteredMyBizList.slice(index * batchSize, (index + 1) * batchSize));
+
+    // for (let batch of batchedFilteredMyBizList) {
+    //   try {
+    //     await Promise.all(batch.map(b =>
+    //       new Promise((resolve, reject) => {
+    //         this._gmb.updateGmbWebsite(b.gmbBiz, false).then(ok => {
+    //           resolve();
+    //           this._global.publishAlert(AlertType.Success, '✓ ' + b.gmbBiz.name, 2000);
+    //         }).catch(error => {
+    //           this._global.publishAlert(AlertType.Danger, '✗ ' + b.gmbBiz.name);
+    //           resolve();
+    //         }
+    //         );
+    //       })
+    //     ));
+    //   }
+    //   catch (error) {
+    //     console.log(error);
+    //     this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(b => b.gmbBiz.name).join(', '), 2000);
+    //   }
+    // }
+
+    // this._ref.detectChanges();
+    // this.injecting = false;
   }
 
   async suggest(biz) {

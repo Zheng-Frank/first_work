@@ -8,20 +8,8 @@
     <hr>{{ownedGmbBizList.length}}/{{gmbBizList.length}}
   </button>
   <button class="btn btn-warning btn-status mr-4" routerLink="/gmb-requests">
-    <span class="h3">Requests</span>
+    <span class="h3">Monthly Requests</span>
     <hr>{{gmbRequests.length}}
   </button>
 </div>
-
-<h2>System Actions (Run Daily)</h2>
-<div>
-  <ng-container *ngFor="let section of sections">
-    <button class="btn btn-info mr-4 btn-status" (click)="processSection(section)" [qLoading]="section.loading">
-      <span class="h6">{{section.title}}</span>
-      <hr class="my-2"> {{section.description}}
-    </button>
-  </ng-container>
-</div>
-
-<button class="btn btn-primary btn-lg" (click)="scanAll()">SCAN ALL</button>
 

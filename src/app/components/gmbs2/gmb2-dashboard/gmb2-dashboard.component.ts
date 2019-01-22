@@ -53,7 +53,7 @@ export class Gmb2DashboardComponent implements OnInit {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         projection: {
-          "gmbOwnerships.email": 1
+          "accounts.history.status": 1
         },
         limit: 5000
       }),
@@ -76,7 +76,7 @@ export class Gmb2DashboardComponent implements OnInit {
         this.gmbBizList = results[1].map(b => new GmbBiz(b));
         this.gmbRequests = results[2].map(r => new GmbRequest(r));
         const emails = this.gmbAccounts.map(ga => ga.email);
-        this.ownedGmbBizList = this.gmbBizList.filter(b => b.publishedIn(emails));
+        this.ownedGmbBizList = this.gmbBizList.filter(b => b.isPublished());
       },
       error => {
         this._global.publishAlert(AlertType.Danger, error);
@@ -97,59 +97,62 @@ export class Gmb2DashboardComponent implements OnInit {
   }
 
   async scanAllAccounts() {
-    const failedAccounts = [];
-    // we would like to scan all based on gmbScannedAt
-    return new Promise((resolve, reject) => {
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbAccount",
-        projection: {
-          email: 1,
-          password: 1,
-          gmbScannedAt: 1
-        },
-        limit: 5000
-      }).subscribe(
-        async accounts => {
-          accounts = accounts.map(a => new GmbAccount(a)).sort((a1, a2) => (a1.gmbScannedAt || new Date(0)).valueOf() - (a2.gmbScannedAt || new Date(0)).valueOf());
+    alert('comming soon')
+    return;
 
-          // // TEMP: only scanned
-          // accounts = accounts.filter(a => a.gmbScannedAt);
-          // accounts.length = 4;
+    // const failedAccounts = [];
+    // // we would like to scan all based on gmbScannedAt
+    // return new Promise((resolve, reject) => {
+    //   this._api.get(environment.adminApiUrl + "generic", {
+    //     resource: "gmbAccount",
+    //     projection: {
+    //       email: 1,
+    //       password: 1,
+    //       gmbScannedAt: 1
+    //     },
+    //     limit: 5000
+    //   }).subscribe(
+    //     async accounts => {
+    //       accounts = accounts.map(a => new GmbAccount(a)).sort((a1, a2) => (a1.gmbScannedAt || new Date(0)).valueOf() - (a2.gmbScannedAt || new Date(0)).valueOf());
 
-          const batchSize = 1;
-          const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
+    //       // // TEMP: only scanned
+    //       // accounts = accounts.filter(a => a.gmbScannedAt);
+    //       // accounts.length = 4;
 
-          for (let batch of batchedAccounts) {
-            try {
-              await Promise.all(batch.map(account =>
-                new Promise((resolve, reject) => {
-                  this._gmb.scanOneGmbAccountLocations(account).then(ok => {
-                    resolve();
-                    this._global.publishAlert(AlertType.Success, '✓ ' + account.email, 2000);
-                  }).catch(error => {
-                    this._global.publishAlert(AlertType.Danger, '✗ ' + account.email);
-                    failedAccounts.push(account);
-                    resolve();
-                  }
-                  );
-                })
-              ));
+    //       const batchSize = 1;
+    //       const batchedAccounts = Array(Math.ceil(accounts.length / batchSize)).fill(0).map((i, index) => accounts.slice(index * batchSize, (index + 1) * batchSize));
 
-            }
-            catch (error) {
-              console.log(error);
-              this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(account => account.email).join(', '), 2000);
-            }
-          }
+    //       for (let batch of batchedAccounts) {
+    //         try {
+    //           await Promise.all(batch.map(account =>
+    //             new Promise((resolve, reject) => {
+    //               this._gmb.scanOneGmbAccountLocations(account).then(ok => {
+    //                 resolve();
+    //                 this._global.publishAlert(AlertType.Success, '✓ ' + account.email, 2000);
+    //               }).catch(error => {
+    //                 this._global.publishAlert(AlertType.Danger, '✗ ' + account.email);
+    //                 failedAccounts.push(account);
+    //                 resolve();
+    //               }
+    //               );
+    //             })
+    //           ));
 
-          console.log('Failed accounts:');
+    //         }
+    //         catch (error) {
+    //           console.log(error);
+    //           this._global.publishAlert(AlertType.Danger, '✗ ' + batch.map(account => account.email).join(', '), 2000);
+    //         }
+    //       }
 
-          console.log(failedAccounts)
+    //       console.log('Failed accounts:');
 
-          resolve();
-        },
-        error => reject(error));
-    });
+    //       console.log(failedAccounts)
+
+    //       resolve();
+    //     },
+    //     error => reject(error));
+    // });
   }
 
   async crawlAllBiz() {

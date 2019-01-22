@@ -119,7 +119,7 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Remove Redundant Gmb Biz</h5>
-            <p class="card-text">Based On Same place_ids</p>
+            <p class="card-text">Based On Same cid</p>
             <button class="btn btn-primary" (click)="removeRedundantGmbBiz()">Remove</button>
         </div>
     </div>
@@ -197,6 +197,14 @@
             <h5 class="card-title">Compute Sales Bonus</h5>
             <p class="card-text">Using given rules to compute qualified sales and bonuses.</p>
             <button class="btn btn-primary" (click)="computeBonuse()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Migrate gmbOwnerships to accounts</h5>
+            <p class="card-text">Migrate existing gmbOwnerships info into new structure accounts</p>
+            <button class="btn btn-primary" (click)="migrateGmbOwnerships()">Execute</button>
         </div>
     </div>
 </div>

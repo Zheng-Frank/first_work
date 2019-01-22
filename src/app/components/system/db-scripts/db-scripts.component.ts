@@ -7,6 +7,7 @@ import { zip, Observable, from } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
+
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -55,14 +56,14 @@ export class DbScriptsComponent implements OnInit {
 
       return this._api
         .patch(
-        environment.qmenuApiUrl + "generic?resource=restaurant",
-        myRestaurantsChanged.map(clone => ({
-          old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
-          new: clone
-        }))
+          environment.qmenuApiUrl + "generic?resource=restaurant",
+          myRestaurantsChanged.map(clone => ({
+            old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
+            new: clone
+          }))
         );
     })
-      ).subscribe(
+    ).subscribe(
       patchResult => {
         this._global.publishAlert(
           AlertType.Success,
@@ -100,24 +101,24 @@ export class DbScriptsComponent implements OnInit {
         limit: 6000
       })
       .subscribe(
-      result => {
-        const duplicatedIds = [];
-        const existingRestaurantIdSet = new Set();
-        result.map(lead => {
-          if (existingRestaurantIdSet.has(lead.restaurantId)) {
-            duplicatedIds.push(lead._id);
-          } else {
-            existingRestaurantIdSet.add(lead.restaurantId);
-          }
-        });
-        this.removeLeads(duplicatedIds);
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling gmb from API"
-        );
-      }
+        result => {
+          const duplicatedIds = [];
+          const existingRestaurantIdSet = new Set();
+          result.map(lead => {
+            if (existingRestaurantIdSet.has(lead.restaurantId)) {
+              duplicatedIds.push(lead._id);
+            } else {
+              existingRestaurantIdSet.add(lead.restaurantId);
+            }
+          });
+          this.removeLeads(duplicatedIds);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling gmb from API"
+          );
+        }
       );
   }
 
@@ -129,15 +130,15 @@ export class DbScriptsComponent implements OnInit {
         ids: leadIds
       })
       .subscribe(
-      result => {
-        this._global.publishAlert(
-          AlertType.Success,
-          result.length + " was removed"
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
+        result => {
+          this._global.publishAlert(
+            AlertType.Success,
+            result.length + " was removed"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
   }
 
@@ -175,19 +176,19 @@ export class DbScriptsComponent implements OnInit {
       );
     }))
       .subscribe(
-      result => {
+        result => {
 
-        this.removingOrphanPhones = false;
+          this.removingOrphanPhones = false;
 
-        // let's remove bad phones!
-      },
-      error => {
-        this.removingOrphanPhones = false;
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling gmb from API"
-        );
-      }
+          // let's remove bad phones!
+        },
+        error => {
+          this.removingOrphanPhones = false;
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling gmb from API"
+          );
+        }
       );
   }
 
@@ -226,7 +227,7 @@ export class DbScriptsComponent implements OnInit {
           "Error pulling leads from API"
         );
       }
-      )
+    )
   }
 
   fixAddress() {
@@ -258,10 +259,10 @@ export class DbScriptsComponent implements OnInit {
           Object.assign(rClone.googleAddress, address);
           return this._api
             .patch(
-            environment.qmenuApiUrl + "generic?resource=restaurant", [{
-              old: rOrignal,
-              new: rClone
-            }]
+              environment.qmenuApiUrl + "generic?resource=restaurant", [{
+                old: rOrignal,
+                new: rClone
+              }]
             );
         })).subscribe(
           patchResult => {
@@ -341,7 +342,7 @@ export class DbScriptsComponent implements OnInit {
           "Error: " + JSON.stringify(error)
         );
       }
-      );
+    );
   } // end injectDeliveryBy
 
 
@@ -425,7 +426,7 @@ export class DbScriptsComponent implements OnInit {
           "Error: " + JSON.stringify(error)
         );
       }
-      );
+    );
   } // end injectDeliveryBy
 
   injectTotalEtcToInvoice() {
@@ -488,19 +489,19 @@ export class DbScriptsComponent implements OnInit {
           }));
       }))
       .subscribe(
-      updatedInvoices => {
-        console.log(updatedInvoices);
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated " + affectedInvoices.map(i => i.restaurant.name).join(', ')
-        );
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      }
+        updatedInvoices => {
+          console.log(updatedInvoices);
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated " + affectedInvoices.map(i => i.restaurant.name).join(', ')
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        }
       );
   } // injectTotalEtcToInvoice
 
@@ -650,18 +651,18 @@ export class DbScriptsComponent implements OnInit {
 
         return this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', newGmbs);
       })).subscribe(
-      gmbIds => {
-        this._global.publishAlert(
-          AlertType.Success,
-          "Success! Total: " + gmbIds.length
-        );
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      });
+        gmbIds => {
+          this._global.publishAlert(
+            AlertType.Success,
+            "Success! Total: " + gmbIds.length
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        });
   }
 
   getStripeErrors() {
@@ -701,20 +702,48 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async genericTesting() {
-    //find bizManagedWebsite
-    const havingBizWebsite = await this._api.get(environment.adminApiUrl + 'generic', {
+    // find same placeId gmbs
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
-      query: {
-        bizManagedWebsite: { $exists: 1 }
-      },
       projection: {
         name: 1,
-        bizManagedWebsite: 1,
-        useBizWebsite: 1,
-        useBizWebsiteForAll: 1
+        address: 1,
+        place_id: 1,
+        cid: 1,
+        qmenuId: 1
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
+
+    console.log(gmbBizList)
+    const place_idMap = {};
+    gmbBizList.map(biz => {
+      place_idMap[biz.place_id] = place_idMap[biz.place_id] || { bizList: [] };
+      place_idMap[biz.place_id].bizList.push(biz);
+    });
+
+
+    console.log(place_idMap)
+    const duplicatedList = Object.keys(place_idMap).map(k => place_idMap[k]).filter(item => item.bizList.length > 1);
+    console.log(duplicatedList);
+
+    const trueDuplicates = duplicatedList.filter(item => item.bizList.slice(1).some(i => i.cid !== item.bizList[0].cid));
+
+    console.log(trueDuplicates);
+    //find bizManagedWebsite
+    // const havingBizWebsite = await this._api.get(environment.adminApiUrl + 'generic', {
+    //   resource: 'gmbBiz',
+    //   query: {
+    //     bizManagedWebsite: { $exists: 1 }
+    //   },
+    //   projection: {
+    //     name: 1,
+    //     bizManagedWebsite: 1,
+    //     useBizWebsite: 1,
+    //     useBizWebsiteForAll: 1
+    //   },
+    //   limit: 5000
+    // }).toPromise();
     // // update gmbBiz to make
     // CAREFUL: SET useBizWebsite = true
     // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
@@ -728,7 +757,7 @@ export class DbScriptsComponent implements OnInit {
     //     }
     //   }))
     // ).toPromise();
-    console.log(havingBizWebsite);
+    // console.log(havingBizWebsite);
     // // find out invoice having Fax-phaxio-callback as log
     // let affectedInvoices = [];
     // this._api.get(environment.qmenuApiUrl + "generic", {
@@ -924,65 +953,39 @@ export class DbScriptsComponent implements OnInit {
         cid: 1,
         place_id: 1,
         name: 1,
-        gmbOwnerships: { $slice: -4 }
+        createdAt: 1
       },
       limit: 5000
     }).toPromise();
 
-    // group by place_id (or phone?)
-    const placeIdMap = {};
+    // group by cid (or phone?)
+    const cidMap = {};
     bizList.map(b => {
-      placeIdMap[b.place_id] = placeIdMap[b.place_id] || [];
-      placeIdMap[b.place_id].push(b);
+      cidMap[b.cid] = cidMap[b.cid] || [];
+      cidMap[b.cid].push(b);
     });
-    console.log(placeIdMap);
-    const sortedValues = Object.keys(placeIdMap).map(k => placeIdMap[k]).sort((a, b) => b.length - a.length);
+    console.log(cidMap);
 
+    // sort by createdAt
+    const sortedValues = Object.keys(cidMap).map(k => cidMap[k]).sort((a, b) => b.length - a.length);
+    sortedValues.map(sv => sv.sort((v1, v2) => new Date(v1.createdAt).valueOf() - new Date(v2.createdAt).valueOf()));
     console.log(sortedValues);
     // keep the one with active gmbOwnerships!
     for (let values of sortedValues) {
       if (values.length > 1) {
         console.log('duplicated', values);
-        //throw 'TEST'
-        const localSortedValues = values.sort((v1, v2) => {
-          if (!v1.gmbOwnerships) {
-            console.log(v1)
-          }
-          const published1 = v1.gmbOwnerships && (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
-          const possessedAt1 = v1.gmbOwnerships && (v1.gmbOwnerships[v1.gmbOwnerships.length - 1] || {}).possessedAt;
-          const published2 = v2.gmbOwnerships && (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).email ? 1 : 0;
-          const possessedAt2 = v2.gmbOwnerships && (v2.gmbOwnerships[v2.gmbOwnerships.length - 1] || {}).possessedAt;
-
-          // only one published
-          if (published1 != published2) {
-            return published2 - published1;
-          }
-
-          // both published, take the last published one
-          if (published1 === 1) {
-            return new Date(possessedAt2).valueOf() - new Date(possessedAt1).valueOf();
-          }
-          // keep whoever gets more history
-          return (v2.gmbOwnerships ? v2.gmbOwnerships.length : 0) - (v1.gmbOwnerships ? v1.gmbOwnerships.length : 0);
-        });
-
-        // 1. get FIRST _id
-        // 2. get _ids of all others
-        // 3. go-though tasks of gmbBizId of relatedMap, replace with FIRST _id
-        // 4. delete all others!
-        const firstId = localSortedValues[0]._id;
-        const otherIds = localSortedValues.map(b => b._id).slice(1);
+        // update task, gmbRequest's reference Ids
+        const idToKeep = values[0]._id;
+        const idsToDump = values.slice(1).map(v => v._id);
 
         const tasksToBeUpdated = await this._api.get(environment.adminApiUrl + 'generic', {
           resource: 'task',
           query: {
-            "relatedMap.gmbBizId": { $in: otherIds }
+            "relatedMap.gmbBizId": { $in: idsToDump }
           },
-          projection: {
-            name: 1
-          },
-          limit: 200
+          limit: 10000,
         }).toPromise();
+
 
         if (tasksToBeUpdated.length > 0) {
           console.log(tasksToBeUpdated);
@@ -994,17 +997,52 @@ export class DbScriptsComponent implements OnInit {
             new: {
               _id: t._id,
               relatedMap: {
-                gmbBizId: firstId
+                gmbBizId: idToKeep
               }
             },
           }))).toPromise();
           console.log('patched tasks: ', tasksToBeUpdated);
         }
 
-        // delete ALL the redudant ids
+        const affectedGmbRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+          resource: 'gmbRequest',
+          query: {
+            gmbBizId: { $in: idsToDump }
+          },
+          limit: 10000,
+        }).toPromise();
+
+        console.log('affected gmbRequests', affectedGmbRequests);
+
+        if (affectedGmbRequests.length > 0) {
+          console.log(affectedGmbRequests);
+          await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbRequest', affectedGmbRequests.map(t => ({
+            old: {
+              _id: t._id
+            },
+            new: {
+              _id: t._id,
+              gmbBizId: idToKeep
+            },
+          }))).toPromise();
+        }
+
+
+        // update name, assuming later is more updated!
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [{
+          old: {
+            _id: idToKeep
+          },
+          new: {
+            _id: idToKeep,
+            name: values[values.length - 1].name
+          },
+        }]).toPromise();
+
+        // // delete ALL the redudant ids
         await this._api.delete(environment.adminApiUrl + 'generic', {
           resource: 'gmbBiz',
-          ids: otherIds
+          ids: idsToDump
         }).toPromise();
 
       }
@@ -1097,9 +1135,9 @@ export class DbScriptsComponent implements OnInit {
       resource: "restaurant",
       query: {
         "googleAddress.zipCode": {
-            "$exists": true
+          "$exists": true
         }
-    },
+      },
       projection: {
         name: 1,
         id: 1,
@@ -1108,9 +1146,9 @@ export class DbScriptsComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    zipCodeList=zipCodeList.map(each=> each.googleAddress.zipCode);  
-    const uniqueValues = [...new Set(zipCodeList)]; 
-    console.log(uniqueValues); 
+    zipCodeList = zipCodeList.map(each => each.googleAddress.zipCode);
+    const uniqueValues = [...new Set(zipCodeList)];
+    console.log(uniqueValues);
 
     this._global.publishAlert(AlertType.Success, 'Created new GMB');
 
@@ -2011,6 +2049,113 @@ zealrestaurant.us`;
     }
 
   }
+
+
+  async migrateGmbOwnerships() {
+
+    // erase ALL accounts attached to gmbBiz
+    // const allGmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    //   resource: 'gmbBiz',
+    //   projection: {
+    //     name: 1
+    //   },
+    //   limit: 6000
+    // }).toPromise();
+
+    // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', allGmbBizList.map(biz => ({
+    //   old: { _id: biz._id, accounts: 1 },
+    //   new: { _id: biz._id }
+    // }))).toPromise();
+    // if (new Date()) {
+    //   throw 'temp!'
+    // }
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const emailAccountMap = gmbAccounts.reduce((map, acct) => (map[acct.email] = acct, map), {});
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        // name: "Asian Kitchen",
+        // cid: "18268123258939097031",
+        accounts: null
+      },
+      projection: {
+        gmbOwnerships: 1,
+        accounts: 1
+      },
+      limit: 500
+    }).toPromise();
+
+    gmbBizList.map(biz => {
+      const accountDict = {};
+      let previousOwnership = {} as any;
+      for (let i = 0; i < (biz.gmbOwnerships || []).length; i++) {
+        const ownership = biz.gmbOwnerships[i];
+        if (ownership.email !== previousOwnership.email) {
+          // treat this time as previousOwnership's Lost time
+          if (previousOwnership.email) {
+            accountDict[previousOwnership.email].push({
+              time: ownership.possessedAt,
+              status: 'Lost'
+            })
+          }
+        }
+        if (ownership.email) {
+          accountDict[ownership.email] = accountDict[ownership.email] || [];
+          accountDict[ownership.email].push({
+            time: ownership.possessedAt,
+            status: ownership.status || 'Published'     // no status means Published in early version
+          });
+        }
+        previousOwnership = ownership;
+      }
+
+      // map to accounts!
+      const accounts = Object.keys(accountDict).map(email => {
+        const history = accountDict[email];
+        // remove oscillating ones A - Lost - A....
+        for (let i = 1; i < history.length - 1; i++) {
+          if (history[i - 1].status === history[i + 1].status && history[i].status === 'Lost') {
+            history[i].isOscillating = true;
+          }
+        }
+
+        const removeOscillated = history.filter(h => !h.isOscillating);
+
+        // remove duplicated status sequence
+        for (let i = 1; i < removeOscillated.length; i++) {
+          if (removeOscillated[i].status === removeOscillated[i - 1].status) {
+            removeOscillated[i].isDuplicate = true;
+          }
+        }
+        const purgedHistory = removeOscillated.filter(h => !h.isDuplicate);
+        return {
+          email: email,
+          id: (emailAccountMap[email] || {})._id,
+          history: purgedHistory
+        };
+      });
+
+      biz.accounts = accounts;
+      console.log(accounts);
+    });
+
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizList.map(biz => ({
+      old: { _id: biz._id },
+      new: { _id: biz._id, accounts: biz.accounts }
+    }))).toPromise();
+
+
+  }
+
 
 }
 
