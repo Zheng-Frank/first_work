@@ -21,60 +21,6 @@ export class GmbService {
   constructor(private _api: ApiService, private _task: TaskService, private _global: GlobalService) {
   }
 
-  async computeToBeRescheduledTasks() {
-    // transfer tasks that are NOT in original accounts anymore!
-    const runningTransferTasksWithCode = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Transfer GMB Ownership',
-        result: null,
-        'transfer.code': { $exists: true }
-      },
-      limit: 1000
-    }).toPromise();
-    // console.log('runningTransferTasksWithCode', runningTransferTasksWithCode);
-
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        gmbOwnerships: { $slice: -1 },
-        "gmbOwnerships.email": 1
-      },
-      limit: 6000
-    }).toPromise();
-
-    const gmbBizIdMap = {};
-    gmbBizList.map(biz => gmbBizIdMap[biz._id] = biz);
-
-    const lostList = runningTransferTasksWithCode.filter(task => {
-      const gmbBiz = gmbBizIdMap[task.relatedMap.gmbBizId];
-      if (!gmbBiz) {
-        console.log(task);
-      }
-      return gmbBiz && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email !== task.transfer.fromEmail;
-    });
-
-    // console.log(lostList);
-
-    // now reschedule those by systems!
-
-    if (lostList.length > 0) {
-      const pairs = [];
-      pairs.push(...lostList.map(t => ({
-        old: {
-          _id: t._id
-        },
-        new: {
-          _id: t._id,
-          scheduledAt: { $date: new Date() },
-          comments: (!t.comments || t.comments.indexOf('[rescheduled by system]') < 0) ? (t.comments || '') + ' [rescheduled by system]' : t.comments
-        }
-      })));
-
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
-    }
-  }
-
   async getInvalidTransferTasks() {
     const oldTransferDate = new Date();
     oldTransferDate.setDate(oldTransferDate.getDate() - 30);

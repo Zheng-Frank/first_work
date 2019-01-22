@@ -5,11 +5,8 @@ import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
-import { GmbRequest } from '../../../classes/gmb/gmb-request';
-import { GmbService } from '../../../services/gmb.service';
-import { Helper } from '../../../classes/helper';
-import { RouterLinkWithHref } from '@angular/router';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
+import { TaskService } from 'src/app/services/task.service';
 
 const TWELEVE_HOURS = 14400000; // 4 hours
 @Component({
@@ -33,7 +30,7 @@ export class AutomationDashboardComponent implements OnInit {
   // wait ms between each scan
   waitBetweenScan = 3600000; // 1 hour
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _gmb3: Gmb3Service) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() {
     setInterval(() => { this.now = new Date(); }, 60000);
@@ -288,6 +285,15 @@ export class AutomationDashboardComponent implements OnInit {
       this.addRunningMessage('Scan for Transfer Tasks...');
       const newTransferTasks = await this.scanForTransferTask();
       this.addRunningMessage('Created ' + newTransferTasks.length);
+
+      this.addRunningMessage('Purge Transfer Tasks...');
+      const purgedTransferTasks = await this._task.purgeTransferTasks();
+      this.addRunningMessage('Purged ' + purgedTransferTasks.length);
+
+      this.addRunningMessage('Purge Apply Tasks...');
+      const purgedApplyTasks = await this._task.purgeApplyTasks();
+      this.addRunningMessage('Purged ' + purgedApplyTasks.length);
+
 
       this.addRunningMessage('-------FINISHED ONE ROUND!---------')
 
@@ -1108,7 +1114,7 @@ export class AutomationDashboardComponent implements OnInit {
     const tasks = validTransferTasks
       .map(t => ({
         name: 'Transfer GMB Ownership',
-        scheduledAt: new Date(), // we'd like to have immediate attention!
+        scheduledAt: new Date(t.dueDate.valueOf() - 2 * 24 * 3600000), // we'd like to have immediate attention!
         description: t.gmbBiz.name,
         roles: ['GMB', 'ADMIN'],
         score: t.gmbBiz.score,
@@ -1145,6 +1151,23 @@ export class AutomationDashboardComponent implements OnInit {
 
   async appealSuspended() {
 
+  }
+
+  async purgeInvalidGmbTransferTasks() {
+    this._task.purgeTransferTasks();
+
+
+    // const t = ["5c40c6bcdd9078a346c4f3b0", "5c40c8a3dd9078a346c4f93d", "5c424aa3dd9078a346c8606d", "5c4239cedd9078a346c8399c", "5c42465cdd9078a346c856e2", "5c424aa3dd9078a346c86070", "5c4318badd9078a346ca4cc1", "5c431903dd9078a346ca4d7d", "5c43191add9078a346ca4dde", "5c431932dd9078a346ca4e4d", "5c4319e6dd9078a346ca5036", "5c431a45dd9078a346ca5130", "5c431c2bdd9078a346ca561f", "5c431c9ddd9078a346ca5730", "5c467899dd9078a346d2b44c", "5c423fa9dd9078a346c84625", "5c4240b3dd9078a346c8488f", "5c42411edd9078a346c849a6", "5c42645cdd9078a346c89a72", "5c4317badd9078a346ca4a33", "5c4317e8dd9078a346ca4aa2", "5c431851dd9078a346ca4ba6", "5c433e5add9078a346cae15c", "5c433e71dd9078a346cae1b3", "5c433e71dd9078a346cae1b6", "5c433fa8dd9078a346cae4e4", "5c43459bdd9078a346caf47a", "5c1237c1dd9078a3460201c8", "5c35d94cdd9078a346a21668", "5c406e1add9078a346c38b31", "5c406ee2dd9078a346c38d6d", "5c40700edd9078a346c39075", "5c407124dd9078a346c39373", "5c4094c9dd9078a346c42a49", "5c40c02ddd9078a346c4e0c7", "5c40c133dd9078a346c4e398", "5c40c2b2dd9078a346c4e7d2", "5c40c496dd9078a346c4ed7a", "5c41ec4add9078a346c781ce", "5c423eb0dd9078a346c843ca", "5c424068dd9078a346c847e2", "5c4245c1dd9078a346c8554c", "5c42465cdd9078a346c856e5", "5c424bbfdd9078a346c86301", "5c4313fadd9078a346ca4048", "5c4314cbdd9078a346ca4255", "5c4314e3dd9078a346ca42a8", "5c431530dd9078a346ca4374", "5c43157ddd9078a346ca444c", "5c43157ddd9078a346ca4450", "5c4315f5dd9078a346ca4585", "5c431643dd9078a346ca4666", "5c43168ddd9078a346ca471b", "5c4316addd9078a346ca476f", "5c4316dddd9078a346ca4809", "5c43189edd9078a346ca4c76", "5c453de5dd9078a346cf599a", "5c3dcacedd9078a346bb3fc8", "5c467898dd9078a346d2b40f", "5c467898dd9078a346d2b412", "5c467898dd9078a346d2b416", "5c467898dd9078a346d2b419", "5c467898dd9078a346d2b429", "5c467898dd9078a346d2b430", "5c467898dd9078a346d2b435", "5c467898dd9078a346d2b438", "5c467898dd9078a346d2b441", "5c467898dd9078a346d2b445", "5c467899dd9078a346d2b44f", "5c467899dd9078a346d2b456", "5c467899dd9078a346d2b45e", "5c467899dd9078a346d2b461", "5c467899dd9078a346d2b464", "5c467899dd9078a346d2b468", "5c467899dd9078a346d2b46b", "5c467899dd9078a346d2b471", "5c467899dd9078a346d2b478", "5c467899dd9078a346d2b47b", "5c467898dd9078a346d2b41c", "5c406e1add9078a346c38b2e", "5c469820dd9078a346d2ffe8", "5c469820dd9078a346d2ffeb", "5c469820dd9078a346d2ffee", "5c469820dd9078a346d2fff1", "5c469820dd9078a346d2fff4", "5c469820dd9078a346d2fff8", "5c469820dd9078a346d2fffb", "5c469820dd9078a346d2ffff", "5c469820dd9078a346d30002", "5c469820dd9078a346d3000a", "5c469820dd9078a346d30010", "5c469820dd9078a346d30013", "5c469820dd9078a346d30017", "5c469820dd9078a346d3001a", "5c469820dd9078a346d3000d", "5c469820dd9078a346d30005"];
+
+    // await this._api.patch(environment.adminApiUrl + 'generic?resource=task', t.map(task => ({
+    //   old: {_id: task, result: 1, resultAt: 1},
+    //   new: {_id: task}
+    // }))).toPromise();
+
+  }
+
+  async purgeInvalidGmbApplyTasks() {
+    this._task.purgeApplyTasks();
   }
 
 }

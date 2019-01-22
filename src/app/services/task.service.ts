@@ -12,6 +12,160 @@ export class TaskService {
 
   constructor(private _api: ApiService) { }
 
+
+  /**
+   * This will remove non-closed, !postcard, invalid transfer task (where original GMB ownership's lost!)
+   */
+  async purgeTransferTasks() {
+
+    const openTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Transfer GMB Ownership',
+        result: null
+      },
+      limit: 5000
+    }).toPromise();
+
+    console.log('Open transfer tasks: ', openTransferTasks);
+
+    const bizIds = openTransferTasks.map(task => task.relatedMap.gmbBizId);
+
+    const gmbBizList = [];
+
+    const batchSize = 100;
+
+    while (bizIds.length > 0) {
+      const slice = bizIds.splice(0, batchSize);
+
+      const list = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          _id: { $in: slice.map(id => ({ $oid: id })) },
+        },
+        projection: {
+          accounts: 1
+        },
+        limit: 5000
+      }).toPromise();
+
+      gmbBizList.push(...list);
+    }
+
+
+    const bizMap = {};
+    gmbBizList.map(b => bizMap[b._id] = new GmbBiz(b));
+
+    // current biz's account is NOT original's account, and NOT postcard
+    const toBeClosed = openTransferTasks.filter(t => {
+      const gmbBiz: GmbBiz = bizMap[t.relatedMap['gmbBizId']];
+      if (!gmbBiz) {
+        console.log('gmbBiz Not Found!', t.relatedMap);
+        console.log('task', t);
+        return true;
+      }
+      const notPostcard = t.transfer.verificationMethod !== 'Postcard';
+      const noCode = !t.transfer.code;
+
+      if (!gmbBiz.isPublishedAt(t.transfer.fromEmail) && notPostcard && noCode) {
+        t.comments = (t.comments ? t.comments + ' ' : '') + 'Original ownership lost';
+        return true;
+      }
+      return false;
+    });
+
+    console.log('To be closed: ', toBeClosed);
+
+    // patch those tasks to be closed! by system
+    const pairs = toBeClosed.map(t => ({
+      old: {
+        _id: t._id
+      },
+      new: {
+        _id: t._id,
+        comments: (t.comments || '') + '\n[closed by system: NOT postcard, NO code, GMB lost]',
+        result: 'CANCELED',
+        resultAt: { $date: new Date() }
+      }
+    }));
+
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+
+    return toBeClosed;
+  }
+
+
+  /** Remove invalid apply tasks: already gained GMB ownership somewhere! */
+  async purgeApplyTasks() {
+    const openApplyTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Apply GMB Ownership',
+        result: null
+      },
+      limit: 5000
+    }).toPromise();
+
+    console.log('Open apply tasks: ', openApplyTasks);
+
+    const bizIds = openApplyTasks.map(task => task.relatedMap.gmbBizId);
+
+    const gmbBizList = [];
+
+    const batchSize = 100;
+
+    while (bizIds.length > 0) {
+      const slice = bizIds.splice(0, batchSize);
+      const list = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          _id: { $in: slice.map(id => ({ $oid: id })) },
+        },
+        projection: {
+          accounts: 1
+        },
+        limit: 5000
+      }).toPromise();
+      gmbBizList.push(...list);
+    }
+
+    const bizMap = {};
+    gmbBizList.map(b => bizMap[b._id] = new GmbBiz(b));
+
+    // find those that's published
+    const toBeClosed = openApplyTasks.filter(t => {
+      const gmbBiz: GmbBiz = bizMap[t.relatedMap['gmbBizId']];
+      if (!gmbBiz) {
+        console.log('gmbBiz Not Found!', t.relatedMap);
+        console.log('task', t);
+        return true;
+      }
+      return gmbBiz.isPublished() || gmbBiz.isSuspendedAt((t.transfer || {}).toEmail);
+    });
+
+    console.log('To be closed:', toBeClosed);
+    // patch those tasks to be closed! by system
+    const pairs = toBeClosed.map(t => ({
+      old: {
+        _id: t._id
+      },
+      new: {
+        _id: t._id,
+        assignee: t.assignee || 'system',
+        result: 'CANCELED',
+        comments: (t.comments || '') + '\n[closed by system: GMB OWNED.]',
+        resultAt: { $date: new Date() }
+      }
+    }));
+
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+
+    return toBeClosed;
+  }
+
+  ///////////////////////////////////////////////
+
+
   /** A gmb scan found s biz is suspended. We need to insert a new task if it's not yet in the 
    * task list (both gmbAccountId and bizId)
   */
@@ -73,123 +227,6 @@ export class TaskService {
     return newTask;
   }
 
-  /**
-   * This will remove non-closed, !postcard, over 50 days invalid transfer task (where original GMB ownership's lost!)
-   */
-  async purgeTransferTasks() {
-
-    const openTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Transfer GMB Ownership',
-        result: null
-      },
-      limit: 5000
-    }).toPromise();
-
-    console.log('Open transfer tasks: ', openTransferTasks);
-
-    const bizIds = openTransferTasks.map(task => task.relatedMap.gmbBizId);
-    const requestIds = openTransferTasks.map(task => task.relatedMap.gmbRequestId);
-
-    const gmbBizList = [];
-
-    const batchSize = 100;
-
-    const requests = [];
-    while (bizIds.length > 0) {
-      const slice = bizIds.splice(0, batchSize);
-
-      const list = await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        query: {
-          _id: { $in: slice.map(id => ({ $oid: id })) },
-        },
-        projection: {
-          gmbOwnerships: { $slice: -4 }
-        },
-        limit: 5000
-      }).toPromise();
-
-      gmbBizList.push(...list);
-
-      const requestsSlice = requestIds.splice(0, batchSize);
-      const batchedRequests = await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'gmbRequest',
-        query: {
-          _id: { $in: requestsSlice.map(id => ({ $oid: id })) },
-        },
-        projection: {
-          email: 1
-        },
-        limit: 5000
-      }).toPromise();
-      requests.push(...batchedRequests);
-    }
-
-    const myAccounts = await this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbAccount",
-      projection: {
-        email: 1
-      },
-      limit: 1000
-    }).toPromise();
-
-    const myEmailsSet = new Set(myAccounts.map(a => a.email));
-    console.log('myemails', myEmailsSet);
-    console.log('requests', requests);
-    const myRequestIdsSet = new Set(requests.filter(request => myEmailsSet.has(request.email)).map(r => r._id));
-
-    console.log('myRequestIdSet', myRequestIdsSet)
-    // // some tasks were wrongly created to against self :(
-    const againMyselfTasks = openTransferTasks.filter(t => myRequestIdsSet.has(t.relatedMap.gmbRequestId) && (!t.transfer || !t.transfer.code));
-
-    console.log('against myself tasks, no code yet ', againMyselfTasks);
-
-    const bizMap = {};
-
-    gmbBizList.map(b => bizMap[b._id] = b);
-    // current biz's account is NOT original's account, and NOT postcard
-    const toBeClosed = openTransferTasks.filter(t => {
-      const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
-      if (!gmbBiz) {
-        console.log('gmbBiz Not Found!', t.relatedMap);
-        console.log('task', t);
-        return true;
-      }
-      const notPostcard = t.transfer.verificationMethod !== 'Postcard';
-      const noCode = !t.transfer.code;
-      const lastEmail = (gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1] || {}).email;
-
-      const originalAccountLost = lastEmail !== t.transfer.fromEmail;
-
-      if (originalAccountLost && notPostcard && noCode) {
-        t.comments = (t.comments ? t.comments + ' ' : '') + 'Ownership transferred to ' + (lastEmail || 'N/A');
-        return true;
-      }
-      return false;
-    });
-
-    console.log('To be closed: ', toBeClosed);
-
-    // patch those tasks to be closed! by system
-    const pairs = [...toBeClosed, ...againMyselfTasks].map(t => ({
-      old: {
-        _id: t._id
-      },
-      new: {
-        _id: t._id,
-        assignee: 'system',
-        comments: (t.comments || '') + '\n[closed by system: NOT postcard, NO code, GMB lost, or against self]',
-        result: 'CANCELED',
-        resultAt: { $date: new Date() }
-      }
-    }));
-
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
-
-    return toBeClosed;
-  }
 
   /** Some tasks's gmbBizId is already missing */
   async purgeMissingIdsTasks() {
@@ -292,72 +329,6 @@ export class TaskService {
     return toBeClosed;
   }
 
-  async purgeApplyTasks() {
-    const openApplyTasks = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Apply GMB Ownership',
-        result: null
-      },
-      limit: 5000
-    }).toPromise();
-
-    console.log('Open apply tasks: ', openApplyTasks);
-
-    const bizIds = openApplyTasks.map(task => task.relatedMap.gmbBizId);
-
-    const gmbBizList = [];
-
-    const batchSize = 100;
-
-    while (bizIds.length > 0) {
-      const slice = bizIds.splice(0, batchSize);
-      const list = await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        query: {
-          _id: { $in: slice.map(id => ({ $oid: id })) },
-        },
-        projection: {
-          gmbOwnerships: { $slice: -4 }
-        },
-        limit: 5000
-      }).toPromise();
-      gmbBizList.push(...list);
-    }
-
-    const bizMap = {};
-    gmbBizList.map(b => bizMap[b._id] = b);
-
-    // find those that's published (last ownership has email!)
-    const toBeClosed = openApplyTasks.filter(t => {
-      const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
-      if (!gmbBiz) {
-        console.log('gmbBiz Not Found!', t.relatedMap);
-        console.log('task', t);
-        return false;
-      }
-      return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email;
-    });
-
-    console.log('To be closed:', toBeClosed);
-    // patch those tasks to be closed! by system
-    const pairs = toBeClosed.map(t => ({
-      old: {
-        _id: t._id
-      },
-      new: {
-        _id: t._id,
-        assignee: t.assignee || 'system',
-        result: 'CANCELED',
-        comments: (t.comments || '') + '\n[closed by system: GMB OWNED.]',
-        resultAt: { $date: new Date() }
-      }
-    }));
-
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
-
-    return toBeClosed;
-  }
 
   async deleteOutdatedTasks() {
     const closedTasks = await this._api.get(environment.adminApiUrl + 'generic', {
