@@ -1,0 +1,23 @@
+<table class="table">
+    <tr>
+      <th></th>
+      <th>Restaurant</th>
+      <th>Created</th>
+    </tr>
+    <tr *ngFor="let r of restaurants;let i = index">
+        <td>
+          {{i+1}}
+          </td> 
+      <td>
+        <a routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
+        <div class="text-muted">
+          <small>{{r.googleAddress?.formatted_address}}</small>
+        </div>
+      </td>  
+      <td>
+        {{getTime(r.createdAt) | yMMMd }}
+        
+      </td>  
+    </tr>
+  
+  </table>

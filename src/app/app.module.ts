@@ -128,6 +128,9 @@ import { TransactionDashboardComponent } from './components/transaction/transact
 import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/monitoring-unconfirmed-orders/monitoring-unconfirmed-orders.component';
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
+import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+
+
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 
 @NgModule({
@@ -242,6 +245,7 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     ImageManagerComponent,
     MonitoringOnboardingComponent,
     TaskBarComponent,
+    MonitoringDisabledRestaurantsComponent
     
   ],
   imports: [
