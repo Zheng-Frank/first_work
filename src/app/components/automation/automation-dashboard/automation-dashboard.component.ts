@@ -406,6 +406,10 @@ export class AutomationDashboardComponent implements OnInit {
 
         const affectedBizList = gmbBizList.filter(biz => biz.cid === result.cid);
         if (affectedBizList.length > 0) {
+          // unfortunately, we don't want to update name and address (because scan GMB account need name and address to match things :()
+          delete result.name;
+          delete result.address;
+
           await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
             affectedBizList.map(gmbBiz => ({
               old: { _id: gmbBiz._id },
@@ -506,6 +510,10 @@ export class AutomationDashboardComponent implements OnInit {
 
         }
 
+        // unfortunately, we don't want to update name and address (because scan GMB account need name and address to match things :()
+        delete result.name;
+        delete result.address;
+
         await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz',
           [{
             old: { _id: biz._id },
@@ -577,7 +585,7 @@ export class AutomationDashboardComponent implements OnInit {
 
 
     // debug
-    // gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('weborders88'));
+    gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('qmenu06'));
     const succeededAccounts = [];
     const failedAccounts = [];
     const newPublishedList = [];
@@ -680,6 +688,8 @@ export class AutomationDashboardComponent implements OnInit {
                 updated = true;
               }
               acct.history = acct.history || [];
+
+              // case last status was changed, we push a new status to it!
               if (acct.history.length === 0 || acct.history[acct.history.length - 1].status !== loc.status) {
                 acct.history.push({
                   time: new Date(),
@@ -688,14 +698,18 @@ export class AutomationDashboardComponent implements OnInit {
                 updated = true;
               }
 
-              if (loc.cid && biz.cid !== loc.cid) {
-                // we MUST have matched by appealId
-                biz.cid = loc.cid;
-                updated = true;
-              }
+              ['cid', 'name', 'address', "apppealId"].map(field => {
+                if (loc[field] && biz[field] !== loc[field]) {
+                  // we MUST have matched by appealId
+
+                  biz[field] = loc[field];
+                  updated = true;
+                }
+              });
 
               if (updated) {
                 updatedGmbBizList.push(biz);
+                console.log(biz);
               }
             });
           } // end else block
@@ -739,7 +753,14 @@ export class AutomationDashboardComponent implements OnInit {
         if (updatedGmbBizList.length > 0) {
           await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', updatedGmbBizList.map(biz => ({
             old: { _id: biz._id },
-            new: { _id: biz._id, accounts: biz.accounts, cid: biz.cid } // because cid might have been changed back to account assigned cid. We used to have main cid scanned into account's cid
+            new: {
+              _id: biz._id,
+              accounts: biz.accounts,
+              cid: biz.cid,
+              name: biz.name, // keep account's version other than publish listing scan version, to reduce scan
+              address: biz.address, // keep account's version other than publish listing scan version
+              appealId: biz.appealId  // keep account's version other than publish listing scan version
+            } // because cid might have been changed back to account assigned cid. We used to have main cid scanned into account's cid
           }))).toPromise();
 
           // also findout newly lost
