@@ -53,7 +53,7 @@ export class Gmb2DashboardComponent implements OnInit {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         projection: {
-          "gmbOwnerships.email": 1
+          "accounts.history.status": 1
         },
         limit: 5000
       }),
@@ -76,7 +76,7 @@ export class Gmb2DashboardComponent implements OnInit {
         this.gmbBizList = results[1].map(b => new GmbBiz(b));
         this.gmbRequests = results[2].map(r => new GmbRequest(r));
         const emails = this.gmbAccounts.map(ga => ga.email);
-        this.ownedGmbBizList = this.gmbBizList.filter(b => b.publishedIn(emails));
+        this.ownedGmbBizList = this.gmbBizList.filter(b => b.isPublished());
       },
       error => {
         this._global.publishAlert(AlertType.Danger, error);
