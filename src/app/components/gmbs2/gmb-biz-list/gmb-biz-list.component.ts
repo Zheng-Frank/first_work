@@ -124,8 +124,11 @@ export class GmbBizListComponent implements OnInit {
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         projection: {
-          gmbOwnerships: { $slice: -4 }
+          gmbOwnerships: { $slice: -4 },
+          //name: 1,
+          accounts:0
         },
+
         limit: 5000
       }),
       this._api.get(environment.adminApiUrl + "generic", {
