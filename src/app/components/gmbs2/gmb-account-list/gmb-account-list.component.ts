@@ -4,14 +4,8 @@ import { environment } from "../../../../environments/environment";
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
-import { mergeMap } from 'rxjs/operators';
 import { FormEvent } from '@qmenu/ui';
-import { zip, of } from 'rxjs';
-import { GmbRequest } from '../../../classes/gmb/gmb-request';
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
-import { Task } from '../../../classes/tasks/task';
-import { GmbService } from '../../../services/gmb.service';
-import { ModalType } from "../../../classes/modal-type";
+import { Gmb3Service } from 'src/app/services/gmb3.service';
 
 @Component({
   selector: 'app-gmb-account-list',
@@ -32,7 +26,10 @@ export class GmbAccountListComponent implements OnInit {
 
   processingGmbAccountSet = new Set<any>();
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService) {
+  publishedTotal;
+  suspendedTotal;
+
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
 
   }
 
@@ -41,37 +38,19 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   async populate() {
-    const bizList = await this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbBiz",
-      projection: {
-        "gmbOwnerships.email": 1,
-        "gmbOwnerships.status": 1,
-        "phone": 1,
-        "address": 1,
-        "name": 1
-      },
-      limit: 5000
-    }).toPromise();
 
     const accountList = await this._api.get(environment.adminApiUrl + "generic", {
       resource: "gmbAccount",
       limit: 5000
     }).toPromise();
 
-    this.gmbAccounts = accountList.sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1).map(a => new GmbAccount(a));
+    this.publishedTotal = accountList.reduce((sum, a) => sum + (a.published || 0), 0);
+    this.suspendedTotal = accountList.reduce((sum, a) => sum + (a.suspended || 0), 0);
 
-    const sortedBizList = bizList.sort((b1, b2) => b1.name > b2.name ? 1 : -1).map(b => new GmbBiz(b));
+    this.gmbAccounts = accountList.sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1).map(a => new GmbAccount(a));
 
     const emailAccountMap = {};
     this.gmbAccounts.map(a => emailAccountMap[a.email] = a);
-
-    sortedBizList.map(biz => {
-      const email = biz.getAccountEmail();
-      if (email && emailAccountMap[email]) {
-        emailAccountMap[email].bizList = emailAccountMap[email].bizList || [];
-        emailAccountMap[email].bizList.push(biz);
-      }
-    });
     // make 
     this.filterGmbAccounts();
   }
@@ -83,7 +62,9 @@ export class GmbAccountListComponent implements OnInit {
   filterGmbAccounts() {
     this.filteredGmbAccounts = this.gmbAccounts;
     if (this.searchFilter) {
-      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(a => (a.email || '').toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0);
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(a =>
+        a.locations.some(loc => loc.status !== 'Removed' && loc.name.toLowerCase().startsWith(this.searchFilter.toLowerCase())) ||
+        (a.email || '').toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0);
     }
   }
 
@@ -184,25 +165,9 @@ export class GmbAccountListComponent implements OnInit {
     }
   }
 
-  async scanAllPublishedLocations() {
-    this.scanningAll = true;
-    alert('COMING SOON');
-    return;
-
-    // for (let gmbAccount of this.gmbAccounts) {
-    //   try {
-    //     this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
-    //     await this._gmb.scanOneGmbAccountLocations(gmbAccount);
-    //   }
-    //   catch (error) { }
-    // }
-    // this.scanningAll = false;
-  }
-
-
   async scanRequests(event: FormEvent) {
     try {
-      let results: any = await this._gmb.scanAccountEmails(event.object, true);
+      let results: any = await this._gmb3.scanOneEmailForGmbRequests(event.object.email, true);
       event.acknowledge(null);
       this._global.publishAlert(AlertType.Success, 'Scanned ' + event.object.email + ', found: ' + results.length);
     }
@@ -217,19 +182,4 @@ export class GmbAccountListComponent implements OnInit {
     return this.processingGmbAccountSet.has(gmbAccount);
   }
 
-  async scanAllEmails() {
-    this.scanningAll = true;
-    for (let gmbAccount of this.gmbAccounts) {
-      try {
-        this._global.publishAlert(AlertType.Info, 'Scanning ' + gmbAccount.email + '...');
-        await this._gmb.scanAccountEmails(gmbAccount, false);
-      }
-      catch (error) { }
-    }
-    this.scanningAll = false;
-  }
-
-  test() {
-    this._global.publishModal(ModalType.gmbAccount, '123123');
-  }
 }

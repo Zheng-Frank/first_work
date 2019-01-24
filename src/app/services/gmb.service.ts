@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { environment } from '../../environments/environment';
 import { GmbAccount } from '../classes/gmb/gmb-account';
-import { GmbLocation } from '../classes/gmb/gmb-location';
 import { GmbBiz } from '../classes/gmb/gmb-biz';
 import { GmbRequest } from '../classes/gmb/gmb-request';
 import { zip } from 'rxjs';

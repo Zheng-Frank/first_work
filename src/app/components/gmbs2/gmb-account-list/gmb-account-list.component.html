@@ -1,8 +1,9 @@
 <h2 class="text-center">GMB: Accounts</h2>
+<div class="text-center">Published: {{publishedTotal}}, Suspended: {{suspendedTotal}}</div>
 <div class="clearfix my-2">
   <div class="float-left form-inline">
     Account Filter:
-    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email..." [(ngModel)]="searchFilter">
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email or restaurant name" [(ngModel)]="searchFilter">
 
   </div>
   <div class="float-right">

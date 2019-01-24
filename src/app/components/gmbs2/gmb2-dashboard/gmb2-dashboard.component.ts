@@ -21,7 +21,8 @@ export class Gmb2DashboardComponent implements OnInit {
   gmbBizList: GmbBiz[] = [];
   gmbRequests: GmbRequest[] = [];
 
-  ownedGmbBizList = [];
+  publishedTotal;
+  suspendedTotal;
 
   sections = [
     { title: '➀ Scan GMB Accounts', description: 'Retrieve all managed locations', loading: false, executeFunction: 'scanAllAccounts' },
@@ -45,15 +46,15 @@ export class Gmb2DashboardComponent implements OnInit {
         resource: "gmbAccount",
         projection: {
           email: 1,
-          // gmbScannedAt: 1,
-          // emailScannedAt: 1
+          published: 1,
+          suspended: 1
         },
         limit: 5000
       }),
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         projection: {
-          "accounts.history.status": 1
+          name: 1
         },
         limit: 5000
       }),
@@ -73,10 +74,12 @@ export class Gmb2DashboardComponent implements OnInit {
     ).subscribe(
       results => {
         this.gmbAccounts = results[0].map(g => new GmbAccount(g)); //.sort((g1, g2) => g1.email > g2.email ? 1 : -1);
+
+        this.publishedTotal = this.gmbAccounts.reduce((sum, a) => sum + (a.published || 0), 0);
+        this.suspendedTotal = this.gmbAccounts.reduce((sum, a) => sum + (a.suspended || 0), 0);
+
         this.gmbBizList = results[1].map(b => new GmbBiz(b));
         this.gmbRequests = results[2].map(r => new GmbRequest(r));
-        const emails = this.gmbAccounts.map(ga => ga.email);
-        this.ownedGmbBizList = this.gmbBizList.filter(b => b.isPublished());
       },
       error => {
         this._global.publishAlert(AlertType.Danger, error);

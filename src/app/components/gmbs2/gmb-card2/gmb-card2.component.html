@@ -10,12 +10,11 @@
         <div *ngIf="gmbAccount.comments"><small>{{gmbAccount.comments}}</small></div>
         <span class="{{gmbAccount.allLocations > 95 ? 'bg-danger text-light' : ''}}" *ngIf="gmbAccount.allLocations">Total
           {{gmbAccount.allLocations}}, </span>
-        <span *ngIf="gmbAccount.suspended >= 0">Suspended: {{gmbAccount.suspended}}, </span>
-        <button class="btn btn-link fix-v-align">Published: {{getPublishedBizList(gmbAccount.bizList).length}} <i class="fas {{expandBizLis ? 'fa-caret-up' : 'fa-caret-down'}} "
-            (click)="expandBizLis = !expandBizLis"></i></button>
+        <span>Suspended: {{gmbAccount.suspended}}, Published: {{gmbAccount.published}}</span>
+        <button class="btn btn-link fix-v-align" (click)="expandBizLis = !expandBizLis">Details... <i class="fas {{expandBizLis ? 'fa-caret-up' : 'fa-caret-down'}} "></i></button>
 
         <div *ngIf="expandBizLis">
-          <div *ngFor="let biz of getPublishedBizList(gmbAccount.bizList)" class="mt-1">{{biz.name}} <small class="text-muted">{{biz.address}}</small></div>
+          <div *ngFor="let loc of gmbAccount.locations" class="mt-1" [ngClass]="{'text-success' : loc.status === 'Published', 'text-warning' : loc.status === 'Suspended'}">{{loc.name}} <small class="text-muted">{{loc.address}}</small></div>
         </div>
       </div>
       <div class="float-right">
