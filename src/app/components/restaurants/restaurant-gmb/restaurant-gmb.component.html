@@ -200,7 +200,7 @@
 
               </th>
               <td class="pl-1">
-                <ng-container *ngFor="let record of alPair.location.statusHistory">
+                <ng-container *ngFor="let record of alPair.statusHistory;">
                   <div class="d-inline-block alert alert-{{record.status === 'Published' ? 'success' : (record.status === 'Suspended' ? 'warning' : 'danger')}} p-2">
                     <span>{{record.status}}</span>
                     <hr class="my-0"><small>{{record.time | ago : now}}</small>

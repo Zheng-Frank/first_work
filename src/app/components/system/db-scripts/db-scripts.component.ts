@@ -2053,7 +2053,134 @@ zealrestaurant.us`;
 
   async migrateGmbOwnerships() {
 
-  
+    // // inject, one time, statusHistory from appealId of gmbBiz (using cid && appealId)
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        cid: 1,
+        appealId: 1,
+        accounts: 1,
+        address: 1,
+        cuisine: 1,
+        name: 1,
+        phone: 1,
+        place_id: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection:
+      {
+        locations: 1,
+        email: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    gmbBizList.map(biz => (biz.accounts || []).map(bizAccount => {
+      if (biz.cid === '6507921322369370533') {
+
+        const matchedAccount = gmbAccounts.filter(a => a.email === bizAccount.email)[0];
+
+        const matchedLocation = matchedAccount.locations.filter(loc => loc.cid === biz.cid)[0];
+        console.log(matchedLocation);
+
+        if (matchedLocation) {
+          matchedLocation.statusHistory.push(...bizAccount.history);
+        } else {
+          console.log('else')
+          matchedAccount.locations.push({
+            name: biz.name,
+            address: biz.address,
+            cid: biz.cid,
+            appealId: biz.appealId,
+            statusHistory: bizAccount.history || [],
+            place_id: biz.place_id,
+            phone: biz.phone,
+            cuisine: biz.cuisine
+          });
+        }
+      }
+    }));
+
+
+    // reorg account
+
+    gmbAccounts.map(account => account.locations.map(loc => {
+      // remove Lost, Removed since it will be generated
+      loc.statusHistory = loc.statusHistory.filter(h => h.status !== 'Lost' && h.status !== 'Removed');
+      loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
+
+      for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
+        if (loc.statusHistory[i].status === loc.statusHistory[i - 1].status) {
+          loc.statusHistory.splice(i, 1);
+        }
+      }
+      // sort DESC
+      loc.statusHistory.sort((h1, h2) => new Date(h2.time).valueOf() - new Date(h1.time).valueOf());
+
+      // assign latest status back to loc itself
+      loc.status = loc.statusHistory[0].status;
+
+      // debug
+      if (loc.cid === '6507921322369370533') {
+        console.log(account.email);
+        console.log(loc);
+      }
+    }));
+
+
+
+    // // appealId + cid + email matched -> 
+
+
+    // let updatedAccounts = [];
+    // gmbAccounts.map(account => (account.locations || []).map(loc => {
+    //   const matchedBiz = gmbBizList.filter(biz => loc.cid && loc.cid === biz.cid)[0];
+    //   console.log(account.email)
+
+    //   const matchedBizAccount = ((matchedBiz || {}).accounts || []).filter(acct => acct.email === account.email)[0];
+    //   const matchedBizAccountHistory = (matchedBizAccount || {}).history || [];
+    //   if (matchedBizAccountHistory.length > 0) {
+    //     console.log('before', JSON.stringify(loc.statusHistory));
+    //     updatedAccounts.push(account);
+    //     matchedBizAccountHistory.map(h => {
+    //       loc.statusHistory.push(h);
+    //     });
+
+    //     // remove Lost, Removed since it will be generated
+    //     loc.statusHistory = loc.statusHistory.filter(h => h.status !== 'Lost' && h.status !== 'Removed');
+    //     loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
+
+    //     for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
+    //       if (loc.statusHistory[i].status === loc.statusHistory[i - 1].status) {
+    //         loc.statusHistory.splice(i, 1);
+    //       }
+    //     }
+    //     // sort DESC
+    //     loc.statusHistory.sort((h1, h2) => new Date(h2.time).valueOf() - new Date(h1.time).valueOf());
+    //     // assign latest status back to loc itself
+    //     loc.status = loc.statusHistory[0].status;
+    //   }
+
+    // }));
+
+    // updatedAccounts = [...new Set(updatedAccounts)];
+
+    for (let account of gmbAccounts) {
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [{
+        old: {
+          _id: account._id
+        },
+        new: {
+          _id: account._id, locations: account.locations
+        }
+      }]).toPromise();
+    }
+
+
   }
 
 

@@ -550,162 +550,6 @@ export class AutomationDashboardComponent implements OnInit {
 
   }
 
-  /** scalable upto 6000 gmbBiz list */
-  async scanEmailsForRequests() {
-    console.log('emails');
-
-    let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      projection: {
-        emailScannedAt: 1,
-        password: 1,
-        email: 1,
-        locations: 1
-      },
-      limit: 6000
-    }).toPromise();
-
-    gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt || 0).valueOf() - new Date(a2.emailScannedAt || 0).valueOf());
-
-    console.log(gmbAccounts);
-    // debug
-    // gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('weborders88'));
-
-    // let's only scan emails within 15 days (ignore 15 days or earlier ones)
-    const daysAgo15 = new Date();
-    daysAgo15.setDate(daysAgo15.getDate() - 15);
-    const existingRequests = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbRequest',
-      query: {
-        createdAt: { $gte: { $date: daysAgo15 } }
-      },
-      projection: {
-        gmbBizId: 1,
-        gmbAccountId: 1,
-        date: 1,
-        business: 1,
-        email: 1
-      },
-      sort: {
-        createdAt: -1
-      },
-      limit: 100000
-    }).toPromise();
-    existingRequests.sort((r1, r2) => new Date(r1.date).valueOf() - new Date(r2.date).valueOf());
-
-    console.log('queried existing requests within 15 days: ', existingRequests.length);
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        name: 1,
-        cid: 1,
-        qmenuId: 1
-      },
-      limit: 6000
-    }).toPromise();
-
-    const succeededAccounts = [];
-    const failedAccounts = [];
-    const newRequests = [];
-
-    for (let i = 0; i < gmbAccounts.length; i++) {
-      const account = gmbAccounts[i];
-      console.log(`${i + 1}/${gmbAccounts.length} ${account.email}...`);
-      let password = account.password;
-
-      try {
-        if (password.length > 20) {
-          password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
-        }
-
-        // scan locations
-        const scanResult = await this._api.post(environment.autoGmbUrl + 'retrieveGmbRequests', { email: account.email, password: password, stayAfterScan: false }).toPromise();
-        console.log('scanned ', scanResult);
-
-        // convert date to $date
-        scanResult.map(sr => sr.date = new Date(sr.date));
-
-        // remove those that are more than 15 days old!
-        const scanResultWithin15Days = scanResult.filter(item => new Date(item.date).valueOf() > daysAgo15.valueOf());
-        console.log('within 15 days ', scanResultWithin15Days);
-        // SAME email, business, and date --> same request!
-        const newItems = scanResultWithin15Days.filter(item => !existingRequests.some(r => r.business === item.business && r.email === item.email && new Date(r.date).valueOf() === new Date(item.date).valueOf()));
-        console.log('new items: ', newItems);
-        // match gmbBizId: (by name under account??? what if duplicate?)
-        // if we didn't find a match, skip it. This may due to outdated account scan (gmbBiz doesn't register yet)
-
-
-        newItems.map(item => {
-          // biz match strategy: same name, same account email, and first encounter of status before this item's date is Published!
-          const matchedLocation = account.locations.map(loc => {
-            const exactNameMatched = loc.name.toLowerCase() === item.business.toLowerCase();
-            const skippedKeywords = ['the', 'restaurant', '&', 'and'];
-            const fuzzyNameMatched = loc.name.toLowerCase().split(' ').filter(t => t && skippedKeywords.indexOf(t) < 0).join(',') === item.business.toLowerCase().split(' ').filter(t => t && skippedKeywords.indexOf(t) < 0).join(',');
-
-            const lastIsPublished = loc.status === 'Published';
-
-            const holdingAccountHistoryBefore = loc.statusHistory.filter(h => new Date(h.time).valueOf() < new Date(item.date).valueOf());
-            const wasPublished = (holdingAccountHistoryBefore[0] || {}).status === 'Published';
-
-            const nameScore = exactNameMatched ? 10 : (fuzzyNameMatched ? 8 : 0);
-            const statusScore = wasPublished ? 4 : (lastIsPublished ? 3 : 0);
-            return {
-              score: nameScore + statusScore,
-              location: loc
-            };
-          }).sort((r1, r2) => r2.score - r1.score)[0];
-
-          const matchedBiz = gmbBizList.filter(biz => biz.cid === (matchedLocation || {}).cid || 'nonexist')[0];
-
-          if (!matchedBiz) {
-            console.log('NO MATCH');
-            console.log(account.email);
-            console.log(gmbBizList);
-            console.log(item);
-            throw 'NOT MATCHED ANYTHING';
-          }
-
-          item.gmbBizId = matchedBiz.biz._id;
-          item.cid = matchedBiz.biz.cid;
-          item.gmbAccountId = account._id;
-          item.gmbAccountEmail = account.email;
-
-        });
-
-        // now let's save ALL to gmbRequest table!
-        if (newItems.length > 0) {
-          await this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', newItems).toPromise();
-          console.log('found new requests: ' + newItems.length);
-          newRequests.push(...newItems);
-        } else {
-          console.log('no new request found');
-        }
-
-        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [
-          {
-            old: { _id: account._id },
-            new: { _id: account._id, emailScannedAt: { $date: new Date() } }
-          }
-        ]).toPromise();
-        console.log('updated emailScannedAt for ' + account.email);
-
-        succeededAccounts.push(account);
-      } catch (error) {
-
-        failedAccounts.push(account);
-      } // end catch
-
-    } // end gmbAccounts iteration
-
-    return {
-      succeeded: succeededAccounts,
-      failed: failedAccounts,
-      newRequests: newRequests
-    };
-
-  } // scan emails
-
-
   // we have request against a location (gmbBiz?)
   async scanForTransferTask() {
     const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
@@ -909,73 +753,74 @@ export class AutomationDashboardComponent implements OnInit {
   }
 
   async purgeInvalidGmbTransferTasks() {
-    this._task.purgeTransferTasks();
+    // this._task.purgeTransferTasks();
 
-    // // // inject, one time, statusHistory from appealId of gmbBiz (using cid && appealId)
-    // const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-    //   resource: 'gmbBiz',
-    //   projection: {
-    //     cid: 1,
-    //     appealId: 1
-    //   },
-    //   limit: 6000
-    // }).toPromise();
+    // // inject, one time, statusHistory from appealId of gmbBiz (using cid && appealId)
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        cid: 1,
+        appealId: 1,
+        accounts: 1
+      },
+      limit: 6000
+    }).toPromise();
 
-    // const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
-    //   resource: 'gmbAccount',
-    //   projection:
-    //   {
-    //     locations: 1,
-    //     email: 1
-    //   },
-    //   limit: 5000
-    // }).toPromise();
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection:
+      {
+        locations: 1,
+        email: 1
+      },
+      limit: 5000
+    }).toPromise();
 
-    // // appealId + cid + email matched -> 
+    // appealId + cid + email matched -> 
 
-    // let updatedAccounts = [];
-    // gmbAccounts.map(account => (account.locations || []).map(loc => {
-    //   const matchedBiz = gmbBizList.filter(biz => loc.cid && loc.cid === biz.cid && loc.appealId === biz.appealId)[0];
-    //   console.log(account.email)
+    let updatedAccounts = [];
+    gmbAccounts.map(account => (account.locations || []).map(loc => {
+      const matchedBiz = gmbBizList.filter(biz => loc.cid && loc.cid === biz.cid && loc.appealId === biz.appealId)[0];
+      console.log(account.email)
 
-    //   const matchedBizAccount = ((matchedBiz || {}).accounts || []).filter(acct => acct.email === account.email)[0];
-    //   const matchedBizAccountHistory = (matchedBizAccount || {}).history || [];
-    //   if (matchedBizAccountHistory.length > 0) {
-    //     console.log('before', JSON.stringify(loc.statusHistory));
-    //     updatedAccounts.push(account);
-    //     matchedBizAccountHistory.map(h => {
-    //       loc.statusHistory.push(h);
-    //     });
+      const matchedBizAccount = ((matchedBiz || {}).accounts || []).filter(acct => acct.email === account.email)[0];
+      const matchedBizAccountHistory = (matchedBizAccount || {}).history || [];
+      if (matchedBizAccountHistory.length > 0) {
+        console.log('before', JSON.stringify(loc.statusHistory));
+        updatedAccounts.push(account);
+        matchedBizAccountHistory.map(h => {
+          loc.statusHistory.push(h);
+        });
 
-    //     // remove Lost, Removed since it will be generated
-    //     loc.statusHistory = loc.statusHistory.filter(h => h.status !== 'Lost' && h.status !== 'Removed');
-    //     loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
+        // remove Lost, Removed since it will be generated
+        loc.statusHistory = loc.statusHistory.filter(h => h.status !== 'Lost' && h.status !== 'Removed');
+        loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
 
-    //     for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
-    //       if (loc.statusHistory[i].status === loc.statusHistory[i - 1].status) {
-    //         loc.statusHistory.splice(i, 1);
-    //       }
-    //     }
-    //     // sort DESC
-    //     loc.statusHistory.sort((h1, h2) => new Date(h2.time).valueOf() - new Date(h1.time).valueOf());
-    //     // assign latest status back to loc itself
-    //     loc.status = loc.statusHistory[0].status;
-    //   }
+        for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
+          if (loc.statusHistory[i].status === loc.statusHistory[i - 1].status) {
+            loc.statusHistory.splice(i, 1);
+          }
+        }
+        // sort DESC
+        loc.statusHistory.sort((h1, h2) => new Date(h2.time).valueOf() - new Date(h1.time).valueOf());
+        // assign latest status back to loc itself
+        loc.status = loc.statusHistory[0].status;
+      }
 
-    // }));
+    }));
 
-    // updatedAccounts = [...new Set(updatedAccounts)];
+    updatedAccounts = [...new Set(updatedAccounts)];
 
-    // for (let account of updatedAccounts) {
-    //   await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [{
-    //     old: {
-    //       _id: account._id
-    //     },
-    //     new: {
-    //       _id: account._id, locations: account.locations
-    //     }
-    //   }]).toPromise();
-    // }
+    for (let account of updatedAccounts) {
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [{
+        old: {
+          _id: account._id
+        },
+        new: {
+          _id: account._id, locations: account.locations
+        }
+      }]).toPromise();
+    }
 
 
   }
@@ -983,7 +828,7 @@ export class AutomationDashboardComponent implements OnInit {
   async purgeInvalidGmbApplyTasks() {
     this._task.purgeApplyTasks();
   }
-
+  /////////////////////////////////////////////////////////////////////////////////////////
   async scanAccountsForLocations() {
 
     let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
@@ -997,11 +842,13 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts.sort((a1, a2) => new Date(a1.gmbScannedAt || 0).valueOf() - new Date(a2.gmbScannedAt || 0).valueOf());
 
+    // gmbAccounts = gmbAccounts.filter(g => g.email.startsWith('books'));
+
     const succeeded = [];
     const failed = [];
     for (let i = 0; i < gmbAccounts.length; i++) {
       try {
-        this.addRunningMessage('Scanning ' + i + ' of ' + gmbAccounts.length + ' ' + gmbAccounts[i].email);
+        this.addRunningMessage(`Account scanning ${(i + 1)} of ${gmbAccounts.length}: ${gmbAccounts[i].email}`);
         const locations = await this._gmb3.scanOneAccountForLocations(gmbAccounts[i].email, false);
         succeeded.push(gmbAccounts[i]);
       } catch (error) {
@@ -1016,6 +863,46 @@ export class AutomationDashboardComponent implements OnInit {
     }
 
   }
+
+
+  /** scalable upto 6000 gmbBiz list */
+  async scanEmailsForRequests() {
+
+    let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        emailScannedAt: 1,
+        email: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt || 0).valueOf() - new Date(a2.emailScannedAt || 0).valueOf());
+
+    gmbAccounts = gmbAccounts.filter(g => g.email.startsWith('g'));
+
+    const succeeded = [];
+    const failed = [];
+    const newRequests = [];
+
+    for (let i = 0; i < gmbAccounts.length; i++) {
+      try {
+        this.addRunningMessage(`Email scanning ${(i + 1)} of ${gmbAccounts.length}: ${gmbAccounts[i].email}`);
+        const result = await this._gmb3.scanOneEmailForGmbRequests(gmbAccounts[i].email, false);
+        succeeded.push(gmbAccounts[i]);
+      } catch (error) {
+        this.addErrorMessage('ERROR SCANNING ' + gmbAccounts[i].email);
+        failed.push(gmbAccounts[i]);
+      }
+    }
+
+    return {
+      succeeded: succeeded,
+      failed: failed,
+      newRequests: newRequests
+    }
+  } // scan emails
+
 
   async generateMissingGmbBizListings() {
     await this._gmb3.generateMissingGmbBizListings();

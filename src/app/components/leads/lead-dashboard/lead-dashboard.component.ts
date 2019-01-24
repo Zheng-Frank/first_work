@@ -9,7 +9,6 @@ import {
   ModalComponent,
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { GmbInfo } from "../../../classes/gmb-info";
 import { Address } from "@qmenu/ui";
 import { User } from "../../../classes/user";
 import { Helper } from "../../../classes/helper";
@@ -681,7 +680,7 @@ export class LeadDashboardComponent implements OnInit {
       })
       .subscribe(
         result => {
-          const gmbInfo = result as GmbInfo;
+          const gmbInfo = result;
           const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
 
           if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {

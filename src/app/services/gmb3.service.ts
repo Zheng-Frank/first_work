@@ -40,17 +40,13 @@ export class Gmb3Service {
     const oldLocations = (account.locations || []).filter(loc1 => scannedLocations.some(loc2 => loc2.appealId === loc1.appealId));
     const removedLocations = (account.locations || []).filter(loc1 => !scannedLocations.some(loc2 => loc2.appealId === loc1.appealId));
 
-    const updatedLocations = [];
-
     // push all new locations (add a statusHistory!)
     newLocations.map(loc => {
       loc.statusHistory = [{
         time: scannedTime,
         status: loc.status
       }];
-      updatedLocations.push(loc);
     });
-
     // push those old locations but if there is a status update, unshift one history as well
     oldLocations.map(loc => {
       const scannedLoc = scannedLocations.filter(loc2 => loc2.appealId === loc.appealId)[0];
@@ -62,17 +58,26 @@ export class Gmb3Service {
       }
       // also update every fields from scannedLoc
       Object.assign(loc, scannedLoc);
-      updatedLocations.push(loc);
     });
-
     // push a 'removed' status to those removed
     removedLocations.map(loc => {
-      loc.status = 'Removed';
-      loc.statusHistory.unshift({
-        time: scannedTime,
-        status: loc.status
-      });
-      updatedLocations.push(loc);
+      // only record those that's not already marked as removed
+      if (loc.status !== 'Removed') {
+        loc.status = 'Removed';
+        loc.statusHistory.unshift({
+          time: scannedTime,
+          status: loc.status
+        });
+      }
+    });
+
+
+    const updatedLocations = [...newLocations, ...oldLocations, ...removedLocations];
+    updatedLocations.sort((loc1, loc2) => loc1.name > loc2.name ? 1 : 0);
+    // purge duplicated status (it happened for legacy reason)
+
+    updatedLocations.map(loc => {
+      loc.statusHistory = loc.statusHistory.filter((h, index) => h.status !== (loc.statusHistory[index + 1] || {}).status);
     });
 
     await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [
@@ -182,7 +187,7 @@ export class Gmb3Service {
       }).sort((r1, r2) => r2.score - r1.score)[0];
 
       const matchedBiz = gmbBizList.filter(biz => biz.cid === (matchedLocation || {}).cid || 'nonexist')[0];
-      
+
       if (!matchedBiz) {
         console.log('NO MATCH');
         console.log(account.email);
@@ -201,9 +206,13 @@ export class Gmb3Service {
     const nonMatchedItems = newItems.filter(i => !i.gmbBizId);
     const matchedItems = newItems.filter(i => i.gmbBizId);
 
+    console.log('new', newItems);
+    console.log('matched', matchedItems);
+    console.log('nonmatched', nonMatchedItems);
+
     if (matchedItems.length > 0) {
       this._global.publishAlert(AlertType.Success, 'Found new' + matchedItems.length);
-      // await this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', newItems).toPromise();
+      // await this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', matchedItems).toPromise();
     }
 
     if (nonMatchedItems.length > 0) {

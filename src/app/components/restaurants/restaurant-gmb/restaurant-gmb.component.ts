@@ -94,7 +94,6 @@ export class RestaurantGmbComponent implements OnInit {
       }).toPromise();
 
       relevantGmbAccounts.map(acct => this.emailAccountDict[acct.email] = acct);
-
       // get ALL requests against this gmb listing
       this.relevantGmbRequests = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbRequest',
@@ -114,7 +113,8 @@ export class RestaurantGmbComponent implements OnInit {
         outstandingTasks: outstandingTasks.filter(t => t.relatedMap.gmbBizId === gmbBiz._id),
         accountLocationPairs: relevantGmbAccounts.reduce((list, acct) => (list.push(...acct.locations.filter(loc => gmbBiz.cid && loc.cid === gmbBiz.cid).map(loc => ({
           account: acct,
-          location: loc
+          location: loc,
+          statusHistory: loc.statusHistory.slice(0).reverse()
         }))), list), [])
       }));
     }
