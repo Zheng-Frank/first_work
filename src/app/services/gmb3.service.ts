@@ -341,36 +341,77 @@ export class Gmb3Service {
 
   }
 
-  async crawlOneGoogleListing(gmbBiz: GmbBiz) {
-    // we need to fillup gmbBiz's phone, matching place_id, and websites info
-    if (!gmbBiz.cid) {
-      throw 'No cid found for gmbBiz';
-    }
-    const crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name }).toPromise();
+  async crawlBatchedGmbBizList(gmbBizList: GmbBiz[]) {
 
-    if (gmbBiz.cid !== crawledResult.cid) {
-      throw 'Crawl error: cid not match!, ' + gmbBiz.name;
+    if (gmbBizList.some(biz => !biz.cid)) {
+      throw 'No cid found for biz ' + gmbBizList.filter(biz => !biz.cid)[0]._id;
     }
 
-    // except cid because we'd like to have scan account's cid instead?
-    const kvps = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
+    // parallelly requesting
+    const allRequests = gmbBizList.map(gmbBiz => this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: 'K' }).toPromise());
+    const crawledResults = await Promise.all(allRequests);
 
-    // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
-    if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
-      kvps.push({ key: 'qmenuWebsite', value: crawledResult['gmbWebsite'] });
-    }
-    // let's just override!
-    const oldBiz = { _id: gmbBiz._id };
-    const newBiz = { _id: gmbBiz._id };
+    const patchPairs = crawledResults.map((crawledResult, index) => {
+      const gmbBiz = gmbBizList[index];
+      // except cid because we'd like to have scan account's cid instead?
+      const kvps = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
 
-    kvps.map(kvp => newBiz[kvp.key] = kvp.value);
-    // also update crawledAt
-    newBiz['crawledAt'] = { $date: new Date() };
-    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", [{ old: oldBiz, new: newBiz }]).toPromise();
-    // update original
-    kvps.map(kvp => gmbBiz[kvp.key] = kvp.value);
-    gmbBiz.crawledAt = new Date();
-    return crawledResult;
+      // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
+      if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
+        kvps.push({ key: 'qmenuWebsite', value: crawledResult['gmbWebsite'] });
+      }
 
+      if (crawledResult.cid !== gmbBiz.cid) {
+        kvps.push({ key: 'cidmismatch', value: true });
+      }
+
+      // let's just override!
+      const oldBiz = { _id: gmbBiz._id };
+      const newBiz = { _id: gmbBiz._id };
+
+      kvps.map(kvp => newBiz[kvp.key] = kvp.value);
+      // also update crawledAt
+      newBiz['crawledAt'] = { $date: new Date() };
+
+      return { pair: { old: oldBiz, new: newBiz }, kvps: kvps };
+    });
+
+    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", patchPairs.map(p => p.pair)).toPromise();
+
+    gmbBizList.map((gmbBiz, index) => {
+      // update original
+      patchPairs[index].kvps.map(kvp => gmbBiz[kvp.key] = kvp.value);
+      gmbBiz.crawledAt = new Date();
+    });
+    return crawledResults;
   }
+
+  async crawlBatchedRestaurants(restaurants) {
+
+    // parallelly requesting
+    const allRequests = restaurants.map(r => this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: r.name + " " + r.googleAddress.formatted_address }).toPromise());
+    const crawledResults = await Promise.all(allRequests);
+    crawledResults.map(result => result['crawledAt'] = new Date());
+
+    const patchPairs = restaurants.map((r, index) => ({
+      old: { _id: r._id },
+      new: { _id: r._id, googleListing: crawledResults[index] }
+    }));
+
+    await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", patchPairs).toPromise();
+
+    restaurants.map((r, index) => {
+      // update original
+      r.googleListing = crawledResults[index];
+    });
+    return crawledResults;
+  }
+
+
+  /** gmbBiz --> restaurants, restaurants --> gmbBiz */
+  async shareScanResultsForSameCids() {
+    // later. Maybe we should consider listings of restaurant instead!!!
+  }
+
+
 }

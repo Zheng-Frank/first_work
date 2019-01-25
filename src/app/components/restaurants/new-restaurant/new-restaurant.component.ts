@@ -250,7 +250,7 @@ export class NewRestaurantComponent implements OnInit {
           scheduledAt: { $date: new Date() },
           description: gmbBiz.name,
           roles: ['GMB', 'ADMIN'],
-          relatedMap: { 'gmbBizId': gmbBiz._id },
+          relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
           transfer: {}
         };
 

@@ -297,7 +297,7 @@ export class RestaurantGmbComponent implements OnInit {
 
   async refreshListing(gmbBiz: GmbBiz) {
     try {
-      await this._gmb3.crawlOneGoogleListing(gmbBiz);
+      await this._gmb3.crawlBatchedGmbBizList([gmbBiz]);
       this._global.publishAlert(AlertType.Success, 'Success!');
     } catch (error) {
       console.error(error);

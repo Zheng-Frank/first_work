@@ -184,7 +184,7 @@ export class Gmb2DashboardComponent implements OnInit {
 
           for (let batch of batchedBizList) {
             try {
-              await Promise.all(batch.map(biz => this._gmb3.crawlOneGoogleListing(biz)));
+              await Promise.all(batch.map(biz => this._gmb3.crawlBatchedGmbBizList([biz])));
               this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(biz => biz.name).join(', '), 2000);
             }
             catch (error) {

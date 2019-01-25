@@ -417,7 +417,7 @@ export class GmbBizListComponent implements OnInit {
   async crawl(biz) {
     try {
       this.processingBizSet.add(biz);
-      let result = await this._gmb3.crawlOneGoogleListing(biz);
+      let result = await this._gmb3.crawlBatchedGmbBizList([biz]);
       this.now = new Date();
       this.processingBizSet.delete(biz);
       this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);
@@ -558,7 +558,7 @@ export class GmbBizListComponent implements OnInit {
       roles: ['GMB', 'ADMIN'],
       assignee: this._global.user.username,
       score: gmbBiz.score,
-      relatedMap: { 'gmbBizId': gmbBiz._id },
+      relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
       transfer: {}
     };
 

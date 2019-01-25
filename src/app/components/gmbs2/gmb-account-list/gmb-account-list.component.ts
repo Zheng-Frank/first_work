@@ -154,9 +154,9 @@ export class GmbAccountListComponent implements OnInit {
 
     const gmb = event.object;
     try {
-      alert('COMING SOON')
-      // const result = await this._gmb.scanOneGmbAccountLocations(gmb);
+      const result = await this._gmb3.scanOneAccountForLocations(gmb.email, true);
       this._global.publishAlert(AlertType.Success, "Success");
+      this.populate();
       event.acknowledge(null);
     }
     catch (error) {
