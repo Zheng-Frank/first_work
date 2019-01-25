@@ -10,6 +10,7 @@ import { FormEvent } from '@qmenu/ui';
 import { mergeMap, ignoreElements } from 'rxjs/operators';
 import { GmbService } from '../../../services/gmb.service';
 import { Task } from '../../../classes/tasks/task';
+import { Gmb3Service } from 'src/app/services/gmb3.service';
 
 interface myBiz {
   gmbBiz: GmbBiz;
@@ -111,7 +112,7 @@ export class GmbBizListComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _ref: ChangeDetectorRef) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _ref: ChangeDetectorRef, private _gmb3: Gmb3Service) {
     this.refresh();
   }
   ngOnInit() {
@@ -416,7 +417,7 @@ export class GmbBizListComponent implements OnInit {
   async crawl(biz) {
     try {
       this.processingBizSet.add(biz);
-      let result = await this._gmb.crawlOneGoogleListing(biz);
+      let result = await this._gmb3.crawlOneGoogleListing(biz);
       this.now = new Date();
       this.processingBizSet.delete(biz);
       this._global.publishAlert(AlertType.Success, 'Updated ' + biz.name);

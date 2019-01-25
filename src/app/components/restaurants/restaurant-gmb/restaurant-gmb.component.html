@@ -34,6 +34,8 @@
       <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{row.gmbBiz.score}}</h6>
     </h3>
     <div class="text-center">
+      <h6 *ngIf="row.gmbBiz.name !== restaurant.name">{{row.gmbBiz.name}}</h6>
+      <div class="alert alert-danger" *ngIf="row.gmbBiz.closed">Marked as Permanently Closed at Google</div>
       <small>
         {{row.gmbBiz.address}}
       </small></div>
@@ -79,7 +81,7 @@
           <tr>
             <th>Reservations</th>
             <td>
-              <div *ngFor="let reservationUrl of row.gmbBiz.menuUrls">
+              <div *ngFor="let reservationUrl of row.gmbBiz.reservations">
                 <a href="{{reservationUrl}}" title="{{reservationUrl}}" target="_blank">{{reservationUrl | host}}</a>
               </div>
             </td>
@@ -114,6 +116,15 @@
           </td>
         </tr> -->
         </table>
+        <div class="text-right">
+          <button class="btn btn-link" (click)="refreshListing(row.gmbBiz)">Refresh Listing</button>
+          <!-- <button class="btn btn-link" (click)="injectInfo(row.gmbBiz)" [disabled]="!row.gmbAccount">Inject Info</button> -->
+          <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name}}" target="_blank"
+            class="btn btn-link">
+            View on Google</a>
+
+        </div>
+
       </li>
       <li class="list-group-item">
         <table class="app-table w-100">
@@ -233,15 +244,6 @@
       <li class="list-group-item">
         <h4>Outstanding Tasks</h4>
         <app-task-bar *ngFor="let task of row.outstandingTasks" [task]="task"></app-task-bar>
-
-      </li>
-
-
-      <li class="list-group-item text-right">
-        <button class="btn btn-link" (click)="refreshListing(row.gmbBiz)">Refresh Listing</button>
-        <button class="btn btn-link" (click)="injectInfo(row.gmbBiz)" [disabled]="!row.gmbAccount">Inject Info</button>
-        <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name}}" target="_blank" class="btn btn-link">
-          View on Google</a>
 
       </li>
 

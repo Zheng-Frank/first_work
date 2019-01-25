@@ -124,8 +124,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     newR.taxBeforePromotion = this.taxBeforePromotion;
     newR.requireZipcode = this.requireZipcode;
     newR.requireBillingAddress = this.requireBillingAddress;
-    newR.stripePublishableKey = this.stripePublishableKey;
-
+    newR.stripePublishableKey = (this.stripePublishableKey || '').trim();
+    newR.stripeSecretKey = (this.stripeSecretKey||'').trim();
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [

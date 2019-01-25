@@ -9,6 +9,7 @@ import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { mergeMap } from 'rxjs/operators';
 import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbService } from '../../../services/gmb.service';
+import { Gmb3Service } from 'src/app/services/gmb3.service';
 
 @Component({
   selector: 'app-gmb2-dashboard',
@@ -31,7 +32,7 @@ export class Gmb2DashboardComponent implements OnInit {
     { title: '➃ Inject Restaurant Scores', description: 'Evaluate each restaurant and assign a score value', loading: false, executeFunction: 'injectScores' },
     { title: '➄ Scan Account Emails', description: 'Get all ownership requests', loading: false, executeFunction: 'scanAllEmails' }]
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _gmb3: Gmb3Service) {
     this.refresh();
   }
 
@@ -183,7 +184,7 @@ export class Gmb2DashboardComponent implements OnInit {
 
           for (let batch of batchedBizList) {
             try {
-              await Promise.all(batch.map(biz => this._gmb.crawlOneGoogleListing(biz)));
+              await Promise.all(batch.map(biz => this._gmb3.crawlOneGoogleListing(biz)));
               this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(biz => biz.name).join(', '), 2000);
             }
             catch (error) {

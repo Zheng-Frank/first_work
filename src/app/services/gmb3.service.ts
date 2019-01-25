@@ -4,6 +4,7 @@ import { environment } from '../../environments/environment';
 import { TaskService } from './task.service';
 import { GlobalService } from './global.service';
 import { AlertType } from '../classes/alert-type';
+import { GmbBiz } from '../classes/gmb/gmb-biz';
 @Injectable({
   providedIn: 'root'
 })
@@ -99,6 +100,7 @@ export class Gmb3Service {
       resource: 'gmbAccount',
       query: {
         email: email,
+        locations: { $exists: 1 }
       },
       projection: {
         password: 1,
@@ -180,14 +182,16 @@ export class Gmb3Service {
 
         const nameScore = exactNameMatched ? 10 : (fuzzyNameMatched ? 8 : 0);
         const statusScore = wasPublished ? 4 : (lastIsPublished ? 3 : 0);
+
+
         return {
           score: nameScore + statusScore,
           location: loc
         };
       }).sort((r1, r2) => r2.score - r1.score)[0];
-
+      console.log('1')
       const matchedBiz = gmbBizList.filter(biz => biz.cid === (matchedLocation || {}).cid || 'nonexist')[0];
-
+      console.log('2')
       if (!matchedBiz) {
         console.log('NO MATCH');
         console.log(account.email);
@@ -195,9 +199,8 @@ export class Gmb3Service {
         console.log(item);
         // throw 'NOT MATCHED ANYTHING'
       }
-
-      item.gmbBizId = matchedBiz.biz._id;
-      item.cid = matchedBiz.biz.cid;
+      item.gmbBizId = matchedBiz._id;
+      item.cid = matchedBiz.cid;
       item.gmbAccountId = account._id;
       item.gmbAccountEmail = account.email;
 
@@ -212,7 +215,7 @@ export class Gmb3Service {
 
     if (matchedItems.length > 0) {
       this._global.publishAlert(AlertType.Success, 'Found new' + matchedItems.length);
-      // await this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', matchedItems).toPromise();
+      await this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', matchedItems).toPromise();
     }
 
     if (nonMatchedItems.length > 0) {
@@ -220,13 +223,12 @@ export class Gmb3Service {
       console.log(nonMatchedItems);
     }
 
-    alert('actual scan email is commented out')
-    // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [
-    //   {
-    //     old: { _id: account._id },
-    //     new: { _id: account._id, emailScannedAt: { $date: new Date() } }
-    //   }
-    // ]).toPromise();
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [
+      {
+        old: { _id: account._id },
+        new: { _id: account._id, emailScannedAt: { $date: new Date() } }
+      }
+    ]).toPromise();
     console.log('updated emailScannedAt for ' + account.email);
 
     return newItems;
@@ -278,13 +280,12 @@ export class Gmb3Service {
         }
       })));
 
-      alert('actual patch is commented out')
-      //  await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
     }
     return lostList;
   }
 
-  /**This will pull restaurant, current accounts, current gmbBiz list to determin what's missing and create stubs */
+  /**This will pull restaurant (non-disabled), current accounts, current gmbBiz list to determin what's missing and create stubs */
   async generateMissingGmbBizListings() {
 
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
@@ -298,6 +299,9 @@ export class Gmb3Service {
 
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
+      query: {
+        disabled: null
+      },
       projection: {
         name: 1,
         "googleListing.cid": 1
@@ -330,6 +334,43 @@ export class Gmb3Service {
     const uniquePairs = [...new Set(unfoundPairs.map(p => p.cid))].map(cid => unfoundPairs.filter(p => p.cid === cid)[0]);
 
     console.log('unique pairs', uniquePairs);
+
+    // create gmbBiz
+
+    await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', uniquePairs).toPromise();
+
+  }
+
+  async crawlOneGoogleListing(gmbBiz: GmbBiz) {
+    // we need to fillup gmbBiz's phone, matching place_id, and websites info
+    if (!gmbBiz.cid) {
+      throw 'No cid found for gmbBiz';
+    }
+    const crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name }).toPromise();
+
+    if (gmbBiz.cid !== crawledResult.cid) {
+      throw 'Crawl error: cid not match!, ' + gmbBiz.name;
+    }
+
+    // except cid because we'd like to have scan account's cid instead?
+    const kvps = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
+
+    // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
+    if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
+      kvps.push({ key: 'qmenuWebsite', value: crawledResult['gmbWebsite'] });
+    }
+    // let's just override!
+    const oldBiz = { _id: gmbBiz._id };
+    const newBiz = { _id: gmbBiz._id };
+
+    kvps.map(kvp => newBiz[kvp.key] = kvp.value);
+    // also update crawledAt
+    newBiz['crawledAt'] = { $date: new Date() };
+    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", [{ old: oldBiz, new: newBiz }]).toPromise();
+    // update original
+    kvps.map(kvp => gmbBiz[kvp.key] = kvp.value);
+    gmbBiz.crawledAt = new Date();
+    return crawledResult;
 
   }
 }

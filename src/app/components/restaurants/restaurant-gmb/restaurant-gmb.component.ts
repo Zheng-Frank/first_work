@@ -7,7 +7,7 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { GmbService } from 'src/app/services/gmb.service';
 import { Task } from 'src/app/classes/tasks/task';
-import { GmbRequest } from 'src/app/classes/gmb/gmb-request';
+import { Gmb3Service } from 'src/app/services/gmb3.service';
 @Component({
   selector: 'app-restaurant-gmb',
   templateUrl: './restaurant-gmb.component.html',
@@ -24,7 +24,7 @@ export class RestaurantGmbComponent implements OnInit {
   apiRequesting = false;
   now = new Date();
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() {
   }
@@ -53,7 +53,6 @@ export class RestaurantGmbComponent implements OnInit {
       limit: 10
     }).toPromise());
 
-    console.log(gmbBizList)
     // query outstanding tasks for the restaurant
 
     if (gmbBizList.length > 0) {
@@ -298,9 +297,10 @@ export class RestaurantGmbComponent implements OnInit {
 
   async refreshListing(gmbBiz: GmbBiz) {
     try {
-      await this._gmb.crawlOneGoogleListing(gmbBiz, true);
+      await this._gmb3.crawlOneGoogleListing(gmbBiz);
       this._global.publishAlert(AlertType.Success, 'Success!');
     } catch (error) {
+      console.error(error);
       this._global.publishAlert(AlertType.Danger, 'Error crawling info');
     }
   }
@@ -318,17 +318,23 @@ export class RestaurantGmbComponent implements OnInit {
     if (gmbBiz.useBizWebsite || gmbBiz.useBizWebsiteForAll) {
       return this.sameDomain(gmbBiz.gmbWebsite, gmbBiz.bizManagedWebsite);
     } else {
-      return this.sameDomain(gmbBiz.gmbWebsite, gmbBiz.qmenuWebsite);
+      return this.sameDomain(gmbBiz.gmbWebsite, gmbBiz.qmenuWebsite) || this.isQmenuAlias(gmbBiz.gmbWebsite);
     }
   }
+
+
 
   /** item is in {menuUrls, reservations, and serviceProviders} */
   isOthersOk(gmbBiz: GmbBiz, item) {
     if (gmbBiz.useBizWebsiteForAll) {
       return (gmbBiz[item] || []).some(url => this.sameDomain(url, gmbBiz.bizManagedWebsite));
     } else {
-      return (gmbBiz[item] || []).some(url => this.sameDomain(url, gmbBiz.qmenuWebsite));
+      return (gmbBiz[item] || []).some(url => this.sameDomain(url, gmbBiz.qmenuWebsite) || this.isQmenuAlias(url));
     }
+  }
+
+  private isQmenuAlias(url) {
+    return url.indexOf('qmenu.us') >= 0 && url.indexOf(this.restaurant.alias) >= 0;
   }
 
   private sameDomain(d1: string, d2: string) {

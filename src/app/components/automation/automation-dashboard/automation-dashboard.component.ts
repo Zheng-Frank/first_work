@@ -731,14 +731,7 @@ export class AutomationDashboardComponent implements OnInit {
   } // end scan
 
 
-  /** Apply for MAIN listing only */
-  async scanForApplyTask() {
-    // 1. no main listing ownership
-    // 2. not disabled
-    // 3. not already an apply task existed
-    // 4. skip sale's agent flagged (unless more than xx days created)
 
-  } // end scan
 
   async injectModifiedWebsites() {
 
@@ -879,7 +872,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt || 0).valueOf() - new Date(a2.emailScannedAt || 0).valueOf());
 
-    gmbAccounts = gmbAccounts.filter(g => g.email.startsWith('g'));
+    gmbAccounts = gmbAccounts.filter(g => g.email.startsWith('ga'));
 
     const succeeded = [];
     const failed = [];
@@ -903,9 +896,122 @@ export class AutomationDashboardComponent implements OnInit {
     }
   } // scan emails
 
+  /** Apply for MAIN listing only */
+  async scanForApplyTask() {
+    alert('manual process to apply only those that we used to have GMBs');
+    // 1. no main listing ownership
+    // 2. not disabled
+    // 3. not already an apply task existed
+    // 4. skip sale's agent flagged (unless it had published at least once or more than xx days created)
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        disabled: null,
+        "googleListing.cid": { $exists: 1 }
+      },
+      projection: {
+        "googleListing.cid": 1,
+        name: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    console.log(restaurants);
+
+    let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        "locations.status": 1,
+        "locations.cid": 1,
+        "locations.statusHistory": 1,
+      },
+      limit: 6000
+    }).toPromise();
+
+    gmbAccounts = gmbAccounts.filter(a => a.locations && a.locations.length > 0);
+
+    let gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        "cid": 1,
+        score: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    // MAIN listing
+    const publishedRestaurants = restaurants.filter(r => gmbAccounts.some(a => a.locations.some(loc => loc.cid && loc.cid === r.googleListing.cid && loc.status === 'Published')));
+    const notPublishedRestaurants = restaurants.filter(r => publishedRestaurants.indexOf(r) < 0);
+
+    console.log('Published:', publishedRestaurants);
+    console.log('Not Published:', notPublishedRestaurants);
+
+    const publishedRestaurantsWithoutBiz = publishedRestaurants.filter(r => !gmbBizList.some(biz => biz.cid === r.googleListing.cid));
+    const notPublishedRestaurantsWithoutBiz = notPublishedRestaurants.filter(r => !gmbBizList.some(biz => biz.cid === r.googleListing.cid));
+    const notPublishedRestaurantsWithBiz = notPublishedRestaurants.filter(r => gmbBizList.some(biz => biz.cid === r.googleListing.cid));
+
+    console.log('Published witout gmbBiz:', publishedRestaurantsWithoutBiz);
+    console.log('Not Published without gmbBiz:', notPublishedRestaurantsWithoutBiz);
+
+    const existingOpenApplyTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Apply GMB Ownership',
+        result: null    // null is the same as either non-exists or actually null in mongodb
+      },
+      projection: {
+        relatedMap: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    console.log(existingOpenApplyTasks);
+
+    const bizIdMap = gmbBizList.reduce((map, biz) => (map[biz._id] = biz, map), {});
+    const cidsWithTaskSet = new Set(existingOpenApplyTasks.map(t => (bizIdMap[t.relatedMap.gmbBizId] || {}).cid).filter(id => id));
+
+    const restaurantsToBeApplied = notPublishedRestaurantsWithBiz.filter(r => !cidsWithTaskSet.has(r.googleListing.cid));
+
+    console.log('restaurantsToBeApplied', restaurantsToBeApplied);
+
+    const restaurantPublishedOnce = restaurantsToBeApplied
+      .filter(r =>
+        gmbAccounts.some(account => account.locations.some(loc => loc.cid === r.googleListing.cid && loc.statusHistory.some(h => h.status === 'Published'))));
+
+    console.log('restaurantPublishedOnce', restaurantPublishedOnce);
+
+
+    const tasks = restaurantPublishedOnce.map(r => {
+      const gmbBiz = gmbBizList.filter(biz => biz.cid === r.googleListing.cid)[0];
+      const task = {
+        name: 'Apply GMB Ownership',
+        scheduledAt: { $date: new Date() },
+        description: r.name,
+        roles: ['GMB', 'ADMIN'],
+        score: gmbBiz.score,
+        relatedMap: { 'gmbBizId': gmbBiz._id },
+        transfer: {}
+      };
+      return task;
+    });
+
+    console.log(tasks);
+    await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks).toPromise();
+
+
+
+  } // end scan
+
 
   async generateMissingGmbBizListings() {
     await this._gmb3.generateMissingGmbBizListings();
+  }
+
+  async computePostcardTasksThatJustLost() {
+    await this._gmb3.computePostcardTasksThatJustLost();
   }
 
 }
