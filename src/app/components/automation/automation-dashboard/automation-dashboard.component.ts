@@ -329,7 +329,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt || 0).valueOf() - new Date(a2.emailScannedAt || 0).valueOf());
 
-    gmbAccounts = gmbAccounts.filter(g => g.email.startsWith('ga'));
+    // gmbAccounts = gmbAccounts.filter(g => g.email.startsWith('ga'));
 
     const succeeded = [];
     const failed = [];
@@ -476,10 +476,11 @@ export class AutomationDashboardComponent implements OnInit {
   }
 
   async scanForAppealTasks() {
-
+    return await this._task.scanForAppealTasks();
   }
 
   async purgeInvalidAppealTasks() {
+    return await this._task.purgeAppealTasks();
 
   }
 

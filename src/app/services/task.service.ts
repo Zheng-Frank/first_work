@@ -99,13 +99,14 @@ export class TaskService {
 
       const accountALost = accounts.filter(account => account.email === task.transfer.fromEmail && !account.locations.some(loc => loc.cid === gmbBiz.cid && loc.status === 'Published'));
 
-      const isPostcardOrHavingTranferCode = task.transfer.verificationMethod === 'Postcard' || task.transfer.code;
+      const havingTransferCode = task.transfer.code;
+      const isPostcard = task.transfer.verificationMethod === 'Postcard';
 
       const isVeryOldAppeal = task.transfer.appealedAt && (new Date().valueOf() - new Date(task.transfer.appealedAt).valueOf() > 21 * 24 * 3600000);
 
-      if (accountALost.length > 0 && (!isPostcardOrHavingTranferCode || isVeryOldAppeal)) {
+      if (accountALost.length > 0 && !havingTransferCode && (!isPostcard || isVeryOldAppeal)) {
         return {
-          reason: 'account A lost. A email = ' + accountALost[0].email + ', is postcard or having code = ' + isPostcardOrHavingTranferCode + ', is over 21 days = ' + isVeryOldAppeal,
+          reason: `account A lost. A email = ${accountALost[0].email} , is postcard = ${isPostcard}, having code = ${havingTransferCode} , is over 21 days = ${isVeryOldAppeal}`,
           task: task
         };
       }
@@ -256,6 +257,87 @@ export class TaskService {
     return [...tasksMissingBizIds, ...tasksWithDisabledRestaurants, ...tasksWithAlreadyPublished];
   }
 
+
+  async scanForAppealTasks() {
+    const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Appeal Suspended GMB',
+        result: null
+      },
+      limit: 5000
+    }).toPromise();
+
+    console.log('openAppealTasks', openAppealTasks);
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        email: 1,
+        locations: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        name: 1,
+        score: 1,
+        cid: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    const suspendedAccountLocationPairs = [];
+    gmbAccounts.map(account => account.locations.map(loc => {
+      if (loc.status === 'Suspended' && new Date().valueOf() - new Date(loc.statusHistory[0].time).valueOf() < 21 * 24 * 3600000) {
+        const gmbBiz = gmbBizList.filter(b => b.cid === loc.cid)[0];
+        if (gmbBiz) {
+          suspendedAccountLocationPairs.push({ account: account, location: loc, gmbBiz: gmbBiz })
+        }
+      }
+    }));
+
+    console.log('suspendedAccountLocationPairs', suspendedAccountLocationPairs);
+
+    const newSuspendedAccountLocationsPairs = suspendedAccountLocationPairs.filter(pair => !openAppealTasks.some(t => t.relatedMap.appealId === pair.location.appealId));
+
+    console.log('newSuspendedAccountLocationsPairs', newSuspendedAccountLocationsPairs);
+
+    const newAppealTasks = newSuspendedAccountLocationsPairs.map(pair => {
+
+      return {
+        name: 'Appeal Suspended GMB',
+        relatedMap: {
+          gmbBizId: pair.gmbBiz._id,
+          gmbAccountId: pair.account._id,
+          appealId: pair.location.appealId
+        },
+        scheduledAt: {
+          $date: new Date()
+        },
+        etc: {
+          fromEmail: pair.account.email
+        },
+        description: pair.gmbBiz.name,
+        roles: ['GMB', 'ADMIN'],
+        score: pair.gmbBiz.score
+      }
+    });
+
+    console.log('newAppealTasks: ', newAppealTasks);
+
+    // lets create the task!
+    const result = await this._api.post(environment.adminApiUrl + 'generic?resource=task', newAppealTasks);
+
+    return newAppealTasks
+  }
+
+
   /** Some tasks's gmbBizId is already missing */
   async purgeMissingIdsTasks() {
     const openTasks = await this._api.get(environment.adminApiUrl + 'generic', {
@@ -286,7 +368,9 @@ export class TaskService {
   }
 
   /**
- * This will remove non-claimed, non-closed, invalid transfer task (where original GMB ownership's lost!)
+ * Invalid appeal tasks: 
+ * 1. running time too long! (created 30 days ago)
+ * 2. or appealId NOT found or suspended any more
  */
   async purgeAppealTasks() {
     const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
@@ -298,63 +382,50 @@ export class TaskService {
       limit: 5000
     }).toPromise();
 
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        email: 1,
+        "locations.appealId": 1,
+        "locations.status": 1
+      },
+      limit: 5000
+    }).toPromise();
+
     console.log('Open appeal tasks: ', openAppealTasks);
 
-    const bizIds = openAppealTasks.map(task => task.relatedMap.gmbBizId);
+    const appealIdNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.appealId === t.relatedMap.appealId)));
+    const locationIsNotSuspendedAnymore = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.appealId === t.relatedMap.appealId && loc.status === 'Suspended')));
+    const taskIsTooOld = openAppealTasks.filter(t => new Date().valueOf() - new Date(t.createdAt).valueOf() > 30 * 24 * 3600000);
 
-    const gmbBizList = [];
+    console.log('appealIdNotFoundTasks', appealIdNotFoundTasks);
+    console.log('locationIsNotSuspendedAnymore', locationIsNotSuspendedAnymore);
+    console.log('taskIsTooOld', taskIsTooOld);
 
-    const batchSize = 100;
-
-    while (bizIds.length > 0) {
-      const slice = bizIds.splice(0, batchSize);
-      const list = await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        query: {
-          _id: { $in: slice.map(id => ({ $oid: id })) },
-        },
-        projection: {
-          gmbOwnerships: { $slice: -4 }
-        },
-        limit: 5000
-      }).toPromise();
-      gmbBizList.push(...list);
-    }
-
-    const bizMap = {};
-    gmbBizList.map(b => bizMap[b._id] = b);
-
-
-    // find those that's published (last ownership has email && status is not suspended!)
-    const toBeClosed = openAppealTasks.filter(t => {
-      const gmbBiz = bizMap[t.relatedMap['gmbBizId']];
-      if (!gmbBiz) {
-        console.log('gmbBiz Not Found!', t.relatedMap);
-        console.log('task', t);
-        // delete the task!
-        return true;
-      }
-      return gmbBiz && gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].email && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status !== 'Suspended';
-    });
-
-    console.log('To be closed: ', toBeClosed);
-    // patch those tasks to be closed! by system
-    const pairs = toBeClosed.map(t => ({
+    const patchList = [
+      ...appealIdNotFoundTasks.map(t => ({ task: t, reason: 'missing appealId' })),
+      ...locationIsNotSuspendedAnymore.map(t => ({ task: t, reason: 'not suspended anymore' })),
+      ...taskIsTooOld.map(t => ({ task: t, reason: 'too old' })),
+    ].map(tr => ({
       old: {
-        _id: t._id
+        _id: tr.task._id
       },
       new: {
-        _id: t._id,
-        assignee: 'system',
+        _id: tr.task._id,
+        comments: (tr.task.comments || '') + '\n[closed by system]\n' + tr.reason,
         result: 'CANCELED',
-        comments: (t.comments || '') + '\n[closed by system]',
         resultAt: { $date: new Date() }
       }
     }));
 
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+    console.log(patchList)
 
-    return toBeClosed;
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', patchList).toPromise();
+
+    return [...appealIdNotFoundTasks, ...locationIsNotSuspendedAnymore, ...taskIsTooOld];
   }
 
 
