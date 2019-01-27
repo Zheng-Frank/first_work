@@ -7,6 +7,7 @@ import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { TaskService } from 'src/app/services/task.service';
 
 const TWELEVE_HOURS = 14400000; // 4 hours
+const SKIPPING_EMAILS = ['christesting'];
 @Component({
   selector: 'app-automation-dashboard',
   templateUrl: './automation-dashboard.component.html',
@@ -144,7 +145,7 @@ export class AutomationDashboardComponent implements OnInit {
     let restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       query: {
         "googleAddress.formatted_address": { $exists: 1 },
-        disabled: null
+        disabled: { $in: [null, false] }
       },
       resource: 'restaurant',
       projection: {
@@ -292,7 +293,8 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts.sort((a1, a2) => new Date(a1.gmbScannedAt || 0).valueOf() - new Date(a2.gmbScannedAt || 0).valueOf());
 
-    // gmbAccounts = gmbAccounts.filter(g => g.email.startsWith('books'));
+    gmbAccounts = gmbAccounts.filter(g => !SKIPPING_EMAILS.some(k => g.email.indexOf(k) >= 0));
+
 
     const succeeded = [];
     const failed = [];
@@ -329,8 +331,10 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt || 0).valueOf() - new Date(a2.emailScannedAt || 0).valueOf());
 
-    // gmbAccounts = gmbAccounts.filter(g => g.email.startsWith('ga'));
+    
+    gmbAccounts = gmbAccounts.filter(g => !SKIPPING_EMAILS.some(k => g.email.indexOf(k) >= 0));
 
+    gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('samco'))
     const succeeded = [];
     const failed = [];
     const newRequests = [];
@@ -362,7 +366,7 @@ export class AutomationDashboardComponent implements OnInit {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        disabled: null,
+        disabled: { $in: [null, false] },
         "googleListing.cid": { $exists: 1 }
       },
       projection: {
@@ -485,11 +489,27 @@ export class AutomationDashboardComponent implements OnInit {
   }
 
   async runAutoAppeal() {
+    const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'Appeal Suspended GMB',
+        result: null
+      },
+      limit: 5000
+    }).toPromise();
+
+    console.log(openAppealTasks.length);
+    let dueTasks = openAppealTasks.filter(t => new Date(t.scheduledAt).valueOf() < new Date().valueOf());
+    console.log(dueTasks.length);
+    await this._gmb3.appeal(dueTasks);
 
   }
 
   async runInjectQmenuWebsites() {
-
+    // 1. non-disabled restaurants
+    // 2. having published cid
+    // 3. check if main website or others are supposed to be qmenu's (check domain???)
+    // 4. inject
   }
 
 }

@@ -22,7 +22,7 @@ export class MonitoringOnboardingComponent implements OnInit {
     const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        disabled: null
+        disabled: {$in: [null, false]}
       },
       projection: {
         name: 1,

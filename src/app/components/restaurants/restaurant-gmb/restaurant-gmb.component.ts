@@ -179,6 +179,9 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   async createOrMatchMainGmb() {
+    if(this.restaurant.disabled) {
+
+    }
     this.apiRequesting = true;
 
     // match from existing list!
@@ -334,7 +337,7 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   private isQmenuAlias(url) {
-    return url.indexOf('qmenu.us') >= 0 && url.indexOf(this.restaurant.alias) >= 0;
+    return (url || '').indexOf('qmenu.us') >= 0 && url.indexOf(this.restaurant.alias) >= 0;
   }
 
   private sameDomain(d1: string, d2: string) {

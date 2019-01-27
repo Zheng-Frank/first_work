@@ -279,7 +279,7 @@ export class GmbService {
         description: r.business,
         roles: ['GMB', 'ADMIN'],
         score: bizMap[r.gmbBizId].score,
-        relatedMap: {cid: r['cid'], 'gmbBizId': r.gmbBizId, 'gmbAccountId': r.gmbAccountId, 'gmbRequestId': r._id },
+        relatedMap: { cid: r['cid'], 'gmbBizId': r.gmbBizId, 'gmbAccountId': r.gmbAccountId, 'gmbRequestId': r._id },
         transfer: {
           fromEmail: gmbAccount.email,
           againstEmail: r.email
@@ -411,115 +411,5 @@ export class GmbService {
       }
     ).toPromise();
   }
-
-
-
-  async appeal(gmbAccount, gmbBiz, task) {
-
-    const randomNames = `Rosena Massaro
-    Jeanmarie Eynon
-    Burma Busby
-    Charlyn Wall
-    Daniel Carrillo
-    Shanon Chalker
-    Alberta Gorski
-    Steffanie Mccullen
-    Chanelle Stukes
-    Harlan Horman
-    Aura Fleming
-    Edyth Applebee
-    Francisco Halloway
-    Maryjo Isakson
-    Eveline Lager
-    Isabel Middleton
-    Edda Rickel
-    Margareta Joye
-    Nona Fager
-    Lynelle Coutee
-    Rasheeda Gillmore
-    Kiesha Padula
-    Maryalice Matheny
-    Jacqueline Danos
-    Alden Crossman
-    Corinna Edge
-    Cassandra Trial
-    Zulema Freedman
-    Brunilda Halberg
-    Jewell Pyne
-    Jeff Kemmerer
-    Rosalee Heard
-    Maximina Gangi
-    Merrie Kall
-    Leilani Zeringue
-    Bradly Backes
-    Samella Bleich
-    Barrie Whetzel
-    Shakia Bischof
-    Gregoria Neace
-    Denice Vowels
-    Carlotta Barton
-    Andy Saltsman
-    Octavia Geis
-    Danelle Kornreich
-    Danica Stanfield
-    Shay Nilsson
-    Nan Jaffee
-    Laraine Fritzler
-    Christopher Pagani`;
-
-    const names = randomNames.split('   ').map(n => n.trim());
-
-    const randomName = names[new Date().valueOf() % names.length];
-
-    try {
-      let password = gmbAccount.password;
-      if (password.length > 20) {
-        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: gmbAccount.email, phrase: password }).toPromise();
-      }
-      await this._api.post(
-        environment.autoGmbUrl + 'appealSuspended', {
-          email: gmbAccount.email,
-          password: password,
-          params: {
-            name: randomName,
-            email: gmbAccount.email,
-            bizName: gmbBiz.name,
-            address: gmbBiz.address,
-            website: gmbBiz.useBizWebsite && gmbBiz.bizManagedWebsite ? gmbBiz.bizManagedWebsite : gmbBiz.qmenuWebsite,
-            phone: gmbBiz.phone,
-            appealId: gmbBiz.appealId
-          }
-        }
-      ).toPromise();
-
-      const appealedAt = new Date();
-      // postpone 21 days
-      const appealedAt21 = new Date();
-      appealedAt21.setDate(appealedAt.getDate() + 21);
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', [
-        {
-          old: {
-            _id: task._id
-          },
-          new: {
-            _id: task._id,
-            etc: {
-              appealedAt: { $date: appealedAt }
-            },
-            scheduledAt: { $date: appealedAt21 }
-          }
-        }
-      ]).toPromise();
-      //update original
-      task.etc.appealedAt = appealedAt;
-      task.scheduledAt = appealedAt21;
-
-      return Promise.resolve();
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Error appealing');
-      return Promise.reject(error);
-    }
-  }
-
 
 }

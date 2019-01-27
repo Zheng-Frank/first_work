@@ -29,6 +29,8 @@ export class GmbAccountListComponent implements OnInit {
   publishedTotal;
   suspendedTotal;
 
+  problematicLocations = [];
+
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
 
   }
@@ -53,6 +55,25 @@ export class GmbAccountListComponent implements OnInit {
     this.gmbAccounts.map(a => emailAccountMap[a.email] = a);
     // make 
     this.filterGmbAccounts();
+    // calculate problematic locations
+    // 1. same cid, many suspended or published!
+
+    this.problematicLocations = [];
+    const cidLocationsMap = accountList.reduce((map, account) => ((account.locations || []).map(loc => { map[loc.cid] = [{ account: account, location: loc }, ...(map[loc.cid] || [])] }), map), {});
+
+    console.log(cidLocationsMap);
+
+
+    Object.keys(cidLocationsMap).map(cid => {
+      const eitherSuspendedOrPublished = cidLocationsMap[cid].filter(item => item.location.status === 'Published' || item.location.status === 'Suspended');
+      console.log(eitherSuspendedOrPublished.length);
+      if (eitherSuspendedOrPublished.length > 0) {
+        this.problematicLocations.push(eitherSuspendedOrPublished);
+      }
+    });
+
+    this.problematicLocations;
+
   }
 
   debounce(value) {

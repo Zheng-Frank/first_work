@@ -38,7 +38,8 @@
       <div class="alert alert-danger" *ngIf="row.gmbBiz.closed">Marked as Permanently Closed at Google</div>
       <small>
         {{row.gmbBiz.address}}
-      </small></div>
+      </small>
+    </div>
     <div class="text-center">
       <small>
         Listing crawled: {{row.gmbBiz.crawledAt | ago : now}}
@@ -206,6 +207,7 @@
               <th class="bold-button">
                 <app-gmb-account-hotlink [email]="alPair.account.email"></app-gmb-account-hotlink>
                 <div class="text-muted">
+                  <small>Appeal Id: {{alPair.location.appealId}}</small><br>
                   <small>Scanned: {{alPair.account.gmbScannedAt | ago : now}}</small>
                 </div>
 
@@ -219,7 +221,7 @@
                 </ng-container>
               </td>
             </tr>
-            <tr>
+            <tr *ngIf="getGmbRequests(row.gmbBiz, alPair.account.email).length > 0">
               <th class="">Email Requests
                 <div class="text-muted">
                   <small>Scanned: {{alPair.account.emailScannedAt | ago : now}}</small>

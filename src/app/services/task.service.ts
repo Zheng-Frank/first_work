@@ -287,17 +287,34 @@ export class TaskService {
       projection: {
         name: 1,
         score: 1,
-        cid: 1
+        cid: 1,
+        useBizWebsite: 1,
+        bizManagedWebsite: 1,
+        qmenuWebsite: 1
       },
-      limit: 5000
+      limit: 6000
+    }).toPromise();
+
+    const disabledRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        disabled: { $in: [null, false] }
+      },
+      projection: {
+        domain: 1,
+        alias: 1,
+        "googleListing.cid": 1
+      },
+      limit: 6000
     }).toPromise();
 
     const suspendedAccountLocationPairs = [];
     gmbAccounts.map(account => account.locations.map(loc => {
       if (loc.status === 'Suspended' && new Date().valueOf() - new Date(loc.statusHistory[0].time).valueOf() < 21 * 24 * 3600000) {
         const gmbBiz = gmbBizList.filter(b => b.cid === loc.cid)[0];
+        const restaurant = disabledRestaurants.filter(r => r.googleListing && r.googleListing.cid === loc.cid)[0];
         if (gmbBiz) {
-          suspendedAccountLocationPairs.push({ account: account, location: loc, gmbBiz: gmbBiz })
+          suspendedAccountLocationPairs.push({ account: account, location: loc, gmbBiz: gmbBiz, restaurant: restaurant })
         }
       }
     }));
@@ -310,12 +327,29 @@ export class TaskService {
 
     const newAppealTasks = newSuspendedAccountLocationsPairs.map(pair => {
 
+      // get website: order: original, alias, domain, qmenuWebsite, bizManagedWebsite if insisted
+      let targetWebsite = pair.location.website;
+      // try to assign qmenu website!
+      if (pair.restaurant && pair.restaurant.alias) {
+        targetWebsite = environment.customerUrl + '#/' + pair.restaurant.alias;
+      }
+
+      if (pair.restaurant && pair.restaurant.domain) {
+        targetWebsite = pair.restaurant.domain.startsWith('http') ? pair.restaurant.domain : 'http://' + pair.restaurant.domain;
+      }
+
+      if (pair.gmbBiz && pair.gmbBiz.useBizWebsite && pair.gmbBiz.bizManagedWebsite) {
+        targetWebsite = pair.gmbBiz.bizManagedWebsite;
+      }
+
       return {
         name: 'Appeal Suspended GMB',
         relatedMap: {
           gmbBizId: pair.gmbBiz._id,
           gmbAccountId: pair.account._id,
-          appealId: pair.location.appealId
+          appealId: pair.location.appealId,
+          location: pair.location,
+          website: targetWebsite
         },
         scheduledAt: {
           $date: new Date()

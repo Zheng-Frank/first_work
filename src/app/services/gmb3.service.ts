@@ -5,6 +5,7 @@ import { TaskService } from './task.service';
 import { GlobalService } from './global.service';
 import { AlertType } from '../classes/alert-type';
 import { GmbBiz } from '../classes/gmb/gmb-biz';
+import { Task } from '../classes/tasks/task';
 @Injectable({
   providedIn: 'root'
 })
@@ -34,12 +35,13 @@ export class Gmb3Service {
     }
     const scanResult = await this._api.post(environment.autoGmbUrl + 'scanLocations3', { email: email, password: password, appealIdsToSkipDetails: appealIdsToSkipDetails, stayAfterScan: stayAfterScan }).toPromise();
     const scannedLocations = scanResult.locations;
+    console.log('scannedLocations', scannedLocations);
     const scannedTime = new Date();
 
     // match locations back! using appealId???
     const newLocations = scannedLocations.filter(loc => !(account.locations || []).some(loc2 => loc2.appealId === loc.appealId));
     const oldLocations = (account.locations || []).filter(loc1 => scannedLocations.some(loc2 => loc2.appealId === loc1.appealId));
-    const removedLocations = (account.locations || []).filter(loc1 => !scannedLocations.some(loc2 => loc2.appealId === loc1.appealId));
+    const removedLocations = (account.locations || []).filter(loc1 => loc1.status !== 'Removed' && !scannedLocations.some(loc2 => loc2.appealId === loc1.appealId));
 
     // push all new locations (add a statusHistory!)
     newLocations.map(loc => {
@@ -189,9 +191,7 @@ export class Gmb3Service {
           location: loc
         };
       }).sort((r1, r2) => r2.score - r1.score)[0];
-      console.log('1')
       const matchedBiz = gmbBizList.filter(biz => biz.cid === (matchedLocation || {}).cid || 'nonexist')[0];
-      console.log('2')
       if (!matchedBiz) {
         console.log('NO MATCH');
         console.log(account.email);
@@ -300,7 +300,7 @@ export class Gmb3Service {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        disabled: null
+        disabled: { $in: [null, false] }
       },
       projection: {
         name: 1,
@@ -413,5 +413,120 @@ export class Gmb3Service {
     // later. Maybe we should consider listings of restaurant instead!!!
   }
 
+  /** Appeal an Appeal GMB Task, using random names */
+  async appeal(tasks: Task[]) {
+
+    const randomNames = `Rosena Massaro
+  Jeanmarie Eynon
+  Burma Busby
+  Charlyn Wall
+  Daniel Carrillo
+  Shanon Chalker
+  Alberta Gorski
+  Steffanie Mccullen
+  Chanelle Stukes
+  Harlan Horman
+  Aura Fleming
+  Edyth Applebee
+  Francisco Halloway
+  Maryjo Isakson
+  Eveline Lager
+  Isabel Middleton
+  Edda Rickel
+  Margareta Joye
+  Nona Fager
+  Lynelle Coutee
+  Rasheeda Gillmore
+  Kiesha Padula
+  Maryalice Matheny
+  Jacqueline Danos
+  Alden Crossman
+  Corinna Edge
+  Cassandra Trial
+  Zulema Freedman
+  Brunilda Halberg
+  Jewell Pyne
+  Jeff Kemmerer
+  Rosalee Heard
+  Maximina Gangi
+  Merrie Kall
+  Leilani Zeringue
+  Bradly Backes
+  Samella Bleich
+  Barrie Whetzel
+  Shakia Bischof
+  Gregoria Neace
+  Denice Vowels
+  Carlotta Barton
+  Andy Saltsman
+  Octavia Geis
+  Danelle Kornreich
+  Danica Stanfield
+  Shay Nilsson
+  Nan Jaffee
+  Laraine Fritzler
+  Christopher Pagani`;
+
+    const names = randomNames.split('   ').map(n => n.trim());
+    const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1,
+        password: 1
+      },
+      limit: 6000
+    }).toPromise();
+    for (let task of tasks) {
+      const randomName = names[new Date().valueOf() % names.length];
+      try {
+        const gmbAccount = accounts.filter(a => a._id === task.relatedMap.gmbAccountId)[0];
+        let password = gmbAccount.password;
+        if (password.length > 20) {
+          password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: gmbAccount.email, phrase: password }).toPromise();
+        }
+        console.log(task)
+        await this._api.post(
+          environment.autoGmbUrl + 'appealSuspended', {
+            email: gmbAccount.email,
+            password: password,
+            params: {
+              name: randomName,
+              email: gmbAccount.email,
+              bizName: task.relatedMap.location.name,
+              address: task.relatedMap.location.address,
+              website: task.relatedMap.website,
+              phone: task.relatedMap.location.phone,
+              appealId: task.relatedMap.appealId
+            }
+          }
+        ).toPromise();
+
+        const appealedAt = new Date();
+        // postpone 21 days
+        const appealedAt21 = new Date();
+        appealedAt21.setDate(appealedAt.getDate() + 21);
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=task', [
+          {
+            old: {
+              _id: task._id
+            },
+            new: {
+              _id: task._id,
+              etc: {
+                appealedAt: { $date: appealedAt }
+              },
+              scheduledAt: { $date: appealedAt21 }
+            }
+          }
+        ]).toPromise();
+        //update original
+        task.etc.appealedAt = appealedAt;
+        task.scheduledAt = appealedAt21;
+      } catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, 'Error appealing ' + task.description);
+      }
+    }
+  }
 
 }
