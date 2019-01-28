@@ -88,7 +88,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
       resource: "gmbAccount",
       projection: {
         email: 1,
-        allLocations: 1
+        allLocations: 1,
+        type: 1
       },
       limit: 5000
     }).toPromise();
@@ -188,10 +189,11 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   }
 
   getFilteredAccounts() {
+    console.log(this.accounts);
     if (this.transfer) {
-      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
+      return this.accounts.filter(a => a.type ==="Transfer GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
     }
-    return this.accounts;
+    return this.accounts.filter(a => a.type ==="Transfer GMB");
   }
 
   getLastAccountEmail() {

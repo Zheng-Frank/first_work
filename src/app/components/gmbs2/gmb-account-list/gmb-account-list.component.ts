@@ -27,6 +27,7 @@ export class GmbAccountListComponent implements OnInit {
 
   gmbInEditing: GmbAccount = new GmbAccount();
   apiError = undefined;
+  type;
 
   scanningAll = false;
 
@@ -47,6 +48,7 @@ export class GmbAccountListComponent implements OnInit {
         "gmbOwnerships.email": 1,
         "gmbOwnerships.status": 1,
         "phone": 1,
+        "type": 1,
         "address": 1,
         "name": 1
       },
@@ -85,6 +87,9 @@ export class GmbAccountListComponent implements OnInit {
     if (this.searchFilter) {
       this.filteredGmbAccounts = this.filteredGmbAccounts.filter(a => (a.email || '').toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0);
     }
+    if(this.type&& this.type!='All'){
+      this.filteredGmbAccounts=this.filteredGmbAccounts.filter(each=> each.type=== this.type)
+    }
   }
 
   addNew() {
@@ -105,7 +110,9 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   async done(event: FormEvent) {
+
     const gmb = event.object as GmbAccount;
+    console.log('gmb', gmb);
     this.apiError = undefined;
 
     const oldGmb = {
@@ -115,6 +122,7 @@ export class GmbAccountListComponent implements OnInit {
     const updatedGmb = {
       _id: gmb._id,
       email: gmb.email.toLowerCase().trim(),
+      type: gmb.type,
       comments: gmb.comments
     } as any;
 
@@ -157,8 +165,9 @@ export class GmbAccountListComponent implements OnInit {
       ids: [gmb._id]
     }).subscribe(
       result => {
-        event.acknowledge(null);
+        event.acknowledge(null);        
         this.gmbAccounts = this.gmbAccounts.filter(g => g.email !== gmb.email);
+        this.filterGmbAccounts();
         this.gmbEditingModal.hide();
       },
       error => {
