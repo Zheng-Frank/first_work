@@ -4,7 +4,6 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { Lead } from "../../../classes/lead";
 import { AlertType } from "../../../classes/alert-type";
-import { GmbInfo } from "../../../classes/gmb-info";
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { CallLog } from "../../../classes/call-log";
 import { User } from "../../../classes/user";
@@ -193,7 +192,7 @@ export class MyLeadsComponent implements OnInit {
       })
       .subscribe(
         result => {
-          const gmbInfo = result as GmbInfo;
+          const gmbInfo = result;
           const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
 
           if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {

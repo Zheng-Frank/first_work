@@ -9,6 +9,7 @@ import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { mergeMap } from 'rxjs/operators';
 import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbService } from '../../../services/gmb.service';
+import { Gmb3Service } from 'src/app/services/gmb3.service';
 
 @Component({
   selector: 'app-gmb2-dashboard',
@@ -21,7 +22,8 @@ export class Gmb2DashboardComponent implements OnInit {
   gmbBizList: GmbBiz[] = [];
   gmbRequests: GmbRequest[] = [];
 
-  ownedGmbBizList = [];
+  publishedTotal;
+  suspendedTotal;
 
   sections = [
     { title: '➀ Scan GMB Accounts', description: 'Retrieve all managed locations', loading: false, executeFunction: 'scanAllAccounts' },
@@ -30,7 +32,7 @@ export class Gmb2DashboardComponent implements OnInit {
     { title: '➃ Inject Restaurant Scores', description: 'Evaluate each restaurant and assign a score value', loading: false, executeFunction: 'injectScores' },
     { title: '➄ Scan Account Emails', description: 'Get all ownership requests', loading: false, executeFunction: 'scanAllEmails' }]
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _gmb3: Gmb3Service) {
     this.refresh();
   }
 
@@ -45,15 +47,15 @@ export class Gmb2DashboardComponent implements OnInit {
         resource: "gmbAccount",
         projection: {
           email: 1,
-          // gmbScannedAt: 1,
-          // emailScannedAt: 1
+          published: 1,
+          suspended: 1
         },
         limit: 5000
       }),
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         projection: {
-          "accounts.history.status": 1
+          name: 1
         },
         limit: 5000
       }),
@@ -73,10 +75,12 @@ export class Gmb2DashboardComponent implements OnInit {
     ).subscribe(
       results => {
         this.gmbAccounts = results[0].map(g => new GmbAccount(g)); //.sort((g1, g2) => g1.email > g2.email ? 1 : -1);
+
+        this.publishedTotal = this.gmbAccounts.reduce((sum, a) => sum + (a.published || 0), 0);
+        this.suspendedTotal = this.gmbAccounts.reduce((sum, a) => sum + (a.suspended || 0), 0);
+
         this.gmbBizList = results[1].map(b => new GmbBiz(b));
         this.gmbRequests = results[2].map(r => new GmbRequest(r));
-        const emails = this.gmbAccounts.map(ga => ga.email);
-        this.ownedGmbBizList = this.gmbBizList.filter(b => b.isPublished());
       },
       error => {
         this._global.publishAlert(AlertType.Danger, error);
@@ -180,7 +184,7 @@ export class Gmb2DashboardComponent implements OnInit {
 
           for (let batch of batchedBizList) {
             try {
-              await Promise.all(batch.map(biz => this._gmb.crawlOneGoogleListing(biz)));
+              await Promise.all(batch.map(biz => this._gmb3.crawlBatchedGmbBizList([biz])));
               this._global.publishAlert(AlertType.Success, '✓ ' + batch.map(biz => biz.name).join(', '), 2000);
             }
             catch (error) {

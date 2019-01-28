@@ -3,14 +3,6 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import {
-  ModalComponent,
-  AddressPickerComponent
-} from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { GmbInfo } from "../../../classes/gmb-info";
-import { Address } from "@qmenu/ui";
-import { User } from "../../../classes/user";
-import { Order, Restaurant } from "@qmenu/ui/classes";
 import { zip } from "rxjs";
 import { saveAs } from 'file-saver/FileSaver';
 

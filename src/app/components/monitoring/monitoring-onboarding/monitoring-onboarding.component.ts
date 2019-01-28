@@ -22,7 +22,7 @@ export class MonitoringOnboardingComponent implements OnInit {
     const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        disabled: null
+        disabled: {$in: [null, false]}
       },
       projection: {
         name: 1,
@@ -30,6 +30,7 @@ export class MonitoringOnboardingComponent implements OnInit {
         alias: 1,
         disabled: 1,
         "menus.disabled": 1,
+        "googleListing.cid": 1,
         createdAt: 1,
         "rateSchedules.agent": 1
       },
@@ -45,25 +46,31 @@ export class MonitoringOnboardingComponent implements OnInit {
     restaurantsWithoutValidMenusAndNotDisabled.map(r => dict[r._id] = { restaurant: r, noMenu: true });
     restaurantsWithoutAnyOrder.map(r => { dict[r._id] = dict[r._id] || { restaurant: r }; dict[r._id].noOrder = true; });
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbBiz',
+    const cids = Object.keys(dict).map(k => dict[k]).filter(r => r.restaurant.googleListing).map(r => r.restaurant.googleListing.cid);
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
       query: {
-        qmenuId: { $in: Object.keys(dict) },
+        "locations.cid": { $in: cids }
       },
       projection: {
-        name: 1,
-        "gmbOwnerships": { $slice: -2 },
-        qmenuId: 1
+        "email": 1,
+        "locations.cid": 1,
+        "locations.status": 1
       },
       limit: 200
     }).toPromise();
 
-    gmbBizList.map(biz => {
-      const hasGmb = biz.gmbOwnerships && biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].status === 'Published';
-      const hadGmb = biz.gmbOwnerships && (biz.gmbOwnerships.length > 1 || (biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email));
-      dict[biz.qmenuId].hasGmb = hasGmb;
-      dict[biz.qmenuId].hadGmb = hadGmb;
-      dict[biz.qmenuId].matchedGmb = true;
+    Object.keys(dict).map(k => {
+      const row = dict[k];
+      const accountAndStatuses = [];
+      gmbAccounts.map(account => (account.locations || []).filter(loc => loc.cid && loc.cid === (row.restaurant.googleListing || {}).cid).map(loc => {
+        accountAndStatuses.push({ email: account.email, status: loc.status });
+      }));
+      const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
+      accountAndStatuses.sort((s1, s2) => statusOrder.indexOf(s1.status) - statusOrder.indexOf(s2.status));
+      row.hadGmb = accountAndStatuses.some(i => i.status === 'Published' || i.status === 'Suspended');
+      row.accountAndStatuses = accountAndStatuses;
     });
 
     this.rows = Object.keys(dict).map(id => dict[id]);

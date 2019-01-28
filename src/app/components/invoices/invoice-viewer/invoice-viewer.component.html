@@ -216,7 +216,7 @@
 
   <h3 class="text-center">Valid Orders ({{getValidOrders().length}})</h3>
   <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders ({{invoice.orders.length -
-    getValidOrders().length}}) are crossed, ingored, and NOT calculated.</div>
+    getValidOrders().length}}) are crossed, ignored, and NOT calculated.</div>
   <table class="table app-scaled-table">
     <tr>
       <th>Date Time</th>

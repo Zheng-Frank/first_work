@@ -1,4 +1,4 @@
-import { GmbBiz } from "./gmb-biz";
+import { GmbLocation } from "./gmb-location";
 
 /**
  * GMB account
@@ -14,7 +14,7 @@ export class GmbAccount {
     suspended: number;
     pagerSize: number;
     comments: string;
-    bizList: GmbBiz[] = [];
+    locations: GmbLocation []; 
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields
@@ -24,10 +24,12 @@ export class GmbAccount {
                 }
             }
             ['gmbScannedAt', 'emailScannedAt'].map(dateField => {
-                if(gmb[dateField]) {
+                if (gmb[dateField]) {
                     this[dateField] = new Date((Date.parse(gmb[dateField])));
                 }
             });
+
+            this.locations = (gmb.locations || []).map(loc => new GmbLocation(loc));
         }
     }
 }

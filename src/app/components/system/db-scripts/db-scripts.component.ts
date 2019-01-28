@@ -2053,105 +2053,132 @@ zealrestaurant.us`;
 
   async migrateGmbOwnerships() {
 
-    // erase ALL accounts attached to gmbBiz
-    // const allGmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-    //   resource: 'gmbBiz',
-    //   projection: {
-    //     name: 1
-    //   },
-    //   limit: 6000
-    // }).toPromise();
-
-    // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', allGmbBizList.map(biz => ({
-    //   old: { _id: biz._id, accounts: 1 },
-    //   new: { _id: biz._id }
-    // }))).toPromise();
-    // if (new Date()) {
-    //   throw 'temp!'
-    // }
-
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbAccount',
+    // // inject, one time, statusHistory from appealId of gmbBiz (using cid && appealId)
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
       projection: {
-        email: 1
+        cid: 1,
+        appealId: 1,
+        accounts: 1,
+        address: 1,
+        cuisine: 1,
+        name: 1,
+        phone: 1,
+        place_id: 1
       },
       limit: 6000
     }).toPromise();
 
-    const emailAccountMap = gmbAccounts.reduce((map, acct) => (map[acct.email] = acct, map), {});
-
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      query: {
-        // name: "Asian Kitchen",
-        // cid: "18268123258939097031",
-        accounts: null
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection:
+      {
+        locations: 1,
+        email: 1
       },
-      projection: {
-        gmbOwnerships: 1,
-        accounts: 1
-      },
-      limit: 500
+      limit: 5000
     }).toPromise();
 
-    gmbBizList.map(biz => {
-      const accountDict = {};
-      let previousOwnership = {} as any;
-      for (let i = 0; i < (biz.gmbOwnerships || []).length; i++) {
-        const ownership = biz.gmbOwnerships[i];
-        if (ownership.email !== previousOwnership.email) {
-          // treat this time as previousOwnership's Lost time
-          if (previousOwnership.email) {
-            accountDict[previousOwnership.email].push({
-              time: ownership.possessedAt,
-              status: 'Lost'
-            })
-          }
-        }
-        if (ownership.email) {
-          accountDict[ownership.email] = accountDict[ownership.email] || [];
-          accountDict[ownership.email].push({
-            time: ownership.possessedAt,
-            status: ownership.status || 'Published'     // no status means Published in early version
+    gmbBizList.map(biz => (biz.accounts || []).map(bizAccount => {
+      if (biz.cid === '6507921322369370533') {
+
+        const matchedAccount = gmbAccounts.filter(a => a.email === bizAccount.email)[0];
+
+        const matchedLocation = matchedAccount.locations.filter(loc => loc.cid === biz.cid)[0];
+        console.log(matchedLocation);
+
+        if (matchedLocation) {
+          matchedLocation.statusHistory.push(...bizAccount.history);
+        } else {
+          console.log('else')
+          matchedAccount.locations.push({
+            name: biz.name,
+            address: biz.address,
+            cid: biz.cid,
+            appealId: biz.appealId,
+            statusHistory: bizAccount.history || [],
+            place_id: biz.place_id,
+            phone: biz.phone,
+            cuisine: biz.cuisine
           });
         }
-        previousOwnership = ownership;
       }
+    }));
 
-      // map to accounts!
-      const accounts = Object.keys(accountDict).map(email => {
-        const history = accountDict[email];
-        // remove oscillating ones A - Lost - A....
-        for (let i = 1; i < history.length - 1; i++) {
-          if (history[i - 1].status === history[i + 1].status && history[i].status === 'Lost') {
-            history[i].isOscillating = true;
-          }
+
+    // reorg account
+
+    gmbAccounts.map(account => account.locations.map(loc => {
+      // remove Lost, Removed since it will be generated
+      loc.statusHistory = loc.statusHistory.filter(h => h.status !== 'Lost' && h.status !== 'Removed');
+      loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
+
+      for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
+        if (loc.statusHistory[i].status === loc.statusHistory[i - 1].status) {
+          loc.statusHistory.splice(i, 1);
         }
+      }
+      // sort DESC
+      loc.statusHistory.sort((h1, h2) => new Date(h2.time).valueOf() - new Date(h1.time).valueOf());
 
-        const removeOscillated = history.filter(h => !h.isOscillating);
+      // assign latest status back to loc itself
+      loc.status = loc.statusHistory[0].status;
 
-        // remove duplicated status sequence
-        for (let i = 1; i < removeOscillated.length; i++) {
-          if (removeOscillated[i].status === removeOscillated[i - 1].status) {
-            removeOscillated[i].isDuplicate = true;
-          }
+      // debug
+      if (loc.cid === '6507921322369370533') {
+        console.log(account.email);
+        console.log(loc);
+      }
+    }));
+
+
+
+    // // appealId + cid + email matched -> 
+
+
+    // let updatedAccounts = [];
+    // gmbAccounts.map(account => (account.locations || []).map(loc => {
+    //   const matchedBiz = gmbBizList.filter(biz => loc.cid && loc.cid === biz.cid)[0];
+    //   console.log(account.email)
+
+    //   const matchedBizAccount = ((matchedBiz || {}).accounts || []).filter(acct => acct.email === account.email)[0];
+    //   const matchedBizAccountHistory = (matchedBizAccount || {}).history || [];
+    //   if (matchedBizAccountHistory.length > 0) {
+    //     console.log('before', JSON.stringify(loc.statusHistory));
+    //     updatedAccounts.push(account);
+    //     matchedBizAccountHistory.map(h => {
+    //       loc.statusHistory.push(h);
+    //     });
+
+    //     // remove Lost, Removed since it will be generated
+    //     loc.statusHistory = loc.statusHistory.filter(h => h.status !== 'Lost' && h.status !== 'Removed');
+    //     loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
+
+    //     for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
+    //       if (loc.statusHistory[i].status === loc.statusHistory[i - 1].status) {
+    //         loc.statusHistory.splice(i, 1);
+    //       }
+    //     }
+    //     // sort DESC
+    //     loc.statusHistory.sort((h1, h2) => new Date(h2.time).valueOf() - new Date(h1.time).valueOf());
+    //     // assign latest status back to loc itself
+    //     loc.status = loc.statusHistory[0].status;
+    //   }
+
+    // }));
+
+    // updatedAccounts = [...new Set(updatedAccounts)];
+
+    for (let account of gmbAccounts) {
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [{
+        old: {
+          _id: account._id
+        },
+        new: {
+          _id: account._id, locations: account.locations
         }
-        const purgedHistory = removeOscillated.filter(h => !h.isDuplicate);
-        return {
-          email: email,
-          id: (emailAccountMap[email] || {})._id,
-          history: purgedHistory
-        };
-      });
-
-      biz.accounts = accounts;
-      console.log(accounts);
-    });
-
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizList.map(biz => ({
-      old: { _id: biz._id },
-      new: { _id: biz._id, accounts: biz.accounts }
-    }))).toPromise();
+      }]).toPromise();
+    }
 
 
   }

@@ -90,22 +90,4 @@ export class GmbBiz {
         return undefined;
     }
 
-    getLastHistory(email) {
-        return (((this.accounts || []).filter(acct => acct.email === email)[0] || {}).history || []).slice(-1)[0];
-    }
-
-    isPublishedAt(email) {
-        const h = this.getLastHistory(email);
-        return h && h.status === 'Published';
-    }
-
-    isPublished() {
-        return (this.accounts || []).some(acct => ((acct.history || []).slice(-1)[0] || {}).status === 'Published');
-    }
-
-    isSuspendedAt(email) {
-        const h = this.getLastHistory(email);
-        return h && h.status === 'Suspended';
-    }
-
 }
