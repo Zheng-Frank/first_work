@@ -8,6 +8,7 @@ import { AlertType } from '../../../classes/alert-type';
 import { GmbService } from 'src/app/services/gmb.service';
 import { Task } from 'src/app/classes/tasks/task';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
+import { Helper } from 'src/app/classes/helper';
 @Component({
   selector: 'app-restaurant-gmb',
   templateUrl: './restaurant-gmb.component.html',
@@ -319,9 +320,9 @@ export class RestaurantGmbComponent implements OnInit {
 
   isWebsiteOk(gmbBiz: GmbBiz) {
     if (gmbBiz.useBizWebsite || gmbBiz.useBizWebsiteForAll) {
-      return this.sameDomain(gmbBiz.gmbWebsite, gmbBiz.bizManagedWebsite);
+      return Helper.areDomainsSame(gmbBiz.gmbWebsite, gmbBiz.bizManagedWebsite);
     } else {
-      return this.sameDomain(gmbBiz.gmbWebsite, gmbBiz.qmenuWebsite) || this.isQmenuAlias(gmbBiz.gmbWebsite);
+      return Helper.areDomainsSame(gmbBiz.gmbWebsite, gmbBiz.qmenuWebsite) || this.isQmenuAlias(gmbBiz.gmbWebsite);
     }
   }
 
@@ -330,38 +331,13 @@ export class RestaurantGmbComponent implements OnInit {
   /** item is in {menuUrls, reservations, and serviceProviders} */
   isOthersOk(gmbBiz: GmbBiz, item) {
     if (gmbBiz.useBizWebsiteForAll) {
-      return (gmbBiz[item] || []).some(url => this.sameDomain(url, gmbBiz.bizManagedWebsite));
+      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, gmbBiz.bizManagedWebsite));
     } else {
-      return (gmbBiz[item] || []).some(url => this.sameDomain(url, gmbBiz.qmenuWebsite) || this.isQmenuAlias(url));
+      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, gmbBiz.qmenuWebsite) || this.isQmenuAlias(url));
     }
   }
 
   private isQmenuAlias(url) {
     return (url || '').indexOf('qmenu.us') >= 0 && url.indexOf(this.restaurant.alias) >= 0;
-  }
-
-  private sameDomain(d1: string, d2: string) {
-    if (!d1 || !d2) {
-      return false;
-    }
-    // stripe remove things before / and after /
-    if (!d1.startsWith('http:') && !d1.startsWith('https:')) {
-      d1 = 'http://' + d1;
-    }
-
-    if (!d2.startsWith('http:') && !d2.startsWith('https:')) {
-      d2 = 'http://' + d2;
-    }
-
-    let host1 = new URL(d1).host;
-    let host2 = new URL(d2).host;
-    // treating www as nothing
-    if (!host1.startsWith('www.')) {
-      host1 = 'www.' + host1;
-    }
-    if (!host2.startsWith('www.')) {
-      host2 = 'www.' + host2;
-    }
-    return host1 === host2;
   }
 }

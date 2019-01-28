@@ -5,9 +5,12 @@ import { GlobalService } from '../../../services/global.service';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { TaskService } from 'src/app/services/task.service';
+import { Helper } from 'src/app/classes/helper';
 
-const TWELEVE_HOURS = 14400000; // 4 hours
+const TWELEVE_HOURS = 43200000; // 12 hours
 const SKIPPING_EMAILS = ['christesting'];
+
+const DEBUGGING = false;
 @Component({
   selector: 'app-automation-dashboard',
   templateUrl: './automation-dashboard.component.html',
@@ -58,23 +61,17 @@ export class AutomationDashboardComponent implements OnInit {
     this.addRunningMessage('start');
     while (this.startTime) {
 
-      //   // should apply GMB:
 
-      //   console.log('should apply gmb', shouldApplyList);
-      //   if (shouldApplyList.length > 0) {
-      //     this.addRunningMessage('add new gmb task, ' + shouldApplyList.map(biz => biz.name).join(', '));
-      //     await this.createApplyTasks(shouldApplyList);
-      //     this.executedTasks++;
-      //   }
+      this.addRunningMessage('Inject qMenu Websites...');
+      await this.runInjectQmenuWebsites();
 
-      // } catch (error) {
-      //   console.log(error);
-      //   this.addRunningMessage('ERROR --> create apply task');
-      // }
 
       this.addRunningMessage('Scan accounts for GMB locations...');
       const accountsScanResult = await this.scanAccountsForLocations();
       this.addRunningMessage('Succeeded ' + accountsScanResult.succeeded.length + ', failed ' + accountsScanResult.failed.length);
+
+      this.addRunningMessage('Generate missing GMB Biz...');
+      await this.generateMissingGmbBizListings();
 
 
       this.addRunningMessage('Scan emails...');
@@ -97,18 +94,33 @@ export class AutomationDashboardComponent implements OnInit {
       const lostList = await this._gmb3.computePostcardTasksThatJustLost();
       this.addRunningMessage('Found ' + lostList.length);
 
+      this.addRunningMessage('Scan for Apply GMB Tasks...');
+      const newApplyTasks = await this.scanForApplyTask();
+      this.addRunningMessage('Created ' + newApplyTasks.length);
+
+      this.addRunningMessage('Purge Apply GMB Tasks...');
+      const purgedApplyTasks = await this.purgeInvalidGmbApplyTasks();
+      this.addRunningMessage('Purged ' + purgedApplyTasks.length);
+
+
       this.addRunningMessage('Scan for Transfer Tasks...');
       const newTransferTasks = await this.scanForTransferTask();
       this.addRunningMessage('Created ' + newTransferTasks.length);
 
       this.addRunningMessage('Purge Transfer Tasks...');
-      const purgedTransferTasks = await this._task.purgeTransferTasks();
+      const purgedTransferTasks = await this.purgeInvalidGmbTransferTasks();
       this.addRunningMessage('Purged ' + purgedTransferTasks.length);
 
-      this.addRunningMessage('Purge Apply Tasks...');
-      const purgedApplyTasks = await this._task.purgeApplyTasks();
-      this.addRunningMessage('Purged ' + purgedApplyTasks.length);
+      this.addRunningMessage('Scan for Appeal Tasks...');
+      const newAppealTasks = await this.scanForAppealTasks();
+      this.addRunningMessage('Created ' + newAppealTasks.length);
 
+      this.addRunningMessage('Purge Appeal Tasks...');
+      const purgedAppealTasks = await this.purgeInvalidAppealTasks();
+      this.addRunningMessage('Purged ' + purgedAppealTasks.length);
+
+      this.addRunningMessage('Run auto-apeal...');
+      await this.runAutoAppeal();
 
       this.addRunningMessage('-------FINISHED ONE ROUND!---------')
 
@@ -119,23 +131,6 @@ export class AutomationDashboardComponent implements OnInit {
   stop() {
     this.startTime = undefined;
     this.addErrorMessage('stop');
-  }
-
-  async createApplyTasks(gmbBizList: GmbBiz[]) {
-    const tasks = gmbBizList.map(gmbBiz => {
-      const task = {
-        name: 'Apply GMB Ownership',
-        scheduledAt: { $date: new Date() },
-        description: gmbBiz.name,
-        roles: ['GMB', 'ADMIN'],
-        score: gmbBiz.score,
-        relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
-        transfer: {}
-      };
-      return task;
-    });
-    await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks).toPromise();
-    return tasks;
   }
 
   /** 
@@ -168,7 +163,10 @@ export class AutomationDashboardComponent implements OnInit {
     const failedRestaurants = [];
     const succeededRestaurants = [];
 
-    const batchSize = 10;
+    if (DEBUGGING  && restaurants.length > 2) {
+      restaurants.length = 2;
+    }
+    const batchSize = 100;
     const batchedRestaurants = Array(Math.ceil(restaurants.length / batchSize)).fill(0).map((i, index) => restaurants.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedRestaurants) {
@@ -178,6 +176,10 @@ export class AutomationDashboardComponent implements OnInit {
       } catch (error) {
         failedRestaurants.push(...batch);
         console.log(error);
+      }
+
+      if(!this.startTime) {
+        break;
       }
     }
 
@@ -227,8 +229,8 @@ export class AutomationDashboardComponent implements OnInit {
     // sort by crawledAt:
     gmbBizList.sort((b1, b2) => new Date(b1.crawledAt).valueOf() - new Date(b2.crawledAt).valueOf());
 
-    console.log('before 4 hours filter: ', + gmbBizList.length);
-    console.log('skip gmbBiz crawled within 4 hours!');
+    console.log('before 12 hours filter: ', + gmbBizList.length);
+    console.log('skip gmbBiz crawled within 12 hours!');
     gmbBizList = gmbBizList.filter(b => !b.crawledAt || new Date().valueOf() - new Date(b.crawledAt).valueOf() > TWELEVE_HOURS);
     console.log('after: ', + gmbBizList.length);
 
@@ -236,7 +238,10 @@ export class AutomationDashboardComponent implements OnInit {
     const succeededGmbBizList = [];
     let abortionMessage;
 
-    const batchSize = 10;
+    if (DEBUGGING  && gmbBizList.length > 2) {
+      gmbBizList.length = 2;
+    }
+    const batchSize = 200;
     const batchedGmbBizList = Array(Math.ceil(gmbBizList.length / batchSize)).fill(0).map((i, index) => gmbBizList.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedGmbBizList) {
@@ -246,6 +251,9 @@ export class AutomationDashboardComponent implements OnInit {
       } catch (error) {
         failedGmbBizList.push(...batch);
         console.log(error);
+      }
+      if(!this.startTime) {
+        break;
       }
     }
 
@@ -260,24 +268,12 @@ export class AutomationDashboardComponent implements OnInit {
     return await this._task.scanForTransferTask();
   }
 
-  async injectModifiedWebsites() {
-
-  }
-
-  async autoSuggest() {
-
-  }
-
-  async appealSuspended() {
-
-  }
-
   async purgeInvalidGmbTransferTasks() {
-    this._task.purgeTransferTasks();
+    return this._task.purgeTransferTasks();
   }
 
   async purgeInvalidGmbApplyTasks() {
-    this._task.purgeApplyTasks();
+    return this._task.purgeApplyTasks();
   }
   /////////////////////////////////////////////////////////////////////////////////////////
   async scanAccountsForLocations() {
@@ -298,14 +294,28 @@ export class AutomationDashboardComponent implements OnInit {
 
     const succeeded = [];
     const failed = [];
-    for (let i = 0; i < gmbAccounts.length; i++) {
-      try {
-        this.addRunningMessage(`Account scanning ${(i + 1)} of ${gmbAccounts.length}: ${gmbAccounts[i].email}`);
-        const locations = await this._gmb3.scanOneAccountForLocations(gmbAccounts[i].email, false);
-        succeeded.push(gmbAccounts[i]);
-      } catch (error) {
-        this.addErrorMessage('ERROR SCANNING ' + gmbAccounts[i].email);
-        failed.push(gmbAccounts[i]);
+
+    if (DEBUGGING  && gmbAccounts.length > 2) {
+      gmbAccounts.length = 2;
+    }
+
+    const batchSize = 6;
+    const batchedAccounts = Array(Math.ceil(gmbAccounts.length / batchSize)).fill(0).map((i, index) => gmbAccounts.slice(index * batchSize, (index + 1) * batchSize));
+
+
+    for (let i = 0; i < batchedAccounts.length; i++) {
+      this.addRunningMessage(`Batched scanning ${(i + 1)} of ${batchedAccounts.length}: ${batchedAccounts[i].map(a => a.email).join(', ')}`);
+      const results = await this._gmb3.scanAccountsForLocations(batchedAccounts[i].map(a => a.email), false);
+      results.map((result, index) => {
+        if (Array.isArray(result)) {
+          succeeded.push(batchedAccounts[i][index]);
+        } else {
+          failed.push(batchedAccounts[i][index]);
+        }
+      });
+
+      if(!this.startTime) {
+        break;
       }
     }
 
@@ -331,10 +341,13 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt || 0).valueOf() - new Date(a2.emailScannedAt || 0).valueOf());
 
-    
+
     gmbAccounts = gmbAccounts.filter(g => !SKIPPING_EMAILS.some(k => g.email.indexOf(k) >= 0));
 
-    gmbAccounts = gmbAccounts.filter(a => a.email.startsWith('samco'))
+    if (DEBUGGING && gmbAccounts.length > 2) {
+      gmbAccounts.length = 2;
+    }
+
     const succeeded = [];
     const failed = [];
     const newRequests = [];
@@ -347,6 +360,10 @@ export class AutomationDashboardComponent implements OnInit {
       } catch (error) {
         this.addErrorMessage('ERROR SCANNING ' + gmbAccounts[i].email);
         failed.push(gmbAccounts[i]);
+        throw 'ERROR SCANNING';
+      }
+      if(!this.startTime) {
+        break;
       }
     }
 
@@ -468,6 +485,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks).toPromise();
 
+    return tasks;
   } // end scan
 
 
@@ -507,9 +525,195 @@ export class AutomationDashboardComponent implements OnInit {
 
   async runInjectQmenuWebsites() {
     // 1. non-disabled restaurants
-    // 2. having published cid
+    // 2. having published cid/appealId
     // 3. check if main website or others are supposed to be qmenu's (check domain???)
     // 4. inject
-  }
 
+    const gmbAccountsWithLocations = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        email: 1,
+        password: 1,
+        locations: 1,
+        injection: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        cid: 1,
+        qmenuId: 1,
+        qmenuWebsite: 1,
+        reservations: 1,
+        menuUrls: 1,
+        serviceProviders: 1,
+        gmbWebsite: 1,
+        bizManagedWebsite: 1,
+        useBizWebsite: 1,
+        useBizWebsiteForAll: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        domain: 1,
+        "googleListing.cid": 1,
+        disabled: 1,
+        "channels.value": 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const publishedCidMap = gmbAccountsWithLocations.reduce((map, account) => (account.locations.map(loc => {
+      if (loc.status === 'Published') {
+        map[loc.cid] = {
+          location: loc,
+          account: account
+        };
+      }
+    }), map), {});
+
+
+    const publishedList = Object.keys(publishedCidMap).map(k => publishedCidMap[k]);
+
+    gmbBizList.map(biz => {
+      if (publishedCidMap[biz.cid]) {
+        publishedCidMap[biz.cid].gmbBiz = biz;
+      }
+    });
+
+    // matching order: 1. cid, 2. qmenuId, 3. phone
+    publishedList.map(item => {
+      let restaurantByCid = restaurants.filter(r => !r.disabled && r.googleListing && r.googleListing.cid === item.location.cid)[0];
+      let restaurantByCidDisabled = restaurants.filter(r => r.disabled && r.googleListing && r.googleListing.cid === item.location.cid)[0];
+      let restaurantByQmenuId = restaurants.filter(r => r._id === (item.gmbBiz || {}).qmenuId)[0];
+      let restaurantByPhone = restaurants.filter(r => !r.disabled && (r.channels || []).some(c => c.value === item.location.phone))[0];
+      item.restaurant = restaurantByCid || restaurantByCidDisabled || restaurantByQmenuId || restaurantByPhone;
+    });
+
+    const missingBiz = publishedList.filter(p => !p.gmbBiz);
+    const missingRestaurant = publishedList.filter(p => !p.restaurant);
+    const withDisabledRestaurants = publishedList.filter(p => p.restaurant && p.restaurant.disabled);
+    const consideredItems = publishedList.filter(item => missingBiz.indexOf(item) < 0 && missingRestaurant.indexOf(item) < 0 && withDisabledRestaurants.indexOf(item) < 0);
+
+    console.log('publishedList', publishedList);
+    console.log('missingBiz', missingBiz);
+    console.log('missingRestaurant', missingRestaurant);
+    console.log('withDisabledRestaurants', withDisabledRestaurants);
+    console.log('consideredItems', consideredItems);
+
+    const nokItems = consideredItems.map(item => {
+      // website, menu, 
+      // get website: order: original, alias, domain, qmenuWebsite, bizManagedWebsite if insisted
+      // try to assign qmenu website!
+      let qmenuDesiredWebsite = environment.customerUrl + '#/' + item.restaurant.alias;
+
+      if (item.restaurant.domain) {
+        qmenuDesiredWebsite = item.restaurant.domain.startsWith('http') ? item.restaurant.domain : 'http://' + item.restaurant.domain;
+      }
+
+      if (item.gmbBiz.qmenuWebsite) {
+        qmenuDesiredWebsite = item.gmbBiz.qmenuWebsite;
+      }
+
+      let targetWebsite = qmenuDesiredWebsite;
+
+      if ((item.gmbBiz.useBizWebsite || item.gmbBiz.useBizWebsiteForAll) && item.gmbBiz.bizManagedWebsite) {
+        targetWebsite = item.gmbBiz.bizManagedWebsite;
+      }
+
+      let targetMenuUrl = qmenuDesiredWebsite;
+      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
+        targetMenuUrl = item.gmbBiz.bizManagedWebsite;
+      }
+
+      let targetReservation = qmenuDesiredWebsite;
+      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
+        targetReservation = item.gmbBiz.bizManagedWebsite;
+      }
+
+      let targetOrderAheadUrl = qmenuDesiredWebsite;
+      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
+        targetOrderAheadUrl = item.gmbBiz.bizManagedWebsite;
+      }
+
+      const isWebsiteOk = Helper.areDomainsSame(targetWebsite, item.gmbBiz.gmbWebsite);
+      const isMenuUrlOk = (item.gmbBiz.menuUrls || []).length > 0 && (item.gmbBiz.menuUrls || []).some(url => Helper.areDomainsSame(url, targetMenuUrl));
+      const isReservationOk = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, targetReservation));
+
+      item.isWebsiteOk = isWebsiteOk;
+      item.isMenuUrlOk = isMenuUrlOk;
+      item.isReservationOk = isReservationOk;
+
+      item.targetWebsite = targetWebsite;
+      item.targetMenuUrl = targetMenuUrl;
+      item.targetOrderAheadUrl = targetOrderAheadUrl;
+      item.targetReservation = targetReservation;
+
+      return item;
+    }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk || !item.isReservationOk);
+
+    console.log('nokItems', nokItems);
+
+    // now inject!
+    const appeealIdInjectTimeDict = {};
+    gmbAccountsWithLocations.map(account => Object.keys((account.injection || {})).map(k => appeealIdInjectTimeDict[k] = account.injection[k].time));
+
+    const oldNokItems = nokItems.filter(item => !appeealIdInjectTimeDict[item.location.appealId] || new Date().valueOf() - new Date(appeealIdInjectTimeDict[item.location.appealId].time).valueOf() > TWELEVE_HOURS);
+
+    console.log('oldNokItems', oldNokItems);
+
+    if (DEBUGGING && oldNokItems.length > 2) {
+      oldNokItems.length = 2;
+    }
+
+    const batchSize = 1;
+    const batchedItems = Array(Math.ceil(oldNokItems.length / batchSize)).fill(0).map((i, index) => oldNokItems.slice(index * batchSize, (index + 1) * batchSize)).filter(batch => batch.length > 0);
+    for (let batch of batchedItems) {
+      const promises = batch.map(item =>
+        this._api
+          .post(environment.adminApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
+          .then(password => this._api.post(
+            environment.autoGmbUrl + 'updateWebsite', {
+              email: item.account.email,
+              password: password,
+              websiteUrl: item.targetWebsite,
+              menuUrl: item.targetMenuUrl,
+              orderAheadUrl: item.targetOrderAheadUrl,
+              reservationsUrl: item.targetReservation,
+              appealId: item.location.appealId,
+              stayAfterScan: false
+            }
+          ).toPromise())
+      );
+
+      const batchResult = await Helper.processBatchedPromises(promises);
+
+      // update account's history
+      const patchPairs = batch.map((item, index) => {
+        const injection = {};
+        injection[item.location.appealId] = {
+          time: new Date(),
+          success: batchResult[index].success
+        }
+        return {
+          old: { _id: item.account._id, injection: {} },
+          new: { _id: item.account._id, injection }
+        };
+      });
+ console.log(patchPairs);
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
+     
+      if(!this.startTime) {
+        break;
+      }
+    } // end batch
+  }
 }

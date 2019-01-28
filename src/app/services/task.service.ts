@@ -165,17 +165,17 @@ export class TaskService {
 
     console.log('gmbBizList: ', gmbBizList);
 
-    const disabledRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {
-        disabled: true
-      },
       projection: {
         disabled: 1,
         "googleListing.cid": 1
       },
       limit: 6000
     }).toPromise();
+
+    const disabledRestaurants = restaurants.filter(r => r.disabled);
+    const enabledRestaurants = restaurants.filter(r => !r.disabled);
 
     console.log('disabled restaurants: ', disabledRestaurants);
     const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
@@ -203,8 +203,11 @@ export class TaskService {
     const tasksWithDisabledRestaurants = openApplyTasks.filter(t => {
       const gmbBiz = gmbBizIdMap[t.relatedMap.gmbBizId];
       if (gmbBiz) {
-        const restaurants = disabledRestaurants.filter(r => r._id === gmbBiz.qmenuId || (r.googleListing && r.googleListing.cid === gmbBiz.cid));
-        return restaurants.length > 0;
+        // BEAWARE SAME cid for two restaurants case!! (Poke Bowl, Kumo Sushi),
+        // We don't want to close those tasks with enabled restaurant but same cid
+        const disabledMatched = disabledRestaurants.filter(r => r._id === gmbBiz.qmenuId || (r.googleListing && r.googleListing.cid === gmbBiz.cid));
+        const enabledMatched = enabledRestaurants.filter(r => r._id === gmbBiz.qmenuId || (r.googleListing && r.googleListing.cid === gmbBiz.cid));
+        return disabledMatched.length > 0 && enabledMatched.length === 0;
       }
       return false;
     });
@@ -321,7 +324,22 @@ export class TaskService {
 
     console.log('suspendedAccountLocationPairs', suspendedAccountLocationPairs);
 
-    const newSuspendedAccountLocationsPairs = suspendedAccountLocationPairs.filter(pair => !openAppealTasks.some(t => t.relatedMap.appealId === pair.location.appealId));
+
+    // no such cids are published anywhere,
+    // no same cid already in appealing process
+    // no same cid in this batch either!
+
+    const inAppealingCids = new Set();
+    openAppealTasks.map(t => inAppealingCids.add(t.relatedMap.location.cid));
+    console.log(inAppealingCids);
+
+    const publishedCidSet = new Set();
+    gmbAccounts.map(account => (account.locations || []).map(loc => { if (loc.status === 'Published') { publishedCidSet.add(loc.cid) } }));
+    console.log(publishedCidSet);
+
+
+
+    const newSuspendedAccountLocationsPairs = suspendedAccountLocationPairs.filter(pair => !publishedCidSet.has(pair.location.cid) && !inAppealingCids.has(pair.location.cid));
 
     console.log('newSuspendedAccountLocationsPairs', newSuspendedAccountLocationsPairs);
 
@@ -364,6 +382,7 @@ export class TaskService {
     });
 
     console.log('newAppealTasks: ', newAppealTasks);
+
 
     // lets create the task!
     const result = await this._api.post(environment.adminApiUrl + 'generic?resource=task', newAppealTasks);
@@ -547,7 +566,7 @@ export class TaskService {
     const gmbBizIdMap = gmbBizList.reduce((result, biz) => (result[biz._id] = biz, result), {});
     const gmbAccountIdMap = gmbAccounts.reduce((result, acct) => (result[acct._id] = acct, result), {});
 
-    const recentRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+    let recentRequests = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbRequest',
       sort: {
         createdAt: -1
@@ -571,7 +590,6 @@ export class TaskService {
       limit: 6000
     }).toPromise();
 
-
     // tracking hostile requests
     const bizAccountRequestsMap = {};
 
@@ -583,6 +601,9 @@ export class TaskService {
         // 1. account must be currently published
         // 2. request time is after published time
         // 3. NOT self
+        if (!request.cid) {
+          request.cid = gmbBiz.cid;
+        }
         const isSelf = myEmails.has(request.email);
         const isPublished = gmbAccount.locations.some(loc => request.cid && loc.cid === request.cid && loc.status === 'Published');
 
@@ -627,7 +648,7 @@ export class TaskService {
           }
         }
       }
-
+      console.log('here')
       const dueDays = bizAccountRequestsMap[key].map(row => {
         const dueDate = new Date(row.gmbRequest.date);
         dueDate.setDate(dueDate.getDate() + (row.gmbRequest.isReminder ? (row.gmbRequest.foundOriginal ? (4 - 2 * (row.gmbRequest.previousReminders || 0)) : 0) : 7));
@@ -650,7 +671,6 @@ export class TaskService {
         } else {
           const existingTasks = outstandingTransferTasks.filter(t => t.relatedMap.gmbAccountId === gmbAccount._id && t.relatedMap.gmbBizId === gmbBiz._id);
           if (existingTasks.length === 0) {
-            console.log('DANGER!');
             newTransferTasks.push({
               dueDate: dueDays[dueDays.length - 1].dueDate,
               gmbBiz: gmbBiz,
@@ -697,7 +717,10 @@ export class TaskService {
         }
       }));
 
-    const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
+    if (tasks.length > 0) {
+      const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
+    }
+
     console.log('ceated tasks,', tasks);
     return tasks;
   } // end scan

@@ -3,6 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
+import { Helper } from 'src/app/classes/helper';
 
 class Row {
   domain: any;
@@ -189,32 +190,9 @@ export class MonitoringGodaddyComponent implements OnInit {
       }
 
       let gmbBiz;
-      let sameDomain = function (d1: string, d2: string) {
-        // stripe remove things before / and after /
-        if (!d1.startsWith('http:') && !d1.startsWith('https:')) {
-          d1 = 'http://' + d1;
-        }
-
-        if (!d2.startsWith('http:') && !d2.startsWith('https:')) {
-          d2 = 'http://' + d2;
-        }
-
-        let host1 = new URL(d1).host;
-        let host2 = new URL(d2).host;
-
-        // treating www as nothing
-        if (!host1.startsWith('www.')) {
-          host1 = 'www.' + host1;
-        }
-        if (!host2.startsWith('www.')) {
-          host2 = 'www.' + host2;
-        }
-
-        return host1 === host2;
-      }
 
       for (let i = gmbBizList.length - 1; i >= 0; i--) {
-        if (gmbBizList[i].qmenuWebsite && sameDomain(gmbBizList[i].qmenuWebsite, domain.domain)) {
+        if (gmbBizList[i].qmenuWebsite && Helper.areDomainsSame(gmbBizList[i].qmenuWebsite, domain.domain)) {
           gmbBiz = gmbBizList[i];
           gmbBizList.splice(i, 1);
           break;

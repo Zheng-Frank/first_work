@@ -61,18 +61,14 @@ export class GmbAccountListComponent implements OnInit {
     this.problematicLocations = [];
     const cidLocationsMap = accountList.reduce((map, account) => ((account.locations || []).map(loc => { map[loc.cid] = [{ account: account, location: loc }, ...(map[loc.cid] || [])] }), map), {});
 
-    console.log(cidLocationsMap);
-
-
     Object.keys(cidLocationsMap).map(cid => {
       const eitherSuspendedOrPublished = cidLocationsMap[cid].filter(item => item.location.status === 'Published' || item.location.status === 'Suspended');
-      console.log(eitherSuspendedOrPublished.length);
-      if (eitherSuspendedOrPublished.length > 0) {
+      if (eitherSuspendedOrPublished.length > 1 || !cid) {
         this.problematicLocations.push(eitherSuspendedOrPublished);
       }
     });
 
-    this.problematicLocations;
+    console.log(this.problematicLocations);
 
   }
 

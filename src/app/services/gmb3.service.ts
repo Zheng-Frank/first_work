@@ -6,12 +6,22 @@ import { GlobalService } from './global.service';
 import { AlertType } from '../classes/alert-type';
 import { GmbBiz } from '../classes/gmb/gmb-biz';
 import { Task } from '../classes/tasks/task';
+import { Helper } from '../classes/helper';
 @Injectable({
   providedIn: 'root'
 })
 export class Gmb3Service {
 
   constructor(private _api: ApiService, private _task: TaskService, private _global: GlobalService) {
+  }
+
+  async scanAccountsForLocations(emails: string[], stayAfterScan) {
+    // parallely requesting but we don't want to stop even some are failed.
+    const promises = emails.map(email => new Promise((resolve, reject) => {
+      this.scanOneAccountForLocations(email, stayAfterScan).then(resolve).catch(resolve);
+    }));
+
+    return await Promise.all(promises);
   }
 
   async scanOneAccountForLocations(email, stayAfterScan) {
@@ -41,7 +51,7 @@ export class Gmb3Service {
     // match locations back! using appealId???
     const newLocations = scannedLocations.filter(loc => !(account.locations || []).some(loc2 => loc2.appealId === loc.appealId));
     const oldLocations = (account.locations || []).filter(loc1 => scannedLocations.some(loc2 => loc2.appealId === loc1.appealId));
-    const removedLocations = (account.locations || []).filter(loc1 => loc1.status !== 'Removed' && !scannedLocations.some(loc2 => loc2.appealId === loc1.appealId));
+    const removedLocations = (account.locations || []).filter(loc1 => !scannedLocations.some(loc2 => loc2.appealId === loc1.appealId));
 
     // push all new locations (add a statusHistory!)
     newLocations.map(loc => {
@@ -197,7 +207,7 @@ export class Gmb3Service {
         console.log(account.email);
         console.log(gmbBizList);
         console.log(item);
-        // throw 'NOT MATCHED ANYTHING'
+        throw 'NOT MATCHED ANYTHING'
       }
       item.gmbBizId = matchedBiz._id;
       item.cid = matchedBiz.cid;
@@ -222,7 +232,6 @@ export class Gmb3Service {
       this._global.publishAlert(AlertType.Danger, 'Not matched requests: ' + nonMatchedItems.length);
       console.log(nonMatchedItems);
     }
-
     await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [
       {
         old: { _id: account._id },
@@ -230,7 +239,6 @@ export class Gmb3Service {
       }
     ]).toPromise();
     console.log('updated emailScannedAt for ' + account.email);
-
     return newItems;
 
   }
@@ -349,9 +357,12 @@ export class Gmb3Service {
 
     // parallelly requesting
     const allRequests = gmbBizList.map(gmbBiz => this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: 'K' }).toPromise());
-    const crawledResults = await Promise.all(allRequests);
 
-    const patchPairs = crawledResults.map((crawledResult, index) => {
+    const crawledResults = await Helper.processBatchedPromises(allRequests);
+
+    const patchPairs = crawledResults.map((result, index) => {
+
+      const crawledResult = result.result || {};
       const gmbBiz = gmbBizList[index];
       // except cid because we'd like to have scan account's cid instead?
       const kvps = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
@@ -361,7 +372,7 @@ export class Gmb3Service {
         kvps.push({ key: 'qmenuWebsite', value: crawledResult['gmbWebsite'] });
       }
 
-      if (crawledResult.cid !== gmbBiz.cid) {
+      if (crawledResult.cid && crawledResult.cid !== gmbBiz.cid) {
         kvps.push({ key: 'cidmismatch', value: true });
       }
 
@@ -390,21 +401,23 @@ export class Gmb3Service {
 
     // parallelly requesting
     const allRequests = restaurants.map(r => this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: r.name + " " + r.googleAddress.formatted_address }).toPromise());
-    const crawledResults = await Promise.all(allRequests);
-    crawledResults.map(result => result['crawledAt'] = new Date());
+    const results = await Helper.processBatchedPromises(allRequests);
 
-    const patchPairs = restaurants.map((r, index) => ({
-      old: { _id: r._id },
-      new: { _id: r._id, googleListing: crawledResults[index] }
+    const goodResults = results.map((r, i) => ({ restaurant: restaurants[i], result: r.result, success: r.success })).filter(r => r.success);
+    goodResults.map(r => r.result.crawledAt = new Date());
+
+    const patchPairs = goodResults.map((r, index) => ({
+      old: { _id: r.restaurant._id },
+      new: { _id: r.restaurant._id, googleListing: r.result }
     }));
 
     await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", patchPairs).toPromise();
 
     restaurants.map((r, index) => {
       // update original
-      r.googleListing = crawledResults[index];
+      r.googleListing = results[index].result;
     });
-    return crawledResults;
+    return results;
   }
 
 
