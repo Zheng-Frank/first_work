@@ -29,8 +29,7 @@ export class Gmb2DashboardComponent implements OnInit {
     { title: '➀ Scan GMB Accounts', description: 'Retrieve all managed locations', loading: false, executeFunction: 'scanAllAccounts' },
     { title: '➁ Crawl Google Listings', description: 'Update to reflect latest google listing status', loading: false, executeFunction: 'crawlAllBiz' },
     { title: '➂ Sync GMB and Restaurant', description: 'Link restaurant and GMB locations', loading: false, executeFunction: 'injectRestaurantIds' },
-    { title: '➃ Inject Restaurant Scores', description: 'Evaluate each restaurant and assign a score value', loading: false, executeFunction: 'injectScores' },
-    { title: '➄ Scan Account Emails', description: 'Get all ownership requests', loading: false, executeFunction: 'scanAllEmails' }]
+        { title: '➄ Scan Account Emails', description: 'Get all ownership requests', loading: false, executeFunction: 'scanAllEmails' }]
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _gmb3: Gmb3Service) {
     this.refresh();
@@ -248,76 +247,6 @@ export class Gmb2DashboardComponent implements OnInit {
         );
       }
     )).toPromise();
-  }
-
-  async injectScores() {
-    // grab ALL restaurant --> loop through each to get last 1000 orders --> calculate a score
-    const bizList = await this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbBiz",
-      query: {
-        qmenuId: { $exists: 1 },
-        score: { $exists: 0 }
-      },
-      projection: {
-        qmenuId: 1,
-        name: 1,
-        score: 1
-      },
-      limit: 5000
-    }).toPromise();
-
-    // skip those with score 4+
-    for (let biz of bizList) {
-      try {
-        let t = await this.injectOneScore(biz);
-        console.log('updated: ' + biz.name + ', score = ' + biz.score);
-      }
-      catch (error) {
-        console.log(error);
-      }
-    }
-  }
-
-  async injectOneScore(biz) {
-
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "order",
-      query: {
-        restaurant: {
-          $oid: biz.qmenuId
-        }
-      },
-      projection: {
-        createdAt: 1
-      },
-      sort: { createdAt: -1 },
-      limit: 1000
-    }).toPromise();
-    const score = this.getScore(orders);
-    // update biz's score
-    biz.score = score;
-    return this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", [
-      {
-        old: {
-          _id: biz._id
-        },
-        new: {
-          _id: biz._id,
-          score: score
-        }
-      }
-    ]).toPromise();
-  }
-
-  private getScore(orders) {
-    // counting days with orders (having gmbs?) and do an average
-    const dateMap = {};
-    // "2018-08-10T00:26:03.990Z" ==> "Thu Aug 09 2018"
-    orders.map(order => {
-      const key = new Date(order.createdAt).toDateString();
-      dateMap[key] = dateMap[key] ? dateMap[key] + 1 : 1;
-    });
-    return Math.floor(orders.length / (Object.keys(dateMap).length || 1));
   }
 
   async scanAllEmails() {

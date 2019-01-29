@@ -11,6 +11,7 @@ import { mergeMap } from "rxjs/operators";
 import { GlobalService } from './global.service';
 import { AlertType } from '../classes/alert-type';
 import { Helper } from '../classes/helper';
+import { Restaurant } from '@qmenu/ui';
 
 @Injectable({
   providedIn: 'root'
@@ -19,76 +20,6 @@ export class GmbService {
 
   constructor(private _api: ApiService, private _task: TaskService, private _global: GlobalService) {
   }
-
-  async getInvalidTransferTasks() {
-    const oldTransferDate = new Date();
-    oldTransferDate.setDate(oldTransferDate.getDate() - 30);
-
-    const oldRunningTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Transfer GMB Ownership',
-        createdAt: { $lt: { $date: oldTransferDate } },
-        result: null
-      },
-      limit: 1000
-    }).toPromise();
-
-    console.log('old running tasks: ', oldRunningTransferTasks);
-
-    const myAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      projection: {
-        email: 1
-      },
-      limit: 2000
-    }).toPromise();
-
-    const myEmails = new Set(myAccounts.map(a => a.email));
-    // no non-self requests after first requests!
-    const latestDate = new Date();
-    latestDate.setDate(latestDate.getDate() - 45);
-    const latestRequests = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbRequest',
-      query: {
-        date: {
-          $gt: { $date: latestDate }
-        }
-      },
-      projection: {
-        email: 1,
-        gmbAccountId: 1,
-        gmbBizId: 1
-      },
-      limit: 10000
-    }).toPromise();
-
-    // const bizAccountIdRequestMap = {};
-    // latestRequests.map(request => bizAccountIdRequestMap[request.gmbBiz + request.gmbAccountId] = request);
-
-    // find 30 days transfer but with no new requests!
-
-    const requestsWithoutSubsequentRequests = oldRunningTransferTasks.filter(task => {
-      const theRequest = latestRequests.filter(r => r._id === task.relatedMap.gmbRequestId)[0];
-      if (theRequest) {
-        const relevantRequests = latestRequests.filter(r => new Date(r.date) > new Date(theRequest.date) && r.gmbAccountId === task.relatedMap.gmbAccountId && r.gmbBizId === task.relatedMap.gmbBizId);
-        const competitorsRequests = relevantRequests.filter(r => !myEmails.has(r.email));
-        return competitorsRequests.length === 0;
-      }
-    });
-
-    console.log('requestsWithoutSubsequentRequests: ', requestsWithoutSubsequentRequests);
-
-    const requestsWithoutSubsequentRequestsWithoutCode = requestsWithoutSubsequentRequests.filter(r => !r.transfer || !r.transfer.code);
-    console.log('requestsWithoutSubsequentRequestsWithoutCode', requestsWithoutSubsequentRequestsWithoutCode);
-
-    // over 30 days, still no code, not lost yet --> close???
-
-    const requestsWithoutSubsequentRequestsWithCode = requestsWithoutSubsequentRequests.filter(r => r.transfer && r.transfer.code);
-    console.log('requestsWithoutSubsequentRequestsWithCode', requestsWithoutSubsequentRequestsWithCode);
-
-  }
-
 
   async scanAccountEmails(gmbAccount: GmbAccount, stayAfterScan?) {
     let password = gmbAccount.password;
@@ -339,51 +270,6 @@ export class GmbService {
         stayAfterScan: stayAfterScan
       }
     ).toPromise();
-  }
-
-
-
-  async injectOneScore(biz: GmbBiz) {
-
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "order",
-      query: {
-        restaurant: {
-          $oid: biz.qmenuId
-        }
-      },
-      projection: {
-        createdAt: 1
-      },
-      sort: { createdAt: -1 },
-      limit: 100
-    }).toPromise();
-    const score = this.getScore(orders);
-    // update biz's score
-    biz.score = score;
-    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", [
-      {
-        old: {
-          _id: biz._id
-        },
-        new: {
-          _id: biz._id,
-          score: score
-        }
-      }
-    ]).toPromise();
-    return score;
-  }
-
-  private getScore(orders) {
-    // counting days with orders (having gmbs?) and do an average
-    const dateMap = {};
-    // "2018-08-10T00:26:03.990Z" ==> "Thu Aug 09 2018"
-    orders.map(order => {
-      const key = new Date(order.createdAt).toDateString();
-      dateMap[key] = dateMap[key] ? dateMap[key] + 1 : 1;
-    });
-    return Math.floor(orders.length / (Object.keys(dateMap).length || 1));
   }
 
   async suggestQmenu(gmbBiz: GmbBiz) {

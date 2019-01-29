@@ -7,6 +7,7 @@ import { zip, Observable, from } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
+import { Gmb3Service } from "src/app/services/gmb3.service";
 
 @Component({
   selector: "app-db-scripts",
@@ -15,7 +16,7 @@ import { Invoice } from "../../../classes/invoice";
 })
 export class DbScriptsComponent implements OnInit {
   removingOrphanPhones = false;
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() { }
 
@@ -2050,139 +2051,115 @@ zealrestaurant.us`;
 
   }
 
+  async injectRestaurantScores() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        updatedAt: 1
+      },
+      limit: 6000,
+      sort: {
+        updatedAt: 1
+      }
+    }).toPromise();
 
-  async migrateGmbOwnerships() {
+    // restaurants.length = 10;
+    console.log(restaurants)
+    for (let r of restaurants) {
+      const score = await this._gmb3.injectRestaurantScore(r);
+      console.log(score, r.name);
+    }
 
-    // // inject, one time, statusHistory from appealId of gmbBiz (using cid && appealId)
+  }
+
+  async migrateGmbBizToRestaurants() {
+    // match using gmbBiz -> restaurant
+    //  - cid (restaurant.googleListing.cid <-> gmbBiz.cid)
+    //  - using qemenuId
+    // what about non-matched??? just leave it???
+    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Email', 'qmenuPop3Host', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest', 'disableAutoTask'];
+
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
-        cid: 1,
-        appealId: 1,
-        accounts: 1,
-        address: 1,
-        cuisine: 1,
+        gmbOwnerships: 0,
+        accounts: 0
+      },
+      limit: 6000
+    }).toPromise();
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        disabled: 1,
         name: 1,
-        phone: 1,
-        place_id: 1
+        googleListing: 1,
+        listings: 1,
+        ...migrateFields.reduce((obj, field) => (obj[field] = 1, obj), {})
       },
       limit: 6000
     }).toPromise();
 
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccountsWithLocations = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
-      projection:
-      {
-        locations: 1,
-        email: 1
+      query: {
+        locations: { $exists: 1 }
       },
-      limit: 5000
+      projection: {
+        email: 1,
+        locations: 1
+      },
+      limit: 6000
     }).toPromise();
 
-    gmbBizList.map(biz => (biz.accounts || []).map(bizAccount => {
-      if (biz.cid === '6507921322369370533') {
+    const cidMap = {};
+    gmbBizList.map(biz => {
+      cidMap[biz.cid] = cidMap[biz.cid] || {};
+      cidMap[biz.cid].gmbBizList = cidMap[biz.cid].gmbBizList || [];
+      cidMap[biz.cid].gmbBizList.push(biz);
+    });
 
-        const matchedAccount = gmbAccounts.filter(a => a.email === bizAccount.email)[0];
-
-        const matchedLocation = matchedAccount.locations.filter(loc => loc.cid === biz.cid)[0];
-        console.log(matchedLocation);
-
-        if (matchedLocation) {
-          matchedLocation.statusHistory.push(...bizAccount.history);
-        } else {
-          console.log('else')
-          matchedAccount.locations.push({
-            name: biz.name,
-            address: biz.address,
-            cid: biz.cid,
-            appealId: biz.appealId,
-            statusHistory: bizAccount.history || [],
-            place_id: biz.place_id,
-            phone: biz.phone,
-            cuisine: biz.cuisine
-          });
-        }
-      }
+    gmbAccountsWithLocations.map(account => account.locations.map(loc => {
+      cidMap[loc.cid] = cidMap[loc.cid] || {};
+      cidMap[loc.cid].accountLocations = cidMap[loc.cid].accountLocations || [];
+      cidMap[loc.cid].accountLocations.push({ account: account, location: loc });
     }));
 
-
-    // reorg account
-
-    gmbAccounts.map(account => account.locations.map(loc => {
-      // remove Lost, Removed since it will be generated
-      loc.statusHistory = loc.statusHistory.filter(h => h.status !== 'Lost' && h.status !== 'Removed');
-      loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
-
-      for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
-        if (loc.statusHistory[i].status === loc.statusHistory[i - 1].status) {
-          loc.statusHistory.splice(i, 1);
-        }
+    restaurants.map(r => {
+      if (r.googleListing && r.googleListing.cid) {
+        cidMap[r.googleListing.cid] = cidMap[r.googleListing.cid] || {};
+        cidMap[r.googleListing.cid].restaurants = cidMap[r.googleListing.cid].restaurants || [];
+        cidMap[r.googleListing.cid].restaurants.push(r);
       }
-      // sort DESC
-      loc.statusHistory.sort((h1, h2) => new Date(h2.time).valueOf() - new Date(h1.time).valueOf());
+    });
 
-      // assign latest status back to loc itself
-      loc.status = loc.statusHistory[0].status;
+    const duplicatedGmbBizList = Object.keys(cidMap).filter(k => cidMap[k].gmbBizList && cidMap[k].gmbBizList.length > 1).map(k => cidMap[k].gmbBizList);
+    console.log('duplicatedGmbBizList', duplicatedGmbBizList);
 
-      // debug
-      if (loc.cid === '6507921322369370533') {
-        console.log(account.email);
-        console.log(loc);
-      }
-    }));
+    const duplicatedAccountLocations = Object.keys(cidMap).filter(k => cidMap[k].accountLocations && cidMap[k].accountLocations.length > 1).map(k => cidMap[k].accountLocations);
+    console.log('duplicatedAccountLocations', duplicatedAccountLocations);
+
+    const duplicatedRestaurants = Object.keys(cidMap).filter(k => cidMap[k].restaurants && cidMap[k].restaurants.length > 1).map(k => cidMap[k].restaurants);
+    console.log('duplicatedRestaurants', duplicatedRestaurants);
 
 
+    // const notMatchedBizList = [];
+    // const matchedBizList = [];
 
-    // // appealId + cid + email matched -> 
-
-
-    // let updatedAccounts = [];
-    // gmbAccounts.map(account => (account.locations || []).map(loc => {
-    //   const matchedBiz = gmbBizList.filter(biz => loc.cid && loc.cid === biz.cid)[0];
-    //   console.log(account.email)
-
-    //   const matchedBizAccount = ((matchedBiz || {}).accounts || []).filter(acct => acct.email === account.email)[0];
-    //   const matchedBizAccountHistory = (matchedBizAccount || {}).history || [];
-    //   if (matchedBizAccountHistory.length > 0) {
-    //     console.log('before', JSON.stringify(loc.statusHistory));
-    //     updatedAccounts.push(account);
-    //     matchedBizAccountHistory.map(h => {
-    //       loc.statusHistory.push(h);
-    //     });
-
-    //     // remove Lost, Removed since it will be generated
-    //     loc.statusHistory = loc.statusHistory.filter(h => h.status !== 'Lost' && h.status !== 'Removed');
-    //     loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
-
-    //     for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
-    //       if (loc.statusHistory[i].status === loc.statusHistory[i - 1].status) {
-    //         loc.statusHistory.splice(i, 1);
-    //       }
-    //     }
-    //     // sort DESC
-    //     loc.statusHistory.sort((h1, h2) => new Date(h2.time).valueOf() - new Date(h1.time).valueOf());
-    //     // assign latest status back to loc itself
-    //     loc.status = loc.statusHistory[0].status;
+    // gmbBizList.map(biz => {
+    //   const matchedRestaurants = restaurants.filter(r => r._id === biz.qmenuId || (r.googleListing && r.googleListing.cid === biz.cid));
+    //   if (matchedRestaurants.length > 0) {
+    //     matchedBizList.push(biz);
+    //   } else {
+    //     notMatchedBizList.push(biz);
     //   }
+    // });
 
-    // }));
-
-    // updatedAccounts = [...new Set(updatedAccounts)];
-
-    for (let account of gmbAccounts) {
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [{
-        old: {
-          _id: account._id
-        },
-        new: {
-          _id: account._id, locations: account.locations
-        }
-      }]).toPromise();
-    }
+    // console.log('matchedBizList', matchedBizList);
+    // console.log('notMatchedBizList', notMatchedBizList);
 
 
   }
-
 
 }
 

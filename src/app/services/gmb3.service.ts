@@ -7,12 +7,55 @@ import { AlertType } from '../classes/alert-type';
 import { GmbBiz } from '../classes/gmb/gmb-biz';
 import { Task } from '../classes/tasks/task';
 import { Helper } from '../classes/helper';
+import { Restaurant } from '@qmenu/ui';
 @Injectable({
   providedIn: 'root'
 })
 export class Gmb3Service {
 
   constructor(private _api: ApiService, private _task: TaskService, private _global: GlobalService) {
+  }
+
+  async injectRestaurantScore(restaurant: Restaurant) {
+
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        restaurant: {
+          $oid: restaurant._id
+        }
+      },
+      projection: {
+        createdAt: 1
+      },
+      sort: { createdAt: -1 },
+      limit: 200
+    }).toPromise();
+    const score = this.getScore(orders);
+    // update restaurant's score
+    await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+      {
+        old: {
+          _id: restaurant._id
+        },
+        new: {
+          _id: restaurant._id,
+          score: score
+        }
+      }
+    ]).toPromise();
+    return score;
+  }
+
+  private getScore(orders) {
+    // counting days with orders (having gmbs?) and do an average
+    const dateMap = {};
+    // "2018-08-10T00:26:03.990Z" ==> "Thu Aug 09 2018"
+    orders.map(order => {
+      const key = new Date(order.createdAt).toDateString();
+      dateMap[key] = dateMap[key] ? dateMap[key] + 1 : 1;
+    });
+    return Math.floor(orders.length / (Object.keys(dateMap).length || 1));
   }
 
   async scanAccountsForLocations(emails: string[], stayAfterScan) {
