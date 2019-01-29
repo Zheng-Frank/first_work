@@ -1,0 +1,23 @@
+<h1 class="text-center">Restaurants with Bad Menu Hours</h1>
+<div *ngIf="rows.length === 0">Not found</div>
+<table class="table">
+    <tr>
+        <th>Restaurant</th>
+        <th>Bad Menu Hours</th>
+    </tr>
+    <tr *ngFor="let row of rows; let i = index" class="{{row.restaurant.disabled ? 'app-strike' : ''}}">
+        <td>
+            <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+            <div class="text-muted">
+                <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
+            </div>
+        </td>
+        <td>
+            <div *ngFor="let badItem of row.badMenuAndHours">
+                {{badItem.menu.name}}
+                <q-hours-viewer [offsetToEST]="row.restaurant.offsetToEST" [hours]="[badItem.hour]"></q-hours-viewer>
+            </div>
+        </td>
+    </tr>
+
+</table>

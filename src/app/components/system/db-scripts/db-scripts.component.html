@@ -199,12 +199,18 @@
             <button class="btn btn-primary" (click)="computeBonuse()">Execute</button>
         </div>
     </div>
-
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Migrate gmbOwnerships to accounts</h5>
-            <p class="card-text">Migrate existing gmbOwnerships info into new structure accounts</p>
-            <button class="btn btn-primary" (click)="migrateGmbOwnerships()">Execute</button>
+            <h5 class="card-title">Compute and Inject Restaurant Scores</h5>
+            <p class="card-text">Recalculate every restaurant's score and save it to restaurant object</p>
+            <button class="btn btn-primary" (click)="injectRestaurantScores()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Migrate gmbBiz to restaurants</h5>
+            <p class="card-text">Migrate existing gmbBiz to restaurants. Can run multiple-times.</p>
+            <button class="btn btn-primary" (click)="migrateGmbBizToRestaurants()">Execute</button>
         </div>
     </div>
 </div>
