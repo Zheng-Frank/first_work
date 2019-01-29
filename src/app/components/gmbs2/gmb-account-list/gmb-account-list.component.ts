@@ -215,6 +215,20 @@ export class GmbAccountListComponent implements OnInit {
     }
   }
 
+  async login(event: FormEvent) {
+    try {
+      let results: any = await this._gmb3.loginEmailAccount(event.object.email, true);
+      event.acknowledge(null);
+      this._global.publishAlert(AlertType.Success, 'Scanned ' + event.object.email + ', found: ' + results.length);
+    }
+    catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error scanning ' + event.object.email);
+      event.acknowledge(error);
+    }
+  }
+
+
   isProcessing(gmbAccount) {
     return this.processingGmbAccountSet.has(gmbAccount);
   }

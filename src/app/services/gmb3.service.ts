@@ -286,6 +286,29 @@ export class Gmb3Service {
 
   }
 
+  async loginEmailAccount(email, stayAfterScan){
+    const account = (await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        email: email
+      },
+      projection: {
+        password: 1,
+        email: 1,
+        locations: 1
+      },
+      limit: 1
+    }).toPromise())[0];
+
+    
+    let password = account.password;
+
+    if (password.length > 20) {
+      password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
+    }
+    await this._api.post(environment.autoGmbUrl + 'login', { email: account.email, password: password, stayAfterScan: stayAfterScan }).toPromise();
+
+  }
   async computePostcardTasksThatJustLost() {
     // transfer tasks that are NOT in original accounts anymore!
     const runningTransferTasksWithCode = await this._api.get(environment.adminApiUrl + 'generic', {

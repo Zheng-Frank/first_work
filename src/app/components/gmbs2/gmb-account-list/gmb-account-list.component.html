@@ -47,7 +47,7 @@
 </div>
 <div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
   <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)" (scanRequests)="scanRequests($event)"
-    (scanBizList)="scanBizList($event)"></app-gmb-card2>
+    (scanBizList)="scanBizList($event)" (login)="login($event)"></app-gmb-card2>
 </div>
 
 <!--the editing modal-->
