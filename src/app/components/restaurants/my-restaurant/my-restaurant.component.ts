@@ -202,7 +202,7 @@ export class MyRestaurantComponent implements OnInit {
     });
 
 
-    let invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let invoices = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         isCanceled: { $ne: true }
@@ -218,13 +218,34 @@ export class MyRestaurantComponent implements OnInit {
         previousBalance: 1
       },
       limit: 200000
-    }).toPromise();
+    }).toPromise()).map(i => new Invoice(i));
     invoices = invoices.filter(i => !i.isCanceled).filter(i => restaurantRowMap[i.restaurant.id]);
-    invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(new Invoice(i)));
+    invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(i));
 
     this.rolledInvoiceIdsSet = new Set(invoices.filter(invoice => invoice.previousInvoiceId).map(invoice => invoice.previousInvoiceId));
-    this.rows.map(row => row.collected = row.invoices.filter(i => i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
-    this.rows.map(row => row.notCollected = row.invoices.filter(i => !i.isPaymentCompleted).reduce((sum, invoice) => sum + (this.rolledInvoiceIdsSet.has(invoice._id) ? 0 : invoice.commission), 0));
+
+    // make invoice as finally collected (if an invoice's paid, its rolled ancestors are also paid):
+    const markAncestorsAsCollected = function (invoice, invoices) {
+      if (invoice.previousInvoiceId) {
+        const previousInvoice = invoices.filter(i => i._id === invoice.previousInvoiceId)[0];
+        if (previousInvoice) {
+          previousInvoice.paid = true;
+          markAncestorsAsCollected(previousInvoice, invoices);
+        } else {
+          console.log('Not found previous invoice!', invoice);
+        }
+      }
+    }
+
+    invoices.map(invoice => {
+      if (invoice.isPaymentCompleted) {
+        invoice.paid = true;
+        markAncestorsAsCollected(invoice, invoices);
+      }
+    });
+
+    this.rows.map(row => row.collected = row.invoices.reduce((sum, invoice) => sum + (invoice.paid ? invoice.commission : 0), 0));
+    this.rows.map(row => row.notCollected = row.invoices.reduce((sum, invoice) => sum + (invoice.paid ? 0 : invoice.commission), 0));
 
     this.rows.map(row => {
       row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
