@@ -14,6 +14,7 @@ export class GmbAccount {
     suspended: number;
     pagerSize: number;
     comments: string;
+    type:string;
     locations: GmbLocation []; 
     constructor(gmb?: any) {
         if (gmb) {

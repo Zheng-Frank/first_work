@@ -21,6 +21,7 @@ export class GmbAccountListComponent implements OnInit {
 
   gmbInEditing: GmbAccount = new GmbAccount();
   apiError = undefined;
+  type;
 
   scanningAll = false;
 
@@ -40,6 +41,18 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   async populate() {
+    const bizList = await this._api.get(environment.adminApiUrl + "generic", {
+      resource: "gmbBiz",
+      projection: {
+        "gmbOwnerships.email": 1,
+        "gmbOwnerships.status": 1,
+        "phone": 1,
+        "type": 1,
+        "address": 1,
+        "name": 1
+      },
+      limit: 5000
+    }).toPromise();
 
     const accountList = await this._api.get(environment.adminApiUrl + "generic", {
       resource: "gmbAccount",
@@ -83,6 +96,9 @@ export class GmbAccountListComponent implements OnInit {
         a.locations.some(loc => loc.status !== 'Removed' && loc.name.toLowerCase().startsWith(this.searchFilter.toLowerCase())) ||
         (a.email || '').toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0);
     }
+    if(this.type&& this.type!='All'){
+      this.filteredGmbAccounts=this.filteredGmbAccounts.filter(each=> each.type=== this.type)
+    }
   }
 
   addNew() {
@@ -103,7 +119,9 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   async done(event: FormEvent) {
+
     const gmb = event.object as GmbAccount;
+    console.log('gmb', gmb);
     this.apiError = undefined;
 
     const oldGmb = {
@@ -113,6 +131,7 @@ export class GmbAccountListComponent implements OnInit {
     const updatedGmb = {
       _id: gmb._id,
       email: gmb.email.toLowerCase().trim(),
+      type: gmb.type,
       comments: gmb.comments
     } as any;
 
@@ -155,8 +174,9 @@ export class GmbAccountListComponent implements OnInit {
       ids: [gmb._id]
     }).subscribe(
       result => {
-        event.acknowledge(null);
+        event.acknowledge(null);        
         this.gmbAccounts = this.gmbAccounts.filter(g => g.email !== gmb.email);
+        this.filterGmbAccounts();
         this.gmbEditingModal.hide();
       },
       error => {

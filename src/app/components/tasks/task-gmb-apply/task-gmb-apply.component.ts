@@ -52,7 +52,14 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
   dropdownVisible = false;
 
+  withinDays=30;
+  requestLimitPerDay=5;
+  requestLimitPerMonth=20;
+
   constructor(private _api: ApiService, private _global: GlobalService) {
+
+    const within1Day = new Date();
+    within1Day.setDate(within1Day.getDate() - 1);
 
     // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
     zip(
@@ -68,31 +75,81 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         resource: "gmbAccount",
         projection: {
           email: 1,
+          type: 1,
           allLocations: 1
         },
         limit: 5000
+      }),
+      this._api.get(environment.adminApiUrl + "generic", {
+        resource: "task",
+        query: {
+          "transfer.toEmail": {
+            "$exists": true
+          }
+        },
+        projection: {
+          'transfer.toEmail': 1,
+          'transfer.requestedAt': 1
+        },
+        limit: 5000
       })
+
     )
       .subscribe(
-        results => {
-          const accountMap = {};
-          results[1].map(a => {
-            accountMap[a.email] = a;
-          });
-          results[0].map(biz => {
-            if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
-              const email = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
-              if (accountMap[email]) {
-                accountMap[email].bizCount = (accountMap[email].bizCount || 0) + 1;
+      results => {
+        const accountMap = {};
+        results[1].map(a => {
+          accountMap[a.email] = a;
+        });
+        results[0].map(biz => {
+          if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
+            const email = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
+            if (accountMap[email]) {
+              accountMap[email].bizCount = (accountMap[email].bizCount || 0) + 1;
+            }
+          }
+        });
+
+        
+
+        results[2].map(task =>{
+          if (accountMap[task.transfer.toEmail]) { 
+
+
+            
+          /* 
+          Filter out the email have sent certain number of requests within certain days
+          Currently,let only 5 request per email per day and 20 requests per email in 30 days
+          */
+            let today= new Date();
+            if(task.transfer.requestedAt){
+              let dateDiff=(today.getTime() - new Date(task.transfer.requestedAt).getTime())/(1000*60*60*24.0);
+              if(dateDiff<this.withinDays+1){
+                accountMap[task.transfer.toEmail].requestCountPerMonth= (accountMap[task.transfer.toEmail].requestCountPerMonth || 0) +1;
+              }
+              if(dateDiff<2){
+                accountMap[task.transfer.toEmail].requestCountPerDay= (accountMap[task.transfer.toEmail].requestCountPerDay || 0) +1;
               }
             }
-          });
 
-          this.accounts = results[1].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, error);
-        }
+
+          }
+        })
+
+        console.log('accountMap', accountMap);
+
+        this.accounts = results[1].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
+        //Filter out the email account which exceed the request limit within the pre-defined days
+        this.accounts = this.accounts
+        .filter(each=>  (each.requestCountPerDay || 0 )<= this.requestLimitPerDay )
+        .filter(each=>  (each.requestCountPerMonth || 0 )<= this.requestLimitPerMonth )
+
+
+        console.log(' this.accounts',  this.accounts);
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, error);
+      }
       );
 
     // to refresh 'now' every minute
@@ -105,10 +162,11 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   }
 
   getFilteredAccounts() {
+    console.log(this.accounts);
     if (this.transfer) {
-      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
+      return this.accounts.filter(a => a.type === "Apply GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
     }
-    return this.accounts;
+    return this.accounts.filter(a => a.type === "Apply GMB");
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -467,7 +525,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             error => {
               reject(error);
             }
-          );
+            );
           break;
         case 'reject':
           this._api.get(environment.adminApiUrl + "generic",
@@ -497,7 +555,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             error => {
               reject(error);
             }
-          );
+            );
           break;
 
         case 'appeal':
@@ -541,7 +599,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             error => {
               reject(error);
             }
-          );
+            );
           break;
 
         case 'verify':
@@ -573,7 +631,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             error => {
               reject(error);
             }
-          );
+            );
           break;
 
         case 'updateWebsite':
@@ -621,7 +679,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             error => {
               reject(error);
             }
-          );
+            );
           break;
         case 'failed':
         case 'canceled':
@@ -783,21 +841,21 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
     this._api
       .patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
       .subscribe(
-        result => {
-          this._global.publishAlert(AlertType.Success, 'Updated Task');
-          // let's mutate task, we need to be careful about transfer
-          Object.keys(newTask).map(k => {
-            if (k === 'transfer') {
-              Object.keys(newTask.transfer).map(kt => this.task.transfer[kt] = (newTask.transfer[kt] || {})['$date'] || newTask.transfer[kt]);
-            } else {
-              this.task[k] = (newTask[k] || {})['$date'] || newTask[k];
-            }
-          });
+      result => {
+        this._global.publishAlert(AlertType.Success, 'Updated Task');
+        // let's mutate task, we need to be careful about transfer
+        Object.keys(newTask).map(k => {
+          if (k === 'transfer') {
+            Object.keys(newTask.transfer).map(kt => this.task.transfer[kt] = (newTask.transfer[kt] || {})['$date'] || newTask.transfer[kt]);
+          } else {
+            this.task[k] = (newTask[k] || {})['$date'] || newTask[k];
+          }
+        });
 
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, 'Error Updating Task :(');
-        }
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, 'Error Updating Task :(');
+      }
       );
   }
 
@@ -828,7 +886,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         error => {
           this._global.publishAlert(AlertType.Danger, 'Error saving email');
         }
-      );
+        );
     }
   }
 

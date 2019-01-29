@@ -31,7 +31,14 @@
     <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email or restaurant name"
       [(ngModel)]="searchFilter">
 
+    Type:
+    <select class="mr-5" [(ngModel)]="type" (change)="filterGmbAccounts()">
+        <option>All</option>
+        <option>Apply GMB</option>
+        <option>Transfer GMB</option>
+    </select>
   </div>
+  
   <div class="float-right">
 
     <button class="btn btn-primary" (click)="addNew()">

@@ -18,9 +18,10 @@
     <label class="mr-2"> Assignee:</label>
     <select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
         <option>Any</option>
+        <option *ngFor="let assignee of assigneeList">{{assignee}}</option>
     </select>
 </div>
-<option *ngFor="let assignee of assigneeList">{{assignee}}</option>
+
 
 <q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
     <tr *tableRowTemplate="let task;">

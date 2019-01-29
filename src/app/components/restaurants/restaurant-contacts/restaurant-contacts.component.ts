@@ -32,7 +32,7 @@ export class RestaurantContactsComponent implements OnInit {
   channelFieldDescriptors = [
     {
       field: "type", //
-      label: "Typpe",
+      label: "Type",
       required: true,
       inputType: "single-select",
       items: [

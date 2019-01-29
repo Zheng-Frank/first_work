@@ -33,6 +33,17 @@ export class GmbAccountEditorComponent implements OnInit, OnChanges {
         validate: this.isEmailValid
       },
       {
+        field: "type", //
+        label: "Type",
+        required: true,
+        inputType: "single-select",
+        items: [
+          { object: "Apply GMB", text: "Apply GMB", selected: false },
+          { object: "Transfer GMB", text: "Transfer GMB", selected: false }
+
+        ]
+      },
+      {
         field: "password", //
         label: "Password (leave blank, unless updating)",
         required: false,
