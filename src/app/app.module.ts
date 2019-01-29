@@ -130,6 +130,8 @@ import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/mo
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+import { MonitoringGmbComponent } from './components/monitoring/monitoring-gmb/monitoring-gmb.component';
+import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
@@ -246,7 +248,9 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     ImageManagerComponent,
     MonitoringOnboardingComponent,
     TaskBarComponent,
-    MonitoringDisabledRestaurantsComponent
+    MonitoringDisabledRestaurantsComponent,
+    MonitoringGmbComponent,
+    MonitoringHoursComponent
     
   ],
   imports: [

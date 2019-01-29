@@ -1,0 +1,40 @@
+<h1 class="text-center">Restaurants Listed By Score<br><small>{{filteredRows.length}}</small></h1>
+<label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="showOnlyBadGmb" (change)="filter()"> Only bad GMB ones</label>
+<label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="showOnlyDisabled" (change)="filter()"> Only disabled</label>
+
+<table class="table">
+    <tr>
+        <th>#</th>
+        <th>Restaurant</th>
+        <th>Score</th>
+        <th>Agent</th>
+        <th>GMB</th>
+        <th>Created</th>
+    </tr>
+    <tr *ngFor="let row of filteredRows; let i = index" class="{{row.restaurant.disabled ? 'app-strike' : ''}}">
+        <th>{{i + 1}}</th>
+        <td>
+            <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+            <div class="text-muted">
+                <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
+            </div>
+        </td>
+        <td>
+            {{row.restaurant.score}}
+        </td>
+        <td>
+            {{(row.restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}
+        </td>
+        <td>
+            <span *ngIf="!row.location?.status" class="text-danger">No Main</span>
+            <span *ngIf="row.location?.status && row.location?.status !== 'Published'" class="text-danger">{{row.location?.status}}</span>
+            <span *ngIf="row.location?.status === 'Published'" class="text-success">✓</span>
+        </td>
+        <td>
+            {{row.restaurant.createdAt | ago : now}}
+        </td>
+    </tr>
+
+</table>

@@ -524,12 +524,6 @@ export class GmbBizListComponent implements OnInit {
     }
   }
 
-  async injectScore(gmbBiz) {
-    const score = await this._gmb.injectOneScore(gmbBiz);
-    gmbBiz.score = score;
-    this._ref.detectChanges();
-  }
-
   async createApplyTask(gmbBiz: GmbBiz) {
     // first make sure there is no outstanding 
     const outstandingTasks = await this._api.get(environment.adminApiUrl + "generic", {
