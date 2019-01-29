@@ -2142,6 +2142,16 @@ zealrestaurant.us`;
     const duplicatedRestaurants = Object.keys(cidMap).filter(k => cidMap[k].restaurants && cidMap[k].restaurants.length > 1).map(k => cidMap[k].restaurants);
     console.log('duplicatedRestaurants', duplicatedRestaurants);
 
+    const qmenuIdBizListMap = {};
+    gmbBizList.map(biz => {
+      if (biz.qmenuId) {
+        qmenuIdBizListMap[biz.qmenuId] = qmenuIdBizListMap[biz.qmenuId] || [];
+        qmenuIdBizListMap[biz.qmenuId].push(biz);
+      }
+    });
+
+    const multipleBizList = Object.keys(qmenuIdBizListMap).filter(k => qmenuIdBizListMap[k].length > 1);
+    console.log(multipleBizList);
 
     // const notMatchedBizList = [];
     // const matchedBizList = [];

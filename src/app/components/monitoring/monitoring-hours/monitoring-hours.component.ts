@@ -34,24 +34,28 @@ export class MonitoringHoursComponent implements OnInit {
     this.rows = allRestaurants.map(r => {
       const badMenuAndHours = [];
       (r.menus || []).map(menu => (menu.hours || []).map(hour => {
-        const item = {
-          menu: menu,
-          hour: new Hour(hour)
-        };
 
         if (!hour) {
-          badMenuAndHours.push(item);
-          return {
-            restaurant: r,
-            badMenuAndHours: badMenuAndHours
+          const item = {
+            menu: menu
           };
+          badMenuAndHours.push(item);
         }
-        let timeDiff = new Date(hour.fromTime).valueOf() - new Date(hour.toTime).valueOf();
+        try {
+          let timeDiff = new Date(hour.fromTime).valueOf() - new Date(hour.toTime).valueOf();
 
-        if (timeDiff >= 0) {
-          badMenuAndHours.push(item)
+          if (timeDiff >= 0) {
+            badMenuAndHours.push({
+              menu: menu,
+              hour: new Hour(hour)
+            })
+          }
+        } catch (error) {
+          console.log(hour);
         }
+
       }));
+
       return {
         restaurant: r,
         badMenuAndHours: badMenuAndHours
