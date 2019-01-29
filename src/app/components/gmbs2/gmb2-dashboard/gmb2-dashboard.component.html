@@ -1,11 +1,11 @@
 <div id="action-panel" class="pt-2">
   <a class="btn btn-info btn-status mr-4" routerLink="/gmb-accounts">
     <span class="h3">GMB Accounts</span>
-    <hr>{{gmbAccounts.length}}
+    <hr>{{gmbAccounts.length}} <small>Published: {{publishedTotal}}, Suspended: {{suspendedTotal}}</small>
   </a>
   <button class="btn btn-success btn-status mr-4" routerLink="/gmb-businesses">
-    <span class="h3">Restaurants</span>
-    <hr>{{ownedGmbBizList.length}}/{{gmbBizList.length}}
+    <span class="h3">GMB Biz</span>
+    <hr>{{publishedTotal}}/{{gmbBizList.length}}
   </button>
   <button class="btn btn-warning btn-status mr-4" routerLink="/gmb-requests">
     <span class="h3">Monthly Requests</span>

@@ -1,8 +1,35 @@
 <h2 class="text-center">GMB: Accounts</h2>
+<div class="text-center">Published: {{publishedTotal}}, Suspended: {{suspendedTotal}}</div>
+<div class="alert alert-danger" *ngIf="problematicLocations.length > 0">
+  <h4>Problematic Locations</h4>
+  <table class="table">
+    <tr>
+      <th>Name</th>
+      <th>cid</th>
+      <th>Account</th>
+      <th>Status</th>
+    </tr>
+    <tr *ngFor="let item of problematicLocations">
+      <td rowspan="item.length">
+        <div *ngFor="let subitem of item">{{subitem.location.name}}</div>
+      </td>
+      <td>{{item[0].location.cid}}</td>
+      <td>
+        <div *ngFor="let subitem of item">
+          <app-gmb-account-hotlink [email]="subitem.account.email"></app-gmb-account-hotlink>
+        </div>
+      </td>
+      <td>
+        <div *ngFor="let subitem of item">{{subitem.location.status}}</div>
+      </td>
+    </tr>
+  </table>
+</div>
 <div class="clearfix my-2">
   <div class="float-left form-inline">
     Account Filter:
-    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email..." [(ngModel)]="searchFilter">
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email or restaurant name"
+      [(ngModel)]="searchFilter">
 
     Type:
     <select class="mr-5" [(ngModel)]="type" (change)="filterGmbAccounts()">

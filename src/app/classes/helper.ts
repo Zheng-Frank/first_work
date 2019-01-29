@@ -119,25 +119,38 @@ export class Helper {
         return originalUrl && environment.normalResUrl + this.getFileName(originalUrl);
     }
 
-    static areDomainsSame(url1, url2): boolean {
-        if (!url1 || !url2) {
-          return false;
+    static areDomainsSame(d1: string, d2: string): boolean {
+        if (!d1 || !d2) {
+            return false;
         }
-        url1 = url1.toLowerCase();
-        url2 = url2.toLowerCase();
-        if(!url1.startsWith('http')) {
-            url1 = 'http://' + url1;
+        // stripe remove things before / and after /
+        if (!d1.startsWith('http:') && !d1.startsWith('https:')) {
+            d1 = 'http://' + d1;
         }
-        
-        if(!url2.startsWith('http')) {
-            url2 = 'http://' + url2;
-        }
-        
-        const u1 = new URL(url1);
-        const u2 = new URL(url2);
 
-        const parts1 = u1.host.split('.');
-        const parts2 = u2.host.split('.');
-        return parts1[parts1.length - 2].toLowerCase() === parts2[parts2.length - 2].toLowerCase();
-      }
+        if (!d2.startsWith('http:') && !d2.startsWith('https:')) {
+            d2 = 'http://' + d2;
+        }
+
+        let host1 = new URL(d1).host;
+        let host2 = new URL(d2).host;
+        // treating www as nothing
+        if (!host1.startsWith('www.')) {
+            host1 = 'www.' + host1;
+        }
+        if (!host2.startsWith('www.')) {
+            host2 = 'www.' + host2;
+        }
+        return host1 === host2;
+    }
+
+    static processBatchedPromises(promises): any {
+        return Promise.all(promises.map(p => new Promise((resolve, reject) => {
+            p.then(data => {
+                resolve({ result: data, success: true });
+            }).catch(error => {
+                resolve({ result: error, success: false });
+            })
+        })));
+    }
 }

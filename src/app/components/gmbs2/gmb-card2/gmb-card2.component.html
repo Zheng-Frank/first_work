@@ -6,16 +6,22 @@
     <div class="clearfix">
       <div class="float-left">
         <h2>{{gmbAccount.email | emailName}}</h2>
-        <div *ngIf="gmbAccount.pagerSize !== 100" class="alert alert-danger">Bad Pager Size: {{gmbAccount.pagerSize}}. Please login the account and change the pager size to 100!</div>
+        <div *ngIf="gmbAccount.pagerSize !== 100" class="alert alert-danger">Bad Pager Size: {{gmbAccount.pagerSize}}.
+          Please login the account and change the pager size to 100!</div>
         <div *ngIf="gmbAccount.comments"><small>{{gmbAccount.comments}}</small></div>
         <span class="{{gmbAccount.allLocations > 95 ? 'bg-danger text-light' : ''}}" *ngIf="gmbAccount.allLocations">Total
           {{gmbAccount.allLocations}}, </span>
-        <span *ngIf="gmbAccount.suspended >= 0">Suspended: {{gmbAccount.suspended}}, </span>
-        <button class="btn btn-link fix-v-align">Published: {{getPublishedBizList(gmbAccount.bizList).length}} <i class="fas {{expandBizLis ? 'fa-caret-up' : 'fa-caret-down'}} "
-            (click)="expandBizLis = !expandBizLis"></i></button>
+        <span>Suspended: {{gmbAccount.suspended}}, Published: {{gmbAccount.published}}</span>
+        <button class="btn btn-link fix-v-align" (click)="expandBizLis = !expandBizLis">Details... <i class="fas {{expandBizLis ? 'fa-caret-up' : 'fa-caret-down'}} "></i></button>
 
         <div *ngIf="expandBizLis">
-          <div *ngFor="let biz of getPublishedBizList(gmbAccount.bizList)" class="mt-1">{{biz.name}} <small class="text-muted">{{biz.address}}</small></div>
+          <table class="table table-sm">
+            <tr *ngFor="let loc of gmbAccount.locations">
+              <td>{{loc.status}}</td>
+              <td [ngClass]="{'app-strike': loc.status ==='Removed', 'text-success' : loc.status === 'Published', 'text-warning' : loc.status === 'Suspended'}"><b>{{loc.name}}</b></td>
+              <td><small class="text-muted">{{loc.address}}</small></td>
+            </tr>
+          </table>
         </div>
       </div>
       <div class="float-right">

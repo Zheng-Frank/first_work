@@ -141,11 +141,12 @@
       Verify/Obtain New Ownership
     </label>
     <div class="alert alert-warning" *ngIf="transfer.verificationMethod === 'Postcard' && transfer.code">
-      Postcard Code: Only choose to input the code when <span class="badge badge-warning">{{transfer.fromEmail |
+      Only choose to input the code when it's showing '[rescheduled by system]' in comments.
+      <!-- Postcard Code: Only choose to input the code when <span class="badge badge-warning">{{transfer.fromEmail |
         emailName}}</span> lost ownership.
       <br>Current ownership status: <span class="badge badge-{{getLastAccountEmail() === transfer.fromEmail ? 'success' : 'danger'}}">
         {{getLastAccountEmail() ? ('Still Under ' + getLastAccountEmail()) : 'LOST'}}
-      </span>
+      </span> -->
     </div>
     <div *ngIf="!transfer.verifiedAt">
       <button class="btn btn-sm btn-info" [qLoading]="verifyingCode" [disabled]="!transfer.code" (click)="handleUpdate('verify', 'verifiedAt', 'verifyingCode')">Verify
