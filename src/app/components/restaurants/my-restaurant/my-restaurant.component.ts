@@ -136,6 +136,9 @@ export class MyRestaurantComponent implements OnInit {
 
   async populate() {
     const myUsername = this.username;
+
+    // get my restaurants, my invoices, and gmb (gmbBiz --> cids --> gmbAccount locations to get latest status)
+
     const myRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
@@ -173,36 +176,65 @@ export class MyRestaurantComponent implements OnInit {
       return row;
     });
 
+
     const gmbBizIdMap = {};
 
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
-        // project everything. get at least 2 ownerships to make sure we had qMenu
-        gmbOwnerships: { $slice: -2 },
         name: 1,
+        cid: 1,
         qmenuId: 1,
         gmbWebsite: 1,
         qmenuWebsite: 1,
-        gmbOpen: 1,
-        "gmbOwnerships.status": 1,
-        "gmbOwnerships.email": 1
+        gmbOpen: 1
       },
       limit: 6000
     }).toPromise();
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        locations: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const cidLocationMap = {};
+    gmbAccounts.map(acct => acct.locations.map(loc => {
+      cidLocationMap[loc.cid] = cidLocationMap[loc.cid] || {};
+      const gmbOnceOwned = loc.statusHistory.some(h => h.status === 'Published'); // || h.status === 'Suspended');
+      const statusOrder = ['Suspended', 'Published'];
+      const status = statusOrder.indexOf(cidLocationMap[loc.cid].status) > statusOrder.indexOf(loc.status) ? cidLocationMap[loc.cid].status : loc.status;
+
+      cidLocationMap[loc.cid].status = status;
+      cidLocationMap[loc.cid].gmbOnceOwned = cidLocationMap[loc.cid].gmbOnceOwned || gmbOnceOwned;
+
+    }));
+
     gmbBizList.map(gmbBiz => {
       if (gmbBiz.qmenuId && restaurantRowMap[gmbBiz.qmenuId]) {
         gmbBizIdMap[gmbBiz._id] = gmbBiz;
         const row = restaurantRowMap[gmbBiz.qmenuId];
-        row.gmbOnceOwned = row.gmbOnceOwned || (gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && (gmbBiz.gmbOwnerships.length > 1 || gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published'));
+        const location = cidLocationMap[gmbBiz.cid];
+
+        row.gmbOnceOwned = row.gmbOnceOwned || (location && location.gmbOnceOwned);
         row.gmbBiz = gmbBiz;
-        row.published = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published';
-        row.suspended = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Suspended';
+        row.published = location && location.status === 'Published';
+        row.suspended = location && location.status === 'Suspended';
+
+        if (!row.gmbOnceOwned && row.published) {
+          console.log(row)
+          throw 'ERRROR';
+        }
       }
     });
 
 
-    let invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let invoices = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         isCanceled: { $ne: true }
@@ -218,13 +250,34 @@ export class MyRestaurantComponent implements OnInit {
         previousBalance: 1
       },
       limit: 200000
-    }).toPromise();
+    }).toPromise()).map(i => new Invoice(i));
     invoices = invoices.filter(i => !i.isCanceled).filter(i => restaurantRowMap[i.restaurant.id]);
-    invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(new Invoice(i)));
+    invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(i));
 
     this.rolledInvoiceIdsSet = new Set(invoices.filter(invoice => invoice.previousInvoiceId).map(invoice => invoice.previousInvoiceId));
-    this.rows.map(row => row.collected = row.invoices.filter(i => i.isPaymentCompleted).reduce((sum, invoice) => sum + invoice.commission, 0));
-    this.rows.map(row => row.notCollected = row.invoices.filter(i => !i.isPaymentCompleted).reduce((sum, invoice) => sum + (this.rolledInvoiceIdsSet.has(invoice._id) ? 0 : invoice.commission), 0));
+
+    // make invoice as finally collected (if an invoice's paid, its rolled ancestors are also paid):
+    const markAncestorsAsCollected = function (invoice, invoices) {
+      if (invoice.previousInvoiceId) {
+        const previousInvoice = invoices.filter(i => i._id === invoice.previousInvoiceId)[0];
+        if (previousInvoice) {
+          previousInvoice.paid = true;
+          markAncestorsAsCollected(previousInvoice, invoices);
+        } else {
+          console.log('Not found previous invoice!', invoice);
+        }
+      }
+    }
+
+    invoices.map(invoice => {
+      if (invoice.isPaymentCompleted) {
+        invoice.paid = true;
+        markAncestorsAsCollected(invoice, invoices);
+      }
+    });
+
+    this.rows.map(row => row.collected = row.invoices.reduce((sum, invoice) => sum + (invoice.paid ? invoice.commission : 0), 0));
+    this.rows.map(row => row.notCollected = row.invoices.reduce((sum, invoice) => sum + (invoice.paid ? 0 : invoice.commission), 0));
 
     this.rows.map(row => {
       row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;

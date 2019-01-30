@@ -181,7 +181,8 @@ export class RestaurantGmbComponent implements OnInit {
 
   async createOrMatchMainGmb() {
     if(this.restaurant.disabled) {
-
+      alert('Disabled restaurant. Failed');
+      return;
     }
     this.apiRequesting = true;
 

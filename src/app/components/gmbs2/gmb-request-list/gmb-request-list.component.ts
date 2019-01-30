@@ -59,12 +59,13 @@ export class GmbRequestListComponent implements OnInit {
         gmbBizId: 1
       },
       sort: {
-        date: -1
+        createdAt: -1
       },
       limit: 6000
     }).toPromise();
 
     requests.map(req => req.date = new Date(req.date));
+    requests.sort((r1, r2) => r2.date.valueOf() - r1.date.valueOf());
 
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
