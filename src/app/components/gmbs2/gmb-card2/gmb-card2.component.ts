@@ -15,12 +15,14 @@ export class GmbCard2Component implements OnInit, OnChanges {
 
   @Output() edit: EventEmitter<any> = new EventEmitter();
   @Output() scanRequests: EventEmitter<any> = new EventEmitter();
+  @Output() login: EventEmitter<any> = new EventEmitter();
   @Output() scanBizList: EventEmitter<any> = new EventEmitter();
 
   now = new Date();
 
   scanningBizList = false;
   scanningRequests = false;
+  loginRequest = false;
 
   expandBizLis = false;
 
@@ -42,6 +44,16 @@ export class GmbCard2Component implements OnInit, OnChanges {
       object: this.gmbAccount,
       acknowledge: (error) => {
         this.scanningRequests = false;
+      }
+    });
+  }
+
+  clickLogin() {
+    this.loginRequest= true;
+    this.login.emit({
+      object: this.gmbAccount,
+      acknowledge: (error) => {
+        this.loginRequest = false;
       }
     });
   }
