@@ -136,6 +136,9 @@ export class MyRestaurantComponent implements OnInit {
 
   async populate() {
     const myUsername = this.username;
+
+    // get my restaurants, my invoices, and gmb (gmbBiz --> cids --> gmbAccount locations to get latest status)
+
     const myRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
@@ -173,31 +176,60 @@ export class MyRestaurantComponent implements OnInit {
       return row;
     });
 
+
     const gmbBizIdMap = {};
 
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
-        // project everything. get at least 2 ownerships to make sure we had qMenu
-        gmbOwnerships: { $slice: -2 },
         name: 1,
+        cid: 1,
         qmenuId: 1,
         gmbWebsite: 1,
         qmenuWebsite: 1,
-        gmbOpen: 1,
-        "gmbOwnerships.status": 1,
-        "gmbOwnerships.email": 1
+        gmbOpen: 1
       },
       limit: 6000
     }).toPromise();
+
+    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        locations: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const cidLocationMap = {};
+    gmbAccounts.map(acct => acct.locations.map(loc => {
+      cidLocationMap[loc.cid] = cidLocationMap[loc.cid] || {};
+      const gmbOnceOwned = loc.statusHistory.some(h => h.status === 'Published'); // || h.status === 'Suspended');
+      const statusOrder = ['Suspended', 'Published'];
+      const status = statusOrder.indexOf(cidLocationMap[loc.cid].status) > statusOrder.indexOf(loc.status) ? cidLocationMap[loc.cid].status : loc.status;
+
+      cidLocationMap[loc.cid].status = status;
+      cidLocationMap[loc.cid].gmbOnceOwned = cidLocationMap[loc.cid].gmbOnceOwned || gmbOnceOwned;
+
+    }));
+
     gmbBizList.map(gmbBiz => {
       if (gmbBiz.qmenuId && restaurantRowMap[gmbBiz.qmenuId]) {
         gmbBizIdMap[gmbBiz._id] = gmbBiz;
         const row = restaurantRowMap[gmbBiz.qmenuId];
-        row.gmbOnceOwned = row.gmbOnceOwned || (gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && (gmbBiz.gmbOwnerships.length > 1 || gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published'));
+        const location = cidLocationMap[gmbBiz.cid];
+
+        row.gmbOnceOwned = row.gmbOnceOwned || (location && location.gmbOnceOwned);
         row.gmbBiz = gmbBiz;
-        row.published = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published';
-        row.suspended = gmbBiz.gmbOwnerships && gmbBiz.gmbOwnerships.length > 0 && gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Suspended';
+        row.published = location && location.status === 'Published';
+        row.suspended = location && location.status === 'Suspended';
+
+        if (!row.gmbOnceOwned && row.published) {
+          console.log(row)
+          throw 'ERRROR';
+        }
       }
     });
 

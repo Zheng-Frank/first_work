@@ -3,7 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { zip, Observable, from } from "rxjs";
+import { zip } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
@@ -2170,6 +2170,119 @@ zealrestaurant.us`;
 
 
   }
+
+  async migrateGmbOwnerships() {
+
+    const allGmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        gmbOwnerships: { $exists: 1 },
+        // _id: {$in: [{$oid: "5c015a02dd9078a346c06ccb"}]}
+      },
+      projection: {
+        _id: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    // batch
+    const batchSize = 100;
+
+    const batchedBizList = Array(Math.ceil(allGmbBizList.length / batchSize)).fill(0).map((i, index) => allGmbBizList.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedBizList) {
+      const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          _id: { $in: batch.map(biz => ({ $oid: biz._id })) }
+        },
+        limit: 6000
+      }).toPromise();
+
+      const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        projection: {
+          email: 1,
+          locations: 1
+        },
+        limit: 6000
+      }).toPromise();
+
+      const emailAccountDict = gmbAccounts.reduce((map, account) => (map[account.email] = account, map), {});
+      const emailStringifiedDict = gmbAccounts.reduce((map, account) => (map[account.email] = JSON.stringify(account), map), {});
+      console.log(gmbBizList);
+
+      const updatedAccounts = [];
+      const fields = ['appealId', 'name', 'address', 'phone', 'cuisine', 'place_id', 'cid', 'reservations', 'menuUrls', 'orderAheadUrls'];
+      for (let gmbBiz of gmbBizList) {
+        const history = gmbBiz.gmbOwnerships || [];
+        for (let i = 0; i < history.length; i++) {
+          if (history[i].email) {
+            const account = emailAccountDict[history[i].email];
+            const matchedLocations = (account.locations || []).filter(loc => loc.cid === gmbBiz.cid);
+
+            const status = history[i].status || 'Published';
+            const myHistory = [{ time: history[i].possessedAt, status: status }];
+
+            if (history[i + 1] && history[i + 1].email !== history[i].email) {
+              myHistory.push({ time: history[i + 1].possessedAt, status: 'Removed' });
+            }
+
+            switch (matchedLocations.length) {
+              case 0:
+                account.locations = account.locations || [];
+                const newLocation = fields.reduce((obj, field) => (obj[field] = gmbBiz[field], obj), {} as any);
+                newLocation.website = gmbBiz['gmbWebsite'];
+                newLocation.statusHistory = myHistory;
+
+                account.locations.push(newLocation);
+                updatedAccounts.push(account);
+                break;
+
+              default:
+                // match appealId, otherwise just choose first match
+                const appealIdMatched = matchedLocations.filter(loc => loc.appealId === gmbBiz.appealId);
+                const matchedLocation = appealIdMatched[0] || matchedLocations[0];
+                matchedLocation.statusHistory.push(...myHistory);
+                updatedAccounts.push(account);
+                break;
+            }
+          }
+        }
+      }
+
+
+      // reorg location's history
+      updatedAccounts.map(account => account.locations.map(loc => {
+        // sort history Ascending
+        loc.statusHistory.sort((h1, h2) => new Date(h1.time).valueOf() - new Date(h2.time).valueOf());
+        // remove 'Removed' that's not the last one!
+        loc.statusHistory = loc.statusHistory.filter((h, index) => (index === loc.statusHistory.length - 1) || h.status !== 'Removed');
+        // remove sequential same status (keep old one)
+        for (let i = loc.statusHistory.length - 1; i >= 1; i--) {
+          if (loc.statusHistory[i - 1].status === loc.statusHistory[i].status) {
+            loc.statusHistory.splice(i, 1);
+          }
+        }
+        loc.statusHistory.reverse();
+        loc.status = loc.statusHistory[0].status;
+      }));
+      // patch updated!
+      const changedAccounts = updatedAccounts.filter(a => JSON.stringify(a) !== emailStringifiedDict[a.email]);
+      const uniqueChangedAccounts = [...new Set(changedAccounts)];
+
+      if (uniqueChangedAccounts.length > 0) {
+
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', uniqueChangedAccounts.map(a => ({
+          old: { _id: a._id },
+          new: { _id: a._id, locations: a.locations }
+        }))).toPromise();
+      } else {
+        this._global.publishAlert(AlertType.Success, 'No new thing updated');
+      }
+      
+    } // end batch
+  } // end migration
 
 }
 

@@ -59,73 +59,83 @@ export class AutomationDashboardComponent implements OnInit {
     this.scannedAccounts = 0;
     this.executedTasks = 0;
     this.addRunningMessage('start');
-    while (this.startTime) {
+
+    try {
+      while (this.startTime) {
+
+        this.addRunningMessage('Scan accounts for GMB locations...');
+        const accountsScanResult = await this.scanAccountsForLocations();
+        this.addRunningMessage('Succeeded ' + accountsScanResult.succeeded.length + ', failed ' + accountsScanResult.failed.length);
+
+        this.addRunningMessage('Generate missing GMB Biz...');
+        await this.generateMissingGmbBizListings();
 
 
-      this.addRunningMessage('Inject qMenu Websites...');
-      await this.runInjectQmenuWebsites();
+        this.addRunningMessage('Scan emails...');
+        const emailsResult = await this.scanEmailsForRequests();
+        this.addRunningMessage('Succeeded ' + emailsResult.succeeded.length + ', failed ' + emailsResult.failed.length + ', new requests ' + emailsResult.newRequests.length);
+
+        this.addRunningMessage('Crawl restaurants...');
+        const restaurantCrawlingResult = await this.crawlRestaurantGoogleListings();
+        this.addRunningMessage('Succeeded ' + restaurantCrawlingResult.succeeded.length + ', failed ' + restaurantCrawlingResult.failed.length);
+
+        this.addRunningMessage('Crawl gmbBiz list...');
+        const gmbBizCrawlingResult = await this.crawlGmbGoogleListings();
+        this.addRunningMessage('Succeeded ' + gmbBizCrawlingResult.succeeded.length + ', failed ' + gmbBizCrawlingResult.failed.length);
+        if (gmbBizCrawlingResult.abortionMessage) {
+          this.addErrorMessage(gmbBizCrawlingResult.abortionMessage);
+        }
+
+        // if we had postcard code and the ownership was lost, immediately schedule it to grab it back!
+        this.addRunningMessage('Reschedule tasks with postcard verification code and ownership just lost...');
+        const lostList = await this._gmb3.computePostcardTasksThatJustLost();
+        this.addRunningMessage('Found ' + lostList.length);
+
+        this.addRunningMessage('Scan for Apply GMB Tasks...');
+        const newApplyTasks = await this.scanForApplyTask();
+        this.addRunningMessage('Created ' + newApplyTasks.length);
+
+        this.addRunningMessage('Purge Apply GMB Tasks...');
+        const purgedApplyTasks = await this.purgeInvalidGmbApplyTasks();
+        this.addRunningMessage('Purged ' + purgedApplyTasks.length);
 
 
-      this.addRunningMessage('Scan accounts for GMB locations...');
-      const accountsScanResult = await this.scanAccountsForLocations();
-      this.addRunningMessage('Succeeded ' + accountsScanResult.succeeded.length + ', failed ' + accountsScanResult.failed.length);
+        this.addRunningMessage('Scan for Transfer Tasks...');
+        const newTransferTasks = await this.scanForTransferTask();
+        this.addRunningMessage('Created ' + newTransferTasks.length);
 
-      this.addRunningMessage('Generate missing GMB Biz...');
-      await this.generateMissingGmbBizListings();
+        this.addRunningMessage('Purge Transfer Tasks...');
+        const purgedTransferTasks = await this.purgeInvalidGmbTransferTasks();
+        this.addRunningMessage('Purged ' + purgedTransferTasks.length);
 
+        this.addRunningMessage('Scan for Appeal Tasks...');
+        const newAppealTasks = await this.scanForAppealTasks();
+        this.addRunningMessage('Created ' + newAppealTasks.length);
 
-      this.addRunningMessage('Scan emails...');
-      const emailsResult = await this.scanEmailsForRequests();
-      this.addRunningMessage('Succeeded ' + emailsResult.succeeded.length + ', failed ' + emailsResult.failed.length + ', new requests ' + emailsResult.newRequests.length);
+        this.addRunningMessage('Purge Appeal Tasks...');
+        const purgedAppealTasks = await this.purgeInvalidAppealTasks();
+        this.addRunningMessage('Purged ' + purgedAppealTasks.length);
 
-      this.addRunningMessage('Crawl restaurants...');
-      const restaurantCrawlingResult = await this.crawlRestaurantGoogleListings();
-      this.addRunningMessage('Succeeded ' + restaurantCrawlingResult.succeeded.length + ', failed ' + restaurantCrawlingResult.failed.length);
-
-      this.addRunningMessage('Crawl gmbBiz list...');
-      const gmbBizCrawlingResult = await this.crawlGmbGoogleListings();
-      this.addRunningMessage('Succeeded ' + gmbBizCrawlingResult.succeeded.length + ', failed ' + gmbBizCrawlingResult.failed.length);
-      if (gmbBizCrawlingResult.abortionMessage) {
-        this.addErrorMessage(gmbBizCrawlingResult.abortionMessage);
-      }
-
-      // if we had postcard code and the ownership was lost, immediately schedule it to grab it back!
-      this.addRunningMessage('Reschedule tasks with postcard verification code and ownership just lost...');
-      const lostList = await this._gmb3.computePostcardTasksThatJustLost();
-      this.addRunningMessage('Found ' + lostList.length);
-
-      this.addRunningMessage('Scan for Apply GMB Tasks...');
-      const newApplyTasks = await this.scanForApplyTask();
-      this.addRunningMessage('Created ' + newApplyTasks.length);
-
-      this.addRunningMessage('Purge Apply GMB Tasks...');
-      const purgedApplyTasks = await this.purgeInvalidGmbApplyTasks();
-      this.addRunningMessage('Purged ' + purgedApplyTasks.length);
+        this.addRunningMessage('Run auto-apeal...');
+        await this.runAutoAppeal();
 
 
-      this.addRunningMessage('Scan for Transfer Tasks...');
-      const newTransferTasks = await this.scanForTransferTask();
-      this.addRunningMessage('Created ' + newTransferTasks.length);
+        this.addRunningMessage('Inject qMenu Websites...');
+        await this.runInjectQmenuWebsites();
 
-      this.addRunningMessage('Purge Transfer Tasks...');
-      const purgedTransferTasks = await this.purgeInvalidGmbTransferTasks();
-      this.addRunningMessage('Purged ' + purgedTransferTasks.length);
+        this.addRunningMessage('-------FINISHED ONE ROUND!---------')
 
-      this.addRunningMessage('Scan for Appeal Tasks...');
-      const newAppealTasks = await this.scanForAppealTasks();
-      this.addRunningMessage('Created ' + newAppealTasks.length);
+        await new Promise((resolve) => setTimeout(resolve, this.waitBetweenScan));
+      } // end for while loop
 
-      this.addRunningMessage('Purge Appeal Tasks...');
-      const purgedAppealTasks = await this.purgeInvalidAppealTasks();
-      this.addRunningMessage('Purged ' + purgedAppealTasks.length);
+    }
+    catch (error) {
+      this.addErrorMessage('Exception happened!');
+      console.log(error);
+      this.startTime = undefined;
+    }
 
-      this.addRunningMessage('Run auto-apeal...');
-      await this.runAutoAppeal();
 
-      this.addRunningMessage('-------FINISHED ONE ROUND!---------')
-
-      await new Promise((resolve) => setTimeout(resolve, this.waitBetweenScan));
-    } // end for while loop
   }
 
   stop() {
@@ -163,10 +173,10 @@ export class AutomationDashboardComponent implements OnInit {
     const failedRestaurants = [];
     const succeededRestaurants = [];
 
-    if (DEBUGGING  && restaurants.length > 2) {
+    if (DEBUGGING && restaurants.length > 2) {
       restaurants.length = 2;
     }
-    const batchSize = 100;
+    const batchSize = 200;
     const batchedRestaurants = Array(Math.ceil(restaurants.length / batchSize)).fill(0).map((i, index) => restaurants.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedRestaurants) {
@@ -178,9 +188,6 @@ export class AutomationDashboardComponent implements OnInit {
         console.log(error);
       }
 
-      if(!this.startTime) {
-        break;
-      }
     }
 
     return {
@@ -238,7 +245,7 @@ export class AutomationDashboardComponent implements OnInit {
     const succeededGmbBizList = [];
     let abortionMessage;
 
-    if (DEBUGGING  && gmbBizList.length > 2) {
+    if (DEBUGGING && gmbBizList.length > 2) {
       gmbBizList.length = 2;
     }
     const batchSize = 200;
@@ -252,9 +259,7 @@ export class AutomationDashboardComponent implements OnInit {
         failedGmbBizList.push(...batch);
         console.log(error);
       }
-      if(!this.startTime) {
-        break;
-      }
+
     }
 
     return {
@@ -295,7 +300,7 @@ export class AutomationDashboardComponent implements OnInit {
     const succeeded = [];
     const failed = [];
 
-    if (DEBUGGING  && gmbAccounts.length > 2) {
+    if (DEBUGGING && gmbAccounts.length > 2) {
       gmbAccounts.length = 2;
     }
 
@@ -314,9 +319,6 @@ export class AutomationDashboardComponent implements OnInit {
         }
       });
 
-      if(!this.startTime) {
-        break;
-      }
     }
 
     return {
@@ -362,9 +364,7 @@ export class AutomationDashboardComponent implements OnInit {
         failed.push(gmbAccounts[i]);
         throw 'ERROR SCANNING';
       }
-      if(!this.startTime) {
-        break;
-      }
+
     }
 
     return {
@@ -563,6 +563,7 @@ export class AutomationDashboardComponent implements OnInit {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
+        alias: 1,
         domain: 1,
         "googleListing.cid": 1,
         disabled: 1,
@@ -677,6 +678,7 @@ export class AutomationDashboardComponent implements OnInit {
     const batchSize = 1;
     const batchedItems = Array(Math.ceil(oldNokItems.length / batchSize)).fill(0).map((i, index) => oldNokItems.slice(index * batchSize, (index + 1) * batchSize)).filter(batch => batch.length > 0);
     for (let batch of batchedItems) {
+      console.log(1)
       const promises = batch.map(item =>
         this._api
           .post(environment.adminApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
@@ -693,9 +695,9 @@ export class AutomationDashboardComponent implements OnInit {
             }
           ).toPromise())
       );
-
+      console.log(2)
       const batchResult = await Helper.processBatchedPromises(promises);
-
+      console.log(3)
       // update account's history
       const patchPairs = batch.map((item, index) => {
         const injection = {};
@@ -708,12 +710,8 @@ export class AutomationDashboardComponent implements OnInit {
           new: { _id: item.account._id, injection }
         };
       });
- console.log(patchPairs);
+      console.log(patchPairs);
       await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
-     
-      if(!this.startTime) {
-        break;
-      }
     } // end batch
   }
 }
