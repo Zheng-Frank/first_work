@@ -6,7 +6,6 @@ import { GlobalService } from './global.service';
 import { AlertType } from '../classes/alert-type';
 import { GmbBiz } from '../classes/gmb/gmb-biz';
 import { Task } from '../classes/tasks/task';
-import { Helper } from '../classes/helper';
 import { Restaurant } from '@qmenu/ui';
 @Injectable({
   providedIn: 'root'
@@ -413,54 +412,6 @@ export class Gmb3Service {
 
     await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', uniquePairs).toPromise();
 
-  }
-
-  async crawlBatchedGmbBizListOld(gmbBizList: GmbBiz[]) {
-
-    if (gmbBizList.some(biz => !biz.cid)) {
-      throw 'No cid found for biz ' + gmbBizList.filter(biz => !biz.cid)[0]._id;
-    }
-
-    // parallelly requesting
-    const allRequests = gmbBizList.map(gmbBiz => this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name + ' ' + gmbBiz.address }).toPromise());
-
-    const crawledResults = await Helper.processBatchedPromises(allRequests);
-
-    const patchPairs = crawledResults.map((result, index) => {
-
-      const crawledResult = result.result || {};
-      const gmbBiz = gmbBizList[index];
-      // except cid because we'd like to have scan account's cid instead?
-      const kvps = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'].map(key => ({ key: key, value: crawledResult[key] }));
-
-      // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
-      if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
-        kvps.push({ key: 'qmenuWebsite', value: crawledResult['gmbWebsite'] });
-      }
-
-      if (crawledResult.cid && crawledResult.cid !== gmbBiz.cid) {
-        kvps.push({ key: 'cidmismatch', value: true });
-      }
-
-      // let's just override!
-      const oldBiz = { _id: gmbBiz._id };
-      const newBiz = { _id: gmbBiz._id };
-
-      kvps.map(kvp => newBiz[kvp.key] = kvp.value);
-      // also update crawledAt
-      newBiz['crawledAt'] = { $date: new Date() };
-
-      return { pair: { old: oldBiz, new: newBiz }, kvps: kvps };
-    });
-
-    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", patchPairs.map(p => p.pair)).toPromise();
-
-    gmbBizList.map((gmbBiz, index) => {
-      // update original
-      patchPairs[index].kvps.map(kvp => gmbBiz[kvp.key] = kvp.value);
-      gmbBiz.crawledAt = new Date();
-    });
-    return crawledResults;
   }
 
   async crawlBatchedGmbBizList(gmbBizList: GmbBiz[]) {

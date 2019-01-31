@@ -233,7 +233,7 @@ export class NewRestaurantComponent implements OnInit {
       } else {
         // create new gmbBiz!
 
-        const newGmbBiz = { ...this.restaurant.googleListing, accounts: [], qmenuId: this.restaurant._id };
+        const newGmbBiz = { ...this.restaurant.googleListing, qmenuId: this.restaurant._id };
         if (!this.applyGmb) {
           newGmbBiz['disableAutoTask'] = true;
         }
