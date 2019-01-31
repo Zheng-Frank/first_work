@@ -120,7 +120,7 @@
         <div class="text-right">
           <button class="btn btn-link" (click)="refreshListing(row.gmbBiz)">Refresh Listing</button>
           <!-- <button class="btn btn-link" (click)="injectInfo(row.gmbBiz)" [disabled]="!row.gmbAccount">Inject Info</button> -->
-          <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name}}" target="_blank"
+          <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name + ' ' + row.gmbBiz.address}}" target="_blank"
             class="btn btn-link">
             View on Google</a>
 
