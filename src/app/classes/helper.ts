@@ -153,4 +153,8 @@ export class Helper {
             })
         })));
     }
+
+    static getDaysFromId(mongoId, now): any {
+        return Math.floor((now.valueOf() - parseInt(mongoId.substring(0, 8), 16) * 1000) / (24 * 3600000));
+    }
 }
