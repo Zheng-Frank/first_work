@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { TaskService } from 'src/app/services/task.service';
 import { Helper } from 'src/app/classes/helper';
@@ -73,7 +72,7 @@ export class AutomationDashboardComponent implements OnInit {
 
         this.addRunningMessage('Scan emails...');
         const emailsResult = await this.scanEmailsForRequests();
-        this.addRunningMessage('Succeeded ' + emailsResult.succeeded.length + ', failed ' + emailsResult.failed.length + ', new requests ' + emailsResult.newRequests.length);
+        this.addRunningMessage('Succeeded ' + emailsResult.succeeded.length + ', failed ' + emailsResult.failed.length);
 
         this.addRunningMessage('Crawl restaurants...');
         const restaurantCrawlingResult = await this.crawlRestaurantGoogleListings();
@@ -353,31 +352,38 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts = gmbAccounts.filter(g => !SKIPPING_EMAILS.some(k => g.email.indexOf(k) >= 0));
 
-    if (DEBUGGING && gmbAccounts.length > 2) {
-      gmbAccounts.length = 2;
-    }
 
     const succeeded = [];
     const failed = [];
-    const newRequests = [];
 
-    for (let i = 0; i < gmbAccounts.length; i++) {
-      try {
-        this.addRunningMessage(`Email scanning ${(i + 1)} of ${gmbAccounts.length}: ${gmbAccounts[i].email}`);
-        const result = await this._gmb3.scanOneEmailForGmbRequests(gmbAccounts[i].email, false);
-        succeeded.push(gmbAccounts[i]);
-      } catch (error) {
-        this.addErrorMessage('ERROR SCANNING ' + gmbAccounts[i].email);
-        failed.push(gmbAccounts[i]);
-        throw 'ERROR SCANNING';
-      }
+    let batchSize = 6;
+    if (DEBUGGING && gmbAccounts.length > 6) {
+      gmbAccounts.length = 3;
+      batchSize = 2;
+    }
 
+    const batchedAccounts = Array(Math.ceil(gmbAccounts.length / batchSize)).fill(0).map((i, index) => gmbAccounts.slice(index * batchSize, (index + 1) * batchSize));
+    console.log(gmbAccounts);
+    console.log(batchSize);
+    console.log(batchedAccounts);
+    for (let i = 0; i < batchedAccounts.length; i++) {
+      this.addRunningMessage(`Batched scanning ${(i + 1)} of ${batchedAccounts.length}: ${batchedAccounts[i].map(a => a.email).join(', ')}`);
+
+      const promises = batchedAccounts[i].map(account => this._gmb3.scanOneEmailForGmbRequests(account.email, false));
+
+      const batchedResults = await Helper.processBatchedPromises(promises);
+      batchedResults.map((result, index) => {
+        if (result.success) {
+          succeeded.push(gmbAccounts[index]);
+        } else {
+          failed.push(gmbAccounts[index]);
+        }
+      });
     }
 
     return {
       succeeded: succeeded,
-      failed: failed,
-      newRequests: newRequests
+      failed: failed
     }
   } // scan emails
 
@@ -395,7 +401,8 @@ export class AutomationDashboardComponent implements OnInit {
       },
       projection: {
         "googleListing.cid": 1,
-        name: 1
+        name: 1,
+        rateSchedules: 1
       },
       limit: 6000
     }).toPromise();
@@ -468,10 +475,12 @@ export class AutomationDashboardComponent implements OnInit {
 
     // console.log('restaurantPublishedOnce', restaurantPublishedOnce);
 
-
     const restaurantsToBeAppliedWithoutDisableAutoTask = restaurantsToBeApplied.filter(r => {
       const gmbBiz = gmbBizList.filter(biz => biz.cid === r.googleListing.cid)[0];
-      return gmbBiz && !gmbBiz.disableAutoTask;
+      if (gmbBiz.cid === '12535973875656368555') {
+        console.log(gmbBiz)
+      }
+      return gmbBiz && (!gmbBiz.disableAutoTask || /* Helper.getDaysFromId(gmbBiz._id, new Date()) > 30 || */ gmbAccounts.some(account => account.locations.some(loc => loc.cid === gmbBiz.cid && loc.statusHistory.some(h => h.status === 'Published' || h.status === 'Suspended'))));
     });
 
     console.log('restaurantsToBeAppliedWithoutDisableAutoTask', restaurantsToBeAppliedWithoutDisableAutoTask);
@@ -674,18 +683,19 @@ export class AutomationDashboardComponent implements OnInit {
     const appeealIdInjectTimeDict = {};
     gmbAccountsWithLocations.map(account => Object.keys((account.injection || {})).map(k => appeealIdInjectTimeDict[k] = account.injection[k].time));
 
-    const oldNokItems = nokItems.filter(item => !appeealIdInjectTimeDict[item.location.appealId] || new Date().valueOf() - new Date(appeealIdInjectTimeDict[item.location.appealId].time).valueOf() > TWELEVE_HOURS);
+    console.log(appeealIdInjectTimeDict);
+    const oldNokItems = nokItems.filter(item => !appeealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appeealIdInjectTimeDict[item.location.appealId]).valueOf() > TWELEVE_HOURS));
 
     console.log('oldNokItems', oldNokItems);
 
-    if (DEBUGGING && oldNokItems.length > 2) {
-      oldNokItems.length = 2;
+    let batchSize = 2;
+    if (DEBUGGING && oldNokItems.length > 6) {
+      oldNokItems.length = 6;
+      batchSize = 2;
     }
 
-    const batchSize = 1;
     const batchedItems = Array(Math.ceil(oldNokItems.length / batchSize)).fill(0).map((i, index) => oldNokItems.slice(index * batchSize, (index + 1) * batchSize)).filter(batch => batch.length > 0);
     for (let batch of batchedItems) {
-      console.log(1)
       const promises = batch.map(item =>
         this._api
           .post(environment.adminApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
@@ -702,10 +712,8 @@ export class AutomationDashboardComponent implements OnInit {
             }
           ).toPromise())
       );
-      console.log(2)
       const batchResult = await Helper.processBatchedPromises(promises);
-      console.log(3)
-      // update account's history
+      // // update account's history
       const patchPairs = batch.map((item, index) => {
         const injection = {};
         injection[item.location.appealId] = {
