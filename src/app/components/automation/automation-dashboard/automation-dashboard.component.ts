@@ -173,10 +173,12 @@ export class AutomationDashboardComponent implements OnInit {
     const failedRestaurants = [];
     const succeededRestaurants = [];
 
-    if (DEBUGGING && restaurants.length > 2) {
-      restaurants.length = 2;
+    let batchSize = 100;
+    if (DEBUGGING && restaurants.length > 200) {
+      restaurants.length = 200;
+      batchSize = 100;
     }
-    const batchSize = 200;
+
     const batchedRestaurants = Array(Math.ceil(restaurants.length / batchSize)).fill(0).map((i, index) => restaurants.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedRestaurants) {
@@ -210,7 +212,8 @@ export class AutomationDashboardComponent implements OnInit {
         cid: 1,
         name: 1,
         crawledAt: 1,
-        qmenuId: 1
+        qmenuId: 1,
+        address: 1
       },
       limit: 80000
     }).toPromise();
@@ -245,10 +248,13 @@ export class AutomationDashboardComponent implements OnInit {
     const succeededGmbBizList = [];
     let abortionMessage;
 
-    if (DEBUGGING && gmbBizList.length > 2) {
-      gmbBizList.length = 2;
+    let batchSize = 100;
+
+    if (DEBUGGING && gmbBizList.length > 200) {
+      gmbBizList.length = 200;
+      batchSize = 100;
     }
-    const batchSize = 200;
+
     const batchedGmbBizList = Array(Math.ceil(gmbBizList.length / batchSize)).fill(0).map((i, index) => gmbBizList.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedGmbBizList) {
@@ -291,17 +297,18 @@ export class AutomationDashboardComponent implements OnInit {
       },
       limit: 6000
     }).toPromise();
-
+    const before = gmbAccounts.slice(0);
     gmbAccounts.sort((a1, a2) => new Date(a1.gmbScannedAt || 0).valueOf() - new Date(a2.gmbScannedAt || 0).valueOf());
 
+    const after = gmbAccounts.slice(0);
     gmbAccounts = gmbAccounts.filter(g => !SKIPPING_EMAILS.some(k => g.email.indexOf(k) >= 0));
 
 
     const succeeded = [];
     const failed = [];
 
-    if (DEBUGGING && gmbAccounts.length > 2) {
-      gmbAccounts.length = 2;
+    if (DEBUGGING && gmbAccounts.length > 6) {
+      gmbAccounts.length = 6;
     }
 
     const batchSize = 6;
@@ -614,35 +621,35 @@ export class AutomationDashboardComponent implements OnInit {
       // website, menu, 
       // get website: order: original, alias, domain, qmenuWebsite, bizManagedWebsite if insisted
       // try to assign qmenu website!
-      let qmenuDesiredWebsite = environment.customerUrl + '#/' + item.restaurant.alias;
+      let qmenuDesiredWebsite = (environment.customerUrl + '#/' + item.restaurant.alias).toLowerCase();
 
       if (item.restaurant.domain) {
-        qmenuDesiredWebsite = item.restaurant.domain.startsWith('http') ? item.restaurant.domain : 'http://' + item.restaurant.domain;
+        qmenuDesiredWebsite = (item.restaurant.domain.startsWith('http') ? item.restaurant.domain : 'http://' + item.restaurant.domain).toLowerCase();
       }
 
       if (item.gmbBiz.qmenuWebsite) {
-        qmenuDesiredWebsite = item.gmbBiz.qmenuWebsite;
+        qmenuDesiredWebsite = item.gmbBiz.qmenuWebsite.toLowerCase();
       }
 
       let targetWebsite = qmenuDesiredWebsite;
 
       if ((item.gmbBiz.useBizWebsite || item.gmbBiz.useBizWebsiteForAll) && item.gmbBiz.bizManagedWebsite) {
-        targetWebsite = item.gmbBiz.bizManagedWebsite;
+        targetWebsite = item.gmbBiz.bizManagedWebsite.toLowerCase();
       }
 
       let targetMenuUrl = qmenuDesiredWebsite;
       if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetMenuUrl = item.gmbBiz.bizManagedWebsite;
+        targetMenuUrl = item.gmbBiz.bizManagedWebsite.toLowerCase();
       }
 
       let targetReservation = qmenuDesiredWebsite;
       if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetReservation = item.gmbBiz.bizManagedWebsite;
+        targetReservation = item.gmbBiz.bizManagedWebsite.toLowerCase();
       }
 
       let targetOrderAheadUrl = qmenuDesiredWebsite;
       if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetOrderAheadUrl = item.gmbBiz.bizManagedWebsite;
+        targetOrderAheadUrl = item.gmbBiz.bizManagedWebsite.toLowerCase();
       }
 
       const isWebsiteOk = Helper.areDomainsSame(targetWebsite, item.gmbBiz.gmbWebsite);

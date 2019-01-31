@@ -286,7 +286,7 @@ export class Gmb3Service {
 
   }
 
-  async loginEmailAccount(email, stayAfterScan){
+  async loginEmailAccount(email, stayAfterScan) {
     const account = (await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
@@ -300,7 +300,7 @@ export class Gmb3Service {
       limit: 1
     }).toPromise())[0];
 
-    
+
     let password = account.password;
 
     if (password.length > 20) {
@@ -415,14 +415,14 @@ export class Gmb3Service {
 
   }
 
-  async crawlBatchedGmbBizList(gmbBizList: GmbBiz[]) {
+  async crawlBatchedGmbBizListOld(gmbBizList: GmbBiz[]) {
 
     if (gmbBizList.some(biz => !biz.cid)) {
       throw 'No cid found for biz ' + gmbBizList.filter(biz => !biz.cid)[0]._id;
     }
 
     // parallelly requesting
-    const allRequests = gmbBizList.map(gmbBiz => this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: 'K' }).toPromise());
+    const allRequests = gmbBizList.map(gmbBiz => this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name + ' ' + gmbBiz.address }).toPromise());
 
     const crawledResults = await Helper.processBatchedPromises(allRequests);
 
@@ -463,29 +463,173 @@ export class Gmb3Service {
     return crawledResults;
   }
 
+  async crawlBatchedGmbBizList(gmbBizList: GmbBiz[]) {
+
+    if (gmbBizList.some(biz => !biz.cid)) {
+      throw 'No cid found for biz ' + gmbBizList.filter(biz => !biz.cid)[0]._id;
+    }
+
+    // parallelly requesting
+    const allRequests = gmbBizList.map(biz => this.crawlOneGmbWithoutUpdating(biz));
+    const results: any = await Promise.all(allRequests);
+
+    // we still want to update crawledAt, regardless of good or bad crawl result. If cid mismatch, we skip update (otherwise our owned gmb will try to update misinformation)
+
+    const fields = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
+
+    const patchPairs = results.map((result, index) => {
+
+      const gmbBiz = gmbBizList[index];
+      const newItem: any = {
+        _id: gmbBiz._id,
+        crawledAt: { $date: new Date() }
+      };
+
+      if (result) {
+        // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
+        if (result['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
+          newItem.qmenuWebsite = result.gmbWebsite;
+        }
+        // except cid because we'd like to have scan account's cid instead?
+        if (result.cid && result.cid === gmbBiz.cid) {
+          fields.map(f => newItem[f] = result[f]);
+        } else {
+          console.log('mismatch: ', gmbBiz);
+        }
+      }
+
+      return {
+        old: { _id: gmbBiz._id },
+        new: newItem
+      };
+
+    });
+
+    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", patchPairs).toPromise();
+
+    // save to original
+    gmbBizList.map((gmbBiz, index) => {
+      // update original
+      const result = results[index];
+      if (result) {
+        fields.map(f => gmbBiz[f] = result[f]);
+      }
+      gmbBiz.crawledAt = new Date();
+    });
+
+    return gmbBizList;
+  }
+
+
   async crawlBatchedRestaurants(restaurants) {
 
     // parallelly requesting
-    const allRequests = restaurants.map(r => this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: r.name + " " + r.googleAddress.formatted_address }).toPromise());
-    const results = await Helper.processBatchedPromises(allRequests);
+    const allRequests = restaurants.map(r => this.crawlOneRestaurantWithoutUpdating(r));
+    const results: any = await Promise.all(allRequests);
 
-    const goodResults = results.map((r, i) => ({ restaurant: restaurants[i], result: r.result, success: r.success })).filter(r => r.success);
-    goodResults.map(r => r.result.crawledAt = new Date());
-
-    const patchPairs = goodResults.map((r, index) => ({
-      old: { _id: r.restaurant._id },
-      new: { _id: r.restaurant._id, googleListing: r.result }
-    }));
+    // if we didn't get result back, we still want to add crawledAt
+    const patchPairs = restaurants.map((r, index) => {
+      let result = results[index];
+      if (result) {
+        result.crawledAt = { $date: new Date() };
+        return {
+          old: { _id: r._id },
+          new: { _id: r._id, googleListing: result }
+        }
+      } else {
+        return {
+          old: { _id: r._id, googleListing: {} },
+          new: { _id: r._id, googleListing: { crawledAt: { $date: new Date() } } }
+        }
+      }
+    });
 
     await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", patchPairs).toPromise();
+    // we would also like to patch gmbBiz with same cids! (considering scan is more expensive than retrieving out own database)
+    const resultsWithCids = results.filter(result => result && result.cid);
+    if (resultsWithCids.length > 0) {
+      const gmbBizWithSameCids = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          cid: { $in: resultsWithCids.map(result => result.cid) }
+        },
+        projection: {
+          cid: 1
+        },
+        limit: resultsWithCids.length * 2
+      }).toPromise();
+
+      if (gmbBizWithSameCids.length > 0) {
+
+        const fields = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
+
+        const bizPatchPairs = gmbBizWithSameCids.map(gmbBiz => {
+
+          const crawledResult = resultsWithCids.filter(r => r.cid === gmbBiz.cid)[0];
+          // except cid because we'd like to have scan account's cid instead?
+
+          // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
+          if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
+            crawledResult.qmenuWebsite = crawledResult.gmbWebsite;
+          }
+          // let's just override!
+          const oldBiz = { _id: gmbBiz._id };
+          const newBiz = { _id: gmbBiz._id };
+
+          fields.map(f => newBiz[f] = crawledResult[f]);
+          // also update crawledAt
+          newBiz['crawledAt'] = { $date: new Date() };
+
+          return { old: oldBiz, new: newBiz };
+        });
+        await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", bizPatchPairs).toPromise();
+        console.log('update gmbBiz: ', gmbBizWithSameCids.length);
+      }
+    }
 
     restaurants.map((r, index) => {
       // update original
-      r.googleListing = results[index].result;
+      r.googleListing = r.googleListing || results[index];
     });
     return results;
   }
 
+
+  async crawlOneRestaurantWithoutUpdating(restaurant) {
+
+    // parallelly requesting
+    try {
+      const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: restaurant.name + " " + restaurant.googleAddress.formatted_address }).toPromise();
+      return result;
+    } catch (error) {
+      try {
+        // 4016 W Washington Blvd, Los Angeles, CA 90018, USA --> CA 90018 USA
+        const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: restaurant.name + " " + restaurant.googleAddress.formatted_address.split(', ').slice(-2).join(' ') }).toPromise();
+        return result;
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+    }
+  }
+
+  async crawlOneGmbWithoutUpdating(gmbBiz: GmbBiz) {
+
+    // parallelly requesting
+    try {
+      const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name + " " + gmbBiz.address }).toPromise();
+      return result;
+    } catch (error) {
+      try {
+        // 4016 W Washington Blvd, Los Angeles, CA 90018, USA --> CA 90018 USA
+        const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name + " " + (gmbBiz.address || '').split(', ').slice(-2).join(' ') }).toPromise();
+        return result;
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+    }
+  }
 
   /** gmbBiz --> restaurants, restaurants --> gmbBiz */
   async shareScanResultsForSameCids() {
