@@ -53,7 +53,8 @@ export class HomeComponent implements OnInit {
       "email-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
       "unconfirmed-orders": ['ADMIN', 'CSR'],
       "image-manager": ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      "awaiting-onboarding": ['ADMIN', 'CSR', 'MENU_EDITOR']
+      "awaiting-onboarding": ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      "disabled-restaurants": ['ADMIN', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR']
     }
     return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
