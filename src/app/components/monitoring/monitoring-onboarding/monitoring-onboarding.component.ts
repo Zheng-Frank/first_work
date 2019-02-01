@@ -22,7 +22,7 @@ export class MonitoringOnboardingComponent implements OnInit {
     const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        disabled: {$in: [null, false]}
+        disabled: { $in: [null, false] }
       },
       projection: {
         name: 1,
@@ -48,6 +48,21 @@ export class MonitoringOnboardingComponent implements OnInit {
 
     const cids = Object.keys(dict).map(k => dict[k]).filter(r => r.restaurant.googleListing).map(r => r.restaurant.googleListing.cid);
 
+    const testingOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      query: {
+        customer: {
+          $in: [{
+            "$oid": "5c2d773c51684ad9739e5168"
+          }]
+        }
+      },
+      projection: {
+        restaurant: 1
+      },
+      limit: 20000
+    }).toPromise();
+console.log(testingOrders)
     const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {

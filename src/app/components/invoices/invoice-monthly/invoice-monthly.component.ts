@@ -161,7 +161,8 @@ export class InvoiceMonthlyComponent implements OnInit {
           "orders.fixed": 1,
           "orders.subtotal": 1,
           "restaurant.name": 1,
-          "restaurant.id": 1
+          "restaurant.id": 1,
+          "orders.payee": 1
         },
         limit: batch.length
       }).toPromise();
@@ -169,7 +170,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       // order 5c22bf3407f5110526836feb
       // invoice: 5c2b8a0fc0bdebae7295b775
 
-      const affectedInvoices = mayAffectedInvoices.filter(i => i.orders.some(order => order.canceled === false && idSet.has(order.id)));
+      const affectedInvoices = mayAffectedInvoices.filter(i => i.orders.some(order => order.payee === 'qMenu' && order.canceled === false && idSet.has(order.id)));
 
       affectedInvoices.map(i => {
         affectedInvoiceIdDict[i._id] = { invoice: i, affectedOrders: [] };
@@ -213,6 +214,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       gr.invoiceAndAffectedOrders.map(item => {
         const invoice = item.invoice;
         item.affectedOrders.map(order => {
+          console.log(order)
           const orderTotal = +(order.total.toFixed(2));
           const orderNumber = order.orderNumber;
           const orderTime = new Date(parseInt(order.id.substring(0, 8), 16) * 1000);
@@ -283,8 +285,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       }));
       restaurant.logs = restaurant.logs || [];
       restaurant.logs.push(...adjustmentLogs);
-      console.log(restaurant.logs)
-
+      console.log(restaurant.logs);
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: restaurant._id },
         new: { _id: restaurant._id, logs: restaurant.logs }
