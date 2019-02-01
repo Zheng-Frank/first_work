@@ -8,8 +8,9 @@
   </div>
 </div>
 <div class="text-right">
-  Total Orders:
+  Total:
   <span class="badge badge-info">{{totalOrders}}</span>
+  (last week: <span class="badge badge-secondary">{{lastWeekTotalOrders}}</span>)
   Restaurant Having Orders:
   <span class="badge badge-success">{{restaurantsWithOrders}}</span>
   No Orders:
@@ -23,8 +24,7 @@
       <th>Restaurant</th>
       <th>Total</th>
       <th>Change</th>
-      <th class="text-center">GMB Owner</th>
-      <th class="text-center">Website</th>
+      <th>GMB</th>
     </tr>
   </thead>
   <tbody>
@@ -50,24 +50,15 @@
       </td>
       <td>{{row.orders.length}}</td>
       <td>
-        <span *ngIf="row.orders.length > row.yesterdayOrders.length" class="text-success">+{{row.orders.length -
-          row.yesterdayOrders.length}}</span>
-        <span *ngIf="row.orders.length === row.yesterdayOrders.length">-</span>
-        <span *ngIf="row.orders.length < row.yesterdayOrders.length" class="text-danger">{{row.orders.length -
-          row.yesterdayOrders.length}}</span>
+        <span *ngIf="row.orders.length > row.lastWeekOrders.length" class="text-success">+{{row.orders.length -
+          row.lastWeekOrders.length}}</span>
+        <span *ngIf="row.orders.length === row.lastWeekOrders.length">-</span>
+        <span *ngIf="row.orders.length < row.lastWeekOrders.length" class="text-danger">{{row.orders.length -
+          row.lastWeekOrders.length}}</span>
       </td>
-      <td class="text-center">
-        <img *ngIf="row.gmbBiz.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
-        <img *ngIf="row.gmbBiz.suspended" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
-
-      </td>
-      <td class="text-center">
-        <a href="{{row.gmbBiz.gmbWebsite}}" title="{{row.gmbBiz.gmbWebsite}}" target="_blank">
-          <i *ngIf="!getLogo(row.gmbBiz) && row.gmbBiz.gmbOwner" class="fas fa-question text-danger"></i>
-          <img *ngIf="getLogo(row.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(row.gmbBiz)" [attr.alt]="row.gmbBiz.gmbOwner"
-            height="16px">
-          <i class="fas fa-lock-open text-info" *ngIf="row.gmbBiz.gmbOpen"></i>
-        </a>
+      <td>
+        <span class="text-success" *ngIf="row.ownedGmb">✔</span>
+        <span class="text-danger" *ngIf="!row.ownedGmb">✘</span>
       </td>
     </tr>
   </tbody>
