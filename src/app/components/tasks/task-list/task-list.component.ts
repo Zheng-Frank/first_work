@@ -14,8 +14,11 @@ export class TaskListComponent implements OnInit, OnChanges {
   now = new Date();
   claimed;
   assignee: string;
+  owner: string;
+  onlyDirectSignUp: boolean;
 
   assigneeList = [];
+  ownerList = [];
   myColumnDescriptors = [
     {
       label: "Scheduled At",
@@ -40,6 +43,11 @@ export class TaskListComponent implements OnInit, OnChanges {
     {
       label: "Listing",
       paths: ['gmbBiz', 'gmbOpen'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: "Owner",
+      paths: ['gmbBiz', 'gmbOwner'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
@@ -95,6 +103,9 @@ export class TaskListComponent implements OnInit, OnChanges {
     } else {
       this.filteredTasks = this.taskList.filter(t => t.name === this.selectedTaskName);
     }
+    if(this.onlyDirectSignUp){
+      this.filteredTasks = this.taskList.filter(t=> t.gmbBiz && t.gmbBiz.isDirectSignUp)
+    }
 
     switch (this.claimed) {
       case 'Claimed':
@@ -110,13 +121,20 @@ export class TaskListComponent implements OnInit, OnChanges {
         break;
     }
 
-    if (this.assignee && this.assignee !== "Any") {
-      this.filteredTasks = this.filteredTasks.filter(t => t.assignee == this.assignee);
+    if (this.assignee && this.assignee !== "All") {
+      this.filteredTasks = this.filteredTasks.filter(t => t.assignee === this.assignee);
     }
 
-    this.assigneeList = this.filteredTasks.map(t => t.assignee);
+    if (this.owner && this.owner !== "All") {
+      this.filteredTasks = this.filteredTasks.filter(t => t.gmbBiz && t.gmbBiz.gmbOwner === this.owner);
+    }
+
+    this.assigneeList = this.taskList.map(t => t.assignee);
     // reuturn unique
     this.assigneeList = Array.from(new Set(this.assigneeList)).sort().filter(e => e != null);
+
+    this.ownerList = this.taskList.map(t => t.gmbBiz && t.gmbBiz.gmbOwner);
+    this.ownerList = Array.from(new Set(this.ownerList)).sort().filter(e => e != null);
   }
 
 
