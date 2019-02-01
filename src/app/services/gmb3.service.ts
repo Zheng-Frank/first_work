@@ -206,7 +206,7 @@ export class Gmb3Service {
     const scanResultWithin15Days = scanResult.filter(item => new Date(item.date).valueOf() > daysAgo15.valueOf());
     console.log('within 15 days ', scanResultWithin15Days);
     // SAME email, business, and date --> same request!
-    const newItems = scanResultWithin15Days.filter(item => !existingRequests.some(r => r.business === item.business && r.email === item.email && new Date(r.date).valueOf() === new Date(item.date).valueOf()));
+    let newItems = scanResultWithin15Days.filter(item => !existingRequests.some(r => r.business === item.business && r.email === item.email && new Date(r.date).valueOf() === new Date(item.date).valueOf()));
     console.log('new items: ', newItems);
     // match gmbBizId: (by name under account??? what if duplicate?)
     // if we didn't find a match, skip it. This may due to outdated account scan (gmbBiz doesn't register yet)
@@ -224,7 +224,7 @@ export class Gmb3Service {
     newItems.map(item => {
       // biz match strategy: same name, same account email, and first encounter of status before this item's date is Published!
 
-      const matchedLocation = account.locations.map(loc => {
+      const matchedLocationAndScore = account.locations.map(loc => {
         const exactNameMatched = loc.name.toLowerCase() === item.business.toLowerCase();
         const skippedKeywords = ['the', 'restaurant', '&', 'and'];
         const fuzzyNameMatched = loc.name.toLowerCase().split(' ').filter(t => t && skippedKeywords.indexOf(t) < 0).join(',') === item.business.toLowerCase().split(' ').filter(t => t && skippedKeywords.indexOf(t) < 0).join(',');
@@ -243,7 +243,8 @@ export class Gmb3Service {
           location: loc
         };
       }).sort((r1, r2) => r2.score - r1.score)[0];
-      const matchedBiz = gmbBizList.filter(biz => biz.cid === (matchedLocation || {}).cid || 'nonexist')[0];
+      const matchedCid = matchedLocationAndScore ? matchedLocationAndScore.location.cid : 'nonexist';
+      const matchedBiz = gmbBizList.filter(biz => biz.cid === matchedCid)[0];
       if (!matchedBiz) {
         console.log('NO MATCH');
         console.log(account.email);

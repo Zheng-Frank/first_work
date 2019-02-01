@@ -574,6 +574,8 @@ export class TaskService {
       limit: 1400
     }).toPromise();
 
+    console.log('recentRequests', recentRequests);
+
     const outstandingTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'task',
       query: {
@@ -594,8 +596,10 @@ export class TaskService {
     const bizAccountRequestsMap = {};
 
     recentRequests.map(request => {
+
       const gmbAccount = gmbAccountIdMap[request.gmbAccountId];
       const gmbBiz = gmbBizIdMap[request.gmbBizId];
+
       if (gmbBiz && gmbAccount) {
         // valid attacker:
         // 1. account must be currently published
@@ -615,10 +619,14 @@ export class TaskService {
             gmbAccount: gmbAccount,
             gmbRequest: request
           });
+        } else {
+
         }
 
       }
     });
+
+    console.log(bizAccountRequestsMap);
 
     const newTransferTasks = [];
 
@@ -648,7 +656,7 @@ export class TaskService {
           }
         }
       }
-      console.log('here')
+      
       const dueDays = bizAccountRequestsMap[key].map(row => {
         const dueDate = new Date(row.gmbRequest.date);
         dueDate.setDate(dueDate.getDate() + (row.gmbRequest.isReminder ? (row.gmbRequest.foundOriginal ? (4 - 2 * (row.gmbRequest.previousReminders || 0)) : 0) : 7));
@@ -677,6 +685,8 @@ export class TaskService {
               gmbAccount: gmbAccount,
               gmbRequest: dueDays[dueDays.length - 1].gmbRequest
             });
+          } else {
+            console.log('Found existing: ', gmbAccount.email, gmbBiz.name, existingTasks)
           }
         }
       }

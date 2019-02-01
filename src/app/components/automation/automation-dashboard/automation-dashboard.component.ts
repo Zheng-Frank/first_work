@@ -53,6 +53,25 @@ export class AutomationDashboardComponent implements OnInit {
 
   async start() {
 
+    // const badRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+    //   resource: 'gmbRequest',
+    //   query: {
+    //     "gmbBizId": "5c4f56fcdd9078a346e91845"
+    //   },
+    //   limit: 10000
+    // }).toPromise();
+
+    // console.log(badRequests);
+    // badRequests.length = 1;
+    // await this._api.delete(environment.adminApiUrl + 'generic', {
+    //   resource: 'gmbRequest',
+    //   ids: badRequests.map(r => r._id)
+    // }).toPromise();
+
+    // if (new Date()) {
+    //   throw 'bug'
+    // }
+
     this.startTime = new Date();
     this.now = new Date();
     this.scannedAccounts = 0;
@@ -477,9 +496,6 @@ export class AutomationDashboardComponent implements OnInit {
 
     const restaurantsToBeAppliedWithoutDisableAutoTask = restaurantsToBeApplied.filter(r => {
       const gmbBiz = gmbBizList.filter(biz => biz.cid === r.googleListing.cid)[0];
-      if (gmbBiz.cid === '12535973875656368555') {
-        console.log(gmbBiz)
-      }
       return gmbBiz && (!gmbBiz.disableAutoTask || /* Helper.getDaysFromId(gmbBiz._id, new Date()) > 30 || */ gmbAccounts.some(account => account.locations.some(loc => loc.cid === gmbBiz.cid && loc.statusHistory.some(h => h.status === 'Published' || h.status === 'Suspended'))));
     });
 
