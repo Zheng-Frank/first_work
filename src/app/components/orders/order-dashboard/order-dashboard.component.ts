@@ -14,39 +14,81 @@ import { saveAs } from 'file-saver/FileSaver';
 export class OrderDashboardComponent implements OnInit {
   rows = []; // restaurant, total, [orders by createdAt DESC]
   totalOrders = 0;
+  lastWeekTotalOrders = 0;
   restaurantsWithOrders = 0;
   restaurantsWithoutOrders = 0;
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  start1;
+  to1;
+  start2;
+  to2;
+
+  constructor(private _api: ApiService, private _global: GlobalService) {
+    this.start1 = new Date();
+    this.start1.setDate(this.start1.getDate() - 8);
+
+    this.to1 = new Date();
+    this.to1.setDate(this.to1.getDate() - 7);
+
+    this.start2 = new Date();
+    this.start2.setDate(this.start2.getDate() - 1);
+
+    this.to2 = new Date();
+  }
 
   ngOnInit() {
     this.refresh();
   }
 
   refresh() {
-    const start = new Date();
-    start.setDate(start.getDate() - 2);
-    this.searchOrders(start);
+    this.searchOrders();
   }
 
-  searchOrders(startDate: Date) {
+  searchOrders() {
     zip(
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "order",
         query: {
-          createdAt: {
-            $gte: { $date: startDate }
-          }
+          $or: [
+            {
+              $and: [
+                {
+                  createdAt: {
+                    $gte: { $date: this.start1 }
+                  }
+                },
+                {
+                  createdAt: {
+                    $lte: { $date: this.to1 }
+                  }
+                }
+              ]
+            },
+            {
+              $and: [
+                {
+                  createdAt: {
+                    $gte: { $date: this.start2 }
+                  }
+                },
+                {
+                  createdAt: {
+                    $lte: { $date: this.to2 }
+                  }
+                }
+              ]
+            }
+          ],
+
         },
         projection: {
           restaurant: 1,
-          total: 1,
           createdAt: 1,
-          orderNumber: 1,
-          type: 1
+          orderNumber: 1
         },
-        limit: 6000
+        limit: 8000
       }),
+
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {
@@ -57,56 +99,48 @@ export class OrderDashboardComponent implements OnInit {
         projection: {
           name: 1,
           rateSchedules: 1,
-          "googleAddress.formatted_address": 1
+          "googleAddress.formatted_address": 1,
+          "googleListing.cid": 1
         },
         limit: 6000
       }),
       this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbBiz",
+        resource: "gmbAccount",
         query: {
-          qmenuId: {
-            $exists: true
-          }
+          published: { $gt: 0 }
         },
         projection: {
-          gmbOwnerships: { $slice: -1 },
-          "gmbOwnerships.email": 1,
-          "gmbOwnerships.status": 1,
-          gmbWebsite: 1,
-          qmenuId: 1,
-          gmbOpen: 1,
-          gmbOwner: 1,
-          bizManagedWebsite: 1,
-          useBizWebsite: 1,
-          useBizWebsiteForAll: 1
+          "locations.status": 1,
+          "locations.cid": 1
         },
         limit: 6000
       })
     ).subscribe(
       result => {
-        const start = new Date();
         const orders = result[0];
         const restaurants = result[1];
-        const gmbBizList = result[2];
+        const gmbAccountsWithPublishedLocations = result[2];
+        const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)), myset), new Set());
+
         this.rows = [];
         const restaurantMap = {};
         restaurants.map(r => {
           restaurantMap[r._id] = {
             restaurant: r,
             orders: [],
-            yesterdayOrders: []
+            lastWeekOrders: [],
+            ownedGmb: r.googleListing && publishedCids.has(r.googleListing.cid)
           };
         });
-        const now = new Date();
-        const daySpan = 24 * 3600 * 1000;
         this.totalOrders = 0;
         orders.map(o => {
           if (restaurantMap[o.restaurant]) {
-            if (now.valueOf() - new Date(o.createdAt).valueOf() > daySpan) {
-              restaurantMap[o.restaurant].yesterdayOrders.push(o);
-            } else {
+            if (new Date(o.createdAt).valueOf() > this.start2.valueOf()) {
               restaurantMap[o.restaurant].orders.push(o);
               this.totalOrders++;
+            } else {
+              restaurantMap[o.restaurant].lastWeekOrders.push(o);
+              this.lastWeekTotalOrders++;
             }
           }
         });
@@ -135,17 +169,6 @@ export class OrderDashboardComponent implements OnInit {
           r => r["orders"].length === 0
         ).length;
 
-        // match gmbBiz:
-        const dict2 = {};
-        gmbBizList.map(biz => {
-          biz.published = biz.gmbOwnerships && biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].status === 'Published';
-          biz.suspended = biz.gmbOwnerships && biz.gmbOwnerships.length > 0 && biz.gmbOwnerships[biz.gmbOwnerships.length - 1].status === 'Suspended';
-          dict2[biz.qmenuId] = biz;
-        });
-        this.rows.map(row => {
-          row.gmbBiz = dict2[row.restaurant._id || row.restaurant.id] || {};
-        });
-
         // stats of agents
         const agentDict = {};
         this.rows.map(row => {
@@ -159,8 +182,8 @@ export class OrderDashboardComponent implements OnInit {
             orders: 0
           };
           agentDict[agent].restaurant = agentDict[agent].restaurant + 1;
-          agentDict[agent].orders = agentDict[agent].orders + row.orders.length + row.yesterdayOrders.length;
-          agentDict[agent].restaurantWithOrders = agentDict[agent].restaurantWithOrders + (row.orders.length + row.yesterdayOrders.length > 0 ? 1 : 0);
+          agentDict[agent].orders = agentDict[agent].orders + row.orders.length + row.lastWeekOrders.length;
+          agentDict[agent].restaurantWithOrders = agentDict[agent].restaurantWithOrders + (row.orders.length + row.lastWeekOrders.length > 0 ? 1 : 0);
         });
         console.log(agentDict);
 
@@ -180,12 +203,6 @@ export class OrderDashboardComponent implements OnInit {
     );
   }
 
-  getLogo(gmbBiz) {
-    if (gmbBiz.bizManagedWebsite && gmbBiz.gmbOwner === 'qmenu') {
-      return GlobalService.serviceProviderMap['qmenu-gray'];
-    }
-    return GlobalService.serviceProviderMap[gmbBiz.gmbOwner];
-  }
 
   downloadStats() {
     // alert('not enabled');

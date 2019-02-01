@@ -41,21 +41,25 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   async populate() {
-    const bizList = await this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbBiz",
-      projection: {
-        "gmbOwnerships.email": 1,
-        "gmbOwnerships.status": 1,
-        "phone": 1,
-        "type": 1,
-        "address": 1,
-        "name": 1
-      },
-      limit: 5000
-    }).toPromise();
-
+   
     const accountList = await this._api.get(environment.adminApiUrl + "generic", {
       resource: "gmbAccount",
+      projection: {
+        email: 1,
+        password: 1,
+        type: 1,
+        comments: 1,
+        published: 1,
+        suspended: 1,
+        allLocations: 1,
+        pagerSize: 1,
+        gmbScannedAt: 1,
+        emailScannedAt: 1,
+        "locations.status": 1,
+        "locations.cid": 1,
+        "locations.name": 1,
+        "locations.address": 1
+      },
       limit: 5000
     }).toPromise();
 

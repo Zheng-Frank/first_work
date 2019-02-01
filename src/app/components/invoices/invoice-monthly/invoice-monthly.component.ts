@@ -6,6 +6,7 @@ import { Invoice } from 'src/app/classes/invoice';
 
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertType } from 'src/app/classes/alert-type';
+import { Restaurant } from '@qmenu/ui';
 @Component({
   selector: 'app-invoice-monthly',
   templateUrl: './invoice-monthly.component.html',
@@ -406,6 +407,24 @@ export class InvoiceMonthlyComponent implements OnInit {
       limit: 80000
     }).toPromise();
 
+    
+    const gmbAccountsWithPublishedLocations = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        "published": {$gt: 0}
+      },
+      projection: {
+        "locations.cid": 1,
+        "locations.status": 1
+      },
+      limit: 20000
+    }).toPromise();
+
+    const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)) , myset), new Set());
+
+
+    console.log(publishedCids);
+
     // organize by restaurant id
     const idRowMap = {};
     invoices.map(invoice => {
@@ -444,7 +463,8 @@ export class InvoiceMonthlyComponent implements OnInit {
         "logs.time": 1,
         "logs.response": 1,
         "logs.username": 1,
-        "logs.type": 1
+        "logs.type": 1,
+        "googleListing.cid": 1
       },
       limit: 20000
     }).toPromise();
@@ -452,27 +472,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     collectionLogs.map(restaurant => {
       if (idRowMap[restaurant._id]) {
         idRowMap[restaurant._id].logs = (restaurant.logs || []).filter(log => log.type === 'collection');
-      }
-    });
-
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      query: {
-        "gmbOwnerships.status": 'Published',
-        qmenuId: { $exists: 1 }
-      },
-      projection: {
-        qmenuId: 1,
-        "gmbOwnerships.status": 1
-      },
-      limit: 20000
-    }).toPromise();
-
-    const ownedGmbBizList = gmbBizList.filter(gmbBiz => gmbBiz.gmbOwnerships[gmbBiz.gmbOwnerships.length - 1].status === 'Published');
-
-    ownedGmbBizList.map(biz => {
-      if (idRowMap[biz.qmenuId]) {
-        idRowMap[biz.qmenuId].ownedGmb = true;
+        idRowMap[restaurant._id].ownedGmb = restaurant.googleListing && publishedCids.has(restaurant.googleListing.cid)
       }
     });
 
@@ -543,10 +543,6 @@ export class InvoiceMonthlyComponent implements OnInit {
     const uptoDate = new Date(this.toDate);
 
     console.log(uptoDate);
-
-    // if(uptoDate) {
-    //   throw 'test'
-    // }
 
     // find all invoices that are not canceled
     let allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
