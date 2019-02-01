@@ -17,9 +17,20 @@
 
     <label class="mr-2"> Assignee:</label>
     <select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
-        <option>Any</option>
+        <option>All</option>
         <option *ngFor="let assignee of assigneeList">{{assignee}}</option>
     </select>
+
+    <label class="mr-2"> Owner:</label>
+    <select class="mr-5" [(ngModel)]="owner" (change)="filter()">
+        <option>All</option>
+        <option *ngFor="let owner of ownerList">{{owner}}</option>
+    </select>
+
+    <input class="form-check-input" type="checkbox" [(ngModel)]="onlyDirectSignUp" (change)="filter()" id="onlyDirectSignUp">
+    <label class="form-check-label" for="onlyDirectSignUp">
+        Only Direct Sign Up
+    </label>
 </div>
 
 
@@ -52,11 +63,13 @@
         </td>
         <td>{{task.gmbBiz?.timeZone}}</td>
         <td>
-            <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>
+            <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>            
             <div *ngIf="task.relatedMap.location?.statusHistory">
                 {{task.relatedMap.location.statusHistory[0].time | ago : now}}
             </div>
+
         </td>
+        <td>{{task.gmbBiz?.gmbOwner}}</td>
         <td>{{task.score}}</td>
         <td>{{getRoles(task)}}</td>
         <td>{{task.assignee}}</td>
@@ -71,7 +84,9 @@
         </td>
         <td class="text-nowrap">
             {{task.createdAt | ago:now}}
-            <div class="text-muted"><small>{{task._id}}</small></div>
+            <div class="text-muted">
+                <small>{{task._id}}</small>
+            </div>
         </td>
     </tr>
 </q-table>

@@ -135,7 +135,9 @@ export class TaskDashboardComponent {
           address: 1,
           gmbOpen: 1,
           phone: 1,
-          name: 1
+          name: 1,
+          isDirectSignUp: 1,
+          gmbOwner: 1
         },
         limit: 10000
       }),

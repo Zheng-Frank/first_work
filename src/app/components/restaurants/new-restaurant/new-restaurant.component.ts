@@ -20,6 +20,7 @@ export class NewRestaurantComponent implements OnInit {
     googleAddress: { formatted_address: '' }
   };
   applyGmb = false;
+  isDirectSignUp = false;
   restaurantFieldDescriptors = [
     {
       field: "name",
@@ -192,6 +193,9 @@ export class NewRestaurantComponent implements OnInit {
           "date": new Date().toISOString().slice(0, 10)
         }];
       }
+      if(this.isDirectSignUp){
+        this.restaurant.isDirectSignUp=this.isDirectSignUp;
+      }
       const newRestaurants = await this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [this.restaurant]).toPromise();
       // assign newly created id back to original object
       this.restaurant._id = newRestaurants[0];
@@ -232,6 +236,9 @@ export class NewRestaurantComponent implements OnInit {
         const newGmbBiz = { ...this.restaurant.googleListing, qmenuId: this.restaurant._id };
         if (!this.applyGmb) {
           newGmbBiz['disableAutoTask'] = true;
+        }
+        if(this.isDirectSignUp){
+          newGmbBiz['isDirectSignUp'] = true;
         }
         newGmbBiz['qmenuWebsite'] = environment.customerUrl + '#/' + this.restaurant.alias;
 

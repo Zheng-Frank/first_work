@@ -52,9 +52,9 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
   dropdownVisible = false;
 
-  withinDays=30;
-  requestLimitPerDay=5;
-  requestLimitPerMonth=20;
+  withinDays = 30;
+  requestLimitPerDay = 5;
+  requestLimitPerMonth = 20;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
 
@@ -110,42 +110,39 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           }
         });
 
-        
-
-        results[2].map(task =>{
-          if (accountMap[task.transfer.toEmail]) { 
-
-
-            
-          /* 
-          Filter out the email have sent certain number of requests within certain days
-          Currently,let only 5 request per email per day and 20 requests per email in 30 days
-          */
-            let today= new Date();
-            if(task.transfer.requestedAt){
-              let dateDiff=(today.getTime() - new Date(task.transfer.requestedAt).getTime())/(1000*60*60*24.0);
-              if(dateDiff<this.withinDays+1){
-                accountMap[task.transfer.toEmail].requestCountPerMonth= (accountMap[task.transfer.toEmail].requestCountPerMonth || 0) +1;
+        results[2].map(task => {
+          if (accountMap[task.transfer.toEmail]) {
+            /* 
+            Filter out the email have sent certain number of requests within certain days
+            Currently,let only 5 request per email per day and 20 requests per email in 30 days
+            */
+            let today = new Date();
+            if (task.transfer.requestedAt) {
+              let dateDiff = (today.getTime() - new Date(task.transfer.requestedAt).getTime()) / (1000 * 60 * 60 * 24.0);
+              if (dateDiff < this.withinDays + 1) {
+                accountMap[task.transfer.toEmail].requestCountPerMonth = (accountMap[task.transfer.toEmail].requestCountPerMonth || 0) + 1;
               }
-              if(dateDiff<2){
-                accountMap[task.transfer.toEmail].requestCountPerDay= (accountMap[task.transfer.toEmail].requestCountPerDay || 0) +1;
+              if (dateDiff < 2) {
+                accountMap[task.transfer.toEmail].requestCountPerDay = (accountMap[task.transfer.toEmail].requestCountPerDay || 0) + 1;
               }
             }
-
-
           }
         })
 
-        console.log('accountMap', accountMap);
+        //console.log('accountMap', accountMap);
 
         this.accounts = results[1].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
-        //Filter out the email account which exceed the request limit within the pre-defined days
+        let mega = this.accounts.filter(a => a.type === "Apply GMB") ;
+        
+        
         this.accounts = this.accounts
-        .filter(each=>  (each.requestCountPerDay || 0 )<= this.requestLimitPerDay )
-        .filter(each=>  (each.requestCountPerMonth || 0 )<= this.requestLimitPerMonth )
-
-
-        console.log(' this.accounts',  this.accounts);
+        .filter(each => (each.requestCountPerDay || 0) <= this.requestLimitPerDay)
+        .filter(each => (each.requestCountPerMonth || 0) <= this.requestLimitPerMonth)
+        .filter(a => a.type === "Apply GMB")      
+        
+        console.log('Apply GMB Per Day', this.accounts.reduce((sum, a) => sum + (a.requestCountPerDay || 0), 0));
+        console.log(' this.accounts', this.accounts);
+        console.log('filtered out account', mega.filter(each => !this.accounts.some(a=> a.email === each.email)));
       },
       error => {
         this._global.publishAlert(AlertType.Danger, error);
@@ -162,11 +159,10 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   }
 
   getFilteredAccounts() {
-    console.log(this.accounts);
     if (this.transfer) {
-      return this.accounts.filter(a => a.type === "Apply GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
+      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
     }
-    return this.accounts.filter(a => a.type === "Apply GMB");
+    return this.accounts
   }
 
   ngOnChanges(changes: SimpleChanges) {
