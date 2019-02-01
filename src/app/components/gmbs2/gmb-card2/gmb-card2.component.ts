@@ -2,6 +2,7 @@ import { Component, OnInit, Input, OnChanges, SimpleChanges, Output, EventEmitte
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { FormEvent } from '@qmenu/ui';
 import { GmbBiz } from 'src/app/classes/gmb/gmb-biz';
+import { GlobalService } from 'src/app/services/global.service';
 
 @Component({
   selector: 'app-gmb-card2',
@@ -26,7 +27,7 @@ export class GmbCard2Component implements OnInit, OnChanges {
 
   expandBizLis = false;
 
-  constructor() { }
+  constructor(private _global: GlobalService) { }
 
   ngOnInit() {
   }
@@ -70,6 +71,9 @@ export class GmbCard2Component implements OnInit, OnChanges {
         this.scanningBizList = false;
       }
     });
+  }
+  isAdmin(){
+    return this._global.user.roles.some(r => r ==='ADMIN');
   }
 
 }

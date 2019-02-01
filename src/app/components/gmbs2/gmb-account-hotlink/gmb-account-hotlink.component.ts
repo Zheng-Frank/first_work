@@ -36,7 +36,7 @@ export class GmbAccountHotlinkComponent implements OnInit {
         password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: this.email, phrase: password }).toPromise();
       }
 
-      const target = 'retrieveGmbRequests';
+      const target = 'login';
 
       await this._api.post(environment.autoGmbUrl + target, { email: accounts[0].email, password: password, stayAfterScan: true }).toPromise();
       this._global.publishAlert(AlertType.Success, 'Logged in.');
