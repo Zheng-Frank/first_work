@@ -50,7 +50,8 @@
         <td>{{task.name}}
             <div class="text-muted" *ngIf="task.description">
                 <small>
-                    {{task.description}} {{task.gmbBiz?.address}}
+                    <a target="_blank" href="#/restaurants/{{task.gmbBiz?.qmenuId}}">{{task.description}}</a>
+                     {{task.gmbBiz?.address}}
                     <div *ngIf="task.transfer && task.transfer.fromEmail">
                         <app-gmb-account-hotlink [email]="task.transfer.fromEmail"></app-gmb-account-hotlink>
                         <span *ngIf="task.transfer.againstEmail">« {{task.transfer.againstEmail | emailName}}</span>
