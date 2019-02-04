@@ -36,8 +36,6 @@ export class GmbBiz {
     score: number;
     agent: string;
 
-    gmbOwnerships: GmbOwnership[] = [];
-
     ignoreGmbOwnershipRequest: boolean;
 
     comments: string;
@@ -49,7 +47,6 @@ export class GmbBiz {
 
     disableAutoTask: boolean;
 
-    accounts: any;  // email, id, history {scannedAt, status}
 
     constructor(biz?: any) {
         if (biz) {
@@ -64,30 +61,7 @@ export class GmbBiz {
                     this[dateField] = new Date((Date.parse(this[dateField])));
                 }
             });
-            if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
-                this.gmbOwnerships = this.gmbOwnerships.map(o => new GmbOwnership(o));
-            }
         }
-    }
-
-    /** test if the last ownership is one of the given emails */
-    publishedIn(emails) {
-        const lastOwnership = this.getLastGmbOwnership();
-        return lastOwnership && (lastOwnership.status === 'Published' || !lastOwnership.status) && emails.indexOf(lastOwnership.email) >= 0;
-    }
-    suspendedIn(emails) {
-        const lastOwnership = this.getLastGmbOwnership();
-        return lastOwnership && lastOwnership.status === 'Suspended' && emails.indexOf(lastOwnership.email) >= 0;
-    }
-    getAccountEmail() {
-        return (this.getLastGmbOwnership() || {})['email'];
-    }
-
-    getLastGmbOwnership() {
-        if (this.gmbOwnerships && this.gmbOwnerships.length > 0) {
-            return this.gmbOwnerships[this.gmbOwnerships.length - 1];
-        }
-        return undefined;
     }
 
 }

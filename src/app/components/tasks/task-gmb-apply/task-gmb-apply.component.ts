@@ -1,6 +1,4 @@
 import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter } from '@angular/core';
-import { GmbAccount } from '../../../classes/gmb/gmb-account';
-import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbTransfer } from '../../../classes/gmb/gmb-transfer';
 import { Task } from '../../../classes/tasks/task';
 import { ApiService } from '../../../services/api.service';
@@ -64,14 +62,6 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
     // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
     zip(
       this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbBiz",
-        projection: {
-          "gmbOwnerships.email": 1,
-          "phone": 1
-        },
-        limit: 5000
-      }),
-      this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
           email: 1,
@@ -98,19 +88,11 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
       .subscribe(
       results => {
         const accountMap = {};
-        results[1].map(a => {
+        results[0].map(a => {
           accountMap[a.email] = a;
         });
-        results[0].map(biz => {
-          if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
-            const email = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
-            if (accountMap[email]) {
-              accountMap[email].bizCount = (accountMap[email].bizCount || 0) + 1;
-            }
-          }
-        });
 
-        results[2].map(task => {
+        results[1].map(task => {
           if (accountMap[task.transfer.toEmail]) {
             /* 
             Filter out the email have sent certain number of requests within certain days
@@ -131,7 +113,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
         //console.log('accountMap', accountMap);
 
-        this.accounts = results[1].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
+        this.accounts = results[0].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
         let mega = this.accounts.filter(a => a.type === "Apply GMB") ;
         
         

@@ -193,8 +193,8 @@ export class NewRestaurantComponent implements OnInit {
           "date": new Date().toISOString().slice(0, 10)
         }];
       }
-      if(this.isDirectSignUp){
-        this.restaurant.isDirectSignUp=this.isDirectSignUp;
+      if (this.isDirectSignUp) {
+        this.restaurant.isDirectSignUp = this.isDirectSignUp;
       }
       const newRestaurants = await this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [this.restaurant]).toPromise();
       // assign newly created id back to original object
@@ -237,7 +237,7 @@ export class NewRestaurantComponent implements OnInit {
         if (!this.applyGmb) {
           newGmbBiz['disableAutoTask'] = true;
         }
-        if(this.isDirectSignUp){
+        if (this.isDirectSignUp) {
           newGmbBiz['isDirectSignUp'] = true;
         }
         newGmbBiz['qmenuWebsite'] = environment.customerUrl + '#/' + this.restaurant.alias;
@@ -251,18 +251,37 @@ export class NewRestaurantComponent implements OnInit {
       }
 
       // see if we need to create Apply GMB task!
-      if (this.applyGmb && (!gmbBiz.gmbOwnerships || gmbBiz.gmbOwnerships.length === 0)) {
-        const task = {
-          name: 'Apply GMB Ownership',
-          scheduledAt: { $date: new Date() },
-          description: gmbBiz.name,
-          roles: ['GMB', 'ADMIN'],
-          relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
-          transfer: {}
-        };
+      if (this.applyGmb) {
+        // making sure it's not already published somewhere!
+        const relevantAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+          resource: 'gmbAccount',
+          query: {
+            "locations.status": "Published",
+            "locations.cid": this.restaurant.googleListing.cid
+          },
+          projection: {
+            "locations.status": 1
+          },
+          limit: 100
+        }).toPromise();
 
-        await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
-        this._global.publishAlert(AlertType.Success, 'Created new Apply GMB Ownership task');
+        if (relevantAccounts.length > 0) {
+          this._global.publishAlert(AlertType.Success, 'GMB already published!');
+        } else {
+          const task = {
+            name: 'Apply GMB Ownership',
+            scheduledAt: { $date: new Date() },
+            description: gmbBiz.name,
+            roles: ['GMB', 'ADMIN'],
+            relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
+            transfer: {}
+          };
+
+          await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+          this._global.publishAlert(AlertType.Success, 'Created new Apply GMB Ownership task');
+        }
+
+
       } else {
 
         this._global.publishAlert(AlertType.Info, 'No apply GMB ownership task is created!');

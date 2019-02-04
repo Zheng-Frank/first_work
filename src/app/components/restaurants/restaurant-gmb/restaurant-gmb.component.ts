@@ -5,7 +5,6 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { GmbService } from 'src/app/services/gmb.service';
 import { Task } from 'src/app/classes/tasks/task';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { Helper } from 'src/app/classes/helper';
@@ -25,7 +24,7 @@ export class RestaurantGmbComponent implements OnInit {
   apiRequesting = false;
   now = new Date();
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _gmb3: Gmb3Service) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() {
   }
@@ -307,15 +306,6 @@ export class RestaurantGmbComponent implements OnInit {
     } catch (error) {
       console.error(error);
       this._global.publishAlert(AlertType.Danger, 'Error crawling info');
-    }
-  }
-
-  async injectInfo(gmbBiz: GmbBiz) {
-    try {
-      await this._gmb.updateGmbWebsite(gmbBiz, true);
-      this._global.publishAlert(AlertType.Success, 'Injected!');
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Error injecting info');
     }
   }
 

@@ -1,15 +1,11 @@
 import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter } from '@angular/core';
-import { GmbAccount } from '../../../classes/gmb/gmb-account';
-import { GmbRequest } from '../../../classes/gmb/gmb-request';
 import { GmbTransfer } from '../../../classes/gmb/gmb-transfer';
 import { Task } from '../../../classes/tasks/task';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
-import { zip } from 'rxjs';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
-import { mergeMap } from 'rxjs/operators';
 import { Restaurant } from '@qmenu/ui';
 import { Log } from '../../../classes/log';
 
@@ -44,7 +40,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   now = new Date();
   emailSettings = {} as any;
 
-  accounts: any[] = []; // account with bizCount
+  accounts: any[] = []; // 
 
   assignees = [];
 
@@ -75,20 +71,12 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   async populate() { // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + "generic", {
-      resource: "gmbBiz",
-      projection: {
-        "gmbOwnerships": { $slice: -2 },
-        "phone": 1
-      },
-      limit: 5000
-    }).toPromise();
-
     const gmbAccounts = await this._api.get(environment.adminApiUrl + "generic", {
       resource: "gmbAccount",
       projection: {
         email: 1,
         allLocations: 1,
+        published: 1,
         type: 1
       },
       limit: 5000
@@ -98,15 +86,6 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
     const accountMap = {};
     gmbAccounts.map(a => {
       accountMap[a.email] = a;
-    });
-
-    gmbBizList.map(biz => {
-      if (biz.gmbOwnerships && biz.gmbOwnerships.length > 0) {
-        const email = biz.gmbOwnerships[biz.gmbOwnerships.length - 1].email;
-        if (accountMap[email]) {
-          accountMap[email].bizCount = (accountMap[email].bizCount || 0) + 1;
-        }
-      }
     });
 
     this.accounts = gmbAccounts.sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
@@ -194,14 +173,6 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
       return this.accounts.filter(a => a.type ==="Transfer GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
     }
     return this.accounts.filter(a => a.type ==="Transfer GMB");
-  }
-
-  getLastAccountEmail() {
-    if (this.gmbBiz) {
-      return this.gmbBiz.gmbOwnerships[this.gmbBiz.gmbOwnerships.length - 1].email;
-    } else {
-      return '';
-    }
   }
 
   ngOnChanges(changes: SimpleChanges) {

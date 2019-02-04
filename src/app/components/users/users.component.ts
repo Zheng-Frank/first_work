@@ -15,6 +15,7 @@ import { Helper } from "../../classes/helper";
 export class UsersComponent implements OnInit {
   @ViewChild('editingModal') editingModal: ModalComponent;
   users: User[] = [];
+  roleUsers = [];
 
   userInEditing = new User();
   // for editing
@@ -37,7 +38,8 @@ export class UsersComponent implements OnInit {
     this._api.get(environment.adminApiUrl + 'generic', { resource: 'user', limit: 1000 }).subscribe(
       result => {
         this.users = result.map(u => new User(u));
-        this.sortUsers(this.users);
+        this.sortAndCatogorize(this.users);
+
       },
       error => {
         this._global.publishAlert(AlertType.Danger, 'Error pulling users from API');
@@ -48,8 +50,16 @@ export class UsersComponent implements OnInit {
     this.deleting = !this.deleting;
   }
 
-  sortUsers(users) {
+  sortAndCatogorize(users) {
     users.sort((u1, u2) => u1.username.localeCompare(u2.username));
+    const roleMap = {};
+    this.users.map(u => (u.roles || []).map(r => {
+      roleMap[r] = roleMap[r] || [];
+      roleMap[r].push(u.username);
+    }));
+
+    this.roleUsers = Object.keys(roleMap).map(role => ({ role: role, users: roleMap[role] }));
+    this.roleUsers.sort((ru1, ru2) => ru1.role > ru2.role ? 1 : -1);
   }
 
   edit(user) {
@@ -157,7 +167,7 @@ export class UsersComponent implements OnInit {
         // we get ids returned
         this.userInEditing._id = result[0];
         this.users.push(new User(this.userInEditing));
-        this.sortUsers(this.users);
+        this.sortAndCatogorize(this.users);
         this.editingModal.hide();
         this._global.publishAlert(AlertType.Success, this.userInEditing.username + ' was added');
       }, error => {

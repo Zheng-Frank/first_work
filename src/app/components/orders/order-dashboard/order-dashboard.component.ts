@@ -41,6 +41,11 @@ export class OrderDashboardComponent implements OnInit {
   }
 
   refresh() {
+    this.totalOrders = 0;
+    this.lastWeekTotalOrders = 0;
+    this.restaurantsWithOrders = 0;
+    this.restaurantsWithoutOrders = 0;
+    this.rows = [];
     this.searchOrders();
   }
 

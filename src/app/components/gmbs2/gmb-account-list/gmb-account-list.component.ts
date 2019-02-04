@@ -41,7 +41,7 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   async populate() {
-   
+
     const accountList = await this._api.get(environment.adminApiUrl + "generic", {
       resource: "gmbAccount",
       projection: {
@@ -55,13 +55,26 @@ export class GmbAccountListComponent implements OnInit {
         pagerSize: 1,
         gmbScannedAt: 1,
         emailScannedAt: 1,
+        "locations.statusHisotory": { $slice: 1 },
         "locations.status": 1,
+        "locations.statusHistory.time": 1,
         "locations.cid": 1,
         "locations.name": 1,
         "locations.address": 1
       },
       limit: 5000
     }).toPromise();
+
+    // add 24 hours suspended and duplicate!
+    accountList.map(a => {
+      let suspendedInPastDay = 0;
+      (a.locations || []).map(loc => {
+        if (loc.status === 'Suspended' && new Date().valueOf() - new Date(loc.statusHistory[0].time).valueOf() < 48 * 3600000) {
+          suspendedInPastDay++;
+        }
+      });
+      a.suspendedInPastDay = suspendedInPastDay;
+    });
 
     this.publishedTotal = accountList.reduce((sum, a) => sum + (a.published || 0), 0);
     this.suspendedTotal = accountList.reduce((sum, a) => sum + (a.suspended || 0), 0);
@@ -84,9 +97,6 @@ export class GmbAccountListComponent implements OnInit {
         this.problematicLocations.push(eitherSuspendedOrPublished);
       }
     });
-
-    console.log(this.problematicLocations);
-
   }
 
   debounce(value) {
@@ -100,8 +110,8 @@ export class GmbAccountListComponent implements OnInit {
         a.locations.some(loc => loc.status !== 'Removed' && loc.name.toLowerCase().startsWith(this.searchFilter.toLowerCase())) ||
         (a.email || '').toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0);
     }
-    if(this.type&& this.type!='All'){
-      this.filteredGmbAccounts=this.filteredGmbAccounts.filter(each=> each.type=== this.type)
+    if (this.type && this.type != 'All') {
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => each.type === this.type)
     }
   }
 
@@ -178,7 +188,7 @@ export class GmbAccountListComponent implements OnInit {
       ids: [gmb._id]
     }).subscribe(
       result => {
-        event.acknowledge(null);        
+        event.acknowledge(null);
         this.gmbAccounts = this.gmbAccounts.filter(g => g.email !== gmb.email);
         this.filterGmbAccounts();
         this.gmbEditingModal.hide();

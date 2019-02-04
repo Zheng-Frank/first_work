@@ -3,9 +3,6 @@
  * 
  */
 import { Action } from './action';
-import { ApiService } from '../../services/api.service';
-import { environment } from "../../../environments/environment";
-import { Observable } from 'rxjs';
 import { User } from '../user';
 import { Step } from './step';
 import { GmbTransfer } from '../gmb/gmb-transfer';
