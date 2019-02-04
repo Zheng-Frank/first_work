@@ -88,7 +88,6 @@ import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { EmailCodeReaderComponent } from './components/gmbs2/email-code-reader/email-code-reader.component';
 import { TaskGmbTransferComponent } from './components/tasks/task-gmb-transfer/task-gmb-transfer.component';
-import { GmbService } from './services/gmb.service';
 import { Gmb3Service } from './services/gmb3.service';
 import { TaskService } from './services/task.service';
 import { TaskGmbApplyComponent } from './components/tasks/task-gmb-apply/task-gmb-apply.component';
@@ -266,7 +265,6 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
   ],
   providers: [
     GlobalService,
-    GmbService,
     Gmb3Service,
     RoleGuard,
     ApiService,

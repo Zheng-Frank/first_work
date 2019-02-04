@@ -58,11 +58,7 @@ export class GmbCard2Component implements OnInit, OnChanges {
       }
     });
   }
-
-  getPublishedBizList(bizList: GmbBiz[]) {
-    return bizList.filter(gmbBiz => (gmbBiz.getLastGmbOwnership() || {})['status'] === 'Published');
-  }
-
+  
   clickScanBizList() {
     this.scanningBizList = true;
     this.scanBizList.emit({

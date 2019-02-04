@@ -7,7 +7,6 @@ import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { GmbRequest } from '../../../classes/gmb/gmb-request';
-import { GmbService } from '../../../services/gmb.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 
 @Component({
@@ -24,7 +23,7 @@ export class Gmb2DashboardComponent implements OnInit {
   publishedTotal;
   suspendedTotal;
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: GmbService, private _gmb3: Gmb3Service) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.refresh();
   }
 

@@ -24,9 +24,27 @@
     </tbody>
   </table>
 </div>
+
+<h3>Roles</h3>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">Role</th>
+      <th scope="col">Users</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let ru of roleUsers">
+      <th>{{ru.role}}</th>
+      <td>{{ru.users.join(', ')}}</td>
+    </tr>
+  </tbody>
+</table>
+
+
 <q-modal [title]="userInEditing._id ? 'Edit User: ' + userInEditing.username : 'Create New User' " #editingModal>
-  <q-form-builder [object]="userInEditing" [showDelete]="userInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
-    (remove)="formRemove($event)" (cancel)="editingModal.hide()"></q-form-builder>
+  <q-form-builder [object]="userInEditing" [showDelete]="userInEditing._id" [fieldDescriptors]="formFieldDescriptors"
+    (submit)="formSubmit($event)" (remove)="formRemove($event)" (cancel)="editingModal.hide()"></q-form-builder>
 
 
 </q-modal>
