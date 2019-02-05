@@ -94,8 +94,7 @@
         </q-simple-radio>
       </div>
       <div class="card card-body" *ngIf="transfer.verificationMethod === 'Email'">
-        <app-email-code-reader [email]="emailSettings.email" [host]="emailSettings.host" [password]="emailSettings.password"
-          (retrieve)="retrieveEmailCode($event)" [gmbBiz]="gmbBiz"></app-email-code-reader>
+        <app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>
       </div>
       <div class="card card-body" *ngIf="transfer.verificationMethod === 'Call' || transfer.verificationMethod === 'Postcard'">
         <div *ngIf="gmbBiz?.phone">
@@ -157,14 +156,6 @@
       Verified {{transfer.verifiedAt | ago: now}}
     </div>
 
-  </div>
-
-  <div class="mb-4" *ngIf="gmbBiz?.qmenuWebsite">
-    <label>
-      Inject qMenu Website
-    </label>
-    <a href="{{gmbBiz?.qmenuWebsite}}" target="_blank" class="d-block mb-2">{{gmbBiz?.qmenuWebsite}}</a>
-    <button class="btn btn-sm btn-info d-block" [qLoading]="updatingWebsite" (click)="handleUpdate('updateWebsite', 'websiteUpdatedAt', 'updatingWebsite')">Inject</button>
   </div>
 
   <div class="mb-4">
@@ -232,12 +223,6 @@
         <h6>
           {{gmbBiz.gmbWebsite}}
         </h6>
-        <div *ngIf="gmbBiz.bizManagedWebsite">
-          <label>Restaurant Managed Website:</label>
-          <h6>
-            {{gmbBiz.bizManagedWebsite}}
-          </h6>
-        </div>
         <app-restaurant-contacts [restaurant]="restaurant" [viewOnly]="true"></app-restaurant-contacts>
         <table class="table table-sm" *ngIf="restaurantLogs.length > 0">
           <thead>

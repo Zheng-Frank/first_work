@@ -12,16 +12,8 @@
     <div class="card" *ngIf="isVisible('email')">
         <div class="card-body">
             <h5 class="card-title">
-                <i class="far fa-envelope"></i> Check Email</h5>
+                <i class="far fa-envelope"></i> Check Email or Inject Website to Godaddy</h5>
             <app-check-email [restaurantList]="restaurantList"></app-check-email>
-        </div>
-    </div>
-
-    <div class="card" *ngIf="isVisible('template')">
-        <div class="card-body">
-            <h5 class="card-title">
-                <i class="fas fa-globe"></i> Inject Website from Templates</h5>
-            <app-inject-website [restaurantList]="restaurantList"></app-inject-website>
         </div>
     </div>
 

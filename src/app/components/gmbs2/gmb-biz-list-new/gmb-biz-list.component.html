@@ -1,0 +1,129 @@
+<h1 class="text-center">Restaurants ({{filteredRows.length}})</h1>
+<div class="clearfix my-2">
+    <div class="float-left form-inline">
+        <input [qDebounce]="500" (debounce)="filter()" type="text" class="form-control mr-2 mb-1" placeholder="type name or address"
+            [(ngModel)]="searchFilter">
+
+        <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantStatus" (change)="filter()">
+            <option>restaurant status</option>
+            <option>enabled</option>
+            <option>disabled</option>
+            <option>bad delivery settings</option>
+            <option>bad menus</option>
+            <option>bad rate schedules</option>
+            <option>bad service settings</option>
+        </select>
+
+        <select class="form-control mr-2 mb-1" [(ngModel)]="gmbStatus" (change)="filter()">
+            <option>GMB status</option>
+            <option>published</option>
+            <option>suspended</option>
+            <option>open</option>
+            <option>lost in 48 hours</option>
+            <option>secondary listing</option>
+        </select>
+
+        <select class="form-control mr-2 mb-1" [(ngModel)]="gmbWebsiteOwner" (change)="filter()">
+            <option>GMB website owner</option>
+            <option>NOT qMenu</option>
+            <option *ngFor="let gmbOwnerCount of gmbOwnerAndCounts">{{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})</option>
+        </select>
+
+        <select class="form-control mr-2 mb-1" [(ngModel)]="agent" (change)="filter()" *ngIf="isAdmin">
+            <option value="">Sales agent</option>
+            <option *ngFor="let agent of agents">{{agent}}</option>
+        </select>
+
+        <select class="form-control mr-2 mb-1" [(ngModel)]="managedWebsite" (change)="filter()">
+            <option>Manged website</option>
+            <option>exist</option>
+            <option>non-exist</option>
+        </select>
+
+    </div>
+
+</div>
+
+<table class="table table-sm">
+    <tr>
+        <th>#</th>
+        <th>qMenu Restaurant</th>
+        <th>Score</th>
+        <th>Agent</th>
+        <th>Account</th>
+        <th>CID</th>
+        <th>Status</th>
+    </tr>
+    <ng-container *ngFor="let row of filteredRows; let rowNumber = index">
+        <ng-container *ngFor="let al of row.accountLocations; let alIndex = index">
+            <tr *ngIf="row.restaurant._id" class="{{row.restaurant.disabled?'app-strike' : ''}}">
+                <th [attr.rowspan]="row.accountLocations.length" *ngIf="!alIndex">{{rowNumber + 1}}</th>
+                <td [attr.rowspan]="row.accountLocations.length" *ngIf="!alIndex">
+                    <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+                    <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
+                </td>
+                <td *ngIf="isAdmin">
+                    {{row.restaurant.score}}
+                </td>
+                <td *ngIf="isAdmin">
+                    {{row.restaurant.agent}}
+                </td>
+                <td>
+                    <app-gmb-account-hotlink [email]="al.account.email"></app-gmb-account-hotlink>
+                </td>
+                <td class="{{row.restaurant?.googleListing?.cid === al.location.cid ? 'text-success' : ''}}">
+                    {{al.location.cid}} <span *ngIf="row.restaurant?.googleListing?.cid === al.location.cid">★</span>
+                </td>
+                <td>
+                    {{al.location.status}}
+                </td>
+            </tr>
+            <tr *ngIf="!row.restaurant._id">
+                <th>{{rowNumber + 1}}</th>
+                <td class="text-danger">
+                    NO MATCH ({{al.location.name}})
+                    <div class="text-muted"><small>{{al.location.address}}</small></div>
+                </td>
+                <td *ngIf="isAdmin">
+                    {{row.restaurant.score}}
+                </td>
+                <td *ngIf="isAdmin">
+                    {{row.restaurant.agent}}
+                </td>
+                <td>
+                    <app-gmb-account-hotlink [email]="al.account.email"></app-gmb-account-hotlink>
+                </td>
+                <td>
+                    {{al.location?.cid}}
+                </td>
+                <td>
+                    {{al.location.status}}
+                </td>
+            </tr>
+        </ng-container>
+        <tr *ngIf="row.accountLocations.length === 0" class="{{row.restaurant.disabled?'app-strike' : ''}}">
+            <th>{{rowNumber + 1}}</th>
+            <td>
+                <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+                <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
+            </td>
+            <td *ngIf="isAdmin">
+                {{row.restaurant.score}}
+            </td>
+            <td *ngIf="isAdmin">
+                {{row.restaurant.agent}}
+            </td>
+            <td class="text-danger">
+                NO MATCH
+            </td>
+            <td class="text-success">
+                {{row.restaurant.googleListing?.cid}} <span *ngIf="row.restaurant.googleListing?.cid">★</span>
+            </td>
+            <td>
+            </td>
+        </tr>
+
+    </ng-container>
+
+
+</table>

@@ -1,120 +1,160 @@
-<h1 class="text-center">Restaurants ({{filteredRows.length}})</h1>
+<h2 class="text-center">GMB: Restaurants <small>{{filteredMyBizList.length}}</small></h2>
 <div class="clearfix my-2">
-    <div class="float-left form-inline">
-        <input [qDebounce]="500" (debounce)="filter()" type="text" class="form-control mr-2 mb-1" placeholder="type name or address"
-            [(ngModel)]="searchFilter">
+  <div class="float-left form-inline">
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control mr-4" placeholder="type name, phone, account..."
+      [(ngModel)]="searchFilter">
 
-        <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantStatus" (change)="filter()">
-            <option>restaurant status</option>
-            <option>enabled</option>
-            <option>disabled</option>
-            <option>bad delivery settings</option>
-            <option>bad menus</option>
-            <option>bad rate schedules</option>
-            <option>bad service settings</option>
-        </select>
+    <label class="mr-2"> GMB:</label>
+    <select class="form-control mr-4" [(ngModel)]="gmbOwnership" (change)="filterBizList()">
+      <option>any</option>
+      <option>qmenu: published</option>
+      <option>qmenu: suspended</option>
+      <option>problematic ownerships</option>
+      <option>NOT qmenu</option>
+      <option>recently lost</option>
 
-        <select class="form-control mr-2 mb-1" [(ngModel)]="gmbStatus" (change)="filter()">
-            <option>GMB status</option>
-            <option>published</option>
-            <option>suspended</option>
-            <option>open</option>
-            <option>lost in 48 hours</option>
-        </select>
+    </select>
 
-        <select class="form-control mr-2 mb-1" [(ngModel)]="gmbWebsiteOwner" (change)="filter()">
-            <option>GMB website owner</option>
-            <option>NOT qMenu</option>
-            <option *ngFor="let gmbOwnerCount of gmbOwnerAndCounts">{{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})</option>
-        </select>
+    <label class="mr-2"> Google Listing:</label>
+    <select class="form-control mr-4" [(ngModel)]="googleListingOwner" (change)="filterBizList()">
+      <option>any</option>
+      <option>qmenu</option>
+      <option>NOT qmenu</option>
+    </select>
 
-        <select class="form-control mr-2 mb-1" [(ngModel)]="agent" (change)="filter()" *ngIf="isAdmin">
-            <option value="">Sales agent</option>
-            <option *ngFor="let agent of agents">{{agent}}</option>
-        </select>
 
-        <select class="form-control mr-4" [(ngModel)]="managedWebsite" (change)="filter()">
-            <option>Manged website</option>
-            <option>exist</option>
-            <option>non-exist</option>
-        </select>
+    <label class="mr-2"> qMenu Managed Website:</label>
+    <select class="form-control mr-4" [(ngModel)]="qMenuManagedWebsite" (change)="filterBizList()">
+      <option>any</option>
+      <option>exist</option>
+      <option>non-exist</option>
+    </select>
 
+    <label class="mr-2">Oustanding Task:</label>
+    <select class="form-control mr-4" [(ngModel)]="outstandingTask" (change)="filterBizList()">
+      <option>any</option>
+      <option>exist</option>
+      <option>non-exist</option>
+      <option>appeal</option>
+      <option>apply</option>
+      <option>transfer</option>
+    </select>
+
+    <label class="mr-2">qMenu:</label>
+    <select class="form-control mr-4" [(ngModel)]="inQmenu" (change)="filterBizList()">
+      <option>any</option>
+      <option>in qMenu DB</option>
+      <option>not in qMenu DB</option>
+
+      <option>bad service settings</option>
+      <option>bad menus</option>
+      <option>bad rate schedules</option>
+      <option>bad delivery settings</option>
+
+    </select>
+
+    <label class="mr-2">Agent:</label>
+    <select class="form-control mr-4" [(ngModel)]="agent" (change)="filterBizList()">
+      <option value="">any</option>
+      <option *ngFor="let agent of agents">{{agent}}</option>
+    </select>
+    {{agent}}
+    <div class="form-check ml-4">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="onlyGmbOpen" (change)="filterBizList()" id="onlyGmbOpen">
+      <label class="form-check-label" for="onlyGmbOpen">
+        Only GMB Open
+      </label>
     </div>
 
+  </div>
+  <div class="float-right">
+    <button class="btn btn-primary" (click)="refresh()" [qLoading]="refreshing">
+      <i class="fas fa-sync-alt"></i> Reload</button>
+  </div>
 </div>
 
-<table class="table table-sm">
-    <tr>
-        <th>#</th>
-        <th>qMenu Restaurant</th>
-        <th>Score</th>
-        <th>Agent</th>
-        <th>Account</th>
-        <th>Status</th>
-    </tr>
-    <ng-container *ngFor="let row of filteredRows; let rowNumber = index">
-        <ng-container *ngFor="let al of row.accountLocations; let alIndex = index">
-            <tr *ngIf="row.restaurant._id" class="{{row.restaurant.disabled?'app-strike' : ''}}">
-                <th [attr.rowspan]="row.accountLocations.length" *ngIf="!alIndex">{{rowNumber + 1}}</th>
-                <td [attr.rowspan]="row.accountLocations.length" *ngIf="!alIndex">
-                    <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
-                    <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
-                </td>
-                <td *ngIf="isAdmin">
-                    {{row.restaurant.score}}
-                </td>
-                <td *ngIf="isAdmin">
-                    {{row.restaurant.agent}}
-                </td>
-                <td>
-                    {{al.account.email | emailName}}
-                </td>
+<q-table [rows]="filteredMyBizList" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+  <tr *tableRowTemplate="let biz;" class="{{biz.restaurant && biz.restaurant.disabled ? 'app-muted' : ''}}">
+    <td>
+      <div class="dropdown">
+        <button class="btn btn-link dropdown-toggle font-weight-bold pl-0" type="button" data-toggle="dropdown">
+          {{biz.gmbBiz.name}}
+        </button>
+        <div class="
+    dropdown-menu">
+          <a class="dropdown-item" target="_blank" href="#/restaurants/{{biz.gmbBiz.qmenuId}}">qMenu Restaurant Details</a>
+          <a class="dropdown-item" target="_blank" href="https://www.google.com/search?q={{getEncodedGoogleSearchString(biz.gmbBiz)}}">Google
+            Listing
+          </a>
+        </div>
+      </div>
+      <div class="text-muted">
+        <small>{{biz.gmbBiz.address}}</small>
+      </div>
 
-                <td>
-                    {{al.location.status}}
-                </td>
-            </tr>
-            <tr *ngIf="!row.restaurant._id">
-                <th>{{rowNumber + 1}}</th>
-                <td class="text-danger">
-                    NO MATCH ({{al.location.name}})
-                    <div class="text-muted"><small>{{al.location.address}}</small></div>
-                </td>
-                <td *ngIf="isAdmin">
-                    {{row.restaurant.score}}
-                </td>
-                <td *ngIf="isAdmin">
-                    {{row.restaurant.agent}}
-                </td>
-                <td>
-                    {{al.account.email | emailName}}
-                </td>
-                <td>
-                    {{al.location.status}}
-                </td>
-            </tr>
-        </ng-container>
-        <tr *ngIf="row.accountLocations.length === 0" class="{{row.restaurant.disabled?'app-strike' : ''}}">
-            <th>{{rowNumber + 1}}</th>
-            <td>
-                <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
-                <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
-            </td>
-            <td *ngIf="isAdmin">
-                {{row.restaurant.score}}
-            </td>
-            <td *ngIf="isAdmin">
-                {{row.restaurant.agent}}
-            </td>
-            <td class="text-danger">
-                NO MATCH
-            </td>
+      <small class="text-muted text-nowrap">{{biz.gmbBiz.phone | tel}}</small>
+    </td>
+    <td>
+      <ng-container *ngIf="biz.qmenuIdDays >= 0">{{biz.qmenuIdDays}} days</ng-container>
+      <div class="badge badge-pill badge-danger" *ngIf="biz.lostDate">
+        <small>Lost: {{biz.lostDate | ago: now}}</small>
+      </div>
+      <div class="text-muted"><small>{{biz.gmbBiz?.qmenuId}}</small></div>
+    </td>
+    <td>{{biz.gmbBiz.score}}</td>
+    <!-- <td>{{biz.ownershipPercentage}}%</td> -->
+    <td>
+      <small>
+        <span *ngFor="let o of (biz.gmbBiz.gmbOwnerships || []); let i=index">
+          <app-gmb-account-hotlink [email]="o.email" [muted]="o.status === 'Suspended'"></app-gmb-account-hotlink><span
+            *ngIf="i < biz.gmbBiz.gmbOwnerships.length - 1">→</span>
+        </span>
+      </small>
+      <!-- {{biz.transfers}} -->
+    </td>
+    <td class="text-center">
+      <img *ngIf="biz.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+      <img *ngIf="biz.suspended" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
+      <span *ngIf="!biz.published && !biz.suspended">?</span>
+    </td>
+    <td class="text-center">
+      <a href="{{biz.gmbBiz.gmbWebsite}}" title="{{biz.gmbBiz.gmbWebsite}}" target="_blank">
+        <i *ngIf="!getLogo(biz.gmbBiz) && biz.gmbBiz.gmbOwner" class="fas fa-question text-danger"></i>
+        <img *ngIf="getLogo(biz.gmbBiz)" [attr.src]="'/assets/images/' + getLogo(biz.gmbBiz)" [attr.alt]="biz.gmbBiz.gmbOwner"
+          height="16px">
+        <i class="fas fa-lock-open text-info" *ngIf="biz.gmbBiz.gmbOpen"></i>
+      </a>
+    </td>
+    <td>
+      <a href="{{biz.gmbBiz.qmenuWebsite}}" title="{{biz.gmbBiz.qmenuWebsite}}" target="_blank">{{biz.gmbBiz.qmenuWebsite}}</a>
+    </td>
+    <td>
+      <div *ngIf="biz.gmbBiz.crawledAt" class="text-muted text-nowrap">
+        <small>{{biz.gmbBiz.crawledAt | ago: now}}</small>
+      </div>
+    </td>
+    <td>
+      {{getOutstandingTasks(biz.gmbBiz)}}
+    </td>
+    <td class="text-center" style="white-space: pre-wrap">
+      {{biz.gmbBiz.comments}}
+    </td>
+    <td class="text-center">
+      <div class="dropdown">
+        <button class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown">
+          Action...
+        </button>
+        <div class="dropdown-menu dropdown-menu-right">
+             <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="createApplyTask(biz.gmbBiz)">Create
+            Apply-GMB Task</button>
+          <button class="dropdown-item" [qLoading]="isProcessing(biz.gmbBiz)" (click)="injectScore(biz.gmbBiz)">Inject
+            Score</button>
+          <button class="dropdown-item" (click)="edit(biz.gmbBiz)">Edit</button>
+        </div>
+      </div>
 
-            <td>
-            </td>
-        </tr>
-
-    </ng-container>
-
-
-</table>
+    </td>
+  </tr>
+</q-table>
+<hr>
+<div class="text-success mb-4">✓: GMB Requests Ignored (usually qMenu partners)</div>

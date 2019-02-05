@@ -34,7 +34,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-    deliveryeSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER']
+    deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
+    
   }
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
@@ -53,7 +55,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this._route.params.subscribe(
       params => {
         this.id = params['id'];
-        console.log(params);
         this.loadDetails();
       });
   }
@@ -135,12 +136,12 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           deliveryEndMinutesBeforeClosing: 1,
           offsetToEST: 1,
           disableScheduling: 1,
-          domain: 1,
-          websiteTemplateName: 1,
+          templateName: 1,
           closedHours: 1,
           skipOrderConfirmation: 1,
           disabled: 1,
-          googleListing: 1
+          googleListing: 1,
+          web: 1
         },
         limit: 1
       })

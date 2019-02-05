@@ -29,8 +29,6 @@ export class GmbBiz {
 
     // qMenu related information (injected to listing once we have ownership)
     qmenuWebsite: string;
-    qmenuPop3Email: string;
-    qmenuPop3Host: string;
     qmenuPop3Password: string;
 
     score: number;

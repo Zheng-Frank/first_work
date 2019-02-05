@@ -6,7 +6,6 @@ import { AlertType } from "../../../classes/alert-type";
 import { Restaurant } from '@qmenu/ui';
 import { Router } from '@angular/router';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
-import { GmbBizEditorComponent } from '../../gmbs2/gmb-biz-editor/gmb-biz-editor.component';
 @Component({
   selector: 'app-new-restaurant',
   templateUrl: './new-restaurant.component.html',
@@ -211,8 +210,7 @@ export class NewRestaurantComponent implements OnInit {
           cid: this.restaurant.googleListing.cid
         },
         projection: {
-          name: 1,
-          qmenuWebsite: 1
+          name: 1
         }
       }).toPromise();
 
@@ -224,7 +222,7 @@ export class NewRestaurantComponent implements OnInit {
         await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', existingGmbs.map(biz =>
           ({
             old: { _id: biz._id },
-            new: { _id: biz._id, qmenuId: this.restaurant._id, qmenuWebsite: biz.qmenuWebsite || (environment.customerUrl + '#/' + this.restaurant.alias) }
+            new: { _id: biz._id, qmenuId: this.restaurant._id }
           }))).toPromise();
         this._global.publishAlert(AlertType.Info, 'Found matching GMB Biz');
         // assign newly created id back to original object

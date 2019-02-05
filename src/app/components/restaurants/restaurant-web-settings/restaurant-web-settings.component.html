@@ -1,0 +1,40 @@
+<div class="card mb-2">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="far fa fa-car"></i> Web Settings</h3>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+
+
+      <app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>
+    </li>
+    <li class="list-group-item">
+      <div class="form-group row">
+        <label class="col-4 col-form-label pt-0">Restaurant Managed Website</label>
+        <div class="col-8 text-left">
+          <q-edit-label [value]="restaurant.web?.bizManagedWebsite" (edit)="onEdit($event, 'bizManagedWebsite')"></q-edit-label>
+          <div *ngIf="restaurant.web?.bizManagedWebsite" class="pt-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="id_useBizWebsite" [checked]="restaurant.web?.useBizWebsite"
+                (change)="toggle($event, 'useBizWebsite')">
+              <label class="form-check-label" for="id_useBizWebsite"> Insisted Only Website</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="id_useBizWebsiteForAll" [checked]="restaurant.web?.useBizWebsiteForAll"
+                (change)="toggle($event, 'useBizWebsiteForAll')">
+              <label class="form-check-label" for="id_useBizWebsiteForAll"> Insisted All</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="id_ignoreGmbOwnershipRequest" [checked]="restaurant.web?.ignoreGmbOwnershipRequest"
+                (change)="toggle($event, 'ignoreGmbOwnershipRequest')">
+              <label class="form-check-label" for="id_ignoreGmbOwnershipRequest"> Ignore GMB Ownership Requests
+                (restaurant won't give ownerhsip to other companies)</label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </li>
+
+  </ul>
+</div>

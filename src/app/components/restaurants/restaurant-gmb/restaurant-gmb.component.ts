@@ -179,7 +179,7 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   async createOrMatchMainGmb() {
-    if(this.restaurant.disabled) {
+    if (this.restaurant.disabled) {
       alert('Disabled restaurant. Failed');
       return;
     }
@@ -210,7 +210,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       } else {
         await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [
-          { ...this.restaurant.googleListing, qmenuId: this.restaurant.id || this.restaurant['_id'], qmenuWebsite: this.restaurant.domain ? ('http://' + this.restaurant.domain) : (environment.customerUrl + '/#' + this.restaurant.alias) }
+          { ...this.restaurant.googleListing, qmenuId: this.restaurant.id || this.restaurant['_id'] }
         ]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Not Matched existing GMB. Created new');
       }
@@ -231,74 +231,6 @@ export class RestaurantGmbComponent implements OnInit {
     return this.gmbRows.some(r => r.gmbBiz.cid === this.restaurant.googleListing.cid);
   }
 
-  async onEdit(event, gmbBiz: GmbBiz, field: string) {
-
-    const newValue = (event.newValue || '').trim();
-
-    if (field === 'qmenuPop3Password' && !gmbBiz.qmenuPop3Email) {
-      this._global.publishAlert(AlertType.Danger, 'Error: please ALWAYS enter password AFTER entering email');
-      return;
-    }
-    try {
-      const old = { _id: gmbBiz._id };
-      const updated = { _id: gmbBiz._id };
-      updated[field] = newValue;
-      if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
-        updated[field] = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: gmbBiz.qmenuPop3Email, phrase: event.newValue }).toPromise();
-      }
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [{
-        old: old,
-        new: updated
-      }]).toPromise();
-
-      gmbBiz[field] = newValue;
-
-      this._global.publishAlert(AlertType.Success, 'Updated');
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, error);
-    }
-  }
-
-  async toggle(event, gmbBiz, field) {
-    try {
-      const newValue = event.target.checked;
-      const old = { _id: gmbBiz._id };
-      const updated = { _id: gmbBiz._id };
-      old[field] = gmbBiz[field];
-      updated[field] = newValue;
-
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [{
-        old: old,
-        new: updated
-      }]).toPromise();
-
-      gmbBiz[field] = newValue;
-
-      this._global.publishAlert(AlertType.Success, 'Updated');
-
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, error);
-    }
-  }
-
-  async retrieveCode(row) {
-    row.retrievedCodeObject = undefined;
-
-    const host = row.gmbBiz.qmenuPop3Host;
-    const email = row.gmbBiz.qmenuPop3Email;
-    let password = row.gmbBiz.qmenuPop3Password;
-
-    try {
-      if (password.length > 20) {
-        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
-      }
-      row.retrievedCodeObject = await this._api.post(environment.autoGmbUrl + 'retrieveGodaddyEmailVerificationCode', { host: host, email: email, password: password }).toPromise();
-    } catch (error) {
-      alert('Error retrieving email: ' + JSON.stringify(error));
-    }
-
-  }
-
   async refreshListing(gmbBiz: GmbBiz) {
     try {
       await this._gmb3.crawlBatchedGmbBizList([gmbBiz]);
@@ -309,11 +241,11 @@ export class RestaurantGmbComponent implements OnInit {
     }
   }
 
-  isWebsiteOk(gmbBiz: GmbBiz) {
-    if (gmbBiz.useBizWebsite || gmbBiz.useBizWebsiteForAll) {
-      return Helper.areDomainsSame(gmbBiz.gmbWebsite, gmbBiz.bizManagedWebsite);
+  isWebsiteOk(gmbBiz) {
+    if (this.restaurant.web && (this.restaurant.web.useBizWebsite || this.restaurant.web.useBizWebsiteForAll)) {
+      return Helper.areDomainsSame(gmbBiz.gmbWebsite, this.restaurant.web.bizManagedWebsite);
     } else {
-      return Helper.areDomainsSame(gmbBiz.gmbWebsite, gmbBiz.qmenuWebsite) || this.isQmenuAlias(gmbBiz.gmbWebsite);
+      return Helper.areDomainsSame(gmbBiz.gmbWebsite, (this.restaurant.web || {}).qmenuWebsite) || this.isQmenuAlias(gmbBiz.gmbWebsite);
     }
   }
 
@@ -321,10 +253,10 @@ export class RestaurantGmbComponent implements OnInit {
 
   /** item is in {menuUrls, reservations, and serviceProviders} */
   isOthersOk(gmbBiz: GmbBiz, item) {
-    if (gmbBiz.useBizWebsiteForAll) {
-      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, gmbBiz.bizManagedWebsite));
+    if (this.restaurant.web && this.restaurant.web.useBizWebsiteForAll) {
+      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, this.restaurant.web.bizManagedWebsite));
     } else {
-      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, gmbBiz.qmenuWebsite) || this.isQmenuAlias(url));
+      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, (this.restaurant.web || {}).qmenuWebsite) || this.isQmenuAlias(url));
     }
   }
 

@@ -290,10 +290,7 @@ export class TaskService {
       projection: {
         name: 1,
         score: 1,
-        cid: 1,
-        useBizWebsite: 1,
-        bizManagedWebsite: 1,
-        qmenuWebsite: 1
+        cid: 1
       },
       limit: 6000
     }).toPromise();
@@ -304,9 +301,9 @@ export class TaskService {
         disabled: { $in: [null, false] }
       },
       projection: {
-        domain: 1,
         alias: 1,
-        "googleListing.cid": 1
+        "googleListing.cid": 1,
+        web: 1
       },
       limit: 6000
     }).toPromise();
@@ -347,17 +344,14 @@ export class TaskService {
 
       // get website: order: original, alias, domain, qmenuWebsite, bizManagedWebsite if insisted
       let targetWebsite = pair.location.website;
+
       // try to assign qmenu website!
-      if (pair.restaurant && pair.restaurant.alias) {
-        targetWebsite = environment.customerUrl + '#/' + pair.restaurant.alias;
+      if (pair.restaurant && pair.restaurant.web && pair.restaurant.web.qmenuWebsite) {
+        targetWebsite = pair.restaurant.web.qmenuWebsite;
       }
 
-      if (pair.restaurant && pair.restaurant.domain) {
-        targetWebsite = pair.restaurant.domain.startsWith('http') ? pair.restaurant.domain : 'http://' + pair.restaurant.domain;
-      }
-
-      if (pair.gmbBiz && pair.gmbBiz.useBizWebsite && pair.gmbBiz.bizManagedWebsite) {
-        targetWebsite = pair.gmbBiz.bizManagedWebsite;
+      if (pair.restaurant && pair.retaurant.web && pair.restaurant.web.useBizWebsite && pair.restaurant.web.bizManagedWebsite) {
+        targetWebsite = pair.restaurant.web.bizManagedWebsite;
       }
 
       return {
@@ -656,7 +650,7 @@ export class TaskService {
           }
         }
       }
-      
+
       const dueDays = bizAccountRequestsMap[key].map(row => {
         const dueDate = new Date(row.gmbRequest.date);
         dueDate.setDate(dueDate.getDate() + (row.gmbRequest.isReminder ? (row.gmbRequest.foundOriginal ? (4 - 2 * (row.gmbRequest.previousReminders || 0)) : 0) : 7));

@@ -8,6 +8,7 @@ import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { Gmb3Service } from "src/app/services/gmb3.service";
+import { JsonPipe } from "@angular/common";
 
 @Component({
   selector: "app-db-scripts",
@@ -1487,7 +1488,6 @@ zealrestaurant.us`;
         name: 1,
         gmbOwner: 1,
         gmbWebsite: 1,
-        qmenuWebsite: 1,
         qmenuId: 1,
         score: 1,
         phone: 1
@@ -1830,7 +1830,6 @@ zealrestaurant.us`;
     //  - cid (restaurant.googleListing.cid <-> gmbBiz.cid)
     //  - using qemenuId
     // what about non-matched??? just leave it???
-    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Email', 'qmenuPop3Host', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest', 'disableAutoTask'];
 
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
@@ -1845,21 +1844,11 @@ zealrestaurant.us`;
       projection: {
         disabled: 1,
         name: 1,
-        googleListing: 1,
+        "googleListing.cid": 1,
         listings: 1,
-        ...migrateFields.reduce((obj, field) => (obj[field] = 1, obj), {})
-      },
-      limit: 6000
-    }).toPromise();
-
-    const gmbAccountsWithLocations = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        locations: { $exists: 1 }
-      },
-      projection: {
-        email: 1,
-        locations: 1
+        domain: 1,
+        websiteTemplateName: 1,
+        web: 1
       },
       limit: 6000
     }).toPromise();
@@ -1871,13 +1860,9 @@ zealrestaurant.us`;
       cidMap[biz.cid].gmbBizList.push(biz);
     });
 
-    gmbAccountsWithLocations.map(account => account.locations.map(loc => {
-      cidMap[loc.cid] = cidMap[loc.cid] || {};
-      cidMap[loc.cid].accountLocations = cidMap[loc.cid].accountLocations || [];
-      cidMap[loc.cid].accountLocations.push({ account: account, location: loc });
-    }));
-
+    const qmenuIdMap = {};
     restaurants.map(r => {
+      qmenuIdMap[r._id] = r;
       if (r.googleListing && r.googleListing.cid) {
         cidMap[r.googleListing.cid] = cidMap[r.googleListing.cid] || {};
         cidMap[r.googleListing.cid].restaurants = cidMap[r.googleListing.cid].restaurants || [];
@@ -1885,41 +1870,71 @@ zealrestaurant.us`;
       }
     });
 
-    const duplicatedGmbBizList = Object.keys(cidMap).filter(k => cidMap[k].gmbBizList && cidMap[k].gmbBizList.length > 1).map(k => cidMap[k].gmbBizList);
-    console.log('duplicatedGmbBizList', duplicatedGmbBizList);
+    // start migrating process: enabled: cid < qmenuId, if multiple, use assign to enabled only
+    const updatedRestaurants = [];
 
-    const duplicatedAccountLocations = Object.keys(cidMap).filter(k => cidMap[k].accountLocations && cidMap[k].accountLocations.length > 1).map(k => cidMap[k].accountLocations);
-    console.log('duplicatedAccountLocations', duplicatedAccountLocations);
-
-    const duplicatedRestaurants = Object.keys(cidMap).filter(k => cidMap[k].restaurants && cidMap[k].restaurants.length > 1).map(k => cidMap[k].restaurants);
-    console.log('duplicatedRestaurants', duplicatedRestaurants);
-
-    const qmenuIdBizListMap = {};
-    gmbBizList.map(biz => {
-      if (biz.qmenuId) {
-        qmenuIdBizListMap[biz.qmenuId] = qmenuIdBizListMap[biz.qmenuId] || [];
-        qmenuIdBizListMap[biz.qmenuId].push(biz);
+    restaurants.map(r => {
+      r.web = r.web || {};
+      const before = JSON.stringify(r.web);
+      if (r.websiteTemplateName) {
+        r.web.templateName = r.web.templateName || r.websiteTemplateName
       }
+
+      if (r.domain) {
+        let url = r.domain.trim().toLowerCase();
+        if (!url.startsWith('http')) {
+          url = 'http://' + url;
+        }
+        r.web.qmenuWebsite = r.web.qmenuWebsite || url;
+      }
+
+      if (JSON.stringify(r.web) !== before) {
+        updatedRestaurants.push(r);
+      }
+
     });
 
-    const multipleBizList = Object.keys(qmenuIdBizListMap).filter(k => qmenuIdBizListMap[k].length > 1);
-    console.log(multipleBizList);
+    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest', 'disableAutoTask'];
 
-    // const notMatchedBizList = [];
-    // const matchedBizList = [];
+    Object.keys(cidMap).map(cid => {
+      let restaurants = cidMap[cid].restaurants || [];
+      const gmbBizList = cidMap[cid].gmbBizList || [];
+      if (restaurants.length > 1) {
+        restaurants = restaurants.filter(r => !r.disabled);
+      }
 
-    // gmbBizList.map(biz => {
-    //   const matchedRestaurants = restaurants.filter(r => r._id === biz.qmenuId || (r.googleListing && r.googleListing.cid === biz.cid));
-    //   if (matchedRestaurants.length > 0) {
-    //     matchedBizList.push(biz);
-    //   } else {
-    //     notMatchedBizList.push(biz);
-    //   }
-    // });
+      restaurants.map(restaurant => {
+        const web = restaurant.web || {};
+        const existingWebString = JSON.stringify(web);
+        migrateFields.map(field => {
+          let fieldValue = web[field];
+          gmbBizList.map(biz => fieldValue = fieldValue || biz[field]);
+          if (fieldValue) {
+            web[field] = fieldValue;
+          }
+        });
 
-    // console.log('matchedBizList', matchedBizList);
-    // console.log('notMatchedBizList', notMatchedBizList);
+        delete web.qmenuPop3Email;
+        delete web.qmenuPop3Host;
+        delete restaurant.domain;
+        delete restaurant.websiteTemplateName;
 
+        restaurant.web = web;
+        updatedRestaurants.push(restaurant);
+
+      });
+
+    });
+
+
+    console.log(updatedRestaurants.length);
+    console.log(updatedRestaurants);
+    // inject
+    // updatedRestaurants.length = 1;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurants.map(r => ({
+      old: { _id: r._id },
+      new: { _id: r._id, web: r.web }
+    }))).toPromise();
 
   }
 
@@ -2032,7 +2047,7 @@ zealrestaurant.us`;
       } else {
         this._global.publishAlert(AlertType.Success, 'No new thing updated');
       }
-      
+
     } // end batch
   } // end migration
 

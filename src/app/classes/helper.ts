@@ -144,6 +144,22 @@ export class Helper {
         return host1 === host2;
     }
 
+    static getTopDomain(url: string): string {
+        if (!url) {
+            return;
+        }
+
+        // remove things before / and after /
+        if (!url.startsWith('http:') && !url.startsWith('https:')) {
+            url = 'http://' + url;
+        }
+
+        let host = new URL(url).host;
+        // keep ONLY last two (NOT GOOD for other country's domain)
+        return host.split('.').slice(-2).join('.');
+    }
+
+
     static processBatchedPromises(promises): any {
         return Promise.all(promises.map(p => new Promise((resolve, reject) => {
             p.then(data => {

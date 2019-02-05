@@ -11,5 +11,4 @@
     <button class="btn btn-link" (click)="resetRestaurant()">Reset</button>
   </div>
 </div>
-<app-email-code-reader [email]="qmenuPop3Email" [host]="qmenuPop3Host" [password]="qmenuPop3Password" (retrieve)="retrieveEmailCode($event)"
-  [gmbBiz]="gmbBiz"></app-email-code-reader>
+<app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>

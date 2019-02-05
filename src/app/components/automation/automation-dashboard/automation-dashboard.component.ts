@@ -580,14 +580,9 @@ export class AutomationDashboardComponent implements OnInit {
       projection: {
         cid: 1,
         qmenuId: 1,
-        qmenuWebsite: 1,
         reservations: 1,
         menuUrls: 1,
-        serviceProviders: 1,
-        gmbWebsite: 1,
-        bizManagedWebsite: 1,
-        useBizWebsite: 1,
-        useBizWebsiteForAll: 1
+        serviceProviders: 1
       },
       limit: 6000
     }).toPromise();
@@ -596,10 +591,10 @@ export class AutomationDashboardComponent implements OnInit {
       resource: 'restaurant',
       projection: {
         alias: 1,
-        domain: 1,
         "googleListing.cid": 1,
         disabled: 1,
-        "channels.value": 1
+        "channels.value": 1,
+        web: 1
       },
       limit: 6000
     }).toPromise();
@@ -644,37 +639,30 @@ export class AutomationDashboardComponent implements OnInit {
 
     const nokItems = consideredItems.map(item => {
       // website, menu, 
-      // get website: order: original, alias, domain, qmenuWebsite, bizManagedWebsite if insisted
-      // try to assign qmenu website!
-      let qmenuDesiredWebsite = (environment.customerUrl + '#/' + item.restaurant.alias).toLowerCase();
 
-      if (item.restaurant.domain) {
-        qmenuDesiredWebsite = (item.restaurant.domain.startsWith('http') ? item.restaurant.domain : 'http://' + item.restaurant.domain).toLowerCase();
-      }
 
-      if (item.gmbBiz.qmenuWebsite) {
-        qmenuDesiredWebsite = item.gmbBiz.qmenuWebsite.toLowerCase();
-      }
+      let qmenuDesiredWebsite = item.restaurant.web.qmenuWebsite;
+      
 
       let targetWebsite = qmenuDesiredWebsite;
 
-      if ((item.gmbBiz.useBizWebsite || item.gmbBiz.useBizWebsiteForAll) && item.gmbBiz.bizManagedWebsite) {
-        targetWebsite = item.gmbBiz.bizManagedWebsite.toLowerCase();
+      if ((item.restaurant.web.useBizWebsite || item.restaurant.web.useBizWebsiteForAll) && item.restaurant.web.bizManagedWebsite) {
+        targetWebsite = item.restaurant.web.bizManagedWebsite.toLowerCase();
       }
 
       let targetMenuUrl = qmenuDesiredWebsite;
-      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetMenuUrl = item.gmbBiz.bizManagedWebsite.toLowerCase();
+      if (item.restaurant.web.useBizWebsiteForAll && item.restaurant.web.bizManagedWebsite) {
+        targetMenuUrl = item.restaurant.web.bizManagedWebsite.toLowerCase();
       }
 
       let targetReservation = qmenuDesiredWebsite;
-      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetReservation = item.gmbBiz.bizManagedWebsite.toLowerCase();
+      if (item.restaurant.web.useBizWebsiteForAll && item.restaurant.web.bizManagedWebsite) {
+        targetReservation = item.restaurant.web.bizManagedWebsite.toLowerCase();
       }
 
       let targetOrderAheadUrl = qmenuDesiredWebsite;
-      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetOrderAheadUrl = item.gmbBiz.bizManagedWebsite.toLowerCase();
+      if (item.restaurant.web.useBizWebsiteForAll && item.restaurant.web.bizManagedWebsite) {
+        targetOrderAheadUrl = item.restaurant.web.bizManagedWebsite.toLowerCase();
       }
 
       const isWebsiteOk = Helper.areDomainsSame(targetWebsite, item.gmbBiz.gmbWebsite);
@@ -700,7 +688,11 @@ export class AutomationDashboardComponent implements OnInit {
     gmbAccountsWithLocations.map(account => Object.keys((account.injection || {})).map(k => appeealIdInjectTimeDict[k] = account.injection[k].time));
 
     console.log(appeealIdInjectTimeDict);
-    const oldNokItems = nokItems.filter(item => !appeealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appeealIdInjectTimeDict[item.location.appealId]).valueOf() > TWELEVE_HOURS));
+
+    const havingTargetWebsiteNokItems = nokItems.filter(item => item.targetWebsite);
+    console.log('havingTargetWebsiteNokItems', havingTargetWebsiteNokItems);
+
+    const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appeealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appeealIdInjectTimeDict[item.location.appealId]).valueOf() > TWELEVE_HOURS));
 
     console.log('oldNokItems', oldNokItems);
 

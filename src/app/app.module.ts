@@ -79,10 +79,10 @@ import { TaskGenericHandlerComponent } from './components/tasks/task-generic-han
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
+import { GmbBizListNewComponent } from './components/gmbs2/gmb-biz-list-new/gmb-biz-list.component';
 import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.component';
 import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor/gmb-account-editor.component';
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
-import { GmbBizEditorComponent } from './components/gmbs2/gmb-biz-editor/gmb-biz-editor.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -96,7 +96,6 @@ import { TaskGeneratorComponent } from './components/tasks/task-generator/task-g
 import { SmsSettingsComponent } from './components/system/sms-settings/sms-settings.component';
 import { FaxSettingsComponent } from './components/system/fax-settings/fax-settings.component';
 import { TaskGmbAppealSuspendedComponent } from './components/tasks/task-gmb-appeal-suspended/task-gmb-appeal-suspended.component';
-import { BizWebsiteEditorComponent } from './components/gmbs2/biz-website-editor/biz-website-editor.component';
 import { QuickDatePickerComponent } from './components/quick-date-picker/quick-date-picker.component';
 import { LogsTableComponent } from './components/logs/logs-table/logs-table.component';
 import { RestaurantLogsComponent } from './components/restaurants/restaurant-logs/restaurant-logs.component';
@@ -104,14 +103,13 @@ import { OrderActionBarComponent } from './components/restaurants/order-action-b
 import { OrderItemsComponent } from './components/restaurants/order-items/order-items.component';
 import { OrderAdjustmentComponent } from './components/restaurants/order-adjustment/order-adjustment.component';
 import { OrderRejectBarComponent } from './components/restaurants/order-reject-bar/order-reject-bar.component';
-import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
+import { RestaurantWebSettingsComponent } from './components/restaurants/restaurant-web-settings/restaurant-web-settings.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
 import { RestaurantClosedHoursComponent } from './components/restaurants/restaurant-closed-hours/restaurant-closed-hours.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
-import { InjectWebsiteComponent } from './components/utilities/inject-website/inject-website.component';
 import { SendGooglePINComponent } from './components/utilities/send-google-pin/send-google-pin.component';
 import { ShowGooglePINComponent } from './components/utilities/show-google-pin/show-google-pin.component';
 import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
@@ -121,7 +119,6 @@ import { FutureDateTimePickerComponent } from './components/restaurants/future-d
 import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/restaurant-gmb.component';
 import { HolidayMonitorComponent } from './components/system/holiday-monitor/holiday-monitor.component';
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
-import { MonitoringGodaddyComponent } from './components/monitoring/monitoring-godaddy/monitoring-godaddy.component';
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
 import { MonitoringEmailComponent } from './components/monitoring/monitoring-email/monitoring-email.component';
 import { TransactionDashboardComponent } from './components/transaction/transaction-dashboard/transaction-dashboard.component';
@@ -206,7 +203,6 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     GmbBizListComponent,
     GmbAccountEditorComponent,
     GmbRequestListComponent,
-    GmbBizEditorComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,
     TaskGmbTransferComponent,
@@ -216,7 +212,6 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     TaskGeneratorComponent,
     SmsSettingsComponent,
     FaxSettingsComponent,
-    BizWebsiteEditorComponent,
     QuickDatePickerComponent,
     LogsTableComponent,
     RestaurantLogsComponent,
@@ -227,9 +222,9 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     OrderRejectBarComponent,
     BanCustomerComponent,
     RestaurantDeliverySettingsComponent,
+    RestaurantWebSettingsComponent,
     StripeComponent,
     CheckEmailComponent,
-    InjectWebsiteComponent,
     SendGooglePINComponent,
     ShowGooglePINComponent,
     MyRestaurantComponent,
@@ -239,7 +234,6 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     RestaurantGmbComponent,
     HolidayMonitorComponent,
     MonitoringDashboardComponent,
-    MonitoringGodaddyComponent,
     MonitoringFaxComponent,
     MonitoringEmailComponent,
     TransactionDashboardComponent,
@@ -249,7 +243,8 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     TaskBarComponent,
     MonitoringDisabledRestaurantsComponent,
     MonitoringGmbComponent,
-    MonitoringHoursComponent
+    MonitoringHoursComponent,
+    GmbBizListNewComponent
     
   ],
   imports: [
