@@ -1,33 +1,37 @@
-<div class="form-group row">
-  <label class="col-4 col-form-label pt-0">qMenu Managed Website</label>
-  <div class="col-8 text-left">
-    <q-edit-label [value]="restaurant.web?.qmenuWebsite" (edit)="onEdit($event, 'qmenuWebsite')"></q-edit-label>
+<ng-container *ngIf="restaurant">
+  <div class="form-group row">
+    <label class="col-4 col-form-label pt-0">qMenu Managed Website</label>
+    <div class="col-8 text-left">
+      <q-edit-label [value]="restaurant?.web?.qmenuWebsite" (edit)="onEdit($event, 'qmenuWebsite')"></q-edit-label>
+    </div>
   </div>
-</div>
-<div class="form-group row">
-  <label class="col-4 col-form-label pt-0">Website Template</label>
-  <div class="col-8 text-left">
-    <q-edit-label [value]="restaurant.web.templateName" [type]="'select'" [options]="templateNames" (edit)="onEdit($event, 'templateName')"></q-edit-label>
+  <div class="form-group row">
+    <label class="col-4 col-form-label pt-0">Website Template</label>
+    <div class="col-8 text-left">
+      <q-edit-label [value]="restaurant?.web.templateName" [type]="'select'" [options]="templateNames" (edit)="onEdit($event, 'templateName')"></q-edit-label>
+    </div>
   </div>
-</div>
-<div class="form-group row">
-  <label class="col-4 col-form-label pt-0">Email</label>
-  <div class="col-8 text-left">
-    {{getEmail()}}
+  <div class="form-group row">
+    <label class="col-4 col-form-label pt-0">Email</label>
+    <div class="col-8 text-left">
+      {{getEmail()}}
+    </div>
   </div>
-</div>
-<div class="form-group row">
-  <label class="col-4 col-form-label">Email Password</label>
-  <div class="col-8 text-left">
-    <q-edit-label [value]="restaurant.web?.qmenuPop3Password" (edit)="onEdit($event, 'qmenuPop3Password')"></q-edit-label>
+  <div class="form-group row">
+    <label class="col-4 col-form-label">Email Password</label>
+    <div class="col-8 text-left">
+      <q-edit-label [value]="restaurant?.web?.qmenuPop3Password" (edit)="onEdit($event, 'qmenuPop3Password')"></q-edit-label>
+    </div>
   </div>
-</div>
-<div class="text-right">
-  <div *ngIf="retrievedObj" class="mb-2">
-    <span class="badge badge-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.code}}</span>
-    {{retrievedObj.time | ago: now}} {{retrievedObj.name}} <span class="text-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.email}}</span>
-  </div>
+  <div class="text-right">
+    <div *ngIf="retrievedObj" class="mb-2">
+      <span class="badge badge-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.code}}</span>
+      {{retrievedObj.time | ago: now}} {{retrievedObj.name}} <span class="text-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.email}}</span>
+    </div>
 
-  <button class="btn btn-primary" (click)="injectWebsite()" [qLoading]="apiRequesting">Inject Website to Godaddy</button>
-  <button class="btn btn-primary" (click)="clickRetrieve()" [qLoading]="apiRequesting">Retrieve Verification Code</button>
-</div>
+    <button class="btn btn-primary" (click)="injectWebsite()" [qLoading]="apiRequesting">Inject
+      Website to Godaddy</button>
+    <button class="btn btn-primary" (click)="clickRetrieve()" [qLoading]="apiRequesting">Retrieve
+      Verification Code</button>
+  </div>
+</ng-container>

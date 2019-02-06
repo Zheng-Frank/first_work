@@ -1,139 +1,52 @@
 import { Component, OnInit, Input, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
-import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { GlobalService } from '../../../services/global.service';
-import { AlertType } from '../../../classes/alert-type';
-import { zip } from 'rxjs';
-import { FormEvent } from '@qmenu/ui';
-import { mergeMap, ignoreElements } from 'rxjs/operators';
-import { Task } from '../../../classes/tasks/task';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
-
-interface myBiz {
-  gmbBiz: GmbBiz;
-  published?: boolean;
-  suspended?: boolean;
-  ownershipPercentage?: number;
-  lostDate?: Date;
-  transfers?: string; // A <- B <- C
-  restaurant: any
-}
 
 @Component({
   selector: 'app-gmb-biz-list',
   templateUrl: './gmb-biz-list.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./gmb-biz-list.component.css']
 })
 export class GmbBizListComponent implements OnInit {
-
-  bizList: GmbBiz[] = [];
-  myEmails: string[] = [];
-
-  myBizList: myBiz[] = [];
-
-  agents = [];
-
-  agent; // selected agent
+  rows = [];
+  filteredRows = [];
 
   searchFilter;
-  gmbOwnership;
-  googleListingOwner;
-  outstandingTask;
-  qMenuManagedWebsite;
-  onlyGmbOpen = false;
-  inQmenu;
+  restaurantStatus = "restaurant status";
+  gmbStatus = "GMB status";
 
-  filteredMyBizList: myBiz[] = [];
+  gmbOwnerAndCounts = [];
+  gmbWebsiteOwner = "GMB website owner";
 
-  refreshing = false;
-  crawling = false;
-  injecting = false;
+  agents = [];
+  agent = "Sales agent";
 
-  now = new Date();
+  managedWebsite = 'Manged website';
 
-  processingBizSet = new Set<any>();
-
-  bizInEditing: GmbBiz;
-  apiError;
-
-  bizTaskMap = {};
-
-  myColumnDescriptors = [
-    {
-      label: "Name",
-      paths: ['gmbBiz', 'name'],
-      sort: (a, b) => a.toLowerCase() > b.toLowerCase() ? 1 : (a.toLowerCase() < b.toLowerCase() ? -1 : 0)
-    },
-    {
-      label: "In Qmenu"
-    },
-    {
-      label: "Score",
-      paths: ['gmbBiz', 'score'],
-      sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
-    },
-    {
-      label: "Accounts",
-      paths: ['transfers'],
-      sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
-    },
-    {
-      label: "GMB Owner"
-    },
-    {
-      label: "Website"
-    },
-    {
-      label: "qMenu Website"
-    },
-    {
-      label: "Crawled",
-      paths: ['gmbBiz', 'crawledAt'],
-      sort: (a1, a2) => (a1 || new Date(0)).valueOf() - (a2 || new Date(0)).valueOf()
-    },
-    {
-      label: "Tasks"
-    },
-    {
-      label: "Comments"
-    },
-    {
-      label: "Actions"
-    }
-  ];
-
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service, private _ref: ChangeDetectorRef) {
+  isAdmin = false;
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.refresh();
+    this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
   }
   ngOnInit() {
   }
 
   async refresh() {
-    this.now = new Date();
-    this.refreshing = true;
-    zip(
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbBiz",
+    // restaurants -> gmbBiz -> published status
+    const results = await Promise.all([
+      this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
         projection: {
-          gmbOwnerships: 0,
-          accounts: 0          
-        },
-        limit: 5000
-      }),
-      this._api.get(environment.adminApiUrl + "generic", {
-        resource: "gmbAccount",
-        projection: {
-          email: 1
-        },
-        limit: 5000
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        projection: {
-          "disabled": 1,
+          name: 1,
+          "googleListing.cid": 1,
+          "googleListing.gmbOwner": 1,
+          "googleListing.gmbOpen": 1,
+          "googleAddress.formatted_address": 1,
+          disabled: 1,
+          score: 1,
+          "rateSchedules.agent": 1,
           "serviceSettings.name": 1,
           "serviceSettings.paymentMethods": 1,
           "deliverySettings.charge": 1,
@@ -141,256 +54,230 @@ export class GmbBizListComponent implements OnInit {
           "menus.hours": 1,
           "menus.disabled": 1,
           "rateSchedules.rate": 1,
-          "rateSchedules.fixed": 1,
-          "rateSchedules.agent": 1
+          "rateSchedules.fixed": 1
         },
-        limit: 5000
-      })
-    )
-      .subscribe(
-        results => {
-          this.refreshing = false;
-          this.bizList = results[0].map(b => new GmbBiz(b)).sort((g1, g2) => g1.name > g2.name ? 1 : -1);
-
-
-          this.myEmails = results[1].map(account => account.email);
-
-          const restaurantIdDict = {};
-          results[2].map(r => restaurantIdDict[r._id] = r);
-
-          // make myBizList:
-          this.myBizList = this.bizList.map(biz => ({
-            gmbBiz: biz,
-            qmenuIdDays: biz.qmenuId ? Math.floor((this.now.valueOf() - parseInt(biz.qmenuId.substring(0, 8), 16) * 1000) / (24 * 3600000)) : undefined,
-            restaurant: restaurantIdDict[biz.qmenuId]
-          }));
-
-          this.agents = results[2].map(r => ((r.rateSchedules || [])[0] || {}).agent).filter(agent => agent);
-          this.agents = [... new Set(this.agents)];
-          this.agents.sort();
-
-          this.filterBizList();
+        limit: 6000
+      }).toPromise(),
+      this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        projection: {
+          email: 1,
+          "locations.statusHistory": { $slice: 2 },
+          "locations.cid": 1,
+          "locations.name": 1,
+          "locations.address": 1,
+          "locations.status": 1,
+          "locations.statusHistory.time": 1,
+          "locations.statusHistory.status": 1
         },
-        error => {
-          this.refreshing = false;
-          this._global.publishAlert(AlertType.Danger, error);
-        }
-      );
+        limit: 6000
+      }).toPromise(),
+      this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          name: 1,
+          cid: 1,
+          qmenuId: 1,
+          gmbOwner: 1
+        },
+        limit: 6000
+      }).toPromise(),
+    ]);
 
-    this.bizTaskMap = {};
-    const outstandingTasks: Task[] = await this._api.get(environment.adminApiUrl + "generic", {
-      resource: "task",
-      query: {
-        result: null    // null is the same as either non-exists or actually null in mongodb
-      },
-      projection: {
-        name: 1,
-        relatedMap: 1
-      },
-      limit: 5000
-    }).toPromise();
 
-    outstandingTasks.map(t => {
-      if (t.relatedMap && t.relatedMap['gmbBizId']) {
-        if (!this.bizTaskMap[t.relatedMap['gmbBizId']]) {
-          this.bizTaskMap[t.relatedMap['gmbBizId']] = [];
-        }
-        this.bizTaskMap[t.relatedMap['gmbBizId']].push(t.name);
+    const restaurants = results[0];
+    const gmbAccounts = results[1];
+    const gmbBizList = results[2];
+    // create a cidMap
+    const cidMap = {};
+
+    const agentSet = new Set();
+    restaurants.map(r => {
+      if (r.googleListing && r.googleListing.cid) {
+        cidMap[r.googleListing.cid] = cidMap[r.googleListing.cid] || {};
+        cidMap[r.googleListing.cid].restaurants = cidMap[r.googleListing.cid].restaurants || [];
+        cidMap[r.googleListing.cid].restaurants.push(r);
+      }
+      if (r.rateSchedules && r.rateSchedules[0]) {
+        agentSet.add((r.rateSchedules[0].agent || '').toLowerCase());
+        r.agent = (r.rateSchedules[0].agent || '').toLowerCase();
       }
     });
+
+    this.agents = [...agentSet].sort((a1, a2) => a1 > a2 ? 1 : -1);
+
+    gmbBizList.map(biz => {
+      if (biz.cid) {
+        cidMap[biz.cid] = cidMap[biz.cid] || {};
+        cidMap[biz.cid].bizList = cidMap[biz.cid].bizList || [];
+        cidMap[biz.cid].bizList.push(biz);
+      }
+    });
+
+    const gmbOwnerCountMap = {};
+
+    gmbBizList.map(biz => {
+      if (biz.gmbOwner) {
+        gmbOwnerCountMap[biz.gmbOwner] = (gmbOwnerCountMap[biz.gmbOwner] || 0) + 1
+      }
+    });
+
+    this.gmbOwnerAndCounts = Object.keys(gmbOwnerCountMap).map(k => ({
+      owner: k,
+      count: gmbOwnerCountMap[k]
+    })).sort((oc1, oc2) => oc1.owner > oc2.owner ? 1 : -1);
+
+    gmbAccounts.map(account => (account.locations || []).map(loc => {
+      if (loc.cid) {
+        cidMap[loc.cid] = cidMap[loc.cid] || {};
+        cidMap[loc.cid].accountLocations = cidMap[loc.cid].accountLocations || [];
+        cidMap[loc.cid].accountLocations.push({ account: account, location: loc, bizList: cidMap[loc.cid].bizList });
+      }
+    }));
+
+
+
+    // cids not matched to any restaurants: use qmenuId to match (biz -> qmenuId -> cid -> location and account)
+
+    Object.keys(cidMap).map(cid => {
+      cidMap[cid].restaurants = cidMap[cid].restaurants || [];
+      if (cidMap[cid].restaurants.length === 0) {
+        const qmenuIds = (cidMap[cid].bizList || []).map(biz => biz.qmenuId).filter(qmenuId => qmenuId);
+        cidMap[cid].restaurants.push(...restaurants.filter(r => qmenuIds.indexOf(r._id) >= 0));
+      }
+    });
+
+    // we need to produce a view from restaurant's point of view
+    // restaurant -> (cids, shared by others?) -> locationAndAccounts
+
+    const qmenuIdMap = {};
+    Object.keys(cidMap).map(cid => {
+      const cidRestaurants = cidMap[cid].restaurants || [];
+      if (cidRestaurants.length === 0) {
+        qmenuIdMap[cid] = qmenuIdMap[cid] || { restaurant: { name: ' NO MATCH' } };
+        qmenuIdMap[cid].accountLocations = qmenuIdMap[cid].accountLocations || [];
+        qmenuIdMap[cid].accountLocations.push(...(cidMap[cid].accountLocations || []));
+      } else {
+        cidRestaurants.map(r => {
+          qmenuIdMap[r._id] = qmenuIdMap[r._id] || {};
+          qmenuIdMap[r._id].restaurant = r;
+          qmenuIdMap[r._id].accountLocations = qmenuIdMap[r._id].accountLocations || [];
+          qmenuIdMap[r._id].accountLocations.push(...(cidMap[cid].accountLocations || []));
+        });
+      }
+    });
+
+    // sort by name!
+    this.rows = Object.keys(qmenuIdMap).map(qmenuId => qmenuIdMap[qmenuId]);
+    this.rows.sort((r1, r2) => r1.restaurant.name > r2.restaurant.name ? 1 : (r1.restaurant.name < r2.restaurant.name ? -1 : 0));
+
+    // cleanup: keep ONLY suspended or published
+    const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
+    this.rows.map(row => {
+      const filtered = row.accountLocations.filter(al => al.location.status === 'Published' || al.location.status === 'Suspneded');
+      if (filtered.length > 0) {
+        row.accountLocations = filtered;
+        return;
+      }
+      // now let's sort and keep only one
+      if (row.accountLocations.length > 0) {
+        row.accountLocations.sort((al2, al1) => statusOrder.indexOf(al1.location.status) - statusOrder.indexOf(al2.location.status));
+        row.accountLocations.length = 1;
+      }
+    });
+
+    this.rows = this.rows.filter(r => r.restaurant._id || r.accountLocations.length > 0);
+
+    this.filter();
   }
 
-  getEncodedGoogleSearchString(gmbBiz: GmbBiz) {
-    // keep ONLY alpha numberical + space characters
-    // return encodeURI(gmbBiz.name.replace('&', '') + ' ' + gmbBiz.address);
-    return encodeURI((gmbBiz.name + ' ' + gmbBiz.address).replace(/[^a-zA-Z 0-9\-]+/g, ""));
-  }
+  filter() {
+    this.filteredRows = this.rows.slice(0);
+    if (this.searchFilter && this.searchFilter.trim()) {
+      const text = this.searchFilter.trim().toLowerCase();
+      this.filteredRows = this.filteredRows.filter(row => [
+        row.restaurant.name || '',
+        (row.restaurant.googleAddress || {}).formatted_address || '',
+        ((row.accountLocations[0] || {}).location || {}).name,
+        ((row.accountLocations[0] || {}).location || {}).address,
 
-  debounce(event) {
-    this.filterBizList();
-  }
-
-  filterBizList() {
-    const start = new Date();
-    this.filteredMyBizList = this.myBizList
-    if (this.searchFilter) {
-
-      this.filteredMyBizList = this.filteredMyBizList
-        .filter(mybiz => (
-          // search name
-          mybiz.gmbBiz.name.toLowerCase().indexOf(this.searchFilter.toLowerCase()) >= 0)
-
-          // search phone
-          || (mybiz.gmbBiz.phone || '').indexOf(this.searchFilter) === 0
-
-          // search by qmenuId
-          || (mybiz.gmbBiz.qmenuId === this.searchFilter)
-        );
+      ].some(t => t && t.toLowerCase().indexOf(text) === 0));
     }
 
-    //
-    switch (this.gmbOwnership) {
-      case 'qmenu: published':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.published);
+    switch (this.restaurantStatus) {
+      case 'disabled':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.disabled);
         break;
-      case 'qmenu: suspended':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.suspended);
-        break;
-      case 'NOT qmenu':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.published && !b.suspended);
-        break;
-
-      case 'recently lost':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.lostDate && this.now.valueOf() - b.lostDate.valueOf() < 24 * 3600000);
-        break;
-
-
-      default:
-        break;
-    }
-
-    switch (this.googleListingOwner) {
-      case 'qmenu':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwner === 'qmenu');
-        break;
-
-      case 'NOT qmenu':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOwner !== 'qmenu');
-        break;
-
-      default:
-        break;
-    }
-
-    if (this.onlyGmbOpen) {
-      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.gmbOpen);
-    }
-
-    switch (this.qMenuManagedWebsite) {
-      case 'exist':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.qmenuWebsite);
-        break;
-      case 'non-exist':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.qmenuWebsite);
-        break;
-      default:
-        break;
-    }
-
-    switch (this.inQmenu) {
-      case 'in qMenu DB':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.gmbBiz.qmenuId);
-        break;
-      case 'not in qMenu DB':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => !b.gmbBiz.qmenuId);
+      case 'enabled':
+        this.filteredRows = this.filteredRows.filter(r => r._id && !r.restaurant.disabled);
         break;
 
       case 'bad service settings':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.serviceSettings || !b.restaurant.serviceSettings.some(setting => setting.paymentMethods && setting.paymentMethods.length > 0)));
+        this.filteredRows = this.filteredRows.filter(b => b.restaurant && (!b.restaurant.serviceSettings || !b.restaurant.serviceSettings.some(setting => setting.paymentMethods && setting.paymentMethods.length > 0)));
         break;
       case 'bad delivery settings':
         // has delivery in service settings, but no deliverySettings found!
-        this.filteredMyBizList = this.filteredMyBizList.filter(
+        this.filteredRows = this.filteredRows.filter(
           b => b.restaurant && b.restaurant.serviceSettings && b.restaurant.serviceSettings.some(ss => ss.name === 'Delivery' && ss.paymentMethods.length > 0) && (!b.restaurant.deliverySettings || b.restaurant.deliverySettings.length === 0));
         break;
       case 'bad menus':
         // bad: 1. no menu at all
         // 2. menus are ALL disabled
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.menus || b.restaurant.menus.filter(menu => !menu.disabled).length === 0));
+        this.filteredRows = this.filteredRows.filter(b => b.restaurant && (!b.restaurant.menus || b.restaurant.menus.filter(menu => !menu.disabled).length === 0));
         break;
       case 'bad rate schedules':
         // bad: 1. no rateSchedules
         // 2. rateSchedules have no value for rate or fixed
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && (!b.restaurant.rateSchedules || b.restaurant.rateSchedules.filter(rs => !isNaN(rs.fixed) || !isNaN(rs.rate)).length === 0));
-        break;
+        this.filteredRows = this.filteredRows.filter(b => b.restaurant && (!b.restaurant.rateSchedules || b.restaurant.rateSchedules.filter(rs => !isNaN(rs.fixed) || !isNaN(rs.rate)).length === 0));
       default:
         break;
     }
 
-    switch (this.outstandingTask) {
-      case 'exist':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].length > 0);
+    switch (this.gmbStatus) {
+      case 'published':
+        this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.location.status === 'Published'));
         break;
-      case 'non-exist':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => !this.bizTaskMap[b.gmbBiz._id] || this.bizTaskMap[b.gmbBiz._id].length === 0);
+      case 'suspended':
+        this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.location.status === 'Suspended'));
         break;
-      case 'appeal':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].some(task => task === 'Appeal Suspended GMB'));
+      case 'open':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant && r.restaurant.googleListing && r.restaurant.googleListing.gmbOpen);
         break;
-      case 'apply':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].some(task => task === 'Apply GMB Ownership'));
+      case 'lost in 48 hours':
+        const now = new Date();
+        const recentSpan = 48 * 3600000;
+        this.filteredRows = this.filteredRows.filter(r => !r.accountLocations.some(al => al.location.status === 'Published') && r.accountLocations.some(al => al.location.statusHistory[1] && al.location.statusHistory[1].status === 'Published' && now.valueOf() - new Date(al.location.statusHistory[0].time).valueOf() < recentSpan));
         break;
-      case 'transfer':
-        this.filteredMyBizList = this.filteredMyBizList.filter(b => this.bizTaskMap[b.gmbBiz._id] && this.bizTaskMap[b.gmbBiz._id].some(task => task === 'Transfer GMB Ownership'));
+      case 'secondary listing':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant && r.restaurant.googleListing && r.accountLocations.some(al => al.location.cid !== r.restaurant.googleListing.cid));
+        break;
 
-        break;
       default:
         break;
     }
 
-    if (this.agent) {
-      this.filteredMyBizList = this.filteredMyBizList.filter(b => b.restaurant && b.restaurant.rateSchedules && b.restaurant.rateSchedules.length > 0 && b.restaurant.rateSchedules[0].agent === this.agent);
+    switch (this.gmbWebsiteOwner) {
+      case 'GMB website owner':
+        break;
+      case 'NOT qMenu':
+        this.filteredRows = this.filteredRows.filter(r => (r.restaurant.googleListing || {}).gmbOwner !== 'qmenu' || r.accountLocations.some(al => (al.bizList || []).some(biz => biz.gmbOwner !== 'qmenu')));
+        break;
+      default:
+        // test: 1. restaurant.googleListing, if there is no accountLocations, or location.cid -> gmbBiz -> gmbOwner.
+        const gmbOwner = this.gmbWebsiteOwner.split(' ')[0];
+        this.filteredRows = this.filteredRows.filter(r => (r.restaurant.googleListing || {}).gmbOwner === gmbOwner || r.accountLocations.some(al => (al.bizList || []).some(biz => biz.gmbOwner === gmbOwner)));
+        break;
     }
 
-    console.log('filter time: ', new Date().valueOf() - start.valueOf());
+    switch (this.agent) {
 
-    this._ref.detectChanges();
-  }
-
-  getOutstandingTasks(gmbBiz: GmbBiz) {
-    return this.bizTaskMap[gmbBiz._id] || [];
-  }
-
-
-  isProcessing(biz) {
-    return this.processingBizSet.has(biz);
-  }
-
-  getLogo(gmbBiz: GmbBiz) {
-    if (gmbBiz.bizManagedWebsite && gmbBiz.gmbOwner === 'qmenu') {
-      return GlobalService.serviceProviderMap['qmenu-gray'];
-    }
-    return GlobalService.serviceProviderMap[gmbBiz.gmbOwner];
-  }
-
-  async createApplyTask(gmbBiz: GmbBiz) {
-    // first make sure there is no outstanding 
-    const outstandingTasks = await this._api.get(environment.adminApiUrl + "generic", {
-      resource: "task",
-      query: {
-        "relatedMap.gmbBizId": gmbBiz._id,
-        name: 'Apply GMB Ownership',
-        result: null    // null is the same as either non-exists or actually null in mongodb
-      },
-      sort: {
-        createdAt: -1
-      },
-      limit: 1
-    }).toPromise();
-
-    if (outstandingTasks.length > 0) {
-      this._global.publishAlert(AlertType.Danger, 'Same task already exists!');
-      return;
+      case 'Sales agent':
+        break;
+      default:
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.agent === this.agent);
+        break;
     }
 
-    // auto assign to me
-    const task = {
-      name: 'Apply GMB Ownership',
-      scheduledAt: { $date: new Date() },
-      description: gmbBiz.name,
-      roles: ['GMB', 'ADMIN'],
-      assignee: this._global.user.username,
-      score: gmbBiz.score,
-      relatedMap: { 'gmbBizId': gmbBiz._id },
-      transfer: {}
-    };
-
-    await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
-
-    // also update bizTaskMap!
-    this.bizTaskMap[gmbBiz._id] = this.bizTaskMap[gmbBiz._id] || [];
-    this.bizTaskMap[gmbBiz._id].push(task.name);
-    this._ref.detectChanges();
   }
 
 }

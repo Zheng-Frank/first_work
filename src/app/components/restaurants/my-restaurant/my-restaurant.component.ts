@@ -157,6 +157,7 @@ export class MyRestaurantComponent implements OnInit {
         salesBase: 1,
         salesBonus: 1,
         salesThreeMonthAverage: 1,
+        "googleListing.gmbWebsite": 1,
         web: 1
       },
       limit: 6000

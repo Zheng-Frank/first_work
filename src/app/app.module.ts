@@ -79,7 +79,6 @@ import { TaskGenericHandlerComponent } from './components/tasks/task-generic-han
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
-import { GmbBizListNewComponent } from './components/gmbs2/gmb-biz-list-new/gmb-biz-list.component';
 import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.component';
 import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor/gmb-account-editor.component';
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
@@ -243,9 +242,7 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     TaskBarComponent,
     MonitoringDisabledRestaurantsComponent,
     MonitoringGmbComponent,
-    MonitoringHoursComponent,
-    GmbBizListNewComponent
-    
+    MonitoringHoursComponent    
   ],
   imports: [
     BrowserModule,

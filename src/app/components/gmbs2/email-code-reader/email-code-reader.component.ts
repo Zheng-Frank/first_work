@@ -55,6 +55,9 @@ export class EmailCodeReaderComponent implements OnInit {
     const host = 'mail.' + domain;
     let password = this.restaurant.web.qmenuPop3Password;
 
+    if (!email || !password) {
+      return this._global.publishAlert(AlertType.Danger, 'Fail: mising email or password');
+    }
 
     if (email && host && password) {
       this.apiRequesting = true;
@@ -115,7 +118,7 @@ export class EmailCodeReaderComponent implements OnInit {
       const templateName = this.restaurant.web.templateName;
 
       if (!templateName || !domain) {
-        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website domain');
+        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
       }
 
       if (domain.indexOf('qmenu.us') >= 0) {

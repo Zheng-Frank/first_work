@@ -411,7 +411,7 @@ export class AutomationDashboardComponent implements OnInit {
     // 1. no main listing ownership
     // 2. not disabled
     // 3. not already an apply task existed
-    // 4. skip sale's agent 'gmbBiz.disableAutoTask' (unless it had published at least once or more than xx days created)
+    // 4. skip sale's agent 'restaurant.web.disableAutoTask' (unless it had published at least once or more than xx days created)
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
@@ -421,7 +421,9 @@ export class AutomationDashboardComponent implements OnInit {
       projection: {
         "googleListing.cid": 1,
         name: 1,
-        rateSchedules: 1
+        rateSchedules: 1,
+        web: 1,
+        score: 1
       },
       limit: 6000
     }).toPromise();
@@ -447,8 +449,6 @@ export class AutomationDashboardComponent implements OnInit {
       resource: 'gmbBiz',
       projection: {
         "cid": 1,
-        score: 1,
-        disableAutoTask: 1
       },
       limit: 6000
     }).toPromise();
@@ -488,15 +488,8 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log('restaurantsToBeApplied', restaurantsToBeApplied);
 
-    // const restaurantPublishedOnce = restaurantsToBeApplied
-    //   .filter(r =>
-    //     gmbAccounts.some(account => account.locations.some(loc => loc.cid === r.googleListing.cid && loc.statusHistory.some(h => h.status === 'Published'))));
-
-    // console.log('restaurantPublishedOnce', restaurantPublishedOnce);
-
     const restaurantsToBeAppliedWithoutDisableAutoTask = restaurantsToBeApplied.filter(r => {
-      const gmbBiz = gmbBizList.filter(biz => biz.cid === r.googleListing.cid)[0];
-      return gmbBiz && (!gmbBiz.disableAutoTask || /* Helper.getDaysFromId(gmbBiz._id, new Date()) > 30 || */ gmbAccounts.some(account => account.locations.some(loc => loc.cid === gmbBiz.cid && loc.statusHistory.some(h => h.status === 'Published' || h.status === 'Suspended'))));
+      return !r.web || !r.web.disableAutoTask || /* Helper.getDaysFromId(r._id, new Date()) > 30 || */ gmbAccounts.some(account => account.locations.some(loc => loc.cid === (r.googleListing || {}).cid && loc.statusHistory.some(h => h.status === 'Published' || h.status === 'Suspended')));
     });
 
     console.log('restaurantsToBeAppliedWithoutDisableAutoTask', restaurantsToBeAppliedWithoutDisableAutoTask);
@@ -508,8 +501,8 @@ export class AutomationDashboardComponent implements OnInit {
         scheduledAt: { $date: new Date() },
         description: r.name,
         roles: ['GMB', 'ADMIN'],
-        score: gmbBiz.score,
-        relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
+        score: r.score,
+        relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: r._id },
         transfer: {}
       };
       return task;
@@ -640,9 +633,10 @@ export class AutomationDashboardComponent implements OnInit {
     const nokItems = consideredItems.map(item => {
       // website, menu, 
 
-
+      // make sure we have web object!
+      item.restaurant.web = item.restaurant.web || {};
       let qmenuDesiredWebsite = item.restaurant.web.qmenuWebsite;
-      
+
 
       let targetWebsite = qmenuDesiredWebsite;
 

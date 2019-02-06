@@ -195,6 +195,12 @@ export class NewRestaurantComponent implements OnInit {
       if (this.isDirectSignUp) {
         this.restaurant.isDirectSignUp = this.isDirectSignUp;
       }
+
+      this.restaurant.web = this.restaurant.web || {};
+      if(!this.applyGmb) {
+        this.restaurant.web.disableAutoTask = true;
+      }
+
       const newRestaurants = await this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [this.restaurant]).toPromise();
       // assign newly created id back to original object
       this.restaurant._id = newRestaurants[0];
@@ -232,13 +238,10 @@ export class NewRestaurantComponent implements OnInit {
         // create new gmbBiz!
 
         const newGmbBiz = { ...this.restaurant.googleListing, qmenuId: this.restaurant._id };
-        if (!this.applyGmb) {
-          newGmbBiz['disableAutoTask'] = true;
-        }
+
         if (this.isDirectSignUp) {
           newGmbBiz['isDirectSignUp'] = true;
         }
-        newGmbBiz['qmenuWebsite'] = environment.customerUrl + '#/' + this.restaurant.alias;
 
         const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [newGmbBiz]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Created new GMB');

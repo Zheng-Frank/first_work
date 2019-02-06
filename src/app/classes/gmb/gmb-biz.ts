@@ -22,29 +22,12 @@ export class GmbBiz {
     gmbOpen: boolean;
     menuUrls: string[];
 
-    // 
-    bizManagedWebsite: string;
-    useBizWebsite: boolean;
-    useBizWebsiteForAll: boolean;
-
-    // qMenu related information (injected to listing once we have ownership)
-    qmenuWebsite: string;
-    qmenuPop3Password: string;
-
-    score: number;
-    agent: string;
-
-    ignoreGmbOwnershipRequest: boolean;
-
     comments: string;
     closed?: boolean;
 
     crawledAt: Date;
     updatedAt: Date;
     createdAt: Date;
-
-    disableAutoTask: boolean;
-
 
     constructor(biz?: any) {
         if (biz) {

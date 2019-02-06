@@ -438,14 +438,11 @@ export class Gmb3Service {
       };
 
       if (result) {
-        // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
-        if (result['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
-          newItem.qmenuWebsite = result.gmbWebsite;
-        }
         // except cid because we'd like to have scan account's cid instead?
         if (result.cid && result.cid === gmbBiz.cid) {
           fields.map(f => newItem[f] = result[f]);
         } else {
+          this._global.publishAlert(AlertType.Danger, 'mismatched gmbBiz');
           console.log('mismatch: ', gmbBiz);
         }
       }
@@ -519,11 +516,6 @@ export class Gmb3Service {
 
           const crawledResult = resultsWithCids.filter(r => r.cid === gmbBiz.cid)[0];
           // except cid because we'd like to have scan account's cid instead?
-
-          // if gmbWebsite belongs to qmenu, we assign it to qmenuWebsite, only if there is no existing qmenuWebsite!
-          if (crawledResult['gmbOwner'] === 'qmenu' && !gmbBiz.qmenuWebsite) {
-            crawledResult.qmenuWebsite = crawledResult.gmbWebsite;
-          }
           // let's just override!
           const oldBiz = { _id: gmbBiz._id };
           const newBiz = { _id: gmbBiz._id };

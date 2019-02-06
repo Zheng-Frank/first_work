@@ -10,10 +10,6 @@
   </div>
 
   <div class="mb-4">
-    <div class="alert alert-success" *ngIf="gmbBiz && gmbBiz.ignoreGmbOwnershipRequest">Noted as "Ignore GMB Requests".
-      You
-      can complete the task directly.</div>
-    <!-- <h4 class="mb-3">GMB Transfer Steps</h4> -->
     <app-gmb-account-hotlink [email]="transfer.fromEmail"></app-gmb-account-hotlink>
     →
     <app-gmb-account-hotlink *ngIf="transfer.toEmail" [email]="transfer.toEmail"></app-gmb-account-hotlink>

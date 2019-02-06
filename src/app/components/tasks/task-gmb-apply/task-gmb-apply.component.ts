@@ -7,7 +7,6 @@ import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
-import { mergeMap } from 'rxjs/operators';
 import { Restaurant } from '@qmenu/ui';
 
 @Component({
@@ -246,7 +245,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
       }
       
 
-      if (!gmbBiz || !gmbBiz.place_id) {
+      if (!this.gmbBiz || !this.gmbBiz.place_id) {
         throw 'No place_id found';
       }
 
@@ -258,7 +257,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             environment.autoGmbUrl + 'requestOwnership', {
               email: toGmbAccount.email,
               password: toPassword,
-              place_id: gmbBiz.place_id
+              place_id: this.gmbBiz.place_id
             }
           ).toPromise();
           break;
@@ -269,8 +268,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             environment.autoGmbUrl + 'appealGmbRequest', {
               email: toGmbAccount.email,
               password: toPassword,
-              arci: this.transfer.request.arci,
-              qmenuWebsite: gmbBiz.qmenuWebsite
+              arci: this.transfer.request.arci
             }
           ).toPromise();
           break;

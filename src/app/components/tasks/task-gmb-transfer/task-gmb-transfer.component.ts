@@ -286,7 +286,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         }
       }
 
-      if (!gmbBiz || !gmbBiz.place_id) {
+      if (!this.gmbBiz || !this.gmbBiz.place_id) {
         throw 'No place_id found';
       }
 
@@ -298,7 +298,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             environment.autoGmbUrl + 'requestOwnership', {
               email: toGmbAccount.email,
               password: toPassword,
-              place_id: gmbBiz.place_id
+              place_id: this.gmbBiz.place_id
             }
           ).toPromise();
           break;
@@ -319,8 +319,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             environment.autoGmbUrl + 'appealGmbRequest', {
               email: toGmbAccount.email,
               password: toPassword,
-              arci: this.transfer.request.arci,
-              qmenuWebsite: gmbBiz.qmenuWebsite
+              arci: this.transfer.request.arci
             }
           ).toPromise();
           break;

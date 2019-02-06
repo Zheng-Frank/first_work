@@ -31,7 +31,7 @@
         <span *ngIf="row.gmbBiz.cid === restaurant.googleListing?.cid" class="text-success">Main</span>
         <span *ngIf="restaurant.googleListing && row.gmbBiz.cid !== restaurant.googleListing.cid" class="text-danger">Secondary</span>
       </h6>
-      <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{row.gmbBiz.score}}</h6>
+      <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{restaurant.score}}</h6>
     </h3>
     <div class="text-center">
       <h6 *ngIf="row.gmbBiz.name !== restaurant.name">{{row.gmbBiz.name}}</h6>
@@ -49,12 +49,12 @@
         <table class="app-table w-100">
           <tr>
             <th></th>
-            <th>Google Listing</th>
+            <th>URL</th>
             <th>Good?</th>
             <th>Insisted?</th>
           </tr>
           <tr>
-            <th>Website</th>
+            <th>GMB Website</th>
             <td><a href="{{row.gmbBiz.gmbWebsite}}" title="{{row.gmbBiz.gmbWebsite}}" target="_blank">{{row.gmbBiz.gmbWebsite}}</a></td>
             <td>
               <span *ngIf="isWebsiteOk(row.gmbBiz)" class="text-success">✓</span>
@@ -65,7 +65,7 @@
             </td>
           </tr>
           <tr>
-            <th>Menu URLs</th>
+            <th>GMB Menu URLs</th>
             <td>
               <div *ngFor="let menuUrl of row.gmbBiz.menuUrls">
                 <a href="{{menuUrl}}" title="{{menuUrl}}" target="_blank">{{menuUrl | host}}</a>
@@ -80,7 +80,7 @@
             </td>
           </tr>
           <tr>
-            <th>Reservations</th>
+            <th>GMB Reservations</th>
             <td>
               <div *ngFor="let reservationUrl of row.gmbBiz.reservations">
                 <a href="{{reservationUrl}}" title="{{reservationUrl}}" target="_blank">{{reservationUrl | host}}</a>
@@ -95,7 +95,7 @@
             </td>
           </tr>
           <tr>
-            <th>Order</th>
+            <th>GMB Order Services</th>
             <td>
               <div *ngFor="let orderUrl of row.gmbBiz.serviceProviders">
                 <a href="{{orderUrl}}" title="{{orderUrl}}" target="_blank">{{orderUrl | host}}</a>
@@ -109,19 +109,19 @@
               {{row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
             </td>
           </tr>
-          <!-- <tr>
-          <th>qMenu Website</th>
-          <td colspan="3">
-            <a *ngIf="row.gmbBiz.qmenuWebsite" href="{{row.gmbBiz.qmenuWebsite}}" title="{{row.gmbBiz.qmenuWebsite}}"
-              target="_blank">{{row.gmbBiz.qmenuWebsite}}</a>
-          </td>
-        </tr> -->
+          <tr class="bg-light">
+            <th>qMenu Website</th>
+            <td colspan="3">
+              <a *ngIf="restaurant.web?.qmenuWebsite" href="{{restaurant.web?.qmenuWebsite}}" title="{{restaurant.web?.qmenuWebsite}}"
+                target="_blank">{{restaurant.web?.qmenuWebsite}}</a>
+            </td>
+          </tr>
         </table>
         <div class="text-right">
           <button class="btn btn-link" (click)="refreshListing(row.gmbBiz)">Refresh Listing</button>
           <!-- <button class="btn btn-link" (click)="injectInfo(row.gmbBiz)" [disabled]="!row.gmbAccount">Inject Info</button> -->
-          <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name + ' ' + row.gmbBiz.address}}" target="_blank"
-            class="btn btn-link">
+          <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name + ' ' + row.gmbBiz.address}}"
+            target="_blank" class="btn btn-link">
             View on Google</a>
 
         </div>
