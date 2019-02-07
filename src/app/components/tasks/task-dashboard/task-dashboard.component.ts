@@ -149,7 +149,11 @@ export class TaskDashboardComponent {
       // stats:
       const closedTasks = tasks.filter(t => t.result === 'CLOSED');
       closedTasks.sort((t2, t1) => new Date(t1.updatedAt).valueOf() - new Date(t2.updatedAt).valueOf());
-      const spanDays = Math.ceil((new Date(closedTasks[0].updatedAt).valueOf() - new Date(closedTasks[closedTasks.length - 1].updatedAt).valueOf()) / (3600000 * 24));
+      let spanDays = 1;
+      if (closedTasks.length > 1) {
+        spanDays = Math.ceil((new Date(closedTasks[0].updatedAt).valueOf() - new Date(closedTasks[closedTasks.length - 1].updatedAt).valueOf()) / (3600000 * 24));
+
+      }
 
       const userDict = {};
       closedTasks.map(t => {

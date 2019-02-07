@@ -48,7 +48,7 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
 
 
         //restaurants.sort((r1, r2) => r2.createdAt.valueOf() - r1.createdAt.valueOf());
-        console.log('disabled restaurant', this.restaurants);
+        // console.log('disabled restaurant', this.restaurants);
     }
     getTime(time) {
         return new Date(time);

@@ -156,7 +156,9 @@ export class MyRestaurantComponent implements OnInit {
         rateSchedules: 1,
         salesBase: 1,
         salesBonus: 1,
-        salesThreeMonthAverage: 1
+        salesThreeMonthAverage: 1,
+        "googleListing.gmbWebsite": 1,
+        web: 1
       },
       limit: 6000
     }).toPromise();
@@ -186,7 +188,6 @@ export class MyRestaurantComponent implements OnInit {
         cid: 1,
         qmenuId: 1,
         gmbWebsite: 1,
-        qmenuWebsite: 1,
         gmbOpen: 1
       },
       limit: 6000

@@ -8,6 +8,7 @@ import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { Gmb3Service } from "src/app/services/gmb3.service";
+import { JsonPipe } from "@angular/common";
 
 @Component({
   selector: "app-db-scripts",
@@ -703,6 +704,20 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async genericTesting() {
+    const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        locations: 1,
+        email: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    accounts.map(a => (a.locations || []).map(loc => {
+      if (!loc.cid || loc.cid.length < 4) {
+        console.log(a.email, loc.status, loc);
+      }
+    }));
   }
 
   async removeRedundantGmbBiz() {
@@ -1290,239 +1305,6 @@ export class DbScriptsComponent implements OnInit {
 
   }
 
-  async fixGodaddy() {
-    const siteString = `168SzechuanHouston.com
-168restaurantrichmond.com
-1stchopsueytogo.com
-21ShanghaiHouseNY.com
-22thainewyork.com
-2bacipizzeriatogo.com
-3FortunesRestaurant.com
-4sonspizzaandgrill.com
-527bbq.com
-5iphoCulverCity.com
-64stGardenCafetogo.com
-888ChineseTogo.com
-88chinamo.com
-A1ChineseHibachiTogo.com
-A1DeliTogo.com
-AberdeenStirFry88.com
-AbyssiniaPhoenix.com
-AchioteGrillMexican.com
-AjiSushiAstoria.com
-AkiSuShiEnglewood.com
-AkimotoSushiTogo.com
-AlNoorHalalbrooklyn.com
-Aladinospizzatogo.com
-Aldositaliantogo.com
-AlexandriaChinaCafe.com
-AlexandriaHunanKitchen.com
-AlexandriaKensAsianBistro.com
-AlexandriaShanghaiPeking.com
-AlexandriaSzechuanDelight.com
-AllMediterraneanGrill.com
-AlohaTeriyakiGroton.com
-Americanwingsandhibachi.com
-AmericasBestWingstogo.com
-AmherstPandaEast.com
-AmigaChineseNewark.com
-AmyCathyBayside.com
-AnaheimChinaKitchen.com
-AnchorageJimmySushi.com
-AntiochKirinSushi.com
-AntojitosLocosTogo.com
-AnzaiEastMeadow.com
-ArashiSushitogo.com
-ArcadiaGoldenDragon.com
-ArlingtonPizzaPieMe.com
-ArlintongYoungChow.com
-AromaIndianUpland.com
-AroyDeeThaiCuisinetogo.com
-ArvadaPudgeBrosPizza.com
-AryanaMediterraneanCuisinetogo.com
-AsaiWokAllston.com
-AshevilleDragonChina.com
-AsiaBarBQueTogo.com
-AsiaGardenFood.com
-AsiaGardenNJ.com
-AsiaKitchenBaldwinPark.com
-AsiaWokTogo.com
-AuburnNewChina.com
-CatonsvilleDragonChina.com
-ChinaSPringsTogo.com
-GoldenDragonColumbia.com
-MainMoonChineseTogo.com
-OceanPizzaHala.com
-SweetGingerTogo.com3
-TotinozpizzaInglewood.com
-arlingtonthaieatery.com
-bakersfieldpizza.us
-baltimorechinadrahon.com
-bambinospizzaria.us
-bellaromaonline.us
-blueelephant.miami
-bowlkitchentogo.com
-cafepragueofsanfrancisco.com
-cantonphoenixtogo.info
-cathcoffeeandtea.com
-chicagostpizza.com
-chinaexpresskansas.com
-chinahallga.com
-chinaonetakeout.net
-ciceroshesperia.com
-combospizzaonline.com
-dynastyalpharettadelivery.com
-easternpavillionsetauket.com
-eastthainoodlehousemiami.com
-goldengarden.com
-goodtastetogo.ccom
-goodtastetogoccom.com
-happylandbuffet.com
-happystarpa.com
-joesseafoodandbar.com
-nobleromanspizza.us
-norijapanchesapeake.com
-papasamschicagostylepizza.info
-qmenu365.com
-starofindia.qmenu.us
-sunshinasiancuisinetogo.com
-unclemaddiosga.com
-unclemaddiosga.us
-whatapizzaonline.com
-www.dishoutrestaurant.us
-www.johnscreekchineserestaurant.com
-yardbirddenver.us
-ElRinconcitoLatino.com
-MyNewChinaAl.com
-MyWishDishCafe.com
-PandaFoodDelivery.com
-WoodbridgeBrothersPizza.com
-ajiaosichuanny.com
-blackpearliitogo.com
-buonapizzabronx.com
-capripizzaandgrill.com
-chicknshop.com
-chilichutney.us
-chinacafepawhuska.com
-chinaheavenatl.com
-chinaokgonv.com
-cotatifuzhou.com
-crazybearspizzatogo.com
-franklinphillymancheesesteak.com
-gaithersburgchickenburger.com
-generaltsostogo.com
-gingerworkyardley.com
-goldedragoncolumbia.com
-great-wall-chinese-express.business.site
-hanhinplainfield.com
-hotkitchentogo.com
-httpcafepragueofsanfrancisco.com
-imm-thai-on-9th.business.site
-inchinbamboogarden.com
-jadedragontogo.com
-jimmysperuviansacramento.com
-kisorotogo.com
-lamsgardentogocom.com
-mamamiacucinahollywood.com
-marusushitogo.com
-matteospizza.us
-maxsmukhaasetogo.com
-maywahchinesetogo.com
-mychopstixchinese.com
-newchinadavenport.com
-newmillenniumpizza.com
-newmillenniumpizza.info
-ninos-pizza.com
-nypizzeriacompany.us
-pizzalandva.com
-potpanchicago.com
-ricebarwashingtondc.info
-shishtown.com
-snowpeachinesetogo.com
-stuftpizzatogo.info
-sushiasiancuisine.com
-sweetgingermidvale.com
-takewayne.com
-teaussushiburritoflushing.com
-theburpkitchenguttenberg.com
-triopizzaandpastatx.com
-ulikechinesetogo.com
-valentinospizzeriaca.net
-whatapizza.info
-www.godavarius.us
-www.wokandroll-sanmarcos.com
-yamatosteakhousems.com
-yinglichulavista.com
-yumisushitogo.com
-zealrestaurant.us`;
-
-    const domains = siteString.split('\n').map(s => s.trim()).filter(s => s);
-    console.log(domains.length);
-    const templateMap = {
-      "Pizza Restaurant Template": ["pizza", "pizzeria"],
-      "Japanese Restaurant Template": ["sushi", "japan", "teriyaki"],
-      "Chinese Restaurant Template": ["fortune", "wok", "rice", "garden", "happy", "chuan", "china", "chinese", "wall", "dragon", "asia", "asian", "chow", "panda", "orient", "shanghai", "peking", "szechuan", "canton"],
-      "Thai Restaurant Template": ["thai"],
-      "Indian Restaurant Template": ["indian"],
-      "Italian Restaurant Template": ["italian"],
-      "Mexico Restaurant Template": ["mexican"]
-    }
-
-    const mapped = domains.filter(domain => Object.keys(templateMap).some(template => templateMap[template].some(keyword => domain.toLocaleLowerCase().indexOf(keyword) >= 0)));
-
-    console.log('mapped', mapped.length);
-    const nonMapped = domains.filter(domain => mapped.indexOf(domain) < 0);
-
-    console.log('non-mapped', nonMapped.length);
-    console.log(nonMapped);
-
-    // get ALL GMB domains
-    const gmbs = await this._api.get(environment.adminApiUrl + "generic", {
-      resource: 'gmbBiz',
-      query: {
-        qmenuWebsite: { $exists: true },
-        qmenuId: { $exists: true }
-      },
-      projection: {
-        name: 1,
-        gmbOwner: 1,
-        gmbWebsite: 1,
-        qmenuWebsite: 1,
-        qmenuId: 1,
-        score: 1,
-        phone: 1
-      },
-      limit: 6000
-    }).toPromise();
-
-    // find those in GMB
-    // console.log(gmbs.length);
-    // const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
-    //   resource: 'restaurant',
-    //   query: {
-    //     _id: { $in: gmbs.map(gmb => ({ $oid: gmb.qmenuId })) }
-    //   },
-    //   projection: {
-    //     name: 1,
-    //     "channels.value": 1
-    //   },
-    //   limit: 6000
-    // }).toPromise();
-
-    // restaurant, gmb-website, godaddy domain mapping
-    // const highPriorityList = gmbs.map(gmb => {
-    //   const restaurant = restaurants.filter(r => r._id === gmb.qmenuId)[0];
-    //   const godaddyDomain = domains.filter(domain => gmb.qmenuWebsite.toLowerCase().indexOf(domain.toLowerCase()) >= 0)[0];
-    //   return ({
-    //     gmb: gmb,
-    //     restaurant: restaurant,
-    //     godaddyDomain: godaddyDomain
-    //   })
-    // }).filter(obj => obj.restaurant && obj.godaddyDomain);
-
-    // console.log(highPriorityList.map((obj, index) => index + '\t' + obj.restaurant.name + '\t' + obj.godaddyDomain));
-  }
-
   async removeInvoiceFromRestaurant() {
     const limit = 100;
     const restaurantsWithInvoicesAttribute = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -1830,7 +1612,6 @@ zealrestaurant.us`;
     //  - cid (restaurant.googleListing.cid <-> gmbBiz.cid)
     //  - using qemenuId
     // what about non-matched??? just leave it???
-    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Email', 'qmenuPop3Host', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest', 'disableAutoTask'];
 
     const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbBiz',
@@ -1845,21 +1626,11 @@ zealrestaurant.us`;
       projection: {
         disabled: 1,
         name: 1,
-        googleListing: 1,
+        "googleListing.cid": 1,
         listings: 1,
-        ...migrateFields.reduce((obj, field) => (obj[field] = 1, obj), {})
-      },
-      limit: 6000
-    }).toPromise();
-
-    const gmbAccountsWithLocations = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        locations: { $exists: 1 }
-      },
-      projection: {
-        email: 1,
-        locations: 1
+        domain: 1,
+        websiteTemplateName: 1,
+        web: 1
       },
       limit: 6000
     }).toPromise();
@@ -1871,13 +1642,9 @@ zealrestaurant.us`;
       cidMap[biz.cid].gmbBizList.push(biz);
     });
 
-    gmbAccountsWithLocations.map(account => account.locations.map(loc => {
-      cidMap[loc.cid] = cidMap[loc.cid] || {};
-      cidMap[loc.cid].accountLocations = cidMap[loc.cid].accountLocations || [];
-      cidMap[loc.cid].accountLocations.push({ account: account, location: loc });
-    }));
-
+    const qmenuIdMap = {};
     restaurants.map(r => {
+      qmenuIdMap[r._id] = r;
       if (r.googleListing && r.googleListing.cid) {
         cidMap[r.googleListing.cid] = cidMap[r.googleListing.cid] || {};
         cidMap[r.googleListing.cid].restaurants = cidMap[r.googleListing.cid].restaurants || [];
@@ -1885,41 +1652,71 @@ zealrestaurant.us`;
       }
     });
 
-    const duplicatedGmbBizList = Object.keys(cidMap).filter(k => cidMap[k].gmbBizList && cidMap[k].gmbBizList.length > 1).map(k => cidMap[k].gmbBizList);
-    console.log('duplicatedGmbBizList', duplicatedGmbBizList);
+    // start migrating process: enabled: cid < qmenuId, if multiple, use assign to enabled only
+    const updatedRestaurants = [];
 
-    const duplicatedAccountLocations = Object.keys(cidMap).filter(k => cidMap[k].accountLocations && cidMap[k].accountLocations.length > 1).map(k => cidMap[k].accountLocations);
-    console.log('duplicatedAccountLocations', duplicatedAccountLocations);
-
-    const duplicatedRestaurants = Object.keys(cidMap).filter(k => cidMap[k].restaurants && cidMap[k].restaurants.length > 1).map(k => cidMap[k].restaurants);
-    console.log('duplicatedRestaurants', duplicatedRestaurants);
-
-    const qmenuIdBizListMap = {};
-    gmbBizList.map(biz => {
-      if (biz.qmenuId) {
-        qmenuIdBizListMap[biz.qmenuId] = qmenuIdBizListMap[biz.qmenuId] || [];
-        qmenuIdBizListMap[biz.qmenuId].push(biz);
+    restaurants.map(r => {
+      r.web = r.web || {};
+      const before = JSON.stringify(r.web);
+      if (r.websiteTemplateName) {
+        r.web.templateName = r.web.templateName || r.websiteTemplateName
       }
+
+      if (r.domain) {
+        let url = r.domain.trim().toLowerCase();
+        if (!url.startsWith('http')) {
+          url = 'http://' + url;
+        }
+        r.web.qmenuWebsite = r.web.qmenuWebsite || url;
+      }
+
+      if (JSON.stringify(r.web) !== before) {
+        updatedRestaurants.push(r);
+      }
+
     });
 
-    const multipleBizList = Object.keys(qmenuIdBizListMap).filter(k => qmenuIdBizListMap[k].length > 1);
-    console.log(multipleBizList);
+    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest', 'disableAutoTask'];
 
-    // const notMatchedBizList = [];
-    // const matchedBizList = [];
+    Object.keys(cidMap).map(cid => {
+      let restaurants = cidMap[cid].restaurants || [];
+      const gmbBizList = cidMap[cid].gmbBizList || [];
+      if (restaurants.length > 1) {
+        restaurants = restaurants.filter(r => !r.disabled);
+      }
 
-    // gmbBizList.map(biz => {
-    //   const matchedRestaurants = restaurants.filter(r => r._id === biz.qmenuId || (r.googleListing && r.googleListing.cid === biz.cid));
-    //   if (matchedRestaurants.length > 0) {
-    //     matchedBizList.push(biz);
-    //   } else {
-    //     notMatchedBizList.push(biz);
-    //   }
-    // });
+      restaurants.map(restaurant => {
+        const web = restaurant.web || {};
+        const existingWebString = JSON.stringify(web);
+        migrateFields.map(field => {
+          let fieldValue = web[field];
+          gmbBizList.map(biz => fieldValue = fieldValue || biz[field]);
+          if (fieldValue) {
+            web[field] = fieldValue;
+          }
+        });
 
-    // console.log('matchedBizList', matchedBizList);
-    // console.log('notMatchedBizList', notMatchedBizList);
+        delete web.qmenuPop3Email;
+        delete web.qmenuPop3Host;
+        delete restaurant.domain;
+        delete restaurant.websiteTemplateName;
 
+        restaurant.web = web;
+        updatedRestaurants.push(restaurant);
+
+      });
+
+    });
+
+
+    console.log(updatedRestaurants.length);
+    console.log(updatedRestaurants);
+    // inject
+    // updatedRestaurants.length = 1;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurants.map(r => ({
+      old: { _id: r._id },
+      new: { _id: r._id, web: r.web }
+    }))).toPromise();
 
   }
 
@@ -2032,7 +1829,7 @@ zealrestaurant.us`;
       } else {
         this._global.publishAlert(AlertType.Success, 'No new thing updated');
       }
-      
+
     } // end batch
   } // end migration
 

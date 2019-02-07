@@ -46,7 +46,6 @@ export class GmbBizListComponent implements OnInit {
           "googleAddress.formatted_address": 1,
           disabled: 1,
           score: 1,
-          domain: 1,
           "rateSchedules.agent": 1,
           "serviceSettings.name": 1,
           "serviceSettings.paymentMethods": 1,
@@ -79,8 +78,7 @@ export class GmbBizListComponent implements OnInit {
           name: 1,
           cid: 1,
           qmenuId: 1,
-          gmbOwner: 1,
-          qmenuWebsite: 1
+          gmbOwner: 1
         },
         limit: 6000
       }).toPromise(),
@@ -211,7 +209,7 @@ export class GmbBizListComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.disabled);
         break;
       case 'enabled':
-        this.filteredRows = this.filteredRows.filter(r => r._id && !r.restaurant.disabled);
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && !r.restaurant.disabled);
         break;
 
       case 'bad service settings':
@@ -250,6 +248,10 @@ export class GmbBizListComponent implements OnInit {
         const recentSpan = 48 * 3600000;
         this.filteredRows = this.filteredRows.filter(r => !r.accountLocations.some(al => al.location.status === 'Published') && r.accountLocations.some(al => al.location.statusHistory[1] && al.location.statusHistory[1].status === 'Published' && now.valueOf() - new Date(al.location.statusHistory[0].time).valueOf() < recentSpan));
         break;
+      case 'secondary listing':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant && r.restaurant.googleListing && r.accountLocations.some(al => al.location.cid !== r.restaurant.googleListing.cid));
+        break;
+
       default:
         break;
     }
@@ -276,19 +278,25 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
-    switch (this.managedWebsite) {
-      case 'Manged website':
-        break;
-      case 'exist':
-        this.filteredRows = this.filteredRows.filter(r => r.restaurant.domain || r.accountLocations.some(al => (al.bizList || []).some(biz => biz.qmenuWebsite)));
-        break;
-      case 'non-exist':
-        this.filteredRows = this.filteredRows.filter(r => !r.restaurant.domain && !r.accountLocations.some(al => (al.bizList || []).some(biz => biz.qmenuWebsite)));
-        break;
-      default:
-        break;
+  }
+
+  async onEditQmenuId(event, gmbBiz, row) {
+    if (confirm('Be very careful! Are you sure you want to assign the restaurant?')) {
+      const qmenuId = event.newValue;
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [
+        {
+          old: { _id: gmbBiz._id },
+          new: { _id: gmbBiz._id, qmenuId: qmenuId }
+        }
+      ]).toPromise();
+
+      // assign to original
+      gmbBiz.qmenuId = qmenuId;
+      row.restaurant = this.rows.filter(row => row.restaurant._id === qmenuId).map(row => row.restaurant)[0];
+
     }
 
+    console.log(event, gmbBiz);
   }
 
 }

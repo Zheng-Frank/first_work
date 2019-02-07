@@ -235,11 +235,10 @@ export class GlobalService {
           restaurantId: 1,
           "phones.phoneNumber": 1,
           "channels": 1,
-          domain: 1,
-          websiteTemplateName: 1,
           disabled: 1,
           logs:1,
-          "googleAddress.formatted_address": 1
+          "googleAddress.formatted_address": 1,
+          web: 1
         },
         limit: 6000
       }).toPromise();

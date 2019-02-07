@@ -289,11 +289,7 @@ export class TaskService {
       resource: 'gmbBiz',
       projection: {
         name: 1,
-        score: 1,
-        cid: 1,
-        useBizWebsite: 1,
-        bizManagedWebsite: 1,
-        qmenuWebsite: 1
+        cid: 1
       },
       limit: 6000
     }).toPromise();
@@ -304,9 +300,9 @@ export class TaskService {
         disabled: { $in: [null, false] }
       },
       projection: {
-        domain: 1,
         alias: 1,
-        "googleListing.cid": 1
+        "googleListing.cid": 1,
+        web: 1
       },
       limit: 6000
     }).toPromise();
@@ -345,19 +341,15 @@ export class TaskService {
 
     const newAppealTasks = newSuspendedAccountLocationsPairs.map(pair => {
 
-      // get website: order: original, alias, domain, qmenuWebsite, bizManagedWebsite if insisted
       let targetWebsite = pair.location.website;
+
       // try to assign qmenu website!
-      if (pair.restaurant && pair.restaurant.alias) {
-        targetWebsite = environment.customerUrl + '#/' + pair.restaurant.alias;
+      if (pair.restaurant && pair.restaurant.web && pair.restaurant.web.qmenuWebsite) {
+        targetWebsite = pair.restaurant.web.qmenuWebsite;
       }
 
-      if (pair.restaurant && pair.restaurant.domain) {
-        targetWebsite = pair.restaurant.domain.startsWith('http') ? pair.restaurant.domain : 'http://' + pair.restaurant.domain;
-      }
-
-      if (pair.gmbBiz && pair.gmbBiz.useBizWebsite && pair.gmbBiz.bizManagedWebsite) {
-        targetWebsite = pair.gmbBiz.bizManagedWebsite;
+      if (pair.restaurant && pair.retaurant.web && pair.restaurant.web.useBizWebsite && pair.restaurant.web.bizManagedWebsite) {
+        targetWebsite = pair.restaurant.web.bizManagedWebsite;
       }
 
       return {
@@ -377,7 +369,7 @@ export class TaskService {
         },
         description: pair.gmbBiz.name,
         roles: ['GMB', 'ADMIN'],
-        score: pair.gmbBiz.score
+        score: pair.restaurant.score
       }
     });
 
@@ -554,10 +546,8 @@ export class TaskService {
       resource: 'gmbBiz',
       projection: {
         name: 1,
-        score: 1,
         qmenuId: 1,
-        cid: 1,
-        ignoreGmbOwnershipRequest: 1
+        cid: 1
       },
       limit: 6000
     }).toPromise();
@@ -656,7 +646,7 @@ export class TaskService {
           }
         }
       }
-      
+
       const dueDays = bizAccountRequestsMap[key].map(row => {
         const dueDate = new Date(row.gmbRequest.date);
         dueDate.setDate(dueDate.getDate() + (row.gmbRequest.isReminder ? (row.gmbRequest.foundOriginal ? (4 - 2 * (row.gmbRequest.previousReminders || 0)) : 0) : 7));
@@ -699,18 +689,41 @@ export class TaskService {
       return [];
     }
 
+    const relatedQmenuIds = [...new Set(newTransferTasks.map(t => t.gmbBiz.qmenuId).filter(id => id))];
+    const relatedCids = [...new Set(newTransferTasks.map(t => t.gmbBiz.cid).filter(cid => cid))];
+
+    console.log(relatedQmenuIds);
+    console.log(relatedCids);
+
     const relatedRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { _id: { $in: newTransferTasks.map(t => t.gmbBiz.qmenuId).filter(id => id).map(id => ({ $oid: id })) } },
+      query: {
+        $or: [
+          {
+            _id: { $in: relatedQmenuIds.map(id => ({ $oid: id })) },
+          },
+          {
+            "googleListing.cid": { $in: relatedCids }
+          }
+        ]
+      },
+
       projection: {
-        disabled: 1
+        disabled: 1,
+        score: 1,
+        "googleListing.cid": 1,
+        web: 1
       },
       limit: newTransferTasks.length
     }).toPromise();
 
-    console.log(relatedRestaurants);
+    const cidRestaurantMap = relatedRestaurants.reduce((map, r) => (map[(r.googleListing || {}).cid] = r, map), {});
 
-    const validTransferTasks = newTransferTasks.filter(t => !t.gmbBiz.ignoreGmbOwnershipRequest && !(relatedRestaurants.filter(r => r._id === t.gmbBiz.qmenuId).map(r => r.disabled)[0]));
+  
+    const validTransferTasks = newTransferTasks.filter(t => {
+      const restaurant = cidRestaurantMap[t.gmbBiz.cid];
+      return restaurant && (!restaurant.web || !restaurant.ignoreGmbOwnershipRequest) && !restaurant.disabled;
+    });
 
     const tasks = validTransferTasks
       .map(t => ({
@@ -718,7 +731,7 @@ export class TaskService {
         scheduledAt: new Date(t.dueDate.valueOf() - 2 * 24 * 3600000), // we'd like to have immediate attention!
         description: t.gmbBiz.name,
         roles: ['GMB', 'ADMIN'],
-        score: t.gmbBiz.score,
+        score: (cidRestaurantMap[t.gmbBiz.cid] || {}).score,
         relatedMap: { cid: t.gmbBiz.cid, gmbBizId: t.gmbBiz._id, gmbAccountId: t.gmbAccount._id, gmbRequestId: t.gmbRequest._id },
         transfer: {
           fromEmail: t.gmbAccount.email,
@@ -728,7 +741,7 @@ export class TaskService {
       }));
 
     if (tasks.length > 0) {
-      const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
+      // const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
     }
 
     console.log('ceated tasks,', tasks);

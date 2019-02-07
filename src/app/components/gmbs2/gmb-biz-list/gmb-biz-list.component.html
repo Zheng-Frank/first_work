@@ -1,8 +1,8 @@
 <h1 class="text-center">Restaurants ({{filteredRows.length}})</h1>
 <div class="clearfix my-2">
     <div class="float-left form-inline">
-        <input [qDebounce]="500" (debounce)="filter()" type="text" class="form-control mr-2 mb-1" placeholder="type name or address"
-            [(ngModel)]="searchFilter">
+        <input [qDebounce]="500" (debounce)="filter()" type="text" class="form-control mr-2 mb-1"
+            placeholder="type name or address" [(ngModel)]="searchFilter">
 
         <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantStatus" (change)="filter()">
             <option>restaurant status</option>
@@ -20,12 +20,14 @@
             <option>suspended</option>
             <option>open</option>
             <option>lost in 48 hours</option>
+            <option>secondary listing</option>
         </select>
 
         <select class="form-control mr-2 mb-1" [(ngModel)]="gmbWebsiteOwner" (change)="filter()">
             <option>GMB website owner</option>
             <option>NOT qMenu</option>
-            <option *ngFor="let gmbOwnerCount of gmbOwnerAndCounts">{{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})</option>
+            <option *ngFor="let gmbOwnerCount of gmbOwnerAndCounts">{{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
+            </option>
         </select>
 
         <select class="form-control mr-2 mb-1" [(ngModel)]="agent" (change)="filter()" *ngIf="isAdmin">
@@ -33,7 +35,7 @@
             <option *ngFor="let agent of agents">{{agent}}</option>
         </select>
 
-        <select class="form-control mr-4" [(ngModel)]="managedWebsite" (change)="filter()">
+        <select class="form-control mr-2 mb-1" [(ngModel)]="managedWebsite" (change)="filter()">
             <option>Manged website</option>
             <option>exist</option>
             <option>non-exist</option>
@@ -47,10 +49,13 @@
     <tr>
         <th>#</th>
         <th>qMenu Restaurant</th>
+        <th>Restaurant ID</th>
         <th>Score</th>
         <th>Agent</th>
         <th>Account</th>
+        <th>CID</th>
         <th>Status</th>
+
     </tr>
     <ng-container *ngFor="let row of filteredRows; let rowNumber = index">
         <ng-container *ngFor="let al of row.accountLocations; let alIndex = index">
@@ -60,6 +65,9 @@
                     <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
                     <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
                 </td>
+                <td>
+                    {{row.restaurant._id}}
+                </td>
                 <td *ngIf="isAdmin">
                     {{row.restaurant.score}}
                 </td>
@@ -67,10 +75,20 @@
                     {{row.restaurant.agent}}
                 </td>
                 <td>
-                    {{al.account.email | emailName}}
+                    <app-gmb-account-hotlink [email]="al.account.email"></app-gmb-account-hotlink>
                 </td>
-
                 <td>
+                    <a href="https://www.google.com/search?ludocid={{al.location?.cid}}&q={{al.location?.name}}"
+                        target="_blank"> {{al.location?.cid}}<span
+                            *ngIf="row.restaurant?.googleListing?.cid === al.location.cid">★</span></a>
+                </td>
+                <td *ngIf="al.location.status === 'Published'" class="text-success">
+                    <b>{{al.location.status}}</b>
+                </td>
+                <td *ngIf="al.location.status === 'Suspended'" class="text-warning">
+                    <b>{{al.location.status}}</b>
+                </td>
+                <td *ngIf="al.location.status !== 'Published' && al.location.status !== 'Suspended'">
                     {{al.location.status}}
                 </td>
             </tr>
@@ -80,6 +98,12 @@
                     NO MATCH ({{al.location.name}})
                     <div class="text-muted"><small>{{al.location.address}}</small></div>
                 </td>
+                <td>
+                    <ng-container *ngIf="al.bizList && al.bizList.length > 0 && al.location?.cid && al.location.cid.length > 4">
+                        <q-edit-label [value]="al.bizList[0].qmenuId"
+                            (edit)="onEditQmenuId($event, al.bizList[0], row)"></q-edit-label>
+                    </ng-container>
+                </td>
                 <td *ngIf="isAdmin">
                     {{row.restaurant.score}}
                 </td>
@@ -87,9 +111,19 @@
                     {{row.restaurant.agent}}
                 </td>
                 <td>
-                    {{al.account.email | emailName}}
+                    <app-gmb-account-hotlink [email]="al.account.email"></app-gmb-account-hotlink>
                 </td>
                 <td>
+                    <a href="https://www.google.com/search?ludocid={{al.location?.cid}}&q={{al.location?.name}}"
+                        target="_blank"> {{al.location?.cid}}</a>
+                </td>
+                <td *ngIf="al.location.status === 'Published'" class="text-success">
+                    <b>{{al.location.status}}</b>
+                </td>
+                <td *ngIf="al.location.status === 'Suspended'" class="text-warning">
+                    <b>{{al.location.status}}</b>
+                </td>
+                <td *ngIf="al.location.status !== 'Published' && al.location.status !== 'Suspended'">
                     {{al.location.status}}
                 </td>
             </tr>
@@ -100,6 +134,10 @@
                 <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
                 <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
             </td>
+            <td>
+                {{row.restaurant._id}}
+            </td>
+
             <td *ngIf="isAdmin">
                 {{row.restaurant.score}}
             </td>
@@ -109,7 +147,11 @@
             <td class="text-danger">
                 NO MATCH
             </td>
-
+            <td>
+                <a href="https://www.google.com/search?ludocid={{row.restaurant.googleListing?.cid}}&q={{row.restaurant.name}}"
+                    target="_blank"> {{row.restaurant.googleListing?.cid}}<span
+                        *ngIf="row.restaurant.googleListing?.cid">★</span></a>
+            </td>
             <td>
             </td>
         </tr>

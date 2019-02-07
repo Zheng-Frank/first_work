@@ -62,7 +62,6 @@ export class MonitoringOnboardingComponent implements OnInit {
       },
       limit: 20000
     }).toPromise();
-console.log(testingOrders)
     const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {

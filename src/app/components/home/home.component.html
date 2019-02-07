@@ -12,16 +12,8 @@
     <div class="card" *ngIf="isVisible('email')">
         <div class="card-body">
             <h5 class="card-title">
-                <i class="far fa-envelope"></i> Check Email</h5>
+                <i class="far fa-envelope"></i> Check Email or Inject Website to Godaddy</h5>
             <app-check-email [restaurantList]="restaurantList"></app-check-email>
-        </div>
-    </div>
-
-    <div class="card" *ngIf="isVisible('template')">
-        <div class="card-body">
-            <h5 class="card-title">
-                <i class="fas fa-globe"></i> Inject Website from Templates</h5>
-            <app-inject-website [restaurantList]="restaurantList"></app-inject-website>
         </div>
     </div>
 
@@ -31,14 +23,14 @@
     <div class="card" *ngIf="isVisible('unconfirmed-orders')">
         <div class="card-body">
             <h5 class="card-title">
-                <i class="fas fa-globe"></i> Unconfirmed Orders</h5>
+                <i class="fas fa-exclamation"></i> Unconfirmed Orders</h5>
             <app-monitoring-unconfirmed-orders></app-monitoring-unconfirmed-orders>
         </div>
     </div>
     <div class="card" *ngIf="isVisible('awaiting-onboarding')">
         <div class="card-body">
             <h5 class="card-title">
-                <i class="fas fa-globe"></i> Awaiting Restaurant to Go Live</h5>
+                <i class="fas fa-exclamation"></i> Awaiting Restaurant to Go Live</h5>
             <app-monitoring-onboarding></app-monitoring-onboarding>
         </div>
     </div>
@@ -49,14 +41,14 @@
     <div class="card" *ngIf="isVisible('fax-problems')">
         <div class="card-body">
             <h5 class="card-title">
-                <i class="fas fa-globe"></i> Fax Problems</h5>
+                <i class="fas fa-exclamation"></i> Fax Problems</h5>
             <app-monitoring-fax></app-monitoring-fax>
         </div>
     </div>
     <div class="card" *ngIf="isVisible('email-problems')">
         <div class="card-body">
             <h5 class="card-title">
-                <i class="fas fa-globe"></i> Email Problems</h5>
+                <i class="fas fa-exclamation"></i> Email Problems</h5>
             <app-monitoring-email></app-monitoring-email>
         </div>
     </div>

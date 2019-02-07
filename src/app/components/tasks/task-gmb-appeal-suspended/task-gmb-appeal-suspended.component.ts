@@ -8,6 +8,8 @@ import { AlertType } from '../../../classes/alert-type';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { Restaurant } from '@qmenu/ui';
 import { Log } from '../../../classes/log';
+import { TaskService } from 'src/app/services/task.service';
+import { Gmb3Service } from 'src/app/services/gmb3.service';
 
 @Component({
   selector: 'app-task-gmb-appeal-suspended',
@@ -36,7 +38,7 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
 
   now = new Date();
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb: Gmb3Service) {
     // to refresh 'now' every minute
     setInterval(() => {
       this.now = new Date();
@@ -137,55 +139,7 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
 
 
   async appeal() {
-    this.gmbAppealing = true;
-    try {
-      let password = this.gmbAccount.password;
-      if (password.length > 20) {
-        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: this.gmbAccount.email, phrase: password }).toPromise();
-      }
-      await this._api.post(
-        environment.autoGmbUrl + 'appealSuspended', {
-          email: this.gmbAccount.email,
-          password: password,
-          params: {
-            name: 'Tim Pennington',
-            email: this.gmbAccount.email,
-            bizName: this.gmbBiz.name,
-            address: this.gmbBiz.address,
-            website: this.gmbBiz.bizManagedWebsite || this.gmbBiz.qmenuWebsite,
-            phone: this.gmbBiz.phone,
-            appealId: this.gmbBiz.appealId
-          }
-        }
-      ).toPromise();
-
-      const appealedAt = new Date();
-      // postpone 21 days
-      const appealedAt21 = new Date();
-      appealedAt21.setDate(appealedAt.getDate() + 21);
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', [
-        {
-          old: {
-            _id: this.task._id
-          },
-          new: {
-            _id: this.task._id,
-            etc: {
-              appealedAt: { $date: appealedAt }
-            },
-            scheduledAt: { $date: appealedAt21 }
-          }
-        }
-      ]).toPromise();
-      //update original
-      this.task.etc.appealedAt = appealedAt;
-      this.task.scheduledAt = appealedAt21;
-
-      this.gmbAppealing = false;
-    } catch (error) {
-      this.gmbAppealing = false;
-      this._global.publishAlert(AlertType.Danger, 'Error appealing');
-    }
+    await this._gmb.appeal([this.task]);
   }
 
 

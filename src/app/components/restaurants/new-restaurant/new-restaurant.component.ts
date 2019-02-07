@@ -6,7 +6,6 @@ import { AlertType } from "../../../classes/alert-type";
 import { Restaurant } from '@qmenu/ui';
 import { Router } from '@angular/router';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
-import { GmbBizEditorComponent } from '../../gmbs2/gmb-biz-editor/gmb-biz-editor.component';
 @Component({
   selector: 'app-new-restaurant',
   templateUrl: './new-restaurant.component.html',
@@ -196,6 +195,12 @@ export class NewRestaurantComponent implements OnInit {
       if (this.isDirectSignUp) {
         this.restaurant.isDirectSignUp = this.isDirectSignUp;
       }
+
+      this.restaurant.web = this.restaurant.web || {};
+      if(!this.applyGmb) {
+        this.restaurant.web.disableAutoTask = true;
+      }
+
       const newRestaurants = await this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [this.restaurant]).toPromise();
       // assign newly created id back to original object
       this.restaurant._id = newRestaurants[0];
@@ -211,8 +216,7 @@ export class NewRestaurantComponent implements OnInit {
           cid: this.restaurant.googleListing.cid
         },
         projection: {
-          name: 1,
-          qmenuWebsite: 1
+          name: 1
         }
       }).toPromise();
 
@@ -224,7 +228,7 @@ export class NewRestaurantComponent implements OnInit {
         await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', existingGmbs.map(biz =>
           ({
             old: { _id: biz._id },
-            new: { _id: biz._id, qmenuId: this.restaurant._id, qmenuWebsite: biz.qmenuWebsite || (environment.customerUrl + '#/' + this.restaurant.alias) }
+            new: { _id: biz._id, qmenuId: this.restaurant._id }
           }))).toPromise();
         this._global.publishAlert(AlertType.Info, 'Found matching GMB Biz');
         // assign newly created id back to original object
@@ -234,13 +238,10 @@ export class NewRestaurantComponent implements OnInit {
         // create new gmbBiz!
 
         const newGmbBiz = { ...this.restaurant.googleListing, qmenuId: this.restaurant._id };
-        if (!this.applyGmb) {
-          newGmbBiz['disableAutoTask'] = true;
-        }
+
         if (this.isDirectSignUp) {
           newGmbBiz['isDirectSignUp'] = true;
         }
-        newGmbBiz['qmenuWebsite'] = environment.customerUrl + '#/' + this.restaurant.alias;
 
         const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [newGmbBiz]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Created new GMB');

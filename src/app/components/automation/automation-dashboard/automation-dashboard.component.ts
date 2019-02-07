@@ -411,7 +411,7 @@ export class AutomationDashboardComponent implements OnInit {
     // 1. no main listing ownership
     // 2. not disabled
     // 3. not already an apply task existed
-    // 4. skip sale's agent 'gmbBiz.disableAutoTask' (unless it had published at least once or more than xx days created)
+    // 4. skip sale's agent 'restaurant.web.disableAutoTask' (unless it had published at least once or more than xx days created)
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
@@ -421,7 +421,9 @@ export class AutomationDashboardComponent implements OnInit {
       projection: {
         "googleListing.cid": 1,
         name: 1,
-        rateSchedules: 1
+        rateSchedules: 1,
+        web: 1,
+        score: 1
       },
       limit: 6000
     }).toPromise();
@@ -447,8 +449,6 @@ export class AutomationDashboardComponent implements OnInit {
       resource: 'gmbBiz',
       projection: {
         "cid": 1,
-        score: 1,
-        disableAutoTask: 1
       },
       limit: 6000
     }).toPromise();
@@ -488,15 +488,8 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log('restaurantsToBeApplied', restaurantsToBeApplied);
 
-    // const restaurantPublishedOnce = restaurantsToBeApplied
-    //   .filter(r =>
-    //     gmbAccounts.some(account => account.locations.some(loc => loc.cid === r.googleListing.cid && loc.statusHistory.some(h => h.status === 'Published'))));
-
-    // console.log('restaurantPublishedOnce', restaurantPublishedOnce);
-
     const restaurantsToBeAppliedWithoutDisableAutoTask = restaurantsToBeApplied.filter(r => {
-      const gmbBiz = gmbBizList.filter(biz => biz.cid === r.googleListing.cid)[0];
-      return gmbBiz && (!gmbBiz.disableAutoTask || /* Helper.getDaysFromId(gmbBiz._id, new Date()) > 30 || */ gmbAccounts.some(account => account.locations.some(loc => loc.cid === gmbBiz.cid && loc.statusHistory.some(h => h.status === 'Published' || h.status === 'Suspended'))));
+      return !r.web || !r.web.disableAutoTask || /* Helper.getDaysFromId(r._id, new Date()) > 30 || */ gmbAccounts.some(account => account.locations.some(loc => loc.cid === (r.googleListing || {}).cid && loc.statusHistory.some(h => h.status === 'Published' || h.status === 'Suspended')));
     });
 
     console.log('restaurantsToBeAppliedWithoutDisableAutoTask', restaurantsToBeAppliedWithoutDisableAutoTask);
@@ -508,8 +501,8 @@ export class AutomationDashboardComponent implements OnInit {
         scheduledAt: { $date: new Date() },
         description: r.name,
         roles: ['GMB', 'ADMIN'],
-        score: gmbBiz.score,
-        relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
+        score: r.score,
+        relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: r._id },
         transfer: {}
       };
       return task;
@@ -580,14 +573,9 @@ export class AutomationDashboardComponent implements OnInit {
       projection: {
         cid: 1,
         qmenuId: 1,
-        qmenuWebsite: 1,
         reservations: 1,
         menuUrls: 1,
-        serviceProviders: 1,
-        gmbWebsite: 1,
-        bizManagedWebsite: 1,
-        useBizWebsite: 1,
-        useBizWebsiteForAll: 1
+        serviceProviders: 1
       },
       limit: 6000
     }).toPromise();
@@ -596,10 +584,10 @@ export class AutomationDashboardComponent implements OnInit {
       resource: 'restaurant',
       projection: {
         alias: 1,
-        domain: 1,
         "googleListing.cid": 1,
         disabled: 1,
-        "channels.value": 1
+        "channels.value": 1,
+        web: 1
       },
       limit: 6000
     }).toPromise();
@@ -644,51 +632,22 @@ export class AutomationDashboardComponent implements OnInit {
 
     const nokItems = consideredItems.map(item => {
       // website, menu, 
-      // get website: order: original, alias, domain, qmenuWebsite, bizManagedWebsite if insisted
-      // try to assign qmenu website!
-      let qmenuDesiredWebsite = (environment.customerUrl + '#/' + item.restaurant.alias).toLowerCase();
 
-      if (item.restaurant.domain) {
-        qmenuDesiredWebsite = (item.restaurant.domain.startsWith('http') ? item.restaurant.domain : 'http://' + item.restaurant.domain).toLowerCase();
-      }
+      // make sure we have web object!
+      const target = Helper.getDesiredUrls(item.restaurant);
 
-      if (item.gmbBiz.qmenuWebsite) {
-        qmenuDesiredWebsite = item.gmbBiz.qmenuWebsite.toLowerCase();
-      }
-
-      let targetWebsite = qmenuDesiredWebsite;
-
-      if ((item.gmbBiz.useBizWebsite || item.gmbBiz.useBizWebsiteForAll) && item.gmbBiz.bizManagedWebsite) {
-        targetWebsite = item.gmbBiz.bizManagedWebsite.toLowerCase();
-      }
-
-      let targetMenuUrl = qmenuDesiredWebsite;
-      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetMenuUrl = item.gmbBiz.bizManagedWebsite.toLowerCase();
-      }
-
-      let targetReservation = qmenuDesiredWebsite;
-      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetReservation = item.gmbBiz.bizManagedWebsite.toLowerCase();
-      }
-
-      let targetOrderAheadUrl = qmenuDesiredWebsite;
-      if (item.gmbBiz.useBizWebsiteForAll && item.gmbBiz.bizManagedWebsite) {
-        targetOrderAheadUrl = item.gmbBiz.bizManagedWebsite.toLowerCase();
-      }
-
-      const isWebsiteOk = Helper.areDomainsSame(targetWebsite, item.gmbBiz.gmbWebsite);
-      const isMenuUrlOk = (item.gmbBiz.menuUrls || []).length > 0 && (item.gmbBiz.menuUrls || []).some(url => Helper.areDomainsSame(url, targetMenuUrl));
-      const isReservationOk = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, targetReservation));
+      const isWebsiteOk = Helper.areDomainsSame(target.website, item.gmbBiz.gmbWebsite);
+      const isMenuUrlOk = (item.gmbBiz.menuUrls || []).length > 0 && (item.gmbBiz.menuUrls || []).some(url => Helper.areDomainsSame(url, target.menuUrl));
+      const isReservationOk = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, target.reservation));
 
       item.isWebsiteOk = isWebsiteOk;
       item.isMenuUrlOk = isMenuUrlOk;
       item.isReservationOk = isReservationOk;
 
-      item.targetWebsite = targetWebsite;
-      item.targetMenuUrl = targetMenuUrl;
-      item.targetOrderAheadUrl = targetOrderAheadUrl;
-      item.targetReservation = targetReservation;
+      item.targetWebsite = target.website;
+      item.targetMenuUrl = target.menuUrl;
+      item.targetOrderAheadUrl = target.orderAheadUrl;
+      item.targetReservation = target.reservation;
 
       return item;
     }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk || !item.isReservationOk);
@@ -700,7 +659,11 @@ export class AutomationDashboardComponent implements OnInit {
     gmbAccountsWithLocations.map(account => Object.keys((account.injection || {})).map(k => appeealIdInjectTimeDict[k] = account.injection[k].time));
 
     console.log(appeealIdInjectTimeDict);
-    const oldNokItems = nokItems.filter(item => !appeealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appeealIdInjectTimeDict[item.location.appealId]).valueOf() > TWELEVE_HOURS));
+
+    const havingTargetWebsiteNokItems = nokItems.filter(item => item.targetWebsite);
+    console.log('havingTargetWebsiteNokItems', havingTargetWebsiteNokItems);
+
+    const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appeealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appeealIdInjectTimeDict[item.location.appealId]).valueOf() > TWELEVE_HOURS));
 
     console.log('oldNokItems', oldNokItems);
 

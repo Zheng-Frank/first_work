@@ -144,6 +144,22 @@ export class Helper {
         return host1 === host2;
     }
 
+    static getTopDomain(url: string): string {
+        if (!url) {
+            return;
+        }
+
+        // remove things before / and after /
+        if (!url.startsWith('http:') && !url.startsWith('https:')) {
+            url = 'http://' + url;
+        }
+
+        let host = new URL(url).host;
+        // keep ONLY last two (NOT GOOD for other country's domain)
+        return host.split('.').slice(-2).join('.');
+    }
+
+
     static processBatchedPromises(promises): any {
         return Promise.all(promises.map(p => new Promise((resolve, reject) => {
             p.then(data => {
@@ -156,5 +172,38 @@ export class Helper {
 
     static getDaysFromId(mongoId, now): any {
         return Math.floor((now.valueOf() - parseInt(mongoId.substring(0, 8), 16) * 1000) / (24 * 3600000));
+    }
+
+    static getDesiredUrls(restaurant) {
+        const web = restaurant.web || {};
+        let qmenuDesiredWebsite = web.qmenuWebsite;
+
+        let targetWebsite = qmenuDesiredWebsite;
+
+        if ((restaurant.web.useBizWebsite || web.useBizWebsiteForAll) && web.bizManagedWebsite) {
+            targetWebsite = web.bizManagedWebsite.toLowerCase();
+        }
+
+        let targetMenuUrl = qmenuDesiredWebsite;
+        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
+            targetMenuUrl = web.bizManagedWebsite.toLowerCase();
+        }
+
+        let targetReservation = qmenuDesiredWebsite;
+        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
+            targetReservation = web.bizManagedWebsite.toLowerCase();
+        }
+
+        let targetOrderAheadUrl = qmenuDesiredWebsite;
+        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
+            targetOrderAheadUrl = web.bizManagedWebsite.toLowerCase();
+        }
+
+        return {
+            website: targetWebsite,
+            menuUrl: targetMenuUrl,
+            reservation: targetReservation,
+            orderAheadUrl: targetOrderAheadUrl
+        };
     }
 }

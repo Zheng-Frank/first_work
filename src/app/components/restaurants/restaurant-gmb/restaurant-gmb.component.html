@@ -31,7 +31,7 @@
         <span *ngIf="row.gmbBiz.cid === restaurant.googleListing?.cid" class="text-success">Main</span>
         <span *ngIf="restaurant.googleListing && row.gmbBiz.cid !== restaurant.googleListing.cid" class="text-danger">Secondary</span>
       </h6>
-      <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{row.gmbBiz.score}}</h6>
+      <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{restaurant.score}}</h6>
     </h3>
     <div class="text-center">
       <h6 *ngIf="row.gmbBiz.name !== restaurant.name">{{row.gmbBiz.name}}</h6>
@@ -49,12 +49,12 @@
         <table class="app-table w-100">
           <tr>
             <th></th>
-            <th>Google Listing</th>
-            <th>Good?</th>
+            <th>URL</th>
+            <th>Desired?</th>
             <th>Insisted?</th>
           </tr>
           <tr>
-            <th>Website</th>
+            <th>GMB Website</th>
             <td><a href="{{row.gmbBiz.gmbWebsite}}" title="{{row.gmbBiz.gmbWebsite}}" target="_blank">{{row.gmbBiz.gmbWebsite}}</a></td>
             <td>
               <span *ngIf="isWebsiteOk(row.gmbBiz)" class="text-success">✓</span>
@@ -65,7 +65,7 @@
             </td>
           </tr>
           <tr>
-            <th>Menu URLs</th>
+            <th>GMB Menu URLs</th>
             <td>
               <div *ngFor="let menuUrl of row.gmbBiz.menuUrls">
                 <a href="{{menuUrl}}" title="{{menuUrl}}" target="_blank">{{menuUrl | host}}</a>
@@ -80,7 +80,7 @@
             </td>
           </tr>
           <tr>
-            <th>Reservations</th>
+            <th>GMB Reservations</th>
             <td>
               <div *ngFor="let reservationUrl of row.gmbBiz.reservations">
                 <a href="{{reservationUrl}}" title="{{reservationUrl}}" target="_blank">{{reservationUrl | host}}</a>
@@ -95,7 +95,7 @@
             </td>
           </tr>
           <tr>
-            <th>Order</th>
+            <th>GMB Order Services</th>
             <td>
               <div *ngFor="let orderUrl of row.gmbBiz.serviceProviders">
                 <a href="{{orderUrl}}" title="{{orderUrl}}" target="_blank">{{orderUrl | host}}</a>
@@ -109,96 +109,36 @@
               {{row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
             </td>
           </tr>
-          <!-- <tr>
-          <th>qMenu Website</th>
-          <td colspan="3">
-            <a *ngIf="row.gmbBiz.qmenuWebsite" href="{{row.gmbBiz.qmenuWebsite}}" title="{{row.gmbBiz.qmenuWebsite}}"
-              target="_blank">{{row.gmbBiz.qmenuWebsite}}</a>
-          </td>
-        </tr> -->
+          <tr class="bg-light">
+            <th>qMenu Website</th>
+            <td colspan="3">
+              <a *ngIf="restaurant.web?.qmenuWebsite" href="{{restaurant.web?.qmenuWebsite}}" title="{{restaurant.web?.qmenuWebsite}}"
+                target="_blank">{{restaurant.web?.qmenuWebsite}}</a>
+            </td>
+          </tr>
+          <tr class="bg-light" *ngIf="restaurant.web?.bizManagedWebsite">
+            <th>Restaurant's Own Website</th>
+            <td colspan="3">
+              <a href="{{restaurant.web?.bizManagedWebsite}}" title="{{restaurant.web?.bizManagedWebsite}}" target="_blank">{{restaurant.web?.bizManagedWebsite}}</a>
+              <div class="text-muted" *ngIf="restaurant.web?.useBizWebsite">
+                Insisted website
+              </div>
+              <div class="text-muted" *ngIf="restaurant.web?.useBizWebsiteForAll">
+                Insisted ALL
+              </div>
+            </td>
+          </tr>
         </table>
         <div class="text-right">
+            <button class="btn btn-link" (click)="inject(row)">Inject Desired Website</button>
           <button class="btn btn-link" (click)="refreshListing(row.gmbBiz)">Refresh Listing</button>
           <!-- <button class="btn btn-link" (click)="injectInfo(row.gmbBiz)" [disabled]="!row.gmbAccount">Inject Info</button> -->
-          <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name + ' ' + row.gmbBiz.address}}" target="_blank"
-            class="btn btn-link">
+          <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name + ' ' + row.gmbBiz.address}}"
+            target="_blank" class="btn btn-link">
             View on Google</a>
-
         </div>
 
       </li>
-      <li class="list-group-item">
-        <table class="app-table w-100">
-          <tr>
-            <th class="">qMenu Managed Website</th>
-            <td class="pl-1">
-              <q-edit-label [value]="row.gmbBiz.qmenuWebsite" (edit)="onEdit($event, row.gmbBiz, 'qmenuWebsite')"></q-edit-label>
-            </td>
-          </tr>
-          <tr>
-            <th class="">Godaddy Pop3 Host</th>
-            <td class="pl-1">
-              <q-edit-label [value]="row.gmbBiz.qmenuPop3Host" (edit)="onEdit($event, row.gmbBiz, 'qmenuPop3Host')"></q-edit-label>
-            </td>
-          </tr>
-          <tr>
-            <th class="">Godaddy Pop3 Email</th>
-            <td class="pl-1">
-              <q-edit-label [value]="row.gmbBiz.qmenuPop3Email" (edit)="onEdit($event, row.gmbBiz, 'qmenuPop3Email')"></q-edit-label>
-            </td>
-          </tr>
-          <tr>
-            <th class="">Godaddy Pop3 Password<div><small class="text-muted">Maybe encrypted</small></div>
-            </th>
-            <td class="pl-1">
-              <q-edit-label [value]="row.gmbBiz.qmenuPop3Password" (edit)="onEdit($event, row.gmbBiz, 'qmenuPop3Password')"></q-edit-label>
-              <div class="text-right">
-                <button class="btn btn-link px-0" [disabled]="!row.gmbBiz.qmenuPop3Host || !row.gmbBiz.qmenuPop3Email"
-                  (click)="retrieveCode(row)">Retrieve Lastest Code </button>
-                <div><small class="text-muted">auto-gmb must be running</small></div>
-                <div *ngIf="row.retrievedCodeObject">
-                  Code: {{row.retrievedCodeObject.code}}<br>
-                  Restaurant: {{row.retrievedCodeObject.name}}<br>
-                  Email: {{row.retrievedCodeObject.email | emailName}}<br>
-                  Time: {{row.retrievedCodeObject.time | ago : now}}
-                </div>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <th class="">Restaurant Managed Website</th>
-            <td class="pl-1">
-              <q-edit-label [value]="row.gmbBiz.bizManagedWebsite" (edit)="onEdit($event, row.gmbBiz, 'bizManagedWebsite')"></q-edit-label>
-              <div *ngIf="row.gmbBiz.bizManagedWebsite">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="id_useBizWebsite" [checked]="row.gmbBiz.useBizWebsite"
-                    (change)="toggle($event, row.gmbBiz, 'useBizWebsite')">
-                  <label class="form-check-label" for="id_useBizWebsite"> Insisted Only Website</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="id_useBizWebsiteForAll" [checked]="row.gmbBiz.useBizWebsiteForAll"
-                    (change)="toggle($event, row.gmbBiz, 'useBizWebsiteForAll')">
-                  <label class="form-check-label" for="id_useBizWebsiteForAll"> Insisted All</label>
-                </div>
-              </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td class="pl-1" colspan="2">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="id_ignoreGmbOwnershipRequest" [checked]="row.gmbBiz.ignoreGmbOwnershipRequest"
-                  (change)="toggle($event, row.gmbBiz, 'ignoreGmbOwnershipRequest')">
-                <label class="form-check-label" for="id_ignoreGmbOwnershipRequest"> Ignore GMB Ownership Requests
-                  (restaurant won't give ownerhsip to other companies)</label>
-              </div>
-
-            </td>
-          </tr>
-
-        </table>
-      </li>
-
       <li class="list-group-item">
 
         <table class="app-table w-100">

@@ -38,7 +38,6 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   completing = false;
 
   now = new Date();
-  emailSettings = {} as any;
 
   accounts: any[] = []; // 
 
@@ -200,11 +199,6 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         limit: 1
       }).subscribe(results => {
         this.gmbBiz = results[0];
-        if (this.gmbBiz) {
-          this.emailSettings.email = this.gmbBiz.qmenuPop3Email;
-          this.emailSettings.host = this.gmbBiz.qmenuPop3Host;
-          this.emailSettings.password = this.gmbBiz.qmenuPop3Password;
-        }
         this.populateRestaurant();
       });
     }
@@ -220,7 +214,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         },
         projection: {
           people: 1,
-          channels: 1
+          channels: 1,
+          web: 1
         },
         limit: 1
       }).subscribe(results => {
@@ -290,20 +285,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
           toPassword = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: toGmbAccount.email, phrase: toPassword }).toPromise();
         }
       }
-      const gmbBiz = (await this._api.get(environment.adminApiUrl + "generic",
-        {
-          resource: "gmbBiz",
-          query: {
-            _id: { $oid: this.task.relatedMap['gmbBizId'] }
-          },
-          projection: {
-            qmenuWebsite: 1,
-            place_id: 1
-          },
-          limit: 1
-        }).toPromise())[0];
 
-      if (!gmbBiz || !gmbBiz.place_id) {
+      if (!this.gmbBiz || !this.gmbBiz.place_id) {
         throw 'No place_id found';
       }
 
@@ -315,7 +298,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             environment.autoGmbUrl + 'requestOwnership', {
               email: toGmbAccount.email,
               password: toPassword,
-              place_id: gmbBiz.place_id
+              place_id: this.gmbBiz.place_id
             }
           ).toPromise();
           break;
@@ -336,8 +319,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
             environment.autoGmbUrl + 'appealGmbRequest', {
               email: toGmbAccount.email,
               password: toPassword,
-              arci: this.transfer.request.arci,
-              qmenuWebsite: gmbBiz.qmenuWebsite
+              arci: this.transfer.request.arci
             }
           ).toPromise();
           break;
@@ -353,21 +335,6 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
           ).toPromise();
           break;
 
-        case 'updateWebsite':
-
-          result = await this._api.post(
-            environment.autoGmbUrl + 'updateWebsite', {
-              email: toGmbAccount.email,
-              password: toPassword,
-              websiteUrl: (gmbBiz.useBizWebsite ? gmbBiz.bizManagedWebsite : undefined) || gmbBiz.qmenuWebsite,
-              menuUrl: (gmbBiz.useBizWebsiteForAll ? gmbBiz.bizManagedWebsite : undefined) || gmbBiz.qmenuWebsite,
-              orderAheadUrl: (gmbBiz.useBizWebsiteForAll ? gmbBiz.bizManagedWebsite : undefined) || gmbBiz.qmenuWebsite,
-              reservationsUrl: (gmbBiz.useBizWebsiteForAll ? gmbBiz.bizManagedWebsite : undefined) || gmbBiz.qmenuWebsite,
-
-              appealId: this.transfer.appealId
-            }
-          ).toPromise();
-          break;
         case 'failed':
         case 'canceled':
         case 'succeeded':

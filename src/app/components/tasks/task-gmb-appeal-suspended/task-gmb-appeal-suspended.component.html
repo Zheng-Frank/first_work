@@ -8,12 +8,6 @@
 
   </div>
 
-  <!-- <div class="alert alert-danger" *ngIf="gmbBiz && (!gmbBiz.bizManagedWebsite && !gmbBiz.qmenuWebsite)">
-    <label>
-      Missing either qMenu mangaged website or restaurant website.
-    </label>
-    <app-biz-website-editor [gmbBiz]="gmbBiz"></app-biz-website-editor>
-  </div> -->
 
   <div class="mb-4">
     <label>
@@ -74,12 +68,6 @@
         <h6>
           {{gmbBiz.gmbWebsite}}
         </h6>
-        <div *ngIf="gmbBiz.bizManagedWebsite">
-          <label>Restaurant Managed Website:</label>
-          <h6>
-            {{gmbBiz.bizManagedWebsite}}
-          </h6>
-        </div>
 
         <table class="table table-sm" *ngIf="restaurantLogs.length > 0">
           <thead>
