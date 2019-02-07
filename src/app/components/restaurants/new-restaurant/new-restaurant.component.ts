@@ -197,7 +197,10 @@ export class NewRestaurantComponent implements OnInit {
       }
 
       this.restaurant.web = this.restaurant.web || {};
-      if(!this.applyGmb) {
+      if (this.restaurant.googleListing && this.restaurant.googleListing.gmbWebsite) {
+        this.restaurant.web.bizManagedWebsite = this.restaurant.googleListing.gmbWebsite;
+      }
+      if (!this.applyGmb) {
         this.restaurant.web.disableAutoTask = true;
       }
 

@@ -97,7 +97,7 @@ export class EmailCodeReaderComponent implements OnInit {
         web[field] = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: event.newValue }).toPromise();
       }
 
-      if (field !== 'qmenuPop3Password') {
+      if (field === 'qmenuWebsite') {
         web[field] = web[field].trim().toLowerCase();
       }
 
