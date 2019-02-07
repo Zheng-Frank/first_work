@@ -704,6 +704,20 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async genericTesting() {
+    const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        locations: 1,
+        email: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    accounts.map(a => (a.locations || []).map(loc => {
+      if (!loc.cid || loc.cid.length < 4) {
+        console.log(a.email, loc.status, loc);
+      }
+    }));
   }
 
   async removeRedundantGmbBiz() {

@@ -56,10 +56,10 @@ export class RestaurantOrdersComponent implements OnInit {
         this.orders = this.orders.map(o => new Order(o));
         this.resultList = this.orders;
       },
-      e => {
-        console.log(e);
-        console.log('refresh failed!');
-      }
+        e => {
+          console.log(e);
+          console.log('refresh failed!');
+        }
       );
     this.setSocket(this.restaurant);
   }
@@ -123,11 +123,25 @@ export class RestaurantOrdersComponent implements OnInit {
     }
   }
 
-  search(event) {
+  async filterAndSearch(event) {
+    this.resultList = this.orders;
+    if (this.searchText) {
+      let key = this.searchText;
+      this.resultList = this.orders.filter(order => {
+        return (order.orderNumber + '').startsWith(key)
+          || (order.customer && order.customer.phone && order.customer.phone.startsWith(key))
+          || (order.customer && order.customer.firstName && order.customer.firstName.toLowerCase().startsWith(key.toLowerCase()))
+          || (order.customer && order.customer.lastName && order.customer.lastName.toLowerCase().startsWith(key.toLowerCase()));
+      });
+    }
 
+    if (this.searchText) {
+      this.getOlderOrder();
+    }
   }
 
   async getOlderOrder() {
+    console.log('get old')
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
     if (this.searchText && regexp.test(this.searchText)) {
       console.log(regexp.test(this.searchText));
@@ -186,27 +200,10 @@ export class RestaurantOrdersComponent implements OnInit {
       this.orders.map(o => orderIdMap[o._id] = o);
       searchedOrders.map(o => orderIdMap[o._id] = o);
 
-      this.orders = Object.keys(orderIdMap).map(id => orderIdMap[id]);
 
+      this.orders = Object.keys(orderIdMap).map(id => orderIdMap[id]);
       this.orders.sort((o1, o2) => o2.createdAt.valueOf() - o1.createdAt.valueOf());
 
-    }
-  }
-
-  async filterAndSearch() {
-    this.resultList = this.orders;
-    if (this.searchText) {
-      let key = this.searchText;
-      this.resultList = this.orders.filter(order => {
-        return (order.orderNumber + '').startsWith(key)
-          || (order.customer && order.customer.phone && order.customer.phone.startsWith(key))
-          || (order.customer && order.customer.firstName && order.customer.firstName.toLowerCase().startsWith(key.toLowerCase()))
-          || (order.customer && order.customer.lastName && order.customer.lastName.toLowerCase().startsWith(key.toLowerCase()));
-      });
-    }
-
-    if (this.searchText) {
-      this.getOlderOrder();
     }
   }
 
@@ -260,15 +257,15 @@ export class RestaurantOrdersComponent implements OnInit {
 
       this._api.post(environment.legacyApiUrl + "order/paymentDetails", { orderId: order.id })
         .subscribe(
-        payment => {
-          Object.assign(this.payment, payment);
-          this.paymentModal.show();
-        },
-        error => {
-          console.log(error);
-          let errorString = error._body || 'error in retrieving creditcard';
-          alert(errorString);
-        });
+          payment => {
+            Object.assign(this.payment, payment);
+            this.paymentModal.show();
+          },
+          error => {
+            console.log(error);
+            let errorString = error._body || 'error in retrieving creditcard';
+            alert(errorString);
+          });
     }
   }
 
@@ -320,8 +317,8 @@ export class RestaurantOrdersComponent implements OnInit {
     if (this.orderForModal && this.orderForModal.customer) {
       this._api.post(environment.legacyApiUrl + "customer/ban", { customer: this.orderForModal.customer, reasons: reasons })
         .subscribe(
-        d => { this.banModal.hide(); },
-        error => console.log(error));
+          d => { this.banModal.hide(); },
+          error => console.log(error));
     } else {
       alert('no customer found');
     }
@@ -336,11 +333,11 @@ export class RestaurantOrdersComponent implements OnInit {
 
     this._api.post(environment.legacyApiUrl + "order/adjust", adjustment)
       .subscribe(
-      resultedOrder => {
-        this.orderForModal.tip = resultedOrder.tip;
-        this.orderForModal.orderItems = resultedOrder.orderItems.map(oi => new OrderItem(oi));
-      },
-      error => { console.log(error); alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.'); }
+        resultedOrder => {
+          this.orderForModal.tip = resultedOrder.tip;
+          this.orderForModal.orderItems = resultedOrder.orderItems.map(oi => new OrderItem(oi));
+        },
+        error => { console.log(error); alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.'); }
       );
   }
 

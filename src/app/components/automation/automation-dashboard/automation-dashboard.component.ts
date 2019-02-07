@@ -634,43 +634,20 @@ export class AutomationDashboardComponent implements OnInit {
       // website, menu, 
 
       // make sure we have web object!
-      item.restaurant.web = item.restaurant.web || {};
-      let qmenuDesiredWebsite = item.restaurant.web.qmenuWebsite;
+      const target = Helper.getDesiredUrls(item.restaurant);
 
-
-      let targetWebsite = qmenuDesiredWebsite;
-
-      if ((item.restaurant.web.useBizWebsite || item.restaurant.web.useBizWebsiteForAll) && item.restaurant.web.bizManagedWebsite) {
-        targetWebsite = item.restaurant.web.bizManagedWebsite.toLowerCase();
-      }
-
-      let targetMenuUrl = qmenuDesiredWebsite;
-      if (item.restaurant.web.useBizWebsiteForAll && item.restaurant.web.bizManagedWebsite) {
-        targetMenuUrl = item.restaurant.web.bizManagedWebsite.toLowerCase();
-      }
-
-      let targetReservation = qmenuDesiredWebsite;
-      if (item.restaurant.web.useBizWebsiteForAll && item.restaurant.web.bizManagedWebsite) {
-        targetReservation = item.restaurant.web.bizManagedWebsite.toLowerCase();
-      }
-
-      let targetOrderAheadUrl = qmenuDesiredWebsite;
-      if (item.restaurant.web.useBizWebsiteForAll && item.restaurant.web.bizManagedWebsite) {
-        targetOrderAheadUrl = item.restaurant.web.bizManagedWebsite.toLowerCase();
-      }
-
-      const isWebsiteOk = Helper.areDomainsSame(targetWebsite, item.gmbBiz.gmbWebsite);
-      const isMenuUrlOk = (item.gmbBiz.menuUrls || []).length > 0 && (item.gmbBiz.menuUrls || []).some(url => Helper.areDomainsSame(url, targetMenuUrl));
-      const isReservationOk = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, targetReservation));
+      const isWebsiteOk = Helper.areDomainsSame(target.website, item.gmbBiz.gmbWebsite);
+      const isMenuUrlOk = (item.gmbBiz.menuUrls || []).length > 0 && (item.gmbBiz.menuUrls || []).some(url => Helper.areDomainsSame(url, target.menuUrl));
+      const isReservationOk = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, target.reservation));
 
       item.isWebsiteOk = isWebsiteOk;
       item.isMenuUrlOk = isMenuUrlOk;
       item.isReservationOk = isReservationOk;
 
-      item.targetWebsite = targetWebsite;
-      item.targetMenuUrl = targetMenuUrl;
-      item.targetOrderAheadUrl = targetOrderAheadUrl;
-      item.targetReservation = targetReservation;
+      item.targetWebsite = target.website;
+      item.targetMenuUrl = target.menuUrl;
+      item.targetOrderAheadUrl = target.orderAheadUrl;
+      item.targetReservation = target.reservation;
 
       return item;
     }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk || !item.isReservationOk);

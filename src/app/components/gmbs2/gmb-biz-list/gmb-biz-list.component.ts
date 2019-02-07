@@ -209,7 +209,7 @@ export class GmbBizListComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.disabled);
         break;
       case 'enabled':
-        this.filteredRows = this.filteredRows.filter(r => r._id && !r.restaurant.disabled);
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && !r.restaurant.disabled);
         break;
 
       case 'bad service settings':
@@ -278,6 +278,25 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
+  }
+
+  async onEditQmenuId(event, gmbBiz, row) {
+    if (confirm('Be very careful! Are you sure you want to assign the restaurant?')) {
+      const qmenuId = event.newValue;
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [
+        {
+          old: { _id: gmbBiz._id },
+          new: { _id: gmbBiz._id, qmenuId: qmenuId }
+        }
+      ]).toPromise();
+
+      // assign to original
+      gmbBiz.qmenuId = qmenuId;
+      row.restaurant = this.rows.filter(row => row.restaurant._id === qmenuId).map(row => row.restaurant)[0];
+
+    }
+
+    console.log(event, gmbBiz);
   }
 
 }

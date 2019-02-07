@@ -25,16 +25,19 @@ export class EmailCodeReaderComponent implements OnInit {
 
   async ngOnInit() {
     if (this._cache.get('templateNames') && this._cache.get('templateNames').length > 0) {
-      return this._cache.get('templateNames');
+      this.templateNames = this._cache.get('templateNames');
+      return;
     } else {
       this.templateNames = await this._api.get(environment.qmenuApiUrl + 'utils/list-template').toPromise();
       // we like to move Chinese Restaurant Template to top
+
       const cindex = this.templateNames.indexOf('Chinese Restaurant Template');
+
       if (cindex > 0) {
         this.templateNames.splice(cindex, 1);
         this.templateNames.unshift('Chinese Restaurant Template');
-        this._cache.set('templateNames', this.templateNames, 300 * 60);
       }
+      this._cache.set('templateNames', this.templateNames, 300 * 60);
     }
   }
 

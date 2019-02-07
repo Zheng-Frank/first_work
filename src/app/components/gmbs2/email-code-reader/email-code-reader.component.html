@@ -29,7 +29,7 @@
       {{retrievedObj.time | ago: now}} {{retrievedObj.name}} <span class="text-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.email}}</span>
     </div>
 
-    <button class="btn btn-primary" (click)="injectWebsite()" [qLoading]="apiRequesting">Inject
+    <button class="btn btn-primary" (click)="injectWebsite()" [qLoading]="apiRequesting">Publish
       Website to Godaddy</button>
     <button class="btn btn-primary" (click)="clickRetrieve()" [qLoading]="apiRequesting">Retrieve
       Verification Code</button>

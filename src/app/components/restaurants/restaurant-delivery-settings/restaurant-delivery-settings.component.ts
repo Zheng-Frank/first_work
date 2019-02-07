@@ -43,6 +43,8 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       { value: 30, text: '30 minutes before closing' },
       { value: 45, text: '45 minutes before closing' },
       { value: 60, text: '60 minutes before closing' },
+      { value: 90, text: '90 minutes before closing' },
+      { value: 120, text: '120 minutes before closing' },
     ];
 
   }

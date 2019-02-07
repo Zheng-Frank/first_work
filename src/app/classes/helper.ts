@@ -173,4 +173,37 @@ export class Helper {
     static getDaysFromId(mongoId, now): any {
         return Math.floor((now.valueOf() - parseInt(mongoId.substring(0, 8), 16) * 1000) / (24 * 3600000));
     }
+
+    static getDesiredUrls(restaurant) {
+        const web = restaurant.web || {};
+        let qmenuDesiredWebsite = web.qmenuWebsite;
+
+        let targetWebsite = qmenuDesiredWebsite;
+
+        if ((restaurant.web.useBizWebsite || web.useBizWebsiteForAll) && web.bizManagedWebsite) {
+            targetWebsite = web.bizManagedWebsite.toLowerCase();
+        }
+
+        let targetMenuUrl = qmenuDesiredWebsite;
+        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
+            targetMenuUrl = web.bizManagedWebsite.toLowerCase();
+        }
+
+        let targetReservation = qmenuDesiredWebsite;
+        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
+            targetReservation = web.bizManagedWebsite.toLowerCase();
+        }
+
+        let targetOrderAheadUrl = qmenuDesiredWebsite;
+        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
+            targetOrderAheadUrl = web.bizManagedWebsite.toLowerCase();
+        }
+
+        return {
+            website: targetWebsite,
+            menuUrl: targetMenuUrl,
+            reservation: targetReservation,
+            orderAheadUrl: targetOrderAheadUrl
+        };
+    }
 }

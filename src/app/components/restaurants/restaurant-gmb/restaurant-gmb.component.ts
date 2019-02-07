@@ -8,6 +8,7 @@ import { AlertType } from '../../../classes/alert-type';
 import { Task } from 'src/app/classes/tasks/task';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { Helper } from 'src/app/classes/helper';
+import { GmbAccount } from 'src/app/classes/gmb/gmb-account';
 @Component({
   selector: 'app-restaurant-gmb',
   templateUrl: './restaurant-gmb.component.html',
@@ -87,7 +88,8 @@ export class RestaurantGmbComponent implements OnInit {
           email: 1,
           locations: 1,
           gmbScannedAt: 1,
-          emailScannedAt: 1
+          emailScannedAt: 1,
+          password: 1
         },
         limit: 1000
       }).toPromise();
@@ -263,4 +265,32 @@ export class RestaurantGmbComponent implements OnInit {
   private isQmenuAlias(url) {
     return (url || '').indexOf('qmenu.us') >= 0 && url.indexOf(this.restaurant.alias) >= 0;
   }
+
+  async inject(row) {
+    const target = Helper.getDesiredUrls(this.restaurant);
+    console.log(row)
+    if (!target.website) {
+      return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
+    }
+    for (let al of row.accountLocationPairs) {
+
+      await this._api
+        .post(environment.adminApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
+        .then(password => this._api.post(
+          environment.autoGmbUrl + 'updateWebsite', {
+            email: al.account.email,
+            password: password,
+            websiteUrl: target.website,
+            menuUrl: target.menuUrl,
+            orderAheadUrl: target.orderAheadUrl,
+            reservationsUrl: target.reservation,
+            appealId: al.location.appealId,
+            stayAfterScan: true
+          }
+        ).toPromise())
+
+    }
+
+  }
+
 }
