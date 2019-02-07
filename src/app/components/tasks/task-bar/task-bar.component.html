@@ -7,7 +7,6 @@
 
 <div class="card" *ngIf="task">
   <div class="card-body">
-    {{task | json}}
     <div class="bottom-right">created: {{task.createdAt | ago : now}} <small class="text-muted">ID: {{task._id}}</small></div>
     <h5 class="card-title">{{task.name}}</h5>
     <h6 class="card-subtitle mb-2"><span class="badge {{task.scheduledAt.valueOf() - now.valueOf() > 86400000 ? 'badge-success' : (task.scheduledAt.valueOf() - now.valueOf() > 0 ? 'badge-warning' : 'badge-danger')}}">Due:
