@@ -8,12 +8,16 @@
             <option>restaurant status</option>
             <option>enabled</option>
             <option>disabled</option>
+        </select>
+        <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantProblems" (change)="filter()">
+            <option>restaurant problems</option>
             <option>bad delivery settings</option>
             <option>bad menus</option>
             <option>bad rate schedules</option>
             <option>bad service settings</option>
+            <option>no qMenu managed website</option>
+            <option>no restaurant managed website</option>
         </select>
-
         <select class="form-control mr-2 mb-1" [(ngModel)]="gmbStatus" (change)="filter()">
             <option>GMB status</option>
             <option>published</option>
@@ -52,13 +56,15 @@
         <th>Restaurant ID</th>
         <th>Score</th>
         <th>Agent</th>
-        <th>Account</th>
-        <th>CID</th>
-        <th>Status</th>
-
+        <th>GMB Account</th>
+        <th>GMB CID</th>
+        <th>GMB Status</th>
+        <th>Websites</th>
     </tr>
     <ng-container *ngFor="let row of filteredRows; let rowNumber = index">
+
         <ng-container *ngFor="let al of row.accountLocations; let alIndex = index">
+            <!-- Having restaurant -->
             <tr *ngIf="row.restaurant._id" class="{{row.restaurant.disabled?'app-strike' : ''}}">
                 <th [attr.rowspan]="row.accountLocations.length" *ngIf="!alIndex">{{rowNumber + 1}}</th>
                 <td [attr.rowspan]="row.accountLocations.length" *ngIf="!alIndex">
@@ -91,7 +97,20 @@
                 <td *ngIf="al.location.status !== 'Published' && al.location.status !== 'Suspended'">
                     {{al.location.status}}
                 </td>
+                <td><small>
+                        <div>Q: <q-edit-label [value]="row.restaurant.web?.qmenuWebsite"
+                                (edit)="onEdit($event, row.restaurant, 'qmenuWebsite')"></q-edit-label>
+                        </div>
+                        <div>R: <q-edit-label [value]="row.restaurant.web?.bizManagedWebsite"
+                                (edit)="onEdit($event, row.restaurant, 'bizManagedWebsite')"></q-edit-label>
+                            <span class="text-danger">{{row.restaurant.web?.useBizWebsite? 'Insisted' : ''}}
+                                {{row.restaurant.web?.useBizWebsiteForAll? 'Insisted All' : ''}}</span>
+                        </div>
+                    </small>
+                </td>
             </tr>
+
+            <!-- NOT having restaurant -->
             <tr *ngIf="!row.restaurant._id">
                 <th>{{rowNumber + 1}}</th>
                 <td class="text-danger">
@@ -99,7 +118,8 @@
                     <div class="text-muted"><small>{{al.location.address}}</small></div>
                 </td>
                 <td>
-                    <ng-container *ngIf="al.bizList && al.bizList.length > 0 && al.location?.cid && al.location.cid.length > 4">
+                    <ng-container
+                        *ngIf="al.bizList && al.bizList.length > 0 && al.location?.cid && al.location.cid.length > 4">
                         <q-edit-label [value]="al.bizList[0].qmenuId"
                             (edit)="onEditQmenuId($event, al.bizList[0], row)"></q-edit-label>
                     </ng-container>
@@ -126,8 +146,12 @@
                 <td *ngIf="al.location.status !== 'Published' && al.location.status !== 'Suspended'">
                     {{al.location.status}}
                 </td>
+                <td></td>
             </tr>
         </ng-container>
+
+
+        <!-- Restaurant has NO matched GMB at all -->
         <tr *ngIf="row.accountLocations.length === 0" class="{{row.restaurant.disabled?'app-strike' : ''}}">
             <th>{{rowNumber + 1}}</th>
             <td>
@@ -153,6 +177,17 @@
                         *ngIf="row.restaurant.googleListing?.cid">★</span></a>
             </td>
             <td>
+            </td>
+            <td><small>
+                    <div>Q: <q-edit-label [value]="row.restaurant.web?.qmenuWebsite"
+                            (edit)="onEdit($event, row.restaurant, 'qmenuWebsite')"></q-edit-label>
+                    </div>
+                    <div>R: <q-edit-label [value]="row.restaurant.web?.bizManagedWebsite"
+                            (edit)="onEdit($event, row.restaurant, 'bizManagedWebsite')"></q-edit-label>
+                        <span class="text-danger">{{row.restaurant.web?.useBizWebsite? 'Insisted' : ''}}
+                            {{row.restaurant.web?.useBizWebsiteForAll? 'Insisted All' : ''}}</span>
+                    </div>
+                </small>
             </td>
         </tr>
 

@@ -3,6 +3,7 @@ import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
+import { AlertType } from 'src/app/classes/alert-type';
 
 @Component({
   selector: 'app-gmb-biz-list',
@@ -15,6 +16,7 @@ export class GmbBizListComponent implements OnInit {
 
   searchFilter;
   restaurantStatus = "restaurant status";
+  restaurantProblems = "restaurant problems";
   gmbStatus = "GMB status";
 
   gmbOwnerAndCounts = [];
@@ -35,6 +37,7 @@ export class GmbBizListComponent implements OnInit {
 
   async refresh() {
     // restaurants -> gmbBiz -> published status
+    // we need two batch 2/8/2019
     const results = await Promise.all([
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
@@ -46,18 +49,49 @@ export class GmbBizListComponent implements OnInit {
           "googleAddress.formatted_address": 1,
           disabled: 1,
           score: 1,
+          "deliverySettings": { $slice: -1 },
+          "rateSchedules": { $slice: 1 },
           "rateSchedules.agent": 1,
           "serviceSettings.name": 1,
           "serviceSettings.paymentMethods": 1,
           "deliverySettings.charge": 1,
-          "deliverySettings": { $slice: -1 },
           "menus.hours": 1,
           "menus.disabled": 1,
           "rateSchedules.rate": 1,
-          "rateSchedules.fixed": 1
+          "rateSchedules.fixed": 1,
+          "web.qmenuWebsite": 1,
+          "web.bizManagedWebsite": 1
         },
+        limit: 2000
+      }).toPromise(),
+      // second batch
+      this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        projection: {
+          name: 1,
+          "googleListing.cid": 1,
+          "googleListing.gmbOwner": 1,
+          "googleListing.gmbOpen": 1,
+          "googleAddress.formatted_address": 1,
+          disabled: 1,
+          score: 1,
+          "deliverySettings": { $slice: -1 },
+          "rateSchedules": { $slice: 1 },
+          "rateSchedules.agent": 1,
+          "serviceSettings.name": 1,
+          "serviceSettings.paymentMethods": 1,
+          "deliverySettings.charge": 1,
+          "menus.hours": 1,
+          "menus.disabled": 1,
+          "rateSchedules.rate": 1,
+          "rateSchedules.fixed": 1,
+          "web.qmenuWebsite": 1,
+          "web.bizManagedWebsite": 1
+        },
+        skip: 2000,
         limit: 6000
       }).toPromise(),
+
       this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbAccount',
         projection: {
@@ -85,9 +119,9 @@ export class GmbBizListComponent implements OnInit {
     ]);
 
 
-    const restaurants = results[0];
-    const gmbAccounts = results[1];
-    const gmbBizList = results[2];
+    const restaurants = [...results[0], ...results[1]];
+    const gmbAccounts = results[2];
+    const gmbBizList = results[3];
     // create a cidMap
     const cidMap = {};
 
@@ -212,23 +246,34 @@ export class GmbBizListComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && !r.restaurant.disabled);
         break;
 
+      default:
+        break;
+    }
+
+    switch (this.restaurantProblems) {
       case 'bad service settings':
-        this.filteredRows = this.filteredRows.filter(b => b.restaurant && (!b.restaurant.serviceSettings || !b.restaurant.serviceSettings.some(setting => setting.paymentMethods && setting.paymentMethods.length > 0)));
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.serviceSettings || !r.restaurant.serviceSettings.some(setting => setting.paymentMethods && setting.paymentMethods.length > 0)));
         break;
       case 'bad delivery settings':
         // has delivery in service settings, but no deliverySettings found!
         this.filteredRows = this.filteredRows.filter(
-          b => b.restaurant && b.restaurant.serviceSettings && b.restaurant.serviceSettings.some(ss => ss.name === 'Delivery' && ss.paymentMethods.length > 0) && (!b.restaurant.deliverySettings || b.restaurant.deliverySettings.length === 0));
+          r => r.restaurant._id && r.restaurant.serviceSettings && r.restaurant.serviceSettings.some(ss => ss.name === 'Delivery' && ss.paymentMethods.length > 0) && (!r.restaurant.deliverySettings || r.restaurant.deliverySettings.length === 0));
         break;
       case 'bad menus':
         // bad: 1. no menu at all
         // 2. menus are ALL disabled
-        this.filteredRows = this.filteredRows.filter(b => b.restaurant && (!b.restaurant.menus || b.restaurant.menus.filter(menu => !menu.disabled).length === 0));
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.menus || r.restaurant.menus.filter(menu => !menu.disabled).length === 0));
         break;
       case 'bad rate schedules':
         // bad: 1. no rateSchedules
         // 2. rateSchedules have no value for rate or fixed
-        this.filteredRows = this.filteredRows.filter(b => b.restaurant && (!b.restaurant.rateSchedules || b.restaurant.rateSchedules.filter(rs => !isNaN(rs.fixed) || !isNaN(rs.rate)).length === 0));
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.rateSchedules || r.restaurant.rateSchedules.filter(rs => !isNaN(rs.fixed) || !isNaN(rs.rate)).length === 0));
+
+      case 'no qMenu managed website':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.web || !r.restaurant.web.qmenuWebsite));
+      case 'no restaurant managed website':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.web || !r.restaurant.web.bizManagedWebsite));
+
       default:
         break;
     }
@@ -241,7 +286,7 @@ export class GmbBizListComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.location.status === 'Suspended'));
         break;
       case 'open':
-        this.filteredRows = this.filteredRows.filter(r => r.restaurant && r.restaurant.googleListing && r.restaurant.googleListing.gmbOpen);
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.googleListing && r.restaurant.googleListing.gmbOpen);
         break;
       case 'lost in 48 hours':
         const now = new Date();
@@ -249,7 +294,7 @@ export class GmbBizListComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => !r.accountLocations.some(al => al.location.status === 'Published') && r.accountLocations.some(al => al.location.statusHistory[1] && al.location.statusHistory[1].status === 'Published' && now.valueOf() - new Date(al.location.statusHistory[0].time).valueOf() < recentSpan));
         break;
       case 'secondary listing':
-        this.filteredRows = this.filteredRows.filter(r => r.restaurant && r.restaurant.googleListing && r.accountLocations.some(al => al.location.cid !== r.restaurant.googleListing.cid));
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.googleListing && r.accountLocations.some(al => al.location.cid !== r.restaurant.googleListing.cid));
         break;
 
       default:
@@ -297,6 +342,25 @@ export class GmbBizListComponent implements OnInit {
     }
 
     console.log(event, gmbBiz);
+  }
+
+  async onEdit(event, restaurant, field: string) {
+    if (confirm('Be very careful! Are you sure?')) {
+      const oldValue = event.oldValue;
+      const newValue = (event.newValue || '').trim();
+      const oldWeb = {};
+      const newWeb = {};
+      oldWeb[field] = oldValue;
+      newWeb[field] = newValue;
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: restaurant._id, web: oldWeb },
+        new: { _id: restaurant._id, web: newWeb }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Updated');
+      restaurant.web = restaurant.web || {};
+      restaurant.web[field] = newValue;
+    }
   }
 
 }

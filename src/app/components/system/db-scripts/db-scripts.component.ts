@@ -1627,7 +1627,8 @@ export class DbScriptsComponent implements OnInit {
         disabled: 1,
         name: 1,
         "googleListing.cid": 1,
-        listings: 1,
+        "googleListing.gmbOwner": 1,
+        "googleListing.gmbWebsite": 1,
         domain: 1,
         websiteTemplateName: 1,
         web: 1
@@ -1670,6 +1671,10 @@ export class DbScriptsComponent implements OnInit {
         r.web.qmenuWebsite = r.web.qmenuWebsite || url;
       }
 
+      if (r.googleListing && r.googleListing.gmbOwner !== 'qmenu' && r.googleListing.gmbWebsite && !r.web.bizManagedWebsite) {
+        r.web.bizManagedWebsite = r.googleListing.gmbWebsite;
+      }
+
       if (JSON.stringify(r.web) !== before) {
         updatedRestaurants.push(r);
       }
@@ -1687,7 +1692,6 @@ export class DbScriptsComponent implements OnInit {
 
       restaurants.map(restaurant => {
         const web = restaurant.web || {};
-        const existingWebString = JSON.stringify(web);
         migrateFields.map(field => {
           let fieldValue = web[field];
           gmbBizList.map(biz => fieldValue = fieldValue || biz[field]);
