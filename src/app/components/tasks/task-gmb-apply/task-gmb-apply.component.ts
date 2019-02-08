@@ -102,7 +102,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
               if (dateDiff < this.withinDays + 1) {
                 accountMap[task.transfer.toEmail].requestCountPerMonth = (accountMap[task.transfer.toEmail].requestCountPerMonth || 0) + 1;
               }
-              if (dateDiff < 2) {
+              if (dateDiff < 1) {
                 accountMap[task.transfer.toEmail].requestCountPerDay = (accountMap[task.transfer.toEmail].requestCountPerDay || 0) + 1;
               }
             }
