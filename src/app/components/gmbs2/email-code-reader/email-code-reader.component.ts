@@ -5,6 +5,7 @@ import { GlobalService } from '../../../services/global.service';
 import { Helper } from 'src/app/classes/helper';
 import { AlertType } from 'src/app/classes/alert-type';
 import { CacheService } from 'src/app/services/cache.service';
+import { OWL_DATETIME_VALIDATORS } from 'ng-pick-datetime/date-time/date-time-picker-input.directive';
 @Component({
   selector: 'app-email-code-reader',
   templateUrl: './email-code-reader.component.html',
@@ -82,7 +83,10 @@ export class EmailCodeReaderComponent implements OnInit {
   }
 
   async onEdit(event, field: string) {
-    const web = this.restaurant.web || {};
+    const oldWeb = {};
+    const newWeb = {};
+    oldWeb[field] = event.oldValue;
+
     const newValue = (event.newValue || '').trim();
 
     if (field === 'qmenuPop3Password' && !this.restaurant.web.qmenuWebsite) {
@@ -90,23 +94,25 @@ export class EmailCodeReaderComponent implements OnInit {
       return;
     }
     try {
-      web[field] = newValue;
+      newWeb[field] = newValue;
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
         // reset password:
         const email = 'info@' + Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-        web[field] = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: event.newValue }).toPromise();
+        newWeb[field] = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: event.newValue }).toPromise();
       }
 
       if (field === 'qmenuWebsite') {
-        web[field] = web[field].trim().toLowerCase();
+        newWeb[field] = newWeb[field].toLowerCase();
       }
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: { _id: this.restaurant._id },
-        new: { _id: this.restaurant._id, web: web }
+        old: { _id: this.restaurant._id, web: oldWeb },
+        new: { _id: this.restaurant._id, web: newWeb }
       }]).toPromise();
 
-      this.restaurant.web = web;
+      // update this object
+      this.restaurant.web = this.restaurant.web || {};
+      this.restaurant.web[field] = newWeb[field];
 
       this._global.publishAlert(AlertType.Success, 'Updated');
     } catch (error) {
