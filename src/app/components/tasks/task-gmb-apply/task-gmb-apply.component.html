@@ -157,6 +157,12 @@
     <send-google-pin [restaurant]="restaurant"></send-google-pin>
   </div>
   <div class="form-group">
+    <label>qMenu Website:</label>
+    <h6>
+      {{restaurant.web?.qmenuWebsite}}
+    </h6>
+  </div>
+  <div class="form-group">
     <label>Comments:</label>
     <textarea class="form-control" rows="3" [(ngModel)]="comments" placeholder="extra comments"></textarea>
   </div>
@@ -179,7 +185,11 @@
         <hr>
         <label>Restaurant:</label>
         <h6>
-          <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+          <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{restaurant.name}}</a>
+        </h6>
+        <label>qMenu Website:</label>
+        <h6>
+          {{restaurant.web?.qmenuWebsite}}
         </h6>
 
         <app-restaurant-contacts [restaurant]="restaurant" [viewOnly]="true"></app-restaurant-contacts>
