@@ -704,20 +704,55 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async genericTesting() {
-    const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      projection: {
-        locations: 1,
-        email: 1
+    const recentCCPayments = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'payment',
+      query: {
+        createdAt: { $gt: { $date: "2019-02-11T01:37:36.919Z" } },
+        "paymentType": "CREDITCARD",
+        "creditCardProcessingMethod": "CREDITCARD",
+        "method": "CREDITCARD"
       },
-      limit: 6000
+      limit: 1000
     }).toPromise();
 
-    accounts.map(a => (a.locations || []).map(loc => {
-      if (!loc.cid || loc.cid.length < 4) {
-        console.log(a.email, loc.status, loc);
-      }
-    }));
+    console.log(recentCCPayments)
+
+    // get orders
+    const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      query: {
+        createdAt: { $gt: { $date: "2019-02-11T01:37:36.919Z" } },
+        "payment": {
+          $in: recentCCPayments.map(p => ({
+            $oid: p._id
+          }))
+        }
+      },
+      limit: 1000
+    }).toPromise();
+
+    console.log(orders);
+
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "_id": {
+          $in: orders.map(o => ({
+            $oid: o.restaurant
+          }))
+        }
+      },
+      limit: 1000
+    }).toPromise();
+
+    console.log(restaurants);
+
+    recentCCPayments.map(p => {
+      const order = orders.filter(o => o.payment === p._id)[0];
+      const restaurant = restaurants.filter(r => r._id === order.restaurant)[0];
+      console.log(p, order.type, restaurant.serviceSettings.filter(ss => ss.name.toLowerCase() === order.type.toLowerCase())[0].paymentMethods);
+    });
+
   }
 
   async removeRedundantGmbBiz() {

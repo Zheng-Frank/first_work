@@ -18,7 +18,7 @@
             <option>no qMenu managed website</option>
             <option>no restaurant managed website</option>
             <option>having insisted website</option>
-            <option>suspecious GMBs</option>
+            <option>GMB name mismatched</option>
         </select>
         <select class="form-control mr-2 mb-1" [(ngModel)]="gmbStatus" (change)="filter()">
             <option>GMB status</option>
@@ -89,6 +89,7 @@
                     <a href="https://www.google.com/search?ludocid={{al.location?.cid}}&q={{al.location?.name}}"
                         target="_blank"> {{al.location?.cid}}<span
                             *ngIf="row.restaurant?.googleListing?.cid === al.location.cid">★</span></a>
+                    <div *ngIf="al.location?.name !== row.restaurant?.name">{{al.location?.name}}</div>
                 </td>
                 <td *ngIf="al.location.status === 'Published'" class="text-success">
                     <b>{{al.location.status}}</b>
@@ -138,6 +139,7 @@
                 <td>
                     <a href="https://www.google.com/search?ludocid={{al.location?.cid}}&q={{al.location?.name}}"
                         target="_blank"> {{al.location?.cid}}</a>
+                    <div *ngIf="al.location?.name !== row.restaurant?.name">{{al.location?.name}}</div>
                 </td>
                 <td *ngIf="al.location.status === 'Published'" class="text-success">
                     <b>{{al.location.status}}</b>
@@ -177,6 +179,7 @@
                 <a href="https://www.google.com/search?ludocid={{row.restaurant.googleListing?.cid}}&q={{row.restaurant.name}}"
                     target="_blank"> {{row.restaurant.googleListing?.cid}}<span
                         *ngIf="row.restaurant.googleListing?.cid">★</span></a>
+                <div *ngIf="al.location?.name !== row.restaurant?.name">{{al.location?.name}}</div>
             </td>
             <td>
             </td>
