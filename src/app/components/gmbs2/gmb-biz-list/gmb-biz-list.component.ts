@@ -283,6 +283,8 @@ export class GmbBizListComponent implements OnInit {
 
       case 'having insisted website':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && r.restaurant.web && (r.restaurant.web.useBizWebsite || r.restaurant.web.useBizWebsiteForAll));
+      case 'suspecious GMBs':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && r.accountLocations.some(al => al.));
       default:
         break;
     }

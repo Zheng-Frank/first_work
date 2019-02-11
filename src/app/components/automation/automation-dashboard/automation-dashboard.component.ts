@@ -488,8 +488,14 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log('restaurantsToBeApplied', restaurantsToBeApplied);
 
+    // ignoreGmbOwnershipRequest
     const restaurantsToBeAppliedWithoutDisableAutoTask = restaurantsToBeApplied.filter(r => {
-      return !r.web || !r.web.disableAutoTask || /* Helper.getDaysFromId(r._id, new Date()) > 30 || */ gmbAccounts.some(account => account.locations.some(loc => loc.cid === (r.googleListing || {}).cid && loc.statusHistory.some(h => h.status === 'Published' || h.status === 'Suspended')));
+      const disableInitialApplyTask = r.web && r.web.disableAutoTask;
+      const ignoreGmbOwnershipRequest = r.web && r.web.ignoreGmbOwnershipRequest;
+      const idMoreThan30Days = Helper.getDaysFromId(r._id, new Date()) > 30;
+      const hadGmb = gmbAccounts.some(account => account.locations.some(loc => loc.cid === (r.googleListing || {}).cid && loc.statusHistory.some(h => h.status === 'Published' || h.status === 'Suspended')));
+      return !ignoreGmbOwnershipRequest && (!disableInitialApplyTask || hadGmb /*|| idMoreThan30Days*/);
+
     });
 
     console.log('restaurantsToBeAppliedWithoutDisableAutoTask', restaurantsToBeAppliedWithoutDisableAutoTask);
