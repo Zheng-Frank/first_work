@@ -294,7 +294,7 @@ export class TaskService {
       limit: 6000
     }).toPromise();
 
-    const disabledRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const nonDisabledRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         disabled: { $in: [null, false] }
@@ -311,7 +311,7 @@ export class TaskService {
     gmbAccounts.map(account => account.locations.map(loc => {
       if (loc.status === 'Suspended' && new Date().valueOf() - new Date(loc.statusHistory[0].time).valueOf() < 21 * 24 * 3600000) {
         const gmbBiz = gmbBizList.filter(b => b.cid === loc.cid)[0];
-        const restaurant = disabledRestaurants.filter(r => r.googleListing && r.googleListing.cid === loc.cid)[0];
+        const restaurant = nonDisabledRestaurants.filter(r => r.googleListing && r.googleListing.cid === loc.cid)[0];
         if (gmbBiz) {
           suspendedAccountLocationPairs.push({ account: account, location: loc, gmbBiz: gmbBiz, restaurant: restaurant })
         }
@@ -334,8 +334,9 @@ export class TaskService {
     console.log(publishedCidSet);
 
 
+    // sometimes there is still no restaurant created yet for a GMB entity
 
-    const newSuspendedAccountLocationsPairs = suspendedAccountLocationPairs.filter(pair => !publishedCidSet.has(pair.location.cid) && !inAppealingCids.has(pair.location.cid));
+    const newSuspendedAccountLocationsPairs = suspendedAccountLocationPairs.filter(pair => pair.restaurant && !publishedCidSet.has(pair.location.cid) && !inAppealingCids.has(pair.location.cid));
 
     console.log('newSuspendedAccountLocationsPairs', newSuspendedAccountLocationsPairs);
 
@@ -351,7 +352,6 @@ export class TaskService {
       if (pair.restaurant && pair.restaurant.web && pair.restaurant.web.useBizWebsite && pair.restaurant.web.bizManagedWebsite) {
         targetWebsite = pair.restaurant.web.bizManagedWebsite;
       }
-
       return {
         name: 'Appeal Suspended GMB',
         relatedMap: {
@@ -719,7 +719,7 @@ export class TaskService {
 
     const cidRestaurantMap = relatedRestaurants.reduce((map, r) => (map[(r.googleListing || {}).cid] = r, map), {});
 
-  
+
     const validTransferTasks = newTransferTasks.filter(t => {
       const restaurant = cidRestaurantMap[t.gmbBiz.cid];
       return restaurant && (!restaurant.web || !restaurant.ignoreGmbOwnershipRequest) && !restaurant.disabled;

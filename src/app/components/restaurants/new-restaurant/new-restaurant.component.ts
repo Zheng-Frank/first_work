@@ -5,7 +5,6 @@ import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Restaurant } from '@qmenu/ui';
 import { Router } from '@angular/router';
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 @Component({
   selector: 'app-new-restaurant',
   templateUrl: './new-restaurant.component.html',
