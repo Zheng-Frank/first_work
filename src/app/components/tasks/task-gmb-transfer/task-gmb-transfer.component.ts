@@ -169,9 +169,9 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   getFilteredAccounts() {
     console.log(this.accounts);
     if (this.transfer) {
-      return this.accounts.filter(a => a.type ==="Transfer GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
+      return this.accounts.filter(a => a.type === "Transfer GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
     }
-    return this.accounts.filter(a => a.type ==="Transfer GMB");
+    return this.accounts.filter(a => a.type === "Transfer GMB");
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -206,11 +206,16 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   populateRestaurant() {
     // let's also request qmenu database's restaurant obj: logs, contacts etc.
-    if (this.gmbBiz && this.gmbBiz.qmenuId) {
+    if (this.gmbBiz) {
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: 'restaurant',
         query: {
-          _id: { $oid: this.gmbBiz.qmenuId }
+          $or: [{
+            _id: { $oid: this.gmbBiz.qmenuId }
+          }, {
+            "googleListing.cid": this.gmbBiz.cid
+          }],
+          disabled: { $ne: true }
         },
         projection: {
           people: 1,

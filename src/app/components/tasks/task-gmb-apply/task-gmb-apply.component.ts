@@ -183,12 +183,16 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   }
 
   populateRestaurant() {
-    // let's also request qmenu database's restaurant obj: logs, contacts etc.
-    if (this.gmbBiz && this.gmbBiz.qmenuId) {
+    if (this.gmbBiz) {
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: 'restaurant',
         query: {
-          _id: { $oid: this.gmbBiz.qmenuId }
+          $or: [{
+            _id: { $oid: this.gmbBiz.qmenuId }
+          }, {
+            "googleListing.cid": this.gmbBiz.cid
+          }],
+          disabled: { $ne: true }
         },
         projection: {
           people: 1,
@@ -199,7 +203,6 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         limit: 1
       }).subscribe(results => {
         this.restaurant = results[0];
-        console.log("this.restaurant", this.restaurant);
       });
     }
   }

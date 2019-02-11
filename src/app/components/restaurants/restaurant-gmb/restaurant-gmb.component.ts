@@ -268,12 +268,11 @@ export class RestaurantGmbComponent implements OnInit {
 
   async inject(row) {
     const target = Helper.getDesiredUrls(this.restaurant);
-    console.log(row)
     if (!target.website) {
       return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
     }
     for (let al of row.accountLocationPairs) {
-
+      if(al.location.status !== 'Removed')
       await this._api
         .post(environment.adminApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
         .then(password => this._api.post(

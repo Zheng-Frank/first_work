@@ -91,7 +91,7 @@ export class OrderDashboardComponent implements OnInit {
           createdAt: 1,
           orderNumber: 1
         },
-        limit: 8000
+        limit: 10000
       }),
 
       this._api.get(environment.qmenuApiUrl + "generic", {

@@ -375,7 +375,7 @@ export class AutomationDashboardComponent implements OnInit {
     const succeeded = [];
     const failed = [];
 
-    let batchSize = 6;
+    let batchSize = 2;
     if (DEBUGGING && gmbAccounts.length > 6) {
       gmbAccounts.length = 3;
       batchSize = 2;

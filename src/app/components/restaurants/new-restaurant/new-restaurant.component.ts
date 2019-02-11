@@ -18,7 +18,7 @@ export class NewRestaurantComponent implements OnInit {
     name: '',
     googleAddress: { formatted_address: '' }
   };
-  applyGmb = false;
+  skipApplyGmb = false;
   isDirectSignUp = false;
   restaurantFieldDescriptors = [
     {
@@ -200,7 +200,7 @@ export class NewRestaurantComponent implements OnInit {
       if (this.restaurant.googleListing && this.restaurant.googleListing.gmbWebsite) {
         this.restaurant.web.bizManagedWebsite = this.restaurant.googleListing.gmbWebsite;
       }
-      if (!this.applyGmb) {
+      if (this.skipApplyGmb) {
         this.restaurant.web.disableAutoTask = true;
       }
 
@@ -255,7 +255,7 @@ export class NewRestaurantComponent implements OnInit {
       }
 
       // see if we need to create Apply GMB task!
-      if (this.applyGmb) {
+      if (!this.skipApplyGmb) {
         // making sure it's not already published somewhere!
         const relevantAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
           resource: 'gmbAccount',

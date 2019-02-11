@@ -348,7 +348,7 @@ export class TaskService {
         targetWebsite = pair.restaurant.web.qmenuWebsite;
       }
 
-      if (pair.restaurant && pair.retaurant.web && pair.restaurant.web.useBizWebsite && pair.restaurant.web.bizManagedWebsite) {
+      if (pair.restaurant && pair.restaurant.web && pair.restaurant.web.useBizWebsite && pair.restaurant.web.bizManagedWebsite) {
         targetWebsite = pair.restaurant.web.bizManagedWebsite;
       }
 
@@ -741,7 +741,7 @@ export class TaskService {
       }));
 
     if (tasks.length > 0) {
-      // const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
+      const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
     }
 
     console.log('ceated tasks,', tasks);

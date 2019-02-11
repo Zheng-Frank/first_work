@@ -60,7 +60,9 @@ export class GmbBizListComponent implements OnInit {
           "rateSchedules.rate": 1,
           "rateSchedules.fixed": 1,
           "web.qmenuWebsite": 1,
-          "web.bizManagedWebsite": 1
+          "web.bizManagedWebsite": 1,
+          "web.useBizWebsite": 1,
+          "web.useBizWebsiteForAll": 1
         },
         limit: 2000
       }).toPromise(),
@@ -86,7 +88,9 @@ export class GmbBizListComponent implements OnInit {
           "rateSchedules.rate": 1,
           "rateSchedules.fixed": 1,
           "web.qmenuWebsite": 1,
-          "web.bizManagedWebsite": 1
+          "web.bizManagedWebsite": 1,
+          "web.useBizWebsite": 1,
+          "web.useBizWebsiteForAll": 1
         },
         skip: 2000,
         limit: 6000
@@ -222,6 +226,9 @@ export class GmbBizListComponent implements OnInit {
 
     this.rows = this.rows.filter(r => r.restaurant._id || r.accountLocations.length > 0);
 
+    // if a row has no restaurant._id && cid !== 0 &&  status === Published or Suspended
+    this.rows = this.rows.filter(r => r.restaurant._id || (r.accountLocations.some(al => al.location.cid && al.location.cid.length > 3 && al.location.status === 'Published' || al.location.status === 'Suspended')));
+
     this.filter();
   }
 
@@ -274,6 +281,8 @@ export class GmbBizListComponent implements OnInit {
       case 'no restaurant managed website':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.web || !r.restaurant.web.bizManagedWebsite));
 
+      case 'having insisted website':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && r.restaurant.web && (r.restaurant.web.useBizWebsite || r.restaurant.web.useBizWebsiteForAll));
       default:
         break;
     }
