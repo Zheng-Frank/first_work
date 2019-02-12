@@ -326,6 +326,21 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
+    switch (this.managedWebsite) {
+      case 'exists':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.qmenuWebsite);
+        break;
+      case 'non-exist':
+        this.filteredRows = this.filteredRows.filter(r => !r.restaurant.web || !r.restaurant.web.qmenuWebsite);
+        break;
+      case 'same as restaurant managed':
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.qmenuWebsite && r.restaurant.web.qmenuWebsite === r.restaurant.web.bizManagedWebsite);
+        break;
+      default:
+        break;
+    }
+
+
     switch (this.agent) {
 
       case 'Sales agent':
