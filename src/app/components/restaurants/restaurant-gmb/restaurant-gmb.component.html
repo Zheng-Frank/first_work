@@ -33,7 +33,13 @@
       <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{restaurant.score}}</h6>
     </h3>
     <div class="text-center">
-      <h6 *ngIf="row.gmbBiz.name !== restaurant.name">{{row.gmbBiz.name}}</h6>
+      <ng-container *ngIf="row.gmbBiz.name !== restaurant.name">
+        <h6>{{row.gmbBiz.name}}</h6>
+        <div>
+          <button class="btn btn-link" *ngIf="row.gmbBiz.qmenuId" (click)="unlink(row)">Unlink GMB</button>
+        </div>
+      </ng-container>
+
       <div class="alert alert-danger" *ngIf="row.gmbBiz.closed">Marked as Permanently Closed at Google</div>
       <small>
         {{row.gmbBiz.address}}
@@ -129,7 +135,7 @@
           </tr>
         </table>
         <div class="text-right">
-            <button class="btn btn-link" (click)="inject(row)">Inject Desired Website</button>
+          <button class="btn btn-link" (click)="inject(row)">Inject Desired Website</button>
           <button class="btn btn-link" (click)="refreshListing(row.gmbBiz)">Refresh Listing</button>
           <!-- <button class="btn btn-link" (click)="injectInfo(row.gmbBiz)" [disabled]="!row.gmbAccount">Inject Info</button> -->
           <a href="https://www.google.com/search?ludocid={{row.gmbBiz.cid}}&q={{row.gmbBiz.name + ' ' + row.gmbBiz.address}}"

@@ -272,24 +272,32 @@ export class RestaurantGmbComponent implements OnInit {
       return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
     }
     for (let al of row.accountLocationPairs) {
-      if(al.location.status !== 'Removed')
-      await this._api
-        .post(environment.adminApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
-        .then(password => this._api.post(
-          environment.autoGmbUrl + 'updateWebsite', {
-            email: al.account.email,
-            password: password,
-            websiteUrl: target.website,
-            menuUrl: target.menuUrl,
-            orderAheadUrl: target.orderAheadUrl,
-            reservationsUrl: target.reservation,
-            appealId: al.location.appealId,
-            stayAfterScan: true
-          }
-        ).toPromise())
+      if (al.location.status !== 'Removed')
+        await this._api
+          .post(environment.adminApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
+          .then(password => this._api.post(
+            environment.autoGmbUrl + 'updateWebsite', {
+              email: al.account.email,
+              password: password,
+              websiteUrl: target.website,
+              menuUrl: target.menuUrl,
+              orderAheadUrl: target.orderAheadUrl,
+              reservationsUrl: target.reservation,
+              appealId: al.location.appealId,
+              stayAfterScan: true
+            }
+          ).toPromise())
 
     }
 
+  }
+
+  async unlink(row) {
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [{
+      old: { _id: row.gmbBiz._id, qmenuId: row.gmbBiz.qmenuId },
+      new: { _id: row.gmbBiz._id },
+    }]).toPromise();
+    this.gmbRows = this.gmbRows.filter(r => r != row);
   }
 
 }
