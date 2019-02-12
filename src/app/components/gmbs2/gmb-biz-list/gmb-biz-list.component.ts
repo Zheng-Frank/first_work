@@ -228,7 +228,6 @@ export class GmbBizListComponent implements OnInit {
 
     // if a row has no restaurant._id && cid !== 0 &&  status === Published or Suspended
     this.rows = this.rows.filter(r => r.restaurant._id || (r.accountLocations.some(al => al.location.cid && al.location.cid.length > 3 && al.location.status === 'Published' || al.location.status === 'Suspended')));
-
     this.filter();
   }
 
@@ -244,7 +243,6 @@ export class GmbBizListComponent implements OnInit {
 
       ].some(t => t && t.toLowerCase().indexOf(text) === 0));
     }
-
     switch (this.restaurantStatus) {
       case 'disabled':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.disabled);
@@ -275,16 +273,19 @@ export class GmbBizListComponent implements OnInit {
         // bad: 1. no rateSchedules
         // 2. rateSchedules have no value for rate or fixed
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.rateSchedules || r.restaurant.rateSchedules.filter(rs => !isNaN(rs.fixed) || !isNaN(rs.rate)).length === 0));
-
+        break;
       case 'no qMenu managed website':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.web || !r.restaurant.web.qmenuWebsite));
+        break;
       case 'no restaurant managed website':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.web || !r.restaurant.web.bizManagedWebsite));
-
+        break;
       case 'having insisted website':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && r.restaurant.web && (r.restaurant.web.useBizWebsite || r.restaurant.web.useBizWebsiteForAll));
+        break;
       case 'GMB name mismatched':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && r.accountLocations.some(al => al.location && al.location.name.toLowerCase() !== r.restaurant.name.toLowerCase()));
+        break;
       default:
         break;
     }
