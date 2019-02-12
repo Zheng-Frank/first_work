@@ -176,34 +176,41 @@ export class Helper {
 
     static getDesiredUrls(restaurant) {
         const web = restaurant.web || {};
-        let qmenuDesiredWebsite = web.qmenuWebsite;
+        // refer to https://docs.google.com/document/d/1kUt2QY8Xmx_gO-mQhVxrQoKkcYtV0cHTu1HmfVEUEQY/edit
 
-        let targetWebsite = qmenuDesiredWebsite;
+        const aliasUrl = environment.customerUrl + '#/' + restaurant.alias;
+        let restaurantWebsite = (web.bizManagedWebsite || '').trim().toLowerCase();
+        let qmenuWebsite = (web.qmenuWebsite || '').trim().toLowerCase();
 
-        if ((restaurant.web.useBizWebsite || web.useBizWebsiteForAll) && web.bizManagedWebsite) {
-            targetWebsite = web.bizManagedWebsite.toLowerCase();
+        // normalize websites!
+        if (qmenuWebsite && !qmenuWebsite.startsWith('http')) {
+            qmenuWebsite = 'http://' + qmenuWebsite;
         }
 
-        let targetMenuUrl = qmenuDesiredWebsite;
-        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
-            targetMenuUrl = web.bizManagedWebsite.toLowerCase();
+        if (restaurantWebsite && !restaurantWebsite.startsWith('http')) {
+            restaurantWebsite = 'http://' + restaurantWebsite;
         }
 
-        let targetReservation = qmenuDesiredWebsite;
-        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
-            targetReservation = web.bizManagedWebsite.toLowerCase();
+        let aliasRedirect = aliasUrl + (restaurantWebsite ? '?target=' + encodeURIComponent(restaurantWebsite) : '');
+
+        const insistedWebsite = web.useBizWebsite;
+        const insistedAll = web.useBizWebsiteForAll;
+
+        let targetWebsite = qmenuWebsite;
+        if (!targetWebsite || insistedAll || insistedWebsite) {
+            targetWebsite = aliasRedirect;
         }
 
-        let targetOrderAheadUrl = qmenuDesiredWebsite;
-        if (restaurant.web.useBizWebsiteForAll && web.bizManagedWebsite) {
-            targetOrderAheadUrl = web.bizManagedWebsite.toLowerCase();
+        let othersUrl = restaurantWebsite || aliasUrl;
+        if (qmenuWebsite && !insistedAll) {
+            othersUrl = qmenuWebsite;
         }
 
         return {
             website: targetWebsite,
-            menuUrl: targetMenuUrl,
-            reservation: targetReservation,
-            orderAheadUrl: targetOrderAheadUrl
+            menuUrl: othersUrl,
+            reservation: othersUrl,
+            orderAheadUrl: othersUrl
         };
     }
 }

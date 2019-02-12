@@ -45,6 +45,7 @@
             <option>Manged website</option>
             <option>exist</option>
             <option>non-exist</option>
+            <option>same as restaurant managed</option>
         </select>
 
     </div>
@@ -179,7 +180,6 @@
                 <a href="https://www.google.com/search?ludocid={{row.restaurant.googleListing?.cid}}&q={{row.restaurant.name}}"
                     target="_blank"> {{row.restaurant.googleListing?.cid}}<span
                         *ngIf="row.restaurant.googleListing?.cid">★</span></a>
-                <div *ngIf="al.location?.name !== row.restaurant?.name">{{al.location?.name}}</div>
             </td>
             <td>
             </td>
