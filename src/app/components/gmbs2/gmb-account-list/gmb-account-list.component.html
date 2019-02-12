@@ -20,7 +20,7 @@
         </div>
       </td>
       <td>
-        <div *ngFor="let subitem of item">{{subitem.location.status}}</div>
+        <div *ngFor="let subitem of item">{{subitem.location.status}} <div class="text-muted"><small>{{subitem.location.statusHistory[0].time | ago : now}}</small></div></div>
       </td>
     </tr>
   </table>

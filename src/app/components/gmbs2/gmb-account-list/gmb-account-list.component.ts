@@ -32,6 +32,8 @@ export class GmbAccountListComponent implements OnInit {
 
   problematicLocations = [];
 
+  now = new Date();
+
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
 
   }
