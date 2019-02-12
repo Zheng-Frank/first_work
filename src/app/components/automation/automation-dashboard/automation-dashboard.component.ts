@@ -682,9 +682,6 @@ console.log(appealIdInjectTimeDict);
       batchSize = 2;
     }
 
-    if(new Date())
-    throw 'do'
-
     const batchedItems = Array(Math.ceil(oldNokItems.length / batchSize)).fill(0).map((i, index) => oldNokItems.slice(index * batchSize, (index + 1) * batchSize)).filter(batch => batch.length > 0);
     for (let batch of batchedItems) {
       const promises = batch.map(item =>
