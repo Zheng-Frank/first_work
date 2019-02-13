@@ -184,11 +184,11 @@
     <hr>
     <label>Restaurant:</label>
     <h6>
-      <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+      <a target="_blank" routerLink="/restaurants/{{gmbBiz?.qmenuId}}">{{gmbBiz?.name}}</a>
     </h6>
     <label>qMenu Website:</label>
     <h6>
-      {{restaurant.web?.qmenuWebsite}}
+      {{restaurant?.web?.qmenuWebsite}}
     </h6>
   </div>
 
@@ -217,11 +217,11 @@
         <hr>
         <label>Restaurant:</label>
         <h6>
-          <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+          <a target="_blank" routerLink="/restaurants/{{gmbBiz?.qmenuId}}">{{gmbBiz?.name}}</a>
         </h6>
         <label>qMenu Website:</label>
         <h6>
-          {{restaurant.web?.qmenuWebsite}}
+          {{restaurant?.web?.qmenuWebsite}}
         </h6>
         <app-restaurant-contacts [restaurant]="restaurant" [viewOnly]="true"></app-restaurant-contacts>
         <table class="table table-sm" *ngIf="restaurantLogs.length > 0">

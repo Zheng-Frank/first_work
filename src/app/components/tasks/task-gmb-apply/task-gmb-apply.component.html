@@ -160,11 +160,11 @@
       <hr>
       <label>Restaurant:</label>
       <h6>
-        <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+        <a target="_blank" routerLink="/restaurants/{{gmbBiz?.qmenuId}}">{{gmbBiz?.name}}</a>
       </h6>
       <label>qMenu Website:</label>
       <h6>
-        {{restaurant.web?.qmenuWebsite}}
+        {{restaurant?.web?.qmenuWebsite}}
       </h6>
   </div>
   <div class="form-group">
@@ -190,7 +190,7 @@
         <hr>
         <label>Restaurant:</label>
         <h6>
-          <a target="_blank" routerLink="/restaurants/{{gmbBiz.qmenuId}}">{{gmbBiz.name}}</a>
+          <a target="_blank" routerLink="/restaurants/{{gmbBiz?.qmenuId}}">{{gmbBiz?.name}}</a>
         </h6>
         <label>qMenu Website:</label>
         <h6>
