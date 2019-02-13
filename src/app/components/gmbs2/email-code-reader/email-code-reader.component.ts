@@ -49,6 +49,20 @@ export class EmailCodeReaderComponent implements OnInit {
     }
   }
 
+  async populateAlias() {
+    const aliasUrl = environment.customerUrl + '#/' + this.restaurant.alias;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.restaurant._id, web: {} },
+        new: { _id: this.restaurant._id, web: { qmenuWebsite: aliasUrl } },
+      }
+    ]).toPromise();
+
+    this.restaurant.web = this.restaurant.web || {};
+    this.restaurant.web.qmenuWebsite = aliasUrl;
+    
+  }
+
 
   async clickRetrieve() {
     this.retrievedObj = undefined;
