@@ -129,8 +129,8 @@ export class NewRestaurantComponent implements OnInit {
     this.restaurant.name = crawledResult.name;
 
     // suggest and alias!
-    const nameParts = this.restaurant.name.toLowerCase().split(/[^0-9A-Za-z_]/);
-    const addressParts = (this.restaurant.googleAddress.locality || this.restaurant.googleAddress.postal_code).split(/[^0-9A-Za-z_]/);
+    const nameParts = this.restaurant.name.toLowerCase().split(/[^0-9A-Za-z_]/).filter(each => each);
+    const addressParts = (this.restaurant.googleAddress.locality || this.restaurant.googleAddress.postal_code).split(/[^0-9A-Za-z_]/).filter(each => each);;
 
     const alias = nameParts.concat(addressParts).join('-').toLowerCase();
 
