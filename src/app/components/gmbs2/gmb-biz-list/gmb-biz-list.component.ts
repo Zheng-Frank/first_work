@@ -348,7 +348,16 @@ export class GmbBizListComponent implements OnInit {
         // second round: gmbBiz.gmbWebsite is bizMangedWebsite but has qmenu link
         this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.bizList.some(biz => biz.gmbOwner !== 'qmenu' && biz.gmbWebsite === r.restaurant.web.bizManagedWebsite)));
         break;
+      case 'old style qMenu redirect':
 
+        const isOldStyleRedirect = function (url) {
+          return url && url.indexOf('qmenu.us') > 0 && url.indexOf('www.qmenu.us') < 0 && url.indexOf('//qmenu.us') < 0;
+        }
+
+        // first round: insisted and has bizManagedWebsite
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && (isOldStyleRedirect(r.restaurant.web.bizManagedWebsite) || isOldStyleRedirect(r.restaurant.web.qmenuWebsite)));
+        // second round: gmbBiz.gmbWebsite is bizMangedWebsite but has qmenu link
+        break;
       case 'same as restaurant managed':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.qmenuWebsite && Helper.areDomainsSame(r.restaurant.web.qmenuWebsite, r.restaurant.web.bizManagedWebsite));
         break;
