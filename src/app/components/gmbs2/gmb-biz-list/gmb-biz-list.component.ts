@@ -4,6 +4,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { AlertType } from 'src/app/classes/alert-type';
+import { Helper } from 'src/app/classes/helper';
 
 @Component({
   selector: 'app-gmb-biz-list',
@@ -116,7 +117,8 @@ export class GmbBizListComponent implements OnInit {
           name: 1,
           cid: 1,
           qmenuId: 1,
-          gmbOwner: 1
+          gmbOwner: 1,
+          gmbWebsite: 1
         },
         limit: 6000
       }).toPromise(),
@@ -333,8 +335,22 @@ export class GmbBizListComponent implements OnInit {
       case 'non-exist':
         this.filteredRows = this.filteredRows.filter(r => !r.restaurant.web || !r.restaurant.web.qmenuWebsite);
         break;
+      case 'insisted: having qMenu link':
+        // first round: insisted and has bizManagedWebsite
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.bizManagedWebsite && (r.restaurant.web.useBizWebsite || r.restaurant.web.useBizWebsiteForAll));
+        // second round: gmbBiz.gmbWebsite is bizMangedWebsite but has qmenu link
+        this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.bizList.some(biz => biz.gmbOwner === 'qmenu' && biz.gmbWebsite === r.restaurant.web.bizManagedWebsite)));
+        break;
+
+      case 'insisted: no qMenu link':
+        // first round: insisted and has bizManagedWebsite
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.bizManagedWebsite && (r.restaurant.web.useBizWebsite || r.restaurant.web.useBizWebsiteForAll));
+        // second round: gmbBiz.gmbWebsite is bizMangedWebsite but has qmenu link
+        this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.bizList.some(biz => biz.gmbOwner !== 'qmenu' && biz.gmbWebsite === r.restaurant.web.bizManagedWebsite)));
+        break;
+
       case 'same as restaurant managed':
-        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.qmenuWebsite && r.restaurant.web.qmenuWebsite === r.restaurant.web.bizManagedWebsite);
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.qmenuWebsite && Helper.areDomainsSame(r.restaurant.web.qmenuWebsite, r.restaurant.web.bizManagedWebsite));
         break;
       default:
         break;

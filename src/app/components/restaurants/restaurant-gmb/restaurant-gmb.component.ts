@@ -244,21 +244,19 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   isWebsiteOk(gmbBiz) {
-    if (this.restaurant.web && (this.restaurant.web.useBizWebsite || this.restaurant.web.useBizWebsiteForAll)) {
-      return Helper.areDomainsSame(gmbBiz.gmbWebsite, this.restaurant.web.bizManagedWebsite);
-    } else {
-      return Helper.areDomainsSame(gmbBiz.gmbWebsite, (this.restaurant.web || {}).qmenuWebsite) || this.isQmenuAlias(gmbBiz.gmbWebsite);
-    }
+    const desiredWebsites = Helper.getDesiredUrls(this.restaurant);
+    return Helper.areDomainsSame(gmbBiz.gmbWebsite, desiredWebsites.website);
   }
 
 
-
   /** item is in {menuUrls, reservations, and serviceProviders} */
-  isOthersOk(gmbBiz: GmbBiz, item) {
+  isOthersOk(gmbBiz: GmbBiz, item, target) {
+    const desiredWebsites = Helper.getDesiredUrls(this.restaurant);
+    const desiredWebsite = desiredWebsites[target];
     if (this.restaurant.web && this.restaurant.web.useBizWebsiteForAll) {
-      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, this.restaurant.web.bizManagedWebsite));
+      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, desiredWebsite));
     } else {
-      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, (this.restaurant.web || {}).qmenuWebsite) || this.isQmenuAlias(url));
+      return (gmbBiz[item] || []).some(url => Helper.areDomainsSame(url, desiredWebsite));
     }
   }
 

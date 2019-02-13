@@ -11,7 +11,8 @@
       <span *ngIf="restaurant.googleListing" class="px-4">Main cid: <strong>{{restaurant.googleListing?.cid}}</strong>
         |
         Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
-      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Crawl Main Listing</button>
+      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Crawl Main
+        Listing</button>
       <div *ngIf="restaurant.googleListing && !hasMainGmb()" class="my-2">
         No main GMB found.
         <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="createOrMatchMainGmb()">Create or Match
@@ -28,7 +29,8 @@
       </ng-template>
       <h6 style="position: absolute; top: 0; left: 0" class="p-2 text-left">cid: {{row.gmbBiz.cid}}<br>
         <span *ngIf="row.gmbBiz.cid === restaurant.googleListing?.cid" class="text-success">Main</span>
-        <span *ngIf="restaurant.googleListing && row.gmbBiz.cid !== restaurant.googleListing.cid" class="text-danger">Secondary</span>
+        <span *ngIf="restaurant.googleListing && row.gmbBiz.cid !== restaurant.googleListing.cid"
+          class="text-danger">Secondary</span>
       </h6>
       <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{restaurant.score}}</h6>
     </h3>
@@ -60,7 +62,8 @@
           </tr>
           <tr>
             <th>GMB Website</th>
-            <td><a href="{{row.gmbBiz.gmbWebsite}}" title="{{row.gmbBiz.gmbWebsite}}" target="_blank">{{row.gmbBiz.gmbWebsite}}</a></td>
+            <td><a href="{{row.gmbBiz.gmbWebsite}}" title="{{row.gmbBiz.gmbWebsite}}"
+                target="_blank">{{row.gmbBiz.gmbWebsite}}</a></td>
             <td>
               <span *ngIf="isWebsiteOk(row.gmbBiz)" class="text-success">✓</span>
               <span *ngIf="!isWebsiteOk(row.gmbBiz)" class="text-danger">✗</span>
@@ -77,8 +80,8 @@
               </div>
             </td>
             <td>
-              <span *ngIf="isOthersOk(row.gmbBiz, 'menuUrls')" class="text-success">✓</span>
-              <span *ngIf="!isOthersOk(row.gmbBiz, 'menuUrls')" class="text-danger">✗</span>
+              <span *ngIf="isOthersOk(row.gmbBiz, 'menuUrls', 'menuUrl')" class="text-success">✓</span>
+              <span *ngIf="!isOthersOk(row.gmbBiz, 'menuUrls', 'menuUrl')" class="text-danger">✗</span>
             </td>
             <td>
               {{row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
@@ -92,8 +95,8 @@
               </div>
             </td>
             <td>
-              <span *ngIf="isOthersOk(row.gmbBiz, 'reservations')" class="text-success">✓</span>
-              <span *ngIf="!isOthersOk(row.gmbBiz, 'reservations')" class="text-danger">✗</span>
+              <span *ngIf="isOthersOk(row.gmbBiz, 'reservations', 'reservation')" class="text-success">✓</span>
+              <span *ngIf="!isOthersOk(row.gmbBiz, 'reservations', 'reservation')" class="text-danger">✗</span>
             </td>
             <td>
               {{row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
@@ -107,8 +110,8 @@
               </div>
             </td>
             <td>
-              <span *ngIf="isOthersOk(row.gmbBiz, 'serviceProviders')" class="text-success">✓</span>
-              <span *ngIf="!isOthersOk(row.gmbBiz, 'serviceProviders')" class="text-danger">✗</span>
+              <span *ngIf="isOthersOk(row.gmbBiz, 'serviceProviders', 'orderAheadUrl')" class="text-success">✓</span>
+              <span *ngIf="!isOthersOk(row.gmbBiz, 'serviceProviders', 'orderAheadUrl')" class="text-danger">✗</span>
             </td>
             <td>
               {{row.gmbBiz.useBizWebsiteForAll ? 'Yes' : 'No'}}
@@ -117,14 +120,15 @@
           <tr class="bg-light">
             <th>qMenu Website</th>
             <td colspan="3">
-              <a *ngIf="restaurant.web?.qmenuWebsite" href="{{restaurant.web?.qmenuWebsite}}" title="{{restaurant.web?.qmenuWebsite}}"
-                target="_blank">{{restaurant.web?.qmenuWebsite}}</a>
+              <a *ngIf="restaurant.web?.qmenuWebsite" href="{{restaurant.web?.qmenuWebsite}}"
+                title="{{restaurant.web?.qmenuWebsite}}" target="_blank">{{restaurant.web?.qmenuWebsite}}</a>
             </td>
           </tr>
           <tr class="bg-light" *ngIf="restaurant.web?.bizManagedWebsite">
             <th>Restaurant's Own Website</th>
             <td colspan="3">
-              <a href="{{restaurant.web?.bizManagedWebsite}}" title="{{restaurant.web?.bizManagedWebsite}}" target="_blank">{{restaurant.web?.bizManagedWebsite}}</a>
+              <a href="{{restaurant.web?.bizManagedWebsite}}" title="{{restaurant.web?.bizManagedWebsite}}"
+                target="_blank">{{restaurant.web?.bizManagedWebsite}}</a>
               <div class="text-muted" *ngIf="restaurant.web?.useBizWebsite">
                 Insisted website
               </div>
@@ -159,7 +163,8 @@
               </th>
               <td class="pl-1">
                 <ng-container *ngFor="let record of alPair.statusHistory;">
-                  <div class="d-inline-block alert alert-{{record.status === 'Published' ? 'success' : (record.status === 'Suspended' ? 'warning' : 'danger')}} p-2">
+                  <div
+                    class="d-inline-block alert alert-{{record.status === 'Published' ? 'success' : (record.status === 'Suspended' ? 'warning' : 'danger')}} p-2">
                     <span>{{record.status}}</span>
                     <hr class="my-0"><small>{{record.time | ago : now}}</small>
                   </div>
@@ -173,7 +178,8 @@
                 </div>
               </th>
               <td class="pl-1">
-                <div *ngFor="let gmbRequest of getGmbRequests(row.gmbBiz, alPair.account.email)" class="{{gmbRequest.isSelf ? 'text-success' : ''}}">
+                <div *ngFor="let gmbRequest of getGmbRequests(row.gmbBiz, alPair.account.email)"
+                  class="{{gmbRequest.isSelf ? 'text-success' : ''}}">
                   {{gmbRequest.date | ago : now}} {{gmbRequest.email | emailName}}
                 </div>
               </td>
