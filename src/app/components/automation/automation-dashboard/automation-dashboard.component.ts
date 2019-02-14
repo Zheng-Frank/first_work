@@ -7,6 +7,8 @@ import { TaskService } from 'src/app/services/task.service';
 import { Helper } from 'src/app/classes/helper';
 
 const TWELEVE_HOURS = 43200000; // 12 hours
+const TWO_HOURS = 7200000; // 2 hours
+
 const SKIPPING_EMAILS = ['christesting'];
 
 const DEBUGGING = false;
@@ -670,9 +672,9 @@ export class AutomationDashboardComponent implements OnInit {
     const havingTargetWebsiteNokItems = nokItems.filter(item => item.targetWebsite);
     console.log('havingTargetWebsiteNokItems', havingTargetWebsiteNokItems);
 
-console.log(appealIdInjectTimeDict);
+    console.log(appealIdInjectTimeDict);
 
-    const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWELEVE_HOURS));
+    const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
 
     console.log('oldNokItems', oldNokItems);
 
