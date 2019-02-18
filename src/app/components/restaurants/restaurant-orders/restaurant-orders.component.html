@@ -2,16 +2,18 @@
     <div class="form-group row">
         <div class="col-md-12">
             <!-- <input type="text" [(ngModel)]="searchText" class="form-control" placeholder="search order#, phone, name..."> -->
-            <input [qDebounce]="500" (debounce)="filterAndSearch($event)" type="text" [(ngModel)]="searchText" class="form-control" placeholder="search order#">
+            <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
+                class="form-control" placeholder="search order#">
         </div>
-        <div *ngIf="searchText" class="text-muted">Found: {{getOrders().length}}</div>
+        <div *ngIf="searchText" class="text-muted">Found: {{orders.length}}</div>
     </div>
 
     <div class="row ml-0 mr-0">
         <!-- row has negative margins and we need to remove them! -->
-        <div *ngFor="let order of resultList" class="col-sm-12 col-md-6 col-lg-4  app-pl-025 app-pr-025 mb-1">
-            <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
-                (onBan)="handleOnBan($event)" (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)">
+        <div *ngFor="let order of orders" class="col-sm-12 col-md-6 col-lg-4  app-pl-025 app-pr-025 mb-1">
+            <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
+                (onReject)="handleOnReject($event)" (onBan)="handleOnBan($event)"
+                (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)">
             </app-order-card>
         </div>
     </div>
@@ -47,11 +49,11 @@
                 <th>Zip Code</th>
                 <td>{{payment.creditCard.zipcode || 'N/A'}}</td>
             </tr>
-            <tr *ngIf="payment.creditCard && payment.creditCard.billingAddress && payment.creditCard.billingAddress.place_id">
+            <tr
+                *ngIf="payment.creditCard && payment.creditCard.billingAddress && payment.creditCard.billingAddress.place_id">
                 <th>Billing Address</th>
                 <td>
-                    {{getLine1(payment.creditCard.billingAddress)}}
-                    <br> {{getLine2(payment.creditCard.billingAddress)}}
+                   {{payment.creditCard.billingAddress?.apt}} {{payment.creditCard.billingAddress?.formatted_address}}
                 </td>
             </tr>
         </table>
@@ -64,7 +66,8 @@
         </button>
         <h4 class="text-center">Reject Order</h4>
         <hr>
-        <app-order-reject-bar [order]="orderForModal" (onSetNewStatus)="handleOnSetNewStatus($event)"></app-order-reject-bar>
+        <app-order-reject-bar [order]="orderForModal" (onSetNewStatus)="handleOnSetNewStatus($event)">
+        </app-order-reject-bar>
     </q-modal>
 
     <q-modal #banModal>
@@ -74,7 +77,8 @@
         <h4 class="text-center">BAN CUSTOMER</h4>
         <hr>
         <div class="alert-danger">USE EXTREME CAUTION: The customer
-            <b>{{orderForModal?.customer?.firstName}} {{orderForModal?.customer?.phone | tel}}</b> will be banned permanently
+            <b>{{orderForModal?.customer?.firstName}} {{orderForModal?.customer?.phone | tel}}</b> will be banned
+            permanently
             from placing any orders in future!</div>
         <div class="alert-success mt-1 mt-1">Banned customers will NOT see the reasons.</div>
 

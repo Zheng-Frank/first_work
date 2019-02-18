@@ -29,7 +29,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Fix Google Address</h5>
-            <p class="card-text">Some old restaurant's googleAddress has missing info (no locality, street_number etc.)</p>
+            <p class="card-text">Some old restaurant's googleAddress has missing info (no locality, street_number etc.)
+            </p>
             <button class="btn btn-primary" (click)="fixAddress()">Fix Address</button>
         </div>
     </div>
@@ -37,7 +38,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Migrate Email and Phones(Again)</h5>
-            <p class="card-text">No side effects. Consolidate phones and emails into new structure restaurant.channels</p>
+            <p class="card-text">No side effects. Consolidate phones and emails into new structure restaurant.channels
+            </p>
             <button class="btn btn-primary" (click)="migrateEmailAndPhones()">Migrate Email and Phones</button>
         </div>
     </div>
@@ -47,7 +49,8 @@
             <h5 class="card-title">qMenu: Remove Orphan Phones</h5>
             <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from
                 database.</p>
-            <button class="btn btn-primary" (click)="removeOrphanPhones()" [qLoading]="removingOrphanPhones">Remove</button>
+            <button class="btn btn-primary" (click)="removeOrphanPhones()"
+                [qLoading]="removingOrphanPhones">Remove</button>
         </div>
     </div>
 
@@ -131,11 +134,11 @@
         </div>
     </div>
     <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Crawl Restaurant</h5>
-                <button class="btn btn-primary" (click)="crawlRestaurants()">Start</button>
-            </div>
+        <div class="card-body">
+            <h5 class="card-title">Crawl Restaurant</h5>
+            <button class="btn btn-primary" (click)="crawlRestaurants()">Start</button>
         </div>
+    </div>
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Fix Null Menu and Duplicated Ids</h5>
@@ -204,6 +207,24 @@
             <h5 class="card-title">Migrate Old gmbOwnerships</h5>
             <p class="card-text">Migrate old ownerships to account locations!</p>
             <button class="btn btn-primary" (click)="migrateGmbOwnerships()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Migrate Order Delivery Address</h5>
+            <p class="card-text">Move deliveryAddress content to order. No side effects. If already moved, no action.
+            </p>
+            <button class="btn btn-primary" (click)="migrateOrderAddress()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Migrate Order Payment, Customer, and Restaurant</h5>
+            <p class="card-text">Move payment content to order.paymentObj etc. No side effects. If already moved, no action.
+            </p>
+            <button class="btn btn-primary" (click)="migrateOrderPaymentCustomerRestaurant()">Execute</button>
         </div>
     </div>
 

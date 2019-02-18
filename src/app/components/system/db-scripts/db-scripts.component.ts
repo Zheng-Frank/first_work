@@ -21,6 +21,163 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async migrateOrderAddress() {
+    for (let i = 0; i < 1; i++) {
+      const batch = 160;
+      const deliveryOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: {
+          type: "DELIVERY",
+          "address.place_id": null
+        },
+        projection: {
+          deliveryAddress: 1
+        },
+        limit: batch
+      }).toPromise();
+      console.log(deliveryOrders);
+      if (deliveryOrders.length === 0) {
+        console.log('ALL DONE!');
+        break;
+      }
+      const addressIds = [...new Set(deliveryOrders.map(o => o.deliveryAddress))].filter(id => id);
+      const addresses = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'googleaddress',
+        query: {
+          _id: { $in: addressIds.map(id => ({ $oid: id })) }
+        },
+        limit: batch
+      }).toPromise();
+      console.log(addresses);
+      const addressIdDict = addresses.reduce((map, address) => (map[address._id] = address, map), {});
+      // patch back to orders!
+      const patchPairs = deliveryOrders.map(o => ({
+        old: { _id: o._id },
+        new: { _id: o._id, address: addressIdDict[o.deliveryAddress] || {place_id: 'unknown'} }
+      }));
+      console.log(patchPairs);
+
+      const patched = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', patchPairs).toPromise();
+      console.log(patched);
+    }
+  }
+
+  async migrateOrderPaymentCustomerRestaurant() {
+    for (let i = 0; i < 1; i++) {
+      const batch = 160;
+      const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: {
+          "customerObj._id": null
+        },
+        projection: {
+          payment: 1,
+          customer: 1,
+          restaurant: 1
+        },
+        limit: batch
+      }).toPromise();
+      console.log(orders);
+      if (orders.length === 0) {
+        console.log('ALL DONE!');
+        break;
+      }
+
+      // populate restaurantObj and customerObj
+      const customerIds = [...new Set(orders.map(o => o.customer))].filter(id => id && id.toString().length > 8);
+      console.log(customerIds);
+
+      const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'customer',
+        query: {
+          _id: { $in: customerIds.map(id => ({ $oid: id })) }
+        },
+        projection: {
+          email: 1,
+          banCounter: 1,
+          bannedReasons: 1,
+          firstName: 1,
+          lastName: 1,
+          phone: 1,
+          socialProfilePhoto: 1,
+          socialProvider: 1,
+        },
+        limit: batch
+      }).toPromise();
+
+      console.log(customers);
+      const customerIdDict = customers.reduce((map, item) => (map[item._id] = item, map), {});
+
+      const restaurantIds = [...new Set(orders.map(o => o.restaurant))].filter(id => id && id.toString().length > 8);
+      console.log(restaurantIds);
+      const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          _id: { $in: restaurantIds.map(id => ({ $oid: id })) }
+        },
+        projection: {
+          alias: 1,
+          logo: 1,
+          name: 1
+        },
+        limit: batch
+      }).toPromise();
+
+      console.log(restaurants);
+      const restaurantIdDict = restaurants.reduce((map, item) => (map[item._id] = item, map), {});
+
+
+      const paymentIds = [...new Set(orders.map(o => o.payment))].filter(id => id);
+      const payments = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'payment',
+        query: {
+          _id: { $in: paymentIds.map(id => ({ $oid: id })) }
+        },
+        projection: {
+          createdAt: 0,
+          updatedAt: 0
+        },
+        limit: batch
+      }).toPromise();
+
+      console.log(payments);
+      const paymentIdDict = payments.reduce((map, item) => (map[item._id] = item, map), {});
+
+      const ccIds = [...new Set(payments.map(p => p.creditCard))].filter(id => id);
+      const ccs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'creditcard',
+        query: {
+          _id: { $in: ccIds.map(id => ({ $oid: id })) }
+        },
+        projection: {
+          createdAt: 0,
+          updatedAt: 0
+        },
+        limit: batch
+      }).toPromise();
+
+      console.log(ccs);
+      const ccIdDict = ccs.reduce((map, item) => (map[item._id] = item, map), {});
+
+      payments.map(p => {
+        if (p.creditCard) {
+          p.card = ccIdDict[p.creditCard] || {};
+        }
+      });
+
+      // patch back to orders!
+      const patchPairs = orders.map(o => ({
+        old: { _id: o._id },
+        new: { _id: o._id, paymentObj: paymentIdDict[o.payment] || {}, customerObj: customerIdDict[o.customer] || {_id: o.customer}, restaurantObj: restaurantIdDict[o.restaurant] || {_id: o.restaurant} }
+      }));
+      console.log(patchPairs);
+
+      const patched = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', patchPairs).toPromise();
+      console.log(patched);
+    }
+  }
+
+
   migrateAddress() {
     // let's batch 20 every time
     const batchSize = 200;

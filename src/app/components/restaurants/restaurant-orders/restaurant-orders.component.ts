@@ -49,18 +49,7 @@ export class RestaurantOrdersComponent implements OnInit {
       d => this.showNotifier(d)
     );
 
-    this._api.get(environment.legacyApiUrl + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 150 }).
-      subscribe(d => {
-        this.orders = d;
-
-        this.orders = this.orders.map(o => new Order(o));
-        this.resultList = this.orders;
-      },
-        e => {
-          console.log(e);
-          console.log('refresh failed!');
-        }
-      );
+    this.populateOrders();
     this.setSocket(this.restaurant);
   }
 
@@ -98,9 +87,7 @@ export class RestaurantOrdersComponent implements OnInit {
 
       });
     }
-
   }
-
 
   attachNewOrderStatus(orderStatus) {
     // find the order and attach to status
@@ -123,103 +110,63 @@ export class RestaurantOrdersComponent implements OnInit {
     }
   }
 
-  async filterAndSearch(event) {
-    this.resultList = this.orders;
-    if (this.searchText) {
-      let key = this.searchText;
-      this.resultList = this.orders.filter(order => {
-        return (order.orderNumber + '').startsWith(key)
-          || (order.customer && order.customer.phone && order.customer.phone.startsWith(key))
-          || (order.customer && order.customer.firstName && order.customer.firstName.toLowerCase().startsWith(key.toLowerCase()))
-          || (order.customer && order.customer.lastName && order.customer.lastName.toLowerCase().startsWith(key.toLowerCase()));
-      });
-    }
-
-    if (this.searchText) {
-      this.getOlderOrder();
+  search(event) {
+    let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
+    if (!this.searchText || (this.searchText && regexp.test(this.searchText))) {
+      this.populateOrders();
     }
   }
-
-  async getOlderOrder() {
-    console.log('get old')
+  async populateOrders() {
+    const query = {
+      restaurant: {
+        $oid: this.restaurant._id
+      }
+    } as any;
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
     if (this.searchText && regexp.test(this.searchText)) {
-      console.log(regexp.test(this.searchText));
+      query.orderNumber = +this.searchText
+    }
 
-      const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: query,
+      projection: {
+        logs: 0,
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 100
+    }).toPromise();
+
+    // pull customer, orderStatus
+    const customerIds = orders.map(o => o.customer);
+    const promises = [
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: 'customer',
         query: {
-          restaurant: {
-            $oid: this.restaurant._id
-          },
-          orderNumber: +this.searchText
+          _id: { $in: customerIds.map(customerId => ({ $oid: customerId })) }
         },
         limit: 6000
-      }).toPromise();
-      // pull customer, payment, orderStatus
+      }).toPromise(),
+      this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: 'orderstatus',
+        query: {
+          order: { $in: orders.map(order => ({ $oid: order._id })) }
+        },
+        limit: 6000
+      }).toPromise()
+    ];
 
-      const customerIds = orders.map(o => o.customer);
-      const paymentIds = orders.map(o => o.payment);
-
-      const promises = [
-        this._api.get(environment.qmenuApiUrl + "generic", {
-          resource: 'customer',
-          query: {
-            _id: { $in: customerIds.map(customerId => ({ $oid: customerId })) }
-          },
-          limit: 6000
-        }).toPromise(),
-        this._api.get(environment.qmenuApiUrl + "generic", {
-          resource: 'payment',
-          query: {
-            _id: { $in: paymentIds.map(paymentId => ({ $oid: paymentId })) }
-          },
-          limit: 6000
-        }).toPromise(),
-        this._api.get(environment.qmenuApiUrl + "generic", {
-          resource: 'orderstatus',
-          query: {
-            order: { $in: orders.map(order => ({ $oid: order._id })) }
-          },
-          limit: 6000
-        }).toPromise()
-      ];
-
-      const results = await Promise.all(promises);
-      // assemble back to order:
-      const searchedOrders = orders.map(order => {
-        order.customer = results[0].filter(c => c._id === order.customer)[0];
-        order.payment = results[1].filter(p => p._id === order.payment)[0];
-        order.orderStatuses = results[2].filter(os => os.order === order._id);
-        order.id = order._id;
-        return new Order(order);
-      });
-
-      // add ONLY new ones to list
-      const orderIdMap = {};
-      this.orders.map(o => orderIdMap[o._id] = o);
-      searchedOrders.map(o => orderIdMap[o._id] = o);
-
-
-      this.orders = Object.keys(orderIdMap).map(id => orderIdMap[id]);
-      this.orders.sort((o1, o2) => o2.createdAt.valueOf() - o1.createdAt.valueOf());
-
-    }
-  }
-
-  getOrders() {
-    this.resultList = this.orders;
-    if (this.searchText) {
-      let key = this.searchText;
-      this.resultList = this.orders.filter(order => {
-        return (order.orderNumber + '').startsWith(key)
-          || (order.customer && order.customer.phone && order.customer.phone.startsWith(key))
-          || (order.customer && order.customer.firstName && order.customer.firstName.toLowerCase().startsWith(key.toLowerCase()))
-          || (order.customer && order.customer.lastName && order.customer.lastName.toLowerCase().startsWith(key.toLowerCase()));
-      });
-    }
-
-    return this.resultList;
+    const results = await Promise.all(promises);
+    // assemble back to order:
+    this.orders = orders.map(order => {
+      order.customer = results[0].filter(c => c._id === order.customer)[0];
+      order.payment = order.paymentObj;
+      order.orderStatuses = results[1].filter(os => os.order === order._id);
+      order.id = order._id;
+      return new Order(order);
+    });
   }
 
   async handleOnSetNewStatus(data) {
@@ -268,9 +215,6 @@ export class RestaurantOrdersComponent implements OnInit {
           });
     }
   }
-
-
-
 
   save(filename, data) {
     //let blob = new Blob([data], { type: 'text/csv' });
@@ -324,8 +268,6 @@ export class RestaurantOrdersComponent implements OnInit {
     }
   }
 
-
-
   submitAdjustment(adjustment) {
     this.adjustModal.hide();
 
@@ -340,6 +282,4 @@ export class RestaurantOrdersComponent implements OnInit {
         error => { console.log(error); alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.'); }
       );
   }
-
-
 }
