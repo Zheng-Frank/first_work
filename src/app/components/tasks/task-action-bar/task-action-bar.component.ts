@@ -1,9 +1,12 @@
 import { Component, OnInit, Input, Output, ViewChild, EventEmitter } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
-import { GlobalService } from '../../../services/global.service';
 import { User } from '../../../classes/user';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Action } from '../../../classes/tasks/action';
+import { ApiService } from '../../../services/api.service';
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from '../../../services/global.service';
+import { AlertType } from '../../../classes/alert-type';
 
 
 
@@ -19,11 +22,30 @@ export class TaskActionBarComponent implements OnInit {
   @Output() actionDone = new EventEmitter();
 
   activeAction: Action;
+  assigneeList;
 
-  constructor(private _global: GlobalService) { }
+  constructor(private _global: GlobalService, private _api: ApiService) { }
 
   ngOnInit() {
-
+    // grab all users and make an assignee list!
+    // get all users
+    this._api
+      .get(environment.adminApiUrl + "generic", {
+        resource: "user",
+        limit: 1000
+      })
+      .subscribe(
+      result => {
+        this.assigneeList = result.map(u => new User(u)).sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
+          console.log('assigneeList', this.assigneeList);
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling users from API"
+        );
+      }
+      );
   }
 
   act(event) {

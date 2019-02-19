@@ -23,6 +23,7 @@ import { RestaurantDetailsComponent } from './components/restaurants/restaurant-
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
+import { TaskDashboardNotGMBComponent } from './components/tasks/task-dashboard-not-gmb/task-dashboard-not-gmb.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
@@ -56,10 +57,10 @@ const routes: Routes = [
   { path: 'monitoring', component: MonitoringDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'tasks', component: TaskDashboardComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"] } },
+  { path: 'tasks-not-gmb', component: TaskDashboardNotGMBComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"] } },
   { path: 'gmb-accounts', component: GmbAccountListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-businesses', component: GmbBizListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-requests', component: GmbRequestListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
-  
   { path: 'automation', component: AutomationDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: '**', redirectTo: '/home' }

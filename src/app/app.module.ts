@@ -75,6 +75,7 @@ import { LogEditorComponent } from './components/logs/log-editor/log-editor.comp
 import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { TaskListComponent } from './components/tasks/task-list/task-list.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
+import { TaskDashboardNotGMBComponent } from './components/tasks/task-dashboard-not-gmb/task-dashboard-not-gmb.component';
 import { TaskGenericHandlerComponent } from './components/tasks/task-generic-handler/task-generic-handler.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
@@ -196,6 +197,7 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     PaymentsDashboardComponent,
     TaskListComponent,
     TaskDashboardComponent,
+    TaskDashboardNotGMBComponent,
     TaskGenericHandlerComponent,
     Gmb2DashboardComponent,
     GmbAccountListComponent,

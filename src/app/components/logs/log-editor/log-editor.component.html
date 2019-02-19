@@ -68,16 +68,8 @@
     </div>
   </div>
 
-  <div class="card border-info mb-3" *qIf="hasTask">
-    <div class="card-header my-2"><i class="fas fa-exclamation"></i> Write down any comments in Response field and the
-      text
-      in Reponse field will be copied to task comments.
-      <div><strong>* Select a task template below:</strong></div>
-    </div>
-    <select class="form-control mr-4" [(ngModel)]="selectedTaskTemplate">
-      <option></option>
-      <option *ngFor="let t of predefinedTasks" [ngValue]="t">{{t.name}}</option>
-    </select>
+  <div class="card border-info p-3" *qIf="hasTask">
+    <app-task-generator (submit)="createNewTask($event)" (cancel)="toggleAction('ADD')" [restaurant]="restaurant" [restaurantList]="restaurantList"></app-task-generator>restaurantList
   </div>
 
   <div class="mb-3" *ngIf="!hasAdjustment && !hasTask">

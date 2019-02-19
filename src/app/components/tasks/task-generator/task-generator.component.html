@@ -20,7 +20,15 @@
   </select>
 </div>
 
+
 <q-form-builder [object]="obj" [showDelete]="false" [fieldDescriptors]="fieldDescriptors" (submit)="formSubmit($event)" (cancel)="formCancel()">
+    <div class="form-group">
+        <label for="chooseTemplate">Assign to</label>
+        <select class="form-control mr-4" (change)="selectAssignee($event)">
+          <option></option>
+          <option *ngFor="let a of assigneeList" [ngValue]="t">{{a.username}}</option>
+        </select>
+      </div>
   <div class="form-group">
     <label>Scheduled at:</label>
     <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="obj.scheduledAt">
@@ -28,7 +36,7 @@
   </div>
   <div class="form-group">
     <label>Comments:</label>
-    <textarea class="form-control" [(ngModel)]="obj.comments">
+    <textarea class="form-control" [(ngModel)]="obj.comments" rows="5">
     </textarea>
   </div>
 </q-form-builder>

@@ -8,6 +8,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Task } from 'src/app/classes/tasks/task';
+import { User } from 'src/app/classes/user';
 
 @Component({
   selector: 'app-log-editor',
@@ -26,7 +27,6 @@ export class LogEditorComponent implements OnInit {
   hasAdjustment;
   hasTask;
   selectedTaskTemplate;
-  predefinedTasks = Task.predefinedTasks;
 
   @ViewChild('myRestaurantPicker') set picker(picker) {
     this.myRestaurantPicker = picker;
@@ -76,6 +76,7 @@ export class LogEditorComponent implements OnInit {
   }
 
   ngOnInit() {
+
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -128,24 +129,6 @@ export class LogEditorComponent implements OnInit {
     } else if (this.hasAdjustment && !this.log.adjustmentReason) {
       event.acknowledge('Please input adjustment reason.');
     } else {
-      if (this.hasTask) {
-        // create a task!
-        if (!this.selectedTaskTemplate) {
-          return event.acknowledge('Please choose a task template');
-        } else {
-          const task = {
-            comments: 'Restaurant: ' + this.restaurant.name + ', ' + this.restaurant._id + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
-            relatedMap: {
-              restaurantId: this.restaurant._id
-            }
-          };
-          Object.assign(task, this.selectedTaskTemplate);
-          await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
-          // make it resolved because task will track its progress
-          this.log.resolved = true;
-          this._global.publishAlert(AlertType.Success, 'Created Task ' + task['name']);
-        }
-      }
       // alway make it unresolved if it is adjustment
       if (this.hasAdjustment) {
         this.log.resolved = false;
@@ -167,8 +150,24 @@ export class LogEditorComponent implements OnInit {
   toggleIsCollection() {
     this.log.type === 'collection' ? this.log.type = undefined : this.log.type = 'collection';
   }
-  toggleIsGooglePIN(){
+  toggleIsGooglePIN() {
     this.log.type === 'google-pin' ? this.log.type = undefined : this.log.type = 'google-pin';
+  }
+
+  async createNewTask(task) {
+    const taskCloned = JSON.parse(JSON.stringify(task));
+    if (taskCloned.scheduledAt) {
+      taskCloned.scheduledAt = { $date: taskCloned.scheduledAt }
+    }
+
+    await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+    this._global.publishAlert(AlertType.Success, `Created ${task.name}`);
+
+    // make it resolved because task will track its progress
+    this.log.resolved = true;
+    this._global.publishAlert(AlertType.Success, 'Created Task ' + task['name']);
+
+
   }
 
 }
