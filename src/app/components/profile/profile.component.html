@@ -1,6 +1,4 @@
+userId is {{getUser().username}} <br>
 <div *ngIf="getUser().roles.indexOf('MARKETER') >= 0">
     <app-my-restaurant></app-my-restaurant>
-</div>
-<div *ngIf="getUser().roles.indexOf('MARKETER') < 0">
-    userId is {{getUser().username}} <br> role is {{getUser().roles}}
 </div>

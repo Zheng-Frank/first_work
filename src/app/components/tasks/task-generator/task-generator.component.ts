@@ -25,59 +25,8 @@ export class TaskGeneratorComponent implements OnInit {
   assigneeList;
   assignee;
 
-  predefinedTasks =
-    [
-      {
-        name: 'Apply GMB Ownership (申请GMB)',
-        roles: ['ADMIN', 'GMB'],
-        assignee: 'ellaine',
-        scheduledAt: new Date()
-      },
-      {
-        name: 'Update Menu (菜单更新)',
-        roles: ['ADMIN', 'MENU_EDITOR'],
-        assignee: 'annie',
-        scheduledAt: new Date()
-      },
-      {
-        name: 'Invoicing Issue (账单问题)',
-        roles: ['ADMIN', 'ACCOUNTANT'],
-        assignee: 'mo',
-        scheduledAt: new Date()
-      },
-      {
-        name: 'Cancel qMenu Service (取消QMenu服务)',
-        roles: ['ADMIN'],
-        assignee: 'mo',
-        scheduledAt: new Date()
-      },
-      {
-        name: 'Change Restaurant Ownership (商家业主变更)',
-        roles: ['ADMIN'],
-        assignee: 'mo',
-        scheduledAt: new Date()
-      },
-      {
-        name: 'Escalate to Chris (反映给Chris)',
-        roles: ['ADMIN'],
-        assignee: 'chris',
-        scheduledAt: new Date()
-      },
-      {
-        name: 'Escalate to Dixon (反映给Dixon)',
-        roles: ['ADMIN'],
-        assignee: 'dixon',
-        scheduledAt: new Date()
-      },
-      {
-        name: 'GMB Change Request (GMB 相关的变动)',
-        roles: ['ADMIN', 'GMB'],
-        assignee: 'bikram',
-        scheduledAt: new Date()
-      }
-    ].sort((a, b) => a.name > b.name ? 1 : -1);
-
   obj = {} as any;
+  predefinedTasks = Task.predefinedTasks;
   fieldDescriptors = [
     {
       field: "name", //
@@ -109,31 +58,35 @@ export class TaskGeneratorComponent implements OnInit {
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
   ngOnInit() {
-    // // grab all users and make an assignee list!
-    // // get all users
-    // this._api
-    //   .get(environment.adminApiUrl + "generic", {
-    //     resource: "user",
-    //     limit: 1000
-    //   })
-    //   .subscribe(
-    //   result => {
-    //     this.assigneeList = result.map(u => new User(u)).sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
-    //       console.log('assigneeList', this.assigneeList);
-    //   },
-    //   error => {
-    //     this._global.publishAlert(
-    //       AlertType.Danger,
-    //       "Error pulling users from API"
-    //     );
-    //   }
-    //   );
+    // grab all users and make an assignee list!
+    // get all users
+    this._api
+      .get(environment.adminApiUrl + "generic", {
+        resource: "user",
+        limit: 1000
+      })
+      .subscribe(
+      result => {
+        this.assigneeList = result.map(u => new User(u)).sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
+        //console.log('assigneeList', this.assigneeList);
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling users from API"
+        );
+      }
+      );
   }
 
   reset() {
     this.obj.relatedMap = {};
     this.gmbBiz = undefined;
     this.restaurant = undefined;
+  }
+
+  isAdmin() {
+    return this._global.user.roles.some(r => r === 'ADMIN');
   }
 
   async selectRestaurant(restaurant) {
@@ -160,7 +113,7 @@ export class TaskGeneratorComponent implements OnInit {
       this.fieldDescriptors.filter(f => f.field === 'roles').map(f => f.items.map(i => i.selected = this.selectedTemplate.roles.indexOf(i.object) >= 0))
     }
   }
-  selectAssignee(event){
+  selectAssignee(event) {
   }
 
   formSubmit(event) {

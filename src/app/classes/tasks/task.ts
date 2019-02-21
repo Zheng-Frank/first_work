@@ -36,6 +36,58 @@ export class Task {
 
     createdAt: Date;
 
+    static predefinedTasks =
+    [
+      {
+        name: 'Apply GMB Ownership (申请GMB)',
+        roles: ['ADMIN', 'GMB'],
+        assignee: 'ellaine',
+        scheduledAt: new Date()
+      },
+      {
+        name: 'Update Menu (菜单更新)',
+        roles: ['ADMIN', 'MENU_EDITOR'],
+        assignee: 'annie',
+        scheduledAt: new Date()
+      },
+      {
+        name: 'Invoicing Issue (账单问题)',
+        roles: ['ADMIN', 'ACCOUNTANT'],
+        assignee: 'mo',
+        scheduledAt: new Date()
+      },
+      {
+        name: 'Cancel qMenu Service (取消QMenu服务)',
+        roles: ['ADMIN'],
+        assignee: 'mo',
+        scheduledAt: new Date()
+      },
+      {
+        name: 'Change Restaurant Ownership (商家业主变更)',
+        roles: ['ADMIN'],
+        assignee: 'mo',
+        scheduledAt: new Date()
+      },
+      {
+        name: 'Escalate to Chris (反映给Chris)',
+        roles: ['ADMIN'],
+        assignee: 'chris',
+        scheduledAt: new Date()
+      },
+      {
+        name: 'Escalate to Dixon (反映给Dixon)',
+        roles: ['ADMIN'],
+        assignee: 'dixon',
+        scheduledAt: new Date()
+      },
+      {
+        name: 'GMB Change Request (GMB 相关的变动)',
+        roles: ['ADMIN', 'GMB'],
+        assignee: 'bikram',
+        scheduledAt: new Date()
+      }
+    ].sort((a, b) => a.name > b.name ? 1 : -1);
+
     constructor(task?: any) {
         if (task) {
             Object.keys(task).map(k => this[k] = task[k]);
