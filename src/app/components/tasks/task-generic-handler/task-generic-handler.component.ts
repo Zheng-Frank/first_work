@@ -8,6 +8,7 @@ import { Log } from '../../../classes/log';
 import { of, Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { AlertType } from '../../../classes/alert-type';
+import { User } from '../../../classes/user';
 
 @Component({
   selector: 'app-task-generic-handler',
@@ -27,6 +28,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
   taskCopy: Task;
   confirming;
   confirmError;
+  assigneeList;
 
   showDetails = false;
 
@@ -38,6 +40,25 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+      // grab all users and make an assignee list!
+      // get all users
+      this._api
+        .get(environment.adminApiUrl + "generic", {
+          resource: "user",
+          limit: 1000
+        })
+        .subscribe(
+        result => {
+          this.assigneeList = result.map(u => new User(u)).sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
+            console.log('assigneeList', this.assigneeList);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling users from API"
+          );
+        }
+        );
   }
 
   ngOnChanges(simpleChanges) {
@@ -96,6 +117,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
             break;
           case "Update":
             paramsObj.scheduledAt = { $date: this.taskCopy.scheduledAt };
+            paramsObj.assignee = this.taskCopy.assignee;
             break;
           case "Close":
             if (!this.taskCopy.result) {

@@ -1,6 +1,5 @@
 import { Component, OnInit, EventEmitter, Output, Input, ViewChild, SimpleChanges } from '@angular/core';
 import { FormEvent } from '../../../classes/form-event';
-
 import { Restaurant } from '@qmenu/ui';
 import { Log } from '../../../classes/log';
 import { ApiService } from "../../../services/api.service";
@@ -22,10 +21,13 @@ export class LogEditorComponent implements OnInit {
   @Input() log = {} as Log;
   @Input() restaurant;
   @Input() restaurantList;
+  @Input() assigneeList;
 
   hasAdjustment;
   hasTask;
   selectedTaskTemplate;
+  scheduledAt;
+  assignee;
   predefinedTasks = Task.predefinedTasks;
 
   @ViewChild('myRestaurantPicker') set picker(picker) {
@@ -133,13 +135,17 @@ export class LogEditorComponent implements OnInit {
         if (!this.selectedTaskTemplate) {
           return event.acknowledge('Please choose a task template');
         } else {
-          const task = {
+          let task = {
             comments: 'Restaurant: ' + this.restaurant.name + ', ' + this.restaurant._id + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
+            scheduledAt: this.scheduledAt || new Date(),
             relatedMap: {
               restaurantId: this.restaurant._id
             }
           };
           Object.assign(task, this.selectedTaskTemplate);
+          if (this.assignee) {
+            task['assignee'] = this.assignee;
+          }
           await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
           // make it resolved because task will track its progress
           this.log.resolved = true;
@@ -164,10 +170,14 @@ export class LogEditorComponent implements OnInit {
     return !this.log.username && !this.log.time;
   }
 
+  isAdmin() {
+    return this._global.user.roles.some(r => r === 'ADMIN');
+  }
+
   toggleIsCollection() {
     this.log.type === 'collection' ? this.log.type = undefined : this.log.type = 'collection';
   }
-  toggleIsGooglePIN(){
+  toggleIsGooglePIN() {
     this.log.type === 'google-pin' ? this.log.type = undefined : this.log.type = 'google-pin';
   }
 

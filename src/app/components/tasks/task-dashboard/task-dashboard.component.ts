@@ -87,18 +87,11 @@ export class TaskDashboardComponent {
     this.user = this._global.user;
 
     this.refresh();
-
-    this.transfer = new GmbTransfer(
-
-      { "fromEmail": "qmenu06@gmail.com" });
-
   }
-
-  transfer;
 
   hideClosedOldTasksDays = 7;
 
-  refresh() {
+  async refresh() {
     this.refreshing = true;
     const daysAgo = function (days) {
       const d = new Date();
@@ -107,7 +100,7 @@ export class TaskDashboardComponent {
       return d;
     };
 
-    zip(this._api.get(environment.adminApiUrl + "generic", {
+     let result0= await this._api.get(environment.adminApiUrl + "generic", {
       resource: "task",
       query: {
         $or: [
@@ -126,8 +119,11 @@ export class TaskDashboardComponent {
       sort: {
         createdAt: -1
       }
-    }),
-      this._api.get(environment.adminApiUrl + "generic", {
+    }).toPromise();
+
+    let result1;
+    try {
+      result1=await this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         query: {},
         projection: {
@@ -140,14 +136,18 @@ export class TaskDashboardComponent {
           gmbOwner: 1
         },
         limit: 10000
-      }),
-    ).subscribe(results => {
-      this.bizList = results[1];
+      }).toPromise();
+    } catch (error) {
+      console.error(error);
+      result1=[];
+    }      
       this.refreshing = false;
-      const tasks = results[0].map(t => new Task(t));
+      const tasks = (result0 || []).map(t => new Task(t));
+      console.log('tasks', tasks);
 
       // stats:
       const closedTasks = tasks.filter(t => t.result === 'CLOSED');
+      console.log('closedTasks', closedTasks);
       closedTasks.sort((t2, t1) => new Date(t1.updatedAt).valueOf() - new Date(t2.updatedAt).valueOf());
       let spanDays = 1;
       if (closedTasks.length > 1) {
@@ -166,13 +166,20 @@ export class TaskDashboardComponent {
         console.log(`${user} ${userDict[user]} avg ${(userDict[user] / spanDays).toFixed(2)}/day`);
       });
 
-      this.myTasks = tasks.filter(t =>
-        t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
+      //if roles contains ADMIN, show all the task
+      if(this._global.user.roles.indexOf('ADMIN') > -1){
+        this.myTasks = tasks;
+      }else{
+        this.myTasks = tasks.filter(t =>
+          t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
+  
+      }
+
 
       this.myTasks = this.myTasks.sort((a, b) => a.scheduledAt.valueOf() - b.scheduledAt.valueOf());
 
       const bizMap = {};
-      results[1].map(biz => {
+      (result1).map(biz => {
         bizMap[biz._id] = biz;
       });
 
@@ -185,10 +192,6 @@ export class TaskDashboardComponent {
       });
       // compute groupedTasks, by task name
       this.computeGroupedTasks();
-    }, error => {
-      this.refreshing = false;
-      console.log(error);
-    });
   }
 
   computeGroupedTasks() {

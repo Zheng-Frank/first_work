@@ -26,6 +26,6 @@
 
 <!--the editing modal-->
 <q-modal #logEditingModal>
-    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
+    <app-log-editor #myLogEditor [assigneeList]="assigneeList" [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
         (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
 </q-modal>

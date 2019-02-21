@@ -4,7 +4,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Log } from "../../../classes/log";
-
+import { User } from '../../../classes/user';
 
 @Component({
   selector: 'app-logs-dashboard',
@@ -25,6 +25,8 @@ export class LogsDashboardComponent implements OnInit {
   unresolvedOnly = false;
 
   filteredRestaurantLogs = [];
+  assigneeList;
+  
 
   logInEditing = new Log();
   logInEditingOriginal;
@@ -55,6 +57,26 @@ export class LogsDashboardComponent implements OnInit {
         },
         limit: 6000
       }).toPromise();
+
+
+      // grab all users and make an assignee list!
+      this._api
+        .get(environment.adminApiUrl + "generic", {
+          resource: "user",
+          limit: 1000
+        })
+        .subscribe(
+        result => {
+          this.assigneeList = result.map(u => new User(u)).sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
+            console.log('assigneeList', this.assigneeList);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling users from API"
+          );
+        }
+        );
 
       // convert log to type of Log
       this.restaurantList.map(r => {

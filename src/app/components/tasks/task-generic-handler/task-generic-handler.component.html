@@ -15,8 +15,15 @@
 
     <div class="form-group">
         <label>Comments:</label>
-        <textarea class="form-control" rows="3" [(ngModel)]="taskCopy.comments" placeholder="extra comments"></textarea>
+        <textarea class="form-control" rows="5" [(ngModel)]="taskCopy.comments" placeholder="extra comments"></textarea>
     </div>
+
+    <div class="form-group alert alert-warning">
+            <label>Re-assign</label>
+            <select [(ngModel)]="taskCopy.assignee" class="form-control">
+                <option *ngFor="let assignee of assigneeList" [ngValue]="assignee.username">{{assignee.username}}</option>
+            </select>
+        </div>
 
     <div *ngIf="action.name === 'Update'" class="form-group">
         <label>If Done, Select Result:</label>
