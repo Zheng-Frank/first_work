@@ -109,6 +109,7 @@ export class TaskGeneratorComponent implements OnInit {
         this.obj[k] = this.selectedTemplate[k];
       });
 
+      this.assignee = this.selectedTemplate['assignee'];
       this.obj.roles = (this.selectedTemplate.roles || []).slice();
       this.fieldDescriptors.filter(f => f.field === 'roles').map(f => f.items.map(i => i.selected = this.selectedTemplate.roles.indexOf(i.object) >= 0))
     }
@@ -125,6 +126,7 @@ export class TaskGeneratorComponent implements OnInit {
       assignee: this.obj.assignee || this.assignee,
       roles: this.obj.roles.slice(),
       comments: this.obj.comments,
+      creator: this._global.user.username,
       relatedMap: {
         gmbBizId: (this.gmbBiz || {})['_id'],
         restaurantId: (this.restaurant || {})['_id'] || (this.restaurant || {})['id']

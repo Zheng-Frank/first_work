@@ -21,11 +21,11 @@
 
 
 <q-form-builder [object]="obj" [showDelete]="false" [fieldDescriptors]="fieldDescriptors" (submit)="formSubmit($event)" (cancel)="formCancel()">
-  <div *ngIf="isAdmin()" class="form-group">
+  <div class="form-group">
     <label for="chooseTemplate">Assign to</label>
-    <select class="form-control mr-4" (change)="selectAssignee($event)">
+    <select class="form-control mr-4" [(ngModel)]="assignee">
       <option></option>
-      <option *ngFor="let a of assigneeList" [ngValue]="t">{{a.username}}</option>
+      <option *ngFor="let a of assigneeList" [ngValue]="a.username">{{a.username}}</option>
     </select>
   </div>
   <div class="form-group">

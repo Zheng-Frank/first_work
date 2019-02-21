@@ -171,6 +171,7 @@ export class TaskDashboardComponent {
         this.myTasks = tasks;
       }else{
         this.myTasks = tasks.filter(t =>
+          t.creator === this._global.user.username ||
           t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
   
       }
