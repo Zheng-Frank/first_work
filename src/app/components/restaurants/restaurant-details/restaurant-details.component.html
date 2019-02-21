@@ -16,19 +16,24 @@
 
   <div class="p-t-1 pt-1 p-b-1 pb-1">
     <button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
+    <button (click)="toggleGooglePIN()" class="btn btn-secondary fa fa-comments"> Send Google PIN Message</button>
   </div>
 
+
+  <div *qIf="displayGooglePIN">
+      <send-google-pin [restaurant]="restaurant"></send-google-pin>
+  </div>
 
   <div *qIf="displayTextReply">
 
-    <textarea rows="4" class="form-control mt-1" type="text" [(ngModel)]="message"></textarea>
-    <div class="form-group {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}}">
-      <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control mt-1" placeholder="customer phone #">
+      <textarea rows="4" class="form-control mt-1" type="text" [(ngModel)]="message"></textarea>
+      <div class="form-group {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}}">
+        <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control mt-1" placeholder="customer phone #">
+      </div>
+      <button (click)="sendText()" [disabled]="!isValid()" class="btn btn-primary btn-block mt-1">Send</button>
+      <div class="mt-1 alert-success" *ngIf="textedPhoneNumber"><small>Text was sent to {{textedPhoneNumber}}. Thank you!</small></div>
+      <hr>
     </div>
-    <button (click)="sendText()" [disabled]="!isValid()" class="btn btn-primary btn-block mt-1">Send</button>
-    <div class="mt-1 alert-success" *ngIf="textedPhoneNumber"><small>Text was sent to {{textedPhoneNumber}}. Thank you!</small></div>
-    <hr>
-  </div>
 
   <div class="card">
     <div class="card-header">

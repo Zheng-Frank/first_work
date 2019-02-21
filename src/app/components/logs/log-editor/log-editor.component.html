@@ -84,7 +84,7 @@
     </select>
 
     <div class="form-group alert alert-warning">
-      <label>Assign to</label>
+      <label>Assign to:</label>
       <select class="form-control mr-4" [(ngModel)]="assignee">
         <option></option>
         <option *ngFor="let a of assigneeList" [ngValue]="a.username">{{a.username}}</option>

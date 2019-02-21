@@ -22,7 +22,7 @@
 
 <q-form-builder [object]="obj" [showDelete]="false" [fieldDescriptors]="fieldDescriptors" (submit)="formSubmit($event)" (cancel)="formCancel()">
   <div class="form-group">
-    <label for="chooseTemplate">Assign to</label>
+    <label for="chooseTemplate">Assign to:</label>
     <select class="form-control mr-4" [(ngModel)]="assignee">
       <option></option>
       <option *ngFor="let a of assigneeList" [ngValue]="a.username">{{a.username}}</option>
