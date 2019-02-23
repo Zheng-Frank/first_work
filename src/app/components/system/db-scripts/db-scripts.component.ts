@@ -48,7 +48,11 @@ export class DbScriptsComponent implements OnInit {
         limit: batch * 10
       }).toPromise();
       console.log(statuses);
-
+      statuses.map(status => {
+        delete status._id;
+        delete status.order;
+        delete status.updatedAt;
+      });
       const patchPairs = [];
       notMigratedOrders.map(order => {
         const myStatuses = statuses.filter(status => status.order === order._id);
