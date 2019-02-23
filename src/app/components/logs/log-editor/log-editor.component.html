@@ -78,7 +78,7 @@
         <strong>* Select a task template below:</strong>
       </div>
     </div>
-    <select class="form-control mr-4" [(ngModel)]="selectedTaskTemplate">
+    <select class="form-control mr-4" [(ngModel)]="selectedTaskTemplate" (change)="selectTemplate($event)">
       <option></option>
       <option *ngFor="let t of predefinedTasks" [ngValue]="t">{{t.name}}</option>
     </select>

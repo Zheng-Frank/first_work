@@ -113,6 +113,12 @@ export class LogEditorComponent implements OnInit {
     }
   }
 
+  selectTemplate(event) {
+    if (this.selectedTaskTemplate) {
+      this.assignee = this.selectedTaskTemplate['assignee'];      
+    }
+  }
+
   changeHasTask() {
   }
 
@@ -153,6 +159,9 @@ export class LogEditorComponent implements OnInit {
       event.acknowledge('Please input adjustment reason.');
     } else {
       if (this.hasTask) {
+        if(!this.assignee){
+          event.acknowledge('Please select assignee.');
+        }
         // create a task!
         if (!this.selectedTaskTemplate) {
           return event.acknowledge('Please choose a task template');

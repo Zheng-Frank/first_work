@@ -26,13 +26,14 @@ export class TaskActionBarComponent implements OnInit {
 
   constructor(private _global: GlobalService, private _api: ApiService) { }
 
-  ngOnInit() {
-
+  async ngOnInit() {
   }
 
-  act(event) {
+  async act(event) {
     this.activeAction = event;
     this.taskActionerModal.show();
+    //console.log('Act calling');
+    this.assigneeList = await this._global.getCachedUserList();
   }
 
   cancelAction(event) {
@@ -49,6 +50,6 @@ export class TaskActionBarComponent implements OnInit {
     this.activeAction = undefined;
   }
 
-  
+
 
 }

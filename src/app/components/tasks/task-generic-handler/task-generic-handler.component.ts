@@ -19,6 +19,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
 
   @Input() task: Task;
   @Input() action: Action;
+  @Input() assigneeList = [];
 
   @Output() cancel = new EventEmitter();
   @Output() done = new EventEmitter();
@@ -28,7 +29,6 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
   taskCopy: Task;
   confirming;
   confirmError;
-  assigneeList;
 
   showDetails = false;
 
@@ -40,25 +40,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
-      // grab all users and make an assignee list!
-      // get all users
-      this._api
-        .get(environment.adminApiUrl + "generic", {
-          resource: "user",
-          limit: 1000
-        })
-        .subscribe(
-        result => {
-          this.assigneeList = result.map(u => new User(u)).sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
-            console.log('assigneeList', this.assigneeList);
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling users from API"
-          );
-        }
-        );
+
   }
 
   ngOnChanges(simpleChanges) {

@@ -42,7 +42,7 @@ export class Task {
       {
         name: 'Apply GMB Ownership (申请GMB)',
         roles: ['ADMIN', 'GMB'],
-        assignee: 'ellaine',
+        assignee: 'bikram',
         scheduledAt: new Date()
       },
       {
@@ -66,19 +66,13 @@ export class Task {
       {
         name: 'Change Restaurant Ownership (商家业主变更)',
         roles: ['ADMIN'],
-        assignee: 'mo',
+        assignee: 'gary',
         scheduledAt: new Date()
       },
       {
         name: 'Escalate to Chris (反映给Chris)',
         roles: ['ADMIN'],
         assignee: 'chris',
-        scheduledAt: new Date()
-      },
-      {
-        name: 'Escalate to Dixon (反映给Dixon)',
-        roles: ['ADMIN'],
-        assignee: 'dixon',
         scheduledAt: new Date()
       },
       {

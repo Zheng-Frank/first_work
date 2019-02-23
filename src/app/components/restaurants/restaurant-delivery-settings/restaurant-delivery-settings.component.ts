@@ -15,7 +15,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   editing: boolean = false;
 
   deliverySettingsInEditing = [];
-
+  taxOnDelivery;
   deliveryFrom;
   blockedCities;
   blockedZipCodes;
@@ -53,7 +53,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
   toggleEditing() {
     this.blockedZipCodes = (this.restaurant.blockedZipCodes || []).join(',');
-    this.blockedCities = (this.restaurant.blockedCities|| []).join(',');
+    this.blockedCities = (this.restaurant.blockedCities || []).join(',');
     this.editing = !this.editing;
     this.deliverySettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.deliverySettings || []));
     // put empty settings to make it 4 (hardcoded max)
@@ -89,13 +89,14 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       newR.deliveryFromTime = this.deliveryFrom.value && new Date(this.deliveryFrom.value.getTime());
     }
 
-    if (this.deliveryEndMinutesBeforeClosing || +this.deliveryEndMinutesBeforeClosing===0) {
+    if (this.deliveryEndMinutesBeforeClosing || +this.deliveryEndMinutesBeforeClosing === 0) {
       newR.deliveryEndMinutesBeforeClosing = +this.deliveryEndMinutesBeforeClosing;
-    }     
+    }
 
-    newR.blockedCities = this.blockedCities.split(',').map(each=>each.trim()).filter(each=>each);       
-    newR.blockedZipCodes = this.blockedZipCodes.split(',').map(each=>each.trim()).filter(each=>each);
+    newR.blockedCities = this.blockedCities.split(',').map(each => each.trim()).filter(each => each);
+    newR.blockedZipCodes = this.blockedZipCodes.split(',').map(each => each.trim()).filter(each => each);
 
+    newR.taxOnDelivery = this.taxOnDelivery;
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
@@ -104,36 +105,37 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
           new: newR
         }])
       .subscribe(
-        result => {
-          this.restaurant.deliverySettings= newR.deliverySettings;
-          this.restaurant.blockedCities = newR.blockedCities;
-          this.restaurant.blockedZipCodes = newR.blockedZipCodes;
-          if (newR.deliveryFrom) {
-            this.restaurant.deliveryFromTime = newR.deliveryFromTime;
-          }
-          if (newR.deliveryEndMinutesBeforeClosing || +newR.deliveryEndMinutesBeforeClosing===0) {
-            this.restaurant.deliveryEndMinutesBeforeClosing = newR.deliveryEndMinutesBeforeClosing;
-          }  
-          
-
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            "Updated successfully"
-          );         
-
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      result => {
+        this.restaurant.deliverySettings = newR.deliverySettings;
+        this.restaurant.blockedCities = newR.blockedCities;
+        this.restaurant.blockedZipCodes = newR.blockedZipCodes;
+        this.restaurant.taxOnDelivery = newR.taxOnDelivery;
+        if (newR.deliveryFrom) {
+          this.restaurant.deliveryFromTime = newR.deliveryFromTime;
         }
+        if (newR.deliveryEndMinutesBeforeClosing || +newR.deliveryEndMinutesBeforeClosing === 0) {
+          this.restaurant.deliveryEndMinutesBeforeClosing = newR.deliveryEndMinutesBeforeClosing;
+        }
+
+
+        // let's update original, assuming everything successful
+        this._global.publishAlert(
+          AlertType.Success,
+          "Updated successfully"
+        );
+
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      }
       );
 
-      this.editing = false;
-      this.deliverySettingsInEditing = [];
+    this.editing = false;
+    this.deliverySettingsInEditing = [];
   }
 
   toggleTaxOnDelivery() {
-    this.restaurant.taxOnDelivery = !this.restaurant.taxOnDelivery;
+    this.taxOnDelivery = !this.restaurant.taxOnDelivery;
   }
 
   getDeliveryFromString() {

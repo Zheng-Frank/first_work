@@ -8,7 +8,7 @@
   <select  (change)="onChange()" [(ngModel)]="noticeLanguage" class="form-control">
       <option *ngFor="let l of lanugages" [ngValue]="l">{{l}}</option>
   </select>
-  <label>First or Send Notice:</label>
+  <label>First or Follow up Notice:</label>
   <select  (change)="onChange()" [(ngModel)]="noticeType" class="form-control">
     <option *ngFor="let n of noticeTypes" [ngValue]="n">{{n}}</option>
 </select>

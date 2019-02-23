@@ -1,6 +1,10 @@
 <ng-container *ngIf="taskCopy && action">
-    <h6 class="card-title">{{taskCopy.name}} <small *ngIf="gmbBiz">{{gmbBiz.name}}</small></h6>
-    <p class="card-text text-muted">{{taskCopy.description}} <app-gmb-account-hotlink *ngIf="gmbAccount && gmbAccount.email" [email]="gmbAccount?.email"></app-gmb-account-hotlink></p>
+    <h6 class="card-title">{{taskCopy.name}}
+        <small *ngIf="gmbBiz">{{gmbBiz.name}}</small>
+    </h6>
+    <p class="card-text text-muted">{{taskCopy.description}}
+        <app-gmb-account-hotlink *ngIf="gmbAccount && gmbAccount.email" [email]="gmbAccount?.email"></app-gmb-account-hotlink>
+    </p>
     <p class="card-text">{{action.confirmationText}}</p>
 
     <!-- Update case, we allow scheduledAt update -->
@@ -19,11 +23,11 @@
     </div>
 
     <div class="form-group alert alert-warning">
-            <label>Re-assign</label>
-            <select [(ngModel)]="taskCopy.assignee" class="form-control">
-                <option *ngFor="let assignee of assigneeList" [ngValue]="assignee.username">{{assignee.username}}</option>
-            </select>
-        </div>
+        <label>Re-assign</label>
+        <select [(ngModel)]="taskCopy.assignee" class="form-control">
+            <option *ngFor="let assignee of assigneeList" [ngValue]="assignee.username">{{assignee.username}}</option>
+        </select>
+    </div>
 
     <div *ngIf="action.name === 'Update'" class="form-group">
         <label>If Done, Select Result:</label>
@@ -46,7 +50,7 @@
                 </h6>
                 <label>Listed Web Site (not necessarily qMenu):</label>
                 <h6>
-                  {{gmbBiz.gmbWebsite}}
+                    {{gmbBiz.gmbWebsite}}
                 </h6>
                 <table class="table table-sm" *ngIf="restaurantLogs.length > 0">
                     <thead>
