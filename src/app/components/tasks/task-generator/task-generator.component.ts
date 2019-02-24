@@ -118,26 +118,35 @@ export class TaskGeneratorComponent implements OnInit {
   }
 
   formSubmit(event) {
-    event.acknowledge(null);
-    const task = {
-      name: this.obj.name,
-      description: this.obj.description,
-      scheduledAt: this.obj.scheduledAt || new Date(),
-      assignee: this.obj.assignee || this.assignee,
-      roles: this.obj.roles.slice(),
-      comments: this.obj.comments,
-      creator: this._global.user.username,
-      relatedMap: {
-        gmbBizId: (this.gmbBiz || {})['_id'],
-        restaurantId: (this.restaurant || {})['_id'] || (this.restaurant || {})['id']
-      }
-    } as Task;
-
-    if (this.restaurant) {
-      task.comments += '\n' + this.restaurant.name + ', ' + (this.restaurant.id || this.restaurant._id);
+    if (!this.restaurant) {
+      event.acknowledge('Please select a restaurant.');
     }
-    task.comments += '\nCreated By ' + this._global.user.username;
-    this.submit.emit(task);
+    else if (!this.selectedTemplate) {
+      event.acknowledge('Please select a template.');
+    } else if (!this.assignee) {
+      event.acknowledge('Please select a assignee.');
+    }
+    else {
+      const task = {
+        name: this.obj.name,
+        description: this.obj.description,
+        scheduledAt: this.obj.scheduledAt || new Date(),
+        assignee: this.obj.assignee || this.assignee,
+        roles: this.obj.roles.slice(),
+        comments: this.obj.comments,
+        creator: this._global.user.username,
+        relatedMap: {
+          gmbBizId: (this.gmbBiz || {})['_id'],
+          restaurantId: (this.restaurant || {})['_id'] || (this.restaurant || {})['id']
+        }
+      } as Task;
+
+      if (this.restaurant) {
+        task.comments += '\n' + this.restaurant.name + ', ' + (this.restaurant.id || this.restaurant._id);
+      }
+      task.comments += '\nCreated By ' + this._global.user.username;
+      this.submit.emit(task);
+    }
   }
 
   formCancel() {

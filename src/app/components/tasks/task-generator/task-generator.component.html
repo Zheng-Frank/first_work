@@ -1,5 +1,5 @@
 <div *ngIf="!restaurant">
-  <label>Related Restaurant (optional):</label>
+  <label>Related Restaurant (required):</label>
   <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
 </div>
 
