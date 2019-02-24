@@ -74,15 +74,15 @@ export class TaskDashboardComponent {
     { name: 'CANCELED', btnClass: 'btn-danger' }]
 
   tabs = [
+    { value: 'Mine', label: 'Mine (0)' },
     { value: 'Open', label: 'Open (0)' },
     { value: 'Due', label: 'Due (0)' },
-    { value: 'Mine', label: 'Mine (0)' },
     { value: 'Closed', label: 'Closed (0)' },
     { value: 'Statistics', label: 'Statistics' },
     { value: 'Google PIN', label: 'Google PIN' }
   ];
 
-  activeTabValue = 'Open';
+  activeTabValue = 'Mine';
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
     this.user = this._global.user;
 
