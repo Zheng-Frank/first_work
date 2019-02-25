@@ -44,6 +44,34 @@ export class MonitoringEmailComponent implements OnInit {
       limit: 30000
     }).toPromise();
 
+    const badJobRows = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'job',
+      query: {
+        "name": "send-order-email",
+        "logs.status": "error",
+        createdAt: { $gt: new Date().valueOf() - 1 * 24 * 3600000 }
+      },
+      projection: {
+        "params.to": 1,
+        "logs.errorDetails.message": 1
+      },
+      limit: 300
+    }).toPromise();
+
+    // fit badJobRows to badSnsEventRows (lazy)
+    badJobRows.map(row => {
+      const badRow = {
+        params: {
+          mail: {
+            destination: [row.params.to]
+          },
+          notificationType: row.logs[0].errorDetails.message
+        }
+      };
+      this.badSnsEventRows.push(badRow);
+    });
+
+
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
