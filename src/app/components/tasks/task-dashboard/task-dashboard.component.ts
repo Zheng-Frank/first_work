@@ -100,7 +100,7 @@ export class TaskDashboardComponent {
       return d;
     };
 
-     let result0= await this._api.get(environment.adminApiUrl + "generic", {
+    let result0 = await this._api.get(environment.adminApiUrl + "generic", {
       resource: "task",
       query: {
         $or: [
@@ -123,7 +123,7 @@ export class TaskDashboardComponent {
 
     let result1;
     try {
-      result1=await this._api.get(environment.adminApiUrl + "generic", {
+      result1 = await this._api.get(environment.adminApiUrl + "generic", {
         resource: "gmbBiz",
         query: {},
         projection: {
@@ -139,60 +139,66 @@ export class TaskDashboardComponent {
       }).toPromise();
     } catch (error) {
       console.error(error);
-      result1=[];
-    }      
-      this.refreshing = false;
-      const tasks = (result0 || []).map(t => new Task(t));
-      console.log('tasks', tasks);
+      result1 = [];
+    }
+    this.refreshing = false;
+    let tasks = (result0 || []).map(t => new Task(t));
+    //won't show "Apply GMB Ownership". "Transfer GMB Ownership" and "Appeal Suspended GMB" if you are not GMB_SPECIALIST
+    if (this._global.user.roles.indexOf('GMB_SPECIALIST') == -1) {
+      tasks = tasks.filter(t => t.name !== "Apply GMB Ownership" && t.name !== "Transfer GMB Ownership" && t.name !== "Appeal Suspended GMB")
+    }
 
-      // stats:
-      const closedTasks = tasks.filter(t => t.result === 'CLOSED');
-      console.log('closedTasks', closedTasks);
-      closedTasks.sort((t2, t1) => new Date(t1.updatedAt).valueOf() - new Date(t2.updatedAt).valueOf());
-      let spanDays = 1;
-      if (closedTasks.length > 1) {
-        spanDays = Math.ceil((new Date(closedTasks[0].updatedAt).valueOf() - new Date(closedTasks[closedTasks.length - 1].updatedAt).valueOf()) / (3600000 * 24));
+    console.log('tasks', tasks);
 
+    // stats:
+    const closedTasks = tasks.filter(t => t.result === 'CLOSED');
+    console.log('closedTasks', closedTasks);
+    closedTasks.sort((t2, t1) => new Date(t1.updatedAt).valueOf() - new Date(t2.updatedAt).valueOf());
+    let spanDays = 1;
+    if (closedTasks.length > 1) {
+      spanDays = Math.ceil((new Date(closedTasks[0].updatedAt).valueOf() - new Date(closedTasks[closedTasks.length - 1].updatedAt).valueOf()) / (3600000 * 24));
+
+    }
+
+    const userDict = {};
+    closedTasks.map(t => {
+      const user = t.assignee || 'system';
+      userDict[user] = (userDict[user] || 0) + 1;
+    });
+
+    console.log(`User Stats over ${spanDays} days: `);
+    Object.keys(userDict).map(user => {
+      console.log(`${user} ${userDict[user]} avg ${(userDict[user] / spanDays).toFixed(2)}/day`);
+    });
+
+    //if roles contains ADMIN, show all the task
+    if (this._global.user.roles.indexOf('ADMIN') > -1) {
+      this.myTasks = tasks;
+    }     
+    else {
+      this.myTasks = tasks.filter(t =>
+        t.creator === this._global.user.username ||
+        t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
+
+    }
+
+
+    this.myTasks = this.myTasks.sort((a, b) => a.scheduledAt.valueOf() - b.scheduledAt.valueOf());
+
+    const bizMap = {};
+    (result1).map(biz => {
+      bizMap[biz._id] = biz;
+    });
+
+    tasks.map(t => {
+      if (t.relatedMap && t.relatedMap.gmbBizId && bizMap[t.relatedMap.gmbBizId]) {
+        t.gmbBiz = t.gmbBiz || {};
+        t.gmbBiz = bizMap[t.relatedMap.gmbBizId];
+        t.gmbBiz.timeZone = Address.getTimeZone(t.gmbBiz.address);
       }
-
-      const userDict = {};
-      closedTasks.map(t => {
-        const user = t.assignee || 'system';
-        userDict[user] = (userDict[user] || 0) + 1;
-      });
-
-      console.log(`User Stats over ${spanDays} days: `);
-      Object.keys(userDict).map(user => {
-        console.log(`${user} ${userDict[user]} avg ${(userDict[user] / spanDays).toFixed(2)}/day`);
-      });
-
-      //if roles contains ADMIN, show all the task
-      if(this._global.user.roles.indexOf('ADMIN') > -1){
-        this.myTasks = tasks;
-      }else{
-        this.myTasks = tasks.filter(t =>
-          t.creator === this._global.user.username ||
-          t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
-  
-      }
-
-
-      this.myTasks = this.myTasks.sort((a, b) => a.scheduledAt.valueOf() - b.scheduledAt.valueOf());
-
-      const bizMap = {};
-      (result1).map(biz => {
-        bizMap[biz._id] = biz;
-      });
-
-      tasks.map(t => {
-        if (t.relatedMap && t.relatedMap.gmbBizId && bizMap[t.relatedMap.gmbBizId]) {
-          t.gmbBiz = t.gmbBiz || {};
-          t.gmbBiz = bizMap[t.relatedMap.gmbBizId];
-          t.gmbBiz.timeZone = Address.getTimeZone(t.gmbBiz.address);
-        }
-      });
-      // compute groupedTasks, by task name
-      this.computeGroupedTasks();
+    });
+    // compute groupedTasks, by task name
+    this.computeGroupedTasks();
   }
 
   computeGroupedTasks() {
