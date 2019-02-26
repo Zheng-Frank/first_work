@@ -77,6 +77,7 @@ export class ShowGooglePINComponent implements OnInit {
                 if (eachLog.type === 'google-pin') {
                     this.rows.push({
                         gmbBiz: this.getGmbBizFromRestaurant(restaurant),
+                        agent: restaurant.rateSchedules.agent,
                         from: 'Call Log',
                         text: eachLog.response,
                         time: this.convertTimeToMilliseconds(eachLog.time),
@@ -97,7 +98,7 @@ export class ShowGooglePINComponent implements OnInit {
                 done: codes.some(code => code == each.params.body.Text.replace(/\+/g, ' ').trim())
             }
         }));
-        console.log('rows', this.rows);
+        //console.log('rows', this.rows);
 
         this.rows.sort((o1, o2) => new Date(o2.time).valueOf() - new Date(o1.time).valueOf());
     }
