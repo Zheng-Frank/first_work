@@ -36,6 +36,7 @@
 
 <q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
     <tr *tableRowTemplate="let task;">
+        <td>{{filteredTasks.indexOf(task) + 1}}</td>
         <td>
             <div class="badge badge-{{getTaskClass(task)}}" *ngIf="!task.result">{{task.scheduledAt | ago: now}}</div>
 
