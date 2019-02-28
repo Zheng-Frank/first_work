@@ -76,7 +76,8 @@
         <td>{{getRoles(task)}}</td>
         <td>{{task.assignee}}</td>
         <td>
-            <div class="wrap">{{task.comments}}</div>
+            <!-- <div class="wrap">{{task.comments}}</div> -->
+            <div class="wrap" [innerHTML]="task.comments"> </div>
             <div *ngIf="task.transfer && task.transfer.verificationMethod">
                 {{task.transfer.verificationMethod}}
             </div>

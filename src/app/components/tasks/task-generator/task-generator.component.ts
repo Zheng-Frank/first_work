@@ -142,7 +142,7 @@ export class TaskGeneratorComponent implements OnInit {
       } as Task;
 
       if (this.restaurant) {
-        task.comments += '\n' + this.restaurant.name + ', ' + (this.restaurant.id || this.restaurant._id);
+        task.comments += '\n<a target="_blank" href="#/restaurants/'+this.restaurant._id+'">'+this.restaurant.name+'</a>';
       }
       task.comments += '\nCreated By ' + this._global.user.username;
       this.submit.emit(task);
