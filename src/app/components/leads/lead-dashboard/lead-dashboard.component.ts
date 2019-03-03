@@ -411,6 +411,18 @@ export class LeadDashboardComponent implements OnInit {
     this.editingModal.show();
   }
 
+  scanNew() {
+    this.formFieldDescriptors = [
+      {
+        field: "name",
+        label: "Search Keyword",
+        disabled: false
+      }
+    ];
+
+    this.editingModal.show();
+  }
+
   getLogo(lead) {
     return GlobalService.serviceProviderMap[lead.gmbOwner];
   }
@@ -907,4 +919,32 @@ export class LeadDashboardComponent implements OnInit {
     }
     return undefined;
   }
+
+  getTimeZone(formatted_address) {
+    const tzMap = {
+        PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+        MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+        CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+            'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+        EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+            'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+            'NJ', 'DE', 'MD', 'DC', 'RI'],
+        HST: ['HI'],
+        AKDT: ['AK']
+    };
+
+    let matchedTz = '';
+    if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
+        //console.log('address=', address);
+        //console.log(address.match(/\b[A-Z]{2}/)[0]);
+        let state = formatted_address.match(/\b[A-Z]{2}/)[0];
+
+        Object.keys(tzMap).map(tz => {
+            if(tzMap[tz].indexOf(state) > -1) {
+                matchedTz = tz;
+            }
+        });
+    }
+    return matchedTz;
+}
 }

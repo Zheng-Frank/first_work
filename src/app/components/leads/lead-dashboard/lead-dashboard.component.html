@@ -130,6 +130,13 @@
   </q-form-builder>
 </q-modal>
 
+<q-modal [title]="Scan New Restaurant Lead " #scanModal>
+  <q-form-builder [object]="leadInEditing" [showDelete]="leadInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
+    (remove)="formRemove($event)" (cancel)="editingModal.hide()">
+
+  </q-form-builder>
+</q-modal>
+
 <q-modal [title]="'Filter Leads' " #filterModal>
   <q-form-builder [object]="searchFilterObj" [showDelete]="false" [fieldDescriptors]="filterFieldDescriptors" (submit)="filterSubmit($event)"
     (cancel)="filterModal.hide()">
