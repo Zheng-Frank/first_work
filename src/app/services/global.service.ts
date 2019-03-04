@@ -237,6 +237,7 @@ export class GlobalService {
           "channels": 1,
           disabled: 1,
           logs: 1,
+          "rateSchedules.agent": 1,
           "googleAddress.formatted_address": 1,
           web: 1
         },

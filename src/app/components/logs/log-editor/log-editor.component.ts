@@ -146,7 +146,8 @@ export class LogEditorComponent implements OnInit {
           return event.acknowledge('Please choose a task template');
         } else {
           let task = {
-            comments: 'Restaurant: ' + this.restaurant.name + ', ' + this.restaurant._id + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
+            
+            comments: '<a target="_blank" href="#/restaurants/'+this.restaurant._id+'">'+this.restaurant.name+'</a>' + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
             scheduledAt: this.scheduledAt || new Date(),
             creator: this._global.user.username,
             relatedMap: {

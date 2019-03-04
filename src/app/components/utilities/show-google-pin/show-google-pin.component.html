@@ -5,11 +5,12 @@
             <th>Restaurant</th>
             <th>Task</th>
             <th>Assignee</th>
+            <th>Agent</th>
             <th>From</th>
             <th>PIN</th>
             <th>Done</th>
             <th>PIN Received</th>
-            
+
         </tr>
     </thead>
     <tbody>
@@ -24,12 +25,12 @@
 
             </td>
             <td>
-                    <div *ngFor="let biz of row.gmbBiz;">
-                        <div *ngFor="let task of biz.tasks;">
-                            {{task.name}}
-                        </div>
+                <div *ngFor="let biz of row.gmbBiz;">
+                    <div *ngFor="let task of biz.tasks;">
+                        {{task.name}}
                     </div>
-                </td>
+                </div>
+            </td>
 
             <td>
                 <div *ngFor="let biz of row.gmbBiz;">
@@ -38,6 +39,14 @@
                     </div>
                 </div>
             </td>
+            <td>
+                <div *ngFor="let biz of row.gmbBiz;">
+                    <div *ngIf="biz.restaurant">
+                            {{(biz.restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}
+                    </div>
+                </div>
+            </td>
+
             <td>{{row.from}}</td>
             <td>{{row.text}}</td>
             <td>
@@ -45,7 +54,7 @@
                 <span class="text-danger" *ngIf="!row.done">✘</span>
             </td>
             <td>
-                    {{getTime(row.time) | MMMd }} {{getTime(row.time) | shortTime}}
+                {{getTime(row.time) | MMMd }} {{getTime(row.time) | shortTime}}
             </td>
             <!-- <td *ngIf='_global.user.roles.indexOf("ADMIN")>0'>
                 <button class="btn btn-sm btn-primary" (click)="deleteRow(row)">Delete</button>
