@@ -5,69 +5,68 @@
 
     <div class="float-right">
         <button class="btn btn-primary" (click)="addNewPrinter()"><i class="fas fa-plus"></i> Add New Printer</button>
-        <button class="btn btn-primary" (click)="syncExistingPrinters()" [qLoading]="discovering"><i
-                class="fas fa-sync"></i> Discover All Printers</button>
+        <button class="btn btn-primary" (click)="syncExistingPrinters()" [qLoading]="discovering"><i class="fas fa-sync"></i>
+            Discover All Printers</button>
     </div>
 </div>
-<q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()"
-    [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
+<q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()" [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
 </q-simple-radio>
 
 <table class="table table-sm">
     <tr>
         <th>#</th>
         <th>Type/ID</th>
+        <th>Client Status</th>
         <th>Restaurant</th>
-        <th>Printer Name</th>
-        <th>Status</th>
-        <th></th>
+        <th>Printers</th>
+        <th>&nbsp;</th>
     </tr>
-    <ng-container *ngFor="let row of filteredRows; let i = index;">
-        <tr *ngFor="let printer of row.printers; let j = index">
-            <th *ngIf="j === 0" [attr.rowspan]="row.printers.length">{{i + 1}}</th>
-            <td *ngIf="j === 0" [attr.rowspan]="row.printers.length">
-                {{row.type}}
-                <div class="text-muted"><small>{{row.guid}}</small></div>
-            </td>
-            <td *ngIf="j === 0" [attr.rowspan]="row.printers.length">
-                <div *ngIf="row.restaurant">
-                    <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
-                    <div class="text-muted">
-                        <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
-                    </div>
+    <tr *ngFor="let row of filteredRows; let i = index;">
+        <th>{{i + 1}}</th>
+        <td>
+            {{row.type}}
+            <div class="text-muted"><small>{{row.guid}}</small></div>
+        </td>
+        <td>
+            <div *ngIf="row.statusHistory && row.statusHistory.length > 0">
+                <div class="{{getStatusClass(row.statusHistory[0])}}">
+                    {{row.statusHistory[0].status}}
                 </div>
-                <q-edit-label [value]="(row.restaurant || {})._id" (edit)="onEditRestaurantId($event, row)">
-                </q-edit-label>
-            </td>
-            <td>
-                <b *ngIf="printer.notifications && printer.notifications.length > 0">{{printer.name}}</b>
-                <span *ngIf="!(printer.notifications && printer.notifications.length > 0)">{{printer.name}}<div
-                        class="text-muted"><small>unused</small></div></span>
-                <div>{{printer.key}}</div>
-            </td>
-            <td>
-                <ng-container *ngIf="printer.statusHistory && printer.statusHistory.length > 0">
-                    <div class="{{isStatusHealthy(printer.statusHistory[0].status) ? 'text-success' : 'text-danger'}}">
-                        {{printer.statusHistory[0].status}}
-                    </div>
-                    <div class="text-muted"><small>{{printer.statusHistory[0].time | ago: now}}</small></div>
-                </ng-container>
+                <div class="text-muted"><small>{{row.statusHistory[0].time | ago: now}}</small></div>
+            </div>
+        </td>
+        <td>
+            <div *ngIf="row.restaurant">
+                <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+                <div class="text-muted">
+                    <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
+                </div>
+            </div>
+            <q-edit-label [value]="(row.restaurant || {})._id" (edit)="onEditRestaurantId($event, row)">
+            </q-edit-label>
+        </td>
+        <td>
+            <div *ngFor="let printer of (row.printers || [])">
+                <label class="checkbox-inline {{printer.autoPrintCopies > 0 ? '' : 'font-weight-normal text-muted'}}">
+                    <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0" (click)="togglePrinter($event, row, printer)">
+                    {{printer.name}}
+                </label>
+                <span *ngIf="printer.autoPrintCopies > 0">
+                    copies: <q-edit-label [value]="printer.autoPrintCopies" [type]="'select'" [options]="[1, 2, 3, 4]"
+                        (edit)="updateAutoPrintCopies($event, row, printer)"></q-edit-label>
+                </span>
 
-            </td>
-            <td>
-                <ng-container *ngIf="printer.lastPrintingResult">
-                    <div>
-                        {{printer.lastPrintingResult.result}}
-                    </div>
-                    <div class="text-muted"><small>{{printer.lastPrintingResult.time | ago: now}}</small></div>
-                </ng-container>
-            </td>
-            <td>
-                <button class="btn btn-link" (click)="refreshStatus(row, printer)">Refresh Status</button>
-                <button class="btn btn-link" (click)="printLastOrder(row, printer)" [disabled]="true">Print Last Order</button>
-            </td>
-        </tr>
-    </ng-container>
 
+                <div *ngIf="printer.key">sn:{{printer.name}}, key:{{printer.key}}</div>
+            </div>
+        </td>
+        <td>
+            <button class="btn btn-link d-block" (click)="pullPrinters(row)" *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull
+                Printers</button>
+            <button class="btn btn-link d-block" (click)="refreshStatus(row)">Refresh Status</button>
+            <button class="btn btn-link d-block" (click)="printTestOrder(row)" *ngIf="row.printers?.length > 0">
+                Print Test Order</button>
+        </td>
+    </tr>
 
 </table>

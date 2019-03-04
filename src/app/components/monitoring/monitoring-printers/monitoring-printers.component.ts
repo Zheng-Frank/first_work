@@ -3,6 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from 'src/app/classes/alert-type';
+import { Alert } from 'selenium-webdriver';
 
 @Component({
   selector: 'app-monitoring-printers',
@@ -18,13 +19,158 @@ export class MonitoringPrintersComponent implements OnInit {
 
   now = new Date();
 
+  busyRows = [];
+
   ngOnInit() {
     this.populate();
   }
 
-  async refreshStatus(row, printer) {
+  getStatusClass(status) {
+    if (status && status.status.indexOf('online') >= 0) {
+      // 10 minutes ago, we want to show as warning
+      return this.now.valueOf() - new Date(status.time).valueOf() > 600000 ? 'text-warning' : 'text-success';
+    } else {
+      return 'text-danger';
+    }
+  }
+
+  async updateAutoPrintCopies(event, row, printer) {
+    const newAutoPrintCopies = +event.newValue;
+    if (confirm(`Are you sure to change auto-print copies to ${newAutoPrintCopies} for ${printer.name}?`)) {
+      const oldPrinters = row.printers.map(p => ({}));
+      const newPrinters = row.printers.map(p => ({}));
+      newPrinters[row.printers.indexOf(printer)].autoPrintCopies = newAutoPrintCopies;
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [
+        {
+          old: { _id: row._id, printers: oldPrinters },
+          new: { _id: row._id, printers: newPrinters },
+        }
+      ]).toPromise();
+      printer.autoPrintCopies = newAutoPrintCopies;
+    }
+  }
+
+  async togglePrinter(event, row, printer) {
+    const newAutoPrintCopies = printer.autoPrintCopies ? 0 : 1;
+    if (confirm(`Are you sure to ${newAutoPrintCopies ? 'ENABLE' : 'DISABLE'} ${printer.name}?`)) {
+      // to keep same structure for delta computing in backend
+      const oldPrinters = row.printers.map(p => ({}));
+      const newPrinters = row.printers.map(p => ({}));
+      newPrinters[row.printers.indexOf(printer)].autoPrintCopies = newAutoPrintCopies;
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [
+        {
+          old: { _id: row._id, printers: oldPrinters },
+          new: { _id: row._id, printers: newPrinters },
+        }
+      ]).toPromise();
+      printer.autoPrintCopies = newAutoPrintCopies;
+    } else {
+      event.preventDefault();
+    }
+  }
+
+  async pullPrinters(row) {
+    this.busyRows.push(row);
+    switch (row.type) {
+      case 'longhorn':
+        try {
+          const printers = await this._api.post(environment.legacyApiUrl + "restaurant/queryPrinters/" + row.restaurant._id).toPromise();
+          if (printers.length > 0) {
+            // preserve autoPrintCopies!
+            (row.printers || []).map(oldP => printers.map(newP => {
+              if (oldP.name === newP.name) {
+                newP.autoPrintCopies = oldP.autoPrintCopies;
+              }
+            }));
+
+            // upate here!
+            await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [
+              {
+                old: { _id: row._id },
+                new: { _id: row._id, printers: printers }
+              }
+            ]).toPromise();
+            this._global.publishAlert(AlertType.Success, 'Found ' + printers.length);
+            row.printers = printers;
+
+          } else {
+            this._global.publishAlert(AlertType.Info, 'No printers found');
+
+          }
+        } catch (error) {
+          this._global.publishAlert(AlertType.Danger, 'Error querying printers. Please make sure restaurant\'s computer is on and have software installed.');
+        }
+
+        break;
+      case "phoenix":
+
+        const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+          name: "send-phoenix",
+          params: {
+            printServerEndpoint: environment.printServerEndPoint,
+            printClientId: row._id,
+            data: {
+              "type": "QUERY_PRINTERS",
+              data: {
+                "test": "value"
+              }
+            }
+          }
+        }]).toPromise();
+
+        const pollingInterval = 5000;
+        const pollingCount = 6;
+        const delay = t => new Promise(resolve => setTimeout(resolve, t));
+        for (let i = 0; i < pollingCount; i++) {
+          await delay(pollingInterval);
+          const job = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+            resource: 'job',
+            query: {
+              _id: { $oid: jobs[0]._id }
+            },
+            projection: {
+              "logs.data.printers.name": 1,
+              "logs.data.status": 1
+            },
+            limit: 1
+          }).toPromise())[0];
+
+          if ((job.logs || []).some(log => log.data && log.data.printers)) {
+            await this.reloadRow(row);
+            this.busyRows = this.busyRows.filter(r => r !== row);
+            return this._global.publishAlert(AlertType.Success, "Success");
+          }
+          if ((job.logs || []).some(log => log.data && log.data.status === 'error')) {
+            this.busyRows = this.busyRows.filter(r => r !== row);
+            return this._global.publishAlert(AlertType.Danger, "Error occured on client's computer.");
+          }
+        }
+        this._global.publishAlert(AlertType.Danger, "Timeout");
+        break;
+      default:
+        alert('not implemented yet')
+        break;
+    }
+    this.busyRows = this.busyRows.filter(r => r !== row);
+  }
+
+  async reloadRow(row) {
+    const client = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'print-client',
+      query: {
+        _id: { $oid: row._id }
+      },
+      limit: 1
+    }).toPromise())[0];
+    console.log(this.rows.indexOf(row));
+    console.log(client);
+    this.rows[this.rows.indexOf(row)] = client;
+    this.filter();
+  }
+
+  async refreshStatus(row) {
     const patchedPairs = [];
-    const printerStatusItems = [];
+    const clientStatusItems = [];
     switch (row.type) {
       case 'longhorn':
         // we can only get ALL status
@@ -36,49 +182,44 @@ export class MonitoringPrintersComponent implements OnInit {
         const connectedRestaurantIdsSet = new Set(connectedRestaurantIds);
         this.rows.map(client => {
           if (client.type === row.type) {
-            client.printers.map((printer, index) => {
-              const connectionStatus = connectedRestaurantIdsSet.has(client.restaurantId) ? 'online' : 'offline';
-              printerStatusItems.push({
-                client: client,
-                printer: printer,
-                status: connectionStatus,
-                index: index
-              });
-            }); // end each printer
+            const connectionStatus = connectedRestaurantIdsSet.has((client.restaurant || {})._id) ? 'online' : 'offline';
+            clientStatusItems.push({
+              client: client,
+              status: connectionStatus
+            });
           } // end longhorn
         }); // end each client iteration
         break;
       case 'fei-e':
+        // ALWAYS only one priner, so use 0th to find sn and key
         const feiEResult = await this._api.get(environment.qmenuApiUrl + 'utils/fei-e', {
-          sn: printer.name,
-          key: printer.key
+          sn: row.printers[0].name,
+          key: row.printers[0].key
         }).toPromise();
         const connectionStatus = feiEResult.msg;
-        row.printers.map((printer, index) => {
-          printerStatusItems.push({
-            index: index,
-            client: row,
-            printer: printer,
-            status: connectionStatus
-          });
+        clientStatusItems.push({
+          client: row,
+          status: connectionStatus
         });
         break;
-      default:
+      case 'phoenix':
+        // phoenix will be self-reporting. So we only need to pull this client
+        await this.reloadRow(row);
         break;
+      default:
+        alert('Not supported yet');
+        break;
+
     }
 
-    console.log(printerStatusItems)
-    printerStatusItems.map(item => {
+    clientStatusItems.map(item => {
 
-      const printer = item.printer;
       const client = item.client;
-      const index = item.index;
 
-      const statusHistory = printer.statusHistory || [];
+      const statusHistory = client.statusHistory || [];
       const zeroHistory = statusHistory.length === 0;
       const flippedHistory = !zeroHistory && statusHistory[0].status !== item.status;
       if (zeroHistory || flippedHistory) {
-
         statusHistory.unshift({
           time: new Date(),
           status: item.status
@@ -87,18 +228,13 @@ export class MonitoringPrintersComponent implements OnInit {
         if (statusHistory.length > 4) {
           statusHistory.length = 4;
         }
-
-        const printers = client.printers.map(p => ({}));
-        const updated = JSON.parse(JSON.stringify(printers));
-        updated[index].statusHistory = statusHistory;
         patchedPairs.push({
-          old: { _id: client._id, printers: printers },
-          new: { _id: client._id, printers: updated }
+          old: { _id: client._id },
+          new: { _id: client._id, statusHistory: statusHistory }
         });
       } // end not same status
     })
 
-    console.log(patchedPairs);
     if (patchedPairs.length > 0) {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', patchedPairs).toPromise();
       this.populate();
@@ -107,9 +243,51 @@ export class MonitoringPrintersComponent implements OnInit {
       this._global.publishAlert(AlertType.Info, 'Nothing updated');
     }
 
+    this.filter();
   }
 
-  printLastOrder(row, printer) {
+  async printTestOrder(row) {
+    // find printer
+    const printers = row.printers.filter(p => p.autoPrintCopies > 0);
+    if (printers.length === 0) {
+      return this._global.publishAlert(AlertType.Info, 'No enabled printers found');
+    }
+    if (printers.length > 1) {
+      this._global.publishAlert(AlertType.Warning, 'Multiple enabled printers found! Only ' + printers[0] + ' will be tested.', 60000);
+    }
+
+    switch (row.type) {
+      case 'fei-e':
+      case 'longhorn':
+        try {
+          const printResult = await this._api.get(environment.qmenuApiUrl + 'order/printOrderDetailsByOrderId', { orderId: environment.testOrderId }).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print initiated");
+        } catch (error) {
+          this._global.publishAlert(AlertType.Danger, error);
+        }
+        break;
+      case 'phoenix':
+        const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+          name: "send-phoenix",
+          params: {
+            printServerEndpoint: environment.printServerEndPoint,
+            printClientId: row._id,
+            data: {
+              "type": "PRINT",
+              data: {
+                printerName: printers[0].name,
+                format: "PNG",
+                url: "https://api.myqmenu.com/utilities/order/5c720fd092edbd4b28883ee1?format=pos",
+                copies: printers[0].autoPrintCopies || 1
+              }
+            }
+          }
+        }]).toPromise();
+        this._global.publishAlert(AlertType.Info, "Print job sent");
+        break;
+      default:
+        alert('not yet impelemented');
+    }
 
   }
 
@@ -124,7 +302,7 @@ export class MonitoringPrintersComponent implements OnInit {
 
     const restaurantDict = allRestaurants.reduce((map, r) => (map[r._id] = r, map), {});
     allClients.map(client => {
-      client.restaurant = restaurantDict[client.restaurantId];
+      client.restaurant = restaurantDict[(client.restaurant || {})._id];
     });
 
     this.rows = allClients;
@@ -138,21 +316,37 @@ export class MonitoringPrintersComponent implements OnInit {
     this.filteredRows = this.filteredRows.filter(row => !this.printerType || this.printerType === row.type);
   }
 
-  isStatusHealthy(status) {
-    return status.indexOf('online') >= 0;
-  }
+
 
   async onEditRestaurantId(event, row) {
     if (confirm("Are you sure?")) {
+      const allRestaurants = await this._global.getCachedVisibleRestaurantList();
+      const restaurant = allRestaurants.filter(r => r._id === event.newValue.trim())[0];
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=print-client", [
         {
           old: { _id: row._id },
-          new: { _id: row._id, restaurantId: event.newValue.trim() }
+          new: { _id: row._id, restaurant: { name: restaurant.name, _id: restaurant._id } }
         }
       ]);
+      row.restaurant = restaurant;
+      // trigger a REPORT event to client if type is phoenix!
+      if (row.type === 'phoenix') {
+        await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+          name: "send-phoenix",
+          params: {
+            printServerEndpoint: environment.printServerEndPoint,
+            printClientId: row._id,
+            data: {
+              "type": "REPORT",
+              data: {
+                "restaurantName": restaurant.name,
+                "restaurantId": restaurant._id
+              }
+            }
+          }
+        }]).toPromise();
 
-      const allRestaurants = await this._global.getCachedVisibleRestaurantList();
-      row.restaurant = allRestaurants.filter(r => r._id === event.newValue.trim())[0];
+      }
     }
   }
 
@@ -163,6 +357,7 @@ export class MonitoringPrintersComponent implements OnInit {
       const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         projection: {
+          name: 1,
           printerSN: 1,
           printerKey: 1,
           autoPrintOnNewOrder: 1,
@@ -177,32 +372,36 @@ export class MonitoringPrintersComponent implements OnInit {
       restaurants.map(r => {
         if (r.printerSN && r.printerKey && r.printerKey.trim() && r.printerSN.trim()) {
           printingClients.push({
-            restaurantId: r._id,
+            restaurant: {
+              name: r.name,
+              _id: r._id
+            },
             type: "fei-e",
             printers: [
               {
                 name: r.printerSN.trim(),
-                notifications: r.autoPrintOnNewOrder ? ['Order'] : [],
                 key: r.printerKey.trim(),
-                autoPrintCopies: r.printCopies || 1
+                autoPrintCopies: (r.printCopies || 1) * (r.autoPrintOnNewOrder ? 1 : 0)
               }
             ]
           });
         }
 
+        // case of legacy or longhorn
         if (r.printers && r.printers.length > 0) {
           printingClients.push({
-            restaurantId: r._id,
+            restaurant: {
+              name: r.name,
+              _id: r._id
+            },
             type: (r.autoPrintVersion || 'legacy').toLowerCase(),
             printers: r.printers.map(p => {
-              p.notifications = r.autoPrintOnNewOrder ? ['Order'] : [];
+              p.autoPrintCopies = (r.printCopies || 1) * (r.autoPrintOnNewOrder ? 1 : 0)
               return p;
             })
           });
         }
       });
-
-      console.log(printingClients);
 
       // all restaurant stubs
       const allExistingClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -212,11 +411,11 @@ export class MonitoringPrintersComponent implements OnInit {
 
       const newClients = printingClients.filter(c => {
         // fei-e ==> sn or name match
-        // lecacy/longhorn ==> restaurantId match
+        // lecacy/longhorn ==> restaurant._id match
         if (c.type === 'fei-e') {
           return !allExistingClients.some(client => client.type === 'fei-e' && (client.printers || [].some(p => p.name = c.name)));
         } else {
-          return !allExistingClients.some(client => client.type === c.type && client.restaurantId === c.restaurantId);
+          return !allExistingClients.some(client => client.type === c.type && (client.restaurant && client.restaurant._id === (c.restaurant || {})._id));
         }
       });
 
