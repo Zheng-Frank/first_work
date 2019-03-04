@@ -20,6 +20,7 @@ import { Helper } from "../../../classes/helper";
 })
 export class LeadDashboardComponent implements OnInit {
   @ViewChild("editingModal") editingModal: ModalComponent;
+  @ViewChild("scanModal") scanModal: ModalComponent;  
   @ViewChild("assigneeModal") assigneeModal: ModalComponent;
   @ViewChild("filterModal") filterModal: ModalComponent;
   @ViewChild("viewModal") viewModal: ModalComponent;
@@ -61,6 +62,18 @@ export class LeadDashboardComponent implements OnInit {
 
   // for editing existing call log
   selectedCallLog;
+  tzMap = {
+    PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+    MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+    CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+        'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+    EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+        'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+        'NJ', 'DE', 'MD', 'DC', 'RI'],
+    HST: ['HI'],
+    AKDT: ['AK']
+};
+
 
   filterFieldDescriptors = [
     {
@@ -414,17 +427,112 @@ export class LeadDashboardComponent implements OnInit {
   scanNew() {
     this.formFieldDescriptors = [
       {
-        field: "name",
+        field: "keyword",
         label: "Search Keyword",
+        required: true,
         disabled: false
-      }
+      },
+      {
+        field: "zip",
+        label: "Zip Code",
+        required: false,
+        disabled: false
+      },
+      {
+        field: "timezone",
+        label: "Timezone",
+        required: false,
+        inputType: "single-select",
+        items: ["PDT", "MDT", "CDT", "EDT"].map(state => ({
+          object: this.getStateByZone(state),
+          text: state,
+          selected: false
+        }))
+      },
+      {
+        field: "state",
+        label: "State",
+        required: false,
+        inputType: "multi-select",
+        items: [
+          "AK",
+          "AL",
+          "AR",
+          "AZ",
+          "CA",
+          "CO",
+          "CT",
+          "DC",
+          "DE",
+          "FL",
+          "GA",
+          "HI",
+          "IA",
+          "ID",
+          "IL",
+          "IN",
+          "KS",
+          "KY",
+          "LA",
+          "MA",
+          "MD",
+          "ME",
+          "MI",
+          "MN",
+          "MO",
+          "MS",
+          "MT",
+          "NC",
+          "ND",
+          "NE",
+          "NH",
+          "NJ",
+          "NM",
+          "NV",
+          "NY",
+          "OH",
+          "OK",
+          "OR",
+          "PA",
+          "RI",
+          "SC",
+          "SD",
+          "TN",
+          "TX",
+          "UT",
+          "VA",
+          "VT",
+          "WA",
+          "WI",
+          "WV",
+          "WY"
+        ].map(state => ({ object: state, text: state, selected: false }))
+      },
     ];
 
-    this.editingModal.show();
+    this.scanModal.show();
   }
 
   getLogo(lead) {
     return GlobalService.serviceProviderMap[lead.gmbOwner];
+  }
+  scanSubmit(event) {
+    console.log('mega', event);
+    
+    let crawledResult;
+    try {
+      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
+    }
+    catch (error) {
+      // try to use only city state and zip code!
+      // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
+      const addressTokens = this.restaurant.googleAddress.formatted_address.split(", ");
+      const q = this.restaurant.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
+      try {
+        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
+      } catch (error) { }
+    }
+
   }
 
   formSubmit(event) {
@@ -918,6 +1026,9 @@ export class LeadDashboardComponent implements OnInit {
       );
     }
     return undefined;
+  }
+  getStateByZone(timeZone){
+    return this.tzMap[timeZone];
   }
 
   getTimeZone(formatted_address) {

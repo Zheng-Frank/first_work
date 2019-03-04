@@ -24,7 +24,11 @@
 
   <button class="btn btn-info" (click)="filter()">
     <i class="fas fa-filter"></i> Filter</button>
-  <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button>
+  <button class="btn btn-primary" (click)="scanNew()">+ Scan New Lead</button>
+
+  <!-- <button class="btn btn-info" (click)="filter()">
+    <i class="fas fa-filter"></i> Filter</button>
+  <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button> -->
 </div>
 
 <div class="table-responsive">
@@ -119,7 +123,7 @@
     </tbody>
   </table>
 </div>
-<q-modal [title]="leadInEditing._id ? 'Edit Restaurant Lead: ' + leadInEditing.name : 'Create New Restaurant Lead' " #editingModal>
+<!-- <q-modal [title]="leadInEditing._id ? 'Edit Restaurant Lead: ' + leadInEditing.name : 'Create New Restaurant Lead' " #editingModal>
   <q-form-builder [object]="leadInEditing" [showDelete]="leadInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
     (remove)="formRemove($event)" (cancel)="editingModal.hide()">
     <q-address-picker #myAddressPicker></q-address-picker>
@@ -128,12 +132,11 @@
       <input type="text" class="form-control" id="address-apt" placeholder="eg. APT 101 or Suite 300" [(ngModel)]="addressApt">
     </div>
   </q-form-builder>
-</q-modal>
+</q-modal> -->
 
-<q-modal [title]="Scan New Restaurant Lead " #scanModal>
-  <q-form-builder [object]="leadInEditing" [showDelete]="leadInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
-    (remove)="formRemove($event)" (cancel)="editingModal.hide()">
-
+<q-modal [title]="'Scan New Restaurant Lead'" #scanModal>
+  <q-form-builder [object]="leadInEditing" [fieldDescriptors]="formFieldDescriptors" (submit)="scanSubmit($event)" (remove)="formRemove($event)"
+    (cancel)="scanModal.hide()">
   </q-form-builder>
 </q-modal>
 
