@@ -20,7 +20,7 @@ import { Helper } from "../../../classes/helper";
 })
 export class LeadDashboardComponent implements OnInit {
   @ViewChild("editingModal") editingModal: ModalComponent;
-  @ViewChild("scanModal") scanModal: ModalComponent;  
+  @ViewChild("scanModal") scanModal: ModalComponent;
   @ViewChild("assigneeModal") assigneeModal: ModalComponent;
   @ViewChild("filterModal") filterModal: ModalComponent;
   @ViewChild("viewModal") viewModal: ModalComponent;
@@ -66,13 +66,13 @@ export class LeadDashboardComponent implements OnInit {
     PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
     MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
     CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
-        'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+      'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
     EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
-        'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
-        'NJ', 'DE', 'MD', 'DC', 'RI'],
+      'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+      'NJ', 'DE', 'MD', 'DC', 'RI'],
     HST: ['HI'],
     AKDT: ['AK']
-};
+  };
 
 
   filterFieldDescriptors = [
@@ -319,7 +319,7 @@ export class LeadDashboardComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.searchFilters = this._global.storeGet("searchFilters") || [];
@@ -334,42 +334,42 @@ export class LeadDashboardComponent implements OnInit {
         limit: 1000
       })
       .subscribe(
-        result => {
-          this.users = result.map(u => new User(u));
+      result => {
+        this.users = result.map(u => new User(u));
 
-          // make form selector here
-          const marketingUsers = result
-            .map(u => new User(u))
-            .filter(u =>
-              (u.roles || []).some(
-                r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
-              )
-            );
-
-          const descriptor = {
-            field: "assignee", // match db naming otherwise would be single instead of plural
-            label: "Assignee",
-            required: false,
-            inputType: "single-select",
-            items: marketingUsers.map(mu => ({
-              object: mu.username,
-              text: mu.username,
-              selected: false
-            }))
-          };
-
-          this.filterFieldDescriptors.splice(8, 0, descriptor);
-
-          const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
-          clonedDescriptor.required = true;
-          this.assigneeFieldDescriptors.push(clonedDescriptor);
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling users from API"
+        // make form selector here
+        const marketingUsers = result
+          .map(u => new User(u))
+          .filter(u =>
+            (u.roles || []).some(
+              r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+            )
           );
-        }
+
+        const descriptor = {
+          field: "assignee", // match db naming otherwise would be single instead of plural
+          label: "Assignee",
+          required: false,
+          inputType: "single-select",
+          items: marketingUsers.map(mu => ({
+            object: mu.username,
+            text: mu.username,
+            selected: false
+          }))
+        };
+
+        this.filterFieldDescriptors.splice(8, 0, descriptor);
+
+        const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
+        clonedDescriptor.required = true;
+        this.assigneeFieldDescriptors.push(clonedDescriptor);
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling users from API"
+        );
+      }
       );
   }
 
@@ -438,17 +438,17 @@ export class LeadDashboardComponent implements OnInit {
         required: false,
         disabled: false
       },
-      {
-        field: "timezone",
-        label: "Timezone",
-        required: false,
-        inputType: "single-select",
-        items: ["PDT", "MDT", "CDT", "EDT"].map(state => ({
-          object: this.getStateByZone(state),
-          text: state,
-          selected: false
-        }))
-      },
+      // {
+      //   field: "timezone",
+      //   label: "Timezone",
+      //   required: false,
+      //   inputType: "single-select",
+      //   items: ["PDT", "MDT", "CDT", "EDT"].map(state => ({
+      //     object: this.getStateByZone(state),
+      //     text: state,
+      //     selected: false
+      //   }))
+      // },
       {
         field: "state",
         label: "State",
@@ -516,22 +516,43 @@ export class LeadDashboardComponent implements OnInit {
   getLogo(lead) {
     return GlobalService.serviceProviderMap[lead.gmbOwner];
   }
-  scanSubmit(event) {
+  async scanSubmit(event) {
     console.log('mega', event);
-    
-    let crawledResult;
-    try {
-      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
+    if (!event.object.keyword) {
+      return event.acknowledge("Must input keyword");
     }
-    catch (error) {
-      // try to use only city state and zip code!
-      // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
-      const addressTokens = this.restaurant.googleAddress.formatted_address.split(", ");
-      const q = this.restaurant.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
+    let input = event.object;
+    if (input.keyword && input.zip) {
+
+      let crawledResult;
+      const query = { q: [input.keyword, input.zip].join(" ") };
       try {
-        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
-      } catch (error) { }
+
+        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-lead", query).toPromise();
+        event.acknowledge(null);
+      }
+      catch (error) {
+        return event.acknowledge("error");
+      }
+      console.log('crawledResult', crawledResult);
+
+    } else if (input.keyword && input.state) {
+
     }
+
+    // let crawledResult;
+    // try {
+    //   crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-lead", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
+    // }
+    // catch (error) {
+    //   // try to use only city state and zip code!
+    //   // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
+    //   const addressTokens = this.restaurant.googleAddress.formatted_address.split(", ");
+    //   const q = this.restaurant.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
+    //   try {
+    //     crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
+    //   } catch (error) { }
+    // }
 
   }
 
@@ -548,24 +569,24 @@ export class LeadDashboardComponent implements OnInit {
         this.leadInEditing
       ])
       .subscribe(
-        result => {
-          event.acknowledge(null);
-          // we get ids returned
-          this.leadInEditing._id = result[0];
-          this.leads.push(new Lead(this.leadInEditing));
-          this.editingModal.hide();
-          this._global.publishAlert(
-            AlertType.Success,
-            this.leadInEditing.name + " was added"
-          );
-        },
-        error => {
-          event.acknowledge(error.json() || error);
-        }
+      result => {
+        event.acknowledge(null);
+        // we get ids returned
+        this.leadInEditing._id = result[0];
+        this.leads.push(new Lead(this.leadInEditing));
+        this.editingModal.hide();
+        this._global.publishAlert(
+          AlertType.Success,
+          this.leadInEditing.name + " was added"
+        );
+      },
+      error => {
+        event.acknowledge(error.json() || error);
+      }
       );
   }
 
-  formRemove(event) {}
+  formRemove(event) { }
 
   filter() {
     // reset the searchFilterObj so that the formbuilder has the latest
@@ -699,25 +720,25 @@ export class LeadDashboardComponent implements OnInit {
         query: query
       })
       .subscribe(
-        result => {
-          this.leads = result.map(u => new Lead(u));
-          this.sortLeads(this.leads);
-          if (this.leads.length === 0) {
-            this._global.publishAlert(AlertType.Info, "No lead found");
-          }
-          if (acknowledge) {
-            acknowledge(null);
-          }
-        },
-        error => {
-          if (acknowledge) {
-            acknowledge(error.json || error);
-          }
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling leads from API"
-          );
+      result => {
+        this.leads = result.map(u => new Lead(u));
+        this.sortLeads(this.leads);
+        if (this.leads.length === 0) {
+          this._global.publishAlert(AlertType.Info, "No lead found");
         }
+        if (acknowledge) {
+          acknowledge(null);
+        }
+      },
+      error => {
+        if (acknowledge) {
+          acknowledge(error.json || error);
+        }
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling leads from API"
+        );
+      }
       );
   }
 
@@ -799,42 +820,42 @@ export class LeadDashboardComponent implements OnInit {
         q: [lead.name, lead.address.formatted_address].filter(i => i).join(" ")
       })
       .subscribe(
-        result => {
-          const gmbInfo = result;
-          const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+      result => {
+        const gmbInfo = result;
+        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
 
-          if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
-            clonedLead.oldName = clonedLead.name;
-          } else {
-            // to make sure carry the name
-            gmbInfo.name = clonedLead.name;
-          }
-
-          // currently we don't want to lose address in original lead
-          if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
-            gmbInfo.address = clonedLead.address;
-          }
-
-          Object.assign(clonedLead, gmbInfo);
-          clonedLead.phones = clonedLead.phones || [];
-          if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
-            clonedLead.phones.push(gmbInfo.phone);
-            delete clonedLead["phone"];
-          }
-          clonedLead.gmbScanned = true;
-          this.patchDiff(lead, clonedLead, true);
-          this.apiRequesting = false;
-          if (resolveCallback) {
-            resolveCallback(result);
-          }
-        },
-        error => {
-          this.apiRequesting = false;
-          this._global.publishAlert(AlertType.Danger, "Failed to crawl");
-          if (rejectCallback) {
-            rejectCallback(error);
-          }
+        if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
+          clonedLead.oldName = clonedLead.name;
+        } else {
+          // to make sure carry the name
+          gmbInfo.name = clonedLead.name;
         }
+
+        // currently we don't want to lose address in original lead
+        if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
+          gmbInfo.address = clonedLead.address;
+        }
+
+        Object.assign(clonedLead, gmbInfo);
+        clonedLead.phones = clonedLead.phones || [];
+        if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
+          clonedLead.phones.push(gmbInfo.phone);
+          delete clonedLead["phone"];
+        }
+        clonedLead.gmbScanned = true;
+        this.patchDiff(lead, clonedLead, true);
+        this.apiRequesting = false;
+        if (resolveCallback) {
+          resolveCallback(result);
+        }
+      },
+      error => {
+        this.apiRequesting = false;
+        this._global.publishAlert(AlertType.Danger, "Failed to crawl");
+        if (rejectCallback) {
+          rejectCallback(error);
+        }
+      }
       );
   }
 
@@ -853,19 +874,19 @@ export class LeadDashboardComponent implements OnInit {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(
-        result => {
-          const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
-          clonedLead.address = new Address(result);
-          this.patchDiff(lead, clonedLead);
-          this.apiRequesting = false;
-        },
-        error => {
-          this.apiRequesting = false;
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Failed to update Google address. Try crawling Google first."
-          );
-        }
+      result => {
+        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+        clonedLead.address = new Address(result);
+        this.patchDiff(lead, clonedLead);
+        this.apiRequesting = false;
+      },
+      error => {
+        this.apiRequesting = false;
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Failed to update Google address. Try crawling Google first."
+        );
+      }
       );
   }
 
@@ -879,23 +900,23 @@ export class LeadDashboardComponent implements OnInit {
     } else {
       // api update here...
       this._api
-        .patch(environment.adminApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
+        .patch(environment.adminApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
         .subscribe(
-          result => {
-            if (removeFromSelection) {
-              this.selectionSet.delete(newLead._id);
-            }
-            // let's update original, assuming everything successful
-            Object.assign(originalLead, newLead);
-            this.editingModal.hide();
-            this._global.publishAlert(
-              AlertType.Success,
-              originalLead.name + " was updated"
-            );
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        result => {
+          if (removeFromSelection) {
+            this.selectionSet.delete(newLead._id);
           }
+          // let's update original, assuming everything successful
+          Object.assign(originalLead, newLead);
+          this.editingModal.hide();
+          this._global.publishAlert(
+            AlertType.Success,
+            originalLead.name + " was updated"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
         );
     }
   }
@@ -959,9 +980,9 @@ export class LeadDashboardComponent implements OnInit {
     if (event.object.assignee) {
       const myusers = this.users
         .filter(
-          u =>
-            u.manager === this._global.user.username ||
-            this._global.user.roles.indexOf("ADMIN") >= 0
+        u =>
+          u.manager === this._global.user.username ||
+          this._global.user.roles.indexOf("ADMIN") >= 0
         )
         .map(u => u.username);
       myusers.push(this._global.user.username);
@@ -995,9 +1016,9 @@ export class LeadDashboardComponent implements OnInit {
   unassignOnSelected() {
     const myusers = this.users
       .filter(
-        u =>
-          u.manager === this._global.user.username ||
-          this._global.user.roles.indexOf("ADMIN") >= 0
+      u =>
+        u.manager === this._global.user.username ||
+        this._global.user.roles.indexOf("ADMIN") >= 0
       )
       .map(u => u.username);
     myusers.push(this._global.user.username);
@@ -1027,35 +1048,35 @@ export class LeadDashboardComponent implements OnInit {
     }
     return undefined;
   }
-  getStateByZone(timeZone){
+  getStateByZone(timeZone) {
     return this.tzMap[timeZone];
   }
 
   getTimeZone(formatted_address) {
     const tzMap = {
-        PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
-        MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
-        CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
-            'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
-        EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
-            'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
-            'NJ', 'DE', 'MD', 'DC', 'RI'],
-        HST: ['HI'],
-        AKDT: ['AK']
+      PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+      MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+      CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+        'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+      EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+        'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+        'NJ', 'DE', 'MD', 'DC', 'RI'],
+      HST: ['HI'],
+      AKDT: ['AK']
     };
 
     let matchedTz = '';
     if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
-        //console.log('address=', address);
-        //console.log(address.match(/\b[A-Z]{2}/)[0]);
-        let state = formatted_address.match(/\b[A-Z]{2}/)[0];
+      //console.log('address=', address);
+      //console.log(address.match(/\b[A-Z]{2}/)[0]);
+      let state = formatted_address.match(/\b[A-Z]{2}/)[0];
 
-        Object.keys(tzMap).map(tz => {
-            if(tzMap[tz].indexOf(state) > -1) {
-                matchedTz = tz;
-            }
-        });
+      Object.keys(tzMap).map(tz => {
+        if (tzMap[tz].indexOf(state) > -1) {
+          matchedTz = tz;
+        }
+      });
     }
     return matchedTz;
-}
+  }
 }
