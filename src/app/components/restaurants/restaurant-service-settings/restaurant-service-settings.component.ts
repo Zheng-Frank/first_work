@@ -102,7 +102,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     } else {
       service.paymentMethods.push(paymentMethod);
       // also remove mutually exclusive payment types!
-      const mutexTypes = ['QMENU', 'KEY_IN', 'STRIPE'];
+      const mutexTypes = ['QMENU', 'KEY_IN', 'STRIPE', 'IN_PERSON'];
       if (mutexTypes.indexOf(paymentMethod) >= 0) {
         mutexTypes.filter(mt => mt !== paymentMethod).map(type => {
           if (service.paymentMethods.indexOf(type) >= 0) {
