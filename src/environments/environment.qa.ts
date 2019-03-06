@@ -10,5 +10,7 @@ export const environment = {
   customerUrl: 'https://qa-customer.herokuapp.com/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
-  stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg'
+  stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg',
+  printServerEndPoint: "nvyzxm5z40.execute-api.us-east-1.amazonaws.com/dev",
+  testOrderId: "5af213f552d5d11400e35550"
 };
