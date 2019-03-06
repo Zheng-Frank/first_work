@@ -25,6 +25,11 @@ export class MonitoringPrintersComponent implements OnInit {
     this.populate();
   }
 
+  addNewPrinter() {
+
+    alert('under construction')
+  }
+
   getStatusClass(status) {
     if (status && status.status.indexOf('online') >= 0) {
       // 10 minutes ago, we want to show as warning
