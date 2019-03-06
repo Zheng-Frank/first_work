@@ -112,7 +112,7 @@ export class MonitoringPrintersComponent implements OnInit {
             data: {
               "type": "QUERY_PRINTERS",
               data: {
-                "test": "value"
+                "fake": "id"
               }
             }
           }
@@ -246,47 +246,62 @@ export class MonitoringPrintersComponent implements OnInit {
     this.filter();
   }
 
+  async suspendConnection(row) {
+    const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+      name: "send-phoenix",
+      params: {
+        printServerEndpoint: environment.printServerEndPoint,
+        printClientId: row._id,
+        data: {
+          "type": "SUSPEND",
+          data: {
+            value: 60 * 1000
+          }
+        }
+      }
+    }]).toPromise();
+  }
+
   async printTestOrder(row) {
     // find printer
     const printers = row.printers.filter(p => p.autoPrintCopies > 0);
     if (printers.length === 0) {
       return this._global.publishAlert(AlertType.Info, 'No enabled printers found');
     }
-    if (printers.length > 1) {
-      this._global.publishAlert(AlertType.Warning, 'Multiple enabled printers found! Only ' + printers[0] + ' will be tested.', 60000);
-    }
 
-    switch (row.type) {
-      case 'fei-e':
-      case 'longhorn':
-        try {
-          const printResult = await this._api.get(environment.qmenuApiUrl + 'order/printOrderDetailsByOrderId', { orderId: environment.testOrderId }).toPromise();
-          this._global.publishAlert(AlertType.Info, "Print initiated");
-        } catch (error) {
-          this._global.publishAlert(AlertType.Danger, error);
-        }
-        break;
-      case 'phoenix':
-        const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-          name: "send-phoenix",
-          params: {
-            printServerEndpoint: environment.printServerEndPoint,
-            printClientId: row._id,
-            data: {
-              "type": "PRINT",
+    for (let printer of printers) {
+      switch (row.type) {
+        case 'fei-e':
+        case 'longhorn':
+          try {
+            const printResult = await this._api.post(environment.legacyApiUrl + 'order/printOrderDetailsByOrderId', { orderId: environment.testOrderId }).toPromise();
+            this._global.publishAlert(AlertType.Info, "Print initiated");
+          } catch (error) {
+            this._global.publishAlert(AlertType.Danger, error);
+          }
+          break;
+        case 'phoenix':
+          const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-phoenix",
+            params: {
+              printServerEndpoint: environment.printServerEndPoint,
+              printClientId: row._id,
               data: {
-                printerName: printers[0].name,
-                format: "PNG",
-                url: "https://api.myqmenu.com/utilities/order/5c720fd092edbd4b28883ee1?format=pos",
-                copies: printers[0].autoPrintCopies || 1
+                "type": "PRINT",
+                data: {
+                  printerName: printer.name,
+                  format: "PNG",
+                  url: "https://api.myqmenu.com/utilities/order/5c720fd092edbd4b28883ee1?format=pos",
+                  copies: printer.autoPrintCopies || 1
+                }
               }
             }
-          }
-        }]).toPromise();
-        this._global.publishAlert(AlertType.Info, "Print job sent");
-        break;
-      default:
-        alert('not yet impelemented');
+          }]).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
+        default:
+          alert('not yet impelemented');
+      }
     }
 
   }

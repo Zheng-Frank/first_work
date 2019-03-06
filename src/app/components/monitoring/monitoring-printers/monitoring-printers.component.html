@@ -5,11 +5,13 @@
 
     <div class="float-right">
         <button class="btn btn-primary" (click)="addNewPrinter()"><i class="fas fa-plus"></i> Add New Printer</button>
-        <button class="btn btn-primary" (click)="syncExistingPrinters()" [qLoading]="discovering"><i class="fas fa-sync"></i>
+        <button class="btn btn-primary" (click)="syncExistingPrinters()" [qLoading]="discovering"><i
+                class="fas fa-sync"></i>
             Discover All Printers</button>
     </div>
 </div>
-<q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()" [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
+<q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()"
+    [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
 </q-simple-radio>
 
 <table class="table table-sm">
@@ -48,7 +50,8 @@
         <td>
             <div *ngFor="let printer of (row.printers || [])">
                 <label class="checkbox-inline {{printer.autoPrintCopies > 0 ? '' : 'font-weight-normal text-muted'}}">
-                    <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0" (click)="togglePrinter($event, row, printer)">
+                    <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0"
+                        (click)="togglePrinter($event, row, printer)">
                     {{printer.name}}
                 </label>
                 <span *ngIf="printer.autoPrintCopies > 0">
@@ -61,11 +64,14 @@
             </div>
         </td>
         <td>
-            <button class="btn btn-link d-block" (click)="pullPrinters(row)" *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull
+            <button class="btn btn-link d-block" (click)="pullPrinters(row)"
+                *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull
                 Printers</button>
             <button class="btn btn-link d-block" (click)="refreshStatus(row)">Refresh Status</button>
             <button class="btn btn-link d-block" (click)="printTestOrder(row)" *ngIf="row.printers?.length > 0">
                 Print Test Order</button>
+            <button class="btn btn-link d-block" (click)="suspendConnection(row)"
+                *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
         </td>
     </tr>
 

@@ -62,11 +62,13 @@ export class MonitoringOnboardingComponent implements OnInit {
       },
       limit: 20000
     }).toPromise();
+
+
     const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
-      query: {
-        "locations.cid": { $in: cids }
-      },
+      // query: {
+      //   "locations.cid": { $in: cids }
+      // },
       projection: {
         "email": 1,
         "locations.cid": 1,
@@ -74,6 +76,7 @@ export class MonitoringOnboardingComponent implements OnInit {
       },
       limit: 200
     }).toPromise();
+
 
     Object.keys(dict).map(k => {
       const row = dict[k];
