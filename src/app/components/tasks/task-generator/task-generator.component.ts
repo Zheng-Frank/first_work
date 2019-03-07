@@ -131,7 +131,7 @@ export class TaskGeneratorComponent implements OnInit {
         name: this.obj.name,
         description: this.obj.description,
         scheduledAt: this.obj.scheduledAt || new Date(),
-        assignee: this.obj.assignee || this.assignee,
+        assignee: this.assignee || this.obj.assignee,
         roles: this.obj.roles.slice(),
         comments: this.obj.comments,
         creator: this._global.user.username,
