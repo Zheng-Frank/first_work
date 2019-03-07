@@ -127,6 +127,7 @@ import { ImageManagerComponent } from './components/utilities/image-manager/imag
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
 import { MonitoringGmbComponent } from './components/monitoring/monitoring-gmb/monitoring-gmb.component';
+import { MonitoringPrintersComponent } from './components/monitoring/monitoring-printers/monitoring-printers.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 
 
@@ -244,6 +245,7 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     TaskBarComponent,
     MonitoringDisabledRestaurantsComponent,
     MonitoringGmbComponent,
+    MonitoringPrintersComponent,
     MonitoringHoursComponent    
   ],
   imports: [

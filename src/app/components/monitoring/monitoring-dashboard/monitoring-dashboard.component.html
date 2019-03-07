@@ -14,6 +14,8 @@
         Restaurant data checking (daily)
 
 </pre> -->
-
-
-<app-monitoring-gmb></app-monitoring-gmb>
+<p>Select item:</p>
+<q-simple-radio [(ngModel)]="monitoredItem" [equalWidth]="true" [values]="['Cloud Printers', 'Restaurant GMBs']">
+</q-simple-radio>
+<app-monitoring-printers *ngIf="monitoredItem === 'Cloud Printers'"></app-monitoring-printers>
+<app-monitoring-gmb *ngIf="monitoredItem === 'Restaurant GMBs'"></app-monitoring-gmb>
