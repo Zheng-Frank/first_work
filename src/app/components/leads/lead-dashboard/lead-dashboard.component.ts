@@ -29,7 +29,9 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
 
   users: User[];
+  restaurants;
   addressApt = null;
+  DEBUGGING = true;
   editingNewCallLog = false;
   newCallLog = new CallLog();
   selectedLead = new Lead();
@@ -321,10 +323,20 @@ export class LeadDashboardComponent implements OnInit {
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.searchFilters = this._global.storeGet("searchFilters") || [];
     this.searchLeads();
     this.resetRating();
+
+    //retrieve restaurants with cids
+    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        "googleListing.cid": 1
+      },
+      limit: 10000
+    }).toPromise();
 
     // grab all users and make an assignee list!
     // get all users
@@ -516,28 +528,221 @@ export class LeadDashboardComponent implements OnInit {
   getLogo(lead) {
     return GlobalService.serviceProviderMap[lead.gmbOwner];
   }
+
+  async crawlOneGmb(cid, name) {
+
+    // parallelly requesting
+    try {
+      const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: cid, q: name }).toPromise();
+      return result;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async updateLead(lead) {
+
+  }
+
+  async createNewLead(lead) {
+    try {
+      const result = await this._api.post(environment.adminApiUrl + "generic?resource=lead", [lead]).toPromise();
+      return result;
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
+  // parseAddress(input) {
+  //   //input format "3105 Peachtree Pkwy", " Suwanee", " GA 30024"
+  //   let address = new Address();
+
+  //   let addressInputArray = input.split(",");
+  //   address.formatted_address=input;
+  //   address.
+
+
+  // }
+
+  getState(formatted_address) {
+    try {
+      let addressArray = formatted_address.split(",");
+      if (addressArray[addressArray.length - 1] && addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)) {
+        //console.log('address=', address);
+        //console.log(address.match(/\b[A-Z]{2}/)[0]);
+        let state = addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)[0];
+        return state;
+      }
+    }
+    catch (e) {
+      return '';
+    }
+  }
+
+
+  getTimeZone(formatted_address) {
+    const tzMap = {
+      PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+      MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+      CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+        'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+      EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+        'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+        'NJ', 'DE', 'MD', 'DC', 'RI'],
+      HST: ['HI'],
+      AKDT: ['AK']
+    };
+
+    let matchedTz = '';
+    if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
+      //console.log('address=', address);
+      //console.log(address.match(/\b[A-Z]{2}/)[0]);
+      let state = formatted_address.match(/\b[A-Z]{2}/)[0];
+
+      Object.keys(tzMap).map(tz => {
+        if (tzMap[tz].indexOf(state) > -1) {
+          matchedTz = tz;
+        }
+      });
+    }
+    return matchedTz;
+  }
+
+  async scanbOneLead(query) {
+    try {
+      const result = await this._api.get(environment.adminApiUrl + "utils/scan-lead", query).toPromise();
+      return result;
+    } catch (error) {
+      console.log(error);
+      return;
+    }
+  }
+
+  async processLeads(event, zipCodes) {
+    let input = event.object;
+    let keyword = input.keyword;
+    let scanResults;
+    let scanRequests = [];
+    try {
+      // parallelly requesting
+      scanRequests = zipCodes.map(z => {
+        let query = { q: keyword + " " + z };
+        return this.scanbOneLead(query);
+      });
+
+      scanResults = await Promise.all(scanRequests);
+      //merge the array of array to flatten it.
+      scanResults = [].concat.apply([], scanResults);
+
+      const restaurantCids = this.restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => r.googleListing.cid);
+      //filter out cid in qMenu restaurants before updating or creating lead
+      scanResults = scanResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
+      //crawl GMB info for each cid
+      const allGMBRequests = scanResults.map(each => this.crawlOneGmb(each.cid, each.name));
+      let crawledGMBresults: any = await Promise.all(allGMBRequests);
+
+      //Convert crawl result to Lead object
+      let finalResults = crawledGMBresults.map(each => {
+        let lead = new Lead();
+        lead.address = new Address();
+        lead.address.formatted_address = each['address'];
+        lead.address.administrative_area_level_1 = this.getState(each['address'])
+        lead['cid'] = each['cid'];
+        lead.closed = each['closed'];
+        lead.gmbOpen = each['gmbOpen']
+        lead.gmbOwner = each['gmbOwner'];
+        lead.gmbVerified = each['gmbVerified'];
+        lead.gmbWebsite = each['gmbWebsite'];
+        lead.menuUrls = each['menuUrls'];
+        lead.name = each['name'];
+        lead.phones = each['phone'].split();
+        lead['place_id'] = each['place_id'];
+        lead.rating = each['rating'];
+        lead.reservations = each['reservations'];
+        lead.serviceProviders = each['serviceProviders'];
+        lead.totalReviews = each['totalReviews'];
+        return lead;
+      })
+      //console.log('final result', finalResults)
+
+      //retrieve existing lead with the same cids
+      const leads = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'lead',
+        cid: { $in: finalResults.map(each => each.cid) },
+        projection: {
+          _id: 1,
+          name: 1,
+          cid: 1
+        },
+        limit: 10000
+      }).toPromise();
+
+      //creating or updating lead for the cids
+      let newLeads = finalResults.filter(each => !leads.some(lead => lead.cid === each['cid']))
+      let exsitingLeads = finalResults.filter(each => leads.some(lead => lead.cid === each['cid']))
+
+      newLeads.map(each => this.createNewLead(each));
+      exsitingLeads.map(each => this.updateLead(each));
+
+      this.scanModal.hide();
+      this._global.publishAlert(
+        AlertType.Success,
+        "Leads were added"
+      );
+
+
+    }
+    catch (error) {
+      return event.acknowledge("error");
+    }
+
+  }
+
   async scanSubmit(event) {
     console.log('mega', event);
     if (!event.object.keyword) {
       return event.acknowledge("Must input keyword");
     }
     let input = event.object;
+    let zipCodes;
     if (input.keyword && input.zip) {
-
-      let crawledResult;
-      const query = { q: [input.keyword, input.zip].join(" ") };
-      try {
-
-        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-lead", query).toPromise();
-        event.acknowledge(null);
-      }
-      catch (error) {
-        return event.acknowledge("error");
-      }
-      console.log('crawledResult', crawledResult);
-
+      zipCodes = input.zip.split();
     } else if (input.keyword && input.state) {
+      //retrieve restaurants with cids
+      zipCodes = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'zipCodes',
+        query: {
+          "state_code": input.state.join()
+        },
+        projection: {
+          zip_code: 1
+        },
+        limit: 10000
+      }).toPromise();
 
+      zipCodes = zipCodes.map(each => each.zip_code);
+      console.log('zipCodes', zipCodes);
+    }
+
+
+    let batchSize = 100;
+    if (this.DEBUGGING) {
+      batchSize = 2;
+    }
+
+    const batchedZipCodes = Array(Math.ceil(zipCodes.length / batchSize)).fill(0).map((i, index) => zipCodes.slice(index * batchSize, (index + 1) * batchSize));
+    const failedZipCodes = [];
+    const succeededZipCodes = [];
+
+    for (let batch of batchedZipCodes) {
+      try {
+        const results = await this.processLeads(event, batch);
+        succeededZipCodes.push(...batch);
+      } catch (error) {
+        failedZipCodes.push(...batch);
+        console.log(error);
+      }
     }
 
     // let crawledResult;
@@ -870,7 +1075,7 @@ export class LeadDashboardComponent implements OnInit {
     lead.address = lead.address || {} as Address;
 
     this._api
-      .get(environment.adminApiUrl + "utils/ddress", {
+      .get(environment.adminApiUrl + "utils/address", {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(
@@ -1052,31 +1257,5 @@ export class LeadDashboardComponent implements OnInit {
     return this.tzMap[timeZone];
   }
 
-  getTimeZone(formatted_address) {
-    const tzMap = {
-      PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
-      MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
-      CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
-        'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
-      EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
-        'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
-        'NJ', 'DE', 'MD', 'DC', 'RI'],
-      HST: ['HI'],
-      AKDT: ['AK']
-    };
 
-    let matchedTz = '';
-    if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
-      //console.log('address=', address);
-      //console.log(address.match(/\b[A-Z]{2}/)[0]);
-      let state = formatted_address.match(/\b[A-Z]{2}/)[0];
-
-      Object.keys(tzMap).map(tz => {
-        if (tzMap[tz].indexOf(state) > -1) {
-          matchedTz = tz;
-        }
-      });
-    }
-    return matchedTz;
-  }
 }
