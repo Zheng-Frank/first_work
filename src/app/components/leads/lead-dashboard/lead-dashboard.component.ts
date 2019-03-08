@@ -12,6 +12,7 @@ import {
 import { Address } from "@qmenu/ui";
 import { User } from "../../../classes/user";
 import { Helper } from "../../../classes/helper";
+const FOUR_DAYS = 86400000 * 4; // 4 days
 
 @Component({
   selector: "app-lead-dashboard",
@@ -61,6 +62,7 @@ export class LeadDashboardComponent implements OnInit {
 
   searchFilterObj = {};
   filterRating;
+  leadFieldNotToCompare = ["crawledAt", "createdAt", "updatedAt", "rating", "totalReviews", "serviceProviders", "keyword"]
 
   // for editing existing call log
   selectedCallLog;
@@ -529,19 +531,26 @@ export class LeadDashboardComponent implements OnInit {
     return GlobalService.serviceProviderMap[lead.gmbOwner];
   }
 
-  async crawlOneGmb(cid, name) {
+  async crawlOneGmb(cid, name, keyword) {
 
     // parallelly requesting
     try {
-      const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: cid, q: name }).toPromise();
+      let result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: cid, q: name }).toPromise();
+      result.keyword = keyword;
       return result;
     } catch (error) {
       console.log(error);
+      console.log("GMB crawl failed for "+ cid+" "+ name+" "+ keyword);
+      this._global.publishAlert(
+        AlertType.Danger, "GMB crawl failed for "+ cid+" "+ name+" "+ keyword
+      );
     }
   }
 
-  async updateLead(lead) {
-
+  async updateLead(oldLead, newLead) {
+    this.leadFieldNotToCompare.map(each => delete oldLead[each]);
+    this.leadFieldNotToCompare.map(each => delete newLead[each]);
+    this.patchDiff(oldLead, oldLead, false);
   }
 
   async createNewLead(lead) {
@@ -550,6 +559,10 @@ export class LeadDashboardComponent implements OnInit {
       return result;
     } catch (error) {
       console.log(error);
+      console.log("creating lead failed for  "+ lead);
+      this._global.publishAlert(
+        AlertType.Danger, "GMB crawl failed for "+ lead
+      );
     }
 
   }
@@ -622,80 +635,98 @@ export class LeadDashboardComponent implements OnInit {
   async processLeads(event, zipCodes) {
     let input = event.object;
     let keyword = input.keyword;
-    let scanResults;
-    let scanRequests = [];
+    let scanLeadResults;
+    let searchKeyword;
+    let scanLeadRequests = [];
     try {
       // parallelly requesting
-      scanRequests = zipCodes.map(z => {
-        let query = { q: keyword + " " + z };
-        return this.scanbOneLead(query);
-      });
+      searchKeyword =
+        scanLeadRequests = zipCodes.map(z => {
+          let query = { q: keyword + " " + z };
+          return this.scanbOneLead(query);
+        });
 
-      scanResults = await Promise.all(scanRequests);
+      scanLeadResults = await Promise.all(scanLeadRequests);
       //merge the array of array to flatten it.
-      scanResults = [].concat.apply([], scanResults);
-
+      scanLeadResults = [].concat.apply([], scanLeadResults);
       const restaurantCids = this.restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => r.googleListing.cid);
-      //filter out cid in qMenu restaurants before updating or creating lead
-      scanResults = scanResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
-      //crawl GMB info for each cid
-      const allGMBRequests = scanResults.map(each => this.crawlOneGmb(each.cid, each.name));
-      let crawledGMBresults: any = await Promise.all(allGMBRequests);
-
-      //Convert crawl result to Lead object
-      let finalResults = crawledGMBresults.map(each => {
-        let lead = new Lead();
-        lead.address = new Address();
-        lead.address.formatted_address = each['address'];
-        lead.address.administrative_area_level_1 = this.getState(each['address'])
-        lead['cid'] = each['cid'];
-        lead.closed = each['closed'];
-        lead.gmbOpen = each['gmbOpen']
-        lead.gmbOwner = each['gmbOwner'];
-        lead.gmbVerified = each['gmbVerified'];
-        lead.gmbWebsite = each['gmbWebsite'];
-        lead.menuUrls = each['menuUrls'];
-        lead.name = each['name'];
-        lead.phones = each['phone'].split();
-        lead['place_id'] = each['place_id'];
-        lead.rating = each['rating'];
-        lead.reservations = each['reservations'];
-        lead.serviceProviders = each['serviceProviders'];
-        lead.totalReviews = each['totalReviews'];
-        return lead;
-      })
-      //console.log('final result', finalResults)
-
+      //filter out cid already in qMenu restaurants before updating or creating lead
+      scanLeadResults = scanLeadResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
       //retrieve existing lead with the same cids
-      const leads = await this._api.get(environment.adminApiUrl + 'generic', {
+      const existingLeads = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'lead',
-        cid: { $in: finalResults.map(each => each.cid) },
-        projection: {
-          _id: 1,
-          name: 1,
-          cid: 1
+        query: {
+          cid: { $in: scanLeadResults.map(each => each.cid) }
         },
         limit: 10000
       }).toPromise();
-
       //creating or updating lead for the cids
-      let newLeads = finalResults.filter(each => !leads.some(lead => lead.cid === each['cid']))
-      let exsitingLeads = finalResults.filter(each => leads.some(lead => lead.cid === each['cid']))
+      let newLeadsToCreate = scanLeadResults.filter(each => !existingLeads.some(lead => lead.cid === each['cid']))
+      let existingLeadsToUpdate = scanLeadResults.filter(each => existingLeads.some(lead => lead.cid === each['cid']))
+      //skip existing lead crawled within 4 days!;
+      if (existingLeadsToUpdate && existingLeadsToUpdate.length > 0) {
+        existingLeadsToUpdate = existingLeadsToUpdate.filter(b => {
+          for (let i = 0; i < existingLeads.length; i++) {
+            if (existingLeads[i]['cid'] === b.cid) {
+              return !existingLeads[i].crawledAt || new Date().valueOf() - new Date(existingLeads[i].crawledAt).valueOf() > FOUR_DAYS
 
-      newLeads.map(each => this.createNewLead(each));
-      exsitingLeads.map(each => this.updateLead(each));
+            }
+          }
+        })
+      }
+      //crawl GMB info new leads
+      const newLeadsGMBRequests = (newLeadsToCreate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
+      let newLeadsCrawledGMBresults: any = await Promise.all(newLeadsGMBRequests);
+      let newLeadsResults = this.convertToLead(newLeadsCrawledGMBresults);
+      newLeadsResults.map(each => this.createNewLead(each));
+
+      //crawl GMB info existing leads
+      const existingLeadsGMBRequests = (existingLeadsToUpdate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
+      let existingLeadsCrawledGMBresults: any = await Promise.all(existingLeadsGMBRequests);
+      let existingLeadsResults = this.convertToLead(existingLeadsCrawledGMBresults);
+      existingLeadsResults.map(each => this.updateLead(each, existingLeadsToUpdate.filer(e => e.cid === each.cid)[0]));
+
+
+      // //console.log('final result', finalResults)
+      // newLeadsToCreate.map(each =>  newLeadsToCreate.some(n=> n.cid === each.cid) this.createNewLead(each));
+      // existingLeadsToUpdate.map(each => this.updateLead(each));
 
       this.scanModal.hide();
       this._global.publishAlert(
         AlertType.Success,
         "Leads were added"
       );
-
-
     }
     catch (error) {
-      return event.acknowledge("error");
+      return event.acknowledge("Error while create/updade leads for " + JSON.stringify(input));
     }
+
+  }
+
+  convertToLead(input) {
+    return input.map(each => {
+      let lead = new Lead();
+      lead.address = new Address();
+      lead.address.formatted_address = each['address'];
+      lead.address.administrative_area_level_1 = this.getState(each['address'])
+      lead['cid'] = each.cid;
+      lead.closed = each['closed'];
+      lead.gmbOpen = each['gmbOpen']
+      lead.gmbOwner = each['gmbOwner'];
+      lead.gmbVerified = each['gmbVerified'];
+      lead.gmbWebsite = each['gmbWebsite'];
+      lead.menuUrls = each['menuUrls'];
+      lead.name = each['name'];
+      lead.phones = each['phone'].split();
+      lead['place_id'] = each['place_id'];
+      lead.rating = each['rating'];
+      lead.reservations = each['reservations'];
+      lead.serviceProviders = each['serviceProviders'];
+      lead.totalReviews = each['totalReviews'];
+      lead.crawledAt = new Date();
+      lead['keyword']= each.keyword;
+      return lead;
+    })
 
   }
 
@@ -725,8 +756,7 @@ export class LeadDashboardComponent implements OnInit {
       console.log('zipCodes', zipCodes);
     }
 
-
-    let batchSize = 100;
+    let batchSize = 20;
     if (this.DEBUGGING) {
       batchSize = 2;
     }
