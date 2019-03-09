@@ -137,20 +137,29 @@ export class OrderCardComponent implements OnInit {
     return this.phoneNumberToText && this.phoneNumberToText.match(/^[2-9]\d{2}[2-9]\d{2}\d{4}$/);
   }
 
-  sendEmail(){
-    const email = this.restaurant.channels.filter(c => c.type == 'Email' && (c.notifications || []).indexOf('Order') >= 0).map(c => c.value).join(',');
-    this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: email, orderId: this.order.id, orderNumber: this.order.orderNumber})
-    .subscribe(
-        d => {
-          this._global.publishAlert(
-            AlertType.Success,
-            "Email successfully"
-          );
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Failed to send email");
-        }
-      );
+  sendEmail() {
+    const emails = this.restaurant.channels.filter(c => c.type == 'Email' && (c.notifications || []).indexOf('Order') >= 0).map(c => c.value);
+    for (let email of emails) {
+      try {
+        this._api.post(environment.appApiUrl + 'biz/send-order', {}).toPromise();
+        this._global.publishAlert(AlertType.Success, `Sent email to ${email}`);
+      } catch(error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, `Failed sending email to ${email}`);
+      }
+    }
+    // this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: email, orderId: this.order.id, orderNumber: this.order.orderNumber })
+    //   .subscribe(
+    //     d => {
+    //       this._global.publishAlert(
+    //         AlertType.Success,
+    //         "Email successfully"
+    //       );
+    //     },
+    //     error => {
+    //       this._global.publishAlert(AlertType.Danger, "Failed to send email");
+    //     }
+    //   );
   }
 
   confirm() {
