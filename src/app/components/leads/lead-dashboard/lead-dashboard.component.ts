@@ -32,7 +32,7 @@ export class LeadDashboardComponent implements OnInit {
   users: User[];
   restaurants;
   addressApt = null;
-  DEBUGGING = true;
+  DEBUGGING = false;
   editingNewCallLog = false;
   newCallLog = new CallLog();
   selectedLead = new Lead();
@@ -62,7 +62,7 @@ export class LeadDashboardComponent implements OnInit {
 
   searchFilterObj = {};
   filterRating;
-  leadFieldNotToCompare = ["crawledAt", "createdAt", "updatedAt", "rating", "totalReviews", "serviceProviders", "keyword"]
+  leadFieldNotToCompare = ["_id", "crawledAt", "createdAt", "updatedAt", "rating", "totalReviews", "serviceProviders", "keyword"]
 
   // for editing existing call log
   selectedCallLog;
@@ -91,8 +91,8 @@ export class LeadDashboardComponent implements OnInit {
       ]
     },
     {
-      field: "classifications", //
-      label: "Classifications",
+      field: "cuisine", //
+      label: "Cuisine",
       required: false,
       inputType: "single-select",
       items: [
@@ -102,24 +102,28 @@ export class LeadDashboardComponent implements OnInit {
         // 'Hamburgers & Hot Dogs',
         // 'Fast Food Restaurants',
         // 'Breakfast  Brunch & Lunch Restaurants',
+        "Chinese restaurant",
+        "Fast food restaurant",
         "Pizza",
-        "Italian Restaurants",
+        "Pizza restaurant",
+        "Pizza Delivery",
+        "Italian Restaurant",
         // 'Take Out Restaurants',
         // 'Greek Restaurants',
-        "Chinese Restaurants",
-        "Asian Restaurants",
+        "Asian restaurant",
         // 'Coffee & Espresso Restaurants',
         // 'Sandwich Shops',
-        "Sushi Bars",
+        "Sushi Bar",
         // 'Bars',
-        "Japanese Restaurants",
-        "Steak Houses",
-        "Mexican Restaurants",
+        "Japanese restaurant",
+        //"Steak Houses",
+        "Mexican restaurant",
         // 'Latin American Restaurants',
         // 'Chicken Restaurants',
         // 'Bar & Grills',
         // 'Barbecue Restaurants',
-        "Thai Restaurants",
+        "Thai restaurant",
+        "American restaurant",
         // 'Sports Bars',
         // 'Brew Pubs',
         // 'Health Food Restaurants',
@@ -138,20 +142,20 @@ export class LeadDashboardComponent implements OnInit {
         // 'Middle Eastern Restaurants',
         // 'Caribbean Restaurants',
         // 'Continental Restaurants',
-        "Vietnamese Restaurants",
+        "Vietnamese restaurant",
         // 'French Restaurants',
         // 'Indian Restaurants',
         // 'Vegetarian Restaurants',
         // 'Vegan Restaurants',
-        "Korean Restaurants",
+        "Korean restaurant",
         // 'Brazilian Restaurants',
         // 'Wine Bars',
         // 'Cuban Restaurants',
         // 'Peruvian Restaurants',
-        "Spanish Restaurants",
+        "Spanish restaurant",
         // 'Irish Restaurants',
         // 'Pasta',
-        "Mongolian Restaurants"
+        //"Mongolian Restaurants"
         // 'Gay & Lesbian Bars',
         // 'African Restaurants',
         // 'Hawaiian Restaurants',
@@ -221,13 +225,6 @@ export class LeadDashboardComponent implements OnInit {
         { object: "assigned", text: "Assigned", selected: false },
         { object: "not assigned", text: "Not Assigned", selected: false }
       ]
-    },
-    {
-      field: "email", //
-      label: "Email Status",
-      required: false,
-      inputType: "single-select",
-      items: [{ object: "has email", text: "Has Email", selected: false }]
     },
     {
       field: "address.place_id",
@@ -312,10 +309,10 @@ export class LeadDashboardComponent implements OnInit {
     },
     {
       field: "timezone",
-      label: "Timezone (UNDER CONSTRUCTION)",
+      label: "Timezone",
       required: false,
       inputType: "single-select",
-      items: ["East", "Mountain", "West"].map(state => ({
+      items: ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].map(state => ({
         object: state,
         text: state,
         selected: false
@@ -540,17 +537,19 @@ export class LeadDashboardComponent implements OnInit {
       return result;
     } catch (error) {
       console.log(error);
-      console.log("GMB crawl failed for "+ cid+" "+ name+" "+ keyword);
+      console.log("GMB crawl failed for " + cid + " " + name + " " + keyword);
       this._global.publishAlert(
-        AlertType.Danger, "GMB crawl failed for "+ cid+" "+ name+" "+ keyword
+        AlertType.Danger, "GMB crawl failed for " + cid + " " + name + " " + keyword
       );
     }
   }
 
-  async updateLead(oldLead, newLead) {
-    this.leadFieldNotToCompare.map(each => delete oldLead[each]);
-    this.leadFieldNotToCompare.map(each => delete newLead[each]);
-    this.patchDiff(oldLead, oldLead, false);
+  async updateLead(newLead, oldLead) {
+    //delete newLead['_id'];
+    //delete oldLead['_id'];
+    //this.leadFieldNotToCompare.map(each => delete newLead[each]);
+    //this.leadFieldNotToCompare.map(each => delete oldLead[each]);
+    this.patchDiff(oldLead, newLead, false);
   }
 
   async createNewLead(lead) {
@@ -559,9 +558,9 @@ export class LeadDashboardComponent implements OnInit {
       return result;
     } catch (error) {
       console.log(error);
-      console.log("creating lead failed for  "+ lead);
+      console.log("Successfully creating lead failed for  " + lead);
       this._global.publishAlert(
-        AlertType.Danger, "GMB crawl failed for "+ lead
+        AlertType.Danger, "Failed to create lead " + lead
       );
     }
 
@@ -586,6 +585,37 @@ export class LeadDashboardComponent implements OnInit {
         //console.log(address.match(/\b[A-Z]{2}/)[0]);
         let state = addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)[0];
         return state;
+      }
+    }
+    catch (e) {
+      return '';
+    }
+  }
+
+  getCity(formatted_address) {
+    try {
+      let addressArray = formatted_address.split(",");
+      if (addressArray[addressArray.length - 2]) {
+        //console.log('address=', address);
+        //console.log(address.match(/\b[A-Z]{2}/)[0]);
+        let city = addressArray[addressArray.length - 2].trim();
+        return city;
+      }
+    }
+    catch (e) {
+      return '';
+    }
+  }
+
+  getZipcode(formatted_address) {
+    try {
+      let addressArray = formatted_address.split(",");
+      let last
+      if (addressArray[addressArray.length - 1] && addressArray[addressArray.length - 1].match(/\b\d{5}\b/g)) {
+        //console.log('address=', address);
+        //console.log(address.match(/\b[A-Z]{2}/)[0]);
+        let zip = addressArray[addressArray.length - 1].match(/\b\d{5}\b/g)[0].trim();
+        return zip;
       }
     }
     catch (e) {
@@ -652,6 +682,8 @@ export class LeadDashboardComponent implements OnInit {
       const restaurantCids = this.restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => r.googleListing.cid);
       //filter out cid already in qMenu restaurants before updating or creating lead
       scanLeadResults = scanLeadResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
+
+      console.log('scanLeadResults=', scanLeadResults);
       //retrieve existing lead with the same cids
       const existingLeads = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'lead',
@@ -662,7 +694,7 @@ export class LeadDashboardComponent implements OnInit {
       }).toPromise();
       //creating or updating lead for the cids
       let newLeadsToCreate = scanLeadResults.filter(each => !existingLeads.some(lead => lead.cid === each['cid']))
-      let existingLeadsToUpdate = scanLeadResults.filter(each => existingLeads.some(lead => lead.cid === each['cid']))
+      let existingLeadsToUpdate = existingLeads.filter(each => scanLeadResults.some(lead => lead.cid === each['cid']))
       //skip existing lead crawled within 4 days!;
       if (existingLeadsToUpdate && existingLeadsToUpdate.length > 0) {
         existingLeadsToUpdate = existingLeadsToUpdate.filter(b => {
@@ -684,17 +716,12 @@ export class LeadDashboardComponent implements OnInit {
       const existingLeadsGMBRequests = (existingLeadsToUpdate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
       let existingLeadsCrawledGMBresults: any = await Promise.all(existingLeadsGMBRequests);
       let existingLeadsResults = this.convertToLead(existingLeadsCrawledGMBresults);
-      existingLeadsResults.map(each => this.updateLead(each, existingLeadsToUpdate.filer(e => e.cid === each.cid)[0]));
-
-
-      // //console.log('final result', finalResults)
-      // newLeadsToCreate.map(each =>  newLeadsToCreate.some(n=> n.cid === each.cid) this.createNewLead(each));
-      // existingLeadsToUpdate.map(each => this.updateLead(each));
+      existingLeadsResults.map(each => this.updateLead(each, existingLeadsToUpdate.filter(e => e.cid === each.cid)[0]));
 
       this.scanModal.hide();
       this._global.publishAlert(
         AlertType.Success,
-        "Leads were added"
+        newLeadsResults.length + " leads were added, " + existingLeadsResults.length + " leads were updated"
       );
     }
     catch (error) {
@@ -709,6 +736,8 @@ export class LeadDashboardComponent implements OnInit {
       lead.address = new Address();
       lead.address.formatted_address = each['address'];
       lead.address.administrative_area_level_1 = this.getState(each['address'])
+      lead.address.locality = this.getCity(each['address'])
+      lead.address.postal_code = this.getZipcode(each['address'])
       lead['cid'] = each.cid;
       lead.closed = each['closed'];
       lead.gmbOpen = each['gmbOpen']
@@ -724,14 +753,15 @@ export class LeadDashboardComponent implements OnInit {
       lead.serviceProviders = each['serviceProviders'];
       lead.totalReviews = each['totalReviews'];
       lead.crawledAt = new Date();
-      lead['keyword']= each.keyword;
+      lead['keyword'] = each.keyword;
+      lead.cuisine = each.cuisine;
+      lead['timezone'] = this.getTimeZone(each['address'])
       return lead;
     })
 
   }
 
   async scanSubmit(event) {
-    console.log('mega', event);
     if (!event.object.keyword) {
       return event.acknowledge("Must input keyword");
     }
@@ -756,7 +786,7 @@ export class LeadDashboardComponent implements OnInit {
       console.log('zipCodes', zipCodes);
     }
 
-    let batchSize = 20;
+    let batchSize = 5;
     if (this.DEBUGGING) {
       batchSize = 2;
     }
@@ -923,11 +953,6 @@ export class LeadDashboardComponent implements OnInit {
           }
           break;
 
-        case "email":
-          if (filter.value === "has email") {
-            query["email"] = { $ne: "" };
-          }
-          break;
         case "gmbScanned":
           if (filter.value === "scanned") {
             query["gmbScanned"] = true;
