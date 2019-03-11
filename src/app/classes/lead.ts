@@ -12,6 +12,7 @@ export class Lead {
   contacts: string[];
   website: string;
   language: string;
+  cid: string;
 
   classifications: string[];
 

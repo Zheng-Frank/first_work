@@ -738,7 +738,7 @@ export class LeadDashboardComponent implements OnInit {
       lead.address.administrative_area_level_1 = this.getState(each['address'])
       lead.address.locality = this.getCity(each['address'])
       lead.address.postal_code = this.getZipcode(each['address'])
-      lead['cid'] = each.cid;
+      lead.cid = each.cid;
       lead.closed = each['closed'];
       lead.gmbOpen = each['gmbOpen']
       lead.gmbOwner = each['gmbOwner'];
@@ -804,21 +804,6 @@ export class LeadDashboardComponent implements OnInit {
         console.log(error);
       }
     }
-
-    // let crawledResult;
-    // try {
-    //   crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-lead", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
-    // }
-    // catch (error) {
-    //   // try to use only city state and zip code!
-    //   // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
-    //   const addressTokens = this.restaurant.googleAddress.formatted_address.split(", ");
-    //   const q = this.restaurant.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
-    //   try {
-    //     crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
-    //   } catch (error) { }
-    // }
-
   }
 
   formSubmit(event) {
@@ -1181,7 +1166,18 @@ export class LeadDashboardComponent implements OnInit {
     }
   }
 
-  crawlGoogleGmbOnSelected() {
+  async crawlGoogleGmbOnSelected() {
+    // delete the leads which are already in our system.
+    let leadsToDump = this.leads.filter(lead => this.restaurants.some(r => r.googleListing.cid == lead.cid)).map(v => v._id);
+    if (leadsToDump && leadsToDump.length > 0){
+      await this._api.delete(environment.adminApiUrl + 'generic', {
+        resource: 'lead',
+        ids: leadsToDump
+      }).toPromise();
+    }
+    //only crawl the leads not in our system
+    this.leads = this.leads.filter(lead => !this.restaurants.some(r => r.googleListing.cid && r.googleListing.cid === lead.cid))
+
     // this has to be done sequencially otherwise overload the server!
     this.leads.filter(lead => this.selectionSet.has(lead._id)).reduce(
       (p: any, lead) =>
