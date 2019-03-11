@@ -464,7 +464,7 @@ export class LeadDashboardComponent implements OnInit {
         field: "state",
         label: "State",
         required: false,
-        inputType: "multi-select",
+        inputType: "single-select",
         items: [
           "AK",
           "AL",
@@ -774,7 +774,7 @@ export class LeadDashboardComponent implements OnInit {
       zipCodes = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'zipCodes',
         query: {
-          "state_code": input.state.join()
+          "state_code": input.state
         },
         projection: {
           zip_code: 1
@@ -783,7 +783,7 @@ export class LeadDashboardComponent implements OnInit {
       }).toPromise();
 
       zipCodes = zipCodes.map(each => each.zip_code);
-      console.log('zipCodes', zipCodes);
+      //console.log('zipCodes', zipCodes);
     }
 
     let batchSize = 5;
