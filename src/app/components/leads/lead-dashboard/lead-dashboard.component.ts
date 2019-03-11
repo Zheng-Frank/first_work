@@ -12,6 +12,7 @@ import {
 import { Address } from "@qmenu/ui";
 import { User } from "../../../classes/user";
 import { Helper } from "../../../classes/helper";
+const FOUR_DAYS = 86400000 * 4; // 4 days
 
 @Component({
   selector: "app-lead-dashboard",
@@ -20,6 +21,7 @@ import { Helper } from "../../../classes/helper";
 })
 export class LeadDashboardComponent implements OnInit {
   @ViewChild("editingModal") editingModal: ModalComponent;
+  @ViewChild("scanModal") scanModal: ModalComponent;
   @ViewChild("assigneeModal") assigneeModal: ModalComponent;
   @ViewChild("filterModal") filterModal: ModalComponent;
   @ViewChild("viewModal") viewModal: ModalComponent;
@@ -28,7 +30,9 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
 
   users: User[];
+  restaurants;
   addressApt = null;
+  DEBUGGING = false;
   editingNewCallLog = false;
   newCallLog = new CallLog();
   selectedLead = new Lead();
@@ -58,9 +62,22 @@ export class LeadDashboardComponent implements OnInit {
 
   searchFilterObj = {};
   filterRating;
+  leadFieldNotToCompare = ["_id", "crawledAt", "createdAt", "updatedAt", "rating", "totalReviews", "serviceProviders", "keyword"]
 
   // for editing existing call log
   selectedCallLog;
+  tzMap = {
+    PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+    MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+    CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+      'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+    EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+      'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+      'NJ', 'DE', 'MD', 'DC', 'RI'],
+    HST: ['HI'],
+    AKDT: ['AK']
+  };
+
 
   filterFieldDescriptors = [
     {
@@ -74,8 +91,8 @@ export class LeadDashboardComponent implements OnInit {
       ]
     },
     {
-      field: "classifications", //
-      label: "Classifications",
+      field: "cuisine", //
+      label: "Cuisine",
       required: false,
       inputType: "single-select",
       items: [
@@ -85,24 +102,28 @@ export class LeadDashboardComponent implements OnInit {
         // 'Hamburgers & Hot Dogs',
         // 'Fast Food Restaurants',
         // 'Breakfast  Brunch & Lunch Restaurants',
+        "Chinese restaurant",
+        "Fast food restaurant",
         "Pizza",
-        "Italian Restaurants",
+        "Pizza restaurant",
+        "Pizza Delivery",
+        "Italian Restaurant",
         // 'Take Out Restaurants',
         // 'Greek Restaurants',
-        "Chinese Restaurants",
-        "Asian Restaurants",
+        "Asian restaurant",
         // 'Coffee & Espresso Restaurants',
         // 'Sandwich Shops',
-        "Sushi Bars",
+        "Sushi Bar",
         // 'Bars',
-        "Japanese Restaurants",
-        "Steak Houses",
-        "Mexican Restaurants",
+        "Japanese restaurant",
+        //"Steak Houses",
+        "Mexican restaurant",
         // 'Latin American Restaurants',
         // 'Chicken Restaurants',
         // 'Bar & Grills',
         // 'Barbecue Restaurants',
-        "Thai Restaurants",
+        "Thai restaurant",
+        "American restaurant",
         // 'Sports Bars',
         // 'Brew Pubs',
         // 'Health Food Restaurants',
@@ -121,20 +142,20 @@ export class LeadDashboardComponent implements OnInit {
         // 'Middle Eastern Restaurants',
         // 'Caribbean Restaurants',
         // 'Continental Restaurants',
-        "Vietnamese Restaurants",
+        "Vietnamese restaurant",
         // 'French Restaurants',
         // 'Indian Restaurants',
         // 'Vegetarian Restaurants',
         // 'Vegan Restaurants',
-        "Korean Restaurants",
+        "Korean restaurant",
         // 'Brazilian Restaurants',
         // 'Wine Bars',
         // 'Cuban Restaurants',
         // 'Peruvian Restaurants',
-        "Spanish Restaurants",
+        "Spanish restaurant",
         // 'Irish Restaurants',
         // 'Pasta',
-        "Mongolian Restaurants"
+        //"Mongolian Restaurants"
         // 'Gay & Lesbian Bars',
         // 'African Restaurants',
         // 'Hawaiian Restaurants',
@@ -204,13 +225,6 @@ export class LeadDashboardComponent implements OnInit {
         { object: "assigned", text: "Assigned", selected: false },
         { object: "not assigned", text: "Not Assigned", selected: false }
       ]
-    },
-    {
-      field: "email", //
-      label: "Email Status",
-      required: false,
-      inputType: "single-select",
-      items: [{ object: "has email", text: "Has Email", selected: false }]
     },
     {
       field: "address.place_id",
@@ -295,10 +309,10 @@ export class LeadDashboardComponent implements OnInit {
     },
     {
       field: "timezone",
-      label: "Timezone (UNDER CONSTRUCTION)",
+      label: "Timezone",
       required: false,
       inputType: "single-select",
-      items: ["East", "Mountain", "West"].map(state => ({
+      items: ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].map(state => ({
         object: state,
         text: state,
         selected: false
@@ -306,12 +320,22 @@ export class LeadDashboardComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.searchFilters = this._global.storeGet("searchFilters") || [];
     this.searchLeads();
     this.resetRating();
+
+    //retrieve restaurants with cids
+    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        "googleListing.cid": 1
+      },
+      limit: 10000
+    }).toPromise();
 
     // grab all users and make an assignee list!
     // get all users
@@ -321,42 +345,42 @@ export class LeadDashboardComponent implements OnInit {
         limit: 1000
       })
       .subscribe(
-        result => {
-          this.users = result.map(u => new User(u));
+      result => {
+        this.users = result.map(u => new User(u));
 
-          // make form selector here
-          const marketingUsers = result
-            .map(u => new User(u))
-            .filter(u =>
-              (u.roles || []).some(
-                r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
-              )
-            );
-
-          const descriptor = {
-            field: "assignee", // match db naming otherwise would be single instead of plural
-            label: "Assignee",
-            required: false,
-            inputType: "single-select",
-            items: marketingUsers.map(mu => ({
-              object: mu.username,
-              text: mu.username,
-              selected: false
-            }))
-          };
-
-          this.filterFieldDescriptors.splice(8, 0, descriptor);
-
-          const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
-          clonedDescriptor.required = true;
-          this.assigneeFieldDescriptors.push(clonedDescriptor);
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling users from API"
+        // make form selector here
+        const marketingUsers = result
+          .map(u => new User(u))
+          .filter(u =>
+            (u.roles || []).some(
+              r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+            )
           );
-        }
+
+        const descriptor = {
+          field: "assignee", // match db naming otherwise would be single instead of plural
+          label: "Assignee",
+          required: false,
+          inputType: "single-select",
+          items: marketingUsers.map(mu => ({
+            object: mu.username,
+            text: mu.username,
+            selected: false
+          }))
+        };
+
+        this.filterFieldDescriptors.splice(8, 0, descriptor);
+
+        const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
+        clonedDescriptor.required = true;
+        this.assigneeFieldDescriptors.push(clonedDescriptor);
+      },
+      error => {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling users from API"
+        );
+      }
       );
   }
 
@@ -411,8 +435,390 @@ export class LeadDashboardComponent implements OnInit {
     this.editingModal.show();
   }
 
+  scanNew() {
+    this.formFieldDescriptors = [
+      {
+        field: "keyword",
+        label: "Search Keyword",
+        required: true,
+        disabled: false
+      },
+      {
+        field: "zip",
+        label: "Zip Code",
+        required: false,
+        disabled: false
+      },
+      // {
+      //   field: "timezone",
+      //   label: "Timezone",
+      //   required: false,
+      //   inputType: "single-select",
+      //   items: ["PDT", "MDT", "CDT", "EDT"].map(state => ({
+      //     object: this.getStateByZone(state),
+      //     text: state,
+      //     selected: false
+      //   }))
+      // },
+      {
+        field: "state",
+        label: "State",
+        required: false,
+        inputType: "multi-select",
+        items: [
+          "AK",
+          "AL",
+          "AR",
+          "AZ",
+          "CA",
+          "CO",
+          "CT",
+          "DC",
+          "DE",
+          "FL",
+          "GA",
+          "HI",
+          "IA",
+          "ID",
+          "IL",
+          "IN",
+          "KS",
+          "KY",
+          "LA",
+          "MA",
+          "MD",
+          "ME",
+          "MI",
+          "MN",
+          "MO",
+          "MS",
+          "MT",
+          "NC",
+          "ND",
+          "NE",
+          "NH",
+          "NJ",
+          "NM",
+          "NV",
+          "NY",
+          "OH",
+          "OK",
+          "OR",
+          "PA",
+          "RI",
+          "SC",
+          "SD",
+          "TN",
+          "TX",
+          "UT",
+          "VA",
+          "VT",
+          "WA",
+          "WI",
+          "WV",
+          "WY"
+        ].map(state => ({ object: state, text: state, selected: false }))
+      },
+    ];
+
+    this.scanModal.show();
+  }
+
   getLogo(lead) {
     return GlobalService.serviceProviderMap[lead.gmbOwner];
+  }
+
+  async crawlOneGmb(cid, name, keyword) {
+
+    // parallelly requesting
+    try {
+      let result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: cid, q: name }).toPromise();
+      result.keyword = keyword;
+      return result;
+    } catch (error) {
+      console.log(error);
+      console.log("GMB crawl failed for " + cid + " " + name + " " + keyword);
+      this._global.publishAlert(
+        AlertType.Danger, "GMB crawl failed for " + cid + " " + name + " " + keyword
+      );
+    }
+  }
+
+  async updateLead(newLead, oldLead) {
+    //delete newLead['_id'];
+    //delete oldLead['_id'];
+    //this.leadFieldNotToCompare.map(each => delete newLead[each]);
+    //this.leadFieldNotToCompare.map(each => delete oldLead[each]);
+    this.patchDiff(oldLead, newLead, false);
+  }
+
+  async createNewLead(lead) {
+    try {
+      const result = await this._api.post(environment.adminApiUrl + "generic?resource=lead", [lead]).toPromise();
+      return result;
+    } catch (error) {
+      console.log(error);
+      console.log("Successfully creating lead failed for  " + lead);
+      this._global.publishAlert(
+        AlertType.Danger, "Failed to create lead " + lead
+      );
+    }
+
+  }
+
+  // parseAddress(input) {
+  //   //input format "3105 Peachtree Pkwy", " Suwanee", " GA 30024"
+  //   let address = new Address();
+
+  //   let addressInputArray = input.split(",");
+  //   address.formatted_address=input;
+  //   address.
+
+
+  // }
+
+  getState(formatted_address) {
+    try {
+      let addressArray = formatted_address.split(",");
+      if (addressArray[addressArray.length - 1] && addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)) {
+        //console.log('address=', address);
+        //console.log(address.match(/\b[A-Z]{2}/)[0]);
+        let state = addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)[0];
+        return state;
+      }
+    }
+    catch (e) {
+      return '';
+    }
+  }
+
+  getCity(formatted_address) {
+    try {
+      let addressArray = formatted_address.split(",");
+      if (addressArray[addressArray.length - 2]) {
+        //console.log('address=', address);
+        //console.log(address.match(/\b[A-Z]{2}/)[0]);
+        let city = addressArray[addressArray.length - 2].trim();
+        return city;
+      }
+    }
+    catch (e) {
+      return '';
+    }
+  }
+
+  getZipcode(formatted_address) {
+    try {
+      let addressArray = formatted_address.split(",");
+      let last
+      if (addressArray[addressArray.length - 1] && addressArray[addressArray.length - 1].match(/\b\d{5}\b/g)) {
+        //console.log('address=', address);
+        //console.log(address.match(/\b[A-Z]{2}/)[0]);
+        let zip = addressArray[addressArray.length - 1].match(/\b\d{5}\b/g)[0].trim();
+        return zip;
+      }
+    }
+    catch (e) {
+      return '';
+    }
+  }
+
+
+  getTimeZone(formatted_address) {
+    const tzMap = {
+      PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+      MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+      CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+        'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+      EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+        'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+        'NJ', 'DE', 'MD', 'DC', 'RI'],
+      HST: ['HI'],
+      AKDT: ['AK']
+    };
+
+    let matchedTz = '';
+    if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
+      //console.log('address=', address);
+      //console.log(address.match(/\b[A-Z]{2}/)[0]);
+      let state = formatted_address.match(/\b[A-Z]{2}/)[0];
+
+      Object.keys(tzMap).map(tz => {
+        if (tzMap[tz].indexOf(state) > -1) {
+          matchedTz = tz;
+        }
+      });
+    }
+    return matchedTz;
+  }
+
+  async scanbOneLead(query) {
+    try {
+      const result = await this._api.get(environment.adminApiUrl + "utils/scan-lead", query).toPromise();
+      return result;
+    } catch (error) {
+      console.log(error);
+      return;
+    }
+  }
+
+  async processLeads(event, zipCodes) {
+    let input = event.object;
+    let keyword = input.keyword;
+    let scanLeadResults;
+    let searchKeyword;
+    let scanLeadRequests = [];
+    try {
+      // parallelly requesting
+      searchKeyword =
+        scanLeadRequests = zipCodes.map(z => {
+          let query = { q: keyword + " " + z };
+          return this.scanbOneLead(query);
+        });
+
+      scanLeadResults = await Promise.all(scanLeadRequests);
+      //merge the array of array to flatten it.
+      scanLeadResults = [].concat.apply([], scanLeadResults);
+      const restaurantCids = this.restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => r.googleListing.cid);
+      //filter out cid already in qMenu restaurants before updating or creating lead
+      scanLeadResults = scanLeadResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
+
+      console.log('scanLeadResults=', scanLeadResults);
+      //retrieve existing lead with the same cids
+      const existingLeads = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'lead',
+        query: {
+          cid: { $in: scanLeadResults.map(each => each.cid) }
+        },
+        limit: 10000
+      }).toPromise();
+      //creating or updating lead for the cids
+      let newLeadsToCreate = scanLeadResults.filter(each => !existingLeads.some(lead => lead.cid === each['cid']))
+      let existingLeadsToUpdate = existingLeads.filter(each => scanLeadResults.some(lead => lead.cid === each['cid']))
+      //skip existing lead crawled within 4 days!;
+      if (existingLeadsToUpdate && existingLeadsToUpdate.length > 0) {
+        existingLeadsToUpdate = existingLeadsToUpdate.filter(b => {
+          for (let i = 0; i < existingLeads.length; i++) {
+            if (existingLeads[i]['cid'] === b.cid) {
+              return !existingLeads[i].crawledAt || new Date().valueOf() - new Date(existingLeads[i].crawledAt).valueOf() > FOUR_DAYS
+
+            }
+          }
+        })
+      }
+      //crawl GMB info new leads
+      const newLeadsGMBRequests = (newLeadsToCreate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
+      let newLeadsCrawledGMBresults: any = await Promise.all(newLeadsGMBRequests);
+      let newLeadsResults = this.convertToLead(newLeadsCrawledGMBresults);
+      newLeadsResults.map(each => this.createNewLead(each));
+
+      //crawl GMB info existing leads
+      const existingLeadsGMBRequests = (existingLeadsToUpdate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
+      let existingLeadsCrawledGMBresults: any = await Promise.all(existingLeadsGMBRequests);
+      let existingLeadsResults = this.convertToLead(existingLeadsCrawledGMBresults);
+      existingLeadsResults.map(each => this.updateLead(each, existingLeadsToUpdate.filter(e => e.cid === each.cid)[0]));
+
+      this.scanModal.hide();
+      this._global.publishAlert(
+        AlertType.Success,
+        newLeadsResults.length + " leads were added, " + existingLeadsResults.length + " leads were updated"
+      );
+    }
+    catch (error) {
+      return event.acknowledge("Error while create/updade leads for " + JSON.stringify(input));
+    }
+
+  }
+
+  convertToLead(input) {
+    return input.map(each => {
+      let lead = new Lead();
+      lead.address = new Address();
+      lead.address.formatted_address = each['address'];
+      lead.address.administrative_area_level_1 = this.getState(each['address'])
+      lead.address.locality = this.getCity(each['address'])
+      lead.address.postal_code = this.getZipcode(each['address'])
+      lead['cid'] = each.cid;
+      lead.closed = each['closed'];
+      lead.gmbOpen = each['gmbOpen']
+      lead.gmbOwner = each['gmbOwner'];
+      lead.gmbVerified = each['gmbVerified'];
+      lead.gmbWebsite = each['gmbWebsite'];
+      lead.menuUrls = each['menuUrls'];
+      lead.name = each['name'];
+      lead.phones = each['phone'].split();
+      lead['place_id'] = each['place_id'];
+      lead.rating = each['rating'];
+      lead.reservations = each['reservations'];
+      lead.serviceProviders = each['serviceProviders'];
+      lead.totalReviews = each['totalReviews'];
+      lead.crawledAt = new Date();
+      lead['keyword'] = each.keyword;
+      lead.cuisine = each.cuisine;
+      lead['timezone'] = this.getTimeZone(each['address'])
+      return lead;
+    })
+
+  }
+
+  async scanSubmit(event) {
+    if (!event.object.keyword) {
+      return event.acknowledge("Must input keyword");
+    }
+    let input = event.object;
+    let zipCodes;
+    if (input.keyword && input.zip) {
+      zipCodes = input.zip.split();
+    } else if (input.keyword && input.state) {
+      //retrieve restaurants with cids
+      zipCodes = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'zipCodes',
+        query: {
+          "state_code": input.state.join()
+        },
+        projection: {
+          zip_code: 1
+        },
+        limit: 10000
+      }).toPromise();
+
+      zipCodes = zipCodes.map(each => each.zip_code);
+      console.log('zipCodes', zipCodes);
+    }
+
+    let batchSize = 5;
+    if (this.DEBUGGING) {
+      batchSize = 2;
+    }
+
+    const batchedZipCodes = Array(Math.ceil(zipCodes.length / batchSize)).fill(0).map((i, index) => zipCodes.slice(index * batchSize, (index + 1) * batchSize));
+    const failedZipCodes = [];
+    const succeededZipCodes = [];
+
+    for (let batch of batchedZipCodes) {
+      try {
+        const results = await this.processLeads(event, batch);
+        succeededZipCodes.push(...batch);
+      } catch (error) {
+        failedZipCodes.push(...batch);
+        console.log(error);
+      }
+    }
+
+    // let crawledResult;
+    // try {
+    //   crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-lead", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
+    // }
+    // catch (error) {
+    //   // try to use only city state and zip code!
+    //   // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
+    //   const addressTokens = this.restaurant.googleAddress.formatted_address.split(", ");
+    //   const q = this.restaurant.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
+    //   try {
+    //     crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
+    //   } catch (error) { }
+    // }
+
   }
 
   formSubmit(event) {
@@ -428,24 +834,24 @@ export class LeadDashboardComponent implements OnInit {
         this.leadInEditing
       ])
       .subscribe(
-        result => {
-          event.acknowledge(null);
-          // we get ids returned
-          this.leadInEditing._id = result[0];
-          this.leads.push(new Lead(this.leadInEditing));
-          this.editingModal.hide();
-          this._global.publishAlert(
-            AlertType.Success,
-            this.leadInEditing.name + " was added"
-          );
-        },
-        error => {
-          event.acknowledge(error.json() || error);
-        }
+      result => {
+        event.acknowledge(null);
+        // we get ids returned
+        this.leadInEditing._id = result[0];
+        this.leads.push(new Lead(this.leadInEditing));
+        this.editingModal.hide();
+        this._global.publishAlert(
+          AlertType.Success,
+          this.leadInEditing.name + " was added"
+        );
+      },
+      error => {
+        event.acknowledge(error.json() || error);
+      }
       );
   }
 
-  formRemove(event) {}
+  formRemove(event) { }
 
   filter() {
     // reset the searchFilterObj so that the formbuilder has the latest
@@ -547,11 +953,6 @@ export class LeadDashboardComponent implements OnInit {
           }
           break;
 
-        case "email":
-          if (filter.value === "has email") {
-            query["email"] = { $ne: "" };
-          }
-          break;
         case "gmbScanned":
           if (filter.value === "scanned") {
             query["gmbScanned"] = true;
@@ -579,25 +980,25 @@ export class LeadDashboardComponent implements OnInit {
         query: query
       })
       .subscribe(
-        result => {
-          this.leads = result.map(u => new Lead(u));
-          this.sortLeads(this.leads);
-          if (this.leads.length === 0) {
-            this._global.publishAlert(AlertType.Info, "No lead found");
-          }
-          if (acknowledge) {
-            acknowledge(null);
-          }
-        },
-        error => {
-          if (acknowledge) {
-            acknowledge(error.json || error);
-          }
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling leads from API"
-          );
+      result => {
+        this.leads = result.map(u => new Lead(u));
+        this.sortLeads(this.leads);
+        if (this.leads.length === 0) {
+          this._global.publishAlert(AlertType.Info, "No lead found");
         }
+        if (acknowledge) {
+          acknowledge(null);
+        }
+      },
+      error => {
+        if (acknowledge) {
+          acknowledge(error.json || error);
+        }
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Error pulling leads from API"
+        );
+      }
       );
   }
 
@@ -679,42 +1080,42 @@ export class LeadDashboardComponent implements OnInit {
         q: [lead.name, lead.address.formatted_address].filter(i => i).join(" ")
       })
       .subscribe(
-        result => {
-          const gmbInfo = result;
-          const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+      result => {
+        const gmbInfo = result;
+        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
 
-          if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
-            clonedLead.oldName = clonedLead.name;
-          } else {
-            // to make sure carry the name
-            gmbInfo.name = clonedLead.name;
-          }
-
-          // currently we don't want to lose address in original lead
-          if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
-            gmbInfo.address = clonedLead.address;
-          }
-
-          Object.assign(clonedLead, gmbInfo);
-          clonedLead.phones = clonedLead.phones || [];
-          if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
-            clonedLead.phones.push(gmbInfo.phone);
-            delete clonedLead["phone"];
-          }
-          clonedLead.gmbScanned = true;
-          this.patchDiff(lead, clonedLead, true);
-          this.apiRequesting = false;
-          if (resolveCallback) {
-            resolveCallback(result);
-          }
-        },
-        error => {
-          this.apiRequesting = false;
-          this._global.publishAlert(AlertType.Danger, "Failed to crawl");
-          if (rejectCallback) {
-            rejectCallback(error);
-          }
+        if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
+          clonedLead.oldName = clonedLead.name;
+        } else {
+          // to make sure carry the name
+          gmbInfo.name = clonedLead.name;
         }
+
+        // currently we don't want to lose address in original lead
+        if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
+          gmbInfo.address = clonedLead.address;
+        }
+
+        Object.assign(clonedLead, gmbInfo);
+        clonedLead.phones = clonedLead.phones || [];
+        if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
+          clonedLead.phones.push(gmbInfo.phone);
+          delete clonedLead["phone"];
+        }
+        clonedLead.gmbScanned = true;
+        this.patchDiff(lead, clonedLead, true);
+        this.apiRequesting = false;
+        if (resolveCallback) {
+          resolveCallback(result);
+        }
+      },
+      error => {
+        this.apiRequesting = false;
+        this._global.publishAlert(AlertType.Danger, "Failed to crawl");
+        if (rejectCallback) {
+          rejectCallback(error);
+        }
+      }
       );
   }
 
@@ -729,23 +1130,23 @@ export class LeadDashboardComponent implements OnInit {
     lead.address = lead.address || {} as Address;
 
     this._api
-      .get(environment.adminApiUrl + "utils/ddress", {
+      .get(environment.adminApiUrl + "utils/address", {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(
-        result => {
-          const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
-          clonedLead.address = new Address(result);
-          this.patchDiff(lead, clonedLead);
-          this.apiRequesting = false;
-        },
-        error => {
-          this.apiRequesting = false;
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Failed to update Google address. Try crawling Google first."
-          );
-        }
+      result => {
+        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+        clonedLead.address = new Address(result);
+        this.patchDiff(lead, clonedLead);
+        this.apiRequesting = false;
+      },
+      error => {
+        this.apiRequesting = false;
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Failed to update Google address. Try crawling Google first."
+        );
+      }
       );
   }
 
@@ -759,23 +1160,23 @@ export class LeadDashboardComponent implements OnInit {
     } else {
       // api update here...
       this._api
-        .patch(environment.adminApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
+        .patch(environment.adminApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
         .subscribe(
-          result => {
-            if (removeFromSelection) {
-              this.selectionSet.delete(newLead._id);
-            }
-            // let's update original, assuming everything successful
-            Object.assign(originalLead, newLead);
-            this.editingModal.hide();
-            this._global.publishAlert(
-              AlertType.Success,
-              originalLead.name + " was updated"
-            );
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        result => {
+          if (removeFromSelection) {
+            this.selectionSet.delete(newLead._id);
           }
+          // let's update original, assuming everything successful
+          Object.assign(originalLead, newLead);
+          this.editingModal.hide();
+          this._global.publishAlert(
+            AlertType.Success,
+            originalLead.name + " was updated"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
         );
     }
   }
@@ -839,9 +1240,9 @@ export class LeadDashboardComponent implements OnInit {
     if (event.object.assignee) {
       const myusers = this.users
         .filter(
-          u =>
-            u.manager === this._global.user.username ||
-            this._global.user.roles.indexOf("ADMIN") >= 0
+        u =>
+          u.manager === this._global.user.username ||
+          this._global.user.roles.indexOf("ADMIN") >= 0
         )
         .map(u => u.username);
       myusers.push(this._global.user.username);
@@ -875,9 +1276,9 @@ export class LeadDashboardComponent implements OnInit {
   unassignOnSelected() {
     const myusers = this.users
       .filter(
-        u =>
-          u.manager === this._global.user.username ||
-          this._global.user.roles.indexOf("ADMIN") >= 0
+      u =>
+        u.manager === this._global.user.username ||
+        this._global.user.roles.indexOf("ADMIN") >= 0
       )
       .map(u => u.username);
     myusers.push(this._global.user.username);
@@ -907,4 +1308,9 @@ export class LeadDashboardComponent implements OnInit {
     }
     return undefined;
   }
+  getStateByZone(timeZone) {
+    return this.tzMap[timeZone];
+  }
+
+
 }
