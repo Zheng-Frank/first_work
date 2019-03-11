@@ -108,7 +108,7 @@ export class NewRestaurantComponent implements OnInit {
     const existingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
       query: {
-        "channels.value": crawledResult.phone
+        "channels.value": crawledResult.phone || 'non-existing'
       },
       projection: {
         channels: 1,
