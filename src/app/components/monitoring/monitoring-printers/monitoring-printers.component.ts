@@ -135,7 +135,9 @@ export class MonitoringPrintersComponent implements OnInit {
             },
             projection: {
               "logs.data.printers.name": 1,
-              "logs.data.status": 1
+              "logs.data.status": 1,
+              // Leonardo compatible
+              "logs.data.name": 1
             },
             limit: 1
           }).toPromise())[0];
@@ -145,6 +147,20 @@ export class MonitoringPrintersComponent implements OnInit {
             this.busyRows = this.busyRows.filter(r => r !== row);
             return this._global.publishAlert(AlertType.Success, "Success");
           }
+
+          // leonardo compatible
+          if ((job.logs || []).some(log => log.data && log.data.length > 0)) {
+            const printers = job.logs.filter(log => log.data && log.data.length > 0)[0].data.map(p => ({ name: p.name, settings: {} }));
+            await await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [{
+              old: { _id: row._id },
+              new: { _id: row._id, printers: printers }
+            }]).toPromise();
+            await this.reloadRow(row);
+            this.busyRows = this.busyRows.filter(r => r !== row);
+            return this._global.publishAlert(AlertType.Success, "Success");
+          }
+
+
           if ((job.logs || []).some(log => log.data && log.data.status === 'error')) {
             this.busyRows = this.busyRows.filter(r => r !== row);
             return this._global.publishAlert(AlertType.Danger, "Error occured on client's computer.");
