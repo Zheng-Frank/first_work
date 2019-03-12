@@ -725,6 +725,7 @@ export class LeadDashboardComponent implements OnInit {
       );
     }
     catch (error) {
+      //console.log(error);
       return event.acknowledge("Error while create/updade leads for " + JSON.stringify(input));
     }
 
@@ -746,7 +747,7 @@ export class LeadDashboardComponent implements OnInit {
       lead.gmbWebsite = each['gmbWebsite'];
       lead.menuUrls = each['menuUrls'];
       lead.name = each['name'];
-      lead.phones = each['phone'].split();
+      lead.phones = each['phone'] &&  each['phone'].split();
       lead['place_id'] = each['place_id'];
       lead.rating = each['rating'];
       lead.reservations = each['reservations'];
@@ -1169,7 +1170,7 @@ export class LeadDashboardComponent implements OnInit {
   async crawlGoogleGmbOnSelected() {
     // delete the leads which are already in our system.
     let leadsToDump = this.leads.filter(lead => this.restaurants.some(r => r.googleListing.cid == lead.cid)).map(v => v._id);
-    if (leadsToDump && leadsToDump.length > 0){
+    if (leadsToDump && leadsToDump.length > 0) {
       await this._api.delete(environment.adminApiUrl + 'generic', {
         resource: 'lead',
         ids: leadsToDump
