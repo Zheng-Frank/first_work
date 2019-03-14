@@ -112,7 +112,6 @@ export class MonitoringPrintersComponent implements OnInit {
         const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
           name: "send-phoenix",
           params: {
-            printServerEndpoint: environment.printServerEndPoint,
             printClientId: row._id,
             data: {
               "type": "QUERY_PRINTERS",
@@ -271,7 +270,6 @@ export class MonitoringPrintersComponent implements OnInit {
     const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
       name: "send-phoenix",
       params: {
-        printServerEndpoint: environment.printServerEndPoint,
         printClientId: row._id,
         data: {
           "type": "SUSPEND",
@@ -305,7 +303,6 @@ export class MonitoringPrintersComponent implements OnInit {
           const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
             name: "send-phoenix",
             params: {
-              printServerEndpoint: environment.printServerEndPoint,
               printClientId: row._id,
               data: {
                 "type": "PRINT",
@@ -370,7 +367,6 @@ export class MonitoringPrintersComponent implements OnInit {
         await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
           name: "send-phoenix",
           params: {
-            printServerEndpoint: environment.printServerEndPoint,
             printClientId: row._id,
             data: {
               "type": "REPORT",
