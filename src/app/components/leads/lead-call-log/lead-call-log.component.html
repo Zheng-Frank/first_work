@@ -1,7 +1,7 @@
 <ng-container *ngIf="callLog">
   {{callLog.time | date: 'M/dd'}} {{callLog.comments}}
   <span *ngIf="callLog.callbackTime" class="text-info">
-    <i class="fas fa-history"></i> {{callLog.callbackTime}}
+    <i class="fas fa-history"></i> {{callLog.callbackTime | date: 'short'}}
   </span>
   <span *ngFor="let reason of callLog.rejectedReasons || []" class="text-danger">
     {{reason}}&nbsp;

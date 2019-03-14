@@ -12,6 +12,7 @@ export class Lead {
   contacts: string[];
   website: string;
   language: string;
+  cid: string;
 
   classifications: string[];
 
@@ -45,6 +46,7 @@ export class Lead {
 
   createdAt: Date;
   updatedAt: Date;
+  crawledAt: Date;
 
   constructor(resturant?: any) {
     if (resturant) {

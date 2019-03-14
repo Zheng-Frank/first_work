@@ -31,9 +31,17 @@
       </div>
       <div class="form-group">
         <label>Callback Time</label>
+
         <div>
-            <input type="text" class="form-control" placeholder="type callback time" [(ngModel)]="callLog.callbackTime">
+            <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" placeholder="type callback time" [(ngModel)]="callLog.callbackTime">
+            <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
         </div>
+
+
+
+
+
+
       </div>
       <div class="form-group">
         <label for="comments">Extra Comments</label>
