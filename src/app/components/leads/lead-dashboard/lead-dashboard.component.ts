@@ -81,16 +81,6 @@ export class LeadDashboardComponent implements OnInit {
 
   filterFieldDescriptors = [
     {
-      field: "gmbScanned", //
-      label: "Data Scanned",
-      required: false,
-      inputType: "single-select",
-      items: [
-        { object: "scanned", text: "Scanned", selected: false },
-        { object: "not scanned", text: "Not Scanned", selected: false }
-      ]
-    },
-    {
       field: "cuisine", //
       label: "Cuisine",
       required: false,
@@ -192,20 +182,20 @@ export class LeadDashboardComponent implements OnInit {
       inputType: "single-select",
       items: [{ object: "gmb open", text: "Open", selected: false }]
     },
-    {
-      field: "gmbAccountOwner", //
-      label: "qMenu Is GMB Owner",
-      required: false,
-      inputType: "single-select",
-      items: [{ object: "qMenu gmb account", text: "Yes", selected: false }]
-    },
-    {
-      field: "inQmenu", //
-      label: "In qMenu System",
-      required: false,
-      inputType: "single-select",
-      items: [{ object: "in qMenu", text: "Yes", selected: false }]
-    },
+    // {
+    //   field: "gmbAccountOwner", //
+    //   label: "qMenu Is GMB Owner",
+    //   required: false,
+    //   inputType: "single-select",
+    //   items: [{ object: "qMenu gmb account", text: "Yes", selected: false }]
+    // },
+    // {
+    //   field: "inQmenu", //
+    //   label: "In qMenu System",
+    //   required: false,
+    //   inputType: "single-select",
+    //   items: [{ object: "in qMenu", text: "Yes", selected: false }]
+    // },
     {
       field: "closed", //
       label: "Store Status",
@@ -226,16 +216,16 @@ export class LeadDashboardComponent implements OnInit {
         { object: "not assigned", text: "Not Assigned", selected: false }
       ]
     },
-    {
-      field: "address.place_id",
-      label: "Address Resolve",
-      required: false,
-      inputType: "single-select",
-      items: [
-        { object: "address resolved", text: "Resolved", selected: false },
-        { object: "not resolved", text: "Not Resolved", selected: false }
-      ]
-    },
+    // {
+    //   field: "address.place_id",
+    //   label: "Address Resolve",
+    //   required: false,
+    //   inputType: "single-select",
+    //   items: [
+    //     { object: "address resolved", text: "Resolved", selected: false },
+    //     { object: "not resolved", text: "Not Resolved", selected: false }
+    //   ]
+    // },
     {
       field: "address.postal_code",
       label: "Zip Code",
@@ -317,7 +307,17 @@ export class LeadDashboardComponent implements OnInit {
         text: state,
         selected: false
       }))
-    }
+    },
+    {
+      field: "gmbScanned", //
+      label: "Data Scanned",
+      required: false,
+      inputType: "single-select",
+      items: [
+        { object: "scanned", text: "Recently scanned", selected: false },
+        { object: "not scanned", text: "Not recently Scanned", selected: false }
+      ]
+    },
   ];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -962,7 +962,7 @@ export class LeadDashboardComponent implements OnInit {
     this._api
       .get(environment.adminApiUrl + "generic", {
         resource: "lead",
-        limit: 500,
+        limit: 1000,
         query: query
       })
       .subscribe(
@@ -1169,7 +1169,8 @@ export class LeadDashboardComponent implements OnInit {
 
   async crawlGoogleGmbOnSelected() {
     // delete the leads which are already in our system.
-    let leadsToDump = this.leads.filter(lead => this.restaurants.some(r => r.googleListing.cid == lead.cid)).map(v => v._id);
+    console.log(this.restaurants);
+    let leadsToDump = this.leads.filter(lead => this.restaurants.some(r => r.googleListing && r.googleListing.cid && r.googleListing.cid == lead.cid)).map(v => v._id);
     if (leadsToDump && leadsToDump.length > 0) {
       await this._api.delete(environment.adminApiUrl + 'generic', {
         resource: 'lead',
@@ -1177,7 +1178,7 @@ export class LeadDashboardComponent implements OnInit {
       }).toPromise();
     }
     //only crawl the leads not in our system
-    this.leads = this.leads.filter(lead => !this.restaurants.some(r => r.googleListing.cid && r.googleListing.cid === lead.cid))
+    this.leads = this.leads.filter(lead => !this.restaurants.some(r => r.googleListing &&  r.googleListing.cid && r.googleListing.cid === lead.cid))
 
     // this has to be done sequencially otherwise overload the server!
     this.leads.filter(lead => this.selectionSet.has(lead._id)).reduce(
