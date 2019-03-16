@@ -62,7 +62,7 @@ export class GlobalService {
           name: "Logs",
           href: "#/logs",
           fa: "fas fa-history",
-          accessibleRoles: ["ADMIN", "CSR", "ACCOUNTANT"]
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
           name: "Payments",
@@ -86,7 +86,7 @@ export class GlobalService {
           name: "Tasks",
           href: "#/tasks",
           fa: "fas fa-tasks",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
           name: "GMBs",
@@ -201,9 +201,11 @@ export class GlobalService {
     beyondmenu: "beyondmenu.png",
     chownow: "chownow.png",
     chinesemenuonline: "chinesemenuonline.png",
+    chinesemenu: "chinesemenu.png",
     doordash: "doordash.png",
     eat24: "eat24.png",
     eatstreet: "eatstreet.png",
+    facebook: "facebook.png",
     grubhub: "grubhub.png",
     hanyi: "hanyi.png",
     menufy: "menufy.png",
@@ -236,7 +238,8 @@ export class GlobalService {
           "phones.phoneNumber": 1,
           "channels": 1,
           disabled: 1,
-          logs:1,
+          logs: 1,
+          "rateSchedules.agent": 1,
           "googleAddress.formatted_address": 1,
           web: 1
         },
@@ -248,6 +251,25 @@ export class GlobalService {
 
       this._cache.set('restaurants', restaurants, 30 * 60);
       return restaurants;
+    }
+  }
+
+  async getCachedUserList(forceRefresh?: boolean) {
+
+    if (this._cache.get('users') && !forceRefresh) {
+      return this._cache.get('users');
+    } else {
+      const users = await this._api
+        .get(environment.adminApiUrl + "generic", {
+          resource: "user",
+          limit: 1000
+        }).toPromise();
+
+      const userList = users.map(r => new User(r));
+      userList.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
+      this._cache.set('users', userList, 30 * 60);
+
+      return userList;
     }
   }
 }

@@ -24,7 +24,11 @@
 
   <button class="btn btn-info" (click)="filter()">
     <i class="fas fa-filter"></i> Filter</button>
-  <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button>
+  <button class="btn btn-primary" (click)="scanNew()">+ Scan New Lead</button>
+
+  <!-- <button class="btn btn-info" (click)="filter()">
+    <i class="fas fa-filter"></i> Filter</button>
+  <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button> -->
 </div>
 
 <div class="table-responsive">
@@ -53,14 +57,14 @@
           </div>
 
         </th>
+        <th scope="col">Cuisine</th>
+        <th scope="col">Ratings</th>
+        <th scope="col">Reviews</th>
         <th scope="col">Assignee</th>
-        <th scope="col">GMB</th>
+        <!-- <th scope="col">GMB</th> -->
         <th scope="col">Web</th>
-        <th scope="col">Email</th>
-        <th scope="col">Street</th>
-        <th scope="col">City</th>
-        <th scope="col">Zip Code</th>
-        <th scope="col">State</th>
+        <th scope="col">Address</th>
+        <th scipe="col">State</th>
         <th scope="col">Phones</th>
         <th></th>
       </tr>
@@ -78,29 +82,31 @@
           </a>
         </th>
         <td>
-          {{lead.assignee}}
+          {{lead.cuisine}}
         </td>
         <td>
+          {{lead.rating}}
+        </td>
+        <td>
+          {{lead.totalReviews}}
+        </td>
+        <td>
+          {{lead.assignee}}
+        </td>
+        <!-- <td>
           <img *ngIf="lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="lead.gmbAccountOwner" height="16px">
           <span *ngIf="lead.gmbAccountOwner !== 'qmenu'">?</span>
-        </td>
+        </td> -->
         <td class="text-nowrap">
           <i *ngIf="!getLogo(lead) && lead.gmbOwner" class="fas fa-question text-danger"></i>
           <img *ngIf="getLogo(lead)" [attr.src]="'/assets/images/' + getLogo(lead)" [attr.alt]="lead.gmbOwner" height="16px">
           <i class="fas fa-lock-open text-info" *ngIf="lead.gmbOpen"></i>
           <i class="fas fa-globe text-muted" *ngIf="!lead.gmbWebsite && lead.serviceProviders && lead.serviceProviders.length > 0"></i>
         </td>
-        <td>
-          <label title="{{lead.email}}" *ngIf="lead.email">
-            <i class="far fa-envelope"></i>
-          </label>
-        </td>
-        <td class="{{lead.address?.place_id ? 'text-info' : ''}}">{{(lead.address?.street_number || '') + ' ' + lead.address?.route}}
-          <i *ngIf="lead.address?.place_id" class="fas fa-check"></i>
-        </td>
-        <td>{{lead.address?.locality}}</td>
-        <td>{{lead.address?.postal_code}}</td>
+
+        <td>{{lead.address?.formatted_address}}</td>
         <td>{{lead.address?.administrative_area_level_1}}</td>
+
         <td>
           <span *ngFor="let phone of (lead.phones ||[])">{{phone | tel}}&nbsp;&nbsp;</span>
         </td>
@@ -119,7 +125,7 @@
     </tbody>
   </table>
 </div>
-<q-modal [title]="leadInEditing._id ? 'Edit Restaurant Lead: ' + leadInEditing.name : 'Create New Restaurant Lead' " #editingModal>
+<!-- <q-modal [title]="leadInEditing._id ? 'Edit Restaurant Lead: ' + leadInEditing.name : 'Create New Restaurant Lead' " #editingModal>
   <q-form-builder [object]="leadInEditing" [showDelete]="leadInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
     (remove)="formRemove($event)" (cancel)="editingModal.hide()">
     <q-address-picker #myAddressPicker></q-address-picker>
@@ -127,6 +133,12 @@
       <label for="address-apt">Extra (APT, Suite etc.)</label>
       <input type="text" class="form-control" id="address-apt" placeholder="eg. APT 101 or Suite 300" [(ngModel)]="addressApt">
     </div>
+  </q-form-builder>
+</q-modal> -->
+
+<q-modal [title]="'Scan New Restaurant Lead'" #scanModal>
+  <q-form-builder [object]="leadInEditing" [fieldDescriptors]="formFieldDescriptors" (submit)="scanSubmit($event)" (remove)="formRemove($event)"
+    (cancel)="scanModal.hide()">
   </q-form-builder>
 </q-modal>
 

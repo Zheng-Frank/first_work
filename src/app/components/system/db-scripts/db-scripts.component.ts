@@ -226,6 +226,33 @@ export class DbScriptsComponent implements OnInit {
       console.log(patched);
     }
   }
+  async migrateOrdersToNewRestaurant() {
+    const oldRestaurantId = '5a435712293c631400cfc5c1';
+    const newRestaurantId = '5c89998ee7179a3e36e71c80';
+    const startDate = new Date("2019-3-8");
+    const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      query: {
+        restaurant: { $oid: oldRestaurantId },
+        createdAt: { $gt: { $date: startDate } }
+      },
+      projection: {
+        orderNumber: 1,
+        restaurant: 1,
+        restaurantObj: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    // now path those orders's restaurant field
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order',
+      orders.map(order => ({
+        old: { _id: order._id },
+        new: { _id: order._id, restaurant: { $oid: newRestaurantId } },
+      }))
+    ).toPromise();
+    console.log(orders);
+  }
 
 
   migrateAddress() {

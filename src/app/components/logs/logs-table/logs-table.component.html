@@ -29,7 +29,7 @@
         <div class="text-nowrap">{{rl.log.callerPhone | tel}}</div>
       </td>
       <td>{{rl.log.relatedOrders}}</td>
-      <td>{{rl.log.problem}}
+      <td class="wrap">{{rl.log.problem}}
 
         <div *ngIf="rl.log.adjustmentAmount" class="alert alert-info p-0 m-0">
           <strong>Adjustment {{rl.log.adjustmentAmount | currency:'USD':'symbol'}}:</strong>
@@ -38,7 +38,7 @@
 
       </td>
 
-      <td>{{rl.log.response}}</td>
+      <td class="wrap">{{rl.log.response}}</td>
     </tr>
   </tbody>
 </table>

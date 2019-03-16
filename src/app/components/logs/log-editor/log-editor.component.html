@@ -16,11 +16,11 @@
   (cancel)="clickCancel()" (remove)="clickRemove($event)">
 
   <div class="mb-3">
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="id-pin" [checked]="log.type === 'google-pin'" (change)="toggleIsGooglePIN()">
-        <label class="form-check-label" for="id-pin"> Google PIN</label>
-      </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-pin" [checked]="log.type === 'google-pin'" (change)="toggleIsGooglePIN()">
+      <label class="form-check-label" for="id-pin"> Google PIN</label>
     </div>
+  </div>
 
   <div class="mb-3">
     <div class="form-check">
@@ -30,17 +30,20 @@
   </div>
 
   <div class="card border-info mb-3" *qIf="hasAdjustment">
-    <div class="card-header"><i class="fas fa-exclamation"></i> DO NOT ADJUST CUSTOMER AND RESTAURANT AGREED ORDER
-      CHANGES HERE. Only input qMenu and restaurant mutually agreed adjustment here. The adjustment will be included in
-      next invoice
-      cycle.
-      <div><strong>* All fields are required.</strong></div>
+    <div class="card-header">
+      <i class="fas fa-exclamation"></i> DO NOT ADJUST CUSTOMER AND RESTAURANT AGREED ORDER CHANGES HERE. Only input qMenu and restaurant mutually agreed
+      adjustment here. The adjustment will be included in next invoice cycle.
+      <div>
+        <strong>* All fields are required.</strong>
+      </div>
     </div>
     <div class="card-body">
 
       <div class="mb-3">
         <label for="id-amount">Credit to Restaurant($)</label>
-        <div class="text-danger"><small>NOTE: Input a negative number if it is a debit (money deducted from restaurant)</small></div>
+        <div class="text-danger">
+          <small>NOTE: Input a negative number if it is a debit (money deducted from restaurant)</small>
+        </div>
         <input class="form-control" type="number" id="id-amount" [(ngModel)]="log.adjustmentAmount">
       </div>
 
@@ -61,23 +64,32 @@
 
 
   <!-- Create New Task Option -->
-  <div class="mb-3" *ngIf="isNewLog()">
+  <div class="mb-3">
     <div class="form-check">
       <input class="form-check-input" type="checkbox" id="id-task" [(ngModel)]="hasTask" (change)="changeHasTask()">
       <label class="form-check-label" for="id-task"> Delegate to Task</label>
     </div>
   </div>
 
-  <div class="card border-info mb-3" *qIf="hasTask">
-    <div class="card-header my-2"><i class="fas fa-exclamation"></i> Write down any comments in Response field and the
-      text
-      in Reponse field will be copied to task comments.
-      <div><strong>* Select a task template below:</strong></div>
+  <div class="card border-info p-3" *qIf="hasTask">
+    <div class="card-header my-2">
+      <i class="fas fa-exclamation"></i> Write down any comments in Response field and the text in Reponse field will be copied to task comments.
+      <div>
+        <strong>* Select a task template below:</strong>
+      </div>
     </div>
-    <select class="form-control mr-4" [(ngModel)]="selectedTaskTemplate">
+    <select class="form-control mr-4" [(ngModel)]="selectedTaskTemplate" (change)="selectTemplate($event)">
       <option></option>
       <option *ngFor="let t of predefinedTasks" [ngValue]="t">{{t.name}}</option>
     </select>
+
+    <div class="form-group alert alert-warning">
+      <label>Assign to:</label>
+      <select class="form-control mr-4" [(ngModel)]="assignee">
+        <option></option>
+        <option *ngFor="let a of assigneeList" [ngValue]="a.username">{{a.username}}</option>
+      </select>
+    </div>
   </div>
 
   <div class="mb-3" *ngIf="!hasAdjustment && !hasTask">

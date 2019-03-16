@@ -106,6 +106,7 @@ import { RestaurantDeliverySettingsComponent } from './components/restaurants/re
 import { RestaurantWebSettingsComponent } from './components/restaurants/restaurant-web-settings/restaurant-web-settings.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
+import { RestaurantDeliveryClosedHoursComponent } from './components/restaurants/restaurant-delivery-closed-hours/restaurant-delivery-closed-hours.component';
 import { RestaurantClosedHoursComponent } from './components/restaurants/restaurant-closed-hours/restaurant-closed-hours.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
@@ -126,6 +127,7 @@ import { ImageManagerComponent } from './components/utilities/image-manager/imag
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
 import { MonitoringGmbComponent } from './components/monitoring/monitoring-gmb/monitoring-gmb.component';
+import { MonitoringPrintersComponent } from './components/monitoring/monitoring-printers/monitoring-printers.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 
 
@@ -176,6 +178,7 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     PromotionEditorComponent,
     PromotionViewerComponent,
     RestaurantClosedHoursComponent,
+    RestaurantDeliveryClosedHoursComponent,
     RestaurantPromotionsComponent,
     RestaurantProfileComponent,
     MenuComponent,
@@ -242,6 +245,7 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
     TaskBarComponent,
     MonitoringDisabledRestaurantsComponent,
     MonitoringGmbComponent,
+    MonitoringPrintersComponent,
     MonitoringHoursComponent    
   ],
   imports: [

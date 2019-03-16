@@ -1,6 +1,5 @@
 <h1 class="text-center">Logs</h1>
 <div class="text-center text-muted"><small>(For past 7 days or unresolved. To see more logs, visit restaurant details)</small></div>
-<!-- <app-log-editor></app-log-editor> -->
 <div class="clearfix">
     <div class="float-left form-inline">
         Restaurant Filter:
@@ -26,6 +25,6 @@
 
 <!--the editing modal-->
 <q-modal #logEditingModal>
-    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
+    <app-log-editor #myLogEditor  [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
         (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
 </q-modal>

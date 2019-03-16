@@ -4,8 +4,6 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Log } from "../../../classes/log";
-
-
 @Component({
   selector: 'app-logs-dashboard',
   templateUrl: './logs-dashboard.component.html',
@@ -25,6 +23,8 @@ export class LogsDashboardComponent implements OnInit {
   unresolvedOnly = false;
 
   filteredRestaurantLogs = [];
+  assigneeList;
+
 
   logInEditing = new Log();
   logInEditingOriginal;

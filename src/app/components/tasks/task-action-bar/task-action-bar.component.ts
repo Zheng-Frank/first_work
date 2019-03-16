@@ -1,9 +1,12 @@
 import { Component, OnInit, Input, Output, ViewChild, EventEmitter } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
-import { GlobalService } from '../../../services/global.service';
 import { User } from '../../../classes/user';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Action } from '../../../classes/tasks/action';
+import { ApiService } from '../../../services/api.service';
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from '../../../services/global.service';
+import { AlertType } from '../../../classes/alert-type';
 
 
 
@@ -19,16 +22,18 @@ export class TaskActionBarComponent implements OnInit {
   @Output() actionDone = new EventEmitter();
 
   activeAction: Action;
+  assigneeList;
 
-  constructor(private _global: GlobalService) { }
+  constructor(private _global: GlobalService, private _api: ApiService) { }
 
-  ngOnInit() {
-
+  async ngOnInit() {
   }
 
-  act(event) {
+  async act(event) {
     this.activeAction = event;
     this.taskActionerModal.show();
+    //console.log('Act calling');
+    this.assigneeList = await this._global.getCachedUserList();
   }
 
   cancelAction(event) {
@@ -45,6 +50,6 @@ export class TaskActionBarComponent implements OnInit {
     this.activeAction = undefined;
   }
 
-  
+
 
 }

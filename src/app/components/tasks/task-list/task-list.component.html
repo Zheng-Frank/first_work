@@ -36,6 +36,7 @@
 
 <q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
     <tr *tableRowTemplate="let task;">
+        <td>{{filteredTasks.indexOf(task) + 1}}</td>
         <td>
             <div class="badge badge-{{getTaskClass(task)}}" *ngIf="!task.result">{{task.scheduledAt | ago: now}}</div>
 
@@ -75,7 +76,8 @@
         <td>{{getRoles(task)}}</td>
         <td>{{task.assignee}}</td>
         <td>
-            <div class="wrap">{{task.comments}}</div>
+            <!-- <div class="wrap">{{task.comments}}</div> -->
+            <div class="wrap" [innerHTML]="task.comments"> </div>
             <div *ngIf="task.transfer && task.transfer.verificationMethod">
                 {{task.transfer.verificationMethod}}
             </div>

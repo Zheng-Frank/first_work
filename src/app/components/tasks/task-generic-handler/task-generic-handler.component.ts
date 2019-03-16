@@ -8,6 +8,7 @@ import { Log } from '../../../classes/log';
 import { of, Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { AlertType } from '../../../classes/alert-type';
+import { User } from '../../../classes/user';
 
 @Component({
   selector: 'app-task-generic-handler',
@@ -18,6 +19,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
 
   @Input() task: Task;
   @Input() action: Action;
+  @Input() assigneeList = [];
 
   @Output() cancel = new EventEmitter();
   @Output() done = new EventEmitter();
@@ -38,6 +40,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+
   }
 
   ngOnChanges(simpleChanges) {
@@ -96,6 +99,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
             break;
           case "Update":
             paramsObj.scheduledAt = { $date: this.taskCopy.scheduledAt };
+            paramsObj.assignee = this.taskCopy.assignee;
             break;
           case "Close":
             if (!this.taskCopy.result) {

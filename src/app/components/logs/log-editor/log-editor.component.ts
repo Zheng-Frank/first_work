@@ -1,6 +1,5 @@
 import { Component, OnInit, EventEmitter, Output, Input, ViewChild, SimpleChanges } from '@angular/core';
 import { FormEvent } from '../../../classes/form-event';
-
 import { Restaurant } from '@qmenu/ui';
 import { Log } from '../../../classes/log';
 import { ApiService } from "../../../services/api.service";
@@ -8,7 +7,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Task } from 'src/app/classes/tasks/task';
-
+import { User } from '../../../classes/user';
 @Component({
   selector: 'app-log-editor',
   templateUrl: './log-editor.component.html',
@@ -26,12 +25,15 @@ export class LogEditorComponent implements OnInit {
   hasAdjustment;
   hasTask;
   selectedTaskTemplate;
+  scheduledAt;
+  assignee;
   predefinedTasks = Task.predefinedTasks;
 
   @ViewChild('myRestaurantPicker') set picker(picker) {
     this.myRestaurantPicker = picker;
   }
   myRestaurantPicker;
+  assigneeList;
 
   logFieldDescriptors = [
     {
@@ -89,7 +91,14 @@ export class LogEditorComponent implements OnInit {
     }
   }
 
-  changeHasTask() {
+  selectTemplate(event) {
+    if (this.selectedTaskTemplate) {
+      this.assignee = this.selectedTaskTemplate['assignee'];      
+    }
+  }
+
+  async changeHasTask() {
+    this.assigneeList = await this._global.getCachedUserList();
   }
 
   reset() {
@@ -129,17 +138,26 @@ export class LogEditorComponent implements OnInit {
       event.acknowledge('Please input adjustment reason.');
     } else {
       if (this.hasTask) {
+        if(!this.assignee){
+          event.acknowledge('Please select assignee.');
+        }
         // create a task!
         if (!this.selectedTaskTemplate) {
           return event.acknowledge('Please choose a task template');
         } else {
-          const task = {
-            comments: 'Restaurant: ' + this.restaurant.name + ', ' + this.restaurant._id + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
+          let task = {
+            
+            comments: '<a target="_blank" href="#/restaurants/'+this.restaurant._id+'">'+this.restaurant.name+'</a>' + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
+            scheduledAt: this.scheduledAt || new Date(),
+            creator: this._global.user.username,
             relatedMap: {
               restaurantId: this.restaurant._id
             }
           };
           Object.assign(task, this.selectedTaskTemplate);
+          if (this.assignee) {
+            task['assignee'] = this.assignee;
+          }
           await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
           // make it resolved because task will track its progress
           this.log.resolved = true;
@@ -164,10 +182,14 @@ export class LogEditorComponent implements OnInit {
     return !this.log.username && !this.log.time;
   }
 
+  isAdmin() {
+    return this._global.user.roles.some(r => r === 'ADMIN');
+  }
+
   toggleIsCollection() {
     this.log.type === 'collection' ? this.log.type = undefined : this.log.type = 'collection';
   }
-  toggleIsGooglePIN(){
+  toggleIsGooglePIN() {
     this.log.type === 'google-pin' ? this.log.type = undefined : this.log.type = 'google-pin';
   }
 

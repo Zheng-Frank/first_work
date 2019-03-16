@@ -61,11 +61,11 @@
                 </ng-container>
             </div>
         </div>
-        <div *ngIf="'Open' === activeTabValue">
-            <app-task-list [taskList]="myOpenTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
-        </div>
         <div *ngIf="'Due' === activeTabValue">
             <app-task-list [taskList]="myDueTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+        </div>
+        <div *ngIf="'Open' === activeTabValue">
+            <app-task-list [taskList]="myOpenTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
         </div>
         <div *ngIf="'Mine' === activeTabValue">
             <app-task-list [taskList]="myAssignedTasks" [user]="user" (actionDone)="updateTask($event)"></app-task-list>

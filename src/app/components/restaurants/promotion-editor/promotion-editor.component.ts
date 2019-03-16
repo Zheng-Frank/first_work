@@ -71,7 +71,11 @@ export class PromotionEditorComponent implements OnInit {
     this.promotion.percentage = Math.abs(+this.promotion.percentage || 0);
     this.promotion.orderMinimum = Math.abs(+this.promotion.orderMinimum || 0);
     if (!this.promotion.expiry) {
-      this.promotion.expiry = new Date(this.promotion.expiry);
+      if (typeof this.promotion.expiry === 'string') {
+        this.promotion.expiry = new Date(this.promotion.expiry);
+        // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
+        this.promotion.expiry.setMinutes(this.promotion.expiry.getMinutes() + new Date().getTimezoneOffset());
+      }
       // making it expire at next month
       //this.promotion.expiry.setMonth(this.promotion.expiry.getMonth() + 1);
     }

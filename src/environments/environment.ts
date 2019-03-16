@@ -1,22 +1,22 @@
 export const environment = {
   production: false,
   env: "dev",
+  appApiUrl: "https://9v8upsmsai.execute-api.us-east-1.amazonaws.com/dev/",
   adminApiUrl: 'https://swozix2epl.execute-api.us-east-2.amazonaws.com/dev/',
   qmenuApiUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
-  // legacyApiUrl: "http://localhost:1337/",
-  // autoGmbUrl: "http://localhost:3000/",
-  // socketUrl: "http://localhost:1337/",
-  legacyApiUrl: "https://quez.herokuapp.com/",
+  // legacyApiUrl: "https://quez.herokuapp.com/",
+  legacyApiUrl: "http://localhost:1337/",
   autoGmbUrl: "http://localhost:3000/",
   socketUrl: "https://quez.herokuapp.com:443/",
-
   bizUrl: 'https://qa-biz.herokuapp.com/',
   customerUrl: 'https://qa-customer.herokuapp.com/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
   stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg',
+  testOrderId: "5af213f552d5d11400e35550"
   // production: true,
   // env: "prod",
+  // appApiUrl: "https://9v8upsmsai.execute-api.us-east-1.amazonaws.com/prod/",
   // adminApiUrl: "https://swozix2epl.execute-api.us-east-2.amazonaws.com/prod/",
   // qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/prod/",
   // legacyApiUrl: "https://api.myqmenu.com/",
@@ -27,4 +27,5 @@ export const environment = {
   // thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   // normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
   // stripePublishableKey: 'pk_live_uSs2MVVyG0vn6TICsTIyXG6Y',
+  // testOrderId: "5c720fd092edbd4b28883ee1"
 };

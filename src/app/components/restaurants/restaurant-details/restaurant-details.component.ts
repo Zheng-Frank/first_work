@@ -15,6 +15,7 @@ declare var $: any;
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   restaurant: Restaurant;
   displayTextReply = false;
+  displayGooglePIN = false;
   phoneNumber;
   message = '';
   textedPhoneNumber;
@@ -138,6 +139,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           disableScheduling: 1,
           templateName: 1,
           closedHours: 1,
+          deliveryClosedHours:1,
           skipOrderConfirmation: 1,
           disabled: 1,
           googleListing: 1,
@@ -229,6 +231,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.displayTextReply = !this.displayTextReply;
     // focus on the phone number!
     setTimeout(() => { $('#profile-phone-number').focus(); }, 500);
+  }
+
+  toggleGooglePIN() {
+    this.displayGooglePIN = !this.displayGooglePIN;
   }
 
 

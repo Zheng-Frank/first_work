@@ -1,0 +1,54 @@
+<div class="card mb-2">
+    <h3 class="card-title text-center pt-4 pb-2">
+        <span class="fa-stack fa-lg">
+          <i class="far fa fa-car fa-stack-1x"></i>
+          <i class="fa fa-ban fa-stack-2x text-danger"></i>
+        </span>
+        Delivery Closed Time
+      </h3>
+  <div class="text-muted text-center text-xs-center">
+    <small>Define time slots when the delivery is closed.</small>
+  </div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <table class="app-table w-100">
+        <tr *ngFor="let hour of (restaurant.deliveryClosedHours || [])">
+          <td>
+            <div class="text-nowrap">
+              <strong>
+                {{hour.fromTime | MMMd : restaurant.offsetToEST}} {{hour.fromTime | shortTime : restaurant.offsetToEST}} - {{hour.toTime
+                | MMMd : restaurant.offsetToEST}} {{hour.toTime | shortTime : restaurant.offsetToEST}}</strong>
+            </div>
+            <div *ngIf="hour.comment">{{hour.comment}}</div>
+          </td>
+          <td scope="row" *ngIf="editing" class="text-xs-right" (click)="remove(hour)">
+            <i class="text-danger fa fa-remove" role="button"> Delete</i>
+          </td>
+        </tr>
+      </table>
+      <div *qIf="editing">
+        <div class="jumbotron app-jumbo">
+          <h5 class="text-xs-center">Add New Delivery Closed Time</h5>
+          <app-hour-picker-simple [hour]="hourInEditing"></app-hour-picker-simple>
+          <div>
+            <label class="m-t-1">Extra Comments:</label>
+            <input [(ngModel)]="hourInEditing.comment" type="text" class="form-control" placeholder="such as holidy" autofocus>
+            <div *ngIf="getError()" class="text-danger">
+              <small>{{getError()}}</small>
+            </div>
+            <div class="m-t-1">
+              <button class="btn btn-block btn-primary" (click)="addClosedHour()" [disabled]="getError()">Add</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div style="position:relative">
+        &nbsp;
+        <div class="app-card-edit">
+          <a (click)="toggleEditing()" role="button">{{editing? 'Done editing' : 'Edit'}}</a>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>

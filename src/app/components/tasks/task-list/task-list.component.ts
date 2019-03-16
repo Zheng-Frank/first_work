@@ -21,6 +21,9 @@ export class TaskListComponent implements OnInit, OnChanges {
   ownerList = [];
   myColumnDescriptors = [
     {
+      label: 'Number'
+    },
+    {
       label: "Scheduled At",
       paths: ['scheduledAt'],
       sort: (a, b) => a.valueOf() - b.valueOf()
@@ -32,7 +35,7 @@ export class TaskListComponent implements OnInit, OnChanges {
     // },
     {
       label: "Task",
-      paths: ['name'],
+      paths: ['description','name'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
