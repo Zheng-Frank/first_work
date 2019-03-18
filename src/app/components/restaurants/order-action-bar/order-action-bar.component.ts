@@ -78,10 +78,6 @@ export class OrderActionBarComponent {
   }
 
   setStatus(status: string) {
-    this.onSetNewStatus.emit(
-      {
-        order: this.order,
-        status: status
-      });
+    this.onSetNewStatus.emit({ order: this.order, status: {status: status} });
   }
 }

@@ -37,11 +37,9 @@ export class RestaurantOrdersComponent implements OnInit {
   payment = {};
   orderForModal: Order = null;
   now: Date = new Date();
-  private socket: any;
   orderEvent: any;
 
   constructor(private _api: ApiService, private _ngZone: NgZone) {
-    this.socket = io(environment.socketUrl);
   }
 
   ngOnInit() {
@@ -50,7 +48,6 @@ export class RestaurantOrdersComponent implements OnInit {
     );
 
     this.populateOrders();
-    this.setSocket(this.restaurant);
   }
 
 
@@ -59,35 +56,7 @@ export class RestaurantOrdersComponent implements OnInit {
     $('#order-notifier').show(1000); setTimeout(() => { $('#order-notifier').hide(1000); }, 10000);
   }
 
-  setSocket(restaurant: Restaurant) {
-    // remove socket listening if there is any
-    if (this.restaurant) {
-      this.socket.removeAllListeners(this.restaurant['_id']);
-    }
 
-    let self = this;
-    // subscribe to event if the new customer has id
-    if (restaurant) {
-      this.socket.on(restaurant['_id'], (data) => {
-        self._ngZone.run(() => {
-          switch (data.action) {
-            case 'ORDER_STATUS':
-              data.orderStatus.createdAt = new Date(Date.parse(data.orderStatus.createdAt));
-              this.attachNewOrderStatus(data.orderStatus);
-              break;
-            case 'ORDER_NEW':
-              // we should do minimal refresh in future here
-              //this.refreshAllOrders(restaurant.id);
-              this.onNewOrderReceived.emit(data);
-              break;
-
-            default: break;
-          }
-        });
-
-      });
-    }
-  }
 
   attachNewOrderStatus(orderStatus) {
     // find the order and attach to status
@@ -139,52 +108,43 @@ export class RestaurantOrdersComponent implements OnInit {
       limit: 100
     }).toPromise();
 
-    // pull customer, orderStatus
-    const customerIds = orders.map(o => o.customer);
-    const promises = [
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: 'customer',
-        query: {
-          _id: { $in: customerIds.map(customerId => ({ $oid: customerId })) }
-        },
-        limit: 6000
-      }).toPromise(),
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: 'orderstatus',
-        query: {
-          order: { $in: orders.map(order => ({ $oid: order._id })) }
-        },
-        limit: 6000
-      }).toPromise()
-    ];
-
-    const results = await Promise.all(promises);
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.customer = results[0].filter(c => c._id === order.customer)[0];
+      order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = results[1].filter(os => os.order === order._id);
+      order.orderStatuses = order.statuses;
       order.id = order._id;
       return new Order(order);
     });
   }
 
   async handleOnSetNewStatus(data) {
-    let os: any = {};
-    os.order = data.order.id;
-    os.status = data.status;
-    os.comments = data.comments;
-    os.updatedBy = 'BY_RESTAURANT';
 
+    console.log(data)
+    let os: any = {
+      order: data.order.id,
+      ...data.status,
+      updatedBy: 'BY_CSR',
+      createdAt: new Date()
+    };
 
-    await this._api.post(environment.legacyApiUrl + "orderStatus", os).toPromise();
-
-    // let's fake putting the status to the order, db posting was slow to response and will result duplicated status
-    os.createdAt = new Date();
-    data.order.orderStatuses.push(os);
-
-    // let's hide any modal possible
+    // // let's hide any modal possible
     this.rejectModal.hide();
+
+    return this._api.patch(environment.appApiUrl + 'biz', {
+      resource: 'order',
+      query: { _id: { $oid: data.order.id } },
+      op: '$push',
+      field: 'statuses',
+      value: os
+    }).subscribe(
+      result => {
+        data.order.orderStatuses.push(os);
+      },
+      error => {
+        alert('Update order status failed');
+      }
+    );
   }
 
   handleOnDisplayCreditCard(order) {
@@ -268,18 +228,37 @@ export class RestaurantOrdersComponent implements OnInit {
     }
   }
 
-  submitAdjustment(adjustment) {
+  async rejectOrder(event) {
+    const order = event.order;
+    try {
+      await this._api.post(environment.appApiUrl + 'biz/orders/cancelation', {
+        orderId: event.order.id,
+        comments: event.comments
+      }).toPromise();
+      (order.orderStatuses || []).push({
+        status: 'CANCELED',
+        comments: event.comments,
+        createdAt: new Date()
+      });
+      this.rejectModal.hide();
+    } catch (error) {
+      alert('Error on cancelation: ' + JSON.stringify(error));
+    }
+  }
+
+  async submitAdjustment(adjustment) {
     this.adjustModal.hide();
 
+    console.log(adjustment);
     adjustment['orderId'] = this.orderForModal.id;
 
-    this._api.post(environment.legacyApiUrl + "order/adjust", adjustment)
-      .subscribe(
-        resultedOrder => {
-          this.orderForModal.tip = resultedOrder.tip;
-          this.orderForModal.orderItems = resultedOrder.orderItems.map(oi => new OrderItem(oi));
-        },
-        error => { console.log(error); alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.'); }
-      );
+    try {
+      await this._api.post(environment.appApiUrl + 'biz/orders/adjustment', adjustment).toPromise();
+      // lazy, just reload all
+      this.populateOrders();
+    } catch (error) {
+      console.log(error);
+      alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.');
+    }
   }
 }

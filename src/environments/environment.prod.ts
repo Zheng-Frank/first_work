@@ -6,7 +6,6 @@ export const environment = {
   qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/prod/",
   legacyApiUrl: "https://api.myqmenu.com/",
   autoGmbUrl: "http://localhost:3000/",
-  socketUrl: 'https://api.myqmenu.com/',
   bizUrl: 'https://biz.qmenu.us/',
   customerUrl: 'https://qmenu.us/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',

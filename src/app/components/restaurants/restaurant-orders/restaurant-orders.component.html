@@ -66,7 +66,7 @@
         </button>
         <h4 class="text-center">Reject Order</h4>
         <hr>
-        <app-order-reject-bar [order]="orderForModal" (onSetNewStatus)="handleOnSetNewStatus($event)">
+        <app-order-reject-bar [order]="orderForModal" (onReject)="rejectOrder($event)">
         </app-order-reject-bar>
     </q-modal>
 

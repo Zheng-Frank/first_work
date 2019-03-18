@@ -1,139 +1,33 @@
 <div class="card mb-2">
-  <h3 class="card-title text-center pt-4 pb-2">
-    <i class="far fa fa-print"></i> Cloud Printing Settings</h3>
-  <ul class="list-group list-group-flush">
-    <li class="list-group-item">
-      <!--displaying-->
-      <div *qIf="!editing">
-        <table class="app-table w-100">
-          <tr>
-            <th class="text-xs-right">Auto Print Order</th>
-            <td class="p-l-1">
-              {{restaurant.autoPrintOnNewOrder? 'Yes': 'No'}}
-            </td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">Auto Print Copies</th>
-            <td class="p-l-1">
-              {{restaurant.printCopies || 1}}
-            </td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">Auto Print Program</th>
-            <td class="p-l-1">
-              {{restaurant.autoPrintVersion || 'Not Set'}}
-            </td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">Default Printer</th>
-            <td class="p-l-1">{{getDefaultPrinterName()}}</td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">Customized Styles</th>
-            <td class="p-l-1">{{restaurant.customizedRenderingStyles}}</td>
-          </tr>
+  <h3 class="card-title text-center pt-4 pb-2"><i class="fa fa-print"></i> Cloud Printing Settings</h3>
+  <div class="text-center">Use Monitoring -> Cloud Printers to Make Changes</div>
 
-          <tr>
-            <th class="text-xs-right">FeiE Printer SN</th>
-            <td class="p-l-1">{{restaurant.printerSN}}</td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">FeiE Printer Key</th>
-            <td class="p-l-1">{{restaurant.printerKey}}</td>
-          </tr>
-        </table>
-      </div>
+  <div class="card-block">
 
-      <!--editing-->
-      <div *qIf="editing">
-        <table class="w-100">
-          <tr>
-            <th class="text-xs-right">Auto Print Order</th>
-            <td class="p-l-1">
-              <label class="switch">
-                <input type="checkbox" (click)="switchAutoPrint()" [checked]="restaurant.autoPrintOnNewOrder">
-                <div class="slider round"></div>
-              </label>
-            </td>
-          </tr>
-
-          <tr>
-            <th class="text-xs-right">Auto Print Copies</th>
-            <td class="p-l-1">
-              <select [(ngModel)]="restaurant.printCopies" class="form-control">
-                <option *ngFor="let value of [1, 2, 3, 4]" [value]="value">{{value}}</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">Auto Print Program</th>
-            <td class="p-l-1">
-              <select [(ngModel)]="restaurant.autoPrintVersion" class="form-control">
-                <option *ngFor="let value of ['', 'Legacy', 'Longhorn']" [value]="value">{{value}}</option>
-              </select>
-              <div class="text-danger">
-                <small>
-                  <i class="fa fa-warning"></i> If changed, SAVE (click OK) FIRST and then come back to refresh printer list</small>
-              </div>
-            </td>
-          </tr>
-
-          <tr>
-            <th class="text-xs-right">Default Printer</th>
-            <td class="p-l-1 p-t-1 p-b-1">
-
-              <select [(ngModel)]="defaultPrinter" class="form-control">
-                <option *ngFor="let printer of printers" [ngValue]="printer">{{printer.name}}</option>
-              </select>
-              <div *ngIf="printers.length <= 1">
-                <small>Click refresh to list all printers</small>
-              </div>
-              <div *ngIf="printers.length > 1" class="text-success">
-                <small>Select default printer from the list</small>
-              </div>
-              <div class="text-xs-right p-t-05">
-                <button class="btn btn-default fa fa-refresh" (click)="queryPrinters()"> Refresh</button>
-              </div>
-              <div *ngIf="queryPrintersError" class="text-danger">
-                <small>{{queryPrintersError}}</small>
-              </div>
-
-            </td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">FeiE Printer SN</th>
-            <td class="p-l-1">
-              <input type="text" [(ngModel)]="restaurant.printerSN" class="form-control">
-            </td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">FeiE Printer Key</th>
-            <td class="p-l-1">
-              <input type="text" [(ngModel)]="restaurant.printerKey" class="form-control">
-            </td>
-          </tr>
-          <tr>
-            <th class="text-xs-right">Customized Styles</th>
-            <td class="p-l-1">
-              <textarea [(ngModel)]="restaurant.customizedRenderingStyles" class="form-control" rows="4"></textarea>
-            </td>
-          </tr>
-        </table>
-        <hr>
-        <div class="text-xs-right">
-
-          <button class="btn btn-secondary" (click)="toggleEditing()">Cancel</button>
-          <button class="btn btn-primary" (click)="update()">&nbsp;&nbsp;OK&nbsp;&nbsp;</button>
-        </div>
-      </div>
-
-      <div style="position:relative" *ngIf="!editing">
-        &nbsp;
-        <div class="app-card-edit">
-          <a (click)="printLastOrder()" role="button">Print Last Order</a> |
-          <a (click)="toggleEditing()" role="button">Edit</a>
-        </div>
-      </div>
-    </li>
-  </ul>
-</div>
+    <table class="app-table w-100">
+      <thead>
+        <tr>
+          <th class="text-center">Type</th>
+          <th class="text-center">Printer Name</th>
+          <th class="text-center">Copies</th>
+          <!-- <th class="text-center">Status</th> -->
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of getPrinters()">
+          <td class="text-center text-nowrap">
+            {{p.type}}
+          </td>
+          <td class="text-center text-nowrap">
+            {{p.name}}<span *ngIf="p.key">/{{p.key}}</span>
+          </td>
+          <td class="text-center text-nowrap">
+            {{p.autoPrintCopies}}
+          </td>
+          <!-- <td class="text-center text-nowrap">
+            {{p.status}}
+          </td> -->
+        </tr>
+      </tbody>
+    </table>
+  </div>

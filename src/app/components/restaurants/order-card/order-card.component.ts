@@ -118,73 +118,80 @@ export class OrderCardComponent implements OnInit {
     this.showTexting = !this.showTexting;
   }
 
-  sendText() {
-    this._api.post(environment.legacyApiUrl + 'utilities/sendOrderSMS', { orderId: this.order.id, orderNumber: this.order.orderNumber, phones: this.phoneNumberToText.split() })
-      .subscribe(
-        d => {
-          this._global.publishAlert(
-            AlertType.Success,
-            "SMS successfully"
-          );
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Failed to send text");
-        }
-      );
+  async sendText() {
+
+    try {
+      await this._api.post(environment.appApiUrl + 'biz/orders/send', {
+        orderId: this.order.id, type: 'sms', to: this.phoneNumberToText
+      }).toPromise();
+      this._global.publishAlert(AlertType.Success, `Sent SMS to ${this.phoneNumberToText}`);
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, `Failed sending SMS to ${this.phoneNumberToText}`);
+    }
   }
 
   isPhoneValid() {
     return this.phoneNumberToText && this.phoneNumberToText.match(/^[2-9]\d{2}[2-9]\d{2}\d{4}$/);
   }
 
-  sendEmail() {
+  async sendEmail() {
     const emails = this.restaurant.channels.filter(c => c.type == 'Email' && (c.notifications || []).indexOf('Order') >= 0).map(c => c.value);
     for (let email of emails) {
       try {
-        this._api.post(environment.appApiUrl + 'biz/send-order', {}).toPromise();
+        await this._api.post(environment.appApiUrl + 'biz/orders/send', {
+          orderId: this.order.id, type: 'email', to: email
+        }).toPromise();
         this._global.publishAlert(AlertType.Success, `Sent email to ${email}`);
-      } catch(error) {
+      } catch (error) {
         console.log(error);
         this._global.publishAlert(AlertType.Danger, `Failed sending email to ${email}`);
       }
     }
-    // this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { restaurantEmail: email, orderId: this.order.id, orderNumber: this.order.orderNumber })
-    //   .subscribe(
-    //     d => {
-    //       this._global.publishAlert(
-    //         AlertType.Success,
-    //         "Email successfully"
-    //       );
-    //     },
-    //     error => {
-    //       this._global.publishAlert(AlertType.Danger, "Failed to send email");
-    //     }
-    //   );
+
   }
 
-  confirm() {
+  async confirm() {
     switch (this.confirmAction) {
       case 'PRINT':
-        this._api.post(environment.legacyApiUrl + 'order/printOrderDetailsByOrderId', { orderId: this.order.id })
-          .subscribe(
-            d => {
-              //console.log(d);
-            },
-            error => {
-              this._global.publishAlert(AlertType.Danger, "Failed to Print");
+        const printClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'print-client',
+          query: {
+            "restaurant._id": this.restaurant._id
+          },
+          limit: 100
+        }).toPromise();
+        for (let pc of printClients) {
+          for (let printer of pc.printers || []) {
+            if (printer.autoPrintCopies > 0) {
+              try {
+                await this._api.post(environment.appApiUrl + 'biz/orders/send', {
+                  orderId: this.order.id, type: pc.type, to: printer.name, key: printer.key, orderNumber: this.order.orderNumber
+                }).toPromise();
+                this._global.publishAlert(AlertType.Success, `Sent to ${pc.type}: ${printer.name}`);
+
+              } catch (error) {
+                console.log(error);
+                this._global.publishAlert(AlertType.Danger, `Failed printing to ${pc.type}: ${printer.name}`);
+              }
             }
-          );
+          }
+        }
+        console.log(printClients);
         break;
       case 'FAX':
-        this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { orderId: this.order.id, faxNumber: this.restaurant.channels.find(c => c.type === 'Fax' && (c.notifications || []).some(n => n === 'Order')).value })
-          .subscribe(
-            d => {
-              //console.log(d);
-            },
-            error => {
-              this._global.publishAlert(AlertType.Danger, "Failed to fax");
-            }
-          );
+        const faxes = this.restaurant.channels.filter(c => c.type == 'Fax' && (c.notifications || []).indexOf('Order') >= 0).map(c => c.value);
+        for (let fax of faxes) {
+          try {
+            await this._api.post(environment.appApiUrl + 'biz/orders/send', {
+              orderId: this.order.id, type: 'fax', to: fax
+            }).toPromise();
+            this._global.publishAlert(AlertType.Success, `Sent email to ${fax}`);
+          } catch (error) {
+            console.log(error);
+            this._global.publishAlert(AlertType.Danger, `Failed sending email to ${fax}`);
+          }
+        }
         break;
       default:
         break;
