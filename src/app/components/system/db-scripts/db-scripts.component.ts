@@ -22,9 +22,9 @@ export class DbScriptsComponent implements OnInit {
   ngOnInit() { }
 
   async migrateOrdersToNewRestaurant() {
-    const oldRestaurantId = '58b3512b6f730e1100609d86';
-    const newRestaurantId = '5c83e7fafb6fc0720131c54f';
-    const startDate = new Date("2019-3-1");
+    const oldRestaurantId = '5a435712293c631400cfc5c1';
+    const newRestaurantId = '5c89998ee7179a3e36e71c80';
+    const startDate = new Date("2019-3-8");
     const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       query: {
