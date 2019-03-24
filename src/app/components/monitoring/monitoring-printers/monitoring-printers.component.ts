@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from 'src/app/classes/alert-type';
-import { Alert } from 'selenium-webdriver';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 @Component({
   selector: 'app-monitoring-printers',
@@ -11,10 +11,32 @@ import { Alert } from 'selenium-webdriver';
   styleUrls: ['./monitoring-printers.component.css']
 })
 export class MonitoringPrintersComponent implements OnInit {
+  @ViewChild('editingModal') editingModal: ModalComponent;
   rows = [];
   printerType;
   filteredRows = [];
 
+  printerInEditing: any = {};
+  formFieldDescriptors = [{
+    field: 'type',
+    label: 'Printer Type',
+    inputType: "single-select",
+    disabled: true,
+    items: [
+      { object: "fei-e", text: "fei-e", selected: true }],
+    required: true
+  },
+  {
+    field: 'sn',
+    label: 'Serial Number (sn)',
+    required: true
+  },
+  {
+    field: 'key',
+    label: 'Key',
+    required: true
+  }
+  ];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   now = new Date();
@@ -24,10 +46,36 @@ export class MonitoringPrintersComponent implements OnInit {
   ngOnInit() {
     this.populate();
   }
-
   addNewPrinter() {
+    this.printerInEditing = {
+      type: 'fei-e'
+    };
+    this.editingModal.show();
+  }
 
-    alert('under construction')
+  async formSubmit(event) {
+    try {
+      await this._api.post(environment.qmenuApiUrl + 'generic?resource=print-client',
+        [
+          {
+            type: 'fei-e',
+            printers: [
+              {
+                name: this.printerInEditing.sn,
+                key: this.printerInEditing.key,
+                autoPrintCopies: 1
+              }
+            ],
+            createdAt: new Date().valueOf()
+          }
+        ]
+      ).toPromise();
+      this.populate();
+      event.acknowledge(null);
+      this.editingModal.hide();
+    } catch (error) {
+      event.acknowledge(JSON.stringify(error));
+    }
   }
 
   getStatusClass(status) {

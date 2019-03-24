@@ -76,3 +76,8 @@
     </tr>
 
 </table>
+
+<q-modal [title]="'Add New Printer'" #editingModal>
+    <q-form-builder [object]="printerInEditing" [showDelete]="false" [fieldDescriptors]="formFieldDescriptors"
+        (submit)="formSubmit($event)" (cancel)="editingModal.hide()"></q-form-builder>
+</q-modal>

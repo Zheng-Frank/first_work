@@ -45,6 +45,4 @@
 <q-modal [title]="userInEditing._id ? 'Edit User: ' + userInEditing.username : 'Create New User' " #editingModal>
   <q-form-builder [object]="userInEditing" [showDelete]="userInEditing._id" [fieldDescriptors]="formFieldDescriptors"
     (submit)="formSubmit($event)" (remove)="formRemove($event)" (cancel)="editingModal.hide()"></q-form-builder>
-
-
 </q-modal>
