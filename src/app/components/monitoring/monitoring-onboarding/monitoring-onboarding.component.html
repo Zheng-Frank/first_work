@@ -2,10 +2,14 @@
     <i class="fas fa-square text-warning"></i> Need Action Immediately!
 </div>
 <div>
-    <img [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px"> Currently Owning GMB
+    <input type="checkbox" [(ngModel)]="havingGMB" (change)="filter()" id="havingGMB">
+    <img [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px" > Currently Owning GMB
 </div>
 <div>
     <img [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px"> Owned GMB but Lost Now
+</div>
+<div>
+
 </div>
 <table class="table my-2">
     <tr>
@@ -16,7 +20,7 @@
         <th class="text-nowrap">Has Menu</th>
         <th class="text-nowrap">Has Order</th>
     </tr>
-    <tr *ngFor="let row of rows">
+    <tr *ngFor="let row of filteredRows">
         <td>
             <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
             <div class="text-muted"><small>{{row.restaurant.googleAddress?.formatted_address}}</small></div>
