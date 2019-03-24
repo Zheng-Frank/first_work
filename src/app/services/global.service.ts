@@ -238,7 +238,9 @@ export class GlobalService {
           "phones.phoneNumber": 1,
           "channels": 1,
           disabled: 1,
-          logs: 1,
+          logs: {
+            $slice: -3
+          },
           "rateSchedules.agent": 1,
           "googleAddress.formatted_address": 1,
           web: 1
