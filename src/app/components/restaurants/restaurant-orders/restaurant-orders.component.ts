@@ -1,10 +1,11 @@
-import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
 import { Injectable, EventEmitter, NgZone } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Order } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { zip } from "rxjs";
+import { Observable, zip } from 'rxjs';
+
 import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -217,12 +218,48 @@ export class RestaurantOrdersComponent implements OnInit {
     return (number || '').split('').reduce((a, e, i) => a + e + (i % 4 === 3 && (i < number.length - 1) ? '-' : ''), '');
   }
 
-  okBan(reasons) {
+  async okBan(reasons) {
     if (this.orderForModal && this.orderForModal.customer) {
-      this._api.post(environment.legacyApiUrl + "customer/ban", { customer: this.orderForModal.customer, reasons: reasons })
-        .subscribe(
-          d => { this.banModal.hide(); },
-          error => console.log(error));
+
+
+      let op = '$set';
+      if (!reasons || reasons.length === 0) {
+        op = '$unset';
+      }
+
+      const customerQuery = {
+        _id: { $oid: this.orderForModal.customer['_id'] }
+      };
+      const orderQuery =
+      {
+        customer: { $oid: this.orderForModal.customer['_id'] }
+      };
+
+      zip(this._api.patch(environment.appApiUrl + 'biz', {
+        resource: 'customer',
+        query: customerQuery,
+        op: op,
+        field: 'bannedReasons',
+        value: reasons
+      }),
+        this._api.patch(environment.appApiUrl + 'biz', {
+          resource: 'order',
+          query: orderQuery,
+          op: op,
+          field: "customerObj.bannedReasons",
+          value: reasons
+        }),
+      ).subscribe(
+        d => {
+          this.banModal.hide();
+          this.populateOrders();
+        },
+        error => console.log(error));
+
+      // this._api.post(environment.legacyApiUrl + "customer/ban", { customer: this.orderForModal.customer, reasons: reasons })
+      //   .subscribe(
+      //     d => { this.banModal.hide(); },
+      //     error => console.log(error));
     } else {
       alert('no customer found');
     }
