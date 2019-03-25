@@ -415,8 +415,7 @@ export class AutomationDashboardComponent implements OnInit {
     // 3. not already an apply task existed
     // 4. skip sale's agent 'restaurant.web.disableAutoTask' (unless it had published at least once or more than xx days created)
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
+      resource: 'restaurant', query: {
         disabled: { $in: [null, false] },
         "googleListing.cid": { $exists: 1 }
       },
@@ -555,7 +554,7 @@ export class AutomationDashboardComponent implements OnInit {
     await this._gmb3.appeal(dueTasks);
 
   }
-
+  gmbAccountsWithLocations
   async runInjectQmenuWebsites() {
     // 1. non-disabled restaurants
     // 2. having published cid/appealId
@@ -570,7 +569,10 @@ export class AutomationDashboardComponent implements OnInit {
       projection: {
         email: 1,
         password: 1,
-        locations: 1,
+        "locations.status": 1,
+        "locations.cid": 1,
+        "locations.appealId": 1,
+        "locations.phone": 1,
         injection: 1
       },
       limit: 6000
