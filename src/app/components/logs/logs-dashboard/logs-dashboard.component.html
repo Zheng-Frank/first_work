@@ -1,16 +1,27 @@
 <h1 class="text-center">Logs</h1>
-<div class="text-center text-muted"><small>(For past 7 days or unresolved. To see more logs, visit restaurant details)</small></div>
-<div class="clearfix">
-    <div class="float-left form-inline">
-        Restaurant Filter:
+<div class="text-center text-muted">
+    <small>(For past 7 days or unresolved. To see more logs, visit restaurant details)</small>
+</div>
+<div>
+    <div class="float-left form-inline mt-2">
+
+        <label class="mr-2"> Restaurant Filter:</label>
         <input [qDebounce]="800" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="name, phone, order# ..."
             [(ngModel)]="searchFilter"> &nbsp;&nbsp;
-        <div class="checkbox">
-            <label class="text-danger">
-                <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="unresolvedOnlyChange()">&nbsp;Only
-                Unresolved
-            </label>
-        </div>
+
+        <label class="text-danger">
+            <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="unresolvedOnlyChange()">&nbsp;Only Unresolved
+        </label>
+
+        <label style="padding-left: 15px">
+            <input type="checkbox" [(ngModel)]="adjustmentOnly" (change)="filterByAgent()">&nbsp;Only Adjustments
+        </label>
+
+        <label class="mr-2" style="padding-left: 15px"> Agent:</label>
+        <select [(ngModel)]="agent" (change)="filterByAgent()">
+            <option>All</option>
+            <option *ngFor="let agent of agentList">{{agent}}</option>
+        </select>
     </div>
     <div class="float-right">
         <div class="pb-2">
@@ -20,11 +31,11 @@
     </div>
 </div>
 
-<app-logs-table [restaurantLogs]="filteredRestaurantLogs" (select)="edit($event)"></app-logs-table>
+<app-logs-table [restaurantLogs]="logsList" (select)="edit($event)"></app-logs-table>
 
 
 <!--the editing modal-->
 <q-modal #logEditingModal>
-    <app-log-editor #myLogEditor  [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
-        (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
+    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing" (success)="onSuccessCreation($event)"
+        (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
 </q-modal>
