@@ -22,12 +22,12 @@ export class DbScriptsComponent implements OnInit {
   ngOnInit() { }
 
   async migrateOrderStatuses() {
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 10000; i++) {
       try {
         const batch = 160;
         const notMigratedOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'order',
-          query: { "statuses": { $exists: false } },
+          query: { "statuses": [] },
           projection: {
             name: 1
           },
@@ -49,13 +49,23 @@ export class DbScriptsComponent implements OnInit {
         console.log(statuses);
         statuses.map(status => {
           delete status._id;
-          delete status.order;
           delete status.updatedAt;
         });
+        // whatever reason we didn't have status, let's put a fake one submitted
+
         const patchPairs = [];
         notMigratedOrders.map(order => {
           const myStatuses = statuses.filter(status => status.order === order._id);
           myStatuses.sort((s1, s2) => new Date(s1.createdAt).valueOf() - new Date(s2.createdAt).valueOf());
+          if(myStatuses.length === 0) {
+            myStatuses.push({
+              "status": "SUBMITTED",
+              "updatedBy": "BY_CUSTOMER",
+              "order": order._id,
+              "createdAt": new Date(parseInt(order._id.substring(0, 8), 16) * 1000).toISOString()
+            });
+          }
+
           patchPairs.push(
             {
               old: { _id: order._id },
@@ -67,7 +77,8 @@ export class DbScriptsComponent implements OnInit {
 
         const patched = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', patchPairs).toPromise();
         console.log(patched);
-      } catch (error) {
+// break;      
+} catch (error) {
         console.log(error);
       }
 
