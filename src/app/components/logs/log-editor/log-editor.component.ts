@@ -93,7 +93,7 @@ export class LogEditorComponent implements OnInit {
 
   selectTemplate(event) {
     if (this.selectedTaskTemplate) {
-      this.assignee = this.selectedTaskTemplate['assignee'];      
+      this.assignee = this.selectedTaskTemplate['assignee'];
     }
   }
 
@@ -138,16 +138,16 @@ export class LogEditorComponent implements OnInit {
       event.acknowledge('Please input adjustment reason.');
     } else {
       if (this.hasTask) {
-        if(!this.assignee){
-          event.acknowledge('Please select assignee.');
-        }
-        // create a task!
         if (!this.selectedTaskTemplate) {
           return event.acknowledge('Please choose a task template');
-        } else {
+        }
+        else if (!this.assignee) {
+          return event.acknowledge('Please select assignee.');
+        }
+        else {
+          // create a task!
           let task = {
-            
-            comments: '<a target="_blank" href="#/restaurants/'+this.restaurant._id+'">'+this.restaurant.name+'</a>' + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
+            comments: '<a target="_blank" href="#/restaurants/' + this.restaurant._id + '">' + this.restaurant.name + '</a>' + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
             scheduledAt: this.scheduledAt || new Date(),
             creator: this._global.user.username,
             relatedMap: {

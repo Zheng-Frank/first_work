@@ -5,6 +5,7 @@
 <table class="table table-sm" *ngIf="restaurantLogs && restaurantLogs.length > 0">
   <thead>
     <tr>
+      <th></th>
       <th>User</th>
       <th>Date</th>
       <th *ngIf="showRestaurant">Restaurant</th>
@@ -17,7 +18,7 @@
   <tbody>
     <tr *ngFor="let rl of restaurantLogs; let i = index" class="list-group-item-action {{rl.log.resolved ? '' : 'alert-danger'}}"
       (click)="clickRow(rl)">
-
+      <td>{{i+1}}</td>
       <td>{{rl.log.username}}</td>
       <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
         <div class="text-muted"><small>{{rl.log.time | date: 'shortTime'}}</small></div>

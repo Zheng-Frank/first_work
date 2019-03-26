@@ -1168,18 +1168,6 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   async crawlGoogleGmbOnSelected() {
-    // delete the leads which are already in our system.
-    console.log(this.restaurants);
-    let leadsToDump = this.leads.filter(lead => this.restaurants.some(r => r.googleListing && r.googleListing.cid && r.googleListing.cid == lead.cid)).map(v => v._id);
-    if (leadsToDump && leadsToDump.length > 0) {
-      await this._api.delete(environment.adminApiUrl + 'generic', {
-        resource: 'lead',
-        ids: leadsToDump
-      }).toPromise();
-    }
-    //only crawl the leads not in our system
-    this.leads = this.leads.filter(lead => !this.restaurants.some(r => r.googleListing &&  r.googleListing.cid && r.googleListing.cid === lead.cid))
-
     // this has to be done sequencially otherwise overload the server!
     this.leads.filter(lead => this.selectionSet.has(lead._id)).reduce(
       (p: any, lead) =>
@@ -1188,7 +1176,6 @@ export class LeadDashboardComponent implements OnInit {
         }),
       Promise.resolve()
     );
-
     // parallel example
     // this.leads
     //   .filter(lead => this.selectionSet.has(lead._id))

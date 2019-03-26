@@ -21,9 +21,12 @@ export class LogsDashboardComponent implements OnInit {
 
   searchFilter = '';
   unresolvedOnly = false;
+  adjustmentOnly = false;
+  agent;
 
   filteredRestaurantLogs = [];
-  assigneeList;
+  logsList;
+  agentList = [];
 
 
   logInEditing = new Log();
@@ -130,6 +133,9 @@ export class LogsDashboardComponent implements OnInit {
     // sort DESC by time!
     // one without time
     this.filteredRestaurantLogs.sort((rl1, rl2) => (rl2.log.time || new Date(0)).valueOf() - (rl1.log.time || new Date(0)).valueOf());
+    this.logsList = this.filteredRestaurantLogs;
+    this.agentList = this.filteredRestaurantLogs.map(l => l.log.username);
+    this.agentList = Array.from(new Set(this.agentList)).sort().filter(e => e != null);
 
   }
 
@@ -139,6 +145,18 @@ export class LogsDashboardComponent implements OnInit {
 
   debounce(event) {
     this.computeFilteredLogs();
+  }
+
+  filterByAgent() {
+    if (this.agent && this.agent !== "All") {
+      this.logsList = this.filteredRestaurantLogs.filter(l => l.log.username === this.agent);
+    } 
+    else if (this.adjustmentOnly){
+      this.logsList = this.filteredRestaurantLogs.filter(l => l.log.adjustmentAmount);
+    }
+    else {
+      this.logsList = this.filteredRestaurantLogs
+    }
   }
 
   getAddress(restaurant) {

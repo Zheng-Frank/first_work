@@ -9,7 +9,10 @@ import { GlobalService } from "../../../services/global.service";
 })
 export class MonitoringOnboardingComponent implements OnInit {
 
+  havingGMB: boolean;
+
   rows = []; // {restaurant, noMenu, noOrder, hasGmb, hadGmb}
+  filteredRows = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   now = new Date();
@@ -47,23 +50,6 @@ export class MonitoringOnboardingComponent implements OnInit {
     restaurantsWithoutAnyOrder.map(r => { dict[r._id] = dict[r._id] || { restaurant: r }; dict[r._id].noOrder = true; });
 
     const cids = Object.keys(dict).map(k => dict[k]).filter(r => r.restaurant.googleListing).map(r => r.restaurant.googleListing.cid);
-
-    const testingOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'order',
-      query: {
-        customer: {
-          $in: [{
-            "$oid": "5c2d773c51684ad9739e5168"
-          }]
-        }
-      },
-      projection: {
-        restaurant: 1
-      },
-      limit: 20000
-    }).toPromise();
-
-
     const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
       // query: {
@@ -96,11 +82,20 @@ export class MonitoringOnboardingComponent implements OnInit {
       row.agent = ((row.restaurant.rateSchedules || [])[0] || {}).agent;
     });
     this.rows.sort((r1, r2) => r2.restaurant.createdAt.valueOf() - r1.restaurant.createdAt.valueOf())
+    this.filteredRows = this.rows;
 
   }
 
   getDaysFromId(mongoId) {
     return Math.floor((this.now.valueOf() - parseInt(mongoId.substring(0, 8), 16) * 1000) / (24 * 3600000));
+  }
+
+  filter() {
+    if (this.havingGMB) {
+      this.filteredRows = this.rows.filter(r => r.accountAndStatuses[0] && r.accountAndStatuses[0].status === 'Published')
+    } else {
+      this.filteredRows = this.rows;
+    }
   }
 
 }
