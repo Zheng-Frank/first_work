@@ -22,57 +22,60 @@ export class DbScriptsComponent implements OnInit {
   ngOnInit() { }
 
   async migrateOrderStatuses() {
-    for (let i = 0; i < 100; i++) {
-      const batch = 160;
-      const notMigratedOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'order',
-        query: {
-          "statuses.createdAt": null
-        },
-        projection: {
-          name: 1
-        },
-        limit: batch
-      }).toPromise();
-      console.log(notMigratedOrders);
-      if (notMigratedOrders.length === 0) {
-        console.log('ALL DONE!');
-        break;
-      }
-      const orderIds = [...new Set(notMigratedOrders.map(o => o._id))].filter(id => id);
-      const statuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'orderstatus',
-        query: {
-          order: { $in: orderIds.map(id => ({ $oid: id })) }
-        },
-        limit: batch * 10
-      }).toPromise();
-      console.log(statuses);
-      statuses.map(status => {
-        delete status._id;
-        delete status.order;
-        delete status.updatedAt;
-      });
-      const patchPairs = [];
-      notMigratedOrders.map(order => {
-        const myStatuses = statuses.filter(status => status.order === order._id);
-        myStatuses.sort((s1, s2) => new Date(s1.createdAt).valueOf() - new Date(s2.createdAt).valueOf());
-        patchPairs.push(
-          {
-            old: { _id: order._id },
-            new: { _id: order._id, statuses: myStatuses }
-          }
-        );
-      });
-      console.log(patchPairs);
+    for (let i = 0; i < 1000; i++) {
+      try {
+        const batch = 160;
+        const notMigratedOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'order',
+          query: { "statuses": { $exists: false } },
+          projection: {
+            name: 1
+          },
+          limit: batch
+        }).toPromise();
+        console.log(notMigratedOrders);
+        if (notMigratedOrders.length === 0) {
+          console.log('ALL DONE!');
+          break;
+        }
+        const orderIds = [...new Set(notMigratedOrders.map(o => o._id))].filter(id => id);
+        const statuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'orderstatus',
+          query: {
+            order: { $in: orderIds.map(id => ({ $oid: id })) }
+          },
+          limit: batch * 10
+        }).toPromise();
+        console.log(statuses);
+        statuses.map(status => {
+          delete status._id;
+          delete status.order;
+          delete status.updatedAt;
+        });
+        const patchPairs = [];
+        notMigratedOrders.map(order => {
+          const myStatuses = statuses.filter(status => status.order === order._id);
+          myStatuses.sort((s1, s2) => new Date(s1.createdAt).valueOf() - new Date(s2.createdAt).valueOf());
+          patchPairs.push(
+            {
+              old: { _id: order._id },
+              new: { _id: order._id, statuses: myStatuses }
+            }
+          );
+        });
+        console.log(patchPairs);
 
-      const patched = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', patchPairs).toPromise();
-      console.log(patched);
+        const patched = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', patchPairs).toPromise();
+        console.log(patched);
+      } catch (error) {
+        console.log(error);
+      }
+
     }
   }
 
   async migrateOrderAddress() {
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 1000; i++) {
       const batch = 160;
       const deliveryOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'order',
@@ -113,7 +116,7 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async migrateOrderPaymentCustomerRestaurant() {
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 1000; i++) {
       const batch = 160;
       const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'order',
