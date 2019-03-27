@@ -280,7 +280,9 @@ export class TaskService {
       },
       projection: {
         email: 1,
-        locations: 1
+        "locations.cid": 1,
+        "locations.status": 1,
+        "locations.statusHistory": { $slice: 1 }
       },
       limit: 5000
     }).toPromise();
@@ -537,7 +539,8 @@ export class TaskService {
       resource: 'gmbAccount',
       projection: {
         email: 1,
-        locations: 1
+        "locations.status": 1,
+        "locations.cid": 1
       },
       limit: 6000
     }).toPromise();
