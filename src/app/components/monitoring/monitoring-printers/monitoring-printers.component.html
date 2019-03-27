@@ -72,6 +72,8 @@
                 Print Test Order</button>
             <button class="btn btn-link d-block" (click)="suspendConnection(row)"
                 *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
+            <button class="btn btn-link d-block" (click)="remove(row)">
+                Delete</button>
         </td>
     </tr>
 

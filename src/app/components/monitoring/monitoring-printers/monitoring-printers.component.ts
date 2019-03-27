@@ -21,20 +21,21 @@ export class MonitoringPrintersComponent implements OnInit {
     field: 'type',
     label: 'Printer Type',
     inputType: "single-select",
-    disabled: true,
     items: [
-      { object: "fei-e", text: "fei-e", selected: true }],
+      { object: "fei-e", text: "fei-e", selected: false },
+      { object: "longhorn", text: "longhorn", selected: false },
+    ],
     required: true
   },
   {
     field: 'sn',
-    label: 'Serial Number (sn)',
-    required: true
+    label: 'fei-e: sn',
+    required: false
   },
   {
     field: 'key',
-    label: 'Key',
-    required: true
+    label: 'fei-e: key',
+    required: false
   }
   ];
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -47,25 +48,27 @@ export class MonitoringPrintersComponent implements OnInit {
     this.populate();
   }
   addNewPrinter() {
-    this.printerInEditing = {
-      type: 'fei-e'
-    };
+    this.printerInEditing = {};
     this.editingModal.show();
   }
 
   async formSubmit(event) {
     try {
+      const printers = [];
+      if (this.printerInEditing.sn) {
+        printers.push(
+          {
+            name: this.printerInEditing.sn,
+            key: this.printerInEditing.key,
+            autoPrintCopies: 1
+          }
+        );
+      }
       await this._api.post(environment.qmenuApiUrl + 'generic?resource=print-client',
         [
           {
-            type: 'fei-e',
-            printers: [
-              {
-                name: this.printerInEditing.sn,
-                key: this.printerInEditing.key,
-                autoPrintCopies: 1
-              }
-            ],
+            type: this.printerInEditing.type,
+            printers: printers,
             createdAt: new Date().valueOf()
           }
         ]
@@ -408,6 +411,19 @@ export class MonitoringPrintersComponent implements OnInit {
   filter() {
     this.filteredRows = this.rows;
     this.filteredRows = this.filteredRows.filter(row => !this.printerType || this.printerType === row.type);
+  }
+
+
+  async remove(row) {
+    if (confirm("Are you absolutely sure to delete this printer?")) {
+      await this._api.delete(environment.qmenuApiUrl + 'generic', {
+        resource: 'print-client',
+        ids: [row._id]
+      }).toPromise();
+      this._global.publishAlert(AlertType.Success, "Removeded!");
+      this.rows = this.rows.filter(r => r !== row);
+      this.filter();
+    }
   }
 
 
