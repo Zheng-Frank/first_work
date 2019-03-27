@@ -163,7 +163,7 @@ export class RestaurantOrdersComponent implements OnInit {
     } else {
       //  The payment of order was stripped off details due to security reasons. We need to get payment details from API.
 
-      this._api.post(environment.legacyApiUrl + "order/paymentDetails", { orderId: order.id })
+      this._api.get(environment.appApiUrl + "biz/payment", { orderId: order.id })
         .subscribe(
           payment => {
             Object.assign(this.payment, payment);

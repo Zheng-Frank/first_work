@@ -21,13 +21,33 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  // async migrateOrderStatuses() {
+  //   // some completed or canceld that's not reflected into to orders :(
+  //   const dateThreshold = new Date();
+  //   dateThreshold.setDate(dateThreshold.getDate() - 2);
+  //   const doneOrderStatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
+  //     resource: 'orderstatus',
+  //     query: {
+  //       createdAt: { $gt: dateThreshold },
+  //       $or: [{
+  //         status: 'COMPLETED'
+  //       }, {
+  //         status: 'CANCELED'
+  //       }]
+  //     },
+  //     projection: {},
+  //     limit: 1
+  //   }).toPromise();
+  //   console.log(doneOrderStatuses);
+  // }
+
   async migrateOrderStatuses() {
     for (let i = 0; i < 10000; i++) {
       try {
         const batch = 160;
         const notMigratedOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'order',
-          query: { "statuses": [] },
+          query: { "statuses": null },
           projection: {
             name: 1
           },
@@ -57,28 +77,36 @@ export class DbScriptsComponent implements OnInit {
         notMigratedOrders.map(order => {
           const myStatuses = statuses.filter(status => status.order === order._id);
           myStatuses.sort((s1, s2) => new Date(s1.createdAt).valueOf() - new Date(s2.createdAt).valueOf());
-          if(myStatuses.length === 0) {
+          if (myStatuses.length === 0) {
+            console.log(order)
             myStatuses.push({
               "status": "SUBMITTED",
               "updatedBy": "BY_CUSTOMER",
               "order": order._id,
               "createdAt": new Date(parseInt(order._id.substring(0, 8), 16) * 1000).toISOString()
             });
+            patchPairs.push(
+              {
+                old: { _id: order._id },
+                new: { _id: order._id, statuses: myStatuses }
+              }
+            );
+          } else {
+            patchPairs.push(
+              {
+                old: { _id: order._id },
+                new: { _id: order._id, statuses: myStatuses }
+              }
+            );
           }
 
-          patchPairs.push(
-            {
-              old: { _id: order._id },
-              new: { _id: order._id, statuses: myStatuses }
-            }
-          );
         });
         console.log(patchPairs);
 
         const patched = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', patchPairs).toPromise();
         console.log(patched);
-// break;      
-} catch (error) {
+
+      } catch (error) {
         console.log(error);
       }
 
