@@ -347,7 +347,7 @@ export class MonitoringPrintersComponent implements OnInit {
             params: {
               sn: printer.name,
               key: printer.key,
-              orderId: "5c720fd092edbd4b28883ee1",
+              orderId: environment.testOrderId,
               copies: printer.autoPrintCopies || 1
             }
           }]).toPromise();
@@ -357,7 +357,7 @@ export class MonitoringPrintersComponent implements OnInit {
           await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
             name: "send-order-longhorn",
             params: {
-              orderId: "5c720fd092edbd4b28883ee1",
+              orderId: environment.testOrderId,
               copies: printer.autoPrintCopies || 1
             }
           }]).toPromise();
@@ -373,7 +373,7 @@ export class MonitoringPrintersComponent implements OnInit {
                 data: {
                   printerName: printer.name,
                   format: "PNG",
-                  url: "https://api.myqmenu.com/utilities/order/5c720fd092edbd4b28883ee1?format=pos",
+                  url: "https://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos",
                   copies: printer.autoPrintCopies || 1
                 }
               }
