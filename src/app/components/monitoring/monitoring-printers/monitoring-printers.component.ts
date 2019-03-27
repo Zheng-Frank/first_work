@@ -339,16 +339,29 @@ export class MonitoringPrintersComponent implements OnInit {
     for (let printer of printers) {
       switch (row.type) {
         case 'fei-e':
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-order-fei-e",
+            params: {
+              sn: printer.name,
+              key: printer.key,
+              orderId: "5c720fd092edbd4b28883ee1",
+              copies: printer.autoPrintCopies || 1
+            }
+          }]).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
         case 'longhorn':
-          try {
-            const printResult = await this._api.post(environment.legacyApiUrl + 'order/printOrderDetailsByOrderId', { orderId: environment.testOrderId }).toPromise();
-            this._global.publishAlert(AlertType.Info, "Print initiated");
-          } catch (error) {
-            this._global.publishAlert(AlertType.Danger, error);
-          }
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-order-longhorn",
+            params: {
+              orderId: "5c720fd092edbd4b28883ee1",
+              copies: printer.autoPrintCopies || 1
+            }
+          }]).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print job sent");
           break;
         case 'phoenix':
-          const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
             name: "send-phoenix",
             params: {
               printClientId: row._id,
