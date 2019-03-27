@@ -357,6 +357,7 @@ export class MonitoringPrintersComponent implements OnInit {
           await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
             name: "send-order-longhorn",
             params: {
+              printerName: printer.name,
               orderId: environment.testOrderId,
               copies: printer.autoPrintCopies || 1
             }
