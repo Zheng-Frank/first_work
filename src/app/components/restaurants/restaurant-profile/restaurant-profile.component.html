@@ -86,6 +86,10 @@
 							<td class="pl-1">{{!!restaurant.skipOrderConfirmation}}</td>
 						</tr>
 						<tr>
+							<th class="text-right">Hide Order Status on Customer Side</th>
+							<td class="pl-1">{{!!restaurant.hideOrderStatus}}</td>
+						</tr>
+						<tr>
 							<th class="text-right">Disabled</th>
 							<td class="pl-1">{{!!restaurant.disabled}}</td>
 						</tr>
@@ -184,9 +188,9 @@
 							</td>
 						</tr>
 						<tr>
-							<th class="text-right">Skip Order Confirmation</th>
+							<th class="text-right">Hide Order Status on Customer Side</th>
 							<td class="pl-1">
-								<input type="checkbox" [(ngModel)]="skipOrderConfirmation">
+								<input type="checkbox" [(ngModel)]="hideOrderStatus">
 							</td>
 						</tr>
 						<tr>
