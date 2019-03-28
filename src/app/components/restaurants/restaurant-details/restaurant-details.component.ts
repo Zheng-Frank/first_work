@@ -37,7 +37,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
-    
+
   }
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
@@ -139,8 +139,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           disableScheduling: 1,
           templateName: 1,
           closedHours: 1,
-          deliveryClosedHours:1,
+          deliveryClosedHours: 1,
           skipOrderConfirmation: 1,
+          hideOrderStatus: 1,
           disabled: 1,
           googleListing: 1,
           web: 1
@@ -148,15 +149,15 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         limit: 1
       })
         .subscribe(
-          results => {
-            this.restaurant = results[0] ? new Restaurant(results[0]) : undefined;
-            if (!this.restaurant) {
-              this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
-            }
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, error);
+        results => {
+          this.restaurant = results[0] ? new Restaurant(results[0]) : undefined;
+          if (!this.restaurant) {
+            this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
           }
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, error);
+        }
         );
     }
 
@@ -213,17 +214,17 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       source: this.restaurant.id
     })
       .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            "Text Message Sent successfully"
-          );
+      result => {
+        // let's update original, assuming everything successful
+        this._global.publishAlert(
+          AlertType.Success,
+          "Text Message Sent successfully"
+        );
 
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
-        }
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
+      }
       );
   }
 
