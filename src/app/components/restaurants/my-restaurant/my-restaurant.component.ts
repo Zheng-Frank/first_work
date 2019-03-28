@@ -199,7 +199,9 @@ export class MyRestaurantComponent implements OnInit {
         locations: { $exists: 1 }
       },
       projection: {
-        locations: 1
+        "locations.cid": 1,
+        "locations.status": 1,
+        "locations.statusHistory": 1
       },
       limit: 6000
     }).toPromise();
