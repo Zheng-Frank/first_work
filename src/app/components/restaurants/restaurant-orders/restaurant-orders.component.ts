@@ -1,10 +1,11 @@
-import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
 import { Injectable, EventEmitter, NgZone } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Order } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { zip } from "rxjs";
+import { Observable, zip } from 'rxjs';
+
 import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -37,11 +38,9 @@ export class RestaurantOrdersComponent implements OnInit {
   payment = {};
   orderForModal: Order = null;
   now: Date = new Date();
-  private socket: any;
   orderEvent: any;
 
   constructor(private _api: ApiService, private _ngZone: NgZone) {
-    this.socket = io(environment.socketUrl);
   }
 
   ngOnInit() {
@@ -49,19 +48,7 @@ export class RestaurantOrdersComponent implements OnInit {
       d => this.showNotifier(d)
     );
 
-    this._api.get(environment.legacyApiUrl + 'order/getOrdersByRestaurantId/' + this.restaurant['_id'], { limit: 150 }).
-      subscribe(d => {
-        this.orders = d;
-
-        this.orders = this.orders.map(o => new Order(o));
-        this.resultList = this.orders;
-      },
-        e => {
-          console.log(e);
-          console.log('refresh failed!');
-        }
-      );
-    this.setSocket(this.restaurant);
+    this.populateOrders();
   }
 
 
@@ -70,36 +57,6 @@ export class RestaurantOrdersComponent implements OnInit {
     $('#order-notifier').show(1000); setTimeout(() => { $('#order-notifier').hide(1000); }, 10000);
   }
 
-  setSocket(restaurant: Restaurant) {
-    // remove socket listening if there is any
-    if (this.restaurant) {
-      this.socket.removeAllListeners(this.restaurant['_id']);
-    }
-
-    let self = this;
-    // subscribe to event if the new customer has id
-    if (restaurant) {
-      this.socket.on(restaurant['_id'], (data) => {
-        self._ngZone.run(() => {
-          switch (data.action) {
-            case 'ORDER_STATUS':
-              data.orderStatus.createdAt = new Date(Date.parse(data.orderStatus.createdAt));
-              this.attachNewOrderStatus(data.orderStatus);
-              break;
-            case 'ORDER_NEW':
-              // we should do minimal refresh in future here
-              //this.refreshAllOrders(restaurant.id);
-              this.onNewOrderReceived.emit(data);
-              break;
-
-            default: break;
-          }
-        });
-
-      });
-    }
-
-  }
 
 
   attachNewOrderStatus(orderStatus) {
@@ -123,121 +80,72 @@ export class RestaurantOrdersComponent implements OnInit {
     }
   }
 
-  async filterAndSearch(event) {
-    this.resultList = this.orders;
-    if (this.searchText) {
-      let key = this.searchText;
-      this.resultList = this.orders.filter(order => {
-        return (order.orderNumber + '').startsWith(key)
-          || (order.customer && order.customer.phone && order.customer.phone.startsWith(key))
-          || (order.customer && order.customer.firstName && order.customer.firstName.toLowerCase().startsWith(key.toLowerCase()))
-          || (order.customer && order.customer.lastName && order.customer.lastName.toLowerCase().startsWith(key.toLowerCase()));
-      });
-    }
-
-    if (this.searchText) {
-      this.getOlderOrder();
+  search(event) {
+    let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
+    if (!this.searchText || (this.searchText && regexp.test(this.searchText))) {
+      this.populateOrders();
     }
   }
-
-  async getOlderOrder() {
-    console.log('get old')
+  async populateOrders() {
+    const query = {
+      restaurant: {
+        $oid: this.restaurant._id
+      }
+    } as any;
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
     if (this.searchText && regexp.test(this.searchText)) {
-      console.log(regexp.test(this.searchText));
-
-      const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
-        query: {
-          restaurant: {
-            $oid: this.restaurant._id
-          },
-          orderNumber: +this.searchText
-        },
-        limit: 6000
-      }).toPromise();
-      // pull customer, payment, orderStatus
-
-      const customerIds = orders.map(o => o.customer);
-      const paymentIds = orders.map(o => o.payment);
-
-      const promises = [
-        this._api.get(environment.qmenuApiUrl + "generic", {
-          resource: 'customer',
-          query: {
-            _id: { $in: customerIds.map(customerId => ({ $oid: customerId })) }
-          },
-          limit: 6000
-        }).toPromise(),
-        this._api.get(environment.qmenuApiUrl + "generic", {
-          resource: 'payment',
-          query: {
-            _id: { $in: paymentIds.map(paymentId => ({ $oid: paymentId })) }
-          },
-          limit: 6000
-        }).toPromise(),
-        this._api.get(environment.qmenuApiUrl + "generic", {
-          resource: 'orderstatus',
-          query: {
-            order: { $in: orders.map(order => ({ $oid: order._id })) }
-          },
-          limit: 6000
-        }).toPromise()
-      ];
-
-      const results = await Promise.all(promises);
-      // assemble back to order:
-      const searchedOrders = orders.map(order => {
-        order.customer = results[0].filter(c => c._id === order.customer)[0];
-        order.payment = results[1].filter(p => p._id === order.payment)[0];
-        order.orderStatuses = results[2].filter(os => os.order === order._id);
-        order.id = order._id;
-        return new Order(order);
-      });
-
-      // add ONLY new ones to list
-      const orderIdMap = {};
-      this.orders.map(o => orderIdMap[o._id] = o);
-      searchedOrders.map(o => orderIdMap[o._id] = o);
-
-
-      this.orders = Object.keys(orderIdMap).map(id => orderIdMap[id]);
-      this.orders.sort((o1, o2) => o2.createdAt.valueOf() - o1.createdAt.valueOf());
-
-    }
-  }
-
-  getOrders() {
-    this.resultList = this.orders;
-    if (this.searchText) {
-      let key = this.searchText;
-      this.resultList = this.orders.filter(order => {
-        return (order.orderNumber + '').startsWith(key)
-          || (order.customer && order.customer.phone && order.customer.phone.startsWith(key))
-          || (order.customer && order.customer.firstName && order.customer.firstName.toLowerCase().startsWith(key.toLowerCase()))
-          || (order.customer && order.customer.lastName && order.customer.lastName.toLowerCase().startsWith(key.toLowerCase()));
-      });
+      query.orderNumber = +this.searchText
     }
 
-    return this.resultList;
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: query,
+      projection: {
+        logs: 0,
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 100
+    }).toPromise();
+
+    // assemble back to order:
+    this.orders = orders.map(order => {
+      order.customer = order.customerObj;
+      order.payment = order.paymentObj;
+      order.orderStatuses = order.statuses;
+      order.id = order._id;
+      return new Order(order);
+    });
   }
 
   async handleOnSetNewStatus(data) {
-    let os: any = {};
-    os.order = data.order.id;
-    os.status = data.status;
-    os.comments = data.comments;
-    os.updatedBy = 'BY_RESTAURANT';
 
+    console.log(data)
+    let os: any = {
+      order: data.order.id,
+      ...data.status,
+      updatedBy: 'BY_CSR',
+      createdAt: new Date()
+    };
 
-    await this._api.post(environment.legacyApiUrl + "orderStatus", os).toPromise();
-
-    // let's fake putting the status to the order, db posting was slow to response and will result duplicated status
-    os.createdAt = new Date();
-    data.order.orderStatuses.push(os);
-
-    // let's hide any modal possible
+    // // let's hide any modal possible
     this.rejectModal.hide();
+
+    return this._api.patch(environment.appApiUrl + 'biz', {
+      resource: 'order',
+      query: { _id: { $oid: data.order.id } },
+      op: '$push',
+      field: 'statuses',
+      value: os
+    }).subscribe(
+      result => {
+        data.order.orderStatuses.push(os);
+      },
+      error => {
+        alert('Update order status failed');
+      }
+    );
   }
 
   handleOnDisplayCreditCard(order) {
@@ -255,7 +163,7 @@ export class RestaurantOrdersComponent implements OnInit {
     } else {
       //  The payment of order was stripped off details due to security reasons. We need to get payment details from API.
 
-      this._api.post(environment.legacyApiUrl + "order/paymentDetails", { orderId: order.id })
+      this._api.get(environment.appApiUrl + "biz/payment", { orderId: order.id })
         .subscribe(
           payment => {
             Object.assign(this.payment, payment);
@@ -268,9 +176,6 @@ export class RestaurantOrdersComponent implements OnInit {
           });
     }
   }
-
-
-
 
   save(filename, data) {
     //let blob = new Blob([data], { type: 'text/csv' });
@@ -313,33 +218,84 @@ export class RestaurantOrdersComponent implements OnInit {
     return (number || '').split('').reduce((a, e, i) => a + e + (i % 4 === 3 && (i < number.length - 1) ? '-' : ''), '');
   }
 
-  okBan(reasons) {
+  async okBan(reasons) {
     if (this.orderForModal && this.orderForModal.customer) {
-      this._api.post(environment.legacyApiUrl + "customer/ban", { customer: this.orderForModal.customer, reasons: reasons })
-        .subscribe(
-          d => { this.banModal.hide(); },
-          error => console.log(error));
+
+
+      let op = '$set';
+      if (!reasons || reasons.length === 0) {
+        op = '$unset';
+      }
+
+      const customerQuery = {
+        _id: { $oid: this.orderForModal.customer['_id'] }
+      };
+      const orderQuery =
+      {
+        customer: { $oid: this.orderForModal.customer['_id'] }
+      };
+
+      zip(this._api.patch(environment.appApiUrl + 'biz', {
+        resource: 'customer',
+        query: customerQuery,
+        op: op,
+        field: 'bannedReasons',
+        value: reasons
+      }),
+        this._api.patch(environment.appApiUrl + 'biz', {
+          resource: 'order',
+          query: orderQuery,
+          op: op,
+          field: "customerObj.bannedReasons",
+          value: reasons
+        }),
+      ).subscribe(
+        d => {
+          this.banModal.hide();
+          this.populateOrders();
+        },
+        error => console.log(error));
+
+      // this._api.post(environment.legacyApiUrl + "customer/ban", { customer: this.orderForModal.customer, reasons: reasons })
+      //   .subscribe(
+      //     d => { this.banModal.hide(); },
+      //     error => console.log(error));
     } else {
       alert('no customer found');
     }
   }
 
-
-
-  submitAdjustment(adjustment) {
-    this.adjustModal.hide();
-
-    adjustment['orderId'] = this.orderForModal.id;
-
-    this._api.post(environment.legacyApiUrl + "order/adjust", adjustment)
-      .subscribe(
-        resultedOrder => {
-          this.orderForModal.tip = resultedOrder.tip;
-          this.orderForModal.orderItems = resultedOrder.orderItems.map(oi => new OrderItem(oi));
-        },
-        error => { console.log(error); alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.'); }
-      );
+  async rejectOrder(event) {
+    const order = event.order;
+    try {
+      await this._api.post(environment.appApiUrl + 'biz/orders/cancelation', {
+        orderId: event.order.id,
+        comments: event.comments
+      }).toPromise();
+      (order.orderStatuses || []).push({
+        status: 'CANCELED',
+        comments: event.comments,
+        createdAt: new Date()
+      });
+      this.rejectModal.hide();
+    } catch (error) {
+      alert('Error on cancelation: ' + JSON.stringify(error));
+    }
   }
 
+  async submitAdjustment(adjustment) {
+    this.adjustModal.hide();
 
+    console.log(adjustment);
+    adjustment['orderId'] = this.orderForModal.id;
+
+    try {
+      await this._api.post(environment.appApiUrl + 'biz/orders/adjustment', adjustment).toPromise();
+      // lazy, just reload all
+      this.populateOrders();
+    } catch (error) {
+      console.log(error);
+      alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.');
+    }
+  }
 }

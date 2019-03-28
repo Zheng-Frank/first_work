@@ -3,7 +3,6 @@ import { Restaurant } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { GlobalService } from "../../../services/global.service";
 import { CacheService } from 'src/app/services/cache.service';
-import { environment } from 'src/environments/environment.prod';
 
 @Component({
   selector: 'app-check-email',

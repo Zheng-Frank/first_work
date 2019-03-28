@@ -7,7 +7,7 @@ import { Order } from '@qmenu/ui';
 })
 export class OrderRejectBarComponent implements OnInit {
   @Input() order: Order;
-  @Output() onSetNewStatus = new EventEmitter();
+  @Output() onReject = new EventEmitter();
 
   outOfCapacity = false;
   outOfMaterial = false;
@@ -34,6 +34,6 @@ export class OrderRejectBarComponent implements OnInit {
     if (this.comments) {
       extraComments += this.comments;
     }
-    this.onSetNewStatus.emit({ order: this.order, status: 'CANCELED', comments: extraComments });
+    this.onReject.emit({ order: this.order, status: 'CANCELED', comments: extraComments });
   }
 }

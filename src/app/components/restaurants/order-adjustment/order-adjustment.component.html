@@ -4,8 +4,11 @@
   <div class="text-muted">
     <small>Input negative number if it is a credit/refund to customer!</small>
   </div>
-  <input [(ngModel)]="adjustmentAmount" type="number" step="0.01" class="form-control" placeholder="eg. 5" id="adjustment">
+  <input [(ngModel)]="adjustmentAmount" type="number" step="0.01" class="form-control" placeholder="eg. 5"
+    id="adjustment">
   <div class="text-danger" *ngIf="submitClicked && !adjustmentAmount"><small>Amount is missing</small></div>
+
+
 </div>
 <div class="form-group">
   <label class="checkbox-inline">
@@ -17,5 +20,11 @@
   <div class="text-danger" *ngIf="submitClicked && !adjustmentReason"><small>Reason is missing</small></div>
 </div>
 
+<div *ngIf="adjustmentAmount > 0" class="alert alert-success">
+  The customer will be charged extra amount of {{adjustmentAmount | currency:'USD':true:'1.2-2' }}
+</div>
+<div *ngIf="adjustmentAmount < 0" class="alert alert-danger">
+  The customer will be refunded the amount of {{-adjustmentAmount | currency:'USD':true:'1.2-2' }}
+</div>
 <button type="button" class="btn btn-block btn-primary" (click)="okAdjust()">
   <span class="fa fa-check"></span> OK</button>

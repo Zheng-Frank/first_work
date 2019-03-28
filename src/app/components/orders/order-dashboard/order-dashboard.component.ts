@@ -221,9 +221,6 @@ export class OrderDashboardComponent implements OnInit {
       limit: 30000,
       sort: { createdAt: -1 }
     })
-      // this._api.get(environment.legacyApiUrl + "order/stat", {
-      //   limit: 500000
-      // })
       .subscribe(orders => {
         let dMap = {};
         let wMap = {};
