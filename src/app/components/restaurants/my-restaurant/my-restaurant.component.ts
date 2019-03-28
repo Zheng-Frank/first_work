@@ -103,7 +103,7 @@ export class MyRestaurantComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.isSuperUser = ['gary', 'chris', 'dixon'].indexOf(this._global.user.username) >= 0;
+    this.isSuperUser = ['gary', 'chris', 'dixon', 'hong'].indexOf(this._global.user.username) >= 0;
     this.username = this._global.user.username;
     this.usernames = [this.username];
     if (this.isSuperUser) {
@@ -199,7 +199,9 @@ export class MyRestaurantComponent implements OnInit {
         locations: { $exists: 1 }
       },
       projection: {
-        locations: 1
+        "locations.cid": 1,
+        "locations.status": 1,
+        "locations.statusHistory": 1
       },
       limit: 6000
     }).toPromise();

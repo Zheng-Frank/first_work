@@ -27,32 +27,35 @@
       <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
     </h5>
     <div class="text-sm-center card-text">
-      <span>{{getSubmittedTime(order) | MMMd : order.restaurant.offsetToEST}} {{getSubmittedTime(order) | shortTime: restaurant.offsetToEST}}</span>
+      <span>{{getSubmittedTime(order) | MMMd : order.restaurant.offsetToEST}}
+        {{getSubmittedTime(order) | shortTime: restaurant.offsetToEST}}</span>
       |
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
     </div>
-    <a *ngIf="order.getDeliveryAddress()" href="http://maps.google.com/?q={{order.deliveryAddress.formatted_address}}">
-      <div class="text-sm-center card-text">
-        <strong>{{order.getDeliveryAddress().line1}}</strong>
+    <div class="text-sm-center card-text" *ngIf="order.address?.apt">
+      <strong>{{order.address.apt}}</strong>
+    </div>
+    <a *ngIf="order.address" href="http://maps.google.com/?q={{order.address.formatted_address}}">
+      <div class="text-sm-center card-text">{{order.address.formatted_address}}
       </div>
-      <div class="text-sm-center card-text">
-        <strong>{{order.getDeliveryAddress().line2}}</strong>
-      </div>
-      <div *ngIf="order.deliveryDistance" class="text-sm-center card-text">
-        <strong>({{order.deliveryDistance.toFixed(1)}} miles)</strong>
-      </div>
+
     </a>
-    <div class="text-sm-center" *ngIf="order.deliveryAddress && order.deliveryAddress.specialInstructions">
-      <small>{{order.deliveryAddress.specialInstructions}}</small>
+    <div *ngIf="order.deliveryDistance" class="text-sm-center card-text">
+      <strong>({{order.deliveryDistance.toFixed(1)}} miles)</strong>
+    </div>
+    <div class="text-sm-center" *ngIf="order.address?.specialInstructions">
+      Extra Instructions: {{order.address.specialInstructions}}
     </div>
     <div *ngIf="order.timeToDeliver" class="text-sm-center card-text alert-success">
       <span class="fa fa-clock-o"></span>
-      <strong> scheduled: {{order.timeToDeliver | MMMd : restaurant.offsetToEST}} {{order.timeToDeliver | shortTime: restaurant.offsetToEST}}</strong>
+      <strong> scheduled: {{order.timeToDeliver | MMMd : restaurant.offsetToEST}}
+        {{order.timeToDeliver | shortTime: restaurant.offsetToEST}}</strong>
     </div>
 
     <small>
-      <div class="text-sm-center" *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
+      <div class="text-sm-center"
+        *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
         Note: Customer's
         <a routerLink="/order/{{order.customerPreviousOrderStatus.order}}">previous order</a> was canceled. Reason:
         <span class="text-danger">{{order.customerPreviousOrderStatus.comments}}</span>
@@ -60,7 +63,8 @@
       <div class="text-danger text-sm-center" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
     </small>
     <div class="mt-1">
-      <app-order-action-bar *ngIf="order.isPending()" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"></app-order-action-bar>
+      <app-order-action-bar *ngIf="order.isPending()" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)">
+      </app-order-action-bar>
     </div>
     <div [id]="'items-'+order.id">
       <hr>
@@ -82,7 +86,8 @@
           <i class="fa fa-fax"></i> Fax</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="adjust()" *ngIf="canShowAdjust(order)">
           <i class="fa fa-dollar-sign"></i> Adjust</a>
-        <a role="button" class="text-primary text-nowrap card-link" (click)="showCreditCard()" *ngIf="canShowCreditCard(order)">
+        <a role="button" class="text-primary text-nowrap card-link" (click)="showCreditCard()"
+          *ngIf="canShowCreditCard(order)">
           <i class="fa fa-credit-card"></i> View</a>
         <a target="_blank" class="text-primary text-nowrap card-link" href="{{getOrderLink()}}">
           <i class="fa fa-eye"></i> View Order</a>
@@ -104,7 +109,8 @@
             </div>
           </div>
           <div>
-            <button class="btn btn-primary" (click)="sendText()" style="min-width: 6rem" [disabled]="!isPhoneValid()">Send</button>
+            <button class="btn btn-primary" (click)="sendText()" style="min-width: 6rem"
+              [disabled]="!isPhoneValid()">Send</button>
           </div>
         </div>
       </div>

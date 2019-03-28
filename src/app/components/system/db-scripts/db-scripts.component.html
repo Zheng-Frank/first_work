@@ -212,10 +212,39 @@
 
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Migrate Order Delivery Address</h5>
+            <p class="card-text">Move deliveryAddress content to order. No side effects. If already moved, no action.
+            </p>
+            <button class="btn btn-primary" (click)="migrateOrderAddress()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Migrate Order Payment, Customer, and Restaurant</h5>
+            <p class="card-text">Move payment content to order.paymentObj etc. No side effects. If already moved, no
+                action.
+            </p>
+            <button class="btn btn-primary" (click)="migrateOrderPaymentCustomerRestaurant()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Migrate Order Statuses</h5>
+            <p class="card-text">Move order statuses to order
+            </p>
+            <button class="btn btn-primary" (click)="migrateOrderStatuses()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Migrate Orders from Old to New Restaurants</h5>
             <p class="card-text">Migrate orders to new restaurant</p>
             <button class="btn btn-primary" (click)="migrateOrdersToNewRestaurant()">Execute</button>
         </div>
     </div>
+
 
 </div>

@@ -327,7 +327,8 @@ export class Gmb3Service {
       resource: 'gmbAccount',
       projection: {
         email: 1,
-        locations: 1
+        "locations.place_id": 1,
+        "locations.status": 1
       },
       limit: 6000
     }).toPromise();

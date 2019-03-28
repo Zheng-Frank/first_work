@@ -5,9 +5,9 @@
     <h1 class="text-center">System Settings</h1>
     <div class="my-4">
         <div class="form-group form-check">
-            <input type="checkbox" class="form-check-input" id="severless-checkbox" (ngModelChange)="updateSystemServerlessFlag()"
-                [(ngModel)]="system.useServerlessForNewOrder">
-            <label class="form-check-label" for="severless-checkbox">Use Serverless For New Order</label>
+            <input type="checkbox" class="form-check-input" id="severless-checkbox"
+                [(ngModel)]="system.useServerlessForNewOrder" [disabled]="true">
+            <label class="form-check-label" for="severless-checkbox">Use Serverless For New Order (SERVERLESS IS THE ONLY OPTION)</label>
         </div>
     </div>
     <div class="my-4">

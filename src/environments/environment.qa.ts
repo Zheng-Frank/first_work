@@ -6,7 +6,6 @@ export const environment = {
   qmenuApiUrl: 'https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/',
   legacyApiUrl: "https://quez.herokuapp.com/",
   autoGmbUrl: "http://localhost:3000/",
-  socketUrl: "https://quez.herokuapp.com:443/",
   bizUrl: 'https://qa-biz.herokuapp.com/',
   customerUrl: 'https://qa-customer.herokuapp.com/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',

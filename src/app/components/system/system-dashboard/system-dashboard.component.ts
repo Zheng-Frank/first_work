@@ -27,23 +27,6 @@ export class SystemDashboardComponent implements OnInit {
 
   }
 
-  async updateSystemServerlessFlag() {
-    try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
-        {
-          old: { _id: this.system._id },
-          new: { _id: this.system._id, useServerlessForNewOrder: !this.system.useServerlessForNewOrder }
-        }
-      ]).toPromise();
-      await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
-      this._global.publishAlert(AlertType.Success, "Success!");
-    } catch (error) {
-      console.log(error);
-      this._global.publishAlert(AlertType.Danger, 'FAILED!');
-    }
-
-  }
-
   getPhoneNumberStat() {
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",

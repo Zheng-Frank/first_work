@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from 'src/app/classes/alert-type';
-import { Alert } from 'selenium-webdriver';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 @Component({
   selector: 'app-monitoring-printers',
@@ -11,10 +11,33 @@ import { Alert } from 'selenium-webdriver';
   styleUrls: ['./monitoring-printers.component.css']
 })
 export class MonitoringPrintersComponent implements OnInit {
+  @ViewChild('editingModal') editingModal: ModalComponent;
   rows = [];
   printerType;
   filteredRows = [];
 
+  printerInEditing: any = {};
+  formFieldDescriptors = [{
+    field: 'type',
+    label: 'Printer Type',
+    inputType: "single-select",
+    items: [
+      { object: "fei-e", text: "fei-e", selected: false },
+      { object: "longhorn", text: "longhorn", selected: false },
+    ],
+    required: true
+  },
+  {
+    field: 'sn',
+    label: 'fei-e: sn',
+    required: false
+  },
+  {
+    field: 'key',
+    label: 'fei-e: key',
+    required: false
+  }
+  ];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   now = new Date();
@@ -24,10 +47,38 @@ export class MonitoringPrintersComponent implements OnInit {
   ngOnInit() {
     this.populate();
   }
-
   addNewPrinter() {
+    this.printerInEditing = {};
+    this.editingModal.show();
+  }
 
-    alert('under construction')
+  async formSubmit(event) {
+    try {
+      const printers = [];
+      if (this.printerInEditing.sn) {
+        printers.push(
+          {
+            name: this.printerInEditing.sn,
+            key: this.printerInEditing.key,
+            autoPrintCopies: 1
+          }
+        );
+      }
+      await this._api.post(environment.qmenuApiUrl + 'generic?resource=print-client',
+        [
+          {
+            type: this.printerInEditing.type,
+            printers: printers,
+            createdAt: new Date().valueOf()
+          }
+        ]
+      ).toPromise();
+      this.populate();
+      event.acknowledge(null);
+      this.editingModal.hide();
+    } catch (error) {
+      event.acknowledge(JSON.stringify(error));
+    }
   }
 
   getStatusClass(status) {
@@ -291,16 +342,30 @@ export class MonitoringPrintersComponent implements OnInit {
     for (let printer of printers) {
       switch (row.type) {
         case 'fei-e':
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-order-fei-e",
+            params: {
+              sn: printer.name,
+              key: printer.key,
+              orderId: environment.testOrderId,
+              copies: printer.autoPrintCopies || 1
+            }
+          }]).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
         case 'longhorn':
-          try {
-            const printResult = await this._api.post(environment.legacyApiUrl + 'order/printOrderDetailsByOrderId', { orderId: environment.testOrderId }).toPromise();
-            this._global.publishAlert(AlertType.Info, "Print initiated");
-          } catch (error) {
-            this._global.publishAlert(AlertType.Danger, error);
-          }
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-order-longhorn",
+            params: {
+              printerName: printer.name,
+              orderId: environment.testOrderId,
+              copies: printer.autoPrintCopies || 1
+            }
+          }]).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print job sent");
           break;
         case 'phoenix':
-          const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
             name: "send-phoenix",
             params: {
               printClientId: row._id,
@@ -309,7 +374,7 @@ export class MonitoringPrintersComponent implements OnInit {
                 data: {
                   printerName: printer.name,
                   format: "PNG",
-                  url: "https://api.myqmenu.com/utilities/order/5c720fd092edbd4b28883ee1?format=pos",
+                  url: "https://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos",
                   copies: printer.autoPrintCopies || 1
                 }
               }
@@ -347,6 +412,19 @@ export class MonitoringPrintersComponent implements OnInit {
   filter() {
     this.filteredRows = this.rows;
     this.filteredRows = this.filteredRows.filter(row => !this.printerType || this.printerType === row.type);
+  }
+
+
+  async remove(row) {
+    if (confirm("Are you absolutely sure to delete this printer?")) {
+      await this._api.delete(environment.qmenuApiUrl + 'generic', {
+        resource: 'print-client',
+        ids: [row._id]
+      }).toPromise();
+      this._global.publishAlert(AlertType.Success, "Removeded!");
+      this.rows = this.rows.filter(r => r !== row);
+      this.filter();
+    }
   }
 
 
