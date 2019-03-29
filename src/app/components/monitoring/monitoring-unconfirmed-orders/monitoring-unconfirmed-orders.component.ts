@@ -18,87 +18,64 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
   ngOnInit() {
     this.refreshOrders();
     // setInterval(() => { this.refreshOrders(); }, 180000);
-
     setInterval(() => { this.now = new Date(); }, 60000);
   }
 
   async refreshOrders() {
     const minutesAgo = new Date();
-    minutesAgo.setMinutes(minutesAgo.getMinutes() - 30);
-    const orderStatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'orderstatus',
+    minutesAgo.setMinutes(minutesAgo.getMinutes() - 300);
 
+    // we DON'T need an accurate cut of day. Let's just pull the latest 3000
+    const ordersWithSatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
       projection: {
+        orderNumber: 1,
+        "restaurantObj.name": 1,
+        "restaurantObj._id": 1,
+        "statuses.status": 1,
+        "statuses.createdAt": 1,
+        statuses: {
+          $slice: -1
+        },
         createdAt: 1,
-        order: 1,
-        status: 1
+        timeToDeliver: 1
       },
       sort: {
         createdAt: -1
       },
-      limit: 3000
+      limit: 4000
     }).toPromise();
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
+    const unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() > yesterday.valueOf() && new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
 
-    const orderIdMap = {};
-    const orderStatusesWithin24hours = orderStatuses.filter(os => new Date(os.createdAt).valueOf() > yesterday.valueOf());
-    orderStatusesWithin24hours.map(os => {
-      if (!orderIdMap[os.order]) {
-        orderIdMap[os.order] = [];
-      }
-      os.createdAt = new Date(os.createdAt);
-      orderIdMap[os.order].push(os);
-    });
+    // group by restaurants
+    const rtIdDict = unconfirmedOrders.reduce((dict, order) => (
+      dict[order.restaurantObj._id] = dict[order.restaurantObj._id] || { restaurant: order.restaurantObj, orders: [] },
+      dict[order.restaurantObj._id].orders.push(order),
+      dict
+    ), {});
 
-    // ONLY one status and it must be SUBMITTED, and happened xx minutesAgo
-    const unconfirmedOrderStatuses = Object.keys(orderIdMap).filter(orderId => orderIdMap[orderId].length === 1 && orderIdMap[orderId][0].status === 'SUBMITTED' && orderIdMap[orderId][0].createdAt.valueOf() < minutesAgo).map(orderId => orderIdMap[orderId][0]);
+    // get if restaurant skipOrderConfirmation
 
-
-    unconfirmedOrderStatuses.length = unconfirmedOrderStatuses.length < 100 ? unconfirmedOrderStatuses.length : 100;
-    // lets get only get 100 (due to query limitation)
-    const unconfirmedOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'order',
-      query: {
-        _id: { $in: unconfirmedOrderStatuses.map(os => ({ $oid: os.order })) }
-      },
-      projection: {
-        orderNumber: 1,
-        restaurant: 1,
-        createdAt: 1,
-        timeToDeliver: 1
-      },
-      limit: 100
-    }).toPromise();
-
-    unconfirmedOrders.map(order => order.createdAt = new Date(order.createdAt));
-
-    // get restaurants!
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {
-        _id: { $in: [...new Set(unconfirmedOrders.map(order => order.restaurant))].map(id => ({ $oid: id })) }
-      },
+      query: { _id: { $in: [...Object.keys(rtIdDict).map(id => ({ $oid: id }))] } },
       projection: {
-        name: 1,
-        googleAddress: 1,
+        'googleAddress.formatted_address': 1,
         skipOrderConfirmation: 1
       },
-      limit: 100
+      sort: {
+        createdAt: -1
+      },
+      limit: 4000
     }).toPromise();
 
-    this.rows = restaurants.filter(r => !r.skipOrderConfirmation).map(restaurant => ({
-      restaurant: restaurant,
-      orders: unconfirmedOrders.filter(o => o.restaurant === restaurant._id)
-    }));
+    restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
 
-    // sort by order createdAt desc
-    this.rows.sort((r1, r2) => r2.orders[0].createdAt.valueOf() - r1.orders[0].createdAt.valueOf());
-
-    // sort by order createdAt desc
-    this.rows.map(row => row.orders.sort((o1, o2) => o2.createdAt.valueOf() - o1.createdAt.valueOf()));
+    this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
 
   }
 

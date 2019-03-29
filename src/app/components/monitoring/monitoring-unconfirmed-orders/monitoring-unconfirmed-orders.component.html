@@ -1,7 +1,6 @@
 <table class="table">
   <tr>
     <th>Restaurant</th>
-    <th>Created</th>
     <th>Order Numbers</th>
     <th>Scheduled Order</th>
   </tr>
@@ -9,11 +8,11 @@
     <td>
       <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
       <div class="text-muted">
-        <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
+        <small>{{getDaysFromId(row.restaurant._id)}} days ago</small>
       </div>
-    </td>
-    <td>
-      {{getDaysFromId(row.restaurant._id)}} days ago
+      <div class="text-muted">
+        <small>{{row.restaurant.address | removeUsa}}</small>
+      </div>
     </td>
     <td>
       <div *ngFor="let order of row.orders">
@@ -22,10 +21,10 @@
       </div>
     </td>
     <td>
-        <div *ngFor="let order of row.orders">
-          <small class="text-warning">{{order.timeToDeliver? (order.timeToDeliver| ago : now):''}}</small>
-        </div>
-      </td>
+      <div *ngFor="let order of row.orders">
+        <small class="text-warning">{{order.timeToDeliver? (order.timeToDeliver| ago : now):''}}</small>
+      </div>
+    </td>
 
   </tr>
 
