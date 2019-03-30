@@ -359,7 +359,8 @@ export class MonitoringPrintersComponent implements OnInit {
             params: {
               printerName: printer.name,
               orderId: environment.testOrderId,
-              copies: printer.autoPrintCopies || 1
+              copies: printer.autoPrintCopies || 1,
+              format: printer.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png'
             }
           }]).toPromise();
           this._global.publishAlert(AlertType.Info, "Print job sent");
