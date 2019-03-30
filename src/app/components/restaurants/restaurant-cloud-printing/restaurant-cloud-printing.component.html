@@ -2,32 +2,50 @@
   <h3 class="card-title text-center pt-4 pb-2"><i class="fa fa-print"></i> Cloud Printing Settings</h3>
   <div class="text-center">Use Monitoring -> Cloud Printers to Make Changes</div>
 
-  <div class="card-block">
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <table class="app-table w-100">
+        <thead>
+          <tr>
+            <th class="text-center">Type</th>
+            <th class="text-center">Printer Name</th>
+            <th class="text-center">Copies</th>
+            <!-- <th class="text-center">Status</th> -->
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of getPrinters()">
+            <td class="text-center text-nowrap">
+              {{p.type}}
+            </td>
+            <td class="text-center text-nowrap">
+              {{p.name}}<span *ngIf="p.key">/{{p.key}}</span>
+            </td>
+            <td class="text-center text-nowrap">
+              {{p.autoPrintCopies}}
+            </td>
+            <!-- <td class="text-center text-nowrap">
+                  {{p.status}}
+                </td> -->
+          </tr>
+        </tbody>
+      </table>
+    </li>
+    <li class="list-group-item">
+      <div *ngIf="!editing">Customized Styles: <mark>{{restaurant.customizedRenderingStyles ? restaurant.customizedRenderingStyles : 'None'}}</mark></div>
+      <div *qIf="editing">
+        <textarea [(ngModel)]="customizedRenderingStyles" class="form-control" rows="4"></textarea>
+        <div class="text-right py-2">
+          <button class="btn btn-secondary" (click)="toggleEditing()">Cancel</button>
+          <button class="btn btn-primary" (click)="update()">&nbsp;&nbsp;OK&nbsp;&nbsp;</button>
+        </div>
+      </div>
+      <div class="text-right" *ngIf="!editing">
+        <div>
+          <button (click)="toggleEditing()" class="btn btn-primary">Edit</button>
+        </div>
+      </div>
+    </li>
+  </ul>
 
-    <table class="app-table w-100">
-      <thead>
-        <tr>
-          <th class="text-center">Type</th>
-          <th class="text-center">Printer Name</th>
-          <th class="text-center">Copies</th>
-          <!-- <th class="text-center">Status</th> -->
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let p of getPrinters()">
-          <td class="text-center text-nowrap">
-            {{p.type}}
-          </td>
-          <td class="text-center text-nowrap">
-            {{p.name}}<span *ngIf="p.key">/{{p.key}}</span>
-          </td>
-          <td class="text-center text-nowrap">
-            {{p.autoPrintCopies}}
-          </td>
-          <!-- <td class="text-center text-nowrap">
-            {{p.status}}
-          </td> -->
-        </tr>
-      </tbody>
-    </table>
-  </div>
+</div>
