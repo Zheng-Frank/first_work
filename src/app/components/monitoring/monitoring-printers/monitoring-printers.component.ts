@@ -26,17 +26,8 @@ export class MonitoringPrintersComponent implements OnInit {
       { object: "longhorn", text: "longhorn", selected: false },
     ],
     required: true
-  },
-  {
-    field: 'sn',
-    label: 'fei-e: sn',
-    required: false
-  },
-  {
-    field: 'key',
-    label: 'fei-e: key',
-    required: false
   }
+  
   ];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 

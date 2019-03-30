@@ -1,17 +1,20 @@
-<h1 class="text-center">Cloud Printing Clients<br><small>{{filteredRows.length}}</small></h1>
+<h1 class="text-center">Cloud Printing Clients
+    <br>
+    <small>{{filteredRows.length}}</small>
+</h1>
 <div class="clearfix my-2">
     <div class="float-left form-inline">
     </div>
 
     <div class="float-right">
-        <button class="btn btn-primary" (click)="addNewPrinter()"><i class="fas fa-plus"></i> Add New Printer</button>
-        <button class="btn btn-primary" (click)="syncExistingPrinters()" [qLoading]="discovering"><i
-                class="fas fa-sync"></i>
+        <button class="btn btn-primary" (click)="addNewPrinter()">
+            <i class="fas fa-plus"></i> Add New Printer</button>
+        <button class="btn btn-primary" (click)="syncExistingPrinters()" [qLoading]="discovering">
+            <i class="fas fa-sync"></i>
             Discover All Printers</button>
     </div>
 </div>
-<q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()"
-    [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
+<q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()" [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
 </q-simple-radio>
 
 <table class="table table-sm">
@@ -27,14 +30,18 @@
         <th>{{i + 1}}</th>
         <td>
             {{row.type}}
-            <div class="text-muted"><small>{{row.guid}}</small></div>
+            <div class="text-muted">
+                <small>{{row.guid}}</small>
+            </div>
         </td>
         <td>
             <div *ngIf="row.statusHistory && row.statusHistory.length > 0">
                 <div class="{{getStatusClass(row.statusHistory[0])}}">
                     {{row.statusHistory[0].status}}
                 </div>
-                <div class="text-muted"><small>{{row.statusHistory[0].time | ago: now}}</small></div>
+                <div class="text-muted">
+                    <small>{{row.statusHistory[0].time | ago: now}}</small>
+                </div>
             </div>
         </td>
         <td>
@@ -50,13 +57,11 @@
         <td>
             <div *ngFor="let printer of (row.printers || [])">
                 <label class="checkbox-inline {{printer.autoPrintCopies > 0 ? '' : 'font-weight-normal text-muted'}}">
-                    <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0"
-                        (click)="togglePrinter($event, row, printer)">
-                    {{printer.name}}
+                    <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0" (click)="togglePrinter($event, row, printer)"> {{printer.name}}
                 </label>
                 <span *ngIf="printer.autoPrintCopies > 0">
-                    copies: <q-edit-label [value]="printer.autoPrintCopies" [type]="'select'" [options]="[1, 2, 3, 4]"
-                        (edit)="updateAutoPrintCopies($event, row, printer)"></q-edit-label>
+                    copies:
+                    <q-edit-label [value]="printer.autoPrintCopies" [type]="'select'" [options]="[1, 2, 3, 4]" (edit)="updateAutoPrintCopies($event, row, printer)"></q-edit-label>
                 </span>
 
 
@@ -64,14 +69,12 @@
             </div>
         </td>
         <td>
-            <button class="btn btn-link d-block" (click)="pullPrinters(row)"
-                *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull
-                Printers</button>
+            <button class="btn btn-link d-block" (click)="pullPrinters(row)" *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull Printers
+            </button>
             <button class="btn btn-link d-block" (click)="refreshStatus(row)">Refresh Status</button>
             <button class="btn btn-link d-block" (click)="printTestOrder(row)" *ngIf="row.printers?.length > 0">
                 Print Test Order</button>
-            <button class="btn btn-link d-block" (click)="suspendConnection(row)"
-                *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
+            <button class="btn btn-link d-block" (click)="suspendConnection(row)" *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
             <button class="btn btn-link d-block" (click)="remove(row)">
                 Delete</button>
         </td>
@@ -80,6 +83,17 @@
 </table>
 
 <q-modal [title]="'Add New Printer'" #editingModal>
-    <q-form-builder [object]="printerInEditing" [showDelete]="false" [fieldDescriptors]="formFieldDescriptors"
-        (submit)="formSubmit($event)" (cancel)="editingModal.hide()"></q-form-builder>
+    <q-form-builder [object]="printerInEditing" [showDelete]="false" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
+        (cancel)="editingModal.hide()">
+        <div class="form-row" *ngIf="printerInEditing.type === 'fei-e'">
+            <div class="col-12 mb-3">
+                <label for="id_sn">fei-e: sn</label>
+                <input class="form-control" id="id_sn" placeholder="" [(ngModel)]="printerInEditing.sn">
+            </div>
+            <div class="col-12 mb-3">
+                <label for="id_key">fei-e: key</label>
+                <input class="form-control" id="id_key" placeholder="" [(ngModel)]="printerInEditing.key">
+            </div>
+        </div>
+    </q-form-builder>
 </q-modal>
