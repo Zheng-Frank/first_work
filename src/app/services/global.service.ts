@@ -122,7 +122,7 @@ export class GlobalService {
           name: "Monitoring",
           href: "#/monitoring",
           fa: "fas fa-heartbeat",
-          accessibleRoles: ["ADMIN"]
+          accessibleRoles: ["CSR", "ADMIN"]
         },
         {
           name: "System",
