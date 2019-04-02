@@ -366,7 +366,7 @@ export class MonitoringPrintersComponent implements OnInit {
                 data: {
                   printerName: printer.name,
                   format: "PNG",
-                  url: "https://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos",
+                  url: "http://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos",
                   copies: printer.autoPrintCopies || 1
                 }
               }
