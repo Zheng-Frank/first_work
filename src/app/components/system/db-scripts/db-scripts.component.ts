@@ -22,7 +22,7 @@ export class DbScriptsComponent implements OnInit {
   ngOnInit() { }
 
   async changeOwnership() {
-    const oldRestaurantId = 'aaaa5af3cc476209fd1400a905b1';
+    const oldRestaurantId = '5a79732257067814009f55d5';
     const newName = "Quik Wok";
     const newAlias = "quik-wok-oceanside";
     const switchingDate = new Date("Mar 16 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");

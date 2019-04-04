@@ -186,10 +186,10 @@ export class OrderCardComponent implements OnInit {
             await this._api.post(environment.appApiUrl + 'biz/orders/send', {
               orderId: this.order.id, type: 'fax', to: fax
             }).toPromise();
-            this._global.publishAlert(AlertType.Success, `Sent email to ${fax}`);
+            this._global.publishAlert(AlertType.Success, `Sent fax to ${fax}`);
           } catch (error) {
             console.log(error);
-            this._global.publishAlert(AlertType.Danger, `Failed sending email to ${fax}`);
+            this._global.publishAlert(AlertType.Danger, `Failed sending fax to ${fax}`);
           }
         }
         break;
