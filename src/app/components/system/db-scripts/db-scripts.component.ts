@@ -21,6 +21,46 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async injectTimezone() {
+    const missingTimezoneRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "googleAddress.timezone": null,
+        "googleAddress.place_id": { $exists: true }
+      },
+      projection: {
+        name: 1,
+        "googleAddress.place_id": 1,
+        "googleListing.place_id": 1,
+        disabled: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    console.log(missingTimezoneRestaurants);
+    for (let r of missingTimezoneRestaurants) {
+      try {
+        let place_id = r.googleAddress.place_id;
+        if(place_id.length > 30 && r.googleListing && r.googleListing.place_id) {
+          place_id = r.googleListing.place_id;
+        }
+        const addressDetails = await this._api.get(environment.adminApiUrl + "utils/google-address", {
+          place_id: place_id
+        }).toPromise();
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+          {
+            old: { _id: r._id, googleAddress: {} },
+            new: { _id: r._id, googleAddress: {place_id: place_id, timezone: addressDetails.timezone } }
+          }
+        ]).toPromise();
+        console.log(r.name);
+      } catch (error) {
+        console.log(r.name, r.disabled, '-------------------');
+        console.log(error);
+      }
+    }
+  }
+
   async changeOwnership() {
     const oldRestaurantId = '5a79732257067814009f55d5';
     const newName = "Quik Wok";
