@@ -9,7 +9,8 @@
 					<tbody>
 						<tr>
 							<th class="text-right">Name</th>
-							<td class="pl-1">{{restaurant.name}} ({{getMongoDate(restaurant._id) | date: 'shortDate'}})</td>
+							<td class="pl-1">{{restaurant.name}} ({{getMongoDate(restaurant._id) | date: 'shortDate'}})
+							</td>
 						</tr>
 						<tr>
 							<th class="text-right">Address</th>
@@ -50,7 +51,8 @@
 						</tr>
 						<tr>
 							<th class="text-right">Surchage</th>
-							<td class="pl-1">{{restaurant.surchargeName}} {{restaurant.surchargeAmount | currency:'USD':'symbol'}}</td>
+							<td class="pl-1">{{restaurant.surchargeName}}
+								{{restaurant.surchargeAmount | currency:'USD':'symbol'}}</td>
 						</tr>
 						<tr>
 							<th class="text-right">CC Processing Rate</th>
@@ -127,13 +129,15 @@
 						<tr>
 							<th class="text-right" style="width: 33%">Domain</th>
 							<td class="pl-1">
-								<input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
+								<input type="text" [(ngModel)]="domain" class="form-control"
+									placeholder="domain name, eg. qmenutest.com">
 							</td>
 						</tr>
 						<tr>
 							<th class="text-right" style="width: 33%">Website Broadcast</th>
 							<td class="pl-1">
-								<input type="text" [(ngModel)]="notification" class="form-control" placeholder="important message showing on website">
+								<input type="text" [(ngModel)]="notification" class="form-control"
+									placeholder="important message showing on website">
 							</td>
 						</tr>
 
@@ -161,16 +165,20 @@
 						<tr>
 							<th class="text-right">Surcharge</th>
 							<td class="pl-1">
-								<input type="number" [(ngModel)]="surchargeAmount" class="form-control" placeholder="surcharge amount">
-								<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1" placeholder="text to show customer">
-								<small>* This is money charged to customer for every online order and the collected money goes to restaurant.
+								<input type="number" [(ngModel)]="surchargeAmount" class="form-control"
+									placeholder="surcharge amount">
+								<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1"
+									placeholder="text to show customer">
+								<small>* This is money charged to customer for every online order and the collected
+									money goes to restaurant.
 									<i class="fas fa-exclamation"></i> It may drive customers away.</small>
 							</td>
 						</tr>
 						<tr>
 							<th class="text-right">CC Processing Rate</th>
 							<td class="pl-1">
-								<input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
+								<input type="number" [(ngModel)]="ccProcessingRate" class="form-control"
+									placeholder="rate">
 							</td>
 						</tr>
 						<tr>
@@ -178,13 +186,20 @@
 							<th class="text-right">CC Processing Flat Fee
 							</th>
 							<td class="pl-1">
-								<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control" placeholder="fee">
+								<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control"
+									placeholder="fee">
 							</td>
 						</tr>
 						<tr>
 							<th class="text-right">Disable Scheduling</th>
 							<td class="pl-1">
 								<input type="checkbox" [(ngModel)]="disableScheduling">
+							</td>
+						</tr>
+						<tr>
+							<th class="text-right">Skip Order Confirmation</th>
+							<td class="pl-1">
+								<input type="checkbox" [(ngModel)]="skipOrderConfirmation">
 							</td>
 						</tr>
 						<tr>
@@ -231,7 +246,8 @@
 								<hr>
 								<div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
 									<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
-									<button (click)="deleteLogo(img)" class="btn btn-secondary close-button transparent">
+									<button (click)="deleteLogo(img)"
+										class="btn btn-secondary close-button transparent">
 										<i class="fas fa-times"></i>
 									</button>
 									<button (click)="deleteLogo(img)" class="btn btn-link close-button text-danger">
@@ -249,9 +265,11 @@
 						<tr>
 							<th class="text-right">Photos</th>
 							<td class="pl-1">
-								<div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
+								<div *ngFor="let img of images" class="pr-1 pb-1"
+									style="display:inline-block; position:relative">
 									<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
-									<button (click)="deleteImage(img)" class="btn btn-secondary close-button transparent">
+									<button (click)="deleteImage(img)"
+										class="btn btn-secondary close-button transparent">
 										<i class="fas fa-times"></i>
 									</button>
 									<button (click)="deleteImage(img)" class="btn btn-link close-button text-danger">
