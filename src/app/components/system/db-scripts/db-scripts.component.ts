@@ -21,6 +21,21 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async removeRedundantOptions() {
+    // orders.map(order => {
+    //   order.orderItems.map(oi => {
+    //     oi.miInstance.sizeOptions = [...oi.miInstance.sizeOptions.slice(0, 2), ...oi.miInstance.sizeOptions.slice(2).filter(so => so.selected)];
+    //     (oi.mcSelectedMenuOptions || []).map(options => {
+    //       options.items = [...options.items.slice(0, 2), ...options.items.slice(2).filter(item => item.selected)];
+    //     });
+    //     (oi.miSelectedMenuOptions || []).map(options => {
+    //       options.items = [...options.items.slice(0, 2), ...options.items.slice(2).filter(item => item.selected)];
+    //     });
+    //   });
+    //   console.log(order._id, JSON.stringify(order).length);
+    // });
+  }
+
   async injectTimezone() {
     const missingTimezoneRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
