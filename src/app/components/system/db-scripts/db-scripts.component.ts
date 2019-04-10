@@ -57,6 +57,7 @@ export class DbScriptsComponent implements OnInit {
       old: { _id: tmeCourier._id },
       new: {
         _id: tmeCourier._id, restaurants: tmeRestaurants.map(r => ({
+          _id: r._id,
           name: r.name,
           formatted_address: (r.googleAddress || {}).formatted_address,
           phone: (r.googleListing || {}).phone,
