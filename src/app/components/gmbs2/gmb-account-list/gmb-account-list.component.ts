@@ -6,7 +6,7 @@ import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
 import { FormEvent } from '@qmenu/ui';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
-
+declare var $: any;
 @Component({
   selector: 'app-gmb-account-list',
   templateUrl: './gmb-account-list.component.html',
@@ -40,6 +40,9 @@ export class GmbAccountListComponent implements OnInit {
 
   ngOnInit() {
     this.populate();
+    setTimeout(() => {
+      $('#fake-Iinput').css('display', 'none');
+    }, 400);
   }
 
   async populate() {

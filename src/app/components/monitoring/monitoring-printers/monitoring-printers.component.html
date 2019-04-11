@@ -14,7 +14,8 @@
             Discover All Printers</button>
     </div>
 </div>
-<q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()" [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
+<q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()"
+    [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
 </q-simple-radio>
 
 <table class="table table-sm">
@@ -57,11 +58,13 @@
         <td>
             <div *ngFor="let printer of (row.printers || [])">
                 <label class="checkbox-inline {{printer.autoPrintCopies > 0 ? '' : 'font-weight-normal text-muted'}}">
-                    <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0" (click)="togglePrinter($event, row, printer)"> {{printer.name}}
+                    <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0"
+                        (click)="togglePrinter($event, row, printer)"> {{printer.name}}
                 </label>
                 <span *ngIf="printer.autoPrintCopies > 0">
                     copies:
-                    <q-edit-label [value]="printer.autoPrintCopies" [type]="'select'" [options]="[1, 2, 3, 4]" (edit)="updateAutoPrintCopies($event, row, printer)"></q-edit-label>
+                    <q-edit-label [value]="printer.autoPrintCopies" [type]="'select'" [options]="[1, 2, 3, 4]"
+                        (edit)="updateAutoPrintCopies($event, row, printer)"></q-edit-label>
                 </span>
 
 
@@ -69,22 +72,28 @@
             </div>
         </td>
         <td>
-            <button class="btn btn-link d-block" (click)="pullPrinters(row)" *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull Printers
+            <button class="btn btn-link d-block" (click)="pullPrinters(row)"
+                *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull
+                Printers
             </button>
             <button class="btn btn-link d-block" (click)="refreshStatus(row)">Refresh Status</button>
             <button class="btn btn-link d-block" (click)="printTestOrder(row)" *ngIf="row.printers?.length > 0">
                 Print Test Order</button>
-            <button class="btn btn-link d-block" (click)="suspendConnection(row)" *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
+            <button class="btn btn-link d-block" (click)="suspendConnection(row)"
+                *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
+            <button class="btn btn-link d-block" (click)="emulateUpdate(row)"
+                *ngIf="['phoenix'].indexOf(row.type) >= 0">Emulate Update</button>
             <button class="btn btn-link d-block" (click)="remove(row)">
                 Delete</button>
+
         </td>
     </tr>
 
 </table>
 
 <q-modal [title]="'Add New Printer'" #editingModal>
-    <q-form-builder [object]="printerInEditing" [showDelete]="false" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
-        (cancel)="editingModal.hide()">
+    <q-form-builder [object]="printerInEditing" [showDelete]="false" [fieldDescriptors]="formFieldDescriptors"
+        (submit)="formSubmit($event)" (cancel)="editingModal.hide()">
         <div class="form-row" *ngIf="printerInEditing.type === 'fei-e'">
             <div class="col-12 mb-3">
                 <label for="id_sn">fei-e: sn</label>

@@ -21,11 +21,116 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async migrateTme() {
+    const tmeCourier = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'courier',
+      query: {
+        name: 'Ten Mile Express'
+      },
+      projection: {
+        name: 1
+      },
+      limit: 1
+    }).toPromise())[0];
+    if (!tmeCourier) {
+      return alert('TME No found');
+    }
+    const tmeRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        deliveryByTme: true
+      },
+      projection: {
+        name: 1,
+        "googleAddress.formatted_address": 1,
+        "googleListing.phone": 1,
+        "googleAddress.lat": 1,
+        "googleAddress.lng": 1,
+        "googleAddress.place_id": 1,
+        "googleAddress.timezone": 1
+      },
+      limit: 100
+    }).toPromise();
+
+    console.log(tmeRestaurants);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=courier', [{
+      old: { _id: tmeCourier._id },
+      new: {
+        _id: tmeCourier._id, restaurants: tmeRestaurants.map(r => ({
+          _id: r._id,
+          name: r.name,
+          formatted_address: (r.googleAddress || {}).formatted_address,
+          phone: (r.googleListing || {}).phone,
+          lat: (r.googleAddress || {}).lat,
+          lng: (r.googleAddress || {}).lng,
+          place_id: (r.googleAddress || {}).place_id,
+          timezone: (r.googleAddress || {}).timezone,
+        }))
+      },
+    }]).toPromise();
+    alert('Done!');
+  }
+
+  async removeRedundantOptions() {
+    // orders.map(order => {
+    //   order.orderItems.map(oi => {
+    //     oi.miInstance.sizeOptions = [...oi.miInstance.sizeOptions.slice(0, 2), ...oi.miInstance.sizeOptions.slice(2).filter(so => so.selected)];
+    //     (oi.mcSelectedMenuOptions || []).map(options => {
+    //       options.items = [...options.items.slice(0, 2), ...options.items.slice(2).filter(item => item.selected)];
+    //     });
+    //     (oi.miSelectedMenuOptions || []).map(options => {
+    //       options.items = [...options.items.slice(0, 2), ...options.items.slice(2).filter(item => item.selected)];
+    //     });
+    //   });
+    //   console.log(order._id, JSON.stringify(order).length);
+    // });
+  }
+
+  async injectTimezone() {
+    const missingTimezoneRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "googleAddress.timezone": null,
+        "googleAddress.place_id": { $exists: true }
+      },
+      projection: {
+        name: 1,
+        "googleAddress.place_id": 1,
+        "googleListing.place_id": 1,
+        disabled: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    console.log(missingTimezoneRestaurants);
+    for (let r of missingTimezoneRestaurants) {
+      try {
+        let place_id = r.googleAddress.place_id;
+        if (place_id.length > 30 && r.googleListing && r.googleListing.place_id) {
+          place_id = r.googleListing.place_id;
+        }
+        const addressDetails = await this._api.get(environment.adminApiUrl + "utils/google-address", {
+          place_id: place_id
+        }).toPromise();
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+          {
+            old: { _id: r._id, googleAddress: {} },
+            new: { _id: r._id, googleAddress: { place_id: place_id, timezone: addressDetails.timezone } }
+          }
+        ]).toPromise();
+        console.log(r.name);
+      } catch (error) {
+        console.log(r.name, r.disabled, '-------------------');
+        console.log(error);
+      }
+    }
+  }
+
   async changeOwnership() {
-    const oldRestaurantId = '5a79732257067814009f55d5';
-    const newName = "Quik Wok";
-    const newAlias = "quik-wok-oceanside";
-    const switchingDate = new Date("Mar 16 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
+    const oldRestaurantId = '5b6bf7ea876d3d1400a50bdd';
+    const newName = "Ninja 86 Sushi Inc";
+    const newAlias = "ninja86-sushi-inc-brooklyn";
+    const switchingDate = new Date("Apr 5 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
 
     const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',

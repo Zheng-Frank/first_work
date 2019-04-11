@@ -1,5 +1,33 @@
 <h2 class="text-center">GMB: Accounts</h2>
 <div class="text-center">Published: {{publishedTotal}}, Suspended: {{suspendedTotal}}</div>
+
+<div class="clearfix my-2">
+  <div class="float-left form-inline">
+    Account Filter:
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2"
+      placeholder="email or restaurant name" [(ngModel)]="searchFilter">
+
+    <input type="text" class="form-control ml-2" id="fake-Iinput"
+      placeholder="email or restaurant name" >
+
+    &nbsp;Type:
+    <select class="form-control" [(ngModel)]="type" (change)="filterGmbAccounts()">
+      <option>All</option>
+      <option>Apply GMB</option>
+      <option>Transfer GMB</option>
+    </select>
+  </div>
+
+  <div class="float-right">
+
+    <button class="btn btn-primary" (click)="addNew()">
+      <i class="fas fa-plus"></i> Add GMB Account</button>
+  </div>
+</div>
+<div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
+  <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)"
+    (scanRequests)="scanRequests($event)" (scanBizList)="scanBizList($event)" (login)="login($event)"></app-gmb-card2>
+</div>
 <div class="alert alert-danger" *ngIf="problematicLocations.length > 0">
   <h4>Problematic Locations</h4>
   <table class="table">
@@ -20,40 +48,18 @@
         </div>
       </td>
       <td>
-        <div *ngFor="let subitem of item">{{subitem.location.status}} <div class="text-muted"><small>{{subitem.location.statusHistory[0].time | ago : now}}</small></div></div>
+        <div *ngFor="let subitem of item">{{subitem.location.status}} <div class="text-muted">
+            <small>{{subitem.location.statusHistory[0].time | ago : now}}</small></div>
+        </div>
       </td>
     </tr>
   </table>
 </div>
-<div class="clearfix my-2">
-  <div class="float-left form-inline">
-    Account Filter:
-    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email or restaurant name"
-      [(ngModel)]="searchFilter">
-
-    &nbsp;Type:
-    <select class="form-control" [(ngModel)]="type" (change)="filterGmbAccounts()">
-        <option>All</option>
-        <option>Apply GMB</option>
-        <option>Transfer GMB</option>
-    </select>
-  </div>
-  
-  <div class="float-right">
-
-    <button class="btn btn-primary" (click)="addNew()">
-      <i class="fas fa-plus"></i> Add GMB Account</button>
-  </div>
-</div>
-<div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
-  <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)" (scanRequests)="scanRequests($event)"
-    (scanBizList)="scanBizList($event)" (login)="login($event)"></app-gmb-card2>
-</div>
-
 <!--the editing modal-->
 <q-modal #gmbEditingModal>
   <h4 class="text-center">{{gmbInEditing && gmbInEditing._id ? 'Update' : 'Add New'}}</h4>
   <hr>
-  <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)" (cancel)="cancel()"></app-gmb-account-editor>
+  <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)"
+    (cancel)="cancel()"></app-gmb-account-editor>
   <div class="text-danger">{{apiError}}</div>
 </q-modal>

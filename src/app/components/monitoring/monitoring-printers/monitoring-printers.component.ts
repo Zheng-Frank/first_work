@@ -27,7 +27,7 @@ export class MonitoringPrintersComponent implements OnInit {
     ],
     required: true
   }
-  
+
   ];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -322,6 +322,38 @@ export class MonitoringPrintersComponent implements OnInit {
       }
     }]).toPromise();
   }
+
+  async emulateUpdate(row) {
+    const jobs = await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+      name: "send-phoenix",
+      params: {
+        printClientId: row._id,
+        data: {
+          "type": "UPDATE",
+          data: {
+            path: "/src",
+            filename: "app.config.js",
+            payload: `const Path = require('path');
+
+            module.exports = {
+              APP_VERSION: '0.2.1',
+              
+              RECONNECT_INTERVAL: 5 * (1000),
+              PING_INTERVAL: 1 * (60 * 1000),
+              PING_INTERVAL_TRESHOLD_MULTIPLIER: 1.5,
+              APP_PATH: Path.join(Path.dirname(process.execPath)),
+              SHORTID_PATH: Path.join(Path.dirname(process.execPath), '../cloud.bin'),
+              PRINTERS_EXE_PATH: Path.join(Path.dirname(process.execPath), '../dist/printers.exe'),
+              PRINT_EXE_PATH: Path.join(Path.dirname(process.execPath), '../dist/print.exe')
+            };`,
+            version: '0.2.1'
+          }
+        }
+      }
+    }]).toPromise();
+  }
+
+
 
   async printTestOrder(row) {
     // find printer

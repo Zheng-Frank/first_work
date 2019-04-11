@@ -45,7 +45,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'domain',    
     'skipOrderConfirmation',
     'hideOrderStatus',
-    'notes'
+    'notes',
+    'deliveryByTme'
   ];
 
   uploadError: string;
@@ -68,6 +69,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   googleAddress: Address;
   preferredLanguage;
   skipOrderConfirmation;
+  deliveryByTme;
 
   notification;
   timeZones = [
