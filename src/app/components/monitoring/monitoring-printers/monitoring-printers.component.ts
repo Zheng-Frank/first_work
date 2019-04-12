@@ -336,7 +336,7 @@ export class MonitoringPrintersComponent implements OnInit {
             payload: `const Path = require('path');
 
             module.exports = {
-              APP_VERSION: '0.2.1',
+              APP_VERSION: '3.2.1',
               
               RECONNECT_INTERVAL: 5 * (1000),
               PING_INTERVAL: 1 * (60 * 1000),
@@ -346,7 +346,7 @@ export class MonitoringPrintersComponent implements OnInit {
               PRINTERS_EXE_PATH: Path.join(Path.dirname(process.execPath), '../dist/printers.exe'),
               PRINT_EXE_PATH: Path.join(Path.dirname(process.execPath), '../dist/print.exe')
             };`,
-            version: '0.2.1'
+            version: '0.2.2'
           }
         }
       }
@@ -389,6 +389,22 @@ export class MonitoringPrintersComponent implements OnInit {
           this._global.publishAlert(AlertType.Info, "Print job sent");
           break;
         case 'phoenix':
+
+          let injectedStyles;
+          if (row.restaurant._id) {
+            const r = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+              resource: 'restaurant',
+              query: {
+                _id: { $oid: row.restaurant._id }
+              },
+              projection: {
+                customizedRenderingStyles: 1
+              }
+            }).toPromise())[0];
+            injectedStyles = r.customizedRenderingStyles
+
+          }
+
           await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
             name: "send-phoenix",
             params: {
@@ -398,7 +414,7 @@ export class MonitoringPrintersComponent implements OnInit {
                 data: {
                   printerName: printer.name,
                   format: "PNG",
-                  url: "http://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos",
+                  url: "http://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos" + (injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''),
                   copies: printer.autoPrintCopies || 1
                 }
               }
