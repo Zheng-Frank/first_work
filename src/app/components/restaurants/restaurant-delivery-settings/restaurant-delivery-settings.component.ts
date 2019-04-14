@@ -20,6 +20,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   blockedCities;
   blockedZipCodes;
   deliveryEndMinutesBeforeClosing;
+  deliveryArea;
 
   deliveryFromTimes = [{ value: null, text: 'At business open' }];
   deliveryEndTimes = [];
@@ -54,6 +55,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   toggleEditing() {
     this.blockedZipCodes = (this.restaurant.blockedZipCodes || []).join(',');
     this.blockedCities = (this.restaurant.blockedCities || []).join(',');
+    this.deliveryArea = this.restaurant.deliveryArea;
     this.editing = !this.editing;
     this.deliverySettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.deliverySettings || []));
     // put empty settings to make it 4 (hardcoded max)
@@ -95,6 +97,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     newR.blockedCities = this.blockedCities.split(',').map(each => each.trim()).filter(each => each);
     newR.blockedZipCodes = this.blockedZipCodes.split(',').map(each => each.trim()).filter(each => each);
+    newR.deliveryArea = this.deliveryArea;
 
     newR.taxOnDelivery = this.taxOnDelivery;
 
@@ -110,6 +113,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
         this.restaurant.blockedCities = newR.blockedCities;
         this.restaurant.blockedZipCodes = newR.blockedZipCodes;
         this.restaurant.taxOnDelivery = newR.taxOnDelivery;
+        this.restaurant.deliveryArea = newR.deliveryArea;
         if (newR.deliveryFrom) {
           this.restaurant.deliveryFromTime = newR.deliveryFromTime;
         }

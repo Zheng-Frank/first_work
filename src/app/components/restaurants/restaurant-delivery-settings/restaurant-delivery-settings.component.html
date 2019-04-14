@@ -126,20 +126,34 @@
             <tr>
           </tbody>
         </table>
+      </div>
 
-        <div class="pt-1 text-right">
-          <button class="btn btn-secondary" (click)="toggleEditing()" style="min-width: 6rem">Cancel</button>
-          <button class="btn btn-primary" (click)="update()" style="min-width: 6rem">OK</button>
+
+    </li>
+    <li class="list-group-item">
+      <div class="form-group row">
+        <label class="col-4 col-form-label pt-0">Delivery Area</label>
+        <div class="col-8 text-left">
+          <div *qIf="!editing && restaurant.deliveryArea" class="form-group">
+            <textarea class="form-control" rows="5" [(ngModel)]="restaurant.deliveryArea" disabled></textarea>
+          </div>
+          <div *qIf="editing" class="form-group">
+            <textarea class="form-control" rows="5" [(ngModel)]="deliveryArea"></textarea>
+          </div>
         </div>
       </div>
 
-      <div style="position:relative" *ngIf="!editing">
-        &nbsp;
-        <div class="app-card-edit">
-          <a (click)="toggleEditing()" role="button">Edit</a>
-        </div>
-      </div>
     </li>
 
   </ul>
+  <div style="position:relative" *ngIf="!editing">
+    &nbsp;
+    <div class="text-right">
+      <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
+    </div>
+  </div>
+  <div *ngIf="editing" class="pt-1 text-right">
+    <button class="btn btn-secondary" (click)="toggleEditing()" style="min-width: 6rem">Cancel</button>
+    <button class="btn btn-primary" (click)="update()" style="min-width: 6rem">OK</button>
+  </div>
 </div>

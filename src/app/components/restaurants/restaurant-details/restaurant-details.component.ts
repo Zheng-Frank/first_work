@@ -133,6 +133,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           taxOnDelivery: 1,
           blockedCities: 1,
           blockedZipCodes: 1,
+          deliveryArea: 1,
           deliveryFromTime: 1,
           deliveryEndMinutesBeforeClosing: 1,
           offsetToEST: 1,
