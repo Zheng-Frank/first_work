@@ -27,10 +27,34 @@ export class MenusComponent implements OnInit {
 
   adjustingAllPrices = false;
   adjustPricesFactor;
+  copyMenu = false;
+  copyMenuToRestaurantId;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+  }
+
+  async copyMenuToRT(){
+          try {
+            await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+              old: {
+                _id: this.copyMenuToRestaurantId,
+                menus: [],
+                menuOptions: []
+              }, new: {
+                _id: this.copyMenuToRestaurantId,
+                menus: this.restaurant.menus,
+                menuOptions: this.restaurant.menuOptions
+              }
+            }]).toPromise();
+            this._global.publishAlert(AlertType.Success, "Success!");
+            this.adjustingAllPrices = false;
+          } catch (error) {
+            console.log(error);
+            this._global.publishAlert(AlertType.Danger, "Failed!");
+            this.adjustingAllPrices = false;
+          }
   }
 
   async adjustPrices() {
