@@ -282,6 +282,7 @@ export class TaskService {
         email: 1,
         "locations.cid": 1,
         "locations.status": 1,
+        "locations.appealId": 1,
         "locations.statusHistory": { $slice: 1 }
       },
       limit: 5000
