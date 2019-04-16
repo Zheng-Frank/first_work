@@ -584,58 +584,9 @@ export class Gmb3Service {
   /** Appeal an Appeal GMB Task, using random names */
   async appeal(tasks: Task[]) {
 
-    const randomNames = `Rosena Massaro
-  Jeanmarie Eynon
-  Burma Busby
-  Charlyn Wall
-  Daniel Carrillo
-  Shanon Chalker
-  Alberta Gorski
-  Steffanie Mccullen
-  Chanelle Stukes
-  Harlan Horman
-  Aura Fleming
-  Edyth Applebee
-  Francisco Halloway
-  Maryjo Isakson
-  Eveline Lager
-  Isabel Middleton
-  Edda Rickel
-  Margareta Joye
-  Nona Fager
-  Lynelle Coutee
-  Rasheeda Gillmore
-  Kiesha Padula
-  Maryalice Matheny
-  Jacqueline Danos
-  Alden Crossman
-  Corinna Edge
-  Cassandra Trial
-  Zulema Freedman
-  Brunilda Halberg
-  Jewell Pyne
-  Jeff Kemmerer
-  Rosalee Heard
-  Maximina Gangi
-  Merrie Kall
-  Leilani Zeringue
-  Bradly Backes
-  Samella Bleich
-  Barrie Whetzel
-  Shakia Bischof
-  Gregoria Neace
-  Denice Vowels
-  Carlotta Barton
-  Andy Saltsman
-  Octavia Geis
-  Danelle Kornreich
-  Danica Stanfield
-  Shay Nilsson
-  Nan Jaffee
-  Laraine Fritzler
-  Christopher Pagani`;
+    const randomNames = "Rosena Massaro,Jeanmarie Eynon,Burma Busby,Charlyn Wall,Daniel Carrillo,Shanon Chalker,Alberta Gorski,Steffanie Mccullen,Chanelle Stukes,Harlan Horman,Aura Fleming,Edyth Applebee,Francisco Halloway,Maryjo Isakson,Eveline Lager,Isabel Middleton,Edda Rickel,Margareta Joye,Nona Fager,Lynelle Coutee,Rasheeda Gillmore,Kiesha Padula,Maryalice Matheny,Jacqueline Danos,Alden Crossman,Corinna Edge,Cassandra Trial,Zulema Freedman,Brunilda Halberg,Jewell Pyne,Jeff Kemmerer,Rosalee Heard,Maximina Gangi,Merrie Kall,Leilani Zeringue,Bradly Backes,Samella Bleich,Barrie Whetzel,Shakia Bischof,Gregoria Neace,Denice Vowels,Carlotta Barton,Andy Saltsman,Octavia Geis,Danelle Kornreich,Danica Stanfield,Shay Nilsson,Nan Jaffee,Laraine Fritzler,Christopher Pagani";
 
-    const names = randomNames.split('   ').map(n => n.trim());
+    const names = randomNames.split(',').map(n => n.trim());
     const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
@@ -645,7 +596,7 @@ export class Gmb3Service {
       limit: 6000
     }).toPromise();
     for (let task of tasks) {
-      const randomName = names[new Date().valueOf() % names.length];
+      const randomName = names[Math.floor(Math.random()*names.length)];
       try {
         const gmbAccount = accounts.filter(a => a._id === task.relatedMap.gmbAccountId)[0];
         let password = gmbAccount.password;

@@ -281,8 +281,10 @@ export class TaskService {
       projection: {
         email: 1,
         "locations.cid": 1,
+        "locations.name": 1,
         "locations.status": 1,
         "locations.appealId": 1,
+        "locations.address": 1,
         "locations.statusHistory": { $slice: 1 }
       },
       limit: 5000
@@ -438,6 +440,8 @@ export class TaskService {
       projection: {
         email: 1,
         "locations.appealId": 1,
+        "locations.address": 1,
+        "locations.name": 1,
         "locations.status": 1
       },
       limit: 5000
@@ -446,15 +450,21 @@ export class TaskService {
     console.log('Open appeal tasks: ', openAppealTasks);
 
     const appealIdNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.appealId === t.relatedMap.appealId)));
+    const addressNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.address === t.relatedMap.address)));
+    const bizNameNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.name === t.relatedMap.name)));
     const locationIsNotSuspendedAnymore = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.appealId === t.relatedMap.appealId && loc.status === 'Suspended')));
     const taskIsTooOld = openAppealTasks.filter(t => new Date().valueOf() - new Date(t.createdAt).valueOf() > 30 * 24 * 3600000);
 
     console.log('appealIdNotFoundTasks', appealIdNotFoundTasks);
+    console.log('addressNotFoundTasks', addressNotFoundTasks);
+    console.log('bizNameNotFoundTasks', bizNameNotFoundTasks);
     console.log('locationIsNotSuspendedAnymore', locationIsNotSuspendedAnymore);
     console.log('taskIsTooOld', taskIsTooOld);
 
     const patchList = [
       ...appealIdNotFoundTasks.map(t => ({ task: t, reason: 'missing appealId' })),
+      ...addressNotFoundTasks.map(t => ({ task: t, reason: 'missing address' })),
+      ...bizNameNotFoundTasks.map(t => ({ task: t, reason: 'missing biz name' })),
       ...locationIsNotSuspendedAnymore.map(t => ({ task: t, reason: 'not suspended anymore' })),
       ...taskIsTooOld.map(t => ({ task: t, reason: 'too old' })),
     ].map(tr => ({
