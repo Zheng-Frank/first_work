@@ -31,7 +31,7 @@ export class AutomationDashboardComponent implements OnInit {
   now = new Date();
 
   // wait ms between each scan
-  waitBetweenScan = 3600000; // 1 hour
+  waitBetweenScan = 4*3600000; // 4 hour
 
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService, private _gmb3: Gmb3Service) { }
 
