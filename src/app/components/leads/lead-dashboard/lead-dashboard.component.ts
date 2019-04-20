@@ -747,7 +747,7 @@ export class LeadDashboardComponent implements OnInit {
       lead.gmbWebsite = each['gmbWebsite'];
       lead.menuUrls = each['menuUrls'];
       lead.name = each['name'];
-      lead.phones = each['phone'] &&  each['phone'].split();
+      lead.phones = each['phone'] && each['phone'].split();
       lead['place_id'] = each['place_id'];
       lead.rating = each['rating'];
       lead.reservations = each['reservations'];
@@ -1144,7 +1144,15 @@ export class LeadDashboardComponent implements OnInit {
       );
       this.selectionSet.delete(newLead._id);
     } else {
-      // api update here...
+      //keep the assignee
+      if (originalLead.assignee) {
+        newLead.assignee = originalLead.assignee;
+      }
+      //keep the callLogs
+      if(originalLead.callLogs){
+        newLead.callLogs = originalLead.callLogs;        
+      }
+
       this._api
         .patch(environment.adminApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
         .subscribe(
