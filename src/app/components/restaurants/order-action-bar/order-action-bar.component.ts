@@ -51,11 +51,11 @@ export class OrderActionBarComponent {
       );
       statusArray.push(
         {
-          dbStatus: 'DELIVERYING',
-          status: 'Deliverying',
+          dbStatus: 'DELIVERING',
+          status: 'Delivering',
           action: 'Out for delivery',
-          finished: this.order.statusAfter('DELIVERYING'),
-          isCurrent: this.order.statusEqual('DELIVERYING')
+          finished: this.order.statusAfter('DELIVERING'),
+          isCurrent: this.order.statusEqual('DELIVERING')
         }
       );
     }
