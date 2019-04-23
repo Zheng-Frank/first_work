@@ -201,16 +201,31 @@ export class Helper {
             targetWebsite = aliasRedirect;
         }
 
-        let othersUrl = restaurantWebsite || aliasUrl;
-        if (qmenuWebsite && !insistedAll) {
-            othersUrl = qmenuWebsite;
+        let menuUrl = restaurantWebsite || aliasUrl;
+        if (web.useBizMenuUrl && web.menuUrl) {
+            menuUrl = web.menuUrl;
+        } else if (qmenuWebsite && !insistedAll) {
+            menuUrl = qmenuWebsite;
         }
 
+        let orderAheadUrl = restaurantWebsite || aliasUrl;
+        if (web.useBizOrderAheadUrl && web.orderAheadUrl) {
+            orderAheadUrl = web.orderAheadUrl;
+        } else if (qmenuWebsite && !insistedAll) {
+            orderAheadUrl = qmenuWebsite;
+        }
+
+        let reservationUrl = restaurantWebsite || aliasUrl;
+        if (web.useBizReservationUrl && web.reservationUrl) {
+            reservationUrl = web.reservationUrl;
+        } else if (qmenuWebsite && !insistedAll) {
+            reservationUrl = qmenuWebsite;
+        }
         return {
             website: targetWebsite,
-            menuUrl: othersUrl,
-            reservation: othersUrl,
-            orderAheadUrl: othersUrl
+            menuUrl: menuUrl,
+            orderAheadUrl: orderAheadUrl,
+            reservation: reservationUrl
         };
     }
 }
