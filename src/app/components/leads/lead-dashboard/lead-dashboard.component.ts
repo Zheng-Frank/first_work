@@ -549,6 +549,15 @@ export class LeadDashboardComponent implements OnInit {
     //delete oldLead['_id'];
     //this.leadFieldNotToCompare.map(each => delete newLead[each]);
     //this.leadFieldNotToCompare.map(each => delete oldLead[each]);
+    //keep the assignee
+    if (oldLead.assignee) {
+      newLead.assignee = oldLead.assignee;
+    }
+    //keep the callLogs
+    if (oldLead.callLogs && oldLead.callLogs.length >0) {
+      newLead.callLogs = oldLead.callLogs;
+    }
+
     this.patchDiff(oldLead, newLead, false);
   }
 
@@ -1144,14 +1153,6 @@ export class LeadDashboardComponent implements OnInit {
       );
       this.selectionSet.delete(newLead._id);
     } else {
-      //keep the assignee
-      if (originalLead.assignee) {
-        newLead.assignee = originalLead.assignee;
-      }
-      //keep the callLogs
-      if(originalLead.callLogs){
-        newLead.callLogs = originalLead.callLogs;        
-      }
 
       this._api
         .patch(environment.adminApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
