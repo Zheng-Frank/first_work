@@ -130,7 +130,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
                     originalUrl: data.Location,
                     thumbnailUrl: Helper.getThumbnailUrl(data.Location),
                     normalUrl: Helper.getNormalResUrl(data.Location),
-                    origin: 'USER'
+                    origin: 'CSR'
                 });
             }
         }

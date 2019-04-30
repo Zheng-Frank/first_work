@@ -60,7 +60,7 @@ export class MonitoringOnboardingComponent implements OnInit {
         "locations.cid": 1,
         "locations.status": 1
       },
-      limit: 200
+      limit: 300
     }).toPromise();
 
 
@@ -69,6 +69,7 @@ export class MonitoringOnboardingComponent implements OnInit {
       const accountAndStatuses = [];
       gmbAccounts.map(account => (account.locations || []).filter(loc => loc.cid && loc.cid === (row.restaurant.googleListing || {}).cid).map(loc => {
         accountAndStatuses.push({ email: account.email, status: loc.status });
+
       }));
       const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
       accountAndStatuses.sort((s1, s2) => statusOrder.indexOf(s1.status) - statusOrder.indexOf(s2.status));
