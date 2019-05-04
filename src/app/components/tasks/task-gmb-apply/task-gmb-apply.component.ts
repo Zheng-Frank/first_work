@@ -271,7 +271,8 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
             environment.autoGmbUrl + 'appealGmbRequest', {
               email: toGmbAccount.email,
               password: toPassword,
-              arci: this.transfer.request.arci
+              arci: this.transfer.request.arci,
+              place_id: this.gmbBiz.place_id
             }
           ).toPromise();
           break;
