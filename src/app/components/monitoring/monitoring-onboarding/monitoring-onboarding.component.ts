@@ -10,6 +10,7 @@ import { GlobalService } from "../../../services/global.service";
 export class MonitoringOnboardingComponent implements OnInit {
 
   havingGMB: boolean;
+  isWarning: boolean;
 
   rows = []; // {restaurant, noMenu, noOrder, hasGmb, hadGmb}
   filteredRows = [];
@@ -72,7 +73,7 @@ export class MonitoringOnboardingComponent implements OnInit {
 
       }));
       const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
-      accountAndStatuses.sort((s1, s2) => statusOrder.indexOf(s1.status) - statusOrder.indexOf(s2.status));
+      accountAndStatuses.sort((s1, s2) =>  statusOrder.indexOf(s2.status) - statusOrder.indexOf(s1.status) );
       row.hadGmb = accountAndStatuses.some(i => i.status === 'Published' || i.status === 'Suspended');
       row.accountAndStatuses = accountAndStatuses;
     });
@@ -92,11 +93,15 @@ export class MonitoringOnboardingComponent implements OnInit {
   }
 
   filter() {
+    
+    this.filteredRows = this.rows;
     if (this.havingGMB) {
-      this.filteredRows = this.rows.filter(r => r.accountAndStatuses[0] && r.accountAndStatuses[0].status === 'Published')
-    } else {
-      this.filteredRows = this.rows;
+      this.filteredRows = this.filteredRows.filter(r => r.accountAndStatuses[0] && r.accountAndStatuses[0].status === 'Published')
     }
+    if (this.isWarning) {
+      this.filteredRows = this.filteredRows.filter(r => (r.hadGmb && r.noMenu) || (!r.noMenu && r.hadGmb && r.noOrder))
+    }
+    console.log(JSON.stringify(this.filteredRows));
   }
 
 }
