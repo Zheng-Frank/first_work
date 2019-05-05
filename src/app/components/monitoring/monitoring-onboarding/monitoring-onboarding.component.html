@@ -14,12 +14,14 @@
 </div>
 <table class="table my-2">
     <tr>
+        <th></th>
         <th>Restaurant</th>
         <th>Created</th>
         <th class="text-nowrap">Sales Agent</th>
         <th>GMB</th>
         <th class="text-nowrap">Has Menu</th>
         <th class="text-nowrap">Has Order</th>
+        <th class="text-wrap">Logs</th>
     </tr>
     <tr *ngFor="let row of filteredRows; let i = index">
         <td>
@@ -60,6 +62,13 @@
         <td class="{{!row.noMenu && row.hadGmb && row.noOrder ? 'bg-warning' : ''}}">
             <span *ngIf="row.noOrder" class="text-danger">?</span>
             <span *ngIf="!row.noOrder" class="text-success">✓</span>
+        </td>
+        <td class="text-wrap">
+            <div *ngFor="let log of row.restaurant.logs">
+                {{log.problem}} <br>
+                {{log.response}}
+                <hr *ngIf="row.restaurant.logs.length>1">
+            </div>
         </td>
     </tr>
 

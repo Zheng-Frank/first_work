@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { Log } from '../../../classes/log';
 @Component({
   selector: 'app-monitoring-onboarding',
   templateUrl: './monitoring-onboarding.component.html',
@@ -36,7 +37,8 @@ export class MonitoringOnboardingComponent implements OnInit {
         "menus.disabled": 1,
         "googleListing.cid": 1,
         createdAt: 1,
-        "rateSchedules.agent": 1
+        "rateSchedules.agent": 1,
+        logs: 1,
       },
       limit: 200000
     }).toPromise();
@@ -73,7 +75,7 @@ export class MonitoringOnboardingComponent implements OnInit {
 
       }));
       const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
-      accountAndStatuses.sort((s1, s2) =>  statusOrder.indexOf(s2.status) - statusOrder.indexOf(s1.status) );
+      accountAndStatuses.sort((s1, s2) => statusOrder.indexOf(s2.status) - statusOrder.indexOf(s1.status));
       row.hadGmb = accountAndStatuses.some(i => i.status === 'Published' || i.status === 'Suspended');
       row.accountAndStatuses = accountAndStatuses;
     });
@@ -81,8 +83,10 @@ export class MonitoringOnboardingComponent implements OnInit {
     this.rows = Object.keys(dict).map(id => dict[id]);
     this.rows.map(row => {
       row.restaurant.createdAt = new Date(row.restaurant.createdAt);
+      (row.restaurant.logs || []).map(log => new Log(log));
       row.agent = ((row.restaurant.rateSchedules || [])[0] || {}).agent;
     });
+
     this.rows.sort((r1, r2) => r2.restaurant.createdAt.valueOf() - r1.restaurant.createdAt.valueOf())
     this.filteredRows = this.rows;
 
@@ -93,7 +97,7 @@ export class MonitoringOnboardingComponent implements OnInit {
   }
 
   filter() {
-    
+
     this.filteredRows = this.rows;
     if (this.havingGMB) {
       this.filteredRows = this.filteredRows.filter(r => r.accountAndStatuses[0] && r.accountAndStatuses[0].status === 'Published')
