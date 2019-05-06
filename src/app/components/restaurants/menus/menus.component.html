@@ -1,5 +1,6 @@
 <div *ngIf="restaurant">
   <div class="text-right">
+      <button class="btn btn-primary" (click)="injectImages()">Inject Image (加图片)</button>
     <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
     <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices (整体提价)</button>
     <div class="alert alert-secondary" *ngIf="copyMenu">
