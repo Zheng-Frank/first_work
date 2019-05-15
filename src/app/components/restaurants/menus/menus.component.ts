@@ -35,7 +35,7 @@ export class MenusComponent implements OnInit {
   ngOnInit() {
   }
 
-    async copyMenuToRT() {
+  async copyMenuToRT() {
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
@@ -276,23 +276,23 @@ export class MenusComponent implements OnInit {
 
   }
 
-  async deleteImages(){
+  async deleteImages() {
     const oldMenus = this.restaurant.menus || [];
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
     newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-      let matchingImage = images.filter(image => image.aliases.indexOf(mi.name) > -1)[0];
-      if (matchingImage) {
-        (matchingImage.images || []).map(each => {
-          if ((mi.imageObjs || []).length == 0) {
-            mi.imageObjs.push({
-              originalUrl: each.url,
-              thumbnailUrl: each.url128,
-              normalUrl: each.url768,
-              origin: 'IMAGE-PICKER'
-            });
+      let indexArray = [];
+      for (let i = 0; i < mi.imageObjs.length; i++) {
+        if (mi.imageObjs[i]) {
+          if (mi.imageObjs[i].origin === 'IMAGE-PICKER') {
+            indexArray.push(i);
           }
-        })
+        }
       }
+
+      for (var i = indexArray.length - 1; i >= 0; i--) {
+        mi.imageObjs.splice(indexArray[i], 1);
+      }
+
     })));
 
     // now let's patch!
@@ -312,7 +312,7 @@ export class MenusComponent implements OnInit {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, "Failed!");
     }
-    
+
   }
 
 
