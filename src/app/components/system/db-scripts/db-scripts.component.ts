@@ -1743,9 +1743,6 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async fixPriceDataType() {
-
-
-
     const restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       // query: {
@@ -2330,18 +2327,138 @@ export class DbScriptsComponent implements OnInit {
     } // end batch
   } // end migration
 
-  async injectImages() {
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        "menus": { $exists: 1 }
-      },
+  async cleanBingImages() {
+    const restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
       projection: {
-        name: 1,
-        "menus": 1
+        name: 1
       },
       limit: 6000
     }).toPromise();
+
+    const batchSize = 20;
+    const batchedIds = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedIds) {
+      const restaurants = (await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          _id: {
+            $in: batch.map(rid => ({ $oid: rid._id }))
+          }
+        },
+        projection: {
+          name: 1,
+          "menus.mcs.mis.imageObjs": 1
+        },
+        limit: batchSize
+      }).toPromise()).map(r => new Restaurant(r));
+
+      const badRestaurants = restaurants.filter(r => r.menus.some(menu => menu.mcs.some(mc => mc.mis.some(mi => mi.imageObjs.some(image => ((image.originalUrl || '').indexOf('bing') > 0 || (image.normalUrl || '').indexOf('bing') > 0 || (image.thumbnailUrl || '').indexOf('bing') > 0))))));
+      console.log(badRestaurants);
+      if (badRestaurants.length > 0) {
+        // patch!
+        const fixedRestaurant = function (restaurant) {
+          const cloneOld = JSON.parse(JSON.stringify(restaurant));
+          const cloneNew = JSON.parse(JSON.stringify(restaurant));
+          cloneOld.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => delete mi.imageObjs)));
+          cloneNew.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => {
+            let indexArray = [];
+            for (let i = 0; i < mi.imageObjs.length; i++) {
+              if (mi.imageObjs[i]) {
+                if ((mi.imageObjs[i].originalUrl || '').indexOf('bing') > 0 || (mi.imageObjs[i].normalUrl || '').indexOf('bing') > 0 || (mi.imageObjs[i].thumbnailUrl || '').indexOf('bing') > 0) {
+                  indexArray.push(i);
+                }
+              }
+            }
+
+            for (var i = indexArray.length - 1; i >= 0; i--) {
+              mi.imageObjs.splice(indexArray[i], 1);
+            }
+
+          })));
+          return {
+            old: cloneOld,
+            new: cloneNew
+          }
+        }
+
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', badRestaurants.map(r => ({
+          old: fixedRestaurant(r).old,
+          new: fixedRestaurant(r).new
+        }))).toPromise();
+      }
+
+    }
+
+  }
+
+  async injectImages() {
+    const restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        menus: { $exists: true }
+      },
+      projection: {
+        name: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    const batchSize = 20;
+    const batchedIds = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedIds) {
+      const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          _id: {
+            $in: batch.map(rid => ({ $oid: rid._id }))
+          }
+        },
+        projection: {
+          name: 1,
+          "menus": 1
+        },
+        limit: 6000
+      }).toPromise();
+
+      const images = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "image",
+        limit: 3000
+      }).toPromise();
+
+      const patchList = restaurants.map(r => {
+        const oldR = r;
+        const newR = JSON.parse(JSON.stringify(r));
+        //Just assuming match 1 image, and only upload image if none image exists
+        newR.menus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
+          let matchingImage = images.filter(image => image.aliases.indexOf(mi.name) > -1)[0];
+          if (matchingImage) {
+            (matchingImage.images || []).map(each => {
+              if ((mi.imageObjs || []).length == 0) {
+                mi.imageObjs.push({
+                  originalUrl: each.url,
+                  thumbnailUrl: each.url128,
+                  normalUrl: each.url768,
+                  origin: 'IMAGE-PICKER'
+                });
+              }
+            })
+          }
+        })));
+
+        return ({
+          old: { _id: oldR._id },
+          new: { _id: newR._id, menus: newR.menus }
+        });
+      });
+      console.log(patchList);
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+
+
 
   }
 
