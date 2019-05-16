@@ -57,7 +57,6 @@ export class TaskDashboardComponent {
         projection: {
           name: 1,
           alias: 1,
-          logs: 1,
           logo: 1,
           channels: 1,
           "googleAddress.formatted_address": 1
