@@ -38,9 +38,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Migrate Address</h5>
-            <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document
-                as
-                googleAddress.</p>
+            <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document as googleAddress.
+            </p>
             <button class="btn btn-primary" (click)="migrateAddress()">Migrate Address</button>
         </div>
     </div>
@@ -65,10 +64,9 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Remove Orphan Phones</h5>
-            <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from
-                database.</p>
-            <button class="btn btn-primary" (click)="removeOrphanPhones()"
-                [qLoading]="removingOrphanPhones">Remove</button>
+            <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from database.
+            </p>
+            <button class="btn btn-primary" (click)="removeOrphanPhones()" [qLoading]="removingOrphanPhones">Remove</button>
         </div>
     </div>
 
@@ -99,9 +97,7 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">qMenu: Inject redundant total, subtotal etc to invoice</h5>
-            <p class="card-text">No side effects. We have to batch process existing invoices. When query, we SKIP
-                already
-                calculated ones.</p>
+            <p class="card-text">No side effects. We have to batch process existing invoices. When query, we SKIP already calculated ones.</p>
             <button class="btn btn-primary" (click)="injectTotalEtcToInvoice()">Fix</button>
         </div>
     </div>
@@ -168,8 +164,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Handle Holiday Closed Hours</h5>
-            <p class="card-text">This will add ALL closed hours for every restaurant. Send sms, using 8447935942. If
-                restaurant replies 'open', system will remove the hours. </p>
+            <p class="card-text">This will add ALL closed hours for every restaurant. Send sms, using 8447935942. If restaurant replies 'open',
+                system will remove the hours. </p>
             <button class="btn btn-primary" (click)="handleHolidy()">Execute</button>
         </div>
     </div>
@@ -185,8 +181,7 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Remove Unused Invoices from Restaurant Object</h5>
-            <p class="card-text">Invoices are accidentally updated to be part of restaurant body. They should be
-                removed. No side effect.</p>
+            <p class="card-text">Invoices are accidentally updated to be part of restaurant body. They should be removed. No side effect.</p>
             <button class="btn btn-primary" (click)="removeInvoiceFromRestaurant()">Execute</button>
         </div>
     </div>
@@ -240,8 +235,7 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Migrate Order Payment, Customer, and Restaurant</h5>
-            <p class="card-text">Move payment content to order.paymentObj etc. No side effects. If already moved, no
-                action.
+            <p class="card-text">Move payment content to order.paymentObj etc. No side effects. If already moved, no action.
             </p>
             <button class="btn btn-primary" (click)="migrateOrderPaymentCustomerRestaurant()">Execute</button>
         </div>
@@ -261,6 +255,21 @@
             <h5 class="card-title">Change Ownership</h5>
             <p class="card-text">If it's already moved (place_id same!), skip!</p>
             <button class="btn btn-primary" (click)="changeOwnership()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Delete Bing Images</h5>
+            <p class="card-text">Delete Bing Images for all the restaurants</p>
+            <button class="btn btn-primary" (click)="cleanBingImages()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Inject Images</h5>
+            <p class="card-text">Inject Images for all the restaurants</p>
+            <button class="btn btn-primary" (click)="injectImages()">Execute</button>
         </div>
     </div>
 </div>

@@ -106,7 +106,7 @@ export class RestaurantOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 50
+      limit: 150
     }).toPromise();
 
     // assemble back to order:
