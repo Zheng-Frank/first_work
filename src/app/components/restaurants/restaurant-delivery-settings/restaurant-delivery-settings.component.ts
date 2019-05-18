@@ -177,7 +177,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   getHours(){
-    return this.deliveryHours || [];
+    return this.restaurant.deliveryHours || [];
   }
 
   doneAddingHour(hours: Hour[]) {
