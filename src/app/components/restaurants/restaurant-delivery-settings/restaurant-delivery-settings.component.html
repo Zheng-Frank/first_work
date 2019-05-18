@@ -1,117 +1,136 @@
 <div class="card mb-2">
-    <h3 class="card-title text-center pt-4 pb-2">
-      <i class="far fa fa-car"></i> Delivery Settings</h3>
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item">
-        <!--displaying-->
-        <div *qIf="!editing">
-          <table class="app-table w-100">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="far fa fa-car"></i> Delivery Settings</h3>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <!--displaying-->
+      <div *qIf="!editing">
+        <table class="app-table w-100">
+          <tr>
+            <th class="text-right">Taxable</th>
+            <td class="pl-1">{{restaurant.taxOnDelivery ? 'Yes' : 'No'}}</td>
+          </tr>
+          <!--add block-->
+          <tr>
+            <th class="text-right">Blocked Cities</th>
+            <td class="pl-1">{{restaurant.blockedCities}}</td>
+          </tr>
+          <!--end add bolck-->
+          <!--add block-->
+          <tr>
+            <th class="text-right">Blocked Zip Codes</th>
+            <td class="pl-1">{{restaurant.blockedZipCodes}}</td>
+          </tr>
+          <tr>
+            <th class="text-right">Allowed Cities</th>
+            <td class="pl-1">{{restaurant.allowedCities}}</td>
+          </tr>
+          <tr>
+            <th class="text-right">Allowed Zip Codes</th>
+            <td class="pl-1">{{restaurant.allowedZipCodes}}</td>
+          </tr>
+
+          <!--end add bolck-->
+          <tr>
+            <th class="text-right">Start Time</th>
+            <td class="pl-1">
+              {{restaurant.deliveryFromTime | shortTime: restaurant.offsetToEST}}
+            </td>
+          </tr>
+          <tr>
+            <th class="text-right">End Time</th>
+            <td class="pl-1">{{getDeliveryEndString()}}</td>
+          </tr>
+          <tr>
+            <th class="text-right">Serve Hours:</th>
+            <td>
+              <div class="text-center">
+                <q-hours-viewer [offsetToEST]="offsetToEST" [hours]="restaurant.deliveryHours ? restaurant.deliveryHours : []"></q-hours-viewer>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <table class="table app-borderless w-100" *ngIf="restaurant.deliverySettings && restaurant.deliverySettings.length > 0">
+          <thead>
             <tr>
-              <th class="text-right">Taxable</th>
-              <td class="pl-1">{{restaurant.taxOnDelivery ? 'Yes' : 'No'}}</td>
+              <th class="text-center">Distance (mile)</th>
+              <th class="text-center">Order Minimum</th>
+              <th class="text-center">Charge</th>
             </tr>
-            <!--add block-->
-            <tr>
-              <th class="text-right">Blocked Cities</th>
-              <td class="pl-1">{{restaurant.blockedCities}}</td>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ds of restaurant.deliverySettings">
+              <td class="text-center">{{ds.distance}}</td>
+              <td class="text-center">{{(ds.orderMinimum || 0) | money}}</td>
+              <td class="text-center">{{(ds.charge || 0) | money}}</td>
             </tr>
-            <!--end add bolck-->
-            <!--add block-->
-            <tr>
-              <th class="text-right">Blocked Zip Codes</th>
-              <td class="pl-1">{{restaurant.blockedZipCodes}}</td>
-            </tr>
-            <tr>
-              <th class="text-right">Allowed Cities</th>
-              <td class="pl-1">{{restaurant.allowedCities}}</td>
-            </tr>
-            <tr>
-              <th class="text-right">Allowed Zip Codes</th>
-              <td class="pl-1">{{restaurant.allowedZipCodes}}</td>
-            </tr>
-  
-            <!--end add bolck-->
-            <tr>
-              <th class="text-right">Start Time</th>
-              <td class="pl-1">
-                {{restaurant.deliveryFromTime | shortTime: restaurant.offsetToEST}}
-              </td>
-            </tr>
-            <tr>
-              <th class="text-right">End Time</th>
-              <td class="pl-1">{{getDeliveryEndString()}}</td>
-            </tr>
-            <tr>
-              <th class="text-right">Serve Hours:</th>
-              <td>
-                  <div class="text-center">
-                      <q-hours-viewer [offsetToEST]="offsetToEST" [hours]="restaurant.deliveryHours ? restaurant.deliveryHours : []"></q-hours-viewer>
-                    </div>
-              </td>
-            </tr>
-          </table>
-  
-          <table class="table app-borderless w-100" *ngIf="restaurant.deliverySettings && restaurant.deliverySettings.length > 0">
-            <thead>
-              <tr>
-                <th class="text-center">Distance (mile)</th>
-                <th class="text-center">Order Minimum</th>
-                <th class="text-center">Charge</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let ds of restaurant.deliverySettings">
-                <td class="text-center">{{ds.distance}}</td>
-                <td class="text-center">{{(ds.orderMinimum || 0) | money}}</td>
-                <td class="text-center">{{(ds.charge || 0) | money}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-  
-        <!--editing-->
-        <div *qIf="editing">
-  
-          <table class="w-100">
-            <tr>
-              <th class="text-right">Taxable</th>
-              <td class="pl-1">
-                <label class="switch">
-                  <input type="checkbox" (click)="toggleTaxOnDelivery()" [checked]="restaurant.taxOnDelivery">
-                  <div class="slider round"></div>
-                </label>
-              </td>
-            </tr>
-  
-            <tr>
-              <th class="text-right">Blocked Cities</th>
-              <td class="pl-1">
-                <input type="text" [(ngModel)]="blockedCities" class="form-control">
-              </td>
-            </tr>
-  
-            <tr>
-              <th class="text-right">Blocked Zip Codes</th>
-              <td class="pl-1">
-                <input type="text" [(ngModel)]="blockedZipCodes" class="form-control">
-              </td>
-            </tr>
-  
-            <tr>
-              <th class="text-right">Allowd Cities</th>
-              <td class="pl-1">
-                <input type="text" [(ngModel)]="allowedCities" class="form-control">
-              </td>
-            </tr>
-  
-            <tr>
-              <th class="text-right">Allowed Zip Codes</th>
-              <td class="pl-1">
-                <input type="text" [(ngModel)]="allowedZipCodes" class="form-control">
-              </td>
-            </tr>
-            <tr>
-  
+          </tbody>
+        </table>
+      </div>
+
+      <!--editing-->
+      <div *qIf="editing">
+
+        <table class="w-100">
+          <tr>
+            <th class="text-right">Taxable</th>
+            <td class="pl-1">
+              <label class="switch">
+                <input type="checkbox" (click)="toggleTaxOnDelivery()" [checked]="restaurant.taxOnDelivery">
+                <div class="slider round"></div>
+              </label>
+            </td>
+          </tr>
+
+          <tr>
+            <th class="text-right">Blocked Cities</th>
+            <td class="pl-1">
+              <input type="text" [(ngModel)]="blockedCities" class="form-control">
+            </td>
+          </tr>
+
+          <tr>
+            <th class="text-right">Blocked Zip Codes</th>
+            <td class="pl-1">
+              <input type="text" [(ngModel)]="blockedZipCodes" class="form-control">
+            </td>
+          </tr>
+
+          <tr>
+            <th class="text-right">Allowd Cities</th>
+            <td class="pl-1">
+              <input type="text" [(ngModel)]="allowedCities" class="form-control">
+            </td>
+          </tr>
+
+          <tr>
+            <th class="text-right">Allowed Zip Codes</th>
+            <td class="pl-1">
+              <input type="text" [(ngModel)]="allowedZipCodes" class="form-control">
+            </td>
+          </tr>
+
+
+          <tr>
+            <th class="text-right">Start Time</th>
+            <td class="pl-1">
+              <select [(ngModel)]="deliveryFrom" class="form-control">
+                <option *ngFor="let t of deliveryFromTimes" [ngValue]="t">{{t.text}}</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <th class="text-right">End Time</th>
+            <td class="pl-1">
+              <select [(ngModel)]="deliveryEndMinutesBeforeClosing" class="form-control">
+                <option *ngFor="let t of deliveryEndTimes" [ngValue]="t.value">{{t.text}}</option>
+              </select>
+            </td>
+          </tr>
+
+          <tr>
+
               <th class="text-right">Serve Hours:</th>
               <td class="pl-1">
                 <div *ngFor="let hour of getHours()">
@@ -133,76 +152,59 @@
                 </div>
               </td>
             </tr>
-  
+        </table>
+
+        <table class="table app-borderless w-100">
+          <thead>
             <tr>
-              <th class="text-right">Start Time</th>
-              <td class="pl-1">
-                <select [(ngModel)]="deliveryFrom" class="form-control">
-                  <option *ngFor="let t of deliveryFromTimes" [ngValue]="t">{{t.text}}</option>
-                </select>
+              <th class="text-center">Distance (mile)</th>
+              <th class="text-center">Order Minimum</th>
+              <th class="text-center">Charge</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ds of deliverySettingsInEditing">
+              <td class="text-center">
+                <input type="number" class="form-control" [(ngModel)]="ds.distance">
+              </td>
+              <td class="text-center">
+                <input type="number" class="form-control" [(ngModel)]="ds.orderMinimum">
+              </td>
+              <td class="text-center">
+                <input type="number" class="form-control" [(ngModel)]="ds.charge">
               </td>
             </tr>
             <tr>
-              <th class="text-right">End Time</th>
-              <td class="pl-1">
-                <select [(ngModel)]="deliveryEndMinutesBeforeClosing" class="form-control">
-                  <option *ngFor="let t of deliveryEndTimes" [ngValue]="t.value">{{t.text}}</option>
-                </select>
-              </td>
-            </tr>
-          </table>
-  
-          <table class="table app-borderless w-100">
-            <thead>
-              <tr>
-                <th class="text-center">Distance (mile)</th>
-                <th class="text-center">Order Minimum</th>
-                <th class="text-center">Charge</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let ds of deliverySettingsInEditing">
-                <td class="text-center">
-                  <input type="number" class="form-control" [(ngModel)]="ds.distance">
-                </td>
-                <td class="text-center">
-                  <input type="number" class="form-control" [(ngModel)]="ds.orderMinimum">
-                </td>
-                <td class="text-center">
-                  <input type="number" class="form-control" [(ngModel)]="ds.charge">
-                </td>
-              </tr>
-              <tr>
-            </tbody>
-          </table>
-        </div>
-  
-  
-      </li>
-      <li class="list-group-item">
-        <div class="form-group row">
-          <label class="col-4 col-form-label pt-0">Delivery Area</label>
-          <div class="col-8 text-left">
-            <div *qIf="!editing && restaurant.deliveryArea" class="form-group">
-              <textarea class="form-control" rows="5" [(ngModel)]="restaurant.deliveryArea" disabled></textarea>
-            </div>
-            <div *qIf="editing" class="form-group">
-              <textarea class="form-control" rows="5" [(ngModel)]="deliveryArea"></textarea>
-            </div>
+          </tbody>
+        </table>
+      </div>
+
+
+    </li>
+    <li class="list-group-item">
+      <div class="form-group row">
+        <label class="col-4 col-form-label pt-0">Delivery Area</label>
+        <div class="col-8 text-left">
+          <div *qIf="!editing && restaurant.deliveryArea" class="form-group">
+            <textarea class="form-control" rows="5" [(ngModel)]="restaurant.deliveryArea" disabled></textarea>
+          </div>
+          <div *qIf="editing" class="form-group">
+            <textarea class="form-control" rows="5" [(ngModel)]="deliveryArea"></textarea>
           </div>
         </div>
-  
-      </li>
-  
-    </ul>
-    <div style="position:relative" *ngIf="!editing">
-      &nbsp;
-      <div class="text-right">
-        <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
       </div>
-    </div>
-    <div *ngIf="editing" class="pt-1 text-right">
-      <button class="btn btn-secondary" (click)="toggleEditing()" style="min-width: 6rem">Cancel</button>
-      <button class="btn btn-primary" (click)="update()" style="min-width: 6rem">OK</button>
+
+    </li>
+
+  </ul>
+  <div style="position:relative" *ngIf="!editing">
+    &nbsp;
+    <div class="text-right">
+      <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
     </div>
   </div>
+  <div *ngIf="editing" class="pt-1 text-right">
+    <button class="btn btn-secondary" (click)="toggleEditing()" style="min-width: 6rem">Cancel</button>
+    <button class="btn btn-primary" (click)="update()" style="min-width: 6rem">OK</button>
+  </div>
+</div>

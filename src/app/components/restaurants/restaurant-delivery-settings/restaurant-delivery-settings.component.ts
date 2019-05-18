@@ -62,7 +62,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.allowedZipCodes = (this.restaurant.allowedZipCodes || []).join(',');
     this.allowedCities = (this.restaurant.allowedCities || []).join(',');
     this.deliveryArea = this.restaurant.deliveryArea;
-    this.deliveryHours = this.restaurant.deliveryHours;
+    this.deliveryHours = JSON.parse(JSON.stringify(this.restaurant.deliveryHours|| []));
     this.editing = !this.editing;
     this.deliverySettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.deliverySettings || []));
     // put empty settings to make it 4 (hardcoded max)
@@ -181,7 +181,6 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   doneAddingHour(hours: Hour[]) {
-    this.deliveryHours = JSON.parse(JSON.stringify(this.restaurant.deliveryHours || []));
     hours.forEach(h => {
       // only add non-duplicated ones
       if (this.deliveryHours.filter(hh => h.equals(hh)).length === 0) {
