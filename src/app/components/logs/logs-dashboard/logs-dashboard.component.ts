@@ -40,12 +40,21 @@ export class LogsDashboardComponent implements OnInit {
 
   async populate() {
     try {
+      var date = new Date();
+      date.setDate(date.getDate() - 90);
 
       this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {
           disabled: {
             $ne: true
+          },
+          "logs": {
+            "$elemMatch": {
+              "time": {
+                "$gt": date
+              }
+            }
           }
         },
         projection: {
@@ -150,8 +159,8 @@ export class LogsDashboardComponent implements OnInit {
   filterByAgent() {
     if (this.agent && this.agent !== "All") {
       this.logsList = this.filteredRestaurantLogs.filter(l => l.log.username === this.agent);
-    } 
-    else if (this.adjustmentOnly){
+    }
+    else if (this.adjustmentOnly) {
       this.logsList = this.filteredRestaurantLogs.filter(l => l.log.adjustmentAmount);
     }
     else {

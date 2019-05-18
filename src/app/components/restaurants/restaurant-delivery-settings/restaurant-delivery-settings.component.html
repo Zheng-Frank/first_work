@@ -21,6 +21,15 @@
             <th class="text-right">Blocked Zip Codes</th>
             <td class="pl-1">{{restaurant.blockedZipCodes}}</td>
           </tr>
+          <tr>
+            <th class="text-right">Allowed Cities</th>
+            <td class="pl-1">{{restaurant.allowedCities}}</td>
+          </tr>
+          <tr>
+            <th class="text-right">Allowed Zip Codes</th>
+            <td class="pl-1">{{restaurant.allowedZipCodes}}</td>
+          </tr>
+
           <!--end add bolck-->
           <tr>
             <th class="text-right">Start Time</th>
@@ -31,6 +40,14 @@
           <tr>
             <th class="text-right">End Time</th>
             <td class="pl-1">{{getDeliveryEndString()}}</td>
+          </tr>
+          <tr>
+            <th class="text-right">Serve Hours:</th>
+            <td>
+              <div class="text-center">
+                <q-hours-viewer [offsetToEST]="offsetToEST" [hours]="restaurant.deliveryHours ? restaurant.deliveryHours : []"></q-hours-viewer>
+              </div>
+            </td>
           </tr>
         </table>
 
@@ -65,24 +82,34 @@
               </label>
             </td>
           </tr>
-          <!--add blocked city-->
+
           <tr>
             <th class="text-right">Blocked Cities</th>
             <td class="pl-1">
-              <input type="text" [(ngModel)]="blockedCities" class="form-control" ng-init="formkey='restlockedCities'">
+              <input type="text" [(ngModel)]="blockedCities" class="form-control">
             </td>
           </tr>
-          <!--end add bolcked city-->
 
-
-          <!--add blocked zip-->
           <tr>
             <th class="text-right">Blocked Zip Codes</th>
             <td class="pl-1">
               <input type="text" [(ngModel)]="blockedZipCodes" class="form-control">
             </td>
           </tr>
-          <!--end add bolcked zip-->
+
+          <tr>
+            <th class="text-right">Allowd Cities</th>
+            <td class="pl-1">
+              <input type="text" [(ngModel)]="allowedCities" class="form-control">
+            </td>
+          </tr>
+
+          <tr>
+            <th class="text-right">Allowed Zip Codes</th>
+            <td class="pl-1">
+              <input type="text" [(ngModel)]="allowedZipCodes" class="form-control">
+            </td>
+          </tr>
 
 
           <tr>
@@ -101,6 +128,30 @@
               </select>
             </td>
           </tr>
+
+          <tr>
+
+              <th class="text-right">Serve Hours:</th>
+              <td class="pl-1">
+                <div *ngFor="let hour of getHours()">
+                  <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime : offsetToEST}} - {{hour.toTime | shortTime
+                    : offsetToEST}}
+                  </div>
+                  <div class="pull-xs-right">
+                    <button type="button" class="btn btn-link text-danger pt-0 pb-0" (click)="deleteHour(hour)">X</button>
+                  </div>
+                </div>
+                <div class="pull-xs-right">
+                  <button type="button" class="btn btn-link" (click)="clickedAddHour = !clickedAddHour">+ Add Hour</button>
+                </div>
+  
+                <div *qIf="clickedAddHour" style="font-size: smaller">
+                  <div class="card card-block">
+                    <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"></q-hours-picker>
+                  </div>
+                </div>
+              </td>
+            </tr>
         </table>
 
         <table class="table app-borderless w-100">

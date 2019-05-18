@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
+import { Restaurant, Hour} from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -13,14 +13,18 @@ import { AlertType } from "../../../classes/alert-type";
 export class RestaurantDeliverySettingsComponent implements OnInit {
   @Input() restaurant: Restaurant;
   editing: boolean = false;
+  clickedAddHour = false;
 
   deliverySettingsInEditing = [];
   taxOnDelivery;
   deliveryFrom;
   blockedCities;
   blockedZipCodes;
+  allowedCities;
+  allowedZipCodes;
   deliveryEndMinutesBeforeClosing;
   deliveryArea;
+  deliveryHours;
 
   deliveryFromTimes = [{ value: null, text: 'At business open' }];
   deliveryEndTimes = [];
@@ -55,7 +59,10 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   toggleEditing() {
     this.blockedZipCodes = (this.restaurant.blockedZipCodes || []).join(',');
     this.blockedCities = (this.restaurant.blockedCities || []).join(',');
+    this.allowedZipCodes = (this.restaurant.allowedZipCodes || []).join(',');
+    this.allowedCities = (this.restaurant.allowedCities || []).join(',');
     this.deliveryArea = this.restaurant.deliveryArea;
+    this.deliveryHours = JSON.parse(JSON.stringify(this.restaurant.deliveryHours|| []));
     this.editing = !this.editing;
     this.deliverySettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.deliverySettings || []));
     // put empty settings to make it 4 (hardcoded max)
@@ -97,8 +104,10 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     newR.blockedCities = this.blockedCities.split(',').map(each => each.trim()).filter(each => each);
     newR.blockedZipCodes = this.blockedZipCodes.split(',').map(each => each.trim()).filter(each => each);
+    newR.allowedCities = this.allowedCities.split(',').map(each => each.trim()).filter(each => each);
+    newR.allowedZipCodes = this.allowedZipCodes.split(',').map(each => each.trim()).filter(each => each);
+    newR.deliveryHours = this.deliveryHours;
     newR.deliveryArea = this.deliveryArea;
-
     newR.taxOnDelivery = this.taxOnDelivery;
 
     this._api
@@ -112,7 +121,10 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
         this.restaurant.deliverySettings = newR.deliverySettings;
         this.restaurant.blockedCities = newR.blockedCities;
         this.restaurant.blockedZipCodes = newR.blockedZipCodes;
+        this.restaurant.allowedCities = newR.allowedCities;
+        this.restaurant.allowedZipCodes = newR.allowedZipCodes;
         this.restaurant.taxOnDelivery = newR.taxOnDelivery;
+        this.restaurant.deliveryHours = newR.deliveryHours;
         this.restaurant.deliveryArea = newR.deliveryArea;
         if (newR.deliveryFrom) {
           this.restaurant.deliveryFromTime = newR.deliveryFromTime;
@@ -162,6 +174,26 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       }
     }
     return '';
+  }
+
+  getHours(){
+    return this.deliveryHours || [];
+  }
+
+  doneAddingHour(hours: Hour[]) {
+    hours.forEach(h => {
+      // only add non-duplicated ones
+      if (this.deliveryHours.filter(hh => h.equals(hh)).length === 0) {
+        this.deliveryHours.push(h);
+      }
+    });
+    // sort!
+    this.deliveryHours.sort((a, b) => a.fromTime.valueOf() - b.fromTime.valueOf());
+    this.clickedAddHour = false;
+  }
+
+  deleteHour(hour) {
+    this.deliveryHours = this.deliveryHours.filter(h => h !== hour);
   }
 }
 
