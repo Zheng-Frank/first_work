@@ -35,26 +35,26 @@ export class MenusComponent implements OnInit {
   ngOnInit() {
   }
 
-  async copyMenuToRT(){
-          try {
-            await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-              old: {
-                _id: this.copyMenuToRestaurantId,
-                menus: [],
-                menuOptions: []
-              }, new: {
-                _id: this.copyMenuToRestaurantId,
-                menus: this.restaurant.menus,
-                menuOptions: this.restaurant.menuOptions
-              }
-            }]).toPromise();
-            this._global.publishAlert(AlertType.Success, "Success!");
-            this.adjustingAllPrices = false;
-          } catch (error) {
-            console.log(error);
-            this._global.publishAlert(AlertType.Danger, "Failed!");
-            this.adjustingAllPrices = false;
-          }
+  async copyMenuToRT() {
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.copyMenuToRestaurantId,
+          menus: [],
+          menuOptions: []
+        }, new: {
+          _id: this.copyMenuToRestaurantId,
+          menus: this.restaurant.menus,
+          menuOptions: this.restaurant.menuOptions
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+      this.adjustingAllPrices = false;
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+      this.adjustingAllPrices = false;
+    }
   }
 
   async adjustPrices() {
@@ -213,23 +213,106 @@ export class MenusComponent implements OnInit {
           }
         }])
         .subscribe(
-          result => {
-            // let's update original, assuming everything successful
-            this.restaurant.menus = newMenus;
-            this._global.publishAlert(
-              AlertType.Success,
-              "Updated successfully"
-            );
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-          }
+        result => {
+          // let's update original, assuming everything successful
+          this.restaurant.menus = newMenus;
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
         );
     }
   }
 
   visitMenuOptions() {
     this.onVisitMenuOptions.emit();
+  }
+
+  async injectImages() {
+    const images = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "image",
+      limit: 3000
+    }).toPromise();
+
+    const oldMenus = this.restaurant.menus || [];
+    const newMenus = JSON.parse(JSON.stringify(oldMenus));
+    newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
+      let matchingImage = images.filter(image => image.aliases.indexOf(mi.name) > -1)[0];
+      if (matchingImage) {
+        (matchingImage.images || []).map(each => {
+          if ((mi.imageObjs || []).length == 0) {
+            mi.imageObjs.push({
+              originalUrl: each.url,
+              thumbnailUrl: each.url128,
+              normalUrl: each.url768,
+              origin: 'IMAGE-PICKER'
+            });
+          }
+        })
+      }
+    })));
+
+    // now let's patch!
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id'],
+          menus: oldMenus,
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: newMenus,
+        }
+      }]).toPromise();
+      this.restaurant.menus = newMenus;
+      this._global.publishAlert(AlertType.Success, "Success!");
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
+
+  }
+
+  async deleteImages() {
+    const oldMenus = this.restaurant.menus || [];
+    const newMenus = JSON.parse(JSON.stringify(oldMenus));
+    newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
+      let indexArray = [];
+      for (let i = 0; i < mi.imageObjs.length; i++) {
+        if (mi.imageObjs[i]) {
+          if (mi.imageObjs[i].origin === 'IMAGE-PICKER') {
+            indexArray.push(i);
+          }
+        }
+      }
+
+      for (var i = indexArray.length - 1; i >= 0; i--) {
+        mi.imageObjs.splice(indexArray[i], 1);
+      }
+
+    })));
+
+    // now let's patch!
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id'],
+          menus: oldMenus,
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: newMenus,
+        }
+      }]).toPromise();
+      this.restaurant.menus = newMenus;
+      this._global.publishAlert(AlertType.Success, "Success!");
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
+
   }
 
 
