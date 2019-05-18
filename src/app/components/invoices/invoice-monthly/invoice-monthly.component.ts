@@ -579,10 +579,14 @@ export class InvoiceMonthlyComponent implements OnInit {
     // allRestaurants = allRestaurants.filter(r => r.serviceSettings && r.serviceSettings.some(ss => ss.paymentMethods.indexOf('QMENU') >= 0))
 
     // find all invoices that are not canceled, upto the toDate
+    const invoiceToDate = new Date(this.toDate);
+    invoiceToDate.setDate(invoiceToDate.getDate() - 124 - 7);
+
     const nonCanceledInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
-        isCanceled: { $ne: true }
+        isCanceled: { $ne: true },
+        toDate: { $gt: { $date: invoiceToDate }}
       },
       projection: {
         fromDate: 1,
@@ -595,9 +599,8 @@ export class InvoiceMonthlyComponent implements OnInit {
         balance: 1,
         previousInvoiceId: 1
       },
-      limit: 20000
+      limit: 40000
     }).toPromise();
-
     nonCanceledInvoices.map(i => {
       const item = restaurantInvoicesDict[i.restaurant.id];
       if (!item) {
@@ -662,7 +665,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       const toDateE = new Date(uptoDate);
       toDateE.setDate(toDateE.getDate() + 1);
       const fromDateE = new Date(this.toDate);
-      fromDateE.setDate(fromDateE.getDate() - 180);
+      fromDateE.setDate(fromDateE.getDate() - 124); //4 months
 
       const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'order',
