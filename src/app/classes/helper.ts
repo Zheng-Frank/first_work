@@ -47,8 +47,8 @@ export class Helper {
 
         if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
             throw 'Invalid file type. Choose image only.';
-        } else if (files && files.length > 0 && files[0].size > 10000000) {
-            throw 'The image size exceeds 10M.';
+        } else if (files && files.length > 0 && files[0].size > 20000000) {
+            throw 'The image size exceeds 20M.';
         } else {
 
             AWS.config.accessKeyId = Helper.awsAccessKeyId;
