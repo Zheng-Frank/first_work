@@ -51,8 +51,7 @@
 						</tr>
 						<tr>
 							<th class="text-right">Surcharge</th>
-							<td class="pl-1">{{restaurant.surchargeName}}
-								{{restaurant.surchargeAmount | currency:'USD':'symbol'}}</td>
+							<td class="pl-1">{{restaurant.surchargeName}} {{restaurant.surchargeAmount | currency:'USD':'symbol'}}</td>
 						</tr>
 						<tr>
 							<th class="text-right">CC Processing Rate</th>
@@ -84,24 +83,44 @@
 							<td class="pl-1">{{(restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}</td>
 						</tr>
 						<tr>
-							<th class="text-right">Skip Order Confirmation</th>
-							<td class="pl-1">{{!!restaurant.skipOrderConfirmation}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Hide Order Status on Customer Side</th>
-							<td class="pl-1">{{!!restaurant.hideOrderStatus}}</td>
-						</tr>
-						<tr>
 							<th class="text-right">Disabled</th>
 							<td class="pl-1">{{!!restaurant.disabled}}</td>
 						</tr>
-						<tr>
-							<th class="text-right">Delivery Handled by qMenu</th>
-							<td class="pl-1">{{!!restaurant.deliveryByTme}}</td>
-						</tr>
+
 						<tr>
 							<th class="text-right">Notes</th>
 							<td class="pl-1" style="white-space: pre-wrap">{{restaurant.notes}}</td>
+						</tr>
+						<tr>
+							<button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}
+							</button>
+							<div *qIf="showDetails">
+								<ul class="list-group list-group-flush">
+									<li class="list-group-item">
+										<table class="table table-borderless table-sm">
+											<tbody>
+												<tr>
+													<th class="text-right">Hide Order Status on Customer Side</th>
+													<td class="pl-1">{{!!restaurant.hideOrderStatus}}</td>
+												</tr>
+												<tr>
+													<th class="text-right">Delivery Handled by qMenu</th>
+													<td class="pl-1">{{!!restaurant.deliveryByTme}}</td>
+												</tr>
+												<tr>
+													<th class="text-right">Skip Order Confirmation</th>
+													<td class="pl-1">{{!!restaurant.skipOrderConfirmation}}</td>
+												</tr>
+												<tr>
+													<th class="text-right">Not Show Tax Option to Customer</th>
+													<td class="pl-1">{{!!restaurant.skipShowTax}}</td>
+												</tr>
+											</tbody>
+										</table>
+									</li>
+								</ul>
+
+							</div>
 						</tr>
 					</tbody>
 				</table>
@@ -133,15 +152,13 @@
 						<tr>
 							<th class="text-right" style="width: 33%">Domain</th>
 							<td class="pl-1">
-								<input type="text" [(ngModel)]="domain" class="form-control"
-									placeholder="domain name, eg. qmenutest.com">
+								<input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
 							</td>
 						</tr>
 						<tr>
 							<th class="text-right" style="width: 33%">Website Broadcast</th>
 							<td class="pl-1">
-								<input type="text" [(ngModel)]="notification" class="form-control"
-									placeholder="important message showing on website">
+								<input type="text" [(ngModel)]="notification" class="form-control" placeholder="important message showing on website">
 							</td>
 						</tr>
 
@@ -169,20 +186,16 @@
 						<tr>
 							<th class="text-right">Surcharge</th>
 							<td class="pl-1">
-								<input type="number" [(ngModel)]="surchargeAmount" class="form-control"
-									placeholder="surcharge amount">
-								<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1"
-									placeholder="text to show customer">
-								<small>* This is money charged to customer for every online order and the collected
-									money goes to restaurant.
+								<input type="number" [(ngModel)]="surchargeAmount" class="form-control" placeholder="surcharge amount">
+								<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1" placeholder="text to show customer">
+								<small>* This is money charged to customer for every online order and the collected money goes to restaurant.
 									<i class="fas fa-exclamation"></i> It may drive customers away.</small>
 							</td>
 						</tr>
 						<tr>
 							<th class="text-right">CC Processing Rate</th>
 							<td class="pl-1">
-								<input type="number" [(ngModel)]="ccProcessingRate" class="form-control"
-									placeholder="rate">
+								<input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
 							</td>
 						</tr>
 						<tr>
@@ -190,8 +203,7 @@
 							<th class="text-right">CC Processing Flat Fee
 							</th>
 							<td class="pl-1">
-								<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control"
-									placeholder="fee">
+								<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control" placeholder="fee">
 							</td>
 						</tr>
 						<tr>
@@ -201,29 +213,12 @@
 							</td>
 						</tr>
 						<tr>
-							<th class="text-right">Skip Order Confirmation</th>
-							<td class="pl-1">
-								<input type="checkbox" [(ngModel)]="skipOrderConfirmation">
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Hide Order Status on Customer Side</th>
-							<td class="pl-1">
-								<input type="checkbox" [(ngModel)]="hideOrderStatus">
-							</td>
-						</tr>
-						<tr>
 							<th class="text-right">Disabled</th>
 							<td class="pl-1">
 								<input type="checkbox" [(ngModel)]="disabled">
 							</td>
 						</tr>
-						<tr>
-							<th class="text-right">Delivery Handled by qMenu</th>
-							<td class="pl-1">
-								<input type="checkbox" [(ngModel)]="deliveryByTme">
-							</td>
-						</tr>
+
 						<tr>
 							<th class="text-right">Pickup Minimum</th>
 							<td class="pl-1">
@@ -251,13 +246,51 @@
 							</td>
 						</tr>
 						<tr>
+							<button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More...'}}
+							</button>
+							<div *qIf="showDetails">
+								<ul class="list-group list-group-flush">
+									<li class="list-group-item">
+										<table class="table table-borderless table-sm">
+											<tbody>
+												<tr>
+													<th class="text-right">Hide Order Status on Customer Side</th>
+													<td class="pl-1">
+														<input type="checkbox" [(ngModel)]="hideOrderStatus">
+													</td>
+												</tr>
+												<tr>
+													<th class="text-right">Delivery Handled by qMenu</th>
+													<td class="pl-1">
+														<input type="checkbox" [(ngModel)]="deliveryByTme">
+													</td>
+												</tr>
+												<tr>
+													<th class="text-right">Skip Order Confirmation</th>
+													<td class="pl-1">
+														<input type="checkbox" [(ngModel)]="skipOrderConfirmation">
+													</td>
+												</tr>
+												<tr>
+													<th class="text-right">Not Show Tax Option to Customer</th>
+													<td class="pl-1">
+														<input type="checkbox" [(ngModel)]="skipShowTax">
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</li>
+								</ul>
+
+							</div>
+						</tr>
+						<tr>
 							<th class="text-right">Logo</th>
 							<td class="pl-1">
 								<hr>
 								<div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
 									<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
-									<button (click)="deleteLogo(img)"
-										class="btn btn-secondary close-button transparent">
+									<button (click)="deleteLogo(img)" class="btn btn-secondary close-button transparent">
 										<i class="fas fa-times"></i>
 									</button>
 									<button (click)="deleteLogo(img)" class="btn btn-link close-button text-danger">
@@ -275,11 +308,9 @@
 						<tr>
 							<th class="text-right">Photos</th>
 							<td class="pl-1">
-								<div *ngFor="let img of images" class="pr-1 pb-1"
-									style="display:inline-block; position:relative">
+								<div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
 									<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
-									<button (click)="deleteImage(img)"
-										class="btn btn-secondary close-button transparent">
+									<button (click)="deleteImage(img)" class="btn btn-secondary close-button transparent">
 										<i class="fas fa-times"></i>
 									</button>
 									<button (click)="deleteImage(img)" class="btn btn-link close-button text-danger">

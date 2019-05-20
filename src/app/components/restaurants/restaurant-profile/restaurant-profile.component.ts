@@ -45,6 +45,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'domain',    
     'skipOrderConfirmation',
     'hideOrderStatus',
+    'skipShowTax',
     'notes',
     'deliveryByTme'
   ];

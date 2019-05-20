@@ -69,7 +69,11 @@ export class ImageManagerComponent implements OnInit {
 
         // https://s3.amazonaws.com/chopstresized/128_menuImage/1546284071756.jpg
         // https://chopst.s3.amazonaws.com/menuImage/1475263127544.jpg
-        const imageObj = { url: decodeURIComponent(data.Location), url128: 'https://s3.amazonaws.com/chopstresized/128_' + data.Key, url768: 'https://s3.amazonaws.com/chopstresized/768_' + data.Key };
+        const imageObj = { 
+          url: decodeURIComponent(data.Location), 
+          url96: 'https://s3.amazonaws.com/chopstresized/96_' + data.Key,
+          url128: 'https://s3.amazonaws.com/chopstresized/128_' + data.Key, 
+          url768: 'https://s3.amazonaws.com/chopstresized/768_' + data.Key };
         row.images = row.images || [];
         row.images.push(imageObj);
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', [{

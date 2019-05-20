@@ -247,7 +247,7 @@ export class MenusComponent implements OnInit {
           if ((mi.imageObjs || []).length == 0) {
             mi.imageObjs.push({
               originalUrl: each.url,
-              thumbnailUrl: each.url128,
+              thumbnailUrl: each.url96,
               normalUrl: each.url768,
               origin: 'IMAGE-PICKER'
             });

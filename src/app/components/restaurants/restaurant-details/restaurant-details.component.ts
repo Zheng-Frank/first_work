@@ -146,6 +146,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           deliveryClosedHours: 1,
           skipOrderConfirmation: 1,
           hideOrderStatus: 1,
+          skipShowTax: 1,
           disabled: 1,
           googleListing: 1,
           web: 1
