@@ -1,10 +1,10 @@
-
 <div class="text-right pb-2">
-  <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button>
+  <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
   <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
 </div>
 <table class="table table-striped">
   <tr>
+    <th></th>
     <th>
       Menu Names
     </th>
@@ -15,15 +15,22 @@
       Delete
     </th>
   </tr>
-  <tr *ngFor="let row of rows">
+  <tr *ngFor="let row of rows; let i = index">
+    <td>
+      {{i+1}}
+    </td>
     <td>
       <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
     </td>
     <td class="pl-1">
       <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
-        <img class="img-thumbnail app-thumbnail-h-6" src="{{img.url128}}">
-        <button (click)="deleteImage(img, row)" class="btn btn-secondary close-button transparent"><i class="fas fa-times"></i></button>
-        <button (click)="deleteImage(img, row)" class="btn btn-link text-danger close-button"><i class="fas fa-times"></i></button>
+        <img class="img-thumbnail app-thumbnail-h-6" src="{{img.url96}}">
+        <button (click)="deleteImage(img, row)" class="btn btn-secondary close-button transparent">
+          <i class="fas fa-times"></i>
+        </button>
+        <button (click)="deleteImage(img, row)" class="btn btn-link text-danger close-button">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
       <div *ngIf="uploadImageError">
         <span class="text-danger">{{uploadImageError}}</span>
@@ -41,3 +48,7 @@
   </tr>
 
 </table>
+<div class="text-right pb-2">
+    <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
+    <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
+  </div>
