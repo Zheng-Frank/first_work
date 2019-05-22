@@ -26,7 +26,8 @@ export class MenusComponent implements OnInit {
   activeId = undefined;
 
   adjustingAllPrices = false;
-  adjustPricesFactor;
+  adjustPricesFactorPercent;
+  adjustPricesFactorAmount;
   copyMenu = false;
   copyMenuToRestaurantId;
 
@@ -58,7 +59,7 @@ export class MenusComponent implements OnInit {
   }
 
   async adjustPrices() {
-    const factor = +this.adjustPricesFactor;
+    const factor = +this.adjustPricesFactorAmount || +this.adjustPricesFactorPercent;
     if (factor) {
       const oldMenus = this.restaurant.menus || [];
       const oldMenuOptions = this.restaurant.menuOptions || [];
@@ -66,7 +67,13 @@ export class MenusComponent implements OnInit {
       const newMenus = JSON.parse(JSON.stringify(oldMenus));
       newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => (mi.sizeOptions || []).map(item => {
         if (+item.price) {
-          item.price = +((+item.price) * (1 + factor)).toFixed(2);
+          if (this.adjustPricesFactorAmount) {
+            item.price = +((+item.price) + factor).toFixed(2);
+          } else if (this.adjustPricesFactorPercent) {
+            item.price = +((+item.price) * (1 + factor)).toFixed(2);
+          }else{
+            this._global.publishAlert(AlertType.Danger, "Missing data!");
+          }
         }
       }))));
 
@@ -101,6 +108,9 @@ export class MenusComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, "Failed!");
         this.adjustingAllPrices = false;
       }
+    }
+    else {
+      this._global.publishAlert(AlertType.Danger, "Missing data!");
     }
   }
 
