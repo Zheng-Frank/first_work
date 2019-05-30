@@ -140,7 +140,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
   getFilteredAccounts() {
     if (this.transfer) {
-      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
+      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 80);
     }
     return this.accounts
   }
