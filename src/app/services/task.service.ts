@@ -449,10 +449,10 @@ export class TaskService {
 
     console.log('Open appeal tasks: ', openAppealTasks);
 
-    const appealIdNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.appealId === t.relatedMap.appealId)));
-    const addressNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.address === t.relatedMap.address)));
-    const bizNameNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.name === t.relatedMap.name)));
-    const locationIsNotSuspendedAnymore = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.appealId === t.relatedMap.appealId && loc.status === 'Suspended')));
+    const appealIdNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.appealId === t.relatedMap.location.appealId)));
+    const addressNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.address === t.relatedMap.location.address)));
+    const bizNameNotFoundTasks = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.name === t.relatedMap.location.name)));
+    const locationIsNotSuspendedAnymore = openAppealTasks.filter(t => !gmbAccounts.some(account => account.locations.some(loc => loc.appealId === t.relatedMap.location.appealId && loc.status === 'Suspended')));
     const taskIsTooOld = openAppealTasks.filter(t => new Date().valueOf() - new Date(t.createdAt).valueOf() > 30 * 24 * 3600000);
 
     console.log('appealIdNotFoundTasks', appealIdNotFoundTasks);
