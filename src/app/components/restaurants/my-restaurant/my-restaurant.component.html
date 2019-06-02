@@ -6,129 +6,166 @@
 </div>
 
 <h1 class="text-center">My Restaurants ({{rows.length}})</h1>
-<table class="table-boarderless card card-body mb-4">
-  <tr>
-    <td>
-      Earned Order Commission Total（订单分成）
-    </td>
-    <th class="text-right">
-      {{getTotal('earned') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
-  <tr>
-    <td>
-      One-time Sales Total （有效销售）
-    </td>
-    <th class="text-right">
-      {{getTotal('qualifiedSalesBase') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
 
-  <tr>
-    <td>
-      3 Months Bonus Total（高质奖励）
-    </td>
-    <th class="text-right">
-      {{getTotal('qualifiedSalesBonus') | currency:'USD':'symbol'}}
-    </th>
+<div class="card-group">
+  <div class="card">
+    <div class="card-body">
+      <table class="table-boarderless card card-body mb-4">
+        <tr>
+          <td>
+            Earned Order Commission Total（订单分成）
+          </td>
+          <th class="text-right">
+            {{getTotal('earned') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
+        <tr>
+          <td>
+            One-time Sales Total （有效销售）
+          </td>
+          <th class="text-right">
+            {{getTotal('qualifiedSalesBase') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
 
-  </tr>
+        <tr>
+          <td>
+            3 Months Bonus Total（高质奖励）
+          </td>
+          <th class="text-right">
+            {{getTotal('qualifiedSalesBonus') | currency:'USD':'symbol'}}
+          </th>
 
-  <tr>
-    <th class="text-right">
-      Total（总计）
-    </th>
-    <th class="text-right">
-      {{getTotal('subtotal') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
-  <tr>
-    <td>
-      Not Earned Commissions（商家尚未付任何佣金，潜在分成）
-    </td>
-    <th class="text-right">
-      {{getTotal('notEarned') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
-  <tr>
-    <td>
-      Not Earned Sales（系统未曾拥有餐馆的GMB）
-    </td>
-    <th class="text-right">
-      {{getTotal('unqualifiedSalesBase') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
-  <tr>
-    <td>
-      Not Earned Bonuses（系统未曾拥有餐馆的GMB）
-    </td>
-    <th class="text-right">
-      {{getTotal('unqualifiedSalesBonus') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
-  <tr>
-    <th class="text-right">
-      Total（总计）
-    </th>
-    <th class="text-right">
-      {{getTotal('unqualifiedSubtotal') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
-  <tr *ngIf="isSuperUser">
-    <th class="text-right">
-      ADMIN ONLY: Collected Commissions（总计）
-    </th>
-    <th class="text-right">
-      {{getTotal('collected') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
-  <tr *ngIf="isSuperUser">
-    <th class="text-right">
-      ADMIN ONLY: Not Collected Commissions（总计）
-    </th>
-    <th class="text-right">
-      {{getTotal('notCollected') | currency:'USD':'symbol'}}
-    </th>
-  </tr>
-</table>
+        </tr>
+
+        <tr>
+          <th class="text-right">
+            Total（总计）
+          </th>
+          <th class="text-right">
+            {{getTotal('subtotal') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
+        <tr>
+          <td>
+            Not Earned Commissions（商家尚未付任何佣金，潜在分成）
+          </td>
+          <th class="text-right">
+            {{getTotal('notEarned') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
+        <tr>
+          <td>
+            Not Earned Sales（系统未曾拥有餐馆的GMB）
+          </td>
+          <th class="text-right">
+            {{getTotal('unqualifiedSalesBase') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
+        <tr>
+          <td>
+            Not Earned Bonuses（系统未曾拥有餐馆的GMB）
+          </td>
+          <th class="text-right">
+            {{getTotal('unqualifiedSalesBonus') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
+        <tr>
+          <th class="text-right">
+            Total（总计）
+          </th>
+          <th class="text-right">
+            {{getTotal('unqualifiedSubtotal') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
+        <tr *ngIf="isSuperUser">
+          <th class="text-right">
+            ADMIN ONLY: Collected Commissions（总计）
+          </th>
+          <th class="text-right">
+            {{getTotal('collected') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
+        <tr *ngIf="isSuperUser">
+          <th class="text-right">
+            ADMIN ONLY: Not Collected Commissions（总计）
+          </th>
+          <th class="text-right">
+            {{getTotal('notCollected') | currency:'USD':'symbol'}}
+          </th>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h5>{{currentPublishedTotal}} (Current GMB), {{hadGainedTotal}} (Had GMB)</h5>
+      <div>
+        <q-table [rows]="result" [tableColumnDescriptors]="gmbColumnDescriptors" [compact]="true">
+          <tr *tableRowTemplate="let each;">
+            <td>{{each.month}}
+            </td>
+            <td>{{each.rts}}</td>
+            <td>{{each.gmbGained}}</td>
+            <td>{{each.published}}</td>
+          </tr>
+        </q-table>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
   <tr *tableRowTemplate="let row;" class="{{row.restaurant.disabled ? 'bg-warning' : ''}}">
     <th>{{rows.indexOf(row) + 1}}</th>
     <td class="text-nowrap {{row.restaurant.disabled ? 'app-muted' : ''}}">
       <a target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
-      <div><small>{{row.restaurant.googleAddress?.formatted_address | removeUsa}}</small></div>
-      <div *ngIf="row.phone"><small>{{row.phone | phone}}</small></div>
+      <div>
+        <small>{{row.restaurant.googleAddress?.formatted_address | removeUsa}}</small>
+      </div>
+      <div *ngIf="row.phone">
+        <small>{{row.phone | phone}}</small>
+      </div>
     </td>
     <td>{{row.restaurant.createdAt | date: 'shortDate' }}</td>
 
     <td class="text-nowrap">
-      <button class="btn btn-link" (click)="row.showDetails = !row.showDetails">{{row.invoices.length}} <i class="fas fa-caret-down"></i></button>
+      <button class="btn btn-link" (click)="row.showDetails = !row.showDetails">{{row.invoices.length}}
+        <i class="fas fa-caret-down"></i>
+      </button>
       <table class="table table-borderless table-sm" *ngIf="row.showDetails">
         <tr *ngFor="let invoice of row.invoices" class="{{isRolledOrPaid(invoice) ? 'text-success' : 'text-danger'}}">
           <td>
-            <a target="_blank" href="#/invoices/{{invoice._id}}">{{invoice.fromDate | date:'MMM d yyyy'}} -
-              {{invoice.toDate | date:'MMM d'}}</a>
+            <a target="_blank" href="#/invoices/{{invoice._id}}">{{invoice.fromDate | date:'MMM d yyyy'}} - {{invoice.toDate | date:'MMM d'}}</a>
           </td>
           <td>
-            {{invoice.commission |
-            currency:'USD':'symbol'}}
+            {{invoice.commission | currency:'USD':'symbol'}}
           </td>
         </tr>
       </table>
     </td>
-    <td>{{row.rate | percent}}<span *ngIf="row.fixed"> + {{row.fixed | currency:'USD':'symbol'}}</span></td>
+    <td>{{row.rate | percent}}
+      <span *ngIf="row.fixed"> + {{row.fixed | currency:'USD':'symbol'}}</span>
+    </td>
     <td>{{row.notCollected | currency:'USD':'symbol'}}</td>
 
     <td>{{row.collected | currency:'USD':'symbol'}}</td>
     <td>{{row.commission | percent}}</td>
     <td>{{row.earned | currency:'USD':'symbol'}}</td>
     <td>{{row.notEarned | currency:'USD':'symbol'}}</td>
-    <td><span *ngIf="row.restaurant.salesBase">{{row.qualifiedSalesBase | currency:'USD':'symbol'}}</span></td>
-    <td><span *ngIf="row.restaurant.salesBonus">
+    <td>
+      <span *ngIf="row.restaurant.salesBase">{{row.qualifiedSalesBase | currency:'USD':'symbol'}}</span>
+    </td>
+    <td>
+      <span *ngIf="row.restaurant.salesBonus">
 
         {{row.qualifiedSalesBonus | currency:'USD':'symbol'}}
-        <div><small>avg. {{row.restaurant.salesThreeMonthAverage | number:'1.1-1'}} / day</small></div></span>
+        <div>
+          <small>avg. {{row.restaurant.salesThreeMonthAverage | number:'1.1-1'}} / day</small>
+        </div>
+      </span>
     </td>
     <th>{{row.subtotal | currency:'USD':'symbol'}}</th>
 
@@ -145,11 +182,13 @@
     </td>
     <td>
       <div>
-        Google: <a href="{{row.restaurant.googleListing.gmbWebsite}}" title="{{row.restaurant.googleListing.gmbWebsite}}" target="_blank">{{row.restaurant.googleListing.gmbWebsite}}</a>
+        Google:
+        <a href="{{row.restaurant.googleListing?.gmbWebsite}}" title="{{row.restaurant.googleListing?.gmbWebsite}}" target="_blank">{{row.restaurant.googleListing?.gmbWebsite}}</a>
       </div>
 
       <div>
-        qMenu: <a href="{{row.restaurant.web?.qmenuWebsite}}" title="{{row.restaurant.web?.qmenuWebsite}}" target="_blank">{{row.restaurant.web?.qmenuWebsite}}</a>
+        qMenu:
+        <a href="{{row.restaurant.web?.qmenuWebsite}}" title="{{row.restaurant.web?.qmenuWebsite}}" target="_blank">{{row.restaurant.web?.qmenuWebsite}}</a>
       </div>
     </td>
     <td>

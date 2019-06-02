@@ -554,7 +554,7 @@ export class LeadDashboardComponent implements OnInit {
       newLead.assignee = oldLead.assignee;
     }
     //keep the callLogs
-    if (oldLead.callLogs && oldLead.callLogs.length >0) {
+    if (oldLead.callLogs && oldLead.callLogs.length > 0) {
       newLead.callLogs = oldLead.callLogs;
     }
 
@@ -564,13 +564,16 @@ export class LeadDashboardComponent implements OnInit {
   async createNewLead(lead) {
     try {
       const result = await this._api.post(environment.adminApiUrl + "generic?resource=lead", [lead]).toPromise();
+      this._global.publishAlert(
+        AlertType.Success, "Successfully create lead " + lead
+      );
       return result;
     } catch (error) {
       console.log(error);
-      console.log("Successfully creating lead failed for  " + lead);
-      this._global.publishAlert(
-        AlertType.Danger, "Failed to create lead " + lead
-      );
+      console.log("creating lead failed for  " + lead);
+      // this._global.publishAlert(
+      //   AlertType.Danger, "Failed to create lead " + lead
+      // );
     }
 
   }
@@ -666,6 +669,8 @@ export class LeadDashboardComponent implements OnInit {
       const result = await this._api.get(environment.adminApiUrl + "utils/scan-lead", query).toPromise();
       return result;
     } catch (error) {
+      console.log('11111111111111111111111111');
+      console.log('error in scanbOneLead for ' + query);
       console.log(error);
       return;
     }
@@ -687,7 +692,7 @@ export class LeadDashboardComponent implements OnInit {
 
       scanLeadResults = await Promise.all(scanLeadRequests);
       //merge the array of array to flatten it.
-      scanLeadResults = [].concat.apply([], scanLeadResults);
+      scanLeadResults = [].concat.apply([], scanLeadResults).filter(each => each);
       const restaurantCids = this.restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => r.googleListing.cid);
       //filter out cid already in qMenu restaurants before updating or creating lead
       scanLeadResults = scanLeadResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
@@ -699,9 +704,10 @@ export class LeadDashboardComponent implements OnInit {
         query: {
           cid: { $in: scanLeadResults.map(each => each.cid) }
         },
-        limit: 10000
+        limit: 1000
       }).toPromise();
       //creating or updating lead for the cids
+      //let newLeadsToCreate = scanLeadResults;
       let newLeadsToCreate = scanLeadResults.filter(each => !existingLeads.some(lead => lead.cid === each['cid']))
       let existingLeadsToUpdate = existingLeads.filter(each => scanLeadResults.some(lead => lead.cid === each['cid']))
       //skip existing lead crawled within 4 days!;
@@ -716,26 +722,27 @@ export class LeadDashboardComponent implements OnInit {
         })
       }
       //crawl GMB info new leads
-      const newLeadsGMBRequests = (newLeadsToCreate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
+      const newLeadsGMBRequests = (scanLeadResults).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
       let newLeadsCrawledGMBresults: any = await Promise.all(newLeadsGMBRequests);
-      let newLeadsResults = this.convertToLead(newLeadsCrawledGMBresults);
+      let newLeadsResults = this.convertToLead(newLeadsCrawledGMBresults.filter(each => each));
       newLeadsResults.map(each => this.createNewLead(each));
 
       //crawl GMB info existing leads
-      const existingLeadsGMBRequests = (existingLeadsToUpdate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
-      let existingLeadsCrawledGMBresults: any = await Promise.all(existingLeadsGMBRequests);
-      let existingLeadsResults = this.convertToLead(existingLeadsCrawledGMBresults);
-      existingLeadsResults.map(each => this.updateLead(each, existingLeadsToUpdate.filter(e => e.cid === each.cid)[0]));
+      // const existingLeadsGMBRequests = (existingLeadsToUpdate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
+      // let existingLeadsCrawledGMBresults: any = await Promise.all(existingLeadsGMBRequests);
+      // let existingLeadsResults = this.convertToLead(existingLeadsCrawledGMBresults);
+      // existingLeadsResults.map(each => this.updateLead(each, existingLeadsToUpdate.filter(e => e.cid === each.cid)[0]));
 
-      this.scanModal.hide();
+      //this.scanModal.hide();
       this._global.publishAlert(
         AlertType.Success,
-        newLeadsResults.length + " leads were added, " + existingLeadsResults.length + " leads were updated"
+        newLeadsResults.length + " leads were added, " + newLeadsGMBRequests.length + " leads were updated"
       );
     }
     catch (error) {
-      //console.log(error);
-      return event.acknowledge("Error while create/updade leads for " + JSON.stringify(input));
+      console.log('2222222222222222222222222');
+      console.log('error for ' + zipCodes);
+      return event.acknowledge("Error while create/updade leads for " + JSON.stringify(zipCodes));
     }
 
   }
@@ -793,10 +800,12 @@ export class LeadDashboardComponent implements OnInit {
       }).toPromise();
 
       zipCodes = zipCodes.map(each => each.zip_code);
+      //since CT zip code only 4 digits
+      zipCodes = zipCodes.map(each => each.length == 4 ? '0' + each : each)
       //console.log('zipCodes', zipCodes);
     }
 
-    let batchSize = 5;
+    let batchSize = 1;
     if (this.DEBUGGING) {
       batchSize = 2;
     }
@@ -809,11 +818,17 @@ export class LeadDashboardComponent implements OnInit {
       try {
         const results = await this.processLeads(event, batch);
         succeededZipCodes.push(...batch);
+        console.log("done for " + batch);
       } catch (error) {
         failedZipCodes.push(...batch);
+        console.log("error for " + batch);
         console.log(error);
       }
     }
+    console.log("Failed for " + failedZipCodes);
+    console.log("Totally done  for " + succeededZipCodes);
+    this.scanModal.hide();
+    this._global.publishAlert(AlertType.Success, "Success");
   }
 
   formSubmit(event) {

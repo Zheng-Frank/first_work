@@ -15,6 +15,9 @@ export class MyRestaurantComponent implements OnInit {
 
   rows = [];
   now = new Date();
+  result;
+  hadGainedTotal;
+  currentPublishedTotal;
 
   isSuperUser = false;
   username;
@@ -98,9 +101,44 @@ export class MyRestaurantComponent implements OnInit {
 
   ];
 
+  gmbColumnDescriptors = [
+    {
+      label: 'Month',
+      paths: ['month'],
+      default: true,
+      sort: (a, b) => {
+        a = a.split("/");
+        b = b.split("/");
+        //return new Date(a[1], a[0]) > new Date(b[1], b[0])
+        return new Date(a[1], a[0]).valueOf() - new Date(b[1], b[0]).valueOf()
+      }
+
+    },
+
+    {
+      label: 'Restaurants',
+      paths: ['rts'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'GMB Gained',
+      paths: ['gmbGained'],
+      sort: (a, b) => a - b
+    },
+
+    {
+      label: 'Current GMB',
+      paths: ['published'],
+      sort: (a, b) => a - b
+    }
+
+
+  ];
+
   constructor(private _api: ApiService, private _global: GlobalService) {
 
   }
+
 
   async ngOnInit() {
     this.isSuperUser = ['gary', 'chris', 'mo'].indexOf(this._global.user.username) >= 0;
@@ -135,6 +173,7 @@ export class MyRestaurantComponent implements OnInit {
   }
 
   async populate() {
+    this.result = [];
     const myUsername = this.username;
 
     // get my restaurants, my invoices, and gmb (gmbBiz --> cids --> gmbAccount locations to get latest status)
@@ -325,6 +364,44 @@ export class MyRestaurantComponent implements OnInit {
         restaurantRowMap[gmbBizIdMap[task.relatedMap.gmbBizId].qmenuId].tasks.push(task);
       }
     });
+
+    /*group the sales by month as below
+      01/2019 restaurants 29, GMB Gained 10, Current GMB 2
+      02/2019 restaurants 30, GMB Gained 11, Current GMB 9
+    */
+
+    this.hadGainedTotal = this.rows.reduce((sum, a) => sum + (a.gmbOnceOwned || 0), 0);
+    this.currentPublishedTotal = this.rows.reduce((sum, a) => sum + (a.published || 0), 0);
+    
+    this.rows.map(row => {
+      let month = (new Date(row.restaurant.createdAt)).getMonth() + 1;
+      let year = (new Date(row.restaurant.createdAt)).getFullYear();
+      let eachListingDate = { month: month.toString() + '/' + year }
+
+      if (this.result.some(each => each.month === eachListingDate.month)) {
+        this.result.map(each => {
+          if (each.month === eachListingDate.month) {
+            each.rts = each.rts + 1;
+            if (row.gmbOnceOwned) {
+              each.gmbGained = each.gmbGained + 1;
+            }
+            if (row.published) {
+              each.published = each.published + 1;
+            }
+          }
+        })
+      } else {
+        let newItem = { month: eachListingDate.month, rts: 1 };
+          newItem["gmbGained"] = row.gmbOnceOwned ? 1 : 0
+          newItem["published"] = row.published ? 1 : 0;
+
+        this.result.push(newItem);
+
+
+
+      }
+
+    })
   }
 
   getTotal(field) {
@@ -334,5 +411,7 @@ export class MyRestaurantComponent implements OnInit {
   isRolledOrPaid(invoice) {
     return invoice.isPaymentCompleted || this.rolledInvoiceIdsSet.has(invoice._id);
   }
+
+
 
 }

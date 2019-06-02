@@ -41,14 +41,14 @@
             <th class="text-right">End Time</th>
             <td class="pl-1">{{getDeliveryEndString()}}</td>
           </tr>
-          <tr>
-            <th class="text-right">Serve Hours:</th>
+          <!-- <tr>
+            <th class="text-right">Serve Hours:(Not working yet)</th>
             <td>
               <div class="text-center">
                 <q-hours-viewer [offsetToEST]="offsetToEST" [hours]="restaurant.deliveryHours ? restaurant.deliveryHours : []"></q-hours-viewer>
               </div>
             </td>
-          </tr>
+          </tr> -->
         </table>
 
         <table class="table app-borderless w-100" *ngIf="restaurant.deliverySettings && restaurant.deliverySettings.length > 0">
@@ -129,29 +129,28 @@
             </td>
           </tr>
 
-          <tr>
-
-              <th class="text-right">Serve Hours:</th>
-              <td class="pl-1">
-                <div *ngFor="let hour of getHours()">
-                  <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime : offsetToEST}} - {{hour.toTime | shortTime
-                    : offsetToEST}}
-                  </div>
-                  <div class="pull-xs-right">
-                    <button type="button" class="btn btn-link text-danger pt-0 pb-0" (click)="deleteHour(hour)">X</button>
-                  </div>
+          <!-- <tr>
+            <th class="text-right">Serve Hours:(Not working yet)</th>
+            <td class="pl-1">
+              <div *ngFor="let hour of getHours()">
+                <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime : offsetToEST}} - {{hour.toTime | shortTime
+                  : offsetToEST}}
                 </div>
                 <div class="pull-xs-right">
-                  <button type="button" class="btn btn-link" (click)="clickedAddHour = !clickedAddHour">+ Add Hour</button>
+                  <button type="button" class="btn btn-link text-danger pt-0 pb-0" (click)="deleteHour(hour)">X</button>
                 </div>
-  
-                <div *qIf="clickedAddHour" style="font-size: smaller">
-                  <div class="card card-block">
-                    <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"></q-hours-picker>
-                  </div>
+              </div>
+              <div class="pull-xs-right">
+                <button type="button" class="btn btn-link" (click)="clickedAddHour = !clickedAddHour">+ Add Hour</button>
+              </div>
+
+              <div *qIf="clickedAddHour" style="font-size: smaller">
+                <div class="card card-block">
+                  <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"></q-hours-picker>
                 </div>
-              </td>
-            </tr>
+              </div>
+            </td>
+          </tr> -->
         </table>
 
         <table class="table app-borderless w-100">
