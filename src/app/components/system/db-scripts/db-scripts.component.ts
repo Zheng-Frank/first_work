@@ -3,7 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { zip } from "rxjs";
+import { zip, onErrorResumeNext } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
@@ -20,6 +20,80 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() { }
+
+  async injectPopularItems() {
+    // 1. get 1000 orders of each restaurant
+    // 2. get miInstance.id of each menu
+    // 3. get top 20 and inject back to restaurant
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+      },
+      projection: {
+        'name': 1,
+        'menus.name': 1,
+        'menus.popularMiIds': 1
+      },
+      limit: 8000
+    }).toPromise();
+    const restaurantsWithoutPopularItems = restaurants.filter(rt => rt.menus && rt.menus.length > 0 && !rt.menus.some(menu => menu.popularMiIds));
+
+    // console.log('need injection: ', restaurantsWithoutPopularItems);
+    for (let rt of restaurantsWithoutPopularItems) {
+
+      // if (rt._id !== '57e9574c1d1ef2110045e665') {
+      //   continue;
+      // }
+      console.log(rt.name, rt._id);
+      const rtId = rt._id;
+      const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: {
+          restaurant: { $oid: rtId }
+        },
+        projection: {
+          'orderItems.miInstance.id': 1,
+          'orderItems.miInstance.name': 1,
+          'orderItems.menuName': 1
+        },
+        limit: 1000
+      }).toPromise();
+      // console.log(orders);
+      const menuIdCounter = {};
+
+      const idNameMap = {};
+
+
+      orders.map(order => order.orderItems.filter(oi => oi.miInstance && oi.miInstance.id && oi.menuName).map(oi => {
+        idNameMap[oi.miInstance.id] = oi.miInstance.name;
+        menuIdCounter[oi.menuName] = menuIdCounter[oi.menuName] || {};
+        menuIdCounter[oi.menuName][oi.miInstance.id] = (menuIdCounter[oi.menuName][oi.miInstance.id] || 0) + 1;
+      }));
+
+      const newRt = JSON.parse(JSON.stringify(rt));
+      const menuPopularIds = Object.keys(menuIdCounter).map(menuName => {
+        const idCoutDict = menuIdCounter[menuName];
+        const sortedItems = Object.keys(idCoutDict).map(id => ({ id: id, name: idNameMap[id], count: idCoutDict[id] })).sort((i1, i2) => i2.count - i1.count);
+        // popular: first item's 1/5
+        const cutOff = sortedItems[0].count / 4 + 10;
+        const popularItems = sortedItems.filter(s => s.count >= cutOff);
+        newRt.menus.map(menu => {
+          if (menu.name === menuName) {
+            menu.popularMiIds = popularItems.map(item => item.id);
+          }
+        });
+        // console.log(menuName, popularItems);
+      });
+      if (JSON.stringify(newRt) !== JSON.stringify(rt)) {
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: rt,
+          new: newRt
+        }]).toPromise();
+      }
+
+    }
+
+  }
 
   async migrateTme() {
     const tmeCourier = (await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -172,10 +246,10 @@ export class DbScriptsComponent implements OnInit {
     const oldPatch: any = {
       old: { _id: oldRestaurant._id },
       new:
-        {
-          _id: oldRestaurant._id,
-          disabled: true
-        }
+      {
+        _id: oldRestaurant._id,
+        disabled: true
+      }
     };
 
     if (oldRestaurant.alias === newAlias) {
@@ -516,14 +590,14 @@ export class DbScriptsComponent implements OnInit {
 
       return this._api
         .patch(
-        environment.qmenuApiUrl + "generic?resource=restaurant",
-        myRestaurantsChanged.map(clone => ({
-          old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
-          new: clone
-        }))
+          environment.qmenuApiUrl + "generic?resource=restaurant",
+          myRestaurantsChanged.map(clone => ({
+            old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
+            new: clone
+          }))
         );
     })
-      ).subscribe(
+    ).subscribe(
       patchResult => {
         this._global.publishAlert(
           AlertType.Success,
@@ -561,24 +635,24 @@ export class DbScriptsComponent implements OnInit {
         limit: 6000
       })
       .subscribe(
-      result => {
-        const duplicatedIds = [];
-        const existingRestaurantIdSet = new Set();
-        result.map(lead => {
-          if (existingRestaurantIdSet.has(lead.restaurantId)) {
-            duplicatedIds.push(lead._id);
-          } else {
-            existingRestaurantIdSet.add(lead.restaurantId);
-          }
-        });
-        this.removeLeads(duplicatedIds);
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling gmb from API"
-        );
-      }
+        result => {
+          const duplicatedIds = [];
+          const existingRestaurantIdSet = new Set();
+          result.map(lead => {
+            if (existingRestaurantIdSet.has(lead.restaurantId)) {
+              duplicatedIds.push(lead._id);
+            } else {
+              existingRestaurantIdSet.add(lead.restaurantId);
+            }
+          });
+          this.removeLeads(duplicatedIds);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling gmb from API"
+          );
+        }
       );
   }
 
@@ -590,15 +664,15 @@ export class DbScriptsComponent implements OnInit {
         ids: leadIds
       })
       .subscribe(
-      result => {
-        this._global.publishAlert(
-          AlertType.Success,
-          result.length + " was removed"
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
+        result => {
+          this._global.publishAlert(
+            AlertType.Success,
+            result.length + " was removed"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
   }
 
@@ -636,19 +710,19 @@ export class DbScriptsComponent implements OnInit {
       );
     }))
       .subscribe(
-      result => {
+        result => {
 
-        this.removingOrphanPhones = false;
+          this.removingOrphanPhones = false;
 
-        // let's remove bad phones!
-      },
-      error => {
-        this.removingOrphanPhones = false;
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling gmb from API"
-        );
-      }
+          // let's remove bad phones!
+        },
+        error => {
+          this.removingOrphanPhones = false;
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling gmb from API"
+          );
+        }
       );
   }
 
@@ -687,7 +761,7 @@ export class DbScriptsComponent implements OnInit {
           "Error pulling leads from API"
         );
       }
-      )
+    )
   }
 
   fixAddress() {
@@ -719,10 +793,10 @@ export class DbScriptsComponent implements OnInit {
           Object.assign(rClone.googleAddress, address);
           return this._api
             .patch(
-            environment.qmenuApiUrl + "generic?resource=restaurant", [{
-              old: rOrignal,
-              new: rClone
-            }]
+              environment.qmenuApiUrl + "generic?resource=restaurant", [{
+                old: rOrignal,
+                new: rClone
+              }]
             );
         })).subscribe(
           patchResult => {
@@ -802,7 +876,7 @@ export class DbScriptsComponent implements OnInit {
           "Error: " + JSON.stringify(error)
         );
       }
-      );
+    );
   } // end injectDeliveryBy
 
 
@@ -886,7 +960,7 @@ export class DbScriptsComponent implements OnInit {
           "Error: " + JSON.stringify(error)
         );
       }
-      );
+    );
   } // end injectDeliveryBy
 
   injectTotalEtcToInvoice() {
@@ -949,19 +1023,19 @@ export class DbScriptsComponent implements OnInit {
           }));
       }))
       .subscribe(
-      updatedInvoices => {
-        console.log(updatedInvoices);
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated " + affectedInvoices.map(i => i.restaurant.name).join(', ')
-        );
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      }
+        updatedInvoices => {
+          console.log(updatedInvoices);
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated " + affectedInvoices.map(i => i.restaurant.name).join(', ')
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        }
       );
   } // injectTotalEtcToInvoice
 
@@ -1111,18 +1185,18 @@ export class DbScriptsComponent implements OnInit {
 
         return this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', newGmbs);
       })).subscribe(
-      gmbIds => {
-        this._global.publishAlert(
-          AlertType.Success,
-          "Success! Total: " + gmbIds.length
-        );
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error: " + JSON.stringify(error)
-        );
-      });
+        gmbIds => {
+          this._global.publishAlert(
+            AlertType.Success,
+            "Success! Total: " + gmbIds.length
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error: " + JSON.stringify(error)
+          );
+        });
   }
 
   getStripeErrors() {
