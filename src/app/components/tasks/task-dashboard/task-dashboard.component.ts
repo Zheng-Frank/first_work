@@ -88,7 +88,7 @@ export class TaskDashboardComponent {
     this.refresh();
   }
 
-  hideClosedOldTasksDays = 3;
+  hideClosedOldTasksDays = 15;
 
   async refresh() {
     this.refreshing = true;

@@ -31,7 +31,7 @@ export class AutomationDashboardComponent implements OnInit {
   now = new Date();
 
   // wait ms between each scan
-  waitBetweenScan = 4*3600000; // 4 hour
+  waitBetweenScan = 4 * 3600000; // 4 hour
 
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService, private _gmb3: Gmb3Service) { }
 
@@ -193,7 +193,7 @@ export class AutomationDashboardComponent implements OnInit {
     const failedRestaurants = [];
     const succeededRestaurants = [];
 
-    let batchSize = 100;
+    let batchSize = 500;
     if (DEBUGGING && restaurants.length > 200) {
       restaurants.length = 200;
       batchSize = 100;
@@ -204,6 +204,12 @@ export class AutomationDashboardComponent implements OnInit {
     for (let batch of batchedRestaurants) {
       try {
         const results = await this._gmb3.crawlBatchedRestaurants(batch);
+        await new Promise((resolve, reject) => {
+          setTimeout(() => {
+            resolve();
+          }, 60000)
+        });
+        
         succeededRestaurants.push(...batch);
       } catch (error) {
         failedRestaurants.push(...batch);
@@ -268,7 +274,7 @@ export class AutomationDashboardComponent implements OnInit {
     const succeededGmbBizList = [];
     let abortionMessage;
 
-    let batchSize = 100;
+    let batchSize = 500;
 
     if (DEBUGGING && gmbBizList.length > 200) {
       gmbBizList.length = 200;
@@ -280,6 +286,11 @@ export class AutomationDashboardComponent implements OnInit {
     for (let batch of batchedGmbBizList) {
       try {
         const results = await this._gmb3.crawlBatchedGmbBizList(batch);
+        await new Promise((resolve, reject) => {
+          setTimeout(() => {
+            resolve();
+          }, 60000)
+        });
         succeededGmbBizList.push(...batch);
       } catch (error) {
         failedGmbBizList.push(...batch);

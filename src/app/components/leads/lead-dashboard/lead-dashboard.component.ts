@@ -805,7 +805,7 @@ export class LeadDashboardComponent implements OnInit {
       //console.log('zipCodes', zipCodes);
     }
 
-    let batchSize = 1;
+    let batchSize = 100;
     if (this.DEBUGGING) {
       batchSize = 2;
     }
@@ -817,6 +817,11 @@ export class LeadDashboardComponent implements OnInit {
     for (let batch of batchedZipCodes) {
       try {
         const results = await this.processLeads(event, batch);
+        await new Promise((resolve, reject) => {
+          setTimeout(() => {
+            resolve();
+          }, 200000)
+        });
         succeededZipCodes.push(...batch);
         console.log("done for " + batch);
       } catch (error) {
