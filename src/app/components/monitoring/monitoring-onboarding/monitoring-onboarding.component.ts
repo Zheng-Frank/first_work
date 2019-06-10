@@ -38,7 +38,7 @@ export class MonitoringOnboardingComponent implements OnInit {
         "googleListing.cid": 1,
         createdAt: 1,
         "rateSchedules.agent": 1,
-        logs: 1,
+        logs:  { $slice: -2 },
       },
       limit: 200000
     }).toPromise();
