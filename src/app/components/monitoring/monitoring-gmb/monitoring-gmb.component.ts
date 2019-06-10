@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { Helper } from 'src/app/classes/helper';
 @Component({
   selector: 'app-monitoring-gmb',
   templateUrl: './monitoring-gmb.component.html',
@@ -11,6 +12,8 @@ export class MonitoringGmbComponent implements OnInit {
   rows = [];
   showOnlyBadGmb = false;
   showOnlyDisabled = false;
+  showOnlyPublished = false;
+  showMissingWebsite = false;
   filteredRows = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -29,8 +32,9 @@ export class MonitoringGmbComponent implements OnInit {
         alias: 1,
         disabled: 1,
         score: 1,
-        "googleListing.cid": 1,
+        googleListing: 1,
         "rateSchedules.agent": 1,
+        web: 1,
         createdAt: 1
       },
       limit: 200000
@@ -79,6 +83,9 @@ export class MonitoringGmbComponent implements OnInit {
 
   filter() {
     this.filteredRows = this.rows;
+    if (this.showOnlyPublished) {
+      this.filteredRows = this.filteredRows.filter(row => !row.restaurant.disabled && (row.location && row.location.status == 'Published'));
+    }
     if (this.showOnlyBadGmb) {
       this.filteredRows = this.filteredRows.filter(row => !row.location || row.location.status !== 'Published');
     }
@@ -86,6 +93,50 @@ export class MonitoringGmbComponent implements OnInit {
       this.filteredRows = this.filteredRows.filter(row => row.restaurant.disabled);
 
     }
+
+    if (this.showMissingWebsite) {
+      this.filteredRows = this.filteredRows.filter(row => row.restaurant.googleListing && !row.restaurant.googleListing.gmbWebsite );
+
+    }
+  }
+
+  async scanWebsite() {
+
+    let websites = this.filteredRows.map(row => row.restaurant.web && row.restaurant.web.qmenuWebsite)
+
+    let batchSize = 1;
+    const failedRows = [];
+    const succeededRows = [];
+
+    let batchedWebsite = Array(Math.ceil(websites.length / batchSize)).fill(0).map((i, index) => websites.slice(index * batchSize, (index + 1) * batchSize));
+    //batchedWebsite = batchedWebsite.slice(0,1)
+    for (let batch of batchedWebsite) {
+      const query = { website: batch.join(',') };
+      try {
+        let result = await this._api.get(environment.adminApiUrl + "utils/check-url", query).toPromise();
+        Object.keys(result).map(key => {
+          this.filteredRows.filter(row => row.restaurant.web && row.restaurant.web.qmenuWebsite && Helper.areDomainsSame(key, row.restaurant.web.qmenuWebsite))[0].websiteStatus = result[key];
+
+        })
+        succeededRows.push(result);
+      }
+      catch (e) {
+        failedRows.push(batch);
+      }
+      await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve();
+        }, 1000)
+      });
+    }
+
+    this.filteredRows.map(each => {
+
+    })
+
+    console.log('succeededRows', succeededRows);
+    console.log('failedRows', failedRows);
+
   }
 
 }
