@@ -60,8 +60,7 @@
                 <div *ngIf="record.showContact">
                   <div>Fax: {{getFax(record.restaurant) | tel}}</div>
                   <div>Text: {{getText(record.restaurant) | tel}}</div>
-                  <div>{{getLine1(record.restaurant.googleAddress)}}</div>
-                  <div>{{getLine2(record.restaurant.googleAddress)}}</div>
+                  <div>{{record.restaurant.googleAddress?.formatted_address}}</div>
                 </div>
               </td>
               <td class="text-nowrap" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}}">&#9632;

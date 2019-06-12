@@ -114,12 +114,11 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
             resource: "restaurant",
             projection: {
               name: 1,
-              address: 1,
               serviceSettings: 1,
               disabled: 1,
               offsetToEST: 1,
               channels: 1,
-              googleAddress: 1
+              "googleAddress.formatted_address": 1
             },
             limit: 10000
           }),
