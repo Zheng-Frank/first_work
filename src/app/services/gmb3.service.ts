@@ -448,8 +448,10 @@ export class Gmb3Service {
         }
       }
 
+      const old = {_id: gmbBiz._id};
+      fields.map(field => old[field] = "random");
       return {
-        old: { _id: gmbBiz._id },
+        old: old,
         new: newItem
       };
 
