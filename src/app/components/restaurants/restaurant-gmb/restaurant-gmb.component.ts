@@ -175,6 +175,45 @@ export class RestaurantGmbComponent implements OnInit {
       }]).toPromise();
       this.restaurant.googleListing = crawledResult;
       this._global.publishAlert(AlertType.Success, 'GMB crawled: ' + this.restaurant.name);
+
+
+      // query gmbBiz, and update!
+
+      const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          "cid": crawledResult.cid
+        },
+        projection: {
+          email: 1
+        },
+        limit: 10
+      }).toPromise();
+
+      console.log(gmbBizList);
+
+      const fields = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
+
+      const pairs = gmbBizList.map(gmbBiz => {
+        const old = { _id: gmbBiz._id };
+        fields.map(field => old[field] = "random");
+
+        const newItem: any = {
+          _id: gmbBiz._id,
+          crawledAt: { $date: new Date() },
+          ...crawledResult
+        };
+
+        return {
+          old: old,
+          new: newItem
+        };
+      });
+
+      console.log(pairs);
+
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', pairs).toPromise();
+
     }
 
     this.apiRequesting = false;
