@@ -2531,9 +2531,44 @@ export class DbScriptsComponent implements OnInit {
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
     }
+  }
 
+  async injectRequireZipBillingAddress() {
+    const serviceSettings = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        serviceSettings: 1,
+        requireZipcode: 1,
+        requireBillingAddress: 1
+      },
+      limit: 6000
+    }).toPromise();
 
+    let updatedRestaurantPairs = [];
+    for (let r of serviceSettings) {
+      const oldR = r;
+      let newR = JSON.parse(JSON.stringify(r));
+      if (r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > 0)) {
+        if(!newR.requireZipcode ||  !newR.requireBillingAddress){
+          newR.requireZipcode = true;
+          newR.requireBillingAddress = true;
+          updatedRestaurantPairs.push({
+            old: {
+              _id: r._id
+            },
+            new: newR
+          });
+        }
+      }
+    }
 
+    console.log(updatedRestaurantPairs);
+    updatedRestaurantPairs= updatedRestaurantPairs.slice(0,2);
+
+    if (updatedRestaurantPairs.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurantPairs).toPromise();
+    }
   }
 
 }
