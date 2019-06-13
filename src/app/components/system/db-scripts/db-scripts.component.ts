@@ -2564,8 +2564,6 @@ export class DbScriptsComponent implements OnInit {
     }
 
     console.log(updatedRestaurantPairs);
-    updatedRestaurantPairs= updatedRestaurantPairs.slice(0,2);
-
     if (updatedRestaurantPairs.length > 0) {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurantPairs).toPromise();
     }
