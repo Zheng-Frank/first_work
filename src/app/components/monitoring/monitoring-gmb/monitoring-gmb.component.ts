@@ -47,8 +47,10 @@ export class MonitoringGmbComponent implements OnInit {
       },
       projection: {
         "email": 1,
+        password: 1,
         "locations.cid": 1,
-        "locations.status": 1
+        "locations.status": 1,
+        "locations.appealId": 1
       },
       limit: 6000
     }).toPromise();
@@ -95,7 +97,7 @@ export class MonitoringGmbComponent implements OnInit {
     }
 
     if (this.showMissingWebsite) {
-      this.filteredRows = this.filteredRows.filter(row => row.restaurant.googleListing && !row.restaurant.googleListing.gmbWebsite );
+      this.filteredRows = this.filteredRows.filter(row => row.restaurant.googleListing && !row.restaurant.googleListing.gmbWebsite);
 
     }
   }
@@ -138,5 +140,46 @@ export class MonitoringGmbComponent implements OnInit {
     console.log('failedRows', failedRows);
 
   }
+
+  async injectWebsite() {
+
+    console.log('this.filteredRows', this.filteredRows);
+    let batchSize = 1;
+    //this.filteredRows = this.filteredRows.slice(16);
+
+    const batchedItems = Array(Math.ceil(this.filteredRows.length / batchSize)).fill(0).map((i, index) => this.filteredRows.slice(index * batchSize, (index + 1) * batchSize)).filter(batch => batch.length > 0);
+    for (let batch of batchedItems) {
+      const promises = batch.map(item =>
+        this._api
+          .post(environment.adminApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
+          .then(password => this._api.post(
+            environment.autoGmbUrl + 'updateWebsite', {
+              email: item.account.email,
+              password: password,
+              appealId: item.location.appealId,
+              websiteUrl: "https://qmenu.us/#/" + item.restaurant.alias,
+              stayAfterScan: false
+            }
+          ).toPromise())
+      );
+      const batchResult = await Helper.processBatchedPromises(promises);
+      // // // update account's history
+      // const patchPairs = batch.map((item, index) => {
+      //   const injection = {};
+      //   injection[item.location.appealId] = {
+      //     time: new Date(),
+      //     success: batchResult[index].success
+      //   }
+      //   return {
+      //     old: { _id: item.account._id, injection: {} },
+      //     new: { _id: item.account._id, injection }
+      //   };
+      // });
+      // console.log(patchPairs);
+      // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
+    } // end batch
+
+  }
+
 
 }
