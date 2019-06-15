@@ -9,7 +9,7 @@ export class BanCustomerComponent implements OnInit {
   @Output() onBan = new EventEmitter();
   @Output() onCancel = new EventEmitter();
   reasons = [
-    { text: 'Used stolen credit card', selected: false },
+    { text: 'Credit card dispute', selected: false },
     { text: 'Failed payment', selected: false },
     { text: 'Failed to show up', selected: false },
     { text: 'Extremely rude', selected: false },
