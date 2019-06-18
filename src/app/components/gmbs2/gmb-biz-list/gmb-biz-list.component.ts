@@ -65,7 +65,7 @@ export class GmbBizListComponent implements OnInit {
           "web.useBizWebsite": 1,
           "web.useBizWebsiteForAll": 1
         },
-        limit: 2000
+        limit: 3000
       }).toPromise(),
       // second batch
       this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -93,7 +93,7 @@ export class GmbBizListComponent implements OnInit {
           "web.useBizWebsite": 1,
           "web.useBizWebsiteForAll": 1
         },
-        skip: 2000,
+        skip: 3000,
         limit: 6000
       }).toPromise(),
 

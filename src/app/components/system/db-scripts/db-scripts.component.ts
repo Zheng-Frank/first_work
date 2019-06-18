@@ -2507,7 +2507,11 @@ export class DbScriptsComponent implements OnInit {
         const newR = JSON.parse(JSON.stringify(r));
         //Just assuming match 1 image, and only upload image if none image exists
         newR.menus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-          let matchingImage = images.filter(image => image.aliases.indexOf(mi.name) > -1)[0];
+          const match = function(aliases, name) {
+            const sanitizedName = (name || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim();
+            return aliases.some(alias => alias.toLowerCase().trim() === sanitizedName);
+          }
+          let matchingImage = images.filter(image => match(image.aliases, mi.name))[0];
           if (matchingImage) {
             (matchingImage.images || []).map(each => {
               if ((mi.imageObjs || []).length == 0) {

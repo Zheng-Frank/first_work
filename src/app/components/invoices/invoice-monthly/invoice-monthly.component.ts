@@ -656,7 +656,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     rowsWithMissingLastWithInvoices = rowsWithMissingLastWithInvoices.filter(r => r.restaurant._id !== '57e9574c1d1ef2110045e665');
 
 
-    const batchSize = 150;
+    const batchSize = 20;
 
     // const batchedRows = Array(Math.ceil(rowsWithMissingLastWithInvoices.length / batchSize)).fill(0).map((i, index) => rowsWithMissingLastWithInvoices.slice(index * batchSize, (index + 1) * batchSize));
     const batchedRows = Array(Math.ceil(this.rows.length / batchSize)).fill(0).map((i, index) => this.rows.slice(index * batchSize, (index + 1) * batchSize));
@@ -686,7 +686,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         sort: {
           createdAt: -1
         },
-        limit: 4000
+        limit: 12000
       }).toPromise();
 
       console.log(orders.length);

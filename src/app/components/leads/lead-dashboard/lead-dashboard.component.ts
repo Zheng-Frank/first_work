@@ -699,28 +699,28 @@ export class LeadDashboardComponent implements OnInit {
 
       console.log('scanLeadResults=', scanLeadResults);
       //retrieve existing lead with the same cids
-      const existingLeads = await this._api.get(environment.adminApiUrl + 'generic', {
-        resource: 'lead',
-        query: {
-          cid: { $in: scanLeadResults.map(each => each.cid) }
-        },
-        limit: 1000
-      }).toPromise();
+      // const existingLeads = await this._api.get(environment.adminApiUrl + 'generic', {
+      //   resource: 'lead',
+      //   query: {
+      //     cid: { $in: scanLeadResults.map(each => each.cid) }
+      //   },
+      //   limit: 1000
+      // }).toPromise();
       //creating or updating lead for the cids
       //let newLeadsToCreate = scanLeadResults;
-      let newLeadsToCreate = scanLeadResults.filter(each => !existingLeads.some(lead => lead.cid === each['cid']))
-      let existingLeadsToUpdate = existingLeads.filter(each => scanLeadResults.some(lead => lead.cid === each['cid']))
+      //let newLeadsToCreate = scanLeadResults.filter(each => !existingLeads.some(lead => lead.cid === each['cid']))
+      //let existingLeadsToUpdate = existingLeads.filter(each => scanLeadResults.some(lead => lead.cid === each['cid']))
       //skip existing lead crawled within 4 days!;
-      if (existingLeadsToUpdate && existingLeadsToUpdate.length > 0) {
-        existingLeadsToUpdate = existingLeadsToUpdate.filter(b => {
-          for (let i = 0; i < existingLeads.length; i++) {
-            if (existingLeads[i]['cid'] === b.cid) {
-              return !existingLeads[i].crawledAt || new Date().valueOf() - new Date(existingLeads[i].crawledAt).valueOf() > FOUR_DAYS
+      // if (existingLeadsToUpdate && existingLeadsToUpdate.length > 0) {
+      //   existingLeadsToUpdate = existingLeadsToUpdate.filter(b => {
+      //     for (let i = 0; i < existingLeads.length; i++) {
+      //       if (existingLeads[i]['cid'] === b.cid) {
+      //         return !existingLeads[i].crawledAt || new Date().valueOf() - new Date(existingLeads[i].crawledAt).valueOf() > FOUR_DAYS
 
-            }
-          }
-        })
-      }
+      //       }
+      //     }
+      //   })
+      // }
       //crawl GMB info new leads
       const newLeadsGMBRequests = (scanLeadResults).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
       let newLeadsCrawledGMBresults: any = await Promise.all(newLeadsGMBRequests);

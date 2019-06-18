@@ -289,7 +289,7 @@ export class MyRestaurantComponent implements OnInit {
         isPaymentCompleted: 1,
         "restaurant.id": 1,
         previousInvoiceId: 1,
-        previousBalance: 1
+        //previousBalance: 1
       },
       limit: 200000
     }).toPromise()).map(i => new Invoice(i));

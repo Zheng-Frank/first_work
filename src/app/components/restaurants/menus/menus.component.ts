@@ -251,7 +251,11 @@ export class MenusComponent implements OnInit {
     const oldMenus = this.restaurant.menus || [];
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
     newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-      let matchingImage = images.filter(image => image.aliases.indexOf(mi.name) > -1)[0];
+      const match = function(aliases, name) {
+        const sanitizedName = (name || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim();
+        return aliases.some(alias => alias.toLowerCase().trim() === sanitizedName);
+      }
+      let matchingImage = images.filter(image => match(image.aliases, mi.name))[0];
       if (matchingImage) {
         (matchingImage.images || []).map(each => {
           if ((mi.imageObjs || []).length == 0) {
