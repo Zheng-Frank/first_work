@@ -59,6 +59,7 @@ export class TaskDashboardComponent {
           alias: 1,
           logo: 1,
           channels: 1,
+          score: 1,
           "googleAddress.formatted_address": 1
         },
         limit: 6000

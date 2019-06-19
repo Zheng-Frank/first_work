@@ -307,7 +307,8 @@ export class TaskService {
       projection: {
         alias: 1,
         "googleListing.cid": 1,
-        web: 1
+        web: 1,
+        score: 1
       },
       limit: 6000
     }).toPromise();
