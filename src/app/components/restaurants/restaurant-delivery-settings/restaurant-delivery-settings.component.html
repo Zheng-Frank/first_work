@@ -41,14 +41,14 @@
             <th class="text-right">End Time</th>
             <td class="pl-1">{{getDeliveryEndString()}}</td>
           </tr>
-          <!-- <tr>
-            <th class="text-right">Serve Hours:(Not working yet)</th>
+          <tr>
+            <th class="text-right">Delivery Serve Hours:</th>
             <td>
               <div class="text-center">
                 <q-hours-viewer [offsetToEST]="offsetToEST" [hours]="restaurant.deliveryHours ? restaurant.deliveryHours : []"></q-hours-viewer>
               </div>
             </td>
-          </tr> -->
+          </tr>
         </table>
 
         <table class="table app-borderless w-100" *ngIf="restaurant.deliverySettings && restaurant.deliverySettings.length > 0">
@@ -130,9 +130,9 @@
           </tr>
 
           <tr>
-            <th class="text-right">Serve Hours:(Not working yet)</th>
+            <th class="text-right">Delivery Serve Hours</th>
             <td class="pl-1">
-              <div *ngFor="let hour of getHours()">
+              <div *ngFor="let hour of deliveryHours">
                 <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime : offsetToEST}} - {{hour.toTime | shortTime
                   : offsetToEST}}
                 </div>
