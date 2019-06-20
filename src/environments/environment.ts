@@ -7,6 +7,8 @@ export const environment = {
   // // legacyApiUrl: "https://quez.herokuapp.com/",
   // legacyApiUrl: "http://localhost:1337/",
   // autoGmbUrl: "http://localhost:3000/",
+
+  // migrationUrl: "http://qauto.ngrok.io/",
   // socketUrl: "https://quez.herokuapp.com:443/",
   // bizUrl: 'https://qa-biz.herokuapp.com/',
   // customerUrl: 'https://qa-customer.herokuapp.com/',
@@ -21,6 +23,7 @@ export const environment = {
   qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/prod/",
   legacyApiUrl: "https://api.myqmenu.com/",
   autoGmbUrl: "http://localhost:3000/",
+  migrationUrl: "http://qauto.ngrok.io/",
   socketUrl: 'https://api.myqmenu.com/',
   bizUrl: 'https://biz.qmenu.us/',
   customerUrl: 'https://qmenu.us/',

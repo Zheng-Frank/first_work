@@ -1,0 +1,52 @@
+<h1>Godaddy to AWS Migration</h1>
+<div class="text-right">
+  <div class="pb-2">
+    <div class="form-group form-inline">
+      <label>Domain:</label>
+      <input [(ngModel)]="domain" type="text" class="form-control">
+      <button class="btn btn-primary mx-2" (click)="add()"><i class="fas fa-plus"></i> Add</button>
+      <button class="btn btn-primary ml-4" (click)="reload()"><i class="fas fa-sync-alt"></i> Reload</button>
+    </div>
+
+  </div>
+</div>
+<table class="table">
+  <thead>
+    <tr>
+      <th>
+        Domain
+      </th>
+      <th>
+        Restaurant
+      </th>
+      <th>Steps</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of rows">
+      <td>
+        <a href="{{'https://' + row.domain}}">{{row.domain}}</a>
+
+      </td>
+      <td>
+        {{row.restaurant?.name}}
+      </td>
+      <td>
+        <div *ngFor="let step of row.steps" class="text-nowrap">
+          <span style="min-width: 1rem; display: inline-block;">
+            <i class="fas fa-check text-success" *ngIf="step.success === true"></i>
+            <i class="fas fa-exclamation text-danger" *ngIf="step.success === false"></i>
+          </span>
+          <div *ngIf="!step.success" style="min-width: 12rem; display: inline-block;">
+            <button class="btn btn-link pl-0" (click)="execute(row, step)"
+              [qLoading]="isStepProcessing(step)">{{step.name}}</button>
+          </div>
+
+          <button *ngIf="step.success" class="btn btn-link pl-0" [disabled]="true">{{step.name}}</button>
+          <button *ngIf="step.response" class="btn btn-link" (click)="viewResponse(step)">View Response</button>
+
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
