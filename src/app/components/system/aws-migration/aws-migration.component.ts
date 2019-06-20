@@ -27,7 +27,7 @@ const steps = [
   },
   {
     name: 'checkTransferDomain',
-    payload: ['operationId'],
+    payload: ['OperationId'],
   },
   {
     name: 'requestCertificate',
@@ -39,7 +39,7 @@ const steps = [
   // },
   {
     name: 'createCloudFront',
-    payload: ['domain', 'certificateARN'],
+    payload: ['domain', 'CertificateArn'],
   },
   {
     name: 'validateWebsite',
