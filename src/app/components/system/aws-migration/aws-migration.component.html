@@ -37,12 +37,13 @@
             <i class="fas fa-check text-success" *ngIf="step.success === true"></i>
             <i class="fas fa-exclamation text-danger" *ngIf="step.success === false"></i>
           </span>
-          <div *ngIf="!step.success" style="min-width: 12rem; display: inline-block;">
+          <div style="min-width: 12rem; display: inline-block;">
             <button class="btn btn-link pl-0" (click)="execute(row, step)"
               [qLoading]="isStepProcessing(step)">{{step.name}}</button>
           </div>
 
-          <button *ngIf="step.success" class="btn btn-link pl-0" [disabled]="true">{{step.name}}</button>
+          <!-- <button *ngIf="step.success" class="btn btn-link pl-0" [disabled]="true">{{step.name}}</button> -->
+
           <button *ngIf="step.response" class="btn btn-link" (click)="viewResponse(step)">View Response</button>
 
         </div>

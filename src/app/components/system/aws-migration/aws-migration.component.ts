@@ -125,10 +125,10 @@ export class AwsMigrationComponent implements OnInit {
   }
 
   async execute(row, step: MigrationStep) {
-    if (step.success) {
-      this._global.publishAlert(AlertType.Success, 'Already success');
-      return;
-    };
+    // if (step.success) {
+    //   this._global.publishAlert(AlertType.Success, 'Already success');
+    //   return;
+    // };
 
     const index = row.steps.indexOf(step);
     const previousStep = row.steps[index - 1];
