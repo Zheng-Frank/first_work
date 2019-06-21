@@ -30,6 +30,10 @@ const steps = [
     payload: ['OperationId'],
   },
   {
+    name: 'transferS3',
+    payload: ['domain'],
+  },
+  {
     name: 'requestCertificate',
     payload: ['domain'],
   },

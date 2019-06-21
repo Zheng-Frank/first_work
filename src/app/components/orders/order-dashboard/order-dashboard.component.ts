@@ -89,7 +89,8 @@ export class OrderDashboardComponent implements OnInit {
         projection: {
           restaurant: 1,
           createdAt: 1,
-          orderNumber: 1
+          orderNumber: 1,
+          standalone: 1
         },
         limit: 10000
       }),
@@ -123,6 +124,7 @@ export class OrderDashboardComponent implements OnInit {
     ).subscribe(
       result => {
         const orders = result[0];
+        console.log(orders);
         const restaurants = result[1];
         const gmbAccountsWithPublishedLocations = result[2];
         const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)), myset), new Set());
