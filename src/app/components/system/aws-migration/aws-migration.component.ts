@@ -158,8 +158,8 @@ export class AwsMigrationComponent implements OnInit {
     // inject success response's field from previous step!
     if (previousStep) {
       const lastPreviousSuccessExecution = (previousStep.executions || []).filter(exe => exe.success)[0];
-      if (lastPreviousSuccessExecution) {
-        (step.payload || []).map(field => payload[field] = lastPreviousSuccessExecution[field]);
+      if (lastPreviousSuccessExecution && lastPreviousSuccessExecution.response) {
+        (step.payload || []).map(field => payload[field] = lastPreviousSuccessExecution.response[field] || payload[field]);
       }
     }
     let execution: Execution;
@@ -201,6 +201,7 @@ export class AwsMigrationComponent implements OnInit {
 
   viewResponse(step) {
     alert(JSON.stringify(step.executions, null, 2));
+    console.log(step.executions);
   }
 
   isStepSuccess(step) {
