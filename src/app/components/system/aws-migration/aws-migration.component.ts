@@ -58,6 +58,10 @@ const steps = [
     payload: ['domain', 'certificateARN'],
   },
   {
+    name: 'checkCloudFront',
+    payload: ['domain', 'OperationId'],
+  },
+  {
     name: 'validateWebsite',
     payload: ['domain'],
   },
@@ -110,7 +114,7 @@ export class AwsMigrationComponent implements OnInit {
         website = rt.domain;
       }
       if (website) {
-        const domain = website.split('.').slice(-2).map(part => part.replace("/", '').trim()).join('.').toLowerCase();
+        const domain = this.extractDomain(website);
         this.domainRtDict[domain] = rt;
       }
     });
@@ -118,8 +122,12 @@ export class AwsMigrationComponent implements OnInit {
     this.reload();
   }
 
+  private extractDomain(website) {
+    return website.split('.').slice(-2).map(part => part.split(':/').slice(-1)[0].replace("/", '').trim()).join('.').toLowerCase();
+  }
+
   async add() {
-    const domain = this.domain.split('.').slice(-2).map(part => part.replace("/", '').trim()).join('.').toLowerCase();
+    const domain = this.extractDomain(this.domain);
     if (this.rows.some(row => row.domain === domain)) {
       alert(domain + ' is already in list');
     } else {
@@ -146,6 +154,13 @@ export class AwsMigrationComponent implements OnInit {
     this.rows = migrations;
     // sort by restaurant score
     this.rows.sort((r1, r2) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0));
+
+    // const badMigs = migrations.filter(mig => mig.domain.indexOf('/') > 0);
+    // const patchPairs = badMigs.map(mig => ({
+    //   old: {_id: mig._id},
+    //   new: {_id: mig._id, domain: this.extractDomain(mig.domain)}
+    // }));
+    // await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', patchPairs).toPromise();
   }
 
   async execute(row, step: MigrationStep) {
@@ -157,7 +172,7 @@ export class AwsMigrationComponent implements OnInit {
 
     // inject success response's field from previous step!
     if (previousStep) {
-      const lastPreviousSuccessExecution = (previousStep.executions || []).filter(exe => exe.success)[0];
+      const lastPreviousSuccessExecution = (previousStep.executions || []).filter(exe => exe.success).slice(-1)[0];
       if (lastPreviousSuccessExecution && lastPreviousSuccessExecution.response) {
         (step.payload || []).map(field => payload[field] = lastPreviousSuccessExecution.response[field] || payload[field]);
       }
