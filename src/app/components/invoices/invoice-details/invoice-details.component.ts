@@ -14,6 +14,7 @@ import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Channel } from '../../../classes/channel';
 import { Observable, from } from 'rxjs';
+import { Helper } from "../../../classes/helper";
 
 declare var $: any;
 declare var window: any;
@@ -95,6 +96,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       })).subscribe(restaurants => {
 
         this.restaurantId = restaurants[0]._id;
+        this.invoice.restaurant.paymentMeans = (restaurants[0].paymentMeans || [])
 
         // show only relevant payment means: Send to qMenu = balance > 0
         this.paymentMeans = (restaurants[0].paymentMeans || [])
@@ -402,5 +404,72 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         this._global.publishAlert(AlertType.Danger, "Error updating to DB");
       }
     );
+  }
+  async sendPaperCheck() {
+    let amount = +(this.invoice.getBalance().toFixed(2));
+    //console.log('this.invoice.restaurant=', this.invoice.restaurant);
+    //if multiple payment means, choose the first only
+    let paymentMean = this.invoice.restaurant.paymentMeans[0];
+    let mailingAddress;
+    if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
+      if (paymentMean.details.address) {
+        mailingAddress = {
+          "name": this.invoice.restaurant.name,
+          "restaurantId": this.invoice.restaurant.id,
+          "address_line1": Helper.getAddressLine1(paymentMean.details.address),
+          "address_city": Helper.getCity(paymentMean.details.address),
+          "address_state": Helper.getState(paymentMean.details.address),
+          "address_zip": Helper.getZipcode(paymentMean.details.address)
+        }
+      }
+    } else {
+
+      mailingAddress = {
+        "name": this.invoice.restaurant.name,
+        "restaurantId": this.invoice.restaurant.id,
+        "address_line1": this.getAddressLine1(this.invoice.restaurant.address),
+        "address_city": this.invoice.restaurant.address.locality,
+        "address_state": this.invoice.restaurant.address.administrative_area_level_1,
+        "address_zip": this.invoice.restaurant.address.postal_code,
+      }
+    }
+
+    try {
+      let result = await this._api.post(environment.adminApiUrl + "utils/send-check", {
+        destination: mailingAddress,
+        "action": "paperCheckTransfer",
+        "amount": amount,
+        "memo": 'QMenu Payment ' + this.formatDate(this.invoice.fromDate) + ' - ' + this.formatDate(this.invoice.toDate)
+      }).toPromise();
+      console.log(result);
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
+  formatDate(date: Date) {
+    let month = '' + (date.getMonth() + 1);
+    let day = '' + date.getDate();
+    let year = date.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [month, day, year].join('/');
+  }
+
+  getAddressLine1(address) {
+    return (address.street_number ? address.street_number : '') + ' '
+      + (address.route ? ' ' + address.route : '') +
+      (address.apt ? ', ' + address.apt : '');
+  }
+
+  showSendPaperCheck() {
+    let paymentMean = this.invoice.restaurant.paymentMeans[0];
+    if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
+      return true;
+    }
+    return false;
   }
 }

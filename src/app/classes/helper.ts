@@ -228,4 +228,88 @@ export class Helper {
             reservation: reservationUrl
         };
     }
+
+    static getState(formatted_address) {
+        try {
+            let addressArray = formatted_address.split(",");
+            if (addressArray[addressArray.length - 1] && addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)) {
+                //console.log('address=', address);
+                //console.log(address.match(/\b[A-Z]{2}/)[0]);
+                let state = addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)[0];
+                return state;
+            }
+        }
+        catch (e) {
+            return '';
+        }
+    }
+
+    static getCity(formatted_address) {
+        try {
+            let addressArray = formatted_address.split(",");
+            if (addressArray[addressArray.length - 2]) {
+                //console.log('address=', address);
+                //console.log(address.match(/\b[A-Z]{2}/)[0]);
+                let city = addressArray[addressArray.length - 2].trim();
+                return city;
+            }
+        }
+        catch (e) {
+            return '';
+        }
+    }
+
+    static getZipcode(formatted_address) {
+        try {
+            let addressArray = formatted_address.split(",");
+            if (addressArray[addressArray.length - 1] && addressArray[addressArray.length - 1].match(/\b\d{5}\b/g)) {
+                //console.log('address=', address);
+                //console.log(address.match(/\b[A-Z]{2}/)[0]);
+                let zip = addressArray[addressArray.length - 1].match(/\b\d{5}\b/g)[0].trim();
+                return zip;
+            }
+        }
+        catch (e) {
+            return '';
+        }
+    }
+
+
+    static getAddressLine1(formatted_address) {
+        try {
+            let addressArray = formatted_address.split(",");
+            return addressArray[0];
+        }
+        catch (e) {
+            return '';
+        }
+    }
+
+    static getTimeZone(formatted_address) {
+        const tzMap = {
+            PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+            MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+            CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+                'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+            EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+                'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+                'NJ', 'DE', 'MD', 'DC', 'RI'],
+            HST: ['HI'],
+            AKDT: ['AK']
+        };
+
+        let matchedTz = '';
+        if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
+            //console.log('address=', address);
+            //console.log(address.match(/\b[A-Z]{2}/)[0]);
+            let state = formatted_address.match(/\b[A-Z]{2}/)[0];
+
+            Object.keys(tzMap).map(tz => {
+                if (tzMap[tz].indexOf(state) > -1) {
+                    matchedTz = tz;
+                }
+            });
+        }
+        return matchedTz;
+    }
 }
