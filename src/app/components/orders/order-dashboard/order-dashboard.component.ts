@@ -152,21 +152,11 @@ export class OrderDashboardComponent implements OnInit {
           }
         });
 
-        // sort by total orders, then name
+        // sort by changes desc
         this.rows = Object.values(restaurantMap).sort((r1, r2) => {
-          let diff = r2["orders"].length - r1["orders"].length;
-          if (diff) {
-            return diff;
-          } else {
-            // no difference, let's order by name
-            if (r1["restaurant"].name > r2["restaurant"].name) {
-              return 1;
-            } else if (r1["restaurant"].name === r2["restaurant"].name) {
-              return 0;
-            } else {
-              return -1;
-            }
-          }
+          let diff1 = r1["orders"].length - r1["lastWeekOrders"].length;
+          let diff2 = r2["orders"].length - r2["lastWeekOrders"].length;
+          return diff1 - diff2;
         });
 
         this.restaurantsWithOrders = this.rows.filter(

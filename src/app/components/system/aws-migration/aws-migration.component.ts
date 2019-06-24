@@ -3,13 +3,25 @@ import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
+import { Restaurant } from '@qmenu/ui';
+import { takeUntil } from 'rxjs/operators';
 
+export class Migration {
+  domain: string;
+  steps: MigrationStep[];
+  restaurant: Restaurant;
+  result?: 'SUCCEEDED' | 'SKIPPED'
+}
+
+export class Execution {
+  time: Date;
+  success: boolean;
+  response: any;
+}
 export class MigrationStep {
   name: string;
   payload: string[];
-  response: any;
-  time: Date;
-  success: boolean;
+  executions?: Execution[];
 }
 
 const steps = [
@@ -43,7 +55,7 @@ const steps = [
   // },
   {
     name: 'createCloudFront',
-    payload: ['domain', 'CertificateArn'],
+    payload: ['domain', 'certificateARN'],
   },
   {
     name: 'validateWebsite',
@@ -70,6 +82,9 @@ export class AwsMigrationComponent implements OnInit {
   domain;
   processingSteps = new Set();
   domainRtDict = {};
+
+  expandedRows = new Set();
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -82,6 +97,8 @@ export class AwsMigrationComponent implements OnInit {
         domain: 1,
         name: 1,
         alias: 1,
+        score: 1,
+        disabled: 1,
         "web.qmenuWebsite": 1
       },
       limit: 80000
@@ -98,7 +115,6 @@ export class AwsMigrationComponent implements OnInit {
       }
     });
 
-    console.log(this.domainRtDict);
     this.reload();
   }
 
@@ -107,14 +123,17 @@ export class AwsMigrationComponent implements OnInit {
     if (this.rows.some(row => row.domain === domain)) {
       alert(domain + ' is already in list');
     } else {
-      const rt = this.domainRtDict
-      await this._api.post(environment.adminApiUrl + 'generic?resource=migration', [{
+      await this.addMigrations([{
         domain: domain,
         restaurant: this.domainRtDict[domain],
         steps: steps
-      }]).toPromise();
-      this.reload();
+      }]);
     }
+  }
+
+  async addMigrations(migrations: Migration[]) {
+    await this._api.post(environment.adminApiUrl + 'generic?resource=migration', migrations).toPromise();
+    this.reload();
   }
 
   async reload() {
@@ -125,44 +144,50 @@ export class AwsMigrationComponent implements OnInit {
       limit: 80000
     }).toPromise();
     this.rows = migrations;
-    console.log(migrations)
+    // sort by restaurant score
+    this.rows.sort((r1, r2) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0));
   }
 
   async execute(row, step: MigrationStep) {
-    // if (step.success) {
-    //   this._global.publishAlert(AlertType.Success, 'Already success');
-    //   return;
-    // };
-
     const index = row.steps.indexOf(step);
     const previousStep = row.steps[index - 1];
     const payload = {
       domain: row.domain
     };
-    
-    (step.payload || []).map(field => payload[field] = ((previousStep || {}).response || {})[field] || payload[field]);
 
-
-    const oldSteps = JSON.parse(JSON.stringify(row.steps));
-
+    // inject success response's field from previous step!
+    if (previousStep) {
+      const lastPreviousSuccessExecution = (previousStep.executions || []).filter(exe => exe.success)[0];
+      if (lastPreviousSuccessExecution) {
+        (step.payload || []).map(field => payload[field] = lastPreviousSuccessExecution[field]);
+      }
+    }
+    let execution: Execution;
     try {
       this.processingSteps.add(step);
 
       const response = await this._api.post(environment.migrationUrl + step.name, payload).toPromise();
-      step.response = response;
-      step.success = true;
+      execution = {
+        response: response,
+        success: true,
+        time: new Date()
+      };
       this._global.publishAlert(AlertType.Success, 'Success');
       // save it!
       this.processingSteps.delete(step);
 
     } catch (error) {
-      step.response = error;
-      step.success = false;
+      execution = {
+        response: error,
+        success: false,
+        time: new Date()
+      };
       this.processingSteps.delete(step);
       this._global.publishAlert(AlertType.Danger, 'Error');
     }
 
-    step.time = new Date();
+    step.executions = step.executions || [];
+    step.executions.push(execution);
     await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
       old: { _id: row._id },
       new: { _id: row._id, steps: row.steps }
@@ -175,7 +200,60 @@ export class AwsMigrationComponent implements OnInit {
   }
 
   viewResponse(step) {
-    alert(JSON.stringify(step.response));
+    alert(JSON.stringify(step.executions, null, 2));
+  }
+
+  isStepSuccess(step) {
+    return (step.executions || []).some(execution => execution.success);
+  }
+
+
+  async injectValuableDomains() {
+    // has orders, plus having domain names
+    const valuableMigrations = [];
+
+    const valuableRestaurantsWithDomains = Object.keys(this.domainRtDict).map(domain => {
+      const rt = this.domainRtDict[domain];
+      if (rt.score > 1 && !rt.disabled && !this.rows.some(row => row.domain === domain)) {
+        valuableMigrations.push(
+          {
+            domain: domain,
+            steps: steps,
+            restaurant: rt
+          }
+        );
+      }
+    });
+
+    this.addMigrations(valuableMigrations)
+  }
+
+  async skip(migration) {
+    if (confirm('Are you sure to skip?')) {
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+        old: { _id: migration._id },
+        new: { _id: migration._id, result: 'SKIPPED' }
+      }]).toPromise();
+      migration.result = 'SKIPPED';
+    }
+  }
+
+  async markSucceeded(migration) {
+    if (confirm('Are you sure?')) {
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+        old: { _id: migration._id },
+        new: { _id: migration._id, result: 'SUCCEEDED' }
+      }]).toPromise();
+      migration.result = 'SUCCEEDED';
+    }
+  }
+
+  toggle(row) {
+    if (this.expandedRows.has(row)) {
+      this.expandedRows.delete(row);
+    } else {
+      this.expandedRows.add(row);
+    }
   }
 
 }
