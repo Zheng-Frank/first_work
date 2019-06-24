@@ -49,10 +49,10 @@ const steps = [
     name: 'requestCertificate',
     payload: ['domain'],
   },
-  // {
-  //   name: 'checkCertificate',
-  //   payload: ['domain'],
-  // },
+  {
+    name: 'checkCertificate',
+    payload: ['domain', 'certificateARN'],
+  },
   {
     name: 'createCloudFront',
     payload: ['domain', 'certificateARN'],
@@ -155,11 +155,17 @@ export class AwsMigrationComponent implements OnInit {
     // sort by restaurant score
     this.rows.sort((r1, r2) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0));
 
-    // const badMigs = migrations.filter(mig => mig.domain.indexOf('/') > 0);
-    // const patchPairs = badMigs.map(mig => ({
-    //   old: {_id: mig._id},
-    //   new: {_id: mig._id, domain: this.extractDomain(mig.domain)}
-    // }));
+    // const patchPairs = migrations.map(mig => {
+    //   // insert step:
+    //   mig.steps.splice(6, 0, {
+    //     name: 'checkCertificate',
+    //     payload: ['domain', 'certificateARN']
+    //   });
+    //   return {
+    //     old: { _id: mig._id },
+    //     new: { _id: mig._id, steps: mig.steps }
+    //   }
+    // });
     // await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', patchPairs).toPromise();
   }
 
@@ -215,7 +221,7 @@ export class AwsMigrationComponent implements OnInit {
   }
 
   viewResponse(step) {
-    alert(JSON.stringify(step.executions, null, 2));
+    alert(JSON.stringify(step.executions.slice(-1), null, 2));
     console.log(step.executions);
   }
 
