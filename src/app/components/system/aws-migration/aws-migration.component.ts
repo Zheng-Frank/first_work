@@ -178,9 +178,12 @@ export class AwsMigrationComponent implements OnInit {
 
     // inject success response's field from previous step!
     if (previousStep) {
-      const lastPreviousSuccessExecution = (previousStep.executions || []).filter(exe => exe.success).slice(-1)[0];
-      if (lastPreviousSuccessExecution && lastPreviousSuccessExecution.response) {
-        (step.payload || []).map(field => payload[field] = lastPreviousSuccessExecution.response[field] || payload[field]);
+      let shouldUseExecution = (previousStep.executions || []).filter(exe => exe.success).slice(-1)[0];
+      if(!shouldUseExecution) {
+        shouldUseExecution = (previousStep.executions || []).slice(-1)[0];
+      }
+      if (shouldUseExecution && shouldUseExecution.response) {
+        (step.payload || []).map(field => payload[field] = shouldUseExecution.response[field] || payload[field]);
       }
     }
     let execution: Execution;
