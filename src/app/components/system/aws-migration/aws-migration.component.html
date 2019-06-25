@@ -38,7 +38,7 @@
         {{row.restaurant?.name}}
       </td>
       <td>
-        <a href="{{'https://' + row.domain}}">{{row.domain}}</a>
+        <a href="{{'https://' + row.domain}}" target="_blank">{{row.domain}}</a>
 
       </td>
       <td class="text-nowrap">
@@ -60,14 +60,17 @@
               (click)="viewResponse(step)">View Response</button>
           </div>
 
+          <button class="btn btn-primary" [qLoading]="processingRows.has(row)"
+            (click)="processRow(row)">{{rowMessage[row._id] || 'Process All Steps'}}</button>
 
-          <button *ngIf="expandedRows.has(row)" class="btn btn-link"
-          (click)="toggle(row)"><i class="fas fa-caret-up"></i> Collapse...</button>
+
+          <button *ngIf="expandedRows.has(row)" class="btn btn-link" (click)="toggle(row)"><i
+              class="fas fa-caret-up"></i> Collapse...</button>
 
         </div>
 
-        <button *ngIf="row.result && !expandedRows.has(row)" class="btn btn-link"
-          (click)="toggle(row)"><i class="fas fa-caret-down"></i> Details...</button>
+        <button *ngIf="row.result && !expandedRows.has(row)" class="btn btn-link" (click)="toggle(row)"><i
+            class="fas fa-caret-down"></i> Details...</button>
 
       </td>
       <td class="text-nowrap">
@@ -75,8 +78,7 @@
           <button class="btn btn-link" (click)="skip(row)">Skip</button>
           <button class="btn btn-link" (click)="markSucceeded(row)">Mark Success</button>
         </div>
-        <div *ngIf="row.result"
-          class="{{row.result === 'SUCCEEDED' ? 'text-success' : 'text-danger'}}">
+        <div *ngIf="row.result" class="{{row.result === 'SUCCEEDED' ? 'text-success' : 'text-danger'}}">
           {{row.result}}
         </div>
       </td>
