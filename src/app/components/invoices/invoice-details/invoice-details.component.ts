@@ -200,7 +200,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
 
     this.setInvoiceStatus(field, !this.invoice[field]);
-    this.addLog(
+    await this.addLog(
       {
         time: new Date(),
         action: "set",
@@ -359,13 +359,13 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
     }))
       .subscribe(
-        result => {
+        async result => {
           this.apiRequesting = undefined;
           this._global.publishAlert(AlertType.Success, channel.type + ' Send');
           if (!this.invoice.isSent) {
             this.setInvoiceStatus('isSent', true);
           }
-          this.addLog(
+          await this.addLog(
             {
               time: new Date(),
               action: channel.type,
@@ -381,7 +381,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       );
   }
 
-  addLog(log) {
+  async addLog(log) {
     const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
     const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
     updatedInvoice.logs = updatedInvoice.logs || [];
@@ -389,21 +389,19 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     // when updating, we need to convert to time format of database
     log.time = { $date: logTime };
     updatedInvoice.logs.push(log);
-    this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
-      result => {
+    try {
+      const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
         // let's update original, assuming everything successful
         this.invoice.logs = updatedInvoice.logs;
         // the last log's time should convert back to normal (without $date)
         this.invoice.logs[this.invoice.logs.length - 1].time = logTime;
-        this._global.publishAlert(
-          AlertType.Success,
-          "log was updated"
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
-    );
+
+    }
+    catch (e) {
+      this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      throw e;
+    }
+
   }
   async sendPaperCheck() {
     let amount = +(this.invoice.getBalance().toFixed(2));
@@ -423,7 +421,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         }
       }
     } else {
-
       mailingAddress = {
         "name": this.invoice.restaurant.name,
         "restaurantId": this.invoice.restaurant.id,
@@ -441,9 +438,57 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         "amount": amount,
         "memo": 'QMenu Payment ' + this.formatDate(this.invoice.fromDate) + ' - ' + this.formatDate(this.invoice.toDate)
       }).toPromise();
-      console.log(result);
-    } catch (error) {
-      console.log(error);
+
+      if (result.status_code != 200) {
+        this._global.publishAlert(
+          AlertType.Danger, "Failed to send check"
+        );
+      } else {
+        await this.setInvoiceStatus('isPaymentCompleted', true);
+        await this.setInvoiceStatus('isPaymentSent', true);
+
+        await this.addLog(
+          {
+            time: new Date(),
+            action: "paperCheckTransfer",
+            user: this._global.user.username,
+            value: result.response.url
+          }
+        );
+        await this.addLog(
+          {
+            time: new Date(),
+            action: "set",
+            user: this._global.user.username,
+            value: 'isPaymentCompleted=true'
+          }
+        );
+        await this.addLog(
+          {
+            time: new Date(),
+            action: "set",
+            user: this._global.user.username,
+            value: 'isPaymentSent=true'
+          }
+        );
+        this._global.publishAlert(
+          AlertType.Success, "Successfully send check"
+        );
+      }
+
+    } catch (e) {
+      console.log('Error', e);
+      this._global.publishAlert(
+        AlertType.Danger, "Failed to send check"
+      );
+      await this.addLog(
+        {
+          time: new Date(),
+          action: "paperCheckTransfer",
+          user: this._global.user.username,
+          value: e.error.status_code + ' | ' + e.error.response.error
+        }
+      );
     }
 
   }
@@ -466,10 +511,19 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   showSendPaperCheck() {
-    let paymentMean = this.invoice.restaurant.paymentMeans[0];
-    if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
-      return true;
+    if (!this.invoice.isPaymentSent || !this.invoice.isPaymentCompleted) {
+      if (this.invoice.restaurant.paymentMeans && this.invoice.restaurant.paymentMeans.length > 0) {
+        let paymentMean = this.invoice.restaurant.paymentMeans[0];
+        if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
+          return true;
+        }
+      }
     }
     return false;
+  }
+
+  isButtonVisible(){
+    return true;
+    //return this._global.user.roles.some(r => r === 'PAYER');
   }
 }
