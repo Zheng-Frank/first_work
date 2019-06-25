@@ -678,7 +678,7 @@ export class AutomationDashboardComponent implements OnInit {
       }
 
       return item;
-    }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk || !item.isReservationOk);
+    }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk);
 
     console.log('nokItems', nokItems);
 
