@@ -391,10 +391,10 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     updatedInvoice.logs.push(log);
     try {
       const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
-        // let's update original, assuming everything successful
-        this.invoice.logs = updatedInvoice.logs;
-        // the last log's time should convert back to normal (without $date)
-        this.invoice.logs[this.invoice.logs.length - 1].time = logTime;
+      // let's update original, assuming everything successful
+      this.invoice.logs = updatedInvoice.logs;
+      // the last log's time should convert back to normal (without $date)
+      this.invoice.logs[this.invoice.logs.length - 1].time = logTime;
 
     }
     catch (e) {
@@ -420,14 +420,15 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           "address_zip": Helper.getZipcode(paymentMean.details.address)
         }
       }
-    } else {
-      mailingAddress = {
-        "name": this.invoice.restaurant.name,
-        "restaurantId": this.invoice.restaurant.id,
-        "address_line1": this.getAddressLine1(this.invoice.restaurant.address),
-        "address_city": this.invoice.restaurant.address.locality,
-        "address_state": this.invoice.restaurant.address.administrative_area_level_1,
-        "address_zip": this.invoice.restaurant.address.postal_code,
+      else {
+        mailingAddress = {
+          "name": this.invoice.restaurant.name,
+          "restaurantId": this.invoice.restaurant.id,
+          "address_line1": this.getAddressLine1(this.invoice.restaurant.address),
+          "address_city": this.invoice.restaurant.address.locality,
+          "address_state": this.invoice.restaurant.address.administrative_area_level_1,
+          "address_zip": this.invoice.restaurant.address.postal_code,
+        }
       }
     }
 
@@ -522,7 +523,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  isButtonVisible(){
+  isButtonVisible() {
     return true;
     //return this._global.user.roles.some(r => r === 'PAYER');
   }
