@@ -4,9 +4,11 @@ import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Restaurant } from '@qmenu/ui';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, withLatestFrom } from 'rxjs/operators';
+import { a } from '@angular/core/src/render3';
 
 export class Migration {
+  _id?: string;
   domain: string;
   steps: MigrationStep[];
   restaurant: Restaurant;
@@ -59,7 +61,7 @@ const steps = [
   },
   {
     name: 'checkCloudFront',
-    payload: ['domain', 'OperationId'],
+    payload: ['domain', 'distributionId'],
   },
   {
     name: 'validateWebsite',
@@ -89,7 +91,9 @@ export class AwsMigrationComponent implements OnInit {
 
   expandedRows = new Set();
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) {
+
+  }
 
   async ngOnInit() {
     // get restaurants with domains
@@ -153,14 +157,15 @@ export class AwsMigrationComponent implements OnInit {
     }).toPromise();
     this.rows = migrations;
     // sort by restaurant score
-    this.rows.sort((r1, r2) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0));
+    this.rows.sort((r2, r1) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0) || (r1.restaurant.name > r2.restaurant.name ? 1 : -1));
 
+    // patch all checkCloudFront payload to contain distributionId!
     // const patchPairs = migrations.map(mig => {
     //   // insert step:
-    //   mig.steps.splice(6, 0, {
-    //     name: 'checkCertificate',
-    //     payload: ['domain', 'certificateARN']
-    //   });
+    //   mig.steps[8] = {
+    //     name: 'checkCloudFront',
+    //     payload: ['domain', 'distributionId'],
+    //   };
     //   return {
     //     old: { _id: mig._id },
     //     new: { _id: mig._id, steps: mig.steps }
@@ -179,7 +184,7 @@ export class AwsMigrationComponent implements OnInit {
     // inject success response's field from previous step!
     if (previousStep) {
       let shouldUseExecution = (previousStep.executions || []).filter(exe => exe.success).slice(-1)[0];
-      if(!shouldUseExecution) {
+      if (!shouldUseExecution) {
         shouldUseExecution = (previousStep.executions || []).slice(-1)[0];
       }
       if (shouldUseExecution && shouldUseExecution.response) {
@@ -217,6 +222,9 @@ export class AwsMigrationComponent implements OnInit {
       new: { _id: row._id, steps: row.steps }
     }]).toPromise();
 
+    // if(step.name === 'validateWebsite' && execution.success) {
+    //   alert('siccess')
+    // }
   }
 
   isStepProcessing(step) {
@@ -280,5 +288,194 @@ export class AwsMigrationComponent implements OnInit {
       this.expandedRows.add(row);
     }
   }
+
+  async processRow(row: Migration) {
+    this.processingRows.add(row);
+    this.rowMessage[row._id] = "started";
+
+    // ignore finished rows 
+    if (row.result) {
+      this.processingRows.delete(row);
+      this.rowMessage[row._id] = "migration " + row.result;
+      return;
+    }
+
+    // sendCode
+    const sendCodeStep = row.steps.filter(step => step.name === 'sendCode')[0];
+    if (!sendCodeStep.executions || sendCodeStep.executions.length === 0) {
+      this.rowMessage[row._id] = "sendCode...";
+      await this.execute(row, sendCodeStep);
+    }
+
+    if (!sendCodeStep.executions.some(exe => exe.success)) {
+      this.processingRows.delete(row);
+      this.rowMessage[row._id] = "error on sendCode";
+      return;
+    }
+
+    // getCode
+    const getCodeStep = row.steps.filter(step => step.name === 'getCode')[0];
+    // try get code every 20 seconds
+    for (let i = 0; i < 20; i++) {
+      if (getCodeStep.executions && getCodeStep.executions.some(step => step.success)) {
+        break;
+      }
+
+      this.rowMessage[row._id] = "wait 20s";
+      await new Promise(resolve => setTimeout(resolve, 20000));
+
+      this.rowMessage[row._id] = "getCode...";
+      await this.execute(row, getCodeStep);
+      this.rowMessage[row._id] = "getCode done";
+    }
+
+    if (!getCodeStep.executions.some(exe => exe.success)) {
+      this.processingRows.delete(row);
+      this.rowMessage[row._id] = "error on getCode";
+      return;
+    }
+
+    // transfer domain, one shot
+    const transferDomainStep = row.steps.filter(step => step.name === 'transferDomain')[0];
+
+    if (!transferDomainStep.executions || transferDomainStep.executions.length === 0) {
+      this.rowMessage[row._id] = "transferDomain...";
+      await this.execute(row, transferDomainStep);
+      this.rowMessage[row._id] = "transferDomain done";
+    }
+
+    if (!transferDomainStep.executions.some(exe => exe.success)) {
+      this.processingRows.delete(row);
+      this.rowMessage[row._id] = "error on transferDomain";
+      return;
+    }
+
+    // checkTransferDomain: loop until success!
+    const checkTransferDomainStep = row.steps.filter(step => step.name === 'checkTransferDomain')[0];
+
+    while (true) {
+      this.rowMessage[row._id] = "checkTransferDomain...";
+      await this.execute(row, checkTransferDomainStep);
+      this.rowMessage[row._id] = "checkTransferDomain done";
+      if (checkTransferDomainStep.executions && checkTransferDomainStep.executions.some(exe => exe.success)) {
+        break;
+      }
+
+      this.rowMessage[row._id] = "wait 30 mins";
+      await new Promise(resolve => setTimeout(resolve, 1800000));
+    }
+
+    // transferS3
+    const transferS3Step = row.steps.filter(step => step.name === 'transferS3')[0];
+    if (!transferS3Step.executions || transferS3Step.executions.length === 0) {
+      this.rowMessage[row._id] = "transferS3...";
+      await this.execute(row, transferS3Step);
+    }
+
+    if (!transferS3Step.executions.some(exe => exe.success)) {
+      this.processingRows.delete(row);
+      this.rowMessage[row._id] = "error on transferS3";
+      return;
+    }
+
+
+    // requestCertificate
+    const requestCertificateStep = row.steps.filter(step => step.name === 'requestCertificate')[0];
+    if (!requestCertificateStep.executions || requestCertificateStep.executions.length === 0) {
+      this.rowMessage[row._id] = "requestCertificate...";
+      await this.execute(row, requestCertificateStep);
+    }
+
+    if (!requestCertificateStep.executions.some(exe => exe.success)) {
+      this.processingRows.delete(row);
+      this.rowMessage[row._id] = "error on requestCertificate";
+      return;
+    }
+
+    // checkCertificate: loop until success!
+    const checkCertificateStep = row.steps.filter(step => step.name === 'checkCertificate')[0];
+
+    while (true) {
+      this.rowMessage[row._id] = "checkCertificate...";
+      await this.execute(row, checkCertificateStep);
+      this.rowMessage[row._id] = "checkCertificate done";
+      if (checkCertificateStep.executions && checkCertificateStep.executions.some(exe => exe.success)) {
+        break;
+      }
+
+      this.rowMessage[row._id] = "wait 60s";
+      await new Promise(resolve => setTimeout(resolve, 60000));
+    }
+
+    // createCloudFront
+    const createCloudFrontStep = row.steps.filter(step => step.name === 'createCloudFront')[0];
+    if (!createCloudFrontStep.executions || createCloudFrontStep.executions.length === 0) {
+      this.rowMessage[row._id] = "createCloudFront...";
+      await this.execute(row, createCloudFrontStep);
+    }
+
+    if (!createCloudFrontStep.executions.some(exe => exe.success)) {
+      this.processingRows.delete(row);
+      this.rowMessage[row._id] = "error on createCloudFront";
+      return;
+    }
+
+    // checkCloud: loop until success!
+    const checkCloudFrontStep = row.steps.filter(step => step.name === 'checkCloudFront')[0];
+
+    while (true) {
+      this.rowMessage[row._id] = "checkCloudFront...";
+      await this.execute(row, checkCloudFrontStep);
+      this.rowMessage[row._id] = "checkCloudFront done";
+      if (checkCloudFrontStep.executions && checkCloudFrontStep.executions.some(exe => exe.success)) {
+        break;
+      }
+
+      this.rowMessage[row._id] = "wait 2 mins";
+      await new Promise(resolve => setTimeout(resolve, 120000));
+    }
+
+    // validateWebsite: loop until success!
+    const validateWebsiteStep = row.steps.filter(step => step.name === 'validateWebsite')[0];
+
+    while (true) {
+      this.rowMessage[row._id] = "validateWebsite...";
+      await this.execute(row, validateWebsiteStep);
+      this.rowMessage[row._id] = "validateWebsite done";
+      if (validateWebsiteStep.executions && validateWebsiteStep.executions.some(exe => exe.success)) {
+        break;
+      }
+
+      this.rowMessage[row._id] = "wait 30 mins";
+      await new Promise(resolve => setTimeout(resolve, 1800000));
+    }
+
+    // setEmail
+    const setEmailStep = row.steps.filter(step => step.name === 'setEmail')[0];
+    if (!setEmailStep.executions || setEmailStep.executions.length === 0) {
+      this.rowMessage[row._id] = "setEmail...";
+      await this.execute(row, setEmailStep);
+    }
+
+    if (!setEmailStep.executions.some(exe => exe.success)) {
+      this.processingRows.delete(row);
+      this.rowMessage[row._id] = "error on setEmail";
+      return;
+    }
+
+    // ALL good! patch SUCEEDED!
+    await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+      old: { _id: row._id },
+      new: { _id: row._id, result: 'SUCCEEDED' }
+    }]).toPromise();
+    row.result = 'SUCCEEDED';
+
+    this.processingRows.delete(row);
+    this.rowMessage[row._id] = "Done";
+  }
+
+  processingRows = new Set<Migration>();
+
+  rowMessage = {};
 
 }
