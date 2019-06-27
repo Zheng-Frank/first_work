@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { Mc, Mi, OrderItem, Restaurant, Order, MenuOption } from '@qmenu/ui';
+import { Mc, Mi, OrderItem, Restaurant, Menu, MenuOption } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 
 @Component({
@@ -9,11 +9,13 @@ import { Helper } from '../../../classes/helper';
 })
 export class MenuCategoryComponent implements OnInit {
   @Input() mc: Mc;
+  @Input() menu: Menu;
   @Input() menuOptions: MenuOption[] = [];
   @Input() serveTimeFilter: string;
   @Output() onMiClicked = new EventEmitter();
   @Output() onMcClicked = new EventEmitter();
   @Output() onEditAllMenuItems = new EventEmitter();
+  @Input() restaurant: Restaurant;
 
   constructor() { }
 
@@ -42,12 +44,22 @@ export class MenuCategoryComponent implements OnInit {
   }
 
   //to feed itemOrder popup
-  getSelectedOrderItem(item: Mi, category: Mc): OrderItem {
+  getSelectedOrderItem(item: Mi): OrderItem {
 
     //create a new order item
     let orderItem = new OrderItem();
-    orderItem.mcInstance = new Mc(category); //JSON.parse(JSON.stringify(category));
+    orderItem.mcInstance = new Mc(this.mc); //JSON.parse(JSON.stringify(category));
     orderItem.miInstance = new Mi(item); //JSON.parse(JSON.stringify(item));
+    orderItem.menuName = this.menu.name;
+
+    // clone selectable menuOptions
+    orderItem.mcSelectedMenuOptions = (this.restaurant.menuOptions || [])
+      .filter(mo => orderItem.mcInstance.menuOptionIds && orderItem.mcInstance.menuOptionIds.indexOf(mo.id) >= 0)
+      .map(mo => new MenuOption(mo));
+    orderItem.miSelectedMenuOptions = (this.restaurant.menuOptions || [])
+      .filter(mo => orderItem.miInstance.menuOptionIds && orderItem.miInstance.menuOptionIds.indexOf(mo.id) >= 0)
+      .map(mo => new MenuOption(mo));
+
     orderItem.quantity = 1;
     orderItem.specialInstructions = null;
 

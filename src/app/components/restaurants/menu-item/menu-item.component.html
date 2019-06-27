@@ -28,7 +28,12 @@
 
         </td>
         <td valign="top" align="right">
-          <p *ngFor="let p of mi.sizeOptions" class="text-right text-muted"><small>{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</small> {{p.price | currency:'USD':'symbol'}}</p>
+          <div *ngIf="mi.sizeOptions.length > 0 && mi.sizeOptions[0].price >0">
+            <p *ngFor="let p of mi.sizeOptions" class="text-xs-right text-muted"><small>{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</small> {{(p.price ? p.price : 0) | money}}{{ mi.sizeOptions.length === 1 && getMaxCost() > p.price ? '+' : ''}}</p>
+          </div>
+          <div *ngIf="mi.sizeOptions.length >= 1 && !mi.sizeOptions[0].price">
+            <p *ngFor="let p of mi.sizeOptions" class="text-xs-right text-muted"><small>{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</small> {{getMinCost() | money}}{{ mi.sizeOptions.length === 1 && getMaxCost() > getMinCost() ? '+' : ''}}</p>
+          </div>
         </td>
       </tr>
     </table>

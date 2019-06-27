@@ -513,7 +513,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   showSendPaperCheck() {
     if (!this.invoice.isPaymentSent || !this.invoice.isPaymentCompleted) {
-      if (this.invoice.restaurant.paymentMeans && this.invoice.restaurant.paymentMeans.length > 0) {
+      if (this.invoice.restaurant.paymentMeans && this.invoice.restaurant.paymentMeans.length > 0 && this.invoice.getBalance() < 0) {
         let paymentMean = this.invoice.restaurant.paymentMeans[0];
         if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
           return true;

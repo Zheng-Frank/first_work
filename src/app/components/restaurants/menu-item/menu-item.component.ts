@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Mc, Mi, MenuOption } from '@qmenu/ui';
+import { Mc, Mi, MenuOption, Menu, Restaurant} from '@qmenu/ui';
 
 @Component({
   selector: 'app-menu-item',
@@ -9,6 +9,8 @@ import { Mc, Mi, MenuOption } from '@qmenu/ui';
 export class MenuItemComponent implements OnInit {
   @Input() mi: Mi;
   @Input() menuOptions: MenuOption[] = [];
+  @Input() menu: Menu;
+  @Input() restaurant: Restaurant;
 
   constructor() { }
 
@@ -48,6 +50,12 @@ export class MenuItemComponent implements OnInit {
       }
     });
     return desc;
+  }
+  getMinCost() {
+    return this.mi.getMinCost(this.restaurant);
+  }
+  getMaxCost() {
+    return this.mi.getMaxCost(this.restaurant);
   }
 
 }

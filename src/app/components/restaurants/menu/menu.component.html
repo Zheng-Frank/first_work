@@ -18,7 +18,7 @@
   <div style="height: 20px"></div>
 
   <!--category cards-->
-  <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)" (onMiClicked)="editMi($event)">
+  <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)" (onMiClicked)="editMi($event)" [menu]="menu" [restaurant]="restaurant">
   </app-menu-category>
   
   <!--add category section-->
