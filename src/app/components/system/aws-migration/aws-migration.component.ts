@@ -4,75 +4,7 @@ import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Restaurant } from '@qmenu/ui';
-import { takeUntil, withLatestFrom } from 'rxjs/operators';
-import { a } from '@angular/core/src/render3';
 
-export class Migration {
-  _id?: string;
-  domain: string;
-  steps: MigrationStep[];
-  restaurant: Restaurant;
-  result?: 'SUCCEEDED' | 'SKIPPED'
-}
-
-export class Execution {
-  time: Date;
-  success: boolean;
-  response: any;
-}
-export class MigrationStep {
-  name: string;
-  payload: string[];
-  executions?: Execution[];
-}
-
-const steps = [
-  {
-    name: 'sendCode',
-    payload: ['domain']
-  },
-  {
-    name: 'getCode',
-    payload: ['domain'],
-  },
-  {
-    name: 'transferDomain',
-    payload: ['domain', 'authCode'],
-  },
-  {
-    name: 'checkTransferDomain',
-    payload: ['OperationId'],
-  },
-  {
-    name: 'transferS3',
-    payload: ['domain'],
-  },
-  {
-    name: 'requestCertificate',
-    payload: ['domain'],
-  },
-  {
-    name: 'checkCertificate',
-    payload: ['domain', 'certificateARN'],
-  },
-  {
-    name: 'createCloudFront',
-    payload: ['domain', 'certificateARN'],
-  },
-  {
-    name: 'checkCloudFront',
-    payload: ['domain', 'distributionId'],
-  },
-  {
-    name: 'validateWebsite',
-    payload: ['domain'],
-  },
-
-  {
-    name: 'setEmail',
-    payload: ['domain'],
-  },
-];
 @Component({
   selector: 'app-aws-migration',
   templateUrl: './aws-migration.component.html',
@@ -91,8 +23,15 @@ export class AwsMigrationComponent implements OnInit {
 
   expandedRows = new Set();
 
+  processingRows = new Set<Migration>();
+
+  rowMessage = {};
   constructor(private _api: ApiService, private _global: GlobalService) {
 
+  }
+
+  resumeAll() {
+    alert('under construction')
   }
 
   async ngOnInit() {
@@ -201,7 +140,7 @@ export class AwsMigrationComponent implements OnInit {
         success: true,
         time: new Date()
       };
-      this._global.publishAlert(AlertType.Success, 'Success');
+      this._global.publishAlert(AlertType.Success, `Success! ${step.name}: ${row.restaurant.name}`);
       // save it!
       this.processingSteps.delete(step);
 
@@ -300,182 +239,252 @@ export class AwsMigrationComponent implements OnInit {
       return;
     }
 
-    // sendCode
-    const sendCodeStep = row.steps.filter(step => step.name === 'sendCode')[0];
-    if (!sendCodeStep.executions || sendCodeStep.executions.length === 0) {
-      this.rowMessage[row._id] = "sendCode...";
-      await this.execute(row, sendCodeStep);
-    }
-
-    if (!sendCodeStep.executions.some(exe => exe.success)) {
-      this.processingRows.delete(row);
-      this.rowMessage[row._id] = "error on sendCode";
-      return;
-    }
-
-    // getCode
-    const getCodeStep = row.steps.filter(step => step.name === 'getCode')[0];
-    // try get code every 20 seconds
-    for (let i = 0; i < 20; i++) {
-      if (getCodeStep.executions && getCodeStep.executions.some(step => step.success)) {
-        break;
-      }
-
-      this.rowMessage[row._id] = "wait 20s";
-      await new Promise(resolve => setTimeout(resolve, 20000));
-
-      this.rowMessage[row._id] = "getCode...";
-      await this.execute(row, getCodeStep);
-      this.rowMessage[row._id] = "getCode done";
-    }
-
-    if (!getCodeStep.executions.some(exe => exe.success)) {
-      this.processingRows.delete(row);
-      this.rowMessage[row._id] = "error on getCode";
-      return;
-    }
-
-    // transfer domain, one shot
-    const transferDomainStep = row.steps.filter(step => step.name === 'transferDomain')[0];
-
-    if (!transferDomainStep.executions || transferDomainStep.executions.length === 0) {
-      this.rowMessage[row._id] = "transferDomain...";
-      await this.execute(row, transferDomainStep);
-      this.rowMessage[row._id] = "transferDomain done";
-    }
-
-    if (!transferDomainStep.executions.some(exe => exe.success)) {
-      this.processingRows.delete(row);
-      this.rowMessage[row._id] = "error on transferDomain";
-      return;
-    }
-
-    // checkTransferDomain: loop until success!
-    const checkTransferDomainStep = row.steps.filter(step => step.name === 'checkTransferDomain')[0];
 
     while (true) {
-      this.rowMessage[row._id] = "checkTransferDomain...";
-      await this.execute(row, checkTransferDomainStep);
-      this.rowMessage[row._id] = "checkTransferDomain done";
-      if (checkTransferDomainStep.executions && checkTransferDomainStep.executions.some(exe => exe.success)) {
-        break;
+      // start from LAST failed step!
+      const unfinishedOrFailedSteps = [];
+      for (let i = row.steps.length - 1; i >= 0; i--) {
+        const step = row.steps[i];
+        if (step.executions && step.executions.some(exe => exe.success)) {
+          break;
+        }
+        unfinishedOrFailedSteps.push(step);
       }
 
-      this.rowMessage[row._id] = "wait 30 mins";
-      await new Promise(resolve => setTimeout(resolve, 1800000));
-    }
+      const nextStep = unfinishedOrFailedSteps.slice(-1)[0];
+      if (nextStep) {
+        // process next step!
+        switch (nextStep.name) {
+          case 'sendCode':
+            this.rowMessage[row._id] = "sendCode...";
+            await this.execute(row, nextStep);
+            if (!nextStep.executions.some(exe => exe.success)) {
+              this.processingRows.delete(row);
+              this.rowMessage[row._id] = "error on sendCode";
+              return;
+            }
+            break;
 
-    // transferS3
-    const transferS3Step = row.steps.filter(step => step.name === 'transferS3')[0];
-    if (!transferS3Step.executions || transferS3Step.executions.length === 0) {
-      this.rowMessage[row._id] = "transferS3...";
-      await this.execute(row, transferS3Step);
-    }
+          case 'getCode':
+            // try get code every 20 seconds
+            for (let i = 0; i < 20; i++) {
+              if (nextStep.executions && nextStep.executions.some(step => step.success)) {
+                break;
+              }
 
-    if (!transferS3Step.executions.some(exe => exe.success)) {
-      this.processingRows.delete(row);
-      this.rowMessage[row._id] = "error on transferS3";
-      return;
-    }
+              this.rowMessage[row._id] = "wait 20s to getCode again";
+              await new Promise(resolve => setTimeout(resolve, 20000));
 
+              this.rowMessage[row._id] = "getCode...";
+              await this.execute(row, nextStep);
+              this.rowMessage[row._id] = "getCode done";
+            }
 
-    // requestCertificate
-    const requestCertificateStep = row.steps.filter(step => step.name === 'requestCertificate')[0];
-    if (!requestCertificateStep.executions || requestCertificateStep.executions.length === 0) {
-      this.rowMessage[row._id] = "requestCertificate...";
-      await this.execute(row, requestCertificateStep);
-    }
+            if (!nextStep.executions.some(exe => exe.success)) {
+              this.processingRows.delete(row);
+              this.rowMessage[row._id] = "error on getCode after 20 tries";
+              return;
+            }
+            break;
 
-    if (!requestCertificateStep.executions.some(exe => exe.success)) {
-      this.processingRows.delete(row);
-      this.rowMessage[row._id] = "error on requestCertificate";
-      return;
-    }
+          case 'transferDomain':
+            this.rowMessage[row._id] = "transferDomain...";
+            await this.execute(row, nextStep);
+            this.rowMessage[row._id] = "transferDomain done";
 
-    // checkCertificate: loop until success!
-    const checkCertificateStep = row.steps.filter(step => step.name === 'checkCertificate')[0];
+            if (!nextStep.executions.some(exe => exe.success)) {
+              this.processingRows.delete(row);
+              this.rowMessage[row._id] = "error on transferDomain";
+              return;
+            }
+            break;
 
-    while (true) {
-      this.rowMessage[row._id] = "checkCertificate...";
-      await this.execute(row, checkCertificateStep);
-      this.rowMessage[row._id] = "checkCertificate done";
-      if (checkCertificateStep.executions && checkCertificateStep.executions.some(exe => exe.success)) {
+          case 'checkTransferDomain':
+            while (true) {
+              this.rowMessage[row._id] = "checkTransferDomain...";
+              await this.execute(row, nextStep);
+              this.rowMessage[row._id] = "checkTransferDomain done";
+              if (nextStep.executions && nextStep.executions.some(exe => exe.success)) {
+                break;
+              }
+              this.rowMessage[row._id] = "wait 30 mins to checkTranserDomain again";
+              await new Promise(resolve => setTimeout(resolve, 1800000));
+            }
+            break;
+
+          case 'transferS3':
+            this.rowMessage[row._id] = "transferS3...";
+            await this.execute(row, nextStep);
+            if (!nextStep.executions.some(exe => exe.success)) {
+              this.processingRows.delete(row);
+              this.rowMessage[row._id] = "error on transferS3";
+              return;
+            }
+            break;
+
+          case 'requestCertificate':
+            this.rowMessage[row._id] = "requestCertificate...";
+            await this.execute(row, nextStep);
+            if (!nextStep.executions.some(exe => exe.success)) {
+              this.processingRows.delete(row);
+              this.rowMessage[row._id] = "error on requestCertificate";
+              return;
+            }
+            break;
+
+          case 'checkCertificate':
+            while (true) {
+              this.rowMessage[row._id] = "checkCertificate...";
+              await this.execute(row, nextStep);
+              this.rowMessage[row._id] = "checkCertificate done";
+              if (nextStep.executions && nextStep.executions.some(exe => exe.success)) {
+                break;
+              }
+              this.rowMessage[row._id] = "wait 60s to checkCertificate again";
+              await new Promise(resolve => setTimeout(resolve, 60000));
+            }
+            break;
+
+          case 'createCloudFront':
+            this.rowMessage[row._id] = "createCloudFront...";
+            await this.execute(row, nextStep);
+            if (!nextStep.executions.some(exe => exe.success)) {
+              this.processingRows.delete(row);
+              this.rowMessage[row._id] = "error on createCloudFront";
+              return;
+            }
+            break;
+
+          case 'checkCloudFront':
+            while (true) {
+              this.rowMessage[row._id] = "checkCloudFront...";
+              await this.execute(row, nextStep);
+              this.rowMessage[row._id] = "checkCloudFront done";
+              if (nextStep.executions && nextStep.executions.some(exe => exe.success)) {
+                break;
+              }
+
+              this.rowMessage[row._id] = "wait 2 mins to checkCloudFront";
+              await new Promise(resolve => setTimeout(resolve, 120000));
+            }
+            break;
+
+          case 'validateWebsite':
+            while (true) {
+              this.rowMessage[row._id] = "...";
+              await this.execute(row, nextStep);
+              this.rowMessage[row._id] = "validateWebsite done";
+              if (nextStep.executions && nextStep.executions.some(exe => exe.success)) {
+                break;
+              }
+              this.rowMessage[row._id] = "wait 30 mins to validateWebsite";
+              await new Promise(resolve => setTimeout(resolve, 1800000));
+            }
+            break;
+
+          case 'setEmail':
+            this.rowMessage[row._id] = "setEmail...";
+            await this.execute(row, nextStep);
+            if (!nextStep.executions.some(exe => exe.success)) {
+              this.processingRows.delete(row);
+              this.rowMessage[row._id] = "error on setEmail";
+              return;
+            }
+            break
+
+          default:
+            break;
+        }
+
+      } else {
+        // ALL good! patch SUCEEDED!
+        await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+          old: { _id: row._id },
+          new: { _id: row._id, result: 'SUCCEEDED' }
+        }]).toPromise();
+        row.result = 'SUCCEEDED';
+
+        // ALL good! patch SUCEEDED!
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: { _id: row.restaurant._id, web: {} },
+          new: { _id: row.restaurant._id, web: { qmenuWebsite: 'https://' + row.domain }, domain: row.domain }
+        }]).toPromise();
+
+        this.processingRows.delete(row);
+        this.rowMessage[row._id] = "Done";
         break;
       }
-
-      this.rowMessage[row._id] = "wait 60s";
-      await new Promise(resolve => setTimeout(resolve, 60000));
     }
 
-    // createCloudFront
-    const createCloudFrontStep = row.steps.filter(step => step.name === 'createCloudFront')[0];
-    if (!createCloudFrontStep.executions || createCloudFrontStep.executions.length === 0) {
-      this.rowMessage[row._id] = "createCloudFront...";
-      await this.execute(row, createCloudFrontStep);
-    }
-
-    if (!createCloudFrontStep.executions.some(exe => exe.success)) {
-      this.processingRows.delete(row);
-      this.rowMessage[row._id] = "error on createCloudFront";
-      return;
-    }
-
-    // checkCloud: loop until success!
-    const checkCloudFrontStep = row.steps.filter(step => step.name === 'checkCloudFront')[0];
-
-    while (true) {
-      this.rowMessage[row._id] = "checkCloudFront...";
-      await this.execute(row, checkCloudFrontStep);
-      this.rowMessage[row._id] = "checkCloudFront done";
-      if (checkCloudFrontStep.executions && checkCloudFrontStep.executions.some(exe => exe.success)) {
-        break;
-      }
-
-      this.rowMessage[row._id] = "wait 2 mins";
-      await new Promise(resolve => setTimeout(resolve, 120000));
-    }
-
-    // validateWebsite: loop until success!
-    const validateWebsiteStep = row.steps.filter(step => step.name === 'validateWebsite')[0];
-
-    while (true) {
-      this.rowMessage[row._id] = "validateWebsite...";
-      await this.execute(row, validateWebsiteStep);
-      this.rowMessage[row._id] = "validateWebsite done";
-      if (validateWebsiteStep.executions && validateWebsiteStep.executions.some(exe => exe.success)) {
-        break;
-      }
-
-      this.rowMessage[row._id] = "wait 30 mins";
-      await new Promise(resolve => setTimeout(resolve, 1800000));
-    }
-
-    // setEmail
-    const setEmailStep = row.steps.filter(step => step.name === 'setEmail')[0];
-    if (!setEmailStep.executions || setEmailStep.executions.length === 0) {
-      this.rowMessage[row._id] = "setEmail...";
-      await this.execute(row, setEmailStep);
-    }
-
-    if (!setEmailStep.executions.some(exe => exe.success)) {
-      this.processingRows.delete(row);
-      this.rowMessage[row._id] = "error on setEmail";
-      return;
-    }
-
-    // ALL good! patch SUCEEDED!
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
-      old: { _id: row._id },
-      new: { _id: row._id, result: 'SUCCEEDED' }
-    }]).toPromise();
-    row.result = 'SUCCEEDED';
-
-    this.processingRows.delete(row);
-    this.rowMessage[row._id] = "Done";
+    this._global.publishAlert(AlertType.Success, `ALL DONE! ${row.restaurant.name}`);
   }
 
-  processingRows = new Set<Migration>();
-
-  rowMessage = {};
-
 }
+
+
+export class Migration {
+  _id?: string;
+  domain: string;
+  steps: MigrationStep[];
+  restaurant: Restaurant;
+  result?: 'SUCCEEDED' | 'SKIPPED'
+}
+
+export class Execution {
+  time: Date;
+  success: boolean;
+  response: any;
+}
+export class MigrationStep {
+  name: string;
+  payload: string[];
+  executions?: Execution[];
+}
+
+const steps = [
+  {
+    name: 'sendCode',
+    payload: ['domain']
+  },
+  {
+    name: 'getCode',
+    payload: ['domain'],
+  },
+  {
+    name: 'transferDomain',
+    payload: ['domain', 'authCode'],
+  },
+  {
+    name: 'checkTransferDomain',
+    payload: ['OperationId'],
+  },
+  {
+    name: 'transferS3',
+    payload: ['domain'],
+  },
+  {
+    name: 'requestCertificate',
+    payload: ['domain'],
+  },
+  {
+    name: 'checkCertificate',
+    payload: ['domain', 'certificateARN'],
+  },
+  {
+    name: 'createCloudFront',
+    payload: ['domain', 'certificateARN'],
+  },
+  {
+    name: 'checkCloudFront',
+    payload: ['domain', 'distributionId'],
+  },
+  {
+    name: 'validateWebsite',
+    payload: ['domain'],
+  },
+
+  {
+    name: 'setEmail',
+    payload: ['domain'],
+  },
+];
