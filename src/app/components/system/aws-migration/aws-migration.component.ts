@@ -17,9 +17,11 @@ export class AwsMigrationComponent implements OnInit {
     apiEndpoint: 'send-godaddy-code'
   }];
   rows = [];
+  filteredRows = [];
   domain;
   processingSteps = new Set();
   domainRtDict = {};
+  filter;
 
   expandedRows = new Set();
 
@@ -30,8 +32,51 @@ export class AwsMigrationComponent implements OnInit {
 
   }
 
-  resumeAll() {
-    alert('under construction')
+
+  processScore(score) {
+    const toBeProcessedRows = this.rows.filter(row => row.restaurant.score === score && !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
+    console.log(toBeProcessedRows);
+    this.myQueue.push(...toBeProcessedRows.slice(20));
+  }
+
+  myQueue: Migration[] = [];
+
+  processingQueue = false;
+
+  async toggleResumeAll() {
+    this.processingQueue = !this.processingQueue;
+    // const halfwayProcessedRows = this.rows.filter(row => !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
+    // console.log(halfwayProcessedRows);
+    // this.myQueue.push(...halfwayProcessedRows);
+
+    while (this.processingQueue) {
+      // wait 5 seconds between
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      if (this.myQueue.length === 0) {
+        this.processingQueue = false;
+        break;
+      }
+      const row = this.myQueue.pop();
+      this.processRow(row);
+    }
+  }
+
+  async applyFilter() {
+    console.log(this.filter);
+    this.filteredRows = this.rows.filter(row => {
+      switch (this.filter) {
+        case 'SUCCEEDED only':
+          return row.result === 'SUCCEEDED';
+        case 'SKIPPED only':
+          return row.result === 'SKIPPED';
+        case 'Halfway done':
+          return !row.result && row.steps.some(step => step.executions && step.executions.length > 0);
+        case 'Untouched':
+          return !row.steps.some(step => step.executions && step.executions.length > 0);
+        default:
+          return true;
+      }
+    });
   }
 
   async ngOnInit() {
@@ -98,6 +143,7 @@ export class AwsMigrationComponent implements OnInit {
     // sort by restaurant score
     this.rows.sort((r2, r1) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0) || (r1.restaurant.name > r2.restaurant.name ? 1 : -1));
 
+    this.applyFilter();
     // patch all checkCloudFront payload to contain distributionId!
     // const patchPairs = migrations.map(mig => {
     //   // insert step:
@@ -113,7 +159,16 @@ export class AwsMigrationComponent implements OnInit {
     // await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', patchPairs).toPromise();
   }
 
+  // we need to make this execution non-parallel
+  processing1 = false;
   async execute(row, step: MigrationStep) {
+    console.log('queueing ' + row.domain + ' ' + step.name);
+    while(this.processing1) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    console.log('executing ' + row.domain + ' ' + step.name + '.....................');
+    this.processing1 = true;
     const index = row.steps.indexOf(step);
     const previousStep = row.steps[index - 1];
     const payload = {
@@ -161,9 +216,9 @@ export class AwsMigrationComponent implements OnInit {
       new: { _id: row._id, steps: row.steps }
     }]).toPromise();
 
-    // if(step.name === 'validateWebsite' && execution.success) {
-    //   alert('siccess')
-    // }
+    this.processing1 = false;
+
+    console.log('execute ' + row.domain + ' done!');
   }
 
   isStepProcessing(step) {
@@ -418,6 +473,7 @@ export class AwsMigrationComponent implements OnInit {
 
     this._global.publishAlert(AlertType.Success, `ALL DONE! ${row.restaurant.name}`);
   }
+
 
 }
 
