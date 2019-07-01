@@ -62,8 +62,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.allowedZipCodes = (this.restaurant.allowedZipCodes || []).join(',');
     this.allowedCities = (this.restaurant.allowedCities || []).join(',');
     this.deliveryArea = this.restaurant.deliveryArea;
-    this.deliveryHours = JSON.parse(JSON.stringify(this.restaurant.deliveryHours|| []));
-    this.deliveryHours= this.restaurant.deliveryHours.map(h => new Hour(h));
+    if(this.restaurant.deliveryHours){
+      this.deliveryHours= this.restaurant.deliveryHours.map(h => new Hour(h));
+    }
     this.editing = !this.editing;
     this.deliverySettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.deliverySettings || []));
     // put empty settings to make it 4 (hardcoded max)
@@ -125,7 +126,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
         this.restaurant.allowedCities = newR.allowedCities;
         this.restaurant.allowedZipCodes = newR.allowedZipCodes;
         this.restaurant.taxOnDelivery = newR.taxOnDelivery;
-        this.restaurant.deliveryHours =  newR.deliveryHours.map(h => new Hour(h));
+        if(newR.deliveryHours){
+          this.restaurant.deliveryHours =  newR.deliveryHours.map(h => new Hour(h));
+        }
         this.restaurant.deliveryArea = newR.deliveryArea;
         if (newR.deliveryFrom) {
           this.restaurant.deliveryFromTime = newR.deliveryFromTime;
