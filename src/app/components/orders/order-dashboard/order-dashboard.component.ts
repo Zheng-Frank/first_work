@@ -17,6 +17,9 @@ export class OrderDashboardComponent implements OnInit {
   lastWeekTotalOrders = 0;
   restaurantsWithOrders = 0;
   restaurantsWithoutOrders = 0;
+  standaloneOrders = 0;
+  qmenuDirectOrders = 0;
+  httpsOrders = 0;
 
   start1;
   to1;
@@ -106,7 +109,8 @@ export class OrderDashboardComponent implements OnInit {
           name: 1,
           rateSchedules: 1,
           "googleAddress.formatted_address": 1,
-          "googleListing.cid": 1
+          "googleListing.cid": 1,
+          "web.qmenuWebsite": 1
         },
         limit: 6000
       }),
@@ -166,6 +170,28 @@ export class OrderDashboardComponent implements OnInit {
           r => r["orders"].length === 0
         ).length;
 
+        this.standaloneOrders = this.rows
+          .map(row => row.orders.filter(order => order.standalone).length)
+          .reduce((sum, num) => num + sum, 0);
+
+        this.httpsOrders = this.rows
+          .filter(row => {
+            const rt = row.restaurant;
+            return rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.startsWith('https') && rt.web.qmenuWebsite.indexOf('qmenu') < 0;
+          })
+          .map(row => row.orders.length)
+          .reduce((sum, num) => num + sum, 0);
+
+        this.qmenuDirectOrders = this.rows
+          .filter(row => {
+            const rt = row.restaurant;
+            if(rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.indexOf('qmenu') > 0) {
+              console.log(rt);
+            }
+            return rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.indexOf('qmenu') > 0;
+          })
+          .map(row => row.orders.length)
+          .reduce((sum, num) => num + sum, 0);
         // stats of agents
         const agentDict = {};
         this.rows.map(row => {

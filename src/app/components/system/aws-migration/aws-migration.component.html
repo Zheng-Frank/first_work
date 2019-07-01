@@ -1,4 +1,4 @@
-<h1>Godaddy to AWS Migration <small>(Total: {{rows.length}})</small></h1>
+<h1>Godaddy to AWS Migration <small>(Total: {{filteredRows.length}})</small></h1>
 <div class="text-right">
   <div class="pb-2">
     <div class="form-group form-inline">
@@ -10,7 +10,20 @@
       <button class="btn btn-primary ml-4" (click)="injectValuableDomains()"><i class="fas fa-globe"></i> Inject
         Valuable Domains</button>
 
-      <button class="btn btn-primary ml-4" (click)="resumeAll()"><i class="fas fa-retweet"></i> Resume All</button>
+      <button class="btn btn-primary ml-4" (click)="toggleResumeAll()"><i class="fas fa-retweet"></i> {{processingQueue ? 'Stop Processing' : 'Resume All'}}</button>
+
+      <button class="btn btn-primary ml-4" (click)="processScore(4)">Process 4s</button>
+
+
+      <span class="pl-4">Filter:</span>
+      <select class="form-control" [(ngModel)]="filter" (change)="applyFilter()">
+        <option></option>
+        <option>SUCCEEDED only</option>
+        <option>SKIPPED only</option>
+        <option>Halfway done</option>
+        <option>Untouched</option>
+      </select>
+
     </div>
 
   </div>
@@ -32,7 +45,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let row of rows">
+    <tr *ngFor="let row of filteredRows">
       <td>
         {{row.restaurant?.score}}
       </td>
