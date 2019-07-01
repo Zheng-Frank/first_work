@@ -405,6 +405,9 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
   async sendPaperCheck() {
     let amount = +(this.invoice.getBalance().toFixed(2));
+    if(amount <0){
+      amount = Math.abs(amount);
+    }
     //console.log('this.invoice.restaurant=', this.invoice.restaurant);
     //if multiple payment means, choose the first only
     let paymentMean = this.invoice.restaurant.paymentMeans[0];
