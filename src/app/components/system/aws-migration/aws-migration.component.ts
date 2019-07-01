@@ -34,7 +34,7 @@ export class AwsMigrationComponent implements OnInit {
 
 
   processScore(score) {
-    const toBeProcessedRows = this.rows.filter(row => row.restaurant.score === score && !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
+    const toBeProcessedRows = this.rows.filter(row => row.restaurant.score === score && !row.result);
     console.log(toBeProcessedRows);
     this.myQueue.push(...toBeProcessedRows.slice(20));
   }
@@ -163,7 +163,7 @@ export class AwsMigrationComponent implements OnInit {
   processing1 = false;
   async execute(row, step: MigrationStep) {
     console.log('queueing ' + row.domain + ' ' + step.name);
-    while(this.processing1) {
+    while (this.processing1) {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
@@ -473,12 +473,9 @@ export class AwsMigrationComponent implements OnInit {
 
     this._global.publishAlert(AlertType.Success, `ALL DONE! ${row.restaurant.name}`);
   }
-
-
 }
 
-
-export class Migration {
+class Migration {
   _id?: string;
   domain: string;
   steps: MigrationStep[];
@@ -486,12 +483,12 @@ export class Migration {
   result?: 'SUCCEEDED' | 'SKIPPED'
 }
 
-export class Execution {
+class Execution {
   time: Date;
   success: boolean;
   response: any;
 }
-export class MigrationStep {
+class MigrationStep {
   name: string;
   payload: string[];
   executions?: Execution[];
