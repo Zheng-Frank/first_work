@@ -162,6 +162,7 @@ export class MonitoringGmbComponent implements OnInit {
             }
           ).toPromise())
       );
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const batchResult = await Helper.processBatchedPromises(promises);
       // // // update account's history
       // const patchPairs = batch.map((item, index) => {

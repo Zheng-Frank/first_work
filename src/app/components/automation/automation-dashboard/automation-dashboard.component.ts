@@ -209,7 +209,7 @@ export class AutomationDashboardComponent implements OnInit {
             resolve();
           }, 60000)
         });
-        
+
         succeededRestaurants.push(...batch);
       } catch (error) {
         failedRestaurants.push(...batch);
@@ -657,30 +657,41 @@ export class AutomationDashboardComponent implements OnInit {
 
       // make sure we have web object!
       const target = Helper.getDesiredUrls(item.restaurant);
-      try{
+      try {
 
         const isWebsiteOk = Helper.areDomainsSame(target.website, item.gmbBiz.gmbWebsite) || (item.gmbBiz.gmbWebsite && item.gmbBiz.gmbWebsite.indexOf('qmenu') > 0);
         const isMenuUrlOk = (item.gmbBiz.menuUrls || []).length > 0 && (item.gmbBiz.menuUrls || []).some(url => Helper.areDomainsSame(url, target.menuUrl));
         const isReservationOk = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, target.reservation));
-  
-  
+
+
         item.isWebsiteOk = isWebsiteOk;
         item.isMenuUrlOk = isMenuUrlOk;
         item.isReservationOk = isReservationOk;
-  
+
         item.targetWebsite = target.website;
         item.targetMenuUrl = target.menuUrl;
         item.targetOrderAheadUrl = target.orderAheadUrl;
         item.targetReservation = target.reservation;
       }
-      catch(e){
+      catch (e) {
         console.log('error in restaurant', item.restaurant);
       }
 
       return item;
-    }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk);
+    }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk || !item.isReservationOk);
 
-    console.log('nokItems', nokItems);
+    console.log('allNokItems', nokItems);
+    const websiteNokItems = nokItems.filter(item => !item.isWebsiteOk);
+
+
+    websiteNokItems.map(item => {
+      if (item.targetWebsite && item.targetWebsite.startsWith('http:')) {
+        item.targetWebsite = 'https://qmenu.us/#/' + item.restaurant.alias;
+      }
+    });
+    console.log('websiteNokItems', websiteNokItems);
+
+    //throw "test";
 
     // now inject!
     const appealIdInjectTimeDict = {};
@@ -688,7 +699,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log(appealIdInjectTimeDict);
 
-    const havingTargetWebsiteNokItems = nokItems.filter(item => item.targetWebsite);
+    const havingTargetWebsiteNokItems = websiteNokItems.filter(item => item.targetWebsite);
     console.log('havingTargetWebsiteNokItems', havingTargetWebsiteNokItems);
 
     console.log(appealIdInjectTimeDict);
