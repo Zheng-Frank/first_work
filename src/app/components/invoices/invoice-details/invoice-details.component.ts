@@ -417,7 +417,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     let address, destination;
     if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
       if (paymentMean.details.address) {
-        address = paymentMean.details.address;
+        address = paymentMean.details.address.replace(', USA', '');
         destination = {
           "name": paymentMean.details.name || this.invoice.restaurant.name,
           "restaurantId": this.invoice.restaurant.id,
@@ -443,7 +443,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         throw "Missing address"
       }
     }
-
     try {
       let result = await this._api.post(environment.adminApiUrl + "utils/send-check", {
         destination: destination,
