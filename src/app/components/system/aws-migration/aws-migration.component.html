@@ -10,9 +10,10 @@
       <button class="btn btn-primary ml-4" (click)="injectValuableDomains()"><i class="fas fa-globe"></i> Inject
         Valuable Domains</button>
 
-      <button class="btn btn-primary ml-4" (click)="toggleResumeAll()"><i class="fas fa-retweet"></i> {{processingQueue ? 'Stop Processing' : 'Resume All'}}</button>
+      <button class="btn btn-primary ml-4" (click)="toggleResumeAll()"><i class="fas fa-retweet"></i>
+        {{processingQueue ? 'Stop Processing' : 'Resume All'}}</button>
 
-      <button class="btn btn-primary ml-4" (click)="processScore(4)">Process 4s</button>
+      <button class="btn btn-primary ml-4" (click)="processScore(2)">Process 2s</button>
 
 
       <span class="pl-4">Filter:</span>
@@ -20,6 +21,7 @@
         <option></option>
         <option>SUCCEEDED only</option>
         <option>SKIPPED only</option>
+        <option>DEFERRED only</option>
         <option>Halfway done</option>
         <option>Untouched</option>
       </select>
@@ -92,6 +94,9 @@
         <div *ngIf="!row.result">
           <button class="btn btn-link" (click)="skip(row)">Skip</button>
           <button class="btn btn-link" (click)="markSucceeded(row)">Mark Success</button>
+        </div>
+        <div *ngIf="row.result">
+          <button class="btn btn-link" (click)="resetResult(row)">Reset</button>
         </div>
         <div *ngIf="row.result" class="{{row.result === 'SUCCEEDED' ? 'text-success' : 'text-danger'}}">
           {{row.result}}

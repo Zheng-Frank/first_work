@@ -34,9 +34,9 @@ export class AutomationDashboard2Component implements OnInit {
   computeRowStatuses() {
     this.taskRows = this.taskRows.map(row => ({
       task: row.task,
-      shouldShowStart: !row.task.executions || row.task.executions.length === 0,
-      shouldShowStop: !row.task.result && row.task.executions && row.task.executions.length > 0,
-      shouldShowResume: !row.task.result && row.task.executions && row.task.executions.length > 0 && row.task.executions[row.task.executions.length - 1].running === false
+      shouldShowStart: !row.task.executions || row.task.executions.length === 0 || row.task.executions.slice(-1)[0].status && row.task.executions.slice(-1)[0].status !== 200,
+      shouldShowStop: !row.task.result && row.task.executions && row.task.executions.length > 0 && row.task.executions.slice(-1)[0].running,
+      executions: (row.task.executions || []).map(exec => ({ time: exec.time, response: exec.response, status: exec.status || (exec.running ? 'running' : '') }))
     }));
   }
 
@@ -47,16 +47,54 @@ export class AutomationDashboard2Component implements OnInit {
 
   async start(row) {
     // making sure it's not running!
-    const updatedRow = this.refresh(row);
+    this.refresh(row);
+    this._api.post(environment.taskUrl + 'start', { _id: row.task._id }).subscribe(
+      response => {
+        console.log('response=', response);
+        this.refresh(row);
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, 'Error: ' + JSON.stringify(error));
+        this.refresh(row);
+      });
+
+    // give api a chance to flip status around, then refresh
+    setTimeout(() => {
+      this.refresh(row);
+    }, 1000);
+
+  }
+
+  async stop(row) {
+    // making sure it's not running!
+    this.refresh(row);
 
     const executions = row.task.executions || [];
-    if (executions.length > 0) {
-      this._global.publishAlert(AlertType.Info, 'Already run');
+
+    const lastExecution = executions.slice(-1)[0];
+    if (!lastExecution || !lastExecution.running) {
+      this._global.publishAlert(AlertType.Info, 'No running execution found');
       return;
     }
 
+    // emulate running
+    setTimeout(async () => {
+      lastExecution.running = false;
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', [{
+        old: {
+          _id: row.task._id
+        },
+        new: {
+          _id: row.task._id,
+          executions: executions
+        }
+      }]).toPromise();
+    }, 0);
+
     // call run and refresh
-    this.refresh(row);
+    setTimeout(() => {
+      this.refresh(row);
+    }, 1000);
   }
 
   async refresh(row) {
@@ -77,5 +115,9 @@ export class AutomationDashboard2Component implements OnInit {
 
     this.computeRowStatuses();
     return row;
+  }
+
+  showDetails(execution) {
+    alert(JSON.stringify(execution, null, 2));
   }
 }

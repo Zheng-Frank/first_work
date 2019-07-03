@@ -35,8 +35,14 @@ export class AwsMigrationComponent implements OnInit {
 
   processScore(score) {
     const toBeProcessedRows = this.rows.filter(row => row.restaurant.score === score && !row.result);
+
+    // const toBeProcessedRows = this.rows.filter(row => !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
+
     console.log(toBeProcessedRows);
-    this.myQueue.push(...toBeProcessedRows.slice(20));
+    if (toBeProcessedRows.length > 200) {
+      toBeProcessedRows.length = 200;
+    }
+    this.myQueue.push(...toBeProcessedRows);
   }
 
   myQueue: Migration[] = [];
@@ -44,6 +50,7 @@ export class AwsMigrationComponent implements OnInit {
   processingQueue = false;
 
   async toggleResumeAll() {
+    console.log('myQueue', this.myQueue);
     this.processingQueue = !this.processingQueue;
     // const halfwayProcessedRows = this.rows.filter(row => !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
     // console.log(halfwayProcessedRows);
@@ -51,7 +58,7 @@ export class AwsMigrationComponent implements OnInit {
 
     while (this.processingQueue) {
       // wait 5 seconds between
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       if (this.myQueue.length === 0) {
         this.processingQueue = false;
         break;
@@ -69,6 +76,8 @@ export class AwsMigrationComponent implements OnInit {
           return row.result === 'SUCCEEDED';
         case 'SKIPPED only':
           return row.result === 'SKIPPED';
+        case 'DEFERRED only':
+          return row.result === 'DEFERRED';
         case 'Halfway done':
           return !row.result && row.steps.some(step => step.executions && step.executions.length > 0);
         case 'Untouched':
@@ -137,10 +146,19 @@ export class AwsMigrationComponent implements OnInit {
       resource: 'migration',
       query: {
       },
+      projection: {
+        domain: 1,
+        restaurant: 1,
+        result: 1,
+        "steps.executions": {
+          $slice: -3
+        }
+      },
       limit: 80000
     }).toPromise();
     this.rows = migrations;
     // sort by restaurant score
+    console.log('bad domain=', this.rows.filter(row => !row.restaurant));
     this.rows.sort((r2, r1) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0) || (r1.restaurant.name > r2.restaurant.name ? 1 : -1));
 
     this.applyFilter();
@@ -275,6 +293,17 @@ export class AwsMigrationComponent implements OnInit {
     }
   }
 
+  async resetResult(migration) {
+    if (confirm('Are you sure?')) {
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+        old: { _id: migration._id, result: 'random' },
+        new: { _id: migration._id}
+      }]).toPromise();
+      delete migration.result;
+    }
+  }
+  
+
   toggle(row) {
     if (this.expandedRows.has(row)) {
       this.expandedRows.delete(row);
@@ -346,10 +375,25 @@ export class AwsMigrationComponent implements OnInit {
             this.rowMessage[row._id] = "transferDomain...";
             await this.execute(row, nextStep);
             this.rowMessage[row._id] = "transferDomain done";
-
             if (!nextStep.executions.some(exe => exe.success)) {
               this.processingRows.delete(row);
               this.rowMessage[row._id] = "error on transferDomain";
+
+              //in case of '60 days ago error: we mark it as 60 DAYS
+              nextStep.executions.map(exec => {
+                const response = exec.response;
+                if (response && response.error && response.error.indexOf('60 days ago') > 0) {
+                  // ALL good! patch SUCEEDED!
+                  this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+                    old: { _id: row._id },
+                    new: { _id: row._id, result: 'DEFERRED' }
+                  }]).subscribe(result => {
+                    row.result = 'DEFERRED';
+                  }, error => { });
+                }
+              });
+
+
               return;
             }
             break;
@@ -362,8 +406,8 @@ export class AwsMigrationComponent implements OnInit {
               if (nextStep.executions && nextStep.executions.some(exe => exe.success)) {
                 break;
               }
-              this.rowMessage[row._id] = "wait 30 mins to checkTranserDomain again";
-              await new Promise(resolve => setTimeout(resolve, 1800000));
+              this.rowMessage[row._id] = "wait 10 mins to checkTranserDomain again";
+              await new Promise(resolve => setTimeout(resolve, 600000));
             }
             break;
 
@@ -480,7 +524,7 @@ class Migration {
   domain: string;
   steps: MigrationStep[];
   restaurant: Restaurant;
-  result?: 'SUCCEEDED' | 'SKIPPED'
+  result?: 'SUCCEEDED' | 'SKIPPED' | 'DEFERRED'
 }
 
 class Execution {

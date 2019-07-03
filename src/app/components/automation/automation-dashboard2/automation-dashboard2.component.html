@@ -26,21 +26,21 @@
         5:30PM<br>06/12/2019
       </td>
       <td>
-        {{row.task.name}} <span (click)="consoleOut(task)"><i class="fas fa-terminal"></i></span>
+        {{row.task.name}} <span (click)="consoleOut(row)"><i class="fas fa-terminal"></i></span>
       </td>
       <td>
         <pre>{{row.task.inputs | json}}</pre>
       </td>
       <td>
-        Success/Fail -> Details
+        <div *ngFor="let execution of row.executions" (click)="showDetails(execution)">
+          <span class="text-muted mr-2">{{execution.time | shortTime}}</span><span class="{{execution.status === 200 ? 'text-success' : (execution.status === 400 ? 'text-danger' : 'text-info')}}">{{execution.status}}</span>
+        </div>
       </td>
       <td>
         <button class="btn btn-success" *ngIf="row.shouldShowStart" (click)="start(row)"><i
             class="fas fa-play pr-2"></i>Start</button>
         <button class="btn btn-danger" *ngIf="row.shouldShowStop" (click)="stop(row)"><i
-            class="fas fa-spinner fa-spin pr-2"></i>Stop</button>
-        <button class="btn btn-success" *ngIf="row.shouldShowResume" (click)="resume(row)"><i
-            class="fas fa-play pr-2"></i>Resume</button>
+            class="fas fa-spinner fa-spin px-2"></i>Stop</button>
       </td>
     </tr>
   </tbody>
