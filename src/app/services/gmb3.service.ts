@@ -81,6 +81,11 @@ export class Gmb3Service {
     }).toPromise())[0];
 
     const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.cid).map(loc => loc.appealId);
+    // const appealIdsNotToSkipDetails = (account.locations || []).filter(loc => !(loc.appealId && loc.cid)).map(loc => loc.appealId);
+    // console.log('email',email);
+    // console.log('appealIdsToSkipDetails', appealIdsToSkipDetails);
+    // console.log('appealIdsNotToSkipDetails', appealIdsNotToSkipDetails);
+    //throw "stop";
     let password = account.password;
     if (password.length > 20) {
       password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
@@ -500,16 +505,17 @@ export class Gmb3Service {
     // we would also like to patch gmbBiz with same cids! (considering scan is more expensive than retrieving out own database)
     const resultsWithCids = results.filter(result => result && result.cid);
     if (resultsWithCids.length > 0) {
-      const gmbBizWithSameCids = await this._api.get(environment.adminApiUrl + 'generic', {
+      let gmbBizWithSameCids = await this._api.get(environment.adminApiUrl + 'generic', {
         resource: 'gmbBiz',
-        query: {
-          cid: { $in: resultsWithCids.map(result => result.cid) }
-        },
         projection: {
           cid: 1
         },
-        limit: resultsWithCids.length * 2
+        limit: 10000
       }).toPromise();
+
+      const cidSet = new Set(resultsWithCids.map(result => result.cid));     
+
+      gmbBizWithSameCids = gmbBizWithSameCids.filter(biz => cidSet.has(biz.cid ));
 
       if (gmbBizWithSameCids.length > 0) {
 

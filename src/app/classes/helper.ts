@@ -1,5 +1,6 @@
 import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api.service';
+import { Address } from '@qmenu/ui';
 declare var AWS: any;
 
 export class Helper {
@@ -284,6 +285,15 @@ export class Helper {
             return '';
         }
     }
+
+    static getLine1(address: Address) {
+        if (!address) {
+          return 'Address Missing';
+        }
+        return (address.street_number ? address.street_number : '') + ' '
+          + (address.route ? ' ' + address.route : '') +
+          (address.apt ? ', ' + address.apt : '');
+      }
 
     static getTimeZone(formatted_address) {
         const tzMap = {

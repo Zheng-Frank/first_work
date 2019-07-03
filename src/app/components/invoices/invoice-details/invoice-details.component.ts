@@ -33,6 +33,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   paymentMeans: PaymentMeans[] = [];
   restaurantLogs: Log[] = [];
   restaurantId;
+  restaurant: Restaurant;
 
   invoiceChannels = [];
 
@@ -89,6 +90,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
               name: 1,
               paymentMeans: 1,
               channels: 1,
+              googleAddress: 1,
               logs: 1
             },
             limit: 1
@@ -96,6 +98,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       })).subscribe(restaurants => {
 
         this.restaurantId = restaurants[0]._id;
+        this.restaurant = restaurants[0];
         this.invoice.restaurant.paymentMeans = (restaurants[0].paymentMeans || [])
 
         // show only relevant payment means: Send to qMenu = balance > 0
@@ -405,39 +408,45 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
   async sendPaperCheck() {
     let amount = +(this.invoice.getBalance().toFixed(2));
-    if(amount <0){
+    if (amount < 0) {
       amount = Math.abs(amount);
     }
     //console.log('this.invoice.restaurant=', this.invoice.restaurant);
     //if multiple payment means, choose the first only
     let paymentMean = this.invoice.restaurant.paymentMeans[0];
-    let mailingAddress;
+    let address, destination;
     if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
       if (paymentMean.details.address) {
-        mailingAddress = {
-          "name": this.invoice.restaurant.name,
+        address = paymentMean.details.address;
+        destination = {
+          "name": paymentMean.details.name || this.invoice.restaurant.name,
           "restaurantId": this.invoice.restaurant.id,
-          "address_line1": Helper.getAddressLine1(paymentMean.details.address),
-          "address_city": Helper.getCity(paymentMean.details.address),
-          "address_state": Helper.getState(paymentMean.details.address),
-          "address_zip": Helper.getZipcode(paymentMean.details.address)
+          "address_line1": Helper.getAddressLine1(address),
+          "address_city": Helper.getCity(address),
+          "address_state": Helper.getState(address),
+          "address_zip": Helper.getZipcode(address)
         }
       }
-      else {
-        mailingAddress = {
+      else if(this.restaurant.googleAddress && this.restaurant.googleAddress.formatted_address) {
+        let formatted_address = this.restaurant.googleAddress.formatted_address.replace(', USA', '');
+        destination = {
           "name": this.invoice.restaurant.name,
           "restaurantId": this.invoice.restaurant.id,
-          "address_line1": this.getAddressLine1(this.invoice.restaurant.address),
-          "address_city": this.invoice.restaurant.address.locality,
-          "address_state": this.invoice.restaurant.address.administrative_area_level_1,
-          "address_zip": this.invoice.restaurant.address.postal_code,
+          "address_line1": Helper.getLine1(this.restaurant.googleAddress),
+          "address_city": Helper.getCity(formatted_address),
+          "address_state": Helper.getState(formatted_address),
+          "address_zip": Helper.getZipcode(formatted_address)
         }
+      }
+      else{
+        this._global.publishAlert(AlertType.Danger, "Missing address");
+        throw "Missing address"
       }
     }
 
     try {
       let result = await this._api.post(environment.adminApiUrl + "utils/send-check", {
-        destination: mailingAddress,
+        destination: destination,
         "action": "paperCheckTransfer",
         "amount": amount,
         "memo": 'QMenu Payment ' + this.formatDate(this.invoice.fromDate) + ' - ' + this.formatDate(this.invoice.toDate)
@@ -508,11 +517,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     return [month, day, year].join('/');
   }
 
-  getAddressLine1(address) {
-    return (address.street_number ? address.street_number : '') + ' '
-      + (address.route ? ' ' + address.route : '') +
-      (address.apt ? ', ' + address.apt : '');
-  }
 
   showSendPaperCheck() {
     if (!this.invoice.isPaymentSent || !this.invoice.isPaymentCompleted) {
@@ -527,7 +531,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   isButtonVisible() {
-    return true;
-    //return this._global.user.roles.some(r => r === 'PAYER');
+    return this._global.user.roles.some(r => r === 'PAYER');
   }
 }
