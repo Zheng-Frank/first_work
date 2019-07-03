@@ -133,6 +133,7 @@ import { MonitoringHoursComponent } from './components/monitoring/monitoring-hou
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
+import { AutomationDashboard2Component } from './components/automation/automation-dashboard2/automation-dashboard2.component';
 
 @NgModule({
   declarations: [
@@ -248,7 +249,8 @@ import { AwsMigrationComponent } from './components/system/aws-migration/aws-mig
     MonitoringGmbComponent,
     MonitoringPrintersComponent,
     MonitoringHoursComponent,
-    AwsMigrationComponent    
+    AwsMigrationComponent,
+    AutomationDashboard2Component    
   ],
   imports: [
     BrowserModule,

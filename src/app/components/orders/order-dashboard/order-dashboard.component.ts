@@ -110,7 +110,8 @@ export class OrderDashboardComponent implements OnInit {
           rateSchedules: 1,
           "googleAddress.formatted_address": 1,
           "googleListing.cid": 1,
-          "web.qmenuWebsite": 1
+          "web.qmenuWebsite": 1,
+          "promotions.expiry": 1
         },
         limit: 6000
       }),
@@ -128,7 +129,6 @@ export class OrderDashboardComponent implements OnInit {
     ).subscribe(
       result => {
         const orders = result[0];
-        console.log(orders);
         const restaurants = result[1];
         const gmbAccountsWithPublishedLocations = result[2];
         const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)), myset), new Set());
@@ -170,6 +170,15 @@ export class OrderDashboardComponent implements OnInit {
           r => r["orders"].length === 0
         ).length;
 
+
+      
+        const promoOrders = orders.filter(o => restaurantMap[o.restaurant] && restaurantMap[o.restaurant].restaurant.promotions && restaurantMap[o.restaurant].restaurant.promotions.length > 0);
+        console.log(promoOrders);
+        const promoRtSet = new Set(promoOrders.map(o => o.restaurant));
+        console.log(promoRtSet.size);
+
+        
+
         this.standaloneOrders = this.rows
           .map(row => row.orders.filter(order => order.standalone).length)
           .reduce((sum, num) => num + sum, 0);
@@ -185,8 +194,7 @@ export class OrderDashboardComponent implements OnInit {
         this.qmenuDirectOrders = this.rows
           .filter(row => {
             const rt = row.restaurant;
-            if(rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.indexOf('qmenu') > 0) {
-              console.log(rt);
+            if (rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.indexOf('qmenu') > 0) {
             }
             return rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.indexOf('qmenu') > 0;
           })
