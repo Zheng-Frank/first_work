@@ -9,6 +9,7 @@ export const environment = {
   // autoGmbUrl: "http://localhost:3000/",
 
   // migrationUrl: "http://qauto.ngrok.io/",
+  // taskUrl: "https://qtask.ngrok.io/",
   // socketUrl: "https://quez.herokuapp.com:443/",
   // bizUrl: 'https://qa-biz.herokuapp.com/',
   // customerUrl: 'https://qa-customer.herokuapp.com/',
@@ -24,6 +25,7 @@ export const environment = {
   legacyApiUrl: "https://api.myqmenu.com/",
   autoGmbUrl: "http://localhost:3000/",
   migrationUrl: "https://qauto.ngrok.io/",
+  taskUrl: "https://qtask.ngrok.io/",
   socketUrl: 'https://api.myqmenu.com/',
   bizUrl: 'https://biz.qmenu.us/',
   customerUrl: 'https://qmenu.us/',
