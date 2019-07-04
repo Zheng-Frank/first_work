@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
+import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Helper } from '../../../classes/helper';
 
 @Component({
@@ -11,13 +11,16 @@ import { Helper } from '../../../classes/helper';
   styleUrls: ['./image-manager.component.css']
 })
 export class ImageManagerComponent implements OnInit {
+  @Output() onClickMiThumbnail = new EventEmitter();
+  @ViewChild('modalZoom') modalZoom: ModalComponent;
 
   // menuNames = ['a'];
   // images = ['https://spicysouthernkitchen.com/wp-content/uploads/general-tsau-chicken-15.jpg', 'https://www.jocooks.com/wp-content/uploads/2018/04/instant-pot-general-tsos-chicken-1-6-500x375.jpg'];
   uploadImageError;
-
+  clickedMi;
   addingNew = false;
   rows = [];
+  images = [];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -25,6 +28,13 @@ export class ImageManagerComponent implements OnInit {
     this.reload();
   }
 
+  thumbnailClick(row) {
+    this.clickedMi = row;
+    if (row.images) {
+      this.images = row.images;
+    }
+    setTimeout(() => { this.modalZoom.show(); }, 0);
+  }
   async reload() {
     this.rows = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'image',
