@@ -9,44 +9,44 @@
         <div *qIf="!editing">
           <table class="app-table w-100">
             <tr>
-              <th></th>
+              <th>Delivery Close Time:</th>
               <td>
                 <app-restaurant-delivery-closed-hours [restaurant]="restaurant"></app-restaurant-delivery-closed-hours>
               </td>
             </tr>
             <tr>
-              <th class="text-left">Taxable</th>
+              <th class="text-left">Taxable:</th>
               <td class="pl-1">{{restaurant.taxOnDelivery ? 'Yes' : 'No'}}</td>
             </tr>
             <!--add block-->
             <tr>
-              <th class="text-left">Blocked Cities</th>
+              <th class="text-left">Blocked Cities:</th>
               <td class="pl-1">{{restaurant.blockedCities}}</td>
             </tr>
             <!--end add bolck-->
             <!--add block-->
             <tr>
-              <th class="text-left">Blocked Zip Codes</th>
+              <th class="text-left">Blocked Zip Codes:</th>
               <td class="pl-1">{{restaurant.blockedZipCodes}}</td>
             </tr>
             <tr>
-              <th class="text-left">Allowed Cities</th>
+              <th class="text-left">Allowed Cities:</th>
               <td class="pl-1">{{restaurant.allowedCities}}</td>
             </tr>
             <tr>
-              <th class="text-left">Allowed Zip Codes</th>
+              <th class="text-left">Allowed Zip Codes:</th>
               <td class="pl-1">{{restaurant.allowedZipCodes}}</td>
             </tr>
 
             <!--end add bolck-->
             <tr>
-              <th class="text-left">Start Time</th>
+              <th class="text-left">Start Time:</th>
               <td class="pl-1">
                 {{restaurant.deliveryFromTime | shortTime: restaurant.offsetToEST}}
               </td>
             </tr>
             <tr>
-              <th class="text-left">End Time</th>
+              <th class="text-left">End Time:</th>
               <td class="pl-1">{{getDeliveryEndString()}}</td>
             </tr>
             <tr>
