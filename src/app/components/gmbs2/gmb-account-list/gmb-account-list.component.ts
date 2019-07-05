@@ -151,6 +151,7 @@ export class GmbAccountListComponent implements OnInit {
       _id: gmb._id,
       email: gmb.email.toLowerCase().trim(),
       type: gmb.type,
+      recoveryEmail: gmb.recoveryEmail,
       comments: gmb.comments
     } as any;
 
