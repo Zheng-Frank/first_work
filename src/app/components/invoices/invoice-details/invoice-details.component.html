@@ -81,7 +81,7 @@
                         <td>{{log.user}}</td>
                         <td>{{log.time | date: 'short'}}</td>
                         <td>{{log.action}}</td>
-                        <td>{{log.value || log.result?.fax?.status}}</td>
+                        <td>{{(log.value || log.result?.fax?.status) | json}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -209,7 +209,7 @@
                         <td>{{log.user}}</td>
                         <td>{{log.time | date: 'short'}}</td>
                         <td>{{log.action}}</td>
-                        <td>{{log.value || log.result?.fax?.status}}</td>
+                        <td>{{(log.value || log.result?.fax?.status) | json}}</td>
                     </tr>
                 </tbody>
             </table>

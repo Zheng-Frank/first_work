@@ -498,7 +498,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           time: new Date(),
           action: "paperCheckTransfer",
           user: this._global.user.username,
-          value: e.error.status_code + ' | ' + e.error.response.error
+          value: e
         }
       );
     }
