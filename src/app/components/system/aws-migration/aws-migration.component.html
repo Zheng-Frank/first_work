@@ -93,7 +93,8 @@
       <td class="text-nowrap">
         <div *ngIf="!row.result">
           <button class="btn btn-link" (click)="skip(row)">Skip</button>
-          <button class="btn btn-link" (click)="markSucceeded(row)">Mark Success</button>
+          <button class="btn btn-link" (click)="markDeferred(row)">Mark Deferred</button>
+          <button class="btn btn-link" (click)="markSucceeded(row)">Mark Succeeded</button>
         </div>
         <div *ngIf="row.result">
           <button class="btn btn-link" (click)="resetResult(row)">Reset</button>
