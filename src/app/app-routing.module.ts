@@ -28,6 +28,7 @@ import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
+import { AutomationDashboard2Component } from './components/automation/automation-dashboard2/automation-dashboard2.component';
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
 import { TransactionDashboardComponent } from './components/transaction/transaction-dashboard/transaction-dashboard.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
@@ -61,6 +62,7 @@ const routes: Routes = [
   { path: 'gmb-businesses', component: GmbBizListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-requests', component: GmbRequestListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'automation', component: AutomationDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'automation2', component: AutomationDashboard2Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: '**', redirectTo: '/home' }

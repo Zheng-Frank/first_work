@@ -3,7 +3,8 @@ import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
-
+import { Task } from 'src/app/classes/tasks/task';
+declare var google: any;
 @Component({
   selector: 'app-automation-dashboard2',
   templateUrl: './automation-dashboard2.component.html',
@@ -12,6 +13,7 @@ import { AlertType } from 'src/app/classes/alert-type';
 export class AutomationDashboard2Component implements OnInit {
 
   taskRows = [];
+  detailedRow;
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.loadTasks();
   }
@@ -119,5 +121,85 @@ export class AutomationDashboard2Component implements OnInit {
 
   showDetails(execution) {
     alert(JSON.stringify(execution, null, 2));
+  }
+
+  toggleRowDetails(row) {
+    this.detailedRow = (this.detailedRow === row ? undefined : row);
+    if (this.detailedRow) {
+
+      setTimeout(() => {
+
+        const daysToMilliseconds = function (days) {
+          return days * 24 * 60 * 60 * 1000;
+        }
+
+        const drawChart = function () {
+
+          var data = new google.visualization.DataTable();
+          data.addColumn('string', 'Task ID');
+          data.addColumn('string', 'Task Name');
+          data.addColumn('date', 'Start Date');
+          data.addColumn('date', 'End Date');
+          data.addColumn('number', 'Duration');
+          data.addColumn('number', 'Percent Complete');
+          data.addColumn('string', 'Dependencies');
+
+          const composition = row.task.composition || {};
+          const tasks = composition.tasks || [];
+          const flows = composition.flows || [];
+          const rootId = row.task.id;
+
+          const rows = tasks.map(task => {
+            const taskId = task.id.toString();
+            const taskName = task.name;
+            const dependencies = flows.filter(flow => flow.to === task.id && flow.from !== rootId).map(flow => flow.from.toString()).join(',');
+            let startDate = null; // new Date(2015, 0, 7);
+            let duration = daysToMilliseconds(1);;
+            console.log(task.name, dependencies)
+            if (dependencies.length > 0) {
+              startDate = null;
+            }
+            const percentage = task.executions && task.executions.some(exec => exec.status === 200) ? 100 : 0;
+            const row = [taskId, taskName, startDate, null, duration, percentage, dependencies];
+            console.log(row);
+
+            return row;
+          });
+
+          console.log(rows);
+          data.addRows(rows);
+
+          // data.addRows([
+          //   ['Cite', 'Create bibliography',
+          //     null, new Date(2015, 0, 7), daysToMilliseconds(1), 20, 'Research'],
+          //   ['Complete', 'Hand in paper',
+          //     null, new Date(2015, 0, 10), daysToMilliseconds(1), 0, 'Cite,Write'],
+          //   ['Research', 'Find sources',
+          //     new Date(2015, 0, 1), new Date(2015, 0, 5), null, 100, null],
+          //   ['Write', 'Write paper',
+          //     null, new Date(2015, 0, 9), daysToMilliseconds(3), 25, 'Research,Outline'],
+
+          //   ['Outline', 'Outline paper',
+          //     null, new Date(2015, 0, 6), daysToMilliseconds(1), 100, 'Research']
+          // ]);
+
+          var options = {
+            // height: 275,
+            gantt: {
+              defaultStartDateMillis: new Date()
+            }
+          };
+
+          var chart = new google.visualization.Gantt(document.getElementById('chart_div'));
+
+          chart.draw(data, options);
+        }
+
+        google.charts.load('current', { 'packages': ['gantt'] });
+        google.charts.setOnLoadCallback(drawChart);
+
+      }, 100);
+
+    }
   }
 }
