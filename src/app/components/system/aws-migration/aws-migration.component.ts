@@ -341,13 +341,21 @@ export class AwsMigrationComponent implements OnInit {
     }
   }
 
-  async markSucceeded(migration) {
+  async markSucceeded(row) {
     if (confirm('Are you sure?')) {
+      const migration = row;
       await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
         old: { _id: migration._id },
         new: { _id: migration._id, result: 'SUCCEEDED' }
       }]).toPromise();
       migration.result = 'SUCCEEDED';
+
+      // ALL good! patch SUCEEDED!
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: row.restaurant._id, web: {} },
+        new: { _id: row.restaurant._id, web: { qmenuWebsite: 'https://' + row.domain }, domain: row.domain }
+      }]).toPromise();
+
     }
   }
   async markDeferred(migration) {
