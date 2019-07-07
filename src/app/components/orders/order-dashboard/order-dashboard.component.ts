@@ -111,7 +111,8 @@ export class OrderDashboardComponent implements OnInit {
           "googleAddress.formatted_address": 1,
           "googleListing.cid": 1,
           "web.qmenuWebsite": 1,
-          "promotions.expiry": 1
+          "promotions.expiry": 1,
+          "googleListing.gmbWebsite": 1
         },
         limit: 6000
       }),
@@ -194,9 +195,7 @@ export class OrderDashboardComponent implements OnInit {
         this.qmenuDirectOrders = this.rows
           .filter(row => {
             const rt = row.restaurant;
-            if (rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.indexOf('qmenu') > 0) {
-            }
-            return rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.indexOf('qmenu') > 0;
+            return rt.googleListing && rt.googleListing.gmbWebsite && rt.googleListing.gmbWebsite.indexOf('qmenu') > 0;
           })
           .map(row => row.orders.length)
           .reduce((sum, num) => num + sum, 0);
