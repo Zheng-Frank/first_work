@@ -94,6 +94,7 @@
     </div>
     <table class="table">
       <tr>
+        <th></th>
         <th>Restaurant</th>
         <th>Agent</th>
         <th>Invoices</th>
@@ -102,13 +103,16 @@
         <th>Collection Logs</th>
         <th></th>
       </tr>
-      <tr *ngFor="let row of overdueRows">
+      <tr *ngFor="let row of overdueRows; let i = index">
+        <td>
+          {{i}}
+        </td>
         <td>
           <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
           <div><small>{{row.restaurant.id}}</small></div>
         </td>
         <td>
-            {{row.agent}}
+          {{row.agent}}
         </td>
         <td>
           <table class="table table-borderless table-sm">
