@@ -1910,7 +1910,8 @@ export class DbScriptsComponent implements OnInit {
         }
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', badRestaurants.map(r => ({
           old: { _id: r._id },
-          new: { _id: r._id, menus: fixedMenu(r) 
+          new: {
+            _id: r._id, menus: fixedMenu(r)
           }
         }))).toPromise();
       }
@@ -2531,7 +2532,12 @@ export class DbScriptsComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    restaurantIds = restaurantIds.filter(r => !r.skipImageInjection)
+    restaurantIds = restaurantIds.filter(r => !r.skipImageInjection);
+
+    const images = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "image",
+      limit: 3000
+    }).toPromise();
 
     const batchSize = 20;
     const batchedIds = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
@@ -2551,10 +2557,6 @@ export class DbScriptsComponent implements OnInit {
         limit: 6000
       }).toPromise();
 
-      const images = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "image",
-        limit: 3000
-      }).toPromise();
 
       const patchList = restaurants.map(r => {
         const oldR = r;
@@ -2571,7 +2573,7 @@ export class DbScriptsComponent implements OnInit {
             }
             //only use the first matched alias
             let matchingAlias = images.filter(image => match(image.aliases, mi.name))[0];
-            if (matchingAlias && matchingAlias.images) {
+            if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
               //reset the imageObj
               mi.imageObjs = [];
               (matchingAlias.images || []).map(each => {

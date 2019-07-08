@@ -71,7 +71,7 @@ export class MenusComponent implements OnInit {
             item.price = +((+item.price) + factor).toFixed(2);
           } else if (this.adjustPricesFactorPercent) {
             item.price = +((+item.price) * (1 + factor)).toFixed(2);
-          }else{
+          } else {
             this._global.publishAlert(AlertType.Danger, "Missing data!");
           }
         }
@@ -223,17 +223,17 @@ export class MenusComponent implements OnInit {
           }
         }])
         .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this.restaurant.menus = newMenus;
-          this._global.publishAlert(
-            AlertType.Success,
-            "Updated successfully"
-          );
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-        }
+          result => {
+            // let's update original, assuming everything successful
+            this.restaurant.menus = newMenus;
+            this._global.publishAlert(
+              AlertType.Success,
+              "Updated successfully"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
         );
     }
   }
@@ -250,42 +250,52 @@ export class MenusComponent implements OnInit {
 
     const oldMenus = this.restaurant.menus || [];
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
+    let needUpdate = false;
     newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-      const match = function(aliases, name) {
-        const sanitizedName = (name || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim();
-        return aliases.some(alias => alias.toLowerCase().trim() === sanitizedName);
-      }
-      let matchingImage = images.filter(image => match(image.aliases, mi.name))[0];
-      if (matchingImage) {
-        (matchingImage.images || []).map(each => {
-          if ((mi.imageObjs || []).length == 0) {
-            mi.imageObjs.push({
+      /* Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
+          only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
+      */
+      if (mi && mi.imageObjs && !mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT')) {
+        const match = function (aliases, name) {
+          const sanitizedName = Helper.sanitizedName(name);
+          return aliases.some(alias => alias.toLowerCase().trim() === sanitizedName);
+        }
+        //only use the first matched alias
+        let matchingAlias = images.filter(image => match(image.aliases, mi.name))[0];
+        if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
+          //reset the imageObj
+          mi.imageObjs = [];
+          (matchingAlias.images || []).map(each => {
+            (mi.imageObjs).push({
               originalUrl: each.url,
               thumbnailUrl: each.url96,
               normalUrl: each.url768,
               origin: 'IMAGE-PICKER'
             });
-          }
-        })
+          })
+          needUpdate = true;
+        }
       }
     })));
 
-    // now let's patch!
-    try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {
-          _id: this.restaurant['_id'],
-          menus: oldMenus,
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus,
-        }
-      }]).toPromise();
-      this.restaurant.menus = newMenus;
-      this._global.publishAlert(AlertType.Success, "Success!");
-    } catch (error) {
-      console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Failed!");
+    if (needUpdate) {
+      try {
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+          old: {
+            _id: this.restaurant['_id'],
+            menus: oldMenus,
+          }, new: {
+            _id: this.restaurant['_id'],
+            menus: newMenus,
+          }
+        }]).toPromise();
+        this.restaurant.menus = JSON.parse(JSON.stringify(newMenus));;
+        this._global.publishAlert(AlertType.Success, "Success!");
+      } catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, "Failed!");
+      }
+
     }
 
   }

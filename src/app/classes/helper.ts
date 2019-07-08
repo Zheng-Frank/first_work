@@ -322,4 +322,32 @@ export class Helper {
         }
         return matchedTz;
     }
+
+    static sanitizedName(menuItemName) {
+        let processedName;
+    
+        //remove (Lunch) and numbers
+        processedName= (menuItemName || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim()
+        processedName = processedName.replace('&', '');
+        processedName = processedName.replace('.', ' ');
+        // processedName = processedName.replace('w.', ' ');
+        // processedName = processedName.replace('with', ' ');
+    
+        // Remove non-English characters
+        processedName = processedName.replace(/[^\x00-\x7F]/g, '');
+    
+        // 19a Sesame Chicken --> Sesame Chicken
+        // B Bourbon Chicken --> Bourbon Chicken
+        let nameArray = processedName.split(' ');
+        for (let i = 0; i < nameArray.length; i++) {
+            //remove 19a
+            if (/\d/.test(nameArray[i]) || nameArray[i].length === 1) {
+                nameArray.splice(i, 1);
+            }
+        }
+        processedName = nameArray.join(' ');
+        //remove extra space between words
+        processedName = processedName.replace(/\s+/g, " ").trim();
+        return processedName;
+    }
 }
