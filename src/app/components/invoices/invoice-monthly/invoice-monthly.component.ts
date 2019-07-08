@@ -400,6 +400,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         balance: 1,
         "restaurant.id": 1,
         "restaurant.name": 1,
+        "restaurant.rateSchedules": 1,
         fromDate: 1,
         toDate: 1,
         previousInvoiceId: 1,
@@ -408,11 +409,11 @@ export class InvoiceMonthlyComponent implements OnInit {
       limit: 80000
     }).toPromise();
 
-    
+
     const gmbAccountsWithPublishedLocations = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
-        "published": {$gt: 0}
+        "published": { $gt: 0 }
       },
       projection: {
         "locations.cid": 1,
@@ -421,7 +422,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       limit: 20000
     }).toPromise();
 
-    const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)) , myset), new Set());
+    const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)), myset), new Set());
 
 
     console.log(publishedCids);
@@ -505,6 +506,8 @@ export class InvoiceMonthlyComponent implements OnInit {
     console.log('after 2', this.overdueRows.length);
     // for each row, let's remove being rolled ones!
 
+    this.overdueRows.map(row => row.agent = (row.restaurant.rateSchedules || []).map(each => each.agent))
+
     // sort by total unpaid desc
     this.overdueRows.map(row => row.unpaidBalance = row.invoices.reduce((sum, invoice) => sum + invoice.balance, 0));
     this.overdueRows.sort((row1, row2) => row2.unpaidBalance - row1.unpaidBalance);
@@ -586,7 +589,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       resource: 'invoice',
       query: {
         isCanceled: { $ne: true },
-        toDate: { $gt: { $date: invoiceToDate }}
+        toDate: { $gt: { $date: invoiceToDate } }
       },
       projection: {
         fromDate: 1,

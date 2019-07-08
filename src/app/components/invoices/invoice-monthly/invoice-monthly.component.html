@@ -95,6 +95,7 @@
     <table class="table">
       <tr>
         <th>Restaurant</th>
+        <th>Agent</th>
         <th>Invoices</th>
         <th>Unpaid Balance</th>
         <th>GMB</th>
@@ -105,6 +106,9 @@
         <td>
           <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
           <div><small>{{row.restaurant.id}}</small></div>
+        </td>
+        <td>
+            {{row.agent}}
         </td>
         <td>
           <table class="table table-borderless table-sm">
