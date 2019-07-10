@@ -681,7 +681,7 @@ export class AutomationDashboardComponent implements OnInit {
     }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk || !item.isReservationOk);
 
     console.log('allNokItems', nokItems);
-    const websiteNokItems = nokItems.filter(item => !item.isWebsiteOk);
+    const websiteNokItems = nokItems.filter(item => !item.isWebsiteOk || !item.isMenuUrlOk);
 
 
     websiteNokItems.map(item => {
@@ -691,7 +691,8 @@ export class AutomationDashboardComponent implements OnInit {
     });
     console.log('websiteNokItems', websiteNokItems);
 
-    //throw "test";
+    if(new Date())
+    throw "test";
 
     // now inject!
     const appealIdInjectTimeDict = {};
