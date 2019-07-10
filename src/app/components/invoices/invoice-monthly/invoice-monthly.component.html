@@ -105,7 +105,7 @@
       </tr>
       <tr *ngFor="let row of overdueRows; let i = index">
         <td>
-          {{i}}
+          {{i+1}}
         </td>
         <td>
           <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
