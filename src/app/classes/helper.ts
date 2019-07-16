@@ -1,5 +1,6 @@
 import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api.service';
+import { Address } from '@qmenu/ui';
 declare var AWS: any;
 
 export class Helper {
@@ -285,6 +286,15 @@ export class Helper {
         }
     }
 
+    static getLine1(address: Address) {
+        if (!address) {
+          return 'Address Missing';
+        }
+        return (address.street_number ? address.street_number : '') + ' '
+          + (address.route ? ' ' + address.route : '') +
+          (address.apt ? ', ' + address.apt : '');
+      }
+
     static getTimeZone(formatted_address) {
         const tzMap = {
             PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
@@ -311,5 +321,33 @@ export class Helper {
             });
         }
         return matchedTz;
+    }
+
+    static sanitizedName(menuItemName) {
+        let processedName;
+    
+        //remove (Lunch) and numbers
+        processedName= (menuItemName || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim()
+        processedName = processedName.replace('&', '');
+        processedName = processedName.replace('.', ' ');
+        // processedName = processedName.replace('w.', ' ');
+        // processedName = processedName.replace('with', ' ');
+    
+        // Remove non-English characters
+        processedName = processedName.replace(/[^\x00-\x7F]/g, '');
+    
+        // 19a Sesame Chicken --> Sesame Chicken
+        // B Bourbon Chicken --> Bourbon Chicken
+        let nameArray = processedName.split(' ');
+        for (let i = 0; i < nameArray.length; i++) {
+            //remove 19a
+            if (/\d/.test(nameArray[i]) || nameArray[i].length === 1) {
+                nameArray.splice(i, 1);
+            }
+        }
+        processedName = nameArray.join(' ');
+        //remove extra space between words
+        processedName = processedName.replace(/\s+/g, " ").trim();
+        return processedName;
     }
 }

@@ -67,8 +67,8 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     }
     this.editing = !this.editing;
     this.deliverySettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.deliverySettings || []));
-    // put empty settings to make it 4 (hardcoded max)
-    for (let i = this.deliverySettingsInEditing.length; i < 5; i++) {
+    // put empty settings to make it 8 (hardcoded max)
+    for (let i = this.deliverySettingsInEditing.length; i < 9; i++) {
       this.deliverySettingsInEditing.push({});
     }
 

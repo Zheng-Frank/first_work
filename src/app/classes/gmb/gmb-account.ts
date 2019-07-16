@@ -15,6 +15,7 @@ export class GmbAccount {
     pagerSize: number;
     comments: string;
     type:string;
+    recoveryEmail:string;
     locations: GmbLocation []; 
     constructor(gmb?: any) {
         if (gmb) {

@@ -105,18 +105,22 @@ export class NewRestaurantComponent implements OnInit {
     }
 
     // query existing restaurant with SAME phone number!
-    const existingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const allExistingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
       query: {
-        "channels.value": crawledResult.phone || 'non-existing'
+        "channels.value": crawledResult.phone || 'non-existing',
+        "googleAddress.postal_code": this.restaurant.googleAddress.postal_code
       },
       projection: {
         channels: 1,
-        name: 1
+        name: 1,
+        disabled: 1,
+        googleAddress: 1
       },
       limit: 5
     }).toPromise();
 
+    const existingRestaurants = allExistingRestaurants.filter(r => !r.disabled);
     if (existingRestaurants.length > 0) {
       this.restaurant.relatedTo = existingRestaurants.map(r => r._id);
     } else {

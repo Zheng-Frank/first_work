@@ -60,7 +60,7 @@ export class LogsDashboardComponent implements OnInit {
         projection: {
           name: 1,
           alias: 1,
-          logs: 1,
+          logs:  { $slice: -5 },
           logo: 1,
           channels: 1,
           "googleAddress.formatted_address": 1
