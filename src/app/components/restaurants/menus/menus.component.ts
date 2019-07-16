@@ -255,27 +255,32 @@ export class MenusComponent implements OnInit {
       /* Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
           only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
       */
-      if (mi && mi.imageObjs && !mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT')) {
-        const match = function (aliases, name) {
-          const sanitizedName = Helper.sanitizedName(name);
-          return aliases.some(alias => alias.toLowerCase().trim() === sanitizedName);
-        }
-        //only use the first matched alias
-        let matchingAlias = images.filter(image => match(image.aliases, mi.name))[0];
-        if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
-          //reset the imageObj
-          mi.imageObjs = [];
-          (matchingAlias.images || []).map(each => {
-            (mi.imageObjs).push({
-              originalUrl: each.url,
-              thumbnailUrl: each.url96,
-              normalUrl: each.url768,
-              origin: 'IMAGE-PICKER'
-            });
-          })
-          needUpdate = true;
-        }
-      }
+     try{
+
+       if (mi && mi.imageObjs && !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
+         const match = function (aliases, name) {
+           const sanitizedName = Helper.sanitizedName(name);
+           return (aliases || []).some(alias => alias.toLowerCase().trim() === sanitizedName);
+         }
+         //only use the first matched alias
+         let matchingAlias = images.filter(image => match(image.aliases, mi.name) || match(image.aliases, mi.description))[0];
+         if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
+           //reset the imageObj
+           mi.imageObjs = [];
+           (matchingAlias.images || []).map(each => {
+             (mi.imageObjs).push({
+               originalUrl: each.url,
+               thumbnailUrl: each.url192,
+               normalUrl: each.url768,
+               origin: 'IMAGE-PICKER'
+             });
+           })
+           needUpdate = true;
+         }
+       }
+     }catch (e){
+       console.log ('mi', JSON.stringify(mi));
+     }
     })));
 
     if (needUpdate) {
@@ -323,8 +328,7 @@ export class MenusComponent implements OnInit {
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          menus: oldMenus,
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus,
