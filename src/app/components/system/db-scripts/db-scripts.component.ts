@@ -2542,60 +2542,75 @@ export class DbScriptsComponent implements OnInit {
     const batchSize = 20;
     const batchedIds = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
 
-    for (let batch of batchedIds) {
-      const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: {
-          _id: {
-            $in: batch.map(rid => ({ $oid: rid._id }))
-          }
-        },
-        projection: {
-          name: 1,
-          "menus": 1
-        },
-        limit: 6000
-      }).toPromise();
-
-
-      const patchList = restaurants.map(r => {
-        const oldR = r;
-        const newR = JSON.parse(JSON.stringify(r));
-        //Just assuming match 1 image, and only upload image if none image exists
-        newR.menus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-          /* Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
-              only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
-          */
-          if (mi && mi.imageObjs && !mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT')) {
-            const match = function (aliases, name) {
-              const sanitizedName = Helper.sanitizedName(name);
-              return aliases.some(alias => alias.toLowerCase().trim() === sanitizedName);
+    try {
+      for (let batch of batchedIds) {
+        const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          query: {
+            _id: {
+              $in: batch.map(rid => ({ $oid: rid._id }))
             }
-            //only use the first matched alias
-            let matchingAlias = images.filter(image => match(image.aliases, mi.name))[0];
-            if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
-              //reset the imageObj
-              mi.imageObjs = [];
-              (matchingAlias.images || []).map(each => {
-                (mi.imageObjs).push({
-                  originalUrl: each.url,
-                  thumbnailUrl: each.url96,
-                  normalUrl: each.url768,
-                  origin: 'IMAGE-PICKER'
-                });
-              })
-            }
-          }
-        })));
+          },
+          projection: {
+            name: 1,
+            "menus": 1
+          },
+          limit: 6000
+        }).toPromise();
 
-        return ({
-          old: { _id: oldR._id },
-          new: { _id: newR._id, menus: newR.menus }
+        console.log('batch', batch);
+
+        const patchList = restaurants.map(r => {
+          const oldR = r;
+          const newR = JSON.parse(JSON.stringify(r));
+          //Just assuming match 1 image, and only upload image if none image exists
+          newR.menus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
+            /* Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
+                only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
+            */
+            try {
+              if (mi && mi.imageObjs && !mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT')) {
+                const match = function (aliases, name) {
+                  const sanitizedName = Helper.sanitizedName(name);
+                  return (aliases || []).some(alias => alias.toLowerCase().trim() === sanitizedName);
+                }
+                //only use the first matched alias
+                let matchingAlias = images.filter(image => match(image.aliases, mi.name))[0];
+                if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
+                  //reset the imageObj
+                  mi.imageObjs = [];
+                  (matchingAlias.images || []).map(each => {
+                    (mi.imageObjs).push({
+                      originalUrl: each.url,
+                      thumbnailUrl: each.url192,
+                      normalUrl: each.url768,
+                      origin: 'IMAGE-PICKER'
+                    });
+                  })
+                }
+              }
+            }
+            catch (e) {
+              //capture some mi abnormal case
+              console.log(e);
+              console.log('mi=', JSON.stringify(mi));
+            }
+          })));
+
+          return ({
+            old: { _id: oldR._id },
+            new: { _id: newR._id, menus: newR.menus }
+          });
         });
-      });
-      console.log(patchList);
+        console.log(patchList);
 
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+      }
+    }
+
+    catch (e) {
+      console.log(e)
+      console.log("Failed update restaurants=", batchedIds)
     }
   }
 
