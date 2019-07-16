@@ -691,9 +691,6 @@ export class AutomationDashboardComponent implements OnInit {
     });
     console.log('websiteNokItems', websiteNokItems);
 
-    if(new Date())
-    throw "test";
-
     // now inject!
     const appealIdInjectTimeDict = {};
     gmbAccountsWithLocations.map(account => Object.keys((account.injection || {})).map(k => appealIdInjectTimeDict[k] = account.injection[k].time));
