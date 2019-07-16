@@ -83,6 +83,9 @@ export class ImageManagerComponent implements OnInit {
           url: decodeURIComponent(data.Location), 
           url96: 'https://s3.amazonaws.com/chopstresized/96_' + data.Key,
           url128: 'https://s3.amazonaws.com/chopstresized/128_' + data.Key, 
+          url192: 'https://s3.amazonaws.com/chopstresized/192_' + data.Key, 
+          url256: 'https://s3.amazonaws.com/chopstresized/256_' + data.Key, 
+          url512: 'https://s3.amazonaws.com/chopstresized/512_' + data.Key, 
           url768: 'https://s3.amazonaws.com/chopstresized/768_' + data.Key };
         row.images = row.images || [];
         row.images.push(imageObj);
