@@ -158,14 +158,12 @@ export class LogsDashboardComponent implements OnInit {
 
   filterByAgent() {
     if (this.agent && this.agent !== "All") {
-      this.logsList = this.filteredRestaurantLogs.filter(l => l.log.username === this.agent);
+      this.filteredRestaurantLogs = this.filteredRestaurantLogs.filter(l => l.log.username === this.agent);
     }
-    else if (this.adjustmentOnly) {
-      this.logsList = this.filteredRestaurantLogs.filter(l => l.log.adjustmentAmount);
+    if (this.adjustmentOnly) {
+      this.filteredRestaurantLogs = this.filteredRestaurantLogs.filter(l => l.log.adjustmentAmount);
     }
-    else {
       this.logsList = this.filteredRestaurantLogs
-    }
   }
 
   getAddress(restaurant) {
