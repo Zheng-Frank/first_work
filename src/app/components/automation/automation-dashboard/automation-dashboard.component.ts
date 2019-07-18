@@ -199,6 +199,12 @@ export class AutomationDashboardComponent implements OnInit {
       batchSize = 100;
     }
 
+    // restaurants = restaurants.filter(r => r._id ==='5b127bc190ab1b1400929cb3');
+    // console.log(restaurants);
+    // if(new Date()){
+    //   throw "test"
+    // }
+
     const batchedRestaurants = Array(Math.ceil(restaurants.length / batchSize)).fill(0).map((i, index) => restaurants.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedRestaurants) {
@@ -286,11 +292,7 @@ export class AutomationDashboardComponent implements OnInit {
     for (let batch of batchedGmbBizList) {
       try {
         const results = await this._gmb3.crawlBatchedGmbBizList(batch);
-        await new Promise((resolve, reject) => {
-          setTimeout(() => {
-            resolve();
-          }, 60000)
-        });
+        await new Promise(resolve => setTimeout(resolve, 6000));
         succeededGmbBizList.push(...batch);
       } catch (error) {
         failedGmbBizList.push(...batch);
@@ -690,8 +692,6 @@ export class AutomationDashboardComponent implements OnInit {
       }
     });
     console.log('websiteNokItems', websiteNokItems);
-
-    //throw "test";
 
     // now inject!
     const appealIdInjectTimeDict = {};
