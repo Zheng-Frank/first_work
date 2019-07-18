@@ -34,9 +34,9 @@ export class AwsMigrationComponent implements OnInit {
 
 
   processScore(score) {
-    const toBeProcessedRows = this.rows.filter(row => row.restaurant.score === score && !row.result);
+    // const toBeProcessedRows = this.rows.filter(row => row.restaurant.score === score && !row.result);
 
-    // const toBeProcessedRows = this.rows.filter(row => !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
+    const toBeProcessedRows = this.rows.filter(row => !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
 
     console.log(toBeProcessedRows);
     if (toBeProcessedRows.length > 200) {
@@ -142,36 +142,88 @@ export class AwsMigrationComponent implements OnInit {
   }
 
   async reload() {
-    let migrations = await this._api.get(environment.adminApiUrl + 'generic', {
+    const migrationDomains = await this._api.get(environment.adminApiUrl + 'generic', {
       resource: 'migration',
       query: {
+        // "steps.0.executions.0": { $exists: true },
+        // "shrinked": { $exists: false }
       },
       projection: {
-        domain: 1,
-        restaurant: 1,
-        result: 1,
-        "steps.executions": {
-          $slice: -3
-        }
+        domain: 1
       },
-      limit: 80000
+      limit: 8000
     }).toPromise();
+
+    // loop to get all details
+    const batchSize = 100;
+
+    const batchedMigrationDomains = Array(Math.ceil(migrationDomains.length / batchSize)).fill(0).map((i, index) => migrationDomains.slice(index * batchSize, (index + 1) * batchSize));
+
+    const migrations = [];
+
+    for (let batch of batchedMigrationDomains) {
+      const batchedResult = await this._api.get(environment.adminApiUrl + 'generic', {
+        resource: 'migration',
+        query: {
+          _id: {
+            $in: batch.map(mig => ({ $oid: mig._id }))
+          }
+        },
+        limit: batch.length
+      }).toPromise();
+      migrations.push(...batchedResult);
+    }
+
+    // const allMigrationIds = 
+    // let migrations = await this._api.get(environment.adminApiUrl + 'generic', {
+    //   resource: 'migration',
+    //   query: {
+    //     // "steps.0.executions.0": { $exists: true },
+    //     // "shrinked": { $exists: false }
+    //   },
+    //   // projection: {
+    //   //   // domain: 1,
+    //   //   // restaurant: 1,
+    //   //   // result: 1,
+    //   //   // steps: 1
+    //   //   // "steps.executions": {
+    //   //   //   $slice: -2
+    //   //   // }
+    //   // },
+    //   limit:800
+    // }).toPromise();
+
     this.rows = migrations;
     // sort by restaurant score
     console.log('bad domain=', this.rows.filter(row => !row.restaurant));
     this.rows.sort((r2, r1) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0) || (r1.restaurant.name > r2.restaurant.name ? 1 : -1));
 
     this.applyFilter();
-    // patch all checkCloudFront payload to contain distributionId!
+
+    // console.log(JSON.parse(JSON.stringify(migrations)));
+    // // condense ALL migration executions
+    // for (let migration of migrations) {
+    //   console.log(migration);
+    //   migration.steps.map(step => {
+    //     const existedExecutionSet = new Set();
+    //     for (let i = (step.executions || []).length - 1; i >= 0; i--) {
+    //       const execution = step.executions[i];
+    //       const stringyfiedResponse = JSON.stringify(execution.response || {});
+    //       if(existedExecutionSet.has(stringyfiedResponse)) {
+    //         step.executions.splice(i, 1);
+    //         console.log('removed!', migration.domain, step.name);
+
+    //       }
+    //       existedExecutionSet.add(stringyfiedResponse);
+    //     }
+    //   });
+    // }
+
+    // console.log('after', migrations);
     // const patchPairs = migrations.map(mig => {
-    //   // insert step:
-    //   mig.steps[8] = {
-    //     name: 'checkCloudFront',
-    //     payload: ['domain', 'distributionId'],
-    //   };
     //   return {
     //     old: { _id: mig._id },
-    //     new: { _id: mig._id, steps: mig.steps }
+    //     new: { _id: mig._id, steps: mig.steps, shrinked: true }
     //   }
     // });
     // await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', patchPairs).toPromise();
@@ -228,6 +280,12 @@ export class AwsMigrationComponent implements OnInit {
     }
 
     step.executions = step.executions || [];
+
+    // remove last one if it's the same response
+    if (step.executions.slice(-1)[0] && JSON.stringify(step.executions.slice(-1)[0].response) === JSON.stringify(execution.response)) {
+      step.executions.splice(step.executions.length - 1, 1);
+      console.log('step removed bad')
+    }
     step.executions.push(execution);
     await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
       old: { _id: row._id },
@@ -283,13 +341,30 @@ export class AwsMigrationComponent implements OnInit {
     }
   }
 
-  async markSucceeded(migration) {
+  async markSucceeded(row) {
     if (confirm('Are you sure?')) {
+      const migration = row;
       await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
         old: { _id: migration._id },
         new: { _id: migration._id, result: 'SUCCEEDED' }
       }]).toPromise();
       migration.result = 'SUCCEEDED';
+
+      // ALL good! patch SUCEEDED!
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: row.restaurant._id, web: {} },
+        new: { _id: row.restaurant._id, web: { qmenuWebsite: 'https://' + row.domain }, domain: row.domain }
+      }]).toPromise();
+
+    }
+  }
+  async markDeferred(migration) {
+    if (confirm('Are you sure?')) {
+      await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+        old: { _id: migration._id },
+        new: { _id: migration._id, result: 'DEFERRED' }
+      }]).toPromise();
+      migration.result = 'DEFERRED';
     }
   }
 
@@ -297,12 +372,12 @@ export class AwsMigrationComponent implements OnInit {
     if (confirm('Are you sure?')) {
       await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
         old: { _id: migration._id, result: 'random' },
-        new: { _id: migration._id}
+        new: { _id: migration._id }
       }]).toPromise();
       delete migration.result;
     }
   }
-  
+
 
   toggle(row) {
     if (this.expandedRows.has(row)) {

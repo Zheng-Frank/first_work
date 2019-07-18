@@ -44,6 +44,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'deliveryBy',
     'domain',    
     'skipOrderConfirmation',
+    'skipImageInjection',
     'hideOrderStatus',
     'skipShowTax',
     'notes',
@@ -69,7 +70,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   timeZone;
   googleAddress: Address;
   preferredLanguage;
-  skipOrderConfirmation;
   deliveryByTme;
 
   notification;

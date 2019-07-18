@@ -92,7 +92,8 @@
 							<td class="pl-1" style="white-space: pre-wrap">{{restaurant.notes}}</td>
 						</tr>
 						<tr>
-							<button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}
+							<button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
+								details...'}}
 							</button>
 							<div *qIf="showDetails">
 								<ul class="list-group list-group-flush">
@@ -114,6 +115,10 @@
 												<tr>
 													<th class="text-right">Not Show Tax Option to Customer</th>
 													<td class="pl-1">{{!!restaurant.skipShowTax}}</td>
+												</tr>
+												<tr>
+													<th class="text-right">Skip Image Inject</th>
+													<td class="pl-1">{{!!restaurant.skipImageInjection}}</td>
 												</tr>
 											</tbody>
 										</table>
@@ -277,6 +282,12 @@
 														<input type="checkbox" [(ngModel)]="skipShowTax">
 													</td>
 												</tr>
+												<tr>
+														<th class="text-right">Skip Image Injection</th>
+														<td class="pl-1">
+															<input type="checkbox" [(ngModel)]="skipImageInjection">
+														</td>
+													</tr>
 											</tbody>
 										</table>
 									</li>

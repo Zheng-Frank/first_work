@@ -10,7 +10,7 @@
         Name
       </td>
       <td>
-        Input
+        Inputs
       </td>
       <td>
         Result
@@ -26,14 +26,20 @@
         5:30PM<br>06/12/2019
       </td>
       <td>
-        {{row.task.name}} <span (click)="consoleOut(row)"><i class="fas fa-terminal"></i></span>
+        <button (click)="toggleRowDetails(row)"
+          class="btn btn-link">{{row.task.name}}</button> <button class="btn btn-link" (click)="consoleOut(row)"><i
+            class="fas fa-terminal"></i></button>
+        <div *ngIf="detailedRow === row">
+          <div id="chart_div"></div>
+        </div>
       </td>
       <td>
         <pre>{{row.task.inputs | json}}</pre>
       </td>
       <td>
         <div *ngFor="let execution of row.executions" (click)="showDetails(execution)">
-          <span class="text-muted mr-2">{{execution.time | shortTime}}</span><span class="{{execution.status === 200 ? 'text-success' : (execution.status === 400 ? 'text-danger' : 'text-info')}}">{{execution.status}}</span>
+          <span class="text-muted mr-2">{{execution.time | shortTime}}</span><span
+            class="{{execution.status === 200 ? 'text-success' : (execution.status === 400 ? 'text-danger' : 'text-info')}}">{{execution.status}}</span>
         </div>
       </td>
       <td>

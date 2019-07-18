@@ -9,6 +9,7 @@ import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { Gmb3Service } from "src/app/services/gmb3.service";
 import { JsonPipe } from "@angular/common";
+import { Helper } from "src/app/classes/helper";
 
 @Component({
   selector: "app-db-scripts",
@@ -1869,6 +1870,57 @@ export class DbScriptsComponent implements OnInit {
 
   }
 
+  async removeEmptySizeOption() {
+    const restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+
+      projection: {
+        name: 1,
+      },
+      limit: 6000
+    }).toPromise();
+
+    const batchSize = 50;
+
+    const batchedIds = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedIds) {
+      const restaurants = (await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          _id: {
+            $in: batch.map(rid => ({ $oid: rid._id }))
+          }
+        },
+        projection: {
+          name: 1,
+          "menus": 1
+        },
+        limit: batchSize
+      }).toPromise()).map(r => new Restaurant(r));
+
+      const badRestaurants = restaurants.filter(r => r.menus.some(menu => menu.mcs.some(mc => mc.mis.some(mi => mi.sizeOptions.some(so => !so.name && !so.price)))));
+      console.log(badRestaurants);
+      if (badRestaurants.length > 0) {
+        // patch!
+        const fixedMenu = function (restaurant) {
+          const clone = JSON.parse(JSON.stringify(restaurant));
+          clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so.name && so.price))));
+          return clone.menus;
+        }
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', badRestaurants.map(r => ({
+          old: { _id: r._id },
+          new: {
+            _id: r._id, menus: fixedMenu(r)
+          }
+        }))).toPromise();
+      }
+
+    }
+
+
+  }
+
   async removeInvoiceFromRestaurant() {
     const limit = 100;
     const restaurantsWithInvoicesAttribute = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -2468,72 +2520,97 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async injectImages() {
-    const restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
+    let restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         menus: { $exists: true }
       },
       projection: {
-        name: 1
+        name: 1,
+        skipImageInjection: 1
       },
       limit: 6000
+    }).toPromise();
+
+    restaurantIds = restaurantIds.filter(r => !r.skipImageInjection);
+
+    const images = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "image",
+      limit: 3000
     }).toPromise();
 
     const batchSize = 20;
     const batchedIds = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
 
-    for (let batch of batchedIds) {
-      const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: {
-          _id: {
-            $in: batch.map(rid => ({ $oid: rid._id }))
-          }
-        },
-        projection: {
-          name: 1,
-          "menus": 1
-        },
-        limit: 6000
-      }).toPromise();
+    try {
+      for (let batch of batchedIds) {
+        const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          query: {
+            _id: {
+              $in: batch.map(rid => ({ $oid: rid._id }))
+            }
+          },
+          projection: {
+            name: 1,
+            "menus": 1
+          },
+          limit: 6000
+        }).toPromise();
 
-      const images = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "image",
-        limit: 3000
-      }).toPromise();
+        console.log('batch', batch);
 
-      const patchList = restaurants.map(r => {
-        const oldR = r;
-        const newR = JSON.parse(JSON.stringify(r));
-        //Just assuming match 1 image, and only upload image if none image exists
-        newR.menus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-          const match = function(aliases, name) {
-            const sanitizedName = (name || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim();
-            return aliases.some(alias => alias.toLowerCase().trim() === sanitizedName);
-          }
-          let matchingImage = images.filter(image => match(image.aliases, mi.name))[0];
-          if (matchingImage) {
-            (matchingImage.images || []).map(each => {
-              if ((mi.imageObjs || []).length == 0) {
-                mi.imageObjs.push({
-                  originalUrl: each.url,
-                  thumbnailUrl: each.url96,
-                  normalUrl: each.url768,
-                  origin: 'IMAGE-PICKER'
-                });
+        const patchList = restaurants.map(r => {
+          const oldR = r;
+          const newR = JSON.parse(JSON.stringify(r));
+          //Just assuming match 1 image, and only upload image if none image exists
+          newR.menus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
+            /* Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
+                only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
+            */
+            try {
+              if (mi && mi.imageObjs && !mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT')) {
+                const match = function (aliases, name) {
+                  const sanitizedName = Helper.sanitizedName(name);
+                  return (aliases || []).some(alias => alias.toLowerCase().trim() === sanitizedName);
+                }
+                //only use the first matched alias
+                let matchingAlias = images.filter(image => match(image.aliases, mi.name))[0];
+                if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
+                  //reset the imageObj
+                  mi.imageObjs = [];
+                  (matchingAlias.images || []).map(each => {
+                    (mi.imageObjs).push({
+                      originalUrl: each.url,
+                      thumbnailUrl: each.url192,
+                      normalUrl: each.url768,
+                      origin: 'IMAGE-PICKER'
+                    });
+                  })
+                }
               }
-            })
-          }
-        })));
+            }
+            catch (e) {
+              //capture some mi abnormal case
+              console.log(e);
+              console.log('mi=', JSON.stringify(mi));
+            }
+          })));
 
-        return ({
-          old: { _id: oldR._id },
-          new: { _id: newR._id, menus: newR.menus }
+          return ({
+            old: { _id: oldR._id },
+            new: { _id: newR._id, menus: newR.menus }
+          });
         });
-      });
-      console.log(patchList);
+        console.log(patchList);
 
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+      }
+    }
+
+    catch (e) {
+      console.log(e)
+      console.log("Failed update restaurants=", batchedIds)
     }
   }
 
@@ -2554,7 +2631,7 @@ export class DbScriptsComponent implements OnInit {
       const oldR = r;
       let newR = JSON.parse(JSON.stringify(r));
       if (r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > 0)) {
-        if(!newR.requireZipcode ||  !newR.requireBillingAddress){
+        if (!newR.requireZipcode || !newR.requireBillingAddress) {
           newR.requireZipcode = true;
           newR.requireBillingAddress = true;
           updatedRestaurantPairs.push({

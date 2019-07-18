@@ -661,7 +661,7 @@ export class AutomationDashboardComponent implements OnInit {
       const target = Helper.getDesiredUrls(item.restaurant);
       try {
 
-        const isWebsiteOk = Helper.areDomainsSame(target.website, item.gmbBiz.gmbWebsite) || (item.gmbBiz.gmbWebsite && item.gmbBiz.gmbWebsite.indexOf('qmenu') > 0);
+        const isWebsiteOk = Helper.areDomainsSame(target.website, item.gmbBiz.gmbWebsite) || (item.gmbBiz.gmbWebsite && item.gmbBiz.gmbWebsite.indexOf('qmenu') > 0 && (item.gmbBiz.gmbWebsite.indexOf('target') < 0));
         const isMenuUrlOk = (item.gmbBiz.menuUrls || []).length > 0 && (item.gmbBiz.menuUrls || []).some(url => Helper.areDomainsSame(url, target.menuUrl));
         const isReservationOk = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, target.reservation));
 
@@ -683,7 +683,7 @@ export class AutomationDashboardComponent implements OnInit {
     }).filter(item => !item.isWebsiteOk || !item.isMenuUrlOk || !item.isReservationOk);
 
     console.log('allNokItems', nokItems);
-    const websiteNokItems = nokItems.filter(item => !item.isWebsiteOk);
+    const websiteNokItems = nokItems.filter(item => !item.isWebsiteOk || !item.isMenuUrlOk);
 
 
     websiteNokItems.map(item => {

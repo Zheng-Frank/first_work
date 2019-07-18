@@ -35,7 +35,7 @@ export class GmbAccountEditorComponent implements OnInit, OnChanges {
       {
         field: "type", //
         label: "Type",
-        required: true,
+        required: false,
         inputType: "single-select",
         items: [
           { object: "Apply GMB", text: "Apply GMB", selected: false },
@@ -49,6 +49,15 @@ export class GmbAccountEditorComponent implements OnInit, OnChanges {
         required: false,
         inputType: "password",
         items: []
+      },
+      {
+        field: "recoveryEmail", //
+        label: "Recovery Email",
+        required: false,
+        inputType: "text",
+        items: [],
+        disabled: this.gmbAccount && this.gmbAccount._id,
+        validate: this.isEmailValid
       },
       {
         field: "comments", //

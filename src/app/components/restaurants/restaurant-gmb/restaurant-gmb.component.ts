@@ -309,7 +309,7 @@ export class RestaurantGmbComponent implements OnInit {
       return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
     }
     for (let al of row.accountLocationPairs) {
-      if (al.location.status !== 'Removed')
+      if (al.location.status === 'Published')
         await this._api
           .post(environment.adminApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
           .then(password => this._api.post(
