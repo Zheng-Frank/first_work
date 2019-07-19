@@ -692,9 +692,9 @@ export class AutomationDashboardComponent implements OnInit {
       }
     });
     console.log('websiteNokItems', websiteNokItems);
-    if(new Date()){
-      throw "Test";
-    }
+    // if(new Date()){
+    //   throw "Test";
+    // }
 
     // now inject!
     const appealIdInjectTimeDict = {};
