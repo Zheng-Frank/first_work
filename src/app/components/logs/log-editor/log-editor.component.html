@@ -92,6 +92,13 @@
     </div>
   </div>
 
+  <div class="mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-task" [checked]="log.type === 'force-qmenu-collect'" (change)="toggleForceQmenuCollect()">
+      <label class="form-check-label" for="id-task"> Force qMenu Collect</label>
+    </div>
+  </div>
+
   <div class="mb-3" *ngIf="!hasAdjustment && !hasTask">
     <div class="form-check">
       <input class="form-check-input" type="checkbox" id="id-resolved" [(ngModel)]="log.resolved">

@@ -193,4 +193,8 @@ export class LogEditorComponent implements OnInit {
     this.log.type === 'google-pin' ? this.log.type = undefined : this.log.type = 'google-pin';
   }
 
+  toggleForceQmenuCollect(){
+    this.log.type === 'force-qmenu-collect' ? this.log.type = undefined : this.log.type = 'force-qmenu-collect';
+  }
+
 }
