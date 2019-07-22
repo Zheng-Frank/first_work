@@ -1,4 +1,8 @@
-<h1 class="text-center">Automated Tasks</h1>
+<h1 class="text-center">Workflows</h1>
+
+<div class="text-right pb-2">
+  <button class="btn btn-primary" (click)="loadWorkflows()"><i class="fas fa-sync-alt"></i> Reload</button>
+</div>
 
 <table class="table">
   <thead>
@@ -10,10 +14,7 @@
         Name
       </td>
       <td>
-        Inputs
-      </td>
-      <td>
-        Result
+        Graph
       </td>
       <td>
         Actions
@@ -21,32 +22,61 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let row of taskRows">
+    <tr *ngFor="let row of rows">
       <td>
-        5:30PM<br>06/12/2019
+        {{row.workflow.createdAt | date: 'shortTime'}}<br>{{row.workflow.createdAt | date: 'shortDate'}}
       </td>
       <td>
-        <button (click)="toggleRowDetails(row)"
-          class="btn btn-link">{{row.task.name}}</button> <button class="btn btn-link" (click)="consoleOut(row)"><i
-            class="fas fa-terminal"></i></button>
-        <div *ngIf="detailedRow === row">
-          <div id="chart_div"></div>
-        </div>
+        <span class="h4 py-0">{{row.workflow.name}}</span>
+        <button class="btn btn-link" (click)="consoleOut(row)"><i class="fas fa-terminal"></i></button>
+        <pre>{{row.workflow.inputs | json}}</pre>
+      </td>
+      <td class="graph-container">
+        <ngx-graph [links]="row.links" [nodes]="row.nodes" [autoZoom]="true" [draggingEnabled]="false"
+          [autoCenter]="true">
+          <ng-template #defsTemplate>
+            <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="4"
+              orient="auto">
+              <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
+            </svg:marker>
+          </ng-template>
+
+          <ng-template #nodeTemplate let-node>
+            <svg:g class="node">
+              <svg:rect *ngIf="!node.isDecider" [attr.width]="node.dimension.width"
+                [attr.height]="node.dimension.height" [attr.fill]="node.color" />
+              <svg:circle *ngIf="node.isDecider" [attr.cx]="node.dimension.width / 2"
+                [attr.cy]="node.dimension.height / 2" [attr.r]="node.dimension.width / 2" [attr.fill]="node.color" />
+              <svg:text alignment-baseline="central" [attr.x]="10" [attr.y]="node.dimension.height / 2">
+                {{node.label}}
+              </svg:text>
+            </svg:g>
+          </ng-template>
+
+          <ng-template #linkTemplate let-link>
+            <svg:g class="edge">
+              <svg:path class="line" stroke-width="2" marker-end="url(#arrow)"></svg:path>
+              <svg:text class="edge-label" text-anchor="middle">
+                <textPath class="text-path" [attr.href]="'#' + link.id"
+                  [style.dominant-baseline]="link.dominantBaseline" startOffset="50%">
+                  {{link.label}}
+                </textPath>
+              </svg:text>
+            </svg:g>
+          </ng-template>
+        </ngx-graph>
       </td>
       <td>
-        <pre>{{row.task.inputs | json}}</pre>
-      </td>
-      <td>
-        <div *ngFor="let execution of row.executions" (click)="showDetails(execution)">
-          <span class="text-muted mr-2">{{execution.time | shortTime}}</span><span
-            class="{{execution.status === 200 ? 'text-success' : (execution.status === 400 ? 'text-danger' : 'text-info')}}">{{execution.status}}</span>
-        </div>
-      </td>
-      <td>
-        <button class="btn btn-success" *ngIf="row.shouldShowStart" (click)="start(row)"><i
+        <button class="btn btn-success" *ngIf="row.canStart" (click)="start(row)"><i
             class="fas fa-play pr-2"></i>Start</button>
-        <button class="btn btn-danger" *ngIf="row.shouldShowStop" (click)="stop(row)"><i
-            class="fas fa-spinner fa-spin px-2"></i>Stop</button>
+
+        <button class="btn btn-success" *ngIf="row.canRetry" (click)="retry(row)"><i
+            class="fas fa-retweet pr-2"></i>Retry</button>
+        <button class="btn btn-primary" *ngIf="row.canReload" (click)="refresh(row)"><i
+            class="fas fa-sync-alt pr-2"></i> Reload</button>
+
+        <!-- <button class="btn btn-danger" *ngIf="row.shouldShowStop" (click)="stop(row)"><i
+            class="fas fa-spinner fa-spin px-2"></i>Stop</button> -->
       </td>
     </tr>
   </tbody>
