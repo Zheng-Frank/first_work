@@ -2650,5 +2650,170 @@ export class DbScriptsComponent implements OnInit {
     }
   }
 
+  async calculateDomainValue() {
+
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        updatedAt: 1,
+        'web.qmenuWebsite': 1,
+        disabled: 1,
+        alias: 1,
+        score: 1,
+      },
+      limit: 6000
+    }).toPromise();
+
+    const goodList = [];
+    const badList = [];
+    //restaurants.length = 20;
+
+    for (let r of restaurants) {
+      if (r.disabled || !r.web || !r.web.qmenuWebsite || r.web.qmenuWebsite.startsWith('https') || r.web.qmenuWebsite.indexOf('qmenu.us') > 0) {
+        continue;
+      }
+      const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {
+          restaurant: {
+            $oid: r._id
+          }
+        },
+        projection: {
+          createdAt: 1
+        },
+        sort: { createdAt: -1 },
+        limit: 300
+      }).toPromise();
+
+      const now = new Date().valueOf();
+      const sixBuckets = Array(6).fill(0).map((i, index) => now - (index + 1) * 30 * 24 * 3600 * 1000).map(time => ({
+        threshold: time,
+        count: 0
+      }));
+
+      orders.map(order => {
+        for (let i = 0; i < sixBuckets.length; i++) {
+          const createdAt = new Date(order.createdAt || 0).valueOf();
+          if (createdAt > sixBuckets[i].threshold) {
+            sixBuckets[i].count = sixBuckets[i].count + 1;
+            break;
+          }
+        }
+      });
+
+      console.log(r.name);
+      console.log(sixBuckets);
+
+      const sixMonthsTotal = sixBuckets.reduce((sum, bucket) => sum + bucket.count, 0) > 30;
+      const last3MonthGreaterThan10 = sixBuckets[0].count + sixBuckets[1].count + sixBuckets[2].count >= 6;
+
+      const extractDomain = function (url) {
+        return url.replace('http://', '').replace('www.', '').toLowerCase().split('/')[0];
+      };
+      const item = {
+        domain: extractDomain(r.web.qmenuWebsite),
+        name: r.name,
+        id: r._id,
+        restaurant: r
+      };
+      if (sixMonthsTotal && last3MonthGreaterThan10) {
+        goodList.push(item);
+      } else {
+        badList.push(item);
+      }
+
+    }
+
+    goodList.sort((i1, i2) => i1.domain > i2.domain ? 1 : -1);
+
+
+    console.log('good list:');
+    console.log(goodList);
+    console.log('bad list:');
+    console.log(badList);
+
+    const migrationDomains = await this._api.get(environment.adminApiUrl + 'generic', {
+      resource: 'migration',
+      query: {
+        // "steps.0.executions.0": { $exists: true },
+        // "shrinked": { $exists: false }
+      },
+      projection: {
+        domain: 1
+      },
+      limit: 8000
+    }).toPromise();
+
+    const filteredGoodList = goodList.filter(each => !migrationDomains.some(migration => migration.domain === each.domain));
+    const existingGoodList = goodList.filter(each => migrationDomains.some(migration => migration.domain === each.domain));
+    console.log('filteredGoodList', filteredGoodList);
+    console.log('existingGoodList', existingGoodList);
+
+    const valuableMigrations = filteredGoodList.map(each => (
+      {
+        domain: each.domain,
+        steps: steps,
+        restaurant: each.restaurant
+      }
+    ));
+
+    console.log(valuableMigrations);
+    await this._api.post(environment.adminApiUrl + 'generic?resource=migration', valuableMigrations).toPromise();
+
+
+  }
+
 }
+
+
+const steps = [
+  {
+    name: 'sendCode',
+    payload: ['domain']
+  },
+  {
+    name: 'getCode',
+    payload: ['domain'],
+  },
+  {
+    name: 'transferDomain',
+    payload: ['domain', 'authCode'],
+  },
+  {
+    name: 'checkTransferDomain',
+    payload: ['OperationId'],
+  },
+  {
+    name: 'transferS3',
+    payload: ['domain'],
+  },
+  {
+    name: 'requestCertificate',
+    payload: ['domain'],
+  },
+  {
+    name: 'checkCertificate',
+    payload: ['domain', 'certificateARN'],
+  },
+  {
+    name: 'createCloudFront',
+    payload: ['domain', 'certificateARN'],
+  },
+  {
+    name: 'checkCloudFront',
+    payload: ['domain', 'distributionId'],
+  },
+  {
+    name: 'validateWebsite',
+    payload: ['domain'],
+  },
+
+  {
+    name: 'setEmail',
+    payload: ['domain'],
+  },
+];
+
 

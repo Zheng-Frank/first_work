@@ -35,14 +35,14 @@ export class AwsMigrationComponent implements OnInit {
 
   processScore(score) {
     // fresh rows
-    // const toBeProcessedRows = this.rows.filter(row => row.restaurant.score <= score && !row.result && !row.steps.some(step => step.executions && step.executions.length > 0));
+    const toBeProcessedRows = this.rows.filter(row => !row.result && !row.steps.some(step => step.executions && step.executions.length > 0));
 
     // halfway done
-    const toBeProcessedRows = this.rows.filter(row => !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
+    // const toBeProcessedRows = this.rows.filter(row => !row.result && row.steps.some(step => step.executions && step.executions.length > 0));
 
     console.log(toBeProcessedRows);
-    if (toBeProcessedRows.length > 400) {
-      toBeProcessedRows.length = 400;
+    if (toBeProcessedRows.length > 200) {
+      toBeProcessedRows.length = 200;
     }
     this.myQueue.push(...toBeProcessedRows);
   }
