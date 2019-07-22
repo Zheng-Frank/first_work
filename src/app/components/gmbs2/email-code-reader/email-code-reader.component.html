@@ -41,5 +41,29 @@
       Website to Godaddy</button>
     <button class="btn btn-primary" (click)="clickRetrieve()" [qLoading]="apiRequesting">Retrieve
       Verification Code</button>
+
+    <div class="alert alert-danger my-2 text-left">
+      <h4>Temporary Feature （临时，请慎用）</h4>
+
+      <div class="form-group">
+        <label class="col-form-label">1. Enter Domain to Purchase</label>
+      </div>
+      <input type="text" [(ngModel)]="domain" class="form-control mt-1" placeholder="some-domain.com">
+      <div class="form-group">
+        <label class="col-form-label">2. Make Sure You've Selected a Website Template</label>
+      </div>
+      <div class="form-group">
+        <label class="col-form-label">3. Submit a Workflow</label>
+        <div>
+          <button class="btn btn-primary" (click)="createWebsite()">Create Website Workflow</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-form-label">4. Visit the Workflow</label>
+        <div>
+          <a href="#/automation2">Visit Workflow Page</a>
+        </div>
+      </div>
+    </div>
   </div>
 </ng-container>

@@ -275,24 +275,38 @@ export class MyRestaurantComponent implements OnInit {
       }
     });
 
+    let invoices = [];
+    let skip = 0;
+    const limit = 10000;
 
-    let invoices = (await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'invoice',
-      query: {
-        isCanceled: { $ne: true }
-      },
-      projection: {
-        isCanceled: 1,
-        commission: 1,
-        fromDate: 1,
-        toDate: 1,
-        isPaymentCompleted: 1,
-        "restaurant.id": 1,
-        previousInvoiceId: 1,
-        //previousBalance: 1
-      },
-      limit: 200000
-    }).toPromise()).map(i => new Invoice(i));
+    while (true) {
+      const batchInvoices = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        query: {
+          isCanceled: { $ne: true }
+        },
+        projection: {
+          isCanceled: 1,
+          commission: 1,
+          fromDate: 1,
+          toDate: 1,
+          isPaymentCompleted: 1,
+          "restaurant.id": 1,
+          previousInvoiceId: 1,
+          //previousBalance: 1
+        },
+        skip: skip,
+        limit: limit
+      }).toPromise()).map(i => new Invoice(i));
+      skip += batchInvoices.length;
+
+      invoices.push(...batchInvoices);
+
+      if (batchInvoices.length < limit) {
+        break;
+      }
+    }
+
     invoices = invoices.filter(i => !i.isCanceled).filter(i => restaurantRowMap[i.restaurant.id]);
     invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(i));
 
@@ -372,7 +386,7 @@ export class MyRestaurantComponent implements OnInit {
 
     this.hadGainedTotal = this.rows.reduce((sum, a) => sum + (a.gmbOnceOwned || 0), 0);
     this.currentPublishedTotal = this.rows.reduce((sum, a) => sum + (a.published || 0), 0);
-    
+
     this.rows.map(row => {
       let month = (new Date(row.restaurant.createdAt)).getMonth() + 1;
       let year = (new Date(row.restaurant.createdAt)).getFullYear();
@@ -392,8 +406,8 @@ export class MyRestaurantComponent implements OnInit {
         })
       } else {
         let newItem = { month: eachListingDate.month, rts: 1 };
-          newItem["gmbGained"] = row.gmbOnceOwned ? 1 : 0
-          newItem["published"] = row.published ? 1 : 0;
+        newItem["gmbGained"] = row.gmbOnceOwned ? 1 : 0
+        newItem["published"] = row.published ? 1 : 0;
 
         this.result.push(newItem);
 

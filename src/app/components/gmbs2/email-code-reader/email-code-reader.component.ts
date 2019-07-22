@@ -60,7 +60,7 @@ export class EmailCodeReaderComponent implements OnInit {
 
     this.restaurant.web = this.restaurant.web || {};
     this.restaurant.web.qmenuWebsite = aliasUrl;
-    
+
   }
 
 
@@ -184,6 +184,30 @@ export class EmailCodeReaderComponent implements OnInit {
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Failed: ' + JSON.stringify(error));
     }
+  }
+
+  domain;
+
+  async createWebsite() {
+    const domain = this.domain;
+    const templateName = this.restaurant.web.templateName;
+    const restaurantId = this.restaurant._id;
+    console.log(domain);
+    console.log(templateName);
+    console.log(restaurantId);
+    if (!domain || !templateName || !restaurantId) {
+      return alert('Need Domain Name and Website Template');
+    }
+
+    const postBody = {
+      templateName: 'create-website',
+      inputs: { domain, restaurantId, templateName }
+    };
+    console.log(postBody);
+    const result = await this._api.post(environment.appApiUrl + 'workflows/templates', postBody).toPromise();
+
+    alert('Workflow created! Please visit workflows to start.');
+
   }
 
 }
