@@ -135,6 +135,7 @@ import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
 import { AutomationDashboard2Component } from './components/automation/automation-dashboard2/automation-dashboard2.component';
 
+import { NgxGraphModule } from '@swimlane/ngx-graph';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -261,7 +262,8 @@ import { AutomationDashboard2Component } from './components/automation/automatio
     HttpModule,
     UiModule,
     OwlDateTimeModule,
-    OwlNativeDateTimeModule
+    OwlNativeDateTimeModule,
+    NgxGraphModule
   ],
   providers: [
     GlobalService,
