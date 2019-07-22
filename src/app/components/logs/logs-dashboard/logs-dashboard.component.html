@@ -14,13 +14,18 @@
         </label>
 
         <label style="padding-left: 15px">
-            <input type="checkbox" [(ngModel)]="adjustmentOnly" (change)="filterByAgent()">&nbsp;Only Adjustments
+            <input type="checkbox" [(ngModel)]="adjustmentOnly" (change)="filterBySelection()">&nbsp;Only Adjustments
         </label>
 
         <label class="mr-2" style="padding-left: 15px"> Agent:</label>
-        <select [(ngModel)]="agent" (change)="filterByAgent()">
+        <select [(ngModel)]="agent" (change)="filterBySelection()">
             <option>All</option>
             <option *ngFor="let agent of agentList">{{agent}}</option>
+        </select>
+        <label class="mr-2" style="padding-left: 15px"> Log Type:</label>
+        <select [(ngModel)]="type" (change)="filterBySelection()">
+            <option>All</option>
+            <option *ngFor="let type of logTypes">{{type}}</option>
         </select>
     </div>
     <div class="float-right">

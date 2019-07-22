@@ -92,6 +92,10 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   ngOnInit() {
   }
 
+  isAdmin(){
+    return this._global.user.roles.some(r => r ==='ADMIN');
+  }
+
   ngOnChanges(params) {
     // console.log(params);
   }

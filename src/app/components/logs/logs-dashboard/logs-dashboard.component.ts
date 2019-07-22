@@ -23,10 +23,12 @@ export class LogsDashboardComponent implements OnInit {
   unresolvedOnly = false;
   adjustmentOnly = false;
   agent;
+  type;
 
   filteredRestaurantLogs = [];
   logsList;
   agentList = [];
+  logTypes = [];
 
 
   logInEditing = new Log();
@@ -60,7 +62,7 @@ export class LogsDashboardComponent implements OnInit {
         projection: {
           name: 1,
           alias: 1,
-          logs:  { $slice: -5 },
+          logs: { $slice: -5 },
           logo: 1,
           channels: 1,
           "googleAddress.formatted_address": 1
@@ -144,7 +146,9 @@ export class LogsDashboardComponent implements OnInit {
     this.filteredRestaurantLogs.sort((rl1, rl2) => (rl2.log.time || new Date(0)).valueOf() - (rl1.log.time || new Date(0)).valueOf());
     this.logsList = this.filteredRestaurantLogs;
     this.agentList = this.filteredRestaurantLogs.map(l => l.log.username);
+    this.logTypes = this.filteredRestaurantLogs.map(l => l.log.type);
     this.agentList = Array.from(new Set(this.agentList)).sort().filter(e => e != null);
+    this.logTypes = Array.from(new Set(this.logTypes)).sort().filter(e => e != null);
 
   }
 
@@ -156,17 +160,21 @@ export class LogsDashboardComponent implements OnInit {
     this.computeFilteredLogs();
   }
 
-  filterByAgent() {
+  filterBySelection() {
+    let filteredResult = this.filteredRestaurantLogs;
     if (this.agent && this.agent !== "All") {
-      this.logsList = this.filteredRestaurantLogs.filter(l => l.log.username === this.agent);
+      filteredResult = this.filteredRestaurantLogs.filter(l => l.log.username === this.agent);
     }
-    else if (this.adjustmentOnly) {
-      this.logsList = this.filteredRestaurantLogs.filter(l => l.log.adjustmentAmount);
+    if (this.adjustmentOnly) {
+      filteredResult = this.filteredRestaurantLogs.filter(l => l.log.adjustmentAmount);
     }
-    else {
-      this.logsList = this.filteredRestaurantLogs
+    if (this.type && this.type !== "All") {
+      filteredResult = this.filteredRestaurantLogs.filter(l => l.log.type === this.type);
     }
+    this.logsList = filteredResult;
+
   }
+
 
   getAddress(restaurant) {
     if (restaurant.googleAddress && restaurant.googleAddress.formatted_address) {

@@ -160,7 +160,31 @@ export class EmailCodeReaderComponent implements OnInit {
     }
   }
 
+  async injectWebsiteAws() {
 
+    try {
+      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
+      const templateName = this.restaurant.web.templateName;
+
+      if (!templateName || !domain) {
+        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
+      }
+
+      if (domain.indexOf('qmenu.us') >= 0) {
+        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
+      }
+
+      await this._api.post(environment.migrationUrl + 'buildS3', {
+        domain: domain,
+        templateName: this.restaurant.web.templateName,
+        restaurantId: this.restaurant._id
+      }).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success');
+
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Failed: ' + JSON.stringify(error));
+    }
+  }
 
 }
 
