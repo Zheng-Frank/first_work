@@ -68,7 +68,7 @@ export class OrderCardComponent implements OnInit {
   canShowCreditCard(order: Order) {
     // 1000 * 3600 * 24 * 10, 10 days
     //return true;
-    return order.payment.paymentType === 'CREDITCARD';
+    return order.payment.paymentType === 'CREDITCARD' && this.isAdmin();
   }
 
   canSendEmail(order: Order) {
@@ -228,5 +228,9 @@ export class OrderCardComponent implements OnInit {
     // status are not completed, not canceled, and time is not over 2 days
     // 1000 * 3600 * 48 = 172800000
     return order.statusEqual('CANCELED');
+  }
+
+  isAdmin(){
+    return this._global.user.roles.some(r => r ==='ADMIN');
   }
 }

@@ -136,12 +136,11 @@ export class MyRestaurantComponent implements OnInit {
   ];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
-
   }
 
 
   async ngOnInit() {
-    this.isSuperUser = ['gary', 'chris', 'mo'].indexOf(this._global.user.username) >= 0;
+    this.isSuperUser = ['gary', 'chris', 'mo', 'ivy'].indexOf(this._global.user.username) >= 0;
     this.username = this._global.user.username;
     this.usernames = [this.username];
     if (this.isSuperUser) {
