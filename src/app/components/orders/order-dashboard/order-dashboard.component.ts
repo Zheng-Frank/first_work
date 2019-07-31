@@ -93,7 +93,7 @@ export class OrderDashboardComponent implements OnInit {
           restaurant: 1,
           createdAt: 1,
           orderNumber: 1,
-          standalone: 1
+          'runtime.standalone': 1
         },
         limit: 10000
       }),
@@ -172,33 +172,47 @@ export class OrderDashboardComponent implements OnInit {
         ).length;
 
 
-      
+
         const promoOrders = orders.filter(o => restaurantMap[o.restaurant] && restaurantMap[o.restaurant].restaurant.promotions && restaurantMap[o.restaurant].restaurant.promotions.length > 0);
         console.log(promoOrders);
         const promoRtSet = new Set(promoOrders.map(o => o.restaurant));
         console.log(promoRtSet.size);
 
-        
+
+        // rows.orders contains 24 hours orders only.
 
         this.standaloneOrders = this.rows
-          .map(row => row.orders.filter(order => order.standalone).length)
+          .map(row => row.orders.filter(order => order.runtime && order.runtime.standalone).length)
           .reduce((sum, num) => num + sum, 0);
 
-        this.httpsOrders = this.rows
+        const httpsRows = this.rows
           .filter(row => {
             const rt = row.restaurant;
             return rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.startsWith('https') && rt.web.qmenuWebsite.indexOf('qmenu') < 0;
-          })
+          });
+        this.httpsOrders = httpsRows
           .map(row => row.orders.length)
           .reduce((sum, num) => num + sum, 0);
+        console.log('httpsRows', httpsRows);
 
-        this.qmenuDirectOrders = this.rows
+        const qmenuDirectRows = this.rows
           .filter(row => {
             const rt = row.restaurant;
             return rt.googleListing && rt.googleListing.gmbWebsite && rt.googleListing.gmbWebsite.indexOf('qmenu') > 0;
-          })
+          });
+        this.qmenuDirectOrders = qmenuDirectRows
           .map(row => row.orders.length)
           .reduce((sum, num) => num + sum, 0);
+        console.log('qmenuDirectRows', qmenuDirectRows);
+
+        const httpRows = this.rows
+        .filter(row => {
+          const rt = row.restaurant;
+          return rt.web && rt.web.qmenuWebsite && !rt.web.qmenuWebsite.startsWith('https');
+        });
+        console.log('httpRows', httpRows);
+
+
         // stats of agents
         const agentDict = {};
         this.rows.map(row => {
