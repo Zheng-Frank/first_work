@@ -174,7 +174,7 @@ export class EmailCodeReaderComponent implements OnInit {
         return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
       }
 
-      await this._api.post(environment.migrationUrl + 'buildS3', {
+      await this._api.post(environment.migrationUrl + 'buildinvalidates3', {
         domain: domain,
         templateName: this.restaurant.web.templateName,
         restaurantId: this.restaurant._id
