@@ -66,7 +66,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           type: 1,
           allLocations: 1
         },
-        limit: 5000
+        limit: 7000
       }),
       this._api.get(environment.adminApiUrl + "generic", {
         resource: "task",
@@ -79,7 +79,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           'transfer.toEmail': 1,
           'transfer.requestedAt': 1
         },
-        limit: 5000
+        limit: 7000
       })
 
     )

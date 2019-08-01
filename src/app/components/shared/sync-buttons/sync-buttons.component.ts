@@ -37,7 +37,7 @@ export class SyncButtonsComponent implements OnInit {
           address: 1,
           channels: 1
         },
-        limit: 5000
+        limit: 7000
       })
     ).subscribe(
       result => {
@@ -151,7 +151,7 @@ export class SyncButtonsComponent implements OnInit {
           restaurantId: 1,
           gmbAccountOwner: 1
         },
-        limit: 5000
+        limit: 7000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmb",

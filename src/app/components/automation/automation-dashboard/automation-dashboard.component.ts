@@ -558,7 +558,7 @@ export class AutomationDashboardComponent implements OnInit {
         name: 'Appeal Suspended GMB',
         result: null
       },
-      limit: 5000
+      limit: 7000
     }).toPromise();
 
     console.log(openAppealTasks.length);

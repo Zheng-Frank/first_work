@@ -109,7 +109,7 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
             previousInvoiceId: 1,
             previousBalance: 1
           },
-          limit: 5000
+          limit: 7000
         }).toPromise()).map(i => new Invoice(i));
 
         this.invoices = (this.invoices || []).filter(each => !each.isCanceled);

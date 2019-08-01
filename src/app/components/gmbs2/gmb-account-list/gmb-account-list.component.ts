@@ -67,7 +67,7 @@ export class GmbAccountListComponent implements OnInit {
         "locations.name": 1,
         "locations.address": 1
       },
-      limit: 5000
+      limit: 7000
     }).toPromise();
 
     // add 24 hours suspended and duplicate!

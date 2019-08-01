@@ -34,7 +34,7 @@ export class SystemDashboardComponent implements OnInit {
         channels: 1,
         name: 1
       },
-      limit: 5000
+      limit: 7000
     }).subscribe(restaurants => {
       let phoneRestaurantsDict = {};
 
@@ -65,7 +65,7 @@ export class SystemDashboardComponent implements OnInit {
         googleAddress: 1,
         name: 1
       },
-      limit: 5000
+      limit: 7000
     }).subscribe(restaurants => {
       console.log(restaurants.length);
       let states = restaurants
@@ -306,7 +306,7 @@ export class SystemDashboardComponent implements OnInit {
         "googleAddress.lng": 1,
         "googleAddress.administrative_area_level_1": 1
       },
-      limit: 5000
+      limit: 7000
     }).toPromise();
     console.log(restaurants);
     FileSaver.saveAs(new Blob([JSON.stringify(restaurants)], { type: "text" }), 'data.txt');
@@ -324,7 +324,7 @@ export class SystemDashboardComponent implements OnInit {
         channels: 1,
         name: 1
       },
-      limit: 5000
+      limit: 7000
     }).toPromise();
     console.log(restaurants.length);
 

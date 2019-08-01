@@ -78,7 +78,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         published: 1,
         type: 1
       },
-      limit: 5000
+      limit: 7000
     }).toPromise();
 
 
