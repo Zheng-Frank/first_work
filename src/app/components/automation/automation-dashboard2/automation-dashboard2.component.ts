@@ -10,7 +10,10 @@ import { AlertType } from 'src/app/classes/alert-type';
 })
 export class AutomationDashboard2Component implements OnInit {
 
+  statusOptions = ['NEW', 'HALFWAY', 'COMPLETED'];
+  selectedStatus = 'NEW';
   rows = [];
+  workflows = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.loadWorkflows();
   }
@@ -18,18 +21,57 @@ export class AutomationDashboard2Component implements OnInit {
   ngOnInit() {
   }
 
-  async loadWorkflows() {
-    const workflows = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      query: {},
-      resource: 'workflow',
-      limit: 8000
-    }).toPromise();
-    workflows.sort((w1, w2) => (w2.createdAt || 0) - (w1.createdAt || 0));
-    this.rows = workflows.map(wf => ({
+  async changeFilter() {
+    this.rows = this.workflows.filter(wf => {
+      const blocks = wf.blocks || [];
+      const flows = wf.flows || [];
+      const leafBlocks = blocks.filter(b => !flows.some(f => f.from === b.id));
+      switch (this.selectedStatus) {
+        case 'NEW':
+          return blocks.every(b => (b.executions || []).length === 0);
+        case 'HALFWAY':
+          // some leaf block is not yet completed or executed
+          const someLeafNotCompleted = leafBlocks.some(b => (b.executions || []).length === 0 || b.executions[b.executions.length - 1].status !== 200);
+          const started = blocks.some(b => (b.executions || []).length > 0);
+          return started && someLeafNotCompleted;
+
+        case 'COMPLETED':
+          // completed: every leaf block's last execution is 200
+          return leafBlocks.every(b => (b.executions || []).length > 0 && b.executions[b.executions.length - 1].status === 200);
+        default:
+          return true;
+      }
+    }).map(wf => ({
       workflow: wf
     }));
 
     this.computeRowStatuses();
+  }
+
+
+  async loadWorkflows() {
+    const workflows = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      query: {},
+      resource: 'workflow',
+      projection: {
+        id: 1,
+        name: 1,
+        inputs: 1,
+        "blocks.id": 1,
+        "blocks.name": 1,
+        "blocks.type": 1,
+        "blocks.executions.status": 1,
+        "flows.from": 1,
+        "flows.to": 1,
+        "flows.if": 1,
+        "flows.executions.status": 1,
+        createdAt: 1
+      },
+      limit: 8000
+    }).toPromise();
+    workflows.sort((w1, w2) => (w2.createdAt || 0) - (w1.createdAt || 0));
+    this.workflows = workflows;
+    this.changeFilter();
 
   }
 
@@ -89,7 +131,8 @@ export class AutomationDashboard2Component implements OnInit {
 
   }
 
-  consoleOut(taskRow) {
+  async consoleOut(taskRow) {
+    await this.refresh(taskRow);
     console.log(taskRow.workflow);
     this._global.publishAlert(AlertType.Info, 'Check console for details');
   }
@@ -124,6 +167,7 @@ export class AutomationDashboard2Component implements OnInit {
   }
 
   async retry(row) {
+    await this.refresh(row);
     // re-activate each executor???
     const lastFailedBlocks = row.workflow.blocks.filter(b => b.executions && b.executions.length > 0 && b.executions.slice(-1)[0].status && b.executions.slice(-1)[0].status !== 200);
     // post a new execution events!
@@ -213,24 +257,32 @@ export class AutomationDashboard2Component implements OnInit {
     }, 1000);
   }
 
+
+
   async refresh(row) {
-    const workflowFromDb = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const workflowId = row.workflow._id;
+    const detailedWorkflow = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       query: {
         _id: { $oid: row.workflow._id }
       },
       resource: 'workflow',
       limit: 1
     }).toPromise())[0];
-    if (workflowFromDb) {
-      for (let i = 0; i < this.rows.length; i++) {
-        if (this.rows[i].workflow._id === workflowFromDb._id) {
-          this.rows[i].workflow = workflowFromDb;
-        }
-      }
-    }
 
+    // replace blocks and flows contents!
+    this.workflows.map(wf => {
+      if (wf._id === workflowId) {
+        (wf.blocks || []).map((b, index) => {
+          Object.assign(b, detailedWorkflow.blocks[index]);
+        });
+        (wf.flows || []).map((f, index) => {
+          Object.assign(f, detailedWorkflow.flows[index]);
+        });
+      }
+    });
     this.computeRowStatuses();
     return row;
+
   }
 
 }

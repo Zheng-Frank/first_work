@@ -1,6 +1,13 @@
-<h1 class="text-center">Workflows</h1>
+<h1 class="text-center">Workflows ({{rows.length}})</h1>
+<div class="text-center">
+  <select class="form-control d-inline w-auto" [(ngModel)]="selectedStatus" (change)="changeFilter()">
+    <option *ngFor="let status of statusOptions" value="{{status}}">{{status}}</option>
+  </select>
+</div>
 
-<div class="text-right pb-2">
+
+<div class="pb-2 text-right">
+
   <button class="btn btn-primary" (click)="loadWorkflows()"><i class="fas fa-sync-alt"></i> Reload</button>
 </div>
 
