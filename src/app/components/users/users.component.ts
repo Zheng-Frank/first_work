@@ -23,7 +23,7 @@ export class UsersComponent implements OnInit {
 
 
   existingUsernameItems = [];
-  existingRoleItems = ['ACCOUNTANT', 'ADMIN', 'CSR', 'DRIVER', 'GMB','GMB_SPECIALIST', 'INVOICE_VIEWER', 'MARKETER', 'MARKETING_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR'].map(role => ({
+  existingRoleItems = ['ACCOUNTANT', 'ADMIN', 'CSR', 'DRIVER', 'GMB', 'GMB_SPECIALIST', 'INVOICE_VIEWER', 'MARKETER', 'MARKETING_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR'].map(role => ({
     text: role,
     object: role
   }));
@@ -98,6 +98,12 @@ export class UsersComponent implements OnInit {
       minSelection: 0,
       maxSelection: 100,
       items: this.existingRoleItems
+    },
+    {
+      field: 'disabled',
+      label: 'Disabled',
+      inputType: 'checkbox',
+      required: false,
     }
     ];
 
