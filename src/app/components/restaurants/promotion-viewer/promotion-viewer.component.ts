@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import { Promotion } from '@qmenu/ui';
 
 @Component({
@@ -14,17 +14,24 @@ export class PromotionViewerComponent implements OnInit {
   @Input() offsetToEST: number;
   @Output() onEdit = new EventEmitter();
 
+  excludedString;
+
   constructor() { }
 
   ngOnInit() {
   }
 
-  edit() {
-    this.onEdit.emit(this.promotion);
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.promotion) {
+      const excludedMenuNames = (this.promotion.excludedMenuIds || []).map(id => (this.menus.filter(m => m.id === id)[0] || {}).name);
+      const excludedOrderTypes = this.promotion.excludedOrderTypes || [];
+      const excludedPlatforms = this.promotion.excludedPlatforms || [];
+      this.excludedString = [...excludedMenuNames, ...excludedOrderTypes, ...excludedPlatforms].join(', ');
+    }
   }
 
-  getExcludedMenus() {
-    return (this.promotion.excludedMenuIds || []).map(id => (this.menus.filter(m => m.id === id)[0] || {}).name).join(', ');
+  edit() {
+    this.onEdit.emit(this.promotion);
   }
 
 }
