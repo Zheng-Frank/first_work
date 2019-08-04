@@ -53,7 +53,7 @@ export class MonitoringOnboardingComponent implements OnInit {
     restaurantsWithoutAnyOrder.map(r => { dict[r._id] = dict[r._id] || { restaurant: r }; dict[r._id].noOrder = true; });
 
     const cids = Object.keys(dict).map(k => dict[k]).filter(r => r.restaurant.googleListing).map(r => r.restaurant.googleListing.cid);
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       // query: {
       //   "locations.cid": { $in: cids }

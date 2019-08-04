@@ -67,7 +67,7 @@ export class Gmb3Service {
   }
 
   async scanOneAccountForLocations(email, stayAfterScan) {
-    const account = (await this._api.get(environment.adminApiUrl + 'generic', {
+    const account = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         email: email
@@ -88,7 +88,7 @@ export class Gmb3Service {
     //throw "stop";
     let password = account.password;
     if (password.length > 20) {
-      password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
+      password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
     }
     const scanResult = await this._api.post(environment.autoGmbUrl + 'scanLocations3', { email: email, password: password, appealIdsToSkipDetails: appealIdsToSkipDetails, stayAfterScan: stayAfterScan }).toPromise();
     const scannedLocations = scanResult.locations;
@@ -140,7 +140,7 @@ export class Gmb3Service {
       loc.statusHistory = loc.statusHistory.filter((h, index) => h.status !== (loc.statusHistory[index + 1] || {}).status);
     });
 
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', [
       {
         old: { _id: account._id },
         new: { _id: account._id, gmbScannedAt: { $date: new Date() }, locations: updatedLocations, pagerSize: scanResult.pagerSize, allLocations: scanResult.allLocations, published: scanResult.published, suspended: scanResult.suspended }
@@ -155,7 +155,7 @@ export class Gmb3Service {
   }
 
   async scanOneEmailForGmbRequests(email, stayAfterScan) {
-    const account = (await this._api.get(environment.adminApiUrl + 'generic', {
+    const account = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         email: email,
@@ -173,7 +173,7 @@ export class Gmb3Service {
     const daysAgo15 = new Date();
     daysAgo15.setDate(daysAgo15.getDate() - 15);
 
-    const existingRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+    const existingRequests = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbRequest',
       query: {
         gmbAccountId: account._id,
@@ -197,7 +197,7 @@ export class Gmb3Service {
     let password = account.password;
 
     if (password.length > 20) {
-      password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
+      password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
     }
 
     // scan locations
@@ -217,7 +217,7 @@ export class Gmb3Service {
     // if we didn't find a match, skip it. This may due to outdated account scan (gmbBiz doesn't register yet)
 
     // get existing gmbBizList to match for
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         name: 1,
@@ -273,14 +273,14 @@ export class Gmb3Service {
 
     if (matchedItems.length > 0) {
       this._global.publishAlert(AlertType.Success, 'Found new' + matchedItems.length);
-      await this._api.post(environment.adminApiUrl + 'generic?resource=gmbRequest', matchedItems).toPromise();
+      await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbRequest', matchedItems).toPromise();
     }
 
     if (nonMatchedItems.length > 0) {
       this._global.publishAlert(AlertType.Danger, 'Not matched requests: ' + nonMatchedItems.length);
       console.log(nonMatchedItems);
     }
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', [
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', [
       {
         old: { _id: account._id },
         new: { _id: account._id, emailScannedAt: { $date: new Date() } }
@@ -292,7 +292,7 @@ export class Gmb3Service {
   }
 
   async loginEmailAccount(email, stayAfterScan) {
-    const account = (await this._api.get(environment.adminApiUrl + 'generic', {
+    const account = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         email: email
@@ -309,14 +309,14 @@ export class Gmb3Service {
     let password = account.password;
 
     if (password.length > 20) {
-      password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
+      password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: account.email, phrase: password }).toPromise();
     }
     await this._api.post(environment.autoGmbUrl + 'login', { email: account.email, password: password, stayAfterScan: stayAfterScan }).toPromise();
 
   }
   async computePostcardTasksThatJustLost() {
     // transfer tasks that are NOT in original accounts anymore!
-    const runningTransferTasksWithCode = await this._api.get(environment.adminApiUrl + 'generic', {
+    const runningTransferTasksWithCode = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Transfer GMB Ownership',
@@ -328,7 +328,7 @@ export class Gmb3Service {
 
     console.log('runningTransferTasksWithCode', runningTransferTasksWithCode);
 
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         email: 1,
@@ -360,7 +360,7 @@ export class Gmb3Service {
         }
       })));
 
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', pairs).toPromise();
     }
     return lostList;
   }
@@ -368,7 +368,7 @@ export class Gmb3Service {
   /**This will pull restaurant (non-disabled), current accounts, current gmbBiz list to determin what's missing and create stubs */
   async generateMissingGmbBizListings() {
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: { cid: 1 },
       limit: 6000
@@ -392,7 +392,7 @@ export class Gmb3Service {
     const restaurantCidNamePairs = restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => ({ name: r.name, cid: r.googleListing.cid }));
     console.log('restaurantCidNamePairs', restaurantCidNamePairs);
 
-    const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         "locations.cid": 1,
@@ -417,7 +417,7 @@ export class Gmb3Service {
 
     // create gmbBiz
 
-    await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', uniquePairs).toPromise();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbBiz', uniquePairs).toPromise();
 
   }
 
@@ -462,7 +462,7 @@ export class Gmb3Service {
 
     });
 
-    await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", patchPairs).toPromise();
+    await this._api.patch(environment.qmenuApiUrl + "generic?resource=gmbBiz", patchPairs).toPromise();
 
     // save to original
     gmbBizList.map((gmbBiz, index) => {
@@ -505,7 +505,7 @@ export class Gmb3Service {
     // we would also like to patch gmbBiz with same cids! (considering scan is more expensive than retrieving out own database)
     const resultsWithCids = results.filter(result => result && result.cid);
     if (resultsWithCids.length > 0) {
-      let gmbBizWithSameCids = await this._api.get(environment.adminApiUrl + 'generic', {
+      let gmbBizWithSameCids = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
         projection: {
           cid: 1
@@ -535,7 +535,7 @@ export class Gmb3Service {
 
           return { old: oldBiz, new: newBiz };
         });
-        await this._api.patch(environment.adminApiUrl + "generic?resource=gmbBiz", bizPatchPairs).toPromise();
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=gmbBiz", bizPatchPairs).toPromise();
         console.log('update gmbBiz: ', gmbBizWithSameCids.length);
       }
     }
@@ -552,12 +552,12 @@ export class Gmb3Service {
 
     // parallelly requesting
     try {
-      const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: restaurant.name + " " + restaurant.googleAddress.formatted_address }).toPromise();
+      const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { q: restaurant.name + " " + restaurant.googleAddress.formatted_address }).toPromise();
       return result;
     } catch (error) {
       try {
         // 4016 W Washington Blvd, Los Angeles, CA 90018, USA --> CA 90018 USA
-        const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: restaurant.name + " " + restaurant.googleAddress.formatted_address.split(', ').slice(-2).join(' ') }).toPromise();
+        const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { q: restaurant.name + " " + restaurant.googleAddress.formatted_address.split(', ').slice(-2).join(' ') }).toPromise();
         return result;
       } catch (error) {
         console.log(error);
@@ -570,12 +570,12 @@ export class Gmb3Service {
 
     // parallelly requesting
     try {
-      const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name + " " + gmbBiz.address }).toPromise();
+      const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name + " " + gmbBiz.address }).toPromise();
       return result;
     } catch (error) {
       try {
         // 4016 W Washington Blvd, Los Angeles, CA 90018, USA --> CA 90018 USA
-        const result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name + " " + (gmbBiz.address || '').split(', ').slice(-2).join(' ') }).toPromise();
+        const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { ludocid: gmbBiz.cid, q: gmbBiz.name + " " + (gmbBiz.address || '').split(', ').slice(-2).join(' ') }).toPromise();
         return result;
       } catch (error) {
         console.log(error);
@@ -595,7 +595,7 @@ export class Gmb3Service {
     const randomNames = "Rosena Massaro,Jeanmarie Eynon,Burma Busby,Charlyn Wall,Daniel Carrillo,Shanon Chalker,Alberta Gorski,Steffanie Mccullen,Chanelle Stukes,Harlan Horman,Aura Fleming,Edyth Applebee,Francisco Halloway,Maryjo Isakson,Eveline Lager,Isabel Middleton,Edda Rickel,Margareta Joye,Nona Fager,Lynelle Coutee,Rasheeda Gillmore,Kiesha Padula,Maryalice Matheny,Jacqueline Danos,Alden Crossman,Corinna Edge,Cassandra Trial,Zulema Freedman,Brunilda Halberg,Jewell Pyne,Jeff Kemmerer,Rosalee Heard,Maximina Gangi,Merrie Kall,Leilani Zeringue,Bradly Backes,Samella Bleich,Barrie Whetzel,Shakia Bischof,Gregoria Neace,Denice Vowels,Carlotta Barton,Andy Saltsman,Octavia Geis,Danelle Kornreich,Danica Stanfield,Shay Nilsson,Nan Jaffee,Laraine Fritzler,Christopher Pagani";
 
     const names = randomNames.split(',').map(n => n.trim());
-    const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         email: 1,
@@ -609,7 +609,7 @@ export class Gmb3Service {
         const gmbAccount = accounts.filter(a => a._id === task.relatedMap.gmbAccountId)[0];
         let password = gmbAccount.password;
         if (password.length > 20) {
-          password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: gmbAccount.email, phrase: password }).toPromise();
+          password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: gmbAccount.email, phrase: password }).toPromise();
         }
         console.log(task)
         await this._api.post(
@@ -632,7 +632,7 @@ export class Gmb3Service {
         // postpone 21 days
         const appealedAt21 = new Date();
         appealedAt21.setDate(appealedAt.getDate() + 21);
-        await this._api.patch(environment.adminApiUrl + 'generic?resource=task', [
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', [
           {
             old: {
               _id: task._id

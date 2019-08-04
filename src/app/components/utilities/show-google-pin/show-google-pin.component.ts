@@ -37,7 +37,7 @@ export class ShowGooglePINComponent implements OnInit {
         };
 
         //Retrieve Google PIN from gmb task which having saved code
-        const codeList = await this._api.get(environment.adminApiUrl + "generic", {
+        const codeList = await this._api.get(environment.qmenuApiUrl + "generic", {
             resource: "task",
             query: {
                 "transfer.code": {
@@ -154,7 +154,7 @@ export class ShowGooglePINComponent implements OnInit {
 
     deleteRow(row) {
         // api delete here...
-        this._api.delete(environment.adminApiUrl + 'generic',
+        this._api.delete(environment.qmenuApiUrl + 'generic',
           {
             resource: 'event',
             ids: [row.id]

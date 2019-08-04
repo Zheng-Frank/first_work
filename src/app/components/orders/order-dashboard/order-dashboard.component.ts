@@ -116,7 +116,7 @@ export class OrderDashboardComponent implements OnInit {
         },
         limit: 6000
       }),
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbAccount",
         query: {
           published: { $gt: 0 }

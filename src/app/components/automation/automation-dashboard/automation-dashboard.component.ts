@@ -55,7 +55,7 @@ export class AutomationDashboardComponent implements OnInit {
 
   async start() {
 
-    // const badRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+    // const badRequests = await this._api.get(environment.qmenuApiUrl + 'generic', {
     //   resource: 'gmbRequest',
     //   query: {
     //     "gmbBizId": "5c4f56fcdd9078a346e91845"
@@ -65,7 +65,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     // console.log(badRequests);
     // badRequests.length = 1;
-    // await this._api.delete(environment.adminApiUrl + 'generic', {
+    // await this._api.delete(environment.qmenuApiUrl + 'generic', {
     //   resource: 'gmbRequest',
     //   ids: badRequests.map(r => r._id)
     // }).toPromise();
@@ -238,7 +238,7 @@ export class AutomationDashboardComponent implements OnInit {
    * 3. break, if found non-matching cid
   */
   async crawlGmbGoogleListings() {
-    let gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    let gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         cid: 1,
@@ -322,7 +322,7 @@ export class AutomationDashboardComponent implements OnInit {
   /////////////////////////////////////////////////////////////////////////////////////////
   async scanAccountsForLocations() {
 
-    let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         gmbScannedAt: 1,
@@ -372,7 +372,7 @@ export class AutomationDashboardComponent implements OnInit {
   /** scalable upto 6000 gmbBiz list */
   async scanEmailsForRequests() {
 
-    let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         emailScannedAt: 1,
@@ -444,7 +444,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log(restaurants);
 
-    let gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -459,7 +459,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts = gmbAccounts.filter(a => a.locations && a.locations.length > 0);
 
-    let gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    let gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         "cid": 1,
@@ -481,7 +481,7 @@ export class AutomationDashboardComponent implements OnInit {
     console.log('Published witout gmbBiz:', publishedRestaurantsWithoutBiz);
     console.log('Not Published without gmbBiz:', notPublishedRestaurantsWithoutBiz);
 
-    const existingOpenApplyTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const existingOpenApplyTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Apply GMB Ownership',
@@ -528,7 +528,7 @@ export class AutomationDashboardComponent implements OnInit {
       return task;
     });
 
-    await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks).toPromise();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', tasks).toPromise();
 
     return tasks;
   } // end scan
@@ -552,7 +552,7 @@ export class AutomationDashboardComponent implements OnInit {
   }
 
   async runAutoAppeal() {
-    const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const openAppealTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Appeal Suspended GMB',
@@ -574,7 +574,7 @@ export class AutomationDashboardComponent implements OnInit {
     // 3. check if main website or others are supposed to be qmenu's (check domain???)
     // 4. inject
 
-    const gmbAccountsWithLocations = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccountsWithLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -591,7 +591,7 @@ export class AutomationDashboardComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         cid: 1,
@@ -721,7 +721,7 @@ export class AutomationDashboardComponent implements OnInit {
     for (let batch of batchedItems) {
       const promises = batch.map(item =>
         this._api
-          .post(environment.adminApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
+          .post(environment.qmenuApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
           .then(password => this._api.post(
             environment.autoGmbUrl + 'updateWebsite', {
               email: item.account.email,
@@ -749,7 +749,7 @@ export class AutomationDashboardComponent implements OnInit {
         };
       });
       console.log(patchPairs);
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
     } // end batch
   }
 }

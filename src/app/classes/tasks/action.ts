@@ -27,7 +27,7 @@ export class Action {
         return new Promise((resolve, reject) => {
             // query the same task: if it's not there, throw error. otherwise take it
             // there is still a chance that other peole just claimed the same taks but the probability is low
-            api.get(environment.adminApiUrl + "generic", {
+            api.get(environment.qmenuApiUrl + "generic", {
                 resource: "task",
                 query: {
                     _id: { $oid: originalTask._id }
@@ -55,7 +55,7 @@ export class Action {
 
                     console.log(updatedTask);
 
-                    return api.patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: updatedTask }]);
+                    return api.patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: updatedTask }]);
                 }
             })).subscribe(patched => {
                 const updatedTask = new Task(originalTask);

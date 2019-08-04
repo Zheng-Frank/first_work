@@ -97,7 +97,7 @@ export class GmbBizListComponent implements OnInit {
         limit: 6000
       }).toPromise(),
 
-      this._api.get(environment.adminApiUrl + 'generic', {
+      this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         projection: {
           email: 1,
@@ -111,7 +111,7 @@ export class GmbBizListComponent implements OnInit {
         },
         limit: 6000
       }).toPromise(),
-      this._api.get(environment.adminApiUrl + 'generic', {
+      this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
         projection: {
           name: 1,
@@ -380,7 +380,7 @@ export class GmbBizListComponent implements OnInit {
   async onEditQmenuId(event, gmbBiz, row) {
     if (confirm('Be very careful! Are you sure you want to assign the restaurant?')) {
       const qmenuId = event.newValue;
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [
         {
           old: { _id: gmbBiz._id },
           new: { _id: gmbBiz._id, qmenuId: qmenuId }
