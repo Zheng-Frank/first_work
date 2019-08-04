@@ -184,7 +184,7 @@ export class DbScriptsComponent implements OnInit {
         if (place_id.length > 30 && r.googleListing && r.googleListing.place_id) {
           place_id = r.googleListing.place_id;
         }
-        const addressDetails = await this._api.get(environment.adminApiUrl + "utils/google-address", {
+        const addressDetails = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
           place_id: place_id
         }).toPromise();
         await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
@@ -625,7 +625,7 @@ export class DbScriptsComponent implements OnInit {
     // 3. remove duplicated
 
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.qmenuApiUrl + "generic", {
         resource: "lead",
         query: {
           restaurantId: { $exists: true }
@@ -660,7 +660,7 @@ export class DbScriptsComponent implements OnInit {
   removeLeads(leadIds) {
     leadIds.length = 200;
     this._api
-      .delete(environment.adminApiUrl + "generic", {
+      .delete(environment.qmenuApiUrl + "generic", {
         resource: "lead",
         ids: leadIds
       })
@@ -728,7 +728,7 @@ export class DbScriptsComponent implements OnInit {
   }
 
   fixCallLogs() {
-    this._api.get(environment.adminApiUrl + 'generic', {
+    this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'lead',
       query: {
         'callLogs.0': { $exists: true },
@@ -747,7 +747,7 @@ export class DbScriptsComponent implements OnInit {
             const changed = JSON.parse(JSON.stringify(original));
             delete original.callLogs;
             changed.callLogs = [changed.callLogs['0']];
-            this._api.patch(environment.adminApiUrl + "generic?resource=lead", [{ old: original, new: changed }]).subscribe(patched => console.log(patched));
+            this._api.patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: original, new: changed }]).subscribe(patched => console.log(patched));
           }
         })
 
@@ -786,7 +786,7 @@ export class DbScriptsComponent implements OnInit {
       // now let's request and update each
 
       restaurants.map(r => {
-        this._api.get(environment.adminApiUrl + "utils/google-address", {
+        this._api.get(environment.qmenuApiUrl + "utils/google-address", {
           place_id: r.googleAddress.place_id
         }).pipe(mergeMap(address => {
           const rOrignal = JSON.parse(JSON.stringify(r));
@@ -1171,7 +1171,7 @@ export class DbScriptsComponent implements OnInit {
         },
         limit: 7000
       }),
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
           email: 1
@@ -1184,7 +1184,7 @@ export class DbScriptsComponent implements OnInit {
         // convert email to lowercase
         newGmbs.map(g => g.email = g.email.toLowerCase());
 
-        return this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', newGmbs);
+        return this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbAccount', newGmbs);
       })).subscribe(
         gmbIds => {
           this._global.publishAlert(
@@ -1290,7 +1290,7 @@ export class DbScriptsComponent implements OnInit {
 
   async removeRedundantGmbBiz() {
     // 1. get ALL gmbBiz
-    const bizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const bizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         cid: 1,
@@ -1321,7 +1321,7 @@ export class DbScriptsComponent implements OnInit {
         const idToKeep = values[0]._id;
         const idsToDump = values.slice(1).map(v => v._id);
 
-        const tasksToBeUpdated = await this._api.get(environment.adminApiUrl + 'generic', {
+        const tasksToBeUpdated = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'task',
           query: {
             "relatedMap.gmbBizId": { $in: idsToDump }
@@ -1332,7 +1332,7 @@ export class DbScriptsComponent implements OnInit {
 
         if (tasksToBeUpdated.length > 0) {
           console.log(tasksToBeUpdated);
-          await this._api.patch(environment.adminApiUrl + 'generic?resource=task', tasksToBeUpdated.map(t => ({
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', tasksToBeUpdated.map(t => ({
             old: {
               _id: t._id,
               relatedMap: {}
@@ -1347,7 +1347,7 @@ export class DbScriptsComponent implements OnInit {
           console.log('patched tasks: ', tasksToBeUpdated);
         }
 
-        const affectedGmbRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+        const affectedGmbRequests = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'gmbRequest',
           query: {
             gmbBizId: { $in: idsToDump }
@@ -1359,7 +1359,7 @@ export class DbScriptsComponent implements OnInit {
 
         if (affectedGmbRequests.length > 0) {
           console.log(affectedGmbRequests);
-          await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbRequest', affectedGmbRequests.map(t => ({
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', affectedGmbRequests.map(t => ({
             old: {
               _id: t._id
             },
@@ -1372,7 +1372,7 @@ export class DbScriptsComponent implements OnInit {
 
 
         // update name, assuming later is more updated!
-        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [{
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [{
           old: {
             _id: idToKeep
           },
@@ -1383,7 +1383,7 @@ export class DbScriptsComponent implements OnInit {
         }]).toPromise();
 
         // // delete ALL the redudant ids
-        await this._api.delete(environment.adminApiUrl + 'generic', {
+        await this._api.delete(environment.qmenuApiUrl + 'generic', {
           resource: 'gmbBiz',
           ids: idsToDump
         }).toPromise();
@@ -1410,7 +1410,7 @@ export class DbScriptsComponent implements OnInit {
 
     for (let r of restaurantsMissingBizPhones) {
       try {
-        const crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: `${r.name} ${r.googleAddress.formatted_address}` }).toPromise();
+        const crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { q: `${r.name} ${r.googleAddress.formatted_address}` }).toPromise();
         console.log(crawledResult);
         if (crawledResult.phone) {
           // inject phone!
@@ -1448,7 +1448,7 @@ export class DbScriptsComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    const bizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const bizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         qmenuId: 1
@@ -1467,7 +1467,7 @@ export class DbScriptsComponent implements OnInit {
       address: each.googleAddress ? each.googleAddress.formatted_address : ''
     }));
 
-    const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', gmbBizList).toPromise();
+    const bizs = await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbBiz', gmbBizList).toPromise();
     this._global.publishAlert(AlertType.Success, 'Created new GMB');
 
   }
@@ -2229,7 +2229,7 @@ export class DbScriptsComponent implements OnInit {
     //  - using qemenuId
     // what about non-matched??? just leave it???
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         gmbOwnerships: 0,
@@ -2342,7 +2342,7 @@ export class DbScriptsComponent implements OnInit {
 
   async migrateGmbOwnerships() {
 
-    const allGmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const allGmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {
         gmbOwnerships: { $exists: 1 },
@@ -2360,7 +2360,7 @@ export class DbScriptsComponent implements OnInit {
     const batchedBizList = Array(Math.ceil(allGmbBizList.length / batchSize)).fill(0).map((i, index) => allGmbBizList.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedBizList) {
-      const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
           _id: { $in: batch.map(biz => ({ $oid: biz._id })) }
@@ -2368,7 +2368,7 @@ export class DbScriptsComponent implements OnInit {
         limit: 6000
       }).toPromise();
 
-      const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         projection: {
           email: 1,
@@ -2442,7 +2442,7 @@ export class DbScriptsComponent implements OnInit {
 
       if (uniqueChangedAccounts.length > 0) {
 
-        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', uniqueChangedAccounts.map(a => ({
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', uniqueChangedAccounts.map(a => ({
           old: { _id: a._id },
           new: { _id: a._id, locations: a.locations }
         }))).toPromise();
@@ -2734,7 +2734,7 @@ export class DbScriptsComponent implements OnInit {
     console.log('bad list:');
     console.log(badList);
 
-    const migrationDomains = await this._api.get(environment.adminApiUrl + 'generic', {
+    const migrationDomains = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'migration',
       query: {
         // "steps.0.executions.0": { $exists: true },
@@ -2760,7 +2760,7 @@ export class DbScriptsComponent implements OnInit {
     ));
 
     console.log(valuableMigrations);
-    await this._api.post(environment.adminApiUrl + 'generic?resource=migration', valuableMigrations).toPromise();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=migration', valuableMigrations).toPromise();
 
 
   }

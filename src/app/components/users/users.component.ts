@@ -35,7 +35,7 @@ export class UsersComponent implements OnInit {
   ngOnInit() {
 
     // get all users
-    this._api.get(environment.adminApiUrl + 'generic', { resource: 'user', limit: 1000 }).subscribe(
+    this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'user', limit: 1000 }).subscribe(
       result => {
         this.users = result.map(u => new User(u));
         this.sortAndCatogorize(this.users);
@@ -113,7 +113,7 @@ export class UsersComponent implements OnInit {
 
   formRemove(event) {
     // api delete here...
-    this._api.delete(environment.adminApiUrl + 'generic',
+    this._api.delete(environment.qmenuApiUrl + 'generic',
       {
         resource: 'user',
         ids: [this.userInEditing._id]
@@ -153,7 +153,7 @@ export class UsersComponent implements OnInit {
           event.acknowledge('Nothing changed');
         } else {
           // api update here...
-          this._api.patch(environment.adminApiUrl + 'generic?resource=user', [{ old: originalUserClone, new: userInEditingClone }]).subscribe(result => {
+          this._api.patch(environment.qmenuApiUrl + 'generic?resource=user', [{ old: originalUserClone, new: userInEditingClone }]).subscribe(result => {
             event.acknowledge(null);
             // let's update original, assuming everything successful
             Object.assign(originalUser, this.userInEditing);
@@ -168,7 +168,7 @@ export class UsersComponent implements OnInit {
 
     } else {
       // must be new
-      this._api.post(environment.adminApiUrl + 'users', [this.userInEditing]).subscribe(result => {
+      this._api.post(environment.qmenuApiUrl + 'users', [this.userInEditing]).subscribe(result => {
         event.acknowledge(null);
         // we get ids returned
         this.userInEditing._id = result[0];

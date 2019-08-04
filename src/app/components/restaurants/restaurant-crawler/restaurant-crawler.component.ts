@@ -41,7 +41,7 @@ export class RestaurantCrawlerComponent implements OnInit {
     this.apiRequesting = true;
 
     this._api
-      .get(environment.adminApiUrl + "utils/crawl-restaurant", {
+      .get(environment.qmenuApiUrl + "utils/crawl-restaurant", {
         url: this.crawlUrl
       })
       .subscribe(
@@ -62,7 +62,7 @@ export class RestaurantCrawlerComponent implements OnInit {
   fillAddress() {
     this.apiRequesting = true;
     this._api
-      .get(environment.adminApiUrl + "utils/google-address", {
+      .get(environment.qmenuApiUrl + "utils/google-address", {
         formatted_address: this.restaurant.formatted_address
       })
       .subscribe(

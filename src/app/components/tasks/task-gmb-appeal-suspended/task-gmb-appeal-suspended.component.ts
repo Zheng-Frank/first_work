@@ -66,7 +66,7 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
     ['gmbBiz', 'gmbRequest', 'gmbAccount'].forEach(obj => {
       this[obj] = undefined;
       if (this.task.relatedMap && this.task.relatedMap[obj + 'Id']) {
-        this._api.get(environment.adminApiUrl + "generic", {
+        this._api.get(environment.qmenuApiUrl + "generic", {
           resource: obj,
           query: {
             _id: { $oid: this.task.relatedMap[obj + 'Id'] }
@@ -106,7 +106,7 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
   populateGmbBiz() {
     // query gmbBiz
     if (this.task.relatedMap['gmbBizId']) {
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: 'gmbBiz',
         query: {
           _id: { $oid: this.task.relatedMap['gmbBizId'] }
@@ -170,7 +170,7 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
   saveTask(oldTask, newTask) {
 
     this._api
-      .patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
+      .patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
       .subscribe(
         result => {
           this._global.publishAlert(AlertType.Success, 'Updated Task');

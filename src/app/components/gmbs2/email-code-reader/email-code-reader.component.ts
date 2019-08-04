@@ -80,7 +80,7 @@ export class EmailCodeReaderComponent implements OnInit {
     if (email && host && password) {
       this.apiRequesting = true;
       if (password.length > 20) {
-        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
+        password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
       }
 
       try {
@@ -112,7 +112,7 @@ export class EmailCodeReaderComponent implements OnInit {
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
         // reset password:
         const email = 'info@' + Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-        newWeb[field] = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: event.newValue }).toPromise();
+        newWeb[field] = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: email, phrase: event.newValue }).toPromise();
       }
 
       if (field === 'qmenuWebsite') {

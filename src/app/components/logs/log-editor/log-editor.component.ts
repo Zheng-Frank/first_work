@@ -158,7 +158,7 @@ export class LogEditorComponent implements OnInit {
           if (this.assignee) {
             task['assignee'] = this.assignee;
           }
-          await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+          await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [task]).toPromise();
           // make it resolved because task will track its progress
           this.log.resolved = true;
           this._global.publishAlert(AlertType.Success, 'Created Task ' + task['name']);

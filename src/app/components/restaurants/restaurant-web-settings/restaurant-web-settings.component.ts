@@ -38,7 +38,7 @@ export class RestaurantWebSettingsComponent implements OnInit {
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
         // reset password:
         const email = 'info@' + Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-        web[field] = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt:email, phrase: event.newValue }).toPromise();
+        web[field] = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt:email, phrase: event.newValue }).toPromise();
       }
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -85,7 +85,7 @@ export class RestaurantWebSettingsComponent implements OnInit {
 
     try {
       if (password.length > 20) {
-        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
+        password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
       }
       this.retrievedCodeObject = await this._api.post(environment.autoGmbUrl + 'retrieveGodaddyEmailVerificationCode', { host: host, email: email, password: password }).toPromise();
     } catch (error) {

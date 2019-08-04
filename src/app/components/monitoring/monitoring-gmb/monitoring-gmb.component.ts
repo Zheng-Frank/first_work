@@ -40,7 +40,7 @@ export class MonitoringGmbComponent implements OnInit {
       limit: 200000
     }).toPromise();
 
-    const gmbAccountsWithLocations = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccountsWithLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -115,7 +115,7 @@ export class MonitoringGmbComponent implements OnInit {
     for (let batch of batchedWebsite) {
       const query = { website: batch.join(',') };
       try {
-        let result = await this._api.get(environment.adminApiUrl + "utils/check-url", query).toPromise();
+        let result = await this._api.get(environment.qmenuApiUrl + "utils/check-url", query).toPromise();
         Object.keys(result).map(key => {
           this.filteredRows.filter(row => row.restaurant.web && row.restaurant.web.qmenuWebsite && Helper.areDomainsSame(key, row.restaurant.web.qmenuWebsite))[0].websiteStatus = result[key];
 
@@ -151,7 +151,7 @@ export class MonitoringGmbComponent implements OnInit {
     for (let batch of batchedItems) {
       const promises = batch.map(item =>
         this._api
-          .post(environment.adminApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
+          .post(environment.qmenuApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
           .then(password => this._api.post(
             environment.autoGmbUrl + 'updateWebsite', {
               email: item.account.email,
@@ -177,7 +177,7 @@ export class MonitoringGmbComponent implements OnInit {
       //   };
       // });
       // console.log(patchPairs);
-      // await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
+      // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
     } // end batch
 
   }

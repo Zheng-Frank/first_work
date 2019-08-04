@@ -44,7 +44,7 @@ export class GmbRequestListComponent implements OnInit {
   async refresh() {
     this.now = new Date();
 
-    const requests = await this._api.get(environment.adminApiUrl + 'generic', {
+    const requests = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbRequest',
       query: {
         isReminder: false
@@ -67,7 +67,7 @@ export class GmbRequestListComponent implements OnInit {
     requests.map(req => req.date = new Date(req.date));
     requests.sort((r1, r2) => r2.date.valueOf() - r1.date.valueOf());
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         name: 1
@@ -75,7 +75,7 @@ export class GmbRequestListComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         email: 1

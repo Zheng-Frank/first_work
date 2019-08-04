@@ -219,7 +219,7 @@ export class MyRestaurantComponent implements OnInit {
 
     const gmbBizIdMap = {};
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         name: 1,
@@ -231,7 +231,7 @@ export class MyRestaurantComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -358,7 +358,7 @@ export class MyRestaurantComponent implements OnInit {
     this.rows.sort((r1, r2) => r2.subtotal - r1.subtotal);
 
     // query open Tasks
-    const openTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const openTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         result: null,

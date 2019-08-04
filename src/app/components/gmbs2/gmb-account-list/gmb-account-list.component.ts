@@ -47,7 +47,7 @@ export class GmbAccountListComponent implements OnInit {
 
   async populate() {
 
-    const accountList = await this._api.get(environment.adminApiUrl + "generic", {
+    const accountList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "gmbAccount",
       projection: {
         email: 1,
@@ -157,7 +157,7 @@ export class GmbAccountListComponent implements OnInit {
 
     if (gmb.password && gmb.password.length < 20) {
       try {
-        updatedGmb.password = await this._api.post(environment.adminApiUrl + 'utils/crypto', {
+        updatedGmb.password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', {
           salt: gmb.email,
           phrase: gmb.password
         }).toPromise();
@@ -169,9 +169,9 @@ export class GmbAccountListComponent implements OnInit {
 
     try {
       if (gmb._id) {
-        await this._api.patch(environment.adminApiUrl + "generic?resource=gmbAccount", [{ old: oldGmb, new: updatedGmb }]).toPromise();
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=gmbAccount", [{ old: oldGmb, new: updatedGmb }]).toPromise();
       } else {
-        await this._api.post(environment.adminApiUrl + 'generic?resource=gmbAccount', [updatedGmb]).toPromise();
+        await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbAccount', [updatedGmb]).toPromise();
       }
       event.acknowledge(null);
       // hard refresh
@@ -189,7 +189,7 @@ export class GmbAccountListComponent implements OnInit {
 
   remove(event: FormEvent) {
     const gmb = event.object;
-    this._api.delete(environment.adminApiUrl + 'generic', {
+    this._api.delete(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       ids: [gmb._id]
     }).subscribe(

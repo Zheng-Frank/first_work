@@ -65,7 +65,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
 
     if (this.action.name === 'Claim') {
       // test if it's claimed by someone else
-      observable = this._api.get(environment.adminApiUrl + "generic", {
+      observable = this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "task",
         query: {
           _id: { $oid: this.task._id }
@@ -153,7 +153,7 @@ export class TaskGenericHandlerComponent implements OnInit, OnChanges {
     ['gmbBiz', 'gmbRequest', 'gmbAccount'].forEach(obj => {
       this[obj] = undefined;
       if (this.task.relatedMap && this.task.relatedMap[obj + 'Id']) {
-        this._api.get(environment.adminApiUrl + "generic", {
+        this._api.get(environment.qmenuApiUrl + "generic", {
           resource: obj,
           query: {
             _id: { $oid: this.task.relatedMap[obj + 'Id'] }
