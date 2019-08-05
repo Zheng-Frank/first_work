@@ -141,6 +141,7 @@ export class OrderDashboardComponent implements OnInit {
             restaurant: r,
             orders: [],
             lastWeekOrders: [],
+            standaloneOrders: [],
             ownedGmb: r.googleListing && publishedCids.has(r.googleListing.cid)
           };
         });
@@ -150,6 +151,9 @@ export class OrderDashboardComponent implements OnInit {
             if (new Date(o.createdAt).valueOf() > this.start2.valueOf()) {
               restaurantMap[o.restaurant].orders.push(o);
               this.totalOrders++;
+              if (o.runtime && o.runtime.standalone) {
+                restaurantMap[o.restaurant].standaloneOrders.push(o);
+              }
             } else {
               restaurantMap[o.restaurant].lastWeekOrders.push(o);
               this.lastWeekTotalOrders++;
@@ -206,10 +210,10 @@ export class OrderDashboardComponent implements OnInit {
         console.log('qmenuDirectRows', qmenuDirectRows);
 
         const httpRows = this.rows
-        .filter(row => {
-          const rt = row.restaurant;
-          return rt.web && rt.web.qmenuWebsite && !rt.web.qmenuWebsite.startsWith('https');
-        });
+          .filter(row => {
+            const rt = row.restaurant;
+            return rt.web && rt.web.qmenuWebsite && !rt.web.qmenuWebsite.startsWith('https');
+          });
         console.log('httpRows', httpRows);
 
 
