@@ -1,5 +1,4 @@
 <div *ngIf="promotion">
-  {{promotion | json}}
   <label>Display Title:</label>
   <div class="{{promotion.name ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.name" placeholder="eg. $5 off $50">
