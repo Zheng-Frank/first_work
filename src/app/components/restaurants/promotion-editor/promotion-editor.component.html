@@ -1,4 +1,5 @@
 <div *ngIf="promotion">
+  {{promotion | json}}
   <label>Display Title:</label>
   <div class="{{promotion.name ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.name" placeholder="eg. $5 off $50">
@@ -47,7 +48,7 @@
   <label class="mt-1">Excluded Order Types:</label>
   <div *ngFor="let orderType of ['Pickup', 'Delivery', 'Dine-in']" class="pl-4">
     <label class="mt-1">
-      <input type="checkbox" [checked]="!isOrderTypeIncluded(type)" (change)="toggleOrderType(orderType)">
+      <input type="checkbox" [checked]="!isOrderTypeIncluded(orderType)" (change)="toggleOrderType(orderType)">
       {{orderType}}</label>
   </div>
 
