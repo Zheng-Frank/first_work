@@ -23,7 +23,7 @@ export class ProfileComponent implements OnInit {
       // grab all users and make an assignee list!
       // get all users
       this._api
-        .get(environment.adminApiUrl + "generic", {
+        .get(environment.qmenuApiUrl + "generic", {
           resource: "user",
           limit: 1000
         })

@@ -34,7 +34,7 @@ export class PromotionEditorComponent implements OnInit {
 
   // expiryChanged(event) {
   //   if (event.target.value) {
-      
+
   //     // '2017-05-11'
   //     this.promotion.expiry = Date['parseRestaurantDate'](event.target.value, this.offsetToEST);
   //     console.log('this.promotion.expiry', this.promotion.expiry);
@@ -43,18 +43,6 @@ export class PromotionEditorComponent implements OnInit {
 
   isPromotionValid() {
     return this.promotion.name;
-  }
-
-  menuToggled(event, menu) {
-    if (this.promotion.excludedMenuIds.indexOf(menu.id) >= 0) {
-      this.promotion.excludedMenuIds = this.promotion.excludedMenuIds.filter(id => id !== menu.id);
-    } else {
-      this.promotion.excludedMenuIds.push(menu.id);
-    }
-  }
-
-  isMenuIncluded(menu) {
-    return !this.promotion.excludedMenuIds.some(id => menu.id === id);
   }
 
   remove() {
@@ -79,8 +67,47 @@ export class PromotionEditorComponent implements OnInit {
       // making it expire at next month
       //this.promotion.expiry.setMonth(this.promotion.expiry.getMonth() + 1);
     }
-
     this.onDone.emit(this.promotion);
+  }
+
+  toggleMenu(menu) {
+    if (this.promotion.excludedMenuIds.indexOf(menu.id) >= 0) {
+      this.promotion.excludedMenuIds = this.promotion.excludedMenuIds.filter(id => id !== menu.id);
+    } else {
+      this.promotion.excludedMenuIds.push(menu.id);
+    }
+  }
+
+  isMenuIncluded(menu) {
+    return !this.promotion.excludedMenuIds.some(id => menu.id === id);
+  }
+
+
+  togglePlatform(platform) {
+    if (this.isPlatformIncluded(platform)) {
+      this.promotion.excludedPlatforms = this.promotion.excludedPlatforms || [];
+      this.promotion.excludedPlatforms.push(platform);
+    } else {
+      this.promotion.excludedPlatforms = this.promotion.excludedPlatforms.filter(p => p !== platform);
+    }
+  }
+
+  isPlatformIncluded(platform) {
+    return !(this.promotion.excludedPlatforms || []).some(p => p === platform);
+  }
+
+
+  toggleOrderType(orderType) {
+    if (this.isOrderTypeIncluded(orderType)) {
+      this.promotion.excludedOrderTypes = this.promotion.excludedOrderTypes || [];
+      this.promotion.excludedOrderTypes.push(orderType);
+    } else {
+      this.promotion.excludedOrderTypes = this.promotion.excludedOrderTypes.filter(ot => ot !== orderType);
+    }
+  }
+
+  isOrderTypeIncluded(orderType) {
+    return !(this.promotion.excludedOrderTypes || []).some(t => t === orderType);
   }
 
 }

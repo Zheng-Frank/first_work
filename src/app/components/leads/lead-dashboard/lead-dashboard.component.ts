@@ -340,7 +340,7 @@ export class LeadDashboardComponent implements OnInit {
     // grab all users and make an assignee list!
     // get all users
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.qmenuApiUrl + "generic", {
         resource: "user",
         limit: 1000
       })
@@ -532,7 +532,7 @@ export class LeadDashboardComponent implements OnInit {
 
     // parallelly requesting
     try {
-      let result = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { ludocid: cid, q: name }).toPromise();
+      let result = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { ludocid: cid, q: name }).toPromise();
       result.keyword = keyword;
       return result;
     } catch (error) {
@@ -563,7 +563,7 @@ export class LeadDashboardComponent implements OnInit {
 
   async createNewLead(lead) {
     try {
-      const result = await this._api.post(environment.adminApiUrl + "generic?resource=lead", [lead]).toPromise();
+      const result = await this._api.post(environment.qmenuApiUrl + "generic?resource=lead", [lead]).toPromise();
       this._global.publishAlert(
         AlertType.Success, "Successfully create lead " + lead
       );
@@ -595,7 +595,7 @@ export class LeadDashboardComponent implements OnInit {
 
   async scanbOneLead(query) {
     try {
-      const result = await this._api.get(environment.adminApiUrl + "utils/scan-lead", query).toPromise();
+      const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-lead", query).toPromise();
       return result;
     } catch (error) {
       console.log('11111111111111111111111111');
@@ -628,7 +628,7 @@ export class LeadDashboardComponent implements OnInit {
 
       console.log('scanLeadResults=', scanLeadResults);
       //retrieve existing lead with the same cids
-      // const existingLeads = await this._api.get(environment.adminApiUrl + 'generic', {
+      // const existingLeads = await this._api.get(environment.qmenuApiUrl + 'generic', {
       //   resource: 'lead',
       //   query: {
       //     cid: { $in: scanLeadResults.map(each => each.cid) }
@@ -717,7 +717,7 @@ export class LeadDashboardComponent implements OnInit {
       zipCodes = input.zip.split();
     } else if (input.keyword && input.state) {
       //retrieve restaurants with cids
-      zipCodes = await this._api.get(environment.adminApiUrl + 'generic', {
+      zipCodes = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'zipCodes',
         query: {
           "state_code": input.state
@@ -774,7 +774,7 @@ export class LeadDashboardComponent implements OnInit {
 
     this.leadInEditing.address.apt = (this.addressApt || "").trim();
     this._api
-      .post(environment.adminApiUrl + "generic?resource=lead", [
+      .post(environment.qmenuApiUrl + "generic?resource=lead", [
         this.leadInEditing
       ])
       .subscribe(
@@ -918,7 +918,7 @@ export class LeadDashboardComponent implements OnInit {
     });
 
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.qmenuApiUrl + "generic", {
         resource: "lead",
         limit: 1000,
         query: query
@@ -1020,7 +1020,7 @@ export class LeadDashboardComponent implements OnInit {
   crawlGoogle(lead: Lead, resolveCallback?, rejectCallback?) {
     this.apiRequesting = true;
     this._api
-      .get(environment.adminApiUrl + "utils/scan-gmb", {
+      .get(environment.qmenuApiUrl + "utils/scan-gmb", {
         q: [lead.name, lead.address.formatted_address].filter(i => i).join(" ")
       })
       .subscribe(
@@ -1074,7 +1074,7 @@ export class LeadDashboardComponent implements OnInit {
     lead.address = lead.address || {} as Address;
 
     this._api
-      .get(environment.adminApiUrl + "utils/address", {
+      .get(environment.qmenuApiUrl + "utils/address", {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(
@@ -1104,7 +1104,7 @@ export class LeadDashboardComponent implements OnInit {
     } else {
 
       this._api
-        .patch(environment.adminApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
+        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
         .subscribe(
         result => {
           if (removeFromSelection) {

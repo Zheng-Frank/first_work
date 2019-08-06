@@ -120,7 +120,7 @@ export class SyncButtonsComponent implements OnInit {
   injectLeads(leadsArray) {
     // api update here...
     this._api
-      .post(environment.adminApiUrl + "generic?resource=lead", leadsArray)
+      .post(environment.qmenuApiUrl + "generic?resource=lead", leadsArray)
       .subscribe(
         result => {
           this._global.publishAlert(
@@ -141,7 +141,7 @@ export class SyncButtonsComponent implements OnInit {
 
     this.gmbToLeadSyncing = true;
     zip(
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "lead",
         query: {
           restaurantId: { $exists: true }
@@ -217,7 +217,7 @@ export class SyncButtonsComponent implements OnInit {
 
   patchLeadDiff(pairs) {
     this._api
-      .patch(environment.adminApiUrl + "generic?resource=lead", pairs)
+      .patch(environment.qmenuApiUrl + "generic?resource=lead", pairs)
       .subscribe(
         result => {
           this._global.publishAlert(

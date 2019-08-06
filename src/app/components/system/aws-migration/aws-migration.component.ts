@@ -139,12 +139,12 @@ export class AwsMigrationComponent implements OnInit {
   }
 
   async addMigrations(migrations: Migration[]) {
-    await this._api.post(environment.adminApiUrl + 'generic?resource=migration', migrations).toPromise();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=migration', migrations).toPromise();
     this.reload();
   }
 
   async reload() {
-    const migrationDomains = await this._api.get(environment.adminApiUrl + 'generic', {
+    const migrationDomains = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'migration',
       query: {
         // "steps.0.executions.0": { $exists: true },
@@ -164,7 +164,7 @@ export class AwsMigrationComponent implements OnInit {
     const migrations = [];
 
     for (let batch of batchedMigrationDomains) {
-      const batchedResult = await this._api.get(environment.adminApiUrl + 'generic', {
+      const batchedResult = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'migration',
         query: {
           _id: {
@@ -177,7 +177,7 @@ export class AwsMigrationComponent implements OnInit {
     }
 
     // const allMigrationIds = 
-    // let migrations = await this._api.get(environment.adminApiUrl + 'generic', {
+    // let migrations = await this._api.get(environment.qmenuApiUrl + 'generic', {
     //   resource: 'migration',
     //   query: {
     //     // "steps.0.executions.0": { $exists: true },
@@ -228,7 +228,7 @@ export class AwsMigrationComponent implements OnInit {
     //     new: { _id: mig._id, steps: mig.steps, shrinked: true }
     //   }
     // });
-    // await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', patchPairs).toPromise();
+    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=migration', patchPairs).toPromise();
   }
 
   // we need to make this execution non-parallel
@@ -289,7 +289,7 @@ export class AwsMigrationComponent implements OnInit {
       console.log('step removed bad')
     }
     step.executions.push(execution);
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=migration', [{
       old: { _id: row._id },
       new: { _id: row._id, steps: row.steps }
     }]).toPromise();
@@ -335,7 +335,7 @@ export class AwsMigrationComponent implements OnInit {
 
   async skip(migration) {
     if (confirm('Are you sure to skip?')) {
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=migration', [{
         old: { _id: migration._id },
         new: { _id: migration._id, result: 'SKIPPED' }
       }]).toPromise();
@@ -346,7 +346,7 @@ export class AwsMigrationComponent implements OnInit {
   async markSucceeded(row) {
     if (confirm('Are you sure?')) {
       const migration = row;
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=migration', [{
         old: { _id: migration._id },
         new: { _id: migration._id, result: 'SUCCEEDED' }
       }]).toPromise();
@@ -362,7 +362,7 @@ export class AwsMigrationComponent implements OnInit {
   }
   async markDeferred(migration) {
     if (confirm('Are you sure?')) {
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=migration', [{
         old: { _id: migration._id },
         new: { _id: migration._id, result: 'DEFERRED' }
       }]).toPromise();
@@ -372,7 +372,7 @@ export class AwsMigrationComponent implements OnInit {
 
   async resetResult(migration) {
     if (confirm('Are you sure?')) {
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=migration', [{
         old: { _id: migration._id, result: 'random' },
         new: { _id: migration._id }
       }]).toPromise();
@@ -461,7 +461,7 @@ export class AwsMigrationComponent implements OnInit {
                 const response = exec.response;
                 if (response && response.error && response.error.indexOf('60 days ago') > 0) {
                   // ALL good! patch SUCEEDED!
-                  this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+                  this._api.patch(environment.qmenuApiUrl + 'generic?resource=migration', [{
                     old: { _id: row._id },
                     new: { _id: row._id, result: 'DEFERRED' }
                   }]).subscribe(result => {
@@ -574,7 +574,7 @@ export class AwsMigrationComponent implements OnInit {
 
       } else {
         // ALL good! patch SUCEEDED!
-        await this._api.patch(environment.adminApiUrl + 'generic?resource=migration', [{
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=migration', [{
           old: { _id: row._id },
           new: { _id: row._id, result: 'SUCCEEDED' }
         }]).toPromise();

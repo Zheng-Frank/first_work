@@ -410,7 +410,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     }).toPromise();
 
 
-    const gmbAccountsWithPublishedLocations = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccountsWithPublishedLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         "published": { $gt: 0 }

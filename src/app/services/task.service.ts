@@ -21,7 +21,7 @@ export class TaskService {
     // 1. already published in B account,
     // 2. no postal type, but A lost ownership, or restaurant was disabled
 
-    const openTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const openTransferTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Transfer GMB Ownership',
@@ -30,7 +30,7 @@ export class TaskService {
       limit: 5000
     }).toPromise();
 
-    const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -55,7 +55,7 @@ export class TaskService {
     const disabledRestaurants = restaurants.filter(r => r.disabled);
     const nonDisabledRestaurants = restaurants.filter(r => !r.disabled);
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         cid: 1,
@@ -129,7 +129,7 @@ export class TaskService {
         resultAt: { $date: new Date() }
       }
     }));
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', pairs).toPromise();
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', pairs).toPromise();
 
     return tobeClosedTasksWithReasons;
   }
@@ -143,7 +143,7 @@ export class TaskService {
     // 2. original restaurant was disabled
     // 3. already gained ownership somewhere
 
-    const openApplyTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const openApplyTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Apply GMB Ownership',
@@ -154,7 +154,7 @@ export class TaskService {
 
     console.log('Open apply tasks: ', openApplyTasks);
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         cid: 1,
@@ -178,7 +178,7 @@ export class TaskService {
     const enabledRestaurants = restaurants.filter(r => !r.disabled);
 
     console.log('disabled restaurants: ', disabledRestaurants);
-    const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -224,7 +224,7 @@ export class TaskService {
     });
 
     if (tasksMissingBizIds.length > 0) {
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', tasksMissingBizIds.map(t => ({
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', tasksMissingBizIds.map(t => ({
         old: { _id: t._id },
         new: {
           _id: t._id,
@@ -235,7 +235,7 @@ export class TaskService {
     }
 
     if (tasksWithDisabledRestaurants.length > 0) {
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', tasksWithDisabledRestaurants.map(t => ({
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', tasksWithDisabledRestaurants.map(t => ({
         old: { _id: t._id },
         new: {
           _id: t._id,
@@ -247,7 +247,7 @@ export class TaskService {
     }
 
     if (tasksWithAlreadyPublished.length > 0) {
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=task', tasksWithAlreadyPublished.map(t => ({
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', tasksWithAlreadyPublished.map(t => ({
         old: { _id: t._id },
         new: {
           _id: t._id,
@@ -262,7 +262,7 @@ export class TaskService {
 
 
   async scanForAppealTasks() {
-    const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const openAppealTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Appeal Suspended GMB',
@@ -273,7 +273,7 @@ export class TaskService {
 
     console.log('openAppealTasks', openAppealTasks);
 
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -290,7 +290,7 @@ export class TaskService {
       limit: 5000
     }).toPromise();
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         name: 1,
@@ -383,7 +383,7 @@ export class TaskService {
 
 
     // lets create the task!
-    const result = await this._api.post(environment.adminApiUrl + 'generic?resource=task', newAppealTasks);
+    const result = await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', newAppealTasks);
 
     return newAppealTasks
   }
@@ -391,7 +391,7 @@ export class TaskService {
 
   /** Some tasks's gmbBizId is already missing */
   async purgeMissingIdsTasks() {
-    const openTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const openTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         result: null
@@ -402,7 +402,7 @@ export class TaskService {
       limit: 6000
     }).toPromise();
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         name: 1
@@ -424,7 +424,7 @@ export class TaskService {
  * 2. or appealId NOT found or suspended any more
  */
   async purgeAppealTasks() {
-    const openAppealTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const openAppealTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Appeal Suspended GMB',
@@ -433,7 +433,7 @@ export class TaskService {
       limit: 5000
     }).toPromise();
 
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -482,14 +482,14 @@ export class TaskService {
 
     console.log(patchList)
 
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=task', patchList).toPromise();
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', patchList).toPromise();
 
     return [...appealIdNotFoundTasks, ...locationIsNotSuspendedAnymore, ...taskIsTooOld];
   }
 
 
   async deleteOutdatedTasks() {
-    const closedTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const closedTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         result: { $exists: 1 }
@@ -504,7 +504,7 @@ export class TaskService {
     if (toBeRemovedTasks.length > 100) {
       toBeRemovedTasks.length = 100;
     }
-    await this._api.delete(environment.adminApiUrl + 'generic', {
+    await this._api.delete(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       ids: toBeRemovedTasks.map(t => t._id)
     }).toPromise();
@@ -512,7 +512,7 @@ export class TaskService {
   }
 
   async deleteMissingBizIdTasks() {
-    const openTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const openTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         result: null
@@ -521,7 +521,7 @@ export class TaskService {
     }).toPromise();
     console.log(openTasks);
 
-    const bizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const bizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         name: 1
@@ -537,7 +537,7 @@ export class TaskService {
     const toBeRemovedTasks = openTasks.filter(t => t.relatedMap && missingInBizSet.has(t.relatedMap.gmbBizId));
     console.log(toBeRemovedTasks);
 
-    await this._api.delete(environment.adminApiUrl + 'generic', {
+    await this._api.delete(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       ids: toBeRemovedTasks.map(t => t._id)
     }).toPromise();
@@ -547,7 +547,7 @@ export class TaskService {
 
   // we have request against a location (gmbBiz?)
   async scanForTransferTask() {
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         email: 1,
@@ -557,7 +557,7 @@ export class TaskService {
       limit: 6000
     }).toPromise();
 
-    const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
         name: 1,
@@ -571,7 +571,7 @@ export class TaskService {
     const gmbBizIdMap = gmbBizList.reduce((result, biz) => (result[biz._id] = biz, result), {});
     const gmbAccountIdMap = gmbAccounts.reduce((result, acct) => (result[acct._id] = acct, result), {});
 
-    let recentRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+    let recentRequests = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbRequest',
       sort: {
         createdAt: -1
@@ -581,7 +581,7 @@ export class TaskService {
 
     console.log('recentRequests', recentRequests);
 
-    const outstandingTransferTasks = await this._api.get(environment.adminApiUrl + 'generic', {
+    const outstandingTransferTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         name: 'Transfer GMB Ownership',
@@ -756,7 +756,7 @@ export class TaskService {
       }));
 
     if (tasks.length > 0) {
-      const taskIds = await this._api.post(environment.adminApiUrl + 'generic?resource=task', tasks);
+      const taskIds = await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', tasks);
     }
 
     console.log('ceated tasks,', tasks);

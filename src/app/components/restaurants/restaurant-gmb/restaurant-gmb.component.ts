@@ -42,7 +42,7 @@ export class RestaurantGmbComponent implements OnInit {
     }
 
 
-    const gmbBizList = (await this._api.get(environment.adminApiUrl + 'generic', {
+    const gmbBizList = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {
         qmenuId: this.restaurant.id || this.restaurant['_id']
@@ -57,7 +57,7 @@ export class RestaurantGmbComponent implements OnInit {
     // query outstanding tasks for the restaurant
 
     if (gmbBizList.length > 0) {
-      const outstandingTasks = (await this._api.get(environment.adminApiUrl + 'generic', {
+      const outstandingTasks = (await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: "task",
         query: {
           "relatedMap.gmbBizId": { $in: gmbBizList.map(biz => biz._id) },
@@ -66,7 +66,7 @@ export class RestaurantGmbComponent implements OnInit {
         limit: 20
       }).toPromise()).map(t => new Task(t));
 
-      const accounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         // query ALL because we need to tell if it is self!
         // query: {
@@ -79,7 +79,7 @@ export class RestaurantGmbComponent implements OnInit {
       }).toPromise();
 
       accounts.map(acct => this.emailAccountDict[acct.email] = acct);
-      const relevantGmbAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+      const relevantGmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         query: {
           "locations.cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] }
@@ -96,7 +96,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       relevantGmbAccounts.map(acct => this.emailAccountDict[acct.email] = acct);
       // get ALL requests against this gmb listing
-      this.relevantGmbRequests = await this._api.get(environment.adminApiUrl + 'generic', {
+      this.relevantGmbRequests = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbRequest',
         query: {
           gmbBizId: { $in: gmbBizList.map(biz => biz._id) }
@@ -142,7 +142,7 @@ export class RestaurantGmbComponent implements OnInit {
     let crawledResult;
     try {
       const query = { q: [name, address].join(" ") };
-      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", query).toPromise();
+      crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", query).toPromise();
     }
     catch (error) {
     }
@@ -153,7 +153,7 @@ export class RestaurantGmbComponent implements OnInit {
       const addressTokens = address.split(", ");
       try {
         const query = { q: name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
-        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", query).toPromise();
+        crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", query).toPromise();
       }
       catch (error) {
       }
@@ -179,7 +179,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       // query gmbBiz, and update!
 
-      const gmbBizList = await this._api.get(environment.adminApiUrl + 'generic', {
+      const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
           "cid": crawledResult.cid
@@ -212,7 +212,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       console.log(pairs);
 
-      await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', pairs).toPromise();
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', pairs).toPromise();
 
     }
 
@@ -228,7 +228,7 @@ export class RestaurantGmbComponent implements OnInit {
 
     // match from existing list!
     try {
-      const existingGmbs = await this._api.get(environment.adminApiUrl + 'generic', {
+      const existingGmbs = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
           cid: this.restaurant.googleListing.cid,
@@ -241,7 +241,7 @@ export class RestaurantGmbComponent implements OnInit {
       if (existingGmbs[0]) {
         const gmbBiz = existingGmbs[0];
         // update this gmb's qmenuId to be the id
-        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [
           {
             old: { _id: gmbBiz._id },
             new: { _id: gmbBiz._id, qmenuId: this.restaurant.id || this.restaurant['_id'] }
@@ -250,7 +250,7 @@ export class RestaurantGmbComponent implements OnInit {
         this._global.publishAlert(AlertType.Success, 'Matched existing GMB');
 
       } else {
-        await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [
+        await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [
           { ...this.restaurant.googleListing, qmenuId: this.restaurant.id || this.restaurant['_id'] }
         ]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Not Matched existing GMB. Created new');
@@ -311,7 +311,7 @@ export class RestaurantGmbComponent implements OnInit {
     for (let al of row.accountLocationPairs) {
       if (al.location.status === 'Published')
         await this._api
-          .post(environment.adminApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
+          .post(environment.qmenuApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
           .then(password => this._api.post(
             environment.autoGmbUrl + 'updateWebsite', {
               email: al.account.email,
@@ -330,7 +330,7 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   async unlink(row) {
-    await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', [{
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [{
       old: { _id: row.gmbBiz._id, qmenuId: row.gmbBiz.qmenuId },
       new: { _id: row.gmbBiz._id },
     }]).toPromise();

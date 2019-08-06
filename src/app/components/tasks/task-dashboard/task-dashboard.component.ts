@@ -100,7 +100,7 @@ export class TaskDashboardComponent {
       return d;
     };
 
-    let result0 = await this._api.get(environment.adminApiUrl + "generic", {
+    let result0 = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "task",
       query: {
         $or: [
@@ -123,7 +123,7 @@ export class TaskDashboardComponent {
 
     let result1;
     try {
-      result1 = await this._api.get(environment.adminApiUrl + "generic", {
+      result1 = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbBiz",
         query: {},
         projection: {
@@ -312,7 +312,7 @@ export class TaskDashboardComponent {
       taskCloned.scheduledAt = { $date: taskCloned.scheduledAt }
     }
 
-    await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [task]).toPromise();
     this._global.publishAlert(AlertType.Success, `Created ${task.name}`);
     this.toggleAction('ADD');
     this.refresh();

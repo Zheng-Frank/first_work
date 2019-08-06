@@ -61,7 +61,7 @@ export class TaskGeneratorComponent implements OnInit {
     // grab all users and make an assignee list!
     // get all users
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.qmenuApiUrl + "generic", {
         resource: "user",
         limit: 1000
       })
@@ -91,7 +91,7 @@ export class TaskGeneratorComponent implements OnInit {
 
   async selectRestaurant(restaurant) {
     this.restaurant = restaurant;
-    this.gmbBiz = (await this._api.get(environment.adminApiUrl + 'generic', {
+    this.gmbBiz = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {
         qmenuId: restaurant._id || restaurant.id

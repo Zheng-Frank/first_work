@@ -13,9 +13,13 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let user of users">
+      <tr *ngFor="let user of users" class="{{user.disabled ? 'disabled' : ''}}">
         <th scope="row">{{user.username}}</th>
-        <td>{{(user.roles || []).join(', ')}}</td>
+        <td>{{(user.roles || []).join(', ')}}
+          <div class="text-tiny text-muted">
+            {{user.lastLog}}
+          </div>
+        </td>
         <td>{{user.manager}}</td>
         <td class="text-right">
           <button class="btn btn-link pr-0" (click)="edit(user)">Edit</button>

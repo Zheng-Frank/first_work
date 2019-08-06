@@ -29,7 +29,7 @@ export class LoginComponent implements OnInit {
   login() {
     this.apiRequesting = true;
     this.apiError = undefined;
-    this._api.post(environment.adminApiUrl + 'auth/login', {
+    this._api.post(environment.qmenuApiUrl + 'auth/login', {
       username: this.username,
       password: this.password
     }).subscribe(

@@ -59,7 +59,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
     // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
     zip(
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
           email: 1,
@@ -68,7 +68,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         },
         limit: 7000
       }),
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "task",
         query: {
           "transfer.toEmail": {
@@ -128,7 +128,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
       this.comments = this.task.comments;
       this.populateGmbBiz();
 
-      this._api.get(environment.adminApiUrl + 'generic', {
+      this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'user',
         projection: {
           username: 1,
@@ -144,7 +144,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   populateGmbBiz() {
     // query gmbBiz
     if (this.task.relatedMap['gmbBizId']) {
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: 'gmbBiz',
         query: {
           _id: { $oid: this.task.relatedMap['gmbBizId'] }
@@ -198,7 +198,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
     try {
       let toGmbAccount, toPassword;
       if (this.transfer.toEmail) {
-        toGmbAccount = (await this._api.get(environment.adminApiUrl + "generic",
+        toGmbAccount = (await this._api.get(environment.qmenuApiUrl + "generic",
           {
             resource: "gmbAccount",
             query: {
@@ -218,7 +218,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
         toPassword = toGmbAccount.password;
         if (toPassword.length > 20) {
-          toPassword = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: toGmbAccount.email, phrase: toPassword }).toPromise();
+          toPassword = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: toGmbAccount.email, phrase: toPassword }).toPromise();
         }
       }
       
@@ -268,7 +268,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           // we need to finish the task also!
           const taskResult = 'CLOSED';
           const resultAt = new Date();
-          result = await this._api.patch(environment.adminApiUrl + "generic?resource=task",
+          result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
             [{ old: { _id: this.task._id }, new: { _id: this.task._id, result: taskResult, resultAt: { $date: resultAt } } }]).toPromise();
           break;
         default:
@@ -419,7 +419,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   saveTask(oldTask, newTask) {
 
     this._api
-      .patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
+      .patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
       .subscribe(
       result => {
         this._global.publishAlert(AlertType.Success, 'Updated Task');

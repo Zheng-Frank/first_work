@@ -2,7 +2,6 @@ export const environment = {
   production: true,
   env: "prod",
   appApiUrl: "https://9v8upsmsai.execute-api.us-east-1.amazonaws.com/prod/",
-  adminApiUrl: "https://swozix2epl.execute-api.us-east-2.amazonaws.com/prod/",
   qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/prod/",
   legacyApiUrl: "https://api.myqmenu.com/",
   autoGmbUrl: "http://localhost:3000/",

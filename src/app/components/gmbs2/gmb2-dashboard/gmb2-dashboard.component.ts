@@ -34,7 +34,7 @@ export class Gmb2DashboardComponent implements OnInit {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setMonth(thirtyDaysAgo.getMonth() - 1);
     zip(
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
           email: 1,
@@ -43,14 +43,14 @@ export class Gmb2DashboardComponent implements OnInit {
         },
         limit: 7000
       }),
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbBiz",
         projection: {
           name: 1
         },
         limit: 7000
       }),
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbRequest",
         query: {
           date: { $gte: { $date: thirtyDaysAgo } },

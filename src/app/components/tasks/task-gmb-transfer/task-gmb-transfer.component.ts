@@ -70,7 +70,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   async populate() { // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
 
-    const gmbAccounts = await this._api.get(environment.adminApiUrl + "generic", {
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "gmbAccount",
       projection: {
         email: 1,
@@ -91,7 +91,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
     // find the lastest request against this:
 
-    const requests = await this._api.get(environment.adminApiUrl + 'generic', {
+    const requests = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbRequest',
       query: {
         date: {
@@ -115,7 +115,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
     this.newCompetitorsRequests.sort((a, b) => a.date.valueOf() - b.date.valueOf());
   }
   refreshRelated() {
-    this._api.get(environment.adminApiUrl + 'generic', {
+    this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'user',
       projection: {
         username: 1,
@@ -129,7 +129,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
     ['gmbBiz', 'gmbRequest', 'gmbAccount'].forEach(obj => {
       this[obj] = undefined;
       if (this.task.relatedMap && this.task.relatedMap[obj + 'Id']) {
-        this._api.get(environment.adminApiUrl + "generic", {
+        this._api.get(environment.qmenuApiUrl + "generic", {
           resource: obj,
           query: {
             _id: { $oid: this.task.relatedMap[obj + 'Id'] }
@@ -191,7 +191,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   populateGmbBiz() {
     // query gmbBiz
     if (this.task.relatedMap['gmbBizId']) {
-      this._api.get(environment.adminApiUrl + "generic", {
+      this._api.get(environment.qmenuApiUrl + "generic", {
         resource: 'gmbBiz',
         query: {
           _id: { $oid: this.task.relatedMap['gmbBizId'] }
@@ -242,7 +242,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
     }
 
     try {
-      const fromGmbAccount = (await this._api.get(environment.adminApiUrl + "generic",
+      const fromGmbAccount = (await this._api.get(environment.qmenuApiUrl + "generic",
         {
           resource: "gmbAccount",
           query: {
@@ -262,12 +262,12 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
       let fromPassword = fromGmbAccount.password;
       if (fromPassword.length > 20) {
-        fromPassword = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: fromGmbAccount.email, phrase: fromPassword }).toPromise();
+        fromPassword = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: fromGmbAccount.email, phrase: fromPassword }).toPromise();
       }
 
       let toGmbAccount, toPassword;
       if (this.transfer.toEmail) {
-        toGmbAccount = (await this._api.get(environment.adminApiUrl + "generic",
+        toGmbAccount = (await this._api.get(environment.qmenuApiUrl + "generic",
           {
             resource: "gmbAccount",
             query: {
@@ -287,7 +287,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
         toPassword = toGmbAccount.password;
         if (toPassword.length > 20) {
-          toPassword = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: toGmbAccount.email, phrase: toPassword }).toPromise();
+          toPassword = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: toGmbAccount.email, phrase: toPassword }).toPromise();
         }
       }
 
@@ -347,7 +347,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
           // we need to finish the task also!
           const taskResult = 'CLOSED';
           const resultAt = new Date();
-          result = await this._api.patch(environment.adminApiUrl + "generic?resource=task",
+          result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
             [{ old: { _id: this.task._id }, new: { _id: this.task._id, result: taskResult, resultAt: { $date: resultAt } } }]).toPromise();
           break;
         default:
@@ -496,7 +496,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
 
   saveTask(oldTask, newTask) {
     this._api
-      .patch(environment.adminApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
+      .patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
       .subscribe(
         result => {
           this._global.publishAlert(AlertType.Success, 'Updated Task');

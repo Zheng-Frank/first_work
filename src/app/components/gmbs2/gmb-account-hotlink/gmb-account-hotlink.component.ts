@@ -23,7 +23,7 @@ export class GmbAccountHotlinkComponent implements OnInit {
 
   async login() {
     try {
-      const accounts = await this._api.get(environment.adminApiUrl + "generic", {
+      const accounts = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbAccount",
         query: {
           email: this.email
@@ -33,7 +33,7 @@ export class GmbAccountHotlinkComponent implements OnInit {
 
       let password = accounts[0].password;
       if (password.length > 20) {
-        password = await this._api.post(environment.adminApiUrl + 'utils/crypto', { salt: this.email, phrase: password }).toPromise();
+        password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: this.email, phrase: password }).toPromise();
       }
 
       const target = 'login';

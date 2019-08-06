@@ -50,7 +50,7 @@ export class MyLeadsComponent implements OnInit {
 
   ngOnInit() {
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.qmenuApiUrl + "generic", {
         resource: "user",
         limit: 1000
       })
@@ -114,7 +114,7 @@ export class MyLeadsComponent implements OnInit {
     };
 
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.qmenuApiUrl + "generic", {
         resource: "lead",
         limit: 6000,
         query: query
@@ -187,7 +187,7 @@ export class MyLeadsComponent implements OnInit {
     this.apiRequesting = true;
     this.leadsInProgress.push(lead);
     this._api
-      .get(environment.adminApiUrl + "utils/scan-gmb", {
+      .get(environment.qmenuApiUrl + "utils/scan-gmb", {
         q: lead.name + " " + lead.address.route + " " + lead.address.postal_code
       })
       .subscribe(
@@ -235,7 +235,7 @@ export class MyLeadsComponent implements OnInit {
     } else {
       // api update here...
       this._api
-        .patch(environment.adminApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
+        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
         .subscribe(
           result => {
             // let's update original, assuming everything successful

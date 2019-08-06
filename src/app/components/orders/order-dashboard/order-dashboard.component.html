@@ -30,7 +30,8 @@
     <tr>
       <!-- <th scope="col">Agent</th> -->
       <th>Restaurant</th>
-      <th>Total</th>
+      <th>Web</th>
+      <th>App</th>
       <th>Change</th>
       <th>GMB</th>
     </tr>
@@ -56,7 +57,8 @@
           </ng-container>
         </div>
       </td>
-      <td>{{row.orders.length}}</td>
+      <td>{{row.orders.length - row.standaloneOrders.length}}</td>
+      <td>{{row.standaloneOrders.length}}</td>
       <td>
         <span *ngIf="row.orders.length > row.lastWeekOrders.length" class="text-success">+{{row.orders.length -
           row.lastWeekOrders.length}}</span>

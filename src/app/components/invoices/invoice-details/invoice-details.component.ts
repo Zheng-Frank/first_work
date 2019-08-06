@@ -444,7 +444,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       }
     }
     try {
-      let result = await this._api.post(environment.adminApiUrl + "utils/send-check", {
+      let result = await this._api.post(environment.qmenuApiUrl + "utils/send-check", {
         destination: destination,
         "action": "paperCheckTransfer",
         "amount": amount,

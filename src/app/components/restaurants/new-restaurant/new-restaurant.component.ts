@@ -70,7 +70,7 @@ export class NewRestaurantComponent implements OnInit {
     this.apiRequesting = true;
     let crawledResult;
     try {
-      crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
+      crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
     }
     catch (error) {
       // try to use only city state and zip code!
@@ -78,7 +78,7 @@ export class NewRestaurantComponent implements OnInit {
       const addressTokens = this.restaurant.googleAddress.formatted_address.split(", ");
       const q = this.restaurant.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
       try {
-        crawledResult = await this._api.get(environment.adminApiUrl + "utils/scan-gmb", { q: q }).toPromise();
+        crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { q: q }).toPromise();
       } catch (error) { }
     }
 
@@ -94,7 +94,7 @@ export class NewRestaurantComponent implements OnInit {
 
     // query address details by place_id
     try {
-      const addressDetails = await this._api.get(environment.adminApiUrl + "utils/google-address", {
+      const addressDetails = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
         place_id: crawledResult.place_id
       }).toPromise();
       this.restaurant.googleAddress = addressDetails;
@@ -216,7 +216,7 @@ export class NewRestaurantComponent implements OnInit {
       // force refreshing global restaurant list!
       await this._global.getCachedVisibleRestaurantList(true);
       // create GMB here!
-      const existingGmbs = await this._api.get(environment.adminApiUrl + 'generic', {
+      const existingGmbs = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
           cid: this.restaurant.googleListing.cid
@@ -231,7 +231,7 @@ export class NewRestaurantComponent implements OnInit {
       if (existingGmbs.length > 0) {
 
         // update qmenuId!
-        await this._api.patch(environment.adminApiUrl + 'generic?resource=gmbBiz', existingGmbs.map(biz =>
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', existingGmbs.map(biz =>
           ({
             old: { _id: biz._id },
             new: { _id: biz._id, qmenuId: this.restaurant._id }
@@ -249,7 +249,7 @@ export class NewRestaurantComponent implements OnInit {
           newGmbBiz['isDirectSignUp'] = true;
         }
 
-        const bizs = await this._api.post(environment.adminApiUrl + 'generic?resource=gmbBiz', [newGmbBiz]).toPromise();
+        const bizs = await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [newGmbBiz]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Created new GMB');
         newGmbBiz['_id'] = bizs[0];
 
@@ -260,7 +260,7 @@ export class NewRestaurantComponent implements OnInit {
       // see if we need to create Apply GMB task!
       if (!this.skipApplyGmb) {
         // making sure it's not already published somewhere!
-        const relevantAccounts = await this._api.get(environment.adminApiUrl + 'generic', {
+        const relevantAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'gmbAccount',
           query: {
             "locations.status": "Published",
@@ -284,7 +284,7 @@ export class NewRestaurantComponent implements OnInit {
             transfer: {}
           };
 
-          await this._api.post(environment.adminApiUrl + 'generic?resource=task', [task]).toPromise();
+          await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [task]).toPromise();
           this._global.publishAlert(AlertType.Success, 'Created new Apply GMB Ownership task');
         }
 

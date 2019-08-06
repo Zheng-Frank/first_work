@@ -6,6 +6,7 @@ export class User {
   roles: string[];
   createdAt: Date;
   updatedAt: Date;
+  disabled: boolean;
 
   constructor(user?: any) {
     if (user) {

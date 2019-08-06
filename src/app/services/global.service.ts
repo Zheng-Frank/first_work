@@ -262,7 +262,7 @@ export class GlobalService {
       return this._cache.get('users');
     } else {
       const users = await this._api
-        .get(environment.adminApiUrl + "generic", {
+        .get(environment.qmenuApiUrl + "generic", {
           resource: "user",
           limit: 1000
         }).toPromise();

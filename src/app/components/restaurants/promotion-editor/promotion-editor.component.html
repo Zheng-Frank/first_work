@@ -37,10 +37,25 @@
       <input type="checkbox" [(ngModel)]="promotion.newCustomerOnly"> Only for new customers</label>
   </div>
 
-  <label class="mt-1">Not Applicable Menus:</label>
-  <div *ngFor="let menu of (menus || [])" class="pl-1">
+  <label class="mt-1">Excluded Platforms:</label>
+  <div *ngFor="let platform of ['APP', 'Web']" class="pl-4">
     <label class="mt-1">
-      <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="menuToggled($event, menu)"> {{menu.name}}</label>
+      <input type="checkbox" [checked]="!isPlatformIncluded(platform)" (change)="togglePlatform(platform)">
+      {{platform}}</label>
+  </div>
+
+  <label class="mt-1">Excluded Order Types:</label>
+  <div *ngFor="let orderType of ['Pickup', 'Delivery', 'Dine-in']" class="pl-4">
+    <label class="mt-1">
+      <input type="checkbox" [checked]="!isOrderTypeIncluded(orderType)" (change)="toggleOrderType(orderType)">
+      {{orderType}}</label>
+  </div>
+
+  <label class="mt-1">Excluded Menus:</label>
+  <div *ngFor="let menu of (menus || [])" class="pl-4">
+    <label class="mt-1">
+      <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="toggleMenu(menu)">
+      {{menu.name}}</label>
   </div>
 
   <div class="mt-1 text-right">
@@ -51,7 +66,8 @@
 
   <hr>
   <h4>Preview</h4>
-  <app-promotion-viewer [promotion]="promotion" [offsetToEST]="offsetToEST" [hideEditButton]="true"></app-promotion-viewer>
+  <app-promotion-viewer [promotion]="promotion" [offsetToEST]="offsetToEST" [hideEditButton]="true">
+  </app-promotion-viewer>
   <!-- because of viewer having float left -->
   <div class="clearfix"></div>
 </div>

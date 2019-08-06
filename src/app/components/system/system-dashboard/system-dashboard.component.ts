@@ -147,7 +147,7 @@ export class SystemDashboardComponent implements OnInit {
     // 3. remove duplicated
 
     this._api
-      .get(environment.adminApiUrl + "generic", {
+      .get(environment.qmenuApiUrl + "generic", {
         resource: "lead",
         query: {
           restaurantId: { $exists: true }
@@ -185,7 +185,7 @@ export class SystemDashboardComponent implements OnInit {
     leadIds.length = 200;
     console.log("remove", leadIds);
     this._api
-      .delete(environment.adminApiUrl + "generic", {
+      .delete(environment.qmenuApiUrl + "generic", {
         resource: "lead",
         ids: leadIds
       })
@@ -258,7 +258,7 @@ export class SystemDashboardComponent implements OnInit {
   }
 
   fixCallLogs() {
-    this._api.get(environment.adminApiUrl + 'generic', {
+    this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'lead',
       query: {
         'callLogs.0': { $exists: true },
@@ -277,7 +277,7 @@ export class SystemDashboardComponent implements OnInit {
             const changed = JSON.parse(JSON.stringify(original));
             delete original.callLogs;
             changed.callLogs = [changed.callLogs['0']];
-            this._api.patch(environment.adminApiUrl + "generic?resource=lead", [{ old: original, new: changed }]).subscribe(patched => console.log(patched));
+            this._api.patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: original, new: changed }]).subscribe(patched => console.log(patched));
           }
         })
 

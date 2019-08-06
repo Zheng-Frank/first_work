@@ -23,7 +23,11 @@ export class RootComponent implements OnInit {
   appVersion;
   now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef, private _router: Router) {
-
+    _api.onApiError.subscribe(error => {
+      if (error && error.error && error.error.status === 401) {
+        this._global.logout();
+      }
+    });
   }
 
   ngOnInit() {
