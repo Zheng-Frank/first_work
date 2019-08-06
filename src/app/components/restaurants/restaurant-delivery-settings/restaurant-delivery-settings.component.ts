@@ -183,7 +183,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   doneAddingHour(hours: Hour[]) {
     hours.forEach(h => {
       // only add non-duplicated ones
-      if (this.deliveryHours.filter(hh => h.equals(hh)).length === 0) {
+      if ((this.deliveryHours || []).filter(hh => h.equals(hh)).length === 0) {
         this.deliveryHours.push(h);
       }
     });
