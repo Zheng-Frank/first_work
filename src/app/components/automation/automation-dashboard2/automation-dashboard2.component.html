@@ -39,8 +39,8 @@
         <pre>{{row.workflow.inputs | json}}</pre>
       </td>
       <td class="graph-container">
-        <ngx-graph [links]="row.links" [nodes]="row.nodes" [autoZoom]="true" [draggingEnabled]="false"
-          [autoCenter]="true">
+        <ngx-graph *ngIf="selectedStatus !== 'COMPLETED'" [links]="row.links" [nodes]="row.nodes" [autoZoom]="true"
+          [draggingEnabled]="false" [autoCenter]="true">
           <ng-template #defsTemplate>
             <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="4"
               orient="auto">
@@ -74,12 +74,15 @@
         </ngx-graph>
       </td>
       <td>
-        <button class="btn btn-success" *ngIf="row.canStart" (click)="start(row)"><i
+        <button class="btn btn-success m-1" *ngIf="row.canStart" (click)="start(row)"><i
             class="fas fa-play pr-2"></i>Start</button>
 
-        <button class="btn btn-success" *ngIf="row.canRetry" (click)="retry(row)"><i
+        <button class="btn btn-success m-1" *ngIf="row.canRetry" (click)="retry(row)"><i
             class="fas fa-retweet pr-2"></i>Retry</button>
-        <button class="btn btn-primary" *ngIf="row.canReload" (click)="refresh(row)"><i
+
+        <button class="btn btn-danger m-1" *ngIf="row.canRetry" (click)="remove(row)"><i
+            class="fas fa-times pr-2"></i>Delete</button>
+        <button class="btn btn-primary m-1" *ngIf="row.canReload" (click)="refresh(row)"><i
             class="fas fa-sync-alt pr-2"></i> Reload</button>
 
         <!-- <button class="btn btn-danger" *ngIf="row.shouldShowStop" (click)="stop(row)"><i
