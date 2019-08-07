@@ -285,4 +285,21 @@ export class AutomationDashboard2Component implements OnInit {
 
   }
 
+
+  async remove(row) {
+    if (confirm('Are you sure to delete the workflow?')) {
+      try {
+        const result = await this._api.delete(environment.qmenuApiUrl + 'generic', {
+          resource: 'workflow',
+          ids: [row.workflow._id]
+        }).toPromise();
+        this._global.publishAlert(AlertType.Success, 'Success');
+        // remove the row form rows!
+        this.workflows = this.workflows.filter(wf => wf._id !== row.workflow._id);
+        this.changeFilter();
+      } catch (error) {
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
+      }
+    }
+  }
 }
