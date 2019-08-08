@@ -27,7 +27,7 @@ export class TaskService {
         name: 'Transfer GMB Ownership',
         result: null
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -40,7 +40,7 @@ export class TaskService {
         "locations.status": 1,
         "locations.cid": 1
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -49,7 +49,7 @@ export class TaskService {
         "googleListing.cid": 1,
         disabled: 1
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     const disabledRestaurants = restaurants.filter(r => r.disabled);
@@ -61,7 +61,7 @@ export class TaskService {
         cid: 1,
         qmenuId: 1
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     console.log('Open transfer tasks: ', openTransferTasks);
@@ -149,7 +149,7 @@ export class TaskService {
         name: 'Apply GMB Ownership',
         result: null
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     console.log('Open apply tasks: ', openApplyTasks);
@@ -268,7 +268,7 @@ export class TaskService {
         name: 'Appeal Suspended GMB',
         result: null
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     console.log('openAppealTasks', openAppealTasks);
@@ -287,7 +287,7 @@ export class TaskService {
         "locations.address": 1,
         "locations.statusHistory": { $slice: 1 }
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -430,7 +430,7 @@ export class TaskService {
         name: 'Appeal Suspended GMB',
         result: null
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -445,7 +445,7 @@ export class TaskService {
         "locations.name": 1,
         "locations.status": 1
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     console.log('Open appeal tasks: ', openAppealTasks);
@@ -526,7 +526,7 @@ export class TaskService {
       projection: {
         name: 1
       },
-      limit: 5000
+      limit: 6000
     }).toPromise();
 
     const taskBizIdSet = new Set(openTasks.filter(t => t.relatedMap && t.relatedMap.gmbBizId).map(t => t.relatedMap.gmbBizId));

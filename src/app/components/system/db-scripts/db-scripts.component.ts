@@ -686,7 +686,7 @@ export class DbScriptsComponent implements OnInit {
         projection: {
           restaurant: 1
         },
-        limit: 50000
+        limit: 60000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",

@@ -1,0 +1,29 @@
+<h1 class="text-center">Invoicing Cycles</h1>
+<!-- <app-restaurant-menu-shuffler [restaurant1]="fakeRestaurant1"  [restaurant2]="fakeRestaurant2"></app-restaurant-menu-shuffler> -->
+<div class="text-right mb-2">
+  <div class="pb-2">
+    <button class="btn btn-primary" (click)="setAction('NEW')">
+      <i class="fas fa-plus"></i> Create New Cycle</button>
+  </div>
+
+  <div class="card text-left bg-light" *qIf="currentAction === 'NEW'">
+    <div class="card-body">
+      <h5 class="card-title">New Cycle (safe to run multiple times, open console to see progress)</h5>
+      <q-form-builder [object]="thresholds" [showDelete]="false" [fieldDescriptors]="fieldDescriptors"
+        (submit)="formSubmit($event)" (cancel)="formCancel()">
+      </q-form-builder>
+    </div>
+  </div>
+
+</div>
+
+<div class="form-group">
+  <label for="exampleFormControlSelect1">Select Cycle...</label>
+  <select class="form-control" id="exampleFormControlSelect1">
+    <option>1</option>
+    <option>2</option>
+    <option>3</option>
+    <option>4</option>
+    <option>5</option>
+  </select>
+</div>
