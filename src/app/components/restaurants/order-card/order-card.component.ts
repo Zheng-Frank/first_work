@@ -234,4 +234,7 @@ export class OrderCardComponent implements OnInit {
     //Allow "DRIVER" to view order, kind of a hack to let Noemi(taking care of CC dispute to view/download order pdf)
     return this._global.user.roles.some(r => r ==='ADMIN' || r ==='DRIVER');
   }
+  isAdmin(){	  
+    return this._global.user.roles.some(r => r ==='ADMIN');
+  }
 }
