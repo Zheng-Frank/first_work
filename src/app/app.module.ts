@@ -136,6 +136,7 @@ import { AwsMigrationComponent } from './components/system/aws-migration/aws-mig
 import { AutomationDashboard2Component } from './components/automation/automation-dashboard2/automation-dashboard2.component';
 
 import { NgxGraphModule } from '@swimlane/ngx-graph';
+import { CyclesComponent } from './components/invoices/cycles/cycles.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -251,7 +252,8 @@ import { NgxGraphModule } from '@swimlane/ngx-graph';
     MonitoringPrintersComponent,
     MonitoringHoursComponent,
     AwsMigrationComponent,
-    AutomationDashboard2Component    
+    AutomationDashboard2Component,
+    CyclesComponent    
   ],
   imports: [
     BrowserModule,
