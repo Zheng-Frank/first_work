@@ -32,6 +32,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   invoicedButLaterCanceledRows = [];
 
+  skipAutoInvoicingRestaurants = []
   constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
@@ -41,9 +42,31 @@ export class InvoiceMonthlyComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.toDate = this.guessInvoiceDates(new Date());
     console.log(this.toDate)
+
+    // we need to make sure NOT double counting the adjusted order, so query restaurant logs
+    const adjustmentLogs = await this.loadSkippedRestaurants();
+
+  }
+
+  private async loadSkippedRestaurants() {
+    this.skipAutoInvoicingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "skipAutoInvoicing": true,
+      },
+      projection: {
+        "name": 1
+      },
+      limit: 6000
+    }).toPromise();
+    console.log(this.skipAutoInvoicingRestaurants);
+
+
+    this.skipAutoInvoicingRestaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
+
   }
 
   getUninvoicedRows() {

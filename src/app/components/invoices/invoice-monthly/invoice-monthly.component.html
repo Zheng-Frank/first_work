@@ -183,7 +183,8 @@
         <th>Total Invoices</th>
       </tr>
 
-      <tr *ngFor="let row  of getUninvoicedRows()" class="{{row.overlappedInvoices.length > 0 || row.gappedInvoices.length > 0 ? 'text-danger' : ''}} {{row.restaurant.disabled? 'app-muted' : ''}}">
+      <tr *ngFor="let row  of getUninvoicedRows()"
+        class="{{row.overlappedInvoices.length > 0 || row.gappedInvoices.length > 0 ? 'text-danger' : ''}} {{row.restaurant.disabled? 'app-muted' : ''}}">
         <td>
           {{row.restaurant.name}}
         </td>
@@ -227,8 +228,19 @@
   </div>
 </div>
 
-<div *ngFor="let date of startDatesOfEachMonth" class="card text-center hvr-underline-reveal mx-1 mt-2" style="width: 20rem; display: inline-block; cursor: pointer;">
+<div *ngFor="let date of startDatesOfEachMonth" class="card text-center hvr-underline-reveal mx-1 mt-2"
+  style="width: 20rem; display: inline-block; cursor: pointer;">
   <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
     <h4 class="card-title">{{date | date:'MMMM y' }}</h4>
   </div>
+</div>
+
+<h1 class="text-center mt-4">
+  Skipped Auto-Invoicing Restaurants ({{skipAutoInvoicingRestaurants.length}})
+</h1>
+
+<div *ngFor="let r of skipAutoInvoicingRestaurants" class="text-center">
+
+  <a target="_blank" routerLink="/restaurants/{{r._id}}">{{r.name}}</a>
+
 </div>
