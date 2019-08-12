@@ -12,7 +12,7 @@ export class CyclesComponent implements OnInit {
 
   currentAction;
   thresholds = {
-    balanceThreshold: 20,
+    balanceThreshold: 10,
     payoutThreshold: 50,
     toDate: undefined
   }
@@ -37,11 +37,23 @@ export class CyclesComponent implements OnInit {
       inputType: "date"
     }];
 
+  cycles = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.thresholds.toDate = this.guessInvoiceDates(new Date()).toDate;
+    await this.loadCycles();
+  }
+
+  private async loadCycles() {
+    this.cycles = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "cycle",
+      projection: {
+        toDate: 1
+      },
+      limit: 10000
+    }).toPromise();
   }
 
   async formSubmit(event) {
@@ -55,7 +67,7 @@ export class CyclesComponent implements OnInit {
       },
       projection: {
         toDate: 1,
-        "restaurants._id": 1
+        restaurants: 1
       },
       limit: 1
     }).toPromise();
@@ -65,6 +77,8 @@ export class CyclesComponent implements OnInit {
       console.log('created', newCycleIds);
       cycle = JSON.parse(JSON.stringify(thresholds));
       cycle._id = newCycleIds[0];
+
+      this.loadCycles();
     } else {
       console.log('found existing cycle');
       cycle = existingCycles[0];
@@ -72,15 +86,66 @@ export class CyclesComponent implements OnInit {
 
     // inject ALL restaurants if the cycle doesn't have restaurants yet
     if (!cycle.restaurants || cycle.restaurants.length === 0) {
+      console.log('injecting restaurants...')
       const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         projection: {
-          disabled: 1,
-          name: 1
+          name: 1,
+          skipAutoInvoicing: 1
         },
         limit: 100000
       }).toPromise();
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=cycle', [{
+        old: {
+          _id: cycle._id
+        },
+        new: {
+          _id: cycle._id,
+          restaurants: restaurants
+        }
+      }]);
+      cycle.restaurants = restaurants;
     }
+
+    // create invoices for each restaurant!
+    const unprocessedRestaurants = cycle.restaurants.filter(r => !r.invoiceId && !r.error && !r.skipAutoInvoicing);
+
+    for (let r of unprocessedRestaurants) {
+      console.log(`processing ${r.name}`);
+      r.processedAt = new Date();
+      try {
+        const invoice = await this._api.post(environment.appApiUrl + "invoices", {
+          toDate: cycle.toDate,
+          restaurantId: r._id
+        }).toPromise();
+        r.invoice = {
+          _id: invoice._id,
+          balance: invoice.balance,
+          
+        };
+
+      } catch (e) {
+        console.log(e);
+        r.error = e.error || e;
+      }
+
+
+      const indexOfR = cycle.restaurants.indexOf(r);
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=cycle', [{
+        old: {
+          _id: cycle._id
+        },
+        new: {
+          _id: cycle._id,
+          [`restaurants.${indexOfR}`]: r
+        }
+      }]);
+
+      // break;
+    }
+
     event.acknowledge(null);
     this.currentAction = undefined;
   }

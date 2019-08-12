@@ -44,6 +44,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'deliveryBy',
     'domain',    
     'skipOrderConfirmation',
+    'skipAutoInvoicing',
     'skipImageInjection',
     'hideOrderStatus',
     'skipShowTax',
