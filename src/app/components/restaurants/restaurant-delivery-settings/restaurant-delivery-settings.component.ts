@@ -24,7 +24,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   allowedZipCodes;
   deliveryEndMinutesBeforeClosing;
   deliveryArea;
-  deliveryHours;
+  deliveryHours = [];
 
   deliveryFromTimes = [{ value: null, text: 'At business open' }];
   deliveryEndTimes = [];
