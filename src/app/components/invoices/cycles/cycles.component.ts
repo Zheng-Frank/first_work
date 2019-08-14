@@ -73,6 +73,12 @@ export class CyclesComponent implements OnInit {
     }).toPromise();
     if (existingCycles.length === 0) {
       console.log('creating new cycle...');
+
+      // mid month: we will skip non-payout restaurants
+      if (Math.abs(16 - new Date(thresholds.toDate).getDate()) < 4) {
+        this.thresholds.balanceThreshold = 1000000;
+      }
+
       const newCycleIds = await this._api.post(environment.qmenuApiUrl + "generic?resource=cycle", [thresholds]).toPromise();
       console.log('created', newCycleIds);
       cycle = JSON.parse(JSON.stringify(thresholds));
@@ -117,12 +123,14 @@ export class CyclesComponent implements OnInit {
       try {
         const invoice = await this._api.post(environment.appApiUrl + "invoices", {
           toDate: cycle.toDate,
-          restaurantId: r._id
+          restaurantId: r._id,
+          payoutThreshold: cycle.payoutThreshold,
+          balanceThreshold: cycle.balanceThreshold
         }).toPromise();
         r.invoice = {
           _id: invoice._id,
           balance: invoice.balance,
-          
+
         };
 
       } catch (e) {
