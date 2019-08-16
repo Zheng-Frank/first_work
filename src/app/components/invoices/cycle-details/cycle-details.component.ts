@@ -44,6 +44,12 @@ export class CycleDetailsComponent implements OnInit {
       sent: 0,
       paid: 0
     },
+    ERROR_INVOICES: {
+      label: '过程出错',
+      rows: [],
+      sent: 0,
+      paid: 0
+    },
     SKIPPED: {
       label: '未产生账单商家数',
       rows: []
@@ -65,9 +71,12 @@ export class CycleDetailsComponent implements OnInit {
       rows: []
     }
   };
+
+  cycleId;
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     this._route.params.subscribe(
       params => {
+        this.cycleId = params.id;
         this.loadCycle(params.id);
       });
   }
@@ -88,20 +97,22 @@ export class CycleDetailsComponent implements OnInit {
     const allRows = this.cycle.restaurants.slice(0);
     this.blocks.ALL.rows = allRows;
     this.blocks.INVOICES.rows = allRows.filter(r => r.invoice);
-    this.blocks.SKIPPED.rows = allRows.filter(r => r.error);
+    this.blocks.SKIPPED.rows = allRows.filter(r => !r.invoice && r.error);
 
     this.blocks.PAYOUT_INVOICES.rows = allRows.filter(r => r.invoice && r.invoice.balance < 0);
     this.blocks.NORMAL_INVOICES.rows = allRows.filter(r => r.invoice && r.invoice.balance > 0);
     this.blocks.CANCELED_INVOICES.rows = allRows.filter(r => r.invoice && r.invoice.isCanceled);
+    this.blocks.ERROR_INVOICES.rows = allRows.filter(r => r.invoice && r.error);
+
     // inject sent and paid counter
     [this.blocks.PAYOUT_INVOICES, this.blocks.NORMAL_INVOICES, this.blocks.CANCELED_INVOICES].map(block => {
       block.sent = block.rows.filter(r => r.invoice.isSent).length;
       block.paid = block.rows.filter(r => r.invoice.isPaymentCompleted || r.invoice.isPaymentSent).length;
     });
 
-    this.blocks.SKIPPED_TOO_SMALL.rows = allRows.filter(r => r.error && r.error.balance);
-    this.blocks.SKIPPED_0.rows = allRows.filter(r => r.error && r.error.balance === 0);
-    this.blocks.SKIPPED_ERROR.rows = allRows.filter(r => r.error && !r.error.hasOwnProperty('balance'));
+    this.blocks.SKIPPED_TOO_SMALL.rows = allRows.filter(r => !r.invoice && r.error && r.error.balance);
+    this.blocks.SKIPPED_0.rows = allRows.filter(r => !r.invoice && r.error && r.error.balance === 0);
+    this.blocks.SKIPPED_ERROR.rows = allRows.filter(r => !r.invoice && r.error && !r.error.hasOwnProperty('balance'));
     this.blocks.SKIPPED_MANUAL.rows = allRows.filter(r => r.skipAutoInvoicing);
   }
 
@@ -180,6 +191,7 @@ export class CycleDetailsComponent implements OnInit {
           }
         }
       ]).toPromise();
+      this.loadCycle(this.cycleId);
     }
     console.log(updated);
     console.log(invoices);

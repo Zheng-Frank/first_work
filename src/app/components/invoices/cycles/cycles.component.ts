@@ -67,7 +67,9 @@ export class CyclesComponent implements OnInit {
       },
       projection: {
         toDate: 1,
-        restaurants: 1
+        restaurants: 1,
+        balanceThreshold: 1,
+        payoutThreshold: 1,
       },
       limit: 1
     }).toPromise();
@@ -117,16 +119,19 @@ export class CyclesComponent implements OnInit {
     // create invoices for each restaurant!
     const unprocessedRestaurants = cycle.restaurants.filter(r => !r.invoiceId && !r.error && !r.skipAutoInvoicing);
 
+    const specialCase = unprocessedRestaurants.filter(rt => rt._id === '5ac58e453e54b31400397249');
+
     for (let r of unprocessedRestaurants) {
       console.log(`processing ${r.name}`);
       r.processedAt = new Date();
       try {
-        const invoice = await this._api.post(environment.appApiUrl + "invoices", {
+        const payload = {
           toDate: cycle.toDate,
           restaurantId: r._id,
           payoutThreshold: cycle.payoutThreshold,
           balanceThreshold: cycle.balanceThreshold
-        }).toPromise();
+        };
+        const invoice = await this._api.post(environment.appApiUrl + "invoices", payload).toPromise();
         r.invoice = {
           _id: invoice._id,
           balance: invoice.balance,
