@@ -112,7 +112,8 @@ export class OrderDashboardComponent implements OnInit {
           "googleListing.cid": 1,
           "web.qmenuWebsite": 1,
           "promotions.expiry": 1,
-          "googleListing.gmbWebsite": 1
+          "googleListing.gmbWebsite": 1,
+          score: 1
         },
         limit: 6000
       }),
@@ -299,5 +300,36 @@ export class OrderDashboardComponent implements OnInit {
           "Error pulling orders"
         )
       })
+  }
+
+  sortingItem;
+  sort(item) {
+    if (item === this.sortingItem) {
+      this.rows.reverse();
+    } else {
+      this.sortingItem = item;
+      switch (item) {
+        case 'restaurant':
+          this.rows.sort((r1, r2) => r1.restaurant.name > r2.restaurant.name ? 1 : (r1.restaurant.name < r2.restaurant.name ? -1 : 0));
+          break;
+        case 'score':
+          this.rows.sort((r1, r2) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0));
+          break;
+        case 'web':
+          this.rows.sort((r1, r2) => (r2.orders.length - r2.standaloneOrders.length) - (r1.orders.length - r1.standaloneOrders.length));
+          break;
+        case 'app':
+          this.rows.sort((r1, r2) => r2.standaloneOrders.length - r1.standaloneOrders.length);
+          break;
+        case 'change':
+          this.rows.sort((r1, r2) => (r2.orders.length - r2.lastWeekOrders.length) - (r1.orders.length - r1.lastWeekOrders.length));
+          break;
+        case 'gmb':
+          this.rows.sort((r1, r2) => (r2.ownedGmb ? 1 : 0) - (r1.ownedGmb ? 1 : 0));
+          break;
+        default:
+          break;
+      }
+    }
   }
 }

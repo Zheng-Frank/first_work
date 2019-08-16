@@ -17,7 +17,7 @@
         </td>
       </tr>
       <tr>
-        <td colspan="3"
+        <td colspan="4"
           class="w-50 hvr-underline-reveal d-table-cell {{activeBlockName ==='INVOICES' ? 'alert-secondary' : ''}}"
           (click)="setActiveBlockName('INVOICES')">
           {{blocks.INVOICES.label}}
@@ -32,7 +32,7 @@
       </tr>
       <tr>
         <td class="hvr-underline-reveal d-table-cell {{activeBlockName ==='PAYOUT_INVOICES' ? 'alert-secondary' : ''}}"
-          (click)="setActiveBlockName('PAYOUT_INVOICES')" style="width: 14%">
+          (click)="setActiveBlockName('PAYOUT_INVOICES')" style="width: 12.5%">
           {{blocks.PAYOUT_INVOICES.label}}
           <h2>{{blocks.PAYOUT_INVOICES.rows.length}}</h2>
           <div>
@@ -43,7 +43,7 @@
           </div>
         </td>
         <td class="hvr-underline-reveal d-table-cell {{activeBlockName ==='NORMAL_INVOICES' ? 'alert-secondary' : ''}}"
-          (click)="setActiveBlockName('NORMAL_INVOICES')" style="width: 14%">
+          (click)="setActiveBlockName('NORMAL_INVOICES')" style="width: 12.5%">
           {{blocks.NORMAL_INVOICES.label}}
           <h2>{{blocks.NORMAL_INVOICES.rows.length}}</h2>
           <div>
@@ -56,7 +56,7 @@
 
         <td
           class="hvr-underline-reveal d-table-cell {{activeBlockName ==='CANCELED_INVOICES' ? 'alert-secondary' : ''}}"
-          (click)="setActiveBlockName('CANCELED_INVOICES')" style="width: 14%">
+          (click)="setActiveBlockName('CANCELED_INVOICES')" style="width: 12.5%">
           {{blocks.CANCELED_INVOICES.label}}
           <h2 class="text-danger">{{blocks.CANCELED_INVOICES.rows.length}}</h2>
           <div>
@@ -66,19 +66,25 @@
             paid: {{blocks.CANCELED_INVOICES.paid || 0}}
           </div>
         </td>
-        <td style="width: 14%"
+
+        <td class="hvr-underline-reveal d-table-cell {{activeBlockName ==='ERROR_INVOICES' ? 'alert-secondary' : ''}}"
+          (click)="setActiveBlockName('ERROR_INVOICES')" style="width: 12.5%">
+          {{blocks.ERROR_INVOICES.label}}
+          <h2 class="text-danger">{{blocks.ERROR_INVOICES.rows.length}}</h2>
+        </td>
+        <td style="width: 12.5%"
           class="hvr-underline-reveal d-table-cell {{activeBlockName ==='SKIPPED_TOO_SMALL' ? 'alert-secondary' : ''}}"
           (click)="setActiveBlockName('SKIPPED_TOO_SMALL')">
           {{blocks.SKIPPED_TOO_SMALL.label}}
           <h2>{{blocks.SKIPPED_TOO_SMALL.rows.length}}</h2>
         </td>
-        <td style="width: 14%"
+        <td style="width: 12.5%"
           class="hvr-underline-reveal d-table-cell {{activeBlockName ==='SKIPPED_0' ? 'alert-secondary' : ''}}"
           (click)="setActiveBlockName('SKIPPED_0')">
           {{blocks.SKIPPED_0.label}}
           <h2>{{blocks.SKIPPED_0.rows.length}}</h2>
         </td>
-        <td style="width: 14%"
+        <td style="width: 12.5%"
           class="hvr-underline-reveal d-table-cell {{activeBlockName ==='SKIPPED_MANUAL' ? 'alert-secondary' : ''}}"
           (click)="setActiveBlockName('SKIPPED_MANUAL')">
           {{blocks.SKIPPED_MANUAL.label}}

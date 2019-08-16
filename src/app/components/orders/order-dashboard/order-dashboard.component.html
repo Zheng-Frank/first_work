@@ -29,11 +29,12 @@
   <thead>
     <tr>
       <!-- <th scope="col">Agent</th> -->
-      <th>Restaurant</th>
-      <th>Web</th>
-      <th>App</th>
-      <th>Change</th>
-      <th>GMB</th>
+      <th><button class="btn btn-link px-0" (click)="sort('restaurant')">Restaurant</button></th>
+      <th><button class="btn btn-link px-0" (click)="sort('score')">Score</button></th>
+      <th><button class="btn btn-link px-0" (click)="sort('web')">Web</button></th>
+      <th><button class="btn btn-link px-0" (click)="sort('app')">App</button></th>
+      <th><button class="btn btn-link px-0" (click)="sort('change')">Change</button></th>
+      <th><button class="btn btn-link px-0" (click)="sort('gmb')">GMB</button></th>
     </tr>
   </thead>
   <tbody>
@@ -57,6 +58,7 @@
           </ng-container>
         </div>
       </td>
+      <td>{{row.restaurant.score}}</td>
       <td>{{row.orders.length - row.standaloneOrders.length}}</td>
       <td>{{row.standaloneOrders.length}}</td>
       <td>

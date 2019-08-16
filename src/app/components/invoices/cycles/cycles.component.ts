@@ -67,12 +67,20 @@ export class CyclesComponent implements OnInit {
       },
       projection: {
         toDate: 1,
-        restaurants: 1
+        restaurants: 1,
+        balanceThreshold: 1,
+        payoutThreshold: 1,
       },
       limit: 1
     }).toPromise();
     if (existingCycles.length === 0) {
       console.log('creating new cycle...');
+
+      // mid month: we will skip non-payout restaurants
+      if (Math.abs(16 - new Date(thresholds.toDate).getDate()) < 4) {
+        this.thresholds.balanceThreshold = 1000000;
+      }
+
       const newCycleIds = await this._api.post(environment.qmenuApiUrl + "generic?resource=cycle", [thresholds]).toPromise();
       console.log('created', newCycleIds);
       cycle = JSON.parse(JSON.stringify(thresholds));
@@ -111,18 +119,23 @@ export class CyclesComponent implements OnInit {
     // create invoices for each restaurant!
     const unprocessedRestaurants = cycle.restaurants.filter(r => !r.invoiceId && !r.error && !r.skipAutoInvoicing);
 
+    const specialCase = unprocessedRestaurants.filter(rt => rt._id === '5ac58e453e54b31400397249');
+
     for (let r of unprocessedRestaurants) {
       console.log(`processing ${r.name}`);
       r.processedAt = new Date();
       try {
-        const invoice = await this._api.post(environment.appApiUrl + "invoices", {
+        const payload = {
           toDate: cycle.toDate,
-          restaurantId: r._id
-        }).toPromise();
+          restaurantId: r._id,
+          payoutThreshold: cycle.payoutThreshold,
+          balanceThreshold: cycle.balanceThreshold
+        };
+        const invoice = await this._api.post(environment.appApiUrl + "invoices", payload).toPromise();
         r.invoice = {
           _id: invoice._id,
           balance: invoice.balance,
-          
+
         };
 
       } catch (e) {

@@ -3,8 +3,8 @@ export const environment = {
   env: "dev",
   appApiUrl: "https://9v8upsmsai.execute-api.us-east-1.amazonaws.com/dev/",
   qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/dev/",
-  // legacyApiUrl: "https://quez.herokuapp.com/",
-  legacyApiUrl: "http://localhost:1337/",
+  legacyApiUrl: "https://quez.herokuapp.com/",
+  // legacyApiUrl: "http://localhost:1337/",
   autoGmbUrl: "http://localhost:3000/",
 
   migrationUrl: "http://qauto.ngrok.io/",
