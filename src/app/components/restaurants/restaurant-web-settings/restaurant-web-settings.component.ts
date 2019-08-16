@@ -53,6 +53,28 @@ export class RestaurantWebSettingsComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, error);
     }
   }
+  
+  async toggle(event, field) {
+    try {
+      const web = this.restaurant.web || {};
+      
+      const newValue = event.target.checked;
+      web[field] = newValue;
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant._id},
+        new: {_id: this.restaurant._id, web: web}
+      }]).toPromise();
+
+      this.restaurant.web = web;
+
+      this._global.publishAlert(AlertType.Success, 'Updated');
+
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, error);
+    }
+  }
+
 
   async handleUpdate() {
     const web = this.restaurant.web || {};
