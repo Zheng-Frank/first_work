@@ -1,20 +1,36 @@
-<h2 class="text-center">GMB: Accounts</h2>
+<h2 class="text-center">GMB: Accounts ({{filteredGmbAccounts.length}})</h2>
 <div class="text-center">Published: {{publishedTotal}}, Suspended: {{suspendedTotal}}</div>
+
 
 <div class="clearfix my-2">
   <div class="float-left form-inline">
-    Account Filter:
-    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2"
-      placeholder="email or restaurant name" [(ngModel)]="searchFilter">
+    <label class="mr-2" style="padding-left: 15px"> Account Filter:</label>
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email or restaurant name"
+      [(ngModel)]="searchFilter">
 
-    <input type="text" class="form-control ml-2" id="fake-Iinput"
-      placeholder="email or restaurant name" >
+    <input type="text" class="form-control ml-2" id="fake-Iinput" placeholder="email or restaurant name">
 
-    &nbsp;Type:
+    <label class="mr-2" style="padding-left: 15px"> Type:</label>
     <select class="form-control" [(ngModel)]="type" (change)="filterGmbAccounts()">
       <option>All</option>
       <option>Apply GMB</option>
       <option>Transfer GMB</option>
+    </select>
+    <label class="mr-2" style="padding-left: 15px"> Location Scanned:</label>
+    <select class="form-control" [(ngModel)]="locationScanOlder" (change)="filterGmbAccounts()">
+      <option>All</option>
+      <option value="2">More than 2 hours ago</option>
+      <option value="4">More than 4 hours ago</option>
+      <option value="24">More than 1 day ago</option>
+      <option value="72">More than 3 days ago</option>
+    </select>
+    <label class="mr-2" style="padding-left: 15px"> Email Scanned:</label>
+    <select class="form-control" [(ngModel)]="emailScanOlder" (change)="filterGmbAccounts()">
+      <option>All</option>
+      <option value="2">More than 2 hours ago</option>
+      <option value="4">More than 4 hours ago</option>
+      <option value="24">More than 1 day ago</option>
+      <option value="72">More than 3 days ago</option>
     </select>
   </div>
 
@@ -25,8 +41,8 @@
   </div>
 </div>
 <div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
-  <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)"
-    (scanRequests)="scanRequests($event)" (scanBizList)="scanBizList($event)" (login)="login($event)"></app-gmb-card2>
+  <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)" (scanRequests)="scanRequests($event)"
+    (scanBizList)="scanBizList($event)" (login)="login($event)"></app-gmb-card2>
 </div>
 <div class="alert alert-danger" *ngIf="problematicLocations.length > 0">
   <h4>Problematic Locations</h4>
@@ -59,7 +75,6 @@
 <q-modal #gmbEditingModal>
   <h4 class="text-center">{{gmbInEditing && gmbInEditing._id ? 'Update' : 'Add New'}}</h4>
   <hr>
-  <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)"
-    (cancel)="cancel()"></app-gmb-account-editor>
+  <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)" (cancel)="cancel()"></app-gmb-account-editor>
   <div class="text-danger">{{apiError}}</div>
 </q-modal>
