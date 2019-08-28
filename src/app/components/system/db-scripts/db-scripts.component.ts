@@ -1239,55 +1239,33 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async genericTesting() {
-    const recentCCPayments = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'payment',
-      query: {
-        createdAt: { $gt: { $date: "2019-02-11T01:37:36.919Z" } },
-        "paymentType": "CREDITCARD",
-        "creditCardProcessingMethod": "CREDITCARD",
-        "method": "CREDITCARD"
+    // get newest duplicate!
+
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1,
+        "locations.statusHistory": { $slice: 2 },
+        "locations.cid": 1,
+        "locations.name": 1,
+        "locations.address": 1,
+        "locations.statusHistory.time": 1,
+        "locations.statusHistory.status": 1
       },
-      limit: 1000
+      limit: 6000
     }).toPromise();
+    console.log(gmbAccounts);
+    const list = [];
+    gmbAccounts.map(account => (account.locations || []).map(loc => {
+      if (loc.statusHistory && loc.statusHistory[1] && loc.statusHistory[0].status === 'Suspended' && loc.statusHistory[1].status === 'Verification required') {
+        const timespan = new Date(loc.statusHistory[0].time).valueOf() - new Date(loc.statusHistory[1].time).valueOf();
+        list.push({ name: loc.name, time: loc.statusHistory[0].time, address: loc.address, span: timespan / 1000 / 3600 / 24 });
+      }
+    }));
 
-    console.log(recentCCPayments)
+    list.sort((l2, l1) => new Date(l1.time).valueOf() - new Date(l2.time).valueOf());
 
-    // get orders
-    const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'order',
-      query: {
-        createdAt: { $gt: { $date: "2019-02-11T01:37:36.919Z" } },
-        "payment": {
-          $in: recentCCPayments.map(p => ({
-            $oid: p._id
-          }))
-        }
-      },
-      limit: 1000
-    }).toPromise();
-
-    console.log(orders);
-
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        "_id": {
-          $in: orders.map(o => ({
-            $oid: o.restaurant
-          }))
-        }
-      },
-      limit: 1000
-    }).toPromise();
-
-    console.log(restaurants);
-
-    recentCCPayments.map(p => {
-      const order = orders.filter(o => o.payment === p._id)[0];
-      const restaurant = restaurants.filter(r => r._id === order.restaurant)[0];
-      console.log(p, order.type, restaurant.serviceSettings.filter(ss => ss.name.toLowerCase() === order.type.toLowerCase())[0].paymentMethods);
-    });
-
+    console.log(list);
   }
 
   async removeRedundantGmbBiz() {

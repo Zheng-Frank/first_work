@@ -100,14 +100,15 @@
 
   <div class="card">
     <div class="card-body">
-      <h5>{{currentPublishedTotal}} (Current GMB), {{hadGainedTotal}} (Had GMB)</h5>
+      <h5>Current GMB: {{currentPublishedTotal}}, Had GMB: {{hadGainedBySalesTotal + hadGainedByQmenuTotal}} ({{hadGainedBySalesTotal}} from sales + {{hadGainedByQmenuTotal}} from qMenu)</h5>
       <div>
         <q-table [rows]="result" [tableColumnDescriptors]="gmbColumnDescriptors" [compact]="true">
           <tr *tableRowTemplate="let each;">
             <td>{{each.month}}
             </td>
             <td>{{each.rts}}</td>
-            <td>{{each.gmbGained}}</td>
+            <td>{{each.gmbGainedBySales}}</td>
+            <td>{{each.gmbGainedByQmenu}}</td>
             <td>{{each.published}}</td>
           </tr>
         </q-table>
@@ -173,7 +174,9 @@
       <span class="text-success" *ngIf="row.gmbOnceOwned">✔</span>
       <span class="text-danger" *ngIf="!row.gmbOnceOwned">✘</span>
     </td>
-
+    <td>
+      {{row.gmbOnceOwned ? (row.originIsSales ? 'Sales' : 'qMenu') : ''}}
+    </td>
     <td class="text-center">
       <img *ngIf="row.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
       <img *ngIf="row.suspended" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">

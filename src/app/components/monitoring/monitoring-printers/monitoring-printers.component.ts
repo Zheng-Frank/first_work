@@ -435,7 +435,6 @@ export class MonitoringPrintersComponent implements OnInit {
       resource: 'print-client',
       limit: 200000
     }).toPromise();
-
     const allRestaurants = await this._global.getCachedVisibleRestaurantList();
 
     const restaurantDict = allRestaurants.reduce((map, r) => (map[r._id] = r, map), {});
@@ -558,7 +557,7 @@ export class MonitoringPrintersComponent implements OnInit {
         resource: 'print-client',
         limit: 200000
       }).toPromise();
-
+      console.log('stubs')
       const newClients = printingClients.filter(c => {
         // fei-e ==> sn or name match
         // lecacy/longhorn ==> restaurant._id match

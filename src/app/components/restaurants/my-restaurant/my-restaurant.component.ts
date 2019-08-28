@@ -16,7 +16,9 @@ export class MyRestaurantComponent implements OnInit {
   rows = [];
   now = new Date();
   result;
-  hadGainedTotal;
+  hadGainedBySalesTotal;
+  hadGainedByQmenuTotal;
+
   currentPublishedTotal;
 
   isSuperUser = false;
@@ -90,6 +92,10 @@ export class MyRestaurantComponent implements OnInit {
       sort: (a, b) => (+a) - (+b)
     },
     {
+      label: 'GMB Origin',
+      paths: ['firstStatus'],
+    },
+    {
       label: 'Current GMB'
     },
     {
@@ -121,8 +127,13 @@ export class MyRestaurantComponent implements OnInit {
       sort: (a, b) => a - b
     },
     {
-      label: 'GMB Gained',
-      paths: ['gmbGained'],
+      label: 'GMB Gained By Sales',
+      paths: ['gmbGainedBySales'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'GMB Gained By qMenu',
+      paths: ['gmbGainedByQmenu'],
       sort: (a, b) => a - b
     },
 
@@ -248,11 +259,21 @@ export class MyRestaurantComponent implements OnInit {
     gmbAccounts.map(acct => acct.locations.map(loc => {
       cidLocationMap[loc.cid] = cidLocationMap[loc.cid] || {};
       const gmbOnceOwned = loc.statusHistory.some(h => h.status === 'Published'); // || h.status === 'Suspended');
+
       const statusOrder = ['Suspended', 'Published'];
       const status = statusOrder.indexOf(cidLocationMap[loc.cid].status) > statusOrder.indexOf(loc.status) ? cidLocationMap[loc.cid].status : loc.status;
 
       cidLocationMap[loc.cid].status = status;
       cidLocationMap[loc.cid].gmbOnceOwned = cidLocationMap[loc.cid].gmbOnceOwned || gmbOnceOwned;
+
+      // ONLY count location history with at least Published status
+      if (loc.statusHistory.some(s => s.status === 'Published')) {
+        const firstStatus = cidLocationMap[loc.cid].firstStatus || { time: new Date() };
+        const thisLocFirstStatus = loc.statusHistory[loc.statusHistory.length - 1];
+        if (thisLocFirstStatus && new Date(thisLocFirstStatus.time) < new Date(firstStatus.time)) {
+          cidLocationMap[loc.cid].firstStatus = thisLocFirstStatus;
+        }
+      }
 
     }));
 
@@ -263,6 +284,8 @@ export class MyRestaurantComponent implements OnInit {
         const location = cidLocationMap[gmbBiz.cid];
 
         row.gmbOnceOwned = row.gmbOnceOwned || (location && location.gmbOnceOwned);
+        row.firstStatus = location && location.firstStatus;
+
         row.gmbBiz = gmbBiz;
         row.published = location && location.status === 'Published';
         row.suspended = location && location.status === 'Suspended';
@@ -383,20 +406,24 @@ export class MyRestaurantComponent implements OnInit {
       02/2019 restaurants 30, GMB Gained 11, Current GMB 9
     */
 
-    this.hadGainedTotal = this.rows.reduce((sum, a) => sum + (a.gmbOnceOwned || 0), 0);
-    this.currentPublishedTotal = this.rows.reduce((sum, a) => sum + (a.published || 0), 0);
 
     this.rows.map(row => {
       let month = (new Date(row.restaurant.createdAt)).getMonth() + 1;
       let year = (new Date(row.restaurant.createdAt)).getFullYear();
       let eachListingDate = { month: month.toString() + '/' + year }
 
+      const originIsSales = (row.firstStatus && (['Pending edits', 'Verified', 'Published', 'Suspended', 'Duplicate'].indexOf(row.firstStatus.status) >= 0) || new Date(row.restaurant.createdAt) < new Date('2018-09-6'));
+      row.originIsSales = originIsSales;
       if (this.result.some(each => each.month === eachListingDate.month)) {
         this.result.map(each => {
           if (each.month === eachListingDate.month) {
             each.rts = each.rts + 1;
             if (row.gmbOnceOwned) {
-              each.gmbGained = each.gmbGained + 1;
+              if (originIsSales) {
+                each.gmbGainedBySales = each.gmbGainedBySales + 1;
+              } else {
+                each.gmbGainedByQmenu = each.gmbGainedByQmenu + 1;
+              }
             }
             if (row.published) {
               each.published = each.published + 1;
@@ -405,16 +432,19 @@ export class MyRestaurantComponent implements OnInit {
         })
       } else {
         let newItem = { month: eachListingDate.month, rts: 1 };
-        newItem["gmbGained"] = row.gmbOnceOwned ? 1 : 0
+        newItem["gmbGainedBySales"] = row.gmbOnceOwned && originIsSales ? 1 : 0
+        newItem["gmbGainedByQmenu"] = row.gmbOnceOwned && !originIsSales ? 1 : 0
         newItem["published"] = row.published ? 1 : 0;
-
         this.result.push(newItem);
-
-
-
       }
+    });
 
-    })
+
+    this.hadGainedBySalesTotal = this.rows.reduce((sum, a) => sum + (a.gmbOnceOwned || 0) * (a.originIsSales ? 1 : 0), 0);
+    this.hadGainedByQmenuTotal = this.rows.reduce((sum, a) => sum + (a.gmbOnceOwned || 0) * (a.originIsSales ? 0 : 1), 0);
+    this.currentPublishedTotal = this.rows.reduce((sum, a) => sum + (a.published || 0), 0);
+
+
   }
 
   getTotal(field) {
@@ -424,7 +454,5 @@ export class MyRestaurantComponent implements OnInit {
   isRolledOrPaid(invoice) {
     return invoice.isPaymentCompleted || this.rolledInvoiceIdsSet.has(invoice._id);
   }
-
-
 
 }

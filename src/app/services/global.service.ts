@@ -227,7 +227,7 @@ export class GlobalService {
         query["rateSchedules.agent"] = this.user.username
       }
 
-      const result = await this._api.get(environment.qmenuApiUrl + "generic", {
+      const result1 = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: query,
         projection: {
@@ -245,8 +245,32 @@ export class GlobalService {
           "googleAddress.formatted_address": 1,
           web: 1
         },
+        limit: 4000
+      }).toPromise();
+
+      const result2 = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: query,
+        projection: {
+          name: 1,
+          alias: 1,
+          logo: 1,
+          restaurantId: 1,
+          "phones.phoneNumber": 1,
+          "channels": 1,
+          disabled: 1,
+          logs: {
+            $slice: -3
+          },
+          "rateSchedules.agent": 1,
+          "googleAddress.formatted_address": 1,
+          web: 1
+        },
+        skip: 4000,
         limit: 8000
       }).toPromise();
+
+      const result = [...result1, ...result2];
 
       const restaurants = result.map(r => new Restaurant(r));
       restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);

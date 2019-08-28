@@ -39,7 +39,6 @@ export class MonitoringGmbComponent implements OnInit {
       },
       limit: 200000
     }).toPromise();
-
     const gmbAccountsWithLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
