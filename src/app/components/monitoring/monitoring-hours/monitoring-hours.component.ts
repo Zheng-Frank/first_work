@@ -19,17 +19,30 @@ export class MonitoringHoursComponent implements OnInit {
 
   async populate() {
     // all restaurant stubs
-    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      projection: {
-        name: 1,
-        "menus.hours": 1,
-        "menus.name": 1,
-        "googleAddress.formatted_address": 1,
-        offsetToEST: 1
-      },
-      limit: 200000
-    }).toPromise();
+
+    const allRestaurants = [];
+    const batchSize = 4000;
+    let skip = 0;
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        projection: {
+          name: 1,
+          "menus.hours": 1,
+          "menus.name": 1,
+          "googleAddress.formatted_address": 1,
+          offsetToEST: 1
+        },
+        skip: skip,
+        limit: batchSize
+      }).toPromise();
+      if (batch.length === 0) {
+        break;
+      }
+      allRestaurants.push(...batch);
+      skip += batchSize;
+    }
+
 
     this.rows = allRestaurants.map(r => {
       const badMenuAndHours = [];

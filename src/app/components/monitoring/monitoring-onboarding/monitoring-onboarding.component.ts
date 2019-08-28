@@ -24,24 +24,37 @@ export class MonitoringOnboardingComponent implements OnInit {
 
   async populate() {
     // all restaurant stubs
-    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        disabled: { $in: [null, false] }
-      },
-      projection: {
-        name: 1,
-        "googleAddress.formatted_address": 1,
-        alias: 1,
-        disabled: 1,
-        "menus.disabled": 1,
-        "googleListing.cid": 1,
-        createdAt: 1,
-        "rateSchedules.agent": 1,
-        logs:  { $slice: -2 },
-      },
-      limit: 200000
-    }).toPromise();
+
+    const allRestaurants = [];
+    const batchSize = 4000;
+    let skip = 0;
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          disabled: { $in: [null, false] }
+        },
+        projection: {
+          name: 1,
+          "googleAddress.formatted_address": 1,
+          alias: 1,
+          disabled: 1,
+          "menus.disabled": 1,
+          "googleListing.cid": 1,
+          createdAt: 1,
+          "rateSchedules.agent": 1,
+          logs: { $slice: -2 },
+        },
+        skip: skip,
+        limit: batchSize
+      }).toPromise();
+      if (batch.length === 0) {
+        break;
+      }
+      allRestaurants.push(...batch);
+      skip += batchSize;
+    }
+
 
     // restaurantIdsWith
     const havingOrderRestaurantIdSet = new Set(await this._api.get(environment.legacyApiUrl + 'utilities/distinctOrderRestaurantIds').toPromise());

@@ -97,6 +97,7 @@ export class GmbBizListComponent implements OnInit {
         limit: 6000
       }).toPromise(),
 
+      // let's do two batches too
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         projection: {
@@ -109,8 +110,24 @@ export class GmbBizListComponent implements OnInit {
           "locations.statusHistory.time": 1,
           "locations.statusHistory.status": 1
         },
+        limit: 3000
+      }).toPromise(),
+      this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        projection: {
+          email: 1,
+          "locations.statusHistory": { $slice: 2 },
+          "locations.cid": 1,
+          "locations.name": 1,
+          "locations.address": 1,
+          "locations.status": 1,
+          "locations.statusHistory.time": 1,
+          "locations.statusHistory.status": 1
+        },
+        skip: 3000,
         limit: 6000
       }).toPromise(),
+
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
         projection: {
@@ -126,8 +143,8 @@ export class GmbBizListComponent implements OnInit {
 
 
     const restaurants = [...results[0], ...results[1]];
-    const gmbAccounts = results[2];
-    const gmbBizList = results[3];
+    const gmbAccounts = [...results[2], ...results[3]];
+    const gmbBizList = results[4];
     // create a cidMap
     const cidMap = {};
 
