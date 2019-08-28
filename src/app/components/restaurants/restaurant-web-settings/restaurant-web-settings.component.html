@@ -15,27 +15,31 @@
           </q-edit-label>
           <div *ngIf="restaurant.web?.bizManagedWebsite" class="pt-2">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="id_useBizWebsite" [checked]="restaurant.web?.useBizWebsite" (change)="toggle($event, 'useBizWebsite')">
+              <input class="form-check-input" type="checkbox" id="id_useBizWebsite" [checked]="restaurant.web?.useBizWebsite"
+                (change)="toggle($event, 'useBizWebsite')">
               <label class="form-check-label" for="id_useBizWebsite"> Insisted Website</label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="menuUrl" [checked]="restaurant.web?.useBizMenuUrl" (change)="toggle($event, 'useBizMenuUrl')">
+              <input class="form-check-input" type="checkbox" id="menuUrl" [checked]="restaurant.web?.useBizMenuUrl"
+                (change)="toggle($event, 'useBizMenuUrl')">
               <label class="form-check-label" for="menuUrl"> Insisted Menu Url</label>
               <q-edit-label [value]="restaurant.web?.menuUrl" (edit)="onEdit($event, 'menuUrl')">
               </q-edit-label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="orderAheadUrl" [checked]="restaurant.web?.useBizOrderAheadUrl" (change)="toggle($event, 'useBizOrderAheadUrl')">
+              <input class="form-check-input" type="checkbox" id="orderAheadUrl" [checked]="restaurant.web?.useBizOrderAheadUrl"
+                (change)="toggle($event, 'useBizOrderAheadUrl')">
               <label class="form-check-label" for="orderAheadUrl"> Insisted Order Url</label>
               <q-edit-label [value]="restaurant.web?.orderAheadUrl" (edit)="onEdit($event, 'orderAheadUrl')">
               </q-edit-label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="reservationUrl" [checked]="restaurant.web?.useBizReservationUrl" (change)="toggle($event, 'useBizReservationUrl')">
+              <input class="form-check-input" type="checkbox" id="reservationUrl" [checked]="restaurant.web?.useBizReservationUrl"
+                (change)="toggle($event, 'useBizReservationUrl')">
               <label class="form-check-label" for="reservationUrl"> Insisted Reservation Url</label>
               <q-edit-label [value]="restaurant.web?.reservationUrl" (edit)="onEdit($event, 'reservationUrl')">
               </q-edit-label>
-            </div>            
+            </div>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="id_useBizWebsiteForAll" [checked]="restaurant.web?.useBizWebsiteForAll"
                 (change)="toggle($event, 'useBizWebsiteForAll')">
@@ -52,15 +56,31 @@
         <label class="col-4 col-form-label pt-0">GMB</label>
         <div class="col-8 text-left">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="id_disableAutoTask" [checked]="restaurant.web?.disableAutoTask" (change)="toggle($event, 'disableAutoTask')">
-            <label class="form-check-label" for="id_disableAutoTask"> Skip creating only initial 'Apply GMB Ownership' task</label>
+            <input class="form-check-input" type="checkbox" id="id_disableAutoTask" [checked]="restaurant.web?.disableAutoTask"
+              (change)="toggle($event, 'disableAutoTask')">
+            <label class="form-check-label" for="id_disableAutoTask"> Skip creating only initial 'Apply GMB Ownership'
+              task</label>
           </div>
-          <div class="form-check">
+          <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="id_ignoreGmbOwnershipRequest" [checked]="restaurant.web?.ignoreGmbOwnershipRequest"
               (change)="toggle($event, 'ignoreGmbOwnershipRequest')">
-            <label class="form-check-label" for="id_ignoreGmbOwnershipRequest"> Skip creating ALL GMB tasks(asked by restaurant explicitly)</label>
+            <label class="form-check-label" for="id_ignoreGmbOwnershipRequest"> Skip creating ALL GMB tasks(asked by
+              restaurant explicitly)</label>
           </div>
 
+          <div class="form-group mb-2">
+            <label>Agree to Coorporate (同意分享验证码)</label>
+            <q-simple-radio [(ngModel)]="restaurant.web.agreeToCorporate" [equalWidth]="true" [values]="['Yes', 'No']"
+              (ngModelChange)="handleUpdate()">
+            </q-simple-radio>
+          </div>
+          
+          <div class="form-group mb-2">
+            <label>qMenu Exclusive (同意不给别家验证码)</label>
+            <q-simple-radio [(ngModel)]="restaurant.web.qmenuExclusive" [equalWidth]="true" [values]="['Yes', 'No']"
+              (ngModelChange)="handleUpdate()">
+            </q-simple-radio>
+          </div>
         </div>
       </div>
 

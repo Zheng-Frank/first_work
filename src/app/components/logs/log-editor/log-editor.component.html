@@ -31,7 +31,8 @@
 
   <div class="card border-info mb-3" *qIf="hasAdjustment">
     <div class="card-header">
-      <i class="fas fa-exclamation"></i> DO NOT ADJUST CUSTOMER AND RESTAURANT AGREED ORDER CHANGES HERE. Only input qMenu and restaurant mutually agreed
+      <i class="fas fa-exclamation"></i> DO NOT ADJUST CUSTOMER AND RESTAURANT AGREED ORDER CHANGES HERE. Only input
+      qMenu and restaurant mutually agreed
       adjustment here. The adjustment will be included in next invoice cycle.
       <div>
         <strong>* All fields are required.</strong>
@@ -73,7 +74,8 @@
 
   <div class="card border-info p-3" *qIf="hasTask">
     <div class="card-header my-2">
-      <i class="fas fa-exclamation"></i> Write down any comments in Response field and the text in Reponse field will be copied to task comments.
+      <i class="fas fa-exclamation"></i> Write down any comments in Response field and the text in Reponse field will
+      be copied to task comments.
       <div>
         <strong>* Select a task template below:</strong>
       </div>
@@ -94,9 +96,36 @@
 
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-task" [checked]="log.type === 'force-qmenu-collect'" (change)="toggleForceQmenuCollect()">
+      <input class="form-check-input" type="checkbox" id="id-task" [checked]="log.type === 'force-qmenu-collect'"
+        (change)="toggleForceQmenuCollect()">
       <label class="form-check-label" for="id-task"> Force qMenu Collect</label>
     </div>
+  </div>
+
+  <div class="mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-task" [checked]="log.type === 'gmb-call'" [(ngModel)]="hasGMBCall"
+        (change)="toggleGMBCalls()">
+      <label class="form-check-label" for="id-task"> GMB Calls</label>
+    </div>
+  </div>
+
+  <div class="card border-info p-3" *qIf="hasGMBCall">
+
+      <div class="form-group mb-2">
+          <label>Agree to Coorporate (同意分享验证码)</label>
+          <q-simple-radio [(ngModel)]="agreeToCorporate" [equalWidth]="true" [values]="['Yes', 'No']"
+            (ngModelChange)="handleUpdate()">
+          </q-simple-radio>
+        </div>
+        
+        <div class="form-group mb-2">
+          <label>qMenu Exclusive (同意不给别家验证码)</label>
+          <q-simple-radio [(ngModel)]="qmenuExclusive" [equalWidth]="true" [values]="['Yes', 'No']"
+            (ngModelChange)="handleUpdate()">
+          </q-simple-radio>
+        </div>
+
   </div>
 
   <div class="mb-3" *ngIf="!hasAdjustment && !hasTask">

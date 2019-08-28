@@ -245,7 +245,7 @@ export class GlobalService {
           "googleAddress.formatted_address": 1,
           web: 1
         },
-        limit: 6000
+        limit: 8000
       }).toPromise();
 
       const restaurants = result.map(r => new Restaurant(r));

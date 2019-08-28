@@ -32,6 +32,7 @@ export class TaskDashboardComponent {
 
   groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
 
+  globalCachedRestaurantList;
 
   currentAction = null;
   requesting = false;
@@ -141,6 +142,9 @@ export class TaskDashboardComponent {
       console.error(error);
       result1 = [];
     }
+
+    // force refreshing global restaurant list!
+    this.globalCachedRestaurantList = await this._global.getCachedVisibleRestaurantList(true);
     this.refreshing = false;
     let tasks = (result0 || []).map(t => new Task(t));
     //won't show "Apply GMB Ownership". "Transfer GMB Ownership" and "Appeal Suspended GMB" if you are not GMB_SPECIALIST
@@ -174,7 +178,7 @@ export class TaskDashboardComponent {
     //if roles contains ADMIN, show all the task
     if (this._global.user.roles.indexOf('ADMIN') > -1) {
       this.myTasks = tasks;
-    }     
+    }
     else {
       this.myTasks = tasks.filter(t =>
         t.creator === this._global.user.username ||

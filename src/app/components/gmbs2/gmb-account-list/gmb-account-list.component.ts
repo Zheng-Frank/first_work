@@ -22,6 +22,8 @@ export class GmbAccountListComponent implements OnInit {
   gmbInEditing: GmbAccount = new GmbAccount();
   apiError = undefined;
   type;
+  locationScanOlder;
+  emailScanOlder;
 
   scanningAll = false;
 
@@ -117,6 +119,15 @@ export class GmbAccountListComponent implements OnInit {
     }
     if (this.type && this.type != 'All') {
       this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => each.type === this.type)
+    }
+    if (this.locationScanOlder && this.locationScanOlder != 'All') {
+      let hoursAgo = 60 * 60 * 1000 * this.locationScanOlder;
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => (new Date().valueOf() - new Date(each.gmbScannedAt).valueOf()) >hoursAgo)
+    }
+
+    if (this.emailScanOlder && this.emailScanOlder != 'All') {
+      let hoursAgo = 60 * 60 * 1000 * this.emailScanOlder;
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => (new Date().valueOf() - new Date(each.emailScannedAt).valueOf()) >hoursAgo)
     }
   }
 

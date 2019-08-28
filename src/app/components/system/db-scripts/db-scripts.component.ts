@@ -202,10 +202,11 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async changeOwnership() {
-    const oldRestaurantId = '5b6bf7ea876d3d1400a50bdd';
-    const newName = "Ninja 86 Sushi Inc";
-    const newAlias = "ninja86-sushi-inc-brooklyn";
-    const switchingDate = new Date("Apr 5 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
+    const oldRestaurantId = '5b9a333bac400914000b2a39';
+    const newName = "Thai Spoon";
+    const previousRestaurantId = oldRestaurantId;
+    const newAlias = "thai-spoon-ann-arbor";
+    const switchingDate = new Date("Aug 14 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
 
     const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -235,6 +236,7 @@ export class DbScriptsComponent implements OnInit {
     delete clone.notifications;
     delete clone.closedHours;
     clone.name = newName;
+    clone.previousRestaurantId = previousRestaurantId;
     clone.logs = clone.logs || [];
     clone.logs.push({
       "problem": "change ownership",

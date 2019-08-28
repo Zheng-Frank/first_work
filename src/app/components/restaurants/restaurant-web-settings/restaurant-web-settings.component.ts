@@ -16,13 +16,13 @@ export class RestaurantWebSettingsComponent implements OnInit {
 
   retrievedCodeObject;
   now = new Date();
-  
+  qmenuExclusive;
+  agreeToCorporate;
+
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   ngOnInit() {
-    
-
   }
 
   async onEdit(event, field: string) {
@@ -38,12 +38,12 @@ export class RestaurantWebSettingsComponent implements OnInit {
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
         // reset password:
         const email = 'info@' + Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-        web[field] = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt:email, phrase: event.newValue }).toPromise();
+        web[field] = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: email, phrase: event.newValue }).toPromise();
       }
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant._id},
-        new: {_id: this.restaurant._id, web: web}
+        old: { _id: this.restaurant._id },
+        new: { _id: this.restaurant._id, web: web }
       }]).toPromise();
 
       this.restaurant.web = web;
@@ -53,7 +53,7 @@ export class RestaurantWebSettingsComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, error);
     }
   }
-
+  
   async toggle(event, field) {
     try {
       const web = this.restaurant.web || {};
@@ -72,6 +72,24 @@ export class RestaurantWebSettingsComponent implements OnInit {
 
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, error);
+    }
+  }
+
+
+  async handleUpdate() {
+    const web = this.restaurant.web || {};
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: this.restaurant._id },
+        new: { _id: this.restaurant._id, web: web }
+      }]).toPromise();
+
+      this.restaurant.web = web;
+
+      this._global.publishAlert(AlertType.Success, 'Updated');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, error);
+
     }
   }
 

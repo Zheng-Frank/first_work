@@ -24,9 +24,12 @@ export class LogEditorComponent implements OnInit {
 
   hasAdjustment;
   hasTask;
+  hasGMBCall;
   selectedTaskTemplate;
   scheduledAt;
   assignee;
+  agreeToCorporate;
+  qmenuExclusive;
   predefinedTasks = Task.predefinedTasks;
 
   @ViewChild('myRestaurantPicker') set picker(picker) {
@@ -78,6 +81,8 @@ export class LogEditorComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.agreeToCorporate = (this.restaurant.web || {}).agreeToCorporate;
+    this.qmenuExclusive = (this.restaurant.web || {}).qmenuExclusive;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -178,6 +183,25 @@ export class LogEditorComponent implements OnInit {
 
   }
 
+  async handleUpdate() {
+    const web = this.restaurant.web || {};
+    web.agreeToCorporate= this.agreeToCorporate;
+    web.qmenuExclusive= this.qmenuExclusive;
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: this.restaurant._id },
+        new: { _id: this.restaurant._id, web: web }
+      }]).toPromise();
+
+      this.restaurant.web = web;
+
+      this._global.publishAlert(AlertType.Success, 'Updated');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, error);
+
+    }
+  }
+
   isNewLog() {
     return !this.log.username && !this.log.time;
   }
@@ -193,8 +217,12 @@ export class LogEditorComponent implements OnInit {
     this.log.type === 'google-pin' ? this.log.type = undefined : this.log.type = 'google-pin';
   }
 
-  toggleForceQmenuCollect(){
+  toggleForceQmenuCollect() {
     this.log.type === 'force-qmenu-collect' ? this.log.type = undefined : this.log.type = 'force-qmenu-collect';
+  }
+
+  toggleGMBCalls() {
+    this.log.type === 'gmb-call' ? this.log.type = undefined : this.log.type = 'gmb-call';
   }
 
 }

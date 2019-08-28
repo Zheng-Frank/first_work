@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
+import { GlobalService } from "../../../services/global.service";
 @Component({
   selector: 'app-task-list',
   templateUrl: './task-list.component.html',
@@ -10,6 +11,7 @@ export class TaskListComponent implements OnInit, OnChanges {
   @Input() taskList = [];
   @Input() user;
   @Output() actionDone = new EventEmitter();
+  @Input() globalCachedRestaurantList;
 
   now = new Date();
   claimed;
@@ -19,6 +21,15 @@ export class TaskListComponent implements OnInit, OnChanges {
 
   assigneeList = [];
   ownerList = [];
+  gmbList = [
+    "Skip All",
+    "Not call yet",
+    "Agree to Coorporate",
+    "qMenu Exclusive"
+  ]
+
+  gmb;
+
   myColumnDescriptors = [
     {
       label: 'Number'
@@ -35,7 +46,7 @@ export class TaskListComponent implements OnInit, OnChanges {
     // },
     {
       label: "Task",
-      paths: ['description','name'],
+      paths: ['description', 'name'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
@@ -77,6 +88,7 @@ export class TaskListComponent implements OnInit, OnChanges {
       paths: ['createdAt'],
       sort: (a, b) => a.valueOf() - b.valueOf()
     }
+
   ];
 
   taskNames = ['All'];
@@ -85,9 +97,10 @@ export class TaskListComponent implements OnInit, OnChanges {
   filteredTasks = [];
 
 
-  constructor() { }
+  constructor(private _global: GlobalService) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -106,8 +119,8 @@ export class TaskListComponent implements OnInit, OnChanges {
     } else {
       this.filteredTasks = this.taskList.filter(t => t.name === this.selectedTaskName);
     }
-    if(this.onlyDirectSignUp){
-      this.filteredTasks = this.taskList.filter(t=> t.gmbBiz && t.gmbBiz.isDirectSignUp)
+    if (this.onlyDirectSignUp) {
+      this.filteredTasks = this.taskList.filter(t => t.gmbBiz && t.gmbBiz.isDirectSignUp)
     }
 
     switch (this.claimed) {
@@ -131,6 +144,41 @@ export class TaskListComponent implements OnInit, OnChanges {
     if (this.owner && this.owner !== "All") {
       this.filteredTasks = this.filteredTasks.filter(t => t.gmbBiz && t.gmbBiz.gmbOwner === this.owner);
     }
+
+    if (this.gmb && this.gmb !== "All") {
+      this.filteredTasks = this.filteredTasks.filter(task => {
+        if (task.gmbBiz && task.gmbBiz.qmenuId) {
+          let rt=this.globalCachedRestaurantList.filter(r => r._id === task.gmbBiz.qmenuId)[0];
+          if(rt && rt.web){
+            let gmbWeb = rt.web;
+            if (this.gmb === "Skip All") {
+              if (gmbWeb.ignoreGmbOwnershipRequest) {
+                return task;
+              }
+  
+            }else if(this.gmb === "Agree to Coorporate"){
+              if (gmbWeb.agreeToCorporate === "Yes" ) {
+                return task;
+              }
+            }
+            else if(this.gmb === "qMenu Exclusive"){
+              if (gmbWeb.qmenuExclusive === "Yes") {
+                return task;
+              }
+            }
+            else if(this.gmb === "Not call yet"){
+              if (typeof gmbWeb.agreeToCorporate === "undefined" && typeof gmbWeb.qmenuExclusive === "undefined") {
+                return task;
+              }
+            }
+          }
+
+        }
+      })
+
+    }
+
+
 
     this.assigneeList = this.taskList.map(t => t.assignee);
     // reuturn unique
@@ -168,6 +216,14 @@ export class TaskListComponent implements OnInit, OnChanges {
 
   selectTask(item) {
     this.filter();
+  }
+
+  getGMB(id) {
+    //console.log(this.restaurantList);
+    if (id) {
+      console.log(this.globalCachedRestaurantList.filter(r => r._id === id)[0].web)
+      return this.globalCachedRestaurantList.filter(r => r._id === id)[0].web;
+    }
   }
 
 
