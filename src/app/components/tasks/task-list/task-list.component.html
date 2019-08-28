@@ -41,7 +41,7 @@
 </div>
 
 
-<q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+<q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="100">
     <tr *tableRowTemplate="let task;">
         <td>{{filteredTasks.indexOf(task) + 1}}</td>
         <td>
