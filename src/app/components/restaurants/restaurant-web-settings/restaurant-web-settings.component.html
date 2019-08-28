@@ -70,14 +70,14 @@
 
           <div class="form-group mb-2">
             <label>Agree to Coorporate (同意分享验证码)</label>
-            <q-simple-radio [(ngModel)]="restaurant.web.agreeToCorporate" [equalWidth]="true" [values]="['Yes', 'No']"
+            <q-simple-radio [(ngModel)]="agreeToCorporate" [equalWidth]="true" [values]="['Yes', 'No']"
               (ngModelChange)="handleUpdate()">
             </q-simple-radio>
           </div>
           
           <div class="form-group mb-2">
             <label>qMenu Exclusive (同意不给别家验证码)</label>
-            <q-simple-radio [(ngModel)]="restaurant.web.qmenuExclusive" [equalWidth]="true" [values]="['Yes', 'No']"
+            <q-simple-radio [(ngModel)]="qmenuExclusive" [equalWidth]="true" [values]="['Yes', 'No']"
               (ngModelChange)="handleUpdate()">
             </q-simple-radio>
           </div>

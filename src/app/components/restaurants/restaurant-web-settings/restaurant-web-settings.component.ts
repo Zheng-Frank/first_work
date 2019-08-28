@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -11,7 +11,7 @@ import { Helper } from 'src/app/classes/helper';
   templateUrl: './restaurant-web-settings.component.html',
   styleUrls: ['./restaurant-web-settings.component.css']
 })
-export class RestaurantWebSettingsComponent implements OnInit {
+export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
 
   retrievedCodeObject;
@@ -23,6 +23,13 @@ export class RestaurantWebSettingsComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.restaurant && this.restaurant.web) {
+      this.qmenuExclusive = this.restaurant.web.qmenuExclusive;
+      this.agreeToCorporate = this.restaurant.web.agreeToCorporate;
+    }
   }
 
   async onEdit(event, field: string) {
@@ -53,17 +60,17 @@ export class RestaurantWebSettingsComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, error);
     }
   }
-  
+
   async toggle(event, field) {
     try {
       const web = this.restaurant.web || {};
-      
+
       const newValue = event.target.checked;
       web[field] = newValue;
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant._id},
-        new: {_id: this.restaurant._id, web: web}
+        old: { _id: this.restaurant._id },
+        new: { _id: this.restaurant._id, web: web }
       }]).toPromise();
 
       this.restaurant.web = web;
@@ -78,6 +85,9 @@ export class RestaurantWebSettingsComponent implements OnInit {
 
   async handleUpdate() {
     const web = this.restaurant.web || {};
+    web.qmenuExclusive = this.qmenuExclusive;
+    web.agreeToCorporate = this.agreeToCorporate;
+
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant._id },
