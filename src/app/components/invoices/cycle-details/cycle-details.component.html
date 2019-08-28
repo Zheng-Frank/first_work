@@ -2,6 +2,9 @@
   <h1 class="text-center">{{cycle.toDate}}</h1>
 
   <div class="text-right mb-2">
+    <!-- <button class="btn btn-primary" (click)="fix()">
+      <i class="fas fa-sync"></i> Fix</button> -->
+
     <button class="btn btn-primary" (click)="recalculate()">
       <i class="fas fa-sync"></i> Recalculate</button>
   </div>
@@ -111,6 +114,8 @@
           <th>Id</th>
           <th><button (click)="sort('name')" class="btn btn-link p-0">Name</button></th>
           <th>Invoice</th>
+          <th>Sent</th>
+          <th>Paid</th>
           <th><button (click)="sort('balance')" class="btn btn-link p-0">Balance</button></th>
           <th>Error</th>
         </tr>
@@ -120,6 +125,12 @@
           <td>{{row._id.slice(-5)}}</td>
           <td><a routerLink="/restaurants/{{row._id}}" target="_blank">{{row.name}}</a></td>
           <td><a routerLink="/invoices/{{row.invoice?._id}}" target="_blank">{{row.invoice?._id}}</a></td>
+          <td>
+            <span *ngIf="row.invoice?.isSent">✓</span>
+          </td>
+          <td>
+            <span *ngIf="row.invoice?.isPaymentSent">✓</span>
+          </td>
           <td><span *ngIf="row.invoice?.balance">{{row.invoice?.balance | currency:'USD':'symbol'}}</span></td>
           <td class="text-danger">{{row.error | json}}</td>
         </tr>
