@@ -1,0 +1,14 @@
+<h1 class="text-center">GMB PINs</h1>
+<div class="text-right mb-2">
+  <div class="pb-2">
+    <button class="btn btn-primary" (click)="setAction('NEW')">
+      <i class="fas fa-plus"></i> Add New Request</button>
+  </div>
+
+  <div class="card text-left bg-light" *qIf="currentAction === 'NEW'">
+    <div class="card-body">
+      <h5 class="card-title">New PIN Request</h5>
+      ...
+    </div>
+  </div>
+</div>

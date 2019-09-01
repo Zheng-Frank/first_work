@@ -138,6 +138,7 @@ import { AutomationDashboard2Component } from './components/automation/automatio
 import { NgxGraphModule } from '@swimlane/ngx-graph';
 import { CyclesComponent } from './components/invoices/cycles/cycles.component';
 import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle-details.component';
+import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -255,7 +256,8 @@ import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle
     AwsMigrationComponent,
     AutomationDashboard2Component,
     CyclesComponent,
-    CycleDetailsComponent    
+    CycleDetailsComponent,
+    GmbPinsComponent    
   ],
   imports: [
     BrowserModule,
