@@ -11,7 +11,7 @@
   <table class="table table-bordered text-center">
     <tbody>
       <tr>
-        <td colspan="7" class="hvr-underline-reveal d-table-cell {{activeBlockName ==='ALL' ? 'alert-secondary' : ''}}"
+        <td colspan="8" class="hvr-underline-reveal d-table-cell {{activeBlockName ==='ALL' ? 'alert-secondary' : ''}}"
           (click)="setActiveBlockName('ALL')">
           {{blocks.ALL.label}}
           <h2>{{blocks.ALL.rows.length}}</h2>
@@ -97,8 +97,7 @@
           (click)="setActiveBlockName('SKIPPED_ERROR')">
           {{blocks.SKIPPED_ERROR.label}}
           <h2 class="text-danger">{{blocks.SKIPPED_ERROR.rows.length}}</h2>
-          Acknowledged
-          <h5 class="text-success">43</h5>
+          
         </td>
       <tr>
     </tbody>
@@ -126,10 +125,12 @@
           <td><a routerLink="/restaurants/{{row._id}}" target="_blank">{{row.name}}</a></td>
           <td><a routerLink="/invoices/{{row.invoice?._id}}" target="_blank">{{row.invoice?._id}}</a></td>
           <td>
-            <span *ngIf="row.invoice?.isSent">✓</span>
+            <span *ngIf="row.invoice?.isSent" class="text-success"><strong>✓</strong></span>
+            <span *ngIf="!row.invoice?.isSent" class="text-danger">&times;</span>
           </td>
           <td>
-            <span *ngIf="row.invoice?.isPaymentSent">✓</span>
+            <span *ngIf="row.invoice?.isPaymentSent" class="text-success"><strong>✓</strong></span>
+            <span *ngIf="!row.invoice?.isPaymentSent" class="text-danger">&times;</span>
           </td>
           <td><span *ngIf="row.invoice?.balance">{{row.invoice?.balance | currency:'USD':'symbol'}}</span></td>
           <td class="text-danger">{{row.error | json}}</td>

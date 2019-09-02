@@ -146,6 +146,8 @@ export class CycleDetailsComponent implements OnInit {
   }
 
   async recalculate() {
+    // refresh cycle first
+    await this.loadCycle(this.cycleId);
     // get ALL invoices
     const invoiceIdRowDict = {};
     this.cycle.restaurants.map(r => {
