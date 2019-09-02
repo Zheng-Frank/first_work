@@ -73,16 +73,55 @@ export class CycleDetailsComponent implements OnInit {
   };
 
   cycleId;
+
+  paymentMeansDict = {};
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     this._route.params.subscribe(
       params => {
         this.cycleId = params.id;
         this.loadCycle(params.id);
+        this.populatePaymentMeans();
       });
   }
   ngOnInit() {
   }
 
+  async populatePaymentMeans() {
+    const rtPms = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      projection: {
+        paymentMeans: 1
+      },
+      limit: 100000
+    }).toPromise();
+    rtPms.map(rt => {
+      const pms = rt.paymentMeans || [];
+      const validPms = pms.filter(pm => {
+        if (!pm.details || !pm.details.memo) {
+          return true;
+        }
+        if (['one time', '一次'].some(t => pm.details.memo.indexOf(t) >= 0)) {
+          return false;
+        }
+        return true;
+      });
+      // group by send or receive
+      const sendPms = validPms.filter(pm => pm.direction === 'Send');
+      const receivePms = validPms.filter(pm => pm.direction === 'Receive');
+      const getDisplayedText = function (pms) {
+        if (pms.length === 0) {
+          return 'MISSING';
+        }
+        if (pms.length === 1) {
+          return pms[0].type;
+        }
+        return 'MULTIPLE';
+      }
+      this.paymentMeansDict[rt._id + 'Send'] = getDisplayedText(sendPms);
+      this.paymentMeansDict[rt._id + 'Receive'] = getDisplayedText(receivePms);
+    });
+    console.log(rtPms);
+  }
   async loadCycle(id) {
     const existingCycles = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "cycle",
@@ -207,6 +246,10 @@ export class CycleDetailsComponent implements OnInit {
     }
     console.log(updated);
     console.log(invoices);
+  }
+
+  getPaymentMeans(row) {
+    return this.paymentMeansDict[row._id + (row.invoice && row.invoice.balance > 0 ? 'Send' : 'Receive')];
   }
 
   async fix() {
