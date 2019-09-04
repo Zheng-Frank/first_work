@@ -1,6 +1,6 @@
 <div *ngIf="cycle">
   <h1 class="text-center">{{cycle.toDate}}</h1>
-<button (click)="resetDangling()">reset dangling</button>
+  <button (click)="resetDangling()">reset dangling</button>
   <div class="text-right mb-2">
     <!-- <button class="btn btn-primary" (click)="fix()">
       <i class="fas fa-sync"></i> Fix</button> -->
@@ -97,7 +97,7 @@
           (click)="setActiveBlockName('SKIPPED_ERROR')">
           {{blocks.SKIPPED_ERROR.label}}
           <h2 class="text-danger">{{blocks.SKIPPED_ERROR.rows.length}}</h2>
-          
+
         </td>
       <tr>
     </tbody>
@@ -110,6 +110,7 @@
     <table class="table">
       <thead>
         <tr>
+          <th>#</th>
           <th>Id</th>
           <th><button (click)="sort('name')" class="btn btn-link p-0">Name</button></th>
           <th>Invoice</th>
@@ -121,7 +122,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let row of activeBlock.rows">
+        <tr *ngFor="let row of activeBlock.rows; let i = index">
+          <td>{{i + 1}}</td>
           <td>{{row._id.slice(-5)}}</td>
           <td><a routerLink="/restaurants/{{row._id}}" target="_blank">{{row.name}}</a></td>
           <td><a routerLink="/invoices/{{row.invoice?._id}}" target="_blank">{{row.invoice?._id}}</a></td>
