@@ -86,6 +86,25 @@ export class CycleDetailsComponent implements OnInit {
   ngOnInit() {
   }
 
+  async resetDangling() {
+    const danglingErredRestaurants = this.cycle.restaurants.filter(rt => rt.error === 'dangling invoices found');
+    // const newRestaurants = JSON.parse(JSON.stringify(this.cycle.restaurants));
+    for (let rt of danglingErredRestaurants) {
+      delete rt.error;
+    }
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=cycle', [
+      {
+        old: {
+          _id: this.cycle._id
+        },
+        new: {
+          _id: this.cycle._id,
+          restaurants: this.cycle.restaurants
+        }
+      }
+    ]).toPromise();
+  }
+
   async populatePaymentMeans() {
     const rtPms = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
@@ -141,7 +160,8 @@ export class CycleDetailsComponent implements OnInit {
     this.blocks.PAYOUT_INVOICES.rows = allRows.filter(r => r.invoice && r.invoice.balance < 0);
     this.blocks.NORMAL_INVOICES.rows = allRows.filter(r => r.invoice && r.invoice.balance > 0);
     this.blocks.CANCELED_INVOICES.rows = allRows.filter(r => r.invoice && r.invoice.isCanceled);
-    this.blocks.ERROR_INVOICES.rows = allRows.filter(r => r.invoice && r.error);
+    const excludedErrors = ['last invoice end time was within 2 days', 'No CC details', 'dangling invoices found'];
+    this.blocks.ERROR_INVOICES.rows = allRows.filter(r => r.invoice && r.error && !excludedErrors.some(e => e === r.error) && !r.invoice.isPaymentCompleted);
 
     // inject sent and paid counter
     [this.blocks.PAYOUT_INVOICES, this.blocks.NORMAL_INVOICES, this.blocks.CANCELED_INVOICES].map(block => {

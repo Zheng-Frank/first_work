@@ -56,6 +56,7 @@ export class GmbPinsComponent implements OnInit {
       resource: "gmb-pin",
       limit: 7000
     }).toPromise();
+    this.rows.sort((r2, r1) => new Date(r1.receivedAt || 0).valueOf() - new Date(r2.receivedAt || 0).valueOf())
   }
 
 }
