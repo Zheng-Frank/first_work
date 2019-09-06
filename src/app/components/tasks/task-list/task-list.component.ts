@@ -25,10 +25,13 @@ export class TaskListComponent implements OnInit, OnChanges {
     "Skip All",
     "Not call yet",
     "Agree to Coorporate",
-    "qMenu Exclusive"
+    "qMenu Exclusive",
+    "Can Verify",
   ]
 
   gmb;
+
+  pagination = true;
 
   myColumnDescriptors = [
     {
@@ -113,6 +116,14 @@ export class TaskListComponent implements OnInit, OnChanges {
     }
   }
 
+  hasVerificationOption(method, task) {
+    return ((task.transfer || {}).verificationOptions || []).some(option => option.method === method && !option.unrecognized);
+  }
+
+  canVerify(task) {
+    return ((task.transfer || {}).verificationOptions || []).length > 0;
+  }
+
   filter() {
     if (this.selectedTaskName === 'All') {
       this.filteredTasks = this.taskList;
@@ -147,34 +158,34 @@ export class TaskListComponent implements OnInit, OnChanges {
 
     if (this.gmb && this.gmb !== "All") {
       this.filteredTasks = this.filteredTasks.filter(task => {
-        if (task.gmbBiz && task.gmbBiz.qmenuId) {
-          let rt=this.globalCachedRestaurantList.filter(r => r._id === task.gmbBiz.qmenuId)[0];
-          if(rt && rt.web){
-            let gmbWeb = rt.web;
-            if (this.gmb === "Skip All") {
-              if (gmbWeb.ignoreGmbOwnershipRequest) {
-                return task;
-              }
-  
-            }else if(this.gmb === "Agree to Coorporate"){
-              if (gmbWeb.agreeToCorporate === "Yes" ) {
-                return task;
-              }
-            }
-            else if(this.gmb === "qMenu Exclusive"){
-              if (gmbWeb.qmenuExclusive === "Yes") {
-                return task;
-              }
-            }
-            else if(this.gmb === "Not call yet"){
-              if (typeof gmbWeb.agreeToCorporate === "undefined" && typeof gmbWeb.qmenuExclusive === "undefined") {
-                return task;
-              }
-            }
+        const qmenuId = (task.relatedMap || {}).qmenuId || (task.gmbBiz || {}).qmenuId || 'none'
+
+        let rt = this.globalCachedRestaurantList.filter(r => r._id === qmenuId)[0];
+        const gmbWeb = (rt || {}).web || {};
+
+        if (this.gmb === "Skip All") {
+          if (gmbWeb.ignoreGmbOwnershipRequest) {
+            return task;
           }
 
+        } else if (this.gmb === "Agree to Coorporate") {
+          if (gmbWeb.agreeToCorporate === "Yes") {
+            return task;
+          }
         }
-      })
+        else if (this.gmb === "qMenu Exclusive") {
+          if (gmbWeb.qmenuExclusive === "Yes") {
+            return task;
+          }
+        }
+        else if (this.gmb === "Not call yet") {
+          if (typeof gmbWeb.agreeToCorporate === "undefined" && typeof gmbWeb.qmenuExclusive === "undefined") {
+            return task;
+          }
+        } else if (this.gmb === "Can Verify") {
+          return task && task.transfer && (task.transfer.verificationOptions);
+        }
+      });
 
     }
 
