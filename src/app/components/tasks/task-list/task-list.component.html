@@ -58,7 +58,7 @@
         <td>{{task.name}}
             <div class="text-muted" *ngIf="task.description">
                 <small>
-                    <a target="_blank" href="#/restaurants/{{task.gmbBiz?.qmenuId}}">{{task.description}}</a>
+                    <a target="_blank" href="#/restaurants/{{task.relatedMap?.qmenuId || task.gmbBiz?.qmenuId}}">{{task.description}}</a>
                      {{task.gmbBiz?.address}}
                     <div *ngIf="task.transfer && task.transfer.fromEmail">
                         <app-gmb-account-hotlink [email]="task.transfer.fromEmail"></app-gmb-account-hotlink>
