@@ -12,3 +12,21 @@
     </div>
   </div>
 </div>
+
+
+<q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+  <tr *tableRowTemplate="let row;">
+    <td>{{rows.indexOf(row) + 1}}</td>
+    <td>
+      {{row.receivedAt | date: 'short'}}
+    </td>
+    <td>
+      {{row.method}}
+    </td>
+
+    <td>{{row.email}}
+    </td>
+    <td>{{row.pin}}</td>
+
+  </tr>
+</q-table>

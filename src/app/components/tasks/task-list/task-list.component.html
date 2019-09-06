@@ -27,7 +27,8 @@
         <option *ngFor="let owner of ownerList">{{owner}}</option>
     </select>
 
-    <input class="form-check-input" type="checkbox" [(ngModel)]="onlyDirectSignUp" (change)="filter()" id="onlyDirectSignUp">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="onlyDirectSignUp" (change)="filter()"
+        id="onlyDirectSignUp">
     <label class="form-check-label mr-5" for="onlyDirectSignUp">
         Only Direct Sign Up
     </label>
@@ -38,10 +39,16 @@
         <option *ngFor="let gmb of gmbList">{{gmb}}</option>
     </select>
 
+    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+    <label class="form-check-label mr-5" for="paginationCheck">
+        Pagination
+    </label>
+
 </div>
 
 
-<q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="100">
+<q-table [rows]="filteredTasks" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
+    [pageSize]="pagination ? 100 : 100000">
     <tr *tableRowTemplate="let task;">
         <td>{{filteredTasks.indexOf(task) + 1}}</td>
         <td>
@@ -71,11 +78,14 @@
             </div>
         </td>
         <td>{{task.gmbBiz?.timeZone}}</td>
-        <td>
-            <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>            
+        <td class="{{canVerify(task) ? 'bg-warning' : ''}}">
+            <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>
             <div *ngIf="task.relatedMap.location?.statusHistory">
                 {{task.relatedMap.location.statusHistory[0].time | ago : now}}
             </div>
+            <i class="fas fa-phone" *ngIf="hasVerificationOption('PHONE', task)"></i>
+            <i class="fas fa-at" *ngIf="hasVerificationOption('EMAIL', task)"></i>
+            <i class="far fa-address-card" *ngIf="hasVerificationOption('ADDRESS', task)"></i>
 
         </td>
         <td>{{task.gmbBiz?.gmbOwner}}</td>
@@ -90,7 +100,8 @@
             </div>
         </td>
         <td>
-            <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)"></app-task-action-bar>
+            <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)">
+            </app-task-action-bar>
         </td>
         <td class="text-nowrap">
             {{task.createdAt | ago:now}}

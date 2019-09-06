@@ -9,6 +9,34 @@ import { environment } from 'src/environments/environment';
 })
 export class GmbPinsComponent implements OnInit {
   currentAction;
+
+  myColumnDescriptors = [
+    {
+      label: "#"
+    },
+    {
+      label: "Received At",
+      paths: ['receivedAt'],
+      sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf()
+    },
+    {
+      label: "Method",
+      paths: ['method'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: "Email",
+      paths: ['email'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: "PIN",
+      paths: ['pin']
+    },
+  ];
+
+  rows = [];
+
   constructor(private _api: ApiService) { }
 
   ngOnInit() {
@@ -24,17 +52,11 @@ export class GmbPinsComponent implements OnInit {
   }
 
   async load() {
-    const gmbPins = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.rows = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "gmb-pin",
-      projection: {
-        email: 1,
-        published: 1,
-        suspended: 1
-      },
       limit: 7000
     }).toPromise();
-
-    console.log(gmbPins)
+    this.rows.sort((r2, r1) => new Date(r1.receivedAt || 0).valueOf() - new Date(r2.receivedAt || 0).valueOf())
   }
 
 }

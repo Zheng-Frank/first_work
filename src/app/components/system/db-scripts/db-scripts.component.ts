@@ -1241,31 +1241,34 @@ export class DbScriptsComponent implements OnInit {
   async genericTesting() {
     // get newest duplicate!
 
-    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      projection: {
-        email: 1,
-        "locations.statusHistory": { $slice: 2 },
-        "locations.cid": 1,
-        "locations.name": 1,
-        "locations.address": 1,
-        "locations.statusHistory.time": 1,
-        "locations.statusHistory.status": 1
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        balance: 0
       },
-      limit: 6000
+      projection: {
+        balance: 1,
+        isSent: 1,
+        isCanceled: 1
+      },
+      limit: 16000
     }).toPromise();
-    console.log(gmbAccounts);
-    const list = [];
-    gmbAccounts.map(account => (account.locations || []).map(loc => {
-      if (loc.statusHistory && loc.statusHistory[1] && loc.statusHistory[0].status === 'Suspended' && loc.statusHistory[1].status === 'Verification required') {
-        const timespan = new Date(loc.statusHistory[0].time).valueOf() - new Date(loc.statusHistory[1].time).valueOf();
-        list.push({ name: loc.name, time: loc.statusHistory[0].time, address: loc.address, span: timespan / 1000 / 3600 / 24 });
-      }
-    }));
+    console.log(invoices);
+    let nonsentnoncanceled = invoices.filter(invoice => !invoice.isSent && !invoice.isCanceled);
+    console.log(nonsentnoncanceled);
+    nonsentnoncanceled = nonsentnoncanceled.slice(0, 100);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=invoice', nonsentnoncanceled.map(invoice => ({
+      old: {
+        _id: invoice._id
+      },
+      new: {
+        _id: invoice._id,
+        isSent: true,
+        isPaymentSent: true,
+        isPaymentCompleted: true
+      },
+    }))).toPromise();
 
-    list.sort((l2, l1) => new Date(l1.time).valueOf() - new Date(l2.time).valueOf());
-
-    console.log(list);
   }
 
   async removeRedundantGmbBiz() {
