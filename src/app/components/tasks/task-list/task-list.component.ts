@@ -116,14 +116,6 @@ export class TaskListComponent implements OnInit, OnChanges {
     }
   }
 
-  hasVerificationOption(method, task) {
-    return ((task.transfer || {}).verificationOptions || []).some(option => option.method === method && !option.unrecognized);
-  }
-
-  canVerify(task) {
-    return ((task.transfer || {}).verificationOptions || []).length > 0;
-  }
-
   filter() {
     if (this.selectedTaskName === 'All') {
       this.filteredTasks = this.taskList;

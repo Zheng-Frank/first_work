@@ -78,15 +78,15 @@
             </div>
         </td>
         <td>{{task.gmbBiz?.timeZone}}</td>
-        <td class="{{canVerify(task) ? 'bg-warning' : ''}}">
+        <td class="{{task.transfer?.verificationOptions?.length > 0 ? 'bg-warning' : ''}}">
             <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>
             <div *ngIf="task.relatedMap.location?.statusHistory">
                 {{task.relatedMap.location.statusHistory[0].time | ago : now}}
             </div>
-            <i class="fas fa-phone" *ngIf="hasVerificationOption('PHONE', task)"></i>
-            <i class="fas fa-at" *ngIf="hasVerificationOption('EMAIL', task)"></i>
-            <i class="far fa-address-card" *ngIf="hasVerificationOption('ADDRESS', task)"></i>
-
+            <ng-container *ngFor="let vo of task.transfer?.verificationOptions || []">
+                <i *ngIf="!vo.unrecognized"
+                    class="fas fa-{{vo.method === 'EMAIL' ? 'at' : (vo.method === 'PHONE' ? 'phone' : 'address-card')}} {{vo.requested ? 'text-success' : 'text-muted'}}"></i>
+            </ng-container>
         </td>
         <td>{{task.gmbBiz?.gmbOwner}}</td>
         <td>{{task.score}}</td>

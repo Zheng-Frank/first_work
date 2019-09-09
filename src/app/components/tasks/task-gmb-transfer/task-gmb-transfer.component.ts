@@ -68,6 +68,9 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   restaurantLogs: Log[] = [];
   newCompetitorsRequests = [];
 
+  consoleOut(task) {
+    console.log(task);
+  }
   async populate() { // let's retrieve gmb accounts and gmb biz (to count how many biz for each account):
 
     const gmbAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
