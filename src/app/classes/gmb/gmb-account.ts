@@ -17,6 +17,7 @@ export class GmbAccount {
     type:string;
     recoveryEmail:string;
     locations: GmbLocation []; 
+    disabled: boolean
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields

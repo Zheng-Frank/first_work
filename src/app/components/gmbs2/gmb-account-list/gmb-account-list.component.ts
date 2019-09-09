@@ -67,7 +67,8 @@ export class GmbAccountListComponent implements OnInit {
         "locations.statusHistory.time": 1,
         "locations.cid": 1,
         "locations.name": 1,
-        "locations.address": 1
+        "locations.address": 1,
+        disabled: 1
       },
       limit: 7000
     }).toPromise();
@@ -163,7 +164,8 @@ export class GmbAccountListComponent implements OnInit {
       email: gmb.email.toLowerCase().trim(),
       type: gmb.type,
       recoveryEmail: gmb.recoveryEmail,
-      comments: gmb.comments
+      comments: gmb.comments,
+      disabled: gmb.disabled
     } as any;
 
     if (gmb.password && gmb.password.length < 20) {
@@ -177,7 +179,7 @@ export class GmbAccountListComponent implements OnInit {
         console.log(error);
       };
     }
-
+console.log(updatedGmb)
     try {
       if (gmb._id) {
         await this._api.patch(environment.qmenuApiUrl + "generic?resource=gmbAccount", [{ old: oldGmb, new: updatedGmb }]).toPromise();

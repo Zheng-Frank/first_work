@@ -79,7 +79,8 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
         email: 1,
         allLocations: 1,
         published: 1,
-        type: 1
+        type: 1,
+        disabled: 1
       },
       limit: 7000
     }).toPromise();
@@ -172,7 +173,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   getFilteredAccounts() {
     console.log(this.accounts);
     if (this.transfer) {
-      return this.accounts.filter(a => a.type === "Transfer GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
+      return this.accounts.filter(a => !a.disabled && a.type === "Transfer GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
     }
     return this.accounts.filter(a => a.type === "Transfer GMB");
   }

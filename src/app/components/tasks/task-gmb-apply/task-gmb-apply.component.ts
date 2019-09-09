@@ -64,7 +64,8 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         projection: {
           email: 1,
           type: 1,
-          allLocations: 1
+          allLocations: 1,
+          disabled: 1
         },
         limit: 7000
       }),
@@ -117,7 +118,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   }
   getFilteredAccounts() {
     if (this.transfer) {
-      return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 80);
+      return this.accounts.filter(a => !a.disabled && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 80);
     }
     return this.accounts
   }
