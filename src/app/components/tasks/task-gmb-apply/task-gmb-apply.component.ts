@@ -112,7 +112,9 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
   ngOnInit() {
   }
-
+  consoleOut(task) {
+    console.log(task);
+  }
   getFilteredAccounts() {
     if (this.transfer) {
       return this.accounts.filter(a => a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 80);
