@@ -169,7 +169,7 @@ export class TaskGmbTransferComponent implements OnInit, OnChanges {
   getFilteredAccounts() {
     console.log(this.accounts);
     if (this.transfer) {
-      return this.accounts.filter(a => a.type === "Transfer GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 90);
+      return this.accounts.filter(a => a.type === "Transfer GMB" && a.email !== this.transfer.fromEmail && (a.allLocations || 0) < 95);
     }
     return this.accounts.filter(a => a.type === "Transfer GMB");
   }
