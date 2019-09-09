@@ -2,8 +2,8 @@
   <div *ngIf="isTaskExpired()" class="alert alert-danger">
     EXPIRED TASK. PLEASE CLOSE.
   </div>
-  <div *ngIf="transfer.status" class="alert alert-warning">
-    {{transfer.status | json }}
+  <div *ngIf="transfer.statusHistory && transfer.statusHistory[0]" class="alert alert-warning">
+    {{transfer.statusHistory[0].status | json }}
   </div>
 
   <div class="mb-4">

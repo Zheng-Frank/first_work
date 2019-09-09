@@ -1,4 +1,7 @@
 <ng-container *ngIf="transfer">
+  <div *ngIf="transfer.statusHistory && transfer.statusHistory[0]" class="alert alert-warning">
+    {{transfer.statusHistory[0].status | json }}
+  </div>
   <div class="alert alert-info">
     Created: {{getTaskDate() | ago : now}}
     <div *ngFor="let request of newCompetitorsRequests">
