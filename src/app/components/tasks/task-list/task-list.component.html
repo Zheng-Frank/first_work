@@ -79,7 +79,7 @@
             </div>
         </td>
         <td>{{task.gmbBiz?.timeZone}}</td>
-        <td class="{{task.transfer?.verificationOptions?.length > 0 ? 'bg-warning' : ''}}">
+        <td>
             <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>
             <div *ngIf="task.relatedMap.location?.statusHistory">
                 {{task.relatedMap.location.statusHistory[0].time | ago : now}}
@@ -88,6 +88,9 @@
                 <i *ngIf="!vo.unrecognized"
                     class="fas fa-{{vo.method === 'EMAIL' ? 'at' : (vo.method === 'PHONE' ? 'phone' : 'address-card')}} {{vo.requested ? 'text-success' : 'text-muted'}}"></i>
             </ng-container>
+            <div class="text-warning" *ngIf="task.transfer?.code">
+                <i class="fas fa-2x fa-lightbulb"></i>
+            </div>
         </td>
         <td>{{task.gmbBiz?.gmbOwner}}</td>
         <td>{{task.score}}</td>
