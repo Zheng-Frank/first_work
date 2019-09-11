@@ -364,8 +364,13 @@ export class MyRestaurantComponent implements OnInit {
 
       row.earned = row.commission * row.collected;
       row.notEarned = row.commission * row.notCollected;
-      row.qualifiedSalesBase = row.gmbOnceOwned ? row.restaurant.salesBase : 0;
-      row.qualifiedSalesBonus = row.gmbOnceOwned ? row.restaurant.salesBonus : 0;
+
+      const invoiceRequiredCutoffDate = new Date('2019-09-11');
+      const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.length > 0;
+      row.invoiceCheckOk = invoiceCheckOk;
+
+      row.qualifiedSalesBase = row.gmbOnceOwned && row.invoiceCheckOk ? row.restaurant.salesBase : 0;
+      row.qualifiedSalesBonus = row.gmbOnceOwned && row.invoiceCheckOk ? row.restaurant.salesBonus : 0;
       row.unqualifiedSalesBase = (row.restaurant.salesBase || 0) - (row.qualifiedSalesBase || 0);
       row.unqualifiedSalesBonus = (row.restaurant.salesBonus || 0) - (row.qualifiedSalesBonus || 0);
 

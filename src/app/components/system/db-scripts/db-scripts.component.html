@@ -216,6 +216,14 @@
     </div>
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Compute Duplicated Restaurants</h5>
+            <p class="card-text">Restaurant was disabled, then enabled as a new restaurant. We should make the new restaurant's previousRestaurantId to reduce double pay. Safe to run multiple times.</p>
+            <button class="btn btn-primary" (click)="computeDuplicates()">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Compute and Inject Restaurant Scores</h5>
             <p class="card-text">Recalculate every restaurant's score and save it to restaurant object</p>
             <button class="btn btn-primary" (click)="injectRestaurantScores()">Execute</button>
@@ -290,7 +298,7 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Calculate Most Populars</h5>
-            <p class="card-text">Inject Most Popular Items to Each Menu (save to run multiple times)</p>
+            <p class="card-text">Inject Most Popular Items to Each Menu (safe to run multiple times)</p>
             <button class="btn btn-primary" (click)="injectPopularItems()">Execute</button>
         </div>
     </div>

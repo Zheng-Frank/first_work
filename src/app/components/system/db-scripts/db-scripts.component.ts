@@ -10,6 +10,7 @@ import { Invoice } from "../../../classes/invoice";
 import { Gmb3Service } from "src/app/services/gmb3.service";
 import { JsonPipe } from "@angular/common";
 import { Helper } from "src/app/classes/helper";
+import { group } from "@angular/animations";
 
 @Component({
   selector: "app-db-scripts",
@@ -21,6 +22,42 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() { }
+
+  async computeDuplicates() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+      },
+      projection: {
+        name: 1,
+        'googleAddress.place_id': 1,
+        'googleAddress.formatted_address': 1,
+        'rateSchedules.agent': 1,
+        previousRestaurantId: 1,
+        disabled: 1,
+        channels: 1,
+        createdAt: 1,
+        "googleListing.place_id": 1
+      },
+      limit: 8000
+    }).toPromise();
+    const placeIdMap = {};
+    restaurants.map(rt => {
+      // if (rt.googleAddress) {
+      //   placeIdMap[rt.googleAddress.place_id] = placeIdMap[rt.googleAddress.place_id] || [];
+      //   placeIdMap[rt.googleAddress.place_id].push(rt);
+      // }
+      if (rt.googleListing) {
+        placeIdMap[rt.googleListing.place_id] = placeIdMap[rt.googleListing.place_id] || [];
+        placeIdMap[rt.googleListing.place_id].push(rt);
+      }
+    });
+    const grouped = Object.keys(placeIdMap).map(place_id => ({ place_id: place_id, list: placeIdMap[place_id] }));
+    grouped.sort((b, a) => a.list.length - b.list.length);
+    const duplicatedGroups = grouped.filter(g => g.list.length > 1);
+
+    console.log(duplicatedGroups)
+  }
 
   async injectPopularItems() {
     // 1. get 1000 orders of each restaurant
