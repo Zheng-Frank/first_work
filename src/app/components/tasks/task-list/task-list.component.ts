@@ -116,6 +116,16 @@ export class TaskListComponent implements OnInit, OnChanges {
     }
   }
 
+  hasBadScanStatus(task) {
+    const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status || '';
+    return ['Timeout', 'LOCATION REMOVED FROM ACCOUNT', 'no matching restaurant'].some(error => JSON.stringify(status).indexOf(error) >= 0);
+  }
+
+  hasGoodScanStatus(task) {
+    const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status || '';
+    return ['WAIT', 'NO AUTO POPULATION', 'null'].some(error => JSON.stringify(status).indexOf(error) >= 0);
+  }
+
   filter() {
     if (this.selectedTaskName === 'All') {
       this.filteredTasks = this.taskList;

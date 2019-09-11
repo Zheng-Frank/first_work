@@ -111,7 +111,17 @@
             </div>
             <div *ngIf="task.transfer && task.transfer.scannedAt" class="text-muted">
                 <small>{{task.transfer.scannedAt | ago: now}}</small>
+                <span *ngIf="hasBadScanStatus(task)" class="text-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </span>
+                <span *ngIf="hasGoodScanStatus(task)" class="text-success">
+                    <i class="fas fa-check"></i>
+                </span>
             </div>
+
+            <!-- {{(task.transfer?.statusHistory || []) [0] | json}} -->
+
+
         </td>
     </tr>
 </q-table>
