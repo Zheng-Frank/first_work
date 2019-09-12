@@ -1,7 +1,13 @@
-<h1 class="text-center">GMB PINs</h1>
+<h1 class="text-center">GMB PINs {{rows.length}}</h1>
 <div class="text-right mb-2">
   <div class="pb-2">
-    <button class="btn btn-primary" (click)="setAction('NEW')">
+    <button class="btn btn-primary" (click)="load()" [qLoading]="apiLoading">
+      <i class="fas fa-sync"></i> Reload</button>
+
+    <button class="btn btn-primary" (click)="purgeEmptyPins()" [qLoading]="apiLoading">
+      <i class="fas fa-trash-alt"></i> Purge Empty PINs</button>
+
+    <button class="btn btn-primary" (click)="setAction('NEW')" [qLoading]="apiLoading">
       <i class="fas fa-plus"></i> Add New Request</button>
   </div>
 

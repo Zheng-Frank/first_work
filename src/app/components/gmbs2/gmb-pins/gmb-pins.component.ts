@@ -10,6 +10,8 @@ import { environment } from 'src/environments/environment';
 export class GmbPinsComponent implements OnInit {
   currentAction;
 
+  apiLoading = false;
+
   myColumnDescriptors = [
     {
       label: "#"
@@ -52,11 +54,30 @@ export class GmbPinsComponent implements OnInit {
   }
 
   async load() {
+    this.apiLoading = true;
     this.rows = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "gmb-pin",
       limit: 7000
     }).toPromise();
     this.rows.sort((r2, r1) => new Date(r1.receivedAt || 0).valueOf() - new Date(r2.receivedAt || 0).valueOf())
+    this.apiLoading = false;
+  }
+
+  async purgeEmptyPins() {
+    const emptyRows = this.rows.filter(row => !row.pin);
+    if (emptyRows.length === 0) {
+      return;
+    }
+
+    this.apiLoading = true;
+    await this._api.delete(
+      environment.qmenuApiUrl + "generic",
+      {
+        resource: 'gmb-pin',
+        ids: emptyRows.map(row => row._id)
+      }
+    ).toPromise();
+    this.load();
   }
 
 }
