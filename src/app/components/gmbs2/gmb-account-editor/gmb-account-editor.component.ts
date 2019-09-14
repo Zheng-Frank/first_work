@@ -56,7 +56,6 @@ export class GmbAccountEditorComponent implements OnInit, OnChanges {
         required: false,
         inputType: "text",
         items: [],
-        disabled: this.gmbAccount && this.gmbAccount._id
       },
       {
         field: "disabled", //

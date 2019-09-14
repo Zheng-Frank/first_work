@@ -20,10 +20,22 @@ export class GmbPinsComponent implements OnInit {
       label: "Received At",
       paths: ['receivedAt'],
       sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf()
+    },    
+    {
+      label: "Id",
+      paths: ['messageId'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
       label: "Method",
       paths: ['method'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+
+
+    {
+      label: "Source",
+      paths: ['email'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
@@ -68,7 +80,9 @@ export class GmbPinsComponent implements OnInit {
     if (emptyRows.length === 0) {
       return;
     }
-
+    if(emptyRows.length > 160) {
+      emptyRows.length = 160;
+    }
     this.apiLoading = true;
     await this._api.delete(
       environment.qmenuApiUrl + "generic",

@@ -163,10 +163,13 @@ export class GmbAccountListComponent implements OnInit {
       _id: gmb._id,
       email: gmb.email.toLowerCase().trim(),
       type: gmb.type,
-      recoveryEmail: gmb.recoveryEmail,
       comments: gmb.comments,
       disabled: gmb.disabled
     } as any;
+
+    if(gmb.recoveryEmail) {
+      updatedGmb.recoveryEmail = gmb.recoveryEmail;
+    }
 
     if (gmb.password && gmb.password.length < 20) {
       try {
