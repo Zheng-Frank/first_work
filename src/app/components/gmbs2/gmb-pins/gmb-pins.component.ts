@@ -22,7 +22,7 @@ export class GmbPinsComponent implements OnInit {
       sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf()
     },    
     {
-      label: "Id",
+      label: "S3 Id",
       paths: ['messageId'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },

@@ -66,33 +66,22 @@ export class EmailCodeReaderComponent implements OnInit {
 
   async clickRetrieve() {
     this.retrievedObj = undefined;
-
+    this.apiRequesting = true;
     this.submitClicked = true;
-    const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-    const email = 'info@' + domain;
-    const host = 'mail.' + domain;
-    let password = this.restaurant.web.qmenuPop3Password;
 
-    if (!email || !password) {
-      return this._global.publishAlert(AlertType.Danger, 'Fail: mising email or password');
-    }
+    try {
+      // const result = await this._api.post(environment.autoGmbUrl + 'retrieveGodaddyEmailVerificationCode', { host: host, email: email, password: password }).toPromise();
 
-    if (email && host && password) {
-      this.apiRequesting = true;
-      if (password.length > 20) {
-        password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
-      }
+      const result = await this._api.post(environment.appApiUrl + 'utils/read-godaddy-gmb-pin', { restaurantId: this.restaurant._id }).toPromise();
 
-      try {
-        const result = await this._api.post(environment.autoGmbUrl + 'retrieveGodaddyEmailVerificationCode', { host: host, email: email, password: password }).toPromise();
-        this.apiRequesting = false;
-        this.retrievedObj = result;
-        this.retrievedObj.time = new Date(Date.parse(this.retrievedObj.time));
-        this.now = new Date();
-      } catch (error) {
-        this.apiRequesting = false;
-        alert('Error retrieving email');
-      }
+
+      this.apiRequesting = false;
+      this.retrievedObj = result;
+      this.retrievedObj.time = new Date(Date.parse(this.retrievedObj.time));
+      this.now = new Date();
+    } catch (error) {
+      this.apiRequesting = false;
+      alert('Error retrieving email');
     }
   }
 
