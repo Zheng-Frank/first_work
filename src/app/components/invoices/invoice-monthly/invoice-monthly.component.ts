@@ -109,6 +109,9 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async populateInvoicedButLaterCanceled() {
+    if(new Date()) {
+      return alert("temp disabled.")
+    }
     // query order status === canceled, then match invoice?
     const canceledOrderStatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "orderstatus",
