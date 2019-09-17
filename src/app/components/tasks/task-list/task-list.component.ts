@@ -26,7 +26,9 @@ export class TaskListComponent implements OnInit, OnChanges {
     "Not call yet",
     "Agree to Coorporate",
     "qMenu Exclusive",
-    "Can Verify",
+    "Verifiable",
+    "Should Call",
+    "Postcard Sent",
   ]
 
   gmb;
@@ -123,7 +125,7 @@ export class TaskListComponent implements OnInit, OnChanges {
 
   hasGoodScanStatus(task) {
     const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status || '';
-    return ['WAIT', 'NO AUTO POPULATION', 'null'].some(error => JSON.stringify(status).indexOf(error) >= 0);
+    return ['SHOULD USE PHONE_CALL TO VERIFY', 'WAIT', 'NO AUTO POPULATION', 'null'].some(error => JSON.stringify(status).indexOf(error) >= 0);
   }
 
   filter() {
@@ -184,8 +186,13 @@ export class TaskListComponent implements OnInit, OnChanges {
           if (typeof gmbWeb.agreeToCorporate === "undefined" && typeof gmbWeb.qmenuExclusive === "undefined") {
             return task;
           }
-        } else if (this.gmb === "Can Verify") {
-          return task && task.transfer && (task.transfer.verificationOptions);
+        } else if (this.gmb === "Verifiable") {
+          return task && task.transfer && task.transfer.verificationOptions;
+        } else if (this.gmb === "Should Call") {
+          return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'PHONE_CALL') && !task.transfer.verificationOptions.some(vo => vo.method === 'ADDRESS' && vo.verificationResponse);
+        } else if (this.gmb === "Postcard Sent") {
+          return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'ADDRESS' && vo.verificationResponse);
+
         }
       });
 

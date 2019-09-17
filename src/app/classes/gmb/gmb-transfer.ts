@@ -26,6 +26,7 @@ export class GmbTransfer {
     code;
     result: 'Canceled' | 'Failed' | 'Succeeded';
     verificationOptions: any;
+    pinStatus: any;
 
     constructor(transfer?: any) {
         if (transfer) {
@@ -35,7 +36,7 @@ export class GmbTransfer {
                     this[k] = transfer[k];
                 }
             }
-            
+
             ['requestedAt', 'rejectedAt', 'appealedAt', 'bizNotifiedAt', 'codeObtainedAt', 'verifiedAt', 'completedAt', 'websiteUpdatedAt'].map(dateField => {
                 if (transfer[dateField]) {
                     this[dateField] = new Date((Date.parse(transfer[dateField])));

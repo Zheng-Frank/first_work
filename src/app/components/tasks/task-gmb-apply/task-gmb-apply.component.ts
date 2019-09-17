@@ -156,6 +156,17 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         locationName: this.transfer.locationName,
         verificationOption: cloned
       }).toPromise();
+
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
+        [{
+          old: { _id: this.task._id, transfer: {} },
+          new: {
+            _id: this.task._id, transfer: {
+              verifications: [result.verification]
+            }
+          }
+        }]).toPromise();
+
       console.log(result);
       this._global.publishAlert(AlertType.Success, 'Call Initiated from Google');
 
@@ -208,7 +219,6 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
     }
   }
 
-
   /**
  * 
  * @param name = select | request | reject | appeal | retrieve | verify | failed | succeeded | canceled | reopen |
@@ -216,6 +226,8 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
  * @param timestampVariableName 
  */
   async handleUpdate(name, timestampVariableName, loadingVariableName) {
+
+
 
     if (loadingVariableName) {
       this[loadingVariableName] = true;
@@ -279,14 +291,30 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           break;
 
         case 'verify':
-          result = await this._api.post(
-            environment.autoGmbUrl + 'verify', {
-            email: toGmbAccount.email,
-            password: toPassword,
-            code: this.transfer.code,
-            appealId: this.transfer.appealId || this.task.transfer.appealId
+          try {
+            result = await this._api.post(
+              environment.appApiUrl + 'gmb/complete-verify', {
+              email: toGmbAccount.email,
+              locationName: this.transfer.locationName,
+              pin: this.transfer.code
+            }
+            ).toPromise();
+            this.transfer.pinStatus = {
+              time: new Date(),
+              result: 'success',
+              pin: this.transfer.code
+            }
+          } catch (error) {
+            console.log('error at verification', error);
+            const errorMessage = error.error.message || error.error;
+            console.log(errorMessage);
+            this.transfer.pinStatus = {
+              time: new Date(),
+              result: errorMessage,
+              pin: this.transfer.code
+            }
+            console.log(JSON.parse(JSON.stringify(this.transfer.pinStatus)))
           }
-          ).toPromise();
           break;
         case 'failed':
         case 'canceled':
@@ -357,6 +385,19 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           delete oldTask.transfer.code;
           newBareTask.transfer.code = this.transfer.code;
           break;
+
+        case 'verify':
+          // because input code is bound to transfer already, we actually need to delete it so
+          newBareTask.transfer.pinStatus = this.transfer.pinStatus;
+          delete oldTask.transfer.pinStatus;
+          console.log("before")
+          console.log(JSON.parse(JSON.stringify(newBareTask)));
+          console.log(JSON.parse(JSON.stringify(oldTask)));
+          const newComments = `${this.task.comments ? this.task.comments + '\n' : ''}${this._global.user.username} ${new Date().toLocaleDateString()} ${this.transfer.pinStatus.pin} ${this.transfer.pinStatus.result}`;
+          newBareTask.comments = newComments;
+          this.comments = newComments;
+          break;
+
         case 'saveAppealId':
           // because input appealId is bound to transfer already, we actually need to delete it so
           delete oldTask.transfer.appealId;

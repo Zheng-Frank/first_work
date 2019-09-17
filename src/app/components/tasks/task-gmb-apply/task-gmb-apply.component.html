@@ -137,13 +137,18 @@
       Verify/Obtain New Ownership
     </label>
 
-    <div *ngIf="!transfer.verifiedAt">
+    <div>
       <button class="btn btn-sm btn-info" [qLoading]="verifyingCode" [disabled]="!transfer.code"
         (click)="handleUpdate('verify', 'verifiedAt', 'verifyingCode')">Verify Code
       </button>
     </div>
+    <div *ngIf="transfer.pinStatus">
+      <div>Code {{transfer.pinStatus.pin}}</div>
+      <div>Time: {{transfer.pinStatus.time | ago: now}}</div>
+      <div>Result: {{transfer.pinStatus.result}}</div>
+    </div>
     <div *ngIf="transfer.verifiedAt">
-      Verified {{transfer.verifiedAt | ago: now}}
+      Tried verify: {{transfer.verifiedAt | ago: now}}
     </div>
 
   </div>
