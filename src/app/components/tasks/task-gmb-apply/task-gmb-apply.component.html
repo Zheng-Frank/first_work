@@ -110,6 +110,10 @@
           </div>
 
         </div>
+
+        <div *ngIf="transfer.verificationMethod === 'Call'">
+          <button class="btn btn-primary" (click)="triggerGoogleCall()">Trigger Google Call</button>
+        </div>
       </div>
     </div>
   </div>

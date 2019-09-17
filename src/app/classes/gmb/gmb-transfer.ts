@@ -21,9 +21,11 @@ export class GmbTransfer {
 
     request: any; // {"place_id":"ChIJS3D31kqf9YgR8OmAsPZAJZc","arci":4465959,"id1":1534815972,"id2":401000000}
     appealId: string;
+    locationName: string; // GMB's own location key "accounts/115758008298199238439/locations/15261144277233140818"
     verificationMethod: 'Text' | 'Call' | 'Postcard' | 'Email';
     code;
     result: 'Canceled' | 'Failed' | 'Succeeded';
+    verificationOptions: any;
 
     constructor(transfer?: any) {
         if (transfer) {

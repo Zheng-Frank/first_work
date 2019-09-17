@@ -34,6 +34,8 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
   updatingWebsite = false;
   completing = false;
 
+  calling = false;
+
   now = new Date();
 
   accounts: any[] = []; // account with bizCount
@@ -85,24 +87,24 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
     )
       .subscribe(
-      results => {
-        const accountMap = {};
-        results[0].map(a => {
-          accountMap[a.email] = a;
-        });
+        results => {
+          const accountMap = {};
+          results[0].map(a => {
+            accountMap[a.email] = a;
+          });
 
 
 
-        //console.log('accountMap', accountMap);
+          //console.log('accountMap', accountMap);
 
-        this.accounts = results[0].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
-                
-        console.log('Apply GMB Per Day', this.accounts.reduce((sum, a) => sum + (a.requestCountPerDay || 0), 0));
-        console.log(' this.accounts', this.accounts);
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, error);
-      }
+          this.accounts = results[0].sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1);
+
+          console.log('Apply GMB Per Day', this.accounts.reduce((sum, a) => sum + (a.requestCountPerDay || 0), 0));
+          console.log(' this.accounts', this.accounts);
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, error);
+        }
       );
 
     // to refresh 'now' every minute
@@ -142,6 +144,27 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
         this.assignees = users.filter(u => u.roles.some(r => this.task.roles.indexOf(r) >= 0)).sort((r1, r2) => r1.username > r2.username ? 1 : -1);
       });
     }
+  }
+
+  async triggerGoogleCall() {
+    this.calling = true;
+    try {
+      const phoneVerificationOption = this.transfer.verificationOptions.filter(vo => vo.method === 'PHONE_CALL')[0];
+      const cloned = JSON.parse(JSON.stringify(phoneVerificationOption));
+      const result = await this._api.post(environment.appApiUrl + 'gmb/verify', {
+        email: this.transfer.toEmail,
+        locationName: this.transfer.locationName,
+        verificationOption: cloned
+      }).toPromise();
+      console.log(result);
+      this._global.publishAlert(AlertType.Success, 'Call Initiated from Google');
+
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
+    }
+    this.calling = false;
+
   }
 
   populateGmbBiz() {
@@ -224,7 +247,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           toPassword = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: toGmbAccount.email, phrase: toPassword }).toPromise();
         }
       }
-      
+
 
       if (!this.gmbBiz || !this.gmbBiz.place_id) {
         throw 'No place_id found';
@@ -236,10 +259,10 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
           result = await this._api.post(
             environment.autoGmbUrl + 'requestOwnership', {
-              email: toGmbAccount.email,
-              password: toPassword,
-              place_id: this.gmbBiz.place_id
-            }
+            email: toGmbAccount.email,
+            password: toPassword,
+            place_id: this.gmbBiz.place_id
+          }
           ).toPromise();
           break;
 
@@ -247,22 +270,22 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
           result = await this._api.post(
             environment.autoGmbUrl + 'appealGmbRequest', {
-              email: toGmbAccount.email,
-              password: toPassword,
-              arci: this.transfer.request.arci,
-              place_id: this.gmbBiz.place_id
-            }
+            email: toGmbAccount.email,
+            password: toPassword,
+            arci: this.transfer.request.arci,
+            place_id: this.gmbBiz.place_id
+          }
           ).toPromise();
           break;
 
         case 'verify':
           result = await this._api.post(
             environment.autoGmbUrl + 'verify', {
-              email: toGmbAccount.email,
-              password: toPassword,
-              code: this.transfer.code,
-              appealId: this.transfer.appealId || this.task.transfer.appealId
-            }
+            email: toGmbAccount.email,
+            password: toPassword,
+            code: this.transfer.code,
+            appealId: this.transfer.appealId || this.task.transfer.appealId
+          }
           ).toPromise();
           break;
         case 'failed':
@@ -424,21 +447,21 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }])
       .subscribe(
-      result => {
-        this._global.publishAlert(AlertType.Success, 'Updated Task');
-        // let's mutate task, we need to be careful about transfer
-        Object.keys(newTask).map(k => {
-          if (k === 'transfer') {
-            Object.keys(newTask.transfer).map(kt => this.task.transfer[kt] = (newTask.transfer[kt] || {})['$date'] || newTask.transfer[kt]);
-          } else {
-            this.task[k] = (newTask[k] || {})['$date'] || newTask[k];
-          }
-        });
+        result => {
+          this._global.publishAlert(AlertType.Success, 'Updated Task');
+          // let's mutate task, we need to be careful about transfer
+          Object.keys(newTask).map(k => {
+            if (k === 'transfer') {
+              Object.keys(newTask.transfer).map(kt => this.task.transfer[kt] = (newTask.transfer[kt] || {})['$date'] || newTask.transfer[kt]);
+            } else {
+              this.task[k] = (newTask[k] || {})['$date'] || newTask[k];
+            }
+          });
 
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, 'Error Updating Task :(');
-      }
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error Updating Task :(');
+        }
       );
   }
 
