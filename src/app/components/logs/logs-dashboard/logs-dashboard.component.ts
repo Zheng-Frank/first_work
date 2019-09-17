@@ -42,33 +42,29 @@ export class LogsDashboardComponent implements OnInit {
 
   async populate() {
     try {
-      var date = new Date();
-      date.setDate(date.getDate() - 90);
 
-      this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: {
-          disabled: {
-            $ne: true
+      const batchSize = 1000;
+      let skip = 0;
+      while (true) {
+        const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          projection: {
+            name: 1,
+            alias: 1,
+            logs: 1,
+            logo: 1,
+            channels: 1,
+            "googleAddress.formatted_address": 1
           },
-          "logs": {
-            "$elemMatch": {
-              "time": {
-                "$gt": date
-              }
-            }
-          }
-        },
-        projection: {
-          name: 1,
-          alias: 1,
-          logs: { $slice: -5 },
-          logo: 1,
-          channels: 1,
-          "googleAddress.formatted_address": 1
-        },
-        limit: 6000
-      }).toPromise();
+          skip: skip,
+          limit: batchSize
+        }).toPromise();
+        if (batch.length === 0) {
+          break;
+        }
+        this.restaurantList.push(...batch);
+        skip += batchSize;
+      }
 
       // convert log to type of Log
       this.restaurantList.map(r => {
