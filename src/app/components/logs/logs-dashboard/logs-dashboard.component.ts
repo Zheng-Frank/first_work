@@ -25,7 +25,7 @@ export class LogsDashboardComponent implements OnInit {
   agent;
   type;
 
-  filteredRestaurantLogs = [];
+  restaurantLogs = [];
   logsList;
   agentList = [];
   logTypes = [];
@@ -33,6 +33,7 @@ export class LogsDashboardComponent implements OnInit {
 
   logInEditing = new Log();
   logInEditingOriginal;
+  filteredResult=[]
 
   restaurant = undefined;
   restaurantList = [];
@@ -42,28 +43,59 @@ export class LogsDashboardComponent implements OnInit {
 
   async populate() {
     try {
+      // var date = new Date();
+      // date.setDate(date.getDate() - 90);
 
-      const batchSize = 1000;
-      let skip = 0;
+      // this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
+      //   resource: "restaurant",
+      //   query: {
+      //     disabled: {
+      //       $ne: true
+      //     },
+      //     "logs": {
+      //       "$elemMatch": {
+      //         "time": {
+      //           "$gt": date
+      //         }
+      //       }
+      //     }
+      //   },
+      //   projection: {
+      //     name: 1,
+      //     alias: 1,
+      //     logs: { $slice: -5 },
+      //     logo: 1,
+      //     channels: 1,
+      //     "googleAddress.formatted_address": 1
+      //   },
+      //   limit: 6000
+      // }).toPromise();
+
+      //Retrieve all the logs inseat of limit out old logs
+      const restaurantBatchSize = 800;
+      let restaurantSkip = 0;
+  
       while (true) {
         const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'restaurant',
-          projection: {
-            name: 1,
-            alias: 1,
-            logs: 1,
-            logo: 1,
-            channels: 1,
-            "googleAddress.formatted_address": 1
-          },
-          skip: skip,
-          limit: batchSize
+        projection: {
+          name: 1,
+          alias: 1,
+          logs: { $slice: -5 },
+          logo: 1,
+          channels: 1,
+          "googleAddress.formatted_address": 1
+        },
+          skip: restaurantSkip,
+          limit: restaurantBatchSize
         }).toPromise();
+  
+        this.restaurantList.push(...batch);
+  
         if (batch.length === 0) {
           break;
         }
-        this.restaurantList.push(...batch);
-        skip += batchSize;
+        restaurantSkip += restaurantBatchSize;
       }
 
       // convert log to type of Log
@@ -114,7 +146,7 @@ export class LogsDashboardComponent implements OnInit {
   }
 
   computeFilteredLogs() {
-    this.filteredRestaurantLogs = [];
+    this.restaurantLogs = [];
     this.restaurantList.map(r => {
       (r.logs || []).map(log => {
         // apply filter to reduce possible sorting
@@ -124,7 +156,7 @@ export class LogsDashboardComponent implements OnInit {
           || (log.callerPhone || '').startsWith(filter)
           || (r.channels && r.channels.some(c => c.value.startsWith(filter)))));
         if (b1 && b2) {
-          this.filteredRestaurantLogs.push({
+          this.restaurantLogs.push({
             restaurant: r,
             log: log
           });
@@ -134,18 +166,19 @@ export class LogsDashboardComponent implements OnInit {
 
     const now = new Date();
     // Hide outdated logs! (more than 60 days and resolved)
-    const visibleMs = 7 * 24 * 3600 * 1000;
-    this.filteredRestaurantLogs = this.filteredRestaurantLogs.filter(rl => !rl.log.resolved || now.valueOf() - (rl.log.time || new Date(0)).valueOf() < visibleMs);
+    //const visibleMs = 7 * 24 * 3600 * 1000;
+    //this.filteredRestaurantLogs = this.filteredRestaurantLogs.filter(rl => !rl.log.resolved || now.valueOf() - (rl.log.time || new Date(0)).valueOf() < visibleMs);
 
     // sort DESC by time!
     // one without time
-    this.filteredRestaurantLogs.sort((rl1, rl2) => (rl2.log.time || new Date(0)).valueOf() - (rl1.log.time || new Date(0)).valueOf());
-    this.logsList = this.filteredRestaurantLogs;
-    this.agentList = this.filteredRestaurantLogs.map(l => l.log.username);
-    this.logTypes = this.filteredRestaurantLogs.map(l => l.log.type);
+    this.restaurantLogs.sort((rl1, rl2) => (rl2.log.time || new Date(0)).valueOf() - (rl1.log.time || new Date(0)).valueOf());
+    this.logsList = this.restaurantLogs;
+    this.agentList = this.restaurantLogs.map(l => l.log.username);
+    this.logTypes = this.restaurantLogs.map(l => l.log.type);
     this.agentList = Array.from(new Set(this.agentList)).sort().filter(e => e != null);
     this.logTypes = Array.from(new Set(this.logTypes)).sort().filter(e => e != null);
 
+    this.filteredResult = this.restaurantLogs.slice(0);
   }
 
   unresolvedOnlyChange() {
@@ -157,17 +190,20 @@ export class LogsDashboardComponent implements OnInit {
   }
 
   filterBySelection() {
-    let filteredResult = this.filteredRestaurantLogs;
+    this.filteredResult = this.restaurantLogs.slice(0);
     if (this.agent && this.agent !== "All") {
-      filteredResult = this.filteredRestaurantLogs.filter(l => l.log.username === this.agent);
+      this.filteredResult = this.filteredResult.filter(l => l.log.username === this.agent);
     }
     if (this.adjustmentOnly) {
-      filteredResult = this.filteredRestaurantLogs.filter(l => l.log.adjustmentAmount);
+      this.filteredResult = this.filteredResult.filter(l => l.log.adjustmentAmount);
+    }
+    if(this.unresolvedOnly){
+      this.filteredResult = this.filteredResult.filter(l => !l.log.resolved);
     }
     if (this.type && this.type !== "All") {
-      filteredResult = this.filteredRestaurantLogs.filter(l => l.log.type === this.type);
+      this.filteredResult = this.filteredResult.filter(l => l.log.type === this.type);
     }
-    this.logsList = filteredResult;
+    
 
   }
 

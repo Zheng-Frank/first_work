@@ -10,7 +10,7 @@
             [(ngModel)]="searchFilter"> &nbsp;&nbsp;
 
         <label class="text-danger">
-            <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="unresolvedOnlyChange()">&nbsp;Only Unresolved
+            <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="filterBySelection()">&nbsp;Only Unresolved
         </label>
 
         <label style="padding-left: 15px">
@@ -36,7 +36,7 @@
     </div>
 </div>
 
-<app-logs-table [restaurantLogs]="logsList" (select)="edit($event)"></app-logs-table>
+<app-logs-table [restaurantLogs]="filteredResult" (select)="edit($event)"></app-logs-table>
 
 
 <!--the editing modal-->
