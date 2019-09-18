@@ -226,51 +226,39 @@ export class GlobalService {
       if (!this.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0)) {
         query["rateSchedules.agent"] = this.user.username
       }
+      const result = [];
+      const restaurantBatchSize = 800;
+      let restaurantSkip = 0;
 
-      const result1 = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: query,
-        projection: {
-          name: 1,
-          alias: 1,
-          logo: 1,
-          restaurantId: 1,
-          "phones.phoneNumber": 1,
-          "channels": 1,
-          disabled: 1,
-          logs: {
-            $slice: -3
+      while (true) {
+        const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          projection: {
+            name: 1,
+            alias: 1,
+            logo: 1,
+            restaurantId: 1,
+            "phones.phoneNumber": 1,
+            "channels": 1,
+            disabled: 1,
+            logs: {
+              $slice: -3
+            },
+            "rateSchedules.agent": 1,
+            "googleAddress.formatted_address": 1,
+            web: 1
           },
-          "rateSchedules.agent": 1,
-          "googleAddress.formatted_address": 1,
-          web: 1
-        },
-        limit: 4000
-      }).toPromise();
+          skip: restaurantSkip,
+          limit: restaurantBatchSize
+        }).toPromise();
 
-      const result2 = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: query,
-        projection: {
-          name: 1,
-          alias: 1,
-          logo: 1,
-          restaurantId: 1,
-          "phones.phoneNumber": 1,
-          "channels": 1,
-          disabled: 1,
-          logs: {
-            $slice: -3
-          },
-          "rateSchedules.agent": 1,
-          "googleAddress.formatted_address": 1,
-          web: 1
-        },
-        skip: 4000,
-        limit: 8000
-      }).toPromise();
+        result.push(...batch);
 
-      const result = [...result1, ...result2];
+        if (batch.length === 0) {
+          break;
+        }
+        restaurantSkip += restaurantBatchSize;
+      }
 
       const restaurants = result.map(r => new Restaurant(r));
       restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
