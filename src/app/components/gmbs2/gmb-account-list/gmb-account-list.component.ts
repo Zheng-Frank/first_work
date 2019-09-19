@@ -49,29 +49,40 @@ export class GmbAccountListComponent implements OnInit {
 
   async populate() {
 
-    const accountList = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "gmbAccount",
-      projection: {
-        email: 1,
-        password: 1,
-        type: 1,
-        comments: 1,
-        published: 1,
-        suspended: 1,
-        allLocations: 1,
-        pagerSize: 1,
-        gmbScannedAt: 1,
-        emailScannedAt: 1,
-        "locations.statusHisotory": { $slice: 1 },
-        "locations.status": 1,
-        "locations.statusHistory.time": 1,
-        "locations.cid": 1,
-        "locations.name": 1,
-        "locations.address": 1,
-        disabled: 1
-      },
-      limit: 7000
-    }).toPromise();
+    const accountList = [];
+    const batchSize = 50;
+    let skip = 0;
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: "gmbAccount",
+        projection: {
+          email: 1,
+          password: 1,
+          type: 1,
+          comments: 1,
+          published: 1,
+          suspended: 1,
+          allLocations: 1,
+          pagerSize: 1,
+          gmbScannedAt: 1,
+          emailScannedAt: 1,
+          "locations.statusHisotory": { $slice: 1 },
+          "locations.status": 1,
+          "locations.statusHistory.time": 1,
+          "locations.cid": 1,
+          "locations.name": 1,
+          "locations.address": 1,
+          disabled: 1
+        },
+        skip: skip,
+        limit: batchSize
+      }).toPromise();
+      if (batch.length === 0) {
+        break;
+      }
+      accountList.push(...batch);
+      skip += batchSize;
+    }
 
     // add 24 hours suspended and duplicate!
     accountList.map(a => {

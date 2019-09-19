@@ -51,7 +51,7 @@ export class HomeComponent implements OnInit {
       "fax-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
       "email-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
       "unconfirmed-orders": ['ADMIN', 'CSR'],
-      "image-manager": ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      "image-manager": ['ADMIN'],
       "awaiting-onboarding": ['ADMIN', 'CSR', 'MENU_EDITOR'],
       "disabled-restaurants": ['ADMIN', 'CSR', 'MENU_EDITOR'],
       "monitoring-hours": ['ADMIN', 'CSR', 'MENU_EDITOR']      
