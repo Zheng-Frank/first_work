@@ -189,7 +189,7 @@ export class TaskListComponent implements OnInit, OnChanges {
         } else if (this.gmb === "Verifiable") {
           return task && task.transfer && task.transfer.verificationOptions;
         } else if (this.gmb === "Should Call") {
-          return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'PHONE_CALL') && !task.transfer.verificationOptions.some(vo => vo.method === 'ADDRESS' && vo.verificationResponse);
+          return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'PHONE_CALL');
         } else if (this.gmb === "Postcard Sent") {
           return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'ADDRESS' && vo.verificationResponse);
 
