@@ -424,29 +424,57 @@ export class TaskService {
  * 2. or appealId NOT found or suspended any more
  */
   async purgeAppealTasks() {
-    const openAppealTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Appeal Suspended GMB',
-        result: null
-      },
-      limit: 6000
-    }).toPromise();
+    
+    const openAppealTasks = [];
+    const batchSize = 1000;
+    let skip = 0;
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'task',
+        query: {
+          name: 'Appeal Suspended GMB',
+          result: null
+        },
+        skip: skip,
+        limit: batchSize
+      }).toPromise();
+      if (batch.length === 0) {
+        break;
+      }
+      openAppealTasks.push(...batch);
+      skip += batchSize;
+    }
 
-    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        locations: { $exists: 1 }
-      },
-      projection: {
-        email: 1,
-        "locations.appealId": 1,
-        "locations.address": 1,
-        "locations.name": 1,
-        "locations.status": 1
-      },
-      limit: 6000
-    }).toPromise();
+
+
+    const gmbAccounts = [];
+    const gmbAccountsBatchSize = 1000;
+    let gmbAccountsSkip = 0;
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        query: {
+          locations: { $exists: 1 }
+        },
+        projection: {
+          email: 1,
+          "locations.appealId": 1,
+          "locations.address": 1,
+          "locations.name": 1,
+          "locations.status": 1
+        },
+        skip: gmbAccountsSkip,
+        limit: gmbAccountsBatchSize
+      }).toPromise();
+      if (batch.length === 0) {
+        break;
+      }
+      gmbAccounts.push(...batch);
+      gmbAccountsSkip += gmbAccountsBatchSize;
+    }
+
+   
+ 
 
     console.log('Open appeal tasks: ', openAppealTasks);
 
