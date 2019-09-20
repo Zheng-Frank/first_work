@@ -50,6 +50,7 @@ export class GmbBizListComponent implements OnInit {
           name: 1,
           "googleListing.cid": 1,
           "googleListing.gmbOwner": 1,
+          "googleListing.gmbWebsite": 1,
           "googleListing.gmbOpen": 1,
           "googleAddress.formatted_address": 1,
           disabled: 1,
@@ -314,7 +315,7 @@ export class GmbBizListComponent implements OnInit {
       case 'GMB website owner':
         break;
       case 'NOT qMenu':
-        this.filteredRows = this.filteredRows.filter(r => (r.restaurant.googleListing || {}).gmbOwner !== 'qmenu' || r.accountLocations.some(al => (al.bizList || []).some(biz => biz.gmbOwner !== 'qmenu')));
+        this.filteredRows = this.filteredRows.filter(r => ((r.restaurant.googleListing || {}).gmbWebsite || '').indexOf('target=') > 0 || (r.restaurant.googleListing || {}).gmbOwner !== 'qmenu' || r.accountLocations.some(al => (al.bizList || []).some(biz => biz.gmbOwner !== 'qmenu')));
         break;
       default:
         // test: 1. restaurant.googleListing, if there is no accountLocations, or location.cid -> gmbBiz -> gmbOwner.

@@ -119,13 +119,13 @@ export class TaskListComponent implements OnInit, OnChanges {
   }
 
   hasBadScanStatus(task) {
-    const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status || '';
-    return ['Timeout', 'LOCATION REMOVED FROM ACCOUNT', 'no matching restaurant'].some(error => JSON.stringify(status).indexOf(error) >= 0);
+    const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status;
+    return ['Timeout', 'LOCATION REMOVED FROM ACCOUNT', 'no matching restaurant'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
   }
 
   hasGoodScanStatus(task) {
-    const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status || '';
-    return ['SHOULD USE PHONE_CALL TO VERIFY', 'WAIT', 'NO AUTO POPULATION', 'null'].some(error => JSON.stringify(status).indexOf(error) >= 0);
+    const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status;
+    return status === null || ['SHOULD USE PHONE_CALL TO VERIFY', 'WAIT', 'NO AUTO POPULATION', 'null'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
   }
 
   filter() {
