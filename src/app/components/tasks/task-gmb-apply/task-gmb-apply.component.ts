@@ -261,7 +261,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
       }
 
 
-      if (!this.gmbBiz || !this.gmbBiz.place_id) {
+      if (['failed', 'canceled', 'succeeded'].indexOf(name) < 0 && (!this.gmbBiz || !this.gmbBiz.place_id)) {
         throw 'No place_id found';
       }
 

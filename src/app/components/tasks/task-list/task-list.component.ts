@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
 import { GlobalService } from "../../../services/global.service";
+import { KnownError } from 'src/app/classes/know-errors';
 @Component({
   selector: 'app-task-list',
   templateUrl: './task-list.component.html',
@@ -125,7 +126,7 @@ export class TaskListComponent implements OnInit, OnChanges {
 
   hasGoodScanStatus(task) {
     const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status;
-    return status === null || ['SHOULD USE PHONE_CALL TO VERIFY', 'WAIT', 'NO AUTO POPULATION', 'null'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
+    return status === null || [KnownError.GMB_WAITING_FOR_APPEAL, KnownError.GMB_UI_NOT_VERIFIABLE, 'SHOULD USE PHONE_CALL TO VERIFY', 'WAIT', 'NO AUTO POPULATION', 'null'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
   }
 
   filter() {
@@ -245,6 +246,4 @@ export class TaskListComponent implements OnInit, OnChanges {
       return this.globalCachedRestaurantList.filter(r => r._id === id)[0].web;
     }
   }
-
-
 }
