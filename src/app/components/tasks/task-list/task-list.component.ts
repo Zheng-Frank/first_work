@@ -45,11 +45,6 @@ export class TaskListComponent implements OnInit, OnChanges {
       paths: ['scheduledAt'],
       sort: (a, b) => a.valueOf() - b.valueOf()
     },
-    // {
-    //   label: "Closed At",
-    //   paths: ['resultAt'],
-    //   sort: (a, b) => (a || new Date(0)).valueOf() - (b || new Date(0)).valueOf()
-    // },
     {
       label: "Task",
       paths: ['description', 'name'],
@@ -93,7 +88,12 @@ export class TaskListComponent implements OnInit, OnChanges {
       label: "Created",
       paths: ['createdAt'],
       sort: (a, b) => a.valueOf() - b.valueOf()
-    }
+    },
+    {
+      label: "Closed At",
+      paths: ['resultAt'],
+      sort: (a, b) => (a || new Date(0)).valueOf() - (b || new Date(0)).valueOf()
+    },
 
   ];
 
