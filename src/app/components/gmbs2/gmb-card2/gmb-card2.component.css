@@ -20,3 +20,7 @@ td {
 .fix-v-align {
   vertical-align: baseline;
 }
+
+.app-strike{
+  text-decoration: line-through;
+}
