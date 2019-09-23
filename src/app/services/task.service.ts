@@ -262,56 +262,113 @@ export class TaskService {
 
 
   async scanForAppealTasks() {
-    const openAppealTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Appeal Suspended GMB',
-        result: null
-      },
-      limit: 6000
-    }).toPromise();
+    const openAppealTasks = [];
+    const openAppealSize = 2000;
+    let openAppealSkip = 0;
+
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'task',
+        query: {
+          name: 'Appeal Suspended GMB',
+          result: null
+        },
+        skip: openAppealSkip,
+        limit: openAppealSize
+      }).toPromise();
+
+      openAppealTasks.push(...batch);
+
+      if (batch.length === 0) {
+        break;
+      }
+      openAppealSkip += openAppealSize;
+    }
 
     console.log('openAppealTasks', openAppealTasks);
 
-    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        locations: { $exists: 1 }
-      },
-      projection: {
-        email: 1,
-        "locations.cid": 1,
-        "locations.name": 1,
-        "locations.status": 1,
-        "locations.appealId": 1,
-        "locations.address": 1,
-        "locations.statusHistory": { $slice: 1 }
-      },
-      limit: 6000
-    }).toPromise();
+    const gmbAccounts = [];
+    const gmbAccountsSize = 50;
+    let gmbAccountsSkip = 0;
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        name: 1,
-        cid: 1
-      },
-      limit: 6000
-    }).toPromise();
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        query: {
+          locations: { $exists: 1 }
+        },
+        projection: {
+          email: 1,
+          "locations.cid": 1,
+          "locations.name": 1,
+          "locations.status": 1,
+          "locations.appealId": 1,
+          "locations.address": 1,
+          "locations.statusHistory": { $slice: 1 }
+        },
+        skip: gmbAccountsSkip,
+        limit: gmbAccountsSize
+      }).toPromise();
 
-    const nonDisabledRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        disabled: { $in: [null, false] }
-      },
-      projection: {
-        alias: 1,
-        "googleListing.cid": 1,
-        web: 1,
-        score: 1
-      },
-      limit: 6000
-    }).toPromise();
+      gmbAccounts.push(...batch);
+
+      if (batch.length === 0) {
+        break;
+      }
+      gmbAccountsSkip += gmbAccountsSize;
+    }
+
+    const gmbBizList = [];
+    const gmbBizSize = 2000;
+    let gmbBizSkip = 0;
+
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          name: 1,
+          cid: 1
+        },
+        skip: gmbBizSkip,
+        limit: gmbBizSize
+      }).toPromise();
+
+      gmbBizList.push(...batch);
+
+      if (batch.length === 0) {
+        break;
+      }
+      gmbBizSkip += gmbBizSize;
+    }
+
+    const nonDisabledRestaurants = [];
+    const nonDisabledSize = 2000;
+    let nonDisabledSkip = 0;
+
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          disabled: { $in: [null, false] }
+        },
+        projection: {
+          alias: 1,
+          "googleListing.cid": 1,
+          web: 1,
+          score: 1
+        },
+        skip: nonDisabledSkip,
+        limit: nonDisabledSize
+      }).toPromise();
+
+      nonDisabledRestaurants.push(...batch);
+
+      if (batch.length === 0) {
+        break;
+      }
+      nonDisabledSkip += nonDisabledSize;
+    }
+
 
     const suspendedAccountLocationPairs = [];
     gmbAccounts.map(account => account.locations.map(loc => {
@@ -424,7 +481,7 @@ export class TaskService {
  * 2. or appealId NOT found or suspended any more
  */
   async purgeAppealTasks() {
-    
+
     const openAppealTasks = [];
     const batchSize = 1000;
     let skip = 0;
@@ -473,8 +530,8 @@ export class TaskService {
       gmbAccountsSkip += gmbAccountsBatchSize;
     }
 
-   
- 
+
+
 
     console.log('Open appeal tasks: ', openAppealTasks);
 
