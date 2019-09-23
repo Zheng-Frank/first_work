@@ -1,0 +1,52 @@
+<div class="text-center">
+  <h1 class="text-center">GMB Tasks</h1>
+  <button class="btn btn-link" (click)="reload()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+  <div class="text-center">
+    <span class="alert-warning">* Please Reload Before Claiming and Handling Your Tasks</span>
+  </div>
+</div>
+
+
+<div class="clearfix mt-2">
+  <div class="float-left form-inline">
+
+
+  </div>
+  <div class="float-right">
+  </div>
+</div>
+
+
+<div class="card text-center mb-4" *ngIf="currentAction !== 'ADD'">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item" *ngFor="let tab of tabs" style="cursor: pointer;">
+        <a class="nav-link {{activeTabLabel === tab.label? 'active' : ''}}"
+          (click)="setActiveTab(tab)">{{tab.label}}</a>
+      </li>
+    </ul>
+  </div>
+
+
+  <div class="card-body text-left" z>
+    <div *ngIf="'Mine' === activeTabLabel">
+      Row# | Scheduled At | Restaurant (address, timezone) | Score | comments | Verification Options | Actions | Closed At
+    </div>
+    <div *ngIf="'Non-claimed' === activeTabLabel">
+      not claimed
+    </div>
+    <div *ngIf="'My Closed' === activeTabLabel">
+      closed
+    </div>
+  </div>
+</div>
+
+<div>
+  Actions:
+  Trigger Call
+  Rescedule
+  Close
+  Comments
+  Reassign
+</div>

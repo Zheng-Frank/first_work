@@ -139,6 +139,7 @@ import { NgxGraphModule } from '@swimlane/ngx-graph';
 import { CyclesComponent } from './components/invoices/cycles/cycles.component';
 import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle-details.component';
 import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component';
+import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -257,7 +258,8 @@ import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component
     AutomationDashboard2Component,
     CyclesComponent,
     CycleDetailsComponent,
-    GmbPinsComponent    
+    GmbPinsComponent,
+    GmbTasksComponent    
   ],
   imports: [
     BrowserModule,
