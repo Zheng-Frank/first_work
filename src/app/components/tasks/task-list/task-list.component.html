@@ -84,7 +84,11 @@
             <ng-container *ngFor="let vo of task.transfer?.verificationOptions || []">
                 <i *ngIf="!vo.unrecognized"
                     class="fas fa-{{vo.method === 'EMAIL' ? 'at' : (vo.method === 'PHONE_CALL' ? 'phone' : (vo.method === 'ADDRESS' ? 'address-card' : 'question'))}} {{vo.verificationResponse ? 'text-success' : 'text-muted'}}"></i>
-                <div *ngIf="vo.verificationResponse" class="text-muted"><small>{{vo.verificationResponse.createTime | ago: now}}</small></div>
+                <i *ngIf="vo.unrecognized"
+                    class="opacity-30 fas fa-{{vo.method === 'EMAIL' ? 'at' : (vo.method === 'PHONE_CALL' ? 'phone' : (vo.method === 'ADDRESS' ? 'address-card' : 'question'))}} {{vo.verificationResponse ? 'text-success' : 'text-muted'}}"></i>
+
+                <div *ngIf="vo.verificationResponse" class="text-muted">
+                    <small>{{vo.verificationResponse.createTime | ago: now}}</small></div>
             </ng-container>
             <div class="text-warning" *ngIf="task.transfer?.code">
                 <i class="fas fa-2x fa-lightbulb"></i>
