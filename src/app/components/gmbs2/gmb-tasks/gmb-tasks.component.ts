@@ -10,7 +10,9 @@ import { GlobalService } from 'src/app/services/global.service';
 })
 export class GmbTasksComponent implements OnInit {
 
+  apiLoading = false;
   activeTabLabel = 'Mine';
+  currentAction;
   tabs = [
     { label: 'Mine', tasks: [] },
     { label: 'Non-claimed', tasks: [] },
@@ -38,6 +40,10 @@ export class GmbTasksComponent implements OnInit {
         break;
 
     }
+  }
+
+  async reload() {
+    
   }
 
   async loadMyOpenGmbTasks() {

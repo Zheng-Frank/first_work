@@ -30,6 +30,7 @@ export class TaskListComponent implements OnInit, OnChanges {
     "Verifiable",
     "Should Call",
     "Postcard Sent",
+    "Has Email",
   ]
 
   gmb;
@@ -190,16 +191,14 @@ export class TaskListComponent implements OnInit, OnChanges {
         } else if (this.gmb === "Verifiable") {
           return task && task.transfer && task.transfer.verificationOptions;
         } else if (this.gmb === "Should Call") {
-          return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'PHONE_CALL');
+          return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'PHONE_CALL') && !task.transfer.verificationOptions.some(vo => vo.method === 'ADDRESS' && vo.verificationResponse);
         } else if (this.gmb === "Postcard Sent") {
           return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'ADDRESS' && vo.verificationResponse);
-
+        } else if (this.gmb === "Has Email") {
+          return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'EMAIL' && vo.verificationResponse);
         }
       });
-
     }
-
-
 
     this.assigneeList = this.taskList.map(t => t.assignee);
     // reuturn unique
