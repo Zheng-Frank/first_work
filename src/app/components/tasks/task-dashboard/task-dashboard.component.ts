@@ -147,8 +147,8 @@ export class TaskDashboardComponent {
     this.refreshing = false;
     let tasks = (result0 || []).map(t => new Task(t));
     //won't show "Apply GMB Ownership". "Transfer GMB Ownership" and "Appeal Suspended GMB" if you are not GMB_SPECIALIST
-    if (this._global.user.roles.indexOf('GMB_SPECIALIST') == -1) {
-      tasks = tasks.filter(t => t.name !== "Apply GMB Ownership" && t.name !== "Transfer GMB Ownership" && t.name !== "Appeal Suspended GMB")
+    if (this._global.user.roles.indexOf('GMB_SPECIALIST') < 0) {
+      tasks = tasks.filter(t => t.assignee === this._global.user.username || (t.name !== "Apply GMB Ownership" && t.name !== "Transfer GMB Ownership" && t.name !== "Appeal Suspended GMB"))
     }
 
     console.log('tasks', tasks);
