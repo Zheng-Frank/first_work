@@ -217,14 +217,26 @@ export class Gmb3Service {
     // if we didn't find a match, skip it. This may due to outdated account scan (gmbBiz doesn't register yet)
 
     // get existing gmbBizList to match for
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        name: 1,
-        cid: 1
-      },
-      limit: 6000
-    }).toPromise();
+
+    const batchSize = 6000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          name: 1,
+          cid: 1
+        },
+        skip: gmbBizList.length,
+        limit: batchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < batchSize) {
+        break;
+      }
+    }
+    console.log(gmbBizList.length);
+
 
     newItems.map(item => {
       // biz match strategy: same name, same account email, and first encounter of status before this item's date is Published!
@@ -251,7 +263,7 @@ export class Gmb3Service {
       const matchedCid = matchedLocationAndScore ? matchedLocationAndScore.location.cid : 'nonexist';
       const matchedBiz = gmbBizList.filter(biz => biz.cid === matchedCid)[0];
       if (!matchedBiz) {
-        console.log('NO MATCH');
+        console.log('NO MATCH', matchedCid);
         console.log(account.email);
         console.log(gmbBizList);
         console.log(item);
