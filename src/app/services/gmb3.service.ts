@@ -218,7 +218,7 @@ export class Gmb3Service {
 
     // get existing gmbBizList to match for
 
-    const batchSize = 6000;
+    const batchSize = 3000;
     const gmbBizList = [];
     while (true) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -268,7 +268,7 @@ export class Gmb3Service {
         console.log(gmbBizList);
         console.log(item);
         throw 'NOT MATCHED ANYTHING'
-      }else{
+      } else {
         item.gmbBizId = matchedBiz._id;
         item.cid = matchedBiz.cid;
         item.gmbAccountId = account._id;
@@ -381,11 +381,20 @@ export class Gmb3Service {
   /**This will pull restaurant (non-disabled), current accounts, current gmbBiz list to determin what's missing and create stubs */
   async generateMissingGmbBizListings() {
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: { cid: 1 },
-      limit: 6000
-    }).toPromise();
+    const gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: { cid: 1 },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
 
     const existingCidSet = new Set(gmbBizList.map(biz => biz.cid));
     console.log('existingCidSet', existingCidSet);
@@ -466,7 +475,7 @@ export class Gmb3Service {
         }
       }
 
-      const old = {_id: gmbBiz._id};
+      const old = { _id: gmbBiz._id };
       fields.map(field => old[field] = "random");
       return {
         old: old,
@@ -518,17 +527,29 @@ export class Gmb3Service {
     // we would also like to patch gmbBiz with same cids! (considering scan is more expensive than retrieving out own database)
     const resultsWithCids = results.filter(result => result && result.cid);
     if (resultsWithCids.length > 0) {
-      let gmbBizWithSameCids = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        projection: {
-          cid: 1
-        },
-        limit: 10000
-      }).toPromise();
+      const gmbBizBatchSize = 3000;
+      let gmbBizWithSameCids = [];
+      while (true) {
+        const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'gmbBiz',
+          projection: {
+            cid: 1
+          },
+          skip: gmbBizWithSameCids.length,
+          limit: gmbBizBatchSize
+        }).toPromise();
+        gmbBizWithSameCids.push(...batch);
+        if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+          break;
+        }
+      }
 
-      const cidSet = new Set(resultsWithCids.map(result => result.cid));     
 
-      gmbBizWithSameCids = gmbBizWithSameCids.filter(biz => cidSet.has(biz.cid ));
+
+
+      const cidSet = new Set(resultsWithCids.map(result => result.cid));
+
+      gmbBizWithSameCids = gmbBizWithSameCids.filter(biz => cidSet.has(biz.cid));
 
       if (gmbBizWithSameCids.length > 0) {
 
@@ -617,7 +638,7 @@ export class Gmb3Service {
       limit: 6000
     }).toPromise();
     for (let task of tasks) {
-      const randomName = names[Math.floor(Math.random()*names.length)];
+      const randomName = names[Math.floor(Math.random() * names.length)];
       try {
         const gmbAccount = accounts.filter(a => a._id === task.relatedMap.gmbAccountId)[0];
         let password = gmbAccount.password;

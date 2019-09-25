@@ -1310,16 +1310,28 @@ export class DbScriptsComponent implements OnInit {
 
   async removeRedundantGmbBiz() {
     // 1. get ALL gmbBiz
-    const bizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        cid: 1,
-        place_id: 1,
-        name: 1,
-        createdAt: 1
-      },
-      limit: 7000
-    }).toPromise();
+
+    const gmbBizBatchSize = 3000;
+    const bizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          cid: 1,
+          place_id: 1,
+          name: 1,
+          createdAt: 1
+        },
+        skip: bizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      bizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
+
 
     // group by cid (or phone?)
     const cidMap = {};
@@ -1468,13 +1480,24 @@ export class DbScriptsComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    const bizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        qmenuId: 1
-      },
-      limit: 7000
-    }).toPromise();
+
+    const gmbBizBatchSize = 3000;
+    const bizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          qmenuId: 1
+        },
+        skip: bizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      bizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
 
     let missingRt = restaurantList.filter(each => !bizList.some(biz => biz.qmenuId == each._id));
     //missingRt.length = 2;
@@ -2249,14 +2272,24 @@ export class DbScriptsComponent implements OnInit {
     //  - using qemenuId
     // what about non-matched??? just leave it???
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        gmbOwnerships: 0,
-        accounts: 0
-      },
-      limit: 6000
-    }).toPromise();
+    const gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          gmbOwnerships: 0,
+          accounts: 0
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
@@ -2361,18 +2394,26 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async migrateGmbOwnerships() {
+    const gmbBizBatchSize = 3000;
+    const allGmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: {
+          gmbOwnerships: { $exists: 1 },
+        },
+        projection: {
+          _id: 1
+        },
+        skip: allGmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      allGmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
 
-    const allGmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      query: {
-        gmbOwnerships: { $exists: 1 },
-        // _id: {$in: [{$oid: "5c015a02dd9078a346c06ccb"}]}
-      },
-      projection: {
-        _id: 1
-      },
-      limit: 6000
-    }).toPromise();
 
     // batch
     const batchSize = 100;
@@ -2380,13 +2421,23 @@ export class DbScriptsComponent implements OnInit {
     const batchedBizList = Array(Math.ceil(allGmbBizList.length / batchSize)).fill(0).map((i, index) => allGmbBizList.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedBizList) {
-      const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        query: {
-          _id: { $in: batch.map(biz => ({ $oid: biz._id })) }
-        },
-        limit: 6000
-      }).toPromise();
+      const gmbBizbatchListSize = 3000;
+      const bizList = [];
+      while (true) {
+        const batchList = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'gmbBiz',
+          query: {
+            _id: { $in: batch.map(biz => ({ $oid: biz._id })) }
+          },
+          skip: bizList.length,
+          limit: gmbBizbatchListSize
+        }).toPromise();
+        bizList.push(...batchList);
+        if (batchList.length === 0 || batchList.length < gmbBizbatchListSize) {
+          break;
+        }
+      }
+
 
       const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',

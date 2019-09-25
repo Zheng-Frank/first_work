@@ -67,13 +67,23 @@ export class GmbRequestListComponent implements OnInit {
     requests.map(req => req.date = new Date(req.date));
     requests.sort((r1, r2) => r2.date.valueOf() - r1.date.valueOf());
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        name: 1
-      },
-      limit: 6000
-    }).toPromise();
+
+    let gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          name: 1
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }    
 
     const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',

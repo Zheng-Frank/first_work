@@ -230,17 +230,27 @@ export class MyRestaurantComponent implements OnInit {
 
     const gmbBizIdMap = {};
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        name: 1,
-        cid: 1,
-        qmenuId: 1,
-        gmbWebsite: 1,
-        gmbOpen: 1
-      },
-      limit: 6000
-    }).toPromise();
+    let gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          name: 1,
+          cid: 1,
+          qmenuId: 1,
+          gmbWebsite: 1,
+          gmbOpen: 1
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
 
     const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',

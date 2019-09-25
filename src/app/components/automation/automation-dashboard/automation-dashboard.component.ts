@@ -238,17 +238,29 @@ export class AutomationDashboardComponent implements OnInit {
    * 3. break, if found non-matching cid
   */
   async crawlGmbGoogleListings() {
-    let gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        cid: 1,
-        name: 1,
-        crawledAt: 1,
-        qmenuId: 1,
-        address: 1
-      },
-      limit: 80000
-    }).toPromise();
+
+    const gmbBizBatchSize = 3000;
+    let gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          cid: 1,
+          name: 1,
+          crawledAt: 1,
+          qmenuId: 1,
+          address: 1
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
+    console.log('gmbBizList=', gmbBizList.length);
 
     // remove those that are disable
     let disabledRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -459,13 +471,22 @@ export class AutomationDashboardComponent implements OnInit {
 
     gmbAccounts = gmbAccounts.filter(a => a.locations && a.locations.length > 0);
 
-    let gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        "cid": 1,
-      },
-      limit: 6000
-    }).toPromise();
+    let gmbBizBatchSize = 3000;
+    let gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          "cid": 1,
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
 
     // MAIN listing
     const publishedRestaurants = restaurants.filter(r => gmbAccounts.some(a => a.locations.some(loc => loc.cid && loc.cid === r.googleListing.cid && loc.status === 'Published')));
@@ -591,18 +612,29 @@ export class AutomationDashboardComponent implements OnInit {
       limit: 6000
     }).toPromise();
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        cid: 1,
-        qmenuId: 1,
-        reservations: 1,
-        menuUrls: 1,
-        serviceProviders: 1,
-        gmbWebsite: 1
-      },
-      limit: 6000
-    }).toPromise();
+    let gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          cid: 1,
+          qmenuId: 1,
+          reservations: 1,
+          menuUrls: 1,
+          serviceProviders: 1,
+          gmbWebsite: 1
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
+    
 
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',

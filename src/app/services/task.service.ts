@@ -55,14 +55,23 @@ export class TaskService {
     const disabledRestaurants = restaurants.filter(r => r.disabled);
     const nonDisabledRestaurants = restaurants.filter(r => !r.disabled);
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        cid: 1,
-        qmenuId: 1
-      },
-      limit: 6000
-    }).toPromise();
+    const gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        projection: {
+          cid: 1,
+          qmenuId: 1
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
 
     console.log('Open transfer tasks: ', openTransferTasks);
     console.log('Gmb accounts: ', accounts);
@@ -153,15 +162,24 @@ export class TaskService {
     }).toPromise();
 
     console.log('Open apply tasks: ', openApplyTasks);
+    const gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          cid: 1,
+          qmenuId: 1
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        cid: 1,
-        qmenuId: 1
-      },
-      limit: 6000
-    }).toPromise();
 
     console.log('gmbBizList: ', gmbBizList);
 
@@ -459,13 +477,23 @@ export class TaskService {
       limit: 6000
     }).toPromise();
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        name: 1
-      },
-      limit: 6000
-    }).toPromise();
+    const gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          name: 1
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+    
 
     const dict = {};
     gmbBizList.map(biz => dict[biz._id] = biz);
@@ -606,13 +634,23 @@ export class TaskService {
     }).toPromise();
     console.log(openTasks);
 
-    const bizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        name: 1
-      },
-      limit: 6000
-    }).toPromise();
+    const gmbBizBatchSize = 3000;
+    const bizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          name: 1
+        },
+        skip: bizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      bizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
 
     const taskBizIdSet = new Set(openTasks.filter(t => t.relatedMap && t.relatedMap.gmbBizId).map(t => t.relatedMap.gmbBizId));
     const bizIdSet = new Set(bizList.map(b => b._id));
@@ -642,15 +680,25 @@ export class TaskService {
       limit: 6000
     }).toPromise();
 
-    const gmbBizList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      projection: {
-        name: 1,
-        qmenuId: 1,
-        cid: 1
-      },
-      limit: 6000
-    }).toPromise();
+    const gmbBizBatchSize = 3000;
+    const gmbBizList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {
+          name: 1,
+          qmenuId: 1,
+          cid: 1
+        },
+        skip: gmbBizList.length,
+        limit: gmbBizBatchSize
+      }).toPromise();
+      gmbBizList.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
+    }
+
 
     const myEmails = new Set(gmbAccounts.map(acct => acct.email));
     const gmbBizIdMap = gmbBizList.reduce((result, biz) => (result[biz._id] = biz, result), {});
