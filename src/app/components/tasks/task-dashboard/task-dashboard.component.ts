@@ -101,25 +101,34 @@ export class TaskDashboardComponent {
       return d;
     };
 
-    let result0 = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "task",
-      query: {
-        $or: [
-          {
-            resultAt: null
-          },
-          {
-            updatedAt: {
-              $gt: { $date: daysAgo(this.hideClosedOldTasksDays) }
+
+    const batchSize = 3000;
+    let result0 = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: "task",
+        query: {
+          $or: [
+            {
+              resultAt: null
+            },
+            {
+              updatedAt: {
+                $gt: { $date: daysAgo(this.hideClosedOldTasksDays) }
+              }
             }
-          }
-        ]
-      },
-      limit: 10000,
-      sort: {
-        createdAt: -1
+          ]
+        },
+        skip: result0.length,
+        limit: batchSize
+      }).toPromise();
+      result0.push(...batch);
+      if (batch.length === 0 || batch.length < batchSize) {
+        break;
       }
-    }).toPromise();
+    }
+
+    console.log('result0', result0.length);
 
     let result1;
     try {
