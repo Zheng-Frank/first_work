@@ -302,5 +302,17 @@ export class NewRestaurantComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
     }
   }
+  isDisabled() {
+    return this._global.user.roles.some(r => r === 'MARKETER_INTERNAL' || r === 'MARKETER_EXTERNAL');
+  }
+  isChecked() {
+    if (this._global.user.roles.some(r => r === 'MARKETER_INTERNAL')) {
+      return false;
+    }
+    if (this._global.user.roles.some(r => r === 'MARKETER_EXTERNAL')) {
+      return true;
+    }
+
+  }
 
 }
