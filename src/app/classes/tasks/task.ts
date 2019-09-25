@@ -6,6 +6,7 @@ import { Action } from './action';
 import { User } from '../user';
 import { Step } from './step';
 import { GmbTransfer } from '../gmb/gmb-transfer';
+import { GmbBiz } from '../gmb/gmb-biz';
 
 export class Task {
     _id: string;
@@ -35,7 +36,9 @@ export class Task {
 
     comments: string;
 
-    createdAt: Date;
+    createdAt: Date;    
+    updatedAt: Date;
+    gmbBiz: GmbBiz;
 
     static predefinedTasks =
     [

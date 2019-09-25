@@ -28,6 +28,7 @@ export class GmbBiz {
     crawledAt: Date;
     updatedAt: Date;
     createdAt: Date;
+    timeZone: string;
 
     constructor(biz?: any) {
         if (biz) {
