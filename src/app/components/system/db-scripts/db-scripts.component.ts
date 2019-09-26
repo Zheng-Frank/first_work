@@ -2422,17 +2422,17 @@ export class DbScriptsComponent implements OnInit {
 
     for (let batch of batchedBizList) {
       const gmbBizbatchListSize = 3000;
-      const bizList = [];
+      const gmbBizList = [];
       while (true) {
         const batchList = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'gmbBiz',
           query: {
             _id: { $in: batch.map(biz => ({ $oid: biz._id })) }
           },
-          skip: bizList.length,
+          skip: gmbBizList.length,
           limit: gmbBizbatchListSize
         }).toPromise();
-        bizList.push(...batchList);
+        gmbBizList.push(...batchList);
         if (batchList.length === 0 || batchList.length < gmbBizbatchListSize) {
           break;
         }
