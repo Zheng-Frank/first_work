@@ -502,17 +502,24 @@ export class AutomationDashboardComponent implements OnInit {
     console.log('Published witout gmbBiz:', publishedRestaurantsWithoutBiz);
     console.log('Not Published without gmbBiz:', notPublishedRestaurantsWithoutBiz);
 
-    const existingOpenApplyTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Apply GMB Ownership',
-        result: null    // null is the same as either non-exists or actually null in mongodb
-      },
-      projection: {
-        relatedMap: 1
-      },
-      limit: 6000
-    }).toPromise();
+   
+    const gmbTaskBatchSize = 3000;
+    const existingOpenApplyTasks = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'task',
+        query: {
+          name: 'Apply GMB Ownership',
+          result: null    // null is the same as either non-exists or actually null in mongodb
+        },
+        skip: existingOpenApplyTasks.length,
+        limit: gmbTaskBatchSize
+      }).toPromise();
+      existingOpenApplyTasks.push(...batch);
+      if (batch.length === 0 || batch.length < gmbTaskBatchSize) {
+        break;
+      }
+    }
 
     console.log(existingOpenApplyTasks);
 
