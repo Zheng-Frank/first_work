@@ -307,12 +307,11 @@ export class NewRestaurantComponent implements OnInit {
   }
   isChecked() {
     if (this._global.user.roles.some(r => r === 'MARKETER_INTERNAL')) {
-      return false;
+      this.skipApplyGmb = false;
     }
     if (this._global.user.roles.some(r => r === 'MARKETER_EXTERNAL')) {
-      return true;
+      this.skipApplyGmb = true;
     }
-
   }
 
 }
