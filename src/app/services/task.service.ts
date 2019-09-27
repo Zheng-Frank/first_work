@@ -59,6 +59,7 @@ export class TaskService {
     const gmbBizList = [];
     while (true) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
         projection: {
           cid: 1,
           qmenuId: 1
