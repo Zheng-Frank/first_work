@@ -8,3 +8,7 @@
 .min-w-6 {
   min-width: 6rem;
 }
+
+.opacity-30 {
+  opacity: 0.3;
+}

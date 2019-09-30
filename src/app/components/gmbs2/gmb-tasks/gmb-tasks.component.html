@@ -60,7 +60,7 @@
           <td class="text-nowrap">
             <ng-container *ngFor="let vo of row.verificationOptions || []">
               <i
-                class="fas fa-{{vo.verificationMethod === 'EMAIL' ? 'at' : (vo.verificationMethod === 'PHONE_CALL' ? 'phone' : (vo.verificationMethod === 'ADDRESS' ? 'address-card' : 'question'))}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
+                class="fas fa-{{vo.verificationMethod === 'EMAIL' ? 'at' : (vo.verificationMethod === 'PHONE_CALL' ? 'phone' : (vo.verificationMethod === 'ADDRESS' ? 'address-card' : 'question'))}} {{vo.verification ? 'text-success' : 'text-muted'}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}}"></i>
               <div *ngIf="vo.verification" class="text-muted">
                 <small>{{vo.verification.createTime | ago: now}}</small></div>
             </ng-container>
@@ -154,12 +154,12 @@
     <div *ngIf="verificationOptions.length === 0">N/A</div>
     <div>
       <i *ngFor="let vo of verificationOptions || []"
-        class="pr-2 fas fa-{{vo.faClass}} {{isQmenuDomain(vo) ? 'text-primary' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
+        class="pr-2 fas fa-{{vo.faClass}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
     </div>
     <div *ngFor="let vo of verifications || []" class="text-muted">
       <small>
         <i
-          class="pr-2 fas fa-{{vo.faClass}} {{isQmenuDomain(vo) ? 'text-primary' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
+          class="pr-2 fas fa-{{vo.faClass}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
         {{vo.state}} {{vo.createTime | ago : now}}
       </small>
     </div>

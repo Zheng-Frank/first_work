@@ -501,6 +501,10 @@ export class MonitoringPrintersComponent implements OnInit {
 
   discovering = false;
   async syncExistingPrinters() {
+    alert('This function is disabled.');
+    if(new Date()) {
+      return;
+    }
     this.discovering = true;
     try {
       const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {

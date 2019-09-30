@@ -291,8 +291,8 @@ export class GmbTasksComponent implements OnInit {
 
   }
 
-  isQmenuDomain(verificationOption) {
-    return verificationOption.verificationMethod === 'EMAIL' && verificationOption.emailData && this.qmenuDomains.has(verificationOption.emailData.domainName);
+  isNonQmenuEmail(verificationOption) {
+    return verificationOption.verificationMethod === 'EMAIL' && verificationOption.emailData && !this.qmenuDomains.has(verificationOption.emailData.domainName);
   }
 
   async update(task, field, value) {
