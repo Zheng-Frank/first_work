@@ -1,0 +1,10 @@
+.wrap {
+  white-space: pre-wrap;
+}
+
+/deep/ th {
+  white-space: nowrap;
+}
+.min-w-6 {
+  min-width: 6rem;
+}

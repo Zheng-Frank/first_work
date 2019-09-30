@@ -259,7 +259,7 @@ import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.compon
     CyclesComponent,
     CycleDetailsComponent,
     GmbPinsComponent,
-    GmbTasksComponent    
+    GmbTasksComponent,
   ],
   imports: [
     BrowserModule,
