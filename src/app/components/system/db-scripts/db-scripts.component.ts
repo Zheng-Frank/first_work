@@ -23,6 +23,36 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async fixLonghornPhoenix() {
+    const printClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'print-client',
+      query: {
+      },
+      limit: 8000
+    }).toPromise();
+    console.log(printClients);
+    const rtPrintClients = {};
+    printClients.map(pc => {
+      if (pc.restaurant) {
+        rtPrintClients[pc.restaurant._id] = rtPrintClients[pc.restaurant._id] || [];
+        rtPrintClients[pc.restaurant._id].push(pc);
+      }
+    });
+
+    for (let key of Object.keys(rtPrintClients)) {
+      if (rtPrintClients[key].length > 1) {
+        const clients = rtPrintClients[key].sort((c2, c1) => new Date(c1.createdAt).valueOf() - new Date(c2.createdAt).valueOf());
+        if (clients[0].type === 'longhorn') {
+          console.log(clients);
+          await this._api.delete(environment.qmenuApiUrl + "generic", {
+            resource: "print-client",
+            ids: [clients[0]._id]
+          });
+        }
+      }
+    }
+  }
+
   async computeDuplicates() {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',

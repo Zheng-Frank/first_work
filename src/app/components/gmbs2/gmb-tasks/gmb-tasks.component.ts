@@ -162,6 +162,8 @@ export class GmbTasksComponent implements OnInit {
 
   scheduledAtUpdated(event) {
     this.update(this.modalRow.task, 'scheduledAt', this.taskScheduledAt);
+    this.addComments(`rescheduled`);
+
   }
 
   setActiveTab(tab) {
@@ -170,6 +172,7 @@ export class GmbTasksComponent implements OnInit {
 
   async showDetails(row) {
     this.modalRow = row;
+    this.taskScheduledAt = row.scheduledAt || new Date();
     this.verificationOptions = row.verificationOptions || [];
     this.verifications = ((row.request.verificationHistory || [])[0] || {}).verifications || [];
     // add faClass
