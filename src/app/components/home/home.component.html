@@ -5,24 +5,15 @@
     <div class="card" *ngIf="isVisible('search')">
         <div class="card-body">
             <label>Search Restaurant:</label>
-            <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)">
-            </q-restaurant-picker>
+            <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
         </div>
     </div>
-    <!-- 
+
     <div class="card" *ngIf="isVisible('email')">
         <div class="card-body">
             <h5 class="card-title">
                 <i class="far fa-envelope"></i> Check Email or Inject Website to Godaddy</h5>
             <app-check-email [restaurantList]="restaurantList"></app-check-email>
-        </div>
-    </div>
- -->
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">
-                <i class="far fa-envelope"></i> Change Ownership</h5>
-            <app-change-ownership></app-change-ownership>
         </div>
     </div>
 
