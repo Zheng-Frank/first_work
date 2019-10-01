@@ -1,10 +1,9 @@
 <div *ngIf="cycle">
   <h1 class="text-center">{{cycle.toDate}}</h1>
-  <button (click)="resetDangling()">reset dangling</button>
+  <!-- <button (click)="resetDangling()">reset dangling</button> -->
   <div class="text-right mb-2">
     <!-- <button class="btn btn-primary" (click)="fix()">
       <i class="fas fa-sync"></i> Fix</button> -->
-
     <button class="btn btn-primary" (click)="recalculate()">
       <i class="fas fa-sync"></i> Recalculate</button>
   </div>
@@ -103,6 +102,13 @@
     </tbody>
   </table>
 
+  <div class="alert alert-info">
+    <button class="btn btn-primary" (click)="processAll()">
+      <i class="fas fa-sync"></i> {{processing? 'STOP PROCESSING' : 'START PROCESSING'}}</button>
+    <div *ngFor="let message of processingMessages">
+      {{message}}
+    </div>
+  </div>
   <div *ngIf="activeBlock">
     <h2 class="text-center">
       {{activeBlock.label}}
@@ -144,4 +150,6 @@
       </tbody>
     </table>
   </div>
+
+
 </div>

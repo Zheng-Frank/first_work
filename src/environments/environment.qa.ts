@@ -7,6 +7,7 @@ export const environment = {
   autoGmbUrl: "http://localhost:3000/",
   migrationUrl: "https://qauto.ngrok.io/",
   taskUrl: "https://qtask.ngrok.io/",
+  qmenuNgrok: "https://qmenu.ngrok.io/",
   bizUrl: 'https://qa-biz.herokuapp.com/',
   customerUrl: 'https://qa-customer.herokuapp.com/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',

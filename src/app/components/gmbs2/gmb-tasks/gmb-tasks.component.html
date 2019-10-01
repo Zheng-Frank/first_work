@@ -32,7 +32,11 @@
       <q-table *ngIf="activeTabLabel === tab.label" [rows]="tab.rows" [tableColumnDescriptors]="myColumnDescriptors"
         [compact]="true">
         <tr *tableRowTemplate="let row;" class="{{row.request.ownerDeclined ? 'alert-danger': ''}}">
-          <td>{{row.rowNumber}}</td>
+          <td>{{row.rowNumber}}
+            <div *ngIf="row.request && row.request.refreshedAt" class="text-muted">
+              <small>refreshed: {{row.request.refreshedAt | ago: now}}</small>
+            </div>
+          </td>
           <td>
             <div class="badge badge-{{row.statusClass}}">{{(row.scheduledAt || 0) | ago: now}}
             </div>
@@ -82,9 +86,6 @@
             {{row.createdAt | ago:now}}
             <div class="text-muted">
               <small>{{row._id}}</small>
-            </div>
-            <div *ngIf="row.request && row.request.refreshedAt" class="text-muted">
-              <small>{{row.request.refreshedAt | ago: now}}</small>
             </div>
           </td>
           <td class="text-nowrap">

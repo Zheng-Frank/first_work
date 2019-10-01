@@ -8,9 +8,7 @@ import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { Gmb3Service } from "src/app/services/gmb3.service";
-import { JsonPipe } from "@angular/common";
 import { Helper } from "src/app/classes/helper";
-import { group } from "@angular/animations";
 
 @Component({
   selector: "app-db-scripts",
@@ -269,11 +267,11 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async changeOwnership() {
-    const oldRestaurantId = '5893810249a8d41100a19b8a';
-    const newName = "China One";
+    const oldRestaurantId = '5ae1dad5cff49203174f4432';
+    const newName = "Mancini's NY Pizzeria";
     const previousRestaurantId = oldRestaurantId;
-    const newAlias = "chinaone";
-    const switchingDate = new Date("Sep 30 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
+    const newAlias = "mancinis-ny-pizzeria";
+    const switchingDate = new Date("Sep 12 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
 
     const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
