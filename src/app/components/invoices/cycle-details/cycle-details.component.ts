@@ -87,6 +87,17 @@ export class CycleDetailsComponent implements OnInit {
   ngOnInit() {
   }
 
+  async processOne(row) {
+    console.log(row);
+    try {
+      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/process', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      console.log(message);
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
   async processAll() {
     if (this.processing) {
       this.processing = false;
