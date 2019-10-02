@@ -95,7 +95,34 @@ export class CycleDetailsComponent implements OnInit {
     } catch (error) {
       console.log(error);
     }
+  }
 
+  paying = false;
+  async payOne(row) {
+    console.log(row);
+    this.paying = true;
+    try {
+      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/pay', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      console.log(message);
+    } catch (error) {
+      console.log(error);
+    }
+    await this.recalculate();
+    this.paying = false;
+  }
+
+  sending = false;
+  async sendOne(row) {
+    console.log(row);
+    this.sending = true;
+    try {
+      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/send', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      console.log(message);
+    } catch (error) {
+      console.log(error);
+    }
+    await this.recalculate();
+    this.sending = false;
   }
 
   async processAll() {

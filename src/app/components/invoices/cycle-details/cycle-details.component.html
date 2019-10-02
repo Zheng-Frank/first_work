@@ -145,8 +145,11 @@
             {{getPaymentMeans(row)}}
           </td>
           <td><span *ngIf="row.invoice?.balance">{{row.invoice?.balance | currency:'USD':'symbol'}}</span></td>
-          <td class="text-danger">{{row.error | json}}
-            <button (click)="processOne(row)">Process</button>
+          <td class="text-danger">
+            <button (click)="sendOne(row)" [qLoading]="sending" *ngIf="row.invoice && !row.invoice?.isSent">Send</button>
+            <button (click)="payOne(row)" [qLoading]="paying"
+              *ngIf="row.invoice && !row.invoice?.isPaymentSent">Pay</button>
+            {{row.error | json}}
           </td>
         </tr>
       </tbody>
