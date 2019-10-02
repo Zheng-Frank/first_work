@@ -7,6 +7,12 @@
     <label class="mr-2"> Count:</label>
     <span class="mr-5"> {{filteredTasks.length}} </span>
 
+    <label class="mr-2"> Time Zone:</label>
+    <select class="mr-5" [(ngModel)]="timeZone" (change)="filter()">
+        <option>All</option>
+        <option *ngFor="let tz of timeZoneList">{{tz}}</option>
+    </select>
+
     <label class="mr-2"> Status:</label>
     <select class="mr-5" [(ngModel)]="claimed" (change)="filter()">
         <option>Any</option>

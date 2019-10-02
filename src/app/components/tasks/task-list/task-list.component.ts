@@ -37,6 +37,9 @@ export class TaskListComponent implements OnInit, OnChanges {
 
   pagination = true;
 
+  timeZone = "All";
+  timeZoneList = ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort();
+
   myColumnDescriptors = [
     {
       label: 'Number'
@@ -198,6 +201,10 @@ export class TaskListComponent implements OnInit, OnChanges {
           return task && task.transfer && task.transfer.verificationOptions && task.transfer.verificationOptions.some(vo => vo.method === 'EMAIL' && vo.verificationResponse);
         }
       });
+    }
+
+    if (this.timeZone && this.timeZone !== "All") {
+      this.filteredTasks = this.filteredTasks.filter(t => t.gmbBiz && t.gmbBiz.timeZone === this.timeZone);
     }
 
     this.assigneeList = this.taskList.map(t => t.assignee);
