@@ -23,8 +23,9 @@ export class GmbTasksComponent implements OnInit {
   restaurant;
   verificationOptions = [];
   verifications = [];
-  preferredVerification;
+  preferredVerificationOption;
   showNotifier = false;
+  isPublished = false;
 
   restaurantDict = {};
 
@@ -36,6 +37,7 @@ export class GmbTasksComponent implements OnInit {
   comments = '';
   pin;
   calling = false;
+
 
   tabs = [
     { label: 'Mine', rows: [] },
@@ -120,7 +122,7 @@ export class GmbTasksComponent implements OnInit {
       result = await this._api.post(environment.appApiUrl + 'gmb/verify', {
         email: this.modalRow.request.email,
         locationName: this.modalRow.request.locationName,
-        verificationOption: this.preferredVerification
+        verificationOption: this.preferredVerificationOption
       }).toPromise();
       this._global.publishAlert(AlertType.Success, 'Call Initiated from Google');
 
@@ -171,6 +173,18 @@ export class GmbTasksComponent implements OnInit {
   }
 
   async showDetails(row) {
+    this.preferredVerificationOption = undefined;
+    const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "gmbAccount",
+      query: { "locations.cid": row.relatedMap.cid },
+      limit: 100000,
+      projection: {
+        "locations.cid": 1,
+        "locations.status": 1
+      }
+    }).toPromise();
+    this.isPublished = relatedAccounts.some(acct => acct.locations.some(loc => loc.cid === row.relatedMap.cid && loc.status === 'Published'));
+
     this.modalRow = row;
     this.taskScheduledAt = row.scheduledAt || new Date();
     this.verificationOptions = row.verificationOptions || [];
@@ -188,13 +202,22 @@ export class GmbTasksComponent implements OnInit {
       v.faClass = faMap[v.method] || 'question';
     });
 
-    this.preferredVerification = this.verifications.filter(v => v.state === 'PENDING')[0];
-    if (!this.preferredVerification && this.verificationOptions.some(vo => vo.verificationMethod === 'PHONE_CALL')) {
-      this.preferredVerification = this.verificationOptions.filter(vo => vo.verificationMethod === 'PHONE_CALL')[0];
-      this.preferredVerification.method = this.preferredVerification.verificationMethod;
+    // preferred:
+    const emailOption = this.verificationOptions.filter(vo => vo.verificationMethod === 'EMAIL' && !this.isNonQmenuEmail(vo))[0];
+    const phoneOption = this.verificationOptions.filter(vo => vo.verificationMethod === 'PHONE_CALL')[0];
+    const addressOption = this.verificationOptions.filter(vo => vo.verificationMethod === 'ADDRESS')[0];
+    const pendingAddressVerification = this.verifications.filter(v => v.method === 'ADDRESS' && v.state === 'PENDING')[0];
+
+    if (emailOption) {
+      this.preferredVerificationOption = emailOption;
+    } else if (!pendingAddressVerification && phoneOption && !this.isPublished) {
+      this.preferredVerificationOption = phoneOption;
+    } else if (pendingAddressVerification) {
+      this.preferredVerificationOption = pendingAddressVerification;
     }
 
     this.rowModal.show();
+
     this.restaurant = (
       await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
@@ -215,6 +238,8 @@ export class GmbTasksComponent implements OnInit {
     (this.restaurant.people || []).map(person => {
       person.channels = (person.channels || []).filter(c => c.type !== 'Email')
     });
+
+    //
   }
   async savePin() {
     await this.update(this.modalRow.task, "request.pin", this.pin);
@@ -250,13 +275,10 @@ export class GmbTasksComponent implements OnInit {
             },
           ]
         },
-        limit: 10000000,
-        sort: {
-          createdAt: -1
-        }
+        limit: 10000000
       }).toPromise();
       this.tasks = tasks.map(t => new Task(t));
-
+      this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
       const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {},

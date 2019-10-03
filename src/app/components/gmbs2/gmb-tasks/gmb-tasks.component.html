@@ -165,22 +165,38 @@
       </small>
     </div>
   </div>
-  <div *ngIf="preferredVerification && preferredVerification.method === 'ADDRESS'" class="alert alert-secondary">
-    Requested Postcard Verification {{preferredVerification.createTime | ago : now}}
-    <div class="text-left">
-      <button class="btn btn-link pl-0" (click)="showNotifier = !showNotifier">Remind Restaurant Owner</button>
+
+  <!-- {{preferredVerificationOption | json}} -->
+  <div *ngIf="preferredVerificationOption" class="alert alert-secondary">
+    <div *ngIf="preferredVerificationOption.method === 'ADDRESS'">
+      Requested Postcard Verification {{preferredVerificationOption.createTime | ago : now}}
+      <div class="text-left">
+        <button class="btn btn-link pl-0" (click)="showNotifier = !showNotifier">Remind Restaurant Owner</button>
+      </div>
+      <div class="form-group" *ngIf="showNotifier">
+        <label>Notify Restaurant:</label>
+        <send-google-pin [restaurant]="restaurant"></send-google-pin>
+      </div>
     </div>
-    <div class="form-group" *ngIf="showNotifier">
-      <label>Notify Restaurant:</label>
-      <send-google-pin [restaurant]="restaurant"></send-google-pin>
+
+    <div *ngIf="preferredVerificationOption.verificationMethod === 'PHONE_CALL'">
+      Should Call <b>{{preferredVerificationOption.phoneData.phoneNumber}}</b> to Verify
+      <div>
+        <button class="btn btn-primary" [qLoading]="calling" (click)="triggerGoogleCall()">Trigger Google Call</button>
+      </div>
+    </div>
+
+
+    <div *ngIf="preferredVerificationOption.verificationMethod === 'EMAIL'">
+      Should Use Email <b>{{preferredVerificationOption.emailData.domainName}}</b> to Get PIN
     </div>
   </div>
-  <div *ngIf="preferredVerification && preferredVerification.method === 'PHONE_CALL'" class="alert alert-secondary">
-    Should Call <b>{{preferredVerification.phoneData.phoneNumber}}</b> to Verify
-    <div>
-      <button class="btn btn-primary" [qLoading]="calling" (click)="triggerGoogleCall()">Trigger Google Call</button>
-    </div>
+  <div *ngIf="!preferredVerificationOption" class="alert alert-secondary">
+    No verification option is preferred to use.
   </div>
+
+
+
   <div class="form-group mb-4">
     <label>Google PIN:</label>
     <h2 *ngIf="modalRow?.request?.pin">{{modalRow?.request?.pin}}</h2>

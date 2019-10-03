@@ -24,7 +24,7 @@ export class ShowGooglePINComponent implements OnInit {
     constructor(private _api: ApiService, private _global: GlobalService) { }
 
     async ngOnInit() {
-        this.restaurantList = await this._global.getCachedVisibleRestaurantList(true);
+        this.restaurantList = await this._global.getCachedVisibleRestaurantList(false);
         this.populate();
     }
 
@@ -56,15 +56,21 @@ export class ShowGooglePINComponent implements OnInit {
         let codes = codeList.map(each => each.transfer.code && each.transfer.code.replace(/\+/g, ' ').trim());
 
         //Retrieve Google PIn which got from SMS reply
+        // only good for last 60 days
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - 60);
         const googlePinEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
             resource: 'event',
             query: {
-                "name": "google-pin"
+                "name": "google-pin",
+                createdAt: {
+                    $gt: cutoffDate.valueOf()
+                }
             },
             projection: {
                 _id: 1,
-                name: 1,
-                params: 1,
+                "params.body.From": 1,
+                "params.body.Text": 1,
                 createdAt: 1
             },
             limit: 10000
@@ -155,21 +161,21 @@ export class ShowGooglePINComponent implements OnInit {
     deleteRow(row) {
         // api delete here...
         this._api.delete(environment.qmenuApiUrl + 'generic',
-          {
-            resource: 'event',
-            ids: [row.id]
-          }).subscribe(
-            result => {
-                this.rows.filter(each=> !each.id===row.id);
-                this._global.publishAlert(
-                    AlertType.Success,
-                    "Delete successfully"
-                );
-            },
-            error => {
-                this._global.publishAlert(AlertType.Danger, "Error deleting");
-            }
+            {
+                resource: 'event',
+                ids: [row.id]
+            }).subscribe(
+                result => {
+                    this.rows.filter(each => !each.id === row.id);
+                    this._global.publishAlert(
+                        AlertType.Success,
+                        "Delete successfully"
+                    );
+                },
+                error => {
+                    this._global.publishAlert(AlertType.Danger, "Error deleting");
+                }
             );
-      }
+    }
 
 }
