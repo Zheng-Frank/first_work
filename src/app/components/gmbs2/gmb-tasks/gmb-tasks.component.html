@@ -236,7 +236,7 @@
       <option *ngFor="let assignee of assignees" [ngValue]="assignee">{{assignee}}</option>
     </select>
     <div class="text-right">
-      <button class="btn btn-link" (click)="decline()">Owner Declined to Work with qMenu?</button>
+      <button class="btn btn-link" (click)="toggleDecline()">Owner {{modalRow?.request?.ownerDeclined ? 'AGREED' : 'DECLINED'}} to Work with qMenu?</button>
     </div>
   </div>
 

@@ -140,12 +140,32 @@ export class GmbTasksComponent implements OnInit {
     return (values || []).join(', ')
   }
 
-  async decline() {
-    if (confirm('The owner has declined to work with qMenu. This will assign the task to another person to handle. Are you sure?')) {
-      await this.addComments('owner declined to work with qMenu');
-      await this.update(this.modalRow.task, 'request.ownerDeclined', true);
+  async toggleDecline() {
+    const currentlyDeclined = this.modalRow.request.ownerDeclined;
+    const message = currentlyDeclined ?
+      'The owner has agreed to work with qMenu. Are you sure?'
+      : 'The owner has declined to work with qMenu. This will assign the task to another person to handle. Are you sure?';
+
+    if (confirm(message)) {
+      await this.addComments(currentlyDeclined ? 'owner agreed to work with qMenu' : 'owner declined to work with qMenu');
+      await this.update(this.modalRow.task, 'request.ownerDeclined', !currentlyDeclined);
       await this.update(this.modalRow.task, 'scheduledAt', new Date());
-      await this.assign(this.modalRow.task, 'mo');
+      // await this.assign(this.modalRow.task, 'alan');
+      // also update restaurant
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+        {
+          old: {
+            _id: { $oid: this.modalRow.task.relatedMap.restaurantId },
+            web: {}
+          },
+          new: {
+            _id: { $oid: this.modalRow.task.relatedMap.restaurantId },
+            web: {
+              agreeToCorporate: currentlyDeclined ? 'Yes' : 'No'
+            }
+          },
+        }
+      ]).toPromise();
     }
   }
 
