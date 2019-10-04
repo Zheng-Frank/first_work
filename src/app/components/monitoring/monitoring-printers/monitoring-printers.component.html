@@ -7,12 +7,30 @@
     </div>
 
     <div class="float-right">
+        <button class="btn btn-primary" (click)="findMultiple()">
+            <i class="fas fa-search"></i> 查找安装多个云打印餐馆</button>
         <button class="btn btn-primary" (click)="addNewPrinter()">
             <i class="fas fa-plus"></i> Add New Printer</button>
         <!-- <button class="btn btn-primary" (click)="syncExistingPrinters()" [qLoading]="discovering">
             <i class="fas fa-sync"></i>
             Discover All Printers</button> -->
     </div>
+</div>
+<div *qIf="showingMultiple" class="alert alert-secondary">
+    <table>
+        <tr *ngFor="let rw of restaurantRows">
+            <td>
+                <a routerLink="/restaurants/{{rw.restaurant._id}}" target="_blank">{{rw.restaurant.name}}</a>
+                <div class="text-muted">
+                    <small>{{rw.restaurant.googleAddress?.formatted_address}}</small>
+                </div>
+            </td>
+            <td>
+                <span *ngFor="let row of rw.rows">{{row.type}} </span>
+            </td>
+        </tr>
+    </table>
+    <div *ngIf="restaurantRows.length === 0">Not found any.</div>
 </div>
 <q-simple-radio [(ngModel)]="printerType" [equalWidth]="true" (ngModelChange)="filter()"
     [values]="['fei-e', 'legacy', 'longhorn', 'phoenix']">
@@ -46,14 +64,16 @@
             </div>
         </td>
         <td>
-            <div *ngIf="row.restaurant">
-                <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+            <div *ngIf="row.restaurant" class="{{row.restaurant?.disabled ? 'app-strike' : ''}}">
+                <a routerLink="/restaurants/{{row.restaurant._id}}" target="_blank">{{row.restaurant.name}}</a>
                 <div class="text-muted">
                     <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
                 </div>
             </div>
             <q-edit-label [value]="(row.restaurant || {})._id" (edit)="onEditRestaurantId($event, row)">
             </q-edit-label>
+
+            <div *ngIf="row.restaurant?.disabled">DISABLED RESTAURANT</div>
         </td>
         <td>
             <div *ngFor="let printer of (row.printers || [])">

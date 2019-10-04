@@ -23,7 +23,7 @@ export class MonitoringPrintersComponent implements OnInit {
     inputType: "single-select",
     items: [
       { object: "fei-e", text: "fei-e", selected: false },
-      { object: "longhorn", text: "longhorn", selected: false },
+      // { object: "longhorn", text: "longhorn", selected: false },
     ],
     required: true
   }
@@ -34,10 +34,32 @@ export class MonitoringPrintersComponent implements OnInit {
   now = new Date();
 
   busyRows = [];
+  showingMultiple = false;
+
+  restaurantRows = [];
 
   ngOnInit() {
     this.populate();
   }
+
+  findMultiple() {
+    this.showingMultiple = !this.showingMultiple;
+    if (this.showingMultiple) {
+      console.log(this.rows);
+      const dict = {};
+      this.rows.map(r => {
+        if (r.restaurant) {
+          dict[r.restaurant._id] = dict[r.restaurant._id] || {};
+          dict[r.restaurant._id].restaurant = r.restaurant;
+          dict[r.restaurant._id].rows = dict[r.restaurant._id].rows || [];
+          dict[r.restaurant._id].rows.push(r);
+        }
+      });
+      this.restaurantRows = Object.keys(dict).map(key => dict[key]).filter(rw => rw.rows.length > 1);
+      console.log(this.restaurantRows);
+    }
+  }
+
   addNewPrinter() {
     this.printerInEditing = {};
     this.editingModal.show();
@@ -502,7 +524,7 @@ export class MonitoringPrintersComponent implements OnInit {
   discovering = false;
   async syncExistingPrinters() {
     alert('This function is disabled.');
-    if(new Date()) {
+    if (new Date()) {
       return;
     }
     this.discovering = true;

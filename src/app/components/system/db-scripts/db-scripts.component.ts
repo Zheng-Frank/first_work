@@ -27,7 +27,8 @@ export class DbScriptsComponent implements OnInit {
     }
 
     const cutoffTime = new Date().valueOf() - 30 * 24 * 3600000;
-    const batchSize = 300;
+    const queryBatchSize = 24000;
+    const deleteBatchSize = 300;
     while (true) {
       const items = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: dbName,
@@ -37,17 +38,21 @@ export class DbScriptsComponent implements OnInit {
         projection: {
           createdAt: 1
         },
-        limit: batchSize
+        limit: queryBatchSize
       }).toPromise();
 
       if (items.length === 0) {
         break;
       }
       console.log(`deleting ${items.length} ${new Date(items[0].createdAt)}`);
-      await this._api.delete(environment.qmenuApiUrl + 'generic', {
+      let batched = Array(Math.ceil(items.length / deleteBatchSize)).fill(0).map((i, index) => items.slice(index * deleteBatchSize, (index + 1) * deleteBatchSize));
+      // console.log(batched)
+
+      await Promise.all(batched.map(batch => this._api.delete(environment.qmenuApiUrl + 'generic', {
         resource: dbName,
-        ids: items.map(i => i._id)
-      }).toPromise();
+        ids: batch.map(i => i._id)
+      }).toPromise()));
+
     }
   }
 
