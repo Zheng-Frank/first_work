@@ -21,6 +21,36 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async purge(dbName) {
+    if (['job', 'event'].indexOf(dbName) < 0) {
+      alert('Not supported');
+    }
+
+    const cutoffTime = new Date().valueOf() - 30 * 24 * 3600000;
+    const batchSize = 300;
+    while (true) {
+      const items = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: dbName,
+        query: {
+          createdAt: { $lt: cutoffTime },
+        },
+        projection: {
+          createdAt: 1
+        },
+        limit: batchSize
+      }).toPromise();
+
+      if (items.length === 0) {
+        break;
+      }
+      console.log(`deleting ${items.length} ${new Date(items[0].createdAt)}`);
+      await this._api.delete(environment.qmenuApiUrl + 'generic', {
+        resource: dbName,
+        ids: items.map(i => i._id)
+      }).toPromise();
+    }
+  }
+
   async fixLonghornPhoenix() {
     const printClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'print-client',

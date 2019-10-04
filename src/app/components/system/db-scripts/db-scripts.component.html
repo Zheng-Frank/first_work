@@ -3,6 +3,21 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Purge Jobs</h5>
+            <p class="card-text">Remove old (more than 30 days) jobs</p>
+            <button class="btn btn-primary" (click)="purge('job')">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Purge Events</h5>
+            <p class="card-text">Remove old (more than 30 days) events</p>
+            <button class="btn btn-primary" (click)="purge('event')">Execute</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Fix Both Longhorn and Phoenix</h5>
             <p class="card-text">Some restaurant have both printers. Remove Longhorn. Safe to run muliutiple tiimes</p>
             <button class="btn btn-primary" (click)="fixLonghornPhoenix()">Execute</button>
@@ -173,12 +188,12 @@
 
 
     <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Remove Empty Mi Size Option</h5>
-                <p class="card-text">It's OK to run multiple times </p>
-                <button class="btn btn-primary" (click)="removeEmptySizeOption()">Fix</button>
-            </div>
+        <div class="card-body">
+            <h5 class="card-title">Remove Empty Mi Size Option</h5>
+            <p class="card-text">It's OK to run multiple times </p>
+            <button class="btn btn-primary" (click)="removeEmptySizeOption()">Fix</button>
         </div>
+    </div>
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Handle Holiday Closed Hours</h5>
@@ -223,7 +238,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Compute Duplicated Restaurants</h5>
-            <p class="card-text">Restaurant was disabled, then enabled as a new restaurant. We should make the new restaurant's previousRestaurantId to reduce double pay. Safe to run multiple times.</p>
+            <p class="card-text">Restaurant was disabled, then enabled as a new restaurant. We should make the new
+                restaurant's previousRestaurantId to reduce double pay. Safe to run multiple times.</p>
             <button class="btn btn-primary" (click)="computeDuplicates()">Execute</button>
         </div>
     </div>
