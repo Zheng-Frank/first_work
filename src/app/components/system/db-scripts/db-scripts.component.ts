@@ -302,11 +302,11 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async changeOwnership() {
-    const oldRestaurantId = '5ae1dad5cff49203174f4432';
-    const newName = "Mancini's NY Pizzeria";
+    const oldRestaurantId = '5bc9b6787fb19f1400252df7';
+    const newName = "Nino's Pasta Pizza & Subs";
     const previousRestaurantId = oldRestaurantId;
-    const newAlias = "mancinis-ny-pizzeria";
-    const switchingDate = new Date("Sep 12 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
+    const newAlias = "nino's-pasta-pizza-subs";
+    const switchingDate = new Date("Oct 1 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
 
     const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',

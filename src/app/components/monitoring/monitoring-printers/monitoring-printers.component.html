@@ -50,6 +50,8 @@
         <td>
             {{row.type}}
             <div class="text-muted">
+                <div *ngIf="row.info?.version"><small>{{row.info?.version}}</small></div>
+                <div *ngIf="row.info?.os"><small>{{row.info?.os}}</small></div>
                 <small>{{row.guid}}</small>
             </div>
         </td>
