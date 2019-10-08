@@ -90,7 +90,7 @@ export class TaskDashboardComponent {
     this.refresh();
   }
 
-  hideClosedOldTasksDays = 10;
+  hideClosedOldTasksDays = 15;
 
   async refresh() {
     this.refreshing = true;
@@ -130,9 +130,10 @@ export class TaskDashboardComponent {
 
     console.log('result0', result0.length);
 
-    let result1;
-    try {
-      result1 = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const gmbBizBatchSize = 800;
+    const result1 = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: "gmbBiz",
         query: {},
         projection: {
@@ -144,11 +145,13 @@ export class TaskDashboardComponent {
           isDirectSignUp: 1,
           gmbOwner: 1
         },
-        limit: 10000
+        skip: result1.length,
+        limit: gmbBizBatchSize
       }).toPromise();
-    } catch (error) {
-      console.error(error);
-      result1 = [];
+      result1.push(...batch);
+      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
+        break;
+      }
     }
 
     // force refreshing global restaurant list!
