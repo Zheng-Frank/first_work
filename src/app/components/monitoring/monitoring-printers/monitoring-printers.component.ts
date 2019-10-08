@@ -437,8 +437,8 @@ export class MonitoringPrintersComponent implements OnInit {
                   printerName: printer.name,
                   format: "PNG",
                   // url: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/renderer?orderId=5c7219c433a05130b0a3fc6b&template=restaurantOrderPos&format=png`,
-                  // url: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=png`,
-                  url: "http://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos" + (injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''),
+                  url: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=png`,
+                  // url: "http://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos" + (injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''),
                   copies: printer.autoPrintCopies || 1
                 }
               }

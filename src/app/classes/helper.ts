@@ -154,10 +154,14 @@ export class Helper {
         if (!url.startsWith('http:') && !url.startsWith('https:')) {
             url = 'http://' + url;
         }
-
-        let host = new URL(url).host;
-        // keep ONLY last two (NOT GOOD for other country's domain)
-        return host.split('.').slice(-2).join('.');
+        try {
+            let host = new URL(url).host;
+            // keep ONLY last two (NOT GOOD for other country's domain)
+            return host.split('.').slice(-2).join('.');
+        } catch (error) {
+            console.log(url);
+            return;
+        }
     }
 
 

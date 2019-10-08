@@ -121,8 +121,8 @@
     OWNER DECLINED TO WORK WITH QMENU
   </div>
 
-  <div class="alert alert-warning text-center" *ngIf="modalRow?.request?.status">
-    {{modalRow?.request?.status}}
+  <div class="alert alert-warning text-center" *ngFor="let status of (modalRow?.request?.statusHistory || [])">
+    {{status.time | ago : now}}: {{status.status}}
   </div>
   <hr>
   <h5 class="text-center">{{restaurant?.googleListing?.phone | phone}}</h5>
@@ -236,7 +236,8 @@
       <option *ngFor="let assignee of assignees" [ngValue]="assignee">{{assignee}}</option>
     </select>
     <div class="text-right">
-      <button class="btn btn-link" (click)="toggleDecline()">Owner {{modalRow?.request?.ownerDeclined ? 'AGREED' : 'DECLINED'}} to Work with qMenu?</button>
+      <button class="btn btn-link" (click)="toggleDecline()">Owner
+        {{modalRow?.request?.ownerDeclined ? 'AGREED' : 'DECLINED'}} to Work with qMenu?</button>
     </div>
   </div>
 
