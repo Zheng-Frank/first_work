@@ -8,9 +8,7 @@ import { mergeMap } from "rxjs/operators";
 import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { Gmb3Service } from "src/app/services/gmb3.service";
-import { JsonPipe } from "@angular/common";
 import { Helper } from "src/app/classes/helper";
-import { group } from "@angular/animations";
 
 @Component({
   selector: "app-db-scripts",
@@ -22,6 +20,71 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() { }
+
+  async purge(dbName) {
+    if (['job', 'event'].indexOf(dbName) < 0) {
+      alert('Not supported');
+    }
+
+    const cutoffTime = new Date().valueOf() - 30 * 24 * 3600000;
+    const queryBatchSize = 24000;
+    const deleteBatchSize = 300;
+    while (true) {
+      const items = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: dbName,
+        query: {
+          createdAt: { $lt: cutoffTime },
+        },
+        projection: {
+          createdAt: 1
+        },
+        limit: queryBatchSize
+      }).toPromise();
+
+      if (items.length === 0) {
+        break;
+      }
+      console.log(`deleting ${items.length} ${new Date(items[0].createdAt)}`);
+      let batched = Array(Math.ceil(items.length / deleteBatchSize)).fill(0).map((i, index) => items.slice(index * deleteBatchSize, (index + 1) * deleteBatchSize));
+      // console.log(batched)
+
+      await Promise.all(batched.map(batch => this._api.delete(environment.qmenuApiUrl + 'generic', {
+        resource: dbName,
+        ids: batch.map(i => i._id)
+      }).toPromise()));
+
+    }
+  }
+
+  async fixLonghornPhoenix() {
+    const printClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'print-client',
+      query: {
+      },
+      limit: 8000
+    }).toPromise();
+    console.log(printClients);
+    const rtPrintClients = {};
+    printClients.map(pc => {
+      if (pc.restaurant) {
+        rtPrintClients[pc.restaurant._id] = rtPrintClients[pc.restaurant._id] || [];
+        rtPrintClients[pc.restaurant._id].push(pc);
+      }
+    });
+
+    for (let key of Object.keys(rtPrintClients)) {
+      if (rtPrintClients[key].length > 1) {
+        const clients = rtPrintClients[key].sort((c2, c1) => new Date(c1.createdAt).valueOf() - new Date(c2.createdAt).valueOf());
+        if (clients[0].type === 'longhorn') {
+          console.log(clients);
+          await this._api.delete(environment.qmenuApiUrl + "generic", {
+            resource: "print-client",
+            ids: [clients[0]._id]
+          });
+        }
+      }
+    }
+  }
 
   async computeDuplicates() {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -239,11 +302,11 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async changeOwnership() {
-    const oldRestaurantId = '5b9a333bac400914000b2a39';
-    const newName = "Thai Spoon";
+    const oldRestaurantId = '5bc9b6787fb19f1400252df7';
+    const newName = "Nino's Pasta Pizza & Subs";
     const previousRestaurantId = oldRestaurantId;
-    const newAlias = "thai-spoon-ann-arbor";
-    const switchingDate = new Date("Aug 14 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
+    const newAlias = "nino's-pasta-pizza-subs";
+    const switchingDate = new Date("Oct 1 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
 
     const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',

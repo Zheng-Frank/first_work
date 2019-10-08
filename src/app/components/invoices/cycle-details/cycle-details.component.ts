@@ -3,7 +3,6 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
-
 @Component({
   selector: 'app-cycle-details',
   templateUrl: './cycle-details.component.html',
@@ -73,6 +72,8 @@ export class CycleDetailsComponent implements OnInit {
   };
 
   cycleId;
+  processing = false;
+  processingMessages = [];
 
   paymentMeansDict = {};
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
@@ -84,6 +85,85 @@ export class CycleDetailsComponent implements OnInit {
       });
   }
   ngOnInit() {
+  }
+
+  async processOne(row) {
+    console.log(row);
+    try {
+      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/process', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      console.log(message);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  paying = false;
+  async payOne(row) {
+    console.log(row);
+    this.paying = true;
+    try {
+      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/pay', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      console.log(message);
+    } catch (error) {
+      console.log(error);
+    }
+    await this.recalculate();
+    this.paying = false;
+  }
+
+  sending = false;
+  async sendOne(row) {
+    console.log(row);
+    this.sending = true;
+    try {
+      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/send', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      console.log(message);
+    } catch (error) {
+      console.log(error);
+    }
+    await this.recalculate();
+    this.sending = false;
+  }
+
+  async processAll() {
+    if (this.processing) {
+      this.processing = false;
+      this.processingMessages.unshift('stopped');
+    } else {
+      this.processing = true;
+      this.processingMessages.unshift('finding unprocessed...');
+      // first, recalculate all
+      await this.recalculate();
+      const unprocessedRestaurants = this.cycle.restaurants.filter(r => r.invoice && !['isCanceled', 'isPaymentCompleted', 'isPaymentSent', 'isSent'].some(state => r.invoice[state]));
+      this.processingMessages.unshift(`found ${unprocessedRestaurants.length}`);
+      // let's order by balance: so we process out sending ones first
+      unprocessedRestaurants.sort((rt1, rt2) => rt1.invoice.balance - rt2.invoice.balance);
+      console.log(unprocessedRestaurants);
+      for (let rt of unprocessedRestaurants) {
+        if (!this.processing) {
+          break;
+        }
+        try {
+          this.processingMessages.unshift(`processing ${rt.name}...`);
+          const message = await this._api.post(environment.qmenuNgrok + 'invoicing/process', { invoiceId: rt.invoice._id, cycleId: this.cycleId }).toPromise();
+          console.log(message);
+          this.processingMessages.unshift(`done: ${message}`);
+        } catch (error) {
+          console.log(error);
+          let myError = (error.error || {}).message || error.error || error.message || error;
+          if (typeof myError !== 'string') {
+            myError = JSON.stringify(myError);
+          }
+          this.processingMessages.unshift(`result: ${myError}`);
+          if (this.processingMessages.length > 20) {
+            this.processingMessages.length = 20;
+          }
+        }
+      }
+      await this.recalculate();
+      this.processingMessages.unshift(`ALL DONE!`);
+      this.processing = false;
+    }
   }
 
   async resetDangling() {
@@ -140,7 +220,6 @@ export class CycleDetailsComponent implements OnInit {
       this.paymentMeansDict[rt._id + 'Send'] = getDisplayedText(sendPms);
       this.paymentMeansDict[rt._id + 'Receive'] = getDisplayedText(receivePms);
     });
-    console.log(rtPms);
   }
   async loadCycle(id) {
     const existingCycles = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -265,8 +344,6 @@ export class CycleDetailsComponent implements OnInit {
       ]).toPromise();
       this.loadCycle(this.cycleId);
     }
-    console.log(updated);
-    console.log(invoices);
   }
 
   getPaymentMeans(row) {

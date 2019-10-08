@@ -39,7 +39,8 @@
         <pre>{{row.workflow.inputs | json}}</pre>
       </td>
       <td class="graph-container">
-        <ngx-graph *ngIf="selectedStatus !== 'COMPLETED'" [links]="row.links" [nodes]="row.nodes" [autoZoom]="true"
+        <button class="btn btn-link" *ngIf="showingRow !== row" (click)="showingRow = row">Show</button>
+        <ngx-graph *ngIf="showingRow === row" [links]="row.links" [nodes]="row.nodes" [autoZoom]="true"
           [draggingEnabled]="false" [autoCenter]="true">
           <ng-template #defsTemplate>
             <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="4"
@@ -84,6 +85,8 @@
             class="fas fa-times pr-2"></i>Delete</button>
         <button class="btn btn-primary m-1" *ngIf="row.canReload" (click)="refresh(row)"><i
             class="fas fa-sync-alt pr-2"></i> Reload</button>
+        <button class="btn btn-primary m-1" *ngIf="row.canReload" (click)="manualFinish(row)"><i
+            class="fas fa-sync-alt pr-2"></i> Mark Done</button>
 
         <!-- <button class="btn btn-danger" *ngIf="row.shouldShowStop" (click)="stop(row)"><i
             class="fas fa-spinner fa-spin px-2"></i>Stop</button> -->

@@ -63,6 +63,14 @@
         </tbody>
       </table>
     </li>
+    <li class="list-group-item">
+      <label>Custom Relationship Manager</label>
+      <!-- <select [(ngModel)]="crm" class="form-control" (change)="updateCrm($event)"> -->
+      <select [(ngModel)]="crm" class="form-control">
+        <option *ngFor="let c of crms" [ngValue]="c.username">{{c.username}}</option>
+      </select>
+      <button class="btn btn-link p0" (click)="updateCrm($event)">Assign</button>
+    </li>
   </ul>
 </div>
 

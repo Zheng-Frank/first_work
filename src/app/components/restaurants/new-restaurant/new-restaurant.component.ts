@@ -105,11 +105,36 @@ export class NewRestaurantComponent implements OnInit {
     }
 
     // query existing restaurant with SAME phone number!
+    // const allExistingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    //   resource: "restaurant",
+    //   query: {
+    //     "channels.value": crawledResult.phone || 'non-existing',
+    //     "googleAddress.postal_code": this.restaurant.googleAddress.postal_code
+    //   },
+    //   projection: {
+    //     channels: 1,
+    //     name: 1,
+    //     disabled: 1,
+    //     googleAddress: 1
+    //   },
+    //   limit: 5
+    // }).toPromise();
+    // query existing restaurant with SAME place_id or phone number
     const allExistingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
       query: {
-        "channels.value": crawledResult.phone || 'non-existing',
-        "googleAddress.postal_code": this.restaurant.googleAddress.postal_code
+        $or: [
+          {
+            "channels.value": crawledResult.phone || 'non-existing',
+            "googleAddress.postal_code": this.restaurant.googleAddress.postal_code
+          },
+          {
+            "googleAddress.place_id": crawledResult.place_id
+          },
+          {
+            "googleListing.place_id": crawledResult.place_id
+          }
+        ]
       },
       projection: {
         channels: 1,
@@ -119,6 +144,7 @@ export class NewRestaurantComponent implements OnInit {
       },
       limit: 5
     }).toPromise();
+
 
     const existingRestaurants = allExistingRestaurants.filter(r => !r.disabled);
     if (existingRestaurants.length > 0) {
@@ -164,6 +190,35 @@ export class NewRestaurantComponent implements OnInit {
     if (!this.restaurant.name || !this.restaurant.alias) {
       return alert('Please input Name and Alias!');
     }
+
+    const place_id = (this.restaurant.googleListing || {}).place_id;
+    // one more time to check existence
+    const allExistingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: "restaurant",
+      query: {
+        $or: [
+          {
+            "googleAddress.place_id": place_id
+          },
+          {
+            "googleListing.place_id": place_id
+          }
+        ]
+      },
+      projection: {
+        name: 1,
+        disabled: 1
+      },
+      limit: 5
+    }).toPromise();
+
+    const nonDisabled = allExistingRestaurants.filter(r => !r.disabled);
+    if (nonDisabled.length > 0) {
+      this._global.publishAlert(AlertType.Danger, `Already existed in DB, ID: ${nonDisabled[0]._id}`, 30000);
+      return;
+    }
+
+
     this.apiRequesting = true;
 
     // making sure we are creating a unique alias!

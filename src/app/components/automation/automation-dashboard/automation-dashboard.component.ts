@@ -456,18 +456,29 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log(restaurants);
 
-    let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        locations: { $exists: 1 }
-      },
-      projection: {
-        "locations.status": 1,
-        "locations.cid": 1,
-        "locations.statusHistory": 1,
-      },
-      limit: 6000
-    }).toPromise();
+
+    let gmbAccountBatchSize = 100;
+    let gmbAccounts = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        query: {
+          locations: { $exists: 1 }
+        },
+        projection: {
+          "locations.status": 1,
+          "locations.cid": 1,
+          "locations.statusHistory": 1,
+        },
+        skip: gmbAccounts.length,
+        limit: gmbAccountBatchSize
+      }).toPromise();
+      gmbAccounts.push(...batch);
+      if (batch.length === 0 || batch.length < gmbAccountBatchSize) {
+        break;
+      }
+    }
+
 
     gmbAccounts = gmbAccounts.filter(a => a.locations && a.locations.length > 0);
 
@@ -502,7 +513,7 @@ export class AutomationDashboardComponent implements OnInit {
     console.log('Published witout gmbBiz:', publishedRestaurantsWithoutBiz);
     console.log('Not Published without gmbBiz:', notPublishedRestaurantsWithoutBiz);
 
-   
+
     const gmbTaskBatchSize = 3000;
     const existingOpenApplyTasks = [];
     while (true) {
@@ -641,7 +652,7 @@ export class AutomationDashboardComponent implements OnInit {
       }
     }
 
-    
+
 
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -763,15 +774,15 @@ export class AutomationDashboardComponent implements OnInit {
           .post(environment.qmenuApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
           .then(password => this._api.post(
             environment.autoGmbUrl + 'updateWebsite', {
-              email: item.account.email,
-              password: password,
-              websiteUrl: item.targetWebsite,
-              menuUrl: item.targetMenuUrl,
-              orderAheadUrl: item.targetOrderAheadUrl,
-              reservationsUrl: item.targetReservation,
-              appealId: item.location.appealId,
-              stayAfterScan: false
-            }
+            email: item.account.email,
+            password: password,
+            websiteUrl: item.targetWebsite,
+            menuUrl: item.targetMenuUrl,
+            orderAheadUrl: item.targetOrderAheadUrl,
+            reservationsUrl: item.targetReservation,
+            appealId: item.location.appealId,
+            stayAfterScan: false
+          }
           ).toPromise())
       );
       const batchResult = await Helper.processBatchedPromises(promises);

@@ -14,6 +14,7 @@ export class AutomationDashboard2Component implements OnInit {
   selectedStatus = 'NEW';
   rows = [];
   workflows = [];
+  showingRow;
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.loadWorkflows();
   }
@@ -21,6 +22,12 @@ export class AutomationDashboard2Component implements OnInit {
   ngOnInit() {
   }
 
+  async manualFinish(row) {
+    if (confirm('Are you sure you want to manually mark this workflow as finished?')) {
+      console.log(row);
+      alert('not coded yet')
+    }
+  }
   async changeFilter() {
     this.rows = this.workflows.filter(wf => {
       const blocks = wf.blocks || [];

@@ -1,6 +1,6 @@
 <div class="text-center">
   <h1 class="text-center">GMB Tasks</h1>
-  <button class="btn btn-link" (click)="reload()" [qLoading]="apiLoading">
+  <button class="btn btn-link" (click)="populate()" [qLoading]="apiLoading">
     <i class="fas fa-sync-alt"></i> Reload</button>
   <div class="text-center">
     <span class="alert-warning">* Please Reload Before Claiming and Handling Your Tasks</span>
@@ -23,30 +23,251 @@
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item" *ngFor="let tab of tabs" style="cursor: pointer;">
         <a class="nav-link {{activeTabLabel === tab.label? 'active' : ''}}"
-          (click)="setActiveTab(tab)">{{tab.label}}</a>
+          (click)="setActiveTab(tab)">{{tab.label}}({{tab.rows.length}})</a>
       </li>
     </ul>
   </div>
+  <div class="card-body text-left">
+    <ng-container *ngFor="let tab of tabs">
+      <q-table *ngIf="activeTabLabel === tab.label" [rows]="tab.rows" [tableColumnDescriptors]="myColumnDescriptors"
+        [compact]="true">
+        <tr *tableRowTemplate="let row;" class="{{row.request.ownerDeclined ? 'alert-danger': ''}}">
+          <td>{{row.rowNumber}}
+            <div *ngIf="row.request && row.request.refreshedAt" class="text-muted">
+              <small>refreshed: {{row.request.refreshedAt | ago: now}}</small>
+            </div>
+          </td>
+          <td>
+            <div class="badge badge-{{row.statusClass}}">{{(row.scheduledAt || 0) | ago: now}}
+            </div>
+          </td>
 
+          <td>
+            <a target="_blank"
+              href="#/restaurants/{{row.relatedMap?.restaurantId}}">{{row.relatedMap?.restaurantName}}</a>
+            <div class="text-muted">
+              <small>
+                {{row.address}}
+                <div>{{row.localTimeString}}</div>
+                <!-- <div *ngIf="task.transfer && task.transfer.fromEmail">
+                      <app-gmb-account-hotlink [email]="task.transfer.fromEmail"></app-gmb-account-hotlink>
+                      <span *ngIf="task.transfer.againstEmail">« {{task.transfer.againstEmail | emailName}}</span>
+                    </div>
+                    <div *ngIf="task.etc && task.etc.fromEmail">
+                      <app-gmb-account-hotlink [email]="task.etc.fromEmail"></app-gmb-account-hotlink>
+                    </div> -->
+              </small>
+            </div>
+          </td>
+          <td>{{row.score}}</td>
+          <td>{{row.gmbOwner}}</td>
+          <td class="text-nowrap">
+            <ng-container *ngFor="let vo of row.verificationOptions || []">
+              <i
+                class="fas fa-{{vo.verificationMethod === 'EMAIL' ? 'at' : (vo.verificationMethod === 'PHONE_CALL' ? 'phone' : (vo.verificationMethod === 'ADDRESS' ? 'address-card' : 'question'))}} {{vo.verification ? 'text-success' : 'text-muted'}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}}"></i>
+              <div *ngIf="vo.verification" class="text-muted">
+                <small>{{vo.verification.createTime | ago: now}}</small></div>
+            </ng-container>
+            <!-- <div class="text-warning" *ngIf="task.transfer?.code">
+                  <i class="fas fa-2x fa-lightbulb"></i>
+                </div>-->
+          </td>
+          <td>
+            <!-- <app-task-action-bar [task]="row.task" [user]="user" (actionDone)="triggerActionDone($event)">
+            </app-task-action-bar> -->
+            <button class="btn btn-primary" *ngIf="!row.assignee" (click)="assign(row.task, user.username)">
+              Claim
+            </button>
+            <button class="btn btn-link" (click)="showDetails(row)">
+              Details
+            </button>
+          </td>
+          <td class="text-nowrap">
+            {{row.createdAt | ago:now}}
+            <div class="text-muted">
+              <small>{{row._id}}</small>
+            </div>
+          </td>
+          <td class="text-nowrap">
+            <div *ngIf="row.result">
+              {{row.result}}
+              <small class="text-muted d-block">
+                {{row.resultAt | date: 'short'}}
+              </small>
+            </div>
+          </td>
+          <td>
+            <div *ngIf="row.request?.status">{{row.request?.status}}</div>
+            <div class="wrap" [innerHTML]="row.comments"> </div>
+          </td>
+        </tr>
+      </q-table>
+    </ng-container>
 
-  <div class="card-body text-left" z>
-    <div *ngIf="'Mine' === activeTabLabel">
-      Row# | Scheduled At | Restaurant (address, timezone) | Score | comments | Verification Options | Actions | Closed At
-    </div>
-    <div *ngIf="'Non-claimed' === activeTabLabel">
-      not claimed
-    </div>
-    <div *ngIf="'My Closed' === activeTabLabel">
-      closed
-    </div>
   </div>
 </div>
 
-<div>
-  Actions:
-  Trigger Call
-  Rescedule
-  Close
-  Comments
-  Reassign
-</div>
+<!--the editing modal-->
+<q-modal #rowModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">{{modalRow?.relatedMap?.restaurantName}}</h4>
+  <div *ngIf="modalRow?.request.email" class="text-center">
+    <app-gmb-account-hotlink [email]="modalRow?.request.email"></app-gmb-account-hotlink>
+  </div>
+
+  <div class="alert alert-danger text-center" *ngIf="modalRow?.request?.ownerDeclined">
+    OWNER DECLINED TO WORK WITH QMENU
+  </div>
+
+  <div class="alert alert-warning text-center" *ngFor="let status of (modalRow?.request?.statusHistory || [])">
+    {{status.time | ago : now}}: {{status.status}}
+  </div>
+  <hr>
+  <h5 class="text-center">{{restaurant?.googleListing?.phone | phone}}</h5>
+  <table class="table table-borderless table-sm text-center" *ngIf="restaurant?.people">
+    <!-- <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Position</th>
+        <th scope="col">Channels</th>
+        <th scope="col"></th>
+      </tr>
+    </thead> -->
+    <tbody>
+      <tr *ngFor="let person of restaurant.people">
+        <td>{{person.title}} {{person.name}}</td>
+        <td>{{join(person.roles)}}</td>
+        <td>
+          <div *ngFor="let c of person.channels || []">
+            {{c.type}}: {{c.value}}
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <div class="form-group">
+    <label>Verification Options:</label>
+    <div *ngIf="verificationOptions.length === 0">N/A</div>
+    <div>
+      <i *ngFor="let vo of verificationOptions || []"
+        class="pr-2 fas fa-{{vo.faClass}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
+    </div>
+    <div *ngFor="let vo of verifications || []" class="text-muted">
+      <small>
+        <i
+          class="pr-2 fas fa-{{vo.faClass}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
+        {{vo.state}} {{vo.createTime | ago : now}}
+      </small>
+    </div>
+  </div>
+
+  <!-- {{preferredVerificationOption | json}} -->
+  <div *ngIf="preferredVerificationOption" class="alert alert-secondary">
+    <div *ngIf="preferredVerificationOption.method === 'ADDRESS'">
+      Requested Postcard Verification {{preferredVerificationOption.createTime | ago : now}}
+      <div class="text-left">
+        <button class="btn btn-link pl-0" (click)="showNotifier = !showNotifier">Remind Restaurant Owner</button>
+      </div>
+      <div class="form-group" *ngIf="showNotifier">
+        <label>Notify Restaurant:</label>
+        <send-google-pin [restaurant]="restaurant"></send-google-pin>
+      </div>
+    </div>
+
+    <div *ngIf="preferredVerificationOption.verificationMethod === 'PHONE_CALL'">
+      Should Call <b>{{preferredVerificationOption.phoneData.phoneNumber}}</b> to Verify
+      <div>
+        <button class="btn btn-primary" [qLoading]="calling" (click)="triggerGoogleCall()">Trigger Google Call</button>
+      </div>
+    </div>
+
+
+    <div *ngIf="preferredVerificationOption.verificationMethod === 'EMAIL'">
+      Should Use Email <b>{{preferredVerificationOption.emailData.domainName}}</b> to Get PIN
+    </div>
+  </div>
+  <div *ngIf="!preferredVerificationOption" class="alert alert-secondary">
+    No verification option is preferred to use.
+  </div>
+
+
+
+  <div class="form-group mb-4">
+    <label>Google PIN:</label>
+    <h2 *ngIf="modalRow?.request?.pin">{{modalRow?.request?.pin}}</h2>
+    <div class="input-group">
+      <input type="text" class="form-control" [(ngModel)]="pin" placeholder="PIN">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary min-w-6" type="button" (click)="savePin()">Save PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group mb-4">
+    <label>Comments:</label>
+    <div class="wrap pb-1" [innerHTML]="modalRow?.comments"></div>
+    <div class="input-group">
+      <input type="text" class="form-control" [(ngModel)]="comments" placeholder="your comments">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary min-w-6" type="button" (click)="addComments(comments)">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Schedule Followup At:</label>
+    <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt"
+      (ngModelChange)="scheduledAtUpdated($event)">
+    <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+    <div class="py-1 text-right">
+      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 2, 3, 7]"
+        (click)="plusDay(i)">Today + {{i}}</button>
+    </div>
+  </div>
+
+  <div class="form-group alert alert-warning" *ngIf="modalRow">
+    <label>Change Assignee:</label>
+    <select [(ngModel)]="modalRow.assignee" class="form-control" (change)="assign(modalRow.task, modalRow.assignee)">
+      <option *ngFor="let assignee of assignees" [ngValue]="assignee">{{assignee}}</option>
+    </select>
+    <div class="text-right">
+      <button class="btn btn-link" (click)="toggleDecline()">Owner
+        {{modalRow?.request?.ownerDeclined ? 'AGREED' : 'DECLINED'}} to Work with qMenu?</button>
+    </div>
+  </div>
+
+  <!-- 
+  <div class="text-right">
+    <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">
+      Cancel
+    </button>
+    <button *ngIf="mc.id" type="button" class="btn btn-link" (click)="delete()">
+      <span class="text-danger"> Delete</span>
+    </button>
+    <button type="button" class="btn btn-primary min-w-6" (click)="rowModal.hide()">OK</button>
+  </div> -->
+
+  <hr>
+  <h4>Restaurant Logs</h4>
+  <table class="table table-sm" *ngIf="restaurant?.logs">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Problem</th>
+        <th scope="col">Response</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let log of restaurant.logs">
+        <td>{{log.time | date: 'short'}}</td>
+        <td>{{log.problem}}</td>
+        <td>{{log.response}}</td>
+      </tr>
+    </tbody>
+  </table>
+</q-modal>

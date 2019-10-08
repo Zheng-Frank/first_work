@@ -109,12 +109,16 @@ export class RestaurantContactsComponent implements OnInit {
     'Fax': 'fas fa-fax'
   };
 
+  crm = "";
+  crms = [];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.resetPersonFieldDescriptors();
     this.notes=this.restaurant.notes;
+    this.getCrms();
+    this.crm = this.restaurant.crm;
   }
 
   resetPersonFieldDescriptors() {
@@ -126,6 +130,17 @@ export class RestaurantContactsComponent implements OnInit {
         }))
       }
     });
+  }
+
+  // get all CRM users
+  getCrms(){
+        this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'user', query: '{"roles": "CRM"}', limit: 1000,  }).subscribe(
+          result => {
+              this.crms = result.sort((r1, r2) => r1.username > r2.username ? 1 : -1);
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, 'Error pulling CRM users from API');
+          });
   }
 
   getPersonWithTitle(person) {
@@ -263,6 +278,12 @@ export class RestaurantContactsComponent implements OnInit {
 
   cancelChannel(event) {
     this.modalChannel.hide();
+  }
+
+  updateCrm(event){
+
+    // console.log("updateCrm " + this.restaurant['crm']);
+    this.patchDiff('crm', this.crm);
   }
 
   patchDiff(field, newValue) {
