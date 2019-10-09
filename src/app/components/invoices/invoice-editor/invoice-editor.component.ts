@@ -116,13 +116,16 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
 
         // try to set default previous rolled invoice
         const recentInvoices = this.getNonCanceledAndSortedDESCInvoices();
-        this.setPreviousInvoice(recentInvoices[recentInvoices.length - 1]);
+        if (recentInvoices.length > 0) {
+          this.setPreviousInvoice(recentInvoices[recentInvoices.length - 1]);
+        }
         this.outstandingAdjustmentLogs = (this.restaurant.logs || []).filter(log => !log.resolved && log.adjustmentAmount).map(log => ({
           selected: true,
           log: log
         }));
 
       } catch (error) {
+        console.log(error);
         this._global.publishAlert(AlertType.Danger, "Error Pulling Data from API");
       }
     }

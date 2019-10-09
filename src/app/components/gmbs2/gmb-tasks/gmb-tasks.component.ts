@@ -193,6 +193,7 @@ export class GmbTasksComponent implements OnInit {
   }
 
   async showDetails(row) {
+    console.log(row);
     this.preferredVerificationOption = undefined;
     const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "gmbAccount",

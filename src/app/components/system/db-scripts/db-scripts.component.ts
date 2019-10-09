@@ -21,6 +21,75 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async mutateRtId() {
+    // 1. create a copy of old restaurant
+    // 2. note down the ID of the new RT
+    // 3. run the script to migrate everythings: orders, invoices, tasks, ?????
+    // 4. delete the old restaurant
+
+    const newId = '5d9dee267c213e55613c6251';
+    const oldId = '5ac77535dcddff140010d736';
+
+    const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      query: {
+        "restaurant": { $oid: oldId },
+      },
+      projection: {
+        createdAt: 1,
+        restaurant: 1,
+        restaurantObj: 1
+      },
+      limit: 10000000
+    }).toPromise();
+
+    console.log(orders);
+    const patches = orders.map(order => ({
+      old: {
+        _id: order._id,
+        restaurantObj: {}
+      },
+      new: {
+        _id: order._id,
+        restaurant: { $oid: newId },
+        restaurantObj: {
+          _id: newId
+        }
+      }
+    }));
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', patches).toPromise();
+
+    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        "restaurant.id": oldId,
+      },
+      projection: {
+        createdAt: 1,
+        restaurant: 1
+      },
+      limit: 10000000
+    }).toPromise();
+
+    console.log(invoices);
+    const invoicePatches = invoices.map(invoice => ({
+      old: {
+        _id: invoice._id,
+        restaurant: {}
+      },
+      new: {
+        _id: invoice._id,
+        restaurant: {
+          id: newId
+        }
+      }
+    }));
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=invoice', invoicePatches).toPromise();
+
+
+  }
   async purge(dbName) {
     if (['job', 'event'].indexOf(dbName) < 0) {
       alert('Not supported');
@@ -302,10 +371,10 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async changeOwnership() {
-    const oldRestaurantId = '5bc9b6787fb19f1400252df7';
-    const newName = "Nino's Pasta Pizza & Subs";
+    const oldRestaurantId = '5b04f70d6989ec14005cbbf4';
+    const newName = "Nikoz Fusion Grill";
     const previousRestaurantId = oldRestaurantId;
-    const newAlias = "nino's-pasta-pizza-subs";
+    const newAlias = "nikoz-fusion-grill-tx";
     const switchingDate = new Date("Oct 1 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
 
     const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {

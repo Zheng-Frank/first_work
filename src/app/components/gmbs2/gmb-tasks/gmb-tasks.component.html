@@ -97,7 +97,7 @@
             </div>
           </td>
           <td>
-            <div *ngIf="row.request?.status">{{row.request?.status}}</div>
+            <div *ngIf="row.request?.statusHistory">{{row.request.statusHistory[0].status}}</div>
             <div class="wrap" [innerHTML]="row.comments"> </div>
           </td>
         </tr>
