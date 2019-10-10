@@ -5,7 +5,7 @@
 <div *ngIf="restaurant">
   <h1 class="text-center">Invoices for {{restaurant.name}}</h1>
 
-  <div class="text-right mb-2">
+  <div *ngIf="isAccountant()" class="text-right mb-2">
     <div class="pb-2">
       <button class="btn btn-primary" (click)="showInvoiceCreation = !showInvoiceCreation">
         <i class="fas fa-plus"></i> Create New Invoice</button>

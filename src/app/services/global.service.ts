@@ -74,7 +74,7 @@ export class GlobalService {
           name: "Invoices",
           href: "#/invoices",
           fa: "fas fa-dollar-sign",
-          accessibleRoles: ["ADMIN", "ACCOUNTANT"]
+          accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
         },
         {
           name: "Orders",

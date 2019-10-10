@@ -83,5 +83,8 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
     this.showInvoiceCreation = false;
 
   }
+  isAccountant(){
+    return this._global.user.roles.some(r => r ==='ACCOUNTANT');
+  }
 
 }

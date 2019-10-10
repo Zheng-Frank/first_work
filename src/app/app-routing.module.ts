@@ -42,7 +42,7 @@ const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', 'GMB', 'CSR'] } },
   { path: 'logs', component: LogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"] } },
   { path: 'payments', component: PaymentsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['CSR', 'ACCOUNTANT', 'ADMIN'] } },
-  { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
+  { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
   { path: 'invoices/cycles', component: CyclesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/cycles/:id', component: CycleDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/monthly/:startDate', component: InvoiceMonthlyDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
