@@ -29,6 +29,8 @@ export class UsersComponent implements OnInit {
     object: role
   }));
 
+  exisingLanguages = ['EN', 'CH'].map(lan => ({ text: lan, object: lan}));
+
   deleting = false;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -99,6 +101,15 @@ export class UsersComponent implements OnInit {
       minSelection: 0,
       maxSelection: 100,
       items: this.existingRoleItems
+    },
+    {
+      field: 'languages',
+      label: 'Languages',
+      inputType: 'multi-select',
+      required: false,
+      minSelection: 0,
+      maxSelection: 10,
+      items: this.exisingLanguages
     },
     {
       field: 'disabled',

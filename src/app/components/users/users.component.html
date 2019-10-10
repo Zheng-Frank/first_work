@@ -14,7 +14,9 @@
     </thead>
     <tbody>
       <tr *ngFor="let user of users" class="{{user.disabled ? 'disabled' : ''}}">
-        <th scope="row">{{user.username}}</th>
+        <th scope="row">{{user.username}}
+          <div  class="text-tiny">{{(user.languages || []).join(' ')}}</div>
+        </th>
         <td>{{(user.roles || []).join(', ')}}
           <div class="text-tiny text-muted">
             {{user.lastLog}}
