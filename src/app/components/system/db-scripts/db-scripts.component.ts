@@ -9,6 +9,7 @@ import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
+import { Domain } from "src/app/classes/domain";
 
 @Component({
   selector: "app-db-scripts",
@@ -2967,6 +2968,96 @@ export class DbScriptsComponent implements OnInit {
 
 
   }
+
+  async getGodaddyDomains() {
+    const batchSize = 1000;
+    const domainList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'godaddy-domain',
+        skip: domainList.length,
+        limit: batchSize
+      }).toPromise();
+      domainList.push(...batch);
+      if (batch.length === 0 || batch.length < batchSize) {
+        break;
+      }
+    }
+
+    let deleteBatchSize = 100;
+    const batchedList = Array(Math.ceil(domainList.length / deleteBatchSize)).fill(0).map((i, index) => domainList.slice(index * deleteBatchSize, (index + 1) * deleteBatchSize));
+    for (let batch of batchedList) {
+      await this._api.delete(environment.qmenuApiUrl + "generic", {
+        resource: "godaddy-domain",
+        ids: batch.map(r => r._id)
+      });
+    }
+
+    let godaddyDomainList = await this._api.get(environment.qmenuApiUrl + "utils/list-godaddy-domain").toPromise();
+    const resultIds = await this._api.post(environment.qmenuApiUrl + 'generic?resource=godaddy-domain', godaddyDomainList).toPromise();
+  }
+
+  async deleteDomainData(type) {
+
+    const batchSize = 1000;
+    const domainList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: type,
+        skip: domainList.length,
+        limit: batchSize
+      }).toPromise();
+      domainList.push(...batch);
+      if (batch.length === 0 || batch.length < batchSize) {
+        break;
+      }
+    }
+
+    let deleteBatchSize = 100;
+    const batchedList = Array(Math.ceil(domainList.length / deleteBatchSize)).fill(0).map((i, index) => domainList.slice(index * deleteBatchSize, (index + 1) * deleteBatchSize));
+    for (let batch of batchedList) {
+      await this._api.delete(environment.qmenuApiUrl + "generic", {
+        resource: type,
+        ids: batch.map(r => r._id)
+      });
+    }
+
+  }
+
+  async getAwsAndGodaddyDomains() {
+    ['aws-domain', 'godaddy-domain'].map(type => this.deleteDomainData(type));
+
+    let results = [];
+
+    let awsDomainList = await this._api.get(environment.qmenuApiUrl + "utils/list-aws-domain").toPromise();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=aws-domain', awsDomainList).toPromise();
+    results.push(awsDomainList.map(each => {
+      let domain = new Domain();
+      domain.domainName = each.DomainName;
+      domain.autoRenew = each.AutoRenew;
+      domain.expiry = each.Expiry;
+      domain.type = "AWS";
+      return domain;     
+
+    }))
+
+    let godaddyDomainList = await this._api.get(environment.qmenuApiUrl + "utils/list-godaddy-domain").toPromise();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=godaddy-domain', godaddyDomainList).toPromise();
+    results.push(godaddyDomainList.map(each => {
+      let domain = new Domain();
+      domain.domainName = each.domain;
+      domain.autoRenew = each.renewAuto;
+      domain.expiry = each.expires;
+      domain.status = each.status;
+      domain.type = "GODADDY";
+      return domain;     
+
+    }))
+
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=domain', results).toPromise();
+
+  }
+
 
 }
 
