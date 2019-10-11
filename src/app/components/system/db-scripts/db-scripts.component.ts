@@ -21,6 +21,25 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async fixSalesBaseAndBonus() {
+    const newOwnershipRts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "previousRestaurantId": { $ne: null },
+      },
+      projection: {
+        previousRestaurantId: 1,
+        rateSchedules: 1,
+        name: 1
+      },
+      limit: 10000000
+    }).toPromise();
+    console.log(newOwnershipRts);
+    const nonNoneAgentRts = newOwnershipRts.filter(rt => (rt.rateSchedules || []).some(rs => (rs.agent || '').toLowerCase() !== 'none'));
+    console.log(nonNoneAgentRts);
+    alert("not finished coding")
+  }
+
   async mutateRtId() {
     // 1. create a copy of old restaurant
     // 2. note down the ID of the new RT
@@ -2176,6 +2195,10 @@ export class DbScriptsComponent implements OnInit {
             1: 50
           }
         },
+        {
+          from: new Date('9/27/2019'),
+          base: 0
+        },
       ],
 
       kevin: [
@@ -2267,7 +2290,8 @@ export class DbScriptsComponent implements OnInit {
         name: 1,
         salesBase: 1,
         rateSchedules: 1,
-        createdAt: 1
+        createdAt: 1,
+        previousRestaurantId: 1
       },
       limit: 6000
     }).toPromise();
@@ -2357,6 +2381,30 @@ export class DbScriptsComponent implements OnInit {
 
         if (r.salesThreeMonthAverage !== undefined) {
           newR.salesThreeMonthAverage = r.salesThreeMonthAverage;
+        }
+
+        // 10/11/2019 if there is a previousRestaurantId, and previousRestaurant has the same agent, we clear both salesBase and sales bonus!
+        if (r.previousRestaurantId) {
+          // const previousRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          //   resource: 'restaurant',
+          //   query: {
+          //     _id: { $oid: r.previousRestaurantId }
+          //   },
+          //   projection: {
+          //     name: 1,
+          //     rateSchedules: 1,
+          //   },
+          //   limit: 1
+          // }).toPromise();
+
+          // const newRtAgent = (r.rateSchedules[r.rateSchedules.length - 1].agent || '').toLowerCase();
+          // const previousRtHasSameAgent = previousRestaurants.some(rt => (rt.rateSchedules || []).some(rs => (rs.agent || '').toLowerCase() === newRtAgent));
+          // if (previousRtHasSameAgent) {
+          //   newR.salesBase = 0;
+          //   newR.salesBonus = 0;
+          // }
+          newR.salesBase = 0;
+          newR.salesBonus = 0;
         }
 
         updatedRestaurantPairs.push({
