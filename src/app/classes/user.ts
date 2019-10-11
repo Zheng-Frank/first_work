@@ -7,6 +7,7 @@ export class User {
   createdAt: Date;
   updatedAt: Date;
   disabled: boolean;
+  languages: string;
 
   constructor(user?: any) {
     if (user) {
