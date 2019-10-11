@@ -143,6 +143,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           skipOrderConfirmation: 1,
           skipAutoInvoicing: 1,
           skipShowTax: 1,
+          menuHoursExtended: 1,
           stripePublishableKey: 1,
           stripeSecretKey: 1,
           surchargeAmount: 1,
