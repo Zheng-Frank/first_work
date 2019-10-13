@@ -1,5 +1,5 @@
 export class Domain {
-    domainName: Date;
+    name: Date;
     expiry: Date;  
     status: string; 
     type: string;
