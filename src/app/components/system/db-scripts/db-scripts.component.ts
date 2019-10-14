@@ -9,6 +9,7 @@ import { Restaurant, Hour } from '@qmenu/ui';
 import { Invoice } from "../../../classes/invoice";
 import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
+import { Domain } from "src/app/classes/domain";
 
 @Component({
   selector: "app-db-scripts",
@@ -3015,6 +3016,62 @@ export class DbScriptsComponent implements OnInit {
 
 
   }
+
+  async deleteDomainData(type) {
+    const batchSize = 1000;
+    const domainList = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: type,
+        skip: domainList.length,
+        limit: batchSize
+      }).toPromise();
+      domainList.push(...batch);
+      if (batch.length === 0 || batch.length < batchSize) {
+        break;
+      }
+    }
+
+    let deleteBatchSize = 100;
+    const batchedList = Array(Math.ceil(domainList.length / deleteBatchSize)).fill(0).map((i, index) => domainList.slice(index * deleteBatchSize, (index + 1) * deleteBatchSize));
+    for (let batch of batchedList) {
+      await this._api.delete(environment.qmenuApiUrl + "generic", {
+        resource: type,
+        ids: batch.map(r => r._id)
+      });
+    }
+
+  }
+
+  async getAwsAndGodaddyDomains() {
+    ['domain'].map(type => this.deleteDomainData(type));
+    let results = [];
+    let awsDomainList = await this._api.get(environment.qmenuApiUrl + "utils/list-aws-domain").toPromise();
+    
+    awsDomainList.map(each => {
+      let domain = new Domain();
+      domain.name = each.DomainName;
+      domain.autoRenew = each.AutoRenew;
+      domain.expiry = each.Expiry;
+      domain.type = "AWS";
+      results.push(domain);
+    })
+
+    let godaddyDomainList = await this._api.get(environment.qmenuApiUrl + "utils/list-godaddy-domain").toPromise();
+    godaddyDomainList.map(each => {
+      let domain = new Domain();
+      domain.name = each.domain;
+      domain.autoRenew = each.renewAuto;
+      domain.expiry = each.expires;
+      domain.status = each.status;
+      domain.type = "GODADDY";
+      results.push(domain);
+    })
+
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=domain', results).toPromise();
+
+  }
+
 
 }
 

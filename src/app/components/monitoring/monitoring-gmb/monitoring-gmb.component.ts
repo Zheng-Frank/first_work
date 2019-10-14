@@ -10,11 +10,12 @@ import { Helper } from 'src/app/classes/helper';
 })
 export class MonitoringGmbComponent implements OnInit {
   rows = [];
-  showOnlyBadGmb = false;
   showOnlyDisabled = false;
+  showNotDisabled = false;
   showOnlyPublished = false;
   showMissingWebsite = false;
   filteredRows = [];
+  domains = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   now = new Date();
@@ -23,36 +24,68 @@ export class MonitoringGmbComponent implements OnInit {
   }
 
   async populate() {
-    // all restaurant stubs
-    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      projection: {
-        name: 1,
-        "googleAddress.formatted_address": 1,
-        alias: 1,
-        disabled: 1,
-        score: 1,
-        googleListing: 1,
-        "rateSchedules.agent": 1,
-        web: 1,
-        createdAt: 1
-      },
-      limit: 200000
-    }).toPromise();
-    const gmbAccountsWithLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        locations: { $exists: 1 }
-      },
-      projection: {
-        "email": 1,
-        password: 1,
-        "locations.cid": 1,
-        "locations.status": 1,
-        "locations.appealId": 1
-      },
-      limit: 6000
-    }).toPromise();
+    const restaurantBatchSize = 1000;
+    const allRestaurants = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        projection: {
+          name: 1,
+          "googleAddress.formatted_address": 1,
+          alias: 1,
+          disabled: 1,
+          score: 1,
+          googleListing: 1,
+          "rateSchedules.agent": 1,
+          web: 1,
+          createdAt: 1
+        },
+        skip: allRestaurants.length,
+        limit: restaurantBatchSize
+      }).toPromise();
+      allRestaurants.push(...batch);
+      if (batch.length === 0 || batch.length < restaurantBatchSize) {
+        break;
+      }
+    }
+
+
+    const gmbAccountBatchSize = 1000;
+    const gmbAccountsWithLocations = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        query: {
+          locations: { $exists: 1 }
+        },
+        projection: {
+          "email": 1,
+          password: 1,
+          "locations.cid": 1,
+          "locations.status": 1,
+          "locations.appealId": 1
+        },
+        skip: gmbAccountsWithLocations.length,
+        limit: gmbAccountBatchSize
+      }).toPromise();
+      gmbAccountsWithLocations.push(...batch);
+      if (batch.length === 0 || batch.length < gmbAccountBatchSize) {
+        break;
+      }
+    }
+
+    const domainBatchSize = 1000;
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'domain',
+        skip: this.domains.length,
+        limit: domainBatchSize
+      }).toPromise();
+      this.domains.push(...batch);
+      if (batch.length === 0 || batch.length < domainBatchSize) {
+        break;
+      }
+    }
 
     const cidAccountLocationMap = {};
 
@@ -73,6 +106,7 @@ export class MonitoringGmbComponent implements OnInit {
 
     this.rows = allRestaurants.map(r => ({
       restaurant: r,
+      domain: this.getDomainType(r.web && r.web.qmenuWebsite),
       account: (cidAccountLocationMap[(r.googleListing || {}).cid] || {}).account,
       location: (cidAccountLocationMap[(r.googleListing || {}).cid] || {}).location,
     }));
@@ -87,12 +121,11 @@ export class MonitoringGmbComponent implements OnInit {
     if (this.showOnlyPublished) {
       this.filteredRows = this.filteredRows.filter(row => !row.restaurant.disabled && (row.location && row.location.status == 'Published'));
     }
-    if (this.showOnlyBadGmb) {
-      this.filteredRows = this.filteredRows.filter(row => !row.location || row.location.status !== 'Published');
-    }
     if (this.showOnlyDisabled) {
       this.filteredRows = this.filteredRows.filter(row => row.restaurant.disabled);
-
+    }
+    if (this.showNotDisabled) {
+      this.filteredRows = this.filteredRows.filter(row => !row.restaurant.disabled);
     }
 
     if (this.showMissingWebsite) {
@@ -101,8 +134,16 @@ export class MonitoringGmbComponent implements OnInit {
     }
   }
 
-  async scanWebsite() {
+  getDomainType(webSite: string) {
+    const now = new Date();
+    this.domains = this.domains.filter(e => e.status === 'ACTIVE' || new Date(e.expiry).valueOf() > now.valueOf());
+    let matchDomain = this.domains.filter(each => webSite && webSite.indexOf(each.name) >= 0);
+    if (matchDomain && matchDomain.length > 0) {
+      return matchDomain[0].type
+    }
+  }
 
+  async scanWebsite() {
     let websites = this.filteredRows.map(row => row.restaurant.web && row.restaurant.web.qmenuWebsite)
 
     let batchSize = 1;
@@ -131,17 +172,12 @@ export class MonitoringGmbComponent implements OnInit {
       });
     }
 
-    this.filteredRows.map(each => {
-
-    })
-
     console.log('succeededRows', succeededRows);
     console.log('failedRows', failedRows);
 
   }
 
   async injectWebsite() {
-
     console.log('this.filteredRows', this.filteredRows);
     let batchSize = 1;
     //this.filteredRows = this.filteredRows.slice(16);
