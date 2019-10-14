@@ -324,7 +324,6 @@ export class GmbTasksComponent implements OnInit {
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
     }
-
     this.tabs.map(tab => {
       const filterMap = {
         "Mine": t => t.assignee === this.user.username && !t.result,
@@ -396,6 +395,8 @@ export class GmbTasksComponent implements OnInit {
   }
 
   private generateRow(rowNumber, task) {
+    console.log(task);
+    console.log(((task.request.voHistory || [])[0] || { options: [] }).options);
     return {
       localTimeString: new Date().toLocaleTimeString('en-US', { timeZone: (this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).timezone }),
       statusClass: this.getStatusClass(task),

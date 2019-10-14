@@ -41,13 +41,13 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async mutateRtId() {
-    // 1. create a copy of old restaurant
+    // 1. create a copy of old restaurant (manual)
     // 2. note down the ID of the new RT
     // 3. run the script to migrate everythings: orders, invoices, tasks, ?????
-    // 4. delete the old restaurant
+    // 4. delete the old restaurant (manual)
 
-    const newId = '5d9dee267c213e55613c6251';
-    const oldId = '5ac77535dcddff140010d736';
+    const newId = '5da35ab7e7179a02244c016e';
+    const oldId = '5d9dee267c213e55613c6251';
 
     const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
