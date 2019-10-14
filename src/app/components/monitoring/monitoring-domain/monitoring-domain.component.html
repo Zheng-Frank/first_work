@@ -1,1 +1,38 @@
-domain
+<h1 class="text-center">Domains<br><small>{{filteredDomains.length}}</small></h1>
+<div class="clearfix my-2">
+    <div class="float-left form-inline">
+        <select class="form-control mr-2 mb-1" [(ngModel)]="managedDomain" (change)="filter()">
+            <option>Manged Domains</option>
+            <option>only active</option>
+        </select>
+    </div>
+</div>
+
+<table class="table">
+    <tr>
+        <th>#</th>
+        <th>Domain</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Expiry</th>
+        <th>Auto Renew</th>
+    </tr>
+    <tr *ngFor="let domain of filteredDomains; let i = index">
+        <th>{{i + 1}}</th>
+        <td>
+            {{domain.name}}
+        </td>
+        <td>
+            {{domain.type}}
+        </td>
+        <td>
+            {{domain.status}}
+        </td>
+        <td>
+            {{domain.expiry}}
+        </td>
+        <td>
+            {{domain.autoRenew}}
+        </td>
+    </tr>
+</table>
