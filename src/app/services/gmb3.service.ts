@@ -80,8 +80,9 @@ export class Gmb3Service {
       limit: 1
     }).toPromise())[0];
 
-    const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.cid).map(loc => loc.appealId);
-    // const appealIdsNotToSkipDetails = (account.locations || []).filter(loc => !(loc.appealId && loc.cid)).map(loc => loc.appealId);
+    // const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.cid).map(loc => loc.appealId);
+    const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.locationName).map(loc => loc.appealId);
+
     // console.log('email',email);
     // console.log('appealIdsToSkipDetails', appealIdsToSkipDetails);
     // console.log('appealIdsNotToSkipDetails', appealIdsNotToSkipDetails);
@@ -648,18 +649,18 @@ export class Gmb3Service {
         console.log(task)
         await this._api.post(
           environment.autoGmbUrl + 'appealSuspended', {
+          email: gmbAccount.email,
+          password: password,
+          params: {
+            name: randomName,
             email: gmbAccount.email,
-            password: password,
-            params: {
-              name: randomName,
-              email: gmbAccount.email,
-              bizName: task.relatedMap.location.name,
-              address: task.relatedMap.location.address,
-              website: task.relatedMap.website,
-              phone: task.relatedMap.location.phone,
-              appealId: task.relatedMap.appealId
-            }
+            bizName: task.relatedMap.location.name,
+            address: task.relatedMap.location.address,
+            website: task.relatedMap.website,
+            phone: task.relatedMap.location.phone,
+            appealId: task.relatedMap.appealId
           }
+        }
         ).toPromise();
 
         const appealedAt = new Date();
