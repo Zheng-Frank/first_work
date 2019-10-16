@@ -1,0 +1,42 @@
+<div class="row d-flex align-items-center">
+  <div class="col-md-3">
+    <strong>Old Restaurant Id</strong>
+  </div>
+  <div class="col md-9">
+    <q-edit-label [value]="oldRestaurantId" (edit)="onEdit($event, 'oldRestaurantId')"></q-edit-label>
+  </div>
+</div>
+
+<div class="row d-flex align-items-center">
+  <div class="col-md-3 ">
+    <strong>New name</strong>
+  </div>
+  <div class="col md-9">
+    <q-edit-label [value]="newName" (edit)="onEdit($event, 'newName')"></q-edit-label>
+  </div>
+</div>
+
+<div class="row d-flex align-items-center">
+  <div class="col-md-3">
+    <strong>New Alias</strong>
+  </div>
+  <div class="col md-9">
+    <q-edit-label [value]="newAlias" (edit)="onEdit($event, 'newAlias')"></q-edit-label>
+  </div>
+</div>
+
+<div class="row d-flex align-items-center">
+  <div class="col-md-3">
+    <strong>Switching Date</strong>
+  </div>
+  <div class="col md-9">
+    <!-- <q-edit-label [value]="switchingDate" (edit)="onEdit($event, 'switchingDate')"></q-edit-label> -->
+    <!-- <owl-date-time #dt [hour12Timer]="true"></owl-date-time> -->
+    
+    <input [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [owlDateTime]="dt" [(ngModel)]="switchingDate" (ngModelChange)="handleDateChange($event, 'switchingDate')">
+    <owl-date-time #dt></owl-date-time> 
+   
+    
+
+  </div>
+</div>
