@@ -11,43 +11,60 @@
         <div *ngIf="gmbAccount.comments">
           <small>{{gmbAccount.comments}}</small>
         </div>
-        <span class="{{gmbAccount.allLocations > 95 ? 'bg-danger text-light' : ''}}" *ngIf="gmbAccount.allLocations">Total
+        <span class="{{gmbAccount.allLocations > 95 ? 'bg-danger text-light' : ''}}"
+          *ngIf="gmbAccount.allLocations">Total
           {{gmbAccount.allLocations}}, </span>
-        <span>Published: {{gmbAccount.published}}, Suspended: {{gmbAccount.suspended}} <span *ngIf="gmbAccount.suspendedInPastDay"
-            class="text-danger">({{gmbAccount.suspendedInPastDay}} recently)</span></span>
+        <span>Published: {{gmbAccount.published}}, Suspended: {{gmbAccount.suspended}} <span
+            *ngIf="gmbAccount.suspendedInPastDay" class="text-danger">({{gmbAccount.suspendedInPastDay}}
+            recently)</span></span>
         <button class="btn btn-link fix-v-align" (click)="expandBizLis = !expandBizLis">Details...
           <i class="fas {{expandBizLis ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
         </button>
 
         <div *ngIf="expandBizLis">
           <table class="table table-sm">
-            <tr *ngFor="let loc of gmbAccount.locations">
-              <td>{{loc.status}}</td>
-              <td [ngClass]="{'app-strike': loc.status ==='Removed', 'text-success' : loc.status === 'Published', 'text-warning' : loc.status === 'Suspended'}">
-                <b>{{loc.name}}</b>
-              </td>
-              <td>
-                <small class="text-muted">{{loc.address}}</small>
-              </td>
-              <td *ngIf="!loc.cid || loc.cid.length < 4" class="text-danger">
-                <small>BAD CID: {{loc.cid}}</small>
-              </td>
-              <td *ngIf="loc.cid && loc.cid.length >= 4" class="text-muted">
-                <small >{{loc.cid}}</small>
-              </td>
-            </tr>
+            <ng-container *ngFor="let loc of gmbAccount.locations">
+              <tr *ngIf="loc.status !== 'Removed'">
+                <td>
+                  <label class="form-check-label">
+                    <input type="checkbox" [checked]="isSelected(loc)" (change)="toggleSelected(loc)">
+                    {{loc.status}}
+                  </label></td>
+                <td>{{loc.statusHistory[0].time | ago : now}}
+                  <div *ngIf="!loc.locationName" class="text-danger">
+                    MISSING ID
+                  </div>
+                </td>
+                <td
+                  [ngClass]="{'app-strike': loc.status ==='Removed', 'text-success' : loc.status === 'Published', 'text-warning' : loc.status === 'Suspended'}">
+                  <b>{{loc.name}}</b>
+                </td>
+                <td>
+                  <small class="text-muted">{{loc.address}}</small>
+                </td>
+                <td *ngIf="!loc.cid || loc.cid.length < 4" class="text-danger">
+                  <small>BAD CID: {{loc.cid}}</small>
+                </td>
+                <td *ngIf="loc.cid && loc.cid.length >= 4" class="text-muted">
+                  <small>{{loc.cid}}</small>
+                </td>
+              </tr>
+            </ng-container>
           </table>
+          <button class="btn btn-primary" (click)="removeSelectedLocations()">Delete Selected Locations</button>
         </div>
       </div>
       <div class="float-right">
 
-        <button *ngIf="isAdmin()" class="btn btn-link" [disabled]="scanningBizList || disabled" (click)="clickScanBizList()">
+        <button *ngIf="isAdmin()" class="btn btn-link" [disabled]="scanningBizList || disabled"
+          (click)="clickScanBizList()">
           <i class="fas fa-lock"></i> Scan Published Locations
           <div *ngIf="gmbAccount.gmbScannedAt" class="text-muted">
             <small>{{gmbAccount.gmbScannedAt | ago: now}}</small>
           </div>
         </button>
-        <button *ngIf="isAdmin()" class="btn btn-link" [disabled]="scanningRequests || disabled" (click)="clickScanRequests()">
+        <button *ngIf="isAdmin()" class="btn btn-link" [disabled]="scanningRequests || disabled"
+          (click)="clickScanRequests()">
           <i class="far fa-envelope "></i> Scan Email
           <div *ngIf="gmbAccount.emailScannedAt" class="text-muted">
             <small>{{gmbAccount.emailScannedAt | ago: now}}</small>

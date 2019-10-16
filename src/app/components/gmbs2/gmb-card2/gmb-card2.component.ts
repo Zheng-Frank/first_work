@@ -27,12 +27,31 @@ export class GmbCard2Component implements OnInit, OnChanges {
 
   expandBizLis = false;
 
+  selectedLocations = new Set();
+
   constructor(private _global: GlobalService) { }
 
   ngOnInit() {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+  }
+
+  isSelected(location) {
+    return this.selectedLocations.has(location);
+  }
+
+  toggleSelected(location) {
+    if (this.selectedLocations.has(location)) {
+      this.selectedLocations.delete(location);
+    } else {
+      this.selectedLocations.add(location);
+    }
+  }
+
+  removeSelectedLocations() {
+    alert('not done')
+    console.log(this.selectedLocations);
   }
 
   clickEdit() {
@@ -50,7 +69,7 @@ export class GmbCard2Component implements OnInit, OnChanges {
   }
 
   clickLogin() {
-    this.loginRequest= true;
+    this.loginRequest = true;
     this.login.emit({
       object: this.gmbAccount,
       acknowledge: (error) => {
@@ -58,7 +77,7 @@ export class GmbCard2Component implements OnInit, OnChanges {
       }
     });
   }
-  
+
   clickScanBizList() {
     this.scanningBizList = true;
     this.scanBizList.emit({
@@ -68,8 +87,8 @@ export class GmbCard2Component implements OnInit, OnChanges {
       }
     });
   }
-  isAdmin(){
-    return this._global.user.roles.some(r => r ==='ADMIN');
+  isAdmin() {
+    return this._global.user.roles.some(r => r === 'ADMIN');
   }
 
 }
