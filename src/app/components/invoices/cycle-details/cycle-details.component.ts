@@ -76,12 +76,13 @@ export class CycleDetailsComponent implements OnInit {
   processingMessages = [];
 
   paymentMeansDict = {};
+  disabledSet = new Set();
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     this._route.params.subscribe(
       params => {
         this.cycleId = params.id;
         this.loadCycle(params.id);
-        this.populatePaymentMeans();
+        this.populatePaymentMeansAndDisabled();
       });
   }
   ngOnInit() {
@@ -186,15 +187,19 @@ export class CycleDetailsComponent implements OnInit {
     ]).toPromise();
   }
 
-  async populatePaymentMeans() {
+  async populatePaymentMeansAndDisabled() {
     const rtPms = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       projection: {
-        paymentMeans: 1
+        paymentMeans: 1,
+        disabled: 1
       },
       limit: 100000
     }).toPromise();
     rtPms.map(rt => {
+      if (rt.disabled) {
+        this.disabledSet.add(rt._id);
+      }
       const pms = rt.paymentMeans || [];
       const validPms = pms.filter(pm => {
         if (!pm.details || !pm.details.memo) {
@@ -232,7 +237,7 @@ export class CycleDetailsComponent implements OnInit {
     this.cycle = existingCycles[0];
 
     // compute!
-    const allRows = this.cycle.restaurants.slice(0);
+    const allRows = this.cycle.restaurants.filter(r => r).slice(0);
     this.blocks.ALL.rows = allRows;
     this.blocks.INVOICES.rows = allRows.filter(r => r.invoice);
     this.blocks.SKIPPED.rows = allRows.filter(r => !r.invoice && r.error);

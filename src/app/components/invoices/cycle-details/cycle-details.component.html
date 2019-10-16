@@ -128,7 +128,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let row of activeBlock.rows; let i = index">
+        <tr *ngFor="let row of activeBlock.rows; let i = index" class="{{disabledSet.has(row._id) ? 'disabled' : ''}}">
           <td>{{i + 1}}</td>
           <td>{{row._id.slice(-5)}}</td>
           <td><a routerLink="/restaurants/{{row._id}}" target="_blank">{{row.name}}</a></td>
@@ -146,7 +146,8 @@
           </td>
           <td><span *ngIf="row.invoice?.balance">{{row.invoice?.balance | currency:'USD':'symbol'}}</span></td>
           <td class="text-danger">
-            <button (click)="sendOne(row)" [qLoading]="sending" *ngIf="row.invoice && !row.invoice?.isSent">Send</button>
+            <button (click)="sendOne(row)" [qLoading]="sending"
+              *ngIf="row.invoice && !row.invoice?.isSent">Send</button>
             <button (click)="payOne(row)" [qLoading]="paying"
               *ngIf="row.invoice && !row.invoice?.isPaymentSent">Pay</button>
             {{row.error | json}}

@@ -1,3 +1,8 @@
 .col-6:not(:first-child) {
   border-left: 1px solid #dee2e6;
 }
+
+.disabled {
+  opacity: 0.9;
+  text-decoration: line-through;
+}
