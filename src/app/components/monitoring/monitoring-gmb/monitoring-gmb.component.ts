@@ -16,6 +16,7 @@ export class MonitoringGmbComponent implements OnInit {
   showMissingWebsite = false;
   filteredRows = [];
   domains = [];
+  managedDomain = "Manged Domains";
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   now = new Date();
@@ -130,14 +131,22 @@ export class MonitoringGmbComponent implements OnInit {
 
     if (this.showMissingWebsite) {
       this.filteredRows = this.filteredRows.filter(row => row.restaurant.googleListing && !row.restaurant.googleListing.gmbWebsite);
+    }
 
+    switch (this.managedDomain) {
+      case 'only active':
+        const now = new Date();
+        this.filteredRows = this.filteredRows.filter(e =>  new Date(e.expiry).valueOf() < now.valueOf());
+        break;
+      default:
+        break;
     }
   }
 
   getDomainType(webSite: string) {
     const now = new Date();
     this.domains = this.domains.filter(e => e.status === 'ACTIVE' || new Date(e.expiry).valueOf() > now.valueOf());
-    let matchDomain = this.domains.filter(each => webSite && webSite.indexOf(each.name) >= 0);
+    let matchDomain = this.domains.filter(each => webSite && webSite.toLocaleLowerCase().indexOf(each.name) >= 0);
     if (matchDomain && matchDomain.length > 0) {
       return matchDomain[0].type
     }

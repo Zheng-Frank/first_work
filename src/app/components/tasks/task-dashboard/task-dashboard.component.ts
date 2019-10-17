@@ -102,7 +102,7 @@ export class TaskDashboardComponent {
     };
 
 
-    const batchSize = 3000;
+    const batchSize = 800;
     let result0 = [];
     while (true) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
