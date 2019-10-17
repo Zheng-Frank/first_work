@@ -8,6 +8,7 @@ export const environment = {
   migrationUrl: "https://qauto.ngrok.io/",
   taskUrl: "https://qtask.ngrok.io/",
   qmenuNgrok: "https://qmenu.ngrok.io/",
+  gmbNgrok: "https://gmb.ngrok.io/",
   bizUrl: 'https://biz.qmenu.us/',
   customerUrl: 'https://qmenu.us/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',

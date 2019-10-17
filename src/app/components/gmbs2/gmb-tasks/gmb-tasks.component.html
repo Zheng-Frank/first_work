@@ -62,9 +62,12 @@
           <td>{{row.score}}</td>
           <td>{{row.gmbOwner}}</td>
           <td class="text-nowrap">
+            <i *ngIf="row.request?.pinHistory && row.request?.pinHistory.length > 0"
+              class="text-warning fas fa-2x fa-lightbulb"></i>
             <ng-container *ngFor="let vo of row.verificationOptions || []">
               <i
                 class="fas fa-{{vo.verificationMethod === 'EMAIL' ? 'at' : (vo.verificationMethod === 'PHONE_CALL' ? 'phone' : (vo.verificationMethod === 'ADDRESS' ? 'address-card' : 'question'))}} {{vo.verification ? 'text-success' : 'text-muted'}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}}"></i>
+
               <div *ngIf="vo.verification" class="text-muted">
                 <small>{{vo.verification.createTime | ago: now}}</small></div>
             </ng-container>
@@ -124,8 +127,18 @@
     OWNER DECLINED TO WORK WITH QMENU
   </div>
 
-  <div class="alert alert-warning text-center" *ngFor="let status of (modalRow?.request?.statusHistory || [])">
+  <div class="alert alert-warning" *ngFor="let status of (modalRow?.request?.statusHistory || [])">
     {{status.time | ago : now}}: {{status.status}}
+  </div>
+  <div class="form-group mb-4">
+    <label>Comments:</label>
+    <div class="wrap pb-1" [innerHTML]="modalRow?.comments"></div>
+    <div class="input-group">
+      <input type="text" class="form-control" [(ngModel)]="comments" placeholder="your comments">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary min-w-6" type="button" (click)="addComments(comments)">Add</button>
+      </div>
+    </div>
   </div>
   <hr>
   <h5 class="text-center">{{restaurant?.googleListing?.phone | phone}}</h5>
@@ -155,11 +168,56 @@
 
   <div class="form-group">
     <label>Verification Options:</label>
-    <div *ngIf="verificationOptions.length === 0">N/A</div>
-    <div>
-      <i *ngFor="let vo of verificationOptions || []"
-        class="pr-2 fas fa-{{vo.faClass}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
+    <!-- {{preferredVerificationOption | json}} -->
+    <div *ngIf="preferredVerificationOption" class="alert alert-secondary">
+      <div *ngIf="preferredVerificationOption.method === 'ADDRESS'">
+        Requested Postcard Verification {{preferredVerificationOption.createTime | ago : now}}
+        <div class="text-left">
+          <button class="btn btn-link pl-0" (click)="showNotifier = !showNotifier">Remind Restaurant Owner</button>
+        </div>
+        <div class="form-group" *ngIf="showNotifier">
+          <label>Notify Restaurant:</label>
+          <send-google-pin [restaurant]="restaurant"></send-google-pin>
+        </div>
+      </div>
+
+      <div *ngIf="preferredVerificationOption.verificationMethod === 'PHONE_CALL'">
+        Should Call <b>{{preferredVerificationOption.phoneData.phoneNumber}}</b> to Verify
+      </div>
+      <div *ngIf="preferredVerificationOption.verificationMethod === 'EMAIL'">
+        Should Use Email <b>{{preferredVerificationOption.emailData.domainName}}</b> to Get PIN
+      </div>
     </div>
+    <div *ngIf="!preferredVerificationOption" class="alert alert-secondary">
+      No verification option is preferred to use.
+    </div>
+
+    <div *ngIf="verificationOptions.length === 0">N/A</div>
+    <div *ngFor="let vo of verificationOptions || []"
+      class="{{isNonQmenuEmail(vo) ? 'opacity-30' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}} mb-2 row">
+      <div class="col-6 text-nowrap">
+        <i class="pr-2 fas fa-{{vo.faClass}}"></i>
+        <span *ngIf="vo.phoneData?.phoneNumber">
+          {{vo.phoneData?.phoneNumber}}
+        </span>
+        <span *ngIf="vo.emailData?.domainName">
+          <a href="http://{{vo.emailData?.domainName}}" target="_blank">{{vo.emailData?.domainName}}</a>
+        </span>
+        <span *ngIf="vo.addressData?.address?.addressLines">
+          {{vo.addressData?.address?.addressLines[0]}}
+        </span>
+      </div>
+      <div class="col-6 text-right">
+        <button *ngIf="vo.phoneData?.phoneNumber" class="btn btn-primary btn-sm" [qLoading]="verifyingOption === vo"
+          (click)="trigger(vo)">Trigger Google Call</button>
+        <button *ngIf="vo.emailData?.domainName" class="btn btn-primary btn-sm" [qLoading]="verifyingOption === vo"
+          (click)="trigger(vo)">Trigger Email</button>
+        <button *ngIf="vo.addressData?.address?.addressLines" class="btn btn-primary btn-sm"
+          [qLoading]="verifyingOption === vo" (click)="trigger(vo)">Trigger Postcard</button>
+      </div>
+
+    </div>
+    <hr *ngIf="verifications && verifications.length > 0">
     <div *ngFor="let vo of verifications || []" class="text-muted">
       <small>
         <i
@@ -169,40 +227,18 @@
     </div>
   </div>
 
-  <!-- {{preferredVerificationOption | json}} -->
-  <div *ngIf="preferredVerificationOption" class="alert alert-secondary">
-    <div *ngIf="preferredVerificationOption.method === 'ADDRESS'">
-      Requested Postcard Verification {{preferredVerificationOption.createTime | ago : now}}
-      <div class="text-left">
-        <button class="btn btn-link pl-0" (click)="showNotifier = !showNotifier">Remind Restaurant Owner</button>
-      </div>
-      <div class="form-group" *ngIf="showNotifier">
-        <label>Notify Restaurant:</label>
-        <send-google-pin [restaurant]="restaurant"></send-google-pin>
-      </div>
-    </div>
-
-    <div *ngIf="preferredVerificationOption.verificationMethod === 'PHONE_CALL'">
-      Should Call <b>{{preferredVerificationOption.phoneData.phoneNumber}}</b> to Verify
-      <div>
-        <button class="btn btn-primary" [qLoading]="calling" (click)="triggerGoogleCall()">Trigger Google Call</button>
-      </div>
-    </div>
-
-
-    <div *ngIf="preferredVerificationOption.verificationMethod === 'EMAIL'">
-      Should Use Email <b>{{preferredVerificationOption.emailData.domainName}}</b> to Get PIN
-    </div>
-  </div>
-  <div *ngIf="!preferredVerificationOption" class="alert alert-secondary">
-    No verification option is preferred to use.
-  </div>
-
-
 
   <div class="form-group mb-4">
-    <label>Google PIN:</label>
-    <h2 *ngIf="modalRow?.request?.pin">{{modalRow?.request?.pin}}</h2>
+    <label>Google PINs:</label>
+    <div *ngFor="let ph of modalRow?.request?.pinHistory || []" class="row">
+      <div class="col-6 text-nowrap">
+        <h2 class="d-inline-block">{{ph.pin}} </h2> <span class="text-muted">{{ph.time | ago: now}}</span>
+      </div>
+      <div class="col-6 text-right">
+        <button class="btn btn-primary" (click)="completePin(ph)">Verify PIN</button>
+      </div>
+    </div>
+
     <div class="input-group">
       <input type="text" class="form-control" [(ngModel)]="pin" placeholder="PIN">
       <div class="input-group-append">
@@ -211,16 +247,6 @@
     </div>
   </div>
 
-  <div class="form-group mb-4">
-    <label>Comments:</label>
-    <div class="wrap pb-1" [innerHTML]="modalRow?.comments"></div>
-    <div class="input-group">
-      <input type="text" class="form-control" [(ngModel)]="comments" placeholder="your comments">
-      <div class="input-group-append">
-        <button class="btn btn-outline-secondary min-w-6" type="button" (click)="addComments(comments)">Add</button>
-      </div>
-    </div>
-  </div>
 
   <div class="form-group">
     <label>Schedule Followup At:</label>
@@ -243,6 +269,19 @@
         {{modalRow?.request?.ownerDeclined ? 'AGREED' : 'DECLINED'}} to Work with qMenu?</button>
     </div>
   </div>
+
+
+  <div class="form-group">
+    <ng-container *ngIf="!modalRow?.result">
+      <label>If Done, Select Result:</label>
+      <q-simple-radio [(ngModel)]="taskResult" [equalWidth]="true" [values]="['CANCELED', 'CLOSED']">
+      </q-simple-radio>
+      <div class="text-right" *ngIf="taskResult">
+        <button class="btn btn-primary btn-sm" (click)="closeTask()">Confirm</button>
+      </div>
+    </ng-container>
+  </div>
+
 
   <!-- 
   <div class="text-right">
