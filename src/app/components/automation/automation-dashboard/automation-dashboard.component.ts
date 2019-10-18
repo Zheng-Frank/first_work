@@ -33,6 +33,18 @@ export class AutomationDashboardComponent implements OnInit {
   // wait ms between each scan
   waitBetweenScan = 4 * 3600000; // 4 hour
 
+  //restaurant filter to limit scan scope, default to match all
+  restaurantFilter = ".";
+  logRestaurantFilter() {
+    // debugger;
+    console.log(`restaurant filter set to ${this.restaurantFilter}`);
+  }
+  filterRTs( rts ){
+    const rtFilter = new RegExp(this.restaurantFilter || ".");
+    debugger;
+    return (rts || []).filter (rt => rtFilter.test(rt.name)); 
+  }
+
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() {
@@ -321,7 +333,7 @@ export class AutomationDashboardComponent implements OnInit {
   }
 
   async scanForTransferTask() {
-    return await this._task.scanForTransferTask();
+    return await this._task.scanForTransferTask(this.restaurantFilter);
   }
 
   async purgeInvalidGmbTransferTasks() {
@@ -553,7 +565,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log('restaurantsToBeAppliedWithoutDisableAutoTask', restaurantsToBeAppliedWithoutDisableAutoTask);
 
-    const tasks = restaurantsToBeAppliedWithoutDisableAutoTask.map(r => {
+    const tasks = this.filterRTs(restaurantsToBeAppliedWithoutDisableAutoTask).map(r => {
       const gmbBiz = gmbBizList.filter(biz => biz.cid === r.googleListing.cid)[0];
       const task = {
         name: 'Apply GMB Ownership',
@@ -802,4 +814,5 @@ export class AutomationDashboardComponent implements OnInit {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
     } // end batch
   }
+
 }

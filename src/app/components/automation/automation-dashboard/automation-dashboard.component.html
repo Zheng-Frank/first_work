@@ -36,3 +36,7 @@
 
   <button class="btn btn-primary mb-2" (click)="runInjectQmenuWebsites()">Run Inject qMenu Websites</button>
 </div>
+<div>
+  <input type="text" class="form-control mr-2 mb-1"  placeholder="inclusive restaurant name regex filter, eg ^[^aA] for all starting letters except a or A"
+   [(ngModel)]="restaurantFilter" (blur)="logRestaurantFilter()">
+</div>
