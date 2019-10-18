@@ -34,14 +34,14 @@ export class AutomationDashboardComponent implements OnInit {
   waitBetweenScan = 4 * 3600000; // 4 hour
 
   //restaurant filter to limit scan scope, default to match all
-  restaurantFilter = ".";
+  restaurantFilter = "^[^aA]";
   logRestaurantFilter() {
     // debugger;
     console.log(`restaurant filter set to ${this.restaurantFilter}`);
   }
   filterRTs( rts ){
     const rtFilter = new RegExp(this.restaurantFilter || ".");
-    debugger;
+    // debugger;
     return (rts || []).filter (rt => rtFilter.test(rt.name)); 
   }
 

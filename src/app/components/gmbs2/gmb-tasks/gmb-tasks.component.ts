@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from '../../../../environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
@@ -11,7 +11,7 @@ import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
   templateUrl: './gmb-tasks.component.html',
   styleUrls: ['./gmb-tasks.component.css']
 })
-export class GmbTasksComponent implements OnInit {
+export class GmbTasksComponent implements OnInit, OnDestroy {
   @ViewChild('rowModal') rowModal: ModalComponent;
   apiLoading = false;
   activeTabLabel = 'Mine';
@@ -89,10 +89,19 @@ export class GmbTasksComponent implements OnInit {
     },
   ];
 
+  timer;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.user = this._global.user;
+    this.timer = setInterval(_ => this.now = new Date(), 60000);
   }
+
+  ngOnDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+  }
+
 
   async ngOnInit() {
     this.setActiveTab(this.tabs[0]);
@@ -153,26 +162,28 @@ export class GmbTasksComponent implements OnInit {
   }
 
   async trigger(vo) {
-    this.verifyingOption = vo;
-    try {
-      await this._api.post(environment.qmenuNgrok + 'task/verify', {
-        taskId: this.modalRow._id,
-        email: this.modalRow.request.email,
-        locationName: this.modalRow.request.locationName,
-        verificationOption: this.preferredVerificationOption
-      }).toPromise();
+    if (confirm('Trigger too many times could exhaust existing verification options. Are you sure?')) {
+      this.verifyingOption = vo;
+      try {
+        await this._api.post(environment.qmenuNgrok + 'task/verify', {
+          taskId: this.modalRow._id,
+          email: this.modalRow.request.email,
+          locationName: this.modalRow.request.locationName,
+          verificationOption: this.preferredVerificationOption
+        }).toPromise();
 
-      this._global.publishAlert(AlertType.Success, 'triggered successfully');
+        this._global.publishAlert(AlertType.Success, 'triggered successfully');
 
-    } catch (error) {
-      console.log(error);
-      const result = error.message || error.error || error;
-      this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
+      } catch (error) {
+        console.log(error);
+        const result = error.message || error.error || error;
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
+      }
+
+      this.verifyingOption = undefined;
+      await this.addComments(`tried verification`);
+      await this.refreshSingleTask(this.modalRow._id);
     }
-
-    this.verifyingOption = undefined;
-    await this.addComments(`tried verification`);
-    await this.refreshSingleTask(this.modalRow._id);
   }
 
 
@@ -233,6 +244,7 @@ export class GmbTasksComponent implements OnInit {
   }
 
   async showDetails(row) {
+
     console.log(row);
     this.preferredVerificationOption = undefined;
     const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -309,13 +321,15 @@ export class GmbTasksComponent implements OnInit {
     try {
       await this._api.post(environment.qmenuNgrok + 'task/save-pin', {
         taskId: this.modalRow._id,
-        pin: this.pin
+        pin: this.pin,
+        username: this._global.user.username
       }).toPromise();
     } catch (error) {
       console.log(error);
       alert('ERROR SAVING PIN');
     }
     this.pin = '';
+    await this.refreshSingleTask(this.modalRow._id);
   }
 
   async addComments(comments) {
