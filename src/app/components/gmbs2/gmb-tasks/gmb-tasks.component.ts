@@ -36,8 +36,7 @@ export class GmbTasksComponent implements OnInit {
   taskScheduledAt = new Date();
   comments = '';
   pin;
-  calling = false;
-
+  verifyingOption;
 
   tabs = [
     { label: 'Mine', rows: [] },
@@ -113,26 +112,67 @@ export class GmbTasksComponent implements OnInit {
     this.assignees.unshift('NON-CLAIMED');
   }
 
+  taskResult;
+  async closeTask() {
+    if (this.taskResult) {
+      if (confirm('Are you sure?')) {
+        await this.update(this.modalRow.task, "result", this.taskResult);
+        await this.update(this.modalRow.task, "resultAt", new Date());
+        const fullComments = `${new Date().getMonth() + 1}/${new Date().getDate()} ${this.user.username}: closed`;
 
-  async triggerGoogleCall() {
-    this.calling = true;
-    let result;
+        await this.update(this.modalRow.task, 'comments', this.modalRow.comments ? `${this.modalRow.comments}\n${fullComments}` : fullComments);
+
+        this.rowModal.hide();
+      }
+    } else {
+      alert('please select a result');
+    }
+  }
+
+  async completePin(pinHistory) {
+    if (confirm('Do not try too many times for this function. Too many failed tries will cause the verification disappear. Are you sure to use this PIN?')) {
+      try {
+        await this._api.post(environment.qmenuNgrok + 'task/complete', {
+          taskId: this.modalRow._id,
+          email: this.modalRow.request.email,
+          locationName: this.modalRow.request.locationName,
+          pin: pinHistory.pin
+        }).toPromise();
+
+        this._global.publishAlert(AlertType.Success, 'Verified Successfully');
+
+      } catch (error) {
+        console.log(error);
+        const result = error.message || error.error || error;
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
+      }
+
+      await this.addComments(`tried PIN`);
+      await this.refreshSingleTask(this.modalRow._id);
+    }
+  }
+
+  async trigger(vo) {
+    this.verifyingOption = vo;
     try {
-
-      result = await this._api.post(environment.appApiUrl + 'gmb/verify', {
+      await this._api.post(environment.qmenuNgrok + 'task/verify', {
+        taskId: this.modalRow._id,
         email: this.modalRow.request.email,
         locationName: this.modalRow.request.locationName,
         verificationOption: this.preferredVerificationOption
       }).toPromise();
-      this._global.publishAlert(AlertType.Success, 'Call Initiated from Google');
+
+      this._global.publishAlert(AlertType.Success, 'triggered successfully');
 
     } catch (error) {
       console.log(error);
-      result = error.message || error.error || error;
+      const result = error.message || error.error || error;
       this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
     }
-    this.calling = false;
-    await this.addComments(`called: result=${JSON.stringify(result)}`);
+
+    this.verifyingOption = undefined;
+    await this.addComments(`tried verification`);
+    await this.refreshSingleTask(this.modalRow._id);
   }
 
 
@@ -263,8 +303,18 @@ export class GmbTasksComponent implements OnInit {
     //
   }
   async savePin() {
-    await this.update(this.modalRow.task, "request.pin", this.pin);
-    await this.addComments(`PIN ${this.pin}`);
+    if (!this.pin) {
+      return alert('Bad PIN to save');
+    }
+    try {
+      await this._api.post(environment.qmenuNgrok + 'task/save-pin', {
+        taskId: this.modalRow._id,
+        pin: this.pin
+      }).toPromise();
+    } catch (error) {
+      console.log(error);
+      alert('ERROR SAVING PIN');
+    }
     this.pin = '';
   }
 
@@ -314,12 +364,18 @@ export class GmbTasksComponent implements OnInit {
         }
       }).toPromise();
       this.restaurantDict = restaurants.reduce((dict, rt) => (dict[rt._id] = rt, dict), {});
-      restaurants.map(rt => {
-        const topDomain = this.parseTopDomain((rt.web || {}).qmenuWebsite || 'randomdomain.com');
-        if (topDomain) {
-          this.qmenuDomains.add(topDomain);
-        }
-      });
+
+      // retrieve ALL qmenu domains
+      const myDomains = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "domain",
+        query: {},
+        limit: 10000000,
+        projection: { expiry: 1, name: 1 }
+      }).toPromise();
+
+      const nonExpiredDomains = myDomains.filter(d => new Date(d.expiry) > new Date());
+      nonExpiredDomains.push({ name: 'qmenu.us' }); // in case it's not there
+      nonExpiredDomains.map(d => this.qmenuDomains.add(d.name));
 
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
@@ -365,7 +421,7 @@ export class GmbTasksComponent implements OnInit {
       }
 
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }]);
-      await this.updateSingleTask(task._id);
+      await this.refreshSingleTask(task._id);
 
     } catch (error) {
       console.log(error);
@@ -374,7 +430,7 @@ export class GmbTasksComponent implements OnInit {
 
   }
 
-  async updateSingleTask(taskId) {
+  async refreshSingleTask(taskId) {
     const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "task",
       query: { _id: { $oid: taskId } }
