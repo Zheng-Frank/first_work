@@ -118,7 +118,15 @@
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">×</span>
   </button>
-  <h4 class="text-center">{{modalRow?.relatedMap?.restaurantName}}</h4>
+  <h4 class="text-center">{{modalRow?.relatedMap?.restaurantName}}
+  </h4>
+  <!-- <div class="text-muted text-center"><small>ID: {{modalRow?._id}}</small></div> -->
+  <div class="text-center">
+    <button class="btn btn-link" (click)="refreshSingleTask(modalRow?._id)" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
+      Reload</button>
+  </div>
+
+  <hr>
   <div *ngIf="modalRow?.request.email" class="text-center">
     <app-gmb-account-hotlink [email]="modalRow?.request.email"></app-gmb-account-hotlink>
   </div>
@@ -232,7 +240,8 @@
     <label>Google PINs:</label>
     <div *ngFor="let ph of modalRow?.request?.pinHistory || []" class="row">
       <div class="col-6 text-nowrap">
-        <h2 class="d-inline-block">{{ph.pin}} </h2> <span class="text-muted">{{ph.time | ago: now}}</span>
+        <h2 class="d-inline-block">{{ph.pin}} </h2> <span class="text-muted">{{ph.time | ago: now}}
+          {{ph.username}}</span>
       </div>
       <div class="col-6 text-right">
         <button class="btn btn-primary" (click)="completePin(ph)">Verify PIN</button>

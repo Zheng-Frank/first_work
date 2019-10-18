@@ -670,7 +670,8 @@ export class TaskService {
 
 
   // we have request against a location (gmbBiz?)
-  async scanForTransferTask() {
+  async scanForTransferTask(prtFilter) {
+    const rtFilter = prtFilter || '.';
     const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
@@ -858,6 +859,7 @@ export class TaskService {
       },
 
       projection: {
+        name: 1, 
         disabled: 1,
         score: 1,
         "googleListing.cid": 1,
@@ -871,7 +873,7 @@ export class TaskService {
 
     const validTransferTasks = newTransferTasks.filter(t => {
       const restaurant = cidRestaurantMap[t.gmbBiz.cid];
-      return restaurant && (!restaurant.web || !restaurant.ignoreGmbOwnershipRequest) && !restaurant.disabled;
+      return restaurant && (!restaurant.web || !restaurant.ignoreGmbOwnershipRequest) && !restaurant.disabled && rtFilter.test(restaurant.name || "") ;
     });
 
     const tasks = validTransferTasks

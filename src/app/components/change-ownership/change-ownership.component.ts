@@ -9,24 +9,18 @@ import { ApiService } from "../../services/api.service";
 })
 export class ChangeOwnershipComponent implements OnInit {
 
-  oldRestaurantId = '5bc9b6787fb19f1400252df7';
-  newName = "Nino's Pasta Pizza & Subs";
-  newAlias = "nino's-pasta-pizza-subs";
-  switchingDate = new Date("Oct 1 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
+  oldRestaurantId = '';
+  newName = '';
+  newAlias = '';
+  switchingDate = new Date();
 
   constructor(private _api: ApiService) { }
 
   ngOnInit() {
   }
 
-  async onEdit(event, field: string) {
-    this[field] = event.newValue;
-    this.changeOwnership();
-  }
-
-  async handleDateChange(event, field: string) {
-    this.switchingDate = new Date(event);
-    this.changeOwnership();
+  canChangeOwnership() {
+    return !!this.oldRestaurantId && !!this.newName && !!this.newAlias && !!this.switchingDate;
   }
 
   async changeOwnership() {
@@ -39,7 +33,8 @@ export class ChangeOwnershipComponent implements OnInit {
     //   newAlias: this.newAlias,
     //   switchingDate: this.switchingDate
     // }
-    // console.warn(savedValues);
+    // console.log(savedValues);
+    // return;
 
     const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
