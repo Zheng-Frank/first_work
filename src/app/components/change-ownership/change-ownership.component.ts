@@ -63,6 +63,10 @@ export class ChangeOwnershipComponent implements OnInit {
     (clone.rateSchedules || []).map(rs => rs.agent = 'none');
     delete clone.notifications;
     delete clone.closedHours;
+    delete clone.salesBase;
+    delete clone.salesBonus;
+    delete clone.salesThreeMonthAverage;
+
     clone.name = this.newName;
     clone.previousRestaurantId = previousRestaurantId;
     clone.logs = clone.logs || [];

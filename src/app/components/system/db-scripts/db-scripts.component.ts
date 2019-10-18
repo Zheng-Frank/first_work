@@ -391,11 +391,11 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async changeOwnership() {
-    const oldRestaurantId = '5b04f70d6989ec14005cbbf4';
-    const newName = "Nikoz Fusion Grill";
+    const oldRestaurantId = '5bfcdca84c304db9cabf1b34';
+    const newName = "Sakura 12 Japanese Restaurant";
     const previousRestaurantId = oldRestaurantId;
-    const newAlias = "nikoz-fusion-grill-tx";
-    const switchingDate = new Date("Oct 1 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
+    const newAlias = "sakura-12-japanese-lexington";
+    const switchingDate = new Date("Oct 07 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
 
     const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -424,6 +424,10 @@ export class DbScriptsComponent implements OnInit {
     (clone.rateSchedules || []).map(rs => rs.agent = 'none');
     delete clone.notifications;
     delete clone.closedHours;
+    delete clone.salesBase;
+    delete clone.salesBonus;
+    delete clone.salesThreeMonthAverage;
+    
     clone.name = newName;
     clone.previousRestaurantId = previousRestaurantId;
     clone.logs = clone.logs || [];
