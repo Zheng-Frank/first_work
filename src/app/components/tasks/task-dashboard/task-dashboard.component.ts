@@ -101,7 +101,6 @@ export class TaskDashboardComponent {
       return d;
     };
 
-
     const batchSize = 800;
     let result0 = [];
     while (true) {
