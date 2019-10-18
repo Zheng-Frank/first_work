@@ -1,42 +1,40 @@
-<div class="row d-flex align-items-center">
+<div class="row d-flex align-items-center mb-1">
   <div class="col-md-3">
-    <strong>Old Restaurant Id</strong>
+    <strong>Previous Restaurant Id</strong>
   </div>
   <div class="col md-9">
-    <q-edit-label [value]="oldRestaurantId" (edit)="onEdit($event, 'oldRestaurantId')"></q-edit-label>
+    <input type="text" class="form-control" placeholder="Previous Restaurant's Id" [(ngModel)]="oldRestaurantId"/>
   </div>
 </div>
 
-<div class="row d-flex align-items-center">
+<div class="row d-flex align-items-center mb-1">
   <div class="col-md-3 ">
     <strong>New name</strong>
   </div>
   <div class="col md-9">
-    <q-edit-label [value]="newName" (edit)="onEdit($event, 'newName')"></q-edit-label>
+    <input type="text" class="form-control" placeholder="Restaurant's new name" [(ngModel)]="newName"/>
   </div>
 </div>
 
-<div class="row d-flex align-items-center">
+<div class="row d-flex align-items-center mb-1">
   <div class="col-md-3">
     <strong>New Alias</strong>
   </div>
   <div class="col md-9">
-    <q-edit-label [value]="newAlias" (edit)="onEdit($event, 'newAlias')"></q-edit-label>
+    <input type="text" class="form-control" placeholder="New restaurant's alias" [(ngModel)]="newAlias"/>
   </div>
 </div>
 
-<div class="row d-flex align-items-center">
+<div class="row d-flex align-items-center mb-1">
   <div class="col-md-3">
     <strong>Switching Date</strong>
   </div>
   <div class="col md-9">
-    <!-- <q-edit-label [value]="switchingDate" (edit)="onEdit($event, 'switchingDate')"></q-edit-label> -->
-    <!-- <owl-date-time #dt [hour12Timer]="true"></owl-date-time> -->
-    
-    <input [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [owlDateTime]="dt" [(ngModel)]="switchingDate" (ngModelChange)="handleDateChange($event, 'switchingDate')">
-    <owl-date-time #dt></owl-date-time> 
-   
-    
-
+    <input [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [owlDateTime]="dt" [(ngModel)]="switchingDate" class="form-control"/>
+    <owl-date-time #dt></owl-date-time>
   </div>
+</div>
+
+<div class="d-flex justify-content-end"> 
+  <button class="btn btn-primary btn-sm" (click)="changeOwnership()" [disabled]="!canChangeOwnership()">Change Ownership</button>
 </div>
