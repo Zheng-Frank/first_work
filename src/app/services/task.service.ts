@@ -671,7 +671,7 @@ export class TaskService {
 
   // we have request against a location (gmbBiz?)
   async scanForTransferTask(prtFilter) {
-    const rtFilter = prtFilter || '.';
+    const rtFilter = new RegExp(prtFilter || '.');
     const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
@@ -716,21 +716,32 @@ export class TaskService {
 
     console.log('recentRequests', recentRequests);
 
-    const outstandingTransferTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        name: 'Transfer GMB Ownership',
-        result: null,
-        // 'transfer.code': { $exists: true }
-      },
-      projection: {
-        relatedMap: 1
-      },
-      sort: {
-        createdAt: -1
-      },
-      limit: 6000
-    }).toPromise();
+
+    const transferBatchSize = 2000;
+    const outstandingTransferTasks = [];
+    while (true) {
+      const oneRun = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'task',
+        query: {
+          name: 'Transfer GMB Ownership',
+          result: null,
+          // 'transfer.code': { $exists: true }
+        },
+        projection: {
+          relatedMap: 1
+        },
+        sort: {
+          createdAt: -1
+        },
+        skip: outstandingTransferTasks.length,
+        limit: transferBatchSize
+  
+      }).toPromise();
+      outstandingTransferTasks.push(...oneRun);
+      if (oneRun.length === 0 || oneRun.length < transferBatchSize) {
+        break;
+      }
+    }
 
     // tracking hostile requests
     const bizAccountRequestsMap = {};
