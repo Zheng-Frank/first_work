@@ -138,6 +138,24 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }
   }
 
+  async hardRefresh() {
+    try {
+      await this._api.post(environment.qmenuNgrok + 'task/refresh', {
+        taskId: this.modalRow._id
+      }).toPromise();
+
+      this._global.publishAlert(AlertType.Success, 'Refreshed Successfully');
+
+    } catch (error) {
+      console.log(error);
+      const result = error.message || error.error || error;
+      this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
+    }
+
+    await this.refreshSingleTask(this.modalRow._id);
+
+  }
+
   async completePin(pinHistory) {
     if (confirm('Do not try too many times for this function. Too many failed tries will cause the verification disappear. Are you sure to use this PIN?')) {
       try {

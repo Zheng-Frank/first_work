@@ -15,10 +15,16 @@
 </div>
 <div>
   <button class="btn btn-primary mb-2" (click)="scanAccountsForLocations()">Scan Accounts for Locations</button>
-  <button class="btn btn-primary mb-2" (click)="generateMissingGmbBizListings()">Generate Missing GmbBiz Listings</button>
+  <button class="btn btn-primary mb-2" (click)="generateMissingGmbBizListings()">Generate Missing GmbBiz
+    Listings</button>
   <button class="btn btn-primary mb-2" (click)="scanEmailsForRequests()">Scan Emails for Requests</button>
-  <button class="btn btn-primary mb-2" (click)="crawlRestaurantGoogleListings()">Crawl Restaurant Google Listings</button>
+  <button class="btn btn-primary mb-2" (click)="crawlRestaurantGoogleListings()">Crawl Restaurant Google
+    Listings</button>
   <button class="btn btn-primary mb-2" (click)="crawlGmbGoogleListings()">Crawl GMB Google Listings</button>
+
+
+  <button class="btn btn-primary mb-2" (click)="computeGmbRequestTasksThatJustLost()">Scan GMB Lost but Having PIN Tasks</button>
+
 
   <button class="btn btn-primary mb-2" (click)="computePostcardTasksThatJustLost()">Compute Postcard Tasks That Just
     Lost Ownership</button>
@@ -27,7 +33,8 @@
   <button class="btn btn-primary mb-2" (click)="purgeInvalidGmbApplyTasks()">Purge Invalid GMB Apply Tasks</button>
 
   <button class="btn btn-primary mb-2" (click)="scanForTransferTask()">Scan for GMB Transfer Tasks</button>
-  <button class="btn btn-primary mb-2" (click)="purgeInvalidGmbTransferTasks()">Purge Invalid GMB Transfer Tasks</button>
+  <button class="btn btn-primary mb-2" (click)="purgeInvalidGmbTransferTasks()">Purge Invalid GMB Transfer
+    Tasks</button>
 
   <button class="btn btn-primary mb-2" (click)="scanForAppealTasks()">Scan for Appeal Tasks</button>
 
@@ -37,6 +44,7 @@
   <button class="btn btn-primary mb-2" (click)="runInjectQmenuWebsites()">Run Inject qMenu Websites</button>
 </div>
 <div>
-  <input type="text" class="form-control mr-2 mb-1"  placeholder="inclusive restaurant name regex filter, eg ^[^aA] for all starting letters except a or A"
-   [(ngModel)]="restaurantFilter" (blur)="logRestaurantFilter()">
+  <input type="text" class="form-control mr-2 mb-1"
+    placeholder="inclusive restaurant name regex filter, eg ^[^aA] for all starting letters except a or A"
+    [(ngModel)]="restaurantFilter" (blur)="logRestaurantFilter()">
 </div>

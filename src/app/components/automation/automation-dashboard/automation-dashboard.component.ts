@@ -39,10 +39,10 @@ export class AutomationDashboardComponent implements OnInit {
     // debugger;
     console.log(`restaurant filter set to ${this.restaurantFilter}`);
   }
-  filterRTs( rts ){
+  filterRTs(rts) {
     const rtFilter = new RegExp(this.restaurantFilter || ".");
     // debugger;
-    return (rts || []).filter (rt => rtFilter.test(rt.name)); 
+    return (rts || []).filter(rt => rtFilter.test(rt.name));
   }
 
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService, private _gmb3: Gmb3Service) { }
@@ -122,6 +122,11 @@ export class AutomationDashboardComponent implements OnInit {
         this.addRunningMessage('Reschedule tasks with postcard verification code and ownership just lost...');
         const lostList = await this._gmb3.computePostcardTasksThatJustLost();
         this.addRunningMessage('Found ' + lostList.length);
+
+        // if we had postcard code and the ownership was lost, immediately schedule it to grab it back!
+        this.addRunningMessage('Reschedule tasks with code and ownership just lost...');
+        const newTaskLostList = await this._gmb3.computeGmbRequestTasksThatJustLost();
+        this.addRunningMessage('Found ' + newTaskLostList.length);
 
         this.addRunningMessage('Scan for Apply GMB Tasks...');
         const newApplyTasks = await this.scanForApplyTask();
@@ -592,6 +597,11 @@ export class AutomationDashboardComponent implements OnInit {
   async computePostcardTasksThatJustLost() {
     await this._gmb3.computePostcardTasksThatJustLost();
   }
+
+  async computeGmbRequestTasksThatJustLost() {
+    await this._gmb3.computeGmbRequestTasksThatJustLost();
+  }
+
 
   async scanForAppealTasks() {
     return await this._task.scanForAppealTasks();

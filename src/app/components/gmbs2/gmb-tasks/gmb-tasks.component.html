@@ -122,8 +122,8 @@
   </h4>
   <!-- <div class="text-muted text-center"><small>ID: {{modalRow?._id}}</small></div> -->
   <div class="text-center">
-    <button class="btn btn-link" (click)="refreshSingleTask(modalRow?._id)" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
-      Reload</button>
+    <button class="btn btn-link" (click)="hardRefresh()" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
+      Hard Refresh</button>
   </div>
 
   <hr>
