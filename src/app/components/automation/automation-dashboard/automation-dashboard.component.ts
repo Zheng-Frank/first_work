@@ -33,7 +33,7 @@ export class AutomationDashboardComponent implements OnInit {
   // wait ms between each scan
   waitBetweenScan = 4 * 3600000; // 4 hour
 
-  //restaurant filter to limit scan scope, default to match all
+  //restaurant filter to limit scan scope, default to skip A for now. "." for including all
   restaurantFilter = "^[^aA]";
   logRestaurantFilter() {
     // debugger;
