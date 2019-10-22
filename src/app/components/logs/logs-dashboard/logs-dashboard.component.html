@@ -6,8 +6,8 @@
     <div class="float-left form-inline mt-2">
 
         <label class="mr-2"> Restaurant Filter:</label>
-        <input [qDebounce]="800" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="name, phone, order# ..."
-            [(ngModel)]="searchFilter"> &nbsp;&nbsp;
+        <input [qDebounce]="800" (debounce)="debounce($event)" type="text" class="form-control ml-2"
+            placeholder="name, phone, order# ..." [(ngModel)]="searchFilter"> &nbsp;&nbsp;
 
         <label class="text-danger">
             <input type="checkbox" [(ngModel)]="unresolvedOnly" (change)="filterBySelection()">&nbsp;Only Unresolved
@@ -15,6 +15,10 @@
 
         <label style="padding-left: 15px">
             <input type="checkbox" [(ngModel)]="adjustmentOnly" (change)="filterBySelection()">&nbsp;Only Adjustments
+        </label>
+
+        <label style="padding-left: 15px">
+            <input type="checkbox" [(ngModel)]="last7DaysOnly" (change)="filterBySelection()">&nbsp;Only Last 7 Days
         </label>
 
         <label class="mr-2" style="padding-left: 15px"> Agent:</label>
@@ -41,6 +45,6 @@
 
 <!--the editing modal-->
 <q-modal #logEditingModal>
-    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing" (success)="onSuccessCreation($event)"
-        (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
+    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
+        (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
 </q-modal>

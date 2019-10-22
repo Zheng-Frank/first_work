@@ -334,6 +334,7 @@ export class MyRestaurantComponent implements OnInit {
           isPaymentCompleted: 1,
           "restaurant.id": 1,
           previousInvoiceId: 1,
+          adjustment: 1,
           //previousBalance: 1
         },
         skip: skip,
@@ -373,11 +374,12 @@ export class MyRestaurantComponent implements OnInit {
       }
     });
 
-    this.rows.map(row => row.collected = row.invoices.reduce((sum, invoice) => sum + (invoice.paid ? invoice.commission : 0), 0));
-    this.rows.map(row => row.notCollected = row.invoices.reduce((sum, invoice) => sum + (invoice.paid ? 0 : invoice.commission), 0));
+    this.rows.map(row => row.collected = row.invoices.reduce((sum, invoice) => sum + (invoice.paid ? (invoice.commission - (invoice.adjustment > 0 ? invoice.adjustment : 0)) : 0), 0));
+    this.rows.map(row => row.notCollected = row.invoices.reduce((sum, invoice) => sum + (invoice.paid ? 0 : (invoice.commission - (invoice.adjustment > 0 ? invoice.adjustment : 0))), 0));
 
     this.rows.map(row => {
       row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
+      // row.adjustment = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
       row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
       row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
 
