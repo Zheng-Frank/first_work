@@ -13,11 +13,13 @@
 <label class="checkbox-inline">
     <input type="checkbox" [(ngModel)]="showMissingWebsite" (change)="filter()"> Only Missing Website</label>
 
+
 <div class="clearfix my-2">
     <div class="float-left form-inline">
         <select class="form-control mr-2 mb-1" [(ngModel)]="managedDomain" (change)="filter()">
             <option>Manged Domains</option>
-            <option>Expired</option>
+            <option>only active</option>
+            <option>expired</option>
         </select>
     </div>
 </div>
@@ -26,7 +28,9 @@
         <th>#</th>
         <th>Restaurant</th>
         <th>Website</th>
+        <th>Domain Type</th>
         <th>Domain</th>
+        <th>Domain Expiry</th>
         <th>Score</th>
         <th>Agent</th>
         <th>GMB</th>
@@ -44,7 +48,13 @@
             {{row.restaurant?.web?.qmenuWebsite}}
         </td>
         <td>
-            {{row.domain}}
+            {{row.domainType}}
+        </td>
+        <td>
+            {{row.domain?.name}}
+        </td>
+        <td>
+            {{row.domain?.expiry}}
         </td>
         <td>
             {{row.restaurant.score}}
