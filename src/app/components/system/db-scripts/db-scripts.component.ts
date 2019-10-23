@@ -425,6 +425,7 @@ export class DbScriptsComponent implements OnInit {
     delete clone.notifications;
     delete clone.closedHours;
     delete clone.salesBase;
+    delete clone.logs;
     delete clone.salesBonus;
     delete clone.salesThreeMonthAverage;
     
