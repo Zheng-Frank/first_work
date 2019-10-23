@@ -20,7 +20,7 @@ export class BulkMessagingComponent implements OnInit {
 
   isRunning = false;
 
-  inputRestaurantString = '58ba1a8d9b4e441100d8cdc1';
+  inputRestaurantString = '';
   restaurants = [];
 
   smsMsgContents = '';
@@ -101,6 +101,7 @@ export class BulkMessagingComponent implements OnInit {
               error => {
                 // this._global.publishAlert(AlertType.Danger, "Error sending message");
                 flag.smsError = true;
+                console.log('[ERROR SENDING SMS] ', currentRestaurant._id, currentRestaurant.name, error);
               }
             );
 
@@ -128,6 +129,7 @@ export class BulkMessagingComponent implements OnInit {
               error => {
                 // this._global.publishAlert(AlertType.Danger, "Error sending message");
                 flag.emailError = true;
+                console.log('[ERROR SENDING EMAIL]', currentRestaurant._id, currentRestaurant.name, error);
               }
             );
 
@@ -155,6 +157,7 @@ export class BulkMessagingComponent implements OnInit {
               error => {
                 // this._global.publishAlert(AlertType.Danger, "Error sending message");
                 flag.faxError = true;
+                console.log('[ERROR SENDING FAX]', currentRestaurant._id, currentRestaurant.name, error);
               }
             );
 
@@ -165,6 +168,8 @@ export class BulkMessagingComponent implements OnInit {
           this.restaurants = this.restaurants.filter(rt => rt._id !== currentRestaurant._id);
         }
 
+        // Reset flag
+        flag.smsError = flag.emailError = flag.faxError = false;
 
         // Next restaurant to process at the next interntal
         restaurantCount++;
