@@ -142,6 +142,7 @@ import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle
 import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component';
 import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.component';
 import { ChangeOwnershipComponent } from './components/change-ownership/change-ownership.component';
+import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -264,6 +265,7 @@ import { ChangeOwnershipComponent } from './components/change-ownership/change-o
     GmbPinsComponent,
     GmbTasksComponent,
     ChangeOwnershipComponent,
+    BulkMessagingComponent,
   ],
   imports: [
     BrowserModule,
