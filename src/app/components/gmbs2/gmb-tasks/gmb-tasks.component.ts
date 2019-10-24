@@ -187,7 +187,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
           taskId: this.modalRow._id,
           email: this.modalRow.request.email,
           locationName: this.modalRow.request.locationName,
-          verificationOption: this.preferredVerificationOption
+          verificationOption: vo
         }).toPromise();
 
         this._global.publishAlert(AlertType.Success, 'triggered successfully');

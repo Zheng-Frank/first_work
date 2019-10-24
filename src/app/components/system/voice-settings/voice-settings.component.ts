@@ -19,15 +19,15 @@ export class VoiceSettingsComponent implements OnInit {
 
   }
 
-  async setDefault(smsProvider) {
+  async setDefault(voiceProvider) {
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
         {
-          old: { _id: this.system._id, smsSettings: {} },
-          new: { _id: this.system._id, smsSettings: { defaultProviderName: smsProvider.name } }
+          old: { _id: this.system._id, voiceSettings: {} },
+          new: { _id: this.system._id, voiceSettings: { defaultProviderName: voiceProvider.name } }
         }
       ]).toPromise();
-      this.system.smsSettings.defaultProviderName = smsProvider.name;
+      this.system.voiceSettings.defaultProviderName = voiceProvider.name;
       await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
       this._global.publishAlert(AlertType.Success, "Success!");
     }
@@ -52,8 +52,8 @@ export class VoiceSettingsComponent implements OnInit {
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
         {
-          old: { _id: this.system._id, smsSettings: { customized: {} } },
-          new: { _id: this.system._id, smsSettings: { customized: this.system.smsSettings.customized } }
+          old: { _id: this.system._id, voiceSettings: { customized: {} } },
+          new: { _id: this.system._id, voiceSettings: { customized: this.system.voiceSettings.customized } }
         }
       ]).toPromise();
       await this._api.post(environment.legacyApiUrl + "utilities/resetSystemSettings", {}).toPromise();
