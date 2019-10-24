@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <div *ngIf="restaurants.length > 0" class="col-md-5">
+  <div class="col-md-5">
 
     <div class="row">
       <div class="col-md-3">
@@ -80,7 +80,7 @@
 
   </div>
 
-  <div *ngIf="restaurants.length > 0" class="col-md-3">
+  <div class="col-md-3">
     <button *ngIf="!isRunning" class="btn btn-primary btn-sm" (click)="startBulkSend()">Start Sending</button>
     <button *ngIf="isRunning" class="btn btn-primary btn-sm" (click)="isRunning=false">Stop Sending</button>
   </div>

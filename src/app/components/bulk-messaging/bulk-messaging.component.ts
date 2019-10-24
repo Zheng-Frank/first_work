@@ -80,13 +80,13 @@ export class BulkMessagingComponent implements OnInit {
 
         const flag = { smsError: false, emailError: false, faxError: false };
 
-        if (!!currentRestaurant.__error) {
+        if (!currentRestaurant.__error) {
           // --- Send SMS
           if (this.isSMS) {
             const currentRestaurantSMSList = currentRestaurant.channels.filter(rt => rt.type === 'SMS');
             for (let i = 0; i < currentRestaurantSMSList.length; i++) {
               const currentSMSTo = currentRestaurantSMSList[i];
-
+              console.log('Sending SMS to ', currentSMSTo.value, this.smsMsgContents);
               this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
                 "name": "send-sms",
                 "params": {
@@ -114,7 +114,7 @@ export class BulkMessagingComponent implements OnInit {
             const currentRestaurantEmailList = currentRestaurant.channels.filter(rt => rt.type === 'Email');
             for (let j = 0; j < currentRestaurantEmailList.length; j++) {
               const currentEmailTo = currentRestaurantEmailList[j];
-
+              console.log('Sending Email to ', currentEmailTo.value, this.emailMsgContents);
               this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
                 "name": "send-email",
                 "params": {
@@ -141,7 +141,7 @@ export class BulkMessagingComponent implements OnInit {
             const currentRestaurantFaxList = currentRestaurant.channels.filter(rt => rt.type === 'Fax');
             for (let k = 0; k < currentRestaurantFaxList.length; k++) {
               const currentFaxTo = currentRestaurantFaxList[k];
-
+              console.log('Sending Fax to ', currentFaxTo.value, this.faxMsgContents);
               this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
                 "name": "send-fax",
                 "params": {
@@ -175,6 +175,9 @@ export class BulkMessagingComponent implements OnInit {
           restaurantCount++;
         }
       }
+
+      clearInterval(this.restaurantLoopInterval);
+      this.isRunning = false;
     }, 500);
 
 
