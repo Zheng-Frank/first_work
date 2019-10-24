@@ -42,7 +42,7 @@ export class Invoice {
   computeDerivedValues() {
     ['tax', 'tip', 'surcharge', 'deliveryCharge',
       'thirdPartyDeliveryCharge', 'thirdPartyDeliveryTip',
-      'subtotal', 'adjustment', 'total', 'cashCollected',
+      'subtotal', 'adjustment', 'total', 'cashCollected', 'transactionAdjustment',
       'qMenuCcCollected', 'restaurantCcCollected', 'ccProcessingFee',
       'stripeFee', 'commission', 'balance', 'rateAverage', 'totalPayments']
       .map(field => { console.log(field); console.log(this); this[field] = this['get' + field[0].toUpperCase() + field.substr(1)]() });
@@ -112,6 +112,10 @@ export class Invoice {
 
   getAdjustment() {
     return (this.adjustments || []).reduce((sum, o) => sum + (+(+o.amount).toFixed(2) || 0), 0);
+  }
+
+  getTransactionAdjustment() {
+    return (this.adjustments || []).filter(adj => adj.type === 'TRANSACTION').reduce((sum, o) => sum + (+(+o.amount).toFixed(2) || 0), 0);
   }
 
   getTotal() {

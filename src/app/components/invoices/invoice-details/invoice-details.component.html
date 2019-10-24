@@ -1,5 +1,5 @@
 <!-- View ONLY panel -->
-
+<button (click)="computeDerivedFields()">COMPUTE DERIVED</button>
 <div *ngIf="invoice && !canEdit() && canView()" class="card mt-2 no-print">
     <div class="card-body">
         <div *ngIf="invoice.isCanceled" class="text-danger app-invoice-canceled text-muted">
@@ -88,7 +88,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- ACCOUNTANT PANEL -->
 <div *ngIf="invoice && canEdit()" class="card mt-2 no-print">
@@ -231,6 +230,7 @@
         <span aria-hidden="true">×</span>
     </button>
     <h4 class="text-center">Invoice Adjustment</h4>
+    <div class="alert alert-danger">DO NOT ADD STRIPE DISPUTE ADJUSTMENT HERE!</div>
     <hr>
     <div class="form-group">
         <label>Description:</label>

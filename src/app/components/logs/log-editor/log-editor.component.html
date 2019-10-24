@@ -38,7 +38,7 @@
       qMenu and restaurant mutually agreed
       adjustment here. The adjustment will be included in next invoice cycle.
       <div>
-        <strong>* All fields are required.</strong>
+        <strong>* STOP IF YOU DO NOT FULLY UNDERSTAND THIS FORM.</strong>
       </div>
     </div>
     <div class="card-body">
@@ -57,12 +57,12 @@
         <input class="form-control" type="text" id="id-reason" [(ngModel)]="log.adjustmentReason">
       </div>
       <div class="mb-3">
-        <label for="id-reason">Type (STOP if you do not FULLY understand this option)
-        </label>
-        <q-simple-radio [(ngModel)]="log.adjustmentType" [equalWidth]="true" [values]="['TRANSACTION', 'COMMISSION']">
-        </q-simple-radio>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="id-transaction-adjustment" [checked]="log.adjustmentType === 'TRANSACTION'"
+          (change)="toggleAdjustmentType()">
+          <label class="form-check-label" for="id-transaction-adjustment"> Stripe Dispute</label>
+        </div>
       </div>
-
     </div>
   </div>
 

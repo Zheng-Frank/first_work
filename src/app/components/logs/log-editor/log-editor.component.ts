@@ -210,6 +210,9 @@ export class LogEditorComponent implements OnInit {
     return this._global.user.roles.some(r => r === 'ADMIN');
   }
 
+  toggleAdjustmentType() {
+    this.log.adjustmentType === 'TRANSACTION' ? this.log.adjustmentType = undefined : this.log.adjustmentType = 'TRANSACTION';
+  }
   toggleIsCollection() {
     this.log.type === 'collection' ? this.log.type = undefined : this.log.type = 'collection';
   }

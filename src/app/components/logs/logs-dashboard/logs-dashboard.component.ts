@@ -157,7 +157,6 @@ export class LogsDashboardComponent implements OnInit {
   }
 
   computeFilteredLogs() {
-    console.log('start compute')
     this.restaurantLogs = [];
     this.restaurantList.map(r => {
       if (r.name === 'Demo') {
@@ -174,8 +173,7 @@ export class LogsDashboardComponent implements OnInit {
         const date = new Date();
         date.setDate(date.getDate() - (this.last7DaysOnly ? 7 : 70000));
 
-        const b3 = this.last7DaysOnly && new Date(log.time).valueOf() > date.valueOf();
-
+        const b3 = new Date(log.time).valueOf() > date.valueOf();
         if (b1 && b2 && b3) {
           this.restaurantLogs.push({
             restaurant: r,
@@ -210,6 +208,7 @@ export class LogsDashboardComponent implements OnInit {
   }
 
   filterBySelection() {
+    this.computeFilteredLogs();
     this.filteredResult = this.restaurantLogs.slice(0);
     if (this.agent && this.agent !== "All") {
       this.filteredResult = this.filteredResult.filter(l => l.log.username === this.agent);
