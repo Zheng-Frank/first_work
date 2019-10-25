@@ -138,10 +138,28 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }
   }
 
+  async hardRefresh() {
+    try {
+      await this._api.post(environment.gmbNgrok + 'task/refresh', {
+        taskId: this.modalRow._id
+      }).toPromise();
+
+      this._global.publishAlert(AlertType.Success, 'Refreshed Successfully');
+
+    } catch (error) {
+      console.log(error);
+      const result = error.error || error.message || error;
+      this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
+    }
+
+    await this.refreshSingleTask(this.modalRow._id);
+
+  }
+
   async completePin(pinHistory) {
     if (confirm('Do not try too many times for this function. Too many failed tries will cause the verification disappear. Are you sure to use this PIN?')) {
       try {
-        await this._api.post(environment.qmenuNgrok + 'task/complete', {
+        await this._api.post(environment.gmbNgrok + 'task/complete', {
           taskId: this.modalRow._id,
           email: this.modalRow.request.email,
           locationName: this.modalRow.request.locationName,
@@ -152,7 +170,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
       } catch (error) {
         console.log(error);
-        const result = error.message || error.error || error;
+        const result = error.error || error.message || error;
         this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
       }
 
@@ -165,18 +183,18 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     if (confirm('Trigger too many times could exhaust existing verification options. Are you sure?')) {
       this.verifyingOption = vo;
       try {
-        await this._api.post(environment.qmenuNgrok + 'task/verify', {
+        await this._api.post(environment.gmbNgrok + 'task/verify', {
           taskId: this.modalRow._id,
           email: this.modalRow.request.email,
           locationName: this.modalRow.request.locationName,
-          verificationOption: this.preferredVerificationOption
+          verificationOption: vo
         }).toPromise();
 
         this._global.publishAlert(AlertType.Success, 'triggered successfully');
 
       } catch (error) {
         console.log(error);
-        const result = error.message || error.error || error;
+        const result = error.error || error.message || error;
         this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
       }
 
@@ -245,7 +263,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   async showDetails(row) {
 
-    console.log(row);
     this.preferredVerificationOption = undefined;
     const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "gmbAccount",
@@ -312,6 +329,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       person.channels = (person.channels || []).filter(c => c.type !== 'Email')
     });
 
+    console.log(row);
     //
   }
   async savePin() {
@@ -319,7 +337,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       return alert('Bad PIN to save');
     }
     try {
-      await this._api.post(environment.qmenuNgrok + 'task/save-pin', {
+      await this._api.post(environment.gmbNgrok + 'task/save-pin', {
         taskId: this.modalRow._id,
         pin: this.pin,
         username: this._global.user.username

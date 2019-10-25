@@ -1,0 +1,29 @@
+<div *ngIf="restaurant">
+  <div class="mb-2 text-right">
+    <button class="btn btn-primary" (click)="scanGmbTasks()" [qLoading]="scanning">
+      <i class="fas fa-search"></i> Scan GMB Tasks</button>
+  </div>
+
+  <table>
+    <tr>
+      <th>Result</th>
+      <th>Created At</th>
+      <th>Id</th>
+      <th>Name</th>
+    </tr>
+    <tr *ngFor="let task of tasks">
+      <td>{{task.result}}</td>
+      <td>{{task.createdAt}}</td>
+      <td>{{task._id}}</td>
+      <td>{{task.name}}</td>
+    </tr>
+  </table>
+
+  <!-- <app-logs-table [restaurantLogs]="getReversedLogs(restaurant)" [showRestaurant]="false" (select)="select($event)">
+  </app-logs-table> -->
+  <!--the editing modal-->
+  <!-- <q-modal #logEditingModal>
+    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
+      (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
+  </q-modal> -->
+</div>

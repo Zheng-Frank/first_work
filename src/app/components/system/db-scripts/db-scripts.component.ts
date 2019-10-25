@@ -425,9 +425,10 @@ export class DbScriptsComponent implements OnInit {
     delete clone.notifications;
     delete clone.closedHours;
     delete clone.salesBase;
+    delete clone.logs;
     delete clone.salesBonus;
     delete clone.salesThreeMonthAverage;
-    
+
     clone.name = newName;
     clone.previousRestaurantId = previousRestaurantId;
     clone.logs = clone.logs || [];
@@ -1159,80 +1160,28 @@ export class DbScriptsComponent implements OnInit {
     );
   } // end injectDeliveryBy
 
-  injectTotalEtcToInvoice() {
-
-    let affectedInvoices = [];
-    this._api.get(environment.qmenuApiUrl + "generic", {
+  async injectTotalEtcToInvoice() {
+    alert('only ones without transactionAdjustment')
+    const invoices = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "invoice",
-      query: {
-        balance: { $exists: false },
-        // "restaurant.id" : "5bf60c483bec68140070fbe3"
-      },
+      query: {},
       projection: {
         "restaurant.name": 1,
-        "restaurant.offsetToEST": 1,
-        orders: 1,
-        adjustments: 1,
-        payments: 1,
         isCanceled: 1,
-        isSent: 1,
-        isPaymentSent: 1,
-        isPaymentCompleted: 1,
-        previousInvoiceId: 1,
-        previousBalance: 1
-
+        adjustments: 1,
+        transactionAdjustment: 1
       },
-      limit: 50
-    })
-      .pipe(mergeMap(invoices => {
-        console.log(invoices);
-        affectedInvoices = invoices;
-        const originInvoices = JSON.parse(JSON.stringify(invoices)).map(i => new Invoice(i));
-        const newInvoices = invoices.map(i => {
-          const newI = new Invoice(i);
-          newI.computeDerivedValues();
-          return newI;
-        });
+      limit: 50000000
+    }).toPromise();
 
-        console.log(originInvoices);
-        console.log(newInvoices);
+    const withAdjustments = invoices.filter(i => i.adjustments && i.adjustments.length > 0 && i.transactionAdjustment === undefined);
+    console.log(withAdjustments.length)
 
+    for (let i of withAdjustments) {
+      await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: i._id }).toPromise();
+    }
 
-        if (newInvoices.length === 0) {
-          throw 'No invoice to update!';
-        }
-
-        return this._api
-          .patch(environment.qmenuApiUrl + "generic?resource=invoice", newInvoices.map((invoice, index) => {
-
-            const oldInvoice = originInvoices[index];
-            const newInvoice = invoice;
-            delete oldInvoice.orders;
-            delete newInvoice.orders;
-
-            console.log(oldInvoice);
-            console.log(newInvoice);
-            return {
-              old: oldInvoice,
-              new: newInvoice
-            };
-          }));
-      }))
-      .subscribe(
-        updatedInvoices => {
-          console.log(updatedInvoices);
-          this._global.publishAlert(
-            AlertType.Success,
-            "Updated " + affectedInvoices.map(i => i.restaurant.name).join(', ')
-          );
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error: " + JSON.stringify(error)
-          );
-        }
-      );
+    console.log(invoices.length)
   } // injectTotalEtcToInvoice
 
   async migrateEmailAndPhones() {
@@ -3051,7 +3000,7 @@ export class DbScriptsComponent implements OnInit {
     ['domain'].map(type => this.deleteDomainData(type));
     let results = [];
     let awsDomainList = await this._api.get(environment.qmenuApiUrl + "utils/list-aws-domain").toPromise();
-    
+
     awsDomainList.map(each => {
       let domain = new Domain();
       domain.name = each.DomainName;

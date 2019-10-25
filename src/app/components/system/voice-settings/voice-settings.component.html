@@ -1,0 +1,36 @@
+<ng-container *ngIf="system && system.voiceSettings">
+  <div class="pb-2">
+    <button class="btn btn-primary" (click)="deploy()">Deploy Changes</button>
+  </div>
+  <div class="row">
+    <div class="col col-sm-4" *ngFor="let provider of system.voiceSettings.providers">
+      <div class="card">
+        <div class="card-header clearfix {{system.voiceSettings.defaultProviderName === provider.name ? 'bg-success text-white' : ''}}">
+          <div class="float-left">{{provider.name | uppercase}}</div>
+          <div class="float-right" *ngIf="system.voiceSettings.defaultProviderName === provider.name"><i class="fas fa-check"></i>
+            Default</div>
+          <div class="float-right" *ngIf="system.voiceSettings.defaultProviderName !== provider.name">
+            <button class="btn btn-link custom-btn-link" (click)="setDefault(provider)">Set as Default</button></div>
+        </div>
+        <div class="card-body">
+          <div class="pb-4">
+
+            <ng-container *ngFor="let phone of provider.phones">
+              <span class="badge badge-info">{{phone | tel}}</span>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="system && system.voiceSettings && system.voiceSettings.customized" class="card card-body mt-2">
+    <div *ngFor="let c of system.voiceSettings.customized">
+      <h4>Use {{c.providerName}} {{c.phone | tel}}</h4>
+      <div>
+        <q-values [(ngModel)]="c.toPhones" (ngModelChange)="customizedUpdated($event)"></q-values>
+        <!-- <span *ngFor="let r of c.toPhones; let i = index;">{{i > 0 ? ' | ' : ''}}{{r | tel}}</span> -->
+      </div>
+    </div>
+  </div>
+</ng-container>

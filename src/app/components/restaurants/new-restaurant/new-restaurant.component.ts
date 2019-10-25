@@ -46,6 +46,7 @@ export class NewRestaurantComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _router: Router) { }
 
   ngOnInit() {
+    this.skipApplyGmb =this._global.user.roles.some(r => r === 'MARKETER_INTERNAL' || r === 'MARKETER_EXTERNAL');
   }
 
   formInputChanged(event) {
@@ -359,14 +360,6 @@ export class NewRestaurantComponent implements OnInit {
   }
   isDisabled() {
     return this._global.user.roles.some(r => r === 'MARKETER_INTERNAL' || r === 'MARKETER_EXTERNAL');
-  }
-  isChecked() {
-    if (this._global.user.roles.some(r => r === 'MARKETER_INTERNAL')) {
-      this.skipApplyGmb = false;
-    }
-    if (this._global.user.roles.some(r => r === 'MARKETER_EXTERNAL')) {
-      this.skipApplyGmb = true;
-    }
   }
 
 }

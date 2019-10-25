@@ -7,16 +7,21 @@
         <div class="form-group form-check">
             <input type="checkbox" class="form-check-input" id="severless-checkbox"
                 [(ngModel)]="system.useServerlessForNewOrder" [disabled]="true">
-            <label class="form-check-label" for="severless-checkbox">Use Serverless For New Order (SERVERLESS IS THE ONLY OPTION)</label>
+            <label class="form-check-label" for="severless-checkbox">Use Serverless For New Order (SERVERLESS IS THE
+                ONLY OPTION)</label>
         </div>
     </div>
-    <div class="my-4">
+    <div class="my-4 card card-body border-primary">
         <h3 class="text-center">SMS Providers</h3>
         <app-sms-settings [system]="system"></app-sms-settings>
     </div>
-    <div class="my-4">
+    <div class="my-4 card card-body border-primary">
         <h3 class="text-center">Fax Providers</h3>
         <app-fax-settings [system]="system"></app-fax-settings>
+    </div>
+    <div class="my-4 card card-body border-primary">
+        <h3 class="text-center">Voice Providers</h3>
+        <app-voice-settings [system]="system"></app-voice-settings>
     </div>
 </div>
 

@@ -15,6 +15,87 @@ export class Gmb3Service {
   constructor(private _api: ApiService, private _task: TaskService, private _global: GlobalService) {
   }
 
+  async computeGmbRequestTasksThatJustLost() {
+    // transfer tasks that are NOT in original accounts anymore!
+    const runningGmbRequestTasksWithPins = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'task',
+      query: {
+        name: 'GMB Request',
+        result: null,
+        'request.pinHistory.pin': { $exists: true }
+      },
+      projection: {
+        "request.email": 1,
+        "relatedMap.cid": 1,
+        "relatedMap.place_id": 1
+      },
+      limit: 100000
+    }).toPromise();
+
+    console.log('runningGmbRequestTasksWithPins', runningGmbRequestTasksWithPins);
+
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1,
+        "locations.cid": 1,
+        "locations.place_id": 1,
+        "locations.status": 1
+      },
+      limit: 100000
+    }).toPromise();
+
+    const publishedCids = new Set();
+    const publishedPlaceIds = new Set();
+    gmbAccounts.map(acct => (acct.locations || []).map(loc => {
+      if (loc.status === 'Published') {
+        publishedCids.add(loc.cid);
+        publishedPlaceIds.add(loc.place_id);
+      }
+    }));
+
+    const lostList = runningGmbRequestTasksWithPins.filter(task => {
+      const cid = task.relatedMap.cid;
+      const palce_id = task.relatedMap.place_id;
+      return !publishedCids.has(cid) && !publishedPlaceIds.has(palce_id);
+
+    });
+
+    console.log('lost list: ', lostList);
+    const rtIds = lostList.map(t => t.relatedMap.restaurantId);
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        _id: { $in: rtIds.map(rtId => ({ $oid: rtId })) }
+      },
+      projection: {
+        googleListing: 1,
+      },
+      limit: rtIds.length
+    }).toPromise();
+    // we also would like to test current GMB of restaurant's google listing to make sure
+    const trulyLostList = lostList.filter(t => !restaurants.some(rt => rt._id === t.relatedMap.restaurantId && rt.googleListing && rt.googleListing.gmbOwner === 'qmenu'));
+    console.log('truly lost list: ', trulyLostList);
+    // now reschedule those by systems!
+    if (trulyLostList.length > 0) {
+      const pairs = [];
+      pairs.push(...lostList.map(t => ({
+        old: {
+          _id: t._id
+        },
+        new: {
+          _id: t._id,
+          scheduledAt: { $date: new Date() },
+          comments: (!t.comments || t.comments.indexOf('[rescheduled by system]') < 0) ? (t.comments || '') + ' [rescheduled by system]' : t.comments
+        }
+      })));
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', pairs).toPromise();
+    }
+    return lostList;
+  }
+
+
   async injectRestaurantScore(restaurant: Restaurant) {
 
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {

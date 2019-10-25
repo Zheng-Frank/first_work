@@ -14,8 +14,10 @@ export class MonitoringGmbComponent implements OnInit {
   showNotDisabled = false;
   showOnlyPublished = false;
   showMissingWebsite = false;
+  showExpiredDomain = false;
   filteredRows = [];
   domains = [];
+  domainRtDict = {};
   managedDomain = "Manged Domains";
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -104,10 +106,21 @@ export class MonitoringGmbComponent implements OnInit {
         };
       }
     }));
+    this.domains = this.domains.filter(e=> !e.status || e.status ==='ACTIVE');
+
+    this.domains.map(domain => {
+      allRestaurants.map(rt => {
+        let website = rt.web && rt.web.qmenuWebsite;
+        if (website && website.toLowerCase().indexOf(domain.name) >= 0) {
+          this.domainRtDict[rt._id] = domain;
+        }
+      })
+    });
 
     this.rows = allRestaurants.map(r => ({
       restaurant: r,
-      domain: this.getDomainType(r.web && r.web.qmenuWebsite),
+      domainType: this.getDomainType(r.web && r.web.qmenuWebsite),
+      domain: this.domainRtDict[r._id],
       account: (cidAccountLocationMap[(r.googleListing || {}).cid] || {}).account,
       location: (cidAccountLocationMap[(r.googleListing || {}).cid] || {}).location,
     }));
@@ -116,8 +129,9 @@ export class MonitoringGmbComponent implements OnInit {
     // this.rows.length > 500 ? this.rows.length = 500 : '';
     this.filter();
   }
-
+  
   filter() {
+    const now = new Date();
     this.filteredRows = this.rows;
     if (this.showOnlyPublished) {
       this.filteredRows = this.filteredRows.filter(row => !row.restaurant.disabled && (row.location && row.location.status == 'Published'));
@@ -133,10 +147,17 @@ export class MonitoringGmbComponent implements OnInit {
       this.filteredRows = this.filteredRows.filter(row => row.restaurant.googleListing && !row.restaurant.googleListing.gmbWebsite);
     }
 
+    if(this.showExpiredDomain){
+      this.filteredRows = this.filteredRows.filter(e => e.domain && (new Date(e.domain.expiry)).valueOf() < now.valueOf());
+    }
+
+
     switch (this.managedDomain) {
       case 'only active':
-        const now = new Date();
-        this.filteredRows = this.filteredRows.filter(e =>  new Date(e.expiry).valueOf() < now.valueOf());
+        this.filteredRows = this.filteredRows.filter(e => e.domain && (new Date(e.domain.expiry)).valueOf() > now.valueOf());
+        break;
+      case 'expired':
+        this.filteredRows = this.filteredRows.filter(e => e.domain && (new Date(e.domain.expiry)).valueOf() < now.valueOf());
         break;
       default:
         break;
