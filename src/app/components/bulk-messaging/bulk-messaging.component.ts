@@ -5,6 +5,7 @@ import { AlertType } from "../../classes/alert-type";
 import { environment } from "../../../environments/environment";
 
 import { of } from 'rxjs';
+import { ifStmt } from '@angular/compiler/src/output/output_ast';
 
 @Component({
   selector: 'app-bulk-messaging',
@@ -27,7 +28,11 @@ export class BulkMessagingComponent implements OnInit {
   emailMsgContents = '';
   faxMsgContents = '';
 
-  restaurantLoopInterval = null;
+  currentStatus = '';
+
+  isError = false;
+
+  processedRestaurantIds = new Set();
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -66,120 +71,94 @@ export class BulkMessagingComponent implements OnInit {
   }
 
   stopBulkSend() {
-    clearInterval(this.restaurantLoopInterval);
+    this.isRunning = false;
   }
 
-  startBulkSend() {
-    let restaurantCount = 0;
+  async startBulkSend() {
 
+    this.isError = false;
     this.isRunning = true;
 
-    this.restaurantLoopInterval = setInterval(() => {
-      if (restaurantCount < this.restaurants.length) {
-        const currentRestaurant = this.restaurants[restaurantCount];
+    for (let currentRestaurant of this.restaurants) {
+      if (!this.isRunning)
+        break;
 
-        const flag = { smsError: false, emailError: false, faxError: false };
+      if (this.processedRestaurantIds.has(currentRestaurant._id))
+        continue;
 
-        if (!currentRestaurant.__error) {
-          // --- Send SMS
-          if (this.isSMS) {
-            const currentRestaurantSMSList = currentRestaurant.channels.filter(rt => rt.type === 'SMS');
-            for (let i = 0; i < currentRestaurantSMSList.length; i++) {
-              const currentSMSTo = currentRestaurantSMSList[i];
-              console.log('Sending SMS to ', currentSMSTo.value, this.smsMsgContents);
-              this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-                "name": "send-sms",
-                "params": {
-                  "to": currentSMSTo.value,
-                  "from": "8447935942",
-                  "providerName": "plivo",
-                  "message": this.smsMsgContents
-                }
-              }]).subscribe(
-                result => {
-                  // this._global.publishAlert(AlertType.Success, "Message sent successfully");
-                },
-                error => {
-                  // this._global.publishAlert(AlertType.Danger, "Error sending message");
-                  flag.smsError = true;
-                  currentRestaurant.__error = true;
-                  console.log('[ERROR SENDING SMS] ', currentRestaurant._id, currentRestaurant.name, error);
-                }
-              ); //--api call
-            }
+      this.processedRestaurantIds.add(currentRestaurant._id);
+
+      // process it
+      try {
+        // SMS
+        if (this.isSMS) {
+          const currentRestaurantSMSList = currentRestaurant.channels.filter(r => r.type === 'SMS');
+          for (let rtSMS of currentRestaurantSMSList) {
+            console.log('Sending SMS to ', rtSMS.value, this.smsMsgContents);
+
+            await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+              "name": "send-sms",
+              "params": {
+                "to": rtSMS.value,
+                "from": "8447935942",
+                "providerName": "plivo",
+                "message": this.smsMsgContents
+              }
+            }]).toPromise();
           }
-
-          // --- Send Email
-          if (this.isEmail) {
-            const currentRestaurantEmailList = currentRestaurant.channels.filter(rt => rt.type === 'Email');
-            for (let j = 0; j < currentRestaurantEmailList.length; j++) {
-              const currentEmailTo = currentRestaurantEmailList[j];
-              console.log('Sending Email to ', currentEmailTo.value, this.emailMsgContents);
-              this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-                "name": "send-email",
-                "params": {
-                  "to": currentEmailTo.value,
-                  "subject": "QMenu Notification",
-                  "html": this.emailMsgContents
-                }
-              }]).subscribe(
-                result => {
-                  // this._global.publishAlert(AlertType.Success, "Message sent successfully");
-                },
-                error => {
-                  // this._global.publishAlert(AlertType.Danger, "Error sending message");
-                  flag.emailError = true;
-                  currentRestaurant.__error = true;
-                  console.log('[ERROR SENDING EMAIL]', currentRestaurant._id, currentRestaurant.name, error);
-                }
-              ); //--api call
-            }
-          }
-
-          // --- Send Fax
-          if (this.isFax) {
-            const currentRestaurantFaxList = currentRestaurant.channels.filter(rt => rt.type === 'Fax');
-            for (let k = 0; k < currentRestaurantFaxList.length; k++) {
-              const currentFaxTo = currentRestaurantFaxList[k];
-              console.log('Sending Fax to ', currentFaxTo.value, this.faxMsgContents);
-              this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-                "name": "send-fax",
-                "params": {
-                  "from": "8555582558",
-                  "to": currentFaxTo.value,
-                  "mediaUrl": this.faxMsgContents,
-                  "providerName": "twilio"
-                }
-              }]).subscribe(
-                result => {
-                  // this._global.publishAlert(AlertType.Success,"Message sent successfully");
-                },
-                error => {
-                  // this._global.publishAlert(AlertType.Danger, "Error sending message");
-                  flag.faxError = true;
-                  currentRestaurant.__error = true;
-                  console.log('[ERROR SENDING FAX]', currentRestaurant._id, currentRestaurant.name, error);
-                }
-              ); //--api call
-            }
-          }
-
-          if (!(flag.smsError && flag.emailError && flag.faxError)) {
-            this.restaurants = this.restaurants.filter(rt => rt._id !== currentRestaurant._id);
-          }
-  
-          // Reset flag
-          flag.smsError = flag.emailError = flag.faxError = false;
-  
-          // Next restaurant to process at the next interntal
-          restaurantCount++;
         }
+
+
+        // Email
+        if (this.isEmail) {
+          const currentRestaurantEmailList = currentRestaurant.channels.filter(r => r.type === 'Email');
+          for (let rtEmail of currentRestaurantEmailList) {
+            console.log('Sending Email to ', rtEmail.value, this.emailMsgContents);
+
+            this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+              "name": "send-email",
+              "params": {
+                "to": rtEmail.value,
+                "subject": "QMenu Notification",
+                "html": this.emailMsgContents
+              }
+            }]).toPromise();
+          }
+        }
+
+
+        // Fax
+        if (this.isFax) {
+          const currentRestaurantFaxList = currentRestaurant.channels.filter(r => r.type === 'Fax');
+          for (let rtFax of currentRestaurantFaxList) {
+            console.log('Sending Fax to ', rtFax.value, this.faxMsgContents);
+
+            this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+              "name": "send-fax",
+              "params": {
+                "from": "8555582558",
+                "to": rtFax.value,
+                "mediaUrl": this.faxMsgContents,
+                "providerName": "twilio"
+              }
+            }]).toPromise();
+          }
+        }
+
+        this.currentStatus = `Processing ${currentRestaurant.name}... `;
+        await new Promise(resolve => setTimeout(resolve, 1000 * 2));
+        this.currentStatus = `${this.currentStatus} Done`;
+        this.restaurants = this.restaurants.filter(r => r._id !== currentRestaurant._id);
+
+      } catch (error) {
+        console.error('Error sending SMS/Email/Fax to restaurant', currentRestaurant._id, error);
+        this.isError = true;
       }
 
-      clearInterval(this.restaurantLoopInterval);
-      this.isRunning = false;
-    }, 500);
+    }
 
+    this.currentStatus = 'Task Completed.'
+    this.isRunning = false;
 
   }
 

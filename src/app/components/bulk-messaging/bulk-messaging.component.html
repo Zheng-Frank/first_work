@@ -8,11 +8,11 @@
   <div class="col-md-4">
     <div class="row mb-3">
       <div class="col-md-12">
-        <input type="text" class="form-control form-control-sm" placeholder="Restaurant Id"
-          [(ngModel)]="inputRestaurantString">
+        <textarea type="text" class="form-control form-control-sm" placeholder="Restaurant Id" [(ngModel)]="inputRestaurantString" rows='7'></textarea>
         <button class="btn btn-link" (click)="onAddRestaurant()">Add</button>
       </div>
     </div>
+    
     <div class="bulk-container">
       <div *ngFor="let restaurant of restaurants" class="bulk-restaurant">
         <a routerLink="/restaurants/{{restaurant._id}}">{{restaurant.name}}</a>
@@ -22,6 +22,7 @@
           (click)="onRemove(restaurant._id)">Remove</a>
       </div>
     </div>
+   
   </div>
 
   <div class="col-md-5">
@@ -83,6 +84,11 @@
   <div class="col-md-3">
     <button *ngIf="!isRunning" class="btn btn-primary btn-sm" (click)="startBulkSend()">Start Sending</button>
     <button *ngIf="isRunning" class="btn btn-primary btn-sm" (click)="isRunning=false">Stop Sending</button>
+    <div class="row">
+      <div class="col-md-12">
+        <p>{{currentStatus}}</p>
+      </div>
+    </div>
   </div>
 
 </div>
