@@ -169,6 +169,10 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     window.print();
   }
 
+  async computeDerivedFields() {
+    await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: this.invoice['_id'] || this.invoice.id }).toPromise();
+  }
+
   async toggleInvoiceStatus(field) {
     if (field === 'isCanceled' && this.invoice.isCanceled) {
       if (!confirm('Are you sure to uncancel?') || this.invoice.adjustments) {
@@ -248,7 +252,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this.adjustmentModal.show();
   }
 
-  okAdjustment() {
+  async okAdjustment() {
 
     const adjustment = {
       name: this.adjustmentDescription,
@@ -292,6 +296,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this.adjustmentModal.hide();
 
     // because invoiceViewer is onPush, we need to refresh
+    await this.computeDerivedFields();
   }
 
   resolve(log) {
@@ -427,7 +432,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           "address_zip": Helper.getZipcode(address)
         }
       }
-      else if(this.restaurant.googleAddress && this.restaurant.googleAddress.formatted_address) {
+      else if (this.restaurant.googleAddress && this.restaurant.googleAddress.formatted_address) {
         let formatted_address = this.restaurant.googleAddress.formatted_address.replace(', USA', '');
         destination = {
           "name": this.invoice.restaurant.name,
@@ -438,7 +443,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           "address_zip": Helper.getZipcode(formatted_address)
         }
       }
-      else{
+      else {
         this._global.publishAlert(AlertType.Danger, "Missing address");
         throw "Missing address"
       }

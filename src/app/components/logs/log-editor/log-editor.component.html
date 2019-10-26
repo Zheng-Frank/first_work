@@ -1,6 +1,7 @@
 <div *ngIf="!restaurant">
   <label>Select Restaurant:</label>
-  <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="select($event)"></q-restaurant-picker>
+  <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="select($event)">
+  </q-restaurant-picker>
 </div>
 
 <div class="clearfix alert alert-info" *ngIf="restaurant">
@@ -12,19 +13,21 @@
   </div>
 </div>
 
-<q-form-builder [object]="log" [showDelete]="log.time" [fieldDescriptors]="logFieldDescriptors" (submit)="submit($event)"
-  (cancel)="clickCancel()" (remove)="clickRemove($event)">
+<q-form-builder [object]="log" [showDelete]="log.time" [fieldDescriptors]="logFieldDescriptors"
+  (submit)="submit($event)" (cancel)="clickCancel()" (remove)="clickRemove($event)">
 
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-pin" [checked]="log.type === 'google-pin'" (change)="toggleIsGooglePIN()">
+      <input class="form-check-input" type="checkbox" id="id-pin" [checked]="log.type === 'google-pin'"
+        (change)="toggleIsGooglePIN()">
       <label class="form-check-label" for="id-pin"> Google PIN</label>
     </div>
   </div>
 
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-adjustment" [(ngModel)]="hasAdjustment" (change)="changeHasAdjustment()">
+      <input class="form-check-input" type="checkbox" id="id-adjustment" [(ngModel)]="hasAdjustment"
+        (change)="changeHasAdjustment()">
       <label class="form-check-label" for="id-adjustment"> Credit or Debit Adjustment</label>
     </div>
   </div>
@@ -35,7 +38,7 @@
       qMenu and restaurant mutually agreed
       adjustment here. The adjustment will be included in next invoice cycle.
       <div>
-        <strong>* All fields are required.</strong>
+        <strong>* STOP IF YOU DO NOT FULLY UNDERSTAND THIS FORM.</strong>
       </div>
     </div>
     <div class="card-body">
@@ -53,13 +56,21 @@
         </label>
         <input class="form-control" type="text" id="id-reason" [(ngModel)]="log.adjustmentReason">
       </div>
+      <div class="mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="id-transaction-adjustment" [checked]="log.adjustmentType === 'TRANSACTION'"
+          (change)="toggleAdjustmentType()">
+          <label class="form-check-label" for="id-transaction-adjustment"> Stripe Dispute</label>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-task" [checked]="log.type === 'collection'" (change)="toggleIsCollection()">
-      <label class="form-check-label" for="id-task"> Invoice Debt Collection</label>
+      <input class="form-check-input" type="checkbox" id="id-debt" [checked]="log.type === 'collection'"
+        (change)="toggleIsCollection()">
+      <label class="form-check-label" for="id-debt"> Invoice Debt Collection</label>
     </div>
   </div>
 
@@ -67,8 +78,8 @@
   <!-- Create New Task Option -->
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-task" [(ngModel)]="hasTask" (change)="changeHasTask()">
-      <label class="form-check-label" for="id-task"> Delegate to Task</label>
+      <input class="form-check-input" type="checkbox" id="id-delegate" [(ngModel)]="hasTask" (change)="changeHasTask()">
+      <label class="form-check-label" for="id-delegate"> Delegate to Task</label>
     </div>
   </div>
 
@@ -104,27 +115,27 @@
 
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-task" [checked]="log.type === 'gmb-call'" [(ngModel)]="hasGMBCall"
-        (change)="toggleGMBCalls()">
-      <label class="form-check-label" for="id-task"> GMB Calls</label>
+      <input class="form-check-input" type="checkbox" id="id-gmb-calls" [checked]="log.type === 'gmb-call'"
+        [(ngModel)]="hasGMBCall" (change)="toggleGMBCalls()">
+      <label class="form-check-label" for="id-gmb-calls"> GMB Calls</label>
     </div>
   </div>
 
-  <div class="card border-info p-3" *qIf="hasGMBCall">
+  <div class="card border-info p-3 mb-2" *qIf="hasGMBCall">
 
-      <div class="form-group mb-2">
-          <label>Agree to Coorporate (同意分享验证码)</label>
-          <q-simple-radio [(ngModel)]="agreeToCorporate" [equalWidth]="true" [values]="['Yes', 'No']"
-            (ngModelChange)="handleUpdate()">
-          </q-simple-radio>
-        </div>
-        
-        <div class="form-group mb-2">
-          <label>qMenu Exclusive (同意不给别家验证码)</label>
-          <q-simple-radio [(ngModel)]="qmenuExclusive" [equalWidth]="true" [values]="['Yes', 'No']"
-            (ngModelChange)="handleUpdate()">
-          </q-simple-radio>
-        </div>
+    <div class="form-group mb-2">
+      <label>Agree to Coorporate (同意分享验证码)</label>
+      <q-simple-radio [(ngModel)]="agreeToCorporate" [equalWidth]="true" [values]="['Yes', 'No']"
+        (ngModelChange)="handleUpdate()">
+      </q-simple-radio>
+    </div>
+
+    <div class="form-group mb-2">
+      <label>qMenu Exclusive (同意不给别家验证码)</label>
+      <q-simple-radio [(ngModel)]="qmenuExclusive" [equalWidth]="true" [values]="['Yes', 'No']"
+        (ngModelChange)="handleUpdate()">
+      </q-simple-radio>
+    </div>
 
   </div>
 

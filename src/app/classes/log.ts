@@ -13,6 +13,7 @@ export class Log {
 
   adjustmentAmount: number;
   adjustmentReason: string;
+  adjustmentType: 'COMMISSION' | 'TRANSACTION';
 
   type: string;
 

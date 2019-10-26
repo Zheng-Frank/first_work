@@ -7,7 +7,6 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Task } from 'src/app/classes/tasks/task';
-import { User } from '../../../classes/user';
 @Component({
   selector: 'app-log-editor',
   templateUrl: './log-editor.component.html',
@@ -81,12 +80,13 @@ export class LogEditorComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.agreeToCorporate = (this.restaurant.web || {}).agreeToCorporate;
-    this.qmenuExclusive = (this.restaurant.web || {}).qmenuExclusive;
+
   }
 
   ngOnChanges(changes: SimpleChanges) {
     this.hasAdjustment = this.log && this.log.adjustmentAmount;
+    this.agreeToCorporate = ((this.restaurant || {}).web || {}).agreeToCorporate;
+    this.qmenuExclusive = ((this.restaurant || {}).web || {}).qmenuExclusive;
   }
 
   changeHasAdjustment() {
@@ -185,8 +185,8 @@ export class LogEditorComponent implements OnInit {
 
   async handleUpdate() {
     const web = this.restaurant.web || {};
-    web.agreeToCorporate= this.agreeToCorporate;
-    web.qmenuExclusive= this.qmenuExclusive;
+    web.agreeToCorporate = this.agreeToCorporate;
+    web.qmenuExclusive = this.qmenuExclusive;
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant._id },
@@ -210,6 +210,9 @@ export class LogEditorComponent implements OnInit {
     return this._global.user.roles.some(r => r === 'ADMIN');
   }
 
+  toggleAdjustmentType() {
+    this.log.adjustmentType === 'TRANSACTION' ? this.log.adjustmentType = undefined : this.log.adjustmentType = 'TRANSACTION';
+  }
   toggleIsCollection() {
     this.log.type === 'collection' ? this.log.type = undefined : this.log.type = 'collection';
   }

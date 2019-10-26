@@ -295,7 +295,7 @@ export class CycleDetailsComponent implements OnInit {
     // get ALL invoices
     const invoiceIdRowDict = {};
     this.cycle.restaurants.map(r => {
-      if (r.invoice) {
+      if (r && r.invoice) {
         invoiceIdRowDict[r.invoice._id] = r.invoice;
       }
     });

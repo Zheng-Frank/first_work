@@ -33,13 +33,9 @@
         [compact]="true">
         <tr *tableRowTemplate="let row;" class="{{row.request.ownerDeclined ? 'alert-danger': ''}}">
           <td>{{row.rowNumber}}
-            <div *ngIf="row.request && row.request.refreshedAt" class="text-muted">
-              <small>refreshed: {{row.request.refreshedAt | ago: now}}</small>
-            </div>
           </td>
           <td>
-            <div class="badge badge-{{row.statusClass}}">{{(row.scheduledAt || 0) | ago: now}}
-            </div>
+            <div class="badge badge-{{row.statusClass}}">{{(row.scheduledAt || 0) | ago: now}}</div>
           </td>
 
           <td>
@@ -90,6 +86,9 @@
             <div class="text-muted">
               <small>{{row._id}}</small>
             </div>
+            <div *ngIf="row.request && row.request.refreshedAt" class="text-muted">
+              <small>refreshed: {{row.request.refreshedAt | ago: now}}</small>
+            </div>
           </td>
           <td class="text-nowrap">
             <div *ngIf="row.result">
@@ -122,8 +121,8 @@
   </h4>
   <!-- <div class="text-muted text-center"><small>ID: {{modalRow?._id}}</small></div> -->
   <div class="text-center">
-    <button class="btn btn-link" (click)="refreshSingleTask(modalRow?._id)" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
-      Reload</button>
+    <button class="btn btn-link" (click)="hardRefresh()" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
+      Hard Refresh</button>
   </div>
 
   <hr>
