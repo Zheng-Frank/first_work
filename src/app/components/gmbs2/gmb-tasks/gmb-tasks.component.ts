@@ -285,8 +285,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       this.preferredVerificationOption = emailOption;
     } else if (!pendingAddressVerification && phoneOption && !this.isPublished) {
       this.preferredVerificationOption = phoneOption;
-    } else if (pendingAddressVerification) {
-      this.preferredVerificationOption = pendingAddressVerification;
+    } else if (addressOption) {
+      this.preferredVerificationOption = addressOption;
     }
 
     this.rowModal.show();
