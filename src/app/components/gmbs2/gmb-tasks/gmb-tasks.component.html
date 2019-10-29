@@ -6,8 +6,6 @@
     <span class="alert-warning">* Please Reload Before Claiming and Handling Your Tasks</span>
   </div>
 </div>
-
-
 <div class="clearfix mt-2">
   <div class="float-left form-inline">
 
@@ -16,7 +14,6 @@
   <div class="float-right">
   </div>
 </div>
-
 
 <div class="card text-center mb-4" *ngIf="currentAction !== 'ADD'">
   <div class="card-header">
@@ -27,6 +24,25 @@
       </li>
     </ul>
   </div>
+  <div class="clearfix mt-2">
+  
+    <label class="mr-2"> Time Zone:</label>
+    <select class="mr-5" [(ngModel)]="timeZone" (change)="filter()">
+        <option>All</option>
+        <option *ngFor="let tz of timeZoneList">{{tz}}</option>
+    </select>
+    <label class="mr-2"> Assignee:</label>
+    <select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
+        <option>All</option>
+        <option *ngFor="let assignee of assigneeList">{{assignee}}</option>
+    </select>
+    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+    <label class="form-check-label mr-5" for="paginationCheck">
+        Pagination
+    </label>
+  
+  </div>
+  
   <div class="card-body text-left">
     <ng-container *ngFor="let tab of tabs">
       <q-table *ngIf="activeTabLabel === tab.label" [rows]="tab.rows" [tableColumnDescriptors]="myColumnDescriptors"
@@ -55,6 +71,7 @@
               </small>
             </div>
           </td>
+          <td>{{row.timezoneCell}}</td>
           <td>{{row.score}}</td>
           <td>{{row.gmbOwner}}</td>
           <td class="text-nowrap">
@@ -71,6 +88,7 @@
                   <i class="fas fa-2x fa-lightbulb"></i>
                 </div>-->
           </td>
+          <td>{{row.assignee}}</td>
           <td>
             <!-- <app-task-action-bar [task]="row.task" [user]="user" (actionDone)="triggerActionDone($event)">
             </app-task-action-bar> -->

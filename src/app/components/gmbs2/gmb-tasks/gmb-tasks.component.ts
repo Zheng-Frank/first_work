@@ -1,10 +1,11 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, SimpleChanges } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from '../../../../environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Task } from 'src/app/classes/tasks/task';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { Helper } from "src/app/classes/helper";
 
 @Component({
   selector: 'app-gmb-tasks',
@@ -17,6 +18,12 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   activeTabLabel = 'Mine';
   currentAction;
   tasks = [];
+  tasks_mine = [];
+  tasks_nonclaimed = [];
+  tasks_myclosed = [];
+  tasks_allopen = [];
+  tasks_allclosed = [];
+  hideClosedOldTasksDays = 15;
 
   qmenuDomains = new Set();
   modalRow;
@@ -31,6 +38,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   now = new Date();
   user;
+  myUsername;
+  myUserRoles;
+  //tasks query criteria based on user roles
+  query_or;
+
   assignees = [];
 
   taskScheduledAt = new Date();
@@ -41,8 +53,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   tabs = [
     { label: 'Mine', rows: [] },
     { label: 'Non-claimed', rows: [] },
-    { label: 'My Closed', rows: [] }
+    { label: 'My Closed', rows: [] },
+    { label: 'All Open', rows: [] },
+    { label: 'All Closed', rows: [] }
   ];
+
 
   myColumnDescriptors = [
     {
@@ -59,6 +74,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: "Time Zone",
+      paths: ['timezoneCell'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
       label: "Score",
       paths: ['score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
@@ -70,6 +90,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     },
     {
       label: "Options"
+    },
+    {
+      label: "Assignee",
+      paths: ['assignee'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
       label: "Actions"
@@ -91,8 +116,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   timer;
 
+
   constructor(private _api: ApiService, private _global: GlobalService) {
-    this.user = this._global.user;
     this.timer = setInterval(_ => this.now = new Date(), 60000);
   }
 
@@ -104,21 +129,33 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
 
   async ngOnInit() {
-    this.setActiveTab(this.tabs[0]);
-    this.populate();
-    const users = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'user',
-      projection: {
-        username: 1,
-        roles: 1,
-        disabled: 1
-      },
-      limit: 6000
-    }).toPromise();
+
+    this.user = this._global.user;
+    this.myUsername = this.user.username;
+    this.myUserRoles = this.user.roles || [];
 
     // either marketer or GMB
-    this.assignees = users.filter(u => !u.disabled && u.roles.some(r => ['GMB', 'MARKETER'].indexOf(r) >= 0)).map(u => u.username).sort((u1, u2) => u1 > u2 ? 1 : -1);
+    const users = await this._global.getCachedUserList();
+    this.assignees = users.filter(u => !u.disabled && u.roles.some(r => ['GMB_SPECIALIST', 'MARKETER'].indexOf(r) >= 0)).map(u => u.username).sort((u1, u2) => u1 > u2 ? 1 : -1);
     this.assignees.unshift('NON-CLAIMED');
+
+    this.setActiveTab(this.tabs[0]);
+
+    this.setQueryOr();
+    await this.populate();
+
+    // this.tabs.map(tab => {
+    //   const filterMap = {
+    //     "Mine": t => t.assignee === this.user.username && !t.result,
+    //     "Non-claimed": t => !t.assignee && !t.result,
+    //     "My Closed": t => t.assignee === this.user.username && t.result,
+    //     "All Open": t => !t.result,
+    //     "All Closed": t => t.result,
+    //   };
+    //   tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
+    // });
+
+    this.now = new Date();
   }
 
   taskResult;
@@ -240,7 +277,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   async assign(task, assignee) {
     await this.update(task, 'assignee', assignee === 'NON-CLAIMED' ? undefined : assignee);
-    await this.populate();
+    await this.populateTasks();
     this.rowModal.hide();
   }
 
@@ -329,7 +366,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       person.channels = (person.channels || []).filter(c => c.type !== 'Email')
     });
 
-    console.log(row);
+    // console.log(row);
     //
   }
   async savePin() {
@@ -359,69 +396,14 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   }
 
   async populate() {
-    const myUsername = this._global.user.username;
-    // either mine or "non-claimed and open'
-
     try {
-      const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "task",
-        query: {
-          $or: [
-            {
-              assignee: myUsername,
-              name: "GMB Request"
-            },
-            {
-              assignee: null,
-              name: "GMB Request",
-              result: null
-            },
-          ]
-        },
-        limit: 10000000
-      }).toPromise();
-      this.tasks = tasks.map(t => new Task(t));
-      this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
-      const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: {},
-        limit: 10000000,
-        projection: {
-          "googleAddress.formatted_address": 1,
-          "googleAddress.timezone": 1,
-          "googleListing.gmbOwner": 1,
-          "googleListing.phone": 1,
-          score: 1,
-          "web.qmenuWebsite": 1 // for qmenu domains
-        }
-      }).toPromise();
-      this.restaurantDict = restaurants.reduce((dict, rt) => (dict[rt._id] = rt, dict), {});
-
-      // retrieve ALL qmenu domains
-      const myDomains = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "domain",
-        query: {},
-        limit: 10000000,
-        projection: { expiry: 1, name: 1 }
-      }).toPromise();
-
-      const nonExpiredDomains = myDomains.filter(d => new Date(d.expiry) > new Date());
-      nonExpiredDomains.push({ name: 'qmenu.us' }); // in case it's not there
-      nonExpiredDomains.map(d => this.qmenuDomains.add(d.name));
-
+      await Promise.all([
+        this.populateQMDomains(),
+        this.populateRTs(),
+        this.populateTasks()]);
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
     }
-    this.tabs.map(tab => {
-      const filterMap = {
-        "Mine": t => t.assignee === this.user.username && !t.result,
-        "Non-claimed": t => !t.assignee && !t.result,
-        "My Closed": t => t.assignee === this.user.username && t.result
-      };
-      tab.rows = this.tasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
-    });
-    this.now = new Date();
-
   }
 
   isNonQmenuEmail(verificationOption) {
@@ -483,12 +465,15 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   }
 
   private generateRow(rowNumber, task) {
-    console.log(task);
-    console.log(((task.request.voHistory || [])[0] || { options: [] }).options);
+    // console.log(task);
+    // console.log(((task.request.voHistory || [])[0] || { options: [] }).options);
+    const timezoneR = (this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).timezone;
+    const formatedAddr = (this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).formatted_address || '';
     return {
-      localTimeString: new Date().toLocaleTimeString('en-US', { timeZone: (this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).timezone }),
+      timezoneCell: Helper.getTimeZone(formatedAddr),
+      localTimeString: new Date().toLocaleTimeString('en-US', { timeZone: timezoneR }),
       statusClass: this.getStatusClass(task),
-      address: ((this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).formatted_address || '').split(', USA')[0],
+      address: (formatedAddr.split(', USA'))[0],
       score: this.restaurantDict[task.relatedMap.restaurantId].score,
       rowNumber: rowNumber,
       gmbOwner: (this.restaurantDict[task.relatedMap.restaurantId].googleListing || {}).gmbOwner,
@@ -497,7 +482,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       verificationOptions: ((task.request.voHistory || [])[0] || { options: [] }).options.filter(vo => vo.verificationMethod !== 'SMS').map(vo => ({
         ...vo,
         verification: ((task.request.verificationHistory || [])[0] || { verifications: [] }).verifications.filter(verification => verification.state === 'PENDING' && verification.method === vo.verificationMethod)[0]
-      }))
+      })),
+      assignee: task.assignee
     }
   }
 
@@ -536,4 +522,129 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       return;
     }
   }
+
+  private setQueryOr() {
+    const daysAgo = function (days) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - days);
+      return d;
+    };
+    // this.query_or = [
+    //   {
+    //     assignee: this.myUsername,
+    //     name: "GMB Request"
+    //   },
+    //   {
+    //     assignee: null,
+    //     name: "GMB Request",
+    //     result: null
+    //   }
+    // ]
+
+    // if (this.myUserRoles.includes("ADMIN") || this.myUserRoles.includes("GMB_ADMIN")) {
+
+    this.query_or = [
+      {
+        resultAt: { $gt: { $date: daysAgo(this.hideClosedOldTasksDays) } },
+        name: "GMB Request"
+      },
+      {
+        result: null,
+        name: "GMB Request"
+      }
+    ]
+    // }
+
+    // console.log(`task query = ${JSON.stringify(this.query_or)}`);
+  }
+
+  private async populateTasks() {
+    this.setQueryOr();
+    const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "task",
+      query: {
+        $or: this.query_or
+      },
+      limit: 10000000
+    }).toPromise();
+    this.tasks = tasks.map(t => new Task(t));
+    this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
+    this.filteredTasks = this.tasks;
+    this.filter();
+  }
+
+  private async populateRTs() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {},
+      limit: 10000000,
+      projection: {
+        "googleAddress.formatted_address": 1,
+        "googleAddress.timezone": 1,
+        "googleListing.gmbOwner": 1,
+        "googleListing.phone": 1,
+        score: 1,
+        "web.qmenuWebsite": 1 // for qmenu domains
+      }
+    }).toPromise();
+    this.restaurantDict = restaurants.reduce((dict, rt) => (dict[rt._id] = rt, dict), {});
+  }
+
+  private async populateQMDomains() {
+
+    // retrieve ALL qmenu domains
+    // const myDomains = await this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: "domain",
+    //   query: {},
+    //   limit: 10000000,
+    //   projection: { expiry: 1, name: 1 }
+    // }).toPromise();
+
+    // const nonExpiredDomains = myDomains.filter(d => new Date(d.expiry) > new Date());
+    // nonExpiredDomains.push({ name: 'qmenu.us' }); // in case it's not there
+    // nonExpiredDomains.map(d => this.qmenuDomains.add(d.name));
+
+    this.qmenuDomains = await this._global.getCachedDomains();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    this.populateTasks();
+    this.filter();
+  }
+
+  //filters
+  assignee: string;
+  filteredTasks = [];
+  timeZone = "All";
+  timeZoneList = ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort();
+
+  filter() {
+
+    // console.log(`timeZone = ${this.timeZone}`);
+
+    this.filteredTasks = this.tasks;
+
+    if (this.assignee && this.assignee !== "All") {
+      this.filteredTasks = this.filteredTasks.filter(t => t.assignee === this.assignee);
+    };
+
+    if (this.timeZone && this.timeZone !== "All") {
+      this.filteredTasks = this.filteredTasks.filter(t =>
+        Helper.getTimeZone((this.restaurantDict[t.relatedMap.restaurantId].googleAddress || {}).formatted_address) === this.timeZone)
+    };
+
+    this.tabs.map(tab => {
+      const filterMap = {
+        "Mine": t => t.assignee === this.user.username && !t.result,
+        "Non-claimed": t => !t.assignee && !t.result,
+        "My Closed": t => t.assignee === this.user.username && t.result,
+        "All Open": t => !t.result,
+        "All Closed": t => t.result,
+      };
+      tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
+    });
+
+  }
+
 }

@@ -286,4 +286,29 @@ export class GlobalService {
       return userList;
     }
   }
+
+  async getCachedDomains(forceRefresh?: boolean) {
+
+    if (this._cache.get('qmDomains') && !forceRefresh) {
+      return this._cache.get('qmDomains');
+    } else {
+      // retrieve ALL qmenu domains
+      const myDomains = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "domain",
+        query: {},
+        limit: 10000000,
+        projection: { expiry: 1, name: 1 }
+      }).toPromise();
+
+      const nonExpiredDomains = myDomains.filter(d => new Date(d.expiry) > new Date());
+      nonExpiredDomains.push({ name: 'qmenu.us' }); // in case it's not there
+      const qmenuDomains = new Set();
+      nonExpiredDomains.map(d => qmenuDomains.add(d.name));
+
+      this._cache.set('qmDomains', qmenuDomains, 30 * 60);
+
+      return qmenuDomains;
+    }
+  }
+
 }
