@@ -1,6 +1,7 @@
 <!-- list group as action bars for selected items -->
 <div class="action-bar list-group" *qIf="hasSelection()">
-  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawlGoogleGmbOnSelected()">
+  <button type="button" class="list-group-item list-group-item-action text-primary"
+    (click)="crawlGoogleGmbOnSelected()">
     <i class="fab fa-searchengin"></i> Crawl Google Info ({{selectionSet.size}})</button>
   <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
     <i class="fas fa-arrow-circle-right"></i> Assign to Marketer</button>
@@ -31,147 +32,115 @@
   <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button> -->
 </div>
 
-<div class="table-responsive">
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th scope="col">
-          <button class="btn btn-link py-0" (click)="showSelectOptions = !showSelectOptions">
-            <i class="fas fa-bars"></i>
-          </button> Name
-          <div class="action-bar list-group" *qIf="showSelectOptions">
-            <button type="button" class="list-group-item list-group-item-action text-primary" (click)="toggleSelectAll(); showSelectOptions = false;">
-              <span *ngIf="isAllSelected(); else notAllSelected;">
-                <i class="fas fa-toggle-on"></i> Deselect All
-              </span>
-              <ng-template #notAllSelected>
-                <span>
-                  <i class="fas fa-toggle-off"></i> Select All
-                </span>
-              </ng-template>
-            </button>
-            <button type="button" class="list-group-item list-group-item-action text-primary" (click)="selectNonCrawled(); showSelectOptions = false;">
-              <i class="far fa-flag text-muted"></i> Select Non-crawled
-            </button>
-            <button type="button" class="list-group-item list-group-item-action" (click)="showSelectOptions = false">Cancel</button>
-          </div>
 
-        </th>
-        <th scope="col">Cuisine</th>
-        <th scope="col">Ratings</th>
-        <th scope="col">Reviews</th>
-        <th scope="col">Assignee</th>
-        <!-- <th scope="col">GMB</th> -->
-        <th scope="col">Web</th>
-        <th scope="col">Address</th>
-        <th scipe="col">State</th>
-        <th scope="col">Phones</th>
-        <th></th>
-        <th></th>
-        <th scope="col">Logs</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let lead of leads" class="{{lead.disabled || lead.closed ? 'text-muted closed' : ''}}">
-        <th scope="row">
-          <input type="checkbox" class="form-check-input" [id]="'check-' + lead._id" [checked]="selectionSet.has(lead._id)" (change)="toggleSelection(lead)">
-          <a href="{{getGoogleQuery(lead)}}" target="_blank">
-            {{lead.name}}
-            <span class="text-muted" *ngIf="lead.oldName">
-              <br>
-              <small>{{lead.oldName}}</small>
-            </span>
-          </a>
-        </th>
-        <td>
-          {{lead.cuisine}}
-        </td>
-        <td>
-          {{lead.rating}}
-        </td>
-        <td>
-          {{lead.totalReviews}}
-        </td>
-        <td>
-          {{lead.assignee}}
-        </td>
-        <!-- <td>
-          <img *ngIf="lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="lead.gmbAccountOwner" height="16px">
-          <span *ngIf="lead.gmbAccountOwner !== 'qmenu'">?</span>
-        </td> -->
-        <td class="text-nowrap">
-          <i *ngIf="!getLogo(lead) && lead.gmbOwner" class="fas fa-question text-danger"></i>
-          <img *ngIf="getLogo(lead)" [attr.src]="'/assets/images/' + getLogo(lead)" [attr.alt]="lead.gmbOwner" height="16px">
-          <i class="fas fa-lock-open text-info" *ngIf="lead.gmbOpen"></i>
-          <i class="fas fa-globe text-muted" *ngIf="!lead.gmbWebsite && lead.serviceProviders && lead.serviceProviders.length > 0"></i>
-        </td>
 
-        <td>{{lead.address?.formatted_address}}</td>
-        <td>{{lead.address?.administrative_area_level_1}}</td>
+<q-table [rows]="leads" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="1000">
 
-        <td>
-          <span *ngFor="let phone of (lead.phones ||[])">{{phone | tel}}&nbsp;&nbsp;</span>
-        </td>
+  <tr *tableRowTemplate="let lead" class=" {{lead.disabled || lead.closed ? 'text-muted closed' : ''}}">
+    <th>{{leads.indexOf(lead) + 1}}</th>
+    <th scope="row">
+      <input type="checkbox" class="form-check-input" [id]="'check-' + lead._id" [checked]="selectionSet.has(lead._id)"
+        (change)="toggleSelection(lead)">
+      <a href="{{getGoogleQuery(lead)}}" target="_blank">
+        {{lead.name}}
+        <span class="text-muted" *ngIf="lead.oldName">
+          <br>
+          <small>{{lead.oldName}}</small>
+        </span>
+      </a>
+    </th>
+    <td>
+      {{lead.cuisine}}
+    </td>
+    <td>
+      {{lead.rating}}
+    </td>
+    <td>
+      {{lead.totalReviews}}
+    </td>
+    <td>
+      {{lead.assignee}}
+    </td>
+    <!-- <td>
+        <img *ngIf="lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="lead.gmbAccountOwner" height="16px">
+        <span *ngIf="lead.gmbAccountOwner !== 'qmenu'">?</span>
+      </td> -->
+    <td class="text-nowrap">
+      <i *ngIf="!getLogo(lead) && lead.gmbOwner" class="fas fa-question text-danger"></i>
+      <img *ngIf="getLogo(lead)" [attr.src]="'/assets/images/' + getLogo(lead)" [attr.alt]="lead.gmbOwner"
+        height="16px">
+      <i class="fas fa-lock-open text-info" *ngIf="lead.gmbOpen"></i>
+      <i class="fas fa-globe text-muted"
+        *ngIf="!lead.gmbWebsite && lead.serviceProviders && lead.serviceProviders.length > 0"></i>
+    </td>
 
-        <td class="text-right">
-          <button class="btn btn-link py-0" (click)="view(lead)">
-            <i class="fas fa-bars"></i>
-          </button>
-        </td>
-        <td class="text-right">
-          <button class="btn btn-link py-0" (click)="call(lead)">
-            <i class="fas fa-phone"></i>
-          </button>
-        </td>
-        <td>
-          <ng-container *ngFor="let log of lead.getDescSortedCallLogs()">
-            <tr (click)="selectCallLog(log)">
-              <td>
-                <span *ngIf="log.salesOutcome==='rejected'" class="text-danger">■</span>
-                <span *ngIf="log.salesOutcome==='interested'" class="text-warning">■</span>
-                <span *ngIf="log.salesOutcome==='success' || log.salesOutcome==='qmenuCustomer'" class="text-success">■</span>
-                <span *ngIf="log.askedMoreInfo" class="text-info">
-                  <i class="fas fa-info-circle"></i>
-                </span>
-                <span *ngIf="log.callbackTime" class="text-info">
-                  <i class="fas fa-history"></i>
-                </span>
-              </td>
-              <td>
-                <small>{{log.time | date:'short'}}</small>
-              </td>
-              <td>*{{(log.phone || '').substring(6)}}</td>
-              <td *ngIf="log.lineStatus === 'connected'" class="text-center">
-                <i class="fas fa-check text-success"></i>
-              </td>
-              <td *ngIf="log.lineStatus === 'busy'" class="text-center">
-                <i class="fas fa-exclamation text-warning"></i>
-              </td>
-              <td *ngIf="log.lineStatus === 'voicemail'" class="text-center">
-                <i class="fas fa-cloud-upload-alt"></i>
-              </td>
-              <td>{{log.callees}}</td>
-  
-              <td>
-                <app-lead-call-log [callLog]="log"></app-lead-call-log>
-              </td>
-            </tr>
-            <tr *ngIf="log.hasSameTimeAs(selectedCallLog)">
-              <td colspan="6">
-                <div class="card card-body">
-                  <h5 class="card-title">Edit Call Log</h5>
-                  <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog" (cancel)="selectedCallLog = null"
-                    (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)"></app-call-logger>
-  
-                </div>
-              </td>
-            </tr>
-          </ng-container>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+    <td>{{lead.address?.formatted_address}}</td>
+    <td>{{lead.address?.administrative_area_level_1}}</td>
+
+    <td>
+      <span *ngFor="let phone of (lead.phones ||[])">{{phone | tel}}&nbsp;&nbsp;</span>
+    </td>
+
+    <td class="text-right">
+      <button class="btn btn-link py-0" (click)="view(lead)">
+        <i class="fas fa-bars"></i>
+      </button>
+    </td>
+    <td class="text-right">
+      <button class="btn btn-link py-0" (click)="call(lead)">
+        <i class="fas fa-phone"></i>
+      </button>
+    </td>
+    <td>
+      <ng-container *ngFor="let log of lead.getDescSortedCallLogs()">
+  <tr (click)="selectCallLog(log)">
+    <td>
+      <span *ngIf="log.salesOutcome==='rejected'" class="text-danger">■</span>
+      <span *ngIf="log.salesOutcome==='interested'" class="text-warning">■</span>
+      <span *ngIf="log.salesOutcome==='success' || log.salesOutcome==='qmenuCustomer'" class="text-success">■</span>
+      <span *ngIf="log.askedMoreInfo" class="text-info">
+        <i class="fas fa-info-circle"></i>
+      </span>
+      <span *ngIf="log.callbackTime" class="text-info">
+        <i class="fas fa-history"></i>
+      </span>
+    </td>
+    <td>
+      <small>{{log.time | date:'short'}}</small>
+    </td>
+    <td>*{{(log.phone || '').substring(6)}}</td>
+    <td *ngIf="log.lineStatus === 'connected'" class="text-center">
+      <i class="fas fa-check text-success"></i>
+    </td>
+    <td *ngIf="log.lineStatus === 'busy'" class="text-center">
+      <i class="fas fa-exclamation text-warning"></i>
+    </td>
+    <td *ngIf="log.lineStatus === 'voicemail'" class="text-center">
+      <i class="fas fa-cloud-upload-alt"></i>
+    </td>
+    <td>{{log.callees}}</td>
+
+    <td>
+      <app-lead-call-log [callLog]="log"></app-lead-call-log>
+    </td>
+  </tr>
+  <tr *ngIf="log.hasSameTimeAs(selectedCallLog)">
+    <td colspan="6">
+      <div class="card card-body">
+        <h5 class="card-title">Edit Call Log</h5>
+        <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog"
+          (cancel)="selectedCallLog = null" (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)">
+        </app-call-logger>
+
+      </div>
+    </td>
+  </tr>
+  </ng-container>
+  </td>
+  </tr>
+</q-table>
+
+
 <!-- <q-modal [title]="leadInEditing._id ? 'Edit Restaurant Lead: ' + leadInEditing.name : 'Create New Restaurant Lead' " #editingModal>
   <q-form-builder [object]="leadInEditing" [showDelete]="leadInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
     (remove)="formRemove($event)" (cancel)="editingModal.hide()">
@@ -184,14 +153,14 @@
 </q-modal> -->
 
 <q-modal [title]="'Scan New Restaurant Lead'" #scanModal>
-  <q-form-builder [object]="leadInEditing" [fieldDescriptors]="formFieldDescriptors" (submit)="scanSubmit($event)" (remove)="formRemove($event)"
-    (cancel)="scanModal.hide()">
+  <q-form-builder [object]="leadInEditing" [fieldDescriptors]="formFieldDescriptors" (submit)="scanSubmit($event)"
+    (remove)="formRemove($event)" (cancel)="scanModal.hide()">
   </q-form-builder>
 </q-modal>
 
 <q-modal [title]="'Filter Leads' " #filterModal>
-  <q-form-builder [object]="searchFilterObj" [showDelete]="false" [fieldDescriptors]="filterFieldDescriptors" (submit)="filterSubmit($event)"
-    (cancel)="filterModal.hide()">
+  <q-form-builder [object]="searchFilterObj" [showDelete]="false" [fieldDescriptors]="filterFieldDescriptors"
+    (submit)="filterSubmit($event)" (cancel)="filterModal.hide()">
     <div class="form-group">
       <label>Review Rating (at least)</label>
       <div>
@@ -211,12 +180,14 @@
           <b>Address</b>
         </th>
         <td class="border-top-0">
-          <a href="https://www.google.com/maps/search/?api=1&query={{leadInEditing.address?.formatted_address}}" target="_blank">
+          <a href="https://www.google.com/maps/search/?api=1&query={{leadInEditing.address?.formatted_address}}"
+            target="_blank">
             {{leadInEditing.address?.formatted_address}}
             <i *ngIf="leadInEditing.address?.place_id" class="fas fa-check text-success"></i>
           </a>
           <div *ngIf="!(leadInEditing.address?.place_id && leadInEditing.address?.locality)">
-            <button class="btn btn-outline-primary" (click)="injectGoogleAddress(leadInEditing)" [qLoading]="apiRequesting">
+            <button class="btn btn-outline-primary" (click)="injectGoogleAddress(leadInEditing)"
+              [qLoading]="apiRequesting">
               <i class="fas fa-map-marker-alt"></i> Inject Google Address</button>
           </div>
         </td>
@@ -242,7 +213,8 @@
           <b>Website</b>
         </th>
         <td class="border-top-0">
-          <a *ngIf="leadInEditing.website" href="{{leadInEditing.website}}" target="_blank">{{leadInEditing.website}}</a>
+          <a *ngIf="leadInEditing.website" href="{{leadInEditing.website}}"
+            target="_blank">{{leadInEditing.website}}</a>
         </td>
       </tr>
       <tr>
@@ -269,7 +241,8 @@
   <div class="card" *qIf="editingNewCallLog">
     <div class="card-body">
       <h5 class="card-title">New Call Log</h5>
-      <app-call-logger [lead]="selectedLead" [callLog]="newCallLog" (cancel)="editingNewCallLog = false" (submit)="sumbitCallLog($event)"></app-call-logger>
+      <app-call-logger [lead]="selectedLead" [callLog]="newCallLog" (cancel)="editingNewCallLog = false"
+        (submit)="sumbitCallLog($event)"></app-call-logger>
     </div>
   </div>
 
@@ -292,7 +265,8 @@
             <td>
               <span *ngIf="log.salesOutcome==='rejected'" class="text-danger">■</span>
               <span *ngIf="log.salesOutcome==='interested'" class="text-warning">■</span>
-              <span *ngIf="log.salesOutcome==='success' || log.salesOutcome==='qmenuCustomer'" class="text-success">■</span>
+              <span *ngIf="log.salesOutcome==='success' || log.salesOutcome==='qmenuCustomer'"
+                class="text-success">■</span>
               <span *ngIf="log.askedMoreInfo" class="text-info">
                 <i class="fas fa-info-circle"></i>
               </span>
@@ -323,8 +297,9 @@
             <td colspan="6">
               <div class="card card-body">
                 <h5 class="card-title">Edit Call Log</h5>
-                <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog" (cancel)="selectedCallLog = null"
-                  (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)"></app-call-logger>
+                <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog"
+                  (cancel)="selectedCallLog = null" (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)">
+                </app-call-logger>
 
               </div>
             </td>
@@ -354,7 +329,8 @@
 <div class="card" *qIf="editingNewCallLog">
   <div class="card-body">
     <h5 class="card-title">New Call Log</h5>
-    <app-call-logger [lead]="selectedLead" [callLog]="newCallLog" (cancel)="editingNewCallLog = false" (submit)="sumbitCallLog($event)"></app-call-logger>
+    <app-call-logger [lead]="selectedLead" [callLog]="newCallLog" (cancel)="editingNewCallLog = false"
+      (submit)="sumbitCallLog($event)"></app-call-logger>
   </div>
 
 </div>
@@ -362,7 +338,7 @@
 
 
 <q-modal [title]="'Select Assignee' " #assigneeModal>
-  <q-form-builder [object]="assigneeObj" [showDelete]="false" [fieldDescriptors]="assigneeFieldDescriptors" (submit)="assigneeSubmit($event)"
-    (cancel)="assigneeModal.hide()">
+  <q-form-builder [object]="assigneeObj" [showDelete]="false" [fieldDescriptors]="assigneeFieldDescriptors"
+    (submit)="assigneeSubmit($event)" (cancel)="assigneeModal.hide()">
   </q-form-builder>
 </q-modal>
