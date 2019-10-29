@@ -430,7 +430,7 @@ export class MonitoringPrintersComponent implements OnInit {
 
           // ONLY 2.0.0+ we use newer api otherwise we HAVE to use http instead of https for sending order urls because windows XP doesn't support newer https
           let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
-          if (row.info && row.info.version && +row.info.version.split(".")[0] >= 2) {
+          if (row.info && row.info.version && +row.info.version.split(".")[0] >= 3) {
             url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=png${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
           }
 
