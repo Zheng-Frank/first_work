@@ -79,6 +79,49 @@ export class LeadDashboardComponent implements OnInit {
   };
 
 
+  myColumnDescriptors = [
+    {
+      label: 'Number'
+    },
+    {
+      label: 'Name'
+    },
+    {
+      label: "Cuisine"
+    },
+    {
+      label: "Ratings"
+    },
+    {
+      label: "Reviews"
+    },
+    {
+      label: "Assignee"
+    },
+    {
+      label: "Web"
+    },
+    {
+      label: "Address"
+    },
+    {
+      label: "Group"
+    },
+    {
+      label: "State"
+    },
+    {
+      label: "Comments"
+    },
+    {
+      label: "Phones"
+    },
+    {
+      label: "Logs"
+    }
+
+  ];
+
   filterFieldDescriptors = [
     {
       field: "cuisine", //
@@ -104,6 +147,8 @@ export class LeadDashboardComponent implements OnInit {
         // 'Coffee & Espresso Restaurants',
         // 'Sandwich Shops',
         "Sushi Bar",
+        "Sushi restaurant",
+        "Indian restaurant",
         // 'Bars',
         "Japanese restaurant",
         //"Steak Houses",
@@ -345,42 +390,42 @@ export class LeadDashboardComponent implements OnInit {
         limit: 1000
       })
       .subscribe(
-      result => {
-        this.users = result.map(u => new User(u));
+        result => {
+          this.users = result.map(u => new User(u));
 
-        // make form selector here
-        const marketingUsers = result
-          .map(u => new User(u))
-          .filter(u =>
-            (u.roles || []).some(
-              r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
-            )
+          // make form selector here
+          const marketingUsers = result
+            .map(u => new User(u))
+            .filter(u =>
+              (u.roles || []).some(
+                r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+              )
+            );
+
+          const descriptor = {
+            field: "assignee", // match db naming otherwise would be single instead of plural
+            label: "Assignee",
+            required: false,
+            inputType: "single-select",
+            items: marketingUsers.map(mu => ({
+              object: mu.username,
+              text: mu.username,
+              selected: false
+            }))
+          };
+
+          this.filterFieldDescriptors.splice(8, 0, descriptor);
+
+          const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
+          clonedDescriptor.required = true;
+          this.assigneeFieldDescriptors.push(clonedDescriptor);
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Error pulling users from API"
           );
-
-        const descriptor = {
-          field: "assignee", // match db naming otherwise would be single instead of plural
-          label: "Assignee",
-          required: false,
-          inputType: "single-select",
-          items: marketingUsers.map(mu => ({
-            object: mu.username,
-            text: mu.username,
-            selected: false
-          }))
-        };
-
-        this.filterFieldDescriptors.splice(8, 0, descriptor);
-
-        const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
-        clonedDescriptor.required = true;
-        this.assigneeFieldDescriptors.push(clonedDescriptor);
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling users from API"
-        );
-      }
+        }
       );
   }
 
@@ -589,9 +634,9 @@ export class LeadDashboardComponent implements OnInit {
 
   // }
 
-  
 
-  
+
+
 
   async scanbOneLead(query) {
     try {
@@ -654,7 +699,12 @@ export class LeadDashboardComponent implements OnInit {
       const newLeadsGMBRequests = (scanLeadResults).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
       let newLeadsCrawledGMBresults: any = await Promise.all(newLeadsGMBRequests);
       let newLeadsResults = this.convertToLead(newLeadsCrawledGMBresults.filter(each => each));
-      newLeadsResults.map(each => this.createNewLead(each));
+
+      for (let each of newLeadsResults) {
+        console.log(each);
+        await this.createNewLead(each);
+      }
+
 
       //crawl GMB info existing leads
       // const existingLeadsGMBRequests = (existingLeadsToUpdate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
@@ -749,7 +799,7 @@ export class LeadDashboardComponent implements OnInit {
         await new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve();
-          }, 200000)
+          }, 20000)
         });
         succeededZipCodes.push(...batch);
         console.log("done for " + batch);
@@ -778,20 +828,20 @@ export class LeadDashboardComponent implements OnInit {
         this.leadInEditing
       ])
       .subscribe(
-      result => {
-        event.acknowledge(null);
-        // we get ids returned
-        this.leadInEditing._id = result[0];
-        this.leads.push(new Lead(this.leadInEditing));
-        this.editingModal.hide();
-        this._global.publishAlert(
-          AlertType.Success,
-          this.leadInEditing.name + " was added"
-        );
-      },
-      error => {
-        event.acknowledge(error.json() || error);
-      }
+        result => {
+          event.acknowledge(null);
+          // we get ids returned
+          this.leadInEditing._id = result[0];
+          this.leads.push(new Lead(this.leadInEditing));
+          this.editingModal.hide();
+          this._global.publishAlert(
+            AlertType.Success,
+            this.leadInEditing.name + " was added"
+          );
+        },
+        error => {
+          event.acknowledge(error.json() || error);
+        }
       );
   }
 
@@ -846,9 +896,10 @@ export class LeadDashboardComponent implements OnInit {
     this._global.storeSet("searchFilters", this.searchFilters);
   }
 
-  searchLeads(acknowledge?) {
+  async searchLeads(acknowledge?) {
     // get all users
     const query = {};
+    this.leads.length= 0;
     this.searchFilters.map(filter => {
       switch (filter.path) {
         case "rating":
@@ -917,33 +968,26 @@ export class LeadDashboardComponent implements OnInit {
       }
     });
 
-    this._api
-      .get(environment.qmenuApiUrl + "generic", {
+
+    const batchSize = 1000;
+    let batch = []
+    while (true) {
+      batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: "lead",
-        limit: 1000,
-        query: query
-      })
-      .subscribe(
-      result => {
-        this.leads = result.map(u => new Lead(u));
-        this.sortLeads(this.leads);
-        if (this.leads.length === 0) {
-          this._global.publishAlert(AlertType.Info, "No lead found");
-        }
-        if (acknowledge) {
-          acknowledge(null);
-        }
-      },
-      error => {
-        if (acknowledge) {
-          acknowledge(error.json || error);
-        }
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Error pulling leads from API"
-        );
+        query: query,
+        skip: this.leads.length,
+        limit: batchSize
+      }).toPromise();
+      this.leads.push(...batch);
+      if (batch.length === 0 || batch.length < batchSize) {
+        break;
       }
-      );
+    }
+
+    this.leads = this.leads.map(u => new Lead(u));
+    this.sortLeads(this.leads);
+
+
   }
 
   view(lead) {
@@ -1024,42 +1068,42 @@ export class LeadDashboardComponent implements OnInit {
         q: [lead.name, lead.address.formatted_address].filter(i => i).join(" ")
       })
       .subscribe(
-      result => {
-        const gmbInfo = result;
-        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+        result => {
+          const gmbInfo = result;
+          const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
 
-        if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
-          clonedLead.oldName = clonedLead.name;
-        } else {
-          // to make sure carry the name
-          gmbInfo.name = clonedLead.name;
-        }
+          if (gmbInfo.name && gmbInfo.name !== clonedLead.name) {
+            clonedLead.oldName = clonedLead.name;
+          } else {
+            // to make sure carry the name
+            gmbInfo.name = clonedLead.name;
+          }
 
-        // currently we don't want to lose address in original lead
-        if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
-          gmbInfo.address = clonedLead.address;
-        }
+          // currently we don't want to lose address in original lead
+          if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
+            gmbInfo.address = clonedLead.address;
+          }
 
-        Object.assign(clonedLead, gmbInfo);
-        clonedLead.phones = clonedLead.phones || [];
-        if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
-          clonedLead.phones.push(gmbInfo.phone);
-          delete clonedLead["phone"];
+          Object.assign(clonedLead, gmbInfo);
+          clonedLead.phones = clonedLead.phones || [];
+          if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
+            clonedLead.phones.push(gmbInfo.phone);
+            delete clonedLead["phone"];
+          }
+          clonedLead.gmbScanned = true;
+          this.patchDiff(lead, clonedLead, true);
+          this.apiRequesting = false;
+          if (resolveCallback) {
+            resolveCallback(result);
+          }
+        },
+        error => {
+          this.apiRequesting = false;
+          this._global.publishAlert(AlertType.Danger, "Failed to crawl");
+          if (rejectCallback) {
+            rejectCallback(error);
+          }
         }
-        clonedLead.gmbScanned = true;
-        this.patchDiff(lead, clonedLead, true);
-        this.apiRequesting = false;
-        if (resolveCallback) {
-          resolveCallback(result);
-        }
-      },
-      error => {
-        this.apiRequesting = false;
-        this._global.publishAlert(AlertType.Danger, "Failed to crawl");
-        if (rejectCallback) {
-          rejectCallback(error);
-        }
-      }
       );
   }
 
@@ -1078,19 +1122,19 @@ export class LeadDashboardComponent implements OnInit {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(
-      result => {
-        const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
-        clonedLead.address = new Address(result);
-        this.patchDiff(lead, clonedLead);
-        this.apiRequesting = false;
-      },
-      error => {
-        this.apiRequesting = false;
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Failed to update Google address. Try crawling Google first."
-        );
-      }
+        result => {
+          const clonedLead = new Lead(JSON.parse(JSON.stringify(lead)));
+          clonedLead.address = new Address(result);
+          this.patchDiff(lead, clonedLead);
+          this.apiRequesting = false;
+        },
+        error => {
+          this.apiRequesting = false;
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Failed to update Google address. Try crawling Google first."
+          );
+        }
       );
   }
 
@@ -1106,21 +1150,21 @@ export class LeadDashboardComponent implements OnInit {
       this._api
         .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
         .subscribe(
-        result => {
-          if (removeFromSelection) {
-            this.selectionSet.delete(newLead._id);
+          result => {
+            if (removeFromSelection) {
+              this.selectionSet.delete(newLead._id);
+            }
+            // let's update original, assuming everything successful
+            Object.assign(originalLead, newLead);
+            this.editingModal.hide();
+            this._global.publishAlert(
+              AlertType.Success,
+              originalLead.name + " was updated"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
           }
-          // let's update original, assuming everything successful
-          Object.assign(originalLead, newLead);
-          this.editingModal.hide();
-          this._global.publishAlert(
-            AlertType.Success,
-            originalLead.name + " was updated"
-          );
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-        }
         );
     }
   }
@@ -1183,9 +1227,9 @@ export class LeadDashboardComponent implements OnInit {
     if (event.object.assignee) {
       const myusers = this.users
         .filter(
-        u =>
-          u.manager === this._global.user.username ||
-          this._global.user.roles.indexOf("ADMIN") >= 0
+          u =>
+            u.manager === this._global.user.username ||
+            this._global.user.roles.indexOf("ADMIN") >= 0
         )
         .map(u => u.username);
       myusers.push(this._global.user.username);
@@ -1219,9 +1263,9 @@ export class LeadDashboardComponent implements OnInit {
   unassignOnSelected() {
     const myusers = this.users
       .filter(
-      u =>
-        u.manager === this._global.user.username ||
-        this._global.user.roles.indexOf("ADMIN") >= 0
+        u =>
+          u.manager === this._global.user.username ||
+          this._global.user.roles.indexOf("ADMIN") >= 0
       )
       .map(u => u.username);
     myusers.push(this._global.user.username);
