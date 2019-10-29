@@ -162,6 +162,13 @@ export class OrderCardComponent implements OnInit {
           },
           limit: 100
         }).toPromise();
+        // sometimes the restaurant has multiple print clients, we need to assign only one?
+        // const uniquePrintClients = [];
+        // printClients.map(pc => {
+        //   if(!uniquePrintClients.some(p => p.type === pc.type)) {
+        //     uniquePrintClients.push(pc);
+        //   }
+        // });
         for (let pc of printClients) {
           for (let printer of pc.printers || []) {
             if (printer.autoPrintCopies > 0) {

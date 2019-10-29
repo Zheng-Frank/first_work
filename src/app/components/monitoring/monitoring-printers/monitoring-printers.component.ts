@@ -378,6 +378,7 @@ export class MonitoringPrintersComponent implements OnInit {
 
 
   async printTestOrder(row) {
+
     // find printer
     const printers = row.printers.filter(p => p.autoPrintCopies > 0);
     if (printers.length === 0) {
@@ -427,6 +428,12 @@ export class MonitoringPrintersComponent implements OnInit {
 
           }
 
+          // ONLY 2.0.0+ we use newer api otherwise we HAVE to use http instead of https for sending order urls because windows XP doesn't support newer https
+          let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
+          if (row.info && row.info.version && +row.info.version.split(".")[0] >= 3) {
+            url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=png${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
+          }
+
           await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
             name: "send-phoenix",
             params: {
@@ -436,9 +443,7 @@ export class MonitoringPrintersComponent implements OnInit {
                 data: {
                   printerName: printer.name,
                   format: "PNG",
-                  // url: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/renderer?orderId=5c7219c433a05130b0a3fc6b&template=restaurantOrderPos&format=png`,
-                  url: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=png`,
-                  // url: "http://api.myqmenu.com/utilities/order/" + environment.testOrderId + "?format=pos" + (injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''),
+                  url: url,
                   copies: printer.autoPrintCopies || 1
                 }
               }

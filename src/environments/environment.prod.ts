@@ -3,6 +3,7 @@ export const environment = {
   env: "prod",
   appApiUrl: "https://9v8upsmsai.execute-api.us-east-1.amazonaws.com/prod/",
   qmenuApiUrl: "https://67dqylz39g.execute-api.us-east-2.amazonaws.com/prod/",
+  utilsApiUrl: "https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/",
   legacyApiUrl: "https://api.myqmenu.com/",
   autoGmbUrl: "http://localhost:3000/",
   migrationUrl: "https://qauto.ngrok.io/",
