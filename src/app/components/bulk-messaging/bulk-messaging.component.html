@@ -83,7 +83,7 @@
 
   <div class="col-md-3">
     <button *ngIf="!isRunning" class="btn btn-primary btn-sm" (click)="startBulkSend()">Start Sending</button>
-    <button *ngIf="isRunning" class="btn btn-primary btn-sm" (click)="isRunning=false">Stop Sending</button>
+    <button *ngIf="isRunning" class="btn btn-primary btn-sm" (click)="stopBulkSend()">Stop Sending</button>
     <div class="row">
       <div class="col-md-12">
         <p>{{currentStatus}}</p>

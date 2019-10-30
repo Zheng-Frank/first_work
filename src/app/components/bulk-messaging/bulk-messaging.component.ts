@@ -80,6 +80,7 @@ export class BulkMessagingComponent implements OnInit {
     this.isRunning = true;
 
     for (let currentRestaurant of this.restaurants) {
+
       if (!this.isRunning)
         break;
 
@@ -149,6 +150,7 @@ export class BulkMessagingComponent implements OnInit {
         await new Promise(resolve => setTimeout(resolve, 1000 * 2));
         this.currentStatus = `${this.currentStatus} Done`;
         this.restaurants = this.restaurants.filter(r => r._id !== currentRestaurant._id);
+        this.processedRestaurantIds.delete(currentRestaurant._id);
 
       } catch (error) {
         console.error('Error sending SMS/Email/Fax to restaurant', currentRestaurant._id, error);
