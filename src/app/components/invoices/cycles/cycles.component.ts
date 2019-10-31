@@ -54,6 +54,7 @@ export class CyclesComponent implements OnInit {
       },
       limit: 10000
     }).toPromise();
+    this.cycles.sort((c2, c1) => new Date(c1.toDate).valueOf() - new Date(c2.toDate).valueOf());
   }
 
   async formSubmit(event) {

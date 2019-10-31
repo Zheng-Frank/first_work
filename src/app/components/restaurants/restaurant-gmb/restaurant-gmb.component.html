@@ -100,25 +100,25 @@
               <span *ngIf="!isOthersOk(row.gmbBiz, 'serviceProviders', 'orderAheadUrl')" class="text-danger">✗</span>
             </td>
             <td>
-                {{restaurant.web.useBizOrderAheadUrl || restaurant.web.useBizWebsiteForAll ? 'Yes' : 'No'}}
+              {{restaurant.web.useBizOrderAheadUrl || restaurant.web.useBizWebsiteForAll ? 'Yes' : 'No'}}
             </td>
           </tr>
 
           <tr>
-              <th>GMB Reservations</th>
-              <td>
-                <div *ngFor="let reservationUrl of row.gmbBiz.reservations">
-                  <a href="{{reservationUrl}}" title="{{reservationUrl}}" target="_blank">{{reservationUrl | host}}</a>
-                </div>
-              </td>
-              <td>
-                <span *ngIf="isOthersOk(row.gmbBiz, 'reservations', 'reservation')" class="text-success">✓</span>
-                <span *ngIf="!isOthersOk(row.gmbBiz, 'reservations', 'reservation')" class="text-danger">✗</span>
-              </td>
-              <td>
-                  {{restaurant.web.useBizReservationUrl || restaurant.web.useBizWebsiteForAll ? 'Yes' : 'No'}}
-              </td>
-            </tr>
+            <th>GMB Reservations</th>
+            <td>
+              <div *ngFor="let reservationUrl of row.gmbBiz.reservations">
+                <a href="{{reservationUrl}}" title="{{reservationUrl}}" target="_blank">{{reservationUrl | host}}</a>
+              </div>
+            </td>
+            <td>
+              <span *ngIf="isOthersOk(row.gmbBiz, 'reservations', 'reservation')" class="text-success">✓</span>
+              <span *ngIf="!isOthersOk(row.gmbBiz, 'reservations', 'reservation')" class="text-danger">✗</span>
+            </td>
+            <td>
+              {{restaurant.web.useBizReservationUrl || restaurant.web.useBizWebsiteForAll ? 'Yes' : 'No'}}
+            </td>
+          </tr>
           <tr class="bg-light">
             <th>qMenu Website</th>
             <td colspan="3">
@@ -171,6 +171,10 @@
                     <hr class="my-0"><small>{{record.time | ago : now}}</small>
                   </div>
                 </ng-container>
+                <div *ngIf="alPair.statusHistory[alPair.statusHistory.length - 1].status === 'Published'"
+                  class="d-inline-block">
+                  <button class="btn btn-success" (click)="transferOwnership(alPair)">Change Ownership <i class="fas fa-arrow-right"></i> B</button>
+                </div>
               </td>
             </tr>
             <tr *ngIf="getGmbRequests(row.gmbBiz, alPair.account.email).length > 0">
