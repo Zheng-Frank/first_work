@@ -30,7 +30,7 @@ export const environment = {
   migrationUrl: "https://qauto.ngrok.io/",
   taskUrl: "https://qtask.ngrok.io/",
   qmenuNgrok: "http://localhost:3030/",
-  gmbNgrok: "https://gmb.ngrok.io/",
+  gmbNgrok: "http://localhost:3030/",
   socketUrl: 'https://api.myqmenu.com/',
   bizUrl: 'https://biz.qmenu.us/',
   customerUrl: 'https://qmenu.us/',

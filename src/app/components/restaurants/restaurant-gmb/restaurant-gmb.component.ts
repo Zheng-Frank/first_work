@@ -34,6 +34,44 @@ export class RestaurantGmbComponent implements OnInit {
     this.populate();
   }
 
+  async transferOwnership(accountLocation) {
+    console.log(accountLocation);
+    if (confirm("STOP and CANCEL if you are not sure what you are doing.\n Local automation server and gmb server must be running.\nThe system will try to transfer the GMB ownership to a difference account.\nContinue?")) {
+
+      this.apiRequesting = true;
+      const restaurantId = this.restaurant._id;
+      const fromEmail = accountLocation.account.email;
+      const cid = accountLocation.location.cid;
+      const refreshEmails = [fromEmail];
+      try {
+        const transferResult = await this._api.post(environment.gmbNgrok + 'transfer-ownership', {
+          fromEmail: fromEmail,
+          cid: cid,
+          restaurantId: restaurantId
+        }).toPromise();
+
+        console.log(transferResult)
+        // we should also do a GMB scan location on both accounts
+        this._global.publishAlert(AlertType.Success, 'Transferred Successfully');
+        refreshEmails.push(transferResult.toEmail);
+
+      } catch (error) {
+        console.log(error);
+        const result = error.error || error.message || error;
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
+      }
+
+      await this._gmb3.scanAccountsForLocations(refreshEmails, true);
+      // do another reload after
+      setTimeout(async () => {
+        await this._gmb3.scanAccountsForLocations(refreshEmails, false);
+        this.populate();
+      }, 60 * 1000);
+      this.apiRequesting = undefined;
+      this.populate();
+    }
+  }
+
   async populate() {
 
     this.gmbRows = [];
@@ -314,15 +352,15 @@ export class RestaurantGmbComponent implements OnInit {
           .post(environment.qmenuApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
           .then(password => this._api.post(
             environment.autoGmbUrl + 'updateWebsite', {
-              email: al.account.email,
-              password: password,
-              websiteUrl: target.website,
-              menuUrl: target.menuUrl,
-              orderAheadUrl: target.orderAheadUrl,
-              reservationsUrl: target.reservation,
-              appealId: al.location.appealId,
-              stayAfterScan: true
-            }
+            email: al.account.email,
+            password: password,
+            websiteUrl: target.website,
+            menuUrl: target.menuUrl,
+            orderAheadUrl: target.orderAheadUrl,
+            reservationsUrl: target.reservation,
+            appealId: al.location.appealId,
+            stayAfterScan: true
+          }
           ).toPromise())
 
     }
