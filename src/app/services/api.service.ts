@@ -42,6 +42,36 @@ export class ApiService {
     return this.apiRequest('get', api, payload);
   }
 
+  /**
+   * get with batches and aggregate the result
+   * @param api 
+   * @param payload 
+   * @param batchSize - size of each batch
+   */
+  async getBatch(api, payload, batchSize) {
+
+    let batchPayload = payload || {};
+    const payloadLimit = batchPayload.limit; //old limit
+
+    const result = [];
+    let skip = 0;
+    while (true) {
+
+      payload['skip'] = skip;
+      payload['limit'] = batchSize;
+      const oneBatch = await this.get(api, batchPayload).toPromise();
+
+      if (oneBatch.length === 0 || result.length >= payloadLimit) {
+        break;
+      } else {
+        result.push(...oneBatch);
+        skip += batchSize;
+      }
+    }
+
+    return result;
+  }
+
   post(api: string, payload?) {
     return this.apiRequest('post', api, payload);
   }

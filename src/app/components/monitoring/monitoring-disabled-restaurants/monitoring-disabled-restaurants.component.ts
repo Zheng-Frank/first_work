@@ -43,7 +43,7 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
             sort: {
                 createdAt: -1
             },
-            limit: 6000
+            limit: 1000000
         }).toPromise();
 
 

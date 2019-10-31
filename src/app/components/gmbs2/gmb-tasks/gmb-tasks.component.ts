@@ -397,10 +397,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   async populate() {
     try {
-      await Promise.all([
-        this.populateQMDomains(),
-        this.populateRTs(),
-        this.populateTasks()]);
+      // await Promise.all([
+        await this.populateQMDomains(),
+        await this.populateRTs(),
+        await this.populateTasks()
+      // ]);
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
     }
@@ -561,13 +562,19 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   private async populateTasks() {
     this.setQueryOr();
-    const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "task",
-      query: {
-        $or: this.query_or
-      },
-      limit: 10000000
-    }).toPromise();
+    // const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: "task",
+    //   query: {
+    //     $or: this.query_or
+    //   },
+    // }).toPromise();
+    const tasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+        resource: "task",
+        query: {
+          $or: this.query_or
+        },
+      }, 2000);
+      
     this.tasks = tasks.map(t => new Task(t));
     this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
     this.filteredTasks = this.tasks;
@@ -575,19 +582,20 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   }
 
   private async populateRTs() {
-    const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "restaurant",
-      query: {},
-      limit: 10000000,
-      projection: {
-        "googleAddress.formatted_address": 1,
-        "googleAddress.timezone": 1,
-        "googleListing.gmbOwner": 1,
-        "googleListing.phone": 1,
-        score: 1,
-        "web.qmenuWebsite": 1 // for qmenu domains
-      }
-    }).toPromise();
+    // const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+    //   resource: "restaurant",
+    //   query: {},
+    //   limit: 10000,
+    //   projection: {
+    //     "googleAddress.formatted_address": 1,
+    //     "googleAddress.timezone": 1,
+    //     "googleListing.gmbOwner": 1,
+    //     "googleListing.phone": 1,
+    //     score: 1,
+    //     "web.qmenuWebsite": 1 // for qmenu domains
+    //   }
+    // }).toPromise();
+    const restaurants = await this._global.getCachedVisibleRestaurantList();
     this.restaurantDict = restaurants.reduce((dict, rt) => (dict[rt._id] = rt, dict), {});
   }
 
@@ -621,11 +629,13 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   filter() {
 
-    // console.log(`timeZone = ${this.timeZone}`);
+    // console.log(`assignee = ${this.assignee}`);
 
     this.filteredTasks = this.tasks;
 
-    if (this.assignee && this.assignee !== "All") {
+    if (this.assignee === "NON-CLAIMED"){
+      this.filteredTasks = this.filteredTasks.filter( t => !t.assignee);
+    } else if (this.assignee && this.assignee !== "All") {
       this.filteredTasks = this.filteredTasks.filter(t => t.assignee === this.assignee);
     };
 
@@ -646,5 +656,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     });
 
   }
+
+  pagination = true;
 
 }

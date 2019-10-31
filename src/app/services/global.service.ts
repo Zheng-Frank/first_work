@@ -95,6 +95,12 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "GMB"]
         },
         {
+          name: "GMB Tasks",
+          href: "#/gmb-tasks",
+          fa: "fab fa-google",
+          accessibleRoles: ["ADMIN", "GMB", "GMB_SPECIALIST", "GMB_ADMIN"]
+        },
+        {
           name: "Leads",
           href: "#/leads",
           fa: "fas fa-lightbulb",
@@ -246,6 +252,11 @@ export class GlobalService {
             },
             "rateSchedules.agent": 1,
             "googleAddress.formatted_address": 1,
+            "googleAddress.timezone": 1,
+            "googleListing.gmbOwner": 1,
+            "googleListing.phone": 1,
+            score: 1,
+            "web.qmenuWebsite": 1, // for qmenu domains
             web: 1
           },
           skip: restaurantSkip,
