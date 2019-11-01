@@ -31,6 +31,13 @@
         <option>All</option>
         <option *ngFor="let tz of timeZoneList">{{tz}}</option>
     </select>
+    <label class="mr-2"> GMB Owner:</label>
+    <select class="mr-5" [(ngModel)]="owner" (change)="filter()">
+        <option>All</option>
+        <option>NON-QMENU</option>
+        <option *ngFor="let ow of ownerList">{{ow}}</option>
+    </select>
+
     <label class="mr-2"> Assignee:</label>
     <select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
         <option>All</option>

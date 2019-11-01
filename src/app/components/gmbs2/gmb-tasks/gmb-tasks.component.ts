@@ -155,6 +155,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     //   tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
     // });
 
+    this.ownerList = this.filteredTasks.map(t => ((this.restaurantDict[t.relatedMap.restaurantId] || {}).googleListing || {}).gmbOwner);
+    this.ownerList = Array.from(new Set(this.ownerList)).sort().filter(e => e != null);
+
     this.now = new Date();
   }
 
@@ -398,7 +401,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   async populate() {
     try {
       // await Promise.all([
-        await this.populateQMDomains(),
+      await this.populateQMDomains(),
         await this.populateRTs(),
         await this.populateTasks()
       // ]);
@@ -569,12 +572,12 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     //   },
     // }).toPromise();
     const tasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-        resource: "task",
-        query: {
-          $or: this.query_or
-        },
-      }, 2000);
-      
+      resource: "task",
+      query: {
+        $or: this.query_or
+      },
+    }, 2000);
+
     this.tasks = tasks.map(t => new Task(t));
     this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
     this.filteredTasks = this.tasks;
@@ -626,15 +629,13 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   filteredTasks = [];
   timeZone = "All";
   timeZoneList = ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort();
+  owner = "All";
+  ownerList = [];
 
   filter() {
 
-    // console.log(`assignee = ${this.assignee}`);
-
-    this.filteredTasks = this.tasks;
-
-    if (this.assignee === "NON-CLAIMED"){
-      this.filteredTasks = this.filteredTasks.filter( t => !t.assignee);
+    if (this.assignee === "NON-CLAIMED") {
+      this.filteredTasks = this.filteredTasks.filter(t => !t.assignee);
     } else if (this.assignee && this.assignee !== "All") {
       this.filteredTasks = this.filteredTasks.filter(t => t.assignee === this.assignee);
     };
@@ -643,6 +644,19 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       this.filteredTasks = this.filteredTasks.filter(t =>
         Helper.getTimeZone((this.restaurantDict[t.relatedMap.restaurantId].googleAddress || {}).formatted_address) === this.timeZone)
     };
+
+    if (this.owner && this.owner !== "All") {
+      this.filteredTasks = this.filteredTasks.filter(t => {
+        const gmb = ((this.restaurantDict[t.relatedMap.restaurantId] || {}).googleListing || {}).gmbOwner;
+        switch (this.owner) {
+          case ("NON-QMENU"):
+            return gmb !== 'qmenu';
+          default:
+            return gmb === this.owner;
+        }
+      })
+    };
+
 
     this.tabs.map(tab => {
       const filterMap = {
