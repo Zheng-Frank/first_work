@@ -83,7 +83,7 @@
           <td>{{row.score}}</td>
           <td>{{row.gmbOwner}}</td>
           <td class="text-nowrap">
-            <i *ngIf="row.request?.pinHistory && row.request?.pinHistory.length > 0"
+            <i *ngIf="row.request?.pinHistory && row.request?.pinHistory[0] && row.request?.pinHistory[0].pin"
               class="text-warning fas fa-2x fa-lightbulb"></i>
             <ng-container *ngFor="let vo of row.verificationOptions || []">
               <i
@@ -265,11 +265,11 @@
     <label>Google PINs:</label>
     <div *ngFor="let ph of modalRow?.request?.pinHistory || []" class="row">
       <div class="col-6 text-nowrap">
-        <h2 class="d-inline-block">{{ph.pin}} </h2> <span class="text-muted">{{ph.time | ago: now}}
+        <h2 class="d-inline-block">{{ph.pin ? ph.pin : '(empty)'}} </h2> <span class="text-muted">{{ph.time | ago: now}}
           {{ph.username}}</span>
       </div>
       <div class="col-6 text-right">
-        <button class="btn btn-primary" (click)="completePin(ph)">Verify PIN</button>
+        <button class="btn btn-primary" (click)="completePin(ph)" *ngIf="ph.pin">Verify PIN</button>
       </div>
     </div>
 
