@@ -43,6 +43,28 @@
         <option>All</option>
         <option *ngFor="let assignee of assignees">{{assignee}}</option>
     </select>
+
+    <input class="form-check-input" type="checkbox" [(ngModel)]="hasEmail" id="hasEmailCheck"  (change)="filter()">
+    <label class="form-check-label mr-5" for="hasEmailCheck">
+        Email
+    </label>
+
+    <input class="form-check-input" type="checkbox" [(ngModel)]="hasPhone" id="hasPhoneCheck" (change)="filter()">
+    <label class="form-check-label mr-5" for="hasPhoneCheck">
+        Phone
+    </label>
+
+    <input class="form-check-input" type="checkbox" [(ngModel)]="haPostcard" id="hasPostcardCheck" (change)="filter()">
+    <label class="form-check-label mr-5" for="hasPostcardCheck">
+        Postcard
+    </label>
+
+    <input class="form-check-input" type="checkbox" [(ngModel)]="hasCode" id="hasCodeCheck" (change)="filter()">
+    <label class="form-check-label mr-5" for="hasCodeCheck">
+        Code
+    </label>
+
+
     <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
     <label class="form-check-label mr-5" for="paginationCheck">
         Pagination

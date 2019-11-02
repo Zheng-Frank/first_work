@@ -632,7 +632,14 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   owner = "All";
   ownerList = [];
 
+  hasEmail = false;
+  hasPhone = false;
+  hasPostcard = false;
+  hasCode = false;
+
   filter() {
+
+    this.filteredTasks = this.tasks;
 
     if (this.assignee === "NON-CLAIMED") {
       this.filteredTasks = this.filteredTasks.filter(t => !t.assignee);
@@ -657,6 +664,24 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       })
     };
 
+    //filter verification options
+    if (this.hasEmail || this.hasPhone || this.hasPostcard) {
+      this.filteredTasks = this.filteredTasks.filter(t => {
+
+        const lastVos = ((((t.request || {}).voHistory || [])[0] || {}).options) || [];
+        const availableVos = lastVos.map(op => op.verificationMethod);
+        let voCheck = true;
+        if (this.hasEmail) voCheck = lastVos.filter(v => v.emailData && this.qmenuDomains.has(v.emailData.domainName)).length > 0;
+        if (this.hasPhone) voCheck = voCheck && availableVos.includes('PHONE_CALL');
+        if (this.hasPostcard) voCheck = voCheck && availableVos.includes('ADDRESS');
+        return voCheck;
+      })
+    };
+
+    //filter PIN
+    if (this.hasCode) {
+      this.filteredTasks = this.filteredTasks.filter(t => (((t.request || {}).pinHistory || [])[0] || []).pin);
+    };
 
     this.tabs.map(tab => {
       const filterMap = {
