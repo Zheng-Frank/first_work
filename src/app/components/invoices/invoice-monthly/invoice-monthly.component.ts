@@ -109,7 +109,7 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async populateInvoicedButLaterCanceled() {
-    if(new Date()) {
+    if (new Date()) {
       return alert("temp disabled.")
     }
     // query order status === canceled, then match invoice?
@@ -408,33 +408,38 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async populateOverdue() {
-
-    // non-canceled,
-    // not payment completed
-    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'invoice',
-      query: {
-        isPaymentCompleted: { $ne: true },
-        isCanceled: { $ne: true },
-        isSent: true,
-        // balance: { $lt: 0 } // only when they owe us money!
-      },
-      projection: {
-        "logs.time": 1,
-        "logs.action": 1,
-        "logs.user": 1,
-        balance: 1,
-        "restaurant.id": 1,
-        "restaurant.name": 1,
-        "restaurant.rateSchedules": 1,
-        fromDate: 1,
-        toDate: 1,
-        previousInvoiceId: 1,
-        "payments.amount": 1
-      },
-      limit: 80000
-    }).toPromise();
-
+    const invoiceBatchSize = 5000;
+    let invoices = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        query: {
+          isPaymentCompleted: { $ne: true },
+          isCanceled: { $ne: true },
+          isSent: true,
+          // balance: { $lt: 0 } // only when they owe us money!
+        },
+        projection: {
+          "logs.time": 1,
+          "logs.action": 1,
+          "logs.user": 1,
+          balance: 1,
+          "restaurant.id": 1,
+          "restaurant.name": 1,
+          "restaurant.rateSchedules": 1,
+          fromDate: 1,
+          toDate: 1,
+          previousInvoiceId: 1,
+          "payments.amount": 1
+        },
+        skip: invoices.length,
+        limit: invoiceBatchSize
+      }).toPromise();
+      invoices.push(...batch);
+      if (batch.length === 0 || batch.length < invoiceBatchSize) {
+        break;
+      }
+    }
 
     const gmbAccountsWithPublishedLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
