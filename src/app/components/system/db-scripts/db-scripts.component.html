@@ -18,6 +18,14 @@
             <button class="btn btn-primary" (click)="mutateRtId()">Execute</button>
         </div>
     </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Change AZ Timezone</h5>
+            <p class="card-text">Since AZ don't follow daylight saving, need set timezone as PDT at the begining for daylight saving, set to MDT at the end of daylight saving(Need hard coded value)</p>
+            <button class="btn btn-primary" (click)="changeAZTimezone()">Execute</button>
+        </div>
+    </div>
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Purge Jobs</h5>
