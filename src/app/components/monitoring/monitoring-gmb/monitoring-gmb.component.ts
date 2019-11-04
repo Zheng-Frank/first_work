@@ -28,7 +28,7 @@ export class MonitoringGmbComponent implements OnInit {
 
   async populate() {
     const restaurantBatchSize = 1000;
-    const allRestaurants = [];
+    let allRestaurants = [];
     while (true) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
@@ -77,7 +77,7 @@ export class MonitoringGmbComponent implements OnInit {
       }
     }
 
-    const domainBatchSize = 1000;
+    const domainBatchSize = 3000;
     while (true) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'domain',
@@ -106,20 +106,27 @@ export class MonitoringGmbComponent implements OnInit {
         };
       }
     }));
-    this.domains = this.domains.filter(e=> !e.status || e.status ==='ACTIVE');
+    //this.domains = this.domains.filter(e=> !e.status || e.status ==='ACTIVE');
 
+    //allRestaurants = allRestaurants.filter(r => r._id === '5ad9d66f8ffa501400cdeb84');
     this.domains.map(domain => {
       allRestaurants.map(rt => {
-        let website = rt.web && rt.web.qmenuWebsite;
-        if (website && website.toLowerCase().indexOf(domain.name) >= 0) {
+        let website = rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.toLowerCase();
+        // compare http://www.biteofchinatogo.com/ to biteofchinatogo.com
+        website = website && website.replace(/(^\w+:|^)\/\//, '').replace('/', '').replace('www.', '');
+        //For Godaddy website, it is already expired but transfer to AWS
+        //"status": "TRANSFERRED_OUT",
+        //"type": "GODADDY",
+        if (website === domain.name && domain.status !=="TRANSFERRED_OUT") {
           this.domainRtDict[rt._id] = domain;
         }
+
       })
     });
 
     this.rows = allRestaurants.map(r => ({
       restaurant: r,
-      domainType: this.getDomainType(r.web && r.web.qmenuWebsite),
+      domainType: this.domainRtDict[r._id] && this.domainRtDict[r._id].type,
       domain: this.domainRtDict[r._id],
       account: (cidAccountLocationMap[(r.googleListing || {}).cid] || {}).account,
       location: (cidAccountLocationMap[(r.googleListing || {}).cid] || {}).location,
@@ -129,7 +136,7 @@ export class MonitoringGmbComponent implements OnInit {
     // this.rows.length > 500 ? this.rows.length = 500 : '';
     this.filter();
   }
-  
+
   filter() {
     const now = new Date();
     this.filteredRows = this.rows;
@@ -147,7 +154,7 @@ export class MonitoringGmbComponent implements OnInit {
       this.filteredRows = this.filteredRows.filter(row => row.restaurant.googleListing && !row.restaurant.googleListing.gmbWebsite);
     }
 
-    if(this.showExpiredDomain){
+    if (this.showExpiredDomain) {
       this.filteredRows = this.filteredRows.filter(e => e.domain && (new Date(e.domain.expiry)).valueOf() < now.valueOf());
     }
 
@@ -164,14 +171,6 @@ export class MonitoringGmbComponent implements OnInit {
     }
   }
 
-  getDomainType(webSite: string) {
-    const now = new Date();
-    this.domains = this.domains.filter(e => e.status === 'ACTIVE' || new Date(e.expiry).valueOf() > now.valueOf());
-    let matchDomain = this.domains.filter(each => webSite && webSite.toLocaleLowerCase().indexOf(each.name) >= 0);
-    if (matchDomain && matchDomain.length > 0) {
-      return matchDomain[0].type
-    }
-  }
 
   async scanWebsite() {
     let websites = this.filteredRows.map(row => row.restaurant.web && row.restaurant.web.qmenuWebsite)
