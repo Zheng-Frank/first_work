@@ -46,7 +46,7 @@ export class MyLeadsComponent implements OnInit {
   // for editing existing call log
   selectedCallLog;
 
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this._api
@@ -103,7 +103,7 @@ export class MyLeadsComponent implements OnInit {
 
   }
 
-  populateMyLeads() {
+  async populateMyLeads() {
     const queryOrClause = [];
 
     this.marketingUsers.map(each => {
@@ -113,34 +113,33 @@ export class MyLeadsComponent implements OnInit {
       $or: queryOrClause
     };
 
-    this._api
-      .get(environment.qmenuApiUrl + "generic", {
+    let leadBatchSize = 2000;
+    let result = [];
+    while (true) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: "lead",
-        limit: 6000,
-        query: query
-      })
-      .subscribe(
-        result => {
-          this.myLeads = result.map(u => new Lead(u));
-          this.myLeads.sort((u1, u2) =>
-            (
-              (u1.address || {}).administrative_area_level_1 + u1.name
-            ).localeCompare(
-              (u2.address || {}).administrative_area_level_1 + u2.name
-            )
-          );
-          if (this.myLeads.length === 0) {
-            this._global.publishAlert(AlertType.Info, "No lead found");
-          }
-          this.allLeads = this.myLeads;
-        },
-        error => {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Error pulling leads from API"
-          );
-        }
-      );
+        query: query,
+        skip: result.length,
+        limit: leadBatchSize
+      }).toPromise();
+      result.push(...batch);
+      if (batch.length === 0 || batch.length < leadBatchSize) {
+        break;
+      }
+    }
+
+    this.myLeads = result.map(u => new Lead(u));
+    this.myLeads.sort((u1, u2) =>
+      (
+        (u1.address || {}).administrative_area_level_1 + u1.name
+      ).localeCompare(
+        (u2.address || {}).administrative_area_level_1 + u2.name
+      )
+    );
+    if (this.myLeads.length === 0) {
+      this._global.publishAlert(AlertType.Info, "No lead found");
+    }
+    this.allLeads = this.myLeads;
   }
 
   getLeadsForTab(tab) {
@@ -235,7 +234,7 @@ export class MyLeadsComponent implements OnInit {
     } else {
       // api update here...
       this._api
-        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}])
+        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
         .subscribe(
           result => {
             // let's update original, assuming everything successful
