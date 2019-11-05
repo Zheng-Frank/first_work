@@ -119,7 +119,14 @@ export class DbScriptsComponent implements OnInit {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: {
-          'googleAddress.state': "AZ"
+          "$or": [
+            {
+              "googleAddress.administrative_area_level_1": "AZ"
+            },
+            {
+              "googleAddress.state": "AZ"
+            }
+          ]
         },
         projection: {
           name: 1,
