@@ -379,7 +379,7 @@ export class CycleDetailsComponent implements OnInit {
     const frequencyOk = this.paymentFrequencyFilter === 'select usage frequency...' || (
       this.paymentFrequencyFilter === 'One Time' ?
         isOneTime :
-        hasCardNumberOrRoutingNumber
+        (hasCardNumberOrRoutingNumber && !isOneTime)
     );
     return paymentMeansOk && frequencyOk;
   }
