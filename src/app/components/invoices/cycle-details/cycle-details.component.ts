@@ -77,6 +77,9 @@ export class CycleDetailsComponent implements OnInit {
 
   paymentMeansDict = {};
   disabledSet = new Set();
+  paymentMeansFilter = "select payment means...";
+  paymentFrequencyFilter = "select usage frequency...";
+
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     this._route.params.subscribe(
       params => {
@@ -222,8 +225,15 @@ export class CycleDetailsComponent implements OnInit {
         }
         return 'MULTIPLE';
       }
-      this.paymentMeansDict[rt._id + 'Send'] = getDisplayedText(sendPms);
-      this.paymentMeansDict[rt._id + 'Receive'] = getDisplayedText(receivePms);
+      this.paymentMeansDict[rt._id + 'Send'] = {
+        text: getDisplayedText(sendPms),
+        paymentMeans: sendPms[0]
+      };
+
+      this.paymentMeansDict[rt._id + 'Receive'] = {
+        text: getDisplayedText(receivePms),
+        paymentMeans: receivePms[0]
+      };
     });
   }
   async loadCycle(id) {
@@ -353,6 +363,29 @@ export class CycleDetailsComponent implements OnInit {
 
   getPaymentMeans(row) {
     return this.paymentMeansDict[row._id + (row.invoice && row.invoice.balance > 0 ? 'Send' : 'Receive')];
+  }
+
+  isAutopay(row) {
+    const item = this.paymentMeansDict[row._id + (row.invoice && row.invoice.balance > 0 ? 'Send' : 'Receive')];
+    // return item.paymentMeans && item.paymentMeans.
+  }
+
+  isRowVisible(row) {
+    const pmItem = this.getPaymentMeans(row);
+    const paymentMeansOk = this.paymentMeansFilter === 'select payment means...' || pmItem.text === this.paymentMeansFilter;
+    const details = (pmItem.paymentMeans || {}).details || {};
+    const hasCardNumberOrRoutingNumber = details.cardNumber || details.routingNumber;
+    const isOneTime = ['one time', '一次'].some(t => (details.memo || '').toLowerCase().indexOf(t) >= 0);
+    const frequencyOk = this.paymentFrequencyFilter === 'select usage frequency...' || (
+      this.paymentFrequencyFilter === 'One Time' ?
+        isOneTime :
+        hasCardNumberOrRoutingNumber
+    );
+    return paymentMeansOk && frequencyOk;
+  }
+
+  filter() {
+    // angular auto triggers repaint
   }
 
 }

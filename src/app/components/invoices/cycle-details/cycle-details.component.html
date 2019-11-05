@@ -7,6 +7,7 @@
     <button class="btn btn-primary" (click)="recalculate()">
       <i class="fas fa-sync"></i> Recalculate</button>
   </div>
+
   <table class="table table-bordered text-center">
     <tbody>
       <tr>
@@ -113,6 +114,29 @@
     <h2 class="text-center">
       {{activeBlock.label}}
     </h2>
+
+    <div class="text-right mb-2">
+      <select [(ngModel)]="paymentFrequencyFilter" (change)="filter()">
+        <option>select usage frequency...</option>
+        <option>One Time</option>
+        <option>No Restriction</option>
+      </select>
+
+      <select [(ngModel)]="paymentMeansFilter" (change)="filter()">
+        <option>select payment means...</option>
+        <option>MISSING</option>
+        <option>MULTIPLE</option>
+        <option>Direct Deposit</option>
+        <option>Check Deposit</option>
+        <option>Stripe</option>
+        <option>Quickbooks Bank Withdraw</option>
+        <option>Credit Card</option>
+        <option>Check</option>
+      </select>
+
+    </div>
+
+    {{paymentFrequencyFilter}} {{paymentMeansFilter}}
     <table class="table">
       <thead>
         <tr>
@@ -128,31 +152,36 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let row of activeBlock.rows; let i = index" class="{{disabledSet.has(row._id) ? 'disabled' : ''}}">
-          <td>{{i + 1}}</td>
-          <td>{{(row._id || '').slice(-5)}}</td>
-          <td><a routerLink="/restaurants/{{row._id}}" target="_blank">{{row.name}}</a></td>
-          <td><a routerLink="/invoices/{{row.invoice?._id}}" target="_blank">{{row.invoice?._id}}</a></td>
-          <td>
-            <span *ngIf="row.invoice?.isSent" class="text-success"><strong>✓</strong></span>
-            <span *ngIf="!row.invoice?.isSent" class="text-danger">&times;</span>
-          </td>
-          <td>
-            <span *ngIf="row.invoice?.isPaymentSent" class="text-success"><strong>✓</strong></span>
-            <span *ngIf="!row.invoice?.isPaymentSent" class="text-danger">&times;</span>
-          </td>
-          <td>
-            {{getPaymentMeans(row)}}
-          </td>
-          <td><span *ngIf="row.invoice?.balance">{{row.invoice?.balance | currency:'USD':'symbol'}}</span></td>
-          <td class="text-danger">
-            <button (click)="sendOne(row)" [qLoading]="sending"
-              *ngIf="row.invoice && !row.invoice?.isSent">Send</button>
-            <button (click)="payOne(row)" [qLoading]="paying"
-              *ngIf="row.invoice && !row.invoice?.isPaymentSent">Pay</button>
-            {{row.error | json}}
-          </td>
-        </tr>
+        <ng-container *ngFor="let row of activeBlock.rows; let i = index">
+          <tr
+            *ngIf="isRowVisible(row)"
+            class="{{disabledSet.has(row._id) ? 'disabled' : ''}}">
+            <td>{{i + 1}}</td>
+            <td>{{(row._id || '').slice(-5)}}</td>
+            <td><a routerLink="/restaurants/{{row._id}}" target="_blank">{{row.name}}</a></td>
+            <td><a routerLink="/invoices/{{row.invoice?._id}}" target="_blank">{{row.invoice?._id}}</a></td>
+            <td>
+              <span *ngIf="row.invoice?.isSent" class="text-success"><strong>✓</strong></span>
+              <span *ngIf="!row.invoice?.isSent" class="text-danger">&times;</span>
+            </td>
+            <td>
+              <span *ngIf="row.invoice?.isPaymentSent" class="text-success"><strong>✓</strong></span>
+              <span *ngIf="!row.invoice?.isPaymentSent" class="text-danger">&times;</span>
+            </td>
+            <td>
+              {{getPaymentMeans(row).text}}
+            </td>
+            <td><span *ngIf="row.invoice?.balance">{{row.invoice?.balance | currency:'USD':'symbol'}}</span></td>
+            <td class="text-danger">
+              <button (click)="sendOne(row)" [qLoading]="sending"
+                *ngIf="row.invoice && !row.invoice?.isSent">Send</button>
+              <button (click)="payOne(row)" [qLoading]="paying"
+                *ngIf="row.invoice && !row.invoice?.isPaymentSent">Pay</button>
+              {{row.error | json}}
+            </td>
+          </tr>
+        </ng-container>
+
       </tbody>
     </table>
   </div>
