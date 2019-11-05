@@ -66,6 +66,7 @@ export class ChangeOwnershipComponent implements OnInit {
     delete clone.salesBase;
     delete clone.salesBonus;
     delete clone.logs;
+    delete clone.channels;
     delete clone.salesThreeMonthAverage;
 
     clone.name = this.newName;
