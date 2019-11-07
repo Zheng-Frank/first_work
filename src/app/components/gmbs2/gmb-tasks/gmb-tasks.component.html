@@ -25,58 +25,58 @@
     </ul>
   </div>
   <div class="clearfix mt-2">
-  
+
     <label class="mr-2"> Time Zone:</label>
     <select class="mr-5" [(ngModel)]="timeZone" (change)="filter()">
-        <option>All</option>
-        <option *ngFor="let tz of timeZoneList">{{tz}}</option>
+      <option>All</option>
+      <option *ngFor="let tz of timeZoneList">{{tz}}</option>
     </select>
     <label class="mr-2"> GMB Owner:</label>
     <select class="mr-5" [(ngModel)]="owner" (change)="filter()">
-        <option>All</option>
-        <option>NON-QMENU</option>
-        <option *ngFor="let ow of ownerList">{{ow}}</option>
+      <option>All</option>
+      <option>NON-QMENU</option>
+      <option *ngFor="let ow of ownerList">{{ow}}</option>
     </select>
 
     <label class="mr-2"> Assignee:</label>
     <select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
-        <option>All</option>
-        <option *ngFor="let assignee of assignees">{{assignee}}</option>
+      <option>All</option>
+      <option *ngFor="let assignee of assignees">{{assignee}}</option>
     </select>
 
-    <input class="form-check-input" type="checkbox" [(ngModel)]="hasEmail" id="hasEmailCheck"  (change)="filter()">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="hasEmail" id="hasEmailCheck" (change)="filter()">
     <label class="form-check-label mr-5" for="hasEmailCheck">
-        Email
+      Email
     </label>
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="hasPhone" id="hasPhoneCheck" (change)="filter()">
     <label class="form-check-label mr-5" for="hasPhoneCheck">
-        Phone
+      Phone
     </label>
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="haPostcard" id="hasPostcardCheck" (change)="filter()">
     <label class="form-check-label mr-5" for="hasPostcardCheck">
-        Postcard
+      Postcard
     </label>
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="hasCode" id="hasCodeCheck" (change)="filter()">
     <label class="form-check-label mr-5" for="hasCodeCheck">
-        Code
+      Code
     </label>
 
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
     <label class="form-check-label mr-5" for="paginationCheck">
-        Pagination
+      Pagination
     </label>
-  
+
   </div>
-  
+
   <div class="card-body text-left">
     <ng-container *ngFor="let tab of tabs">
       <q-table *ngIf="activeTabLabel === tab.label" [rows]="tab.rows" [tableColumnDescriptors]="myColumnDescriptors"
         [compact]="true" [pageSize]="pagination ? 100 : 100000">
-        
+
         <tr *tableRowTemplate="let row;" class="{{row.request.ownerDeclined ? 'alert-danger': ''}}">
           <td>{{row.rowNumber}}
           </td>
@@ -291,6 +291,7 @@
           {{ph.username}}</span>
       </div>
       <div class="col-6 text-right">
+        <button class="btn btn-outline-secondary" (click)="resetPin(ph)" *ngIf="ph.pin">Reset PIN</button>
         <button class="btn btn-primary" (click)="completePin(ph)" *ngIf="ph.pin">Verify PIN</button>
       </div>
     </div>

@@ -219,6 +219,30 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }
   }
 
+  async resetPin(pinHistory) {
+    if (confirm('Are you sure to reset this PIN? This will not erase the PIN history but scanning task will not see it')) {
+      try {
+        await this._api.post(environment.gmbNgrok + 'task/reset-pin', {
+          taskId: this.modalRow._id,
+          email: this.modalRow.request.email,
+          locationName: this.modalRow.request.locationName,
+          pin: pinHistory.pin
+        }).toPromise();
+
+        this._global.publishAlert(AlertType.Success, 'PIN reset Successfully');
+
+      } catch (error) {
+        console.log(error);
+        const result = error.error || error.message || error;
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
+      }
+
+      await this.addComments(`PIN reset`);
+      await this.refreshSingleTask(this.modalRow._id);
+    }
+  }
+
+
   async trigger(vo) {
     if (confirm('Trigger too many times could exhaust existing verification options. Are you sure?')) {
       this.verifyingOption = vo;
