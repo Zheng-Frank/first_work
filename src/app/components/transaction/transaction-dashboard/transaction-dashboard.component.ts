@@ -12,8 +12,8 @@ import { AlertType } from 'src/app/classes/alert-type';
 })
 export class TransactionDashboardComponent implements OnInit {
 
-  payers = ['qmenu', 'gary'];
-  payees = ['sam', 'lucy', 'mike', 'kevin', 'charity'];
+  payers = ['qmenu', 'gary', 'chris'];
+  payees = ['sam', 'lucy', 'mike', 'kevin', 'charity', 'gary', 'chris'];
   paymentMeans = ['paypal', 'wechat', 'check', 'cash'];
 
 
