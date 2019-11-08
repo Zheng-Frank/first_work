@@ -55,20 +55,16 @@ export class ApiService {
 
     const result = [];
     let skip = 0;
-    while (true) {
-
+    let oneBatch;
+    do {
       payload['skip'] = skip;
-      payload['limit'] = batchSize;
-      const oneBatch = await this.get(api, batchPayload).toPromise();
+      payload['limit'] = Math.min(batchSize, payloadLimit - result.length);
+      oneBatch = await this.get(api, batchPayload).toPromise();
+      result.push(...oneBatch);
+      skip += batchSize;
+    } while (oneBatch.length > 0 && result.length < payloadLimit)
 
-      if (oneBatch.length === 0 || result.length >= payloadLimit) {
-        break;
-      } else {
-        result.push(...oneBatch);
-        skip += batchSize;
-      }
-    }
-
+    console.log(`loaded ${result.length} tasks`);
     return result;
   }
 
