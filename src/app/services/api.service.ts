@@ -62,7 +62,7 @@ export class ApiService {
       oneBatch = await this.get(api, batchPayload).toPromise();
       result.push(...oneBatch);
       skip += batchSize;
-    } while (oneBatch.length === 0 || result.length < payloadLimit)
+    } while (oneBatch.length > 0 && result.length < payloadLimit)
 
     console.log(`loaded ${result.length} tasks`);
     return result;
