@@ -426,7 +426,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     try {
       // await Promise.all([
       await this.populatePostcardId(),
-      await this.populateQMDomains(),
+        await this.populateQMDomains(),
         await this.populateRTs(),
         await this.populateTasks()
       // ]);
@@ -599,7 +599,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     // const taskLimit = environment.gbmTasksTestLimit? environment.gbmTasksTestLimit : 1000000;
     const taskLimit = 1000000;
-    const tasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+    const dbTasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "task",
       query: {
         $or: this.query_or
@@ -608,8 +608,14 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }, 2000);
 
 
-    this.tasks = tasks.map(t => new Task(t));
+
+    this.tasks = dbTasks.map(t => new Task(t));
     this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
+
+    this.tasks.filter(t => !this.restaurantDict[t.relatedMap.restaurantId])
+      .forEach(function (task) { console.log(`ERROR bad restaurant id ${task.relatedMap.restaurantId}! Task ID = ${task._id.toString()}`) });
+
+    this.tasks = this.tasks.filter(t => this.restaurantDict[t.relatedMap.restaurantId]); //remove invalid restaruant IDs, should not happen
     this.filteredTasks = this.tasks;
     this.filter();
   }
@@ -730,10 +736,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   //help display postcardID
   postcardIds = new Map();
-  async populatePostcardId(){
-    this.postcardIds = new Map((await this._global.getCachedGmbAccountsNoLocations()).map( acct => [acct.email, acct.postcardId]));
+  async populatePostcardId() {
+    this.postcardIds = new Map((await this._global.getCachedGmbAccountsNoLocations()).map(acct => [acct.email, acct.postcardId]));
   }
-  getPostcardId(email){
+  getPostcardId(email) {
     return this.postcardIds.get(email);
   }
 
