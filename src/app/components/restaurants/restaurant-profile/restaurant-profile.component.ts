@@ -50,7 +50,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'skipShowTax',
     'menuHoursExtended',
     'notes',
-    'deliveryByTme'
+    'deliveryByTme',
+    'insistedPrintCCInfo'
+
   ];
 
   uploadError: string;
