@@ -64,7 +64,7 @@ export class GmbAccountListComponent implements OnInit {
           suspended: 1,
           allLocations: 1,
           pagerSize: 1,
-          postcardId:1,
+          postcardId: 1,
           gmbScannedAt: 1,
           emailScannedAt: 1,
           "locations.statusHisotory": { $slice: 1 },
@@ -136,12 +136,12 @@ export class GmbAccountListComponent implements OnInit {
     }
     if (this.locationScanOlder && this.locationScanOlder != 'All') {
       let hoursAgo = 60 * 60 * 1000 * this.locationScanOlder;
-      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => (new Date().valueOf() - new Date(each.gmbScannedAt).valueOf()) >hoursAgo)
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => (new Date().valueOf() - new Date(each.gmbScannedAt).valueOf()) > hoursAgo)
     }
 
     if (this.emailScanOlder && this.emailScanOlder != 'All') {
       let hoursAgo = 60 * 60 * 1000 * this.emailScanOlder;
-      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => (new Date().valueOf() - new Date(each.emailScannedAt).valueOf()) >hoursAgo)
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => (new Date().valueOf() - new Date(each.emailScannedAt).valueOf()) > hoursAgo)
     }
   }
 
@@ -180,7 +180,7 @@ export class GmbAccountListComponent implements OnInit {
       disabled: gmb.disabled
     } as any;
 
-    if(gmb.recoveryEmail) {
+    if (gmb.recoveryEmail) {
       updatedGmb.recoveryEmail = gmb.recoveryEmail;
     }
 
@@ -195,11 +195,14 @@ export class GmbAccountListComponent implements OnInit {
         console.log(error);
       };
     }
-console.log(updatedGmb)
+    console.log(updatedGmb);
     try {
       if (gmb._id) {
         await this._api.patch(environment.qmenuApiUrl + "generic?resource=gmbAccount", [{ old: oldGmb, new: updatedGmb }]).toPromise();
       } else {
+        //ax 11/08/19 - add postcardId as well
+        const maxId = Math.max(...(await this._global.getCachedGmbAccountsNoLocations()).map(acct => parseInt(acct.postcardId)));
+        updatedGmb.postcardId = `${maxId + 1}`;
         await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbAccount', [updatedGmb]).toPromise();
       }
       event.acknowledge(null);
