@@ -425,6 +425,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   async populate() {
     try {
       // await Promise.all([
+      await this.populatePostcardId(),
       await this.populateQMDomains(),
         await this.populateRTs(),
         await this.populateTasks()
@@ -595,12 +596,17 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     //     $or: this.query_or
     //   },
     // }).toPromise();
+
+    // const taskLimit = environment.gbmTasksTestLimit? environment.gbmTasksTestLimit : 1000000;
+    const taskLimit = 1000000;
     const tasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "task",
       query: {
         $or: this.query_or
       },
+      limit: taskLimit
     }, 2000);
+
 
     this.tasks = tasks.map(t => new Task(t));
     this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
@@ -721,5 +727,14 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   }
 
   pagination = true;
+
+  //help display postcardID
+  postcardIds = new Map();
+  async populatePostcardId(){
+    this.postcardIds = new Map((await this._global.getCachedGmbAccountsNoLocations()).map( acct => [acct.email, acct.postcardId]));
+  }
+  getPostcardId(email){
+    return this.postcardIds.get(email);
+  }
 
 }

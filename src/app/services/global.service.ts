@@ -274,6 +274,8 @@ export class GlobalService {
       const restaurants = result.map(r => new Restaurant(r));
       restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
 
+      console.log(`loaded ${restaurants.length} restaurants`);
+
       this._cache.set('restaurants', restaurants, 30 * 60);
       return restaurants;
     }
@@ -294,6 +296,7 @@ export class GlobalService {
       userList.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
       this._cache.set('users', userList, 30 * 60);
 
+      console.log(`loaded ${users.length} users`);
       return userList;
     }
   }
@@ -310,16 +313,35 @@ export class GlobalService {
         limit: 10000000,
         projection: { expiry: 1, name: 1 }
       }).toPromise();
-
+      console.log(`loaded ${myDomains.length} domains`);
       const nonExpiredDomains = myDomains.filter(d => new Date(d.expiry) > new Date());
       nonExpiredDomains.push({ name: 'qmenu.us' }); // in case it's not there
       const qmenuDomains = new Set();
       nonExpiredDomains.map(d => qmenuDomains.add(d.name));
-
+      console.log(`loaded ${nonExpiredDomains.length} non expired domains`);
       this._cache.set('qmDomains', qmenuDomains, 30 * 60);
 
       return qmenuDomains;
     }
   }
 
+  async getCachedGmbAccountsNoLocations(forceRefresh?: boolean) {
+
+    if (this._cache.get('gmbAccounts') && !forceRefresh) {
+      return this._cache.get('gmbAccounts');
+    } else {
+      // retrieve ALL gmb accounts w/o location data
+      const accounts = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "gmbAccount",
+        query: {},
+        limit: 2000,
+        projection: { locations: 0 }
+      }).toPromise();
+
+      console.log(`loaded ${accounts.length} gmbAccounts`);
+      this._cache.set('gmbAccounts', accounts, 24 * 60 * 60);
+      return accounts;
+    }
+  }
+  
 }
