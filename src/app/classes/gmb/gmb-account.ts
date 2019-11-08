@@ -16,6 +16,7 @@ export class GmbAccount {
     comments: string;
     type:string;
     recoveryEmail:string;
+    postcardId:string;
     locations: GmbLocation []; 
     disabled: boolean
     constructor(gmb?: any) {

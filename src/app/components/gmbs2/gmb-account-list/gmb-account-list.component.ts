@@ -64,6 +64,7 @@ export class GmbAccountListComponent implements OnInit {
           suspended: 1,
           allLocations: 1,
           pagerSize: 1,
+          postcardId:1,
           gmbScannedAt: 1,
           emailScannedAt: 1,
           "locations.statusHisotory": { $slice: 1 },
