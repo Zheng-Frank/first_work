@@ -738,6 +738,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   postcardIds = new Map();
   async populatePostcardId() {
     this.postcardIds = new Map((await this._global.getCachedGmbAccountsNoLocations()).map(acct => [acct.email, acct.postcardId]));
+    const missingIds = this.postcardIds.forEach((email, pid) => {
+      if (!pid) {
+        console.log(`WARN - missing postcardId on ${email}, please add to db`);
+      }
+    });
   }
   getPostcardId(email) {
     return this.postcardIds.get(email);
