@@ -357,7 +357,7 @@
   <div *ngFor="let task  of relatedTasks || []" class="alert alert-warning">
     <div *ngIf="task.name !== 'GMB Request'">{{task.name}}</div>
     <div *ngIf="task.name === 'GMB Request'">
-      <button class="btn btn-link pl-0" (click)="showDetailsById(task._id)">{{task.name}}</button>
+        {{task.name}} <button class="btn btn-link" (click)="showDetailsById(task._id)">See Details...</button>
     </div>
     <div><app-gmb-account-hotlink [email]="task.request?.email || task.transfer?.toEmail"></app-gmb-account-hotlink></div>
     <div class="text-muted my-text-small"> {{task.createdAt | ago: now}}<br>{{task._id}}</div>

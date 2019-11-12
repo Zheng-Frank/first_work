@@ -326,7 +326,12 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     const matchedTasks = this.tasks.filter(t => t._id === taskId);
     if (matchedTasks[0]) {
-      await this.showDetails(matchedTasks[0]);
+      // dismiss first the pop the new one up
+      this.rowModal.hide();
+      setTimeout(async _ => {
+        await this.showDetails(matchedTasks[0]);
+      }, 500);
+
     } else {
       alert(taskId);
     }
