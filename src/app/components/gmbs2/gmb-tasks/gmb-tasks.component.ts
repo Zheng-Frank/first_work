@@ -18,12 +18,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   activeTabLabel = 'Mine';
   currentAction;
   tasks = [];
-  tasks_mine = [];
-  tasks_nonclaimed = [];
-  tasks_myclosed = [];
-  tasks_allopen = [];
-  tasks_allclosed = [];
   hideClosedOldTasksDays = 15;
+
+  relatedTasks = [];
 
   qmenuDomains = new Set();
   modalRow;
@@ -325,6 +322,16 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     this.activeTabLabel = tab.label;
   }
 
+  async showDetailsById(taskId) {
+
+    const matchedTasks = this.tasks.filter(t => t._id === taskId);
+    if (matchedTasks[0]) {
+      await this.showDetails(matchedTasks[0]);
+    } else {
+      alert(taskId);
+    }
+  }
+
   async showDetails(row) {
 
     this.preferredVerificationOption = undefined;
@@ -393,8 +400,21 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
       person.channels = (person.channels || []).filter(c => c.type !== 'Email')
     });
 
-    // console.log(row);
-    //
+    const relatedTasks = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "task",
+      query: { "relatedMap.cid": row.relatedMap.cid, result: null },
+      limit: 100,
+      projection: {
+        assignee: 1,
+        name: 1,
+        "request.email": 1,
+        "transfer.toEmail": 1,
+        createdAt: 1
+      }
+    }).toPromise();
+
+    this.relatedTasks = relatedTasks.filter(t => t._id !== row._id);
+
   }
   async savePin() {
     if (!this.pin) {
@@ -424,12 +444,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
   async populate() {
     try {
-      // await Promise.all([
-      await this.populatePostcardId(),
-        await this.populateQMDomains(),
-        await this.populateRTs(),
-        await this.populateTasks()
-      // ]);
+      await this.populatePostcardId();
+      await this.populateQMDomains();
+      await this.populateRTs();
+      await this.populateTasks();
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
     }
