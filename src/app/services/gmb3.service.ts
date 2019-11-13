@@ -645,7 +645,7 @@ export class Gmb3Service {
           const oldBiz = { _id: gmbBiz._id };
           const newBiz = { _id: gmbBiz._id };
 
-          fields.map(f => newBiz[f] = crawledResult[f]);
+          fields.map(f => { newBiz[f] = crawledResult[f]; oldBiz[f] = "random"; });
           // also update crawledAt
           newBiz['crawledAt'] = { $date: new Date() };
 
