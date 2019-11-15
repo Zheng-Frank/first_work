@@ -24,6 +24,7 @@ export class GmbAccountListComponent implements OnInit {
   type;
   locationScanOlder;
   emailScanOlder;
+  overSizeLocations;
 
   scanningAll = false;
 
@@ -142,6 +143,10 @@ export class GmbAccountListComponent implements OnInit {
     if (this.emailScanOlder && this.emailScanOlder != 'All') {
       let hoursAgo = 60 * 60 * 1000 * this.emailScanOlder;
       this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => (new Date().valueOf() - new Date(each.emailScannedAt).valueOf()) > hoursAgo)
+    }
+    if(this.overSizeLocations){
+      console.log(this.filteredGmbAccounts);
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => each.allLocations> 95);
     }
   }
 
