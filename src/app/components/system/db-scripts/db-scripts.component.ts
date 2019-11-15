@@ -22,6 +22,52 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async calculateCommissions() {
+    // get all non-canceled, payment completed invoices so far
+    const invoices = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "invoice",
+      query: {},
+      projection: {
+        isCanceled: 1,
+        commission: 1,
+        isPaymentCompleted: 1,
+        toDate: 1,
+        total: 1
+      },
+      limit: 50000000
+    }).toPromise();
+    const allCommissions = invoices.reduce((sum, invoice) => {
+      if(!invoice.isCanceled) {
+        return sum + (invoice.commission || 0);
+      }
+
+      return sum;
+    }, 0);
+    const yearCommission = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === new Date().getFullYear()) {
+        return sum + (invoice.commission || 0);
+      }
+      return sum;
+    }, 0);
+    const allTotal = invoices.reduce((sum, invoice) => {
+      if(!invoice.isCanceled) {
+        return sum + (invoice.total || 0);
+      }
+
+      return sum;
+    }, 0);
+    const yearTotal = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === new Date().getFullYear()) {
+        return sum + (invoice.total || 0);
+      }
+      return sum;
+    }, 0);
+    console.log(`Life Comissions: ${allCommissions}`);
+    console.log(`Year Comissions: ${yearCommission}`);
+    console.log(`Life Total: ${allTotal}`);
+    console.log(`Year Total: ${yearTotal}`);
+  }
+
   async fixSalesBaseAndBonus() {
     const newOwnershipRts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
