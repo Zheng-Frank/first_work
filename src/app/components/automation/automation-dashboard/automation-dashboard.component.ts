@@ -128,18 +128,18 @@ export class AutomationDashboardComponent implements OnInit {
         const newTaskLostList = await this._gmb3.computeGmbRequestTasksThatJustLost();
         this.addRunningMessage('Found ' + newTaskLostList.length);
 
-        this.addRunningMessage('Scan for Apply GMB Tasks...');
-        const newApplyTasks = await this.scanForApplyTask();
-        this.addRunningMessage('Created ' + newApplyTasks.length);
+        // this.addRunningMessage('Scan for Apply GMB Tasks...');
+        // const newApplyTasks = await this.scanForApplyTask();
+        // this.addRunningMessage('Created ' + newApplyTasks.length);
 
         this.addRunningMessage('Purge Apply GMB Tasks...');
         const purgedApplyTasks = await this.purgeInvalidGmbApplyTasks();
         this.addRunningMessage('Purged ' + purgedApplyTasks.length);
 
 
-        this.addRunningMessage('Scan for Transfer Tasks...');
-        const newTransferTasks = await this.scanForTransferTask();
-        this.addRunningMessage('Created ' + newTransferTasks.length);
+        // this.addRunningMessage('Scan for Transfer Tasks...');
+        // const newTransferTasks = await this.scanForTransferTask();
+        // this.addRunningMessage('Created ' + newTransferTasks.length);
 
         this.addRunningMessage('Purge Transfer Tasks...');
         const purgedTransferTasks = await this.purgeInvalidGmbTransferTasks();
