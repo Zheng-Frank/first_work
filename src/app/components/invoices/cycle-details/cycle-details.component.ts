@@ -91,6 +91,17 @@ export class CycleDetailsComponent implements OnInit {
   ngOnInit() {
   }
 
+  getBlockAmount(block) {
+    const balances = block.rows.filter(r => r.invoice && r.invoice.isPaymentCompleted && !r.invoice.isCanceled).map(r => +r.invoice.balance);
+    // balances.sort((b1, b2) => b1 - b2);
+    // console.log(balances);
+    // console.log(balances.reduce((sum, i) => sum + (+i), 0));
+    // let sum = 0;
+    // const sums = balances.map(b =>(sum += b, b + sum));
+    // console.log(sums);
+    return (block.rows || []).reduce((total, row) => total + (row.invoice && !row.invoice.isCanceled && row.invoice.isPaymentCompleted ? (row.invoice.balance) : 0), 0);
+  }
+
   async processOne(row) {
     console.log(row);
     try {
