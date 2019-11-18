@@ -25,19 +25,21 @@
 
             </td>
             <td>
-                <div *ngFor="let biz of row.gmbBiz;">
+                <!-- <div *ngFor="let biz of row.gmbBiz;">
                     <div *ngFor="let task of biz.tasks;">
                         {{task.name}}
                     </div>
-                </div>
+                </div> -->
+                <div><small>{{row.task}}</small></div>
             </td>
 
             <td>
-                <div *ngFor="let biz of row.gmbBiz;">
+                <!-- <div *ngFor="let biz of row.gmbBiz;">
                     <div *ngFor="let task of biz.tasks;">
                         {{task.assignee}}
                     </div>
-                </div>
+                </div> -->
+                <div>{{row.assignee}}</div>
             </td>
             <td>
                 <div *ngFor="let biz of row.gmbBiz;">
