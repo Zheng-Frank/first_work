@@ -32,6 +32,8 @@
       <option value="24">More than 1 day ago</option>
       <option value="72">More than 3 days ago</option>
     </select>
+    <label class="checkbox-inline" style="padding-left: 15px">
+      <input type="checkbox" [(ngModel)]="overSizeLocations" (change)="filterGmbAccounts()"> Oversize Locations</label>
   </div>
 
   <div class="float-right">

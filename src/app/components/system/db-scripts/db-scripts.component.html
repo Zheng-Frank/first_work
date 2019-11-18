@@ -3,6 +3,13 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Calculate Commissions</h5>
+            <p class="card-text">Output year-end commissions collected</p>
+            <button class="btn btn-primary" (click)="calculateCommissions()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Fix Sales Base and Bonus</h5>
             <p class="card-text">If ownership changed and agent kept, we don't want to pay sales base and bonus twice.
                 This will erase sales base and bunus for new RT.
@@ -22,7 +29,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Change AZ Timezone</h5>
-            <p class="card-text">Since AZ don't follow daylight saving, need set timezone as PDT at the begining for daylight saving, set to MDT at the end of daylight saving(Need hard coded value)</p>
+            <p class="card-text">Since AZ don't follow daylight saving, need set timezone as PDT at the begining for
+                daylight saving, set to MDT at the end of daylight saving(Need hard coded value)</p>
             <button class="btn btn-primary" (click)="changeAZTimezone()">Execute</button>
         </div>
     </div>
@@ -146,7 +154,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Compute Invoice Derived Fields</h5>
-            <p class="card-text">Including total, subtotal etc. No side effects. We have to batch process existing invoices.</p>
+            <p class="card-text">Including total, subtotal etc. No side effects. We have to batch process existing
+                invoices.</p>
             <button class="btn btn-primary" (click)="injectTotalEtcToInvoice()">Fix</button>
         </div>
     </div>
@@ -316,14 +325,6 @@
             <p class="card-text">Move order statuses to order
             </p>
             <button class="btn btn-primary" (click)="migrateOrderStatuses()">Execute</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Change Ownership</h5>
-            <p class="card-text">If it's already moved (place_id same!), skip!</p>
-            <button class="btn btn-primary" (click)="changeOwnership()">Execute</button>
         </div>
     </div>
 

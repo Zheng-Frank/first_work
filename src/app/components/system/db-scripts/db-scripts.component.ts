@@ -22,6 +22,52 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async calculateCommissions() {
+    // get all non-canceled, payment completed invoices so far
+    const invoices = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "invoice",
+      query: {},
+      projection: {
+        isCanceled: 1,
+        commission: 1,
+        isPaymentCompleted: 1,
+        toDate: 1,
+        total: 1
+      },
+      limit: 50000000
+    }).toPromise();
+    const allCommissions = invoices.reduce((sum, invoice) => {
+      if(!invoice.isCanceled) {
+        return sum + (invoice.commission || 0);
+      }
+
+      return sum;
+    }, 0);
+    const yearCommission = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === new Date().getFullYear()) {
+        return sum + (invoice.commission || 0);
+      }
+      return sum;
+    }, 0);
+    const allTotal = invoices.reduce((sum, invoice) => {
+      if(!invoice.isCanceled) {
+        return sum + (invoice.total || 0);
+      }
+
+      return sum;
+    }, 0);
+    const yearTotal = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === new Date().getFullYear()) {
+        return sum + (invoice.total || 0);
+      }
+      return sum;
+    }, 0);
+    console.log(`Life Comissions: ${allCommissions}`);
+    console.log(`Year Comissions: ${yearCommission}`);
+    console.log(`Life Total: ${allTotal}`);
+    console.log(`Year Total: ${yearTotal}`);
+  }
+
   async fixSalesBaseAndBonus() {
     const newOwnershipRts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -436,118 +482,6 @@ export class DbScriptsComponent implements OnInit {
       }
     }
   }
-
-  async changeOwnership() {
-    const oldRestaurantId = '5bfcdca84c304db9cabf1b34';
-    const newName = "Sakura 12 Japanese Restaurant";
-    const previousRestaurantId = oldRestaurantId;
-    const newAlias = "sakura-12-japanese-lexington";
-    const switchingDate = new Date("Oct 07 2019 00:00:01 GMT-0400 (Eastern Daylight Time)");
-
-    const oldRestaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        _id: { $oid: oldRestaurantId }
-      },
-      limit: 1
-    }).toPromise())[0];
-
-    console.log(oldRestaurant);
-    const existingOnes = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        "googleAddress.place_id": oldRestaurant.googleAddress.place_id
-      },
-      limit: 2
-    }).toPromise();
-    if (existingOnes.length > 1) {
-      return alert('Failed: Already have multiple restaurants with same place ID.');
-    }
-
-    const clone = JSON.parse(JSON.stringify(oldRestaurant));
-    delete clone._id;
-    clone.createdAt = new Date();
-    clone.updatedAt = new Date();
-    (clone.rateSchedules || []).map(rs => rs.agent = 'none');
-    delete clone.notifications;
-    delete clone.closedHours;
-    delete clone.salesBase;
-    delete clone.channels;
-    delete clone.logs;
-    delete clone.salesBonus;
-    delete clone.salesThreeMonthAverage;
-
-    clone.name = newName;
-    clone.previousRestaurantId = previousRestaurantId;
-    clone.logs = clone.logs || [];
-    clone.logs.push({
-      "problem": "change ownership",
-      "response": "this is the new. Old one is " + oldRestaurant._id,
-      "time": new Date(),
-      "username": "system",
-      "resolved": true
-    });
-
-    const oldPatch: any = {
-      old: { _id: oldRestaurant._id },
-      new:
-      {
-        _id: oldRestaurant._id,
-        disabled: true
-      }
-    };
-
-    if (oldRestaurant.alias === newAlias) {
-      // patch old to a new alias
-      oldPatch.new.alias = oldRestaurant.alias + "-old";
-    } else {
-      // use new alias directly
-      clone.alias = newAlias;
-    }
-
-    if (oldRestaurant.name === newName) {
-      oldPatch.new.name = oldRestaurant.name + ' - old';
-    }
-
-    const ordersToMigrate = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'order',
-      query: {
-        restaurant: { $oid: oldRestaurant._id },
-        createdAt: { $gt: { $date: switchingDate } }
-      },
-      projection: {
-        createdAt: 1
-      },
-      limit: 8000
-    }).toPromise();
-
-    // start the action!
-    // 1. create the new restaurant!
-    const resultIds = await this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [clone]).toPromise();
-
-    // 2. now path those orders's restaurant field
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order',
-      ordersToMigrate.map(order => ({
-        old: { _id: order._id },
-        new: { _id: order._id, restaurant: { $oid: resultIds[0] } },
-      }))
-    ).toPromise();
-
-    oldPatch.new.logs = oldRestaurant.logs || [];
-    oldPatch.new.logs.push({
-      "problem": "change ownership",
-      "response": "new RT id is " + resultIds[0],
-      "time": new Date(),
-      "username": "system",
-      "resolved": true
-    });
-
-    // 3. patch old restaurant!
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [oldPatch]).toPromise();
-
-    alert('Done! ' + resultIds[0]);
-  }
-
 
   // async migrateOrderStatuses() {
   //   // some completed or canceld that's not reflected into to orders :(
