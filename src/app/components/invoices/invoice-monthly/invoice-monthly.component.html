@@ -96,10 +96,10 @@
       <tr>
         <th></th>
         <th>Restaurant</th>
+        <th>Local Time</th>
         <th>Agent</th>
         <th>Invoices</th>
         <th>Unpaid Balance</th>
-        <th>GMB</th>
         <th>Collection Logs</th>
         <th></th>
       </tr>
@@ -111,6 +111,7 @@
           <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
           <div><small>{{row.restaurant.id}}</small></div>
         </td>
+        <td class="text-nowrap">{{row.localTimeString}}</td>
         <td>
           {{row.agent}}
         </td>
@@ -128,9 +129,6 @@
           </table>
         </td>
         <td>{{row.unpaidBalance | currency:'USD':'symbol'}}</td>
-        <td>
-          <img *ngIf="row.ownedGmb" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
-        </td>
         <td>
           <table class="table table-borderless table-sm">
             <tr *ngFor="let log of row.logs">
