@@ -442,22 +442,22 @@ export class InvoiceMonthlyComponent implements OnInit {
       }
     }
 
-    const gmbAccountsWithPublishedLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        "published": { $gt: 0 }
-      },
-      projection: {
-        "locations.cid": 1,
-        "locations.status": 1
-      },
-      limit: 20000
-    }).toPromise();
+    // const gmbAccountsWithPublishedLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'gmbAccount',
+    //   query: {
+    //     "published": { $gt: 0 }
+    //   },
+    //   projection: {
+    //     "locations.cid": 1,
+    //     "locations.status": 1
+    //   },
+    //   limit: 20000
+    // }).toPromise();
 
-    const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)), myset), new Set());
+    // const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)), myset), new Set());
 
 
-    console.log(publishedCids);
+    // console.log(publishedCids);
 
     // organize by restaurant id
     const idRowMap = {};
@@ -506,7 +506,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     collectionLogs.map(restaurant => {
       if (idRowMap[restaurant._id]) {
         idRowMap[restaurant._id].logs = (restaurant.logs || []).filter(log => log.type === 'collection');
-        idRowMap[restaurant._id].ownedGmb = restaurant.googleListing && publishedCids.has(restaurant.googleListing.cid)
+        // idRowMap[restaurant._id].ownedGmb = restaurant.googleListing && publishedCids.has(restaurant.googleListing.cid)
       }
     });
 
