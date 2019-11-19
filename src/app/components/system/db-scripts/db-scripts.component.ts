@@ -3,14 +3,12 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { zip, onErrorResumeNext } from "rxjs";
+import { zip } from "rxjs";
 import { mergeMap } from "rxjs/operators";
-import { Restaurant, Hour } from '@qmenu/ui';
-import { Invoice } from "../../../classes/invoice";
+import { Restaurant } from '@qmenu/ui';
 import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
 import { Domain } from "src/app/classes/domain";
-import { b } from "@angular/core/src/render3";
 
 @Component({
   selector: "app-db-scripts",
@@ -52,6 +50,7 @@ export class DbScriptsComponent implements OnInit {
 
     const batchedCustomers = Array(Math.ceil(bannedCustomers.length / batchSize)).fill(0).map((i, index) => bannedCustomers.slice(index * batchSize, (index + 1) * batchSize));
     const customerOrders = {};
+    const orders = [];
     for (let customers of batchedCustomers) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'order',
@@ -71,6 +70,7 @@ export class DbScriptsComponent implements OnInit {
         },
         limit: 1000000
       }).toPromise();
+      orders.push(...batch);
       batch.map(order => {
         customerOrders[order.customerObj._id] = customerOrders[order.customerObj._id] || [];
         customerOrders[order.customerObj._id].push(order);
@@ -80,11 +80,18 @@ export class DbScriptsComponent implements OnInit {
     // for each banned customer, let's put his phone, email, socialId, address (from his delivery orders) to the system
     const generatedBlacklist = {}; // value: item
     bannedCustomers.map(customer => {
+      generatedBlacklist[customer._id] = {
+        type: 'CUSTOMER',
+        value: customer._id,
+        orders: customerOrders[customer._id] || [],
+        reasons: customer.bannedReasons
+      };
+
       if (customer.phone) {
         generatedBlacklist[customer.phone] = {
           type: 'PHONE',
           value: customer.phone,
-          order: (customerOrders[customer._id] || []).slice(-1)[0],
+          orders: customerOrders[customer._id] || [],
           reasons: customer.bannedReasons
         };
       }
@@ -92,7 +99,7 @@ export class DbScriptsComponent implements OnInit {
         generatedBlacklist[customer.email] = {
           type: 'EMAIL',
           value: customer.email,
-          order: (customerOrders[customer._id] || []).slice(-1)[0],
+          orders: customerOrders[customer._id] || [],
           reasons: customer.bannedReasons
         };
       }
@@ -100,16 +107,17 @@ export class DbScriptsComponent implements OnInit {
         generatedBlacklist[customer.socialId] = {
           type: 'SOCIAL',
           value: customer.socialId,
-          order: (customerOrders[customer._id] || []).slice(-1)[0],
+          orders: customerOrders[customer._id] || [],
           reasons: customer.bannedReasons
         };
       }
+
       for (let order of customerOrders[customer._id] || []) {
         if (order.address && order.address.formatted_address) {
           generatedBlacklist[order.address.formatted_address] = {
             type: 'ADDRESS',
             value: order.address.formatted_address,
-            order: order,
+            orders: orders.filter(o => o.address && order.address.formatted_address === o.address.formatted_address),
             reasons: customer.bannedReasons
           };
         }
