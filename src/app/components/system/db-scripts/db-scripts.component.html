@@ -3,6 +3,14 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Migrate Banned List to Blacklist</h5>
+            <p class="card-text">Oneway from banned customers to blacklist (phone, email, address). Rerun will only
+                create new instances but not alter existing blacklist.</p>
+            <button class="btn btn-primary" (click)="migrateBlacklist()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Calculate Commissions</h5>
             <p class="card-text">Output year-end commissions collected</p>
             <button class="btn btn-primary" (click)="calculateCommissions()">Execute</button>
