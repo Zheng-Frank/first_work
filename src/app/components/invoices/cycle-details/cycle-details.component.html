@@ -44,6 +44,9 @@
           <div class="text-success">
             paid: {{blocks.PAYOUT_INVOICES.paid || 0}}
           </div>
+          <div class="text-success">
+            {{getBlockAmount(blocks.PAYOUT_INVOICES) | currency:'USD':'symbol'}}
+          </div>
         </td>
         <td class="hvr-underline-reveal d-table-cell {{activeBlockName ==='NORMAL_INVOICES' ? 'alert-secondary' : ''}}"
           (click)="setActiveBlockName('NORMAL_INVOICES')" style="width: 12.5%">
@@ -153,9 +156,7 @@
       </thead>
       <tbody>
         <ng-container *ngFor="let row of activeBlock.rows; let i = index">
-          <tr
-            *ngIf="isRowVisible(row)"
-            class="{{disabledSet.has(row._id) ? 'disabled' : ''}}">
+          <tr *ngIf="isRowVisible(row)" class="{{disabledSet.has(row._id) ? 'disabled' : ''}}">
             <td>{{i + 1}}</td>
             <td>{{(row._id || '').slice(-5)}}</td>
             <td><a routerLink="/restaurants/{{row._id}}" target="_blank">{{row.name}}</a></td>

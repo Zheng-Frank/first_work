@@ -3,10 +3,9 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { zip, onErrorResumeNext } from "rxjs";
+import { zip } from "rxjs";
 import { mergeMap } from "rxjs/operators";
-import { Restaurant, Hour } from '@qmenu/ui';
-import { Invoice } from "../../../classes/invoice";
+import { Restaurant } from '@qmenu/ui';
 import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
 import { Domain } from "src/app/classes/domain";
@@ -21,6 +20,123 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() { }
+
+  async migrateBlacklist() {
+    const bannedCustomers = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'customer',
+      query: { bannedReasons: { $exists: 1 } },
+      projection: {
+        email: 1,
+        socialId: 1,
+        phone: 1,
+        bannedReasons: 1
+      },
+      limit: 1000000
+    }).toPromise();
+    console.log(bannedCustomers);
+
+    const existingBlacklist = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'blacklist',
+      projection: {
+        type: 1,
+        value: 1,
+        disabled: 1
+      },
+      limit: 1000000
+    }).toPromise();
+
+    // get unique delivery addresses of abount 3000 customers!
+    const batchSize = 100;
+
+    const batchedCustomers = Array(Math.ceil(bannedCustomers.length / batchSize)).fill(0).map((i, index) => bannedCustomers.slice(index * batchSize, (index + 1) * batchSize));
+    const customerOrders = {};
+    const orders = [];
+    for (let customers of batchedCustomers) {
+      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: {
+          type: 'DELIVERY',
+          "customerObj._id": { $in: customers.map(c => c._id) }
+        },
+        projection: {
+          "paymentObj.method": 1,
+          type: 1,
+          "restaurantObj._id": 1,
+          "restaurantObj.name": 1,
+          "customerObj._id": 1,
+          "address.formatted_address": 1,
+          "address.lat": 1,
+          "address.lng": 1
+        },
+        limit: 1000000
+      }).toPromise();
+      orders.push(...batch);
+      batch.map(order => {
+        customerOrders[order.customerObj._id] = customerOrders[order.customerObj._id] || [];
+        customerOrders[order.customerObj._id].push(order);
+      });
+    }
+
+    // for each banned customer, let's put his phone, email, socialId, address (from his delivery orders) to the system
+    const generatedBlacklist = {}; // value: item
+    bannedCustomers.map(customer => {
+      generatedBlacklist[customer._id] = {
+        type: 'CUSTOMER',
+        value: customer._id,
+        orders: customerOrders[customer._id] || [],
+        reasons: customer.bannedReasons
+      };
+
+      if (customer.phone) {
+        generatedBlacklist[customer.phone] = {
+          type: 'PHONE',
+          value: customer.phone,
+          orders: customerOrders[customer._id] || [],
+          reasons: customer.bannedReasons
+        };
+      }
+      if (customer.email) {
+        generatedBlacklist[customer.email] = {
+          type: 'EMAIL',
+          value: customer.email,
+          orders: customerOrders[customer._id] || [],
+          reasons: customer.bannedReasons
+        };
+      }
+      if (customer.socialId) {
+        generatedBlacklist[customer.socialId] = {
+          type: 'SOCIAL',
+          value: customer.socialId,
+          orders: customerOrders[customer._id] || [],
+          reasons: customer.bannedReasons
+        };
+      }
+
+      for (let order of customerOrders[customer._id] || []) {
+        if (order.address && order.address.formatted_address) {
+          generatedBlacklist[order.address.formatted_address] = {
+            type: 'ADDRESS',
+            value: order.address.formatted_address,
+            orders: orders.filter(o => o.address && order.address.formatted_address === o.address.formatted_address),
+            reasons: customer.bannedReasons
+          };
+        }
+      }
+    });
+
+    console.log(Object.keys(generatedBlacklist).length);
+    const newBlacklist = Object.keys(generatedBlacklist).filter(key => !existingBlacklist.some(eb => key === eb.value));
+    console.log(newBlacklist.length);
+    console.log(existingBlacklist.length);
+    // put those new list!
+    if (newBlacklist.length > 0) {
+      await this._api.post(environment.appApiUrl + `app`, {
+        resource: "blacklist",
+        objects: newBlacklist.map(key => generatedBlacklist[key])
+      }).toPromise();
+    }
+    console.log(`new items count = ${newBlacklist.length}`);
+  }
 
   async calculateCommissions() {
     // get all non-canceled, payment completed invoices so far
@@ -37,7 +153,7 @@ export class DbScriptsComponent implements OnInit {
       limit: 50000000
     }).toPromise();
     const allCommissions = invoices.reduce((sum, invoice) => {
-      if(!invoice.isCanceled) {
+      if (!invoice.isCanceled) {
         return sum + (invoice.commission || 0);
       }
 
@@ -50,7 +166,7 @@ export class DbScriptsComponent implements OnInit {
       return sum;
     }, 0);
     const allTotal = invoices.reduce((sum, invoice) => {
-      if(!invoice.isCanceled) {
+      if (!invoice.isCanceled) {
         return sum + (invoice.total || 0);
       }
 

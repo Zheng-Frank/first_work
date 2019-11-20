@@ -334,7 +334,7 @@ export class MenusComponent implements OnInit {
           menus: newMenus,
         }
       }]).toPromise();
-      this.restaurant.menus = newMenus;
+      this.restaurant.menus = newMenus.map(each => new Menu(each));
       this._global.publishAlert(AlertType.Success, "Success!");
     } catch (error) {
       console.log(error);
