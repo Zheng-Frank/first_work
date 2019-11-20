@@ -51,7 +51,7 @@ export class ApiService {
   async getBatch(api, payload, batchSize) {
 
     let batchPayload = payload || {};
-    const payloadLimit = batchPayload.limit; //old limit
+    const payloadLimit = batchPayload.limit || Number.MAX_VALUE; //old limit
 
     const result = [];
     let skip = 0;
