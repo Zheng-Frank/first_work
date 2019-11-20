@@ -1,0 +1,45 @@
+<h1 class="text-center">GMB Tasks with Error<br><small>{{count}}</small></h1>
+
+<!--
+<label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="showOnlyPublished" (change)="filter()"> Only Published GMB</label>
+
+<label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="showOnlyDisabled" (change)="filter()"> Only disabled</label>
+
+<label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="showNotDisabled" (change)="filter()"> Not disabled</label>
+<label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="showMissingWebsite" (change)="filter()"> Only Missing Website</label>
+
+<div class="clearfix my-2">
+    <div class="float-left form-inline">
+        <select class="form-control mr-2 mb-1" [(ngModel)]="managedDomain" (change)="filter()">
+            <option>Manged Domains</option>
+            <option>only active</option>
+            <option>expired</option>
+        </select>
+    </div>
+</div>
+-->
+<table class="table">
+    <tr>
+        <th>#</th>
+        <th>Error</th>
+        <th>Count</th>
+        <th>Task IDs</th>
+    </tr>
+    <tr *ngFor="let row of filteredRows; let i = index">
+        <th>{{i + 1}}</th>
+        <td>
+            {{row[0]}}
+        </td>
+        <td>
+            {{row[1].length}}
+        </td>
+        <td class="wrap, small">
+            <span *ngFor="let id of row[1]"> {{id}}</span>          
+        </td>
+    </tr>
+
+</table>

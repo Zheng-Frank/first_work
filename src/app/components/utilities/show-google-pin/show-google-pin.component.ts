@@ -45,13 +45,21 @@ export class ShowGooglePINComponent implements OnInit {
                 }
             },
             projection: {
-                'transfer.code': 1
+                _id: 1,
+                'transfer.code': 1,
+                'name': 1,
+                'assignee': 1
             },
             limit: 10000,
             sort: {
                 createdAt: -1
             }
         }).toPromise();
+
+        const codeTasks = new Map();
+        codeList.forEach(c => {
+            codeTasks.set(c.transfer.code, [c._id.toString(), c.name, c.assignee]);
+        });
 
         let codes = codeList.map(each => each.transfer.code && each.transfer.code.replace(/\+/g, ' ').trim());
 
@@ -81,13 +89,17 @@ export class ShowGooglePINComponent implements OnInit {
             let restaurant = this.restaurantList[i];
             (restaurant.logs || []).map(eachLog => {
                 if (eachLog.type === 'google-pin') {
+                    const pin = eachLog.response || eachLog.response.trim();
+                    const t = codeTasks.get(pin) || ['', '', ''];
                     this.rows.push({
+                        task: `${t[1]} ${t[0]}`,
+                        assignee: `${t[2]}`,   
                         gmbBiz: this.getGmbBizFromRestaurant(restaurant),
                         agent: restaurant.rateSchedules.agent,
                         from: 'Call Log',
                         text: eachLog.response,
                         time: this.convertTimeToMilliseconds(eachLog.time),
-                        done: codes.some(code => code == (eachLog.response || eachLog.response.trim()))
+                        done: codes.some(code => code == pin)
                     })
                     //console.log('this.rows', this.rows);
                 }

@@ -1,0 +1,7 @@
+.wrap {
+    white-space: pre-wrap;
+  }
+  
+.app-strike{
+    text-decoration: line-through;
+}

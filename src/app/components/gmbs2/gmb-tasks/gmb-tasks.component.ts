@@ -52,9 +52,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     { label: 'Non-claimed', rows: [] },
     { label: 'My Closed', rows: [] },
     { label: 'All Open', rows: [] },
-    { label: 'All Closed', rows: [] }
+    { label: 'All Closed', rows: [] },
+    { label: 'Errors', rows: [] }
   ];
-
 
   myColumnDescriptors = [
     {
@@ -749,6 +749,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         "My Closed": t => t.assignee === this.user.username && t.result,
         "All Open": t => !t.result,
         "All Closed": t => t.result,
+        "Errors": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0]
+          && t.request.statusHistory[0].isError,
       };
       tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
     });

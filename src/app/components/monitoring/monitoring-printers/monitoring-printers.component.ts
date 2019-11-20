@@ -119,6 +119,22 @@ export class MonitoringPrintersComponent implements OnInit {
     }
   }
 
+  async updateFormat(event, row, printer) {
+    const format = event.newValue;
+    if (confirm(`Are you sure to change format to ${format} for ${printer.name}?`)) {
+      const oldPrinters = row.printers.map(p => ({}));
+      const newPrinters = row.printers.map(p => ({}));
+      newPrinters[row.printers.indexOf(printer)].format = format;
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [
+        {
+          old: { _id: row._id, printers: oldPrinters },
+          new: { _id: row._id, printers: newPrinters },
+        }
+      ]).toPromise();
+      printer.format = format;
+    }
+  }
+
   async togglePrinter(event, row, printer) {
     const newAutoPrintCopies = printer.autoPrintCopies ? 0 : 1;
     if (confirm(`Are you sure to ${newAutoPrintCopies ? 'ENABLE' : 'DISABLE'} ${printer.name}?`)) {
@@ -429,9 +445,10 @@ export class MonitoringPrintersComponent implements OnInit {
           }
 
           // ONLY 2.0.0+ we use newer api otherwise we HAVE to use http instead of https for sending order urls because windows XP doesn't support newer https
+          const format = printer.format || 'png';
           let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
-          if (row.info && row.info.version && +row.info.version.split(".")[0] >= 3) {
-            url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=png${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
+          if (format === 'esc' || (row.info && row.info.version && +row.info.version.split(".")[0] >= 3)) {
+            url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=${format}${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
           }
 
           await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
@@ -442,7 +459,7 @@ export class MonitoringPrintersComponent implements OnInit {
                 "type": "PRINT",
                 data: {
                   printerName: printer.name,
-                  format: "PNG",
+                  format: format.toUpperCase(), // for back compatibility
                   url: url,
                   copies: printer.autoPrintCopies || 1
                 }
