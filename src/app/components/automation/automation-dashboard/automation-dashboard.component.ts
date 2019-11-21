@@ -6,7 +6,7 @@ import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { TaskService } from 'src/app/services/task.service';
 import { Helper } from 'src/app/classes/helper';
 
-const TWELEVE_HOURS = 43200000; // 12 hours
+const EIGHT_HOURS =   60 * 60000 * 8 ; // 8 hours
 const TWO_HOURS = 7200000; // 2 hours
 
 const SKIPPING_EMAILS = ['christesting'];
@@ -204,7 +204,7 @@ export class AutomationDashboardComponent implements OnInit {
     console.log('before: ', restaurants.length);
     console.log('skip restaurants crawled within 4 hours!');
     const now = new Date();
-    restaurants = restaurants.filter(r => !r.googleListing || !r.googleListing.crawledAt || now.valueOf() - new Date(r.googleListing.crawledAt).valueOf() > TWELEVE_HOURS);
+    restaurants = restaurants.filter(r => !r.googleListing || !r.googleListing.crawledAt || now.valueOf() - new Date(r.googleListing.crawledAt).valueOf() > EIGHT_HOURS);
     console.log('after: ', restaurants.length);
 
     const failedRestaurants = [];
