@@ -1,10 +1,6 @@
 {
   "name": "admin",
-<<<<<<< HEAD
-  "version": "0.7.74",
-=======
   "version": "0.7.76",
->>>>>>> 0d8c19d5c5caae995414e71efd7f93fdb296ec93
   "license": "MIT",
   "scripts": {
     "ng": "ng",
