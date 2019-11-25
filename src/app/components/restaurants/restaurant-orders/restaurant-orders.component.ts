@@ -109,12 +109,30 @@ export class RestaurantOrdersComponent implements OnInit {
       limit: 50
     }).toPromise();
 
+    // get blocked customers and assign back to each order blacklist reasons
+    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+    const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "blacklist",
+      query: {
+        "value": { $in: customerIds },
+        disabled: { $ne: true }
+      },
+      projection: {
+        disabled: 1,
+        reasons: 1,
+        value: 1
+      },
+      limit: 100000
+    }).toPromise();
+    const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
       order.orderStatuses = order.statuses;
       order.id = order._id;
+      // making it back-compatible to display bannedReasons
+      order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
       return new Order(order);
     });
   }
@@ -218,7 +236,138 @@ export class RestaurantOrdersComponent implements OnInit {
     return (number || '').split('').reduce((a, e, i) => a + e + (i % 4 === 3 && (i < number.length - 1) ? '-' : ''), '');
   }
 
+
   async okBan(reasons) {
+    if (!this.orderForModal || !this.orderForModal.customer) {
+      alert("No customer found");
+      return;
+    }
+    const customerId = this.orderForModal.customer["_id"];
+    // extract email, phone, and addresses
+    const customer = await this._api.get(`${environment.appApiUrl}app/customer?customerId=${customerId}`).toPromise();
+
+    const customerOrders = (this.orders || []).filter(order => order.customerObj && order.customerObj._id === customerId);
+    const getOrderSkeleton = (order) => {
+      const o = new Order(order);
+      return {
+        _id: order._id || order.id,
+        paymentObj: { method: (order.paymentObj || {}).method },
+        type: order.type,
+        restaurantObj: {
+          _id: this.restaurant.id || this.restaurant["_id"],
+          name: this.restaurant.name
+        },
+        customerObj: order.customerObj,
+        address: {
+          formatted_address: (order.address || {}).formatted_address,
+          lat: (order.address || {}).lat,
+          lng: (order.address || {}).lng
+        }
+      }
+    }
+
+    const generatedBlacklist = {}; // value: item
+    generatedBlacklist[customer._id] = {
+      type: 'CUSTOMER',
+      value: customer._id,
+      orders: customerOrders.map(order => getOrderSkeleton(order)),
+      reasons: reasons
+    };
+
+    if (customer.phone) {
+      generatedBlacklist[customer.phone] = {
+        type: 'PHONE',
+        value: customer.phone,
+        orders: customerOrders.map(order => getOrderSkeleton(order)),
+        reasons: reasons
+      };
+    }
+    if (customer.email) {
+      generatedBlacklist[customer.email] = {
+        type: 'EMAIL',
+        value: customer.email,
+        orders: customerOrders.map(order => getOrderSkeleton(order)),
+        reasons: reasons
+      };
+    }
+    if (customer.socialId) {
+      generatedBlacklist[customer.socialId] = {
+        type: 'SOCIAL',
+        value: customer.socialId,
+        orders: customerOrders.map(order => getOrderSkeleton(order)),
+        reasons: reasons
+      };
+    }
+
+    for (let order of customerOrders) {
+      if (order.address && order.address.formatted_address) {
+        // only add unique formatted_address. filling orders to it
+        generatedBlacklist[order.address.formatted_address] = generatedBlacklist[order.address.formatted_address] || {
+          type: 'ADDRESS',
+          value: order.address.formatted_address,
+          orders: [],
+          reasons: reasons
+        };
+        const orderSkeleton = getOrderSkeleton(order);
+        generatedBlacklist[order.address.formatted_address].orders.push(orderSkeleton);
+      }
+    }
+
+    const existingBlackList = await this._api.get(`${environment.appApiUrl}app/blacklist?values=${encodeURIComponent(JSON.stringify(Object.keys(generatedBlacklist)))}`).toPromise();
+    if (!reasons || reasons.length === 0) {
+      // no reason is provided? disable them
+      const enabledExistingblacklist = existingBlackList.filter(b => !b.disable);
+      for (let item of enabledExistingblacklist) {
+        await this._api.patch(`${environment.appApiUrl}app`, {
+          resource: 'blacklist',
+          query: {
+            _id: {
+              $oid: item._id
+            }
+          },
+          op: "$set",
+          field: "disabled",
+          value: true
+        }).toPromise();
+      }
+    } else {
+      // insert new ones!
+      const newKeys = Object.keys(generatedBlacklist).filter(key => !existingBlackList.some(ei => ei.value === key));
+      if (newKeys.length > 0) {
+        await this._api.post(`${environment.appApiUrl}app`, {
+          resource: "blacklist",
+          objects: newKeys.map(key => generatedBlacklist[key])
+        }).toPromise();
+      }
+
+      // for existing items, we add new reasons and enable them!
+      const updatedItems = existingBlackList.filter(ei => reasons.some(reason => ei.disabled || (ei.reasons || []).indexOf(reason) < 0));
+      for (let item of updatedItems) {
+        await this._api.patch(`${environment.appApiUrl}app`, {
+          resource: 'blacklist',
+          query: {
+            _id: { $oid: item._id }
+          },
+          op: "$set",
+          field: "reasons",
+          value: [...new Set([...item.reasons, ...reasons])]
+        }).toPromise();
+        await this._api.patch(`${environment.appApiUrl}app`, {
+          resource: 'blacklist',
+          query: {
+            _id: { $oid: item._id }
+          },
+          op: "$unset",
+          field: "disabled",
+          value: null
+        }).toPromise();
+      }
+    }
+    this.banModal.hide();
+    this.populateOrders();
+  }
+
+  async okBanOld(reasons) {
     if (this.orderForModal && this.orderForModal.customer) {
 
 

@@ -51,7 +51,7 @@ export class ApiService {
   async getBatch(api, payload, batchSize) {
 
     let batchPayload = payload || {};
-    const payloadLimit = batchPayload.limit; //old limit
+    const payloadLimit = batchPayload.limit || Number.MAX_VALUE; //old limit
 
     const result = [];
     let skip = 0;
@@ -62,7 +62,7 @@ export class ApiService {
       oneBatch = await this.get(api, batchPayload).toPromise();
       result.push(...oneBatch);
       skip += batchSize;
-    } while (oneBatch.length > 0 && result.length < payloadLimit)
+    } while (oneBatch.length === batchSize && result.length < payloadLimit)
 
     console.log(`loaded ${result.length} tasks`);
     return result;

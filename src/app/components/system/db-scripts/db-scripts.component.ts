@@ -2119,7 +2119,6 @@ export class DbScriptsComponent implements OnInit {
   async removeEmptySizeOption() {
     const restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
-
       projection: {
         name: 1,
       },
@@ -2145,15 +2144,21 @@ export class DbScriptsComponent implements OnInit {
         limit: batchSize
       }).toPromise()).map(r => new Restaurant(r));
 
-      const badRestaurants = restaurants.filter(r => r.menus.some(menu => menu.mcs.some(mc => mc.mis.some(mi => mi.sizeOptions.some(so => !so.name && !so.price)))));
+      const badRestaurants = restaurants.filter(r => r.menus.some(menu => menu.mcs.some(mc => mc.mis.some(mi => !mi || !mi.sizeOptions || mi.sizeOptions.length === 0 || mi.sizeOptions.some(so => !so.name)))));
       console.log(badRestaurants);
       if (badRestaurants.length > 0) {
         // patch!
         const fixedMenu = function (restaurant) {
           const clone = JSON.parse(JSON.stringify(restaurant));
-          clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so.name && so.price))));
+          // remove null menu item
+          clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions)));
+          // fix size options
+          clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so.name))));          
+          // fix menu 
+          clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions.length > 0)));
           return clone.menus;
         }
+
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', badRestaurants.map(r => ({
           old: { _id: r._id },
           new: {

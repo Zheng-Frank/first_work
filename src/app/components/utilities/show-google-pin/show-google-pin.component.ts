@@ -12,14 +12,19 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class ShowGooglePINComponent implements OnInit {
     @Input() restaurant;
-    @Input() bizList;
-    @Input() tasks;
+    tasks;
+    filteredRows;
+    assigneeList = [];
+    agentList = [];
+    agent;
+    assignee;
+    filteredTasks;
 
     restaurantList = [];
     rows = [];
     messageTo;
     contents;
-    hideClosedOldTasksDays = 7;
+    hideClosedOldTasksDays = 15;
 
     constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -35,6 +40,57 @@ export class ShowGooglePINComponent implements OnInit {
             d.setDate(d.getDate() - days);
             return d;
         };
+
+        this.tasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+            resource: "task",
+            query: {
+                $or: [
+                    {
+                        resultAt: null
+                    },
+                    {
+                        "result": {
+                            "$exists": false
+                        }
+                    }
+                ]
+            },
+            projection: {
+                _id: 1,
+                relatedMap: 1,
+                'name': 1,
+                'assignee': 1
+            }
+        }, 800);
+        //Filter out closed task
+        this.tasks = this.tasks.filter( t => !t.result);
+
+        this.assigneeList = this.tasks.map(t => {
+            if (!t.assignee) {
+                return;
+            }
+            if (typeof t.assignee === 'string' || t.assignee instanceof String) {
+                return t.assignee;
+            }
+            else {
+                return t.assignee.username;
+
+            }
+        });
+
+        console.log(this.assigneeList);
+        // reuturn unique
+        this.assigneeList = Array.from(new Set(this.assigneeList)).sort().filter(e => e != null);
+
+        this.agentList = this.restaurantList.map(r => {
+            if (r.rateSchedules && r.rateSchedules.length > 0) {
+                for(let i of r.rateSchedules){
+                    return i.agent;
+                }
+
+            }
+        });
+        this.agentList = Array.from(new Set(this.agentList)).sort().filter(e => e);
 
         //Retrieve Google PIN from gmb task which having saved code
         const codeList = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -55,11 +111,6 @@ export class ShowGooglePINComponent implements OnInit {
                 createdAt: -1
             }
         }).toPromise();
-
-        const codeTasks = new Map();
-        codeList.forEach(c => {
-            codeTasks.set(c.transfer.code, [c._id.toString(), c.name, c.assignee]);
-        });
 
         let codes = codeList.map(each => each.transfer.code && each.transfer.code.replace(/\+/g, ' ').trim());
 
@@ -90,10 +141,7 @@ export class ShowGooglePINComponent implements OnInit {
             (restaurant.logs || []).map(eachLog => {
                 if (eachLog.type === 'google-pin') {
                     const pin = eachLog.response || eachLog.response.trim();
-                    const t = codeTasks.get(pin) || ['', '', ''];
                     this.rows.push({
-                        task: `${t[1]} ${t[0]}`,
-                        assignee: `${t[2]}`,   
                         gmbBiz: this.getGmbBizFromRestaurant(restaurant),
                         agent: restaurant.rateSchedules.agent,
                         from: 'Call Log',
@@ -119,6 +167,7 @@ export class ShowGooglePINComponent implements OnInit {
         //console.log('rows', this.rows);
 
         this.rows.sort((o1, o2) => new Date(o2.time).valueOf() - new Date(o1.time).valueOf());
+        this.filteredRows = this.rows;
     }
 
     convertTimeToMilliseconds(time) {
@@ -137,7 +186,7 @@ export class ShowGooglePINComponent implements OnInit {
     getGmbBizFromRestaurant(restaurant) {
         return [{
             restaurant: restaurant,
-            tasks: this.tasks.filter(t => t.gmbBiz && t.gmbBiz.qmenuId === restaurant['_id'])
+            tasks: this.tasks.filter(t => t.relatedMap && (t.relatedMap.restaurantId === restaurant['_id'] || t.relatedMap.qmenuId === restaurant['_id']))
         }
 
         ]
@@ -159,7 +208,7 @@ export class ShowGooglePINComponent implements OnInit {
 
         // one phone number, can have multiple matching restaurants, and each restaurant, will have multiple tasks
         let result = matchingRTs.map(each => {
-            let matchingTasks = this.tasks.filter(t => t.gmbBiz && t.gmbBiz.qmenuId === each['_id']);
+            let matchingTasks = this.tasks.filter(t => t.relatedMap && (t.relatedMap.restaurantId === each['_id'] || t.relatedMap.qmenuId === each['_id']));
             return {
                 restaurant: each,
                 tasks: matchingTasks
@@ -188,6 +237,18 @@ export class ShowGooglePINComponent implements OnInit {
                     this._global.publishAlert(AlertType.Danger, "Error deleting");
                 }
             );
+    }
+    filter() {
+        this.filteredRows = this.rows;
+
+        if (this.assignee && this.assignee !== "All") {
+            this.filteredRows = this.filteredRows.filter(r => r.gmbBiz && r.gmbBiz.some(b => b.tasks && b.tasks.some(t => t.assignee === this.assignee)));
+        }
+
+        if (this.agent && this.agent !== "All") {
+            this.filteredRows = this.filteredRows.filter(r => r.gmbBiz && r.gmbBiz.some(b => b.restaurant && b.restaurant.rateSchedules.some(r => r.agent === this.agent)));
+        }
+
     }
 
 }

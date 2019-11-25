@@ -1,20 +1,41 @@
+<div class="float-left form-inline mt-2">
+    <label class="mr-2"> Count:</label>
+    <span class="mr-5"> {{filteredRows.length}} </span>
+    
+    <label class="mr-2"> Assignee:</label>
+    <select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
+        <option>All</option>
+        <option *ngFor="let assignee of assigneeList">{{assignee}}</option>
+    </select>
+
+    <label class="mr-2"> Agent:</label>
+    <select class="mr-5" [(ngModel)]="agent" (change)="filter()">
+        <option>All</option>
+        <option *ngFor="let agent of agentList">{{agent}}</option>
+    </select>
+</div>
+
 <table class="table">
     <thead>
         <tr>
             <!-- <th scope="col">Agent</th> -->
-            <th>Restaurant</th>
-            <th>Task</th>
-            <th>Assignee</th>
-            <th>Agent</th>
-            <th>From</th>
-            <th>PIN</th>
-            <th>Done</th>
-            <th>PIN Received</th>
+            <th width="5%">#</th>
+            <th width="20%">Restaurant</th>
+            <th width="30%">Task</th>
+            <th width="5%">Assignee</th>
+            <th width="10%">Agent</th>
+            <th width="10%">From</th>
+            <th width="5%">PIN</th>
+            <th width="5%">Done</th>
+            <th width="10%">PIN Received</th>
 
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let row of rows;">
+        <tr *ngFor="let row of filteredRows; let i = index">
+            <td>
+                {{i+1}}
+            </td>
             <td>
                 <div *ngFor="let biz of row.gmbBiz;">
                     <a routerLink="/restaurants/{{biz.restaurant['_id']}}">{{biz.restaurant.name}}</a>
@@ -25,26 +46,24 @@
 
             </td>
             <td>
-                <!-- <div *ngFor="let biz of row.gmbBiz;">
+                <div *ngFor="let biz of row.gmbBiz;">
                     <div *ngFor="let task of biz.tasks;">
-                        {{task.name}}
+                        {{task.name}} | {{task._id}}
                     </div>
-                </div> -->
-                <div><small>{{row.task}}</small></div>
+                </div>
             </td>
 
             <td>
-                <!-- <div *ngFor="let biz of row.gmbBiz;">
+                <div *ngFor="let biz of row.gmbBiz;">
                     <div *ngFor="let task of biz.tasks;">
                         {{task.assignee}}
                     </div>
-                </div> -->
-                <div>{{row.assignee}}</div>
+                </div>
             </td>
             <td>
                 <div *ngFor="let biz of row.gmbBiz;">
                     <div *ngIf="biz.restaurant">
-                            {{(biz.restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}
+                        {{(biz.restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}
                     </div>
                 </div>
             </td>
