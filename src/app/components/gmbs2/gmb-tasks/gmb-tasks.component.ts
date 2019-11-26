@@ -53,7 +53,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     { label: 'My Closed', rows: [] },
     { label: 'All Open', rows: [] },
     { label: 'All Closed', rows: [] },
-    { label: 'Errors', rows: [] }
+    { label: 'Errors', rows: [] },
+    { label: 'VO Changed', rows: [] },
+
   ];
 
   myColumnDescriptors = [
@@ -751,11 +753,13 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         "All Closed": t => t.result,
         "Errors": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0]
           && t.request.statusHistory[0].isError,
+        "VO Changed": t => !t.result && t.request && t.request.voHistory && t.request.voHistory[0] && t.request.voHistory[0].time
+         && (( this.now.getTime() - new Date(t.request.voHistory[0].time).getTime() ) / 86400000) < 1,
       };
       tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
     });
-
-  }
+    console.log(`${this.now} ${this.now.getTime()}`);
+    }
 
   pagination = true;
 
