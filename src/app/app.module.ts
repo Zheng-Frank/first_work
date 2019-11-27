@@ -118,6 +118,7 @@ import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
 import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
 import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/restaurant-gmb.component';
+import { RestaurantDiagnosticsComponent } from './components/restaurants/restaurant-diagnostics/restaurant-diagnostics.component';
 import { HolidayMonitorComponent } from './components/system/holiday-monitor/holiday-monitor.component';
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
@@ -251,6 +252,7 @@ import { RestaurantTasksComponent } from './components/restaurants/restaurant-ta
     HourPickerSimpleComponent,
     FutureDateTimePickerComponent,
     RestaurantGmbComponent,
+    RestaurantDiagnosticsComponent,
     HolidayMonitorComponent,
     MonitoringDashboardComponent,
     MonitoringFaxComponent,

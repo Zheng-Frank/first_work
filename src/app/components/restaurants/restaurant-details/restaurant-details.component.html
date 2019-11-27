@@ -110,6 +110,9 @@
       <div *ngIf="activeTab === 'Tasks'">
         <app-restaurant-tasks [restaurant]="restaurant"></app-restaurant-tasks>
       </div>
+      <div *ngIf="activeTab === 'Diagnostics'">
+        <app-restaurant-diagnostics [restaurant]="restaurant"></app-restaurant-diagnostics>
+      </div>
     </div>
   </div>
 </div>
