@@ -44,7 +44,8 @@
       </td> -->
       <td>
         <span (click)="row.expanded = !row.expanded"></span>
-        <a href="{{getGoogleQuery(row)}}" target="_blank">{{row.restaurant.name}}
+
+        <a href="#/restaurants/{{row.restaurant._id}}" target="_blank">{{row.restaurant.name}}
         </a>
         <button *ngIf="row.orders.length > 0" class="btn btn-link py-0" (click)="row.expanded = !row.expanded">
           <i class="fas {{row.expanded ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
@@ -52,9 +53,7 @@
 
         <div *ngIf="row.expanded">
           <ng-container *ngFor="let order of row.orders">
-            <a href="https://biz.qmenu.us/#/order/{{order._id}}" target="_blank">
-              <span class="badge badge-info">{{order.orderNumber}}</span>
-            </a>
+            <span class="badge badge-info">{{order.orderNumber}}</span>
           </ng-container>
         </div>
       </td>
