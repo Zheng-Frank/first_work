@@ -27,7 +27,8 @@ export class Gmb3Service {
       projection: {
         "request.email": 1,
         "relatedMap.cid": 1,
-        "relatedMap.place_id": 1
+        "relatedMap.place_id": 1,
+        "comments": 1
       },
       limit: 100000
     }).toPromise();
