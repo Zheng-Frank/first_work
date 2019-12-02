@@ -621,13 +621,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     // }).toPromise();
 
     // const taskLimit = environment.gbmTasksTestLimit? environment.gbmTasksTestLimit : 1000000;
-    const taskLimit = 1000000;
     const dbTasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "task",
       query: {
         $or: this.query_or
-      },
-      limit: taskLimit
+      }
     }, 500);
 
 

@@ -2153,7 +2153,7 @@ export class DbScriptsComponent implements OnInit {
           // remove null menu item
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions)));
           // fix size options
-          clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so.name))));          
+          clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so.name))));
           // fix menu 
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions.length > 0)));
           return clone.menus;
@@ -2488,7 +2488,6 @@ export class DbScriptsComponent implements OnInit {
         name: 1,
         updatedAt: 1
       },
-      limit: 6000,
       sort: {
         updatedAt: 1
       }
@@ -3126,6 +3125,77 @@ export class DbScriptsComponent implements OnInit {
 
     await this._api.post(environment.qmenuApiUrl + 'generic?resource=domain', results).toPromise();
 
+  }
+
+  async getRestaurantsHavingOrdersWithin() {
+    let start = new Date();
+    start.setDate(start.getDate() - 15);
+    let to = new Date();
+
+    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        $and: [
+          {
+            createdAt: {
+              $gte: { $date: start }
+            }
+          },
+          {
+            createdAt: {
+              $lte: { $date: to }
+            }
+          }
+        ]
+      },
+      projection: {
+        restaurant: 1,
+        createdAt: 1,
+        orderNumber: 1,
+        rateSchedules: 1,
+      },
+    }, 3000);
+
+    console.log(orders.length);
+    let rtIds = orders.map(o => o.restaurant);
+
+    rtIds = Array.from(new Set(rtIds));
+    console.log(rtIds)
+
+
+    const batchSize = 100;
+
+    const batchedID = Array(Math.ceil(rtIds.length / batchSize)).fill(0).map((i, index) => rtIds.slice(index * batchSize, (index + 1) * batchSize));
+
+    const restaurants = [];
+
+    for (let batch of batchedID) {
+      const batchedResult = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          _id: {
+            $in: batch.map(b => ({ $oid: b }))
+          }
+        },
+        projection: {
+          _id: 1,
+          'rateSchedules': 1
+        },
+        limit: batch.length
+      }).toPromise();
+      restaurants.push(...batchedResult);
+    }
+
+    let englishRts = restaurants.filter(r => r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
+    let chineseRts = restaurants.filter(r => !r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
+
+    console.log('englishRts', englishRts);
+    console.log('chineseRts', chineseRts);
+
+    let englishIdString = englishRts.join(',');
+    let chineseIdString = chineseRts.join(',');
+     console.log('englishIdString', englishIdString);
+     console.log('chineseIdString', chineseIdString);
   }
 
 
