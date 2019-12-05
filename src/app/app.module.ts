@@ -149,12 +149,14 @@ import { ChangeOwnershipComponent } from './components/change-ownership/change-o
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
+import { MonitoringGmbStalledComponent } from './components/monitoring/monitoring-gmb-stalled/monitoring-gmb-stalled.component';
 
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
+    MonitoringGmbStalledComponent,
     LogsDashboardComponent,
     Bs4Component,
     HeaderComponent,

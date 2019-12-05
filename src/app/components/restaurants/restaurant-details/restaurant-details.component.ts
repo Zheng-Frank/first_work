@@ -162,7 +162,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         .subscribe(
           results => {
             const rt = results[0];
-            (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi.name)));
+            (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
             this.restaurant = rt ? new Restaurant(rt) : undefined;
             if (!this.restaurant) {
               this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
