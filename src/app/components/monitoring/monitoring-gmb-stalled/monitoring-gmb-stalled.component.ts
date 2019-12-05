@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { Helper } from 'src/app/classes/helper';
-import { allowPreviousPlayerStylesMerge } from '@angular/animations/browser/src/util';
 @Component({
   selector: 'app-monitoring-gmb-stalled',
   templateUrl: './monitoring-gmb-stalled.component.html',
@@ -37,12 +35,12 @@ export class MonitoringGmbStalledComponent implements OnInit {
           "googleAddress.timezone": 1,
           alias: 1,
           disabled: 1,
-          "menus.disabled": 1,
           "googleListing.cid": 1,
           "googleListing.gmbOwner": 1,
           createdAt: 1,
           "rateSchedules.agent": 1,
-          logs: { $slice: -2 },
+          "web.ignoreGmbOwnershipRequest": 1,
+          "web.agreeToCorporate": 1
         },
         skip: skip,
         limit: batchSize
@@ -54,11 +52,9 @@ export class MonitoringGmbStalledComponent implements OnInit {
       skip += batchSize;
     }
 
-    console.log(enabledRestaurants);
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
     const newerRestaurants = enabledRestaurants.filter(rt => new Date(rt.createdAt) > new Date('2018-09-6') && new Date(rt.createdAt) < monthAgo);
-    console.log(newerRestaurants)
 
     let gmbAccountBatchSize = 100;
     const gmbAccounts = [];
@@ -104,7 +100,6 @@ export class MonitoringGmbStalledComponent implements OnInit {
     }));
 
     const neverGmbRestaurants = newerRestaurants.filter(rt => !(cidLocationMap[(rt.googleListing || {}).cid || '123'] || {}).gmbOnceOwned);
-    console.log(neverGmbRestaurants);
 
     const runningGmbRequestTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
@@ -119,9 +114,13 @@ export class MonitoringGmbStalledComponent implements OnInit {
     }).toPromise();
 
     const havingTaskCids = runningGmbRequestTasks.reduce((myset, t) => (myset.add(t.relatedMap.cid)), new Set());
-    console.log(havingTaskCids);
 
-    this.stalledRestaurants = neverGmbRestaurants.filter(rt => rt.googleListing && rt.googleListing.cid && !havingTaskCids.has(rt.googleListing.cid));
+    const nonQmenuRestaurants = neverGmbRestaurants.filter(rt => rt.googleListing && rt.googleListing.gmbOwner !== 'qmenu');
+
+    const notSkipAll = nonQmenuRestaurants.filter(rt => !rt.web || (!rt.web.ignoreGmbOwnershipRequest && rt.web.agreeToCorporate !== "No"));
+
+    this.stalledRestaurants = notSkipAll.filter(rt => rt.googleListing && rt.googleListing.cid && !havingTaskCids.has(rt.googleListing.cid));
+    // non-qmenu ones
 
     // sort by date, desc
     this.stalledRestaurants.sort((rt1, rt2) => new Date(rt2.createdAt).valueOf() - new Date(rt1.createdAt).valueOf());
