@@ -150,6 +150,7 @@ import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messagi
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
 
+import { EventDashboardComponent } from './components/events/event-dashboard/event-dashboard.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -157,6 +158,7 @@ import { RestaurantTasksComponent } from './components/restaurants/restaurant-ta
     HomeComponent,
     LogsDashboardComponent,
     Bs4Component,
+    EventDashboardComponent,
     HeaderComponent,
     LoginComponent,
     ProfileComponent,
