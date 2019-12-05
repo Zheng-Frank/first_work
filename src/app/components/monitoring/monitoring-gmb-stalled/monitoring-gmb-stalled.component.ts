@@ -12,7 +12,8 @@ import { allowPreviousPlayerStylesMerge } from '@angular/animations/browser/src/
 export class MonitoringGmbStalledComponent implements OnInit {
 
   stalledRestaurants = [];
-  stats = {};
+  agentStats = {};
+  gmbStats = {};
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
   async ngOnInit() {
@@ -38,6 +39,7 @@ export class MonitoringGmbStalledComponent implements OnInit {
           disabled: 1,
           "menus.disabled": 1,
           "googleListing.cid": 1,
+          "googleListing.gmbOwner": 1,
           createdAt: 1,
           "rateSchedules.agent": 1,
           logs: { $slice: -2 },
@@ -123,10 +125,13 @@ export class MonitoringGmbStalledComponent implements OnInit {
 
     // sort by date, desc
     this.stalledRestaurants.sort((rt1, rt2) => new Date(rt2.createdAt).valueOf() - new Date(rt1.createdAt).valueOf());
-    this.stats = {};
+    this.agentStats = {};
+    this.gmbStats = {};
     this.stalledRestaurants.map(rt => {
       const agent = ((rt.rateSchedules || []).slice(-1)[0] || {}).agent;
-      this.stats[agent] = (this.stats[agent] || 0) + 1;
+      this.agentStats[agent] = (this.agentStats[agent] || 0) + 1;
+      const gmbOwner = (rt.googleListing || {}).gmbOwner;
+      this.gmbStats[gmbOwner] = (this.gmbStats[gmbOwner] || 0) + 1;
     });
   }
 

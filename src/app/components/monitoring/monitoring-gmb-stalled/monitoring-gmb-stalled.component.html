@@ -1,11 +1,12 @@
 <h1 class="text-center">Stalled Restaurants<br><small>{{stalledRestaurants.length}}</small></h1>
-<div class="text-center">{{stats | json}}</div>
+
 <table class="table">
     <tr>
         <th>#</th>
         <th>Created</th>
         <th>Restaurant</th>
         <th>Original Agent</th>
+        <th>GMB Owner</th>
     </tr>
     <tr *ngFor="let rt of stalledRestaurants; let i = index">
         <th>{{i + 1}}</th>
@@ -20,5 +21,11 @@
         <td>
             {{((rt.rateSchedules || []).slice(-1)[0] || {}).agent}}
         </td>
+        <td>
+            {{rt.googleListing?.gmbOwner}}
+        </td>
     </tr>
 </table>
+
+<div class="text-center">{{agentStats | json}}</div>
+<div class="text-center">{{gmbStats | json}}</div>
