@@ -315,7 +315,7 @@
       (ngModelChange)="scheduledAtUpdated($event)">
     <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
     <div class="py-1 text-right">
-      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 2, 3, 7]"
+      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 2, 4, 8]"
         (click)="plusDay(i)">Today + {{i}}</button>
     </div>
   </div>
