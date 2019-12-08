@@ -2482,7 +2482,8 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async injectRestaurantScores() {
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: 'restaurant',
       projection: {
         name: 1,
@@ -2491,7 +2492,7 @@ export class DbScriptsComponent implements OnInit {
       sort: {
         updatedAt: 1
       }
-    }).toPromise();
+    }, 2000);
 
     // restaurants.length = 10;
     console.log(restaurants)
