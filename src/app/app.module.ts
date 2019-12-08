@@ -150,6 +150,8 @@ import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messagi
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
 import { MonitoringGmbStalledComponent } from './components/monitoring/monitoring-gmb-stalled/monitoring-gmb-stalled.component';
+import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
+import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
 
 @NgModule({
   declarations: [
@@ -281,6 +283,10 @@ import { MonitoringGmbStalledComponent } from './components/monitoring/monitorin
     BulkMessagingComponent,
 
     RestaurantTasksComponent,
+
+    RestaurantGmbPostComponent,
+
+    RestaurantGmbPostsComponent,
 
   ],
   imports: [
