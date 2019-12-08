@@ -52,6 +52,8 @@ export class RestaurantCloudPrintingComponent implements OnInit {
     ((this.restaurant || {})['printClients'] || []).map(printClient => (printClient.printers || [])
       .filter(printer => printer.autoPrintCopies > 0).map(printer => printers.push({
         type: printClient.type,
+        version: printClient.info && printClient.info.version,
+        format: printer.format,
         guid: printClient.guid,
         autoPrintCopies: printer.autoPrintCopies,
         name: printer.name,

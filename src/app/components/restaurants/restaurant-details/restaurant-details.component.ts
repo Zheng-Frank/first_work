@@ -51,6 +51,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
+      "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
+
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
@@ -162,7 +164,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         .subscribe(
           results => {
             const rt = results[0];
-            (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi.name)));
+            (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
             this.restaurant = rt ? new Restaurant(rt) : undefined;
             if (!this.restaurant) {
               this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');

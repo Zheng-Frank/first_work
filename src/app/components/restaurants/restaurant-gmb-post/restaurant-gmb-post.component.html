@@ -1,0 +1,13 @@
+<div class="post">
+  <img [attr.src]="imgSrc" class="responsive-image"/>
+  <div class="post__summary">
+    <p>{{post.summary}}</p>
+    <div class="d-flex flex-column">
+      <button *ngIf="post.callToAction.actionType === 'ORDER'" class="btn btn-info" (click)="goToLink()">Order online</button>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-danger mt-60" (click)="removePost()">Delete</button>
+      </div>
+    </div>
+  </div>
+  
+</div>
