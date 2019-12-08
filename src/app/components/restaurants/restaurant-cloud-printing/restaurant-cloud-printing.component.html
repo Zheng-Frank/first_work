@@ -8,6 +8,8 @@
         <thead>
           <tr>
             <th class="text-center">Type</th>
+            <th class="text-center">Version</th>
+            <th class="text-center">Format</th>
             <th class="text-center">Printer Name</th>
             <th class="text-center">Copies</th>
             <!-- <th class="text-center">Status</th> -->
@@ -17,6 +19,12 @@
           <tr *ngFor="let p of getPrinters()">
             <td class="text-center text-nowrap">
               {{p.type}}
+            </td>
+            <td class="text-center text-nowrap">
+              {{p.version}}
+            </td>
+            <td class="text-center text-nowrap">
+              {{p.format}}
             </td>
             <td class="text-center text-nowrap">
               {{p.name}}<span *ngIf="p.key">/{{p.key}}</span>

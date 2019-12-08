@@ -81,7 +81,7 @@
             <div *ngFor="let printer of (row.printers || [])">
                 <label class="checkbox-inline {{printer.autoPrintCopies > 0 ? '' : 'font-weight-normal text-muted'}}">
                     <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0"
-                        (click)="togglePrinter($event, row, printer)"> {{printer.name}}
+                        (click)="togglePrinter($event, row, printer)"> {{printer.name}} {{printer.settings?.IsDefaultPrinter ? "(default)" : ""}}
                 </label>
                 <span *ngIf="printer.autoPrintCopies > 0">
                     copies:
