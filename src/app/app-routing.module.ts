@@ -36,12 +36,9 @@ import { CyclesComponent } from './components/invoices/cycles/cycles.component';
 import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle-details.component';
 import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component';
 import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.component';
-<<<<<<< HEAD
 import { EventDashboardComponent } from './components/events/event-dashboard/event-dashboard.component';
-=======
 import { MonitoringGmbStalledComponent } from './components/monitoring/monitoring-gmb-stalled/monitoring-gmb-stalled.component';
 
->>>>>>> c0c7b650e99bae71c4db7c0005fbd23ba6b5ee04
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', 'GMB', 'CSR'] } },
