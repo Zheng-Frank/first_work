@@ -1,0 +1,25 @@
+<div *ngIf="restaurant">
+  <div class="mb-2 text-right">
+    <span>last checked: {{(diagnostics || {}).time | ago : now}} </span>
+    <button class="btn btn-primary" (click)="diagnose()" [qLoading]="apiLoading">
+      <i class="fas fa-stethoscope"></i> Diagnose</button>
+  </div>
+
+  <div *ngFor="let item of (diagnostics || {}).result || []">
+    <div class="d-flex" *ngIf="item.errors">
+      <h6 class="text-danger" style="width: 1.25rem">&#10007;</h6>
+      <div style="flex-grow: 1;">
+        <h6>{{item.name}}</h6>
+        <ul>
+          <li *ngFor="let error of item.errors">
+            <small class="text-danger">{{error}}</small>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="d-flex" *ngIf="!item.errors">
+      <h6 *ngIf="!item.errors" class="text-success" style="width: 1.25rem"> &#10003; </h6>
+      <h6 style="flex-grow: 1;"> {{item.name}}</h6>
+    </div>
+  </div>
+</div>

@@ -18,7 +18,8 @@ export class GmbAccount {
     recoveryEmail:string;
     postcardId:string;
     locations: GmbLocation []; 
-    disabled: boolean
+    disabled: boolean;
+    isAgencyAcct = false;
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields

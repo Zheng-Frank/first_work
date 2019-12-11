@@ -64,6 +64,12 @@ export class GmbAccountEditorComponent implements OnInit, OnChanges {
         inputType: "checkbox"
       },
       {
+        field: "isAgencyAcct", //
+        label: "Agency Account",
+        required: false,
+        inputType: "checkbox"
+      },
+      {
         field: "comments", //
         label: "Comments",
         required: false,

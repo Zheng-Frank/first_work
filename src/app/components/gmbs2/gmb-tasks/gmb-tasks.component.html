@@ -54,7 +54,7 @@
       Phone
     </label>
 
-    <input class="form-check-input" type="checkbox" [(ngModel)]="haPostcard" id="hasPostcardCheck" (change)="filter()">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="hasPostcard" id="hasPostcardCheck" (change)="filter()">
     <label class="form-check-label mr-5" for="hasPostcardCheck">
       Postcard
     </label>
@@ -167,6 +167,9 @@
   </button>
   <h4 class="text-center">{{modalRow?.relatedMap?.restaurantName}}
   </h4>
+  <div class="small text-center">
+    <a target="_blank" href="#/restaurants/{{modalRow?.relatedMap?.restaurantId}}">{{modalRow?.address}}</a>
+  </div>
   <!-- <div class="text-muted text-center"><small>ID: {{modalRow?._id}}</small></div> -->
   <div class="text-center">
     <button class="btn btn-link" (click)="hardRefresh()" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
@@ -312,7 +315,7 @@
       (ngModelChange)="scheduledAtUpdated($event)">
     <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
     <div class="py-1 text-right">
-      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 2, 3, 7]"
+      <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 2, 4, 8]"
         (click)="plusDay(i)">Today + {{i}}</button>
     </div>
   </div>
@@ -357,9 +360,11 @@
   <div *ngFor="let task  of relatedTasks || []" class="alert alert-warning">
     <div *ngIf="task.name !== 'GMB Request'">{{task.name}}</div>
     <div *ngIf="task.name === 'GMB Request'">
-        {{task.name}} <button class="btn btn-link" (click)="showDetailsById(task._id)">See Details...</button>
+      {{task.name}} <button class="btn btn-link" (click)="showDetailsById(task._id)">See Details...</button>
     </div>
-    <div><app-gmb-account-hotlink [email]="task.request?.email || task.transfer?.toEmail"></app-gmb-account-hotlink></div>
+    <div>
+      <app-gmb-account-hotlink [email]="task.request?.email || task.transfer?.toEmail"></app-gmb-account-hotlink>
+    </div>
     <div class="text-muted my-text-small"> {{task.createdAt | ago: now}}<br>{{task._id}}</div>
   </div>
   <div *ngIf="!relatedTasks || relatedTasks.length === 0">

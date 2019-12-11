@@ -118,6 +118,7 @@ import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-
 import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
 import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
 import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/restaurant-gmb.component';
+import { RestaurantDiagnosticsComponent } from './components/restaurants/restaurant-diagnostics/restaurant-diagnostics.component';
 import { HolidayMonitorComponent } from './components/system/holiday-monitor/holiday-monitor.component';
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
@@ -148,12 +149,16 @@ import { ChangeOwnershipComponent } from './components/change-ownership/change-o
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
+import { MonitoringGmbStalledComponent } from './components/monitoring/monitoring-gmb-stalled/monitoring-gmb-stalled.component';
+import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
+import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
 
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
+    MonitoringGmbStalledComponent,
     LogsDashboardComponent,
     Bs4Component,
     HeaderComponent,
@@ -251,6 +256,7 @@ import { RestaurantTasksComponent } from './components/restaurants/restaurant-ta
     HourPickerSimpleComponent,
     FutureDateTimePickerComponent,
     RestaurantGmbComponent,
+    RestaurantDiagnosticsComponent,
     HolidayMonitorComponent,
     MonitoringDashboardComponent,
     MonitoringFaxComponent,
@@ -277,6 +283,10 @@ import { RestaurantTasksComponent } from './components/restaurants/restaurant-ta
     BulkMessagingComponent,
 
     RestaurantTasksComponent,
+
+    RestaurantGmbPostComponent,
+
+    RestaurantGmbPostsComponent,
 
   ],
   imports: [

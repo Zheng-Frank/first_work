@@ -75,7 +75,8 @@ export class GmbAccountListComponent implements OnInit {
           "locations.locationName": 1,
           "locations.name": 1,
           "locations.address": 1,
-          disabled: 1
+          disabled: 1,
+          isAgencyAcct: 1,
         },
         skip: skip,
         limit: batchSize
@@ -182,14 +183,15 @@ export class GmbAccountListComponent implements OnInit {
       email: gmb.email.toLowerCase().trim(),
       type: gmb.type,
       comments: gmb.comments,
-      disabled: gmb.disabled
+      disabled: gmb.disabled,
+      isAgencyAcct: gmb.isAgencyAcct,
     } as any;
 
     if (gmb.recoveryEmail) {
       updatedGmb.recoveryEmail = gmb.recoveryEmail;
     }
 
-    if (gmb.password && gmb.password.length < 20) {
+    if (gmb.password && gmb.password.length < 30) {
       try {
         updatedGmb.password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', {
           salt: gmb.email,

@@ -5,7 +5,7 @@
   <div class="card-body {{gmbAccount.disabled? 'alert-warning' : ''}}">
     <div class="clearfix">
       <div class="float-left">
-        <h3>{{gmbAccount.email | emailName}} [{{gmbAccount.postcardId}}] {{gmbAccount.disabled? '(disabled)' : ''}}</h3>
+        <h3><i *ngIf="gmbAccount.isAgencyAcct" class="fas fa-building"></i>{{gmbAccount.email | emailName}} [{{gmbAccount.postcardId}}] {{gmbAccount.disabled? '(disabled)' : ''}}</h3>
         <div *ngIf="gmbAccount.pagerSize !== 100" class="alert alert-danger">Bad Pager Size: {{gmbAccount.pagerSize}}.
           Please login the account and change the pager size to 100!</div>
         <div *ngIf="gmbAccount.comments">
