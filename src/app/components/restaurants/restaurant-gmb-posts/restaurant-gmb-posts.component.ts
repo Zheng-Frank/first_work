@@ -14,7 +14,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
   @ViewChild('addPostModal') addPostModal;
 
   // TODO: get from gmbApi
-  posts = {};
+  posts = {"localPosts": []};
 
   email = '07katiereagan02@gmail.com';
   locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
