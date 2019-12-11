@@ -302,7 +302,7 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log('before 12 hours filter: ', + gmbBizList.length);
     console.log('skip gmbBiz crawled within 12 hours!');
-    gmbBizList = gmbBizList.filter(b => !b.crawledAt || new Date().valueOf() - new Date(b.crawledAt).valueOf() > TWELEVE_HOURS);
+    gmbBizList = gmbBizList.filter(b => !b.crawledAt || new Date().valueOf() - new Date(b.crawledAt).valueOf() > EIGHT_HOURS);
     console.log('after: ', + gmbBizList.length);
 
     const failedGmbBizList = [];
