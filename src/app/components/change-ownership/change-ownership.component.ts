@@ -69,7 +69,7 @@ export class ChangeOwnershipComponent implements OnInit {
     delete clone.logs;
     delete clone.people;
     delete clone.salesThreeMonthAverage;
-    clone.channels = clone.channels.filter(e => (e.type ==='Phone' && e.notifications.some(n => n ==='Business')) || e.type ==='Fax');
+    clone.channels = clone.channels.filter(e => (e.type ==='Phone' && e.notifications && e.notifications.some(n => n ==='Business')) || e.type ==='Fax');
 
     clone.name = this.newName;
     clone.previousRestaurantId = previousRestaurantId;
