@@ -1,0 +1,69 @@
+<div class="row d-flex align-items-center mb-1">
+  <div class="col-md-2">
+    <input type="file" #fileInput accept='application/json' class="form-control" placeholder="campaign.json" (change)="handleUpload($event)" hidden />
+    <p>{{fileName}}</p>
+  </div>
+
+  <div class="col-md-10">
+      <button class="btn btn-secondary btn-sm" (click)="fileInput.click()">Load Campaign</button>
+  </div>
+</div>
+
+
+<p *ngIf="posts.length == 0" class="text-center">You have not added a post yet. Click <a class="text-primary" role="button" style="cursor: pointer;" (click)="showAddPostModal()">Here</a> to add one.</p>
+
+<button class="btn btn-secondary" (click)="showAddPostModal()">+ Add Post</button>
+
+<div class="row">
+  <div *ngFor="let post of posts" class="mt-3 col-sm-12 col-md-6 col-lg-4 col-xl-3">
+    <app-restaurant-gmb-post [post]="post"></app-restaurant-gmb-post>
+    <div class="d-flex mt-2">
+      <button class="btn btn-danger" (click)="removePost(post)">Delete</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="row mb-1">
+  <div class="col-md-12 d-flex justify-content-end">
+    <button class="btn btn-primary" (click)="beginMassivePost()">BEGIN CAMPAIGN</button>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-md-12 d-flex justify-content-end">
+    <!-- <p *ngIf="status !== ''">{{status}}</p> -->
+  </div>
+</div>
+
+
+<!-- add post modal-->
+<q-modal #addPostModal>
+  <label>Insert Image Url:</label>
+  <input class="form-control" placeholder="Image Url here" [(ngModel)]="imageUrl">
+
+  <label>Insert summary here:</label>
+  <textarea type="text" class="form-control" placeholder="Post summary here" [(ngModel)]="summary" rows='3'></textarea>
+
+  <label>Link To:</label>
+  <input class="form-control" placeholder="Link to go when Action Type is clicked" [(ngModel)]="linkTo">
+
+  <label>Action Type:</label>
+  <select [(ngModel)]="actionType" class="form-control">
+    <option value="BOOK">Book</option>
+    <option value="ORDER">Order</option>
+    <option value="SHOP">Shop</option>
+    <option value="LEARN_MORE">Learn More</option>
+    <option value="SIGN_UP">Sign Up</option>
+    <option value="GET_OFFER">See Offer Now</option>
+    <option value="CALL">Call</option>
+  </select> 
+
+
+
+  <div class="mt-2">
+    <button class="btn btn-secondary q-btn" (click)="cancel()">Cancel</button>
+    <button class="btn btn-primary" (click)="addPost()" [disabled]="!canPost()">Add Post</button>
+  </div>
+  
+</q-modal>

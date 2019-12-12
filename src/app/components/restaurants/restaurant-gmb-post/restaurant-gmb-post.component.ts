@@ -12,27 +12,39 @@ export class RestaurantGmbPostComponent implements OnInit {
   @Input() post: any;
 
   imgSrc;
-  email = '07katiereagan02@gmail.com';
-  locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
+
+  // email = '07katiereagan02@gmail.com';
+  // locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
 
   constructor(private _api: ApiService) { }
 
   ngOnInit() {
-    this.imgSrc = (this.post.media && this.post.media.length) > 0 ? this.post.media[0].googleUrl: '';
+    this.imgSrc = (this.post.media.length) > 0 ? this.post.media[0].googleUrl: '';
+    // this.imgSrc = this.post.imageUrl;
   }
 
   goToLink() {
-    window.open(this.post.callToAction.url, "_blank");
+    // window.open(this.post.callToAction.url, "_blank");
+    window.open(this.post.linkTo, "_blank");
   }
 
-  async removePost() {
-    const deletedPost = await this._api.post(environment.gmbNgrok + 'gmb/delete', {
-      email: this.email,
-      locationName: this.locationName,
-      postRef: this.post.name.substr(this.post.name.lastIndexOf('/') + 1, this.post.name.length)
-    }).toPromise();
-
-    console.log(deletedPost);
+  getActionLabel() {
+    switch (this.post.callToAction.actionType) {
+      case 'BOOK':
+        return 'Book Now';
+      case 'ORDER':
+        return 'Order Online';
+      case 'SHOP':
+        return 'Shop Now';
+      case 'LEARN_MORE':
+        return 'Learn More';
+      case 'SIGN_UP':
+        return 'Sign Up Now'
+      case 'GET_OFFER':
+        return 'See Offer';
+      case 'CALL':
+        return 'Call Now';
+    }
   }
 
 }

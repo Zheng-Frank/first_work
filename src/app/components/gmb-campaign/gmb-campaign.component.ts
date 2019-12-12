@@ -1,0 +1,180 @@
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ApiService } from 'src/app/services/api.service';
+import { GlobalService } from 'src/app/services/global.service';
+import { environment } from 'src/environments/environment';
+import { AlertType } from 'src/app/classes/alert-type';
+
+@Component({
+  selector: 'app-gmb-campaign',
+  templateUrl: './gmb-campaign.component.html',
+  styleUrls: ['./gmb-campaign.component.css']
+})
+export class GmbCampaignComponent implements OnInit {
+
+  @ViewChild('addPostModal') addPostModal;
+
+  fileName = 'Load a campaign to begin';
+  gmbRestaurants = [];
+  posts = [];
+
+  imageUrl = '';
+  summary = ''
+  actionType = 'ORDER';
+  linkTo = '';
+
+  status = {
+    description: '',
+    success: 0,
+    failure: 0
+  }
+
+
+  constructor(private _api: ApiService, private _global: GlobalService) { }
+
+  ngOnInit() {
+  }
+
+  resetPostData() {
+    this.imageUrl = '';
+    this.summary = ''
+    this.actionType = 'ORDER';
+    this.linkTo = '';
+  }
+
+  showAddPostModal() {
+    this.addPostModal.title = "Add Post";
+    this.addPostModal.show();
+  }
+
+  canPost() {
+    return (this.imageUrl && this.summary && this.linkTo && this.actionType);
+  }
+
+  cancel() {
+    this.addPostModal.hide();
+  }
+
+  getActionType(actionType) {
+    switch (actionType) {
+      case 'BOOK':
+        return 1;
+      case 'ORDER':
+        return 2;
+      case 'SHOP':
+        return 3;
+      case 'LEARN_MORE':
+        return 4;
+      case 'SIGN_UP':
+        return 5;
+      case 'GET_OFFER':
+        return 6;
+      case 'CALL':
+        return 7;
+    }
+  }
+
+async beginMassivePost() {
+    const postObj = [];
+
+    this.gmbRestaurants.forEach(restaurant => {
+      this.posts.forEach(post => {
+        postObj.unshift({
+          email: restaurant.email,
+          locationName: restaurant.locationName,
+          post: {
+            imageUrl: post.media[0].googleUrl,
+            summary: post.summary,
+            linkTo: post.linkTo,
+            actionType: this.getActionType(post.callToAction.actionType)
+          }
+        });
+      });
+    });
+
+    // Loop thru postData and start massive gmb posting!
+    console.log(postObj);
+
+
+    postObj.forEach(async (data) => {
+
+      const postData = {
+        email: data.email,
+        locationName: data.locationName,
+        post: {
+          imageUrl: data.post.imageUrl,
+          summary: data.post.summary,
+          linkTo: data.post.linkTo,
+          actionType: parseInt(data.post.actionType)
+        }
+      };
+
+      try {
+        const post = await this._api.post(environment.gmbNgrok + 'gmb/post', postData).toPromise();
+        this.status.description = ``;
+        // this._global.publishAlert(AlertType.Info, "GMB Post Added");
+        // this.addPostModal.hide();
+      } catch (error) {
+        this._global.publishAlert(AlertType.Danger, 'Could not Add GMB Post');
+        console.error(error);
+        this.addPostModal.hide();
+      }
+    });
+  }
+
+
+
+  addPost() {
+    this.posts.unshift({
+      id: '_' + Math.random().toString(36).substr(2, 9),
+      // imageUrl: this.imageUrl,
+      media: [
+        {
+          googleUrl: this.imageUrl
+        }
+      ],
+      summary: this.summary,
+      linkTo: this.linkTo,
+      callToAction: {
+        actionType: this.actionType
+      }
+    });
+
+    this.addPostModal.hide();
+    this.resetPostData();
+  }
+
+  removePost(post) {
+    this.posts = this.posts.filter(p => p.id !== post.id);
+  }
+
+  readUploadedFileAsText = (inputFile) => {
+    const temporaryFileReader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      temporaryFileReader.onerror = () => {
+        temporaryFileReader.abort();
+        reject(`Error reading ${inputFile.name}`);
+      };
+
+      temporaryFileReader.onload = () => {
+        resolve(temporaryFileReader.result);
+      };
+      temporaryFileReader.readAsText(inputFile);
+    });
+  };
+
+  handleUpload = async (event) => {
+    const file = event.target.files[0];
+    this.fileName = file.name;
+
+    try {
+      const fileContents = await this.readUploadedFileAsText(file);
+      this.gmbRestaurants = JSON.parse(fileContents.toString());
+    } catch (e) {
+      console.error(`Error handling file upload ${e.message}`);
+    }
+  }
+
+
+
+}

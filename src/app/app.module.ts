@@ -152,6 +152,7 @@ import { RestaurantTasksComponent } from './components/restaurants/restaurant-ta
 import { MonitoringGmbStalledComponent } from './components/monitoring/monitoring-gmb-stalled/monitoring-gmb-stalled.component';
 import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
 import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
+import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.component';
 
 import { EventDashboardComponent } from './components/events/event-dashboard/event-dashboard.component';
 @NgModule({
@@ -289,6 +290,9 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     RestaurantGmbPostComponent,
 
     RestaurantGmbPostsComponent,
+
+    GmbCampaignComponent,
+
 
   ],
   imports: [
