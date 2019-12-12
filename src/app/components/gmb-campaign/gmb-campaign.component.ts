@@ -3,6 +3,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { AlertType } from 'src/app/classes/alert-type';
+import { Helper } from '../../classes/helper';
 
 @Component({
   selector: 'app-gmb-campaign',
@@ -21,6 +22,9 @@ export class GmbCampaignComponent implements OnInit {
   summary = ''
   actionType = 'ORDER';
   linkTo = '';
+
+  uploadImageError = '';
+  files;
 
   status = {
     description: '',
@@ -73,7 +77,7 @@ export class GmbCampaignComponent implements OnInit {
     }
   }
 
-async beginMassivePost() {
+  async beginMassivePost() {
     const postObj = [];
 
     this.gmbRestaurants.forEach(restaurant => {
@@ -110,10 +114,12 @@ async beginMassivePost() {
 
       try {
         const post = await this._api.post(environment.gmbNgrok + 'gmb/post', postData).toPromise();
-        this.status.description = ``;
+        this.status.description = `Processing`;
+        this.status.success++;
         // this._global.publishAlert(AlertType.Info, "GMB Post Added");
         // this.addPostModal.hide();
       } catch (error) {
+        this.status.failure++;
         this._global.publishAlert(AlertType.Danger, 'Could not Add GMB Post');
         console.error(error);
         this.addPostModal.hide();
@@ -121,7 +127,25 @@ async beginMassivePost() {
     });
   }
 
+  async onUploadImageChange(event) {
+    this.uploadImageError = undefined;
+    this.files = event.target.files;
+    try {
+      const data: any = await Helper.uploadImage(this.files, this._api);
 
+      if (data && data.Location) {
+        this.imageUrl = data.Location;
+      }
+    }
+    catch (err) {
+      this.uploadImageError = err;
+    }
+  }
+
+  deleteBackgroundImage() {
+    this.imageUrl = undefined;
+    this.files = null;
+  }
 
   addPost() {
     this.posts.unshift({
@@ -174,7 +198,5 @@ async beginMassivePost() {
       console.error(`Error handling file upload ${e.message}`);
     }
   }
-
-
 
 }

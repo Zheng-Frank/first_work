@@ -1,5 +1,6 @@
 <h1 class="text-center">Posts</h1>
-<p class="text-warning">Adding or Removing a post takes a while to take effect for it to show up in google searches. Please Wait.</p>
+<p class="text-warning">Adding or Removing a post takes a while to take effect for it to show up in google searches.
+  Please Wait.</p>
 
 <button class="btn btn-primary" (click)="showAddPostModal()">+ Add Post</button>
 
@@ -15,31 +16,49 @@
 
 <!-- add post modal-->
 <q-modal #addPostModal>
-  <label>Insert Image Url:</label>
-  <input class="form-control" placeholder="Image Url here" [(ngModel)]="imageUrl">
 
-  <label>Insert summary here:</label>
-  <textarea type="text" class="form-control" placeholder="Post summary here" [(ngModel)]="summary" rows='3'></textarea>
+  <label>Upload Image</label>
+  <!-- <input class="form-control" placeholder="Image Url here" [(ngModel)]="imageUrl"> -->
+  <div *ngIf="imageUrl" class="pr-1 pb-1" style="display:inline-block; position:relative">
+    <img class="img-thumbnail app-thumbnail-h-6" src="{{imageUrl}}">
+    <button (click)="deleteBackgroundImage()" class="btn btn-secondary fas fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+    <button (click)="deleteBackgroundImage()" class="btn btn-link fas fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+  </div>
 
-  <label>Link To:</label>
-  <input class="form-control" placeholder="Link to go when Action Type is clicked" [(ngModel)]="linkTo">
+  <div *ngIf="uploadImageError">
+    <span class="text-danger">{{uploadImageError}}</span>
+  </div>
+  
+  <div class=" pb-1">
+    <input type="file" (change)="onUploadImageChange($event)">
+  </div>
 
-  <label>Action Type:</label>
-  <select [(ngModel)]="actionType" class="form-control">
-    <option value="1">Book</option>
-    <option value="2">Order</option>
-    <option value="3">Shop</option>
-    <option value="4">Learn More</option>
-    <option value="5">Sign Up</option>
-    <option value="6">See Offer Now</option>
-    <option value="7">Call</option>
-  </select> 
-
-
-
+  <div>
+    <label>Insert summary here:</label>
+    <textarea type="text" class="form-control" placeholder="Post summary here" [(ngModel)]="summary" rows='3'></textarea>
+  </div>
+  
+  <div>
+    <label>Link To:</label>
+    <input class="form-control" placeholder="Link to go when Action Type is clicked" [(ngModel)]="linkTo">
+  </div>
+  
+  <div>
+    <label>Action Type:</label>
+    <select [(ngModel)]="actionType" class="form-control">
+      <option value="1">Book</option>
+      <option value="2">Order</option>
+      <option value="3">Shop</option>
+      <option value="4">Learn More</option>
+      <option value="5">Sign Up</option>
+      <option value="6">See Offer Now</option>
+      <option value="7">Call</option>
+    </select>
+  </div>
+  
   <div class="mt-2">
     <button class="btn btn-secondary q-btn" (click)="cancel()">Cancel</button>
     <button class="btn btn-primary" (click)="addPost()" [disabled]="!canPost()">Add Post</button>
   </div>
-  
+
 </q-modal>
