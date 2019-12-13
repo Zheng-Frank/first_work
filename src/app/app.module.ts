@@ -33,7 +33,6 @@ import { LeadCallLogComponent } from './components/leads/lead-call-log/lead-call
 import { SyncButtonsComponent } from './components/shared/sync-buttons/sync-buttons.component';
 import { RestaurantCrawlerComponent } from './components/restaurants/restaurant-crawler/restaurant-crawler.component';
 import { RestaurantMenuShufflerComponent } from './components/restaurants/restaurant-menu-shuffler/restaurant-menu-shuffler.component';
-import { DataHealthComponent } from './components/system/data-health/data-health.component';
 import { NewRestaurantComponent } from './components/restaurants/new-restaurant/new-restaurant.component';
 
 import { InvoiceMonthlyComponent } from './components/invoices/invoice-monthly/invoice-monthly.component';
@@ -133,6 +132,7 @@ import { MonitoringGmbTasksComponent } from './components/monitoring/monitoring-
 import { MonitoringDomainComponent } from './components/monitoring/monitoring-domain/monitoring-domain.component';
 import { MonitoringPrintersComponent } from './components/monitoring/monitoring-printers/monitoring-printers.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
+import { MonitoringRestaurantsComponent } from './components/monitoring/monitoring-restaurants/monitoring-restaurants.component';
 
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
@@ -182,7 +182,6 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     SyncButtonsComponent,
     RestaurantCrawlerComponent,
     RestaurantMenuShufflerComponent,
-    DataHealthComponent,
     NewRestaurantComponent,
     InvoiceMonthlyComponent,
     InvoiceDetailsComponent,
@@ -275,6 +274,7 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     MonitoringDomainComponent,
     MonitoringPrintersComponent,
     MonitoringHoursComponent,
+    MonitoringRestaurantsComponent,
     AwsMigrationComponent,
     AutomationDashboard2Component,
     CyclesComponent,

@@ -15,7 +15,7 @@ export class EventDashboardComponent implements OnInit {
   apiRequesting = false;
 
   currentAction;
-  eventJsonString = JSON.stringify({ name: 'fake event', stageName: 'dev' });
+  eventJsonString = JSON.stringify({ name: 'fake event' });
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.reload();
@@ -59,7 +59,7 @@ export class EventDashboardComponent implements OnInit {
     console.log(this.listeners);
 
     // fill up logs
-    const subscriberLogs = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const subscriberLogs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "subscriber-log",
       projection: {
         "listener._id": 1,
@@ -70,11 +70,10 @@ export class EventDashboardComponent implements OnInit {
         params: 1,
         error: 1
       },
-      sort: {
-        startedAt: -1
-      },
-      limit: 100000000
-    }).toPromise();
+      // sort: {
+      //   startedAt: -1
+      // }
+    }, 3000);
     this.listeners.map(listener => {
       listener.subscribers.map(subscriber => {
         subscriberLogs.map(log => {
