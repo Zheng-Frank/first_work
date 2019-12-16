@@ -74,7 +74,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
       post: {
         imageUrl: this.imageUrl,
         summary: this.summary,
-        linkTo: this.linkTo,
+        website: this.linkTo,
         actionType: parseInt(this.actionType)
       }
     };

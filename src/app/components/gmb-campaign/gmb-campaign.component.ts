@@ -51,7 +51,7 @@ export class GmbCampaignComponent implements OnInit {
   }
 
   canPost() {
-    return (this.imageUrl && this.summary && this.linkTo && this.actionType);
+    return (this.imageUrl && this.summary && this.actionType);
   }
 
   cancel() {
@@ -79,6 +79,7 @@ export class GmbCampaignComponent implements OnInit {
 
   async beginMassivePost() {
     const postObj = [];
+    this.status.success = this.status.failure = 0;
 
     this.gmbRestaurants.forEach(restaurant => {
       this.posts.forEach(post => {
@@ -88,7 +89,7 @@ export class GmbCampaignComponent implements OnInit {
           post: {
             imageUrl: post.media[0].googleUrl,
             summary: post.summary,
-            linkTo: post.linkTo,
+            linkTo: restaurant.website,
             actionType: this.getActionType(post.callToAction.actionType)
           }
         });
@@ -114,7 +115,7 @@ export class GmbCampaignComponent implements OnInit {
 
       try {
         const post = await this._api.post(environment.gmbNgrok + 'gmb/post', postData).toPromise();
-        this.status.description = `Processing`;
+        this.status.description = `Total: ${postObj.length}`;
         this.status.success++;
         // this._global.publishAlert(AlertType.Info, "GMB Post Added");
         // this.addPostModal.hide();
