@@ -807,9 +807,6 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log('oldNokItems', oldNokItems);
 
-    if (new Date()) {
-      throw "test"
-    }
     let batchSize = 2;
     if (DEBUGGING && oldNokItems.length > 6) {
       oldNokItems.length = 6;
