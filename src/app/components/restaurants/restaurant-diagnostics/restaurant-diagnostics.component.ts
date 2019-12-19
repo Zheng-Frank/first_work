@@ -48,7 +48,7 @@ export class RestaurantDiagnosticsComponent implements OnInit {
 
   async diagnose() {
     try {
-      await this._api.post(environment.appApiUrl + 'utils/diagnose-restaurant', { id: this.restaurant._id }).toPromise();
+      await this._api.post(environment.appApiUrl + 'utils/diagnose-restaurant', { _id: this.restaurant._id }).toPromise();
       this.populate();
     } catch (error) {
       console.log(error);

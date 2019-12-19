@@ -33,7 +33,6 @@ import { LeadCallLogComponent } from './components/leads/lead-call-log/lead-call
 import { SyncButtonsComponent } from './components/shared/sync-buttons/sync-buttons.component';
 import { RestaurantCrawlerComponent } from './components/restaurants/restaurant-crawler/restaurant-crawler.component';
 import { RestaurantMenuShufflerComponent } from './components/restaurants/restaurant-menu-shuffler/restaurant-menu-shuffler.component';
-import { DataHealthComponent } from './components/system/data-health/data-health.component';
 import { NewRestaurantComponent } from './components/restaurants/new-restaurant/new-restaurant.component';
 
 import { InvoiceMonthlyComponent } from './components/invoices/invoice-monthly/invoice-monthly.component';
@@ -133,6 +132,7 @@ import { MonitoringGmbTasksComponent } from './components/monitoring/monitoring-
 import { MonitoringDomainComponent } from './components/monitoring/monitoring-domain/monitoring-domain.component';
 import { MonitoringPrintersComponent } from './components/monitoring/monitoring-printers/monitoring-printers.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
+import { MonitoringRestaurantsComponent } from './components/monitoring/monitoring-restaurants/monitoring-restaurants.component';
 
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
@@ -152,7 +152,9 @@ import { RestaurantTasksComponent } from './components/restaurants/restaurant-ta
 import { MonitoringGmbStalledComponent } from './components/monitoring/monitoring-gmb-stalled/monitoring-gmb-stalled.component';
 import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
 import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
+import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.component';
 
+import { EventDashboardComponent } from './components/events/event-dashboard/event-dashboard.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -161,6 +163,7 @@ import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant
     MonitoringGmbStalledComponent,
     LogsDashboardComponent,
     Bs4Component,
+    EventDashboardComponent,
     HeaderComponent,
     LoginComponent,
     ProfileComponent,
@@ -179,7 +182,6 @@ import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant
     SyncButtonsComponent,
     RestaurantCrawlerComponent,
     RestaurantMenuShufflerComponent,
-    DataHealthComponent,
     NewRestaurantComponent,
     InvoiceMonthlyComponent,
     InvoiceDetailsComponent,
@@ -272,6 +274,7 @@ import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant
     MonitoringDomainComponent,
     MonitoringPrintersComponent,
     MonitoringHoursComponent,
+    MonitoringRestaurantsComponent,
     AwsMigrationComponent,
     AutomationDashboard2Component,
     CyclesComponent,
@@ -287,6 +290,9 @@ import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant
     RestaurantGmbPostComponent,
 
     RestaurantGmbPostsComponent,
+
+    GmbCampaignComponent,
+
 
   ],
   imports: [

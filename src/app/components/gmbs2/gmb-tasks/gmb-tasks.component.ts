@@ -623,11 +623,13 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     // }).toPromise();
 
     // const taskLimit = environment.gbmTasksTestLimit? environment.gbmTasksTestLimit : 1000000;
+    const taskLimit = 1000000;
     const dbTasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "task",
       query: {
         $or: this.query_or
-      }
+      },
+      limit: taskLimit
     }, 500);
 
 
@@ -695,6 +697,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   hasPhone = false;
   hasPostcard = false;
   hasCode = false;
+  hasExpiringCode = false;
 
   filter() {
 
@@ -739,7 +742,15 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     //filter PIN
     if (this.hasCode) {
-      this.filteredTasks = this.filteredTasks.filter(t => (((t.request || {}).pinHistory || [])[0] || []).pin);
+      this.filteredTasks = this.filteredTasks.filter(t => (((t.request || {}).pinHistory || [])[0] || {}).pin);
+    };
+
+    //filter expired PIN
+    if (this.hasExpiringCode) {
+      this.filteredTasks = this.filteredTasks.filter(t => {
+        const lastPin = ((t.request || {}).pinHistory || [])[0];
+        return lastPin && this.isPinExpired(lastPin);
+      });
     };
 
     this.tabs.map(tab => {
@@ -752,12 +763,12 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         "Errors": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0]
           && t.request.statusHistory[0].isError,
         "VO Changed": t => !t.result && t.request && t.request.voHistory && t.request.voHistory[0] && t.request.voHistory[0].time
-         && (( this.now.getTime() - new Date(t.request.voHistory[0].time).getTime() ) / 86400000) < 1,
+          && ((this.now.getTime() - new Date(t.request.voHistory[0].time).getTime()) / 86400000) < 1,
       };
       tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
     });
     console.log(`${this.now} ${this.now.getTime()}`);
-    }
+  }
 
   pagination = true;
 
@@ -773,6 +784,24 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
   }
   getPostcardId(email) {
     return this.postcardIds.get(email);
+  }
+
+  isPinExpired(pinObj) {
+    const timeSpanDict = {
+      PHONE_CALL: 30 * 60 * 1000, // 30 minutes
+      EMAIL: 7 * 24 * 3600000 + 4 * 3600000,    // 7 days 4 hours
+      ADDRESS: 30 * 24 * 3600000
+    };
+    if (pinObj.pin) {
+      const verification = pinObj.verification;
+      if (verification && verification.method && verification.createTime && timeSpanDict[verification.method]) {
+        const createTime = (new Date(verification.createTime)).getTime();
+        return (new Date()).getTime() - createTime > timeSpanDict[verification.method];
+      } 
+      // else {
+      //   console.log(`NOT SUPPORTED VERIFICATION: ${JSON.stringify(verification || {})}`);
+      // }
+    }
   }
 
 }

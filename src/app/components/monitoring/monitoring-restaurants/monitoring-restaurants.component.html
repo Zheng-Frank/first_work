@@ -1,0 +1,68 @@
+<h1 class="text-center">Restaurant Diagnostics<br><small>{{filteredRestaurants.length}}</small></h1>
+
+<div class="clearfix mt-2">
+
+    <label class="mr-2"> Status:</label>
+    <select class="mr-5" [(ngModel)]="status" (change)="filter()">
+        <option *ngFor="let item of statusList">{{item}}</option>
+    </select>
+    <label class="mr-2"> GMB:</label>
+    <select class="mr-5" [(ngModel)]="gmb" (change)="filter()">
+        <option *ngFor="let item of gmbList">{{item}}</option>
+    </select>
+
+    <label class="mr-2"> Days Created:</label>
+    <select class="mr-5" [(ngModel)]="daysCreated" (change)="filter()">
+        <option *ngFor="let item of daysCreatedList">{{item}}</option>
+    </select>
+
+    <label class="mr-2"> Score:</label>
+    <select class="mr-5" [(ngModel)]="score" (change)="filter()">
+        <option *ngFor="let item of scoreList">{{item}}</option>
+    </select>
+
+    <label class="mr-2"> Errors:</label>
+    <select class="mr-5" [(ngModel)]="errorName" (change)="filter()">
+        <option *ngFor="let item of errorNameList">{{item}}</option>
+    </select>
+
+</div>
+
+<q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+    <tr *tableRowTemplate="let rt;" class="{{rt.disabled ? 'app-strike' : ''}}">
+        <td>{{filteredRestaurants.indexOf(rt) + 1}}</td>
+        <td>
+            {{rt.createdAt | date}}
+        </td>
+        <td>
+            <a target="_blank" href="#/restaurants/{{rt._id}}">{{rt.name}}</a>
+            <br>
+            <small>{{rt.googleAddress?.formatted_address}}</small>
+        </td>
+        <td>{{rt.score}}</td>
+        <td>{{rt.gmbPublished}}</td>
+        <td class="text-nowrap">
+            {{rt.errors}}
+            <button *ngIf="rt.errors" class="btn btn-primary btn-sm" (click)="showError(rt)">show</button>
+            <ng-container *ngIf="selectRestaurant === rt">
+                <div *ngFor="let item of (rt.diagnostics[0] || {}).result || []">
+                    <div class="d-flex" *ngIf="item.errors">
+                        <h6 class="text-danger" style="width: 1.25rem">&#10007;</h6>
+                        <div style="flex-grow: 1;">
+                            <h6>{{item.name}}</h6>
+                            <ul>
+                                <li *ngFor="let error of item.errors">
+                                    <small class="text-danger">{{error}}</small>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="d-flex" *ngIf="!item.errors">
+                        <h6 *ngIf="!item.errors" class="text-success" style="width: 1.25rem"> &#10003; </h6>
+                        <h6 style="flex-grow: 1;"> {{item.name}}</h6>
+                    </div>
+                </div>
+            </ng-container>
+        </td>
+    </tr>
+</q-table>

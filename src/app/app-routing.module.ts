@@ -36,7 +36,9 @@ import { CyclesComponent } from './components/invoices/cycles/cycles.component';
 import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle-details.component';
 import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component';
 import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.component';
+import { EventDashboardComponent } from './components/events/event-dashboard/event-dashboard.component';
 import { MonitoringGmbStalledComponent } from './components/monitoring/monitoring-gmb-stalled/monitoring-gmb-stalled.component';
+import { MonitoringRestaurantsComponent } from './components/monitoring/monitoring-restaurants/monitoring-restaurants.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
@@ -54,6 +56,7 @@ const routes: Routes = [
   { path: 'orders', component: OrderDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'profile', component: ProfileComponent },
   { path: 'restaurants', component: RestaurantDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', "CSR", "ACCOUNTANT", "MARKETER"] } },
+  { path: 'restaurants/diagnostics', component: MonitoringRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
   { path: 'restaurants/:id', component: RestaurantDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', "MARKETER"] } },
   { path: 'restaurants/:id/orders', component: RestaurantOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'restaurants/:id/menus', component: MenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
@@ -73,6 +76,7 @@ const routes: Routes = [
   { path: 'gmb-stalled', component: MonitoringGmbStalledComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'automation', component: AutomationDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'automation2', component: AutomationDashboard2Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
+  { path: 'events', component: EventDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: '**', redirectTo: '/home' }
