@@ -178,7 +178,7 @@ export class EmailCodeReaderComponent implements OnInit {
   domain;
 
   async createWebsite() {
-    const domain = this.domain;
+    const domain = (this.domain || "").trim().toLowerCase();
     const templateName = this.restaurant.web.templateName;
     const restaurantId = this.restaurant._id;
     console.log(domain);
