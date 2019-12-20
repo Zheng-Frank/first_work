@@ -25,7 +25,10 @@
     <select class="mr-5" [(ngModel)]="errorName" (change)="filter()">
         <option *ngFor="let item of errorNameList">{{item}}</option>
     </select>
-
+    <label class="mr-2"> Detaied Errors:</label>
+    <select class="mr-5" [(ngModel)]="detailedError" (change)="filter()">
+        <option *ngFor="let item of detailedErrorList">{{item}}</option>
+    </select>
 </div>
 
 <q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">

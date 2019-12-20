@@ -30,6 +30,8 @@ export class MonitoringRestaurantsComponent implements OnInit {
   errorName = 'ALL';
   errorNameList = [];
 
+  detailedError = 'ALL';
+  detailedErrorList = [];
 
   myColumnDescriptors = [
     {
@@ -130,7 +132,10 @@ export class MonitoringRestaurantsComponent implements OnInit {
       restaurants: errorStats[key].size
     }));
 
-    groupedErrorRts.sort((a, b) => a.restaurants - b.restaurants);
+    groupedErrorRts.sort((b, a) => a.restaurants - b.restaurants);
+    this.detailedErrorList.push('ALL', ...groupedErrorRts.map(g => g.error));
+
+    console.log(this.detailedErrorList);
     console.log(groupedErrorRts);
     this.filter();
   }
@@ -212,6 +217,16 @@ export class MonitoringRestaurantsComponent implements OnInit {
           ok = (((rt.diagnostics || [])[0] || {}).result || []).some(item => item.name === this.errorName && (item.errors || []).length > 0);
           break;
       }
+
+      // errors
+      switch (this.detailedError) {
+        case 'ALL':
+          break;
+        default:
+          ok = (((rt.diagnostics || [])[0] || {}).result || []).some(item => (item.errors || []).some(error => error === this.detailedError));
+          break;
+      }
+
 
       return ok;
     });
