@@ -100,7 +100,9 @@ export class MonitoringRestaurantsComponent implements OnInit {
         "rateSchedules.agent": 1,
         "web.ignoreGmbOwnershipRequest": 1,
         "web.agreeToCorporate": 1,
-        diagnostics: 1,
+        diagnostics: { $slice: 1 },
+        "diagnostics.time": 1,
+        "diagnostics.result": 1,
         score: 1
       }
     }, 4000);
@@ -116,6 +118,20 @@ export class MonitoringRestaurantsComponent implements OnInit {
     const errorNames = new Set();
     this.restaurants.map(rt => (rt.diagnostics || []).map(diagnostics => diagnostics.result.map(item => errorNames.add(item.name))));
     this.errorNameList = ['ALL', 'NONE', ...errorNames];
+
+    const errorStats = {};
+    this.restaurants.map(rt => (rt.diagnostics || []).map(diagnostics => diagnostics.result.map(item => (item.errors || []).map(error => {
+      errorStats[error] = errorStats[error] || new Set();
+      errorStats[error].add(rt);
+    }))));
+
+    const groupedErrorRts = Object.keys(errorStats).map(key => ({
+      error: key,
+      restaurants: errorStats[key].size
+    }));
+
+    groupedErrorRts.sort((a, b) => a.restaurants - b.restaurants);
+    console.log(groupedErrorRts);
     this.filter();
   }
 

@@ -5,6 +5,7 @@ import { GlobalService } from '../../../services/global.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { TaskService } from 'src/app/services/task.service';
 import { Helper } from 'src/app/classes/helper';
+import { AlertType } from 'src/app/classes/alert-type';
 
 const EIGHT_HOURS = 60 * 60000 * 8; // 8 hours
 const TWO_HOURS = 7200000; // 2 hours
@@ -647,6 +648,7 @@ export class AutomationDashboardComponent implements OnInit {
         "locations.cid": 1,
         "locations.appealId": 1,
         "locations.phone": 1,
+        "locations.locationName": 1,
         injection: 1
       },
       limit: 6000
@@ -751,7 +753,7 @@ export class AutomationDashboardComponent implements OnInit {
         const case2 = !isHttps && googleShowingQmenu && !googleShowingRedirectQmenu;
         const case3 = target.website.indexOf('target') > 0 && googleShowingRedirectQmenu;
         const caseLegacy = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, target.reservation));
-        item.case1 = case0;
+        item.case0 = case0;
         item.case1 = case1;
         item.case2 = case2;
         item.case3 = case3;
@@ -788,15 +790,9 @@ export class AutomationDashboardComponent implements OnInit {
       }
     });
     console.log('websiteNokItems', websiteNokItems);
-    // if(new Date()){
-    //   throw "Test";
-    // }
-
     // now inject!
     const appealIdInjectTimeDict = {};
     gmbAccountsWithLocations.map(account => Object.keys((account.injection || {})).map(k => appealIdInjectTimeDict[k] = account.injection[k].time));
-
-    console.log(appealIdInjectTimeDict);
 
     const havingTargetWebsiteNokItems = websiteNokItems.filter(item => item.targetWebsite);
     console.log('havingTargetWebsiteNokItems', havingTargetWebsiteNokItems);
@@ -806,47 +802,48 @@ export class AutomationDashboardComponent implements OnInit {
     const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
 
     console.log('oldNokItems', oldNokItems);
+    // let's call 
 
-    let batchSize = 2;
-    if (DEBUGGING && oldNokItems.length > 6) {
-      oldNokItems.length = 6;
-      batchSize = 2;
+    for (let item of oldNokItems) {
+      let success = true;
+      try {
+        const result = await this._api.post(environment.appApiUrl + 'utils/inject-gmb-urls', {
+          email: item.account.email,
+          locationName: item.location.locationName,
+          websiteUrl: item.targetWebsite,
+          menuUrl: item.targetMenuUrl,
+          orderAheadUrl: item.targetOrderAheadUrl,
+          reservationsUrl: item.targetReservation
+        }).toPromise();
+        this._global.publishAlert(AlertType.Success, "API Called");
+        console.log(result);
+      } catch (error) {
+        console.log(error);
+        success = false;
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
+      }
+
+      // patch a time stamp of the injection
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', [
+        {
+          old: {
+            _id: item.account._id, injection: {
+              [item.location.appealId.toString()]: {}
+            }
+          },
+          new: {
+            _id: item.account._id, injection: {
+              [item.location.appealId.toString()]: {
+                time: new Date(),
+                success: success
+              }
+            }
+          }
+        }
+      ]).toPromise();
+
     }
 
-    const batchedItems = Array(Math.ceil(oldNokItems.length / batchSize)).fill(0).map((i, index) => oldNokItems.slice(index * batchSize, (index + 1) * batchSize)).filter(batch => batch.length > 0);
-    for (let batch of batchedItems) {
-      const promises = batch.map(item =>
-        this._api
-          .post(environment.qmenuApiUrl + 'utils/crypto', { salt: item.account.email, phrase: item.account.password }).toPromise()
-          .then(password => this._api.post(
-            environment.autoGmbUrl + 'updateWebsite', {
-            email: item.account.email,
-            password: password,
-            websiteUrl: item.targetWebsite,
-            menuUrl: item.targetMenuUrl,
-            orderAheadUrl: item.targetOrderAheadUrl,
-            reservationsUrl: item.targetReservation,
-            appealId: item.location.appealId,
-            stayAfterScan: false
-          }
-          ).toPromise())
-      );
-      const batchResult = await Helper.processBatchedPromises(promises);
-      // // update account's history
-      const patchPairs = batch.map((item, index) => {
-        const injection = {};
-        injection[item.location.appealId] = {
-          time: new Date(),
-          success: batchResult[index].success
-        }
-        return {
-          old: { _id: item.account._id, injection: {} },
-          new: { _id: item.account._id, injection }
-        };
-      });
-      console.log(patchPairs);
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', patchPairs).toPromise();
-    } // end batch
   }
 
 }
