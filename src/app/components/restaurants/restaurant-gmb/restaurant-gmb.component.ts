@@ -255,6 +255,7 @@ export class RestaurantGmbComponent implements OnInit {
     }
 
     this.apiRequesting = false;
+    await this.populate();
   }
 
   async createOrMatchMainGmb() {
@@ -299,7 +300,7 @@ export class RestaurantGmbComponent implements OnInit {
     }
 
     this.apiRequesting = false;
-
+    await this.populate();
   }
 
   isPublished(row) {
@@ -347,22 +348,39 @@ export class RestaurantGmbComponent implements OnInit {
       return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
     }
     for (let al of row.accountLocationPairs) {
-      if (al.location.status === 'Published')
-        await this._api
-          .post(environment.qmenuApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
-          .then(password => this._api.post(
-            environment.autoGmbUrl + 'updateWebsite', {
+      console.log(al);
+      if (al.location.status === 'Published') {
+        // await this._api
+        //   .post(environment.qmenuApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
+        //   .then(password => this._api.post(
+        //     environment.autoGmbUrl + 'updateWebsite', {
+        //     email: al.account.email,
+        //     password: password,
+        //     websiteUrl: target.website,
+        //     menuUrl: target.menuUrl,
+        //     orderAheadUrl: target.orderAheadUrl,
+        //     reservationsUrl: target.reservation,
+        //     appealId: al.location.appealId,
+        //     stayAfterScan: true
+        //   }
+        //   ).toPromise())
+
+        try {
+          const result = await this._api.post(environment.appApiUrl + 'utils/inject-gmb-urls', {
             email: al.account.email,
-            password: password,
+            locationName: al.location.locationName,
             websiteUrl: target.website,
             menuUrl: target.menuUrl,
             orderAheadUrl: target.orderAheadUrl,
-            reservationsUrl: target.reservation,
-            appealId: al.location.appealId,
-            stayAfterScan: true
-          }
-          ).toPromise())
-
+            reservationsUrl: target.reservation
+          }).toPromise();
+          this._global.publishAlert(AlertType.Success, "API Called");
+          console.log(result);
+        } catch (error) {
+          console.log(error);
+          this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
+        }
+      }
     }
 
   }
