@@ -8,9 +8,9 @@
         <tr *ngFor="let hour of (restaurant.closedHours || [])">
           <td>
             <div class="text-nowrap"><strong>
-                {{hour.fromTime | MMMd : restaurant.offsetToEST}} {{hour.fromTime | shortTime : restaurant.offsetToEST}}
+                {{hour.fromTime | yMMMd : restaurant.offsetToEST}} {{hour.fromTime | shortTime : restaurant.offsetToEST}}
                 -
-                {{hour.toTime | MMMd : restaurant.offsetToEST}}
+                {{hour.toTime | yMMMd : restaurant.offsetToEST}}
                 {{hour.toTime | shortTime : restaurant.offsetToEST}}</strong></div>
             <div *ngIf="hour.comment">{{hour.comment}}</div>
           </td>
