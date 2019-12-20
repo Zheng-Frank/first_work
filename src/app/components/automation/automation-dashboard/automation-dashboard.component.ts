@@ -352,14 +352,13 @@ export class AutomationDashboardComponent implements OnInit {
   /////////////////////////////////////////////////////////////////////////////////////////
   async scanAccountsForLocations() {
 
-    let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         gmbScannedAt: 1,
         email: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    },6000);
     const before = gmbAccounts.slice(0);
     gmbAccounts.sort((a1, a2) => new Date(a1.gmbScannedAt || 0).valueOf() - new Date(a2.gmbScannedAt || 0).valueOf());
 
@@ -402,14 +401,13 @@ export class AutomationDashboardComponent implements OnInit {
   /** scalable upto 6000 gmbBiz list */
   async scanEmailsForRequests() {
 
-    let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         emailScannedAt: 1,
         email: 1
       },
-      limit: 6000
-    }).toPromise();
+    }, 3000);
 
     gmbAccounts.sort((a1, a2) => new Date(a1.emailScannedAt || 0).valueOf() - new Date(a2.emailScannedAt || 0).valueOf());
 
@@ -457,7 +455,7 @@ export class AutomationDashboardComponent implements OnInit {
     // 2. not disabled
     // 3. not already an apply task existed
     // 4. skip sale's agent 'restaurant.web.disableAutoTask' (unless it had published at least once or more than xx days created)
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant', query: {
         disabled: { $in: [null, false] },
         "googleListing.cid": { $exists: 1 }
@@ -469,8 +467,7 @@ export class AutomationDashboardComponent implements OnInit {
         web: 1,
         score: 1
       },
-      limit: 6000
-    }).toPromise();
+    }, 3000)
 
     console.log(restaurants);
 
@@ -678,7 +675,7 @@ export class AutomationDashboardComponent implements OnInit {
 
 
 
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
         alias: 1,
@@ -686,9 +683,7 @@ export class AutomationDashboardComponent implements OnInit {
         disabled: 1,
         "channels.value": 1,
         web: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }}, 6000);
 
     const publishedCidMap = gmbAccountsWithLocations.reduce((map, account) => (account.locations.map(loc => {
       if (loc.status === 'Published') {
@@ -799,10 +794,12 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log(appealIdInjectTimeDict);
 
-    const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
+    //const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
+    const oldNokItems = havingTargetWebsiteNokItems; //.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
 
     console.log('oldNokItems', oldNokItems);
     // let's call 
+
 
     for (let item of oldNokItems) {
       let success = true;
