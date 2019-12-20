@@ -16,7 +16,7 @@ export class EventDashboardComponent implements OnInit {
 
   currentAction;
   eventJsonString = JSON.stringify({ name: 'fake event' });
-
+  now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.reload();
   }
@@ -85,6 +85,9 @@ export class EventDashboardComponent implements OnInit {
             }
           }
         });
+        subscriber.lastRunTime = (subscriber.succeededLogs.slice(-1)[0] || {}).startedAt;
+
+        console.log(subscriber.lastRunTime);
       });
     });
 

@@ -6,7 +6,7 @@ import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { TaskService } from 'src/app/services/task.service';
 import { Helper } from 'src/app/classes/helper';
 
-const EIGHT_HOURS =   60 * 60000 * 8 ; // 8 hours
+const EIGHT_HOURS = 60 * 60000 * 8; // 8 hours
 const TWO_HOURS = 7200000; // 2 hours
 
 const SKIPPING_EMAILS = ['christesting'];
@@ -733,10 +733,34 @@ export class AutomationDashboardComponent implements OnInit {
       const target = Helper.getDesiredUrls(item.restaurant);
       try {
 
-        const isWebsiteOk = Helper.areDomainsSame(target.website, item.gmbBiz.gmbWebsite) || (item.gmbBiz.gmbWebsite && item.gmbBiz.gmbWebsite.indexOf('qmenu') > 0 && (item.gmbBiz.gmbWebsite.indexOf('target') < 0));
+        // 12/19/2019
+        const singleDomain = target.website.indexOf('qmenu.us') < 0;
+        const isHttps = target.website.startsWith('https');
+
+        // also, if non-single domain, then non-redirect qmenu.us is acceptable
+        const googleShowingQmenu = item.gmbBiz.gmbWebsite && item.gmbBiz.gmbWebsite.indexOf('qmenu.us') > 0
+        const googleShowingRedirectQmenu = googleShowingQmenu && (item.gmbBiz.gmbWebsite.indexOf('target') > 0);
+
+        // 4 cases we think the website is OK:
+        // 0. exactly the same
+        // 1. google listing is the same as our single domain (doesn't matter http or https)
+        // 2. we have only http, but the google listing showing qmenu.us (non-redirect) (OK)
+        // 3. both desired and google listing containing "target"
+        const case0 = target.website.toLowerCase() === (item.gmbBiz.gmbWebsite || '').toLowerCase();
+        const case1 = singleDomain && Helper.areDomainsSame(target.website, item.gmbBiz.gmbWebsite);
+        const case2 = !isHttps && googleShowingQmenu && !googleShowingRedirectQmenu;
+        const case3 = target.website.indexOf('target') > 0 && googleShowingRedirectQmenu;
+        const caseLegacy = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, target.reservation));
+        item.case1 = case0;
+        item.case1 = case1;
+        item.case2 = case2;
+        item.case3 = case3;
+        item.caseLegacy = caseLegacy;
+        const isWebsiteOk = case0 || case1 || case2 || case3;
+        // const isWebsiteOk = caseLegacy;
+
         const isMenuUrlOk = (item.gmbBiz.menuUrls || []).length > 0 && (item.gmbBiz.menuUrls || []).some(url => Helper.areDomainsSame(url, target.menuUrl));
         const isReservationOk = (item.gmbBiz.reservations || []).length > 0 && (item.gmbBiz.reservations || []).some(url => Helper.areDomainsSame(url, target.reservation));
-
 
         item.isWebsiteOk = isWebsiteOk;
         item.isMenuUrlOk = isMenuUrlOk;

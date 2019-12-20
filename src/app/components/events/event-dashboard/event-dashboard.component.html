@@ -1,6 +1,7 @@
 <h3>Active Listeners</h3>
 <div class="pb-2 text-right">
-    <button class="btn btn-primary" (click)="currentAction = 'EMIT_EVENT'"><i class="fas fa-wave-square"></i> Emit Event</button>
+    <button class="btn btn-primary" (click)="currentAction = 'EMIT_EVENT'"><i class="fas fa-wave-square"></i> Emit
+        Event</button>
 
     <button class="btn btn-primary ml-4" (click)="reload()"><i class="fas fa-sync-alt"></i> Reload</button>
 
@@ -42,6 +43,8 @@
                         {{subscriber.succeededLogs.length}}</span> <span class="badge badge-danger"
                         (click)="consoleOut(subscriber.failedLogs)">Failed: {{subscriber.failedLogs.length}}</span>
 
+                    <br>
+                    Last run: {{subscriber.lastRunTime | ago : now}}
                 </div>
             </td>
         </tr>

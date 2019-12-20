@@ -7,10 +7,12 @@
       <!--displaying-->
       <div *qIf="!editing">
 
-        <table class="table table-borderless table-sm" *ngIf="restaurant.rateSchedules && restaurant.rateSchedules.length > 0">
+        <table class="table table-borderless table-sm"
+          *ngIf="restaurant.rateSchedules && restaurant.rateSchedules.length > 0">
           <thead>
             <tr>
               <th>Date</th>
+              <th>Order Type</th>
               <th>Rate</th>
               <th>Fixed</th>
               <th>Agent</th>
@@ -20,6 +22,7 @@
           <tbody>
             <tr *ngFor="let rs of restaurant.rateSchedules">
               <td>{{rs.date | date:'shortDate'}}</td>
+              <td>{{rs.orderType || 'ALL'}}</td>
               <td>{{rs.rate | percentage}}</td>
               <td>{{rs.fixed | currency:'USD':'symbol'}}</td>
               <td>{{rs.agent}}</td>
@@ -36,6 +39,7 @@
           <thead>
             <tr>
               <th>Date</th>
+              <th>Order Type</th>
               <th>Rate</th>
               <th>Fixed($)</th>
               <th>Sales Agent</th>
@@ -46,6 +50,14 @@
             <tr *ngFor="let rs of rateSchedulesInEditing">
               <td>
                 <input class="form-control" type="date" [(ngModel)]="rs.date">
+              </td>
+              <td>
+                <select class="form-control" [(ngModel)]="rs.orderType" style="min-width: 6rem;">
+                  <option>ALL</option>
+                  <option>DELIVERY</option>
+                  <option>PICKUP</option>
+                  <option>DINE-IN</option>
+                </select>
               </td>
               <td>
                 <input class="form-control" type="number" [(ngModel)]="rs.rate" placeholder="eg. 0.04">
