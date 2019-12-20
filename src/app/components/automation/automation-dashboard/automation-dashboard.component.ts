@@ -794,12 +794,9 @@ export class AutomationDashboardComponent implements OnInit {
 
     console.log(appealIdInjectTimeDict);
 
-    //const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
-    const oldNokItems = havingTargetWebsiteNokItems; //.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
-
+    const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
     console.log('oldNokItems', oldNokItems);
     // let's call 
-
 
     for (let item of oldNokItems) {
       let success = true;
