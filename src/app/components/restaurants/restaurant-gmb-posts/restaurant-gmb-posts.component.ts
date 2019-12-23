@@ -4,6 +4,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
+import { Helper } from '../../../classes/helper';
 
 @Component({
   selector: 'app-restaurant-gmb-posts',
@@ -23,6 +24,10 @@ export class RestaurantGmbPostsComponent implements OnInit {
   summary = ''
   actionType = '2';
   linkTo = '';
+  
+  uploadImageError = '';
+
+  files;
 
   email = '07katiereagan02@gmail.com';
   locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
@@ -42,6 +47,26 @@ export class RestaurantGmbPostsComponent implements OnInit {
     this.addPostModal.show();
   }
 
+  deleteBackgroundImage() {
+    this.imageUrl = undefined;
+    this.files = null;
+  }
+
+  async onUploadImageChange(event) {
+    this.uploadImageError = undefined;
+    this.files = event.target.files;
+    try {
+      const data: any = await Helper.uploadImage(this.files, this._api);
+
+      if (data && data.Location) {
+        this.imageUrl = data.Location;
+      }
+    }
+    catch (err) {
+      this.uploadImageError = err;
+    }
+  }
+
   async addPost() {
     const postData = {
       email: this.email,
@@ -49,7 +74,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
       post: {
         imageUrl: this.imageUrl,
         summary: this.summary,
-        linkTo: this.linkTo,
+        website: this.linkTo,
         actionType: parseInt(this.actionType)
       }
     };
