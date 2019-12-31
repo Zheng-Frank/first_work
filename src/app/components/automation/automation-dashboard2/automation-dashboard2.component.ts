@@ -25,7 +25,16 @@ export class AutomationDashboard2Component implements OnInit {
   async manualFinish(row) {
     if (confirm('Are you sure you want to manually mark this workflow as finished?')) {
       console.log(row);
-      row.workflow.blocks.map(each => each.status = 200);
+      row.workflow.blocks.map(each => {
+        if (!each.executions) {
+          each.executions = [{ status: 200 }]
+        }
+        else {
+          each.executions.push({ status: 200 })
+        }
+      }
+
+      );
       try {
         const result = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=workflow', [{
           old: { _id: row.workflow._id },
