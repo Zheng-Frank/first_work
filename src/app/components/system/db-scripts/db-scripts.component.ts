@@ -2923,16 +2923,16 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async injectRequireZipBillingAddress() {
-    const serviceSettings = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const serviceSettings = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
         name: 1,
+        googleListing: 1,
         serviceSettings: 1,
         requireZipcode: 1,
         requireBillingAddress: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    }, 3000)
 
     let updatedRestaurantPairs = [];
     for (let r of serviceSettings) {
@@ -3195,8 +3195,74 @@ export class DbScriptsComponent implements OnInit {
 
     let englishIdString = englishRts.join(',');
     let chineseIdString = chineseRts.join(',');
-     console.log('englishIdString', englishIdString);
-     console.log('chineseIdString', chineseIdString);
+    console.log('englishIdString', englishIdString);
+    console.log('chineseIdString', chineseIdString);
+  }
+
+  async getRestaurantWithoutSingleDomain() {
+
+    let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        "googleListing.cid": 1,
+        "googleListing.gmbOwner": 1,
+        "googleListing.gmbWebsite": 1,
+        "googleListing.gmbOpen": 1,
+        "googleAddress.formatted_address": 1,
+        web: 1,
+        disabled: 1,
+        score: 1,
+      },
+      sort: {
+        updatedAt: 1
+      }
+    }, 3000);
+
+    const accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        "email": 1,
+        "locations.cid": 1,
+        "locations.status": 1
+      }
+    }, 50)
+
+    // create a cidMap
+    const cidMap = {};
+
+    //remove disabled RT
+    restaurants = restaurants.filter(each => !each.disabled)
+
+    restaurants.map(r => {
+      if (r.googleListing && r.googleListing.cid) {
+        cidMap[r.googleListing.cid] = cidMap[r.googleListing.cid] || {};
+        cidMap[r.googleListing.cid].restaurants = cidMap[r.googleListing.cid].restaurants || [];
+        cidMap[r.googleListing.cid].restaurants.push(r);
+      }
+    });
+
+
+
+    let publishedRTs = [];
+    accounts.map(account => (account.locations || []).map(loc => {
+      // make Published overrule other status
+      if (loc.status === 'Published') {
+        if (cidMap[loc.cid] && cidMap[loc.cid].restaurants) {
+          publishedRTs.push(...cidMap[loc.cid].restaurants);
+        }
+      }
+    }));
+    console.log(publishedRTs);
+
+    let filteredRT1 = publishedRTs.filter(each => each.web && each.web.qmenuWebsite && each.web.qmenuWebsite.indexOf('qmenu.us') >= 0);
+    console.log(filteredRT1);
+
+    let filteredRT2 = publishedRTs.filter(each => each.web && each.web.qmenuWebsite && each.web.qmenuWebsite.indexOf('qmenu.us') < 0 && each.web.qmenuWebsite.indexOf('https') < 0);
+    console.log(filteredRT2);
+
+
+
   }
 
 
