@@ -633,7 +633,7 @@ export class AutomationDashboardComponent implements OnInit {
     // 3. check if main website or others are supposed to be qmenu's (check domain???)
     // 4. inject
 
-    const gmbAccountsWithLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const gmbAccountsWithLocations = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -647,9 +647,8 @@ export class AutomationDashboardComponent implements OnInit {
         "locations.phone": 1,
         "locations.locationName": 1,
         injection: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    }, 50)
 
     let gmbBizBatchSize = 3000;
     const gmbBizList = [];
