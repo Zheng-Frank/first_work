@@ -38,14 +38,20 @@ export class MenusComponent implements OnInit {
   }
 
   async createTestMenu() {
+    const timestamp = new Date().valueOf().toString();
     const testMenu = {
-      id: "test",
+      id: timestamp + '0',
       name: "Test Menu（测试菜单）",
       description: "Temporary for testing",
+      hours: [],
       mcs: [{
+        id: timestamp + '1',
         name: "Test Category",
+        images: [],
         mis: [
           {
+            id: timestamp + '2',
+            category: timestamp + '1',
             name: "Sesame Chicken（芝麻鸡）",
             sizeOptions: [{
               name: "regular",
@@ -57,11 +63,30 @@ export class MenusComponent implements OnInit {
       }]
     };
 
-    const newMenus = (this.restaurant.menus || []).slice(0);
-    newMenus.push(new Menu(testMenu as any));
+    // api update here...
+    const myOldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    const myNewMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    // we'd like to remove all mcs to reduce comparison!
+    myOldMenus.map(m => delete m.mcs);
+    myNewMenus.map(m => delete m.mcs);
+    myNewMenus.push(new Menu(testMenu as any));
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id'],
+          menus: myOldMenus
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: myNewMenus
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+      this.restaurant.menus.push(new Menu(testMenu as any));
 
-    // patch?
-    this.patchDiff(newMenus);
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
     // set the latest as active tab
     this.setActiveId(testMenu.id);
 
