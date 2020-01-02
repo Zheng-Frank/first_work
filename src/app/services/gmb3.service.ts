@@ -163,7 +163,7 @@ export class Gmb3Service {
     }).toPromise())[0];
 
     // const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.cid).map(loc => loc.appealId);
-    const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.locationName).map(loc => loc.appealId);
+    const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.locationName && loc.cid).map(loc => loc.appealId);
 
     // console.log('email',email);
     // console.log('appealIdsToSkipDetails', appealIdsToSkipDetails);
