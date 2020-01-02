@@ -105,7 +105,7 @@ export class CycleDetailsComponent implements OnInit {
   async processOne(row) {
     console.log(row);
     try {
-      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/process', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/process', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
       console.log(message);
     } catch (error) {
       console.log(error);
@@ -117,7 +117,7 @@ export class CycleDetailsComponent implements OnInit {
     console.log(row);
     this.paying = true;
     try {
-      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/pay', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/pay', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
       console.log(message);
     } catch (error) {
       console.log(error);
@@ -131,7 +131,7 @@ export class CycleDetailsComponent implements OnInit {
     console.log(row);
     this.sending = true;
     try {
-      const message = await this._api.post(environment.qmenuNgrok + 'invoicing/send', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/send', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
       console.log(message);
     } catch (error) {
       console.log(error);
@@ -160,7 +160,7 @@ export class CycleDetailsComponent implements OnInit {
         }
         try {
           this.processingMessages.unshift(`processing ${rt.name}...`);
-          const message = await this._api.post(environment.qmenuNgrok + 'invoicing/process', { invoiceId: rt.invoice._id, cycleId: this.cycleId }).toPromise();
+          const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/process', { invoiceId: rt.invoice._id, cycleId: this.cycleId }).toPromise();
           console.log(message);
           this.processingMessages.unshift(`done: ${message}`);
         } catch (error) {
