@@ -1,9 +1,15 @@
 <div *ngIf="restaurant">
   <div class="text-right">
-    <button *ngIf="!restaurant.skipImageInjection"class="btn btn-primary" (click)="injectImages()">Inject Image (加图片)</button>
-    <button class="btn btn-primary" (click)="deleteImages()">Delete Image (删除图片)</button>
-    <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
-    <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices (整体提价)</button>
+    <ng-container *ngIf="getMenus().length > 0">
+      <button *ngIf="!restaurant.skipImageInjection" class="btn btn-primary" (click)="injectImages()">Inject Image
+        (加图片)</button>
+      <button class="btn btn-primary" (click)="deleteImages()">Delete Image (删除图片)</button>
+      <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
+      <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices (整体提价)</button>
+    </ng-container>
+    <ng-container *ngIf="getMenus().length > 0">
+      <button class="btn btn-primary" (click)="createTestMenu()">Create Test Menu (添加测试菜单)</button>
+    </ng-container>
     <div class="alert alert-secondary" *ngIf="copyMenu">
       <input [(ngModel)]="copyMenuToRestaurantId" placeholder="Restaurant Id">
       <div class="py-2">
@@ -16,7 +22,8 @@
       <input [(ngModel)]="adjustPricesFactorAmount" placeholder="0.75">
       <div class="py-2">
         <p *ngIf="adjustPricesFactor" class="text-warning">
-          <b>Price of ALL ITEMS will be {{+adjustPricesFactor > 0 ? 'increased' : 'decreased' }} {{+adjustPricesFactor | percent}}.
+          <b>Price of ALL ITEMS will be {{+adjustPricesFactor > 0 ? 'increased' : 'decreased' }}
+            {{+adjustPricesFactor | percent}}.
             Click Submit only when you are absolutely sure.</b>
         </p>
         <button class="btn btn-default text-right" (click)="adjustingAllPrices = false">Cancel</button>
@@ -29,11 +36,12 @@
     <div style="width: 100%; overflow: auto;">
       <ul class="nav nav-tabs app-tab" role="tablist">
         <li *ngFor="let menu of getMenus()" class="nav-item">
-          <a (click)=setActiveId(menu.id) class="nav-link {{getActiveId() == menu.id ? 'active' : 'text-primary'}}" data-toggle="tab"
-            role="button">{{menu.name}}</a>
+          <a (click)=setActiveId(menu.id) class="nav-link {{getActiveId() == menu.id ? 'active' : 'text-primary'}}"
+            data-toggle="tab" role="button">{{menu.name}}</a>
         </li>
         <li class="nav-item" *ngIf="getMenus().length > 0">
-          <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()" role="button">
+          <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()"
+            role="button">
             <span class="far fa-plus-square"></span> Add New Menu</a>
         </li>
       </ul>
@@ -41,8 +49,10 @@
   </div>
   <!-- Tab panes -->
   <div class="tab-content">
-    <div *ngFor="let menu of getMenus()" class="tab-pane  {{getActiveId() == menu.id ? 'active' : ''}} pt-1" role="tabpanel">
-      <app-menu [restaurant]="restaurant" [menu]="menu" [offsetToEST]="restaurant.offsetToEST" (onEdit)="edit($event)" (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
+    <div *ngFor="let menu of getMenus()" class="tab-pane  {{getActiveId() == menu.id ? 'active' : ''}} pt-1"
+      role="tabpanel">
+      <app-menu [restaurant]="restaurant" [menu]="menu" [offsetToEST]="restaurant.offsetToEST" (onEdit)="edit($event)"
+        (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
     </div>
     <div class="tab-pane  {{!getActiveId() ? 'active' : ''}} pt-1" role="tabpanel">
       <div *ngIf="getMenus().length === 0" class="text-center mb-1">
@@ -58,7 +68,8 @@
     </button>
     <h4 class="text-center">{{menuEditor.menu?.id ? 'Edit Menu' : 'Create New Menu'}}</h4>
     <hr>
-    <app-menu-editor #menuEditor [offsetToEST]="restaurant.offsetToEST" (onDone)="onDoneEditing($event)" (onDelete)="onDelete($event)"></app-menu-editor>
+    <app-menu-editor #menuEditor [offsetToEST]="restaurant.offsetToEST" (onDone)="onDoneEditing($event)"
+      (onDelete)="onDelete($event)"></app-menu-editor>
   </q-modal>
 
   <div class="app-plus">
