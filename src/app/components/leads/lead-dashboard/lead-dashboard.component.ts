@@ -968,26 +968,14 @@ export class LeadDashboardComponent implements OnInit {
       }
     });
 
-
-    const batchSize = 1000;
-    let batch = []
-    while (true) {
-      batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: "lead",
-        query: query,
-        skip: this.leads.length,
-        limit: batchSize
-      }).toPromise();
-      this.leads.push(...batch);
-      if (batch.length === 0 || batch.length < batchSize) {
-        break;
-      }
-    }
+    this.leads = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'lead', 
+      query: query,
+      limit: 10000
+    }, 3000)
 
     this.leads = this.leads.map(u => new Lead(u));
     this.sortLeads(this.leads);
-
-
   }
 
   view(lead) {
