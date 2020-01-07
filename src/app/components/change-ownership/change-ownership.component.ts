@@ -52,9 +52,10 @@ export class ChangeOwnershipComponent implements OnInit {
       },
       limit: 2
     }).toPromise();
-    if (existingOnes.length > 1) {
-      return alert('Failed: Already have multiple restaurants with same place ID.');
-    }
+    // allow same location having multiple times ownership changes
+    // if (existingOnes.length > 1) {
+    //   return alert('Failed: Already have multiple restaurants with same place ID.');
+    // }
 
     const clone = JSON.parse(JSON.stringify(oldRestaurant));
     delete clone._id;
