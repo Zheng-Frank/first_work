@@ -140,7 +140,7 @@ export class DbScriptsComponent implements OnInit {
 
   async calculateCommissions() {
     // get all non-canceled, payment completed invoices so far
-    const invoices = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const invoices = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "invoice",
       query: {},
       projection: {
@@ -149,9 +149,7 @@ export class DbScriptsComponent implements OnInit {
         isPaymentCompleted: 1,
         toDate: 1,
         total: 1
-      },
-      limit: 50000000
-    }).toPromise();
+      }}, 20000);
     const allCommissions = invoices.reduce((sum, invoice) => {
       if (!invoice.isCanceled) {
         return sum + (invoice.commission || 0);
@@ -159,8 +157,9 @@ export class DbScriptsComponent implements OnInit {
 
       return sum;
     }, 0);
+    const year = new Date().getFullYear() - 1;
     const yearCommission = invoices.reduce((sum, invoice) => {
-      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === new Date().getFullYear()) {
+      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
         return sum + (invoice.commission || 0);
       }
       return sum;
@@ -173,7 +172,7 @@ export class DbScriptsComponent implements OnInit {
       return sum;
     }, 0);
     const yearTotal = invoices.reduce((sum, invoice) => {
-      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === new Date().getFullYear()) {
+      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
         return sum + (invoice.total || 0);
       }
       return sum;
