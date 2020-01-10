@@ -72,14 +72,13 @@ export class MonitoringEmailComponent implements OnInit {
     });
 
 
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
         name: 1,
         channels: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    }, 6000);
 
     restaurants.map(restaurant => {
       const emailsInChannels = (restaurant.channels || []).filter(c => c.type === 'Email' && c.notifications && c.notifications.indexOf('Order') >= 0).map(c => c.value).map(e => e.toLowerCase());

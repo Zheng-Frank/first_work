@@ -38,11 +38,13 @@
             <td>
                 <div *ngFor="let subscriber of (listener.subscribers || [])" class="alert alert-secondary">
                     <span class="subscriber-type">{{subscriber.type}}:</span> {{subscriber.value}}
-                    <br>
+                    <ng-container *ngIf="subscriber.params">
+                        <pre>{{subscriber.params | json}}</pre>
+                    </ng-container>
+                    <div></div>
                     <span class="badge badge-success" (click)="consoleOut(subscriber.succeededLogs)">Succeeded:
                         {{subscriber.succeededLogs.length}}</span> <span class="badge badge-danger"
                         (click)="consoleOut(subscriber.failedLogs)">Failed: {{subscriber.failedLogs.length}}</span>
-
                     <br>
                     Last run: {{subscriber.lastRunTime | ago : now}}
                 </div>

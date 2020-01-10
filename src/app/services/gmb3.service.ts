@@ -163,7 +163,7 @@ export class Gmb3Service {
     }).toPromise())[0];
 
     // const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.cid).map(loc => loc.appealId);
-    const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.locationName).map(loc => loc.appealId);
+    const appealIdsToSkipDetails = (account.locations || []).filter(loc => loc.appealId && loc.locationName && loc.cid).map(loc => loc.appealId);
 
     // console.log('email',email);
     // console.log('appealIdsToSkipDetails', appealIdsToSkipDetails);
@@ -350,7 +350,7 @@ export class Gmb3Service {
         console.log(account.email);
         console.log(gmbBizList);
         console.log(item);
-        throw 'NOT MATCHED ANYTHING'
+        //throw 'NOT MATCHED ANYTHING'
       } else {
         item.gmbBizId = matchedBiz._id;
         item.cid = matchedBiz.cid;
@@ -424,15 +424,14 @@ export class Gmb3Service {
 
     console.log('runningTransferTasksWithCode', runningTransferTasksWithCode);
 
-    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         email: 1,
         "locations.place_id": 1,
         "locations.status": 1
       },
-      limit: 6000
-    }).toPromise();
+    }, 6000)
 
     const gmbAccountIdMap = gmbAccounts.reduce((map, acct) => (map[acct._id] = acct, map), {});
 
@@ -482,7 +481,7 @@ export class Gmb3Service {
     const existingCidSet = new Set(gmbBizList.map(biz => biz.cid));
     console.log('existingCidSet', existingCidSet);
 
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         disabled: { $in: [null, false] }
@@ -490,21 +489,19 @@ export class Gmb3Service {
       projection: {
         name: 1,
         "googleListing.cid": 1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    }, 6000)
 
     const restaurantCidNamePairs = restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => ({ name: r.name, cid: r.googleListing.cid }));
     console.log('restaurantCidNamePairs', restaurantCidNamePairs);
 
-    const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         "locations.cid": 1,
         "locations.name": 1
       },
-      limit: 6000
-    }).toPromise();
+    }, 6000)
 
     const accountCidNamePairs = accounts.reduce((cids, account) => (cids.push(...(account.locations || []).filter(loc => loc.cid).map(loc => ({ name: loc.name, cid: loc.cid }))), cids), []);
     console.log('accountCidNamePairs', accountCidNamePairs);
@@ -712,14 +709,13 @@ export class Gmb3Service {
     const randomNames = "Rosena Massaro,Jeanmarie Eynon,Burma Busby,Charlyn Wall,Daniel Carrillo,Shanon Chalker,Alberta Gorski,Steffanie Mccullen,Chanelle Stukes,Harlan Horman,Aura Fleming,Edyth Applebee,Francisco Halloway,Maryjo Isakson,Eveline Lager,Isabel Middleton,Edda Rickel,Margareta Joye,Nona Fager,Lynelle Coutee,Rasheeda Gillmore,Kiesha Padula,Maryalice Matheny,Jacqueline Danos,Alden Crossman,Corinna Edge,Cassandra Trial,Zulema Freedman,Brunilda Halberg,Jewell Pyne,Jeff Kemmerer,Rosalee Heard,Maximina Gangi,Merrie Kall,Leilani Zeringue,Bradly Backes,Samella Bleich,Barrie Whetzel,Shakia Bischof,Gregoria Neace,Denice Vowels,Carlotta Barton,Andy Saltsman,Octavia Geis,Danelle Kornreich,Danica Stanfield,Shay Nilsson,Nan Jaffee,Laraine Fritzler,Christopher Pagani";
 
     const names = randomNames.split(',').map(n => n.trim());
-    const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         email: 1,
         password: 1
       },
-      limit: 6000
-    }).toPromise();
+    }, 6000);
     for (let task of tasks) {
       const randomName = names[Math.floor(Math.random() * names.length)];
       try {

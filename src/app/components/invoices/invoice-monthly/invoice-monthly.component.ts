@@ -52,16 +52,15 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   private async loadSkippedRestaurants() {
-    this.skipAutoInvoicingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    this.skipAutoInvoicingRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         "skipAutoInvoicing": true,
       },
       projection: {
         "name": 1
-      },
-      limit: 6000
-    }).toPromise();
+      }      
+    }, 6000)
     console.log(this.skipAutoInvoicingRestaurants);
 
 
@@ -135,7 +134,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     canceledAfterSpan.map(os => idOsDict[os.order] = os);
 
     // we need to make sure NOT double counting the adjusted order, so query restaurant logs
-    const adjustmentLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const adjustmentLogs = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         "logs.orderId": { $exists: 1 },
@@ -143,9 +142,8 @@ export class InvoiceMonthlyComponent implements OnInit {
       },
       projection: {
         "logs.orderId": 1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    }, 6000);
 
     const adjustedOrderIds = new Set();
     adjustmentLogs.map(r => r.logs.map(log => {

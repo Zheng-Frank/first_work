@@ -171,10 +171,6 @@
                     <hr class="my-0"><small>{{record.time | ago : now}}</small>
                   </div>
                 </ng-container>
-                <div *ngIf="alPair.statusHistory[alPair.statusHistory.length - 1].status === 'Published'"
-                  class="d-inline-block">
-                  <button class="btn btn-success" (click)="transferOwnership(alPair)">Change Ownership <i class="fas fa-arrow-right"></i> B</button>
-                </div>
               </td>
             </tr>
             <tr *ngIf="getGmbRequests(row.gmbBiz, alPair.account.email).length > 0">

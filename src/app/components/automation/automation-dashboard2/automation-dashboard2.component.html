@@ -85,7 +85,7 @@
             class="fas fa-times pr-2"></i>Delete</button>
         <button class="btn btn-primary m-1" *ngIf="row.canReload" (click)="refresh(row)"><i
             class="fas fa-sync-alt pr-2"></i> Reload</button>
-        <button class="btn btn-primary m-1" *ngIf="row.canReload" (click)="manualFinish(row)"><i
+        <button class="btn btn-primary m-1" (click)="manualFinish(row)"><i
             class="fas fa-sync-alt pr-2"></i> Mark Done</button>
 
         <!-- <button class="btn btn-danger" *ngIf="row.shouldShowStop" (click)="stop(row)"><i

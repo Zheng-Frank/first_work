@@ -44,7 +44,7 @@ export class GmbRequestListComponent implements OnInit {
   async refresh() {
     this.now = new Date();
 
-    const requests = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const requests = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbRequest',
       query: {
         isReminder: false
@@ -61,8 +61,7 @@ export class GmbRequestListComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 6000
-    }).toPromise();
+    }, 6000)
 
     requests.map(req => req.date = new Date(req.date));
     requests.sort((r1, r2) => r2.date.valueOf() - r1.date.valueOf());
@@ -85,13 +84,12 @@ export class GmbRequestListComponent implements OnInit {
       }
     }    
 
-    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
         email: 1
       },
-      limit: 6000
-    }).toPromise();
+    }, 6000)
 
     const myEmailSet = new Set(gmbAccounts.map(a => a.email));
     const attackingRequests = requests.filter(req => !req.isReminder && !myEmailSet.has(req.email));

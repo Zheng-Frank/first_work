@@ -25,7 +25,28 @@ export class AutomationDashboard2Component implements OnInit {
   async manualFinish(row) {
     if (confirm('Are you sure you want to manually mark this workflow as finished?')) {
       console.log(row);
-      alert('not coded yet')
+      row.workflow.blocks.map(each => {
+        if (!each.executions) {
+          each.executions = [{ status: 200 }]
+        }
+        else {
+          each.executions.push({ status: 200 })
+        }
+      }
+
+      );
+      try {
+        const result = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=workflow', [{
+          old: { _id: row.workflow._id },
+          new: row.workflow
+        }]).toPromise();
+        this._global.publishAlert(AlertType.Success, 'Success');
+        // remove the row form rows!
+        this.workflows = this.workflows.filter(wf => wf._id !== row.workflow._id);
+        this.changeFilter();
+      } catch (error) {
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
+      }
     }
   }
   async changeFilter() {
