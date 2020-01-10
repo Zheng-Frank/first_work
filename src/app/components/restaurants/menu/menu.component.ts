@@ -78,7 +78,8 @@ export class MenuComponent implements OnInit {
     // we do not need everything!
     oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
       id: category.id,
-      name: category.name
+      name: category.name,
+      menuOptionIds: []
     })));
 
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
