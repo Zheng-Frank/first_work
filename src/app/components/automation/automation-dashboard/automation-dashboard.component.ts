@@ -96,9 +96,9 @@ export class AutomationDashboardComponent implements OnInit {
     try {
       while (this.startTime) {
 
-        this.addRunningMessage('Scan accounts for GMB locations...');
-        const accountsScanResult = await this.scanAccountsForLocations();
-        this.addRunningMessage('Succeeded ' + accountsScanResult.succeeded.length + ', failed ' + accountsScanResult.failed.length);
+        // this.addRunningMessage('Scan accounts for GMB locations...');
+        // const accountsScanResult = await this.scanAccountsForLocations();
+        // this.addRunningMessage('Succeeded ' + accountsScanResult.succeeded.length + ', failed ' + accountsScanResult.failed.length);
 
         this.addRunningMessage('Generate missing GMB Biz...');
         await this.generateMissingGmbBizListings();
@@ -796,7 +796,6 @@ export class AutomationDashboardComponent implements OnInit {
     const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
     console.log('oldNokItems', oldNokItems);
     // let's call 
-
     for (let item of oldNokItems) {
       let success = true;
       try {
