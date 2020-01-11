@@ -630,7 +630,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 $or: this.query_or
             },
             limit: taskLimit
-        }, 500);
+        }, 400);
 
 
 
