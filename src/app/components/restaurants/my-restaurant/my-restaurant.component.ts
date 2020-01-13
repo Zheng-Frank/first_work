@@ -446,7 +446,7 @@ export class MyRestaurantComponent implements OnInit {
       let year = (new Date(row.restaurant.createdAt)).getFullYear();
       let eachListingDate = { month: month.toString() + '/' + year }
 
-      const originIsSales = (row.firstStatus && (['Pending edits', 'Verified', 'Published', 'Suspended', 'Duplicate'].indexOf(row.firstStatus.status) >= 0) || new Date(row.restaurant.createdAt) < new Date('2018-09-6'));
+      const originIsSales = (row.firstStatus && (['Published', 'Suspended'].indexOf(row.firstStatus.status) >= 0) || new Date(row.restaurant.createdAt) < new Date('2018-09-6'));
       row.originIsSales = originIsSales;
       if (this.result.some(each => each.month === eachListingDate.month)) {
         this.result.map(each => {
