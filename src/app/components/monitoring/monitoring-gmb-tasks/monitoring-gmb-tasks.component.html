@@ -27,6 +27,7 @@
         <th>#</th>
         <th>Error</th>
         <th>Count</th>
+        <th>Rerun</th>
         <th>Task IDs</th>
     </tr>
     <tr *ngFor="let row of filteredRows; let i = index">
@@ -37,8 +38,11 @@
         <td>
             {{row[1].length}}
         </td>
+        <td>
+            <button class="btn btn-primary mb-2" (click)="rerun(i)">Rerun</button>
+        </td>
         <td class="wrap, small">
-            <span *ngFor="let id of row[1]"> {{id}}</span>          
+            <span *ngFor="let id of row[1]"> {{id}}</span>
         </td>
     </tr>
 
