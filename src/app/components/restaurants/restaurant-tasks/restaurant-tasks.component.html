@@ -7,15 +7,17 @@
   <table>
     <tr>
       <th>Result</th>
-      <th>Created At</th>
+      <th>Created At</th>      
       <th>Id</th>
       <th>Name</th>
+      <th>Closed At</th>
     </tr>
     <tr *ngFor="let task of tasks">
-      <td>{{task.result}}</td>
-      <td>{{task.createdAt}}</td>
+      <td>{{task.result}}</td>      
+      <td>{{task.createdAt | date: 'medium'}}</td>
       <td>{{task._id}}</td>
       <td>{{task.name}}</td>
+      <td>{{task.resultAt | date: 'medium'}}</td>
     </tr>
   </table>
 

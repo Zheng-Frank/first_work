@@ -96,9 +96,9 @@ export class AutomationDashboardComponent implements OnInit {
     try {
       while (this.startTime) {
 
-        this.addRunningMessage('Scan accounts for GMB locations...');
-        const accountsScanResult = await this.scanAccountsForLocations();
-        this.addRunningMessage('Succeeded ' + accountsScanResult.succeeded.length + ', failed ' + accountsScanResult.failed.length);
+        // this.addRunningMessage('Scan accounts for GMB locations...');
+        // const accountsScanResult = await this.scanAccountsForLocations();
+        // this.addRunningMessage('Succeeded ' + accountsScanResult.succeeded.length + ', failed ' + accountsScanResult.failed.length);
 
         this.addRunningMessage('Generate missing GMB Biz...');
         await this.generateMissingGmbBizListings();
@@ -633,7 +633,7 @@ export class AutomationDashboardComponent implements OnInit {
     // 3. check if main website or others are supposed to be qmenu's (check domain???)
     // 4. inject
 
-    const gmbAccountsWithLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const gmbAccountsWithLocations = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
         locations: { $exists: 1 }
@@ -647,9 +647,8 @@ export class AutomationDashboardComponent implements OnInit {
         "locations.phone": 1,
         "locations.locationName": 1,
         injection: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    }, 50)
 
     let gmbBizBatchSize = 3000;
     const gmbBizList = [];
@@ -797,7 +796,6 @@ export class AutomationDashboardComponent implements OnInit {
     const oldNokItems = havingTargetWebsiteNokItems.filter(item => !appealIdInjectTimeDict[item.location.appealId] || (new Date().valueOf() - new Date(appealIdInjectTimeDict[item.location.appealId]).valueOf() > TWO_HOURS));
     console.log('oldNokItems', oldNokItems);
     // let's call 
-
     for (let item of oldNokItems) {
       let success = true;
       try {

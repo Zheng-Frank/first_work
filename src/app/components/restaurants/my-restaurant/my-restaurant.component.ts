@@ -15,6 +15,7 @@ export class MyRestaurantComponent implements OnInit {
 
   rows = [];
   now = new Date();
+  disabledTotal = 0;
   result;
   hadGainedBySalesTotal;
   hadGainedByQmenuTotal;
@@ -88,21 +89,18 @@ export class MyRestaurantComponent implements OnInit {
     },
     {
       label: 'Had GMB',
-      paths: ['gmbOnceOwned'],
+      paths: ['gmbOrigin', 'origin'],
       sort: (a, b) => (+a) - (+b)
     },
     {
       label: 'GMB Origin',
-      paths: ['firstStatus'],
+      paths: ['gmbOrigin', 'origin'],
     },
     {
       label: 'Current GMB'
     },
     {
       label: 'Websites'
-    },
-    {
-      label: 'Ongoing Tasks'
     }
 
   ];
@@ -175,8 +173,360 @@ export class MyRestaurantComponent implements OnInit {
       this.usernames.sort();
     }
     this.populate();
+  }
+
+  async computeGmbOrigin() {
+    const gmbBizList = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        cid: 1,
+        qmenuId: 1
+      }
+    }, 8000);
+    console.log(gmbBizList);
+    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1,
+        "locations.cid": 1,
+        "locations.place_id": 1,
+        "locations.statusHistory": 1
+      }
+    }, 80);
+    console.log(gmbAccounts);
+
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        "name": 1,
+        "googleListing.cid": 1,
+        "salesBase": 1,
+        "salesBonus": 1,
+        "salesThreeMonthAverage": 1,
+        gmbOrigin: 1
+      }
+    }, 2000);
+    restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
+
+    const selectedRestaurants = restaurants.filter(rt => !rt.gmbOrigin);
+    // selectedRestaurants.length = 600;
+    // const selectedRestaurants = restaurants.filter(rt => rt._id === "5cea0f0e2c667c6b2eb45175");
+
+    const gmbOrigins = [];
+    selectedRestaurants.map(rt => {
+
+      const createdAt = new Date(parseInt(rt._id.substring(0, 8), 16) * 1000);
+
+      // case 1: restaurant created before 2018-9-6 (we didn't track)
+      if (createdAt.valueOf() < new Date('2018-09-6').valueOf()) {
+        const gmbOrigin = {
+          time: new Date('2018-09-6').toISOString(),
+          status: "Published",
+          origin: "sales",
+          _id: rt._id
+        };
+        gmbOrigins.push(gmbOrigin);
+        return;
+      }
+
+      const matchedCids = gmbBizList.filter(biz => biz.qmenuId === rt._id).map(biz => biz.cid);
+      const cids = [(rt.googleListing || {}).cid, ...matchedCids].filter(cid => cid);
+
+      // case 1, had Published: if it's also the very first status of ALL, then it's from sales
+      let firstPublishedEmail;
+      let firstPublishedLocation;
+
+      gmbAccounts.map(account => (account.locations || []).filter(loc => cids.indexOf(loc.cid) >= 0).map(loc => {
+        if (loc.statusHistory.some(sh => sh.status === "Published")) {
+          const firstPublishedTime = loc.statusHistory.filter(sh => sh.status === "Published").slice(-1)[0].time;
+          if (!firstPublishedLocation || new Date(firstPublishedLocation.statusHistory.filter(sh => sh.status === "Published").slice(-1)[0].time).valueOf() > new Date(firstPublishedTime).valueOf()) {
+            firstPublishedLocation = loc;
+            firstPublishedEmail = account.email;
+          }
+        }
+      }));
+
+      if (firstPublishedLocation) {
+        console.log(firstPublishedLocation)
+        const gmbOrigin = {
+          time: new Date(firstPublishedLocation.statusHistory.filter(sh => sh.status === "Published").slice(-1)[0].time).toISOString(),
+          status: "Published",
+          firstStatus: firstPublishedLocation.statusHistory.slice(-1)[0].status,
+          origin: ["Published", "Suspended"].indexOf(firstPublishedLocation.statusHistory.slice(-1)[0].status) >= 0 ? "sales" : "qMenu",
+          cid: firstPublishedLocation.cid,
+          place_id: firstPublishedLocation.place_id,
+          email: firstPublishedEmail,
+          _id: rt._id
+        };
+        gmbOrigins.push(gmbOrigin);
+      }
+
+    });
+
+    console.log(gmbOrigins)
+    for (let i = 0; i < gmbOrigins.length; i += 100) {
+      const slice = gmbOrigins.slice(i, i + 100);
+      const patches = slice.map(gmbOrigin => ({
+        old: {
+          _id: gmbOrigin._id
+        },
+        new: {
+          _id: gmbOrigin._id,
+          gmbOrigin: gmbOrigin
+        }
+      }));
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patches).toPromise();
+    }
 
   }
+
+
+  async computeBonus() {
+    // see google doc: https://docs.google.com/spreadsheets/d/1qEVa0rMYZsVZZs0Fpu1ItnaNsYfwt6i51EdQuDt753A/edit#gid=0
+    const policiesMap = {
+      sam: [
+        {
+          to: new Date('12/16/2018'),
+          base: 150
+        },
+        {
+          from: new Date('1/1/2019'),
+          base: 75,
+          bonusThresholds: {
+            4: 150,
+            2: 75,
+            1: 50
+          }
+        },
+        {
+          from: new Date('9/27/2019'),
+          base: 0
+        },
+      ],
+
+      kevin: [
+        {
+          to: new Date('7/16/2018'),
+          base: 150
+        },
+        {
+          from: new Date('7/17/2018'),
+          base: 60,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+      ],
+
+
+      james: [
+        {
+          to: new Date('6/1/2018'),
+          base: 150
+        },
+        {
+          from: new Date('7/1/2018'),
+          base: 50,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+      ],
+
+      jason: [
+        {
+          base: 50,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+      ],
+      andy: [
+        {
+          from: new Date('7/1/2018'),
+          base: 50,
+          bonusThresholds: {
+            2: 150,
+            1: 50
+          }
+        },
+        {
+          to: new Date('6/1/2018'),
+          base: 150
+        },
+      ],
+
+      billy: [
+        {
+          base: 0
+        },
+      ],
+      mike: [
+        {
+          base: 150
+        }
+      ],
+      charity: [
+        {
+          from: new Date('7/1/2018'),
+          base: 40,
+          bonusThresholds: {
+            3: 40
+          }
+        },
+        {
+          to: new Date('6/1/2018'),
+          base: 80
+        },
+      ],
+    };
+
+    let uncomputedRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        salesBonus: null
+      },
+      projection: {
+        name: 1,
+        salesBase: 1,
+        rateSchedules: 1,
+        createdAt: 1,
+        previousRestaurantId: 1
+      },
+      limit: 6000
+    }).toPromise();
+
+    // uncomputedRestaurants = uncomputedRestaurants.filter(r => r._id === '5b5bfd764f600614008fcff5');
+
+    console.log(uncomputedRestaurants);
+    // uncomputedRestaurants.length = 80;
+    // update salesBase
+    const updatedRestaurantPairs = [];
+    for (let r of uncomputedRestaurants) {
+      const createdAt = new Date(r.createdAt);
+      let updated = false;
+      let appliedPolicy;
+      if (r.rateSchedules && r.rateSchedules.length > 0) {
+        const agent = r.rateSchedules[r.rateSchedules.length - 1].agent;
+
+        const policies = policiesMap[agent] || [];
+        for (let i = 0; i < policies.length; i++) {
+          const policy = policies[i];
+          const from = policy.from || new Date(0);
+          const to = policy.to || new Date();
+          if (createdAt > from && createdAt < to) {
+            appliedPolicy = policy;
+            if (r.salesBase !== policy.base) {
+              r.salesBase = policy.base;
+              updated = true;
+              break;
+            }
+          }
+        }
+      }
+      // compute three month thing!
+      if (appliedPolicy && appliedPolicy.bonusThresholds && new Date().valueOf() - createdAt.valueOf() > 3 * 30 * 24 * 3600000) {
+        // query orders and apply calculations
+        const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'order',
+          query: {
+            restaurant: { $oid: r._id },
+          },
+          projection: {
+            createdAt: 1
+          },
+          limit: 500, // 4 * 120 = max 480
+          sort: {
+            createdAt: 1
+          }
+        }).toPromise();
+        r.salesBonus = 0;
+        r.salesThreeMonthAverage = 0;
+
+        if (orders.length > 0) {
+          const firstCreatedAt = new Date(orders[0].createdAt);
+          let counter = 1;
+          const months3 = 90 * 24 * 3600000;
+          orders.map(order => {
+            if (new Date(order.createdAt).valueOf() - months3 < firstCreatedAt.valueOf()) {
+              counter++;
+            }
+          });
+          r.salesThreeMonthAverage = counter / 90.0;
+
+          const thresholds = Object.keys(appliedPolicy.bonusThresholds).map(key => +key);
+          thresholds.sort().reverse();
+          for (let threshold of thresholds) {
+            if (r.salesThreeMonthAverage > threshold) {
+              r.salesBonus = appliedPolicy.bonusThresholds[threshold + ''];
+              console.log('Found bonus!');
+              console.log(r);
+              break;
+            }
+          }
+        }
+        updated = true;
+      }
+
+      if (updated) {
+
+        const newR: any = {
+          _id: r._id,
+          salesBase: r.salesBase
+        };
+
+        if (r.salesBonus !== undefined) {
+          newR.salesBonus = r.salesBonus;
+        }
+
+        if (r.salesThreeMonthAverage !== undefined) {
+          newR.salesThreeMonthAverage = r.salesThreeMonthAverage;
+        }
+
+        // 10/11/2019 if there is a previousRestaurantId, and previousRestaurant has the same agent, we clear both salesBase and sales bonus!
+        if (r.previousRestaurantId) {
+          // const previousRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          //   resource: 'restaurant',
+          //   query: {
+          //     _id: { $oid: r.previousRestaurantId }
+          //   },
+          //   projection: {
+          //     name: 1,
+          //     rateSchedules: 1,
+          //   },
+          //   limit: 1
+          // }).toPromise();
+
+          // const newRtAgent = (r.rateSchedules[r.rateSchedules.length - 1].agent || '').toLowerCase();
+          // const previousRtHasSameAgent = previousRestaurants.some(rt => (rt.rateSchedules || []).some(rs => (rs.agent || '').toLowerCase() === newRtAgent));
+          // if (previousRtHasSameAgent) {
+          //   newR.salesBase = 0;
+          //   newR.salesBonus = 0;
+          // }
+          newR.salesBase = 0;
+          newR.salesBonus = 0;
+        }
+
+        updatedRestaurantPairs.push({
+          old: {
+            _id: r._id
+          },
+          new: newR
+        });
+      }
+    }; // end for each restaurant
+
+    console.log(updatedRestaurantPairs);
+
+    if (updatedRestaurantPairs.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurantPairs).toPromise();
+    }
+
+  }
+
 
   changeUser() {
     this.populate();
@@ -185,7 +535,7 @@ export class MyRestaurantComponent implements OnInit {
   async populate() {
     this.result = [];
     const myUsername = this.username;
-
+    this.disabledTotal = 0;
     // get my restaurants, my invoices, and gmb (gmbBiz --> cids --> gmbAccount locations to get latest status)
 
     const myRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -199,7 +549,6 @@ export class MyRestaurantComponent implements OnInit {
       projection: {
         name: 1,
         "googleAddress.formatted_address": 1,
-        channels: 1,
         disabled: 1,
         createdAt: 1,
         rateSchedules: 1,
@@ -207,9 +556,10 @@ export class MyRestaurantComponent implements OnInit {
         salesBonus: 1,
         salesThreeMonthAverage: 1,
         "googleListing.gmbWebsite": 1,
-        web: 1
+        web: 1,
+        gmbOrigin: 1
       },
-      limit: 6000
+      limit: 60000
     }).toPromise();
 
     const restaurantRowMap = {};
@@ -217,102 +567,60 @@ export class MyRestaurantComponent implements OnInit {
     this.rows = myRestaurants.map(r => {
       const row = {
         restaurant: new Restaurant(r),
-        phone: (r.channels || []).filter(c => c.type === 'Phone' && (c.notifications || []).some(n => n === 'Business')).map(c => c.value)[0],
-        tasks: [],
         invoices: [],
-        showDetails: false,
-        gmbOnceOwned: (new Date(r.createdAt) < new Date('2018-09-6')) // we only track GMB after 2018-9-6
+        showDetails: false
       };
       restaurantRowMap[r._id] = row;
+      if (r.disabled) {
+        this.disabledTotal++;
+      }
       return row;
     });
 
 
-    const gmbBizIdMap = {};
-
-    let gmbBizBatchSize = 3000;
-    const gmbBizList = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        projection: {
-          name: 1,
-          cid: 1,
-          qmenuId: 1,
-          gmbWebsite: 1,
-          gmbOpen: 1
-        },
-        skip: gmbBizList.length,
-        limit: gmbBizBatchSize
-      }).toPromise();
-      gmbBizList.push(...batch);
-      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
-        break;
+    const gmbBizList = await await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {
+        name: 1,
+        cid: 1,
+        qmenuId: 1,
+        gmbWebsite: 1,
+        gmbOpen: 1
       }
-    }
+    }, 6000);
 
 
-    let gmbAccountBatchSize = 100;
-    const gmbAccounts = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbAccount',
-        query: {
-          locations: { $exists: 1 }
-        },
-        projection: {
-          "locations.cid": 1,
-          "locations.status": 1,
-          "locations.statusHistory": 1
-        },
-        skip: gmbAccounts.length,
-        limit: gmbAccountBatchSize
-      }).toPromise();
-      gmbAccounts.push(...batch);
-      if (batch.length === 0 || batch.length < gmbAccountBatchSize) {
-        break;
+    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        "locations.cid": 1,
+        "locations.status": 1
       }
-    }
+    }, 200);
 
     const cidLocationMap = {};
     gmbAccounts.map(acct => acct.locations.map(loc => {
       cidLocationMap[loc.cid] = cidLocationMap[loc.cid] || {};
-      const gmbOnceOwned = loc.statusHistory.some(h => h.status === 'Published'); // || h.status === 'Suspended');
 
       const statusOrder = ['Suspended', 'Published'];
       const status = statusOrder.indexOf(cidLocationMap[loc.cid].status) > statusOrder.indexOf(loc.status) ? cidLocationMap[loc.cid].status : loc.status;
 
       cidLocationMap[loc.cid].status = status;
-      cidLocationMap[loc.cid].gmbOnceOwned = cidLocationMap[loc.cid].gmbOnceOwned || gmbOnceOwned;
-
-      // ONLY count location history with at least Published status
-      if (loc.statusHistory.some(s => s.status === 'Published')) {
-        const firstStatus = cidLocationMap[loc.cid].firstStatus || { time: new Date() };
-        const thisLocFirstStatus = loc.statusHistory[loc.statusHistory.length - 1];
-        if (thisLocFirstStatus && new Date(thisLocFirstStatus.time) < new Date(firstStatus.time)) {
-          cidLocationMap[loc.cid].firstStatus = thisLocFirstStatus;
-        }
-      }
 
     }));
 
     gmbBizList.map(gmbBiz => {
       if (gmbBiz.qmenuId && restaurantRowMap[gmbBiz.qmenuId]) {
-        gmbBizIdMap[gmbBiz._id] = gmbBiz;
         const row = restaurantRowMap[gmbBiz.qmenuId];
         const location = cidLocationMap[gmbBiz.cid];
-
-        row.gmbOnceOwned = row.gmbOnceOwned || (location && location.gmbOnceOwned);
-        row.firstStatus = location && location.firstStatus;
 
         row.gmbBiz = gmbBiz;
         row.published = location && location.status === 'Published';
         row.suspended = location && location.status === 'Suspended';
 
-        if (!row.gmbOnceOwned && row.published) {
-          console.log(row)
-          throw 'ERRROR';
-        }
       }
     });
 
@@ -389,6 +697,7 @@ export class MyRestaurantComponent implements OnInit {
       row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
       // row.adjustment = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
       row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
+
       row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
 
       row.earned = row.commission * row.collected;
@@ -398,8 +707,9 @@ export class MyRestaurantComponent implements OnInit {
       const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.length > 0;
       row.invoiceCheckOk = invoiceCheckOk;
 
-      row.qualifiedSalesBase = row.gmbOnceOwned && row.invoiceCheckOk ? row.restaurant.salesBase : 0;
-      row.qualifiedSalesBonus = row.gmbOnceOwned && row.invoiceCheckOk ? row.restaurant.salesBonus : 0;
+      row.qualifiedSalesBase = row.restaurant.gmbOrigin && (new Date(row.restaurant.gmbOrigin.time) < new Date('2020-01-15') || row.restaurant.gmbOrigin.origin === "sales") && row.invoiceCheckOk ? row.restaurant.salesBase : 0;
+      // for bonus, we don't care if gmb's origin
+      row.qualifiedSalesBonus = row.restaurant.gmbOrigin && row.invoiceCheckOk ? row.restaurant.salesBonus : 0;
       row.unqualifiedSalesBase = (row.restaurant.salesBase || 0) - (row.qualifiedSalesBase || 0);
       row.unqualifiedSalesBonus = (row.restaurant.salesBonus || 0) - (row.qualifiedSalesBonus || 0);
 
@@ -414,26 +724,7 @@ export class MyRestaurantComponent implements OnInit {
 
     this.rows.sort((r1, r2) => r2.subtotal - r1.subtotal);
 
-    // query open Tasks
-    const openTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        result: null,
-        "relatedMap.gmbBizId": { $exists: 1 }
-      },
-      projection: {
-        name: 1,
-        "relatedMap.gmbBizId": 1,
-        resultAt: 1,
-      },
-      limit: 2000
-    }).toPromise();
 
-    openTasks.map(task => {
-      if (gmbBizIdMap[task.relatedMap.gmbBizId] && restaurantRowMap[gmbBizIdMap[task.relatedMap.gmbBizId].qmenuId]) {
-        restaurantRowMap[gmbBizIdMap[task.relatedMap.gmbBizId].qmenuId].tasks.push(task);
-      }
-    });
 
     /*group the sales by month as below
       01/2019 restaurants 29, GMB Gained 10, Current GMB 2
@@ -446,18 +737,15 @@ export class MyRestaurantComponent implements OnInit {
       let year = (new Date(row.restaurant.createdAt)).getFullYear();
       let eachListingDate = { month: month.toString() + '/' + year }
 
-      const originIsSales = (row.firstStatus && (['Pending edits', 'Verified', 'Published', 'Suspended', 'Duplicate'].indexOf(row.firstStatus.status) >= 0) || new Date(row.restaurant.createdAt) < new Date('2018-09-6'));
-      row.originIsSales = originIsSales;
       if (this.result.some(each => each.month === eachListingDate.month)) {
         this.result.map(each => {
           if (each.month === eachListingDate.month) {
             each.rts = each.rts + 1;
-            if (row.gmbOnceOwned) {
-              if (originIsSales) {
-                each.gmbGainedBySales = each.gmbGainedBySales + 1;
-              } else {
-                each.gmbGainedByQmenu = each.gmbGainedByQmenu + 1;
-              }
+            if (row.restaurant.gmbOrigin && row.restaurant.gmbOrigin.origin === "sales") {
+              each.gmbGainedBySales = each.gmbGainedBySales + 1;
+            }
+            if (row.restaurant.gmbOrigin && row.restaurant.gmbOrigin.origin === "qMenu") {
+              each.gmbGainedByQmenu = each.gmbGainedByQmenu + 1;
             }
             if (row.published) {
               each.published = each.published + 1;
@@ -466,16 +754,14 @@ export class MyRestaurantComponent implements OnInit {
         })
       } else {
         let newItem = { month: eachListingDate.month, rts: 1 };
-        newItem["gmbGainedBySales"] = row.gmbOnceOwned && originIsSales ? 1 : 0
-        newItem["gmbGainedByQmenu"] = row.gmbOnceOwned && !originIsSales ? 1 : 0
+        newItem["gmbGainedBySales"] = row.restaurant.gmbOrigin && row.restaurant.gmbOrigin.origin === "sales" ? 1 : 0
+        newItem["gmbGainedByQmenu"] = row.restaurant.gmbOrigin && row.restaurant.gmbOrigin.origin === "qMenu" ? 1 : 0
         newItem["published"] = row.published ? 1 : 0;
         this.result.push(newItem);
       }
     });
-
-
-    this.hadGainedBySalesTotal = this.rows.reduce((sum, a) => sum + (a.gmbOnceOwned || 0) * (a.originIsSales ? 1 : 0), 0);
-    this.hadGainedByQmenuTotal = this.rows.reduce((sum, a) => sum + (a.gmbOnceOwned || 0) * (a.originIsSales ? 0 : 1), 0);
+    this.hadGainedBySalesTotal = this.rows.reduce((sum, a) => sum + ((a.restaurant.gmbOrigin || {}).origin === "sales" ? 1 : 0), 0);
+    this.hadGainedByQmenuTotal = this.rows.reduce((sum, a) => sum + ((a.restaurant.gmbOrigin || {}).origin === "qMenu" ? 1 : 0), 0);
     this.currentPublishedTotal = this.rows.reduce((sum, a) => sum + (a.published || 0), 0);
 
 

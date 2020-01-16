@@ -84,7 +84,7 @@ export class GmbBizListComponent implements OnInit {
 
 
     const gmbAccounts = [];
-    const gmbAccountBatchSize = 100;
+    const gmbAccountBatchSize = 60;
     let gmbAccountSkip = 0;
 
     while (true) {

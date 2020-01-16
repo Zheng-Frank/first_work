@@ -8,6 +8,7 @@
 
   <div class="card text-right mb-4">
     <div class="card-body">
+      <span *ngIf="restaurant.gmbOrigin">Gained by {{restaurant.gmbOrigin.origin}} on {{restaurant.gmbOrigin.time | date:'shortDate'}} </span>
       <span *ngIf="restaurant.googleListing" class="px-4">Main cid: <strong>{{restaurant.googleListing?.cid}}</strong>
         |
         Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
@@ -171,10 +172,6 @@
                     <hr class="my-0"><small>{{record.time | ago : now}}</small>
                   </div>
                 </ng-container>
-                <div *ngIf="alPair.statusHistory[alPair.statusHistory.length - 1].status === 'Published'"
-                  class="d-inline-block">
-                  <button class="btn btn-success" (click)="transferOwnership(alPair)">Change Ownership <i class="fas fa-arrow-right"></i> B</button>
-                </div>
               </td>
             </tr>
             <tr *ngIf="getGmbRequests(row.gmbBiz, alPair.account.email).length > 0">

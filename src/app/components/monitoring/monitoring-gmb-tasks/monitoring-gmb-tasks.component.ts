@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { AlertType } from 'src/app/classes/alert-type';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -23,18 +24,19 @@ export class MonitoringGmbTasksComponent implements OnInit {
 
   async populate() {
 
-    const matchingTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const matchingTasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
         "request.statusHistory.0.isError": true,
         "result": null
       },
-      projection: { _id: 1, "request.statusHistory": { $slice: 1 } },
-      limit: 1000000 //todo
-    }).toPromise();
+      projection: { _id: 1, "request.statusHistory": { $slice: 1 } }
+
+    }, 100000);
 
     this.count = matchingTasks.length;
     console.log(`found ${this.count} gmb tasks with error`);
+    console.log("task ids=", matchingTasks.map(e => e._id));
 
     matchingTasks.forEach(task => {
       const status = task.request.statusHistory[0].status;
@@ -48,7 +50,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
 
     //order by id count
     this.rows = Array.from(this.errorMap).sort((a, b) => b[1].length - a[1].length);
-    
+
     this.filter();
   }
 
@@ -59,6 +61,22 @@ export class MonitoringGmbTasksComponent implements OnInit {
     //   this.filteredRows = this.filteredRows.filter(row => !row.restaurant.disabled && (row.location && row.location.status == 'Published'));
     // }
   }
-  
+
+  async rerun(row) {
+    try {
+      await this._api.post(environment.gmbNgrok + 'task/refresh', {
+        taskIds: this.filteredRows[row][1]
+      }).toPromise();
+
+      this._global.publishAlert(AlertType.Success, 'Submitted');
+
+    } catch (error) {
+      console.log(error);
+      const result = error.error || error.message || error;
+      this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
+    }
+
+  }
+
 
 }

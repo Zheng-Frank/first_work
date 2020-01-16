@@ -57,17 +57,17 @@
     </tr>
     <tr *ngFor="let item of problematicLocations">
       <td rowspan="item.length">
-        <div *ngFor="let subitem of item">{{subitem.location.name}}</div>
+        <div *ngFor="let subitem of item">{{subitem?.location.name}}</div>
       </td>
-      <td>{{item[0].location.cid}}</td>
+      <td>{{item[0]?.location.cid}}</td>
       <td>
         <div *ngFor="let subitem of item">
           <app-gmb-account-hotlink [email]="subitem.account.email"></app-gmb-account-hotlink>
         </div>
       </td>
       <td>
-        <div *ngFor="let subitem of item">{{subitem.location.status}} <div class="text-muted">
-            <small>{{subitem.location.statusHistory[0].time | ago : now}}</small></div>
+        <div *ngFor="let subitem of item">{{subitem?.location.status}} <div class="text-muted">
+            <small>{{subitem?.location.statusHistory[0].time | ago : now}}</small></div>
         </div>
       </td>
     </tr>

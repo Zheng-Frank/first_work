@@ -98,7 +98,7 @@ export class OrderDashboardComponent implements OnInit {
         limit: 100000
       }),
 
-      this._api.get(environment.qmenuApiUrl + "generic", {
+      this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {
           disabled: {
@@ -115,9 +115,8 @@ export class OrderDashboardComponent implements OnInit {
           "googleListing.gmbWebsite": 1,
           score: 1
         },
-        limit: 6000
-      }),
-      this._api.get(environment.qmenuApiUrl + "generic", {
+      }, 6000),
+      this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "gmbAccount",
         query: {
           published: { $gt: 0 }
@@ -126,8 +125,7 @@ export class OrderDashboardComponent implements OnInit {
           "locations.status": 1,
           "locations.cid": 1
         },
-        limit: 6000
-      })
+      }, 6000)
     ).subscribe(
       result => {
         const orders = result[0];

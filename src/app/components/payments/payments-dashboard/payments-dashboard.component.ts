@@ -83,7 +83,7 @@ export class PaymentsDashboardComponent implements OnInit {
         channels: 1,
         "googleAddress.formatted_address": 1
       },
-      limit: 6000
+      limit: 8000
     }).subscribe(
       restaurants => {
         this.restaurantList = restaurants;

@@ -60,7 +60,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     // get if restaurant skipOrderConfirmation
 
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: { _id: { $in: [...Object.keys(rtIdDict).map(id => ({ $oid: id }))] } },
       projection: {
@@ -69,9 +69,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       },
       sort: {
         createdAt: -1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    }, 6000)
 
     restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
 

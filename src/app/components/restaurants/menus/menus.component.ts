@@ -9,6 +9,7 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+import { registerModuleFactory } from '@angular/core/src/linker/ng_module_factory_loader';
 
 @Component({
   selector: 'app-menus',
@@ -34,6 +35,61 @@ export class MenusComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+  }
+
+  async createTestMenu() {
+    const timestamp = new Date().valueOf().toString();
+    const testMenu = {
+      id: timestamp + '0',
+      name: "Test Menu（测试菜单）",
+      description: "Temporary for testing",
+      hours: [],
+      mcs: [{
+        id: timestamp + '1',
+        name: "Test Category",
+        images: [],
+        mis: [
+          {
+            id: timestamp + '2',
+            category: timestamp + '1',
+            name: "Sesame Chicken（芝麻鸡）",
+            sizeOptions: [{
+              name: "regular",
+              price: 10.99
+            }],
+            imageObjs: [{ "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1558463472991.jpeg", "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/192_menuImage/1558463472991.jpeg", "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1558463472991.jpeg", "origin": "IMAGE-PICKER" }]
+          }
+        ]
+      }]
+    };
+
+    // api update here...
+    const myOldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    const myNewMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    // we'd like to remove all mcs to reduce comparison!
+    myOldMenus.map(m => delete m.mcs);
+    myNewMenus.map(m => delete m.mcs);
+    myNewMenus.push(new Menu(testMenu as any));
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id'],
+          menus: myOldMenus
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: myNewMenus
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+      this.restaurant.menus.push(new Menu(testMenu as any));
+
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
+    // set the latest as active tab
+    this.setActiveId(testMenu.id);
+
   }
 
   async copyMenuToRT() {
@@ -255,32 +311,32 @@ export class MenusComponent implements OnInit {
       /* Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
           only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
       */
-     try{
+      try {
 
-       if (mi && mi.imageObjs && !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
-         const match = function (aliases, name) {
-           const sanitizedName = Helper.sanitizedName(name);
-           return (aliases || []).some(alias => alias.toLowerCase().trim() === sanitizedName);
-         }
-         //only use the first matched alias
-         let matchingAlias = images.filter(image => match(image.aliases, mi.name) || match(image.aliases, mi.description))[0];
-         if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
-           //reset the imageObj
-           mi.imageObjs = [];
-           (matchingAlias.images || []).map(each => {
-             (mi.imageObjs).push({
-               originalUrl: each.url,
-               thumbnailUrl: each.url192,
-               normalUrl: each.url768,
-               origin: 'IMAGE-PICKER'
-             });
-           })
-           needUpdate = true;
-         }
-       }
-     }catch (e){
-       console.log ('mi', JSON.stringify(mi));
-     }
+        if (mi && mi.imageObjs && !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
+          const match = function (aliases, name) {
+            const sanitizedName = Helper.sanitizedName(name);
+            return (aliases || []).some(alias => alias.toLowerCase().trim() === sanitizedName);
+          }
+          //only use the first matched alias
+          let matchingAlias = images.filter(image => match(image.aliases, mi.name) || match(image.aliases, mi.description))[0];
+          if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
+            //reset the imageObj
+            mi.imageObjs = [];
+            (matchingAlias.images || []).map(each => {
+              (mi.imageObjs).push({
+                originalUrl: each.url,
+                thumbnailUrl: each.url192,
+                normalUrl: each.url768,
+                origin: 'IMAGE-PICKER'
+              });
+            })
+            needUpdate = true;
+          }
+        }
+      } catch (e) {
+        console.log('mi', JSON.stringify(mi));
+      }
     })));
 
     if (needUpdate) {
