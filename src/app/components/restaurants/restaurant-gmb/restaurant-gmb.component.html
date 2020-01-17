@@ -8,6 +8,7 @@
 
   <div class="card text-right mb-4">
     <div class="card-body">
+      <span *ngIf="restaurant.gmbOrigin">Gained by {{restaurant.gmbOrigin.origin}} on {{restaurant.gmbOrigin.time | date:'shortDate'}} </span>
       <span *ngIf="restaurant.googleListing" class="px-4">Main cid: <strong>{{restaurant.googleListing?.cid}}</strong>
         |
         Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
