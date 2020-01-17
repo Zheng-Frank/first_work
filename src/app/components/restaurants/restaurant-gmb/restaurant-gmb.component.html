@@ -32,7 +32,7 @@
         <span *ngIf="restaurant.googleListing && row.gmbBiz.cid !== restaurant.googleListing.cid"
           class="text-danger">Secondary</span>
       </h6>
-      <h6 style="position: absolute; top: 0; right: 0" class="p-2">Score: {{restaurant.score}}</h6>
+      <h6 *ngIf="isAdmin" style="position: absolute; top: 0; right: 0" class="p-2">Score: {{restaurant.score}}</h6>
     </h3>
     <div class="text-center">
       <ng-container *ngIf="row.gmbBiz.name !== restaurant.name">
