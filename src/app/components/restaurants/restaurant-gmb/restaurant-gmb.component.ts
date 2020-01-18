@@ -25,7 +25,10 @@ export class RestaurantGmbComponent implements OnInit {
   apiRequesting = false;
   now = new Date();
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
+  isAdmin = false;
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
+    this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
+  }
 
   ngOnInit() {
   }

@@ -3011,10 +3011,15 @@ export class DbScriptsComponent implements OnInit {
     console.log(publishedRTs);
 
     let filteredRT1 = publishedRTs.filter(each => each.web && each.web.qmenuWebsite && each.web.qmenuWebsite.indexOf('qmenu.us') >= 0);
-    console.log(filteredRT1);
+    console.log("qmenu.us RTs", filteredRT1);
 
     let filteredRT2 = publishedRTs.filter(each => each.web && each.web.qmenuWebsite && each.web.qmenuWebsite.indexOf('qmenu.us') < 0 && each.web.qmenuWebsite.indexOf('https') < 0);
-    console.log(filteredRT2);
+    console.log("godaddy RTs", filteredRT2);
+
+    console.log("qmenu.us RTs score >0", filteredRT1.filter(each => each.score >0));
+    console.log("godaddy RTs score >0", filteredRT2.filter(each => each.score >0));
+
+
 
 
 
