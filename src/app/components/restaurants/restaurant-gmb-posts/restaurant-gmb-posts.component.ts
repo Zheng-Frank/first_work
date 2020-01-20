@@ -24,22 +24,67 @@ export class RestaurantGmbPostsComponent implements OnInit {
   summary = ''
   actionType = '2';
   linkTo = '';
-  
+
   uploadImageError = '';
 
   files;
 
-  email = '07katiereagan02@gmail.com';
-  locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
+  email;
+  locationName;
+  
+  // email = '07katiereagan02@gmail.com';
+  // locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
-    this.posts = await this._api.post(environment.gmbNgrok + 'gmb/post-list', {
-      email: this.email,
-      locationName: this.locationName
+
+    // let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'gmbAccount',
+    //   projection: {
+    //     email: 1,
+    //     locations: 1
+    //   }
+    // }).toPromise();
+
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        email: 1,
+        "locations.name": 1,
+        "locations.locationName": 1,
+        "locations.place_id": 1,
+      },
+      limit: 6000
     }).toPromise();
-    // console.log(this.posts);
+
+    let matchingAccounts = [];
+
+    for (const account of gmbAccounts) {
+      const result = account.locations.filter(loc => loc.name === this.restaurant.name && loc.place_id === this.restaurant.googleAddress.place_id);
+
+      if (result.length > 0) {
+        matchingAccounts.push(account);
+      }
+    }
+
+    if (matchingAccounts.length > 0) {
+      const account = matchingAccounts[Math.floor(Math.random() * matchingAccounts.length)];
+      const [location] = account.locations.filter(loc => loc.name === this.restaurant.name && loc.status === 'Published');
+
+      this.email = account.email;
+      this.locationName = location.locationName;
+
+      this.posts = await this._api.post(environment.gmbNgrok + 'gmb/post-list', {
+        email: account.email,
+        locationName: location.locationName
+      }).toPromise();
+
+      // console.log(this.posts);
+    }
   }
 
   showAddPostModal() {
