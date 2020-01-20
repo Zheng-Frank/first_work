@@ -1,16 +1,18 @@
 <div class="row d-flex align-items-center mb-1">
   <div class="col-md-2">
-    <input type="file" #fileInput accept='application/json' class="form-control" placeholder="campaign.json" (change)="handleUpload($event)" hidden />
+    <input type="file" #fileInput accept='application/json' class="form-control" placeholder="campaign.json"
+      (change)="handleUpload($event)" hidden />
     <p>{{fileName}}</p>
   </div>
 
   <div class="col-md-10">
-      <button class="btn btn-secondary btn-sm" (click)="fileInput.click()">Load Campaign</button>
+    <button class="btn btn-secondary btn-sm" (click)="fileInput.click()">Load Campaign</button>
   </div>
 </div>
 
 
-<p *ngIf="posts.length == 0" class="text-center">You have not added a post yet. Click <a class="text-primary" role="button" style="cursor: pointer;" (click)="showAddPostModal()">Here</a> to add one.</p>
+<p *ngIf="posts.length == 0" class="text-center">You have not added a post yet. Click <a class="text-primary"
+    role="button" style="cursor: pointer;" (click)="showAddPostModal()">Here</a> to add one.</p>
 
 <button class="btn btn-secondary" (click)="showAddPostModal()">+ Add Post</button>
 
@@ -32,21 +34,37 @@
 
 <div class="row mb-1">
   <div class="col-md-12 d-flex justify-content-end">
-    <!-- <p *ngIf="status !== ''">{{status}}</p> -->
+    <p *ngIf="status.description !== ''">{{status.description}} Success({{status.success}}) / Failure({{status.failure}})</p>
   </div>
 </div>
 
 
 <!-- add post modal-->
 <q-modal #addPostModal>
-  <label>Insert Image Url:</label>
-  <input class="form-control" placeholder="Image Url here" [(ngModel)]="imageUrl">
+  <label>Upload Image:</label>
+  <!-- <input class="form-control" placeholder="Image Url here" [(ngModel)]="imageUrl"> -->
+  <div *ngIf="imageUrl" class="pr-1 pb-1" style="display:inline-block; position:relative">
+    <img class="img-thumbnail app-thumbnail-h-6" src="{{imageUrl}}">
+    <button (click)="deleteBackgroundImage()" class="btn btn-secondary fas fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+    <button (click)="deleteBackgroundImage()" class="btn btn-link fas fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+  </div>
+
+  <div *ngIf="uploadImageError">
+    <span class="text-danger">{{uploadImageError}}</span>
+  </div>
+
+  <div class=" pb-1">
+    <input type="file" (change)="onUploadImageChange($event)">
+  </div>
+
 
   <label>Insert summary here:</label>
   <textarea type="text" class="form-control" placeholder="Post summary here" [(ngModel)]="summary" rows='3'></textarea>
-
+  
+<!-- 
   <label>Link To:</label>
-  <input class="form-control" placeholder="Link to go when Action Type is clicked" [(ngModel)]="linkTo">
+  <input class="form-control" placeholder="Link to go when Action Type is clicked" [(ngModel)]="linkTo"> 
+-->
 
   <label>Action Type:</label>
   <select [(ngModel)]="actionType" class="form-control">
@@ -57,7 +75,7 @@
     <option value="SIGN_UP">Sign Up</option>
     <option value="GET_OFFER">See Offer Now</option>
     <option value="CALL">Call</option>
-  </select> 
+  </select>
 
 
 
@@ -65,5 +83,5 @@
     <button class="btn btn-secondary q-btn" (click)="cancel()">Cancel</button>
     <button class="btn btn-primary" (click)="addPost()" [disabled]="!canPost()">Add Post</button>
   </div>
-  
+
 </q-modal>

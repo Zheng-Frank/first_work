@@ -4,6 +4,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
+import { Helper } from '../../../classes/helper';
 
 @Component({
   selector: 'app-restaurant-gmb-posts',
@@ -24,22 +25,91 @@ export class RestaurantGmbPostsComponent implements OnInit {
   actionType = '2';
   linkTo = '';
 
-  email = '07katiereagan02@gmail.com';
-  locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
+  uploadImageError = '';
+
+  files;
+
+  email;
+  locationName;
+  
+  // email = '07katiereagan02@gmail.com';
+  // locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
-    this.posts = await this._api.post(environment.gmbNgrok + 'gmb/post-list', {
-      email: this.email,
-      locationName: this.locationName
+
+    // let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'gmbAccount',
+    //   projection: {
+    //     email: 1,
+    //     locations: 1
+    //   }
+    // }).toPromise();
+
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        email: 1,
+        "locations.name": 1,
+        "locations.locationName": 1,
+        "locations.place_id": 1,
+      },
+      limit: 6000
     }).toPromise();
-    // console.log(this.posts);
+
+    let matchingAccounts = [];
+
+    for (const account of gmbAccounts) {
+      const result = account.locations.filter(loc => loc.name === this.restaurant.name && loc.place_id === this.restaurant.googleAddress.place_id);
+
+      if (result.length > 0) {
+        matchingAccounts.push(account);
+      }
+    }
+
+    if (matchingAccounts.length > 0) {
+      const account = matchingAccounts[Math.floor(Math.random() * matchingAccounts.length)];
+      const [location] = account.locations.filter(loc => loc.name === this.restaurant.name && loc.status === 'Published');
+
+      this.email = account.email;
+      this.locationName = location.locationName;
+
+      this.posts = await this._api.post(environment.gmbNgrok + 'gmb/post-list', {
+        email: account.email,
+        locationName: location.locationName
+      }).toPromise();
+
+      // console.log(this.posts);
+    }
   }
 
   showAddPostModal() {
     this.addPostModal.title = "Add Post";
     this.addPostModal.show();
+  }
+
+  deleteBackgroundImage() {
+    this.imageUrl = undefined;
+    this.files = null;
+  }
+
+  async onUploadImageChange(event) {
+    this.uploadImageError = undefined;
+    this.files = event.target.files;
+    try {
+      const data: any = await Helper.uploadImage(this.files, this._api);
+
+      if (data && data.Location) {
+        this.imageUrl = data.Location;
+      }
+    }
+    catch (err) {
+      this.uploadImageError = err;
+    }
   }
 
   async addPost() {
@@ -49,7 +119,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
       post: {
         imageUrl: this.imageUrl,
         summary: this.summary,
-        linkTo: this.linkTo,
+        website: this.linkTo,
         actionType: parseInt(this.actionType)
       }
     };
