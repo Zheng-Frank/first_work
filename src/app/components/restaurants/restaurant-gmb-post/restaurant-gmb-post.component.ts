@@ -21,11 +21,12 @@ export class RestaurantGmbPostComponent implements OnInit {
   ngOnInit() {
     this.imgSrc = (this.post.media.length) > 0 ? this.post.media[0].googleUrl: '';
     // this.imgSrc = this.post.imageUrl;
+    console.log(this.post);
   }
 
   goToLink() {
     // window.open(this.post.callToAction.url, "_blank");
-    window.open(this.post.linkTo, "_blank");
+    window.open(this.post.callToAction.url, "_blank");
   }
 
   getActionLabel() {
