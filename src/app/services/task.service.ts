@@ -534,7 +534,7 @@ export class TaskService {
 
 
     const gmbAccounts = [];
-    const gmbAccountsBatchSize = 1000;
+    const gmbAccountsBatchSize = 100;
     let gmbAccountsSkip = 0;
     while (true) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
