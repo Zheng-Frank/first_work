@@ -5,8 +5,8 @@
 <div class="clearfix my-2">
   <div class="float-left form-inline">
     <label class="mr-2" style="padding-left: 15px"> Account Filter:</label>
-    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2" placeholder="email or restaurant name"
-      [(ngModel)]="searchFilter">
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2"
+      placeholder="email or restaurant name" [(ngModel)]="searchFilter">
 
     <input type="text" class="form-control ml-2" id="fake-Iinput" placeholder="email or restaurant name">
 
@@ -33,7 +33,9 @@
       <option value="72">More than 3 days ago</option>
     </select>
     <label class="checkbox-inline" style="padding-left: 15px">
-      <input type="checkbox" [(ngModel)]="overSizeLocations" (change)="filterGmbAccounts()"> Oversize Locations</label>
+      <input type="checkbox" [(ngModel)]="overSizeLocations" (change)="filterGmbAccounts()"> Oversize Account</label>
+    <label class="checkbox-inline" style="padding-left: 15px">
+      <input type="checkbox" [(ngModel)]="disabledAccount" (change)="filterGmbAccounts()"> Disabled Account</label>
   </div>
 
   <div class="float-right">
@@ -43,8 +45,8 @@
   </div>
 </div>
 <div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
-  <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)" (scanRequests)="scanRequests($event)"
-    (scanBizList)="scanBizList($event)" (login)="login($event)"></app-gmb-card2>
+  <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)"
+    (scanRequests)="scanRequests($event)" (scanBizList)="scanBizList($event)" (login)="login($event)"></app-gmb-card2>
 </div>
 <div class="alert alert-danger" *ngIf="problematicLocations.length > 0">
   <h4>Problematic Locations</h4>
@@ -77,6 +79,7 @@
 <q-modal #gmbEditingModal>
   <h4 class="text-center">{{gmbInEditing && gmbInEditing._id ? 'Update' : 'Add New'}}</h4>
   <hr>
-  <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)" (cancel)="cancel()"></app-gmb-account-editor>
+  <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)"
+    (cancel)="cancel()"></app-gmb-account-editor>
   <div class="text-danger">{{apiError}}</div>
 </q-modal>

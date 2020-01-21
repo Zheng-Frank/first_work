@@ -25,6 +25,7 @@ export class GmbAccountListComponent implements OnInit {
   locationScanOlder;
   emailScanOlder;
   overSizeLocations;
+  disabledAccount;
 
   scanningAll = false;
 
@@ -148,6 +149,10 @@ export class GmbAccountListComponent implements OnInit {
     if(this.overSizeLocations){
       console.log(this.filteredGmbAccounts);
       this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => each.allLocations> 95);
+    }
+    if(this.disabledAccount){
+      console.log(this.filteredGmbAccounts);
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => each.disabled);
     }
   }
 
