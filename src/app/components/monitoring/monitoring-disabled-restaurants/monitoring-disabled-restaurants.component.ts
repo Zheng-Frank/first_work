@@ -26,7 +26,7 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
 
     async refreshOrders() {
 
-        this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
             resource: 'restaurant',
             query: {
                 "disabled": true
@@ -42,9 +42,8 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
             },
             sort: {
                 createdAt: -1
-            },
-            limit: 1000000
-        }).toPromise();
+            }
+        }, 1000000)
 
 
         //restaurants.sort((r1, r2) => r2.createdAt.valueOf() - r1.createdAt.valueOf());

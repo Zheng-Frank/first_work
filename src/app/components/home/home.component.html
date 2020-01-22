@@ -5,7 +5,8 @@
     <div class="card" *ngIf="isVisible('search')">
         <div class="card-body">
             <label>Search Restaurant:</label>
-            <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
+            <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)">
+            </q-restaurant-picker>
         </div>
     </div>
 
@@ -21,17 +22,17 @@
 </div>
 
 <div class="card-group m-1">
-    <div class="card">
+    <div class="card"  *ngIf="isVisible('gmb-campaign')">
         <div class="card-body">
             <h5 class="card-title">
-                <i class="far fa-address-book"></i> GMB Campaing</h5>
+                <i class="far fa-address-book"></i> GMB Campaign</h5>
             <app-gmb-campaign></app-gmb-campaign>
         </div>
     </div>
 </div>
 
 <div class="card-group m-1">
-    <div class="card">
+    <div class="card" *ngIf="isVisible('bulk-messaging')">
         <div class="card-body">
             <h5 class="card-title">
                 <i class="far fa-comment-dots"></i> Bulk Messaging</h5>
@@ -58,7 +59,6 @@
 </div>
 
 <div class="card-group">
-
     <div class="card" *ngIf="isVisible('fax-problems')">
         <div class="card-body">
             <h5 class="card-title">
@@ -88,48 +88,7 @@
 
 
 
-
-<!-- <div class="row">
-<div class="col-sm-2">
-        <div style="position: relative;">
-            <input class="form-control" placeholder="name or phone" [(ngModel)]="searchTerm">
-            <div class="search-overlay">
-                <i class="fas fa-search"></i>
-            </div>
-        </div>
-        
-
-    </div>
-    <div class="col-sm-10 bg-light">
-        <div *ngIf="!selectedRestaurant" class="py-4">No restaurant selected. Please search and select restaurant.</div>
-        <div *ngIf="selectedRestaurant">
-            <app-restaurant-details [id]="selectedRestaurant?._id"></app-restaurant-details>
-        </div>
-
-    </div>
-
-</div> -->
-
-
-<!-- <div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
-    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
-        <h4 class="card-title"><i class="fas fa-hand-holding-usd"></i> Payments Received</h4>
-    </div>
-</div>
-<div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
-    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
-        <h4 class="card-title"><i class="fas fa-paper-plane"></i> Payments Sent</h4>
-    </div>
-</div>
-
-<div class="card text-center btn-card hvr-underline-reveal mx-1 mt-2">
-    <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
-        <h4 class="card-title"><i class="fas fa-edit"></i> Restaurant Notes</h4>
-    </div>
-</div> -->
-
 <div class="card-group">
-
     <div class="card" *ngIf="isVisible('disabled-restaurants')">
         <div class="card-body">
             <h5 class="card-title">
@@ -140,7 +99,6 @@
 </div>
 
 <div class="card-group">
-
     <div class="card" *ngIf="isVisible('image-manager')">
         <div class="card-body">
             <h5 class="card-title">

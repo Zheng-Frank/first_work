@@ -24,36 +24,23 @@ export class MonitoringOnboardingComponent implements OnInit {
 
   async populate() {
     // all restaurant stubs
-
-    const allRestaurants = [];
-    const batchSize = 4000;
-    let skip = 0;
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: {
-          disabled: { $in: [null, false] }
-        },
-        projection: {
-          name: 1,
-          "googleAddress.formatted_address": 1,
-          alias: 1,
-          disabled: 1,
-          "menus.disabled": 1,
-          "googleListing.cid": 1,
-          createdAt: 1,
-          "rateSchedules.agent": 1,
-          logs: { $slice: -2 },
-        },
-        skip: skip,
-        limit: batchSize
-      }).toPromise();
-      if (batch.length === 0) {
-        break;
+    let allRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        disabled: { $in: [null, false] }
+      },
+      projection: {
+        name: 1,
+        "googleAddress.formatted_address": 1,
+        alias: 1,
+        disabled: 1,
+        "menus.disabled": 1,
+        "googleListing.cid": 1,
+        createdAt: 1,
+        "rateSchedules.agent": 1,
+        logs: { $slice: -2 },
       }
-      allRestaurants.push(...batch);
-      skip += batchSize;
-    }
+    }, 4000);
 
 
     // restaurantIdsWith
@@ -66,7 +53,7 @@ export class MonitoringOnboardingComponent implements OnInit {
     restaurantsWithoutAnyOrder.map(r => { dict[r._id] = dict[r._id] || { restaurant: r }; dict[r._id].noOrder = true; });
 
     const cids = Object.keys(dict).map(k => dict[k]).filter(r => r.restaurant.googleListing).map(r => r.restaurant.googleListing.cid);
-    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       // query: {
       //   "locations.cid": { $in: cids }
@@ -75,9 +62,8 @@ export class MonitoringOnboardingComponent implements OnInit {
         "email": 1,
         "locations.cid": 1,
         "locations.status": 1
-      },
-      limit: 300
-    }).toPromise();
+      }
+    }, 1000);
 
 
     Object.keys(dict).map(k => {

@@ -17,7 +17,11 @@ export class HomeComponent implements OnInit {
 
   selectedRestaurant;
 
-  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService, private _cache: CacheService) {
+  isAdmin = false;
+  isMenuEditor = false;
+  constructor(private _router: Router , private _api: ApiService, private _global: GlobalService) {
+    this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
+    this.isMenuEditor = _global.user.roles.some(r => r === 'MENU_EDITOR');
   }
 
   async ngOnInit() {
@@ -48,13 +52,15 @@ export class HomeComponent implements OnInit {
       email: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       template: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       search: ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
-      "fax-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      "email-problems": ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      "fax-problems": ['ADMIN', 'CSR'],
+      "email-problems": ['ADMIN', 'CSR'],
       "unconfirmed-orders": ['ADMIN', 'CSR'],
       "image-manager": ['ADMIN'],
-      "awaiting-onboarding": ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      "disabled-restaurants": ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      "monitoring-hours": ['ADMIN', 'CSR', 'MENU_EDITOR']      
+      "gmb-campaign": ['ADMIN'],
+      "bulk-messaging": ['ADMIN'],      
+      "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
+      "disabled-restaurants": ['ADMIN'],
+      "monitoring-hours": ['ADMIN', 'CSR']      
     }
     return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
