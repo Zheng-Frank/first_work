@@ -45,12 +45,11 @@ export class MonitoringGmbOpenComponent implements OnInit {
       "web.agreeToCorporate": 1
     }
 
-    const gmbOpenRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const gmbOpenRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: query,
-      projection: projection,
-      limit: 1000000
-    }).toPromise();
+      projection: projection,      
+    }, 500000)
 
     this.openItems = gmbOpenRestaurants.map(rt => ({
       rt: rt,

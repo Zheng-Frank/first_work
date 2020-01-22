@@ -92,7 +92,7 @@ export class AwsMigrationComponent implements OnInit {
 
   async ngOnInit() {
     // get restaurants with domains
-    const restaurantsWithDomain = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurantsWithDomain = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
       },
@@ -103,9 +103,8 @@ export class AwsMigrationComponent implements OnInit {
         score: 1,
         disabled: 1,
         "web.qmenuWebsite": 1
-      },
-      limit: 80000
-    }).toPromise();
+      }
+    }, 6000)
 
     restaurantsWithDomain.map(rt => {
       let website = (rt.web || {}).qmenuWebsite;

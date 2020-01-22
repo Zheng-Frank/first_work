@@ -23,7 +23,7 @@ export class DbScriptsComponent implements OnInit {
 
 
   async migrateBlacklist() {
-    const bannedCustomers = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const bannedCustomers = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'customer',
       query: { bannedReasons: { $exists: 1 } },
       projection: {
@@ -32,19 +32,17 @@ export class DbScriptsComponent implements OnInit {
         phone: 1,
         bannedReasons: 1
       },
-      limit: 1000000
-    }).toPromise();
+    }, 1000000);
     console.log(bannedCustomers);
 
-    const existingBlacklist = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const existingBlacklist = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'blacklist',
       projection: {
         type: 1,
         value: 1,
         disabled: 1
-      },
-      limit: 1000000
-    }).toPromise();
+      }
+    }, 1000000)
 
     // get unique delivery addresses of abount 3000 customers!
     const batchSize = 100;
