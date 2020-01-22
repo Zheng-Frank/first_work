@@ -49,7 +49,7 @@ export class MonitoringGmbOpenComponent implements OnInit {
       resource: 'restaurant',
       query: query,
       projection: projection,
-      limit: 10
+      limit: 1000000
     }).toPromise();
 
     this.openItems = gmbOpenRestaurants.map(rt => ({
