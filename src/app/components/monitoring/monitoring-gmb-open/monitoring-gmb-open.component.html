@@ -1,0 +1,48 @@
+<h1 class="text-center">GMB Open Restaurants({{openItems.length}})</h1>
+
+<table class="table">
+    <tr>
+        <th>#</th>
+        <!-- <th>Scanned</th> -->
+        <th>Restaurant</th>
+        <th>Score</th>
+        <th>Original Agent</th>
+        <th>GMB Owner</th>
+        <th>First GMB</th>
+        <th>Tasks</th>
+    </tr>
+    <tr *ngFor="let item of openItems; let i = index">
+        <th>{{i + 1}}</th>
+        <!-- <td>
+            {{item.rt.googleListing?.crawledAt | ago : now}}
+        </td> -->
+        <td>
+            <a target="_blank" href="#/restaurants/{{item.rt._id}}">{{item.rt.name}}</a>
+            <br>
+            <small>{{item.rt.googleAddress?.formatted_address}}</small>
+        </td>
+        <td>
+            {{item.rt.score}}
+        </td>
+        <td>
+            {{((item.rt.rateSchedules || []).slice(-1)[0] || {}).agent}}
+        </td>
+        <td>
+            {{item.rt.googleListing?.gmbOwner}}
+        </td>
+        <td>
+            <ng-container *ngIf="item.rt.gmbOrigin">
+                {{item.rt.gmbOrigin.origin}}<br>
+                {{item.rt.gmbOrigin.time | date: 'shortDate' }}
+            </ng-container>
+        </td>
+        <td>
+            <div *ngFor="let task of item.tasks" class="pb-2">
+                <b>{{task.name}}</b> <span class="text-muted">{{task._id}}</span>
+                <div class="text-muted"
+                    *ngIf="task.request && task.request.statusHistory && task.request.statusHistory[0]">
+                    <small>{{task.request.statusHistory[0].status}}</small></div>
+            </div>
+        </td>
+    </tr>
+</table>

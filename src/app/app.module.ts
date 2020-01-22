@@ -149,7 +149,7 @@ import { ChangeOwnershipComponent } from './components/change-ownership/change-o
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
-import { MonitoringGmbStalledComponent } from './components/monitoring/monitoring-gmb-stalled/monitoring-gmb-stalled.component';
+import { MonitoringGmbOpenComponent } from './components/monitoring/monitoring-gmb-open/monitoring-gmb-open.component';
 import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
 import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
 import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.component';
@@ -160,7 +160,7 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
-    MonitoringGmbStalledComponent,
+    MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
     EventDashboardComponent,
