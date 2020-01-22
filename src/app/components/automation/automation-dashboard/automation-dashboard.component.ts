@@ -100,24 +100,24 @@ export class AutomationDashboardComponent implements OnInit {
         // const accountsScanResult = await this.scanAccountsForLocations();
         // this.addRunningMessage('Succeeded ' + accountsScanResult.succeeded.length + ', failed ' + accountsScanResult.failed.length);
 
-        this.addRunningMessage('Generate missing GMB Biz...');
-        await this.generateMissingGmbBizListings();
+        // this.addRunningMessage('Generate missing GMB Biz...');
+        // await this.generateMissingGmbBizListings();
 
 
-        this.addRunningMessage('Scan emails...');
-        const emailsResult = await this.scanEmailsForRequests();
-        this.addRunningMessage('Succeeded ' + emailsResult.succeeded.length + ', failed ' + emailsResult.failed.length);
+        // this.addRunningMessage('Scan emails...');
+        // const emailsResult = await this.scanEmailsForRequests();
+        // this.addRunningMessage('Succeeded ' + emailsResult.succeeded.length + ', failed ' + emailsResult.failed.length);
 
-        this.addRunningMessage('Crawl restaurants...');
-        const restaurantCrawlingResult = await this.crawlRestaurantGoogleListings();
-        this.addRunningMessage('Succeeded ' + restaurantCrawlingResult.succeeded.length + ', failed ' + restaurantCrawlingResult.failed.length);
+        // this.addRunningMessage('Crawl restaurants...');
+        // const restaurantCrawlingResult = await this.crawlRestaurantGoogleListings();
+        // this.addRunningMessage('Succeeded ' + restaurantCrawlingResult.succeeded.length + ', failed ' + restaurantCrawlingResult.failed.length);
 
-        this.addRunningMessage('Crawl gmbBiz list...');
-        const gmbBizCrawlingResult = await this.crawlGmbGoogleListings();
-        this.addRunningMessage('Succeeded ' + gmbBizCrawlingResult.succeeded.length + ', failed ' + gmbBizCrawlingResult.failed.length);
-        if (gmbBizCrawlingResult.abortionMessage) {
-          this.addErrorMessage(gmbBizCrawlingResult.abortionMessage);
-        }
+        // this.addRunningMessage('Crawl gmbBiz list...');
+        // const gmbBizCrawlingResult = await this.crawlGmbGoogleListings();
+        // this.addRunningMessage('Succeeded ' + gmbBizCrawlingResult.succeeded.length + ', failed ' + gmbBizCrawlingResult.failed.length);
+        // if (gmbBizCrawlingResult.abortionMessage) {
+        //   this.addErrorMessage(gmbBizCrawlingResult.abortionMessage);
+        // }
 
         // if we had postcard code and the ownership was lost, immediately schedule it to grab it back!
         this.addRunningMessage('Reschedule tasks with postcard verification code and ownership just lost...');
