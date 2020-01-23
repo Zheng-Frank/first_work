@@ -1,9 +1,9 @@
 <h1 class="text-center">GMB Open Restaurants({{openItems.length}})</h1>
-
+<span class="sales-row">* Pink Rows: Sales agent responsible （粉红的商家：销售负责）</span>
 <table class="table">
     <tr>
         <th>#</th>
-        <!-- <th>Scanned</th> -->
+        <th>Created</th>
         <th>Restaurant</th>
         <th>Score</th>
         <th>Original Agent</th>
@@ -12,11 +12,11 @@
         <th>First GMB</th>
         <th>Tasks</th>
     </tr>
-    <tr *ngFor="let item of openItems; let i = index">
+    <tr *ngFor="let item of openItems; let i = index" class="{{item.salesResponsible ? 'sales-row' : ''}}">
         <th>{{i + 1}}</th>
-        <!-- <td>
-            {{item.rt.googleListing?.crawledAt | ago : now}}
-        </td> -->
+        <td>
+            {{item.rt.createdAt | ago : now}}
+        </td>
         <td>
             <a target="_blank" href="#/restaurants/{{item.rt._id}}">{{item.rt.name}}</a>
             <br>

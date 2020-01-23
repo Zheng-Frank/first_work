@@ -53,6 +53,7 @@ export class MonitoringGmbOpenComponent implements OnInit {
 
     this.openItems = gmbOpenRestaurants.map(rt => ({
       rt: rt,
+      salesResponsible: this.now.valueOf() - new Date(rt.createdAt).valueOf() < 40 * 24 * 3600000 && !rt.gmbOrigin,
       tasks: []
     }));
 
@@ -79,6 +80,7 @@ export class MonitoringGmbOpenComponent implements OnInit {
       },
       limit: 100000
     }).toPromise();
+
 
     // for each verificationOption, let's put a pending indicator
     runningTasks.map(task => {
