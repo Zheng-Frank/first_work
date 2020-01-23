@@ -48,7 +48,7 @@ export class MonitoringGmbOpenComponent implements OnInit {
     const gmbOpenRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: query,
-      projection: projection,      
+      projection: projection,
     }, 500000)
 
     this.openItems = gmbOpenRestaurants.map(rt => ({
@@ -66,11 +66,31 @@ export class MonitoringGmbOpenComponent implements OnInit {
         "relatedMap.restaurantId": 1,
         name: 1,
         "request.statusHistory": { $slice: 1 },
+        "request.pinHistory": { $slice: 1 },
+        "request.voHistory": { $slice: 1 },
+        "request.verificationHistory": { $slice: 1 },
         "request.statusHistory.time": 1,
         "request.statusHistory.status": 1,
+        "request.pinHistory.pin": 1,
+        "request.voHistory.time": 1,
+        "request.voHistory.options": 1,
+        "request.verificationHistory.time": 1,
+        "request.verificationHistory.verifications": 1,
       },
       limit: 100000
     }).toPromise();
+
+    // for each verificationOption, let's put a pending indicator
+    runningTasks.map(task => {
+      if (task.request && task.request.voHistory && task.request.voHistory[0] && task.request.verificationHistory && task.request.verificationHistory[0]) {
+        task.request.voHistory[0].options.map(vo => {
+          if (task.request.verificationHistory[0].verifications.some(v => v.method === vo.verificationMethod && v.state === "PENDING")) {
+            vo.pending = true;
+          }
+        });
+      }
+    });
+
 
     // n^2 matching. we should use a dictionary if dataset is large.
     runningTasks.map(task => {
