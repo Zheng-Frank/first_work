@@ -69,7 +69,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           allLocations: 1,
           disabled: 1
         },
-        limit: 7000
+        limit: 700000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "task",
@@ -82,7 +82,7 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
           'transfer.toEmail': 1,
           'transfer.requestedAt': 1
         },
-        limit: 7000
+        limit: 700000
       })
 
     )
