@@ -43,14 +43,14 @@ export class Gmb2DashboardComponent implements OnInit {
           published: 1,
           suspended: 1
         },
-        limit: 7000
+        limit: 700000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbBiz",
         projection: {
           name: 1
         },
-        limit: 7000
+        limit: 700000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbRequest",
@@ -63,7 +63,7 @@ export class Gmb2DashboardComponent implements OnInit {
         projection: {
           email: 1
         },
-        limit: 7000
+        limit: 700000
       }),
     ).subscribe(
       results => {

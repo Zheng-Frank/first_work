@@ -1410,14 +1410,14 @@ export class DbScriptsComponent implements OnInit {
           email: 1,
           password: 1
         },
-        limit: 7000
+        limit: 700000
       }),
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbAccount",
         projection: {
           email: 1
         },
-        limit: 7000
+        limit: 700000
       })).pipe(mergeMap(gmbs => {
         const newGmbs = gmbs[0].filter(g0 => !gmbs[1].some(g1 => g1.email.toLowerCase() === g0.email.toLowerCase()));
         // remove id because newly inserted will have id
