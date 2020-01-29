@@ -110,7 +110,8 @@
         <th>Collection Logs</th>
         <th></th>
       </tr>
-      <tr *ngFor="let row of getFilteredOverdueRows(); let i = index" class="{{isRowDisabled(row) ? 'bg-light-gray' : ''}}">
+      <tr *ngFor="let row of getFilteredOverdueRows(); let i = index"
+        class="{{isRowDisabled(row) ? 'bg-light-gray' : ''}}">
         <td>
           {{i+1}}
         </td>
@@ -120,7 +121,7 @@
         </td>
         <td class="text-nowrap">{{row.localTimeString}}</td>
         <td>
-          {{row.agent}}
+          {{getRowAgent(row)}}
         </td>
         <td>
           <table class="table table-borderless table-sm">

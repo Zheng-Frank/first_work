@@ -35,9 +35,8 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   invoicedButLaterCanceledRows = [];
 
-  skipAutoInvoicingRestaurants = []
-
-  disabledRestaurantIds = new Set();
+  skipAutoInvoicingRestaurants = [];
+  restaurantIdMap = {};
   constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
@@ -87,16 +86,19 @@ export class InvoiceMonthlyComponent implements OnInit {
     return rows;
   }
 
-  async populateDisabledRestaurantIds() {
-    const disabledRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+  async populateRestaurantIdMap() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {
-        "disabled": true
+      query: {},
+      projection: {
+        name: 1,
+        disabled: 1,
+        rateSchedules: 1
       },
-      projection: { name: 1 },
       limit: 200000
     }).toPromise();
-    this.disabledRestaurantIds = new Set(disabledRestaurants.map(rt => rt._id));
+    restaurants.map(rt => rt.agent = (rt.rateSchedules || []).map(rs => rs.agent).slice(-1)[0]);
+    this.restaurantIdMap = restaurants.reduce((map, rt) => (map[rt._id] = rt, map), {});
   }
 
   async toggleAction(action) {
@@ -423,8 +425,8 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async populateOverdue() {
-    if (this.disabledRestaurantIds.size === 0) {
-      await this.populateDisabledRestaurantIds();
+    if (Object.keys(this.populateRestaurantIdMap).length === 0) {
+      await this.populateRestaurantIdMap();
     }
     const invoiceBatchSize = 5000;
     let invoices = [];
@@ -569,25 +571,30 @@ export class InvoiceMonthlyComponent implements OnInit {
       row.localTimeString = time.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' });
     });
     // now populate overdueAgents unique agents
-    this.overdueAgents = [... this.overdueRows.reduce((myset, row) => ((row.agent || []).map(agent => myset.add((agent || "").toLowerCase())), myset), new Set())].filter(agent => agent).sort();
+    this.overdueAgents = [... this.overdueRows.reduce((myset, row) => (myset.add(this.getRowAgent(row)), myset), new Set())].filter(agent => agent).sort();
+    console.log(this.overdueAgents);
   }
   isRowDisabled(row) {
-    return this.disabledRestaurantIds.has(row.restaurant.id)
+    return (this.restaurantIdMap[row.restaurant.id] || {}).disabled;
   }
+
   getTotalUnpaid() {
     return this.getFilteredOverdueRows().reduce((sum, row) => sum + (row.unpaidBalance > 0 ? row.unpaidBalance : 0), 0);
   }
 
+  getRowAgent(row) {
+    return ((this.restaurantIdMap[row.restaurant.id] || {}).agent || "").toLowerCase();
+  }
+
   getFilteredOverdueRows() {
-    console.log(this.overdueRows[0]);
     return (this.overdueRows || []).filter(row => {
-      if (this.overdueAgent !== "agent..." && !(row.agent || []).some(agent => (agent || "").toLowerCase() === this.overdueAgent)) {
+      if (this.overdueAgent !== "agent..." && this.getRowAgent(row) !== this.overdueAgent) {
         return false;
       }
-      if (this.overdueStatus === "disabled" && !this.disabledRestaurantIds.has(row.restaurant.id)) {
+      if (this.overdueStatus === "disabled" && !this.restaurantIdMap[row.restaurant.id].disabled) {
         return false;
       }
-      if (this.overdueStatus === "enabled" && this.disabledRestaurantIds.has(row.restaurant.id)) {
+      if (this.overdueStatus === "enabled" && this.restaurantIdMap[row.restaurant.id].disabled) {
         return false;
       }
       return true;
