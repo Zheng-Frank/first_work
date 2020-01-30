@@ -114,7 +114,6 @@ import { SendGooglePINComponent } from './components/utilities/send-google-pin/s
 import { ShowGooglePINComponent } from './components/utilities/show-google-pin/show-google-pin.component';
 import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
 import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-simple/hour-picker-simple.component';
-import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
 import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
 import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/restaurant-gmb.component';
 import { RestaurantDiagnosticsComponent } from './components/restaurants/restaurant-diagnostics/restaurant-diagnostics.component';
@@ -254,7 +253,6 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     SendGooglePINComponent,
     ShowGooglePINComponent,
     MyRestaurantComponent,
-    AutomationDashboardComponent,
     HourPickerSimpleComponent,
     FutureDateTimePickerComponent,
     RestaurantGmbComponent,

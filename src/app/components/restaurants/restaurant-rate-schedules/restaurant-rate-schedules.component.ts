@@ -13,6 +13,7 @@ import { AlertType } from "../../../classes/alert-type";
 export class RestaurantRateSchedulesComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
+  @Input() users = [];
   editing = false;
   rateSchedulesInEditing = [];
 
@@ -32,6 +33,10 @@ export class RestaurantRateSchedulesComponent implements OnInit {
     for (let i = this.rateSchedulesInEditing.length; i < 5; i++) {
       this.rateSchedulesInEditing.push({});
     }
+  }
+
+  isDisabled(user) {
+    return !this.users.some(u => u.username === user && !u.disabled);
   }
 
   update() {
