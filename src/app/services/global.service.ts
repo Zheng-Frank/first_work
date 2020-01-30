@@ -119,10 +119,10 @@ export class GlobalService {
           accessibleRoles: ["ADMIN"]
         },
         {
-          name: "Automation",
-          href: "#/automation",
-          fa: "fas fa-magic",
-          accessibleRoles: ["ADMIN"]
+          name: "Workflows",
+          href: "#/workflows",
+          fa: "fas fa-project-diagram",
+          accessibleRoles: ["ADMIN", "MENU_EDITOR"]
         },
         {
           name: "Monitoring",

@@ -136,7 +136,7 @@ import { MonitoringRestaurantsComponent } from './components/monitoring/monitori
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
-import { AutomationDashboard2Component } from './components/automation/automation-dashboard2/automation-dashboard2.component';
+import { WorkflowDashboardComponent } from './components/workflow/workflow-dashboard/workflow-dashboard.component';
 
 import { NgxGraphModule } from '@swimlane/ngx-graph';
 import { CyclesComponent } from './components/invoices/cycles/cycles.component';
@@ -274,7 +274,7 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     MonitoringHoursComponent,
     MonitoringRestaurantsComponent,
     AwsMigrationComponent,
-    AutomationDashboard2Component,
+    WorkflowDashboardComponent,
     CyclesComponent,
     CycleDetailsComponent,
     GmbPinsComponent,
