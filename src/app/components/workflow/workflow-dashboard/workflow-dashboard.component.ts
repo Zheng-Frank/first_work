@@ -4,11 +4,11 @@ import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 @Component({
-  selector: 'app-automation-dashboard2',
-  templateUrl: './automation-dashboard2.component.html',
-  styleUrls: ['./automation-dashboard2.component.css']
+  selector: 'app-workflow-dashboard',
+  templateUrl: './workflow-dashboard.component.html',
+  styleUrls: ['./workflow-dashboard.component.css']
 })
-export class AutomationDashboard2Component implements OnInit {
+export class WorkflowDashboardComponent implements OnInit {
 
   statusOptions = ['NEW', 'HALFWAY', 'COMPLETED'];
   selectedStatus = 'NEW';

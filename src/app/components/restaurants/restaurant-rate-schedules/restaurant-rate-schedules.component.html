@@ -1,4 +1,6 @@
 <div class="card mb-2">
+
+  {{users.length}}
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="fas fa-percent"></i> Rate Schedules</h3>
   <ul class="list-group list-group-flush">
@@ -25,7 +27,8 @@
               <td>{{rs.orderType || 'ALL'}}</td>
               <td>{{rs.rate | percentage}}</td>
               <td>{{rs.fixed | currency:'USD':'symbol'}}</td>
-              <td>{{rs.agent}}</td>
+              <td>{{rs.agent}} <span *ngIf="isDisabled(rs.agent)" class="text-danger">*DISABLED*</span>
+              </td>
               <td>{{rs.commission | percentage}}</td>
             </tr>
           </tbody>
