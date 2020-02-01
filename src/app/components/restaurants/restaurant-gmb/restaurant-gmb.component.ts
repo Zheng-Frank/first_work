@@ -238,11 +238,12 @@ export class RestaurantGmbComponent implements OnInit {
           cid: this.restaurant.googleListing.cid,
         },
         projection: {
-          name: 1
+          name: 1,
+          address: 1
         }
       }).toPromise();
 
-      if (existingGmbs[0]) {
+      if (existingGmbs[0] && existingGmbs[0].address.indexOf(this.restaurant.googleAddress.postal_code) >= 0) {
         const gmbBiz = existingGmbs[0];
         // update this gmb's qmenuId to be the id
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [
@@ -253,11 +254,13 @@ export class RestaurantGmbComponent implements OnInit {
         ]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Matched existing GMB');
 
-      } else {
+      } else if (this.restaurant.googleListing && this.restaurant.googleListing.address.indexOf(this.restaurant.googleAddress.postal_code) >= 0 && this.restaurant.googleAddress.postal_code) {
         await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [
           { ...this.restaurant.googleListing, qmenuId: this.restaurant.id || this.restaurant['_id'] }
         ]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Not Matched existing GMB. Created new');
+      } else {
+        this._global.publishAlert(AlertType.Danger, 'Failed! Google listing zipcode mismatch!');
       }
       this.populate();
     } catch (error) {

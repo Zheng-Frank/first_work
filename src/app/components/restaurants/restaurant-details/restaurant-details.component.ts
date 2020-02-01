@@ -5,6 +5,7 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+
 declare var $: any;
 
 @Component({
@@ -40,6 +41,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   }
 
+  knownUsers = [];
+
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
       "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
@@ -62,6 +65,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         this.id = params['id'];
         this.loadDetails();
       });
+
+    this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
   }
 
   ngOnInit() {

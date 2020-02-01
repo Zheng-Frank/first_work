@@ -6,7 +6,6 @@ import { Invoice } from 'src/app/classes/invoice';
 
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertType } from 'src/app/classes/alert-type';
-import { Restaurant } from '@qmenu/ui';
 @Component({
   selector: 'app-invoice-monthly',
   templateUrl: './invoice-monthly.component.html',
@@ -26,13 +25,18 @@ export class InvoiceMonthlyComponent implements OnInit {
   qmenuCollectedOnly = false;
 
   overdueRows = [];
+  overdueAgents = [];
+  overdueAgent = "agent...";
+  overdueStatus = "restaurant status...";
+
   rolledButLaterCompletedRows = [];
   paymentSentButNotCompletedRows = [];
   beingRolledInvoiceSet = new Set();
 
   invoicedButLaterCanceledRows = [];
 
-  skipAutoInvoicingRestaurants = []
+  skipAutoInvoicingRestaurants = [];
+  restaurantIdMap = {};
   constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
@@ -59,8 +63,8 @@ export class InvoiceMonthlyComponent implements OnInit {
       },
       projection: {
         "name": 1
-      }      
-    }, 6000)
+      }
+    }, 6000000)
     console.log(this.skipAutoInvoicingRestaurants);
 
 
@@ -80,6 +84,21 @@ export class InvoiceMonthlyComponent implements OnInit {
     }
 
     return rows;
+  }
+
+  async populateRestaurantIdMap() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {},
+      projection: {
+        name: 1,
+        disabled: 1,
+        rateSchedules: 1
+      },
+      limit: 200000
+    }).toPromise();
+    restaurants.map(rt => rt.agent = (rt.rateSchedules || []).map(rs => rs.agent).slice(-1)[0]);
+    this.restaurantIdMap = restaurants.reduce((map, rt) => (map[rt._id] = rt, map), {});
   }
 
   async toggleAction(action) {
@@ -406,6 +425,9 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async populateOverdue() {
+    if (Object.keys(this.populateRestaurantIdMap).length === 0) {
+      await this.populateRestaurantIdMap();
+    }
     const invoiceBatchSize = 5000;
     let invoices = [];
     while (true) {
@@ -498,7 +520,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         "logs.type": 1,
         "googleListing.cid": 1
       },
-      limit: 20000
+      limit: 200000
     }).toPromise();
 
     collectionLogs.map(restaurant => {
@@ -548,10 +570,35 @@ export class InvoiceMonthlyComponent implements OnInit {
       time.setHours(time.getHours() + row.restaurant.offsetToEST || 0);
       row.localTimeString = time.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' });
     });
+    // now populate overdueAgents unique agents
+    this.overdueAgents = [... this.overdueRows.reduce((myset, row) => (myset.add(this.getRowAgent(row)), myset), new Set())].filter(agent => agent).sort();
+    console.log(this.overdueAgents);
+  }
+  isRowDisabled(row) {
+    return (this.restaurantIdMap[row.restaurant.id] || {}).disabled;
   }
 
   getTotalUnpaid() {
-    return this.overdueRows.reduce((sum, row) => sum + (row.unpaidBalance > 0 ? row.unpaidBalance : 0), 0);
+    return this.getFilteredOverdueRows().reduce((sum, row) => sum + (row.unpaidBalance > 0 ? row.unpaidBalance : 0), 0);
+  }
+
+  getRowAgent(row) {
+    return ((this.restaurantIdMap[row.restaurant.id] || {}).agent || "").toLowerCase();
+  }
+
+  getFilteredOverdueRows() {
+    return (this.overdueRows || []).filter(row => {
+      if (this.overdueAgent !== "agent..." && this.getRowAgent(row) !== this.overdueAgent) {
+        return false;
+      }
+      if (this.overdueStatus === "disabled" && !this.restaurantIdMap[row.restaurant.id].disabled) {
+        return false;
+      }
+      if (this.overdueStatus === "enabled" && this.restaurantIdMap[row.restaurant.id].disabled) {
+        return false;
+      }
+      return true;
+    });
   }
 
 

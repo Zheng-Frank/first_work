@@ -627,7 +627,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             query: {
                 $or: this.query_or
             },
-        }, 50000);
+        }, 200);
 
 
 

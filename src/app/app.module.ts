@@ -114,7 +114,6 @@ import { SendGooglePINComponent } from './components/utilities/send-google-pin/s
 import { ShowGooglePINComponent } from './components/utilities/show-google-pin/show-google-pin.component';
 import { MyRestaurantComponent } from './components/restaurants/my-restaurant/my-restaurant.component';
 import { HourPickerSimpleComponent } from './components/restaurants/hour-picker-simple/hour-picker-simple.component';
-import { AutomationDashboardComponent } from './components/automation/automation-dashboard/automation-dashboard.component';
 import { FutureDateTimePickerComponent } from './components/restaurants/future-date-time-picker/future-date-time-picker.component';
 import { RestaurantGmbComponent } from './components/restaurants/restaurant-gmb/restaurant-gmb.component';
 import { RestaurantDiagnosticsComponent } from './components/restaurants/restaurant-diagnostics/restaurant-diagnostics.component';
@@ -137,7 +136,7 @@ import { MonitoringRestaurantsComponent } from './components/monitoring/monitori
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
-import { AutomationDashboard2Component } from './components/automation/automation-dashboard2/automation-dashboard2.component';
+import { WorkflowDashboardComponent } from './components/workflow/workflow-dashboard/workflow-dashboard.component';
 
 import { NgxGraphModule } from '@swimlane/ngx-graph';
 import { CyclesComponent } from './components/invoices/cycles/cycles.component';
@@ -254,7 +253,6 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     SendGooglePINComponent,
     ShowGooglePINComponent,
     MyRestaurantComponent,
-    AutomationDashboardComponent,
     HourPickerSimpleComponent,
     FutureDateTimePickerComponent,
     RestaurantGmbComponent,
@@ -276,7 +274,7 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     MonitoringHoursComponent,
     MonitoringRestaurantsComponent,
     AwsMigrationComponent,
-    AutomationDashboard2Component,
+    WorkflowDashboardComponent,
     CyclesComponent,
     CycleDetailsComponent,
     GmbPinsComponent,

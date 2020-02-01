@@ -85,10 +85,17 @@
 </div>
 <div class="card text-left bg-light" *qIf="action==='overdue'">
   <div class="card-body">
-    * Last invoice spans over 2+ months, or having two consequent unpaid invoices. <strong>Total unpaied =
+    * Last invoice spans over 2+ months, or having two consequent unpaid invoices. <strong>Total unpaid =
       {{getTotalUnpaid() | currency:'USD':'symbol'}}</strong>
     <div class="text-right">
-      <div class="pb-2">
+      <div class="pb-2 form-inline">
+        <select class="form-control mr-4" [(ngModel)]="overdueStatus">
+          <option *ngFor="let status of ['restaurant status...', 'disabled', 'enabled']">{{status}}</option>
+        </select>
+        <select class="form-control mr-4" [(ngModel)]="overdueAgent">
+          <option>agent...</option>
+          <option *ngFor="let agent of overdueAgents">{{agent}}</option>
+        </select>
         <button class="btn btn-primary" (click)="populateOverdue()"><i class="fas fa-sync-alt"></i> Reload</button>
       </div>
     </div>
@@ -103,7 +110,8 @@
         <th>Collection Logs</th>
         <th></th>
       </tr>
-      <tr *ngFor="let row of overdueRows; let i = index">
+      <tr *ngFor="let row of getFilteredOverdueRows(); let i = index"
+        class="{{isRowDisabled(row) ? 'bg-light-gray' : ''}}">
         <td>
           {{i+1}}
         </td>
@@ -113,7 +121,7 @@
         </td>
         <td class="text-nowrap">{{row.localTimeString}}</td>
         <td>
-          {{row.agent}}
+          {{getRowAgent(row)}}
         </td>
         <td>
           <table class="table table-borderless table-sm">

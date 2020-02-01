@@ -1,21 +1,22 @@
 <h1 class="text-center">GMB Open Restaurants({{openItems.length}})</h1>
-
+<span class="sales-row">* Pink Rows: Sales agent responsible （粉红的商家：销售负责）</span>
 <table class="table">
     <tr>
         <th>#</th>
-        <!-- <th>Scanned</th> -->
+        <th>Created</th>
         <th>Restaurant</th>
         <th>Score</th>
         <th>Original Agent</th>
         <th>GMB Owner</th>
+        <th>Published</th>
         <th>First GMB</th>
         <th>Tasks</th>
     </tr>
-    <tr *ngFor="let item of openItems; let i = index">
+    <tr *ngFor="let item of openItems; let i = index" class="{{item.salesResponsible ? 'sales-row' : ''}}">
         <th>{{i + 1}}</th>
-        <!-- <td>
-            {{item.rt.googleListing?.crawledAt | ago : now}}
-        </td> -->
+        <td>
+            {{item.rt.createdAt | ago : now}}
+        </td>
         <td>
             <a target="_blank" href="#/restaurants/{{item.rt._id}}">{{item.rt.name}}</a>
             <br>
@@ -31,6 +32,9 @@
             {{item.rt.googleListing?.gmbOwner}}
         </td>
         <td>
+            {{item.published}}
+        </td>
+        <td>
             <ng-container *ngIf="item.rt.gmbOrigin">
                 {{item.rt.gmbOrigin.origin}}<br>
                 {{item.rt.gmbOrigin.time | date: 'shortDate' }}
@@ -42,6 +46,16 @@
                 <div class="text-muted"
                     *ngIf="task.request && task.request.statusHistory && task.request.statusHistory[0]">
                     <small>{{task.request.statusHistory[0].status}}</small></div>
+                <div *ngIf="task.request && task.request.pinHistory && task.request.pinHistory[0]">
+                    PIN: <b>{{task.request.pinHistory[0].pin}}</b>
+                </div>
+                <div *ngIf="task.request && task.request.voHistory && task.request.voHistory[0]">
+                    <ng-container *ngFor="let vo of task.request.voHistory[0].options">
+                        <i
+                            class="fas fa-{{vo.verificationMethod === 'EMAIL' ? 'at' : (vo.verificationMethod === 'PHONE_CALL' ? 'phone' : (vo.verificationMethod === 'ADDRESS' ? 'address-card' : ''))}} {{vo.pending ? 'text-success' : 'text-muted'}}"></i>
+                    </ng-container>
+                </div>
+
             </div>
         </td>
     </tr>
