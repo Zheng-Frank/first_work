@@ -143,7 +143,7 @@ export class AwsMigrationComponent implements OnInit {
   }
 
   async reload() {
-    const migrationDomains = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const migrationDomains = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'migration',
       query: {
         // "steps.0.executions.0": { $exists: true },
@@ -151,9 +151,8 @@ export class AwsMigrationComponent implements OnInit {
       },
       projection: {
         domain: 1
-      },
-      limit: 8000
-    }).toPromise();
+      }      
+    }, 8000)
 
     // loop to get all details
     const batchSize = 100;
@@ -243,7 +242,8 @@ export class AwsMigrationComponent implements OnInit {
     const index = row.steps.indexOf(step);
     const previousStep = row.steps[index - 1];
     const payload = {
-      domain: row.domain
+      domain: row.domain,
+      restaurantId: row.restaurant._id
     };
 
     // inject success response's field from previous step!
@@ -565,7 +565,7 @@ export class AwsMigrationComponent implements OnInit {
               this.rowMessage[row._id] = "error on setEmail";
               return;
             }
-            break
+            break;
 
           default:
             break;
