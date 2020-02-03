@@ -55,6 +55,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
+      "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
 
     }
 

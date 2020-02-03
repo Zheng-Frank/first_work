@@ -154,6 +154,12 @@ import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant
 import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.component';
 
 import { EventDashboardComponent } from './components/events/event-dashboard/event-dashboard.component';
+import { RestaurantWebTemplateComponent } from './components/restaurants/restaurant-web-template/restaurant-web-template.component';
+import { BasicTplNavbarComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-navbar/basic-tpl-navbar.component';
+import { BasicTplComponent } from './components/restaurants/templates/basic-tpl/basic-tpl.component';
+import { BasicTplSpecialtiesComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-specialties/basic-tpl-specialties.component';
+import { BasicTplHeaderComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-header/basic-tpl-header.component';
+import { BasicTplOrderOnlineComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-order-online/basic-tpl-order-online.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -290,6 +296,13 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
     RestaurantGmbPostsComponent,
 
     GmbCampaignComponent,
+
+    BasicTplComponent,
+    RestaurantWebTemplateComponent,
+    BasicTplNavbarComponent,
+    BasicTplSpecialtiesComponent,
+    BasicTplHeaderComponent,
+    BasicTplOrderOnlineComponent,
 
 
   ],
