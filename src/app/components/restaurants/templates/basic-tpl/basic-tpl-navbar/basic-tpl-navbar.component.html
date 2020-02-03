@@ -1,0 +1,59 @@
+<div class="mb-4">
+  <h2>Navigation Bar Links</h2>
+
+  <div *ngFor='let link of links'>
+    <div class="nav--link">
+      <h3><a href={{link.url}}>{{link.label}}</a></h3>
+      <div>
+        <button class="btn btn-link" (click)='showEditLinkModal($event, link)'>Edit</button>|
+        <button class="btn btn-link" (click)='showDeleteLinkModal($event, link)'>Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-link" (click)='showAddLinkModal()'>+ Add Link</button>
+</div>
+
+<!-- Add -->
+<q-modal #addLinkModal>
+  <div>
+    <label>Text:</label>
+    <input class="form-control" placeholder="i.e. Home" [(ngModel)]='link.label'>
+  </div>
+
+  <div class="mt-2">
+    <label>URL:</label>
+    <input class="form-control" placeholder="i.e. www.google.com" [(ngModel)]='link.url'>
+  </div>
+
+  <div class="mt-3 d-flex justify-content-end">
+    <button class="btn btn-small btn-primary" (click)='addLink()'><i class="fas fa-plus"></i> Add Link</button>
+  </div>
+
+</q-modal>
+
+<!-- Edit -->
+<q-modal #editLinkModal>
+  <div>
+    <label>Text:</label>
+    <input class="form-control" placeholder="i.e. Home" #editLabelInput [ngModel]='link.label'>
+  </div>
+
+  <div class="mt-2">
+    <label>URL:</label>
+    <input class="form-control" placeholder="i.e. www.google.com" #editUrlInput [ngModel]='link.url'>
+  </div>
+
+  <div class="mt-3 d-flex justify-content-end">
+    <button class="btn btn-small btn-primary" (click)='editLink($event, editLabelInput.value, editUrlInput.value)'><i class="fas fa-plus"></i> Edit Now</button>
+  </div>
+</q-modal>
+
+<!-- Delete -->
+<q-modal #deleteLinkModal>
+  <span class="text-center">Are you sure you want to delete the link <strong>{{link.label}}</strong>?</span>
+  <div class="d-flex justify-content-center mt-4">
+    <button class="btn btn-small btn-danger" (click)='deleteLink()'>Yes</button>
+    <button class="btb btn-small btn-info ml-3" (click)='cancelDelete()'> No</button>
+  </div>
+</q-modal>

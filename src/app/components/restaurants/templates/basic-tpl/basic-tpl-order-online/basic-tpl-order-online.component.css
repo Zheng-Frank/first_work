@@ -1,0 +1,8 @@
+.order-online-container {
+  display: flex;
+  align-items: center;
+}
+
+.image-container {
+  width: 350px;
+}

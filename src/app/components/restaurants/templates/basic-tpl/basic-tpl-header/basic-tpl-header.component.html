@@ -1,0 +1,19 @@
+<div class="mb-4">
+  <h2>Header Slider Images</h2>
+</div>
+
+<div *ngFor="let image of images; let i = index">
+  <div class="header-container">
+    <div class="image-container">
+      <img class="img-thumbnail" src="{{image}}">
+    </div>
+
+    <div>
+      <button class="btn btn-link" (click)='fileInput.click()'>Replace</button> | <button class="btn btn-link" (click)="deleteImage(i)">Delete</button>
+      <input hidden type="file" #fileInput (change)="uploadFile($event.target.files)"/>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-link" (click)='fileInputAdd.click()'> + Add Header Slider Image</button>
+<input hidden type="file" #fileInputAdd (change)="uploadFile($event.target.files)"/>
