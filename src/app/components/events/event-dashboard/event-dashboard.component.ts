@@ -109,6 +109,8 @@ export class EventDashboardComponent implements OnInit {
 
   consoleOut(logs) {
     console.log(logs);
+    console.log('last 20:');
+    console.log(logs.slice(-20).map(log => (log.params || {}).name));
     alert("Check console for logs");
   }
 
