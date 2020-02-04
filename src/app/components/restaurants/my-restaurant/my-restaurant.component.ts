@@ -153,13 +153,12 @@ export class MyRestaurantComponent implements OnInit {
     this.username = this._global.user.username;
     this.usernames = [this.username];
     if (this.isSuperUser) {
-      const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         projection: {
           "rateSchedules.agent": 1
-        },
-        limit: 6000
-      }).toPromise();
+        }
+      }, 6000);
       const userSet = new Set();
       restaurants.map(r => {
         (r.rateSchedules || []).map(rs => {
