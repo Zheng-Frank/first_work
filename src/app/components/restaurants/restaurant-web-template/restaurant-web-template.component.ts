@@ -32,7 +32,7 @@ export class RestaurantWebTemplateComponent implements OnInit {
   async createTemplate() {
     try {
       // --- Populate db with template info
-      const result = await this._api.post(environment.qmenuApiUrl + 'scan-rt-website-template', {
+      const result = await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
         website: this.restaurant.web.qmenuWebsite,
         id: this.restaurant._id
       }).toPromise();
