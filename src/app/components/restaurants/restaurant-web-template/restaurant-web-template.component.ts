@@ -29,51 +29,36 @@ export class RestaurantWebTemplateComponent implements OnInit {
     }, 0);
   }
 
-  async createTemplate() {
+  async crawlTemplate() {
     try {
-      // --- Populate db with template info
-      const result = await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
-        website: this.restaurant.web.qmenuWebsite,
-        id: this.restaurant._id
+      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
+      const templateName = this.restaurant.web.templateName;
+      const restaurantId = this.restaurant._id;
+
+      // crawl template
+      await this._api.post(environment.qmenuApiUrl + 'utils/crawl-template', {
+        domain,
+        templateName,
+        restaurantId
       }).toPromise();
 
       // --- Retrieve most recent document
-      if (result.status.nModified === 1) {
-        const [updateRestaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
-          resource: 'restaurant',
-          query: {
-            _id: { $oid: this.restaurant._id }
-          },
-          projection: {}
-        }).toPromise();
-
-        // Render template
-        this.templateComponentName = updateRestaurant.web.template.name;
-      }
-
-      // --- Inject to S3
-      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-      const templateName = this.restaurant.web.templateName;
-
-      if (!templateName || !domain) {
-        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
-      }
-
-      if (domain.indexOf('qmenu.us') >= 0) {
-        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
-      }
-
-      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
-        domain: domain,
-        templateName: this.restaurant.web.templateName,
-        restaurantId: this.restaurant._id
+      const [updateRestaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          _id: { $oid: this.restaurant._id }
+        },
+        projection: {}
       }).toPromise();
 
-      return this._global.publishAlert(AlertType.Success, 'Template created succesfuly');
+      // Render template
+      this.templateComponentName = updateRestaurant.web.template.name;
+
+      return this._global.publishAlert(AlertType.Success, 'Template crawled succesfuly');
 
     } catch (error) {
-      console.error(error);
-      return this._global.publishAlert(AlertType.Danger, 'Error while creating template');
+      console.error('Error crawling template: ', error);
+      return this._global.publishAlert(AlertType.Danger, 'Error while crawling template');
     }
 
   }

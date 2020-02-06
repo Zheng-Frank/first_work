@@ -4,6 +4,7 @@ import { ApiService } from "src/app/services/api.service";
 import { GlobalService } from "src/app/services/global.service";
 import { environment } from "src/environments/environment";
 import { AlertType } from "src/app/classes/alert-type";
+import { Helper } from "src/app/classes/helper";
 
 @Component({
   selector: "app-basic-tpl-navbar",
@@ -49,10 +50,31 @@ export class BasicTplNavbarComponent implements OnInit {
 
       newRestaurant.web.template.navbar.links = this.links;
 
-      const result = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: oldRestaurant,
         new: newRestaurant
       }]).toPromise();
+
+      // --- Re publish changes
+      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
+      const templateName = this.restaurant.web.templateName;
+      const restaurantId = this.restaurant._id;
+
+      console.log(domain, templateName, restaurantId);
+
+      if (!templateName || !domain) {
+        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
+      }
+
+      if (domain.indexOf('qmenu.us') >= 0) {
+        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
+      }
+
+      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
+        domain,
+        templateName,
+        restaurantId
+      }).toPromise();
 
       this._global.publishAlert(AlertType.Success, 'Link updated suceesfuly');
 
@@ -82,14 +104,12 @@ export class BasicTplNavbarComponent implements OnInit {
   }
 
   async editLink(event, label, url) {
-    for(const [index, link] of this.links.entries()) {
+    for (const [index, link] of this.links.entries()) {
       if (link.label === this.link.label) {
         this.links[index] = { label, url };
         break;
       }
     }
-
-    console.log(this.links);
 
     await this.updateLinks();
 

@@ -54,6 +54,27 @@ export class BasicTplHeaderComponent implements OnInit {
         new: newRestaurant
       }]).toPromise();
 
+      // --- Re publish changes
+      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
+      const templateName = this.restaurant.web.templateName;
+      const restaurantId = this.restaurant._id;
+
+      console.log(domain, templateName, restaurantId);
+
+      if (!templateName || !domain) {
+        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
+      }
+
+      if (domain.indexOf('qmenu.us') >= 0) {
+        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
+      }
+
+      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
+        domain,
+        templateName,
+        restaurantId
+      }).toPromise();
+
       this._global.publishAlert(AlertType.Success, 'Image uploaded suceesfuly');
 
     } catch (error) {
