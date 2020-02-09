@@ -160,11 +160,13 @@ import { BasicTplComponent } from './components/restaurants/templates/basic-tpl/
 import { BasicTplSpecialtiesComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-specialties/basic-tpl-specialties.component';
 import { BasicTplHeaderComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-header/basic-tpl-header.component';
 import { BasicTplOrderOnlineComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-order-online/basic-tpl-order-online.component';
+import { MonitoringScriptComponent } from './components/monitoring/monitoring-script/monitoring-script.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
+    MonitoringScriptComponent,
     MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
