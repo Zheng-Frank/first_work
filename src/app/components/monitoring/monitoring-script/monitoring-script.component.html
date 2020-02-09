@@ -1,0 +1,42 @@
+<h1 class="text-center">Running Status of Scripts</h1>
+<div class="text-right mb-2">
+    <div class="pb-2">
+        <button class="btn btn-primary" (click)="populate()" [qLoading]="apiLoading">
+            <i class="fas fa-sync"></i> Reload</button>
+    </div>
+
+</div>
+<table class="table">
+    <tr>
+        <th>Name</th>
+        <th>Last Run</th>
+        <th>Status</th>
+        <th>Duration</th>
+        <th>Succeeded</th>
+        <th>Failed</th>
+        <th>Console</th>
+    </tr>
+    <tr *ngFor="let item of items;">
+        <td>
+            {{item.name}}
+        </td>
+        <td>
+            {{item.startedAt | ago : now}}
+        </td>
+        <td class="{{item.endedAt ? (item.stats?.failed?.length > 0 ? 'script-failed' : 'script-succeeded') : 'script-running'}}">
+            {{item.endedAt ? (item.stats?.failed?.length > 0 ? 'some failed' : 'succeeded') : 'running'}}
+        </td>
+        <td>
+            {{item.timeSpan}}
+        </td>
+        <td>
+            {{(item.stats?.succeeded || []).length}}
+        </td>
+        <td>
+            {{(item.stats?.failed || []).length}}
+        </td>
+        <td>
+            <button class="btn btn-link" (click)="printConsole(item)">console</button>
+        </td>
+    </tr>
+</table>

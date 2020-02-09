@@ -1,0 +1,11 @@
+.script-running {
+  background-color: lightyellow;
+}
+
+.script-failed {
+  background-color: pink;
+}
+
+.script-succeeded {
+  background-color: lightgreen;
+}
