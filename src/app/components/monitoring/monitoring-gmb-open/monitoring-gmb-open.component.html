@@ -3,6 +3,7 @@
 <table class="table">
     <tr>
         <th>#</th>
+        <th>Open</th>
         <th>Created</th>
         <th>Restaurant</th>
         <th>Score</th>
@@ -14,6 +15,9 @@
     </tr>
     <tr *ngFor="let item of openItems; let i = index" class="{{item.salesResponsible ? 'sales-row' : ''}}">
         <th>{{i + 1}}</th>
+        <td>
+            {{item.openAt | ago : now}}
+        </td>
         <td>
             {{item.rt.createdAt | ago : now}}
         </td>
