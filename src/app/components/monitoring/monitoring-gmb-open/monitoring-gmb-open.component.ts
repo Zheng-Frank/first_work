@@ -81,6 +81,30 @@ export class MonitoringGmbOpenComponent implements OnInit {
       limit: 100000
     }).toPromise();
 
+    // let's retrieve gmb-open event
+    const gmbOpenEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'event',
+      query: {
+        "name": "gmb-open",
+        "params.gmbOpenApi": true,
+      },
+      projection: {
+        "params.cid": 1,
+        "createdAt": 1
+      },
+      limit: 3000000
+    }).toPromise();
+
+    // n^2 matching. we should use a dictionary if dataset is large.
+    gmbOpenEvents.map(event => {
+      this.openItems.map(item => {
+        if (item.rt.googleListing.cid === event.params.cid) {
+          item.openAt = event.createdAt;
+        }
+      });
+    });
+
+    this.openItems.sort((i2, i1) => i1.openAt - i2.openAt);
 
     // for each verificationOption, let's put a pending indicator
     runningTasks.map(task => {
@@ -102,6 +126,7 @@ export class MonitoringGmbOpenComponent implements OnInit {
         }
       });
     });
+
   }
 
 }
