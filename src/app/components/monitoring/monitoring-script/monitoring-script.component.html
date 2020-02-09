@@ -23,17 +23,24 @@
         <td>
             {{item.startedAt | ago : now}}
         </td>
-        <td class="{{item.endedAt ? (item.stats?.failed?.length > 0 ? 'script-failed' : 'script-succeeded') : 'script-running'}}">
+        <td
+            class="{{item.endedAt ? (item.stats?.failed?.length > 0 ? 'script-failed' : 'script-succeeded') : 'script-running'}}">
             {{item.endedAt ? (item.stats?.failed?.length > 0 ? 'some failed' : 'succeeded') : 'running'}}
         </td>
         <td>
             {{item.timeSpan}}
         </td>
         <td>
-            {{(item.stats?.succeeded || []).length}}
+            <b>{{(item.stats?.succeeded || []).length}}</b>
+            <div *ngIf="item.results && item.results['fake-id']" class="text-muted">
+                <small>
+                    <div>good: {{(item.results['fake-id'].succeeded || []).length}}</div>
+                    <div>bad: {{(item.results['fake-id'].failed || []).length}}</div>
+                </small>
+            </div>
         </td>
         <td>
-            {{(item.stats?.failed || []).length}}
+            <b>{{(item.stats?.failed || []).length}}</b>
         </td>
         <td>
             <button class="btn btn-link" (click)="printConsole(item)">console</button>
