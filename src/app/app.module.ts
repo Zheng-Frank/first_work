@@ -155,12 +155,9 @@ import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.com
 
 import { EventDashboardComponent } from './components/events/event-dashboard/event-dashboard.component';
 import { RestaurantWebTemplateComponent } from './components/restaurants/restaurant-web-template/restaurant-web-template.component';
-import { BasicTplNavbarComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-navbar/basic-tpl-navbar.component';
 import { BasicTplComponent } from './components/restaurants/templates/basic-tpl/basic-tpl.component';
-import { BasicTplSpecialtiesComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-specialties/basic-tpl-specialties.component';
-import { BasicTplHeaderComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-header/basic-tpl-header.component';
-import { BasicTplOrderOnlineComponent } from './components/restaurants/templates/basic-tpl/basic-tpl-order-online/basic-tpl-order-online.component';
 import { MonitoringScriptComponent } from './components/monitoring/monitoring-script/monitoring-script.component';
+import { CrawlTemplateService } from './services/crawl-template.service';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -301,10 +298,7 @@ import { MonitoringScriptComponent } from './components/monitoring/monitoring-sc
 
     BasicTplComponent,
     RestaurantWebTemplateComponent,
-    BasicTplNavbarComponent,
-    BasicTplSpecialtiesComponent,
-    BasicTplHeaderComponent,
-    BasicTplOrderOnlineComponent,
+
 
 
   ],
@@ -326,7 +320,8 @@ import { MonitoringScriptComponent } from './components/monitoring/monitoring-sc
     RoleGuard,
     ApiService,
     TaskService,
-    CacheService
+    CacheService,
+    CrawlTemplateService
   ],
   bootstrap: [RootComponent]
 })

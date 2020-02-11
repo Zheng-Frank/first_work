@@ -1,10 +1,10 @@
 <div>
   <!-- basic-tpl -->
-  <div *ngIf="templateComponentName == 'basic-tpl'">
-    <app-basic-tpl [restaurant]='restaurant'></app-basic-tpl>
+  <div *ngIf="templateName == 'basic-tpl'">
+    <app-basic-tpl [restaurantId]='restaurant._id'></app-basic-tpl>
   </div>
 
-  <div *ngIf='templateComponentName == undefined'>
+  <div *ngIf='templateName == undefined'>
     <div class="d-flex justify-content-center flex-column">
       <div>
         <p class="text-center mt-4">This restaurant has not been crawled yet.</p>

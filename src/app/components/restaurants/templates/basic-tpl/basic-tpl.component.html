@@ -1,6 +1,144 @@
-<div>
-  <app-basic-tpl-navbar [restaurant]='restaurant'></app-basic-tpl-navbar>
-  <app-basic-tpl-header [restaurant]='restaurant'></app-basic-tpl-header>
-  <app-basic-tpl-specialties [restaurant]='restaurant'></app-basic-tpl-specialties >
-  <app-basic-tpl-order-online [restaurant]='restaurant'></app-basic-tpl-order-online>
+
+<div class="mb-4 d-flex justify-content-end">
+  <button class="btn btn-primary btn-sm" (click)="republishToAWS()">Republish Website to AWS</button>
 </div>
+
+<!-- Navigation Bar -->
+<div class="mb-4">
+  <h2>Navigation Bar</h2>
+
+  <div *ngFor='let link of navBarLinks'>
+    <div class="nav--link">
+      <h3><a href={{link.url}}>{{link.label}}</a></h3>
+      <div>
+        <button class="btn btn-link" (click)='showEditLinkModal($event, link)'>Edit</button>|
+        <button class="btn btn-link" (click)='showDeleteLinkModal($event, link)'>Delete</button>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-link" (click)='showAddLinkModal()'>+ Add Link</button>
+</div>
+
+
+<!-- Hader Slider Images -->
+<div class="mb-4">
+  <div>
+    <h2>Header Slider</h2>
+  </div>
+  <div *ngFor="let image of headerSliderImages; let j = index">
+    <div class="header-container">
+      <div class="image-container">
+        <img class="img-thumbnail" src="{{image}}">
+      </div>
+
+      <div>
+        <button class="btn btn-link" (click)='fileHeaderSliderInput.click()'>Replace</button> | <button class="btn btn-link"
+          (click)="showDeleteHeaderSliderImage(j)">Delete</button>
+        <input hidden type="file" #fileHeaderSliderInput (change)="uploadHeaderImage($event.target.files, j); fileHeaderSliderInput.value = null" />
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-link" (click)='fileInputAdd.click()'> + Add Header Slider Image</button>
+  <input hidden type="file" #fileInputAdd (change)="uploadHeaderImage($event.target.files)" />
+</div>
+
+
+<!-- Specialties/Hover Images -->
+<div class="mb-4">
+  <div>
+    <h2>Specialties/Hover</h2>
+  </div>
+  <div *ngFor="let image of specialtyImages; let i = index">
+    <div class="specialties-container">
+      <div class="image-container">
+        <img class="img-thumbnail" src="{{image}}">
+      </div>
+
+      <div>
+        <button class="btn btn-link" (click)='fileSpecialtyImageInput.click()'>Replace</button>
+        <input hidden type="file" #fileSpecialtyImageInput (change)="uploadSpecialtyImage($event.target.files, i)" />
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Orders/promos Images -->
+<div class="mb-4">
+  <div>
+    <h2>Orders/promos</h2>
+  </div>
+  <div *ngFor="let image of promoImages; let i = index">
+    <div class="order-online-container">
+      <div class="image-container">
+        <img class="img-thumbnail" src="{{image}}">
+      </div>
+
+      <div>
+        <button class="btn btn-link" (click)='filePromoInput.click()'>Replace</button>
+        <input hidden type="file" #filePromoInput (change)="uploadPromoImage($event.target.files, i)" />
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Add Link Modal-->
+<q-modal #addLinkModal>
+  <div>
+    <label>Text:</label>
+    <input class="form-control" placeholder="i.e. Home" [(ngModel)]='link.label'>
+  </div>
+
+  <div class="mt-2">
+    <label>URL:</label>
+    <input class="form-control" placeholder="i.e. www.google.com" [(ngModel)]='link.url'>
+  </div>
+
+  <div class="mt-3 d-flex justify-content-end">
+    <button class="btn btn-small btn-primary" (click)='addLink()'><i class="fas fa-plus"></i> Add Link</button>
+  </div>
+
+</q-modal>
+
+<!-- Edit Link Modal-->
+<q-modal #editLinkModal>
+  <div>
+    <label>Text:</label>
+    <input class="form-control" placeholder="i.e. Home" #editLabelInput [ngModel]='link.label'>
+  </div>
+
+  <div class="mt-2">
+    <label>URL:</label>
+    <input class="form-control" placeholder="i.e. www.google.com" #editUrlInput [ngModel]='link.url'>
+  </div>
+
+  <div class="mt-3 d-flex justify-content-end">
+    <button class="btn btn-small btn-primary" (click)='editLink($event, editLabelInput.value, editUrlInput.value)'><i
+        class="fas fa-plus"></i> Edit Now</button>
+  </div>
+</q-modal>
+
+<!-- Delete Link Modal-->
+<q-modal #deleteLinkModal>
+  <span class="text-center">Are you sure you want to delete the link <strong>{{link.label}}</strong>?</span>
+  <div class="d-flex justify-content-center mt-4">
+    <button class="btn btn-small btn-danger" (click)='deleteLink()'>Yes</button>
+    <button class="btb btn-small btn-info ml-3" (click)='cancelDeleteLink()'> No</button>
+  </div>
+</q-modal>
+
+
+<!-- Delete Header Slider Image Modal -->
+<q-modal #deleteHeaderSliderImageModal>
+  <span class="text-center">Are you sure you want to delete this image?</span>
+  <div class="d-flex justify-content-center mt-4">
+    <button class="btn btn-small btn-danger" (click)='deleteHeaderSliderImage()'>Yes</button>
+    <button class="btb btn-small btn-info ml-3" (click)='deleteHeaderSliderImageModal.hide(); headerImageIndexToDelete = 0'> No</button>
+  </div>
+</q-modal>

@@ -1,0 +1,23 @@
+.nav--link {
+  display: flex;
+  align-items: center;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+}
+
+.image-container {
+  width: 350px;
+}
+
+.specialties-container {
+  display: flex;
+  align-items: center;
+}
+
+.order-online-container {
+  display: flex;
+  align-items: center;
+}
