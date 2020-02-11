@@ -33,9 +33,12 @@ export class RestaurantWebTemplateComponent implements  OnInit {
     if(this.restaurant.web.template) {
       this.templateName = this.restaurant.web.template.name;
     }
+
+    console.log('onInit');
   }
 
   async crawlTemplate() {
     this.templateName = await this._crawl.crawlTemplate(this.restaurant);
+    await this.ngOnInit();
   }
 }

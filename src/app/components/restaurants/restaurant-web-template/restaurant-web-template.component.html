@@ -1,3 +1,7 @@
+<div *ngIf ="templateName !== undefined" class="d-flex justify-content-end mb-2">
+  <button class="btn btn-primary btn-sm" (click)="crawlTemplate()">Re-crawl Template</button>
+</div>
+
 <div>
   <!-- basic-tpl -->
   <div *ngIf="templateName == 'basic-tpl'">
