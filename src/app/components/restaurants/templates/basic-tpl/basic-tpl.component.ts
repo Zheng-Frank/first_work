@@ -110,7 +110,7 @@ export class BasicTplComponent implements OnInit {
       [{ name: 'invalidate-domain', params: { domain: domain } }]
       ).toPromise();
 
-      console.log('invalidation result: ', result);
+      console.log('updateLinks() nvalidation result:', result);
 
       this._global.publishAlert(AlertType.Success, 'Link published to AWS succesfuly');
 
@@ -227,6 +227,13 @@ export class BasicTplComponent implements OnInit {
         restaurantId
       }).toPromise();
 
+       // --- Invalidate domain
+       const result = await this._api.post(environment.appApiUrl + 'events',
+       [{ name: 'invalidate-domain', params: { domain: domain } }]
+       ).toPromise();
+
+       console.log('uploadHeaderImage() nvalidation result:', result);
+
       this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS succesfuly');
 
     } catch (error) {
@@ -270,6 +277,13 @@ export class BasicTplComponent implements OnInit {
         templateName,
         restaurantId
       }).toPromise();
+
+      // --- Invalidate domain
+      const result = await this._api.post(environment.appApiUrl + 'events',
+      [{ name: 'invalidate-domain', params: { domain: domain } }]
+      ).toPromise();
+
+      console.log('deleteHeaderSliderImage() nvalidation result:', result);
 
       this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS succesfuly');
 
@@ -328,6 +342,13 @@ export class BasicTplComponent implements OnInit {
         restaurantId
       }).toPromise();
 
+      // --- Invalidate domain
+      const result = await this._api.post(environment.appApiUrl + 'events',
+      [{ name: 'invalidate-domain', params: { domain: domain } }]
+      ).toPromise();
+
+      console.log('uploadSpecialtyImage() nvalidation result:', result);
+
       this._global.publishAlert(AlertType.Success, 'Specialty Image(s) published to AWS succesfuly');
 
     } catch (error) {
@@ -378,6 +399,13 @@ export class BasicTplComponent implements OnInit {
         restaurantId
       }).toPromise();
 
+      // --- Invalidate domain
+      const result = await this._api.post(environment.appApiUrl + 'events',
+      [{ name: 'invalidate-domain', params: { domain: domain } }]
+      ).toPromise();
+
+      console.log('uploadPromoImage() nvalidation result:', result);
+
       this._global.publishAlert(AlertType.Success, 'Order/Promo Image(s) published to AWS succesfuly');
 
     } catch (error) {
@@ -407,6 +435,13 @@ export class BasicTplComponent implements OnInit {
         templateName,
         restaurantId
       }).toPromise();
+
+      // --- Invalidate domain
+      const result = await this._api.post(environment.appApiUrl + 'events',
+      [{ name: 'invalidate-domain', params: { domain: domain } }]
+      ).toPromise();
+
+      console.log('republishToAWS() nvalidation result:', result);
 
       this._global.publishAlert(AlertType.Success, 'Republishing to AWS was succesful');
     } catch (error) {
