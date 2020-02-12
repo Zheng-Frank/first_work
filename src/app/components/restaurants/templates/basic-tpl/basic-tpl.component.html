@@ -34,7 +34,7 @@
       <div>
         <button class="btn btn-link" (click)='fileHeaderSliderInput.click()'>Replace</button> | <button class="btn btn-link"
           (click)="showDeleteHeaderSliderImage(j)">Delete</button>
-        <input hidden type="file" #fileHeaderSliderInput (change)="uploadHeaderImage($event.target.files, j); fileHeaderSliderInput.value = null" />
+        <input hidden type="file" #fileHeaderSliderInput (change)="uploadHeaderImage($event.target.files, j)" />
       </div>
     </div>
   </div>

@@ -105,6 +105,13 @@ export class BasicTplComponent implements OnInit {
         restaurantId
       }).toPromise();
 
+      // --- Invalidate domain
+      const result = await this._api.post(environment.appApiUrl + 'events',
+      [{ name: 'invalidate-domain', params: { domain: domain } }]
+      ).toPromise();
+
+      console.log('invalidation result: ', result);
+
       this._global.publishAlert(AlertType.Success, 'Link published to AWS succesfuly');
 
     } catch (error) {
@@ -383,25 +390,25 @@ export class BasicTplComponent implements OnInit {
   async republishToAWS() {
     try {
       // --- Re publish changes
-    const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-    const templateName = this.restaurant.web.templateName;
-    const restaurantId = this.restaurant._id;
+      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
+      const templateName = this.restaurant.web.templateName;
+      const restaurantId = this.restaurant._id;
 
-    if (!templateName || !domain) {
-      return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
-    }
+      if (!templateName || !domain) {
+        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
+      }
 
-    if (domain.indexOf('qmenu.us') >= 0) {
-      return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
-    }
+      if (domain.indexOf('qmenu.us') >= 0) {
+        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
+      }
 
-    await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
-      domain,
-      templateName,
-      restaurantId
-    }).toPromise();
+      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
+        domain,
+        templateName,
+        restaurantId
+      }).toPromise();
 
-    this._global.publishAlert(AlertType.Success, 'Republishing to AWS was succesful');
+      this._global.publishAlert(AlertType.Success, 'Republishing to AWS was succesful');
     } catch (error) {
       await this.init();
       this._global.publishAlert(AlertType.Danger, 'Error republishing to AWS');
