@@ -80,7 +80,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
           thirdPartyDeliveryTip: 1,
 
         },
-        limit: 1000,
+        limit: 400,
         sort: {
           toDate: -1
         }
