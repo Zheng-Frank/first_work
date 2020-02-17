@@ -52,3 +52,9 @@ a:hover {
 }
 
 @import "~ng-pick-datetime/assets/style/picker.min.css";
+
+@media print {
+  .printPageButton {
+    display: none;
+  }
+}

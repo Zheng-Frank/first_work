@@ -12,6 +12,8 @@ export class InvoicesAnualComponent implements OnInit {
 
   @Input() invoices: Invoice[] = [];
 
+  showCanceled = false;
+
   statements = [{
     year: 0,
     restaurant: {
@@ -39,13 +41,13 @@ export class InvoicesAnualComponent implements OnInit {
     thirdPartyDeliveryCharge: 0,
     thirdPartyDeliveryTip: 0,
     validOrdersCount: 0,
+    fromDate: null,
+    toDate: null
   }];
 
   constructor() { }
 
   async ngOnInit() {
-
-    console.log(this.invoices);
 
     // Unique years
     const years = [...new Set(this.invoices.map(invoice => invoice.fromDate.getFullYear()))];
@@ -79,6 +81,8 @@ export class InvoicesAnualComponent implements OnInit {
         thirdPartyDeliveryCharge: 0,
         thirdPartyDeliveryTip: 0,
         validOrdersCount: 0,
+        fromDate: null,
+        toDate: null
       };
     });
 
@@ -113,26 +117,41 @@ export class InvoicesAnualComponent implements OnInit {
       
       this.statements[index].validOrdersCount = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((validOrdersCountAcc, invoice) => validOrdersCountAcc + invoice.orders.filter(o => !o.canceled).length, 0);
 
+      // Because sort is descending (-1)
+      const [lastInvoice] = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled);
+      const firstInvoice = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled)[this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).length - 1];
+      this.statements[index].toDate = lastInvoice ? lastInvoice.toDate : null;
+      this.statements[index].fromDate = firstInvoice ? firstInvoice.fromDate : null;
 
     });
 
     console.log(this.statements);
-
-    // --- This is supposed to get the invoices per month
-    // this.statements.map((statement, index) => {
-    //   this.statements[index].january = {
-    //     total: this.invoices.reduce((subtotalAcc, invoice) => {
-    //       const januaryInvoices = this.invoices.filter(i => i.toDate.getMonth() == 0);
-    //       return januaryInvoices.reduce((janAcc, i) => janAcc + i.total, 0)
-    //     }, 0)
-    //   } 
-    // });
   }
 
   getRestaurantTime(time, invoice): Date {
     const t = new Date(time);
     t.setHours(t.getHours() + (invoice.restaurant.offsetToEST || 0));
     return t;
+  }
+
+  downloadPdf() {
+    window.print();
+  }
+
+  getCssClass(invoice: Invoice) {
+    return invoice.isPaymentCompleted ? 'text-success' : (invoice.isPaymentSent ? 'text-info' : (invoice.isSent ? 'text-light bg-dark' : 'text-dark'));
+  }
+
+  getPreviousInvoice(currentInvoice: Invoice) {
+    return (this.invoices || []).filter(i => (i.id || i['_id']) === (currentInvoice.previousInvoiceId || 'non-exist'))[0];
+  }
+
+  getFilteredInvoices(year) {
+    if (this.showCanceled) {
+      return this.invoices.filter(i => i.fromDate.getFullYear() == year);
+    } else {
+      return (this.invoices || []).filter(i => !i.isCanceled && i.fromDate.getFullYear() == year);
+    }
   }
 
 }

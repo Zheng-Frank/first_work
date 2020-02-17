@@ -7,8 +7,8 @@
 
   <div *ngIf="isAccountant()" class="text-right mb-2">
     <div class="pb-2">
-      <button class="btn btn-primary" (click)="showInvoiceAnual = !showInvoiceAnual;" ><i class="fas fa-eye"></i> {{!showInvoiceAnual ? 'Show Anual Invoices': 'Show Invoices per Month'}}</button>
-      <button class="btn btn-primary" (click)="showInvoiceCreation = !showInvoiceCreation"><i class="fas fa-plus"></i> Create New Invoice</button>
+      <button class="btn btn-primary printPageButton" (click)="showInvoiceAnual = !showInvoiceAnual;" ><i class="fas fa-eye"></i> {{!showInvoiceAnual ? 'Show Anual Invoices': 'Show Invoices per Month'}}</button>
+      <button class="btn btn-primary printPageButton" (click)="showInvoiceCreation = !showInvoiceCreation"><i class="fas fa-plus"></i> Create New Invoice</button>
     </div>
   </div>
 
