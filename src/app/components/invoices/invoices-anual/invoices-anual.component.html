@@ -3,14 +3,25 @@
   <h3 class="text-center">QMENU ANUAL INVOICES</h3>
   <button class="btn btn-small btn-info printPageButton" (click)="downloadPdf()"><i class="fas fa-pdf"></i> Download PDF</button>
 
+  <!-- communication channels -->
+  <!-- <ng-container *ngFor="let channel of invoiceChannels">
+    <div>
+      <b>{{channel.type}}</b>
+      <span *ngIf="channel.type === 'Email'"> {{channel.value}}</span>
+      <span *ngIf="channel.type !== 'Email'"> {{channel.value | tel}}</span>
+      <ng-container *ngFor="let type of ['SMS', 'Email', 'Fax']">
+        <button *ngIf="channel.type === type" class="btn btn-primary btn-sm mb-2" (click)="sendInvoice(channel)"
+          [qLoading]="apiRequesting === type">{{invoice.isSent ? 'Resend ' + type : 'Send ' + type}}</button>
+      </ng-container>
+
+    </div>
+  </ng-container> 
+  -->
+
 
   <div *ngFor='let statement of statements' class="mt-4">
 
-
     <div *ngIf='statement.fromDate !== null && statement.toDate !== null'>
-
-
-
 
       <h6 class="text-center">Date Range: {{statement.fromDate | date: 'MMM dd yyyy'}} -
         {{statement.toDate | date: 'MMM dd yyyy'}}</h6>
@@ -234,30 +245,11 @@
         </table>
       </div>
 
-      <h3 class="text-center">Valid Orders ({{statement.validOrdersCount}})</h3>
-
-      <!-- Dont show canceled orders -->
-      <!-- 
-      <div *ngFor='let invoice of invoices'>
-        <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders ({{invoice.orders.length - statement.validOrdersCount}}) are crossed, ignored, and NOT calculated.</div>
-      </div> 
-      -->
-
-
-      <div>
-        Keys: &#9632;<span class="text-light bg-dark"> Invoice Sent</span> | <span class="text-info">&#9632; Payment
-          Sent</span> | <span class="text-success">&#9632; Payment Completed</span>
-        <div class="checkbox d-inline ml-4">
-          <label><input type="checkbox" [(ngModel)]="showCanceled"> Show canceled invoices</label>
-        </div>
-      </div>
-
       <td class="table table-hover">
         <thead>
           <tr>
             <th>Date Range</th>
-            <th>Rolled From</th>
-            <!-- <th class="text-right">Subtotal</th> -->
+            <th class="text-right">Subtotal</th>
             <!--<th>Tax</th>
             <th>Delivery</th>
             <th>Tip</th>-->
@@ -273,10 +265,7 @@
           <tr *ngFor="let invoice of getFilteredInvoices(statement.year)" routerLink="/invoices/{{invoice._id}}"
             class="{{getCssClass(invoice)}} {{invoice.isCanceled ?  'canceled' : ''}}" role="button">
             <td>{{invoice.fromDate | date: 'MMM dd yyyy'}} - {{invoice.toDate | date: 'MMM dd yyyy'}}</td>
-            <td><small
-                *ngIf="getPreviousInvoice(invoice)">{{getPreviousInvoice(invoice).fromDate | date: 'MMM dd yyyy'}} -
-                {{getPreviousInvoice(invoice).toDate | date: 'MMM dd yyyy'}}</small></td>
-            <!-- <td class="text-right">{{invoice.subtotal | currency:'USD':'symbol'}}</td> -->
+            <td class="text-right">{{invoice.subtotal | currency:'USD':'symbol'}}</td>
             <!--<td class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</td>
             <td class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</td>
             <td class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</td>-->

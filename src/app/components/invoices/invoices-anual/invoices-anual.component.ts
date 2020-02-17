@@ -2,6 +2,8 @@ import { Component, OnInit, Input } from '@angular/core';
 import { Invoice } from 'src/app/classes/invoice';
 import { Order } from '@qmenu/ui';
 import { state } from '@angular/animations';
+import { ApiService } from 'src/app/services/api.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-invoices-anual',
@@ -13,6 +15,7 @@ export class InvoicesAnualComponent implements OnInit {
   @Input() invoices: Invoice[] = [];
 
   showCanceled = false;
+  invoiceChannels = [];
 
   statements = [{
     year: 0,
@@ -45,9 +48,25 @@ export class InvoicesAnualComponent implements OnInit {
     toDate: null
   }];
 
-  constructor() { }
+  constructor(private _api: ApiService) { }
 
   async ngOnInit() {
+
+    // Retrieve restaurant channels by getting the restaurant id of the first invoice ever
+    if(this.invoices[0]) {
+      this.invoiceChannels = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          _id: { $oid: this.invoices[0].restaurant.id }
+        },
+        projection: {
+          channels: 1
+        },
+        limit: 1
+      }).toPromise();
+    } 
+    
 
     // Unique years
     const years = [...new Set(this.invoices.map(invoice => invoice.fromDate.getFullYear()))];
@@ -125,7 +144,9 @@ export class InvoicesAnualComponent implements OnInit {
 
     });
 
-    console.log(this.statements);
+    // Filter since only previous year needed
+    const previousYear = new Date().getFullYear() - 1;
+    this.statements = this.statements.filter(statement => statement.year === previousYear);
   }
 
   getRestaurantTime(time, invoice): Date {
