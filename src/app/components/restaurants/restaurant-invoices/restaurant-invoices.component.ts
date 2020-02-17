@@ -24,9 +24,12 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
   invoices: Invoice[] = [];
 
   showInvoiceCreation = false;
+  showInvoiceAnual = false;
   invoiceFromDate = null;
   invoiceToDate = null;
   invoiceCreationError = null;
+
+  isLoadingAnualInvoices = false;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
 
@@ -60,7 +63,22 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
           isPaymentSent: 1,
           isSent: 1,
           previousInvoiceId: 1,
-          previousBalance: 1
+          previousBalance: 1,
+
+          tax: 1,
+          tip: 1,
+          deliveryCharge: 1,
+          surcharge: 1,
+          'restaurant.name': 1,
+          'restaurant.address.apt': 1,
+          'restaurant.address.formatted_address': 1,
+          'restaurant.phone': 1,
+          orders: 1,
+          ccProcessingFee: 1,
+          stripeFee: 1,
+          thirdPartyDeliveryCharge: 1,
+          thirdPartyDeliveryTip: 1,
+
         },
         limit: 1000,
         sort: {
@@ -84,7 +102,10 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
 
   }
   isAccountant(){
-    return this._global.user.roles.some(r => r ==='ACCOUNTANT');
+    // return this._global.user.roles.some(r => r ==='ACCOUNTANT');
+
+    // TODO: Remove the folling line and uncomment above line when pushing code
+    return true;
   }
 
 }

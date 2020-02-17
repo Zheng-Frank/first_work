@@ -158,6 +158,7 @@ import { RestaurantWebTemplateComponent } from './components/restaurants/restaur
 import { BasicTplComponent } from './components/restaurants/templates/basic-tpl/basic-tpl.component';
 import { MonitoringScriptComponent } from './components/monitoring/monitoring-script/monitoring-script.component';
 import { CrawlTemplateService } from './services/crawl-template.service';
+import { InvoicesAnualComponent } from './components/invoices/invoices-anual/invoices-anual.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -298,6 +299,7 @@ import { CrawlTemplateService } from './services/crawl-template.service';
 
     BasicTplComponent,
     RestaurantWebTemplateComponent,
+    InvoicesAnualComponent,
 
 
 

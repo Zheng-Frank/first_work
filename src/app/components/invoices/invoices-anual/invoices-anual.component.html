@@ -1,0 +1,298 @@
+<div class="container">
+
+  <h3 class="text-center">QMENU ANUAL INVOICES</h3>
+
+  <div *ngFor='let statement of statements'>
+
+    <h4 class="text-center">{{statement.year}}</h4>
+
+    <!-- <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6" [innerHTML]="invoice.paymentInstructions"></div> -->
+
+    <table class="table table-bordered">
+      <tr>
+        <td class="w-50">
+          <div>From</div>
+
+          <h3 class="pt-1">qMenu, Inc.</h3>
+          <p>
+            7778 McGinnis Ferry Rd, Suite 276
+            <br> Suwanee, GA 30024
+            <br> Tel: 404-382-9768
+          </p>
+        </td>
+        <td>
+          <div>To</div>
+
+          <h3 class="pt-1">{{statement.restaurant.name}}</h3>
+          <p>
+            <span *ngIf="statement.restaurant.address.apt">
+              {{statement.restaurant.address.apt}}<br>
+            </span>
+            {{statement.restaurant.address.formattedAddress}}
+            <br>
+            <span *ngIf="statement.restaurant.phone">
+              Tel: {{statement.restaurant.phone | tel}}
+            </span>
+          </p>
+        </td>
+
+      </tr>
+    </table>
+
+    <h3 class="pt-1 text-center" *ngIf="statement.balance >= 0">Balance Due:
+      {{statement.balance | currency:'USD':'symbol' }}</h3>
+    <h3 class="pt-1 text-center" *ngIf="statement.balance < 0 ">Credit:
+      {{-statement.balance | currency:'USD':'symbol' }}</h3>
+
+
+    <div class="row">
+      <div class="col-6">
+        <table class="table">
+
+          <!-- invoice.previousInvoiceId and invoice.getPreviousPayments() Not needed in anual statement -->
+
+
+          <tr>
+            <th>Orders Subtotal</th>
+            <td class="text-right">{{statement.subtotal | currency:'USD':'symbol'}}</td>
+          </tr>
+
+          <tr>
+            <th>Tax</th>
+            <td class="text-right">{{statement.tax | currency:'USD':'symbol'}}</td>
+          </tr>
+
+          <tr>
+            <th>Delivery</th>
+            <td class="text-right">{{statement.delivery | currency:'USD':'symbol'}}</td>
+          </tr>
+
+          <tr>
+            <th>Tip</th>
+            <td class="text-right">{{statement.tip | currency:'USD':'symbol'}}</td>
+          </tr>
+
+          <tr *ngIf="statement.ccProcessingFee">
+            <th>CC Fee Collected</th>
+            <td class="text-right">{{statement.ccProcessingFee | currency:'USD':'symbol'}}</td>
+          </tr>
+
+          <tr *ngIf="statement.surcharge > 0">
+            <th>Surcharges</th>
+            <td class="text-right">{{statement.surcharge | currency:'USD':'symbol'}}</td>
+          </tr>
+
+          <tr>
+            <th>Order Total</th>
+            <td class="text-right">
+              <strong>{{statement.total| currency:'USD':'symbol'}}</strong>
+            </td>
+          </tr>
+
+          <tr>
+            <td colspan="2" style="font-size: 60%">
+              Order Total = Restaurant Collected + qMenu CC Collected
+            </td>
+          </tr>
+
+        </table>
+      </div>
+
+      <div class="col-6">
+
+        <table class="table">
+
+          <tr>
+            <th>Restaurant Collected</th>
+            <td class="text-right">{{statement.restaurantCollected | currency:'USD':'symbol'}}
+            </td>
+          </tr>
+
+          <tr>
+            <th>qMenu CC Collected</th>
+            <td class="text-right">{{statement.qmenuCcCollected | currency:'USD':'symbol'}}</td>
+          </tr>
+
+          <tr>
+            <th>CC Processing Fee</th>
+            <td class="text-right">{{statement.stripeFee | currency:'USD':'symbol'}}</td>
+          </tr>
+
+          <!-- Only show commission total since commision scheme can vary during the year -->
+          <!-- 0 = rate, 1 fixed  -->
+          <tr>
+            <td>
+              <b>Commission</b>
+              <span *ngIf="statement.commissionScheme === 1">
+                <span *ngIf="statement.commissionScheme[0][0]">{{statement.commissionScheme[0][0] | percentage }}</span>
+                <span *ngIf="statement.commissionScheme[0][0] && statement.commissionScheme[0][1]">+</span>
+                <span
+                  *ngIf="statement.commissionScheme[0][1]">{{statement.commissionScheme[0][1] | currency:'USD':'symbol' }}</span>
+              </span>
+            </td>
+            <td class="text-right">{{statement.commission | currency:'USD':'symbol' }}</td>
+          </tr>
+
+          <tr *ngIf="statement.adjustment !== 0">
+            <th>
+              Adjustments
+            </th>
+
+            <td class="text-right" *ngIf="statement.adjustment >= 0">(credit)
+              {{statement.adjustment | currency:'USD':'symbol' }}</td>
+            <td class="text-right" *ngIf="statement.adjustment < 0">(debit)
+              {{-statement.adjustment | currency:'USD':'symbol' }}</td>
+          </tr>
+
+
+          <ng-container *ngIf="statement.thirdPartyDeliveryCharge > 0 || statement.thirdPartyDeliveryTip > 0">
+            <tr>
+              <th>
+                Pay TME Delivery Fee
+              </th>
+              <td class="text-right">{{statement.thirdPartyDeliveryCharge | currency:'USD':'symbol' }}</td>
+            </tr>
+
+            <tr>
+              <th>
+                Pay TME Delivery Tip (CC)
+              </th>
+              <td class="text-right">{{statement.thirdPartyDeliveryTip | currency:'USD':'symbol'}}</td>
+            </tr>
+
+            <tr>
+              <th>
+                Pay TME Total
+              </th>
+              <th class="text-right">
+                {{statement.thirdPartyDeliveryCharge + statement.thirdPartyDeliveryTip | currency:'USD':'symbol'}}
+              </th>
+            </tr>
+          </ng-container>
+
+
+          <tr *ngIf="statement.balance >= 0">
+            <th>
+              <h4>Pay qMenu</h4>
+            </th>
+            <th class="text-right">{{statement.balance | currency:'USD':'symbol' }}</th>
+          </tr>
+
+          <tr *ngIf="statement.balance < 0 ">
+            <th>
+              <h4>Pay Restaurant</h4>
+            </th>
+            <th class="text-right">{{-statement.balance | currency:'USD':'symbol' }}</th>
+          </tr>
+
+        </table>
+      </div>
+    </div>
+
+
+    <!--adjustments section-->
+    <div *ngFor='let invoice of invoices'>
+      <div *ngIf="invoice.adjustments && invoice.adjustments.length > 0">
+        <h3 class="text-center">Adjustments</h3>
+        <table class="table">
+          <tr *ngFor="let adjustment of invoice.adjustments">
+            <td *ngIf="adjustment.amount >= 0">{{adjustment.amount | currency:'USD':'symbol' }} (credit)</td>
+            <td *ngIf="adjustment.amount < 0">{{-adjustment.amount | currency:'USD':'symbol' }} (debit)</td>
+            <th>{{adjustment.name}}</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+
+    <!--adjustments section-->
+    <div>
+      <h3 class="text-center">Your Sales Tax</h3>
+      <table class="table table-bordered">
+        <tr>
+          <td>
+            <div>
+              The taxes for the orders listed below is
+              <strong>{{statement.tax | currency:'USD':'symbol'}}</strong>. qMenu does not hold any amount of the
+              taxes. As part
+              of your normal periodic tax return filing, it is your responsibility to pay
+              <strong>{{statement.tax | currency:'USD':'symbol'}}</strong> to the proper taxing authority for such
+              orders.
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h3 class="text-center">Valid Orders ({{statement.validOrdersCount}})</h3>
+
+    <div *ngFor='let invoice of invoices'>
+      <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders
+        ({{invoice.orders.length - statement.validOrdersCount}}) are crossed, ignored, and NOT calculated.</div>
+    </div>
+
+
+
+
+    <div *ngFor='let invoice of invoices'> 
+      <table class="table app-scaled-table">
+        <tr>
+          <th>Date Time</th>
+          <th>Order#</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Payment</th>
+          <th>Collector</th>
+          <th class="text-right">Subtotal</th>
+          <th class="text-right">Tax</th>
+          <th class="text-right">Delivery</th>
+          <th class="text-right">Tip</th>
+          <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">CC Fee</th>
+          <th class="text-right" *ngIf="invoice.getSurcharge() > 0">{{invoice.getSurchargeName()}}</th>
+          <th class="text-right">Total</th>
+        </tr>
+    
+        <tr *ngFor="let order of invoice.orders" [ngClass]="{'canceled' : order.canceled}">
+          <td style="white-space: nowrap">{{getRestaurantTime(order.createdAt, invoice) | date: 'short'}}</td>
+          <td>{{order.orderNumber}}</td>
+          <td>{{order.customer}}</td>
+          <td>{{order.type}}</td>
+          <td>{{order.paymentType}}</td>
+          <td>{{order.payee}}</td>
+          <td class="text-right">{{order.subtotal | currency:'USD':'symbol' }}</td>
+          <td class="text-right">{{order.tax | currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="order.deliveryCharge">{{order.deliveryCharge | currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="!order.deliveryCharge"></td>
+          <td class="text-right" *ngIf="order.tip">{{order.tip | currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="!order.tip"></td>
+          <td class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">
+            <span *ngIf="order.ccProcessingFee">{{order.ccProcessingFee | currency:'USD':'symbol' }}</span>
+          </td>
+          <td class="text-right" *ngIf="invoice.getSurcharge() > 0">
+            <span *ngIf="order.surchargeAmount">
+              {{order.surchargeAmount | currency:'USD':'symbol' }}
+            </span>
+          </td>
+          <td class="text-right">{{order.total | currency:'USD':'symbol' }}</td>
+        </tr>
+        
+        <tr>
+          <th class="text-right" colspan="6">Sum</th>
+          <th class="text-right">{{invoice.getSubtotal() | currency:'USD':'symbol'}}</th>
+          <th class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</th>
+          <th class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</th>
+          <th class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</th>
+          <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">{{invoice.getCcProcessingFee() | currency:'USD':'symbol'}}</th>
+          <th class="text-right" *ngIf="invoice.getSurcharge() > 0">{{invoice.getSurcharge() | currency:'USD':'symbol'}}</th>
+          <th class="text-right">{{invoice.getTotal() | currency:'USD':'symbol'}}</th>
+        </tr>
+      </table>
+    </div>
+
+
+    
+
+
+  </div>
+
+</div>
