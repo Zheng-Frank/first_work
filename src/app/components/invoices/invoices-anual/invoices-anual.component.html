@@ -105,7 +105,7 @@
             <tr>
               <th>Order Total</th>
               <td class="text-right">
-                <strong>{{statement.total| currency:'USD':'symbol'}}</strong>
+                <strong>{{statement.total | currency:'USD':'symbol'}}</strong>
               </td>
             </tr>
 
@@ -277,10 +277,22 @@
             <td class="text-right">{{invoice.balance | currency:'USD':'symbol'}}</td>
             <!--<td class="text-right">{{order.total | currency:'USD':'symbol'}}</td>-->
           </tr>
+
+          <tr>
+            <th class="text-right" colspan="1">Sum</th>
+            <th class="text-right">{{statement.subtotal | currency:'USD':'symbol'}}</th>
+            <th class="text-right">{{statement.total | currency:'USD':'symbol'}}</th>
+            <th class="text-right">{{statement.restaurantCollected | currency:'USD':'symbol'}}</th>
+            <th class="text-right">{{statement.qmenuCcCollected | currency:'USD':'symbol'}}</th>
+            <th class="text-right">{{statement.commission | currency:'USD':'symbol'}}</th>
+            <th class="text-right">{{statement.balance | currency:'USD':'symbol'}}</th>
+            
+          </tr>
+    
         </tbody>
       </td>
 
-
+     
 
 
     </div>
