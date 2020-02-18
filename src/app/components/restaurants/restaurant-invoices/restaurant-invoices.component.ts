@@ -73,7 +73,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
           'restaurant.address.apt': 1,
           'restaurant.address.formatted_address': 1,
           'restaurant.phone': 1,
-          orders: 1,
+          //orders: 1,
           ccProcessingFee: 1,
           stripeFee: 1,
           thirdPartyDeliveryCharge: 1,
