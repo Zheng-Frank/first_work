@@ -14,7 +14,12 @@ export class EventDashboardComponent implements OnInit {
   apiRequesting = false;
 
   currentAction;
-  eventJsonString = JSON.stringify({ name: 'fake event' });
+  eventJsonString = JSON.stringify(
+    {
+      queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`,
+      event: { name: "test", params: { a: 1 }, scheduledAt: new Date().valueOf() }
+    }
+  );
   now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.reload();
@@ -27,8 +32,8 @@ export class EventDashboardComponent implements OnInit {
     this.apiRequesting = true;
     try {
       const event = JSON.parse(this.eventJsonString);
-      if (!event.name) {
-        throw "Name is required"
+      if (!event.queueUrl || !event.event || !event.event.name) {
+        throw "Bad payload";
       }
       const result = await this._api.post(environment.appApiUrl + 'events', [event]).toPromise();
       this._global.publishAlert(AlertType.Success, "Success");
@@ -49,20 +54,16 @@ export class EventDashboardComponent implements OnInit {
     }).toPromise();
 
     this.listeners.map(listener => {
-      listener.subscribers.map(subscriber => {
-        subscriber.succeededLogs = [];
-        subscriber.failedLogs = [];
-      });
       listener.createdAt = listener.createdAt || parseInt(listener._id.substring(0, 8), 16) * 1000;
     });
 
     console.log(this.listeners);
 
-    // fill up logs
-    const subscriberLogs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-      resource: "subscriber-log",
+    // fill up executions
+    const executions = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "execution",
       projection: {
-        "listener._id": 1,
+        listenerId: 1,
         subscriber: 1,
         startedAt: 1,
         endedAt: 1,
@@ -76,42 +77,40 @@ export class EventDashboardComponent implements OnInit {
     }, 3000);
     this.listeners.map(listener => {
       listener.subscribers.map(subscriber => {
-        const subscriberString = JSON.stringify({
-          type: subscriber.name,
-          value: subscriber.value,
-          params: subscriber.params
-        });
+        const subscriberString = JSON.stringify(subscriber);
 
-        subscriberLogs.map(log => {
-          const logSubscriberString = JSON.stringify({
-            type: log.subscriber.name,
-            value: log.subscriber.value,
-            params: log.subscriber.params
-          });
-
-          if (log.listener._id === listener._id && subscriberString === logSubscriberString) {
-            if (log.error) {
-              subscriber.failedLogs.push(log);
+        const succeededExecutions = [];
+        const failedExecutions = [];
+        executions.map(exe => {
+          const exeSubscriberString = JSON.stringify(exe.subscriber);
+          console.log(exeSubscriberString, ' vs ', subscriberString);
+          if (exe.listenerId === listener._id && subscriberString === exeSubscriberString) {
+            if (exe.error) {
+              failedExecutions.push(exe);
             } else {
-              subscriber.succeededLogs.push(log);
+              succeededExecutions.push(exe);
             }
           }
         });
-        subscriber.lastRunTime = (subscriber.succeededLogs.slice(-1)[0] || {}).startedAt;
 
+        subscriber.succeededExecutions = succeededExecutions;
+        subscriber.failedExecutions = failedExecutions;
+        subscriber.lastRunTime = (succeededExecutions.slice(-1)[0] || {}).startedAt;
         console.log(subscriber.lastRunTime);
       });
+
+
     });
 
-    console.log(subscriberLogs);
+    console.log(executions);
     this.now = new Date();
   }
 
-  consoleOut(logs) {
-    console.log(logs);
+  consoleOut(executions) {
+    console.log(executions);
     console.log('last 20:');
-    console.log(logs.slice(-20).map(log => (log.params || {}).name));
-    alert("Check console for logs");
+    console.log(executions.slice(-20).map(exe => (exe.params || {}).name));
+    alert("Check console for executions");
   }
 
 }

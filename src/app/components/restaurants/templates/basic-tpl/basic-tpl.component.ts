@@ -107,7 +107,7 @@ export class BasicTplComponent implements OnInit {
 
       // --- Invalidate domain
       const result = await this._api.post(environment.appApiUrl + 'events',
-      [{ name: 'invalidate-domain', params: { domain: domain } }]
+        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
       ).toPromise();
 
       console.log('updateLinks() nvalidation result:', result);
@@ -227,12 +227,12 @@ export class BasicTplComponent implements OnInit {
         restaurantId
       }).toPromise();
 
-       // --- Invalidate domain
-       const result = await this._api.post(environment.appApiUrl + 'events',
-       [{ name: 'invalidate-domain', params: { domain: domain } }]
-       ).toPromise();
+      // --- Invalidate domain
+      const result = await this._api.post(environment.appApiUrl + 'events',
+        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
+      ).toPromise();
 
-       console.log('uploadHeaderImage() nvalidation result:', result);
+      console.log('uploadHeaderImage() nvalidation result:', result);
 
       this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS succesfuly');
 
@@ -280,7 +280,7 @@ export class BasicTplComponent implements OnInit {
 
       // --- Invalidate domain
       const result = await this._api.post(environment.appApiUrl + 'events',
-      [{ name: 'invalidate-domain', params: { domain: domain } }]
+        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
       ).toPromise();
 
       console.log('deleteHeaderSliderImage() nvalidation result:', result);
@@ -344,7 +344,7 @@ export class BasicTplComponent implements OnInit {
 
       // --- Invalidate domain
       const result = await this._api.post(environment.appApiUrl + 'events',
-      [{ name: 'invalidate-domain', params: { domain: domain } }]
+        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
       ).toPromise();
 
       console.log('uploadSpecialtyImage() nvalidation result:', result);
@@ -401,7 +401,7 @@ export class BasicTplComponent implements OnInit {
 
       // --- Invalidate domain
       const result = await this._api.post(environment.appApiUrl + 'events',
-      [{ name: 'invalidate-domain', params: { domain: domain } }]
+        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
       ).toPromise();
 
       console.log('uploadPromoImage() nvalidation result:', result);
@@ -438,7 +438,7 @@ export class BasicTplComponent implements OnInit {
 
       // --- Invalidate domain
       const result = await this._api.post(environment.appApiUrl + 'events',
-      [{ name: 'invalidate-domain', params: { domain: domain } }]
+        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
       ).toPromise();
 
       console.log('republishToAWS() nvalidation result:', result);

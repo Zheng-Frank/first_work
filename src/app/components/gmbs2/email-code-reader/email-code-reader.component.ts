@@ -169,10 +169,10 @@ export class EmailCodeReaderComponent implements OnInit {
         restaurantId: this.restaurant._id
       }).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success');
-      
+
       //Invalidate the domain cloudfront
-      try {  
-        const result = await this._api.post(environment.appApiUrl + 'events', [{name: "invalidate-domain", params: {domain: domain}}]).toPromise();
+      try {
+        const result = await this._api.post(environment.appApiUrl + 'events', [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: "invalidate-domain", params: { domain: domain } } }]).toPromise();
       } catch (error) {
         this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
       }
