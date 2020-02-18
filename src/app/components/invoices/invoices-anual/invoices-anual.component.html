@@ -4,19 +4,18 @@
   <button class="btn btn-small btn-info printPageButton" (click)="downloadPdf()"><i class="fas fa-pdf"></i> Download PDF</button>
 
   <!-- communication channels -->
-  <!-- <ng-container *ngFor="let channel of invoiceChannels">
+  <ng-container *ngFor="let channel of invoiceChannels">
     <div>
       <b>{{channel.type}}</b>
       <span *ngIf="channel.type === 'Email'"> {{channel.value}}</span>
       <span *ngIf="channel.type !== 'Email'"> {{channel.value | tel}}</span>
       <ng-container *ngFor="let type of ['SMS', 'Email', 'Fax']">
-        <button *ngIf="channel.type === type" class="btn btn-primary btn-sm mb-2" (click)="sendInvoice(channel)"
-          [qLoading]="apiRequesting === type">{{invoice.isSent ? 'Resend ' + type : 'Send ' + type}}</button>
+        <button *ngIf="channel.type === type" class="btn btn-primary btn-sm mb-2" (click)="sendInvoice(channel)" [qLoading]="apiRequesting === type">{{'Send ' + type}}</button>
       </ng-container>
 
     </div>
   </ng-container> 
-  -->
+ 
 
 
   <div *ngFor='let statement of statements' class="mt-4">

@@ -4,11 +4,17 @@ import { Order } from '@qmenu/ui';
 import { state } from '@angular/animations';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
+import { mergeMap, observeOn } from 'rxjs/operators';
+import { Channel } from 'src/app/classes/channel';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { AlertType } from 'src/app/classes/alert-type';
+import { GlobalService } from 'src/app/services/global.service';
 
 @Component({
   selector: 'app-invoices-anual',
   templateUrl: './invoices-anual.component.html',
-  styleUrls: ['./invoices-anual.component.css']
+  styleUrls: ['./invoices-anual.component.css'],
+  providers: [CurrencyPipe, DatePipe]
 })
 export class InvoicesAnualComponent implements OnInit {
 
@@ -16,6 +22,7 @@ export class InvoicesAnualComponent implements OnInit {
 
   showCanceled = false;
   invoiceChannels = [];
+  apiRequesting: 'Fax' | 'SMS' | 'Email' | 'Phone';
 
   statements = [{
     year: 0,
@@ -48,32 +55,34 @@ export class InvoicesAnualComponent implements OnInit {
     toDate: null
   }];
 
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
 
   async ngOnInit() {
 
     // Retrieve restaurant channels by getting the restaurant id of the first invoice ever
-    if(this.invoices[0]) {
-      this.invoiceChannels = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: {
-          _id: { $oid: this.invoices[0].restaurant.id }
-        },
-        projection: {
-          channels: 1
-        },
-        limit: 1
-      }).toPromise();
-    } 
-    
+    if (this.invoices[0]) {
+      const restaurants = await this._api
+        .get(environment.qmenuApiUrl + "generic", {
+          resource: "restaurant",
+          query: {
+            _id: { $oid: this.invoices[0].restaurant.id }
+          },
+          projection: {
+            channels: 1
+          },
+          limit: 1
+        }).toPromise();
+
+      this.invoiceChannels = (restaurants[0].channels || []).filter(c => c.notifications && c.notifications.indexOf('Invoice') >= 0);
+    }
+
 
     // Unique years
     const years = [...new Set(this.invoices.map(invoice => invoice.fromDate.getFullYear()))];
 
-     // Start filling in the statements object
+    // Start filling in the statements object
     this.statements = years.map(year => {
-      return { 
+      return {
         year,
         restaurant: {
           name: '',
@@ -108,7 +117,7 @@ export class InvoicesAnualComponent implements OnInit {
 
     // Compute
     this.statements.map((statementAcc, index) => {
-    // --- Assume all invoices during the year have the same restaurant, picks first invoice's rt info
+      // --- Assume all invoices during the year have the same restaurant, picks first invoice's rt info
       this.statements[index].restaurant.name = this.invoices[0].restaurant.name;
       this.statements[index].restaurant.address.apt = this.invoices[0].restaurant.address.apt || '';
       this.statements[index].restaurant.address.formattedAddress = this.invoices[0].restaurant.address.formatted_address.replace(', USA', '');
@@ -117,10 +126,10 @@ export class InvoicesAnualComponent implements OnInit {
       this.statements[index].subtotal = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((subtotalAcc, invoice) => subtotalAcc + invoice.subtotal, 0);
       this.statements[index].tax = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((taxAcc, invoice) => taxAcc + invoice.tax, 0);
       this.statements[index].delivery = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((deliveryAcc, invoice) => deliveryAcc + invoice.deliveryCharge, 0);
-      this.statements[index].tip = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((tipAcc, invoice) => tipAcc + invoice.tip, 0);     
+      this.statements[index].tip = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((tipAcc, invoice) => tipAcc + invoice.tip, 0);
       this.statements[index].total = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((totalAcc, invoice) => totalAcc + invoice.total, 0);
       this.statements[index].balance = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((balanceAcc, invoice) => balanceAcc + invoice.balance, 0);
-      
+
       this.statements[index].restaurantCollected = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((restaurantCollectedAcc, invoice) => restaurantCollectedAcc + invoice.cashCollected + invoice.restaurantCcCollected, 0);
       this.statements[index].qmenuCcCollected = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((qmenuCcCollectedAcc, invoice) => qmenuCcCollectedAcc + invoice.qMenuCcCollected, 0);
       this.statements[index].ccProcessingFee = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((ccProcessingFeeAcc, invoice) => ccProcessingFeeAcc + invoice.ccProcessingFee, 0);
@@ -133,7 +142,7 @@ export class InvoicesAnualComponent implements OnInit {
       this.statements[index].adjustment = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((adjustmentAcc, invoice) => adjustmentAcc + invoice.getAdjustment(), 0);
       this.statements[index].thirdPartyDeliveryCharge = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((thirdPartyDeliveryChargeAcc, invoice) => thirdPartyDeliveryChargeAcc + invoice.thirdPartyDeliveryCharge, 0);
       this.statements[index].thirdPartyDeliveryTip = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((thirdPartyDeliveryTipAcc, invoice) => thirdPartyDeliveryTipAcc + invoice.thirdPartyDeliveryTip, 0);
-      
+
       this.statements[index].validOrdersCount = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((validOrdersCountAcc, invoice) => validOrdersCountAcc + invoice.orders.filter(o => !o.canceled).length, 0);
 
       // Because sort is descending (-1)
@@ -173,6 +182,115 @@ export class InvoicesAnualComponent implements OnInit {
     } else {
       return (this.invoices || []).filter(i => !i.isCanceled && i.fromDate.getFullYear() == year);
     }
+  }
+
+  sendInvoice(channel: Channel) {
+    try {
+      this.apiRequesting = channel.type;
+
+      const [statement] = this.statements;
+      const [firstInvoice] = this.invoices;
+
+      if (statement && firstInvoice) {
+        const fakeId = 'anual-statement-' + new Date().getMilliseconds();
+
+        // we need to get shorten URL, mainly for SMS.
+        const url = environment.bizUrl + 'index.html#/invoice/' + (firstInvoice.id || firstInvoice['_id']);
+
+        this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
+          let message = 'QMENU INVOICE:';
+          message += '\nFrom ' + this.datePipe.transform(statement.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(statement.toDate, 'shortDate') + '. ';
+          // USE USD instead of $ because $ causes trouble for text :(
+          message += '\n' + (statement.balance > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(statement.balance), 'USD');
+          message += '\n' + shortUrl + ' .'; // add training space to make it clickable in imessage     
+          message += '\nThank you for your business!'
+
+          // we need to append '-' to end of $xxx.xx because of imessage bug
+          const matches = message.match(/\.\d\d/g);
+          matches.map(match => {
+            message = message.replace(match, match + '-');
+          });
+
+          switch (channel.type) {
+            case 'Fax':
+              return this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: channel.value, invoiceId: (firstInvoice.id || firstInvoice['_id']) });
+            case 'Email':
+              return this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: channel.value, invoiceId: (firstInvoice.id || firstInvoice['_id']) });
+            case 'SMS':
+              return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: channel.value, message: message });
+            default: break;
+          }
+
+        }))
+          .subscribe(
+            async result => {
+              this.apiRequesting = undefined;
+              this._global.publishAlert(AlertType.Success, channel.type + ' Send');
+            },
+            error => {
+              this.apiRequesting = undefined;
+              this._global.publishAlert(AlertType.Danger, "Error shortening URL");
+            }
+          );
+      }
+    } catch (error) {
+      console.log('Error in sending anual invoice', error);
+      this._global.publishAlert(AlertType.Danger, "Error in sending anual invoice");
+    }
+
+    // // we need to get shorten URL, mainly for SMS.
+    // const url = environment.bizUrl + 'index.html#/invoice/' + (this.invoice.id || this.invoice['_id']);
+    // // const url = environment.legacyApiUrl + 'utilities/invoice/' + (this.invoice.id || this.invoice['_id']);
+
+    // this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
+    //   let message = 'QMENU INVOICE:';
+    //   message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';
+    //   // USE USD instead of $ because $ causes trouble for text :(
+    //   message += '\n' + (this.invoice.getBalance() > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.getBalance()), 'USD');
+    //   message += '\n' + shortUrl + ' .'; // add training space to make it clickable in imessage     
+    //   // if (this.invoice.paymentInstructions) {
+    //   //   message += '\n' + this.invoice.paymentInstructions.replace(/\<br\>/g, '\n');
+    //   // }
+    //   message += '\nThank you for your business!'
+
+    //   // we need to append '-' to end of $xxx.xx because of imessage bug
+    //   const matches = message.match(/\.\d\d/g);
+    //   matches.map(match => {
+    //     message = message.replace(match, match + '-');
+    //   });
+
+    //   switch (channel.type) {
+    //     case 'Fax':
+    //       return this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
+    //     case 'Email':
+    //       return this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
+    //     case 'SMS':
+    //       return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: channel.value, message: message });
+    //     default: break;
+    //   }
+
+    // }))
+    //   .subscribe(
+    //     async result => {
+    //       this.apiRequesting = undefined;
+    //       this._global.publishAlert(AlertType.Success, channel.type + ' Send');
+    //       if (!this.invoice.isSent) {
+    //         this.setInvoiceStatus('isSent', true);
+    //       }
+    //       await this.addLog(
+    //         {
+    //           time: new Date(),
+    //           action: channel.type,
+    //           user: this._global.user.username,
+    //           value: channel.value
+    //         }
+    //       );
+    //     },
+    //     error => {
+    //       this.apiRequesting = undefined;
+    //       this._global.publishAlert(AlertType.Danger, "Error shortening URL");
+    //     }
+    //   );
   }
 
 }
