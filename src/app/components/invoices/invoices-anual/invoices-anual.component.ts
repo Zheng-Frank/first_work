@@ -238,59 +238,6 @@ export class InvoicesAnualComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, "Error in sending anual invoice");
     }
 
-    // // we need to get shorten URL, mainly for SMS.
-    // const url = environment.bizUrl + 'index.html#/invoice/' + (this.invoice.id || this.invoice['_id']);
-    // // const url = environment.legacyApiUrl + 'utilities/invoice/' + (this.invoice.id || this.invoice['_id']);
-
-    // this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
-    //   let message = 'QMENU INVOICE:';
-    //   message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';
-    //   // USE USD instead of $ because $ causes trouble for text :(
-    //   message += '\n' + (this.invoice.getBalance() > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.getBalance()), 'USD');
-    //   message += '\n' + shortUrl + ' .'; // add training space to make it clickable in imessage     
-    //   // if (this.invoice.paymentInstructions) {
-    //   //   message += '\n' + this.invoice.paymentInstructions.replace(/\<br\>/g, '\n');
-    //   // }
-    //   message += '\nThank you for your business!'
-
-    //   // we need to append '-' to end of $xxx.xx because of imessage bug
-    //   const matches = message.match(/\.\d\d/g);
-    //   matches.map(match => {
-    //     message = message.replace(match, match + '-');
-    //   });
-
-    //   switch (channel.type) {
-    //     case 'Fax':
-    //       return this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
-    //     case 'Email':
-    //       return this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
-    //     case 'SMS':
-    //       return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: channel.value, message: message });
-    //     default: break;
-    //   }
-
-    // }))
-    //   .subscribe(
-    //     async result => {
-    //       this.apiRequesting = undefined;
-    //       this._global.publishAlert(AlertType.Success, channel.type + ' Send');
-    //       if (!this.invoice.isSent) {
-    //         this.setInvoiceStatus('isSent', true);
-    //       }
-    //       await this.addLog(
-    //         {
-    //           time: new Date(),
-    //           action: channel.type,
-    //           user: this._global.user.username,
-    //           value: channel.value
-    //         }
-    //       );
-    //     },
-    //     error => {
-    //       this.apiRequesting = undefined;
-    //       this._global.publishAlert(AlertType.Danger, "Error shortening URL");
-    //     }
-    //   );
   }
 
 }
