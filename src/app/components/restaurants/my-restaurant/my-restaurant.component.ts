@@ -703,7 +703,10 @@ export class MyRestaurantComponent implements OnInit {
       row.notEarned = row.commission * row.notCollected;
 
       const invoiceRequiredCutoffDate = new Date('2019-09-11');
-      const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.length > 0;
+      const invoiceMustPayCutoffDate = new Date('2020-02-14');
+      // const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.length > 0;
+      const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.some(i => i.isPaymentCompleted) || (row.invoices.length > 0 && new Date(row.invoices[0].createdAt).valueOf() < invoiceMustPayCutoffDate.valueOf()); // 2/14/2020: has at least one completed payment
+
       row.invoiceCheckOk = invoiceCheckOk;
 
       row.qualifiedSalesBase = row.restaurant.gmbOrigin && (new Date(row.restaurant.gmbOrigin.time) < new Date('2020-01-15') || row.restaurant.gmbOrigin.origin === "sales") && row.invoiceCheckOk ? row.restaurant.salesBase : 0;

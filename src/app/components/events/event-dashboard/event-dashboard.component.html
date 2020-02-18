@@ -42,9 +42,9 @@
                         <pre>{{subscriber.params | json}}</pre>
                     </ng-container>
                     <div></div>
-                    <span class="badge badge-success" (click)="consoleOut(subscriber.succeededLogs)">Succeeded:
-                        {{subscriber.succeededLogs.length}}</span> <span class="badge badge-danger"
-                        (click)="consoleOut(subscriber.failedLogs)">Failed: {{subscriber.failedLogs.length}}</span>
+                    <span class="badge badge-success" (click)="consoleOut(subscriber.succeededExecutions)">Succeeded:
+                        {{subscriber.succeededExecutions.length}}</span> <span class="badge badge-danger"
+                        (click)="consoleOut(subscriber.failedExecutions)">Failed: {{subscriber.failedExecutions.length}}</span>
                     <br>
                     Last run: {{subscriber.lastRunTime | ago : now}}
                 </div>
