@@ -50,36 +50,40 @@ export class RestaurantGmbPostsComponent implements OnInit {
     const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
-        locations: { $exists: 1 }
+        locations: { $exists: 1 },
+        'locations.name': this.restaurant.name,
+        'locations.status': 'Published',
       },
       projection: {
         email: 1,
         "locations.name": 1,
         "locations.locationName": 1,
-        "locations.place_id": 1,
+        "locations.place_id": 1
       },
-      limit: 6000
+      limit: 1000
     }).toPromise();
+
+    // console.log(gmbAccounts);
 
     let matchingAccounts = [];
 
     for (const account of gmbAccounts) {
-      const result = account.locations.filter(loc => {
-          return loc.name === this.restaurant.name && loc.place_id === this.restaurant.googleAddress.place_id;
-      });
+      const result = account.locations.filter(loc => loc.name === this.restaurant.name && loc.place_id === this.restaurant.googleAddress.place_id);
 
       if (result.length > 0) {
         matchingAccounts.push(account);
       }
     }
 
+    console.log(matchingAccounts);
+
     if (matchingAccounts.length > 0) {
       const account = matchingAccounts[Math.floor(Math.random() * matchingAccounts.length)];
-      const [location] = account.locations.filter(loc => (loc.name === this.restaurant.name) && (loc.status === 'Published'));
+      const location = account.locations.filter(loc => loc.name === this.restaurant.name)[0];
 
-      // console.log('Account:', account.email, 'Location:', location);
+      console.log('Account:', account.email, 'Location:', location);
 
-      if(account && location) {
+      if (account && location) {
         this.email = account.email;
         this.locationName = location.locationName;
 
