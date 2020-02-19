@@ -31,7 +31,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
 
   email;
   locationName;
-  
+
   // email = '07katiereagan02@gmail.com';
   // locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
 
@@ -64,7 +64,9 @@ export class RestaurantGmbPostsComponent implements OnInit {
     let matchingAccounts = [];
 
     for (const account of gmbAccounts) {
-      const result = account.locations.filter(loc => loc.name === this.restaurant.name && loc.place_id === this.restaurant.googleAddress.place_id);
+      const result = account.locations.filter(loc => {
+          return loc.name === this.restaurant.name && loc.place_id === this.restaurant.googleAddress.place_id;
+      });
 
       if (result.length > 0) {
         matchingAccounts.push(account);
@@ -73,17 +75,22 @@ export class RestaurantGmbPostsComponent implements OnInit {
 
     if (matchingAccounts.length > 0) {
       const account = matchingAccounts[Math.floor(Math.random() * matchingAccounts.length)];
-      const [location] = account.locations.filter(loc => loc.name === this.restaurant.name && loc.status === 'Published');
+      const [location] = account.locations.filter(loc => (loc.name === this.restaurant.name) && (loc.status === 'Published'));
 
-      this.email = account.email;
-      this.locationName = location.locationName;
+      // console.log('Account:', account.email, 'Location:', location);
 
-      this.posts = await this._api.post(environment.gmbNgrok + 'gmb/post-list', {
-        email: account.email,
-        locationName: location.locationName
-      }).toPromise();
+      if(account && location) {
+        this.email = account.email;
+        this.locationName = location.locationName;
 
-      // console.log(this.posts);
+        this.posts = await this._api.post(environment.gmbNgrok + 'gmb/post-list', {
+          email: account.email,
+          locationName: location.locationName
+        }).toPromise();
+
+      } else {
+        console.log('no matching accounts');
+      }
     }
   }
 
@@ -123,6 +130,8 @@ export class RestaurantGmbPostsComponent implements OnInit {
         actionType: parseInt(this.actionType)
       }
     };
+
+    console.log(postData);
 
     try {
       const post = await this._api.post(environment.gmbNgrok + 'gmb/post', postData).toPromise();

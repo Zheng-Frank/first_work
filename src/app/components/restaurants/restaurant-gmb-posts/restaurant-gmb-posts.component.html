@@ -1,8 +1,14 @@
 <h1 class="text-center">Posts</h1>
-<p class="text-warning">Adding or Removing a post takes a while to take effect for it to show up in google searches.
+<p class="text-warning text-center">Adding or Removing a post takes a while to take effect for it to show up in google searches.
   Please Wait.</p>
 
-<button class="btn btn-primary" (click)="showAddPostModal()">+ Add Post</button>
+<div *ngIf='email && locationName'>
+  <button class="btn btn-primary" (click)="showAddPostModal()">+ Add Post</button>
+</div>
+
+<div *ngIf='!email || !locationName'>
+  <p class="text-danger text-center">There is no gmb email account assigned/handling this restaurant that also matches published restaurant's name. You will not be able to create posts for this restaurant.</p>
+</div>
 
 <div class="row">
   <div *ngFor="let post of posts.localPosts" class="mt-3 col-sm-12 col-md-6 col-lg-4 col-xl-3">
@@ -28,7 +34,7 @@
   <div *ngIf="uploadImageError">
     <span class="text-danger">{{uploadImageError}}</span>
   </div>
-  
+
   <div class=" pb-1">
     <input type="file" (change)="onUploadImageChange($event)">
   </div>
@@ -37,12 +43,12 @@
     <label>Insert summary here:</label>
     <textarea type="text" class="form-control" placeholder="Post summary here" [(ngModel)]="summary" rows='3'></textarea>
   </div>
-  
+
   <div>
     <label>Link To:</label>
     <input class="form-control" placeholder="Link to go when Action Type is clicked" [(ngModel)]="linkTo">
   </div>
-  
+
   <div>
     <label>Action Type:</label>
     <select [(ngModel)]="actionType" class="form-control">
@@ -55,7 +61,7 @@
       <option value="7">Call</option>
     </select>
   </div>
-  
+
   <div class="mt-2">
     <button class="btn btn-secondary q-btn" (click)="cancel()">Cancel</button>
     <button class="btn btn-primary" (click)="addPost()" [disabled]="!canPost()">Add Post</button>
