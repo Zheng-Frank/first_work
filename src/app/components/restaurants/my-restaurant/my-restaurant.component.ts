@@ -643,6 +643,7 @@ export class MyRestaurantComponent implements OnInit {
           previousInvoiceId: 1,
           adjustment: 1,
           transactionAdjustment: 1,
+          createdAt: 1,
           //previousBalance: 1
         },
         skip: skip,
@@ -703,9 +704,13 @@ export class MyRestaurantComponent implements OnInit {
       row.notEarned = row.commission * row.notCollected;
 
       const invoiceRequiredCutoffDate = new Date('2019-09-11');
-      const invoiceMustPayCutoffDate = new Date('2020-02-14');
-      // const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.length > 0;
-      const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.some(i => i.isPaymentCompleted) || (row.invoices.length > 0 && new Date(row.invoices[0].createdAt).valueOf() < invoiceMustPayCutoffDate.valueOf()); // 2/14/2020: has at least one completed payment
+      const invoiceMustPayCutoffDate = new Date('2020-02-19');
+      //const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.length > 0;
+      const veryOldRestaurant = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf();
+      const havingPaid = row.invoices.some(i => i.isPaymentCompleted);
+      const beforeMustPayOk = row.invoices.some(i => new Date(i.createdAt).valueOf() < invoiceMustPayCutoffDate.valueOf());
+
+      const invoiceCheckOk = veryOldRestaurant || havingPaid || beforeMustPayOk;
 
       row.invoiceCheckOk = invoiceCheckOk;
 
