@@ -48,7 +48,7 @@ export class TaskDashboardComponent {
   async toggleAction(action) {
     this.currentAction = this.currentAction === action ? null : action;
     if (action === 'ADD' && this.restaurantList.length === 0) {
-      this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
+      this.restaurantList = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {
           disabled: {
@@ -62,9 +62,8 @@ export class TaskDashboardComponent {
           channels: 1,
           score: 1,
           "googleAddress.formatted_address": 1
-        },
-        limit: 6000
-      }).toPromise();
+        }
+      },6000)
     }
   }
 

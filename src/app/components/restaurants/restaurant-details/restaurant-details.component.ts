@@ -30,7 +30,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     rateSchedules: ['RATE_EDITOR', 'MARKETER'],
-    paymentMeans: ['ACCOUNTANT', 'CSR'],
+    paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     promotions: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
