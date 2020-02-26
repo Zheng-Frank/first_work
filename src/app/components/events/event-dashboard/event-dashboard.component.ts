@@ -57,8 +57,6 @@ export class EventDashboardComponent implements OnInit {
       listener.createdAt = listener.createdAt || parseInt(listener._id.substring(0, 8), 16) * 1000;
     });
 
-    console.log(this.listeners);
-
     // fill up executions
     const executions = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "execution",
@@ -83,7 +81,6 @@ export class EventDashboardComponent implements OnInit {
         const failedExecutions = [];
         executions.map(exe => {
           const exeSubscriberString = JSON.stringify(exe.subscriber);
-          console.log(exeSubscriberString, ' vs ', subscriberString);
           if (exe.listenerId === listener._id && subscriberString === exeSubscriberString) {
             if (exe.error) {
               failedExecutions.push(exe);
@@ -96,20 +93,18 @@ export class EventDashboardComponent implements OnInit {
         subscriber.succeededExecutions = succeededExecutions;
         subscriber.failedExecutions = failedExecutions;
         subscriber.lastRunTime = (succeededExecutions.slice(-1)[0] || {}).startedAt;
-        console.log(subscriber.lastRunTime);
       });
 
 
     });
 
-    console.log(executions);
     this.now = new Date();
   }
 
   consoleOut(executions) {
     console.log(executions);
-    console.log('last 20:');
-    console.log(executions.slice(-20).map(exe => (exe.params || {}).name));
+    // console.log('last 20:');
+    // console.log(executions.slice(-20).map(exe => (exe.params || {}).name));
     alert("Check console for executions");
   }
 

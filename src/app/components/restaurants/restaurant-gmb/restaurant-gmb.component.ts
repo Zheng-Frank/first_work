@@ -89,7 +89,11 @@ export class RestaurantGmbComponent implements OnInit {
         },
         projection: {
           email: 1,
-          locations: 1,
+          locations: {
+            $elemMatch: {
+              "cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] }
+            },
+          },
           gmbScannedAt: 1,
           emailScannedAt: 1,
           password: 1
