@@ -267,6 +267,14 @@ export class RestaurantOrdersComponent implements OnInit {
     }
 
     const generatedBlacklist = {}; // value: item
+    for (let ip of customer.ips || []) {
+      generatedBlacklist[ip] = {
+        type: 'IP',
+        value: ip,
+        orders: customerOrders.map(order => getOrderSkeleton(order)),
+        reasons: reasons
+      };
+    }
     generatedBlacklist[customer._id] = {
       type: 'CUSTOMER',
       value: customer._id,
