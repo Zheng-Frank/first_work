@@ -1,7 +1,5 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { GmbAccount } from '../../../classes/gmb/gmb-account';
-import { FormEvent } from '@qmenu/ui';
-import { GmbBiz } from 'src/app/classes/gmb/gmb-biz';
 import { GlobalService } from 'src/app/services/global.service';
 
 @Component({
