@@ -324,7 +324,7 @@ export class RestaurantOrdersComponent implements OnInit {
     const existingBlackList = await this._api.get(`${environment.appApiUrl}app/blacklist?values=${encodeURIComponent(JSON.stringify(Object.keys(generatedBlacklist)))}`).toPromise();
     if (!reasons || reasons.length === 0) {
       // no reason is provided? disable them
-      const enabledExistingblacklist = existingBlackList.filter(b => !b.disable);
+      const enabledExistingblacklist = existingBlackList.filter(b => !b.disabled);
       for (let item of enabledExistingblacklist) {
         await this._api.patch(`${environment.appApiUrl}app`, {
           resource: 'blacklist',

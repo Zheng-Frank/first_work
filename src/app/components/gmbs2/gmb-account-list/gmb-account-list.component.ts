@@ -146,11 +146,11 @@ export class GmbAccountListComponent implements OnInit {
       let hoursAgo = 60 * 60 * 1000 * this.emailScanOlder;
       this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => (new Date().valueOf() - new Date(each.emailScannedAt).valueOf()) > hoursAgo)
     }
-    if(this.overSizeLocations){
+    if (this.overSizeLocations) {
       console.log(this.filteredGmbAccounts);
-      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => each.allLocations> 95);
+      this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => each.allLocations > 95);
     }
-    if(this.disabledAccount){
+    if (this.disabledAccount) {
       console.log(this.filteredGmbAccounts);
       this.filteredGmbAccounts = this.filteredGmbAccounts.filter(each => each.disabled);
     }
@@ -255,7 +255,13 @@ export class GmbAccountListComponent implements OnInit {
 
     const gmb = event.object;
     try {
-      const result = await this._gmb3.scanOneAccountForLocations(gmb.email, true);
+      await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "refresh-locations",
+        payload: {
+          "email": gmb.email
+        }
+      }).toPromise();
+
       this._global.publishAlert(AlertType.Success, "Success");
       this.populate();
       event.acknowledge(null);
@@ -268,9 +274,14 @@ export class GmbAccountListComponent implements OnInit {
 
   async scanRequests(event: FormEvent) {
     try {
-      let results: any = await this._gmb3.scanOneEmailForGmbRequests(event.object.email, true);
+      const results = await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "scan-ownership-requests",
+        payload: {
+          "email": event.object.email
+        }
+      }).toPromise();
       event.acknowledge(null);
-      this._global.publishAlert(AlertType.Success, 'Scanned ' + event.object.email + ', found: ' + results.length);
+      this._global.publishAlert(AlertType.Success, `Scanned ${event.object.email}, found ${results.length}`);
     }
     catch (error) {
       console.log(error);
