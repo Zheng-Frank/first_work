@@ -73,6 +73,7 @@ export class EventDashboardComponent implements OnInit {
       //   startedAt: -1
       // }
     }, 3000);
+    
     this.listeners.map(listener => {
       listener.subscribers.map(subscriber => {
         const subscriberString = JSON.stringify(subscriber);
