@@ -21,6 +21,11 @@ export class OrderDashboardComponent implements OnInit {
   qmenuDirectOrders = 0;
   httpsOrders = 0;
 
+  usaOrders;
+  canadaOrders;
+  usaPublished;
+  canadaPublished;
+
   start1;
   to1;
   start2;
@@ -145,6 +150,8 @@ export class OrderDashboardComponent implements OnInit {
           };
         });
         this.totalOrders = 0;
+        this.usaOrders = 0;
+        this.canadaOrders = 0;
         orders.map(o => {
           if (restaurantMap[o.restaurant]) {
             if (new Date(o.createdAt).valueOf() > this.start2.valueOf()) {
@@ -153,6 +160,16 @@ export class OrderDashboardComponent implements OnInit {
               if (o.runtime && o.runtime.standalone) {
                 restaurantMap[o.restaurant].standaloneOrders.push(o);
               }
+              const restaurant = restaurantMap[o.restaurant].restaurant;
+              const isCanada = restaurant.googleAddress.formatted_address.indexOf("Canada") > 0;
+              const isUsa = restaurant.googleAddress.formatted_address.indexOf("USA") > 0;
+              if (isCanada) {
+                this.canadaOrders = this.canadaOrders + 1
+              }
+              if (isUsa) {
+                this.usaOrders = this.usaOrders + 1
+              }
+
             } else {
               restaurantMap[o.restaurant].lastWeekOrders.push(o);
               this.lastWeekTotalOrders++;
@@ -166,6 +183,26 @@ export class OrderDashboardComponent implements OnInit {
           let diff2 = r2["orders"].length - r2["lastWeekOrders"].length;
           return diff1 - diff2;
         });
+
+
+
+        this.usaPublished = 0;
+        this.canadaPublished = 0;
+        this.rows.map(row => {
+
+          const restaurant = row.restaurant;
+          const isCanada = restaurant.googleAddress.formatted_address.indexOf("Canada") > 0;
+          const isUsa = restaurant.googleAddress.formatted_address.indexOf("USA") > 0;
+          const published = row.ownedGmb;
+          if (isCanada) {
+            this.canadaPublished = this.canadaPublished + (published ? 1 : 0);
+          }
+          if (isUsa) {
+            this.usaPublished = this.usaPublished + (published ? 1 : 0);
+          }
+        });
+
+
 
         this.restaurantsWithOrders = this.rows.filter(
           r => r["orders"].length > 0
@@ -216,6 +253,7 @@ export class OrderDashboardComponent implements OnInit {
         console.log('httpRows', httpRows);
 
 
+
         // stats of agents
         const agentDict = {};
         this.rows.map(row => {
@@ -260,7 +298,7 @@ export class OrderDashboardComponent implements OnInit {
       projection: {
         createdAt: 1
       },
-      limit: 30000,
+      limit: 60000,
       sort: { createdAt: -1 }
     })
       .subscribe(orders => {

@@ -43,8 +43,8 @@
                     </ng-container>
                     <div></div>
                     <span class="badge badge-success" (click)="consoleOut(subscriber.succeededExecutions)">Succeeded:
-                        {{subscriber.succeededExecutions.length}}</span> <span class="badge badge-danger"
-                        (click)="consoleOut(subscriber.failedExecutions)">Failed: {{subscriber.failedExecutions.length}}</span>
+                        {{subscriber.succeededExecutions?.length}}</span> <span class="badge badge-danger"
+                        (click)="consoleOut(subscriber.failedExecutions)">Failed: {{subscriber.failedExecutions?.length}}</span>
                     <br>
                     Last run: {{subscriber.lastRunTime | ago : now}}
                 </div>
