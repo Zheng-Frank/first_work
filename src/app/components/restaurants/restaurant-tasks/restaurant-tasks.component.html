@@ -12,6 +12,7 @@
       <th>Name</th>
       <th>Closed At</th>
       <th>Email</th>
+      <th>PIN</th>
     </tr>
     <tr *ngFor="let task of tasks">
       <td>{{task.result}}</td>      
@@ -20,6 +21,7 @@
       <td>{{task.name}}</td>
       <td>{{task.resultAt | date: 'medium'}}</td>
       <td>{{task.request?.email}}</td>
+      <td>{{task.request?.pinHistory[0]?.pin}} </td>
     </tr>
   </table>
 
