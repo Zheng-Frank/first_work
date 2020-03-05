@@ -1,4 +1,7 @@
-<h1 class="text-center">GMB Tasks with Error<br><small>{{count}}</small></h1>
+<h1 class="text-center">GMB Tasks<br><small>{{getTotalTasks()}}</small></h1>
+
+<label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="errorsOnly" (change)="filter()"> Errors Only</label>
 
 <!--
 <label class="checkbox-inline">
@@ -25,6 +28,7 @@
 <table class="table">
     <tr>
         <th>#</th>
+        <th>Version</th>
         <th>Error</th>
         <th>Count</th>
         <th>Rerun</th>
@@ -32,17 +36,20 @@
     </tr>
     <tr *ngFor="let row of filteredRows; let i = index">
         <th>{{i + 1}}</th>
+        <th>{{row.versions}}</th>
         <td>
-            {{row[0]}}
+            {{row.status}}
         </td>
         <td>
-            {{row[1].length}}
+            {{row.tasks.length}}
         </td>
         <td>
-            <button class="btn btn-primary mb-2" (click)="rerun(i)">Rerun</button>
+            <button class="btn btn-primary mb-2" (click)="rerun(i)" *ngIf="row.isError">Rerun</button>
         </td>
         <td class="wrap, small">
-            <span *ngFor="let id of row[1]"> {{id}}</span>
+            <div *ngIf="row.isError">
+                <span *ngFor="let task of row.tasks"> {{task._id}}</span>
+            </div>
         </td>
     </tr>
 

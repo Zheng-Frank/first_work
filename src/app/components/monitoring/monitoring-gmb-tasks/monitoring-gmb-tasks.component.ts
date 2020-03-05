@@ -3,7 +3,6 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from 'src/app/classes/alert-type';
-import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-monitoring-gmb-tasks',
@@ -13,53 +12,55 @@ import { filter } from 'rxjs/operators';
 export class MonitoringGmbTasksComponent implements OnInit {
   rows = [];
   filteredRows = [];
-  errorMap = new Map();
-  count = 0;
+  errorsOnly = true;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  now = new Date();
   ngOnInit() {
     this.populate();
   }
 
   async populate() {
-
-    const matchingTasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const gmbTasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
-        "request.statusHistory.0.isError": true,
+        "name": "GMB Request",
+        // "request.statusHistory.0.isError": true,
         "result": null
       },
-      projection: { _id: 1, "request.statusHistory": { $slice: 1 } }
+      projection: { _id: 1, processorVersion: 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1 }
 
     }, 100000);
 
-    this.count = matchingTasks.length;
-    console.log(`found ${this.count} gmb tasks with error`);
-    console.log("task ids=", matchingTasks.map(e => e._id));
+    const statusMap = {};
 
-    matchingTasks.forEach(task => {
-      const status = task.request.statusHistory[0].status;
-      let ids = this.errorMap.get(status);
-      if (!ids) {
-        ids = [];
-        this.errorMap.set(status, ids);
-      };
-      ids.push(task._id.toString());
+    gmbTasks.forEach(task => {
+      let { status, isError } = (task.request.statusHistory || [])[0] || {} as any;
+      if (status && status.startsWith("ALREADY PUBLISHED UNDER")) {
+        status = "ALREADY PUBLISHED UNDER...";
+      }
+      statusMap[status] = statusMap[status] || { isError: isError, status: status, tasks: [], versions: [] };
+      statusMap[status].tasks.push(task);
+      if (!statusMap[status].versions.some(v => v === task.processorVersion)) {
+        statusMap[status].versions.push(task.processorVersion);
+      }
     });
 
-    //order by id count
-    this.rows = Array.from(this.errorMap).sort((a, b) => b[1].length - a[1].length);
-
+    //order by task count
+    this.rows = Object.values(statusMap);
+    this.rows.sort((a, b) => b.tasks.length - a.tasks.length);
     this.filter();
   }
 
   filter() {
-    const now = new Date();
     this.filteredRows = this.rows;
-    // if (this.showOnlyPublished) {
-    //   this.filteredRows = this.filteredRows.filter(row => !row.restaurant.disabled && (row.location && row.location.status == 'Published'));
-    // }
+    if (this.errorsOnly) {
+      this.filteredRows = this.filteredRows.filter(r => r.isError);
+    }
+  }
+
+  getTotalTasks() {
+    return this.filteredRows.reduce((sum, row) => sum + row.tasks.length, 0);
   }
 
   async rerun(row) {
@@ -75,8 +76,6 @@ export class MonitoringGmbTasksComponent implements OnInit {
       const result = error.error || error.message || error;
       this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
     }
-
   }
-
 
 }

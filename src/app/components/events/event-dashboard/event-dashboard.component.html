@@ -1,5 +1,8 @@
 <h3>Active Listeners</h3>
 <div class="pb-2 text-right">
+    <button class="btn btn-primary" (click)="currentAction = 'RE_EMIT_EVENT'"><i class="fas fa-wave-square"></i> Re-emit
+        Event</button>
+
     <button class="btn btn-primary" (click)="currentAction = 'EMIT_EVENT'"><i class="fas fa-wave-square"></i> Emit
         Event</button>
 
@@ -19,7 +22,19 @@
         </div>
     </div>
 </div>
-
+<div class="card text-left bg-light" *qIf="currentAction === 'RE_EMIT_EVENT'">
+    <div class="card-body">
+        <h5 class="card-title">Re-emit an Event (USE EXTREME CAUTION!)</h5>
+        <div class="form-group">
+            <label for="formGroupExampleInput">Event Id</label>
+            <input type="text" class="form-control" placeholder="_id" [(ngModel)]="reEmitEventId">
+        </div>
+        <div class="text-right mt-4">
+            <button class="btn btn-secondary" (click)="currentAction = null" [disabled]="requesting">Cancel</button>
+            <button class="btn btn-primary" (click)="reEmitEvent()" [qLoading]="requesting">Emit</button>
+        </div>
+    </div>
+</div>
 <table class="table">
     <thead>
         <tr>
@@ -44,10 +59,31 @@
                     <div></div>
                     <span class="badge badge-success" (click)="consoleOut(subscriber.succeededExecutions)">Succeeded:
                         {{subscriber.succeededExecutions?.length}}</span> <span class="badge badge-danger"
-                        (click)="consoleOut(subscriber.failedExecutions)">Failed: {{subscriber.failedExecutions?.length}}</span>
+                        (click)="consoleOut(subscriber.failedExecutions)">Failed:
+                        {{subscriber.failedExecutions?.length}}</span>
                     <br>
                     Last run: {{subscriber.lastRunTime | ago : now}}
                 </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Recent Events</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>params</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr *ngFor="let event of recentEvents">
+            <td>{{event.name}}</td>
+            <td>
+                <pre>{{event.params | json}}</pre>
             </td>
         </tr>
     </tbody>
