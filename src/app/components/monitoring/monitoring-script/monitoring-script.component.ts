@@ -29,8 +29,10 @@ export class MonitoringScriptComponent implements OnInit {
       "inject-qmenu-websites",
       "purge-and-new-appeal-tasks",
       "refresh-location-status",
-      "refresh-max-listings",
+      // "refresh-max-listings",
       "refresh-ownership-requests",
+      "gmb-refresh-waiting-for-appeal-v5",
+      "gmb-reject-qmenu-requests"
     ];
 
 

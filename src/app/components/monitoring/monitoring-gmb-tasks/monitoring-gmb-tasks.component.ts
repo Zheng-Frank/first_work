@@ -13,6 +13,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
   rows = [];
   filteredRows = [];
   errorsOnly = true;
+  v5Only = false;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -56,6 +57,13 @@ export class MonitoringGmbTasksComponent implements OnInit {
     this.filteredRows = this.rows;
     if (this.errorsOnly) {
       this.filteredRows = this.filteredRows.filter(r => r.isError);
+    }
+
+    if (this.v5Only) {
+      this.filteredRows = this.filteredRows.map(row => ({
+        ...row,
+        tasks: row.tasks.filter(t => t.processorVersion === "v5")
+      })).filter(r => r.tasks.length > 0);
     }
   }
 

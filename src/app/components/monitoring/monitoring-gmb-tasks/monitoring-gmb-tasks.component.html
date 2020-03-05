@@ -1,7 +1,8 @@
 <h1 class="text-center">GMB Tasks<br><small>{{getTotalTasks()}}</small></h1>
 
-<label class="checkbox-inline">
-    <input type="checkbox" [(ngModel)]="errorsOnly" (change)="filter()"> Errors Only</label>
+<label class="checkbox-inline"><input type="checkbox" [(ngModel)]="errorsOnly" (change)="filter()"> Errors Only</label>
+
+<label class="checkbox-inline"><input type="checkbox" [(ngModel)]="v5Only" (change)="filter()"> V5 Only</label>
 
 <!--
 <label class="checkbox-inline">
@@ -29,7 +30,7 @@
     <tr>
         <th>#</th>
         <th>Version</th>
-        <th>Error</th>
+        <th>Status</th>
         <th>Count</th>
         <th>Rerun</th>
         <th>Task IDs</th>
@@ -47,7 +48,7 @@
             <button class="btn btn-primary mb-2" (click)="rerun(i)" *ngIf="row.isError">Rerun</button>
         </td>
         <td class="wrap, small">
-            <div *ngIf="row.isError">
+            <div *ngIf="row.isError || row.tasks.length < 50">
                 <span *ngFor="let task of row.tasks"> {{task._id}}</span>
             </div>
         </td>
