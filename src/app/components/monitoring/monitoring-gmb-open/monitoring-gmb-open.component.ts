@@ -86,7 +86,7 @@ export class MonitoringGmbOpenComponent implements OnInit {
       resource: 'event',
       query: {
         "name": "gmb-open",
-        "params.gmbOpenApi": true,
+        // "params.gmbOpenApi": true,
       },
       projection: {
         "params.cid": 1,
