@@ -116,7 +116,7 @@ export class EventDashboardComponent implements OnInit {
     //   // }
     // }, 3000);
 
-    const executions = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const executions = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "execution",
       projection: {
         listenerId: 1,
@@ -129,9 +129,8 @@ export class EventDashboardComponent implements OnInit {
       },
       sort: {
         startedAt: -1
-      },
-      limit: 3000
-    }).toPromise();
+      }
+    }, 2000);
 
     this.listeners.map(listener => {
       listener.subscribers.map(subscriber => {
@@ -150,9 +149,15 @@ export class EventDashboardComponent implements OnInit {
           }
         });
 
+        succeededExecutions.sort((e1, e2) => new Date(e1.startedAt || 0).valueOf() - new Date(e2.startedAt || 0).valueOf());
         subscriber.succeededExecutions = succeededExecutions;
         subscriber.failedExecutions = failedExecutions;
         subscriber.lastRunTime = (succeededExecutions.slice(-1)[0] || {}).startedAt;
+        const start = new Date((succeededExecutions[0] || {}).startedAt || 0).valueOf();
+        const end = new Date((succeededExecutions[succeededExecutions.length - 1] || {}).startedAt || 0).valueOf();
+        const days = (end - start) / (24 * 3600000) || 1;
+        subscriber.dailyRuns = ((succeededExecutions.length + failedExecutions.length) / days).toFixed(1);
+
       });
 
 

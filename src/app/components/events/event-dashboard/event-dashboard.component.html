@@ -62,7 +62,8 @@
                         (click)="consoleOut(subscriber.failedExecutions)">Failed:
                         {{subscriber.failedExecutions?.length}}</span>
                     <br>
-                    Last run: {{subscriber.lastRunTime | ago : now}}
+                    <small class="text-muted">Last run: {{subscriber.lastRunTime | ago : now}}, avg:
+                        {{subscriber.dailyRuns}}/day</small>
                 </div>
             </td>
         </tr>

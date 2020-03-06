@@ -84,21 +84,40 @@ export class RestaurantGmbComponent implements OnInit {
       accounts.map(acct => this.emailAccountDict[acct.email] = acct);
       const relevantGmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
-        query: {
-          "locations.cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] }
-        },
-        projection: {
-          email: 1,
-          locations: {
-            $elemMatch: {
-              "cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] }
-            },
+        // query: {
+        //   "locations.cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] }
+        // },
+        // projection: {
+        //   email: 1,
+        //   locations: {
+        //     $elemMatch: {
+        //       "cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] }
+        //     },
+        //   },
+        //   gmbScannedAt: 1,
+        //   emailScannedAt: 1,
+        //   password: 1
+        // },
+        // limit: 1000
+        aggregate: [
+          { $match: { "locations.cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] } } },
+          {
+            $project: {
+              email: 1,
+              gmbScannedAt: 1,
+              emailScannedAt: 1,
+              password: 1,
+              locations: {
+                $filter: {
+                  input: "$locations",
+                  as: "location",
+                  cond: { $in: ["$$location.cid", [...new Set(gmbBizList.map(biz => biz.cid))]] }
+                },
+                // statusHistory: 0
+              }
+            }
           },
-          gmbScannedAt: 1,
-          emailScannedAt: 1,
-          password: 1
-        },
-        limit: 1000
+        ]
       }).toPromise();
 
       relevantGmbAccounts.map(acct => this.emailAccountDict[acct.email] = acct);
