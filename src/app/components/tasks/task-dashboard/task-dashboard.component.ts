@@ -63,7 +63,7 @@ export class TaskDashboardComponent {
           score: 1,
           "googleAddress.formatted_address": 1
         }
-      },6000)
+      }, 6000)
     }
   }
 
@@ -100,31 +100,23 @@ export class TaskDashboardComponent {
       return d;
     };
 
-    const batchSize = 400;
-    let result0 = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: "task",
-        query: {
-          $or: [
-            {
-              resultAt: null
-            },
-            {
-              updatedAt: {
-                $gt: { $date: daysAgo(this.hideClosedOldTasksDays) }
-              }
+    const result0 = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: "task",
+      query: {
+        name : {"$ne": "GMB Request"},
+        $or: [
+          {
+            resultAt: null
+          },
+          {
+            updatedAt: {
+              $gt: { $date: daysAgo(this.hideClosedOldTasksDays) }
             }
-          ]
-        },
-        skip: result0.length,
-        limit: batchSize
-      }).toPromise();
-      result0.push(...batch);
-      if (batch.length === 0 || batch.length < batchSize) {
-        break;
-      }
-    }
+          }
+        ]
+      },
+
+    }, 800)
 
     console.log('result0', result0.length);
 
