@@ -49,9 +49,26 @@
         </td>
         <td class="wrap, small">
             <div *ngIf="row.isError || row.tasks.length < 50">
-                <span *ngFor="let task of row.tasks"> {{task._id}}</span>
+                <span *ngFor="let task of row.tasks">
+                    <span (click)="showDetails(task)" style="cursor: pointer;"> {{task._id}}</span>
+                </span>
             </div>
         </td>
     </tr>
 
 </table>
+
+<q-modal #taskModal>
+    <div *ngIf="selectedTask" class="text-center">
+        <h3>{{selectedTask._id}}</h3>
+
+        <app-gmb-account-hotlink [email]="selectedTask.request?.email"
+            [redirectUrl]="'https://business.google.com/arc/l/' + selectedTask.request?.appealId">
+        </app-gmb-account-hotlink>
+        <br>
+        <button class="btn btn-primary" (click)="rerunV5(selectedTask)">Force Run</button>
+        <pre class="text-left">
+            {{selectedTask | json}}
+        </pre>
+    </div>
+</q-modal>

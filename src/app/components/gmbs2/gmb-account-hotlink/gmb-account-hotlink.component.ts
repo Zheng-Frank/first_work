@@ -15,6 +15,7 @@ export class GmbAccountHotlinkComponent implements OnInit {
   @Input() email;
   @Input() muted;
   @Input() targetPage = 'GMB'; // or 'EMAIL'
+  @Input() redirectUrl;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -37,8 +38,7 @@ export class GmbAccountHotlinkComponent implements OnInit {
       }
 
       const target = 'login';
-
-      await this._api.post(environment.autoGmbUrl + target, { email: accounts[0].email, password: password, stayAfterScan: true }).toPromise();
+      await this._api.post(environment.autoGmbUrl + target, { email: accounts[0].email, password: password, stayAfterScan: true, redirectUrl: this.redirectUrl }).toPromise();
       this._global.publishAlert(AlertType.Success, 'Logged in.');
 
     }

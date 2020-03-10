@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from 'src/app/classes/alert-type';
-
+import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 @Component({
   selector: 'app-monitoring-gmb-tasks',
   templateUrl: './monitoring-gmb-tasks.component.html',
@@ -12,8 +12,11 @@ import { AlertType } from 'src/app/classes/alert-type';
 export class MonitoringGmbTasksComponent implements OnInit {
   rows = [];
   filteredRows = [];
-  errorsOnly = true;
+  errorsOnly = false;
   v5Only = false;
+
+  @ViewChild('taskModal') taskModal: ModalComponent;
+  selectedTask;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -29,7 +32,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
         // "request.statusHistory.0.isError": true,
         "result": null
       },
-      projection: { _id: 1, processorVersion: 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1 }
+      projection: { _id: 1, processorVersion: 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1 }
 
     }, 100000);
 
@@ -86,4 +89,34 @@ export class MonitoringGmbTasksComponent implements OnInit {
     }
   }
 
+
+  async showDetails(task) {
+
+    this.taskModal.show();
+    const tasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'task',
+      query: { _id: { $oid: task._id } }
+    }).toPromise();
+    this.selectedTask = tasks[0];
+  }
+
+  async rerunV5(task) {
+    try {
+      await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "process-one-task",
+        payload: {
+          taskId: task._id,
+          forceRefresh: true
+        }
+      }).toPromise();
+      await this.showDetails(task);
+      this._global.publishAlert(AlertType.Success, "Success");
+      this.populate();
+    }
+    catch (error) {
+      console.error(error);
+      await this.showDetails(task);
+      this._global.publishAlert(AlertType.Danger, error);
+    }
+  }
 }

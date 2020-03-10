@@ -7,7 +7,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class MonitoringDashboardComponent implements OnInit {
 
-  monitoredItem = 'Cloud Printers';
+  monitoredItem = 'Placeholder';
   constructor() { }
 
   ngOnInit() {
