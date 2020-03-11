@@ -3,29 +3,10 @@
 <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="errorsOnly" (change)="filter()"> Errors Only</label>
 
 <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="v5Only" (change)="filter()"> V5 Only</label>
+<span *ngIf="scriptStatus">started: {{scriptStatus.startedAt | ago : now}}, status:
+    {{scriptStatus.endedAt ? (scriptStatus.stats?.failed?.length > 0 ? 'some failed' : 'succeeded') : 'running'}},
+    ended: {{scriptStatus.endedAt | ago : now}}</span>
 
-<!--
-<label class="checkbox-inline">
-    <input type="checkbox" [(ngModel)]="showOnlyPublished" (change)="filter()"> Only Published GMB</label>
-
-<label class="checkbox-inline">
-    <input type="checkbox" [(ngModel)]="showOnlyDisabled" (change)="filter()"> Only disabled</label>
-
-<label class="checkbox-inline">
-    <input type="checkbox" [(ngModel)]="showNotDisabled" (change)="filter()"> Not disabled</label>
-<label class="checkbox-inline">
-    <input type="checkbox" [(ngModel)]="showMissingWebsite" (change)="filter()"> Only Missing Website</label>
-
-<div class="clearfix my-2">
-    <div class="float-left form-inline">
-        <select class="form-control mr-2 mb-1" [(ngModel)]="managedDomain" (change)="filter()">
-            <option>Manged Domains</option>
-            <option>only active</option>
-            <option>expired</option>
-        </select>
-    </div>
-</div>
--->
 <table class="table">
     <tr>
         <th>#</th>
@@ -45,7 +26,8 @@
             {{row.tasks.length}}
         </td>
         <td>
-            <button class="btn btn-primary mb-2" (click)="rerun(i)" *ngIf="row.isError">Rerun</button>
+            <button class="btn btn-primary mb-2" (click)="rerun(row)" *ngIf="row.isError">Rerun</button>
+            <button class="btn btn-primary mb-2" (click)="resetError(row)" *ngIf="row.isError">Reset Error</button>
         </td>
         <td class="wrap, small">
             <div *ngIf="row.isError || row.tasks.length < 50">

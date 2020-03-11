@@ -4,7 +4,7 @@
     <button class="btn btn-primary" (click)="load()" [qLoading]="apiLoading">
       <i class="fas fa-sync"></i> Reload</button>
 
-    <button class="btn btn-primary" (click)="purgeEmptyPins()" [qLoading]="apiLoading">
+    <button class="btn btn-primary" (click)="purgeEmptyAndOldPins()" [qLoading]="apiLoading">
       <i class="fas fa-trash-alt"></i> Purge Empty PINs</button>
 
     <button class="btn btn-primary" (click)="setAction('NEW')" [qLoading]="apiLoading">

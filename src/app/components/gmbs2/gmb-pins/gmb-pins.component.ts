@@ -74,22 +74,24 @@ export class GmbPinsComponent implements OnInit {
     this.apiLoading = false;
   }
 
-  async purgeEmptyPins() {
-    const emptyRows = this.rows.filter(row => !row.pin);
-    if (emptyRows.length === 0) {
+  async purgeEmptyAndOldPins() {
+    const oldOrEmptyRows = this.rows.filter(row => !row.pin || new Date(row.receivedAt).valueOf() < new Date().valueOf() - 30 * 24 * 3600000);
+    if (oldOrEmptyRows.length === 0) {
       return;
     }
-    if (emptyRows.length > 160) {
-      emptyRows.length = 160;
-    }
+    const batch = 160;
     this.apiLoading = true;
-    await this._api.delete(
-      environment.qmenuApiUrl + "generic",
-      {
-        resource: 'gmb-pin',
-        ids: emptyRows.map(row => row._id)
-      }
-    ).toPromise();
+    for (let i = 0; i < oldOrEmptyRows.length; i += batch) {
+      const slice = oldOrEmptyRows.slice(i, i + batch);
+      await this._api.delete(
+        environment.qmenuApiUrl + "generic",
+        {
+          resource: 'gmb-pin',
+          ids: slice.map(row => row._id)
+        }
+      ).toPromise();
+    }
+
     this.load();
   }
 

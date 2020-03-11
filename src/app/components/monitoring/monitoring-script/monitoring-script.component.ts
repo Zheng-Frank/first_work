@@ -22,7 +22,6 @@ export class MonitoringScriptComponent implements OnInit {
     this.apiLoading = true;
     const scriptNames = [
       "appeal-suspended",
-      "crawl-cmo-google-listing",
       "crawl-gmb-biz",
       "crawl-rt-google-listing",
       "gmb-biz-data-maintain",
@@ -31,7 +30,8 @@ export class MonitoringScriptComponent implements OnInit {
       "refresh-location-status",
       // "refresh-max-listings",
       "refresh-ownership-requests",
-      "gmb-refresh-waiting-for-appeal-v5",
+      
+      "gmb-refresh-no-pin-tasks",
       "gmb-reject-qmenu-requests"
     ];
 
