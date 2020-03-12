@@ -78,6 +78,7 @@ export class GmbAccountListComponent implements OnInit {
           "locations.address": 1,
           disabled: 1,
           isAgencyAcct: 1,
+          isYelpEmail: 1
         },
         skip: skip,
         limit: batchSize
@@ -190,6 +191,7 @@ export class GmbAccountListComponent implements OnInit {
       comments: gmb.comments,
       disabled: gmb.disabled,
       isAgencyAcct: gmb.isAgencyAcct,
+      isYelpEmail: gmb.isYelpEmail
     } as any;
 
     if (gmb.recoveryEmail) {

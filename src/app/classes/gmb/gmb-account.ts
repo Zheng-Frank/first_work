@@ -20,6 +20,7 @@ export class GmbAccount {
     locations: GmbLocation []; 
     disabled: boolean;
     isAgencyAcct = false;
+    isYelpEmail = false;
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields

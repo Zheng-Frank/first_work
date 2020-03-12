@@ -70,6 +70,12 @@ export class GmbAccountEditorComponent implements OnInit, OnChanges {
         inputType: "checkbox"
       },
       {
+        field: "isYelpEmail", //
+        label: "Yelp Account",
+        required: false,
+        inputType: "checkbox"
+      },
+      {
         field: "comments", //
         label: "Comments",
         required: false,
