@@ -18,9 +18,6 @@ export class TaskService {
    */
   async purgeTransferTasks() {
 
-    // 1. already published in B account,
-    // 2. no postal type, but A lost ownership, or restaurant was disabled
-
     const openTransferTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
@@ -30,128 +27,26 @@ export class TaskService {
       limit: 6000
     }).toPromise();
 
-    const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        locations: { $exists: 1 }
-      },
-      projection: {
-        email: 1,
-        "locations.status": 1,
-        "locations.cid": 1
-      },
-      limit: 6000
-    }).toPromise();
-
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      projection: {
-        "googleListing.cid": 1,
-        disabled: 1
-      },
-      limit: 6000
-    }).toPromise();
-
-    const disabledRestaurants = restaurants.filter(r => r.disabled);
-    const nonDisabledRestaurants = restaurants.filter(r => !r.disabled);
-
-    const gmbBizBatchSize = 3000;
-    const gmbBizList = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        projection: {
-          cid: 1,
-          qmenuId: 1
-        },
-        skip: gmbBizList.length,
-        limit: gmbBizBatchSize
-      }).toPromise();
-      gmbBizList.push(...batch);
-      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
-        break;
-      }
-    }
-
-
-    console.log('Open transfer tasks: ', openTransferTasks);
-    console.log('Gmb accounts: ', accounts);
-    console.log('Gmb biz: ', gmbBizList);
-    console.log('Restaurants disabled: ', disabledRestaurants);
-
-    const tobeClosedTasksWithReasons = openTransferTasks.map(task => {
-      const gmbBizId = task.relatedMap.gmbBizId;
-      const gmbBiz = gmbBizList.filter(biz => biz._id === gmbBizId)[0];
-      if (!gmbBiz) {
-        return {
-          reason: 'missing gmbBiz ' + gmbBizId,
-          task: task
-        };
-      }
-
-      const matchedDisabledRestaurants = disabledRestaurants.filter(r => r.googleListing && r.googleListing.cid && r.googleListing.cid === gmbBiz.cid || r._id === gmbBiz.qmenuId);
-      const matchedNonDisabledRestaurants = nonDisabledRestaurants.filter(r => r.googleListing && r.googleListing.cid && r.googleListing.cid === gmbBiz.cid || r._id === gmbBiz.qmenuId);
-
-      if (matchedNonDisabledRestaurants.length === 0 && matchedDisabledRestaurants.length > 0) {
-        return {
-          reason: 'restaurant disabled. restaurant id = ' + matchedDisabledRestaurants[0]._id,
-          task: task
-        };
-      }
-
-      const accountBPublished = accounts.filter(account => account.email === task.transfer.toEmail && account.locations.some(loc => loc.cid === gmbBiz.cid && loc.status === 'Published'));
-      if (accountBPublished.length > 0) {
-        return {
-          reason: 'account B published. B email = ' + accountBPublished[0]._id,
-          task: task
-        };
-      }
-
-      const accountALost = accounts.filter(account => account.email === task.transfer.fromEmail && !account.locations.some(loc => loc.cid === gmbBiz.cid && loc.status === 'Published'));
-
-      const havingTransferCode = task.transfer.code;
-      const isPostcard = task.transfer.verificationMethod === 'Postcard';
-
-      const isVeryOldAppeal = task.transfer.appealedAt && (new Date().valueOf() - new Date(task.transfer.appealedAt).valueOf() > 21 * 24 * 3600000);
-
-      if (accountALost.length > 0 && !havingTransferCode && (!isPostcard || isVeryOldAppeal)) {
-        return {
-          reason: `account A lost. A email = ${accountALost[0].email} , is postcard = ${isPostcard}, having code = ${havingTransferCode} , is over 21 days = ${isVeryOldAppeal}`,
-          task: task
-        };
-      }
-
-      return false;
-    }).filter(result => result);
-
-
-    console.log('tobeClosedTasksWithReasons', tobeClosedTasksWithReasons);
-
     // patch those tasks to be closed! by system
-    const pairs = tobeClosedTasksWithReasons.map(tr => ({
+    const pairs = openTransferTasks.map(task => ({
       old: {
-        _id: tr.task._id
+        _id: task._id
       },
       new: {
-        _id: tr.task._id,
-        comments: (tr.task.comments || '') + '\n[closed by system]\n' + tr.reason,
+        _id: task._id,
+        comments: (task.comments || '') + '\n[closed by system]\n',
         result: 'CANCELED',
         resultAt: { $date: new Date() }
       }
     }));
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', pairs).toPromise();
 
-    return tobeClosedTasksWithReasons;
+    return openTransferTasks;
   }
 
 
   /** Remove invalid apply tasks: already gained GMB ownership somewhere! */
   async purgeApplyTasks() {
-
-    // several scenarios
-    // 1. original gmbBiz id is missing, 
-    // 2. original restaurant was disabled
-    // 3. already gained ownership somewhere
 
     const openApplyTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
@@ -162,123 +57,21 @@ export class TaskService {
       limit: 6000
     }).toPromise();
 
-    console.log('Open apply tasks: ', openApplyTasks);
-    const gmbBizBatchSize = 3000;
-    const gmbBizList = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        projection: {
-          cid: 1,
-          qmenuId: 1
-        },
-        skip: gmbBizList.length,
-        limit: gmbBizBatchSize
-      }).toPromise();
-      gmbBizList.push(...batch);
-      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
-        break;
+    if (openApplyTasks.length > 500) {
+      openApplyTasks.length = 500;
+    }
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', openApplyTasks.map(t => ({
+      old: { _id: t._id },
+      new: {
+        _id: t._id,
+        result: 'CLOSED',
+        resultAt: { $date: new Date() },
+        comments: (t.comments ? t.comments + '\n' : '') + 'already published. [closed by system]'
       }
-    }
+    }))).toPromise();
 
-
-    console.log('gmbBizList: ', gmbBizList);
-
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      projection: {
-        disabled: 1,
-        "googleListing.cid": 1
-      },
-      limit: 6000
-    }).toPromise();
-
-    const disabledRestaurants = restaurants.filter(r => r.disabled);
-    const enabledRestaurants = restaurants.filter(r => !r.disabled);
-
-    console.log('disabled restaurants: ', disabledRestaurants);
-    const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccount',
-      query: {
-        locations: { $exists: 1 }
-      },
-      projection: {
-        "locations.status": 1,
-        "locations.cid": 1
-      },
-      limit: 6000
-    }).toPromise();
-    console.log('accounts: ', accounts);
-
-    const gmbBizIdMap = gmbBizList.reduce((map, biz) => (map[biz._id] = biz, map), {});
-    const gmbBizCidMap = gmbBizList.reduce((map, biz) => (map[biz.cid] = biz, map), {});
-    const gmbBizQmenuIdMap = gmbBizList.reduce((map, biz) => (map[biz.qmenuId] = biz, map), {});
-
-
-    const tasksMissingBizIds = openApplyTasks.filter(t => !gmbBizIdMap[t.relatedMap.gmbBizId]);
-
-    console.log('tasksMissingBizIds', tasksMissingBizIds);
-
-    const tasksWithDisabledRestaurants = openApplyTasks.filter(t => {
-      const gmbBiz = gmbBizIdMap[t.relatedMap.gmbBizId];
-      if (gmbBiz) {
-        // BEAWARE SAME cid for two restaurants case!! (Poke Bowl, Kumo Sushi),
-        // We don't want to close those tasks with enabled restaurant but same cid
-        const disabledMatched = disabledRestaurants.filter(r => r._id === gmbBiz.qmenuId || (r.googleListing && r.googleListing.cid === gmbBiz.cid));
-        const enabledMatched = enabledRestaurants.filter(r => r._id === gmbBiz.qmenuId || (r.googleListing && r.googleListing.cid === gmbBiz.cid));
-        return disabledMatched.length > 0 && enabledMatched.length === 0;
-      }
-      return false;
-    });
-
-    console.log('tasksWithDisabledRestaurants', tasksWithDisabledRestaurants);
-
-    const tasksWithAlreadyPublished = openApplyTasks.filter(t => {
-      const gmbBiz = gmbBizIdMap[t.relatedMap.gmbBizId];
-      if (gmbBiz) {
-        const publishedAccounts = accounts.filter(a => a.locations.some(loc => loc.cid === gmbBiz.cid && loc.status === 'Published'));
-        return publishedAccounts.length > 0;
-      }
-      return false;
-    });
-
-    if (tasksMissingBizIds.length > 0) {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', tasksMissingBizIds.map(t => ({
-        old: { _id: t._id },
-        new: {
-          _id: t._id,
-          result: 'CLOSED',
-          resultAt: { $date: new Date() }, comments: (t.comments ? t.comments + '\n' : '') + 'missing gmbBiz id. [closed by system]'
-        }
-      }))).toPromise();
-    }
-
-    if (tasksWithDisabledRestaurants.length > 0) {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', tasksWithDisabledRestaurants.map(t => ({
-        old: { _id: t._id },
-        new: {
-          _id: t._id,
-          result: 'CLOSED',
-          resultAt: { $date: new Date() },
-          comments: (t.comments ? t.comments + '\n' : '') + 'restaurant was disabled. [closed by system]'
-        }
-      }))).toPromise();
-    }
-
-    if (tasksWithAlreadyPublished.length > 0) {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', tasksWithAlreadyPublished.map(t => ({
-        old: { _id: t._id },
-        new: {
-          _id: t._id,
-          result: 'CLOSED',
-          resultAt: { $date: new Date() },
-          comments: (t.comments ? t.comments + '\n' : '') + 'already published. [closed by system]'
-        }
-      }))).toPromise();
-    }
-    return [...tasksMissingBizIds, ...tasksWithDisabledRestaurants, ...tasksWithAlreadyPublished];
+    return openApplyTasks;
   }
-
 
   async scanForAppealTasks() {
     const openAppealTasks = [];
@@ -494,7 +287,7 @@ export class TaskService {
         break;
       }
     }
-    
+
 
     const dict = {};
     gmbBizList.map(biz => dict[biz._id] = biz);
@@ -601,74 +394,6 @@ export class TaskService {
     return [...appealIdNotFoundTasks, ...locationIsNotSuspendedAnymore, ...taskIsTooOld];
   }
 
-
-  async deleteOutdatedTasks() {
-    const closedTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        result: { $exists: 1 }
-      },
-      limit: 1000
-    }).toPromise();
-    console.log(closedTasks)
-    const days45 = 45 * 24 * 3600000;
-    const toBeRemovedTasks = closedTasks.filter(t => t.result && (t.assignee === 'system' || (new Date().valueOf() - new Date(t.resultAt).valueOf()) > days45));
-    console.log('Expired Tasks: ', toBeRemovedTasks);
-    // may be too many for one iteration to remove
-    if (toBeRemovedTasks.length > 100) {
-      toBeRemovedTasks.length = 100;
-    }
-    await this._api.delete(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      ids: toBeRemovedTasks.map(t => t._id)
-    }).toPromise();
-    return toBeRemovedTasks;
-  }
-
-  async deleteMissingBizIdTasks() {
-    const openTasks = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      query: {
-        result: null
-      },
-      limit: 2000
-    }).toPromise();
-    console.log(openTasks);
-
-    const gmbBizBatchSize = 3000;
-    const bizList = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        projection: {
-          name: 1
-        },
-        skip: bizList.length,
-        limit: gmbBizBatchSize
-      }).toPromise();
-      bizList.push(...batch);
-      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
-        break;
-      }
-    }
-
-
-    const taskBizIdSet = new Set(openTasks.filter(t => t.relatedMap && t.relatedMap.gmbBizId).map(t => t.relatedMap.gmbBizId));
-    const bizIdSet = new Set(bizList.map(b => b._id));
-
-    const missingInBizSet = new Set([...taskBizIdSet].filter(id => !bizIdSet.has(id)));
-
-    const toBeRemovedTasks = openTasks.filter(t => t.relatedMap && missingInBizSet.has(t.relatedMap.gmbBizId));
-    console.log(toBeRemovedTasks);
-
-    await this._api.delete(environment.qmenuApiUrl + 'generic', {
-      resource: 'task',
-      ids: toBeRemovedTasks.map(t => t._id)
-    }).toPromise();
-    return toBeRemovedTasks;
-  }
-
-
   // we have request against a location (gmbBiz?)
   async scanForTransferTask(prtFilter) {
     const rtFilter = new RegExp(prtFilter || '.');
@@ -735,7 +460,7 @@ export class TaskService {
         },
         skip: outstandingTransferTasks.length,
         limit: transferBatchSize
-  
+
       }).toPromise();
       outstandingTransferTasks.push(...oneRun);
       if (oneRun.length === 0 || oneRun.length < transferBatchSize) {
@@ -870,7 +595,7 @@ export class TaskService {
       },
 
       projection: {
-        name: 1, 
+        name: 1,
         disabled: 1,
         score: 1,
         "googleListing.cid": 1,
@@ -884,7 +609,7 @@ export class TaskService {
 
     const validTransferTasks = newTransferTasks.filter(t => {
       const restaurant = cidRestaurantMap[t.gmbBiz.cid];
-      return restaurant && (!restaurant.web || !restaurant.ignoreGmbOwnershipRequest) && !restaurant.disabled && rtFilter.test(restaurant.name || "") ;
+      return restaurant && (!restaurant.web || !restaurant.ignoreGmbOwnershipRequest) && !restaurant.disabled && rtFilter.test(restaurant.name || "");
     });
 
     const tasks = validTransferTasks

@@ -32,7 +32,10 @@ export class MonitoringScriptComponent implements OnInit {
       "refresh-ownership-requests",
       
       "gmb-refresh-no-pin-tasks",
-      "gmb-reject-qmenu-requests"
+      "gmb-reject-qmenu-requests",
+      "gmb-deduplication",
+      "gmb-scan-new-tasks",
+      "gmb-purge-tasks"
     ];
 
 

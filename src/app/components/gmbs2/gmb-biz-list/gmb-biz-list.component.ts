@@ -219,7 +219,7 @@ export class GmbBizListComponent implements OnInit {
     this.rows.sort((r1, r2) => r1.restaurant.name > r2.restaurant.name ? 1 : (r1.restaurant.name < r2.restaurant.name ? -1 : 0));
 
     // cleanup: keep ONLY suspended or published
-    const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
+    const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Reverification required', 'Published'];
     this.rows.map(row => {
       const filtered = row.accountLocations.filter(al => al.location.status === 'Published' || al.location.status === 'Suspneded');
       if (filtered.length > 0) {

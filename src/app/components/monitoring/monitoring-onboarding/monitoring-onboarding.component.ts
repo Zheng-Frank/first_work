@@ -73,7 +73,7 @@ export class MonitoringOnboardingComponent implements OnInit {
         accountAndStatuses.push({ email: account.email, status: loc.status });
 
       }));
-      const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Published'];
+      const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Reverification required', 'Published'];
       accountAndStatuses.sort((s1, s2) => statusOrder.indexOf(s2.status) - statusOrder.indexOf(s1.status));
       row.hadGmb = accountAndStatuses.some(i => i.status === 'Published' || i.status === 'Suspended');
       row.accountAndStatuses = accountAndStatuses;

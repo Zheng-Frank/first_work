@@ -49,6 +49,7 @@
         </app-gmb-account-hotlink>
         <br>
         <button class="btn btn-primary" (click)="rerunV5(selectedTask)">Force Run</button>
+        <button class="btn btn-primary" (click)="closeTask(selectedTask)">Close</button>
         <pre class="text-left">
             {{selectedTask | json}}
         </pre>

@@ -5,6 +5,8 @@
 
     </div>
     <div class="float-right">
+        <!-- <button class="btn btn-link" (click)="purge()" [qLoading]="purging">
+            <i class="fas fa-sync-alt"></i> Purge</button> -->
         <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing">
             <i class="fas fa-sync-alt"></i> Reload</button>
         <button class="btn btn-link" (click)="toggleAction('ADD')">Generate A Task</button>
@@ -15,7 +17,8 @@
         <div class="card-body">
             <h5 class="card-title">Add New Task</h5>
 
-            <app-task-generator (submit)="createNewTask($event)" (cancel)="toggleAction('ADD')" [restaurantList]="restaurantList"></app-task-generator>
+            <app-task-generator (submit)="createNewTask($event)" (cancel)="toggleAction('ADD')"
+                [restaurantList]="restaurantList"></app-task-generator>
 
             <!-- <div class="form-group">
                 <label for="formGroupExampleInput">Restaurant ID</label>
@@ -36,7 +39,8 @@
     <div class="card-header">
         <ul class="nav nav-tabs card-header-tabs">
             <li class="nav-item" *ngFor="let tab of tabs" style="cursor: pointer;">
-                <a class="nav-link {{activeTabValue === tab.value? 'active' : ''}}" (click)="setActiveTab(tab)">{{tab.label}}</a>
+                <a class="nav-link {{activeTabValue === tab.value? 'active' : ''}}"
+                    (click)="setActiveTab(tab)">{{tab.label}}</a>
             </li>
         </ul>
     </div>
@@ -44,7 +48,7 @@
 
     <div class="card-body text-left" z>
         <div *ngIf="'Google PIN' === activeTabValue">
-                <show-google-pin></show-google-pin>
+            <show-google-pin></show-google-pin>
         </div>
     </div>
 
@@ -62,16 +66,20 @@
             </div>
         </div>
         <div *ngIf="'Due' === activeTabValue">
-            <app-task-list [taskList]="myDueTasks" [globalCachedRestaurantList]="globalCachedRestaurantList" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+            <app-task-list [taskList]="myDueTasks" [globalCachedRestaurantList]="globalCachedRestaurantList"
+                [user]="user" (actionDone)="updateTask($event)"></app-task-list>
         </div>
         <div *ngIf="'Open' === activeTabValue">
-            <app-task-list [taskList]="myOpenTasks"  [globalCachedRestaurantList]="globalCachedRestaurantList" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+            <app-task-list [taskList]="myOpenTasks" [globalCachedRestaurantList]="globalCachedRestaurantList"
+                [user]="user" (actionDone)="updateTask($event)"></app-task-list>
         </div>
         <div *ngIf="'Mine' === activeTabValue">
-            <app-task-list [taskList]="myAssignedTasks"  [globalCachedRestaurantList]="globalCachedRestaurantList" [user]="user" (actionDone)="updateTask($event)"></app-task-list>
+            <app-task-list [taskList]="myAssignedTasks" [globalCachedRestaurantList]="globalCachedRestaurantList"
+                [user]="user" (actionDone)="updateTask($event)"></app-task-list>
         </div>
         <div *ngIf="'Closed' === activeTabValue">
-            <app-task-list [taskList]="myClosedTasks"  [globalCachedRestaurantList]="globalCachedRestaurantList" [user]="user"></app-task-list>
+            <app-task-list [taskList]="myClosedTasks" [globalCachedRestaurantList]="globalCachedRestaurantList"
+                [user]="user"></app-task-list>
             Showing last {{hideClosedOldTasksDays}} days
         </div>
     </div>

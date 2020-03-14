@@ -62,7 +62,7 @@
           </ng-container>
         </div>
       </td>
-      <td>{{row.restaurant.score}}</td>
+      <td>{{(row.restaurant.score || 0) | number : '1.0-0'}}</td>
       <td>{{row.orders.length - row.standaloneOrders.length}}</td>
       <td>{{row.standaloneOrders.length}}</td>
       <td>

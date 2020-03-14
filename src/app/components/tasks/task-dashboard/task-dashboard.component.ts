@@ -290,23 +290,6 @@ export class TaskDashboardComponent {
       this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
     }
 
-    try {
-      const purgedTasks = await this._task.deleteOutdatedTasks();
-      console.log('purged: ', purgedTasks)
-      this._global.publishAlert(AlertType.Success, 'Deleted ' + purgedTasks.length);
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
-    }
-
-    try {
-      const purgedTasks = await this._task.deleteMissingBizIdTasks();
-      console.log('purged: ', purgedTasks)
-      this._global.publishAlert(AlertType.Success, 'Deleted ' + purgedTasks.length);
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Error purging tasks');
-    }
-
-
     this.purging = false;
     this.refresh();
   }
