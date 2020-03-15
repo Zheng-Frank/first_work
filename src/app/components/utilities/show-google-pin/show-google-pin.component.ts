@@ -11,7 +11,6 @@ import { AlertType } from "../../../classes/alert-type";
     styleUrls: ['./show-google-pin.component.css']
 })
 export class ShowGooglePINComponent implements OnInit {
-    @Input() restaurant;
     tasks;
     filteredRows;
     assigneeList = [];
@@ -29,18 +28,50 @@ export class ShowGooglePINComponent implements OnInit {
     constructor(private _api: ApiService, private _global: GlobalService) { }
 
     async ngOnInit() {
-        this.restaurantList = await this._global.getCachedVisibleRestaurantList(false);
+        this.restaurantList = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+            resource: "restaurant",
+            aggregate: [
+                { $match: { "disabled": { $ne: true } } },
+                {
+                    $project: {
+                        name: 1,
+                        alias: 1,
+                        logo: 1,
+                        channels: 1,
+                        score: 1,
+                        rateSchedules: 1,
+                        "googleAddress.formatted_address": 1,
+                        logs: {
+                            $filter: {
+                                input: "$logs",
+                                as: "log",
+                                cond: { $eq: ["$$log.type", "google-pin"] }
+                            }
+                        }
+                    }
+                },
+            ]
+            // query: {
+            //     disabled: {
+            //         $ne: true
+            //     }
+            // },
+            // projection: {
+            //     name: 1,
+            //     alias: 1,
+            //     logo: 1,
+            //     channels: 1,
+            //     score: 1,
+            //     rateSchedules: 1,
+            //     "googleAddress.formatted_address": 1
+            // }
+        }, 100000);
+        console.log(this.restaurantList)
+
         this.populate();
     }
 
     async populate() {
-        const daysAgo = function (days) {
-            const d = new Date();
-            d.setHours(0, 0, 0, 0);
-            d.setDate(d.getDate() - days);
-            return d;
-        };
-
         this.tasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
             resource: "task",
             query: {
@@ -61,9 +92,9 @@ export class ShowGooglePINComponent implements OnInit {
                 'name': 1,
                 'assignee': 1
             }
-        }, 800);
+        }, 80000);
         //Filter out closed task
-        this.tasks = this.tasks.filter( t => !t.result);
+        this.tasks = this.tasks.filter(t => !t.result);
 
         this.assigneeList = this.tasks.map(t => {
             if (!t.assignee) {
@@ -74,17 +105,14 @@ export class ShowGooglePINComponent implements OnInit {
             }
             else {
                 return t.assignee.username;
-
             }
         });
-
-        console.log(this.assigneeList);
         // reuturn unique
         this.assigneeList = Array.from(new Set(this.assigneeList)).sort().filter(e => e != null);
 
         this.agentList = this.restaurantList.map(r => {
             if (r.rateSchedules && r.rateSchedules.length > 0) {
-                for(let i of r.rateSchedules){
+                for (let i of r.rateSchedules) {
                     return i.agent;
                 }
 
@@ -158,7 +186,7 @@ export class ShowGooglePINComponent implements OnInit {
             return {
                 id: each['_id'],
                 gmbBiz: this.getGmbBizFromPhone(each.params.body.From),
-                from: each.params.body.From.length == 11 ? each.params.body.From.toString().substring(1) : each.params.body.From,
+                from: (each.params.body.From || "").length == 11 ? each.params.body.From.toString().substring(1) : each.params.body.From,
                 text: each.params.body.Text.replace(/\+/g, ' ').trim(),
                 time: each.createdAt,
                 done: codes.some(code => code == each.params.body.Text.replace(/\+/g, ' ').trim())

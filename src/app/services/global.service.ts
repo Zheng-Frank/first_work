@@ -313,14 +313,11 @@ export class GlobalService {
         limit: 10000000,
         projection: { expiry: 1, name: 1 }
       }).toPromise();
-      console.log(`loaded ${myDomains.length} domains`);
       const nonExpiredDomains = myDomains.filter(d => new Date(d.expiry) > new Date());
       nonExpiredDomains.push({ name: 'qmenu.us' }); // in case it's not there
       const qmenuDomains = new Set();
       nonExpiredDomains.map(d => qmenuDomains.add(d.name));
-      console.log(`loaded ${nonExpiredDomains.length} non expired domains`);
       this._cache.set('qmDomains', qmenuDomains, 30 * 60);
-
       return qmenuDomains;
     }
   }

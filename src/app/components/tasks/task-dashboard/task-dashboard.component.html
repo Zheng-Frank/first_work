@@ -66,19 +66,19 @@
             </div>
         </div>
         <div *ngIf="'Due' === activeTabValue">
-            <app-task-list [taskList]="myDueTasks" [globalCachedRestaurantList]="globalCachedRestaurantList"
+            <app-task-list [taskList]="myDueTasks" [skeletalRestaurants]="skeletalRestaurants"
                 [user]="user" (actionDone)="updateTask($event)"></app-task-list>
         </div>
         <div *ngIf="'Open' === activeTabValue">
-            <app-task-list [taskList]="myOpenTasks" [globalCachedRestaurantList]="globalCachedRestaurantList"
+            <app-task-list [taskList]="myOpenTasks" [skeletalRestaurants]="skeletalRestaurants"
                 [user]="user" (actionDone)="updateTask($event)"></app-task-list>
         </div>
         <div *ngIf="'Mine' === activeTabValue">
-            <app-task-list [taskList]="myAssignedTasks" [globalCachedRestaurantList]="globalCachedRestaurantList"
+            <app-task-list [taskList]="myAssignedTasks" [skeletalRestaurants]="skeletalRestaurants"
                 [user]="user" (actionDone)="updateTask($event)"></app-task-list>
         </div>
         <div *ngIf="'Closed' === activeTabValue">
-            <app-task-list [taskList]="myClosedTasks" [globalCachedRestaurantList]="globalCachedRestaurantList"
+            <app-task-list [taskList]="myClosedTasks" [skeletalRestaurants]="skeletalRestaurants"
                 [user]="user"></app-task-list>
             Showing last {{hideClosedOldTasksDays}} days
         </div>

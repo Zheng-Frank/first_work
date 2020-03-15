@@ -1,14 +1,11 @@
-import { Component, NgZone } from '@angular/core';
+import { Component } from '@angular/core';
 import { Task } from '../../../classes/tasks/task';
 import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment';
 import { GlobalService } from '../../../services/global.service';
 import { User } from '../../../classes/user';
-import { GmbTransfer } from '../../../classes/gmb/gmb-transfer';
-import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { TaskService } from '../../../services/task.service';
 import { AlertType } from '../../../classes/alert-type';
-import { zip } from 'rxjs';
 
 import { Address } from '@qmenu/ui';
 @Component({
@@ -18,78 +15,6 @@ import { Address } from '@qmenu/ui';
 })
 export class TaskDashboardComponent {
 
-  myTasks: Task[] = [];
-  myOpenTasks: Task[] = [];
-  myDueTasks: Task[] = [];
-  myAssignedTasks: Task[] = [];
-  myClosedTasks: Task[] = [];
-
-  user: User;
-
-  refreshing = false;
-
-  purging = false;
-
-  groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
-
-  globalCachedRestaurantList;
-
-  currentAction = null;
-  requesting = false;
-
-  bizList = [];
-
-  restaurantList = [];
-
-  addTask() {
-    setTimeout(() => this.requesting = false, 4000);
-  }
-
-  async toggleAction(action) {
-    this.currentAction = this.currentAction === action ? null : action;
-    if (action === 'ADD' && this.restaurantList.length === 0) {
-      this.restaurantList = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: {
-          disabled: {
-            $ne: true
-          }
-        },
-        projection: {
-          name: 1,
-          alias: 1,
-          logo: 1,
-          channels: 1,
-          score: 1,
-          "googleAddress.formatted_address": 1
-        }
-      }, 6000)
-    }
-  }
-
-  statuses = [
-    { name: 'OPEN', btnClass: 'btn-secondary' },
-    { name: 'ASSIGNED', btnClass: 'btn-info' },
-    { name: 'CLOSED', btnClass: 'btn-success' },
-    { name: 'CANCELED', btnClass: 'btn-danger' }]
-
-  tabs = [
-    { value: 'Mine', label: 'Mine (0)' },
-    { value: 'Open', label: 'Open (0)' },
-    { value: 'Due', label: 'Due (0)' },
-    { value: 'Closed', label: 'Closed (0)' },
-    { value: 'Statistics', label: 'Statistics' },
-    { value: 'Google PIN', label: 'Google PIN' }
-  ];
-
-  activeTabValue = 'Mine';
-  constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
-    this.user = this._global.user;
-
-    this.refresh();
-  }
-
-  hideClosedOldTasksDays = 15;
 
   async refresh() {
     this.refreshing = true;
@@ -100,10 +25,10 @@ export class TaskDashboardComponent {
       return d;
     };
 
-    const result0 = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const loadTasks = this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: "task",
       query: {
-        name : {"$ne": "GMB Request"},
+        name: { "$ne": "GMB Request" },
         $or: [
           {
             resultAt: null
@@ -116,36 +41,38 @@ export class TaskDashboardComponent {
         ]
       },
 
-    }, 800)
+    }, 8000);
 
-    console.log('result0', result0.length);
+    const loadGmbBiz = this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: "gmbBiz",
+      query: {},
+      projection: {
+        qmenuId: 1,
+        address: 1,
+        gmbOpen: 1,
+        phone: 1,
+        name: 1,
+        isDirectSignUp: 1,
+        gmbOwner: 1
+      },
+    }, 10000);
 
-    const gmbBizBatchSize = 800;
-    const result1 = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: "gmbBiz",
-        query: {},
-        projection: {
-          qmenuId: 1,
-          address: 1,
-          gmbOpen: 1,
-          phone: 1,
-          name: 1,
-          isDirectSignUp: 1,
-          gmbOwner: 1
-        },
-        skip: result1.length,
-        limit: gmbBizBatchSize
-      }).toPromise();
-      result1.push(...batch);
-      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
-        break;
-      }
-    }
+    const loadRestaurants = this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: "restaurant",
+      query: {},
+      projection: {
+        "web.ignoreGmbOwnershipRequest": 1,
+        "web.agreeToCorporate": 1,
+        "web.qmenuExclusive": 1,
+      },
+    }, 10000);
 
-    // force refreshing global restaurant list!
-    this.globalCachedRestaurantList = await this._global.getCachedVisibleRestaurantList(true);
+
+    const results = await Promise.all([loadTasks, loadGmbBiz, loadRestaurants]);
+    const result0 = results[0];
+    const result1 = results[1];
+    this.skeletalRestaurants = results[2];
+
     this.refreshing = false;
     let tasks = (result0 || []).map(t => new Task(t));
     //won't show "Apply GMB Ownership". "Transfer GMB Ownership" and "Appeal Suspended GMB" if you are not GMB_SPECIALIST
@@ -186,8 +113,6 @@ export class TaskDashboardComponent {
         t.assignee === this._global.user.username || t.roles.some(r => this._global.user.roles.indexOf(r) >= 0));
 
     }
-
-
     this.myTasks = this.myTasks.sort((a, b) => a.scheduledAt.valueOf() - b.scheduledAt.valueOf());
 
     const bizMap = {};
@@ -205,6 +130,80 @@ export class TaskDashboardComponent {
     // compute groupedTasks, by task name
     this.computeGroupedTasks();
   }
+
+
+  myTasks: Task[] = [];
+  myOpenTasks: Task[] = [];
+  myDueTasks: Task[] = [];
+  myAssignedTasks: Task[] = [];
+  myClosedTasks: Task[] = [];
+
+  user: User;
+
+  refreshing = false;
+
+  purging = false;
+
+  groupedTasks = []; // [{name: 'mytask', 'OPEN': 3, 'ASSIGNED': 2, 'CLOSED': 2, 'CANCELED': 4}]
+
+  skeletalRestaurants;
+
+  currentAction = null;
+  requesting = false;
+
+  bizList = [];
+
+  restaurantList = [];
+
+  addTask() {
+    setTimeout(() => this.requesting = false, 4000);
+  }
+
+  async toggleAction(action) {
+    this.currentAction = this.currentAction === action ? null : action;
+    if (action === 'ADD' && this.restaurantList.length === 0) {
+      this.restaurantList = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {
+          disabled: {
+            $ne: true
+          }
+        },
+        projection: {
+          name: 1,
+          alias: 1,
+          logo: 1,
+          channels: 1,
+          score: 1,
+          "googleAddress.formatted_address": 1
+        }
+      }, 100000)
+    }
+  }
+
+  statuses = [
+    { name: 'OPEN', btnClass: 'btn-secondary' },
+    { name: 'ASSIGNED', btnClass: 'btn-info' },
+    { name: 'CLOSED', btnClass: 'btn-success' },
+    { name: 'CANCELED', btnClass: 'btn-danger' }]
+
+  tabs = [
+    { value: 'Mine', label: 'Mine (0)' },
+    { value: 'Open', label: 'Open (0)' },
+    { value: 'Due', label: 'Due (0)' },
+    { value: 'Closed', label: 'Closed (0)' },
+    { value: 'Statistics', label: 'Statistics' },
+    { value: 'Google PIN', label: 'Google PIN' }
+  ];
+
+  activeTabValue = 'Mine';
+  constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
+    this.user = this._global.user;
+
+    this.refresh();
+  }
+
+  hideClosedOldTasksDays = 2;
 
   computeGroupedTasks() {
     const nameMap = {};

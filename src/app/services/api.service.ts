@@ -64,7 +64,6 @@ export class ApiService {
       skip += batchSize;
     } while (oneBatch.length === batchSize && result.length < payloadLimit)
 
-    console.log(`loaded ${result.length} tasks`);
     return result;
   }
 

@@ -130,7 +130,7 @@
             <button class="btn btn-primary" *ngIf="!row.assignee" (click)="assign(row.task, user.username)">
               Claim
             </button>
-            <button class="btn btn-link" (click)="showDetails(row)">
+            <button class="btn btn-link" (click)="showDetails(row.task._id)">
               Details
             </button>
           </td>
@@ -170,33 +170,32 @@
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">×</span>
   </button>
-  <h4 class="text-center">{{modalRow?.relatedMap?.restaurantName}}
+  <h4 class="text-center">{{modalTask?.relatedMap?.restaurantName}}
   </h4>
   <div class="small text-center">
-    <a target="_blank" href="#/restaurants/{{modalRow?.relatedMap?.restaurantId}}">{{modalRow?.address}}</a>
+    <a target="_blank" href="#/restaurants/{{modalTask?.relatedMap?.restaurantId}}">{{getAddress(modalTask)}}</a>
   </div>
-  <!-- <div class="text-muted text-center"><small>ID: {{modalRow?._id}}</small></div> -->
   <div class="text-center">
     <button class="btn btn-link" (click)="hardRefresh()" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
       Hard Refresh</button>
   </div>
 
   <hr>
-  <div *ngIf="modalRow?.request.email" class="text-center">
-    <app-gmb-account-hotlink [email]="modalRow?.request.email"></app-gmb-account-hotlink>
-    <label>[postcard ID: {{getPostcardId(modalRow?.request.email)}}]</label>
+  <div *ngIf="modalTask?.request.email" class="text-center">
+    <app-gmb-account-hotlink [email]="modalTask?.request.email"></app-gmb-account-hotlink>
+    <label>[postcard ID: {{postcardIds.get(modalTask?.request.email)}}]</label>
   </div>
 
-  <div class="alert alert-danger text-center" *ngIf="modalRow?.request?.ownerDeclined">
+  <div class="alert alert-danger text-center" *ngIf="modalTask?.request?.ownerDeclined">
     OWNER DECLINED TO WORK WITH QMENU
   </div>
 
-  <div class="alert alert-warning" *ngFor="let status of (modalRow?.request?.statusHistory || [])">
+  <div class="alert alert-warning" *ngFor="let status of (modalTask?.request?.statusHistory || [])">
     {{status.time | ago : now}}: {{status.status}}
   </div>
   <div class="form-group mb-4">
     <label>Comments:</label>
-    <div class="wrap pb-1" [innerHTML]="modalRow?.comments"></div>
+    <div class="wrap pb-1" [innerHTML]="modalTask?.comments"></div>
     <div class="input-group">
       <input type="text" class="form-control" [(ngModel)]="comments" placeholder="your comments">
       <div class="input-group-append">
@@ -294,7 +293,7 @@
 
   <div class="form-group mb-4">
     <label>Google PINs:</label>
-    <div *ngFor="let ph of modalRow?.request?.pinHistory || []" class="row">
+    <div *ngFor="let ph of modalTask?.request?.pinHistory || []" class="row">
       <div class="col-6 text-nowrap">
         <h2 class="d-inline-block">{{ph.pin ? ph.pin : '(empty)'}} </h2> <span class="text-muted">{{ph.time | ago: now}}
           {{ph.username}}</span>
@@ -325,20 +324,20 @@
     </div>
   </div>
 
-  <div class="form-group alert alert-warning" *ngIf="modalRow">
+  <div class="form-group alert alert-warning" *ngIf="modalTask">
     <label>Change Assignee:</label>
-    <select [(ngModel)]="modalRow.assignee" class="form-control" (change)="assign(modalRow.task, modalRow.assignee)">
+    <select [(ngModel)]="modalTask.assignee" class="form-control" (change)="assign(modalTask, modalTask.assignee)">
       <option *ngFor="let assignee of assignees" [ngValue]="assignee">{{assignee}}</option>
     </select>
     <div class="text-right">
       <button class="btn btn-link" (click)="toggleDecline()">Owner
-        {{modalRow?.request?.ownerDeclined ? 'AGREED' : 'DECLINED'}} to Work with qMenu?</button>
+        {{modalTask?.request?.ownerDeclined ? 'AGREED' : 'DECLINED'}} to Work with qMenu?</button>
     </div>
   </div>
 
 
   <div class="form-group">
-    <ng-container *ngIf="!modalRow?.result">
+    <ng-container *ngIf="!modalTask?.result">
       <label>If Done, Select Result:</label>
       <q-simple-radio [(ngModel)]="taskResult" [equalWidth]="true" [values]="['CANCELED', 'CLOSED']">
       </q-simple-radio>
@@ -365,7 +364,7 @@
   <div *ngFor="let task  of relatedTasks || []" class="alert alert-warning">
     <div *ngIf="task.name !== 'GMB Request'">{{task.name}}</div>
     <div *ngIf="task.name === 'GMB Request'">
-      {{task.name}} <button class="btn btn-link" (click)="showDetailsById(task._id)">See Details...</button>
+      {{task.name}} <button class="btn btn-link" (click)="showDetails(task._id)">See Details...</button>
     </div>
     <div>
       <app-gmb-account-hotlink [email]="task.request?.email || task.transfer?.toEmail"></app-gmb-account-hotlink>

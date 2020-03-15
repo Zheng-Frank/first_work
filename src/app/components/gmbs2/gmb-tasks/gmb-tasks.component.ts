@@ -13,6 +13,45 @@ import { Helper } from "src/app/classes/helper";
     styleUrls: ['./gmb-tasks.component.css']
 })
 export class GmbTasksComponent implements OnInit, OnDestroy {
+
+    private async populateTasks() {
+        // this.setQueryOr();
+        const dbTasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+            resource: "task",
+            query: {
+                result: null,
+                name: "GMB Request",
+                // "relatedMap.restaurantId": "58a34a2be1ddb61100f9e49c"
+            },
+            projection: {
+                "assignee": 1,
+                "ownerDeclined": 1,
+                "refreshedAt": 1,
+                "relatedMap.restaurantId": 1,
+                "relatedMap.restaurantName": 1,
+                "relatedMap.cid": 1,
+                "request.statusHistory.status": 1,
+                "request.statusHistory.isError": 1,
+                "request.statusHistory": { $slice: 1 },
+                "request.verificationHistory": { $slice: 1 },
+                "request.voHistory": { $slice: 2 },
+                "request.voHistory.time": 1,
+                "request.voHistory.options.verificationMethod": 1,
+                "request.voHistory.options.emailData.domainName": 1,
+            }
+        }, 5000);
+
+        this.tasks = dbTasks.map(t => new Task(t));
+        this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
+
+        this.tasks.filter(t => !this.restaurantDict[t.relatedMap.restaurantId])
+            .forEach(function (task) { console.log(`ERROR bad restaurant id ${task.relatedMap.restaurantId}! Task ID = ${task._id.toString()}`) });
+
+        this.tasks = this.tasks.filter(t => this.restaurantDict[t.relatedMap.restaurantId]); //remove invalid restaruant IDs, should not happen
+        this.filteredTasks = this.tasks;
+        this.filter();
+    }
+
     @ViewChild('rowModal') rowModal: ModalComponent;
     apiLoading = false;
     activeTabLabel = 'Mine';
@@ -23,7 +62,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     relatedTasks = [];
 
     qmenuDomains = new Set();
-    modalRow;
+    modalTask;
     restaurant;
     verificationOptions = [];
     verifications = [];
@@ -46,6 +85,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     comments = '';
     pin;
     verifyingOption;
+    pagination = true;
+    //help display postcardID
+    postcardIds = new Map();
 
     tabs = [
         { label: 'Mine', rows: [] },
@@ -140,35 +182,24 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
         this.setActiveTab(this.tabs[0]);
 
-        this.setQueryOr();
         await this.populate();
-
-        // this.tabs.map(tab => {
-        //   const filterMap = {
-        //     "Mine": t => t.assignee === this.user.username && !t.result,
-        //     "Non-claimed": t => !t.assignee && !t.result,
-        //     "My Closed": t => t.assignee === this.user.username && t.result,
-        //     "All Open": t => !t.result,
-        //     "All Closed": t => t.result,
-        //   };
-        //   tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
-        // });
 
         this.ownerList = this.filteredTasks.map(t => ((this.restaurantDict[t.relatedMap.restaurantId] || {}).googleListing || {}).gmbOwner);
         this.ownerList = Array.from(new Set(this.ownerList)).sort().filter(e => e != null);
 
         this.now = new Date();
+
     }
 
     taskResult;
     async closeTask() {
         if (this.taskResult) {
             if (confirm('Are you sure?')) {
-                await this.update(this.modalRow.task, "result", this.taskResult);
-                await this.update(this.modalRow.task, "resultAt", new Date());
+                await this.update(this.modalTask, "result", this.taskResult);
+                await this.update(this.modalTask, "resultAt", new Date());
                 const fullComments = `${new Date().getMonth() + 1}/${new Date().getDate()} ${this.user.username}: closed`;
 
-                await this.update(this.modalRow.task, 'comments', this.modalRow.comments ? `${this.modalRow.comments}\n${fullComments}` : fullComments);
+                await this.update(this.modalTask, 'comments', this.modalTask.comments ? `${this.modalTask.comments}\n${fullComments}` : fullComments);
 
                 this.rowModal.hide();
             }
@@ -180,7 +211,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     async hardRefresh() {
         try {
             await this._api.post(environment.gmbNgrok + 'task/refresh', {
-                taskId: this.modalRow._id
+                taskId: this.modalTask._id
             }).toPromise();
 
             this._global.publishAlert(AlertType.Success, 'Refreshed Successfully');
@@ -191,7 +222,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
         }
 
-        await this.refreshSingleTask(this.modalRow._id);
+        await this.refreshSingleTask(this.modalTask._id);
 
     }
 
@@ -199,9 +230,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         if (confirm('Do not try too many times for this function. Too many failed tries will cause the verification disappear. Are you sure to use this PIN?')) {
             try {
                 await this._api.post(environment.gmbNgrok + 'task/complete', {
-                    taskId: this.modalRow._id,
-                    email: this.modalRow.request.email,
-                    locationName: this.modalRow.request.locationName,
+                    taskId: this.modalTask._id,
+                    email: this.modalTask.request.email,
+                    locationName: this.modalTask.request.locationName,
                     pin: pinHistory.pin
                 }).toPromise();
 
@@ -214,7 +245,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
 
             await this.addComments(`tried PIN`);
-            await this.refreshSingleTask(this.modalRow._id);
+            await this.refreshSingleTask(this.modalTask._id);
         }
     }
 
@@ -222,9 +253,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         if (confirm('Are you sure to reset this PIN? This will not erase the PIN history but scanning task will not see it')) {
             try {
                 await this._api.post(environment.gmbNgrok + 'task/reset-pin', {
-                    taskId: this.modalRow._id,
-                    email: this.modalRow.request.email,
-                    locationName: this.modalRow.request.locationName,
+                    taskId: this.modalTask._id,
+                    email: this.modalTask.request.email,
+                    locationName: this.modalTask.request.locationName,
                     pin: pinHistory.pin
                 }).toPromise();
 
@@ -237,7 +268,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
 
             await this.addComments(`PIN reset`);
-            await this.refreshSingleTask(this.modalRow._id);
+            await this.refreshSingleTask(this.modalTask._id);
         }
     }
 
@@ -247,9 +278,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             this.verifyingOption = vo;
             try {
                 await this._api.post(environment.gmbNgrok + 'task/verify', {
-                    taskId: this.modalRow._id,
-                    email: this.modalRow.request.email,
-                    locationName: this.modalRow.request.locationName,
+                    taskId: this.modalTask._id,
+                    email: this.modalTask.request.email,
+                    locationName: this.modalTask.request.locationName,
                     verificationOption: vo
                 }).toPromise();
 
@@ -263,7 +294,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
             this.verifyingOption = undefined;
             await this.addComments(`tried verification`);
-            await this.refreshSingleTask(this.modalRow._id);
+            await this.refreshSingleTask(this.modalTask._id);
         }
     }
 
@@ -273,25 +304,24 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }
 
     async toggleDecline() {
-        const currentlyDeclined = this.modalRow.request.ownerDeclined;
+        const currentlyDeclined = this.modalTask.request.ownerDeclined;
         const message = currentlyDeclined ?
             'The owner has agreed to work with qMenu. Are you sure?'
             : 'The owner has declined to work with qMenu. This will assign the task to another person to handle. Are you sure?';
 
         if (confirm(message)) {
             await this.addComments(currentlyDeclined ? 'owner agreed to work with qMenu' : 'owner declined to work with qMenu');
-            await this.update(this.modalRow.task, 'request.ownerDeclined', !currentlyDeclined);
-            await this.update(this.modalRow.task, 'scheduledAt', new Date());
-            // await this.assign(this.modalRow.task, 'alan');
+            await this.update(this.modalTask, 'request.ownerDeclined', !currentlyDeclined);
+            await this.update(this.modalTask, 'scheduledAt', new Date());
             // also update restaurant
             await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
                 {
                     old: {
-                        _id: { $oid: this.modalRow.task.relatedMap.restaurantId },
+                        _id: { $oid: this.modalTask.relatedMap.restaurantId },
                         web: {}
                     },
                     new: {
-                        _id: { $oid: this.modalRow.task.relatedMap.restaurantId },
+                        _id: { $oid: this.modalTask.relatedMap.restaurantId },
                         web: {
                             agreeToCorporate: currentlyDeclined ? 'Yes' : 'No'
                         }
@@ -315,7 +345,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }
 
     scheduledAtUpdated(event) {
-        this.update(this.modalRow.task, 'scheduledAt', this.taskScheduledAt);
+        this.update(this.modalTask, 'scheduledAt', this.taskScheduledAt);
         this.addComments(`rescheduled`);
 
     }
@@ -324,39 +354,45 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.activeTabLabel = tab.label;
     }
 
-    async showDetailsById(taskId) {
+    async showDetails(taskId) {
 
-        const matchedTasks = this.tasks.filter(t => t._id === taskId);
-        if (matchedTasks[0]) {
+        const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "task",
+            query: {
+                _id: { $oid: taskId }
+            }
+        }).toPromise();
+
+        if (this.modalTask && this.modalTask._id !== taskId) {
             // dismiss first the pop the new one up
             this.rowModal.hide();
-            setTimeout(async _ => {
-                await this.showDetails(matchedTasks[0]);
-            }, 500);
-
-        } else {
-            alert(taskId);
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
-    }
 
-    async showDetails(row) {
+        this.modalTask = tasks[0];
+        const theTask = tasks[0];
+        this.rowModal.show();
 
         this.preferredVerificationOption = undefined;
         const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
             resource: "gmbAccount",
-            query: { "locations.cid": row.relatedMap.cid },
+            query: { "locations.cid": theTask.relatedMap.cid },
             limit: 100000,
             projection: {
                 "locations.cid": 1,
                 "locations.status": 1
             }
         }).toPromise();
-        this.isPublished = relatedAccounts.some(acct => acct.locations.some(loc => loc.cid === row.relatedMap.cid && loc.status === 'Published'));
+        this.isPublished = relatedAccounts.some(acct => acct.locations.some(loc => loc.cid === theTask.relatedMap.cid && loc.status === 'Published'));
 
-        this.modalRow = row;
-        this.taskScheduledAt = row.scheduledAt || new Date();
-        this.verificationOptions = row.verificationOptions || [];
-        this.verifications = ((row.request.verificationHistory || [])[0] || {}).verifications || [];
+        this.taskScheduledAt = theTask.scheduledAt || new Date();
+        const verificationOptions = (((theTask.request.voHistory || [])[0] || { options: [] }).options || []).filter(vo => vo.verificationMethod !== 'SMS').map(vo => ({
+            ...vo,
+            verification: ((theTask.request.verificationHistory || [])[0] || { verifications: [] }).verifications.filter(verification => verification.state === 'PENDING' && verification.method === vo.verificationMethod)[0]
+        }));
+
+        this.verificationOptions = verificationOptions || [];
+        this.verifications = ((theTask.request.verificationHistory || [])[0] || {}).verifications || [];
         // add faClass
         const faMap = {
             EMAIL: 'at',
@@ -384,12 +420,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             this.preferredVerificationOption = addressOption;
         }
 
-        this.rowModal.show();
 
         this.restaurant = (
             await this._api.get(environment.qmenuApiUrl + "generic", {
                 resource: "restaurant",
-                query: { _id: { $oid: row.relatedMap.restaurantId } },
+                query: { _id: { $oid: theTask.relatedMap.restaurantId } },
                 limit: 1,
                 projection: {
                     "googleAddress.formatted_address": 1,
@@ -409,7 +444,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
         const relatedTasks = await this._api.get(environment.qmenuApiUrl + "generic", {
             resource: "task",
-            query: { "relatedMap.cid": row.relatedMap.cid, result: null },
+            query: { "relatedMap.cid": theTask.relatedMap.cid, result: null },
             limit: 100,
             projection: {
                 assignee: 1,
@@ -420,7 +455,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
         }).toPromise();
 
-        this.relatedTasks = relatedTasks.filter(t => t._id !== row._id);
+        this.relatedTasks = relatedTasks.filter(t => t._id !== theTask._id);
 
     }
     async savePin() {
@@ -429,7 +464,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         }
         try {
             await this._api.post(environment.gmbNgrok + 'task/save-pin', {
-                taskId: this.modalRow._id,
+                taskId: this.modalTask._id,
                 pin: this.pin,
                 username: this._global.user.username
             }).toPromise();
@@ -438,26 +473,29 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             alert('ERROR SAVING PIN');
         }
         this.pin = '';
-        await this.refreshSingleTask(this.modalRow._id);
+        await this.refreshSingleTask(this.modalTask._id);
     }
 
     async addComments(comments) {
         if (comments) {
             const fullComments = `${new Date().getMonth() + 1}/${new Date().getDate()} ${this.user.username}: ${comments}`;
-            await this.update(this.modalRow.task, 'comments', this.modalRow.comments ? `${this.modalRow.comments}\n${fullComments}` : fullComments);
+            await this.update(this.modalTask, 'comments', this.modalTask.comments ? `${this.modalTask.comments}\n${fullComments}` : fullComments);
         }
         this.comments = '';
     }
 
     async populate() {
         try {
-            await this.populatePostcardId();
-            await this.populateQMDomains();
-            await this.populateRTs();
-            await this.populateTasks();
+            await Promise.all([
+                this.populateTasks(),
+                this.populatePostcardId(),
+                this.populateQMDomains(),
+                this.populateRTs(),
+            ]);
         } catch (error) {
             this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
         }
+        this.filter();
     }
 
     isNonQmenuEmail(verificationOption) {
@@ -509,13 +547,17 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             const index = tab.rows.findIndex(row => row.task._id === task._id);
             if (index >= 0) {
                 tab.rows[index] = this.generateRow(index + 1, task);
-                if (this.modalRow && this.modalRow.task._id === task._id) {
-                    this.modalRow = tab.rows[index];
+                if (this.modalTask && this.modalTask.task._id === task._id) {
+                    this.modalTask = tab.rows[index];
                 }
             }
         });
+    }
 
-
+    getAddress(task) {
+        if (task) {
+            return (this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).formatted_address || '';
+        }
     }
 
     private generateRow(rowNumber, task) {
@@ -523,6 +565,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         // console.log(((task.request.voHistory || [])[0] || { options: [] }).options);
         const timezoneR = (this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).timezone;
         const formatedAddr = (this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).formatted_address || '';
+        const verificationOptions = (((task.request.voHistory || [])[0] || { options: [] }).options || []).filter(vo => vo.verificationMethod !== 'SMS').map(vo => ({
+            ...vo,
+            verification: ((task.request.verificationHistory || [])[0] || { verifications: [] }).verifications.filter(verification => verification.state === 'PENDING' && verification.method === vo.verificationMethod)[0]
+        }));
         return {
             timezoneCell: Helper.getTimeZone(formatedAddr),
             localTimeString: new Date().toLocaleTimeString('en-US', { timeZone: timezoneR }),
@@ -533,10 +579,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             gmbOwner: (this.restaurantDict[task.relatedMap.restaurantId].googleListing || {}).gmbOwner,
             task: task,
             ...task, // also spread everything in task to row for convenience
-            verificationOptions: ((task.request.voHistory || [])[0] || { options: [] }).options.filter(vo => vo.verificationMethod !== 'SMS').map(vo => ({
-                ...vo,
-                verification: ((task.request.verificationHistory || [])[0] || { verifications: [] }).verifications.filter(verification => verification.state === 'PENDING' && verification.method === vo.verificationMethod)[0]
-            })),
+            verificationOptions: verificationOptions,
             assignee: task.assignee
         }
     }
@@ -572,7 +615,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             // keep ONLY last two (NOT GOOD for other country's domain)
             return host.split('.').slice(-2).join('.');
         } catch (error) {
-            console.log(url);
             return;
         }
     }
@@ -584,6 +626,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             d.setDate(d.getDate() - days);
             return d;
         };
+
         // this.query_or = [
         //   {
         //     assignee: this.myUsername,
@@ -613,73 +656,29 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         // console.log(`task query = ${JSON.stringify(this.query_or)}`);
     }
 
-    private async populateTasks() {
-        this.setQueryOr();
-        // const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
-        //   resource: "task",
-        //   query: {
-        //     $or: this.query_or
-        //   },
-        // }).toPromise();
-
-        const dbTasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-            resource: "task",
-            query: {
-                $or: this.query_or
-            },
-        }, 200);
-
-
-
-        this.tasks = dbTasks.map(t => new Task(t));
-        this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
-
-        this.tasks.filter(t => !this.restaurantDict[t.relatedMap.restaurantId])
-            .forEach(function (task) { console.log(`ERROR bad restaurant id ${task.relatedMap.restaurantId}! Task ID = ${task._id.toString()}`) });
-
-        this.tasks = this.tasks.filter(t => this.restaurantDict[t.relatedMap.restaurantId]); //remove invalid restaruant IDs, should not happen
-        this.filteredTasks = this.tasks;
-        this.filter();
-    }
-
     private async populateRTs() {
-        // const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
-        //   resource: "restaurant",
-        //   query: {},
-        //   limit: 10000,
-        //   projection: {
-        //     "googleAddress.formatted_address": 1,
-        //     "googleAddress.timezone": 1,
-        //     "googleListing.gmbOwner": 1,
-        //     "googleListing.phone": 1,
-        //     score: 1,
-        //     "web.qmenuWebsite": 1 // for qmenu domains
-        //   }
-        // }).toPromise();
-        const restaurants = await this._global.getCachedVisibleRestaurantList();
+        const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "restaurant",
+            query: {},
+            limit: 100000,
+            projection: {
+                "googleAddress.formatted_address": 1,
+                "googleAddress.timezone": 1,
+                "googleListing.gmbOwner": 1,
+                "googleListing.phone": 1,
+                score: 1,
+                "web.qmenuWebsite": 1 // for qmenu domains
+            }
+        }).toPromise();
         this.restaurantDict = restaurants.reduce((dict, rt) => (dict[rt._id] = rt, dict), {});
     }
 
     private async populateQMDomains() {
-
-        // retrieve ALL qmenu domains
-        // const myDomains = await this._api.get(environment.qmenuApiUrl + "generic", {
-        //   resource: "domain",
-        //   query: {},
-        //   limit: 10000000,
-        //   projection: { expiry: 1, name: 1 }
-        // }).toPromise();
-
-        // const nonExpiredDomains = myDomains.filter(d => new Date(d.expiry) > new Date());
-        // nonExpiredDomains.push({ name: 'qmenu.us' }); // in case it's not there
-        // nonExpiredDomains.map(d => this.qmenuDomains.add(d.name));
-
         this.qmenuDomains = await this._global.getCachedDomains();
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        this.populateTasks();
-        this.filter();
+
     }
 
     //filters
@@ -764,23 +763,21 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             };
             tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
             let filterTaskIds = (tab.rows.filter(e => !e.result)).map(each => each._id);
-            console.log("filtered filterTaskIds", filterTaskIds);
         });
-        console.log(`${this.now} ${this.now.getTime()}`);
     }
 
-    pagination = true;
-
-    //help display postcardID
-    postcardIds = new Map();
     async populatePostcardId() {
-        this.postcardIds = new Map((await this._global.getCachedGmbAccountsNoLocations()).map(acct => [acct.email, acct.postcardId]));
-        const missingIds = this.postcardIds.forEach((email, pid) => {
-            if (!pid) {
-                console.log(`WARN - missing postcardId on ${email}, please add to db`);
+        const gmbAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "gmbAccount",
+            limit: 100000,
+            projection: {
+                "email": 1,
+                "postcardId": 1
             }
-        });
+        }).toPromise();
+        this.postcardIds = new Map(gmbAccounts.map(acct => [acct.email, acct.postcardId]));
     }
+
     getPostcardId(email) {
         return this.postcardIds.get(email);
     }
@@ -797,9 +794,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 const createTime = (new Date(verification.createTime)).getTime();
                 return (new Date()).getTime() - createTime > timeSpanDict[verification.method];
             }
-            // else {
-            //   console.log(`NOT SUPPORTED VERIFICATION: ${JSON.stringify(verification || {})}`);
-            // }
         }
     }
 

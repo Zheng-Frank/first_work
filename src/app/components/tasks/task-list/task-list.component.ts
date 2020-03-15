@@ -12,7 +12,7 @@ export class TaskListComponent implements OnInit, OnChanges {
   @Input() taskList = [];
   @Input() user;
   @Output() actionDone = new EventEmitter();
-  @Input() globalCachedRestaurantList;
+  @Input() skeletalRestaurants;
 
   now = new Date();
   claimed;
@@ -169,7 +169,7 @@ export class TaskListComponent implements OnInit, OnChanges {
       this.filteredTasks = this.filteredTasks.filter(task => {
         const qmenuId = (task.relatedMap || {}).qmenuId || (task.gmbBiz || {}).qmenuId || 'none'
 
-        let rt = this.globalCachedRestaurantList.filter(r => r._id === qmenuId)[0];
+        let rt = this.skeletalRestaurants.filter(r => r._id === qmenuId)[0];
         const gmbWeb = (rt || {}).web || {};
 
         if (this.gmb === "Skip All") {
@@ -248,8 +248,8 @@ export class TaskListComponent implements OnInit, OnChanges {
   getGMB(id) {
     //console.log(this.restaurantList);
     if (id) {
-      console.log(this.globalCachedRestaurantList.filter(r => r._id === id)[0].web)
-      return this.globalCachedRestaurantList.filter(r => r._id === id)[0].web;
+      console.log(this.skeletalRestaurants.filter(r => r._id === id)[0].web)
+      return this.skeletalRestaurants.filter(r => r._id === id)[0].web;
     }
   }
 }
