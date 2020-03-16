@@ -62,6 +62,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.allowedZipCodes = (this.restaurant.allowedZipCodes || []).join(',');
     this.allowedCities = (this.restaurant.allowedCities || []).join(',');
     this.deliveryArea = this.restaurant.deliveryArea;
+    this.taxOnDelivery = this.restaurant.taxOnDelivery;
     if(this.restaurant.deliveryHours){
       this.deliveryHours= this.restaurant.deliveryHours.map(h => new Hour(h));
     }
