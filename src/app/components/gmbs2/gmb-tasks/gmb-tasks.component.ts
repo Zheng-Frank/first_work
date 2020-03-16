@@ -213,7 +213,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     async hardRefresh(task) {
         try {
             if (task.processorVersion === "v5") {
-                await this.hardRefreshV5Task(task._id));
+                await this.hardRefreshV5Task(task._id);
             } else {
                 await this._api.post(environment.gmbNgrok + 'task/refresh', {
                     taskId: this.modalTask._id
@@ -676,6 +676,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     owner = "All";
     ownerList = [];
 
+    shouldCall = false;
     hasEmail = false;
     hasPhone = false;
     hasPostcard = false;
@@ -708,6 +709,16 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 }
             })
         };
+
+        if (this.shouldCall) {
+            // No qMenu emails and having phone call options
+            this.filteredTasks = this.filteredTasks.filter(t => {
+                const lastVos = ((((t.request || {}).voHistory || [])[0] || {}).options) || [];
+                const hasQmenuEmailVo = lastVos.some(vo => vo.emailData && this.qmenuDomains.has(vo.emailData.domainName));
+                const hasPhoneVo = lastVos.some(vo => vo.verificationMethod === "PHONE_CALL");
+                return !hasQmenuEmailVo && hasPhoneVo;
+            });
+        }
 
         //filter verification options
         if (this.hasEmail || this.hasPhone || this.hasPostcard) {
@@ -749,7 +760,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                     && ((this.now.getTime() - new Date(t.request.voHistory[0].time).getTime()) / 86400000) < 1,
             };
             tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
-            let filterTaskIds = (tab.rows.filter(e => !e.result)).map(each => each._id);
         });
     }
 

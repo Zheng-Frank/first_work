@@ -44,6 +44,11 @@
       <option *ngFor="let assignee of assignees">{{assignee}}</option>
     </select>
 
+    <input class="form-check-input" type="checkbox" [(ngModel)]="shouldCall" id="shouldCallCheck" (change)="filter()">
+    <label class="form-check-label mr-5" for="shouldCallCheck">
+      Should Call
+    </label>
+
     <input class="form-check-input" type="checkbox" [(ngModel)]="hasEmail" id="hasEmailCheck" (change)="filter()">
     <label class="form-check-label mr-5" for="hasEmailCheck">
       Email
@@ -64,7 +69,8 @@
       Code
     </label>
 
-    <input class="form-check-input" type="checkbox" [(ngModel)]="hasExpiringCode" id="hasExpiringCodeCheck" (change)="filter()">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="hasExpiringCode" id="hasExpiringCodeCheck"
+      (change)="filter()">
     <label class="form-check-label mr-5" for="hasExpiringCodeCheck">
       Expiring Code
     </label>
@@ -82,7 +88,8 @@
       <q-table *ngIf="activeTabLabel === tab.label" [rows]="tab.rows" [tableColumnDescriptors]="myColumnDescriptors"
         [compact]="true" [pageSize]="pagination ? 100 : 100000">
 
-        <tr *tableRowTemplate="let row;" class="{{row.request.ownerDeclined ? 'alert-danger': ''}}">
+        <tr *tableRowTemplate="let row;"
+          class="{{row.request.ownerDeclined || (row.request.statusHistory && row.request.statusHistory[0].isError) ? 'alert-danger': ''}}">
           <td>{{row.rowNumber}}
           </td>
           <td>
@@ -176,7 +183,8 @@
     <a target="_blank" href="#/restaurants/{{modalTask?.relatedMap?.restaurantId}}">{{getAddress(modalTask)}}</a>
   </div>
   <div class="text-center">
-    <button class="btn btn-link" (click)="hardRefresh(modalTask)" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
+    <button class="btn btn-link" (click)="hardRefresh(modalTask)" [qLoading]="apiLoading"><i
+        class="fas fa-sync-alt"></i>
       Hard Refresh</button>
   </div>
 
@@ -190,7 +198,8 @@
     OWNER DECLINED TO WORK WITH QMENU
   </div>
 
-  <div class="alert alert-warning" *ngFor="let status of (modalTask?.request?.statusHistory || [])">
+  <div class="alert {{status.isError ? 'alert-danger' : 'alert-warning'}}"
+    *ngFor="let status of (modalTask?.request?.statusHistory || [])">
     {{status.time | ago : now}}: {{status.status}}
   </div>
   <div class="form-group mb-4">
