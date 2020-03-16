@@ -26,7 +26,7 @@ export class HomeComponent implements OnInit {
 
   async ngOnInit() {
     // retrieve restaurant list
-    this.restaurantList = await this._global.getCachedVisibleRestaurantList();
+    this.restaurantList = await this._global.getCachedRestaurantListForPicker();
     // force log out
     if (['sam', 'lemon'].indexOf(this._global.user.username) >= 0 && this._global.user.roles.some(r => r === 'ADMIN')) {
       this._global.logout();

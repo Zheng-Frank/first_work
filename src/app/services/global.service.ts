@@ -223,62 +223,31 @@ export class GlobalService {
     ubereats: "ubereats.png"
   }
 
-  async getCachedVisibleRestaurantList(forceRefresh?: boolean) {
-
-    if (this._cache.get('restaurants') && !forceRefresh) {
-      return this._cache.get('restaurants');
-    } else {
-      const query = {};
-      if (!this.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0)) {
-        query["rateSchedules.agent"] = this.user.username
-      }
-      const result = [];
-      const restaurantBatchSize = 800;
-      let restaurantSkip = 0;
-
-      while (true) {
-        const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-          resource: 'restaurant',
-          projection: {
-            name: 1,
-            alias: 1,
-            logo: 1,
-            restaurantId: 1,
-            "phones.phoneNumber": 1,
-            "channels": 1,
-            disabled: 1,
-            logs: {
-              $slice: -3
-            },
-            "rateSchedules.agent": 1,
-            "googleAddress.formatted_address": 1,
-            "googleAddress.timezone": 1,
-            "googleListing.gmbOwner": 1,
-            "googleListing.phone": 1,
-            score: 1,
-            "web.qmenuWebsite": 1, // for qmenu domains
-            web: 1
-          },
-          skip: restaurantSkip,
-          limit: restaurantBatchSize
-        }).toPromise();
-
-        result.push(...batch);
-
-        if (batch.length === 0) {
-          break;
+  async getCachedRestaurantListForPicker(forceRefresh?: boolean) {
+    if (forceRefresh || !this._cache.get('restaurantListForPicker')) {
+      const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {},
+        limit: 10000000,
+        projection: {
+          name: 1,
+          alias: 1,
+          logo: 1,
+          "channels.value": 1,
+          "channels.type": 1,
+          "googleAddress.formatted_address": 1,
+          "googleListing.place_id": 1,
+          "googleListing.cid": 1,
+          "rateSchedules": 1
         }
-        restaurantSkip += restaurantBatchSize;
-      }
-
-      const restaurants = result.map(r => new Restaurant(r));
-      restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
-
-      console.log(`loaded ${restaurants.length} restaurants`);
-
-      this._cache.set('restaurants', restaurants, 30 * 60);
-      return restaurants;
+      }).toPromise();
+      this._cache.set('restaurantListForPicker', restaurants, 60 * 60);
     }
+
+    const restaurants = this._cache.get('restaurantListForPicker');
+    const isCsr = this.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0);
+    const visibleRestaurants = restaurants.filter(rt => isCsr || (rt.rateSchedules || []).some(rs => (rs.agent || "").toLowerCase() === this.user.username));
+    return visibleRestaurants;
   }
 
   async getCachedUserList(forceRefresh?: boolean) {
@@ -340,5 +309,5 @@ export class GlobalService {
       return accounts;
     }
   }
-  
+
 }

@@ -481,7 +481,7 @@ export class MonitoringPrintersComponent implements OnInit {
       resource: 'print-client',
       limit: 200000
     }).toPromise();
-    const allRestaurants = await this._global.getCachedVisibleRestaurantList();
+    const allRestaurants = await this._global.getCachedRestaurantListForPicker();
 
     const restaurantDict = allRestaurants.reduce((map, r) => (map[r._id] = r, map), {});
     allClients.map(client => {
@@ -516,7 +516,7 @@ export class MonitoringPrintersComponent implements OnInit {
 
   async onEditRestaurantId(event, row) {
     if (confirm("Are you sure?")) {
-      const allRestaurants = await this._global.getCachedVisibleRestaurantList();
+      const allRestaurants = await this._global.getCachedRestaurantListForPicker();
       const restaurant = allRestaurants.filter(r => r._id === event.newValue.trim())[0];
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=print-client", [
         {

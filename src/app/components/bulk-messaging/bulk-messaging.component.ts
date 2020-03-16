@@ -48,7 +48,7 @@ export class BulkMessagingComponent implements OnInit {
       return;
     }
 
-    const restaurants = await this._global.getCachedVisibleRestaurantList();
+    const restaurants = await this._global.getCachedRestaurantListForPicker();
     const restaurant = restaurants.filter(rt => rt._id === id.trim())[0];
     return restaurant;
   }

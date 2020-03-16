@@ -23,7 +23,7 @@ export class RestaurantDashboardComponent implements OnInit {
 
   searchTerm: string;
 
-  restaurantList = [];
+  restaurantList: any = [];
 
   filteredRestaurantList = [];
 
@@ -42,7 +42,7 @@ export class RestaurantDashboardComponent implements OnInit {
 
   async ngOnInit() {
     // retrieve MY restaurant list
-    this.restaurantList = await this._global.getCachedVisibleRestaurantList();
+    this.restaurantList = await this._global.getCachedRestaurantListForPicker();
   }
 
   calculateDuplicated() {

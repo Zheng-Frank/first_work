@@ -270,7 +270,7 @@ export class NewRestaurantComponent implements OnInit {
       this._global.publishAlert(AlertType.Success, 'Created restaurant');
 
       // force refreshing global restaurant list!
-      await this._global.getCachedVisibleRestaurantList(true);
+      await this._global.getCachedRestaurantListForPicker(true);
       // create GMB here!
       const existingGmbs = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',

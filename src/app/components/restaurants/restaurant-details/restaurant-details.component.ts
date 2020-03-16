@@ -80,6 +80,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   async loadDetails() {
     if (this.id) {
+      this.apiRequesting = true;
       const query = {
         _id: { $oid: this.id }
       };
@@ -170,6 +171,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       })
         .subscribe(
           results => {
+            this.apiRequesting = false;
             const rt = results[0];
             (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
             this.restaurant = rt ? new Restaurant(rt) : undefined;
@@ -178,6 +180,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             }
           },
           error => {
+            this.apiRequesting = false;
             this._global.publishAlert(AlertType.Danger, error);
           }
         );
