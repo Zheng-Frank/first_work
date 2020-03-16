@@ -176,7 +176,7 @@
     <a target="_blank" href="#/restaurants/{{modalTask?.relatedMap?.restaurantId}}">{{getAddress(modalTask)}}</a>
   </div>
   <div class="text-center">
-    <button class="btn btn-link" (click)="hardRefresh()" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
+    <button class="btn btn-link" (click)="hardRefresh(modalTask)" [qLoading]="apiLoading"><i class="fas fa-sync-alt"></i>
       Hard Refresh</button>
   </div>
 
@@ -240,7 +240,7 @@
         </div>
         <div class="form-group" *ngIf="showNotifier">
           <label>Notify Restaurant:</label>
-          <send-google-pin [restaurant]="restaurant"></send-google-pin>
+          <send-google-pin [restaurantId]="restaurant._id"></send-google-pin>
         </div>
       </div>
 
@@ -272,11 +272,11 @@
       </div>
       <div class="col-6 text-right">
         <button *ngIf="vo.phoneData?.phoneNumber" class="btn btn-primary btn-sm" [qLoading]="verifyingOption === vo"
-          (click)="trigger(vo)">Trigger Google Call</button>
+          (click)="trigger(modalTask, vo)">Trigger Google Call</button>
         <button *ngIf="vo.emailData?.domainName" class="btn btn-primary btn-sm" [qLoading]="verifyingOption === vo"
-          (click)="trigger(vo)">Trigger Email</button>
+          (click)="trigger(modalTask, vo)">Trigger Email</button>
         <button *ngIf="vo.addressData?.address?.addressLines" class="btn btn-primary btn-sm"
-          [qLoading]="verifyingOption === vo" (click)="trigger(vo)">Trigger Postcard</button>
+          [qLoading]="verifyingOption === vo" (click)="trigger(modalTask, vo)">Trigger Postcard</button>
       </div>
 
     </div>

@@ -21,7 +21,7 @@
 
 
   <div *qIf="displayGooglePIN">
-    <send-google-pin [restaurant]="restaurant"></send-google-pin>
+    <send-google-pin [restaurantId]="restaurant._id"></send-google-pin>
   </div>
 
   <div *qIf="displayTextReply">

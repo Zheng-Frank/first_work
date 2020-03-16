@@ -210,11 +210,15 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         }
     }
 
-    async hardRefresh() {
+    async hardRefresh(task) {
         try {
-            await this._api.post(environment.gmbNgrok + 'task/refresh', {
-                taskId: this.modalTask._id
-            }).toPromise();
+            if (task.processorVersion === "v5") {
+                await this.hardRefreshV5Task(task._id));
+            } else {
+                await this._api.post(environment.gmbNgrok + 'task/refresh', {
+                    taskId: this.modalTask._id
+                }).toPromise();
+            }
 
             this._global.publishAlert(AlertType.Success, 'Refreshed Successfully');
 
@@ -274,15 +278,24 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         }
     }
 
+    async hardRefreshV5Task(taskId) {
+        await this._api.post(environment.appApiUrl + "gmb/generic", {
+            name: "process-one-task",
+            payload: {
+                taskId: taskId,
+                forceRefresh: true
+            }
+        }).toPromise();
+    }
 
-    async trigger(vo) {
+    async trigger(task, vo) {
         if (confirm('Trigger too many times could exhaust existing verification options. Are you sure?')) {
             this.verifyingOption = vo;
             try {
                 await this._api.post(environment.gmbNgrok + 'task/verify', {
-                    taskId: this.modalTask._id,
-                    email: this.modalTask.request.email,
-                    locationName: this.modalTask.request.locationName,
+                    taskId: task._id,
+                    email: task.request.email,
+                    locationName: task.request.locationName,
                     verificationOption: vo
                 }).toPromise();
 
@@ -294,9 +307,13 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
             }
 
+            if (task.processorVersion === "v5") {
+                await this.hardRefreshV5Task(task._id);
+            }
+
             this.verifyingOption = undefined;
             await this.addComments(`tried verification`);
-            await this.refreshSingleTask(this.modalTask._id);
+            await this.refreshSingleTask(task._id);
         }
     }
 
@@ -480,7 +497,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     async addComments(comments) {
         if (comments) {
+            console.log(comments);
             const fullComments = `${new Date().getMonth() + 1}/${new Date().getDate()} ${this.user.username}: ${comments}`;
+            console.log(comments);
+            console.log(this.modalTask);
             await this.update(this.modalTask, 'comments', this.modalTask.comments ? `${this.modalTask.comments}\n${fullComments}` : fullComments);
         }
         this.comments = '';
@@ -544,12 +564,14 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             query: { _id: { $oid: taskId } }
         }).toPromise();
         const task = new Task(tasks[0]);
-
+        if (this.modalTask._id === task._id) {
+            this.modalTask = task;
+        }
         this.tabs.map(tab => {
             const index = tab.rows.findIndex(row => row.task._id === task._id);
             if (index >= 0) {
                 tab.rows[index] = this.generateRow(index + 1, task);
-                if (this.modalTask && this.modalTask.task._id === task._id) {
+                if (this.modalTask._id === task._id) {
                     this.modalTask = tab.rows[index];
                 }
             }
@@ -619,43 +641,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         } catch (error) {
             return;
         }
-    }
-
-    private setQueryOr() {
-        const daysAgo = function (days) {
-            const d = new Date();
-            d.setHours(0, 0, 0, 0);
-            d.setDate(d.getDate() - days);
-            return d;
-        };
-
-        // this.query_or = [
-        //   {
-        //     assignee: this.myUsername,
-        //     name: "GMB Request"
-        //   },
-        //   {
-        //     assignee: null,
-        //     name: "GMB Request",
-        //     result: null
-        //   }
-        // ]
-
-        // if (this.myUserRoles.includes("ADMIN") || this.myUserRoles.includes("GMB_ADMIN")) {
-
-        this.query_or = [
-            {
-                resultAt: { $gt: { $date: daysAgo(this.hideClosedOldTasksDays) } },
-                name: "GMB Request"
-            },
-            {
-                result: null,
-                name: "GMB Request"
-            }
-        ]
-        // }
-
-        // console.log(`task query = ${JSON.stringify(this.query_or)}`);
     }
 
     private async populateRTs() {

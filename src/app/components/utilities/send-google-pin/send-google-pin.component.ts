@@ -11,11 +11,12 @@ import { AlertType } from "../../../classes/alert-type";
     styleUrls: ['./send-google-pin.component.css']
 })
 export class SendGooglePINComponent implements OnChanges {
-    @Input() restaurant;
+    @Input() restaurantId;
+    restaurant;
     contactList = [];
     messageTo;
     messageSelected;
-    lanugages=['Chinese', 'English', 'English/Chinese'];    
+    lanugages = ['Chinese', 'English', 'English/Chinese'];
     noticeLanguage;
     noticeType;
     noticeContent;
@@ -83,7 +84,7 @@ export class SendGooglePINComponent implements OnChanges {
 
                 }
             ]
-        }, 
+        },
         {
             noticeType: 'Follow up Notice',
             messages: [
@@ -150,12 +151,19 @@ export class SendGooglePINComponent implements OnChanges {
         }
     ]
 
-    noticeTypes=this.contents.map(each=>each.noticeType);
+    noticeTypes = this.contents.map(each => each.noticeType);
 
     constructor(private _api: ApiService, private _global: GlobalService) { }
 
-    ngOnChanges(changes: SimpleChanges) {
-        if (this.restaurant) {
+    async ngOnChanges(changes: SimpleChanges) {
+        if (this.restaurantId) {
+            const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+                resource: "restaurant",
+                query: {
+                    _id: { $oid: this.restaurantId }
+                }
+            }).toPromise();
+            this.restaurant = restaurants[0];
             const channels = (this.restaurant.channels || []).map(c => {
                 if (c.type === 'SMS') {
                     return { type: "sms", value: c.value }
@@ -172,9 +180,9 @@ export class SendGooglePINComponent implements OnChanges {
     }
     onChange() {
         if (this.messageTo && this.noticeLanguage && this.noticeType) {
-            this.noticeContent=this.contents.find(e=>e.noticeType===this.noticeType)
-            .messages.find(m=>m.language===this.noticeLanguage)
-            .body.find(eachBody=>eachBody.type===this.messageTo.type).contents;
+            this.noticeContent = this.contents.find(e => e.noticeType === this.noticeType)
+                .messages.find(m => m.language === this.noticeLanguage)
+                .body.find(eachBody => eachBody.type === this.messageTo.type).contents;
 
             console.log(this.noticeContent);
         }
@@ -202,7 +210,7 @@ export class SendGooglePINComponent implements OnChanges {
                 error => {
                     this._global.publishAlert(AlertType.Danger, "Error sending message");
                 }
-                );
+            );
 
         } else if (this.messageTo.type === 'email') {
             this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
@@ -222,7 +230,7 @@ export class SendGooglePINComponent implements OnChanges {
                 error => {
                     this._global.publishAlert(AlertType.Danger, "Error sending message");
                 }
-                );
+            );
 
         }
         else if (this.messageTo.type === 'fax') {
@@ -244,7 +252,7 @@ export class SendGooglePINComponent implements OnChanges {
                 error => {
                     this._global.publishAlert(AlertType.Danger, "Error sending message");
                 }
-                );
+            );
 
         }
 
