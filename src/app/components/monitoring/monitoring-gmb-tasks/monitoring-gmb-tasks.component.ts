@@ -162,18 +162,20 @@ export class MonitoringGmbTasksComponent implements OnInit {
 
 
   async closeTask(task) {
-    try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
-        [{ old: { _id: task._id }, new: { _id: task._id, result: "CLOSED", resultAt: { $date: new Date() } } }]).toPromise();
+    if (confirm('Are you sure to close the task?')) {
+      try {
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
+          [{ old: { _id: task._id }, new: { _id: task._id, result: "CLOSED", resultAt: { $date: new Date() } } }]).toPromise();
 
-      await this.showDetails(task);
-      this._global.publishAlert(AlertType.Success, "Success");
-      this.populate();
-    }
-    catch (error) {
-      console.error(error);
-      await this.showDetails(task);
-      this._global.publishAlert(AlertType.Danger, error);
+        await this.showDetails(task);
+        this._global.publishAlert(AlertType.Success, "Success");
+        this.populate();
+      }
+      catch (error) {
+        console.error(error);
+        await this.showDetails(task);
+        this._global.publishAlert(AlertType.Danger, error);
+      }
     }
   }
 }

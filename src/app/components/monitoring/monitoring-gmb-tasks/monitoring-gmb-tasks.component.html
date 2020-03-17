@@ -41,6 +41,9 @@
 </table>
 
 <q-modal #taskModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
     <div *ngIf="selectedTask" class="text-center">
         <h3>{{selectedTask._id}}</h3>
 
@@ -49,7 +52,7 @@
         </app-gmb-account-hotlink>
         <br>
         <button class="btn btn-primary" (click)="rerunV5(selectedTask)">Force Run</button>
-        <button class="btn btn-primary" (click)="closeTask(selectedTask)">Close</button>
+        <button class="btn btn-primary" (click)="closeTask(selectedTask)">Delete Task</button>
         <pre class="text-left">
             {{selectedTask | json}}
         </pre>
