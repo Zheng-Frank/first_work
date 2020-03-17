@@ -78,7 +78,7 @@ export class WorkflowDashboardComponent implements OnInit {
 
 
   async loadWorkflows() {
-    const workflows = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const workflows = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       query: {},
       resource: 'workflow',
       projection: {
@@ -94,9 +94,8 @@ export class WorkflowDashboardComponent implements OnInit {
         "flows.if": 1,
         "flows.executions.status": 1,
         createdAt: 1
-      },
-      limit: 8000
-    }).toPromise();
+      }      
+    },1000);
     workflows.sort((w1, w2) => (w2.createdAt || 0) - (w1.createdAt || 0));
     this.workflows = workflows;
     this.changeFilter();
