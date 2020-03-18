@@ -171,7 +171,7 @@ export class ShowGooglePINComponent implements OnInit {
                     const pin = eachLog.response || eachLog.response.trim();
                     this.rows.push({
                         gmbBiz: this.getGmbBizFromRestaurant(restaurant),
-                        agent: restaurant.rateSchedules.agent,
+                        agent: restaurant.rateSchedules ? restaurant.rateSchedules.agent : "",
                         from: 'Call Log',
                         text: eachLog.response,
                         time: this.convertTimeToMilliseconds(eachLog.time),
