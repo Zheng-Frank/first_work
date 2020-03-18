@@ -161,8 +161,8 @@ export class OrderDashboardComponent implements OnInit {
                 restaurantMap[o.restaurant].standaloneOrders.push(o);
               }
               const restaurant = restaurantMap[o.restaurant].restaurant;
-              const isCanada = restaurant.googleAddress.formatted_address.indexOf("Canada") > 0;
-              const isUsa = restaurant.googleAddress.formatted_address.indexOf("USA") > 0;
+              const isCanada = ((restaurant.googleAddress || {}).formatted_address || "").indexOf("Canada") > 0;
+              const isUsa = ((restaurant.googleAddress || {}).formatted_address || "").indexOf("USA") > 0;
               if (isCanada) {
                 this.canadaOrders = this.canadaOrders + 1
               }
@@ -191,8 +191,8 @@ export class OrderDashboardComponent implements OnInit {
         this.rows.map(row => {
 
           const restaurant = row.restaurant;
-          const isCanada = restaurant.googleAddress.formatted_address.indexOf("Canada") > 0;
-          const isUsa = restaurant.googleAddress.formatted_address.indexOf("USA") > 0;
+          const isCanada = ((restaurant.googleAddress || {}).formatted_address || "").indexOf("Canada") > 0;
+          const isUsa = ((restaurant.googleAddress || {}).formatted_address || "").indexOf("USA") > 0;
           const published = row.ownedGmb;
           if (isCanada) {
             this.canadaPublished = this.canadaPublished + (published ? 1 : 0);
@@ -201,17 +201,12 @@ export class OrderDashboardComponent implements OnInit {
             this.usaPublished = this.usaPublished + (published ? 1 : 0);
           }
         });
-
-
-
         this.restaurantsWithOrders = this.rows.filter(
           r => r["orders"].length > 0
         ).length;
         this.restaurantsWithoutOrders = this.rows.filter(
           r => r["orders"].length === 0
         ).length;
-
-
 
         const promoOrders = orders.filter(o => restaurantMap[o.restaurant] && restaurantMap[o.restaurant].restaurant.promotions && restaurantMap[o.restaurant].restaurant.promotions.length > 0);
         console.log(promoOrders);

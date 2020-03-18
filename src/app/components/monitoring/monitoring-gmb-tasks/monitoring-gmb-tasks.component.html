@@ -30,11 +30,12 @@
             <button class="btn btn-primary mb-2" (click)="resetError(row)" *ngIf="row.isError">Reset Error</button>
         </td>
         <td class="wrap, small">
-            <div *ngIf="row.isError || row.tasks.length < 50">
-                <span *ngFor="let task of row.tasks">
-                    <span (click)="showDetails(task)" style="cursor: pointer;"> {{task._id}}</span>
-                </span>
-            </div>
+            <span *ngFor="let task of row.tasks.slice(0, 20)">
+                <span (click)="showDetails(task)" style="cursor: pointer;"> {{task._id}}</span>
+            </span>
+            <!-- <div *ngIf="row.isError || row.tasks.length < 50">
+
+            </div> -->
         </td>
     </tr>
 

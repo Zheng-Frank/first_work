@@ -18,7 +18,7 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
   tasks: Task[] = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  scanning = false;
+  refreshing = false;
   ngOnInit() {
   }
 
@@ -49,12 +49,20 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
     }).toPromise();
   }
 
-  async scanGmbTasks() {
-    this.scanning = true;
+  async refreshGmbTasks() {
+    this.refreshing = true;
+
+    const openTasks = this.tasks.filter(t => !t.result);
     try {
-      await this._api.post(environment.gmbNgrok + 'task/scan-restaurant', {
-        restaurantId: this.restaurant._id
-      }).toPromise();
+      for (let task of openTasks) {
+        await this._api.post(environment.appApiUrl + "gmb/generic", {
+          name: "process-one-task",
+          payload: {
+            taskId: task._id,
+            forceRefresh: true
+          }
+        }).toPromise();
+      }
 
       this._global.publishAlert(AlertType.Success, 'Scanned Successfully');
       await this.reloadTasks();
@@ -63,7 +71,7 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
       const result = error.error || error.message || error;
       this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
     }
-    this.scanning = false;
+    this.refreshing = false;
   }
 
 }
