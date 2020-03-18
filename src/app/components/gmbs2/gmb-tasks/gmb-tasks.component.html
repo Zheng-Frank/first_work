@@ -114,7 +114,7 @@
             </div>
           </td>
           <td>{{row.timezoneCell}}</td>
-          <td>{{row.score}}</td>
+          <td>{{row.score | number : '1.0-0'}}</td>
           <td>{{row.gmbOwner}}</td>
           <td class="text-nowrap">
             <i *ngIf="row.request?.pinHistory && row.request?.pinHistory[0] && row.request?.pinHistory[0].pin"
@@ -146,16 +146,10 @@
             <div class="text-muted">
               <small>{{row._id}}</small>
             </div>
-            <div *ngIf="row.request && row.request.refreshedAt" class="text-muted">
-              <small>refreshed: {{row.request.refreshedAt | ago: now}}</small>
-            </div>
           </td>
           <td class="text-nowrap">
-            <div *ngIf="row.result">
-              {{row.result}}
-              <small class="text-muted d-block">
-                {{row.resultAt | date: 'short'}}
-              </small>
+            <div *ngIf="row.request && row.request.refreshedAt" class="text-muted">
+              <small>{{row.request.refreshedAt | ago: now}}</small>
             </div>
           </td>
           <td>

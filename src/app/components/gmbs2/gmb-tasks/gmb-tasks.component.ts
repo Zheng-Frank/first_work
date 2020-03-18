@@ -32,6 +32,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "relatedMap.restaurantId": 1,
                 "relatedMap.restaurantName": 1,
                 "relatedMap.cid": 1,
+                "request.refreshedAt": 1,
                 "request.statusHistory.status": 1,
                 "request.statusHistory.isError": 1,
                 "request.statusHistory": { $slice: 1 },
@@ -148,9 +149,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             sort: (a, b) => a.valueOf() - b.valueOf()
         },
         {
-            label: "Closed At",
-            paths: ['resultAt'],
-            sort: (a, b) => (a || new Date(0)).valueOf() - (b || new Date(0)).valueOf()
+            label: "Refreshed At",
+            paths: ['request', 'refreshedAt'],
+            sort: (a, b) => new Date(a || 0).valueOf() - new Date(b || 0).valueOf()
         },
         {
             label: "Comments"
