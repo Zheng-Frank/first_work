@@ -15,6 +15,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
   filteredRows = [];
   errorsOnly = false;
   v5Only = false;
+  v4Only = false;
   scriptStatus;
 
   now = new Date();
@@ -35,7 +36,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
         // "request.statusHistory.0.isError": true,
         "result": null
       },
-      projection: { _id: 1, processorVersion: 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1 }
+      projection: { _id: 1, processorVersion: 1, "request.locationName": 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1 }
 
     }, 100000);
 
@@ -81,6 +82,12 @@ export class MonitoringGmbTasksComponent implements OnInit {
         tasks: row.tasks.filter(t => t.processorVersion === "v5")
       })).filter(r => r.tasks.length > 0);
     }
+    if (this.v4Only) {
+      this.filteredRows = this.filteredRows.map(row => ({
+        ...row,
+        tasks: row.tasks.filter(t => t.processorVersion !== "v5")
+      })).filter(r => r.tasks.length > 0);
+    }
   }
 
   getTotalTasks() {
@@ -100,6 +107,29 @@ export class MonitoringGmbTasksComponent implements OnInit {
       const result = error.error || error.message || error;
       this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
     }
+  }
+
+  async toV5(row) {
+    for (let task of row.tasks) {
+      if (task.request && task.request.locationName) {
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
+          [{ old: { _id: task._id }, new: { _id: task._id, processorVersion: "v5" } }]).toPromise();
+        console.log("converted", task);
+      } else {
+        console.log("NOT FOUND");
+      }
+    }
+    await this.populate();
+  }
+  async closeRow(row) {
+    if (confirm('Are you sure to close the task?')) {
+      for (let task of row.tasks) {
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
+          [{ old: { _id: task._id }, new: { _id: task._id, result: "CLOSED", resultAt: { $date: new Date() } } }]).toPromise();
+      }
+      await this.populate();
+    }
+
   }
 
   async resetError(row) {
@@ -176,6 +206,33 @@ export class MonitoringGmbTasksComponent implements OnInit {
         await this.showDetails(task);
         this._global.publishAlert(AlertType.Danger, error);
       }
+    }
+  }
+
+  async upgradeTask(task) {
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
+        [{ old: { _id: task._id }, new: { _id: task._id, processorVersion: "v5" } }]).toPromise();
+      await this.showDetails(task);
+      this._global.publishAlert(AlertType.Success, "Success");
+      this.populate();
+    }
+    catch (error) {
+      console.error(error);
+      await this.showDetails(task);
+      this._global.publishAlert(AlertType.Danger, error);
+    }
+  }
+  async reloadTask(task) {
+    try {
+      await this.showDetails(task);
+      this._global.publishAlert(AlertType.Success, "Success");
+      this.populate();
+    }
+    catch (error) {
+      console.error(error);
+      await this.showDetails(task);
+      this._global.publishAlert(AlertType.Danger, error);
     }
   }
 }
