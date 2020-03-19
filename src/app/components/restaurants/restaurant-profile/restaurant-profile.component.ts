@@ -14,6 +14,7 @@ import { AlertType } from '../../../classes/alert-type';
 })
 export class RestaurantProfileComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
+  @Input() editable ;
   uploadImageError: string;
   editing: boolean = false;
   address: Address;

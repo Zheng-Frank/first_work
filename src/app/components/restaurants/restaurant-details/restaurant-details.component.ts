@@ -26,6 +26,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   activeTab = 'Settings';
   apiRequesting = false;
 
+  readonly = true;
+
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
@@ -79,14 +81,12 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   async loadDetails() {
+    this.readonly = true;
     if (this.id) {
       this.apiRequesting = true;
       const query = {
         _id: { $oid: this.id }
       };
-      if (!this._global.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0)) {
-        query["rateSchedules.agent"] = this._global.user.username
-      }
 
       this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
@@ -173,11 +173,16 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           results => {
             this.apiRequesting = false;
             const rt = results[0];
+
             (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
             this.restaurant = rt ? new Restaurant(rt) : undefined;
             if (!this.restaurant) {
-              this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
+              return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
             }
+
+            const canEdit = this._global.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0) || (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
+            this.readonly = !canEdit;
+
           },
           error => {
             this.apiRequesting = false;
@@ -185,9 +190,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           }
         );
     }
-
   }
-
 
 
   computeRestaurantStatus(restaurant: Restaurant) {

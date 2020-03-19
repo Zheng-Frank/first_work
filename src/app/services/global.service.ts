@@ -245,9 +245,9 @@ export class GlobalService {
     }
 
     const restaurants = this._cache.get('restaurantListForPicker');
-    const isCsr = this.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0);
-    const visibleRestaurants = restaurants.filter(rt => isCsr || (rt.rateSchedules || []).some(rs => (rs.agent || "").toLowerCase() === this.user.username));
-    return visibleRestaurants;
+    // const isCsr = this.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0);
+    // const visibleRestaurants = restaurants.filter(rt => isCsr || (rt.rateSchedules || []).some(rs => (rs.agent || "").toLowerCase() === this.user.username));
+    return restaurants;
   }
 
   async getCachedUserList(forceRefresh?: boolean) {
