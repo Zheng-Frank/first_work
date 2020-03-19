@@ -30,8 +30,8 @@ export class MenuOptionEditorComponent implements OnInit, OnChanges {
   @ViewChild("selectorMinQuantity") selectorMinQuantity: SelectorComponent;
   @ViewChild("selectorMaxQuantity") selectorMaxQuantity: SelectorComponent;
 
-  maxQuantities = ["1", "2", "3", "4", "5", "6", "7", "8","Any"];
-  minQuantities = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
+  maxQuantities = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Any"];
+  minQuantities = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
   constructor() {}
 
