@@ -25,6 +25,10 @@ export class MenusComponent implements OnInit {
   @Output() onVisitMenuOptions = new EventEmitter();
 
   activeId = undefined;
+  crawlCMO = false;
+  crawlBM = false;
+  cmoUrl;
+  bmUrl;
 
   adjustingAllPrices = false;
   adjustPricesFactorPercent;
@@ -397,6 +401,18 @@ export class MenusComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, "Failed!");
     }
 
+  }
+
+  async crawlCMOMenu() {
+    const result = await this._api.post(environment.appApiUrl + 'events',
+      [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'crawl-cmo', params: { restaurantId: this.restaurant._id, url: this.cmoUrl } } }]
+    ).toPromise();
+  }
+
+  async crawlBMMenu() {
+    const result = await this._api.post(environment.appApiUrl + 'events',
+      [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'crawl-bm', params: { restaurantId: this.restaurant._id, url: this.bmUrl } } }]
+    ).toPromise();
   }
 
 

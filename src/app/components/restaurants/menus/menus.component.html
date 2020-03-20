@@ -1,5 +1,7 @@
 <div *ngIf="restaurant">
   <div class="text-right">
+    <button class="btn btn-primary" (click)="crawlCMO = !crawlCMO">Crawl CMO</button>
+    <button class="btn btn-primary" (click)="crawlBM = !crawlBM">Crawl BM</button>
     <ng-container *ngIf="getMenus().length > 0">
       <button *ngIf="!restaurant.skipImageInjection" class="btn btn-primary" (click)="injectImages()">Inject Image
         (加图片)</button>
@@ -10,6 +12,20 @@
     <ng-container *ngIf="getMenus().length === 0">
       <button class="btn btn-primary" (click)="createTestMenu()">Create Test Menu (添加测试菜单)</button>
     </ng-container>
+    <div class="alert alert-secondary" *ngIf="crawlBM">
+        <input [(ngModel)]="bmUrl" placeholder="BM web site">
+        <div class="py-2">
+          <button class="btn btn-default text-right" (click)="crawlBM = false">Cancel</button>
+          <button class="btn btn-primary" (click)="crawlBMMenu()">Submit</button>
+        </div>
+      </div>
+    <div class="alert alert-secondary" *ngIf="crawlCMO">
+      <input [(ngModel)]="cmoUrl" placeholder="CMO web site">
+      <div class="py-2">
+        <button class="btn btn-default text-right" (click)="crawlCMO = false">Cancel</button>
+        <button class="btn btn-primary" (click)="crawlCMOMenu()">Submit</button>
+      </div>
+    </div>
     <div class="alert alert-secondary" *ngIf="copyMenu">
       <input [(ngModel)]="copyMenuToRestaurantId" placeholder="Restaurant Id">
       <div class="py-2">
