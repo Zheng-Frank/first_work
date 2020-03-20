@@ -157,6 +157,7 @@ import { EventDashboardComponent } from './components/events/event-dashboard/eve
 import { RestaurantWebTemplateComponent } from './components/restaurants/restaurant-web-template/restaurant-web-template.component';
 import { BasicTplComponent } from './components/restaurants/templates/basic-tpl/basic-tpl.component';
 import { MonitoringScriptComponent } from './components/monitoring/monitoring-script/monitoring-script.component';
+import { MonitoringDbComponent } from './components/monitoring/monitoring-db/monitoring-db.component';
 import { CrawlTemplateService } from './services/crawl-template.service';
 import { InvoicesAnualComponent } from './components/invoices/invoices-anual/invoices-anual.component';
 @NgModule({
@@ -165,6 +166,7 @@ import { InvoicesAnualComponent } from './components/invoices/invoices-anual/inv
     RootComponent,
     HomeComponent,
     MonitoringScriptComponent,
+    MonitoringDbComponent,
     MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,

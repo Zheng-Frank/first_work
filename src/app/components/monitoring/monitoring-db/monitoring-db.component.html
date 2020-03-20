@@ -1,0 +1,16 @@
+<h1 class="text-center">DB Status</h1>
+<!-- <div class="mb-2 pb-2 text-right">
+    <span class="form-inline d-inline-block">
+        <input type="text" class="form-control ml-2" placeholder="document name" [(ngModel)]="documentName">
+        <button class="btn btn-primary" (click)="populate()" [qLoading]="apiLoading">
+            <i class="fas fa-sync"></i> Show</button>
+    </span>
+</div> -->
+
+<select class="form-control form-inline d-inline-block" [(ngModel)]="documentName" (change)="populate()">
+    <option value="">select document...</option>
+    <option *ngFor="let doc of documentNames" value="{{doc}}">{{doc}}</option>
+</select>
+<pre>
+    {{analysis | json}}
+</pre>

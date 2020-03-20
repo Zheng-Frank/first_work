@@ -1,12 +1,13 @@
 {
   "name": "admin",
-  "version": "0.8.32",
+  "version": "0.8.33",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "build-qa": "ng build --prod --configuration=qa",
+    "build-prod": "ng build --prod --configuration=production && node deploy",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
