@@ -2711,6 +2711,32 @@ export class DbScriptsComponent implements OnInit {
     }
   }
 
+  async findQMenuCCRTs() {
+    const serviceSettings = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        googleListing: 1,
+        serviceSettings: 1,
+        requireZipcode: 1,
+        requireBillingAddress: 1,
+        disabled: 1
+      }
+    }, 3000)
+
+    let result = serviceSettings.filter(r => (!r.disabled &&  r.googleListing && r.googleListing.gmbOwner==="qmenu" && r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > 0)));
+    let rtIds = result.map(r => r._id);
+
+    
+    console.log("qMenu RTs=", rtIds);
+    // console.log("qMenu RT IDs=", rtIds.slice(0,100));
+    // console.log("qMenu RT IDs=", rtIds.slice(100,200));
+    // console.log("qMenu RT IDs=", rtIds.slice(200, 300));
+    // console.log("qMenu RT IDs=", rtIds.slice(300));
+    
+
+  }
+
   async calculateDomainValue() {
 
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
