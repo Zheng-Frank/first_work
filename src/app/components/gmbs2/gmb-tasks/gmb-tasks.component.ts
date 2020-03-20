@@ -26,7 +26,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             projection: {
                 "assignee": 1,
                 "ownerDeclined": 1,
-                "refreshedAt": 1,
+                "scheduledAt": 1,
                 "comments": 1,
                 "createdAt": 1,
                 "relatedMap.restaurantId": 1,
