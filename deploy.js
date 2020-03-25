@@ -8,9 +8,11 @@ const s3 = new AWS.S3();
 const cloudfront = new AWS.CloudFront();
 const mime = require('mime-types');
 
-const bucketName = "qmenu-domains/qmenuschoice.com";
+// const bucketName = "qmenu-domains/qmenuschoice.com";
+// const distributionId = "E3Q0RNYX6KXHR6";
+const bucketName = "qmenu-domains/csr.qmenu.us";
+const distributionId = "EONS08EC2015T";
 const folder = "./dist/admin";
-const distributionId = "E3Q0RNYX6KXHR6";
 
 async function run() {
     const files = fs.readdirSync(folder);

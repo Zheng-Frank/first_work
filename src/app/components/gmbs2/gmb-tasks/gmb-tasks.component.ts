@@ -33,6 +33,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "relatedMap.restaurantName": 1,
                 "relatedMap.cid": 1,
                 "request.refreshedAt": 1,
+                "request.ownerDeclined": 1,
                 "request.statusHistory.status": 1,
                 "request.statusHistory.isError": 1,
                 "request.statusHistory": { $slice: 1 },
@@ -678,11 +679,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     ownerList = [];
 
     shouldCall = false;
-    hasEmail = false;
     hasPhone = false;
-    hasPostcard = false;
-    hasCode = false;
-    hasExpiringCode = false;
+    hasPostcard = false; // NOT sent
+    hasPendingPostcard = false;
+    ownerDeclined = "Any";
 
     filter() {
 
@@ -711,40 +711,48 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             })
         };
 
+        this.filteredTasks = this.filteredTasks.filter(t => {
+            return this.ownerDeclined === "Any" || (t.request.ownerDeclined && this.ownerDeclined === "Yes") || (!t.request.ownerDeclined && this.ownerDeclined === "No");
+        });
+
         if (this.shouldCall) {
             // No qMenu emails and having phone call options
             this.filteredTasks = this.filteredTasks.filter(t => {
+                const gmb = ((this.restaurantDict[t.relatedMap.restaurantId] || {}).googleListing || {}).gmbOwner;
+                const ownerDeclined = t.request.ownerDeclined;
                 const lastVos = ((((t.request || {}).voHistory || [])[0] || {}).options) || [];
                 const hasQmenuEmailVo = lastVos.some(vo => vo.emailData && this.qmenuDomains.has(vo.emailData.domainName));
                 const hasPhoneVo = lastVos.some(vo => vo.verificationMethod === "PHONE_CALL");
-                return !hasQmenuEmailVo && hasPhoneVo;
+                return gmb !== "qmenu" && !ownerDeclined && !hasQmenuEmailVo && hasPhoneVo;
             });
         }
 
         //filter verification options
-        if (this.hasEmail || this.hasPhone || this.hasPostcard) {
+        if (this.hasPhone) {
             this.filteredTasks = this.filteredTasks.filter(t => {
-
                 const lastVos = ((((t.request || {}).voHistory || [])[0] || {}).options) || [];
                 const availableVos = lastVos.map(op => op.verificationMethod);
-                let voCheck = true;
-                if (this.hasEmail) voCheck = lastVos.filter(v => v.emailData && this.qmenuDomains.has(v.emailData.domainName)).length > 0;
-                if (this.hasPhone) voCheck = voCheck && availableVos.includes('PHONE_CALL');
-                if (this.hasPostcard) voCheck = voCheck && availableVos.includes('ADDRESS');
-                return voCheck;
+                return availableVos.includes('PHONE_CALL');
             })
         };
 
-        //filter PIN
-        if (this.hasCode) {
-            this.filteredTasks = this.filteredTasks.filter(t => (((t.request || {}).pinHistory || [])[0] || {}).pin);
+        //filter verification options
+        if (this.hasPostcard) {
+            this.filteredTasks = this.filteredTasks.filter(t => {
+                const lastVos = ((((t.request || {}).voHistory || [])[0] || {}).options) || [];
+                const availableVos = lastVos.map(op => op.verificationMethod);
+                const verifications = ((t.request.verificationHistory || [])[0] || { verifications: [] }).verifications;
+                const pendingAddressVerification = verifications.filter(v => v.state === 'PENDING')[0];
+                return !pendingAddressVerification && availableVos.includes('ADDRESS');
+            })
         };
 
-        //filter expired PIN
-        if (this.hasExpiringCode) {
+        //filter pending address
+        if (this.hasPendingPostcard) {
             this.filteredTasks = this.filteredTasks.filter(t => {
-                const lastPin = ((t.request || {}).pinHistory || [])[0];
-                return lastPin && this.isPinExpired(lastPin);
+                const verifications = ((t.request.verificationHistory || [])[0] || { verifications: [] }).verifications;
+                const pendingAddressVerification = verifications.filter(v => v.method === 'ADDRESS' && v.state === 'PENDING')[0];
+                return pendingAddressVerification;
             });
         };
 

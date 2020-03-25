@@ -44,14 +44,16 @@
       <option *ngFor="let assignee of assignees">{{assignee}}</option>
     </select>
 
+    <label class="mr-2"> Owner Declined:</label>
+    <select class="mr-5" [(ngModel)]="ownerDeclined" (change)="filter()">
+      <option>Any</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+
     <input class="form-check-input" type="checkbox" [(ngModel)]="shouldCall" id="shouldCallCheck" (change)="filter()">
     <label class="form-check-label mr-5" for="shouldCallCheck">
       Should Call
-    </label>
-
-    <input class="form-check-input" type="checkbox" [(ngModel)]="hasEmail" id="hasEmailCheck" (change)="filter()">
-    <label class="form-check-label mr-5" for="hasEmailCheck">
-      Email
     </label>
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="hasPhone" id="hasPhoneCheck" (change)="filter()">
@@ -61,20 +63,13 @@
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="hasPostcard" id="hasPostcardCheck" (change)="filter()">
     <label class="form-check-label mr-5" for="hasPostcardCheck">
-      Postcard
+      Postcard Not Sent
     </label>
 
-    <input class="form-check-input" type="checkbox" [(ngModel)]="hasCode" id="hasCodeCheck" (change)="filter()">
-    <label class="form-check-label mr-5" for="hasCodeCheck">
-      Code
+    <input class="form-check-input" type="checkbox" [(ngModel)]="hasPendingPostcard" id="hasPendingPostcardCheck" (change)="filter()">
+    <label class="form-check-label mr-5" for="hasPendingPostcardCheck">
+      Postcard Sent
     </label>
-
-    <input class="form-check-input" type="checkbox" [(ngModel)]="hasExpiringCode" id="hasExpiringCodeCheck"
-      (change)="filter()">
-    <label class="form-check-label mr-5" for="hasExpiringCodeCheck">
-      Expiring Code
-    </label>
-
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
     <label class="form-check-label mr-5" for="paginationCheck">
