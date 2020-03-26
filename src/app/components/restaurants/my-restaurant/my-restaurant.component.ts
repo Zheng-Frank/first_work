@@ -332,6 +332,10 @@ export class MyRestaurantComponent implements OnInit {
             1: 50
           }
         },
+        {
+          from: new Date('4/1/2020'),
+          base: 0
+        },
       ],
 
       jason: [
