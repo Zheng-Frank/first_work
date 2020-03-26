@@ -14,8 +14,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
   rows = [];
   filteredRows = [];
   errorsOnly = false;
-  v5Only = false;
-  v4Only = false;
+  purgedOnly = false;
   scriptStatus;
 
   now = new Date();
@@ -32,30 +31,35 @@ export class MonitoringGmbTasksComponent implements OnInit {
     const gmbTasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'task',
       query: {
-        "name": "GMB Request",
+        name: "GMB Request",
         // "request.statusHistory.0.isError": true,
-        "result": null
+        $or: [{ result: null }, { canceledReason: { $ne: null } }]
       },
-      projection: { _id: 1, processorVersion: 1, "request.locationName": 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1 }
+      projection: { _id: 1, "request.locationName": 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1, canceledReason: 1 }
 
     }, 100000);
 
-    const statusMap = {};
+    const openStatusMap = {};
+    const canceledStatusMap = {};
 
     gmbTasks.forEach(task => {
       let { status, isError } = (task.request.statusHistory || [])[0] || {} as any;
       if (status && status.startsWith("ALREADY PUBLISHED UNDER")) {
         status = "ALREADY PUBLISHED UNDER...";
       }
-      statusMap[status] = statusMap[status] || { isError: isError, status: status, tasks: [], versions: [] };
-      statusMap[status].tasks.push(task);
-      if (!statusMap[status].versions.some(v => v === task.processorVersion)) {
-        statusMap[status].versions.push(task.processorVersion);
+      if (task.canceledReason) {
+        const status = task.canceledReason; // use this as status
+        canceledStatusMap[status] = canceledStatusMap[status] || { isError: isError, status: status, tasks: [], canceled: true };
+        canceledStatusMap[status].tasks.push(task);
+      } else {
+        openStatusMap[status] = openStatusMap[status] || { isError: isError, status: status, tasks: [] };
+        openStatusMap[status].tasks.push(task);
       }
+
     });
 
     //order by task count
-    this.rows = Object.values(statusMap);
+    this.rows = [...Object.values(openStatusMap), ...Object.values(canceledStatusMap)];
     this.rows.sort((a, b) => b.tasks.length - a.tasks.length);
     this.filter();
 
@@ -75,18 +79,11 @@ export class MonitoringGmbTasksComponent implements OnInit {
     if (this.errorsOnly) {
       this.filteredRows = this.filteredRows.filter(r => r.isError);
     }
-
-    if (this.v5Only) {
-      this.filteredRows = this.filteredRows.map(row => ({
-        ...row,
-        tasks: row.tasks.filter(t => t.processorVersion === "v5")
-      })).filter(r => r.tasks.length > 0);
+    if (this.purgedOnly) {
+      this.filteredRows = this.filteredRows.filter(r => r.canceled);
     }
-    if (this.v4Only) {
-      this.filteredRows = this.filteredRows.map(row => ({
-        ...row,
-        tasks: row.tasks.filter(t => t.processorVersion !== "v5")
-      })).filter(r => r.tasks.length > 0);
+    else {
+      this.filteredRows = this.filteredRows.filter(r => !r.canceled);
     }
   }
 
@@ -109,18 +106,6 @@ export class MonitoringGmbTasksComponent implements OnInit {
     }
   }
 
-  async toV5(row) {
-    for (let task of row.tasks) {
-      if (task.request && task.request.locationName) {
-        await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
-          [{ old: { _id: task._id }, new: { _id: task._id, processorVersion: "v5" } }]).toPromise();
-        console.log("converted", task);
-      } else {
-        console.log("NOT FOUND");
-      }
-    }
-    await this.populate();
-  }
   async closeRow(row) {
     if (confirm('Are you sure to close the task?')) {
       for (let task of row.tasks) {
@@ -209,20 +194,6 @@ export class MonitoringGmbTasksComponent implements OnInit {
     }
   }
 
-  async upgradeTask(task) {
-    try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=task",
-        [{ old: { _id: task._id }, new: { _id: task._id, processorVersion: "v5" } }]).toPromise();
-      await this.showDetails(task);
-      this._global.publishAlert(AlertType.Success, "Success");
-      this.populate();
-    }
-    catch (error) {
-      console.error(error);
-      await this.showDetails(task);
-      this._global.publishAlert(AlertType.Danger, error);
-    }
-  }
   async reloadTask(task) {
     try {
       await this.showDetails(task);

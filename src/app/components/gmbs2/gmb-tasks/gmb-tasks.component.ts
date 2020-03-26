@@ -48,8 +48,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.tasks = dbTasks.map(t => new Task(t));
         this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
 
-        this.tasks.filter(t => !this.restaurantDict[t.relatedMap.restaurantId])
-            .forEach(function (task) { console.log(`ERROR bad restaurant id ${task.relatedMap.restaurantId}! Task ID = ${task._id.toString()}`) });
+        // this.tasks.filter(t => !this.restaurantDict[t.relatedMap.restaurantId])
+        //     .forEach(function (task) { console.log(`ERROR bad restaurant id ${task.relatedMap.restaurantId}! Task ID = ${task._id.toString()}`) });
 
         this.tasks = this.tasks.filter(t => this.restaurantDict[t.relatedMap.restaurantId]); //remove invalid restaruant IDs, should not happen
         this.filteredTasks = this.tasks;
@@ -606,6 +606,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             task: task,
             ...task, // also spread everything in task to row for convenience
             verificationOptions: verificationOptions,
+            pendingVerification: (((task.request.verificationHistory || [])[0] || {}).verifications || []).filter(v => v.state === "PENDING")[0],
             assignee: task.assignee
         }
     }

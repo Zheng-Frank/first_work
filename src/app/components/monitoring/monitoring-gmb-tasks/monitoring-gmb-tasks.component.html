@@ -1,8 +1,8 @@
 <h1 class="text-center">GMB Tasks<br><small>{{getTotalTasks()}}</small></h1>
 
 <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="errorsOnly" (change)="filter()"> Errors Only</label>
-<label class="checkbox-inline"><input type="checkbox" [(ngModel)]="v4Only" (change)="filter()"> V4 Only</label>
-<label class="checkbox-inline"><input type="checkbox" [(ngModel)]="v5Only" (change)="filter()"> V5 Only</label>
+<label class="checkbox-inline"><input type="checkbox" [(ngModel)]="purgedOnly" (change)="filter()"> Purged Only</label>
+
 <span *ngIf="scriptStatus">started: {{scriptStatus.startedAt | ago : now}}, status:
     {{scriptStatus.endedAt ? (scriptStatus.stats?.failed?.length > 0 ? 'some failed' : 'succeeded') : 'running'}},
     ended: {{scriptStatus.endedAt | ago : now}}</span>
@@ -10,7 +10,6 @@
 <table class="table">
     <tr>
         <th>#</th>
-        <th>Version</th>
         <th>Status</th>
         <th>Count</th>
         <th>Rerun</th>
@@ -18,7 +17,6 @@
     </tr>
     <tr *ngFor="let row of filteredRows; let i = index">
         <th>{{i + 1}}</th>
-        <th>{{row.versions}}</th>
         <td>
             {{row.status}}
         </td>
@@ -27,8 +25,6 @@
         </td>
         <td>
             <button class="btn btn-primary mb-2" (click)="rerun(row)" *ngIf="row.isError">Rerun</button>
-            <button class="btn btn-primary mb-2" (click)="toV5(row)"
-                *ngIf="(row.tasks[0] || {}).processorVersion !== 'v5'">To V5</button>
             <button class="btn btn-primary mb-2" (click)="resetError(row)" *ngIf="row.isError">Reset Error</button>
             <button class="btn btn-primary mb-2" (click)="closeRow(row)" *ngIf="row.isError">Close All Tasks</button>
         </td>
@@ -56,7 +52,6 @@
         </app-gmb-account-hotlink>
         <br>
         <button class="btn btn-primary" (click)="rerunV5(selectedTask)">Force Run</button>
-        <button class="btn btn-primary" (click)="upgradeTask(selectedTask)">Upgrade to V5</button>
         <button class="btn btn-primary" (click)="reloadTask(selectedTask)">Reload</button>
         <button class="btn btn-primary" (click)="closeTask(selectedTask)">Delete Task</button>
         <pre class="text-left">
