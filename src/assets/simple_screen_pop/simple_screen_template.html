@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en-US">
+	<head>
+		<title>Amazon Connect</title>
+        <meta charset="UTF-8"> 
+		<script src="amazon-connect.min.js"></script> 
+        <style>
+            *, body {
+                margin: 0;
+                padding:0
+            }
+            iframe {
+                border: 0px
+            }
+            #containerDiv {
+                width: 320px;
+                height: 465px
+            }
+        </style>
+	</head>
+	<body>
+        <div id="containerDiv"></div>
+		<script>
+            /*************** Begin Mod Area ***************/
+
+            /* Edit the instanceName below with your instance alias */
+            var instanceName = "qmenu";
+
+            /*************** End Mod Area ***************/
+			connect.core.initCCP(containerDiv, {
+                ccpUrl:"https://" + instanceName + ".awsapps.com/connect/ccp#/",
+                loginPopup: true,
+                softphone: {
+                    allowFramedSoftphone: true
+                 }
+			});
+            connect.contact(function(contact) {
+                contact.onConnecting(function(contact) {
+                    var attributeMap = contact.getAttributes();
+                    var baseURL = attributeMap.screenPopURL.value;
+                    var searchString = attributeMap.screenPopValue.value;
+                    var screenpopURL = baseURL + searchString;
+                    var customerNumber = attributeMap.customerNumber.value;
+                    console.log(customerNumber);
+                    window.open(screenpopURL);
+                });
+            });
+		</script>
+	</body>
+</html>
