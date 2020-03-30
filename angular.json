@@ -79,6 +79,8 @@
           },
           "configurations": {
             "production": {
+              "sslKey": "localhost.key",
+              "sslCert": "localhost.crt",
               "browserTarget": "admin:build:production"
             }
           }
