@@ -1,5 +1,5 @@
-<div id="mydiv" #myDiv>
-    <div id="mydivheader" class="text-light">
+<div id="widget-container" #widgetContainer>
+    <div id="widget-header" class="text-light">
         <span *ngIf="connectedContact">{{connectedContact?.value | tel}}</span>
         <span *ngIf="!connectedContact">qMenu IVR</span>
         <div id="resize">
@@ -19,7 +19,7 @@
             <button class="btn btn-primary w-6-rem" (click)="confirmClose()">Yes</button>
         </div>
     </div>
-    <div id="connectedDiv" class="text-center py-1 text-light" *ngIf="connectedContact">
+    <div id="restaurant-container" class="text-center py-1 text-light" *ngIf="connectedContact">
         <div *ngFor="let rt of (connectedContact || {}).restaurants || []" class="pb-2">
             <a routerLink="/restaurants/{{rt._id}}" target="_blank" class="text-light my-text-underline">{{rt.name}}</a>
             <div class="my-text-small">
@@ -31,5 +31,5 @@
         </div>
     </div>
 
-    <div id="containerDiv" #containerDiv class="{{minimized ? 'minimized' : ''}}"></div>
+    <div id="connect-container" #connectContainer class="{{minimized ? 'minimized' : ''}}"></div>
 </div>

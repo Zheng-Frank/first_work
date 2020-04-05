@@ -1,11 +1,12 @@
+/**
+ * please use only ONCE since we initialize connect.js and detroy it here
+ */
 import { Component, OnInit, ViewChild, HostListener, AfterViewInit, Renderer2, Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/platform-browser';
 
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
-import { Agent } from 'src/app/classes/ivr/agent';
 import { AmazonConnectService } from 'src/app/services/amazon-connect.service';
-import { TaskGenericHandlerComponent } from '../../tasks/task-generic-handler/task-generic-handler.component';
 declare var connect: any;
 
 @Component({
@@ -14,8 +15,8 @@ declare var connect: any;
   styleUrls: ['./ivr-widget.component.css'],
 })
 export class IvrWidgetComponent implements OnInit, AfterViewInit {
-  @ViewChild('myDiv') myDiv;
-  @ViewChild('containerDiv') containerDiv;
+  @ViewChild('widgetContainer') widgetContainer;
+  @ViewChild('connectContainer') connectContainer;
 
   connectScript;
 
@@ -31,8 +32,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
   now = new Date();
   minimized = false;
 
-  constructor(private renderer2: Renderer2,
-    @Inject(DOCUMENT) private _document, private _api: ApiService, private _global: GlobalService, private _connect: AmazonConnectService) {
+  constructor(private renderer2: Renderer2, @Inject(DOCUMENT) private _document, private _api: ApiService, private _global: GlobalService, private _connect: AmazonConnectService) {
     this._connect.onContactConnected.subscribe(contact => {
       console.log("onContactConnected");
       this.connectedContact = contact;
@@ -44,10 +44,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
     });
     this._connect.onEnabled.subscribe(enabled => {
       console.log("INNER ON ENABLED");
-
-      // this.renderer2.appendChild(this._document.body, s);
     });
-
   }
 
   populateConnectedContact() {
@@ -69,10 +66,11 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    console.log("on init");
-    setTimeout(_ => {
-      this.initConnect();
-    }, 5000);
+  }
+
+  ngOnDestroy() {
+    this.renderer2.removeChild(this._document.body, this.connectScript);
+    console.log("remove connect script!")
   }
 
   confirmClose() {
@@ -81,20 +79,20 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // console.log("a");
-    // const s = this.renderer2.createElement('script');
-    // s.type = 'text/javascript';
-    // s.src = 'assets/js/amazon-connect.min.js';
-    // s.text = `sometext`;
-    // this.renderer2.appendChild(this._document.body, s);
-    // this.connectScript = s;
-    // console.log("b");
+    const s = this.renderer2.createElement('script');
+    s.type = 'text/javascript';
+    s.src = 'assets/js/amazon-connect.min.js';
+    s.text = `sometext`;
+    this.renderer2.appendChild(this._document.body, s);
+    this.connectScript = s;
+    s.onload = () => {
+      this.initConnect();
+    };
   }
 
   private initConnect() {
-    console.log("AFTER INIT!!!!");
     /*************** End Mod Area ***************/
-    connect.core.initCCP(this.containerDiv.nativeElement, {
+    connect.core.initCCP(this.connectContainer.nativeElement, {
       ccpUrl: "https://qmenu.awsapps.com/connect/ccp#",
       loginPopup: true,
       region: "us-east-1",
@@ -200,7 +198,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
   }
 
   setPostion() {
-    const elmnt = this.myDiv.nativeElement;
+    const elmnt = this.widgetContainer.nativeElement;
     elmnt.style.top = (elmnt.offsetTop - this.pos2) + "px";
     elmnt.style.left = (elmnt.offsetLeft - this.pos1) + "px";
   }

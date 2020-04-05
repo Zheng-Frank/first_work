@@ -1,4 +1,4 @@
-#mydiv {
+#widget-container {
   position: fixed;
   z-index: 9999;
   background-color: #f1f1f1;
@@ -7,7 +7,7 @@
   opacity: 0.95;
 }
 
-#mydivheader {
+#widget-header {
   padding: 10px;
   cursor: move;
   z-index: 10;
@@ -16,7 +16,7 @@
   font-size: 125%;
 }
 
-#connectedDiv {
+#restaurant-container {
   background-color: #27628b;
 }
 
@@ -28,7 +28,7 @@
   border: 0px;
 }
 
-#containerDiv {
+#connect-container {
   width: 320px;
   height: 465px;
 }
