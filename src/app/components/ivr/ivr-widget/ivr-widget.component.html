@@ -1,0 +1,35 @@
+<div id="mydiv" #myDiv>
+    <div id="mydivheader" class="text-light">
+        <span *ngIf="connectedContact">{{connectedContact?.value | tel}}</span>
+        <span *ngIf="!connectedContact">qMenu IVR</span>
+        <div id="resize">
+            <button *ngIf="!minimized" class="btn btn-link text-light" (click)="resize()"><i
+                    class="fas fa-minus"></i></button>
+            <button *ngIf="minimized" class="btn btn-link text-light" (click)="resize()"><i
+                    class="fas fa-window-maximize"></i></button>
+            <button class="btn btn-link text-light" (click)="showClose = true"><i class="fas fa-times"></i></button>
+
+        </div>
+    </div>
+
+    <div id="close-confirmation" *ngIf="showClose" class="text-center p-4">
+        <h4>Close qMenu IVR?</h4>
+        <div class="mt-4">
+            <button class="btn btn-secondary w-6-rem" (click)="showClose = undefined">No</button>
+            <button class="btn btn-primary w-6-rem" (click)="confirmClose()">Yes</button>
+        </div>
+    </div>
+    <div id="connectedDiv" class="text-center py-1 text-light" *ngIf="connectedContact">
+        <div *ngFor="let rt of (connectedContact || {}).restaurants || []" class="pb-2">
+            <a routerLink="/restaurants/{{rt._id}}" target="_blank" class="text-light my-text-underline">{{rt.name}}</a>
+            <div class="my-text-small">
+                {{rt.googleAddress?.formatted_address}}
+            </div>
+            <div class="my-text-small">
+                {{rt._id}}
+            </div>
+        </div>
+    </div>
+
+    <div id="containerDiv" #containerDiv class="{{minimized ? 'minimized' : ''}}"></div>
+</div>
