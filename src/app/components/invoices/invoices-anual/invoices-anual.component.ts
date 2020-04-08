@@ -197,7 +197,7 @@ export class InvoicesAnualComponent implements OnInit {
         // we need to get shorten URL, mainly for SMS.
         const url = environment.bizUrl + 'index.html#/invoice/' + (firstInvoice.id || firstInvoice['_id']);
 
-        this._api.post(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrlObj => {
+        this._api.post(environment.appApiUrl + 'utils/shorten-url', { longUrl: url }).pipe(mergeMap(shortUrlObj => {
           let message = 'QMENU INVOICE:';
           message += '\nFrom ' + this.datePipe.transform(statement.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(statement.toDate, 'shortDate') + '. ';
           // USE USD instead of $ because $ causes trouble for text :(
