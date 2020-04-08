@@ -1,0 +1,53 @@
+#widget-container {
+  position: fixed;
+  z-index: 9999;
+  background-color: #f1f1f1;
+  text-align: center;
+  border: 1px solid #d3d3d3;
+  opacity: 0.95;
+}
+
+#widget-header {
+  padding: 10px;
+  cursor: move;
+  z-index: 10;
+  height: 50px;
+  background-color: #27628b;
+  font-size: 125%;
+}
+
+#restaurant-container {
+  background-color: #27628b;
+}
+
+.my-text-underline {
+  text-decoration: underline;
+}
+
+::ng-deep iframe {
+  border: 0px;
+}
+
+#connect-container {
+  width: 320px;
+  height: 465px;
+}
+
+.minimized {
+  height: 0px !important;
+}
+
+#resize {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.my-text-small {
+  font-size: 75%;
+  opacity: 0.8;
+}
+
+.w-6-rem {
+  width: 6rem;
+}

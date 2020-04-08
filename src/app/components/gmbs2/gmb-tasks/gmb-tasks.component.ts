@@ -214,14 +214,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     async hardRefresh(task) {
         try {
-            if (task.processorVersion === "v5") {
-                await this.hardRefreshV5Task(task._id);
-            } else {
-                await this._api.post(environment.gmbNgrok + 'task/refresh', {
-                    taskId: this.modalTask._id
-                }).toPromise();
-            }
-
+            await this.hardRefreshV5Task(task._id);
             this._global.publishAlert(AlertType.Success, 'Refreshed Successfully');
 
         } catch (error) {
@@ -294,11 +287,21 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         if (confirm('Trigger too many times could exhaust existing verification options. Are you sure?')) {
             this.verifyingOption = vo;
             try {
-                await this._api.post(environment.gmbNgrok + 'task/verify', {
-                    taskId: task._id,
-                    email: task.request.email,
-                    locationName: task.request.locationName,
-                    verificationOption: vo
+                // await this._api.post(environment.gmbNgrok + 'task/verify', {
+                //     taskId: task._id,
+                //     email: task.request.email,
+                //     locationName: task.request.locationName,
+                //     verificationOption: vo
+                // }).toPromise();
+
+                await this._api.post(environment.appApiUrl + "gmb/generic", {
+                    name: "verify",
+                    payload: {
+                        taskId: task._id,
+                        email: task.request.email,
+                        locationName: task.request.locationName,
+                        verificationOption: vo
+                    }
                 }).toPromise();
 
                 this._global.publishAlert(AlertType.Success, 'triggered successfully');
@@ -308,11 +311,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 const result = error.error || error.message || error;
                 this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
             }
-
-            if (task.processorVersion === "v5") {
-                await this.hardRefreshV5Task(task._id);
-            }
-
             this.verifyingOption = undefined;
             await this.addComments(`tried verification`);
             await this.refreshSingleTask(task._id);
@@ -566,8 +564,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             query: { _id: { $oid: taskId } }
         }).toPromise();
         const task = new Task(tasks[0]);
+        console.log("refreshed", task);
         if (this.modalTask._id === task._id) {
-            this.modalTask = task;
+            await this.showDetails(task._id);
         }
         this.tabs.map(tab => {
             const index = tab.rows.findIndex(row => row.task._id === task._id);

@@ -1,0 +1,75 @@
+<div class="pt-2 text-center" *ngIf="!ivrEnabled">
+  <button class="btn btn-primary ml-4 btn-lg" (click)="startIvr()"><i class="fas fa-sync-alt"></i>
+    Launch qMenu IVR</button>
+</div>
+<div class="pt-2" *ngIf="ivrEnabled">
+  <h1 class="text-center">
+    Call Logs
+  </h1>
+  <div class="my-text-small text-muted text-center">
+    {{ivrUsername}} | {{ivrQueueNames.join(", ")}}
+  </div>
+  <div class="float-top-right pb-2 text-right">
+    <span class="my-text-small text-muted">refreshed: {{lastRefreshed | ago : now}}</span>
+    <button class="btn btn-primary ml-4" (click)="refresh()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i>
+      Reload</button>
+  </div>
+
+  <div class="form-inline">
+    <input [qDebounce]="500" (debounce)="filter($event)" type="text" class="form-control mr-4"
+      placeholder="phone or restaurant ID" [(ngModel)]="searchFilter">
+    <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="shouldCallbackOnly" (change)="filter()"
+        class="mx-1"> Should
+      callback</label>
+  </div>
+
+  <table class="table mt-2">
+    <tr>
+      <th>#</th>
+      <th>Time</th>
+      <th>Phone#</th>
+      <th>Restaurant</th>
+      <th>Queue</th>
+      <th>Agent</th>
+      <th>Recording</th>
+      <th>Status</th>
+    </tr>
+    <tr *ngFor="let ir of filteredIvrRecords; let i = index" class="{{ir.shouldCallback ? 'alert-danger' : ''}}">
+      <th>{{i + 1}}</th>
+      <td>{{ir.initiatedAt | ago : now}}<br>
+        <span class="my-text-small text-muted">{{ir.duration ? ir.duration + 's' : '-'}}</span>
+      </td>
+      <td class="text-nowrap">{{ir.customerEndpoint | tel}} <i *ngIf="!ir.inbound" class="fas fa-external-link-alt"></i>
+      </td>
+      <td class="text-nowrap">
+        <div *ngFor="let rt of ir.restaurants" class="pb-1">
+          <a routerLink="/restaurants/{{rt._id}}" target="_blank">{{rt.name}}</a>
+          <div class="my-text-small text-muted">
+            {{rt._id}}
+          </div>
+        </div>
+      </td>
+      <td>
+        <div *ngIf="ir.queueName === 'Chinese CSR'">中文</div>
+        <div *ngIf="ir.queueName === 'English CSR'">English</div>
+        <div *ngIf="ir.queueName === 'VoicemailQueue'">Voice Mail</div>
+      </td>
+      <td>
+        {{ir.agentUsername}}
+      </td>
+      <td>
+        <audio controls *ngIf="ir.recordingMp3Url" preload="none">
+          <source src="{{ir.recordingMp3Url}}" />
+        </audio>
+        <!-- <button class="btn btn-link py-0">
+          <i *ngIf="ir.recordingMp3Url && !isMp3Visited(ir)" (click)="visitMp3(ir)" class="far fa-file-audio fa-2x"></i>
+        </button> -->
+      </td>
+      <td>
+        <div *ngIf="ir.shouldCallback">
+          SHOULD CALLBACK
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>

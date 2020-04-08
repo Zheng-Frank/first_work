@@ -4,6 +4,7 @@ import { GlobalService } from '../../services/global.service';
 import { ApiService } from '../../services/api.service';
 import { Router } from '@angular/router';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { AmazonConnectService } from 'src/app/services/amazon-connect.service';
 
 declare function require(moduleName: string): any;
 const { version: appVersion } = require('../../../../package.json');
@@ -22,12 +23,14 @@ export class RootComponent implements OnInit {
 
   appVersion;
   now = new Date();
-  constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef, private _router: Router) {
+  ivrEnabled = false;
+  constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef, private _router: Router, private _connect: AmazonConnectService) {
     _api.onApiError.subscribe(error => {
       if (error && error.error && error.error.status === 401) {
         this._global.logout();
       }
     });
+    _connect.onEnabled.subscribe(enabled => this.ivrEnabled = enabled);
   }
 
   ngOnInit() {

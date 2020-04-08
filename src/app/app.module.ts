@@ -14,6 +14,8 @@ import { HeaderComponent } from './components/header/header.component';
 import { UiModule } from '@qmenu/ui';
 import { LoginComponent } from './components/login/login.component';
 import { GlobalService } from './services/global.service';
+import { AmazonConnectService } from './services/amazon-connect.service';
+
 import { ApiService } from './services/api.service';
 import { ProfileComponent } from './components/profile/profile.component';
 import { UsersComponent } from './components/users/users.component';
@@ -76,6 +78,9 @@ import { TaskListComponent } from './components/tasks/task-list/task-list.compon
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
 import { TaskGenericHandlerComponent } from './components/tasks/task-generic-handler/task-generic-handler.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
+import { IvrDashboardComponent } from './components/ivr/ivr-dashboard/ivr-dashboard.component';
+import { IvrWidgetComponent } from './components/ivr/ivr-widget/ivr-widget.component';
+
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
 import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.component';
@@ -160,6 +165,7 @@ import { MonitoringScriptComponent } from './components/monitoring/monitoring-sc
 import { MonitoringDbComponent } from './components/monitoring/monitoring-db/monitoring-db.component';
 import { CrawlTemplateService } from './services/crawl-template.service';
 import { InvoicesAnualComponent } from './components/invoices/invoices-anual/invoices-anual.component';
+import { IvrAgentComponent } from './components/ivr/ivr-agent/ivr-agent.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -231,6 +237,9 @@ import { InvoicesAnualComponent } from './components/invoices/invoices-anual/inv
     TaskDashboardComponent,
     TaskGenericHandlerComponent,
     Gmb2DashboardComponent,
+    IvrDashboardComponent,
+    IvrWidgetComponent,
+    IvrAgentComponent,
     GmbAccountListComponent,
     GmbBizListComponent,
     GmbAccountEditorComponent,
@@ -325,7 +334,8 @@ import { InvoicesAnualComponent } from './components/invoices/invoices-anual/inv
     ApiService,
     TaskService,
     CacheService,
-    CrawlTemplateService
+    CrawlTemplateService,
+    AmazonConnectService,
   ],
   bootstrap: [RootComponent]
 })

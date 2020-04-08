@@ -1,5 +1,5 @@
+<app-ivr-widget *ngIf="ivrEnabled"></app-ivr-widget>
 <app-header [menuItems]="getMenus()" [user]="getUser()" (logout)="logout()"></app-header>
-
 <div class="container-fluid" style="position:relative; min-height: 600px">
   <router-outlet></router-outlet>
 </div>

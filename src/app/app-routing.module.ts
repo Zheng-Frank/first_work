@@ -24,6 +24,7 @@ import { RestaurantInvoicesComponent } from './components/restaurants/restaurant
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
 import { Gmb2DashboardComponent } from './components/gmbs2/gmb2-dashboard/gmb2-dashboard.component';
+import { IvrDashboardComponent } from './components/ivr/ivr-dashboard/ivr-dashboard.component';
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
@@ -38,6 +39,7 @@ import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.compon
 import { EventDashboardComponent } from './components/events/event-dashboard/event-dashboard.component';
 import { MonitoringGmbOpenComponent } from './components/monitoring/monitoring-gmb-open/monitoring-gmb-open.component';
 import { MonitoringRestaurantsComponent } from './components/monitoring/monitoring-restaurants/monitoring-restaurants.component';
+import { IvrAgentComponent } from './components/ivr/ivr-agent/ivr-agent.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
@@ -61,7 +63,8 @@ const routes: Routes = [
   { path: 'restaurants/:id/menus', component: MenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
   { path: 'restaurants/:id/menu-options', component: MenuOptionsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
   { path: 'restaurants/:id/invoices', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
-
+  { path: 'ivr/dashboard', component: IvrDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'ivr/agent', component: IvrAgentComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'gmbs', component: Gmb2DashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'monitoring', component: MonitoringDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
