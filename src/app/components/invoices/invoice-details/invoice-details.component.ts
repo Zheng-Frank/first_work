@@ -339,12 +339,12 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     const url = environment.bizUrl + 'index.html#/invoice/' + (this.invoice.id || this.invoice['_id']);
     // const url = environment.legacyApiUrl + 'utilities/invoice/' + (this.invoice.id || this.invoice['_id']);
 
-    this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
+    this._api.post(environment.appApiUrl + 'utils/shorten-url', { longUrl: url }).pipe(mergeMap(shortUrlObj => {
       let message = 'QMENU INVOICE:';
       message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';
       // USE USD instead of $ because $ causes trouble for text :(
       message += '\n' + (this.invoice.getBalance() > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.getBalance()), 'USD');
-      message += '\n' + shortUrl + ' .'; // add training space to make it clickable in imessage     
+      message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
       // if (this.invoice.paymentInstructions) {
       //   message += '\n' + this.invoice.paymentInstructions.replace(/\<br\>/g, '\n');
       // }

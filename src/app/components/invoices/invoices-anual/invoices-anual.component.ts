@@ -197,12 +197,12 @@ export class InvoicesAnualComponent implements OnInit {
         // we need to get shorten URL, mainly for SMS.
         const url = environment.bizUrl + 'index.html#/invoice/' + (firstInvoice.id || firstInvoice['_id']);
 
-        this._api.get(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrl => {
+        this._api.post(environment.legacyApiUrl + 'utilities/getShortUrl', { longUrl: url }).pipe(mergeMap(shortUrlObj => {
           let message = 'QMENU INVOICE:';
           message += '\nFrom ' + this.datePipe.transform(statement.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(statement.toDate, 'shortDate') + '. ';
           // USE USD instead of $ because $ causes trouble for text :(
           message += '\n' + (statement.balance > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(statement.balance), 'USD');
-          message += '\n' + shortUrl + ' .'; // add training space to make it clickable in imessage     
+          message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
           message += '\nThank you for your business!'
 
           // we need to append '-' to end of $xxx.xx because of imessage bug
