@@ -39,14 +39,6 @@ export class RestaurantGmbPostsComponent implements OnInit {
 
   async ngOnInit() {
 
-    // let gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-    //   resource: 'gmbAccount',
-    //   projection: {
-    //     email: 1,
-    //     locations: 1
-    //   }
-    // }).toPromise();
-
     if (!this.restaurant.googleListing || !this.restaurant.googleListing.place_id) {
       console.log('no place id');
       return;
@@ -76,7 +68,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
       limit: 1
     }).toPromise();
 
-    // console.log(gmbAccounts);
+    console.log('Matching gmbAccount to post: ', gmbAccounts);
 
     const account = gmbAccounts[0];
     if (account) {
@@ -126,7 +118,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
       post: {
         imageUrl: this.imageUrl,
         summary: this.summary,
-        website: this.linkTo,
+        linkTo: this.linkTo,
         actionType: parseInt(this.actionType)
       }
     };
@@ -136,7 +128,11 @@ export class RestaurantGmbPostsComponent implements OnInit {
     try {
       const post = await this._api.post(environment.gmbNgrok + 'gmb/post', postData).toPromise();
       this._global.publishAlert(AlertType.Info, "GMB Post Added");
-      this.posts.localPosts.unshift(post);
+
+      if(this.posts.localPosts) {
+        this.posts.localPosts.unshift(post);
+      }
+      
       this.addPostModal.hide();
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Could not Add GMB Post');
