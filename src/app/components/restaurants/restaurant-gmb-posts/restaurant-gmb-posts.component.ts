@@ -47,55 +47,51 @@ export class RestaurantGmbPostsComponent implements OnInit {
     //   }
     // }).toPromise();
 
+    if (!this.restaurant.googleListing || !this.restaurant.googleListing.place_id) {
+      console.log('no place id');
+      return;
+    };
+
     const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       query: {
-        locations: { $exists: 1 },
-        'locations.name': this.restaurant.name,
-        'locations.status': 'Published',
+        "locations": {
+          $elemMatch: {
+            'place_id': (this.restaurant.googleListing.place_id),
+            'status': { $in: ['Published', 'Reverification required'] }
+          }
+        }
       },
       projection: {
         email: 1,
-        "locations.name": 1,
+        "locations": {
+          $elemMatch: {
+            'place_id': (this.restaurant.googleListing.place_id),
+            'status': { $in: ['Published', 'Reverification required'] }
+          }
+        },
         "locations.locationName": 1,
         "locations.place_id": 1
       },
-      limit: 1000
+      limit: 1
     }).toPromise();
 
     // console.log(gmbAccounts);
 
-    let matchingAccounts = [];
+    const account = gmbAccounts[0];
+    if (account) {
+      this.email = account.email;
+      this.locationName = account.locations[0].locationName;
 
-    for (const account of gmbAccounts) {
-      const result = account.locations.filter(loc => loc.name === this.restaurant.name && loc.place_id === this.restaurant.googleAddress.place_id);
+      this.posts = await this._api.post(environment.gmbNgrok + 'gmb/post-list', {
+        email: account.email,
+        locationName: this.locationName
+      }).toPromise();
 
-      if (result.length > 0) {
-        matchingAccounts.push(account);
-      }
+    } else {
+      console.log('no matching accounts');
     }
 
-    console.log(matchingAccounts);
-
-    if (matchingAccounts.length > 0) {
-      const account = matchingAccounts[Math.floor(Math.random() * matchingAccounts.length)];
-      const location = account.locations.filter(loc => loc.name === this.restaurant.name)[0];
-
-      console.log('Account:', account.email, 'Location:', location);
-
-      if (account && location) {
-        this.email = account.email;
-        this.locationName = location.locationName;
-
-        this.posts = await this._api.post(environment.gmbNgrok + 'gmb/post-list', {
-          email: account.email,
-          locationName: location.locationName
-        }).toPromise();
-
-      } else {
-        console.log('no matching accounts');
-      }
-    }
   }
 
   showAddPostModal() {
