@@ -47,7 +47,9 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
       },
       limit: 10000000
     }).toPromise();
+    this.tasks.sort((a, b) => a.createdAt > b.createdAt ? 1 : -1);
   }
+
 
   async refreshGmbTasks() {
     this.refreshing = true;
