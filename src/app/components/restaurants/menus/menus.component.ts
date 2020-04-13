@@ -118,6 +118,36 @@ export class MenusComponent implements OnInit {
     }
   }
 
+  async disableNotes() {
+    const oldMenus = this.restaurant.menus || [];
+    const newMenus = JSON.parse(JSON.stringify(oldMenus));
+
+    newMenus.forEach(eachMenu => {
+      eachMenu.mcs.forEach(eachMc => {
+        eachMc.mis.forEach(mi => {
+          mi.nonCustomizable = true;
+        })
+      })
+    })
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id'],
+          menus: oldMenus
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: newMenus
+        }
+      }]).toPromise();
+      this.restaurant.menus = newMenus.map(each => new Menu(each));
+      this._global.publishAlert(AlertType.Success, "Success!");
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
+
+  }
+
   async adjustPrices() {
     const factor = +this.adjustPricesFactorAmount || +this.adjustPricesFactorPercent;
     if (factor) {
