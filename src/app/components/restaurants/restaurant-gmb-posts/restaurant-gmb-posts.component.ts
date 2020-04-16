@@ -125,7 +125,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
 
   async addPost() {
 
-    this.status = 'Adding post. It might take some minutes for the post to show up on google searches.';
+    this._global.publishAlert(AlertType.Primary, 'Adding post. It might take some minutes for the post to show up on google searches.');
 
     const postData = {
       email: this.email,
@@ -152,13 +152,11 @@ export class RestaurantGmbPostsComponent implements OnInit {
 
       await this.refresh();
 
-      this.status = '';
 
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Could not Add GMB Post');
       console.error(error);
       this.addPostModal.hide();
-      this.status = '';
     }
 
   }
@@ -166,7 +164,8 @@ export class RestaurantGmbPostsComponent implements OnInit {
   async removePost(post) {
     try {
 
-      this.status = 'Removing post. It might take some minutes for the post to show up on google searches.';
+      this._global.publishAlert(AlertType.Primary, 'Removing post. It might take some minutes for the post to show up on google searches.');
+
 
       const deletedPost = await this._api.post(environment.gmbNgrok + 'gmb/delete', {
         email: this.email,
@@ -177,12 +176,9 @@ export class RestaurantGmbPostsComponent implements OnInit {
 
       await this.refresh();
 
-      this.status = '';
-      
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Could not Remove GMB Post');
       console.error(error);
-      this.status = '';
     }
   }
 
