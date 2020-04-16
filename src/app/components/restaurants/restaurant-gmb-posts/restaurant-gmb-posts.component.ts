@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Helper } from '../../../classes/helper';
+import { componentRefresh } from '@angular/core/src/render3/instructions';
 
 @Component({
   selector: 'app-restaurant-gmb-posts',
@@ -38,7 +39,10 @@ export class RestaurantGmbPostsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
+    this.refresh();
+  }
 
+  async refresh() {
     if (!this.restaurant.googleListing || !this.restaurant.googleListing.place_id) {
       console.log('no place id');
       return;
@@ -83,7 +87,6 @@ export class RestaurantGmbPostsComponent implements OnInit {
     } else {
       console.log('no matching accounts');
     }
-
   }
 
   showAddPostModal() {
@@ -134,6 +137,9 @@ export class RestaurantGmbPostsComponent implements OnInit {
       }
       
       this.addPostModal.hide();
+
+      await this.refresh();
+
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Could not Add GMB Post');
       console.error(error);
@@ -150,6 +156,9 @@ export class RestaurantGmbPostsComponent implements OnInit {
         postRef: post.name.substr(post.name.lastIndexOf('/') + 1, post.name.length)
       }).toPromise();
       this.posts.localPosts = this.posts.localPosts.filter(p => p.name !== post.name);
+
+      await this.refresh();
+      
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Could not Remove GMB Post');
       console.error(error);
