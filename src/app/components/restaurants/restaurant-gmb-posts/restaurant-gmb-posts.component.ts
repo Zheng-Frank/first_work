@@ -33,6 +33,8 @@ export class RestaurantGmbPostsComponent implements OnInit {
   email;
   locationName;
 
+  status;
+
   // email = '07katiereagan02@gmail.com';
   // locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
 
@@ -43,6 +45,9 @@ export class RestaurantGmbPostsComponent implements OnInit {
   }
 
   async refresh() {
+
+    this.status = 'Loading...';
+
     if (!this.restaurant.googleListing || !this.restaurant.googleListing.place_id) {
       console.log('no place id');
       return;
@@ -84,9 +89,13 @@ export class RestaurantGmbPostsComponent implements OnInit {
         locationName: this.locationName
       }).toPromise();
 
+      console.log(this.posts);
+
     } else {
       console.log('no matching accounts');
     }
+
+    this.status = '';
   }
 
   showAddPostModal() {
@@ -115,6 +124,9 @@ export class RestaurantGmbPostsComponent implements OnInit {
   }
 
   async addPost() {
+
+    this.status = 'Adding post. It might take some minutes for the post to show up on google searches.';
+
     const postData = {
       email: this.email,
       locationName: this.locationName,
@@ -140,16 +152,22 @@ export class RestaurantGmbPostsComponent implements OnInit {
 
       await this.refresh();
 
+      this.status = '';
+
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Could not Add GMB Post');
       console.error(error);
       this.addPostModal.hide();
+      this.status = '';
     }
 
   }
 
   async removePost(post) {
     try {
+
+      this.status = 'Removing post. It might take some minutes for the post to show up on google searches.';
+
       const deletedPost = await this._api.post(environment.gmbNgrok + 'gmb/delete', {
         email: this.email,
         locationName: this.locationName,
@@ -158,10 +176,13 @@ export class RestaurantGmbPostsComponent implements OnInit {
       this.posts.localPosts = this.posts.localPosts.filter(p => p.name !== post.name);
 
       await this.refresh();
+
+      this.status = '';
       
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Could not Remove GMB Post');
       console.error(error);
+      this.status = '';
     }
   }
 

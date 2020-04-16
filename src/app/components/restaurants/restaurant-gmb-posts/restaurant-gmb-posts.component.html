@@ -1,6 +1,4 @@
 <h1 class="text-center">Posts</h1>
-<p class="text-warning text-center">Adding or Removing a post takes a while to take effect for it to show up in google searches.
-  Please Wait.</p>
 
 <div *ngIf='email && locationName'>
   <button class="btn btn-primary" (click)="showAddPostModal()">+ Add Post</button>
@@ -19,6 +17,8 @@
   </div>
 </div>
 
+<p *ngIf="status" class="text-primary text-center">{{status}}</p>
+<p *ngIf="!posts.localPosts" class="text-center">Post list is empty.</p>
 
 <!-- add post modal-->
 <q-modal #addPostModal>
