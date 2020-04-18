@@ -58,19 +58,41 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       dict
     ), {});
 
+
+
+    let batchSize = 50;
+    let restaurants=[];
+    let ids=[...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
+    const batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batchedIds) {
+      let result = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: { _id: { $in: batch } },
+        projection: {
+          'googleAddress.formatted_address': 1,
+          skipOrderConfirmation: 1
+        },
+        sort: {
+          createdAt: -1
+        }
+      }, 1000);
+      restaurants.push(...result);
+    }
+
     // get if restaurant skipOrderConfirmation
 
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: { _id: { $in: [...Object.keys(rtIdDict).map(id => ({ $oid: id }))] } },
-      projection: {
-        'googleAddress.formatted_address': 1,
-        skipOrderConfirmation: 1
-      },
-      sort: {
-        createdAt: -1
-      }
-    }, 10000)
+    // const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'restaurant',
+    //   query: { _id: { $in: [...Object.keys(rtIdDict).map(id => ({ $oid: id }))] } },
+    //   projection: {
+    //     'googleAddress.formatted_address': 1,
+    //     skipOrderConfirmation: 1
+    //   },
+    //   sort: {
+    //     createdAt: -1
+    //   }
+    // }, 1000)
 
     restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
 
