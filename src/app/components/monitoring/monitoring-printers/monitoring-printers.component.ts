@@ -447,8 +447,11 @@ export class MonitoringPrintersComponent implements OnInit {
           // ONLY 2.0.0+ we use newer api otherwise we HAVE to use http instead of https for sending order urls because windows XP doesn't support newer https
           const format = printer.format || 'png';
           let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
-          if (format === 'esc' || format === 'gdi' || format === 'html' || (row.info && row.info.version && +row.info.version.split(".")[0] >= 3)) {
+          if (format === 'esc' || format === 'gdi' || format === 'pdf' || (row.info && row.info.version && +row.info.version.split(".")[0] >= 3)) {
             url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=${format}${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
+            if (format === 'pdf') {
+              url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderFax&format=${format}${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
+            }
           }
 
           await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
