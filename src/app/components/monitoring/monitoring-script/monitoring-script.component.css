@@ -9,3 +9,21 @@
 .script-succeeded {
   background-color: lightgreen;
 }
+
+.min-w-6 {
+  min-width: 6rem;
+}
+
+.stats-item {
+  width: 6rem;
+  display: inline-block;
+}
+
+.script-disabled {
+  opacity: 0.75;
+  background-color: lightpink;
+}
+
+.text-small {
+  font-size: 75%;
+}

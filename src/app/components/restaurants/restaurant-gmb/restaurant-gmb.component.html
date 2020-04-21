@@ -20,8 +20,18 @@
         <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="createOrMatchMainGmb()">Create or Match
           Main GMB</button>
       </div>
+
+    </div>
+    <div class="card-body">
+      <ng-container *ngFor="let gh of restaurant.gmbOwnerHistory || [];">
+        <div class="d-inline-block alert alert-{{gh.gmbOwner === 'qmenu' ? 'success' : 'danger'}} p-2 text-center">
+          <span>{{gh.gmbOwner || 'N/A'}}</span>
+          <hr class="my-0"><small>{{gh.time | ago : now}}</small>
+        </div>
+      </ng-container>
     </div>
   </div>
+
   <div class="card mb-2" *ngFor="let row of gmbRows">
     <h3 class="card-title text-center pt-4 pb-0">
       <i class="fab fa-google"></i>

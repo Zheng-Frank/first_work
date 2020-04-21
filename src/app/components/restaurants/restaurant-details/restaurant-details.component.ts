@@ -123,6 +123,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           excludeAmex: 1,
           excludeDiscover: 1,
           gmbOrigin: 1,
+          gmbOwnerHistory: 1,
           googleAddress: 1,
           googleListing: 1,
           hideOrderStatus: 1,
@@ -173,6 +174,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           results => {
             this.apiRequesting = false;
             const rt = results[0];
+
+            (rt.gmbOwnerHistory || []).reverse();
 
             (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
             this.restaurant = rt ? new Restaurant(rt) : undefined;

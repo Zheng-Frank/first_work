@@ -3,10 +3,6 @@
 <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="errorsOnly" (change)="filter()"> Errors Only</label>
 <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="purgedOnly" (change)="filter()"> Purged Only</label>
 
-<span *ngIf="scriptStatus">started: {{scriptStatus.startedAt | ago : now}}, status:
-    {{scriptStatus.endedAt ? (scriptStatus.stats?.failed?.length > 0 ? 'some failed' : 'succeeded') : 'running'}},
-    ended: {{scriptStatus.endedAt | ago : now}}</span>
-
 <table class="table">
     <tr>
         <th>#</th>

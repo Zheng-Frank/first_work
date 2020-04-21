@@ -15,7 +15,6 @@ export class MonitoringGmbTasksComponent implements OnInit {
   filteredRows = [];
   errorsOnly = false;
   purgedOnly = false;
-  scriptStatus;
 
   now = new Date();
   @ViewChild('taskModal') taskModal: ModalComponent;
@@ -62,15 +61,6 @@ export class MonitoringGmbTasksComponent implements OnInit {
     this.rows = [...Object.values(openStatusMap), ...Object.values(canceledStatusMap)];
     this.rows.sort((a, b) => b.tasks.length - a.tasks.length);
     this.filter();
-
-    // retrieve v5 last scan and time consumed
-    this.scriptStatus = (await this._api.get(
-      environment.qmenuApiUrl + 'generic', {
-      resource: 'script-report',
-      query: { name: "gmb-refresh-no-pin-tasks" },
-      limit: 1,
-      sort: { createdAt: -1 }
-    }).toPromise())[0];
 
   }
 

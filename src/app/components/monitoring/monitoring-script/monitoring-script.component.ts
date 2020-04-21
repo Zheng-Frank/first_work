@@ -1,64 +1,192 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { RoutineScript } from 'src/app/classes/routine-script';
 @Component({
   selector: 'app-monitoring-script',
   templateUrl: './monitoring-script.component.html',
   styleUrls: ['./monitoring-script.component.css']
 })
 export class MonitoringScriptComponent implements OnInit {
-
+  @ViewChild('editModal') editModal;
   items = [];
   apiLoading = false;
   now = new Date();
+  scriptInEditing: any = {};
+
+  routineScripts = [];
+  selectedScript;
+
+  editingFields = ["_id", "name", "description", "waitSecondsBetweenRuns", "waitSecondsBetweenUows", "parallelProcessors", "unitOfWorksGeneratorName", "disabled"];
+
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
   async ngOnInit() {
     this.populate();
   }
 
-  async populate() {
-    this.apiLoading = true;
-    const scriptNames = [
-      "appeal-suspended",
-      "crawl-gmb-biz",
-      "crawl-rt-google-listing",
-      "gmb-biz-data-maintain",
-      "inject-qmenu-websites",
-      "purge-and-new-appeal-tasks",
-      "refresh-location-status",
-      // "refresh-max-listings",
-      "refresh-ownership-requests",
-      
-      "gmb-refresh-no-pin-tasks",
-      "gmb-reject-qmenu-requests",
-      "gmb-deduplication",
-      "gmb-scan-new-tasks",
-      "gmb-purge-tasks"
-    ];
-
-
-    const results = await Promise.all(scriptNames.map(scriptName => this._api.get(
-      environment.qmenuApiUrl + 'generic', {
-      resource: 'script-report',
-      query: { name: scriptName },
-      limit: 1,
-      sort: { createdAt: -1 }
+  async toggleSelected(script) {
+    if (this.selectedScript === script) {
+      this.selectedScript = undefined;
+    } else {
+      this.selectedScript = script;
+      await this.populateDetails(script._id);
     }
-    ).toPromise()));
-    this.items = results.filter(result => result.length > 0).map(result => {
-      const item = result[0];
-      if (item.endedAt) {
-        item.timeSpan = "~" + Math.ceil((new Date(item.endedAt).valueOf() - new Date(item.startedAt).valueOf()) / 1000) + "s";
-      }
-      return item;
-    });
-    this.apiLoading = false;
   }
 
-  printConsole(item) {
-    console.log(item);
+  async populate() {
+    this.apiLoading = true;
+    const scripts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'routine-script',
+      query: {},
+      projection: {
+        name: 1,
+        description: 1,
+        waitSecondsBetweenRuns: 1,
+        unitOfWorksGeneratorName: 1,
+        parallelProcessors: 1,
+        disabled: 1,
+        "uowsHistory.time": 1,
+        "uowsHistory.uows.startedAt": 1,
+        "uowsHistory.uows.endedAt": 1,
+        // "uowsHistory.uows.result.body": 1,
+        "uowsHistory.uows.error.message": 1,
+      },
+      limit: 2000,
+      sort: { name: 1 }
+    }).toPromise();
+    this.apiLoading = false;
+
+    // compute stats of each uowsHistory
+    scripts.map(script => (script.uowsHistory || []).map(uh => {
+      const stats = {
+        total: uh.uows.length,
+        succeeded: 0,
+        failed: 0,
+        inProgress: 0,
+        notStarted: 0,
+        minStartedAt: Number.MAX_VALUE,
+        maxEndedAt: Number.MIN_VALUE,
+        duration: 0
+      };
+      uh.uows.map(uow => {
+        if (uow.endedAt && !uow.error) {
+          stats.succeeded = stats.succeeded + 1;
+        }
+
+        if (uow.endedAt && uow.error) {
+          stats.failed = stats.failed + 1;
+        }
+
+        if (uow.startedAt && !uow.endedAt) {
+          stats.inProgress = stats.inProgress + 1;
+        }
+
+        if (!uow.startedAt) {
+          stats.notStarted = stats.notStarted + 1;
+        }
+
+        if (uow.startedAt && uow.startedAt < stats.minStartedAt) {
+          stats.minStartedAt = uow.startedAt;
+        }
+
+        if (uow.endedAt && uow.endedAt > stats.maxEndedAt) {
+          stats.maxEndedAt = uow.endedAt;
+        }
+      });
+      stats.duration = Math.ceil((stats.maxEndedAt - stats.minStartedAt) / 1000);
+      // just dump all fields to uh
+      Object.assign(uh, stats);
+
+    }));
+
+    // make a static uowsHistory0 to each 
+    scripts.map(script => script.uowsHistory0 = (script.uowsHistory || [])[0] || {});
+
+    this.routineScripts = scripts;
+    this.now = new Date();
+  }
+
+  async populateDetails(routineScriptId) {
+    const scripts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'routine-script',
+      query: {
+        _id: { $oid: routineScriptId }
+      },
+      // projection: {
+      //   name: 1,
+      //   description: 1,
+      //   waitSecondsBetweenRuns: 1,
+      //   unitOfWorksGeneratorName: 1,
+      //   parallelProcessors: 1,
+      //   disabled: 1,
+      //   "uowsHistory.time": 1,
+      //   "uowsHistory.uows.startedAt": 1,
+      //   "uowsHistory.uows.endedAt": 1,
+      //   // "uowsHistory.uows.result.body": 1,
+      //   "uowsHistory.uows.error.message": 1,
+      // },
+      limit: 1
+    }).toPromise();
+
+    if (this.selectedScript && this.selectedScript._id === scripts[0]._id) {
+      Object.assign(this.selectedScript, scripts[0]);
+    }
+  }
+
+  addNew() {
+    this.scriptInEditing = {};
+    this.editModal.show();
+  }
+
+  edit(script) {
+    this.scriptInEditing = {};
+    for (let field of this.editingFields) {
+      this.scriptInEditing[field] = script[field];
+    };
+    this.editModal.show();
+  }
+
+  async okEdit() {
+
+    if (this.scriptInEditing._id) {
+      const script = this.routineScripts.filter(s => s._id === this.scriptInEditing._id)[0];
+      const oldScript = {};
+      for (let field of this.editingFields) {
+        oldScript[field] = script[field];
+      };
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [{ old: oldScript, new: this.scriptInEditing }]);
+    } else {
+      await this._api.post(environment.qmenuApiUrl + 'generic?resource=routine-script', [this.scriptInEditing]).toPromise();
+    }
+    await this.populate();
+    this.editModal.hide();
+  }
+
+  async deleteEdit() {
+    if (confirm("Are you sure")) {
+      await this._api.delete(environment.qmenuApiUrl + 'generic', {
+        resource: 'routine-script',
+        ids: [this.scriptInEditing._id]
+      }).toPromise();
+      await this.populate();
+      this.editModal.hide();
+    }
+  }
+
+  cancelEdit() {
+    this.editModal.hide();
+  }
+
+  printConsole(script) {
+    console.log(script);
+  }
+
+  async resetUows(script) {
+    // we can wipe out all uowsHistory of the script!
+    await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [{ old: { _id: script._id, uowsHistory: [] }, new: { _id: script._id } }]);
+    await this.populate();
   }
 
 }

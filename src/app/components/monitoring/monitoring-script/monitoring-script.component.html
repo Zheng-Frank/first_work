@@ -1,28 +1,55 @@
 <h1 class="text-center">Running Status of Scripts</h1>
 <div class="text-right mb-2">
     <div class="pb-2">
+
         <button class="btn btn-primary" (click)="populate()" [qLoading]="apiLoading">
             <i class="fas fa-sync"></i> Reload</button>
+
+        <button class="btn btn-primary" (click)="addNew()">
+            <i class="fas fa-plus"></i> Add New</button>
     </div>
 
 </div>
+
 <table class="table">
     <tr>
         <th>Name</th>
-        <th>Last Run</th>
-        <th>Status</th>
+        <th>Wait</th>
+        <th>Started</th>
         <th>Duration</th>
-        <th>Succeeded</th>
-        <th>Failed</th>
-        <th>Console</th>
+        <th>Stats
+        <th></th>
     </tr>
-    <tr *ngFor="let item of items;">
+    <tr *ngFor="let script of routineScripts;" class="{{script.disabled ? 'script-disabled' : ''}}">
         <td>
-            {{item.name}}
+            {{script.name}}
+            <div class="text-muted text-small">
+                {{script.description}}
+            </div>
+            <div>
+                <button class="btn btn-link pl-0 py-0" (click)="toggleSelected(script)">view json...</button>
+            </div>
+            <pre *ngIf="script === selectedScript">
+                {{script | json}}
+            </pre>
         </td>
         <td>
-            {{item.startedAt | ago : now}}
+            {{(script.waitSecondsBetweenRuns / 3600).toFixed(1)}} hrs
         </td>
+        <td>
+            {{script.uowsHistory0.time | ago : now}}
+        </td>
+        <td>
+            {{script.uowsHistory0.duration}}s
+        </td>
+        <td class="text-nowrap">
+            <div><span class="stats-item">Succeeded: </span>{{script.uowsHistory0.succeeded}}</div>
+            <div class=" {{script.uowsHistory0.failed > 0 ? 'alert-danger' : ''}}"><span class="stats-item">Failed: </span>{{script.uowsHistory0.failed}}</div>
+            <div><span class="stats-item">In Progress: </span>{{script.uowsHistory0.inProgress}}</div>
+            <div><span class="stats-item">Not Started: </span>{{script.uowsHistory0.notStarted}}</div>
+            <div><span class="stats-item">Total: </span>{{script.uowsHistory0.total}}</div>
+        </td>
+        <!--
         <td
             class="{{item.endedAt ? (item.stats?.failed?.length > 0 ? 'script-failed' : 'script-succeeded') : 'script-running'}}">
             {{item.endedAt ? (item.stats?.failed?.length > 0 ? 'some failed' : 'succeeded') : 'running'}}
@@ -41,9 +68,63 @@
         </td>
         <td>
             <b>{{(item.stats?.failed || []).length}}</b>
-        </td>
+        </td> -->
         <td>
-            <button class="btn btn-link" (click)="printConsole(item)">console</button>
+            <button class="btn btn-link py-0" (click)="printConsole(script)">Console</button>
+            <button class="btn btn-link py-0" (click)="resetUows(script)">Reset Tasks</button>
+            <button class="btn btn-link py-0" (click)="edit(script)">Edit</button>
         </td>
     </tr>
 </table>
+
+
+<!--the editing modal-->
+<q-modal #editModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+
+    <div class="form-group">
+        <label>Name:</label>
+        <input [(ngModel)]="scriptInEditing.name" class="form-control" placeholder="script name">
+    </div>
+
+    <div class="form-group">
+        <label>Description:</label>
+        <input [(ngModel)]="scriptInEditing.description" class="form-control" placeholder="description">
+    </div>
+
+    <div class="form-group">
+        <label>Wait Seconds between Runs:</label>
+        <input [(ngModel)]="scriptInEditing.waitSecondsBetweenRuns" type="number" class="form-control"
+            placeholder="3600">
+    </div>
+
+    <div class="form-group">
+        <label>Unit of Works Generator Name:</label>
+        <input [(ngModel)]="scriptInEditing.unitOfWorksGeneratorName" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Parallel Processors:</label>
+        <input [(ngModel)]="scriptInEditing.parallelProcessors" type="number" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Wait Seconds between unit of works (to avoid 429):</label>
+        <input [(ngModel)]="scriptInEditing.waitSecondsBetweenUows" type="number" class="form-control" placeholder="0">
+    </div>
+
+    <div class="form-check">
+        <label class="form-check-label">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="scriptInEditing.disabled"> Disabled
+        </label>
+    </div>
+
+    <div class="mt-2 text-right">
+        <button *ngIf="scriptInEditing._id" class="btn btn-link min-w-6" (click)="deleteEdit()">Delete</button>
+        <button class="btn btn-secondary min-w-6" (click)="cancelEdit()">Cancel</button>
+        <button class="btn btn-primary min-w-6" (click)="okEdit()">OK</button>
+    </div>
+
+</q-modal>

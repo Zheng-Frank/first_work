@@ -69,8 +69,12 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
   }
 
   ngOnDestroy() {
+
     this.renderer2.removeChild(this._document.body, this.connectScript);
     console.log("remove connect script!")
+    if (connect) {
+      connect.core.terminate();
+    }
   }
 
   confirmClose() {
@@ -92,15 +96,24 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
 
   private initConnect() {
     /*************** End Mod Area ***************/
+    let ready = false;
     connect.core.initCCP(this.connectContainer.nativeElement, {
       ccpUrl: "https://qmenu.awsapps.com/connect/ccp#",
-      loginPopup: true,
+      loginPopup: false,
       region: "us-east-1",
       softphone: {
         allowFramedSoftphone: true
       }
     });
+
+    setTimeout(_ => {
+      if (!ready) {
+        window.open('https://qmenu.awsapps.com/connect/ccp#');
+      }
+    }, 5000);
+
     connect.agent(agent => {
+      ready = true;
       this._connect.setConfig(agent.getConfiguration());
       console.log("new config@");
       // agent.onStateChange(function(agentStateChange) { console.log('state change', agentStateChange) });
@@ -122,6 +135,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
       agent.onError(agent => { console.log("onError"); });
     });
     connect.contact(contact => {
+      ready = true;
       console.log("on contact", contact);
       const attributeMap = contact.getAttributes();
       console.log(attributeMap);

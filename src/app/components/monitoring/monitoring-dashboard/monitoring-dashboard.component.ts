@@ -8,7 +8,8 @@ import { GlobalService } from 'src/app/services/global.service';
 })
 export class MonitoringDashboardComponent implements OnInit {
 
-  monitoredItem = 'Placeholder';
+  // monitoredItem = 'Placeholder';
+  monitoredItem = 'Scripts';
   items = [];
   constructor(private _global: GlobalService) { }
 
