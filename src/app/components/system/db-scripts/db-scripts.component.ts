@@ -157,7 +157,7 @@ export class DbScriptsComponent implements OnInit {
 
       return sum;
     }, 0);
-    const year = new Date().getFullYear() - 1;
+    const year = new Date().getFullYear() - 0;
     const yearCommission = invoices.reduce((sum, invoice) => {
       if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
         return sum + (invoice.commission || 0);
@@ -1508,122 +1508,6 @@ export class DbScriptsComponent implements OnInit {
       },
     }))).toPromise();
 
-  }
-
-  async removeRedundantGmbBiz() {
-    // 1. get ALL gmbBiz
-
-    const gmbBizBatchSize = 3000;
-    const bizList = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        projection: {
-          cid: 1,
-          place_id: 1,
-          name: 1,
-          createdAt: 1
-        },
-        skip: bizList.length,
-        limit: gmbBizBatchSize
-      }).toPromise();
-      bizList.push(...batch);
-      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
-        break;
-      }
-    }
-
-
-
-    // group by cid (or phone?)
-    const cidMap = {};
-    bizList.map(b => {
-      cidMap[b.cid] = cidMap[b.cid] || [];
-      cidMap[b.cid].push(b);
-    });
-    console.log(cidMap);
-
-    // sort by createdAt
-    const sortedValues = Object.keys(cidMap).map(k => cidMap[k]).sort((a, b) => b.length - a.length);
-    sortedValues.map(sv => sv.sort((v1, v2) => new Date(v1.createdAt).valueOf() - new Date(v2.createdAt).valueOf()));
-    console.log(sortedValues);
-    // keep the one with active gmbOwnerships!
-    for (let values of sortedValues) {
-      if (values.length > 1) {
-        console.log('duplicated', values);
-        // update task, gmbRequest's reference Ids
-        const idToKeep = values[0]._id;
-        const idsToDump = values.slice(1).map(v => v._id);
-
-        const tasksToBeUpdated = await this._api.get(environment.qmenuApiUrl + 'generic', {
-          resource: 'task',
-          query: {
-            "relatedMap.gmbBizId": { $in: idsToDump }
-          },
-          limit: 10000,
-        }).toPromise();
-
-
-        if (tasksToBeUpdated.length > 0) {
-          console.log(tasksToBeUpdated);
-          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=task', tasksToBeUpdated.map(t => ({
-            old: {
-              _id: t._id,
-              relatedMap: {}
-            },
-            new: {
-              _id: t._id,
-              relatedMap: {
-                gmbBizId: idToKeep
-              }
-            },
-          }))).toPromise();
-          console.log('patched tasks: ', tasksToBeUpdated);
-        }
-
-        const affectedGmbRequests = await this._api.get(environment.qmenuApiUrl + 'generic', {
-          resource: 'gmbRequest',
-          query: {
-            gmbBizId: { $in: idsToDump }
-          },
-          limit: 10000,
-        }).toPromise();
-
-        console.log('affected gmbRequests', affectedGmbRequests);
-
-        if (affectedGmbRequests.length > 0) {
-          console.log(affectedGmbRequests);
-          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', affectedGmbRequests.map(t => ({
-            old: {
-              _id: t._id
-            },
-            new: {
-              _id: t._id,
-              gmbBizId: idToKeep
-            },
-          }))).toPromise();
-        }
-
-
-        // update name, assuming later is more updated!
-        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [{
-          old: {
-            _id: idToKeep
-          },
-          new: {
-            _id: idToKeep,
-            name: values[values.length - 1].name
-          },
-        }]).toPromise();
-
-        // // delete ALL the redudant ids
-        await this._api.delete(environment.qmenuApiUrl + 'generic', {
-          resource: 'gmbBiz',
-          ids: idsToDump
-        }).toPromise();
-
-      }
-    }
   }
 
   async fixMissingBusinessPhones() {

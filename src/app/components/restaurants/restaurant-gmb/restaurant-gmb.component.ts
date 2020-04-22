@@ -44,7 +44,6 @@ export class RestaurantGmbComponent implements OnInit {
       return;
     }
 
-
     const gmbBizList = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {
@@ -58,16 +57,7 @@ export class RestaurantGmbComponent implements OnInit {
     }).toPromise());
 
     // query outstanding tasks for the restaurant
-
     if (gmbBizList.length > 0) {
-      const outstandingTasks = (await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: "task",
-        query: {
-          "relatedMap.gmbBizId": { $in: gmbBizList.map(biz => biz._id) },
-          result: null
-        },
-        limit: 20
-      }).toPromise()).map(t => new Task(t));
 
       const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
@@ -84,21 +74,6 @@ export class RestaurantGmbComponent implements OnInit {
       accounts.map(acct => this.emailAccountDict[acct.email] = acct);
       const relevantGmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
-        // query: {
-        //   "locations.cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] }
-        // },
-        // projection: {
-        //   email: 1,
-        //   locations: {
-        //     $elemMatch: {
-        //       "cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] }
-        //     },
-        //   },
-        //   gmbScannedAt: 1,
-        //   emailScannedAt: 1,
-        //   password: 1
-        // },
-        // limit: 1000
         aggregate: [
           { $match: { "locations.cid": { $in: [...new Set(gmbBizList.map(biz => biz.cid))] } } },
           {
@@ -121,11 +96,12 @@ export class RestaurantGmbComponent implements OnInit {
       }).toPromise();
 
       relevantGmbAccounts.map(acct => this.emailAccountDict[acct.email] = acct);
+      
       // get ALL requests against this gmb listing
       this.relevantGmbRequests = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbRequest',
         query: {
-          gmbBizId: { $in: gmbBizList.map(biz => biz._id) }
+          cid: { $in: gmbBizList.map(biz => biz.cid) }
         },
         limit: 1000
       }).toPromise();
@@ -135,9 +111,9 @@ export class RestaurantGmbComponent implements OnInit {
 
       this.relevantGmbRequests.sort((r1, r2) => new Date(r2.date).valueOf() - new Date(r1.date).valueOf());
 
+      console.log(this.relevantGmbRequests);
       this.gmbRows = gmbBizList.map(gmbBiz => ({
         gmbBiz: gmbBiz,
-        outstandingTasks: outstandingTasks.filter(t => t.relatedMap.gmbBizId === gmbBiz._id),
         accountLocationPairs: relevantGmbAccounts.reduce((list, acct) => (list.push(...acct.locations.filter(loc => gmbBiz.cid && loc.cid === gmbBiz.cid).map(loc => ({
           account: acct,
           location: loc,
@@ -151,8 +127,11 @@ export class RestaurantGmbComponent implements OnInit {
     return this.emailAccountDict[email];
   }
 
-  getGmbRequests(gmbBiz: GmbBiz, email) {
-    return this.relevantGmbRequests.filter(request => request.gmbBizId === gmbBiz._id && request.gmbAccountId === (this.getGmbAccount(email) || {})._id);
+  getGmbRequests( email) {
+    // console.log(gmbBiz, email)
+    return this.relevantGmbRequests.filter(request => request.gmbAccountEmail === email);
+
+    // return this.relevantGmbRequests.filter(request => request.place_id === gmbBiz.place_id && request.gmbAccountId === (this.getGmbAccount(email) || {})._id);
   }
 
   async refreshMainListing() {

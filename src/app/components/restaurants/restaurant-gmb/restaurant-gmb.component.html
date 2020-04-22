@@ -188,15 +188,15 @@
                 </ng-container>
               </td>
             </tr>
-            <tr *ngIf="getGmbRequests(row.gmbBiz, alPair.account.email).length > 0">
+            <tr *ngIf="getGmbRequests(alPair.account.email).length > 0">
               <th class="">Email Requests
                 <div class="text-muted">
                   <small>Scanned: {{alPair.account.emailScannedAt | ago : now}}</small>
                 </div>
               </th>
               <td class="pl-1">
-                <div *ngFor="let gmbRequest of getGmbRequests(row.gmbBiz, alPair.account.email)"
-                  class="{{gmbRequest.isSelf ? 'text-success' : ''}}">
+                <div *ngFor="let gmbRequest of getGmbRequests(alPair.account.email)"
+                  class="{{gmbRequest.isSelf ? 'text-success' : ''}} {{gmbRequest.isReminder ? 'really-muted' : ''}}">
                   {{gmbRequest.date | ago : now}} {{gmbRequest.email | emailName}}
                 </div>
               </td>
@@ -210,13 +210,6 @@
 
         </table>
       </li>
-
-      <li class="list-group-item">
-        <h4>Outstanding Tasks</h4>
-        <app-task-bar *ngFor="let task of row.outstandingTasks" [task]="task"></app-task-bar>
-
-      </li>
-
     </ul>
   </div>
 

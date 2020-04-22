@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
@@ -12,14 +12,26 @@ import { Task } from 'src/app/classes/tasks/task';
   styleUrls: ['./restaurant-tasks.component.css']
 })
 export class RestaurantTasksComponent implements OnInit, OnChanges {
-
+  @ViewChild('taskDetailsModal') taskDetailsModal;
   @Input() restaurant: Restaurant;
 
   tasks: Task[] = [];
+  selectedTask;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   refreshing = false;
   ngOnInit() {
+  }
+
+  async showDetails(task) {
+    this.selectedTask = task;
+    this.taskDetailsModal.show();
+    const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "task",
+      query: { _id: { $oid: task._id } },
+      limit: 1
+    }).toPromise();
+    this.selectedTask = tasks[0];
   }
 
   async ngOnChanges(changes: SimpleChanges) {
