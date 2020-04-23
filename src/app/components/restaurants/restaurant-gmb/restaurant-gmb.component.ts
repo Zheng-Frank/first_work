@@ -47,7 +47,11 @@ export class RestaurantGmbComponent implements OnInit {
     const gmbBizList = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {
-        qmenuId: this.restaurant.id || this.restaurant['_id']
+        $or: [
+          { qmenuId: this.restaurant.id || this.restaurant['_id'] },
+          { place_id: (this.restaurant.googleListing || {}).place_id || "junk place id" },
+        ]
+
       },
       projection: {
         gmbOwnerships: 0,
@@ -96,7 +100,7 @@ export class RestaurantGmbComponent implements OnInit {
       }).toPromise();
 
       relevantGmbAccounts.map(acct => this.emailAccountDict[acct.email] = acct);
-      
+
       // get ALL requests against this gmb listing
       this.relevantGmbRequests = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbRequest',
@@ -127,7 +131,7 @@ export class RestaurantGmbComponent implements OnInit {
     return this.emailAccountDict[email];
   }
 
-  getGmbRequests( email) {
+  getGmbRequests(email) {
     // console.log(gmbBiz, email)
     return this.relevantGmbRequests.filter(request => request.gmbAccountEmail === email);
 
