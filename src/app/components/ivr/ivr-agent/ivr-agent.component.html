@@ -40,6 +40,7 @@
         <span class="my-text-small text-muted">{{ir.duration ? ir.duration + 's' : '-'}}</span>
       </td>
       <td class="text-nowrap">{{ir.customerEndpoint | tel}} <i *ngIf="!ir.inbound" class="fas fa-external-link-alt"></i>
+        <div class="my-text-small text-muted">{{ir.ctrId}}</div>
       </td>
       <td class="text-nowrap">
         <div *ngFor="let rt of ir.restaurants" class="pb-1">
