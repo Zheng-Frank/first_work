@@ -52,7 +52,7 @@ export class IvrRecord {
             ir.systemEndpoint = ctr.SystemEndpoint.Address.replace("+1", "");
         }
 
-        ir.inbound = ctr.InitiationMethod === "INBOUND";
+        ir.inbound = ctr.InitiationMethod !== "OUTBOUND";
         return ir;
     }
 }
