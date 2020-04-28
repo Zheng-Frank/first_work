@@ -313,7 +313,7 @@ export class SystemDashboardComponent implements OnInit {
   }
 
   async removePhone() {
-    const phone = '6787990850';
+    const phone = '6789951877';
     const restaurantIdToKeep = undefined; // "5ae6f70593fc1b14000708c2";
     let restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',

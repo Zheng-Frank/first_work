@@ -100,6 +100,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
     connect.core.initCCP(this.connectContainer.nativeElement, {
       ccpUrl: "https://qmenu.awsapps.com/connect/ccp#",
       loginPopup: false,
+      // loginPopupAutoClose: true,
       region: "us-east-1",
       softphone: {
         allowFramedSoftphone: true
@@ -110,7 +111,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
       if (!ready) {
         window.open('https://qmenu.awsapps.com/connect/ccp#');
       }
-    }, 5000);
+    }, 4000);
 
     connect.agent(agent => {
       ready = true;

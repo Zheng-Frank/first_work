@@ -4,10 +4,10 @@ export class IvrRecord {
     ctrId: string;
     initiatedAt: Date;
     endedAt?: Date;
-    connectedTime?: Date;
     customerEndpoint?: string;
     systemEndpoint?: string;
     queueName?: string;
+    queueArn?: string;
     agentUsername?: string;
     recordingLocation?: string;
     recordingMp3?: any;
@@ -21,9 +21,7 @@ export class IvrRecord {
         const ir = new IvrRecord();
         ir.ctrId = ctr._id;
         ir.initiatedAt = new Date(ctr.InitiationTimestamp);
-        if (ctr.ConnectedToSystemTimestamp) {
-            ir.connectedTime = new Date(ctr.ConnectedToSystemTimestamp);
-        }
+
         if (ctr.DisconnectTimestamp) {
             ir.endedAt = new Date(ctr.DisconnectTimestamp);
             ir.duration = Math.ceil((ir.endedAt.valueOf() - ir.initiatedAt.valueOf()) / 1000);
@@ -35,6 +33,10 @@ export class IvrRecord {
 
         if (ctr.Queue && ctr.Queue.Name) {
             ir.queueName = ctr.Queue.Name;
+        }
+
+        if (ctr.Queue && ctr.Queue.ARN) {
+            ir.queueArn = ctr.Queue.ARN;
         }
 
         if (ctr.Agent && ctr.Agent.Username) {

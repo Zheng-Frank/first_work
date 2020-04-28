@@ -568,26 +568,24 @@ export class DbScriptsComponent implements OnInit {
       projection: {
         name: 1,
         "googleAddress.place_id": 1,
+        "googleAddress.formatted_address": 1,
         "googleListing.place_id": 1,
         disabled: 1
       },
-      limit: 6000
+      limit: 60000
     }).toPromise();
 
     console.log(missingTimezoneRestaurants);
     for (let r of missingTimezoneRestaurants) {
       try {
-        let place_id = r.googleAddress.place_id;
-        if (place_id.length > 30 && r.googleListing && r.googleListing.place_id) {
-          place_id = r.googleListing.place_id;
-        }
+        
         const addressDetails = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
-          place_id: place_id
+          formatted_address: r.googleAddress.formatted_address
         }).toPromise();
         await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
           {
             old: { _id: r._id, googleAddress: {} },
-            new: { _id: r._id, googleAddress: { place_id: place_id, timezone: addressDetails.timezone } }
+            new: { _id: r._id, googleAddress: { timezone: addressDetails.timezone } }
           }
         ]).toPromise();
         console.log(r.name);
