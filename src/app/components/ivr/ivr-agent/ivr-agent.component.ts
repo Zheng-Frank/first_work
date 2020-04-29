@@ -82,7 +82,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
 
     // establish phone number <--> queue relationship!
     const phoneQueuesDict = {};
-    items.map(item => {
+    items.filter(item => item._id.phone).map(item => {
       const phone = item._id.phone.replace("+1", "");
       phoneQueuesDict[phone] = phoneQueuesDict[phone] || [];
       if (item._id.arn && !phoneQueuesDict[phone].some(queue => queue.arn === item._id.arn)) {
