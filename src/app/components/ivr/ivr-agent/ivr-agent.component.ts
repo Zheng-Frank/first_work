@@ -6,9 +6,9 @@ import { AmazonConnectService } from 'src/app/services/amazon-connect.service';
 import { IvrRecord } from 'src/app/classes/ivr/ivr-record';
 
 const defaultSelectedQueue = {
-  name: 'queue...'
+  name: 'all queues...'
 };
-const defaultSelectedAgent = 'agent...';
+const defaultSelectedAgent = 'all agent...';
 
 @Component({
   selector: 'app-ivr-agent',
@@ -17,6 +17,7 @@ const defaultSelectedAgent = 'agent...';
 })
 export class IvrAgentComponent implements OnInit, OnDestroy {
 
+  totalMinutes = 0;
   phoneQueuesDict = {} as any;
   visibleQueues = [];
 
@@ -112,13 +113,17 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
 
     ["sales", "gmb", "internal"].map(managerRole => {
       if (this._global.user.roles.some(r => r === `IVR_${managerRole.toUpperCase()}_MANAGER`)) {
+        console.log("add manager queues");
         this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith(managerRole)));
+        console.log("after", this.visibleQueues.map(q => q.name));
       }
     });
 
     // CSR manager takes care of ALL other queues
     if (this._global.user.roles.some(r => r === "IVR_CSR_MANAGER")) {
+      console.log("add csr manager queues");
       this.addToVisibleQueues(allQueues.filter(q => !["sales", "gmb", "internal"].some(prefix => (q.name || "").startsWith(prefix))));
+      console.log("after", this.visibleQueues.map(q => q.name));
     }
 
   }
@@ -134,8 +139,10 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   populateQueuesFromConfig() {
     const config = this.getConfig();
     console.log(config);
+    console.log("add ivr user queues");
     const ivrQueues = ((config.routingProfile || {}).queues || []).map(q => ({ arn: q.queueARN, name: q.name }));
     this.addToVisibleQueues(ivrQueues);
+    console.log("after", this.visibleQueues.map(q => q.name));
   }
 
   async refreshCtrs() {
@@ -182,7 +189,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       // to check if an abandoned call is handled by other csrs, we need other CSR's outbound call records:
       const otherCsrsOutboundCalls = {
         "SystemEndpoint.Address": { $in: myCsrPhoneNumbers.map(phone => "+1" + phone) },
-        "InitiationMethod": "OUTBOUND",
+        // "InitiationMethod": "OUTBOUND",
         "Queue.ARN": { $in: otherCsrQueues.map(q => q.arn) }
       };
 
@@ -262,7 +269,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   populateAgentsForFilter() {
     this.agentsForFilter = [...new Set(this.ivrRecords.map(ir => ir.agentUsername))];
     this.agentsForFilter.sort();
-    this.queuesForFilter.unshift(defaultSelectedAgent);
+    this.agentsForFilter.unshift(defaultSelectedAgent);
     this.selectedAgent = defaultSelectedAgent;
   }
 
@@ -366,5 +373,6 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       this.filteredIvrRecords = this.filteredIvrRecords.filter(ir => ir.agentUsername === this.selectedAgent);
     }
 
+    this.totalMinutes = Math.floor(this.filteredIvrRecords.reduce((sum, ir) => sum + (ir.duration || 0), 0) / 60);
   }
 }
