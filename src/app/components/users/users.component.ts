@@ -23,13 +23,32 @@ export class UsersComponent implements OnInit {
 
 
   existingUsernameItems = [];
-  existingRoleItems = ['ACCOUNTANT', 'ADMIN', 'CRM', 'CSR', 'DRIVER', 'GMB', 'GMB_SPECIALIST', 'INVOICE_VIEWER', "IVR_CSR_MANAGER", "IVR_GMB_MANAGER", "IVR_OUTBOUND_MANAGER", "IVR_SALES_MANAGER",
-  'MARKETER', 'MARKETING_DIRECTOR', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR', ].map(role => ({
+  existingRoleItems = [
+    'ACCOUNTANT',
+    'ADMIN',
+    'CRM',
+    'CSR',
+    'DRIVER',
+    'GMB_SPECIALIST',
+    'GMB',
+    'INVOICE_VIEWER',
+    'IVR_CSR_MANAGER',
+    'IVR_GMB_MANAGER',
+    'IVR_INTERNAL_MANAGER',
+    'IVR_SALES_MANAGER',
+    'MARKETER_EXTERNAL',
+    'MARKETER_INTERNAL',
+    'MARKETER',
+    'MARKETING_DIRECTOR',
+    'MENU_EDITOR', 'PAYER',
+    'RATE_EDITOR',
+    // NOTE: please add new roles in alphabetical order
+  ].map(role => ({
     text: role,
     object: role
   }));
 
-  exisingLanguages = ['EN', 'CH'].map(lan => ({ text: lan, object: lan}));
+  exisingLanguages = ['EN', 'CH'].map(lan => ({ text: lan, object: lan }));
 
   deleting = false;
 

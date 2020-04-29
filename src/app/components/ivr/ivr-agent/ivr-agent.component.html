@@ -5,7 +5,8 @@
   <div class="my-text-small text-muted text-center">refreshed: {{lastRefreshed | ago : now}}</div>
 
   <div class="my-text-small text-muted text-center">
-    {{ivrUsername || 'NOT LOGGED IN'}} | <span *ngFor="let phone of getMyPhones()">{{phone | tel}} | </span> {{getVisibleQueueNames().join(", ")}}
+    {{ivrUsername || 'NOT LOGGED IN'}} | <span *ngFor="let phone of getMyPhones()">{{phone | tel}} | </span>
+    {{getVisibleQueueNames().join(", ")}}
   </div>
 
   <div class="float-top-right pb-2 text-right">
@@ -21,7 +22,11 @@
       placeholder="phone or restaurant ID" [(ngModel)]="searchFilter">
 
     <select (change)="filterQueue()" [(ngModel)]="selectedQueue" class="form-control mr-4">
-      <option *ngFor="let q of queuesForFilter" [ngValue]="q">{{q.name || 'N/A'}}</option>
+      <option *ngFor="let q of queuesForFilter" [ngValue]="q">{{q.name || '(empty)'}}</option>
+    </select>
+
+    <select (change)="filterQueue()" [(ngModel)]="selectedAgent" class="form-control mr-4">
+      <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">{{agent || '(empty)'}}</option>
     </select>
 
     <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="shouldCallbackOnly" (change)="filter()"

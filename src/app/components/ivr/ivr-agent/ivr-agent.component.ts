@@ -5,6 +5,11 @@ import { GlobalService } from '../../../services/global.service';
 import { AmazonConnectService } from 'src/app/services/amazon-connect.service';
 import { IvrRecord } from 'src/app/classes/ivr/ivr-record';
 
+const defaultSelectedQueue = {
+  name: 'queue...'
+};
+const defaultSelectedAgent = 'agent...';
+
 @Component({
   selector: 'app-ivr-agent',
   templateUrl: './ivr-agent.component.html',
@@ -14,10 +19,14 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
 
   phoneQueuesDict = {} as any;
   visibleQueues = [];
+
+  selectedQueue = defaultSelectedQueue;
   queuesForFilter = [];
 
+  selectedAgent = defaultSelectedAgent;
+  agentsForFilter = [];
+
   myPhoneNumbers = [];
-  selectedQueue;
 
   ivrUsername;
   ivrQueueNames = [];
@@ -100,18 +109,18 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   populateVisibleQueues() {
     const allQueues: any = Object.values(this.phoneQueuesDict).reduce((list: any, phoneQueues: any) => (list.push(...phoneQueues), list), []);
     console.log(allQueues);
-    if (this._global.user.roles.some(r => r === "IVR_SALES_MANAGER")) {
-      this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith("sales")));
-    }
-    if (this._global.user.roles.some(r => r === "IVR_GMB_MANAGER")) {
-      this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith("outbound-gmb")));
-    }
-    if (this._global.user.roles.some(r => r === "IVR_OUTBOUND_MANAGER")) {
-      this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith("outbound") && !(q.name || "").startsWith("outbound-gmb")));
-    }
+
+    ["sales", "gmb", "internal"].map(managerRole => {
+      if (this._global.user.roles.some(r => r === `IVR_${managerRole.toUpperCase()}_MANAGER`)) {
+        this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith(managerRole)));
+      }
+    });
+
+    // CSR manager takes care of ALL other queues
     if (this._global.user.roles.some(r => r === "IVR_CSR_MANAGER")) {
-      this.addToVisibleQueues(allQueues.filter(q => !["sales", "outbound"].some(prefix => (q.name || "").startsWith(prefix))));
+      this.addToVisibleQueues(allQueues.filter(q => !["sales", "gmb", "internal"].some(prefix => (q.name || "").startsWith(prefix))));
     }
+
   }
 
   addToVisibleQueues(queues) {
@@ -178,10 +187,12 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       };
 
       orQueries.push(otherCsrsOutboundCalls);
+
       // we also need to take care of abandoned inbound calls that neither has a queue nor pickedup by any CSRs
       const allInboundCallsWithoutCsrQueue = {
         "SystemEndpoint.Address": { $in: myCsrPhoneNumbers.map(phone => "+1" + phone) },
         "InitiationMethod": { $ne: "OUTBOUND" },
+
         "Queue.ARN": { $nin: [...this.visibleQueues, ...otherCsrQueues].map(q => q.arn) } // need this for voice-mail etc
       }
       orQueries.push(allInboundCallsWithoutCsrQueue);
@@ -229,6 +240,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     this.computeShouldCallback();
     this.filter();
     this.populateQueuesForFilter();
+    this.populateAgentsForFilter();
 
     this.now = new Date();
     this.refreshing = false;
@@ -243,8 +255,17 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       }
     });
     this.queuesForFilter.sort((q1, q2) => q1.name > q2.name ? 1 : -1);
-    this.queuesForFilter.unshift({ name: "queue..." });
+    this.queuesForFilter.unshift(defaultSelectedQueue);
+    this.selectedQueue = defaultSelectedQueue;
   }
+
+  populateAgentsForFilter() {
+    this.agentsForFilter = [...new Set(this.ivrRecords.map(ir => ir.agentUsername))];
+    this.agentsForFilter.sort();
+    this.queuesForFilter.unshift(defaultSelectedAgent);
+    this.selectedAgent = defaultSelectedAgent;
+  }
+
 
   startIvr() {
     this._connect.setEnabeld(true);
@@ -296,10 +317,11 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     this.ivrRecords.map(ir => {
       // succeeded: ALL outbounds, or (not voicemail queue && not voice agent and hasAgent)
       const isOutbound = !ir.inbound;
-      const isVoiceQueue = (ir.queueName || "").toLowerCase().startsWith("voice");
-      const isVoiceAgent = (ir.agentUsername || "").toLowerCase().startsWith("voice");
+      const hasNonVoiceQueue = ir.queueName && !ir.queueName.toLowerCase().startsWith("voice");
+      const hasNoneVoiceAgent = ir.agentUsername && !ir.agentUsername.toLowerCase().startsWith("voice");
 
-      if (isOutbound || !(isVoiceQueue || isVoiceAgent)) {
+      // if voice queue or agent are not considered to be picked up
+      if (isOutbound || hasNonVoiceQueue || hasNoneVoiceAgent) {
         succeeded.add(ir.customerEndpoint);
       }
 
@@ -336,8 +358,13 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       this.filteredIvrRecords = this.filteredIvrRecords.filter(ir => (digits.length > 0 && byPhone(ir, digits)) || byRtNameOrId(ir, text));
     }
 
-    if (this.selectedQueue && this.selectedQueue.arn) {
-      this.filteredIvrRecords = this.filteredIvrRecords.filter(ir => ir.queueArn === this.selectedQueue.arn);
+    if (this.selectedQueue.name !== defaultSelectedQueue.name) {
+      this.filteredIvrRecords = this.filteredIvrRecords.filter(ir => ir.queueName === this.selectedQueue.name);
     }
+
+    if (this.selectedAgent !== defaultSelectedAgent) {
+      this.filteredIvrRecords = this.filteredIvrRecords.filter(ir => ir.agentUsername === this.selectedAgent);
+    }
+
   }
 }
