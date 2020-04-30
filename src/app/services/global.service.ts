@@ -56,7 +56,7 @@ export class GlobalService {
           name: "IVR",
           href: "#/ivr/agent",
           fa: "fas fa-user",
-          accessibleRoles: ["ADMIN", "CSR"]
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"]
         },
         {
           name: "Restaurants",
