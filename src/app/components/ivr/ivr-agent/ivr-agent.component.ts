@@ -340,6 +340,9 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       if (shouldCallback) {
         ir.shouldCallback = true;
         numbersMarkedAsShouldCallback.add(ir.customerEndpoint);
+      } else {
+        // maybe previously market as should callback. let's reset it to false
+        ir.shouldCallback = false;
       }
 
     });
