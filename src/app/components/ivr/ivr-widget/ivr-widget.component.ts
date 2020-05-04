@@ -98,7 +98,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
     /*************** End Mod Area ***************/
     let ready = false;
     connect.core.initCCP(this.connectContainer.nativeElement, {
-      ccpUrl: "https://qmenu.awsapps.com/connect/ccp#",
+      ccpUrl: "https://qmenu.awsapps.com/connect/ccp-v2#",
       loginPopup: false,
       // loginPopupAutoClose: true,
       region: "us-east-1",
@@ -109,7 +109,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
 
     setTimeout(_ => {
       if (!ready) {
-        window.open('https://qmenu.awsapps.com/connect/ccp#');
+        window.open('https://qmenu.awsapps.com/connect/ccp-v2#');
       }
     }, 4000);
 
