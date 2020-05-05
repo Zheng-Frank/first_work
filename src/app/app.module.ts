@@ -166,6 +166,7 @@ import { MonitoringDbComponent } from './components/monitoring/monitoring-db/mon
 import { CrawlTemplateService } from './services/crawl-template.service';
 import { InvoicesAnualComponent } from './components/invoices/invoices-anual/invoices-anual.component';
 import { IvrAgentComponent } from './components/ivr/ivr-agent/ivr-agent.component';
+import { ItemSorterComponent } from './components/shared/item-sorter/item-sorter.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -311,6 +312,7 @@ import { IvrAgentComponent } from './components/ivr/ivr-agent/ivr-agent.componen
     BasicTplComponent,
     RestaurantWebTemplateComponent,
     InvoicesAnualComponent,
+    ItemSorterComponent,
 
 
 

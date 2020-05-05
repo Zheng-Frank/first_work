@@ -25,6 +25,8 @@ export class MenuComponent implements OnInit {
 
   @ViewChild('mcModal') mcModal: ModalComponent;
   @ViewChild('miModal') miModal: ModalComponent;
+  @ViewChild('mcSortingModal') mcSortingModal: ModalComponent;
+  @ViewChild('miSortingModal') miSortingModal: ModalComponent;
 
   @ViewChild('mcEditor') mcEditor: MenuCategoryEditorComponent;
   @ViewChild('miEditor') miEditor: MenuItemEditorComponent;
@@ -32,10 +34,72 @@ export class MenuComponent implements OnInit {
   @ViewChild('misEditor') misEditor: MenuItemsEditorComponent;
 
   editingMis = false;
+  mcOfSortingMis;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+  }
+
+  showMiSortingModal(mc) {
+    this.mcOfSortingMis = mc;
+    this.miSortingModal.show();
+  }
+  hideMiSortingModal() {
+    this.miSortingModal.hide();
+  }
+
+  async sortMis(sortedMis) {
+    // get index and only update that menu
+    const index = this.restaurant.menus.indexOf(this.menu);
+    const mcIndex = this.menu.mcs.indexOf(this.mcOfSortingMis);
+    try {
+      this.mcOfSortingMis.mis.map(mi => delete mi.sortOrder);
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          [`menus.${index}.mcs.${mcIndex}.mis`]: sortedMis,
+        }
+      }]).toPromise();
+      this.restaurant.menus[index].mcs[mcIndex].mis = sortedMis;
+      this._global.publishAlert(AlertType.Success, "Success!");
+      this.hideMiSortingModal();
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
+  }
+
+  showMcSortingModal() {
+    this.mcSortingModal.show();
+  }
+  hideMcSortingModal() {
+    this.mcSortingModal.hide();
+  }
+
+  async sortMcs(sortedMcs) {
+    // get index and only update that menu
+    const index = this.restaurant.menus.indexOf(this.menu);
+    console.log(index);
+    try {
+      this.menu.mcs.map(mc => delete mc.sortOrder);
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          [`menus.${index}.mcs`]: sortedMcs,
+        }
+      }]).toPromise();
+      this.restaurant.menus[index].mcs = sortedMcs;
+      this._global.publishAlert(AlertType.Success, "Success!");
+      this.hideMcSortingModal();
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
   }
 
   getMenuImageUrl() {
@@ -122,37 +186,37 @@ export class MenuComponent implements OnInit {
         }
       }])
       .subscribe(
-      result => {
+        result => {
 
-        // either update or insert new, carefully check because socket might add it before this!
-        this.menu.mcs = this.menu.mcs || [];
-        if (action === 'CREATE') {
-          if (!this.menu.mcs.some(m => m.id === mc.id)) {
-            this.menu.mcs.push(mc);
-          }
-        } else {
-          // let's update original, assuming everything successful
-          this.menu.mcs.map(category => {
-            if (category.id === mc.id) {
-              for (const prop of Object.keys(category)) {
-                delete category[prop];
-              }
-              Object.assign(category, mc);
+          // either update or insert new, carefully check because socket might add it before this!
+          this.menu.mcs = this.menu.mcs || [];
+          if (action === 'CREATE') {
+            if (!this.menu.mcs.some(m => m.id === mc.id)) {
+              this.menu.mcs.push(mc);
             }
-          });
+          } else {
+            // let's update original, assuming everything successful
+            this.menu.mcs.map(category => {
+              if (category.id === mc.id) {
+                for (const prop of Object.keys(category)) {
+                  delete category[prop];
+                }
+                Object.assign(category, mc);
+              }
+            });
 
+          }
+
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
+
+          this.menu.sortMcsAndMis();
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
         }
-
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated successfully"
-        );
-
-        this.menu.sortMcsAndMis();
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
       );
 
     this.mcModal.hide();
@@ -183,17 +247,17 @@ export class MenuComponent implements OnInit {
         }
       }])
       .subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        this.menu.mcs = this.menu.mcs.filter(m => m.id !== mc.id);
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated successfully"
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
+        result => {
+          // let's update original, assuming everything successful
+          this.menu.mcs = this.menu.mcs.filter(m => m.id !== mc.id);
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
 
     this.mcModal.hide();
@@ -205,7 +269,7 @@ export class MenuComponent implements OnInit {
     let miCopy: Mi;
     if (!params.mi) {
       miCopy = new Mi();
-      miCopy.sortOrder = params.mc.mis ?  params.mc.mis.length + 1 : 0;
+      miCopy.sortOrder = params.mc.mis ? params.mc.mis.length + 1 : 0;
       miCopy.category = params.mc.id;
 
       // create default size (regular) options
@@ -268,7 +332,7 @@ export class MenuComponent implements OnInit {
         })));
     }
 
-    
+
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
@@ -281,40 +345,40 @@ export class MenuComponent implements OnInit {
         }
       }])
       .subscribe(
-      result => {
-        //insert the new mi
-        if (action === 'CREATE') {
-          if (this.menu.mcs.some(mc => mc.id === mi.category)) {
-            this.menu.mcs.map(eachMc => {
-              if (eachMc.id === mi.category) {
-                eachMc.mis.push(mi);
-              }
-            })
-          }
-        } else {
-          // replace with the updated version
-          this.menu.mcs.map(eachMc => {
-            eachMc.mis.forEach(m => {
-              if (m.id === mi.id) {
-                for (const prop of Object.keys(m)) {
-                  delete m[prop];
+        result => {
+          //insert the new mi
+          if (action === 'CREATE') {
+            if (this.menu.mcs.some(mc => mc.id === mi.category)) {
+              this.menu.mcs.map(eachMc => {
+                if (eachMc.id === mi.category) {
+                  eachMc.mis.push(mi);
                 }
-                Object.assign(m, mi);
-              }
-            });
-          })
+              })
+            }
+          } else {
+            // replace with the updated version
+            this.menu.mcs.map(eachMc => {
+              eachMc.mis.forEach(m => {
+                if (m.id === mi.id) {
+                  for (const prop of Object.keys(m)) {
+                    delete m[prop];
+                  }
+                  Object.assign(m, mi);
+                }
+              });
+            })
 
-          this._global.publishAlert(
-            AlertType.Success,
-            "Updated successfully"
-          );
+            this._global.publishAlert(
+              AlertType.Success,
+              "Updated successfully"
+            );
 
-          this.menu.sortMcsAndMis();
+            this.menu.sortMcsAndMis();
+          }
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
         }
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
       );
 
     this.miModal.hide();
@@ -350,17 +414,17 @@ export class MenuComponent implements OnInit {
         }
       }])
       .subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        this.menu.mcs.map(mc => mc.mis = mc.mis.filter(item => item.id !== mi.id));
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated successfully"
-        );
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
+        result => {
+          // let's update original, assuming everything successful
+          this.menu.mcs.map(mc => mc.mis = mc.mis.filter(item => item.id !== mi.id));
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
 
     this.miModal.hide();
@@ -396,24 +460,24 @@ export class MenuComponent implements OnInit {
         }
       }])
       .subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        this.menu.mcs.map(category => {
-          if (category.id === mc.id) {
-            //Object.keys(mc).map(key => key !== 'mis' && (category[key] = mc[key]));
-            category.mis = mc.mis;
-          }
-        });
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated successfully"
-        );
+        result => {
+          // let's update original, assuming everything successful
+          this.menu.mcs.map(category => {
+            if (category.id === mc.id) {
+              //Object.keys(mc).map(key => key !== 'mis' && (category[key] = mc[key]));
+              category.mis = mc.mis;
+            }
+          });
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
 
-        this.menu.sortMcsAndMis();
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
+          this.menu.sortMcsAndMis();
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
   }
   misCancel(mc) {

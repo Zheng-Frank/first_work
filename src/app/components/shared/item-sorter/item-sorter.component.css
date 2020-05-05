@@ -1,0 +1,7 @@
+.my-toolbar {
+    padding: 1.25rem; /* same as list*/
+}
+
+.my-toolbar button {
+    min-width: 4rem;
+}

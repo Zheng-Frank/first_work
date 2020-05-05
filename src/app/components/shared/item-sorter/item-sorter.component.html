@@ -1,0 +1,14 @@
+<ul class="list-group">
+  <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of sortedItems; let i = index">
+    {{item[labelField] || item}}
+    <div>
+      <button type="button" class="btn btn-primary" (click)="down(item)" ><i class="fas fa-arrow-down"></i></button>
+      <button type="button" class="btn btn-primary" (click)="up(item)"><i class="fas fa-arrow-up"></i></button>
+    </div>
+  </li>
+</ul>
+
+<div class="text-right my-toolbar">
+  <button class="btn btn-secodary" (click)="clickCancel()">Cancel</button>
+  <button class="btn btn-primary" (click)="clickOk()">OK</button>
+</div>

@@ -15,11 +15,16 @@ export class MenuCategoryComponent implements OnInit {
   @Output() onMiClicked = new EventEmitter();
   @Output() onMcClicked = new EventEmitter();
   @Output() onEditAllMenuItems = new EventEmitter();
+  @Output() onSortMis = new EventEmitter();
   @Input() restaurant: Restaurant;
 
   constructor() { }
 
   ngOnInit() {
+  }
+
+  sortMis() {
+    this.onSortMis.emit(this.mc);
   }
 
   getDescriptionOfMenuOptionId(menuOptionId) {

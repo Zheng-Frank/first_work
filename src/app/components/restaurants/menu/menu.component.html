@@ -1,7 +1,7 @@
-
 <div *ngIf="menu && !editingMis" class="{{menu.disabled ? 'app-muted' : ''}}">
   <!--header of menu-->
-  <div (click)="edit()" class="app-category-header-container app-jumbo" [ngStyle]="{ 'background-image': 'url(' + getMenuImageUrl() + ')'}" role="button">
+  <div (click)="edit()" class="app-category-header-container app-jumbo"
+    [ngStyle]="{ 'background-image': 'url(' + getMenuImageUrl() + ')'}" role="button">
     <div class="app-category-masking-layer"></div>
     <div class="app-category-text-layer">
 
@@ -15,12 +15,17 @@
       </small>
     </div>
   </div>
-  <div style="height: 20px"></div>
+  <div *ngIf="menu.mcs && menu.mcs.length > 1" class="text-center">
+    <button class="btn btn-link" (click)="showMcSortingModal()">Adjust Category Orders
+      (调整分类次序)</button>
+  </div>
 
   <!--category cards-->
-  <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)" (onMiClicked)="editMi($event)" [menu]="menu" [restaurant]="restaurant">
+  <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)"
+    (onSortMis)="showMiSortingModal($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)"
+    (onMiClicked)="editMi($event)" [menu]="menu" [restaurant]="restaurant">
   </app-menu-category>
-  
+
   <!--add category section-->
   <div class="row mt-1 ml-0 mr-0">
     <button (click)="editMc(null)" class="btn btn-primary btn-block">Add Category</button>
@@ -35,10 +40,22 @@
 </div>
 
 <q-modal #mcModal>
-  <app-menu-category-editor #mcEditor [restaurantId]="restaurant['_id']"  (onDone)="mcDone($event)" (onCancel)="mcCancel($event)" (onDelete)="mcDelete($event)" (onVisitMenuOptions)="visitMenuOptions()"></app-menu-category-editor>
+  <app-menu-category-editor #mcEditor [restaurantId]="restaurant['_id']" (onDone)="mcDone($event)"
+    (onCancel)="mcCancel($event)" (onDelete)="mcDelete($event)" (onVisitMenuOptions)="visitMenuOptions()">
+  </app-menu-category-editor>
 </q-modal>
 <q-modal #miModal>
   <!--size names: if use get method, it keeps changing detection-->
-  <app-menu-item-editor #miEditor (onDone)="miDone($event)" (onCancel)="miCancel($event)" (onDelete)="miDelete($event)" (onVisitMenuOptions)="visitMenuOptions()"></app-menu-item-editor>
+  <app-menu-item-editor #miEditor (onDone)="miDone($event)" (onCancel)="miCancel($event)" (onDelete)="miDelete($event)"
+    (onVisitMenuOptions)="visitMenuOptions()"></app-menu-item-editor>
 </q-modal>
 
+<q-modal #miSortingModal>
+  <app-item-sorter *ngIf="mcOfSortingMis" [items]="mcOfSortingMis.mis" [labelField]="'name'" (sort)="sortMis($event)"
+    (cancel)="hideMiSortingModal()"></app-item-sorter>
+</q-modal>
+
+<q-modal #mcSortingModal>
+  <app-item-sorter *ngIf="menu && menu.mcs" [items]="menu.mcs" [labelField]="'name'" (sort)="sortMcs($event)"
+    (cancel)="hideMcSortingModal()"></app-item-sorter>
+</q-modal>

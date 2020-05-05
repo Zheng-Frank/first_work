@@ -31,6 +31,7 @@ export class MenusComponent implements OnInit {
   bmUrl;
 
   adjustingAllPrices = false;
+  adjustMenuOrders = false;
   adjustPricesFactorPercent;
   adjustPricesFactorAmount;
   copyMenu = false;
@@ -39,6 +40,27 @@ export class MenusComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+  }
+
+  async sortMenus(sortedMenus) {
+    // let's REMOVE sortOrder of each menu and just rely on nature sequence
+    sortedMenus.map(menu => delete menu.sortOrder);
+    try {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: sortedMenus,
+        }
+      }]).toPromise();
+      this.restaurant.menus = sortedMenus;
+      this._global.publishAlert(AlertType.Success, "Success!");
+      this.adjustMenuOrders = false;
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
   }
 
   async createTestMenu() {
