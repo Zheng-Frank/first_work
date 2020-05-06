@@ -167,6 +167,8 @@ import { CrawlTemplateService } from './services/crawl-template.service';
 import { InvoicesAnualComponent } from './components/invoices/invoices-anual/invoices-anual.component';
 import { IvrAgentComponent } from './components/ivr/ivr-agent/ivr-agent.component';
 import { ItemSorterComponent } from './components/shared/item-sorter/item-sorter.component';
+import { YelpDashboardComponent } from './components/yelp/yelp-dashboard/yelp-dashboard.component';
+import { YelpBusinessesComponent } from './components/yelp/yelp-businesses/yelp-businesses.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -313,6 +315,8 @@ import { ItemSorterComponent } from './components/shared/item-sorter/item-sorter
     RestaurantWebTemplateComponent,
     InvoicesAnualComponent,
     ItemSorterComponent,
+    YelpDashboardComponent,
+    YelpBusinessesComponent,
 
 
 

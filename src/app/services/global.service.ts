@@ -95,6 +95,12 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
+          name: "Yelp",
+          href: "#/yelp",
+          fa: "fab fa-yelp",
+          accessibleRoles: ["ADMIN", "GMB"]
+        },
+        {
           name: "GMBs",
           href: "#/gmbs",
           fa: "fab fa-google",
