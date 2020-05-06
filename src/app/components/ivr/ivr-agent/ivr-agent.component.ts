@@ -324,11 +324,11 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     this.ivrRecords.map(ir => {
       // succeeded: ALL outbounds, or (not voicemail queue && not voice agent and hasAgent)
       const isOutbound = !ir.inbound;
-      const hasNonVoiceQueue = ir.queueName && !ir.queueName.toLowerCase().startsWith("voice");
+      // const hasNonVoiceQueue = ir.queueName && !ir.queueName.toLowerCase().startsWith("voice");
       const hasNoneVoiceAgent = ir.agentUsername && !ir.agentUsername.toLowerCase().startsWith("voice");
 
       // if voice queue or agent are not considered to be picked up
-      if (isOutbound || hasNonVoiceQueue || hasNoneVoiceAgent) {
+      if (isOutbound || hasNoneVoiceAgent) {
         succeeded.add(ir.customerEndpoint);
       }
 

@@ -22,6 +22,8 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
 
   showClose = false;
 
+  ccpUrl = 'https://qmenu.awsapps.com/connect/ccp#';
+
   connectedContact = undefined;
   pos1 = 0;
   pos2 = 0;
@@ -45,6 +47,10 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
     this._connect.onEnabled.subscribe(enabled => {
       console.log("INNER ON ENABLED");
     });
+
+    if (this._global.user.username === "june") {
+      this.ccpUrl = "https://qmenu.awsapps.com/connect/ccp-v2#";
+    }
   }
 
   populateConnectedContact() {
@@ -98,7 +104,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
     /*************** End Mod Area ***************/
     let ready = false;
     connect.core.initCCP(this.connectContainer.nativeElement, {
-      ccpUrl: "https://qmenu.awsapps.com/connect/ccp-v2#",
+      ccpUrl: this.ccpUrl,
       loginPopup: false,
       // loginPopupAutoClose: true,
       region: "us-east-1",
@@ -109,7 +115,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
 
     setTimeout(_ => {
       if (!ready) {
-        window.open('https://qmenu.awsapps.com/connect/ccp-v2#');
+        window.open(this.ccpUrl);
       }
     }, 4000);
 
