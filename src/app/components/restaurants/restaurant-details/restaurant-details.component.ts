@@ -48,6 +48,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
       "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
+      "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
@@ -167,6 +168,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           templateName: 1,
           timeZone: 1,
           web: 1,
+          yelpListing: 1,
         },
         limit: 1
       })

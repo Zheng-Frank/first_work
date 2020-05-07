@@ -169,6 +169,7 @@ import { IvrAgentComponent } from './components/ivr/ivr-agent/ivr-agent.componen
 import { ItemSorterComponent } from './components/shared/item-sorter/item-sorter.component';
 import { YelpDashboardComponent } from './components/yelp/yelp-dashboard/yelp-dashboard.component';
 import { YelpBusinessesComponent } from './components/yelp/yelp-businesses/yelp-businesses.component';
+import { RestaurantYelpComponent } from './components/restaurants/restaurant-yelp/restaurant-yelp.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -317,6 +318,7 @@ import { YelpBusinessesComponent } from './components/yelp/yelp-businesses/yelp-
     ItemSorterComponent,
     YelpDashboardComponent,
     YelpBusinessesComponent,
+    RestaurantYelpComponent,
 
 
 
