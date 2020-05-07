@@ -74,6 +74,9 @@
       <div *ngIf="activeTab === 'Orders'">
         <app-restaurant-orders [restaurant]="restaurant"></app-restaurant-orders>
       </div>
+      <div *ngIf="activeTab === 'Yelp'">
+        <app-restaurant-yelp [restaurant]="restaurant"></app-restaurant-yelp>
+      </div>
       <div *ngIf="activeTab === 'GMB'">
         <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
       </div>
