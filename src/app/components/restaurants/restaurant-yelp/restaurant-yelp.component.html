@@ -3,8 +3,11 @@
 
   <div class="card text-right mb-4">
     <div class="card-body">
-      <span *ngIf="restaurant.yelpListing" class="px-4">Main yid: <strong>{{restaurant.yelpListing?.yid}}</strong> | Crawled: {{restaurant.yelpListing.crawledAt | ago : now}}</span>
-      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Crawl Main Listing</button>
+      <span *ngIf="restaurant.yelpListing" class="px-4">Main yid: <strong>{{restaurant.yelpListing?.yid}}</strong> |
+        Crawled: {{restaurant.yelpListing.crawledAt | ago : now}}</span>
+      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Crawl Main
+        Listing</button>
+
     </div>
 
     <div class="card-body">
@@ -24,15 +27,26 @@
       <ng-template #notPublished>
         <span class="text-danger">No Ownership ✗</span>
       </ng-template>
-
-      
       <h6 style="position: absolute; top: 0; left: 0" class="p-2 text-left">
         <span *ngIf="restaurant.yelpListing?.yid" class="text-success">Main</span>
         <br>
         <small class="text-muted">yid: {{restaurant.yelpListing?.yid}}</small>
+
+
+        <div
+          *ngIf="restaurant.yelpListing.claimedStatus === 'Reclaimable' || restaurant.yelpListing.claimedStatus === 'Open'; else noStatus">
+          <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(restaurant)">
+            {{ restaurant.yelpListing.claimedStatus }}
+          </button>
+        </div>
+        <ng-template #noStatus>
+          <div>Status: {{ restaurant.yelpListing.claimedStatus }}</div>
+        </ng-template>
+
       </h6>
-     
-      <h6 *ngIf="isAdmin" style="position: absolute; top: 0; right: 0" class="p-2">Score: {{(restaurant.yelpListing?.rating || 0) | number : '1.0-0'}}</h6>
+
+      <h6 *ngIf="isAdmin" style="position: absolute; top: 0; right: 0" class="p-2">Score:
+        {{(restaurant.yelpListing?.rating || 0) | number : '1.0-0'}}</h6>
     </h3>
 
     <div class="text-center">
@@ -40,16 +54,20 @@
         <h6>{{restaurant.yelpListing?.name}}</h6>
       </ng-container>
 
-      <div class="alert alert-danger" *ngIf="restaurant.yelpListing?.is_closed">Marked as Permanently Closed at Yelp</div>
-      <small>{{restaurant.yelpListing?.location.street}}, {{restaurant.yelpListing?.location.zip_code}} {{restaurant.yelpListing?.location.city}}, {{restaurant.yelpListing?.location.state}} {{restaurant.yelpListing?.location.country}}</small>
-    </div> 
-   
+      <div class="alert alert-danger" *ngIf="restaurant.yelpListing?.is_closed">Marked as Permanently Closed at Yelp
+      </div>
+      <small>{{restaurant.yelpListing?.location.street}}, {{restaurant.yelpListing?.location.zip_code}}
+        {{restaurant.yelpListing?.location.city}}, {{restaurant.yelpListing?.location.state}}
+        {{restaurant.yelpListing?.location.country}}</small>
+    </div>
 
     <div class="text-center">
       <small>Listing crawled: {{restaurant.yelpListing?.crawledAt | ago : now}}</small>
     </div>
 
-    
+
+
+
     <ul class="list-group list-group-flush">
       <li class="list-group-item">
         <table class="app-table w-100">
@@ -62,7 +80,8 @@
 
           <tr>
             <th>Yelp Website</th>
-            <td><a href="{{restaurant.yelpListing?.website}}" title="{{restaurant.yelpListing?.website}}"target="_blank">{{restaurant.yelpListing?.website}}</a></td>
+            <td><a href="{{restaurant.yelpListing?.website}}" title="{{restaurant.yelpListing?.website}}"
+                target="_blank">{{restaurant.yelpListing?.website}}</a></td>
             <td>
               <span *ngIf="isWebsiteOk()" class="text-success">✓</span>
               <span *ngIf="!isWebsiteOk()" class="text-danger">✗</span>
@@ -72,14 +91,16 @@
           <tr class="bg-light">
             <th>qMenu Website</th>
             <td colspan="3">
-              <a *ngIf="restaurant.web?.qmenuWebsite" href="{{restaurant.web?.qmenuWebsite}}" title="{{restaurant.web?.qmenuWebsite}}" target="_blank">{{restaurant.web?.qmenuWebsite}}</a>
+              <a *ngIf="restaurant.web?.qmenuWebsite" href="{{restaurant.web?.qmenuWebsite}}"
+                title="{{restaurant.web?.qmenuWebsite}}" target="_blank">{{restaurant.web?.qmenuWebsite}}</a>
             </td>
           </tr>
 
           <tr class="bg-light" *ngIf="restaurant.web?.bizManagedWebsite">
             <th>Restaurant's Own Website</th>
             <td colspan="3">
-              <a href="{{restaurant.web?.bizManagedWebsite}}" title="{{restaurant.web?.bizManagedWebsite}}" target="_blank">{{restaurant.web?.bizManagedWebsite}}</a>
+              <a href="{{restaurant.web?.bizManagedWebsite}}" title="{{restaurant.web?.bizManagedWebsite}}"
+                target="_blank">{{restaurant.web?.bizManagedWebsite}}</a>
               <div class="text-muted" *ngIf="restaurant.web?.useBizWebsite"> Insisted website</div>
               <div class="text-muted" *ngIf="restaurant.web?.useBizWebsiteForAll">Insisted ALL</div>
             </td>
@@ -94,7 +115,7 @@
 
       </li>
     </ul>
-   
+
 
   </div>
 
