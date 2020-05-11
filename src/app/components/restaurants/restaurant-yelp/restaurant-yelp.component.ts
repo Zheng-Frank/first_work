@@ -52,6 +52,7 @@ export class RestaurantYelpComponent implements OnInit {
     this.accountLocations = accountList.filter(account => account.yelpLocations != undefined)[0].yelpLocations || [];
 
     this.matchingRestaurant = this.getMatchingRestaurant();
+    console.log(this.matchingRestaurant);
     this._isPublished = this.matchingRestaurant.length > 0;
   }
 
@@ -67,6 +68,8 @@ export class RestaurantYelpComponent implements OnInit {
         const yelpFormattedAddress = `${shortStreet.trim()}, ${this.restaurant.yelpListing.location.city}, ${this.restaurant.yelpListing.location.state} ${this.restaurant.yelpListing.location.zip_code}`;
         const qmenuFormattedAddress = this.restaurant.googleAddress.formatted_address.replace(', USA', '').replace(', US', '').replace(', CA', '');
 
+        console.log(loc.name);
+        console.log(this.restaurant.name);
         return (loc.name === this.restaurant.name) && (yelpFormattedAddress === qmenuFormattedAddress);
       });
 

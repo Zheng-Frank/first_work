@@ -117,24 +117,14 @@
 
       <!-- yelp status -->
       <td>
-        <div *ngIf="rt.yelpListing.claimedStatus === 'Unclaimable'">
-          {{ rt.yelpListing.claimedStatus }}
-        </div>
-        <div
-          *ngIf="
-            rt.yelpListing.claimedStatus === 'Reclaimable' ||
-            rt.yelpListing.claimedStatus === 'Open'
-          "
-        >
-          <button
-            class="btn btn-link fix-v-align px-0 {{
-              muted ? 'text-muted' : ''
-            }}"
-            (click)="claim(rt)"
-          >
+        <div *ngIf="rt.yelpListing.claimedStatus === 'Reclaimable' || rt.yelpListing.claimedStatus === 'Open'; else noStatus" >
+          <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(rt)">
             {{ rt.yelpListing.claimedStatus }}
           </button>
         </div>
+        <ng-template #noStatus>
+          <div>{{ rt.yelpListing.claimedStatus }}</div>
+        </ng-template>
       </td>
 
       <!--  websites  -->
