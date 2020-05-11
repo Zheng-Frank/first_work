@@ -1,6 +1,6 @@
-<h1 class="text-center">Restaurants ({{filteredRows.length}})</h1>
+<h1 class="text-center">Restaurants ({{ filteredRows.length }})</h1>
 <div class="clearfix my-2">
-<!--   
+  <!--   
   <div class="float-left form-inline">
     <input [qDebounce]="500" (debounce)="filter()" type="text" class="form-control mr-2 mb-1"
       placeholder="type name or address" [(ngModel)]="searchFilter">
@@ -53,9 +53,7 @@
     </select>
 
   </div> 
--->
-
-</div>
+--></div>
 
 <table class="table table-sm">
   <thead>
@@ -71,66 +69,85 @@
       <th>Websites</th>
     </tr>
   </thead>
-  
+
   <tbody>
     <tr *ngFor="let rt of filteredRows; let rowCount = index">
       <!-- row count -->
-      <td>{{rowCount + 1}}</td>
+      <td>{{ rowCount + 1 }}</td>
 
       <!-- qmenu rt name -->
       <td>
-        <a routerLink="/restaurants/{{rt._id}}">{{rt.name}}</a>
-        <div class="text-muted"><small>{{rt.googleAddress?.formatted_address}}</small></div>
+        <a routerLink="/restaurants/{{ rt._id }}">{{ rt.name }}</a>
+        <div class="text-muted">
+          <small>{{ rt.googleAddress?.formatted_address }}</small>
+        </div>
       </td>
 
       <!-- qmeni rt id -->
       <td>
-        {{rt._id}}
+        {{ rt._id }}
       </td>
 
       <!-- score -->
       <td>
-        {{rt.yelpListing.rating}}
+        {{ rt.yelpListing.rating }}
       </td>
 
       <!-- agent -->
       <td>
-        {{rt.rateSchedules[0]?.name}}
+        {{ rt.rateSchedules && rt.rateSchedules[0] ? rt.rateSchedules[0].name : "-" }}
       </td>
 
       <!-- yelp account -->
       <td>
-        <app-gmb-account-hotlink [email]="rt.yelpListing.gmb_email"></app-gmb-account-hotlink>
+        <app-gmb-account-hotlink
+          [email]="rt.yelpListing.gmb_email"
+        ></app-gmb-account-hotlink>
       </td>
 
       <!-- agent -->
       <td>
-        <a href="{{rt.yelpListing.url}}" target="_blank">{{rt.yelpListing.yid}}</a>
-        <div *ngIf="rt.name !== rt.yelpListing.name">{{al.location?.name}}</div>
+        <a href="{{ rt.yelpListing.url }}" target="_blank">{{
+          rt.yelpListing.yid
+        }}</a>
+        <div *ngIf="rt.name !== rt.yelpListing.name">
+          {{ al?.location?.name }}
+        </div>
       </td>
 
       <!-- yelp status -->
       <td>
-        <div *ngIf="rt.yelpListing.claimedStatus === 'Unclaimable'">{{rt.yelpListing.claimedStatus}}</div>
-        <div *ngIf="rt.yelpListing.claimedStatus === 'Reclaimable' || rt.yelpListing.claimedStatus === 'Open'">
-          <button class="btn btn-link fix-v-align px-0 {{muted ? 'text-muted': ''}}" (click)="claim(rt)">{{rt.yelpListing.claimedStatus}}</button>
+        <div *ngIf="rt.yelpListing.claimedStatus === 'Unclaimable'">
+          {{ rt.yelpListing.claimedStatus }}
+        </div>
+        <div
+          *ngIf="
+            rt.yelpListing.claimedStatus === 'Reclaimable' ||
+            rt.yelpListing.claimedStatus === 'Open'
+          "
+        >
+          <button
+            class="btn btn-link fix-v-align px-0 {{
+              muted ? 'text-muted' : ''
+            }}"
+            (click)="claim(rt)"
+          >
+            {{ rt.yelpListing.claimedStatus }}
+          </button>
         </div>
       </td>
 
-    <!--  websites  -->
-    <!-- TODO: Make it editable and save changes to db -->
-    <td>
-      <small>
-        <div>Q: {{rt.web?.qmenuWebsite}}</div>
-        <div>R: {{rt.yelpListing?.website}}</div>
-      </small>
-    </td>
-
+      <!--  websites  -->
+      <!-- TODO: Make it editable and save changes to db -->
+      <td>
+        <small>
+          <div>Q: {{ rt.web?.qmenuWebsite }}</div>
+          <div>R: {{ rt.yelpListing?.website }}</div>
+        </small>
+      </td>
     </tr>
   </tbody>
 
   <!-- <ng-container *ngFor="let row of filteredRows; let rowNumber = index">
   </ng-container> -->
-
-
 </table>

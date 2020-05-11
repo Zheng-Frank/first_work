@@ -60,14 +60,15 @@ export class YelpBusinessesComponent implements OnInit {
 
   async claim(rt) {
     try {
-      const target = 'claim-yelp';
-      const { city, zip_code, country, state, street } = rt.yelpListing.location;
-      const [streetShortened] = street.split('\n')
-      const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
-
-      await this._api.post(environment.autoGmbUrl + target, { email: rt.yelpListing.gmb_email, name: rt.yelpListing.name, location }).toPromise();
-      this._global.publishAlert(AlertType.Success, 'Logged in.');
-
+      if(rt.yelpListing) {
+        const target = 'claim-yelp';
+        const { city, zip_code, country, state, street } = rt.yelpListing.location;
+        const [streetShortened] = street.split('\n')
+        const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
+  
+        await this._api.post(environment.autoGmbUrl + target, { email: rt.yelpListing.gmb_email, name: rt.yelpListing.name, location }).toPromise();
+        this._global.publishAlert(AlertType.Success, 'Logged in.');
+      }
     }
     catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Failed to login');
