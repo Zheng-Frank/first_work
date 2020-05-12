@@ -32,17 +32,6 @@
         <br>
         <small class="text-muted">yid: {{restaurant.yelpListing?.yid}}</small>
 
-
-        <div
-          *ngIf="restaurant.yelpListing.claimedStatus === 'Reclaimable' || restaurant.yelpListing.claimedStatus === 'Open'; else noStatus">
-          <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(restaurant)">
-            {{ restaurant.yelpListing.claimedStatus }}
-          </button>
-        </div>
-        <ng-template #noStatus>
-          <div>Status: {{ restaurant.yelpListing.claimedStatus }}</div>
-        </ng-template>
-
       </h6>
 
       <h6 *ngIf="isAdmin" style="position: absolute; top: 0; right: 0" class="p-2">Score:
@@ -66,6 +55,12 @@
     </div>
 
 
+    <div *ngIf="restaurant.yelpListing.claimedStatus === 'Reclaimable' || restaurant.yelpListing.claimedStatus === 'Open'; else noStatus" class="card-title text-center pt-4">
+      <span class="d-flex justify-content-center align-items-center">Status: <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(restaurant)">{{ restaurant.yelpListing.claimedStatus }}</button></span>
+    </div>
+    <ng-template #noStatus>
+      <div>Status: {{ restaurant.yelpListing.claimedStatus }}</div>
+    </ng-template>
 
 
     <ul class="list-group list-group-flush">
@@ -109,7 +104,7 @@
         </table>
 
         <div class="text-right">
-          <!-- <button class="btn btn-link" (click)="inject()">Inject Desired Website</button> -->
+          <button class="btn btn-link" (click)="inject()">Inject Desired Website</button>
           <a href="{{restaurant.yelpListing?.url}}" target="_blank" class="btn btn-link">View on Yelp</a>
         </div>
 

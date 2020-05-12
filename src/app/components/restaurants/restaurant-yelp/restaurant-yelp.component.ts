@@ -16,18 +16,21 @@ export class RestaurantYelpComponent implements OnInit {
   now = new Date();
   apiRequesting = false;
   isAdmin = false;
+
+  accounts = [];
+
   _isPublished = false;
-  accountLocations;
   matchingRestaurant;
+
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
-
     this.refresh();
+    
   }
 
   async refresh() {
-    const accountList = [];
+    // --- get gmbAccounts
     const batchSize = 50;
     let skip = 0;
     while (true) {
@@ -38,6 +41,7 @@ export class RestaurantYelpComponent implements OnInit {
         },
         projection: {
           yelpLocations: 1,
+          email: 1
         },
         skip: skip,
         limit: batchSize
@@ -45,78 +49,116 @@ export class RestaurantYelpComponent implements OnInit {
       if (batch.length === 0) {
         break;
       }
-      accountList.push(...batch);
+      this.accounts.push(...batch);
       skip += batchSize;
     }
 
-    this.accountLocations = accountList.filter(account => account.yelpLocations != undefined)[0].yelpLocations || [];
+    this.accounts = this.accounts.filter(account => account.yelpLocations != undefined);
+  }
 
-    this.matchingRestaurant = this.getMatchingRestaurant();
-    console.log(this.matchingRestaurant);
-    this._isPublished = this.matchingRestaurant.length > 0;
+  getHandlingAccount() {
+    const qmenuAddress = this.restaurant.googleAddress.formatted_address.replace(', USA', '').replace(', US', '');
+    let matchingAccount = [];
+
+    for (const account of this.accounts) {
+      const result = account.yelpLocations.filter(yelpLocation => {
+        const [shortStreet] = yelpLocation.location.street.split('\n');
+        const yelpAddress = `${shortStreet.trim()}, ${yelpLocation.location.city}, ${yelpLocation.location.state} ${yelpLocation.location.zip_code}`;
+        // console.log(qmenuAddress);
+        // console.log(yelpAddress);
+        // console.log(qmenuAddress.trim() === yelpAddress);
+        return qmenuAddress.trim() === yelpAddress;
+      });
+
+      if(result.length > 0){
+        matchingAccount.push(account);
+      }
+    }
+
+    return matchingAccount;
   }
 
   ngOnInit() {
 
   }
 
-  getMatchingRestaurant() {
-
-    if (this.accountLocations) {
-      const matchingRestaurant = this.accountLocations.filter(loc => {
-        const [shortStreet] = this.restaurant.yelpListing.location.street.split('\n');
-        const yelpFormattedAddress = `${shortStreet.trim()}, ${this.restaurant.yelpListing.location.city}, ${this.restaurant.yelpListing.location.state} ${this.restaurant.yelpListing.location.zip_code}`;
-        const qmenuFormattedAddress = this.restaurant.googleAddress.formatted_address.replace(', USA', '').replace(', US', '').replace(', CA', '');
-
-        console.log(loc.name);
-        console.log(this.restaurant.name);
-        return (loc.name === this.restaurant.name) && (yelpFormattedAddress === qmenuFormattedAddress);
-      });
-
-      return matchingRestaurant;
-    }
-
-    return {};
-
-  }
-
   isPublished() {
-    return this._isPublished;
+
+    const allLocations = [];
+
+    this.accounts.map(account => {
+      allLocations.push(...account.yelpLocations);
+    });
+
+    const qmenuAddress = this.restaurant.googleAddress.formatted_address.replace(', USA', '').replace(', US', '');
+    const matches = allLocations.filter(yelpLocation => {
+      const [shortStreet] = yelpLocation.location.street.split('\n');
+      const yelpAddress = `${shortStreet.trim()}, ${yelpLocation.location.city}, ${yelpLocation.location.state} ${yelpLocation.location.zip_code}`;
+
+      return qmenuAddress === yelpAddress;
+    });
+
+    return matches.length > 0;
   }
 
   isWebsiteOk() {
-    const [matchingRestaurant] = this.getMatchingRestaurant();
-
-    if (!matchingRestaurant) {
+    const qmenuWebsite = (this.restaurant.web && this.restaurant.web.qmenuWebsite) ? this.restaurant.web.qmenuWebsite : '';
+    const yelpWebsite = (this.restaurant.yelpListing && this.restaurant.yelpListing.website) ? this.restaurant.yelpListing.website : '';
+    
+    if(!qmenuWebsite && !yelpWebsite) {
       return false;
     }
 
-    const qmenuWebsite = (this.restaurant.web && this.restaurant.web.qmenuWebsite) ? this.restaurant.web.qmenuWebsite : '';
-    const yelpWebsite = (matchingRestaurant.yelpListing && matchingRestaurant.yelpListing.website) ? matchingRestaurant.yelpListing.website : '';
     return yelpWebsite === qmenuWebsite;
   }
 
   async refreshMainListing() {
     try {
-      const [matchingRestaurant] = this.getMatchingRestaurant();
-
-      if (!matchingRestaurant.yelpListing) {
-        this._global.publishAlert(AlertType.Danger, 'No matching restaurant');
+      if (!this.restaurant.yelpListing) {
+        this._global.publishAlert(AlertType.Danger, 'No assigned crawling email account');
+        return;
       }
 
       await this._api.post(environment.appApiUrl + "yelp/generic", {
-        name: "yelp-refresh-rt-listings",
+        name: "refresh-yelp-rt-listing",
         payload: {
-          "email": matchingRestaurant.yelpListing.gmb_email,
+          "email": this.restaurant.yelpListing.gmb_email,
           "name": this.restaurant.name,
           "googleAddress": this.restaurant.googleAddress
         }
       }).toPromise();
 
       this._global.publishAlert(AlertType.Success, 'Listing refreshed');
+      console.log('Listing refreshed');
     } catch (error) {
-      this._global.publishAlert(AlertType.Danger, error);
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error trying to refresh main listing');
     }
+  }
 
+
+  async inject() {
+    const [handlingAccount] = this.getHandlingAccount();
+    // console.log(handlingAccount);
+
+    const email = handlingAccount ? handlingAccount.email : this.restaurant.yelpListing.gmb_email;
+    const yid = this.restaurant.yelpListing.yid;
+    const newUrl = this.restaurant.web && this.restaurant.web.qmenuWebsite ? this.restaurant.web.qmenuWebsite : '';
+    const isOwner = !!handlingAccount;
+
+    // console.log({ email, yid, newUrl, isOwner });
+
+    const result = await this._api.post(environment.appApiUrl + "yelp/generic", {
+      name: "inject-website-address",
+      payload: {
+        "email": email,
+        "yid": yid,
+        "newUrl": newUrl,
+        "isOwner": isOwner
+      }
+    }).toPromise();
+
+    console.log(result);
+    this._global.publishAlert(AlertType.Success, `Website url injected succesfully.. `);
   }
 }

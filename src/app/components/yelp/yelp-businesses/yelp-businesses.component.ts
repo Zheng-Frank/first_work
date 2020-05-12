@@ -55,7 +55,7 @@ export class YelpBusinessesComponent implements OnInit {
   }
 
   filter() {
-    console.log(this.filteredRows);
+    // console.log(this.filteredRows);
   }
 
   async claim(rt) {
@@ -71,6 +71,7 @@ export class YelpBusinessesComponent implements OnInit {
       }
     }
     catch (error) {
+      console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Failed to login');
     }
   }
