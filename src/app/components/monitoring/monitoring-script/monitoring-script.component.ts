@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { RoutineScript } from 'src/app/classes/routine-script';
 @Component({
   selector: 'app-monitoring-script',
   templateUrl: './monitoring-script.component.html',
@@ -17,6 +16,7 @@ export class MonitoringScriptComponent implements OnInit {
 
   routineScripts = [];
   selectedScript;
+  errorsOnly;
 
   editingFields = ["_id", "name", "description", "waitSecondsBetweenRuns", "waitSecondsBetweenUows", "parallelProcessors", "unitOfWorksGeneratorName", "disabled"];
 
@@ -26,13 +26,22 @@ export class MonitoringScriptComponent implements OnInit {
     this.populate();
   }
 
-  async toggleSelected(script) {
+  async toggleSelected(script, errorsOnly?) {
+    this.errorsOnly = errorsOnly;
     if (this.selectedScript === script) {
       this.selectedScript = undefined;
     } else {
       this.selectedScript = script;
       await this.populateDetails(script._id);
     }
+  }
+
+  getScriptContent() {
+    if(this.errorsOnly) {
+      console.log(this.selectedScript.uowsHistory[0].uows);
+      return this.selectedScript.uowsHistory[0].uows.filter(uow => uow.error);
+    }
+    return this.selectedScript;
   }
 
   async populate() {
@@ -57,6 +66,14 @@ export class MonitoringScriptComponent implements OnInit {
       sort: { name: 1 }
     }).toPromise();
     this.apiLoading = false;
+
+    // fix uowsHistory, 5/13/2020, induced by premature termination of running lambdas!
+    for (let script of scripts) {
+      if (script.uowsHistory && !Array.isArray(script.uowsHistory)) {
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [{ old: { _id: script._id, uowsHistory: [] }, new: { _id: script._id } }]);
+        script.uowsHistory = [];
+      }
+    }
 
     // compute stats of each uowsHistory
     scripts.map(script => (script.uowsHistory || []).map(uh => {

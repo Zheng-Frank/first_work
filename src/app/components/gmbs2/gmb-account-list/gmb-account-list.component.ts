@@ -73,6 +73,7 @@ export class GmbAccountListComponent implements OnInit {
           "locations.status": 1,
           "locations.statusHistory.time": 1,
           "locations.cid": 1,
+          "locations.place_id": 1,
           "locations.locationName": 1,
           "locations.name": 1,
           "locations.address": 1,

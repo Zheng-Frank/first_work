@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GlobalService } from 'src/app/services/global.service';
+import { ApiService } from 'src/app/services/api.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-monitoring-dashboard',
@@ -11,7 +13,11 @@ export class MonitoringDashboardComponent implements OnInit {
   // monitoredItem = 'Placeholder';
   monitoredItem = 'Scripts';
   items = [];
-  constructor(private _global: GlobalService) { }
+
+  dashboardItems = [];
+  constructor(private _api: ApiService, private _global: GlobalService) {
+    this.populate();
+  }
 
   ngOnInit() {
     const roleMap = {
@@ -26,5 +32,13 @@ export class MonitoringDashboardComponent implements OnInit {
     };
     const myRoles = this._global.user.roles;
     this.items = Object.keys(roleMap).filter(k => roleMap[k].some(role => myRoles.indexOf(role) >= 0));
+  }
+
+  async populate() {
+    const dashboardItems = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'dashboard-item',
+      limit: 10000
+    }).toPromise());
+    this.dashboardItems.push(...dashboardItems);
   }
 }
