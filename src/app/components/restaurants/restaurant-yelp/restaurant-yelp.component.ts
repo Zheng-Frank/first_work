@@ -41,7 +41,7 @@ export class RestaurantYelpComponent implements OnInit {
         },
         projection: {
           yelpLocations: 1,
-          email: 1
+          email: 1,
         },
         skip: skip,
         limit: batchSize
@@ -119,12 +119,17 @@ export class RestaurantYelpComponent implements OnInit {
         return;
       }
 
+      console.log({
+        email: this.restaurant.yelpListing.gmb_email,
+        restaurantId: this.restaurant.id
+      }); 
+
+
       await this._api.post(environment.appApiUrl + "yelp/generic", {
         name: "refresh-yelp-rt-listing",
         payload: {
           "email": this.restaurant.yelpListing.gmb_email,
-          "name": this.restaurant.name,
-          "googleAddress": this.restaurant.googleAddress
+          "restaurantId": this.restaurant.id
         }
       }).toPromise();
 
@@ -146,7 +151,7 @@ export class RestaurantYelpComponent implements OnInit {
     const newUrl = this.restaurant.web && this.restaurant.web.qmenuWebsite ? this.restaurant.web.qmenuWebsite : '';
     const isOwner = !!handlingAccount;
 
-    // console.log({ email, yid, newUrl, isOwner });
+    console.log({ email, yid, newUrl, isOwner });
 
     const result = await this._api.post(environment.appApiUrl + "yelp/generic", {
       name: "inject-website-address",

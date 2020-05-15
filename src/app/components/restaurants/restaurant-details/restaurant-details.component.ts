@@ -169,6 +169,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           timeZone: 1,
           web: 1,
           yelpListing: 1,
+          phones: 1
         },
         limit: 1
       })

@@ -1,5 +1,10 @@
 <h1 class="text-center">Restaurants ({{ filteredRows.length }})</h1>
 <div class="clearfix my-2">
+
+  <!-- <label class="checkbox-inline">
+    <input type="checkbox" [(ngModel)]="showUnmatching" (change)="filter()"class="mx-1"> Show unmatching addresses
+  </label> -->
+
   <!--   
   <div class="float-left form-inline">
     <input [qDebounce]="500" (debounce)="filter()" type="text" class="form-control mr-2 mb-1"
@@ -79,7 +84,10 @@
       <td>
         <a routerLink="/restaurants/{{ rt._id }}">{{ rt.name }}</a>
         <div class="text-muted">
-          <small>{{ rt.googleAddress?.formatted_address }}</small>
+          <small>{{ rt.googleAddress?.formatted_address.replace(', USA', '') }}</small>
+        </div>
+        <div class="text-muted">
+          <small class="text-primary">{{ getYelpFormattedAddress(rt.yelpListing?.location) }}</small>
         </div>
       </td>
 

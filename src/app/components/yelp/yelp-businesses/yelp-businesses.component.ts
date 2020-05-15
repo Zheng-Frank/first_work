@@ -13,6 +13,8 @@ import { AlertType } from 'src/app/classes/alert-type';
 export class YelpBusinessesComponent implements OnInit {
   filteredRows = [];
   isAdmin = false;
+  showUnmatching = false;
+  restaurants = [];
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.refresh();
@@ -25,7 +27,6 @@ export class YelpBusinessesComponent implements OnInit {
 
   async refresh() {
     // --- restaurant
-    const restaurants = [];
     const restaurantBatchSize = 3000;
     let restaurantSkip = 0;
 
@@ -42,7 +43,7 @@ export class YelpBusinessesComponent implements OnInit {
         limit: restaurantBatchSize
       }).toPromise();
 
-      restaurants.push(...batch);
+      this.restaurants.push(...batch);
 
       if (batch.length === 0) {
         break;
@@ -50,12 +51,33 @@ export class YelpBusinessesComponent implements OnInit {
       restaurantSkip += restaurantBatchSize;
     }
 
-    this.filteredRows = restaurants.filter(rt => rt.yelpListing != undefined);
+    this.filteredRows = this.restaurants.filter(rt => rt.yelpListing != undefined);
     this.filter();
   }
 
   filter() {
-    // console.log(this.filteredRows);
+   if(this.showUnmatching) {
+     this.filteredRows = this.filteredRows.filter(rt => {
+      const notMatchingName = rt.yelpListing.name !== rt.name;
+
+      let [choppedAddress] = rt.yelpListing.location.street.split('\n');
+      const yelpFormattedAddress = `${choppedAddress}, ${rt.yelpListing.location.city}, ${rt.yelpListing.location.state} ${rt.yelpListing.location.zip_code}`;
+      const notMatchingAddress = rt.googleAddress.formatted_address.replace(', USA', '').replace(', US', '') !== yelpFormattedAddress;
+
+      return notMatchingAddress;
+     }
+     )
+   }
+   else {
+    this.filteredRows = this.restaurants.filter(rt => rt.yelpListing != undefined);
+   }
+  }
+
+  getYelpFormattedAddress(location) {
+    let [choppedAddress] = location.street.split('\n');
+    const yelpFormattedAddress = `${choppedAddress}, ${location.city}, ${location.state} ${location.zip_code}`;
+
+    return yelpFormattedAddress;
   }
 
   async claim(rt) {
