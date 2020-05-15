@@ -5,4 +5,5 @@ export class DashboardItem {
     rows: any[][];
     status?: string;
     details?: any;
+    updatedAt: any;
 }
