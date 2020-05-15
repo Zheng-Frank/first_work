@@ -46,7 +46,7 @@ export class NewRestaurantComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _router: Router) { }
 
   ngOnInit() {
-    this.skipApplyGmb =this._global.user.roles.some(r => r === 'MARKETER_INTERNAL' || r === 'MARKETER_EXTERNAL');
+    this.skipApplyGmb = this._global.user.roles.some(r => r === 'MARKETER_INTERNAL' || r === 'MARKETER_EXTERNAL');
   }
 
   formInputChanged(event) {
@@ -74,13 +74,16 @@ export class NewRestaurantComponent implements OnInit {
       crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { q: [this.restaurant.name, this.restaurant.googleAddress.formatted_address].join(" ") }).toPromise();
     }
     catch (error) {
+      console.log(error);
       // try to use only city state and zip code!
       // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
       const addressTokens = this.restaurant.googleAddress.formatted_address.split(", ");
       const q = this.restaurant.name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1];
       try {
-        crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { q: q }).toPromise();
-      } catch (error) { }
+        crawledResult = await this._api.get(environment.appApiUrl + "utils/scan-gmb", { q: q }).toPromise();
+      } catch (error) {
+        console.log(error);
+      }
     }
 
     if (!crawledResult || !crawledResult.place_id) {

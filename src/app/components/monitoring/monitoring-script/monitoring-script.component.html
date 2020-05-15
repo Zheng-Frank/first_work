@@ -28,9 +28,10 @@
             </div>
             <div>
                 <button class="btn btn-link pl-0 py-0" (click)="toggleSelected(script)">view json...</button>
+                <button class="btn btn-link pl-0 py-0" (click)="toggleSelected(script, true)">view errors...</button>
             </div>
             <pre *ngIf="script === selectedScript">
-                {{script | json}}
+                {{getScriptContent() | json}}
             </pre>
         </td>
         <td>
