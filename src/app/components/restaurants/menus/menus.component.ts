@@ -174,7 +174,6 @@ export class MenusComponent implements OnInit {
     const factor = +this.adjustPricesFactorAmount || +this.adjustPricesFactorPercent;
     if (factor) {
       const oldMenus = this.restaurant.menus || [];
-      const oldMenuOptions = this.restaurant.menuOptions || [];
 
       const newMenus = JSON.parse(JSON.stringify(oldMenus));
       newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => (mi.sizeOptions || []).map(item => {
@@ -192,27 +191,18 @@ export class MenusComponent implements OnInit {
       // keep menu hours
       newMenus.map((menu, index) => menu.hours = oldMenus[index].hours);
 
-      const newMenuOptions = JSON.parse(JSON.stringify(oldMenuOptions));
-      newMenuOptions.map(mo => (mo.items || []).map(item => {
-        if (+item.price) {
-          item.price = +((+item.price) * (1 + factor)).toFixed(2);
-        }
-      }));
       // now let's patch!
       try {
         await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: {
             _id: this.restaurant['_id'],
-            menus: oldMenus,
-            menuOptions: oldMenuOptions
+            menus: oldMenus
           }, new: {
             _id: this.restaurant['_id'],
-            menus: newMenus,
-            menuOptions: newMenuOptions
+            menus: newMenus
           }
         }]).toPromise();
         this.restaurant.menus = newMenus;
-        this.restaurant.menuOptions = newMenuOptions;
         this._global.publishAlert(AlertType.Success, "Success!");
         this.adjustingAllPrices = false;
       } catch (error) {
