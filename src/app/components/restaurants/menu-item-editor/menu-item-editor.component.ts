@@ -2,15 +2,14 @@ import { Component, OnInit, Input, Output, EventEmitter, OnChanges, ViewChild, E
 import { Mi, Item, MenuOption } from '@qmenu/ui';
 import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
-import { Router, NavigationStart } from '@angular/router';
+import { Router } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
-import { environment } from "../../../../environments/environment";
 
 declare var $: any;
 @Component({
     selector: 'app-menu-item-editor',
     templateUrl: './menu-item-editor.component.html',
-    styleUrls: ['./menu-item-editor.component.css']
+    styleUrls: ['./menu-item-editor.component.scss']
 })
 export class MenuItemEditorComponent implements OnInit, OnChanges {
     mi: Mi;
@@ -209,7 +208,8 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         if (this.mi.menuOptionIds && this.mi.menuOptionIds.length === 0) {
             delete this.mi.menuOptionIds;
         }
-
+        this.mi.sizeOptions = this.mi.sizeOptions.filter(so => so.name && so.name.length > 0);
+        console.log("emiting", this.mi);
         this.onDone.emit(this.mi);
     }
 
