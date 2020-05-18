@@ -9,12 +9,11 @@ export class IvrRecord {
     queueName?: string;
     queueArn?: string;
     agentUsername?: string;
-    recordingLocation?: string;
-    recordingMp3?: any;
     recordingMp3Url?: string;
     restaurants: any[] = [];
     inbound: boolean;
     duration?: number;
+    languageCode?: string;
 
     shouldCallback;
     public static parse(ctr): IvrRecord {
@@ -43,18 +42,24 @@ export class IvrRecord {
             ir.agentUsername = ctr.Agent.Username;
         }
 
-        if (ctr.Recording && ctr.Recording.Location) {
-            ir.recordingLocation = ctr.Recording.Location;
-            const bucket = ir.recordingLocation.substr(0, ir.recordingLocation.indexOf("/")) + "-mp3";
-            const objectKey = ir.recordingLocation.substr(ir.recordingLocation.indexOf("/") + 1).replace(".wav", ".mp3");
-            ir.recordingMp3Url = `${environment.utilsApiUrl}s3-proxy?bucket=${encodeURIComponent(bucket)}&objectKey=${encodeURIComponent(objectKey)}`;
+        const recordingUri: string = (ctr.Recording || {}).Location || ((ctr.Attributes || {}).voicemail || {}).recordingUri;
+        if (recordingUri) {
+            let targetBucket = recordingUri.substr(0, recordingUri.indexOf("/"));
+            let targetObjectKey = recordingUri.substr(recordingUri.indexOf("/") + 1);
 
+            if (targetObjectKey.endsWith("wav")) {
+                targetBucket += "-mp3";
+                targetObjectKey = targetObjectKey.replace(".wav", ".mp3");
+            }
+            ir.recordingMp3Url = `${environment.utilsApiUrl}s3-proxy?bucket=${encodeURIComponent(targetBucket)}&objectKey=${encodeURIComponent(targetObjectKey)}`;
         }
+
         if (ctr.SystemEndpoint && ctr.SystemEndpoint.Address) {
             ir.systemEndpoint = ctr.SystemEndpoint.Address.replace("+1", "");
         }
 
         ir.inbound = ctr.InitiationMethod !== "OUTBOUND";
+        ir.languageCode = (ctr.Attributes || {}).languageCode;
         return ir;
     }
 }

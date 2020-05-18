@@ -2,7 +2,8 @@
   <h1 class="text-center">
     IVR Logs
   </h1>
-  <div class="my-text-small text-muted text-center">refreshed: {{lastRefreshed | ago : now}} | total: {{totalMinutes}} minutes</div>
+  <div class="my-text-small text-muted text-center">refreshed: {{lastRefreshed | ago : now}} | total: {{totalMinutes}}
+    minutes</div>
 
   <div class="my-text-small text-muted text-center">
     {{ivrUsername || 'NOT LOGGED IN'}} | <span *ngFor="let phone of getMyPhones()">{{phone | tel}} | </span>
@@ -27,7 +28,10 @@
     <select (change)="filterQueue()" [(ngModel)]="selectedAgent" class="form-control mr-4">
       <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">{{agent || '(no agent)'}}</option>
     </select>
-
+    <select (change)="filterQueue()" [(ngModel)]="selectedLanguageCode" class="form-control mr-4">
+      <option *ngFor="let languageCode of languageCodesForFilter" [ngValue]="languageCode">{{languageCode || '(N/A)'}}
+      </option>
+    </select>
     <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="shouldCallbackOnly" (change)="filter()"
         class="mx-1"> Should
       callback</label>
@@ -64,15 +68,11 @@
       </td>
       <td>
         {{(ir.queueName || '').replace("chinese", "中文")}}
-        <!-- <div *ngIf="(ir.queueName || '').toLowerCase().indexOf('chinese') >= 0 ; else notChinese">中文</div>
-        <ng-template #notChinese>
-          <div>{{ir.queueName}}</div>
-          <div class="my-text-small text-muted">{{ir.systemEndpoint | tel}}</div>
-        </ng-template> -->
-
+        <div class="my-text-small"><strong>{{ir.languageCode}}</strong></div>
       </td>
       <td>
         {{ir.agentUsername}}
+        <div class="my-text-small text-muted">{{ir.systemEndpoint | tel}}</div>
       </td>
       <td>
         <audio controls *ngIf="ir.recordingMp3Url" preload="none">

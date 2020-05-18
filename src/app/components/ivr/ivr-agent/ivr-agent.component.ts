@@ -9,6 +9,7 @@ const defaultSelectedQueue = {
   name: 'all queues...'
 };
 const defaultSelectedAgent = 'all agent...';
+const defaultSelectedLanguageCode = 'all language...';
 
 @Component({
   selector: 'app-ivr-agent',
@@ -26,6 +27,9 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
 
   selectedAgent = defaultSelectedAgent;
   agentsForFilter = [];
+
+  selectedLanguageCode = defaultSelectedLanguageCode;
+  languageCodesForFilter = [];
 
   myPhoneNumbers = [];
 
@@ -50,16 +54,13 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   constructor(private _api: ApiService, private _global: GlobalService, private _connect: AmazonConnectService) {
 
     this._connect.onContactConnected.subscribe(contact => {
-      console.log("SUBSCRIBED: CONNTECT", contact);
       this.connectedContact = contact;
     });
     this._connect.onContactEnded.subscribe(contact => {
-      console.log("SUBSCRIBED: ENDED", contact);
       this.connectedContact = undefined;
     });
-    this._connect.onEnabled.subscribe(enabled => { console.log("ON ENABLED!", enabled); });
+    this._connect.onEnabled.subscribe(enabled => {  });
     this._connect.onConfigurationChanged.subscribe(config => {
-      console.log("ON CONFIGURE", config);
       this.populateQueuesFromConfig();
       if (this.visibleQueues.length > 0) {
         this.refreshCtrs();
@@ -91,7 +92,6 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     });
 
     this.phoneQueuesDict = phoneQueuesDict;
-    console.log(phoneQueuesDict);
     this.populateVisibleQueues();
     this.populateQueuesFromConfig();
     if (this.visibleQueues.length > 0) {
@@ -109,21 +109,17 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
 
   populateVisibleQueues() {
     const allQueues: any = Object.values(this.phoneQueuesDict).reduce((list: any, phoneQueues: any) => (list.push(...phoneQueues), list), []);
-    console.log(allQueues);
+    
 
     ["sales", "gmb", "internal"].map(managerRole => {
       if (this._global.user.roles.some(r => r === `IVR_${managerRole.toUpperCase()}_MANAGER`)) {
-        console.log("add manager queues");
         this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith(managerRole)));
-        console.log("after", this.visibleQueues.map(q => q.name));
       }
     });
 
     // CSR manager takes care of ALL other queues
     if (this._global.user.roles.some(r => r === "IVR_CSR_MANAGER")) {
-      console.log("add csr manager queues");
       this.addToVisibleQueues(allQueues.filter(q => !["sales", "gmb", "internal"].some(prefix => (q.name || "").startsWith(prefix))));
-      console.log("after", this.visibleQueues.map(q => q.name));
     }
 
   }
@@ -138,19 +134,14 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
 
   populateQueuesFromConfig() {
     const config = this.getConfig();
-    console.log(config);
-    console.log("add ivr user queues");
     const ivrQueues = ((config.routingProfile || {}).queues || []).map(q => ({ arn: q.queueARN, name: q.name }));
     this.addToVisibleQueues(ivrQueues);
-    console.log("after", this.visibleQueues.map(q => q.name));
   }
 
   async refreshCtrs() {
-    console.log("visible queues", this.visibleQueues.map(q => q.name));
     this.setIvrAgent();
     // get a list of phones I am interested and query ctrs by phone number!
     const interestedPhones = this.getMyPhones();
-    console.log(interestedPhones);
     if (interestedPhones.length === 0) {
       return;
     }
@@ -168,6 +159,9 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       DisconnectTimestamp: 1,
       InitiationTimestamp: 1,
       ConnectedToSystemTimestamp: 1,
+      "Attributes.languageCode": 1,
+      "Attributes.voicemail.recordingUri": 1, // 
+      "Attributes.voicemail.transcript.transcripts": 1 // array
     };
 
     const orQueries = [];
@@ -209,7 +203,8 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     const ctrs = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "amazon-connect-ctr",
       query: {
-        $or: orQueries
+        $or: orQueries,
+        // _id: { $oid: "5ec2b9ab8210950008cc735e" }
       },
       projection: projection,
       sort: {
@@ -248,6 +243,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     this.filter();
     this.populateQueuesForFilter();
     this.populateAgentsForFilter();
+    this.populateLanguageCodesForFilter();
 
     this.now = new Date();
     this.refreshing = false;
@@ -273,6 +269,11 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     this.selectedAgent = defaultSelectedAgent;
   }
 
+  populateLanguageCodesForFilter() {
+    this.languageCodesForFilter = [...new Set(this.ivrRecords.map(ir => ir.languageCode))];
+    this.languageCodesForFilter.unshift(defaultSelectedLanguageCode);
+    this.selectedLanguageCode = defaultSelectedLanguageCode;
+  }
 
   startIvr() {
     this._connect.setEnabeld(true);
@@ -346,8 +347,6 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       }
 
     });
-    console.log(succeeded);
-    console.log(numbersMarkedAsShouldCallback);
   }
 
   filterQueue() {
@@ -374,6 +373,10 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
 
     if (this.selectedAgent !== defaultSelectedAgent) {
       this.filteredIvrRecords = this.filteredIvrRecords.filter(ir => ir.agentUsername === this.selectedAgent);
+    }
+
+    if (this.selectedLanguageCode !== defaultSelectedLanguageCode) {
+      this.filteredIvrRecords = this.filteredIvrRecords.filter(ir => ir.languageCode === this.selectedLanguageCode);
     }
 
     this.totalMinutes = Math.floor(this.filteredIvrRecords.reduce((sum, ir) => sum + (ir.duration || 0), 0) / 60);

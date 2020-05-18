@@ -28,6 +28,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
   deliveryFromTimes = [{ value: null, text: 'At business open' }];
   deliveryEndTimes = [];
+
+  courier;
+
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 

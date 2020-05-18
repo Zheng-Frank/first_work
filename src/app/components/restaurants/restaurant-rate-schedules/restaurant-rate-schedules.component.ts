@@ -23,7 +23,6 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   }
 
   dateChanged(date) {
-    console.log(date);
   }
 
   toggleEditing() {
@@ -51,12 +50,9 @@ export class RestaurantRateSchedulesComponent implements OnInit {
     const newR: any = { _id: this.restaurant.id || this.restaurant['_id'] };
     newR.rateSchedules = this.rateSchedulesInEditing.filter(rs => rs.date);
 
-    console.log(this.restaurant.serviceSettings)
     const enabledOrderTypes = (this.restaurant.serviceSettings || []).filter(ss => (ss.paymentMethods || []).length > 0).map(ss => ss.name.toUpperCase());
-    console.log(enabledOrderTypes);
     // validation: making sure all service types are covered!
     const uncoveredOrderTypes = enabledOrderTypes.filter(ot => !newR.rateSchedules.some(rs => rs.orderType === ot) && !newR.rateSchedules.some(rs => !rs.orderType || rs.orderType === 'ALL'));
-    console.log(uncoveredOrderTypes);
     if (uncoveredOrderTypes.length > 0) {
       alert('FAILED: no rate schedules for order types ' + uncoveredOrderTypes.join(', '));
       return;
