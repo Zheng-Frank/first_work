@@ -14,6 +14,8 @@ export class IvrRecord {
     inbound: boolean;
     duration?: number;
     languageCode?: string;
+    transcriptPartial?: string;
+    transcriptFull?: string;
 
     shouldCallback;
     public static parse(ctr): IvrRecord {
@@ -60,6 +62,13 @@ export class IvrRecord {
 
         ir.inbound = ctr.InitiationMethod !== "OUTBOUND";
         ir.languageCode = (ctr.Attributes || {}).languageCode;
+
+        const transcripts = (((ctr.Attributes || {}).voicemail || {}).transcript || {}).transcripts || [];
+        if (transcripts.length > 0) {
+            console.log(transcripts);
+            ir.transcriptFull = transcripts.map(t => t.transcript).join("\n");
+            ir.transcriptPartial = ir.transcriptFull.slice(0, 64);
+        }
         return ir;
     }
 }

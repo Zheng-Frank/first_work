@@ -78,9 +78,7 @@
         <audio controls *ngIf="ir.recordingMp3Url" preload="none">
           <source src="{{ir.recordingMp3Url}}" />
         </audio>
-        <!-- <button class="btn btn-link py-0">
-          <i *ngIf="ir.recordingMp3Url && !isMp3Visited(ir)" (click)="visitMp3(ir)" class="far fa-file-audio fa-2x"></i>
-        </button> -->
+        <div class="my-text-small" *ngIf="ir.transcriptFull">{{ir.transcriptFull}}</div>
       </td>
       <td>
         <div *ngIf="ir.shouldCallback">
