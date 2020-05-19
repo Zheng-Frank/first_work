@@ -1,151 +1,94 @@
 <h1 class="text-center">Restaurants ({{ filteredRows.length }})</h1>
-<div class="clearfix my-2">
 
-  <!-- <label class="checkbox-inline">
-    <input type="checkbox" [(ngModel)]="showUnmatching" (change)="filter()"class="mx-1"> Show unmatching addresses
-  </label> -->
+<div class="row d-flex align-items-center">
+  <div class="col-md-2 d-flex align-items-center">
+    <div class="clearfix my-2">
+      <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantStatus" (change)="filter()">
+        <option>All</option>
+        <option>Open</option>
+        <option>Unclaimable</option>
+        <option>Reclaimable</option>
+        <option>Unknown</option>
+        <option>Error</option>
+      </select>
+    </div>
+    <!-- <div [qLoading]="refreshing"></div> -->
+  </div>
+  <div class="col-md-10 d-flex align-items-center justify-content-end">
+    <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i> Reload</button>
+  </div>
+</div>
 
-  <!--   
-  <div class="float-left form-inline">
-    <input [qDebounce]="500" (debounce)="filter()" type="text" class="form-control mr-2 mb-1"
-      placeholder="type name or address" [(ngModel)]="searchFilter">
 
-    <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantStatus" (change)="filter()">
-      <option>restaurant status</option>
-      <option>enabled</option>
-      <option>disabled</option>
-    </select>
-    <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantProblems" (change)="filter()">
-      <option>restaurant problems</option>
-      <option>bad delivery settings</option>
-      <option>bad menus</option>
-      <option>bad rate schedules</option>
-      <option>bad service settings</option>
-      <option>no qMenu managed website</option>
-      <option>no restaurant managed website</option>
-      <option>having insisted website</option>
-      <option>GMB name mismatched</option>
-    </select>
-    <select class="form-control mr-2 mb-1" [(ngModel)]="gmbStatus" (change)="filter()">
-      <option>GMB status</option>
-      <option>published</option>
-      <option>suspended</option>
-      <option>open</option>
-      <option>lost in 48 hours</option>
-      <option>secondary listing</option>
-    </select>
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
+  <tr *tableRowTemplate="let rt;">
+    <!-- count -->
+    <td>{{filteredRows.indexOf(rt) + 1}}</td>
+    
+    <!-- restaurant name -->
+    <td>
+      <a routerLink="/restaurants/{{ rt._id }}">{{ rt.name }}</a>
+      <div class="text-muted">
+        <small>{{ rt.googleAddress?.formatted_address.replace(', USA', '') }}</small>
+      </div>
+      <div class="text-muted">
+        <small class="text-primary">{{ getYelpFormattedAddress(rt.yelpListing?.location) }}</small>
+      </div>
+    </td>
+    
+    <!-- qmeni rt id -->
+    <td>
+      {{ rt._id }}
+    </td>
 
-    <select class="form-control mr-2 mb-1" [(ngModel)]="gmbWebsiteOwner" (change)="filter()">
-      <option>GMB website owner</option>
-      <option>NOT qMenu</option>
-      <option *ngFor="let gmbOwnerCount of gmbOwnerAndCounts">{{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
-      </option>
-    </select>
+    <!-- score -->
+    <td>
+      {{ rt.yelpListing.rating }}
+    </td>
 
-    <select class="form-control mr-2 mb-1" [(ngModel)]="agent" (change)="filter()" *ngIf="isAdmin">
-      <option value="">Sales agent</option>
-      <option *ngFor="let agent of agents">{{agent}}</option>
-    </select>
+    <!-- agent -->
+    <td>
+      {{ rt.rateSchedules && rt.rateSchedules[0] ? rt.rateSchedules[0].name : "-" }}
+    </td>
 
-    <select class="form-control mr-2 mb-1" [(ngModel)]="managedWebsite" (change)="filter()">
-      <option>Manged website</option>
-      <option>exist</option>
-      <option>non-exist</option>
-      <option>insisted: having qMenu link</option>
-      <option>insisted: no qMenu link</option>
-      <option>old style qMenu redirect</option>
-      <option>same as restaurant managed</option>
-    </select>
+    <!-- yelp account -->
+    <td>
+      <app-gmb-account-hotlink
+        [email]="rt.gmb_email"
+      ></app-gmb-account-hotlink>
+    </td>
 
-  </div> 
---></div>
+    <!-- agent -->
+    <td>
+      <a href="{{ rt.yelpListing.url }}" target="_blank">{{
+        rt.yelpListing.yid
+      }}</a>
+      <div *ngIf="rt.name !== rt.yelpListing.name">
+        {{ al?.location?.name }}
+      </div>
+    </td>
 
-<table class="table table-sm">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>qMenu Restaurant</th>
-      <th>Restaurant ID</th>
-      <th>Score</th>
-      <th>Agent</th>
-      <th>Yelp Account</th>
-      <th>Yelp YID</th>
-      <th>Yelp Status</th>
-      <th>Websites</th>
-    </tr>
-  </thead>
+    <!-- yelp status -->
+    <td>
+      <div *ngIf="rt.yelpListing.claimedStatus === 'Reclaimable' || rt.yelpListing.claimedStatus === 'Open'; else noStatus" >
+        <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(rt)">
+          {{ rt.claimedStatus }}
+        </button>
+      </div>
+      <ng-template #noStatus>
+        <div>{{ rt.claimedStatus }}</div>
+      </ng-template>
+    </td>
 
-  <tbody>
-    <tr *ngFor="let rt of filteredRows; let rowCount = index">
-      <!-- row count -->
-      <td>{{ rowCount + 1 }}</td>
+    <!--  websites  -->
+    <!-- TODO: Make it editable and save changes to db -->
+    <td>
+      <small>
+        <div>Q: {{ rt.qmenuWebsite }}</div>
+        <div>R: {{ rt.website }}</div>
+      </small>
+    </td>
 
-      <!-- qmenu rt name -->
-      <td>
-        <a routerLink="/restaurants/{{ rt._id }}">{{ rt.name }}</a>
-        <div class="text-muted">
-          <small>{{ rt.googleAddress?.formatted_address.replace(', USA', '') }}</small>
-        </div>
-        <div class="text-muted">
-          <small class="text-primary">{{ getYelpFormattedAddress(rt.yelpListing?.location) }}</small>
-        </div>
-      </td>
+  </tr>
+</q-table>
 
-      <!-- qmeni rt id -->
-      <td>
-        {{ rt._id }}
-      </td>
-
-      <!-- score -->
-      <td>
-        {{ rt.yelpListing.rating }}
-      </td>
-
-      <!-- agent -->
-      <td>
-        {{ rt.rateSchedules && rt.rateSchedules[0] ? rt.rateSchedules[0].name : "-" }}
-      </td>
-
-      <!-- yelp account -->
-      <td>
-        <app-gmb-account-hotlink
-          [email]="rt.yelpListing.gmb_email"
-        ></app-gmb-account-hotlink>
-      </td>
-
-      <!-- agent -->
-      <td>
-        <a href="{{ rt.yelpListing.url }}" target="_blank">{{
-          rt.yelpListing.yid
-        }}</a>
-        <div *ngIf="rt.name !== rt.yelpListing.name">
-          {{ al?.location?.name }}
-        </div>
-      </td>
-
-      <!-- yelp status -->
-      <td>
-        <div *ngIf="rt.yelpListing.claimedStatus === 'Reclaimable' || rt.yelpListing.claimedStatus === 'Open'; else noStatus" >
-          <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(rt)">
-            {{ rt.yelpListing.claimedStatus }}
-          </button>
-        </div>
-        <ng-template #noStatus>
-          <div>{{ rt.yelpListing.claimedStatus }}</div>
-        </ng-template>
-      </td>
-
-      <!--  websites  -->
-      <!-- TODO: Make it editable and save changes to db -->
-      <td>
-        <small>
-          <div>Q: {{ rt.web?.qmenuWebsite }}</div>
-          <div>R: {{ rt.yelpListing?.website }}</div>
-        </small>
-      </td>
-    </tr>
-  </tbody>
-
-  <!-- <ng-container *ngFor="let row of filteredRows; let rowNumber = index">
-  </ng-container> -->
-</table>
