@@ -293,6 +293,15 @@ export class MenuComponent implements OnInit {
     this.miModal.show();
   }
 
+  cleanMiCopy(mi: Mi) {
+    const miCopy = new Mi(mi);
+    for (let i = miCopy.sizeOptions.length - 1; i >= 0; i--) {
+      if (!miCopy.sizeOptions[i].name) {
+        miCopy.sizeOptions.splice(i, 1);
+      }
+    }
+    return miCopy;
+  }
   miDone(mi: Mi) {
     // id == update, no id === new
     let action = mi.id ? 'UPDATE' : 'CREATE';
@@ -332,8 +341,9 @@ export class MenuComponent implements OnInit {
         })));
     }
 
-
-
+    // bug: mi's sizeOptions tied to optionsEditor, which will cause side effects of adding one extra item automatically
+    // temp fix to use cleanMiCopy
+    const cleanMiCopy = this.cleanMiCopy(mi);
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         //Just just new menus to overwrite
@@ -348,10 +358,10 @@ export class MenuComponent implements OnInit {
         result => {
           //insert the new mi
           if (action === 'CREATE') {
-            if (this.menu.mcs.some(mc => mc.id === mi.category)) {
+            if (this.menu.mcs.some(mc => mc.id === cleanMiCopy.category)) {
               this.menu.mcs.map(eachMc => {
-                if (eachMc.id === mi.category) {
-                  eachMc.mis.push(mi);
+                if (eachMc.id === cleanMiCopy.category) {
+                  eachMc.mis.push(cleanMiCopy);
                 }
               })
             }
@@ -363,7 +373,7 @@ export class MenuComponent implements OnInit {
                   for (const prop of Object.keys(m)) {
                     delete m[prop];
                   }
-                  Object.assign(m, mi);
+                  Object.assign(m, cleanMiCopy);
                 }
               });
             })

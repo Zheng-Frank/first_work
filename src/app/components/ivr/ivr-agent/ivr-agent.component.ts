@@ -59,7 +59,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     this._connect.onContactEnded.subscribe(contact => {
       this.connectedContact = undefined;
     });
-    this._connect.onEnabled.subscribe(enabled => {  });
+    this._connect.onEnabled.subscribe(enabled => { });
     this._connect.onConfigurationChanged.subscribe(config => {
       this.populateQueuesFromConfig();
       if (this.visibleQueues.length > 0) {
@@ -109,7 +109,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
 
   populateVisibleQueues() {
     const allQueues: any = Object.values(this.phoneQueuesDict).reduce((list: any, phoneQueues: any) => (list.push(...phoneQueues), list), []);
-    
+
 
     ["sales", "gmb", "internal"].map(managerRole => {
       if (this._global.user.roles.some(r => r === `IVR_${managerRole.toUpperCase()}_MANAGER`)) {
@@ -123,6 +123,8 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     }
 
   }
+
+  irTranscriptsExpanded = new Set();
 
   addToVisibleQueues(queues) {
     queues.map(q => {
