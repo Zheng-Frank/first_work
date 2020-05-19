@@ -208,8 +208,6 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         if (this.mi.menuOptionIds && this.mi.menuOptionIds.length === 0) {
             delete this.mi.menuOptionIds;
         }
-        this.mi.sizeOptions = this.mi.sizeOptions.filter(so => so.name && so.name.length > 0);
-        console.log("emiting", this.mi);
         this.onDone.emit(this.mi);
     }
 
