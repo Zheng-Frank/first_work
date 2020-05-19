@@ -5,6 +5,7 @@ import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { environment } from 'src/environments/environment';
 import { AlertType } from 'src/app/classes/alert-type';
 import { map } from 'rxjs/operators';
+import { TaskListComponent } from '../../tasks/task-list/task-list.component';
 
 @Component({
   selector: 'app-yelp-businesses',
@@ -16,14 +17,14 @@ export class YelpBusinessesComponent implements OnInit {
   isAdmin = false;
   // showUnmatching = false;
   restaurants = [];
+  tasks = [];
   flatRows = [];
   filteredRows = [];
-
   pagination = true;
-  
   refreshing = false;
-
   restaurantStatus = "All";
+  currentUser = '';
+  username = '';
 
   myColumnDescriptors = [
     {
@@ -60,20 +61,61 @@ export class YelpBusinessesComponent implements OnInit {
     },
     {
       label: 'Websites'
+    },
+    {
+      label: 'Task'
     }
   ];
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.refresh();
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
+    this.username = this._global.user.username;
   }
 
   ngOnInit() {
 
   }
 
+  isTaskAssigned(yid) {
+    return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.assignee !== undefined)).length > 0);
+  }
+
+  isTaskClosed(yid) {
+    return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.result === 'CLOSED')).length > 0)
+  }
+
+  getAssigneeName(yid) {
+    const [task] = this.tasks.filter(t => (t.relatedMap.yelpId === yid));
+    if(task) {
+      return task.assignee;
+    }
+  }
+
+  canTaskBeDone(yid) {
+    return !this.isTaskAssigned(yid) && !this.isTaskClosed(yid);
+  }
+
+  async assignYelpTask(id, name, yid) {
+
+    const yelpTask = {
+      name: 'Yelp Request',
+      scheduledAt: { $date: new Date() },
+      description: `Claim task for yelp ID: ${yid}`,
+      roles: ['GMB', 'ADMIN'],
+      relatedMap: { restaurantId: id, yelpId: yid },
+      assignee: this.username,
+      comments: `Yelp Id: ${yid}`
+    };
+
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [yelpTask]).toPromise();
+
+    this.refresh();
+  }
+
   async refresh() {
     this.refreshing = true;
+    this.restaurants = [];
     // --- restaurant
     const restaurantBatchSize = 3000;
     let restaurantSkip = 0;
@@ -99,8 +141,16 @@ export class YelpBusinessesComponent implements OnInit {
       restaurantSkip += restaurantBatchSize;
     }
 
+    // --- tasks
+    this.tasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: "task",
+      query: {
+        name: { "$eq": "Yelp Request" },
+      }
+    }, 8000);
+
     this.rows = this.restaurants.filter(rt => rt.yelpListing != undefined);
-    console.log(this.rows);
+    console.log(this.tasks);
 
     this.flatRows = this.rows.map(row => {
       return {
@@ -212,15 +262,49 @@ export class YelpBusinessesComponent implements OnInit {
     return yelpFormattedAddress;
   }
 
+  async getRandomAccount() {
+    const shuffle = (array) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    };
+
+    const accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: "gmbAccount",
+      query: {
+        isYelpEmail: true
+      },
+      projection: {
+        email: 1,
+      }
+    }, 8000);
+
+    shuffle(accounts);
+
+    const [account] = accounts;
+
+    return account;
+  }
+
   async claim(rt) {
     try {
+      const randomAccount = await this.getRandomAccount();
+
+      console.log(randomAccount.email);
+
+      if(!randomAccount || !randomAccount.email) {
+        this._global.publishAlert(AlertType.Danger, 'No accounts found!');
+      }
+      
       if (rt.yelpListing) {
         const target = 'claim-yelp';
         const { city, zip_code, country, state, street } = rt.yelpListing.location;
         const [streetShortened] = street.split('\n')
         const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
 
-        await this._api.post(environment.autoGmbUrl + target, { email: rt.yelpListing.gmb_email, name: rt.yelpListing.name, location }).toPromise();
+        await this._api.post(environment.autoGmbUrl + target, { email: randomAccount.email, name: rt.yelpListing.name, location }).toPromise();
         this._global.publishAlert(AlertType.Success, 'Logged in.');
       }
     }

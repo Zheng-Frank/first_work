@@ -53,12 +53,10 @@
 
     <!-- yelp account -->
     <td>
-      <app-gmb-account-hotlink
-        [email]="rt.gmb_email"
-      ></app-gmb-account-hotlink>
+      <app-gmb-account-hotlink [email]="rt.gmb_email"></app-gmb-account-hotlink>
     </td>
 
-    <!-- agent -->
+    <!-- yelp yid -->
     <td>
       <a href="{{ rt.yelpListing.url }}" target="_blank">{{
         rt.yelpListing.yid
@@ -70,10 +68,8 @@
 
     <!-- yelp status -->
     <td>
-      <div *ngIf="rt.yelpListing.claimedStatus === 'Reclaimable' || rt.yelpListing.claimedStatus === 'Open'; else noStatus" >
-        <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(rt)">
-          {{ rt.claimedStatus }}
-        </button>
+      <div *ngIf="((rt.yelpListing.claimedStatus === 'Reclaimable') || (rt.yelpListing.claimedStatus === 'Open') && canTaskBeDone(rt.yelpListing.yid)); else noStatus" >
+        <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(rt)">{{ rt.claimedStatus }}</button>
       </div>
       <ng-template #noStatus>
         <div>{{ rt.claimedStatus }}</div>
@@ -87,6 +83,15 @@
         <div>Q: {{ rt.qmenuWebsite }}</div>
         <div>R: {{ rt.website }}</div>
       </small>
+    </td>
+
+    <td>
+      <div *ngIf="isTaskAssigned(rt.yelpListing.yid); else notTaskAssigned">
+        <span>Assigned</span>
+      </div>
+      <ng-template #notTaskAssigned class="d-flex align-items-center">
+        <button *ngIf="(rt.yelpListing?.claimedStatus === 'Open') || (rt.yelpListing?.claimedStatus === 'Reclaimable')" class="btn btn-small btn-primary" (click)='assignYelpTask(rt._id, rt.name, rt.yelpListing.yid)'>Take this task</button>
+      </ng-template>
     </td>
 
   </tr>
