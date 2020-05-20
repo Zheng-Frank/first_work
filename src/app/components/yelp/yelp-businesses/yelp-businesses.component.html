@@ -69,7 +69,7 @@
     <!-- yelp status -->
     <td>
       <div *ngIf="((rt.yelpListing.claimedStatus === 'Reclaimable') || (rt.yelpListing.claimedStatus === 'Open') && canTaskBeDone(rt.yelpListing.yid)); else noStatus" >
-        <button class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(rt)">{{ rt.claimedStatus }}</button>
+        <button *ngIf="isTaskAssigned(rt.yelpListing?.yid); else noStatus"class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : '' }}" (click)="claim(rt, rt.yelpListing?.yid)">{{ rt.claimedStatus }}</button>
       </div>
       <ng-template #noStatus>
         <div>{{ rt.claimedStatus }}</div>

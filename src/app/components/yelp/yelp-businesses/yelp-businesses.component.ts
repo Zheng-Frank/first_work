@@ -4,8 +4,6 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { environment } from 'src/environments/environment';
 import { AlertType } from 'src/app/classes/alert-type';
-import { map } from 'rxjs/operators';
-import { TaskListComponent } from '../../tasks/task-list/task-list.component';
 
 @Component({
   selector: 'app-yelp-businesses',
@@ -92,21 +90,34 @@ export class YelpBusinessesComponent implements OnInit {
     }
   }
 
+  isTaskAssignee(yid) {
+    return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.assignee === this.username)).length > 0)
+  }
+
   canTaskBeDone(yid) {
     return !this.isTaskAssigned(yid) && !this.isTaskClosed(yid);
   }
 
   async assignYelpTask(id, name, yid) {
+    const randomAccount = await this.getRandomAccount();
+
+    if(!randomAccount || !randomAccount.email) {
+      this._global.publishAlert(AlertType.Danger, 'No accounts found!');
+      return;
+    }
 
     const yelpTask = {
       name: 'Yelp Request',
       scheduledAt: { $date: new Date() },
       description: `Claim task for yelp ID: ${yid}`,
       roles: ['GMB', 'ADMIN'],
-      relatedMap: { restaurantId: id, yelpId: yid },
+      relatedMap: { restaurantId: id, yelpId: yid, email: randomAccount.email },
       assignee: this.username,
-      comments: `Yelp Id: ${yid}`
+      comments: `Yelp Id: ${yid}`,
+      
     };
+
+    // console.log(yelpTask);
 
     await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [yelpTask]).toPromise();
 
@@ -123,11 +134,14 @@ export class YelpBusinessesComponent implements OnInit {
     while (true) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
+        query: {
+        },
         projection: {
           name: 1,
           yelpListing: 1,
           googleAddress: 1,
-          rateSchedules: 1
+          rateSchedules: 1,
+          disabled: 1
         },
         skip: restaurantSkip,
         limit: restaurantBatchSize
@@ -149,7 +163,7 @@ export class YelpBusinessesComponent implements OnInit {
       }
     }, 8000);
 
-    this.rows = this.restaurants.filter(rt => rt.yelpListing != undefined);
+    this.rows = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true);
     console.log(this.tasks);
 
     this.flatRows = this.rows.map(row => {
@@ -288,25 +302,29 @@ export class YelpBusinessesComponent implements OnInit {
     return account;
   }
 
-  async claim(rt) {
+  getTaskEmail(yid) {
+    const result = this.tasks.filter(t => t.relatedMap.yelpId === yid);
+    console.log(result);
+  }
+
+  async claim(rt, yid) {
     try {
-      const randomAccount = await this.getRandomAccount();
+      const accountEmail = this.getTaskEmail(yid);
 
-      console.log(randomAccount.email);
+      // if(!accountEmail) {
+      //   this._global.publishAlert(AlertType.Danger, 'Failed to login');
+      //   return;
+      // }
 
-      if(!randomAccount || !randomAccount.email) {
-        this._global.publishAlert(AlertType.Danger, 'No accounts found!');
-      }
-      
-      if (rt.yelpListing) {
-        const target = 'claim-yelp';
-        const { city, zip_code, country, state, street } = rt.yelpListing.location;
-        const [streetShortened] = street.split('\n')
-        const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
+      // if (rt.yelpListing) {
+      //   const target = 'claim-yelp';
+      //   const { city, zip_code, country, state, street } = rt.yelpListing.location;
+      //   const [streetShortened] = street.split('\n')
+      //   const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
 
-        await this._api.post(environment.autoGmbUrl + target, { email: randomAccount.email, name: rt.yelpListing.name, location }).toPromise();
-        this._global.publishAlert(AlertType.Success, 'Logged in.');
-      }
+      //   await this._api.post(environment.autoGmbUrl + target, { email, name: rt.yelpListing.name, location }).toPromise();
+      //   this._global.publishAlert(AlertType.Success, 'Logged in.');
+      // }
     }
     catch (error) {
       console.log(error);
