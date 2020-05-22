@@ -1,0 +1,14 @@
+<h1 class="text-center">Couriers</h1>
+
+<div class="row">
+  <!-- row has negative margins and we need to remove them! -->
+  <div *ngFor="let courier of couriers" class="col-sm-12 col-md-6 col-lg-4 mb-1">
+    <div class="card card-body">
+      <h2 class="text-center">{{courier.name}}</h2>
+      <div class="text-center"><q-toggle [(ngModel)]="courier.enabled" (change)="toggleEnabled(courier, $event)"></q-toggle></div>
+      {{courier | json}}
+    </div>
+  </div>
+</div>
+
+<q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"></q-hours-picker>

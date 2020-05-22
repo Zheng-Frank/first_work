@@ -171,6 +171,7 @@ import { YelpDashboardComponent } from './components/yelp/yelp-dashboard/yelp-da
 import { YelpBusinessesComponent } from './components/yelp/yelp-businesses/yelp-businesses.component';
 import { RestaurantYelpComponent } from './components/restaurants/restaurant-yelp/restaurant-yelp.component';
 import { DashboardItemComponent } from './components/monitoring/dashboard-item/dashboard-item.component';
+import { CourierDashboardComponent } from './components/couriers/courier-dashboard/courier-dashboard.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -321,6 +322,7 @@ import { DashboardItemComponent } from './components/monitoring/dashboard-item/d
     YelpBusinessesComponent,
     RestaurantYelpComponent,
     DashboardItemComponent,
+    CourierDashboardComponent,
 
 
 
