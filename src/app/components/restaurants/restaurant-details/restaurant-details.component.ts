@@ -48,7 +48,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
       "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-      "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
@@ -59,7 +58,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
       "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-
+      "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
