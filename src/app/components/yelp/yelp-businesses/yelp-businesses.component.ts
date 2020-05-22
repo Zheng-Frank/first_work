@@ -11,14 +11,15 @@ import { AlertType } from 'src/app/classes/alert-type';
   styleUrls: ['./yelp-businesses.component.css']
 })
 export class YelpBusinessesComponent implements OnInit {
-  rows = [];
   isAdmin = false;
   // showUnmatching = false;
   restaurants = [];
   tasks = [];
+  accounts = [];
   flatRows = [];
   filteredRows = [];
-  pagination = true;
+  allLocations = [];
+  pagination = false;
   refreshing = false;
   restaurantStatus = "All";
   currentUser = '';
@@ -29,12 +30,9 @@ export class YelpBusinessesComponent implements OnInit {
       label: '#'
     },
     {
-      label: "qMemu Restaurant",
+      label: "Restaurant",
       paths: ['name'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
-    },
-    {
-      label: 'Restaurant ID'
     },
     {
       label: 'Score',
@@ -42,7 +40,7 @@ export class YelpBusinessesComponent implements OnInit {
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
     {
-      label: 'Agent',
+      label: 'Websites'
     },
     {
       label: 'Yelp Account',
@@ -50,18 +48,12 @@ export class YelpBusinessesComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: 'Yelp YID',
-    },
-    {
       label: 'Yelp Status',
-      paths: ['claimedStatus'],
-      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+      // paths: ['claimedStatus'],
+      // sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: 'Websites'
-    },
-    {
-      label: 'Task'
+      label: 'Actions'
     }
   ];
 
@@ -75,6 +67,10 @@ export class YelpBusinessesComponent implements OnInit {
 
   }
 
+  hasSameAddress(googleFormattedAddress, yelpFormattedAddress) {
+    return googleFormattedAddress === yelpFormattedAddress;
+  }
+
   isTaskAssigned(yid) {
     return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.assignee !== undefined)).length > 0);
   }
@@ -85,7 +81,7 @@ export class YelpBusinessesComponent implements OnInit {
 
   getAssigneeName(yid) {
     const [task] = this.tasks.filter(t => (t.relatedMap.yelpId === yid));
-    if(task) {
+    if (task) {
       return task.assignee;
     }
   }
@@ -101,7 +97,7 @@ export class YelpBusinessesComponent implements OnInit {
   async assignYelpTask(id, name, yid) {
     const randomAccount = await this.getRandomAccount();
 
-    if(!randomAccount || !randomAccount.email) {
+    if (!randomAccount || !randomAccount.email) {
       this._global.publishAlert(AlertType.Danger, 'No accounts found!');
       return;
     }
@@ -114,7 +110,7 @@ export class YelpBusinessesComponent implements OnInit {
       relatedMap: { restaurantId: id, yelpId: yid, email: randomAccount.email },
       assignee: this.username,
       comments: `Yelp Id: ${yid}`,
-      
+
     };
 
     // console.log(yelpTask);
@@ -127,61 +123,106 @@ export class YelpBusinessesComponent implements OnInit {
   async refresh() {
     this.refreshing = true;
     this.restaurants = [];
+
     // --- restaurant
-    const restaurantBatchSize = 3000;
-    let restaurantSkip = 0;
-
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: {
-        },
-        projection: {
-          name: 1,
-          yelpListing: 1,
-          googleAddress: 1,
-          rateSchedules: 1,
-          disabled: 1
-        },
-        skip: restaurantSkip,
-        limit: restaurantBatchSize
-      }).toPromise();
-
-      this.restaurants.push(...batch);
-
-      if (batch.length === 0) {
-        break;
-      }
-      restaurantSkip += restaurantBatchSize;
-    }
+    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+      },
+      projection: {
+        name: 1,
+        "yelpListing.yid": 1,
+        "yelpListing.name": 1,
+        "yelpListing.score": 1,
+        "yelpListing.claimedStatus": 1,
+        "yelpListing.rating": 1,
+        "yelpListing.website": 1,
+        "yelpListing.location.street": 1,
+        "yelpListing.location.city": 1,
+        "yelpListing.location.state": 1,
+        "yelpListing.location.zip_code": 1,
+        "yelpListing.url": 1,
+        'googleAddress.formatted_address': 1,
+        rateSchedules: 1,
+        disabled: 1
+      },
+    }, 3000);
 
     // --- tasks
     this.tasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: "task",
+      projection: {
+        assignee: 1,
+        result: 1,
+        "relatedMap.yelpId": 1,
+      },
       query: {
         name: { "$eq": "Yelp Request" },
       }
     }, 8000);
 
-    this.rows = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true);
-    console.log(this.tasks);
+    // --- accounts
+    this.accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1,
+        yelpLocations: 1
+      },
+      query: {
+        isYelpEmail: true
+      },
+    }, 1000);
 
-    this.flatRows = this.rows.map(row => {
+    this.accounts.map(account => {
+      if (account.yelpLocations) {
+        this.allLocations.push(...account.yelpLocations);
+      }
+    });
+
+
+    this.restaurants = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true);
+
+    this.flatRows = this.restaurants.map(row => {
       return {
         _id: row._id,
-        name: row.name,
-        score: row.yelpListing ? row.yelpListing.score : '-',
-        gmb_email: row.yelpListing ? row.yelpListing.gmb_email : '-',
-        claimedStatus: row.yelpListing ? row.yelpListing.claimedStatus : '-',
-        rating: row.yelpListing ? row.yelpListing.rating : '-',
-        qmenuWebsite: row.web ? row.web.qmenuWebsite : '-',
-        website: row.yelpListing ? row.yelpListing.website : '-',
-        ...row
+        yid: row.yelpListing.yid,
+        qMenuName: row.name,
+        yelpName: row.yelpListing.name,
+        score: row.yelpListing.score,
+        claimedStatus: row.yelpListing.claimedStatus,
+        rating: row.yelpListing.rating,
+        qmenuWebsite: row.web ? row.web.qmenuWebsite : '',
+        website: row.yelpListing.website,
+        url: row.yelpListing.url,
+        googleFormattedAddress: row.googleAddress ? row.googleAddress.formatted_address.replace(', USA', '') : '',
+        isSameAddress: this.hasSameAddress(row.googleAddress ? row.googleAddress.formatted_address.replace(', USA', '') : '', this.getYelpFormattedAddress(row.yelpListing.location)),
+        location: row.yelpListing.location,
+        isClaimTaskClosed: this.isTaskClosed(row.yelpListing.yid),
+        isRTPublished: this.isPublished(row.yelpListing.yid)
       }
-    })
+    });
+
     this.refreshing = false;
     this.filter();
   }
+
+  isPublished(yid) {
+    return this.allLocations.some(loc => {
+      return yid === loc.yid;
+    });
+  }
+
+  getPublishedAccount(yid) {
+    for (const account of this.accounts) {
+      if(account.yelpLocations) {
+        const [match] = account.yelpLocations.filter(l => l.yid === yid);
+        if(match) {
+          return account.email;
+        }
+      }
+    }
+  }
+
 
   async filter() {
     //  if(this.showUnmatching) {
@@ -199,69 +240,39 @@ export class YelpBusinessesComponent implements OnInit {
     //  else {
     //   this.rows = this.restaurants.filter(rt => rt.yelpListing != undefined);
     //  }
-    
+
     this.refreshing = false;
+
+    // dont show CLOSED tasks
+    this.flatRows = this.flatRows.filter(r => r.isClaimTaskClosed === false);
 
     switch (this.restaurantStatus) {
       case 'Open':
-        this.filteredRows = this.rows.filter(r => r.yelpListing.claimedStatus === 'Open').map(r => {
-          return {
-            claimedStatus: r.yelpListing ? r.yelpListing.claimedStatus : '-',
-            ...r
-          }
-        });
+        this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Open');
+        break;
+
+        case 'Published':
+        this.filteredRows = this.flatRows.filter(r => r.isRTPublished === true);
         break;
 
       case 'Unclaimable':
-        this.filteredRows = this.rows.filter(r => r.yelpListing.claimedStatus === 'Unclaimable').map(r => {
-          return {
-            claimedStatus: r.yelpListing ? r.yelpListing.claimedStatus : '-',
-            ...r
-          }
-        });
+        this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Unclaimable');
         break;
 
       case 'Reclaimable':
-        this.filteredRows = this.rows.filter(r => r.yelpListing.claimedStatus === 'Reclaimable').map(r => {
-          return {
-            claimedStatus: r.yelpListing ? r.yelpListing.claimedStatus : '-',
-            ...r
-          }
-        });
+        this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Reclaimable');
         break;
 
       case 'Unknown':
-        this.filteredRows = this.rows.filter(r => r.yelpListing.claimedStatus === 'Unknown').map(r => {
-          return {
-            claimedStatus: r.yelpListing ? r.yelpListing.claimedStatus : '-',
-            ...r
-          }
-        });
+        this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Unknown');
         break;
 
       case 'Error':
-        this.filteredRows = this.rows.filter(r => r.yelpListing.claimedStatus === 'Error').map(r => {
-          return {
-            claimedStatus: r.yelpListing ? r.yelpListing.claimedStatus : '-',
-            ...r
-          }
-        });
+        this.filteredRows = this.restaurants.filter(r => r.claimedStatus === 'Error');
         break;
 
       default:
-        this.filteredRows = this.rows.map(row => {
-          return {
-            _id: row._id,
-            name: row.name,
-            score: row.yelpListing ? row.yelpListing.score : '-',
-            gmb_email: row.yelpListing ? row.yelpListing.gmb_email : '-',
-            claimedStatus: row.yelpListing ? row.yelpListing.claimedStatus : '-',
-            rating: row.yelpListing ? row.yelpListing.rating : '-',
-            qmenuWebsite: row.web ? row.web.qmenuWebsite : '-',
-            website: row.yelpListing ? row.yelpListing.website : '-',
-            ...row
-          }
-        });
+        this.filteredRows = this.flatRows;
         break;
     }
 
@@ -303,28 +314,28 @@ export class YelpBusinessesComponent implements OnInit {
   }
 
   getTaskEmail(yid) {
-    const result = this.tasks.filter(t => t.relatedMap.yelpId === yid);
-    console.log(result);
+    const [result] = this.tasks.filter(t => t.relatedMap.yelpId === yid); // hashmap
+    if (result) {
+      return result.relatedMap.email;
+    }
   }
 
   async claim(rt, yid) {
     try {
       const accountEmail = this.getTaskEmail(yid);
 
-      // if(!accountEmail) {
-      //   this._global.publishAlert(AlertType.Danger, 'Failed to login');
-      //   return;
-      // }
+      if (!accountEmail) {
+        this._global.publishAlert(AlertType.Danger, 'Failed to login');
+        return;
+      }
 
-      // if (rt.yelpListing) {
-      //   const target = 'claim-yelp';
-      //   const { city, zip_code, country, state, street } = rt.yelpListing.location;
-      //   const [streetShortened] = street.split('\n')
-      //   const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
+      const target = 'claim-yelp';
+      const { city, zip_code, country, state, street } = rt.location;
+      const [streetShortened] = street.split('\n')
+      const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
 
-      //   await this._api.post(environment.autoGmbUrl + target, { email, name: rt.yelpListing.name, location }).toPromise();
-      //   this._global.publishAlert(AlertType.Success, 'Logged in.');
-      // }
+      await this._api.post(environment.autoGmbUrl + target, { email: accountEmail, name: rt.qMenuName, location }).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Logged in.');
     }
     catch (error) {
       console.log(error);
