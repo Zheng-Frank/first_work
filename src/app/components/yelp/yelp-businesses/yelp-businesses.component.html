@@ -30,34 +30,42 @@
 >
   <tr *tableRowTemplate="let rt">
     <!-- count -->
-    <td>{{ filteredRows.indexOf(rt) + 1 }}</td>
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{ filteredRows.indexOf(rt) + 1 }}
+      </div>
+    </td>
 
     <!-- restaurant name -->
     <td>
-      <a href="{{ rt.url }}" target="_blank">{{ rt.yelpName }}</a>
-      <div class="text-muted">
-        <div>Yelp Id : {{ rt.yid }}</div>
-        <div>
-          <a routerLink="/restaurants/{{ rt._id }}" target="_blank"><i class="fas fa-external-link-alt"></i> qMenu restaurant page</a>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <a href="{{ rt.url }}" target="_blank">{{ rt.yelpName }}</a>
+        <div class="text-muted">
+          <div>Yelp Id : {{ rt.yid }}</div>
+          <div>
+            <a routerLink="/restaurants/{{ rt._id }}" target="_blank"><i class="fas fa-external-link-alt"></i> qMenu restaurant page</a>
+          </div>
         </div>
-      </div>
-      <div class="text-muted">
-        <small>{{ rt.googleFormattedAddress }}</small>
-      </div>
-      <div class="text-muted" *ngIf="!rt.isSameAddress">
-        <small class="text-primary">{{getYelpFormattedAddress(rt.location)}}</small>
+        <div class="text-muted">
+          <small>{{ rt.googleFormattedAddress }}</small>
+        </div>
+        <div class="text-muted" *ngIf="!rt.isSameAddress">
+          <small class="text-primary">{{getYelpFormattedAddress(rt.location)}}</small>
+        </div>
       </div>
     </td>
 
     <!-- score -->
     <td>
-      {{ rt.rating }}
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{ rt.rating }}
+      </div>
     </td>
 
     <!--  websites  -->
     <!-- TODO: Make it editable and save changes to db -->
     <td>
-      <small>
+      <small class="h-100 d-flex flex-column justify-content-center">
         <div>Q: {{ rt.qmenuWebsite }}</div>
         <div>R: {{ rt.website }}</div>
       </small>
@@ -65,40 +73,46 @@
 
     <!-- yelp account -->
     <td>
-      <div *ngIf='rt.isRTPublished; else rtNotPublished'>
-        <app-gmb-account-hotlink [email]="getPublishedAccount(rt.yid)"></app-gmb-account-hotlink>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <div *ngIf='rt.isRTPublished === true; else rtNotPublished'>
+          <app-gmb-account-hotlink [email]="getPublishedAccount(rt.yid)"></app-gmb-account-hotlink>
+        </div>
+        <ng-template #rtNotPublished>
+          <app-gmb-account-hotlink [email]="getTaskEmail(rt.yid)"></app-gmb-account-hotlink>
+        </ng-template>
       </div>
-      <ng-template #rtNotPublished>
-        <app-gmb-account-hotlink [email]="getTaskEmail(rt.yid)"></app-gmb-account-hotlink>
-      </ng-template>
     </td>
 
     <!-- yelp status -->
     <td>
-      <div *ngIf="rt.isRTPublished; else notPublished">
-        <span class="text-success">Published ✔︎</span>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <div *ngIf="rt.isRTPublished; else notPublished">
+          <span class="text-success h-100 d-flex flex-column justify-content-center">Published ✔︎</span>
+        </div>
+        <ng-template #notPublished class="h-100 d-flex flex-column justify-content-center">
+          {{rt.claimedStatus}}
+        </ng-template>
       </div>
-      <ng-template #notPublished>
-        {{rt.claimedStatus}}
-      </ng-template>
     </td>
 
     <td>
-      <div *ngIf="isTaskAssigned(rt.yid); else notTaskAssigned">
-        <div *ngIf="rt.claimedStatus === 'Reclaimable' || (rt.claimedStatus === 'Open' && canTaskBeDone(rt.yid))">
-          <button *ngIf="isTaskAssigned(rt.yid) && !rt.isClaimTaskClosed; else taskDone" class="btn btn-link fix-v-align py-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
-            {{ rt.claimedStatus === "Open" ? "Claim" : "Reclaim" }}
-          </button>
-          <ng-template #taskDone>
-            <div>Task Closed</div>
-          </ng-template>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <div *ngIf="isTaskAssigned(rt.yid); else notTaskAssigned" class="h-100 d-flex flex-column justify-content-center">
+          <div *ngIf="rt.claimedStatus === 'Reclaimable' || (rt.claimedStatus === 'Open' && canTaskBeDone(rt.yid))">
+            <button *ngIf="isTaskAssigned(rt.yid) && !rt.isClaimTaskClosed; else taskClosed" class="btn btn-link fix-v-align py-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
+              {{ rt.claimedStatus === "Open" ? "Claim" : "Reclaim" }}
+            </button>
+            <ng-template #taskClosed>
+              <div>Task Closed</div>
+            </ng-template>
+          </div>
         </div>
+        <ng-template #notTaskAssigned class="h-100 d-flex flex-column justify-content-center">
+          <button *ngIf="rt.claimedStatus === 'Open' || rt.claimedStatus === 'Reclaimable'" class="btn btn-small btn-primary" (click)="assignYelpTask(rt._id, rt.name, rt.yid)">
+            Create task
+          </button>
+        </ng-template>
       </div>
-      <ng-template #notTaskAssigned class="d-flex align-items-center">
-        <button *ngIf="rt.claimedStatus === 'Open' || rt.claimedStatus === 'Reclaimable'" class="btn btn-small btn-primary" (click)="assignYelpTask(rt._id, rt.name, rt.yid)">
-          Create task
-        </button>
-      </ng-template>
     </td>
   </tr>
 </q-table>

@@ -109,7 +109,7 @@ export class YelpBusinessesComponent implements OnInit {
       roles: ['GMB', 'ADMIN'],
       relatedMap: { restaurantId: id, yelpId: yid, email: randomAccount.email },
       assignee: this.username,
-      comments: `Yelp Id: ${yid}`,
+      comments: `Yelp Id: ${yid}, Email: ${randomAccount.email}`,
 
     };
 
@@ -155,6 +155,9 @@ export class YelpBusinessesComponent implements OnInit {
         assignee: 1,
         result: 1,
         "relatedMap.yelpId": 1,
+        "relatedMap.email": 1,
+        "relatedMap.restaurantId": 1,
+
       },
       query: {
         name: { "$eq": "Yelp Request" },
@@ -244,7 +247,7 @@ export class YelpBusinessesComponent implements OnInit {
     this.refreshing = false;
 
     // dont show CLOSED tasks
-    this.flatRows = this.flatRows.filter(r => r.isClaimTaskClosed === false);
+    // this.flatRows = this.flatRows.filter(r => r.isClaimTaskClosed === false);
 
     switch (this.restaurantStatus) {
       case 'Open':
