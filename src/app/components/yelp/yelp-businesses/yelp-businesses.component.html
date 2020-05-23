@@ -79,14 +79,14 @@
         <span class="text-success">Published ✔︎</span>
       </div>
       <ng-template #notPublished>
-        <span class="text-danger">No Ownership ✗</span>
+        {{rt.claimedStatus}}
       </ng-template>
     </td>
 
     <td>
       <div *ngIf="isTaskAssigned(rt.yid); else notTaskAssigned">
         <div *ngIf="rt.claimedStatus === 'Reclaimable' || (rt.claimedStatus === 'Open' && canTaskBeDone(rt.yid))">
-          <button *ngIf="isTaskAssigned(rt.yid) && !rt.isClaimTaskClosed; else taskDone" class="btn btn-link fix-v-align px-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
+          <button *ngIf="isTaskAssigned(rt.yid) && !rt.isClaimTaskClosed; else taskDone" class="btn btn-link fix-v-align py-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
             {{ rt.claimedStatus === "Open" ? "Claim" : "Reclaim" }}
           </button>
           <ng-template #taskDone>
