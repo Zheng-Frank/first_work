@@ -2,7 +2,7 @@ import { CourierPricing } from "./courier-pricing";
 export class Courier {
     _id: string;
     name: string;
-    pricing: CourierPricing[];
+    pricings: CourierPricing[];
 
     constructor(courier: any) {
         if (courier) {
@@ -13,8 +13,8 @@ export class Courier {
                 }
             }
         }
-        if (this.pricing) {
-            this.pricing = this.pricing.map(p => new CourierPricing(p));
+        if (this.pricings) {
+            this.pricings = this.pricings.map(p => new CourierPricing(p));
         }
     }
 }

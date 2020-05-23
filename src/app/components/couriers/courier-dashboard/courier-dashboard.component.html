@@ -1,14 +1,66 @@
 <h1 class="text-center">Couriers</h1>
-
 <div class="row">
   <!-- row has negative margins and we need to remove them! -->
   <div *ngFor="let courier of couriers" class="col-sm-12 col-md-6 col-lg-4 mb-1">
-    <div class="card card-body">
-      <h2 class="text-center">{{courier.name}}</h2>
-      <div class="text-center"><q-toggle [(ngModel)]="courier.enabled" (change)="toggleEnabled(courier, $event)"></q-toggle></div>
-      {{courier | json}}
+    <div class="card card-body text-center">
+      <h2>{{courier.name}}</h2>
+      <div>TIMEZONE IS NOT IMPLEMENTED!</div>
+      <div class="text-muted" *ngIf="courier.timezone"><small>Timezone: {{courier.timezone}}</small></div>
+
+      <q-toggle [(ngModel)]="courier.enabled" (change)="toggleEnabled(courier, $event)"></q-toggle>
+      <div><strong>{{courier.enabled? 'Accepting deliveries' : 'Not accepting deliveries'}}</strong></div>
+
+      <ul class="list-group mt-3">
+        <li class="list-group-item d-flex justify-content-between align-items-center"
+          *ngFor="let pricing of (courier.pricings || [])">
+          <div>
+            <div class="pb-2">
+              <strong>{{(pricing.base || 0) | currency:'USD':'symbol'}}</strong> +
+              <strong>{{(pricing.perMile || 0) | currency:'USD':'symbol'}}</strong> / mi
+            </div>
+            <q-hours-viewer [hours]="pricing.hours">
+            </q-hours-viewer>
+
+          </div>
+          <button class="btn btn-link py-0" (click)="editPricing(courier, pricing)"><i class="far fa-edit"></i>
+            Edit</button>
+        </li>
+        <li class="list-group-item text-right">
+          <button type="button" class="btn btn-link" (click)="editPricing(courier, null)">
+            + Add Pricing</button>
+        </li>
+      </ul>
     </div>
   </div>
 </div>
 
-<!-- <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"></q-hours-picker> -->
+
+<q-modal #pricingModal>
+  <q-form-builder [object]="pricingInEditing" [showDelete]="this.pricingInEditingOriginal"
+    [fieldDescriptors]="pricingFieldDescriptors" (submit)="pricingSubmit($event)" (cancel)="pricingCancel()"
+    (remove)="pricingDelete($event)">
+
+    <div class="form-group">
+      <label>Delivery Hours</label>
+      <div>
+        <ul class="list-group">
+          <li class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let hour of pricingInEditing.hours">
+            {{hour.toDayString()}} {{hour.toHourString()}}
+            <button class="btn btn-link py-0" (click)="removeHour(hour)"><i class="fas fa-trash-alt"></i>
+              Delete</button>
+          </li>
+          <li class="list-group-item text-right">
+            <button type="button" class="btn btn-link" (click)="addingHours = !addingHours">
+              + Add Hours</button>
+            <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="addingHours">
+              <q-hours-picker (cancel)="addingHours = false" (submit)="doneAddingHours($event)"></q-hours-picker>
+            </div>
+          </li>
+        </ul>
+
+      </div>
+    </div>
+
+  </q-form-builder>
+</q-modal>
