@@ -77,6 +77,11 @@ export class CourierDashboardComponent implements OnInit {
 
   async tryUpdatingNewPricings(courier, newPricings, eventAcknowledge) {
     try {
+      // making sure base and perMile are numbers
+      newPricings.map(pricing => {
+        pricing.base = +pricing.base || 0;
+        pricing.perMile = +pricing.perMile || 0;
+      });
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=courier', [
         {
           old: { _id: this.courierInEditing._id },

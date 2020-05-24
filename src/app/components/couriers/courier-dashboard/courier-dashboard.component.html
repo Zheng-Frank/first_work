@@ -25,7 +25,7 @@
           <button class="btn btn-link py-0" (click)="editPricing(courier, pricing)"><i class="far fa-edit"></i>
             Edit</button>
         </li>
-        <li class="list-group-item text-right">
+        <li class="list-group-item text-right" *ngIf="courier.name !== 'Postmates'">
           <button type="button" class="btn btn-link" (click)="editPricing(courier, null)">
             + Add Pricing</button>
         </li>
