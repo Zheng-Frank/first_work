@@ -1626,7 +1626,7 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async fixMenu() {
-    const havingNullRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const havingNullRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         "menus.mcs.mis": null,
@@ -1635,9 +1635,8 @@ export class DbScriptsComponent implements OnInit {
       projection: {
         name: 1,
         "menus": 1
-      },
-      limit: 6000
-    }).toPromise();
+      },     
+    },6000);
     console.log(havingNullRestaurants);
     // remove mi, empty mc, and empty menu!
 
@@ -1647,6 +1646,7 @@ export class DbScriptsComponent implements OnInit {
       const oldR = r;
       const newR = JSON.parse(JSON.stringify(r));
       console.log(newR.name)
+
       // remove ALL empty or null mis
       newR.menus.map(menu => (menu.mcs || []).map(mc => {
         const beforeCount = (mc.mis || []).length;
