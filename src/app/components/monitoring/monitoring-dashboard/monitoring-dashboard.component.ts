@@ -11,7 +11,7 @@ import { environment } from 'src/environments/environment';
 export class MonitoringDashboardComponent implements OnInit {
 
   // monitoredItem = 'Placeholder';
-  monitoredItem = 'Scripts';
+  monitoredItem = 'Restaurant Domains';
   items = [];
 
   dashboardItems = [];

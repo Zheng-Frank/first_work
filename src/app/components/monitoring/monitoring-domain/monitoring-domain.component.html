@@ -1,38 +1,74 @@
 <h1 class="text-center">Domains<br><small>{{filteredDomains.length}}</small></h1>
 <div class="clearfix my-2">
     <div class="float-left form-inline">
-        <select class="form-control mr-2 mb-1" [(ngModel)]="managedDomain" (change)="filter()">
-            <option>Manged Domains</option>
-            <option>only active</option>
+        <label for="">Filter by: </label>
+        <select class="form-control mr-2 mb-1" [(ngModel)]="mustRenew" (change)="filter()">
+            <option>Show All</option>
+            <option>Domains to Renew</option>
+            <option>Domains to not Renew</option>
         </select>
     </div>
 </div>
 
-<table class="table">
-    <tr>
-        <th>#</th>
-        <th>Domain</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Expiry</th>
-        <th>Auto Renew</th>
-    </tr>
-    <tr *ngFor="let domain of filteredDomains; let i = index">
-        <th>{{i + 1}}</th>
-        <td>
-            {{domain.name}}
-        </td>
-        <td>
-            {{domain.type}}
-        </td>
-        <td>
-            {{domain.status}}
-        </td>
-        <td>
-            {{domain.expiry}}
-        </td>
-        <td>
-            {{domain.autoRenew}}
-        </td>
-    </tr>
-</table>
+<q-table
+  [rows]="filteredDomains"
+  [tableColumnDescriptors]="myColumnDescriptors"
+  [compact]="true"
+  [pageSize]="pagination ? 100 : 100000"
+>
+  <tr *tableRowTemplate="let domain">
+    <!-- count -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{ filteredDomains.indexOf(domain) + 1 }}
+      </div>
+    </td>
+
+    <!-- domain name -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <a href="http://{{ domain.domainName }}" target="_blank" class="font-weight-bold">{{ domain.domainName }}</a>
+        <div class="text-muted">
+            <small><a routerLink="/restaurants/{{ domain.restaurantId }}" target="_blank">{{domain.restaurantName}}</a></small>
+        </div>
+      </div>
+    </td>
+
+    <!-- domain type -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{ domain.domainType }}
+      </div>
+    </td>
+
+    <!--  domain expiry eate  -->
+    <td>
+      <small class="h-100 d-flex flex-column justify-content-center">
+        {{domain.domainExpiry | date: 'MMM dd yyyy'}}
+      </small>
+    </td>
+
+    <!-- domain auto renew status -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{domain.domainAutoRenew ? 'ENABLED': 'DISABLED' }}
+      </div>
+    </td>
+
+    <!-- must auto renew -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{domain.shouldRenew ? '-YES': '-NO'}}
+      </div>
+    </td>
+
+    <!-- reasons -->
+    <td>
+        <div *ngFor='let reason of domain.reasons'>
+            <small>
+                {{reason}}
+            </small>
+        </div>
+    </td>
+  </tr>
+</q-table>
