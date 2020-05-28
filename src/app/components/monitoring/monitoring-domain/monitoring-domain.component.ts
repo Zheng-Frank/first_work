@@ -83,22 +83,19 @@ export class MonitoringDomainComponent implements OnInit {
 
   async refreash() {
     // --- domains
-    const lastCoupleWeeks = new Date();
-    lastCoupleWeeks.setDate(lastCoupleWeeks.getDate() + this.EXPIRY_DAYS_THRESHOLD);
+    const nextCoupleWeeks = new Date();
+    nextCoupleWeeks.setDate(nextCoupleWeeks.getDate() + this.EXPIRY_DAYS_THRESHOLD);
     this.domains = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'domain',
       query: {
         type: { $ne: 'GODADDY' },
-        expiry: { $lte: { $date: lastCoupleWeeks } }
+        expiry: { $lte: { $date: nextCoupleWeeks } }
       },
     }, 10000);
 
     // --- restaurants
     this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {
-
-      },
       projection: {
         _id: 1,
         name: 1,
@@ -107,8 +104,6 @@ export class MonitoringDomainComponent implements OnInit {
         "web.qmenuWebsite": 1,
       },
     }, 10000);
-
-
 
     // --- invoices
     const sixMonthsAgo = new Date();
@@ -125,7 +120,7 @@ export class MonitoringDomainComponent implements OnInit {
         "restaurant.id": 1,
         'restaurant.disabled': 1
       },
-      // sort: { toDate: -1 }, 
+      // sort: { toDate: -1 }, // this breaks server not enought memory for sorting. index or reduce the limit
       limit: 30000,
     }).toPromise();
 
@@ -279,11 +274,11 @@ export class MonitoringDomainComponent implements OnInit {
         break;
 
       case 'Domains to Renew':
-        this.filteredDomains = this.filteredDomains.filter(e => e.shouldRenew);
+        this.filteredDomains = this.domainMap.filter(e => e.shouldRenew);
         break;
       
-      case 'Domains to not to Renew':
-        this.filteredDomains = this.filteredDomains.filter(e => !e.shouldRenew);
+      case 'Domains to not Renew':
+        this.filteredDomains = this.domainMap.filter(e => !e.shouldRenew);
         break;
 
       default:
