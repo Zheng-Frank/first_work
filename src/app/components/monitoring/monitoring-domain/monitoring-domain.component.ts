@@ -102,6 +102,7 @@ export class MonitoringDomainComponent implements OnInit {
         disabled: 1,
         "googleAddress.formatted_address": 1,
         "web.qmenuWebsite": 1,
+        "web.useBizWebsiteForAll": 1
       },
     }, 10000);
 
@@ -120,11 +121,11 @@ export class MonitoringDomainComponent implements OnInit {
         "restaurant.id": 1,
         'restaurant.disabled': 1
       },
-      // sort: { toDate: -1 }, // this breaks server not enought memory for sorting. index or reduce the limit
+      // sort: { toDate: -1 }, // this breaks server: not enought memory for sorting so index or reduce the limit
       limit: 30000,
     }).toPromise();
 
-
+    // flat map
     this.domainMap = this.domains.map(domain => {
       const matchingRestaurant: any = this.getMatchingRestaurant(domain.name);
 
@@ -187,6 +188,14 @@ export class MonitoringDomainComponent implements OnInit {
         continue;
       }
 
+      // --- insisted all
+      if ((entry.restaurantWeb || {}).useBizWebsiteForAll === true) {
+        reasons.push('Insisted website for all');
+        entry.reasons = reasons;
+        entry.restaurantInsistedForAll = true;
+        continue;
+      }
+      
       // --- expiry time in upcoming expiryDaysTreshold days
       const now = new Date();
       const expiry = new Date(entry.domainExpiry);
@@ -232,7 +241,7 @@ export class MonitoringDomainComponent implements OnInit {
       }
 
       // --- should renew
-      if (entry.restaurantDisabled || entry.restaurantInsisted || !entry.hasInvoicesInLast6Months || !entry.restaurantId) {
+      if (entry.restaurantDisabled || entry.restaurantInsisted || entry.restaurantInsistedForAll || !entry.hasInvoicesInLast6Months || !entry.restaurantId) {
         entry.shouldRenew = false;
       } else if (entry.hasInvoicesInLast6Months) {
         entry.shouldRenew = true;
@@ -265,7 +274,6 @@ export class MonitoringDomainComponent implements OnInit {
   }
 
   filter() {
-    // this.filteredDomains = this.domains.slice(0);
     this.filteredDomains = this.domainMap;
 
     switch (this.mustRenew) {
