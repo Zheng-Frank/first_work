@@ -2,26 +2,18 @@
   <div class="card mb-2">
     <h3 class="card-title text-center pt-4 pb-2">
       <i class="far fa fa-car"></i> Delivery Settings</h3>
-
-    <q-simple-radio [(ngModel)]="selectedCourierName" [equalWidth]="true" [values]="courierNames">
-    </q-simple-radio>
     <ul class="list-group list-group-flush">
 
       <li class="list-group-item">
         <!--displaying-->
         <div *qIf="!editing">
-          <app-restaurant-delivery-closed-hours [restaurant]="restaurant">
-          </app-restaurant-delivery-closed-hours>
           <table class="app-table w-100">
             <tr>
-              <th class="text-left">External Delivery:</th>
+              <th class="text-left">Courier:</th>
               <td class="pl-1">
-                <div *ngIf="restaurant.externalDeliveryEnabled">
-                  <img src="./assets/images/postmates.png" style="height: 2rem">
-                </div>
-                <div *ngIf="!restaurant.externalDeliveryEnabled">
-                  No
-                </div>
+                <strong>{{restaurant.courier?.name || "Self delivery"}}</strong>
+                <img *ngIf="restaurant.courier?.name === 'Postmates'" src="./assets/images/postmates.png"
+                  style="height: 2rem">
               </td>
             </tr>
             <tr>
@@ -60,9 +52,9 @@
               <td class="pl-1">{{getDeliveryEndString()}}</td>
             </tr>
             <tr>
-              <th class="text-left">Delivery Serve Hours:</th>
+              <th class="text-left">Delivery Open Hours:</th>
               <td>
-                <div class="text-center">
+                <div class="text-left">
                   <q-hours-viewer [offsetToEST]="offsetToEST"
                     [hours]="restaurant.deliveryHours ? restaurant.deliveryHours : []"></q-hours-viewer>
                 </div>
@@ -95,18 +87,25 @@
               </div>
             </div>
           </div>
+
+          <app-restaurant-delivery-closed-hours [restaurant]="restaurant">
+          </app-restaurant-delivery-closed-hours>
+
         </div>
 
         <!--editing-->
         <div *qIf="editing">
           <table class="w-100">
             <tr>
-              <th class="text-left">Use External Delivery</th>
+              <th class="text-left">
+                <label for="courier-select">Courier</label>
+              </th>
               <td class="pl-1">
-                <label class="switch">
-                  <input type="checkbox" (click)="toggleExternalDeliveryEnabled()" [checked]="externalDeliveryEnabled">
-                  <div class="slider round"></div>
-                </label>
+                <div class="form-group">
+                  <select class="form-control" id="courier-select" [(ngModel)]="selectedCourier">
+                    <option *ngFor="let c of couriers" [ngValue]="c">{{c.name}}</option>
+                  </select>
+                </div>
               </td>
             </tr>
 
@@ -160,29 +159,24 @@
               </td>
             </tr>
             <tr>
-              <th class="text-left">Delivery Serve Hours</th>
+              <th class="text-left">Delivery Open Hours</th>
               <td class="pl-1">
                 <div *ngFor="let hour of deliveryHours">
-                  <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime :
+                  {{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime :
                     offsetToEST}}
-                    - {{hour.toTime | shortTime
+                  - {{hour.toTime | shortTime
                     : offsetToEST}}
-                  </div>
-                  <div class="pull-xs-right">
-                    <button type="button" class="btn btn-link text-danger pt-0 pb-0"
-                      (click)="deleteHour(hour)">X</button>
-                  </div>
+                  <button type="button" class="btn btn-link text-danger py-0" (click)="deleteHour(hour)"><i
+                      class="fas fa-trash-alt"></i></button>
                 </div>
-                <div class="pull-xs-right">
+                <div>
                   <button type="button" class="btn btn-link" (click)="clickedAddHour = !clickedAddHour">+ Add
-                    Hour</button>
+                    Hours</button>
                 </div>
 
-                <div *qIf="clickedAddHour" style="font-size: smaller">
-                  <div class="card card-block">
-                    <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)">
-                    </q-hours-picker>
-                  </div>
+                <div *qIf="clickedAddHour" class="alert alert-secondary mt-2" style="font-size: smaller">
+                  <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)">
+                  </q-hours-picker>
                 </div>
               </td>
             </tr>

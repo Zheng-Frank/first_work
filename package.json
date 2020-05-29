@@ -6,8 +6,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build-qa": "ng build --prod --configuration=qa",
-    "build-prod": "ng build --prod --configuration=production && node deploy",
+    "deploy-qa": "ng build --prod --configuration=qa && node deploy qa-csr.qmenu.us E145Y3EKTAQBTJ",
+    "deploy-prod": "ng build --prod --configuration=production && node deploy csr.qmenu.us EONS08EC2015T",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"

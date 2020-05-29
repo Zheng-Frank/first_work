@@ -29,9 +29,18 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   deliveryFromTimes = [{ value: null, text: 'At business open' }];
   deliveryEndTimes = [];
 
-  externalDeliveryEnabled;
+  selectedCourier;
+  couriers: any = [{ name: "Self delivery" }];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
+    // populate couriers
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "courier",
+      projection: { name: 1 },
+      limit: 1000000,
+      sort: { name: 1 }
+    }).subscribe(result => this.couriers.push(...result));
+
   }
 
   ngOnInit() {
@@ -59,7 +68,6 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   toggleEditing() {
-    this.externalDeliveryEnabled = this.restaurant["externalDeliveryEnabled"];
     this.blockedZipCodes = (this.restaurant.blockedZipCodes || []).join(',');
     this.blockedCities = (this.restaurant.blockedCities || []).join(',');
     this.allowedZipCodes = (this.restaurant.allowedZipCodes || []).join(',');
@@ -82,7 +90,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     }
 
     this.deliveryEndMinutesBeforeClosing = this.restaurant.deliveryEndMinutesBeforeClosing;
-
+    this.selectedCourier = this.restaurant.courier ? this.couriers.filter(c => c._id === this.restaurant.courier._id)[0] : this.couriers[0];
   }
   update() {
 
@@ -115,19 +123,23 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     newR.deliveryHours = this.deliveryHours;
     newR.deliveryArea = this.deliveryArea;
     newR.taxOnDelivery = this.taxOnDelivery;
-    newR.externalDeliveryEnabled = this.externalDeliveryEnabled;
+    if (this.selectedCourier._id) {
+      newR.courier = this.selectedCourier;
+    }
 
+    console.log("selected", this.selectedCourier);
+console.log(newR.courier);
     const caredFields = [
       "allowedCities",
       "allowedZipCodes",
       "blockedCities",
       "blockedZipCodes",
+      "courier",
       "deliveryArea",
       "deliveryEndMinutesBeforeClosing",
       "deliveryFrom",
       "deliveryHours",
       "deliverySettings",
-      "externalDeliveryEnabled",
       "taxOnDelivery",
     ];
 
@@ -176,9 +188,6 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.taxOnDelivery = !this.taxOnDelivery;
   }
 
-  toggleExternalDeliveryEnabled() {
-    this.externalDeliveryEnabled = !this.externalDeliveryEnabled;
-  }
 
   getDeliveryFromString() {
     if (this.restaurant.deliveryFromTime) {

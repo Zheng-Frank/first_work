@@ -1,3 +1,8 @@
+const domain = process.argv[2];
+const distributionId = process.argv[3];
+if(!domain || !distributionId) {
+    throw "Failed. Call example: node deploy csr.qmenu.us EONS08EC2015T, where first param is domain and second is distributionId";
+}
 const AWS = require('aws-sdk');
 const fs = require('fs');
 //configuring the AWS environment
@@ -8,10 +13,7 @@ const s3 = new AWS.S3();
 const cloudfront = new AWS.CloudFront();
 const mime = require('mime-types');
 
-// const bucketName = "qmenu-domains/qmenuschoice.com";
-// const distributionId = "E3Q0RNYX6KXHR6";
-const bucketName = "qmenu-domains/csr.qmenu.us";
-const distributionId = "EONS08EC2015T";
+const bucketName = `qmenu-domains/${domain}`;
 const folder = "./dist/admin";
 
 async function run() {
