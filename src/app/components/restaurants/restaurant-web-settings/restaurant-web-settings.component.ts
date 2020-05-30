@@ -104,21 +104,7 @@ export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
   }
 
   async retrieveCode() {
-    this.retrievedCodeObject = undefined;
-
-    const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-    const host = 'mail.' + domain;
-    const email = 'info@' + domain;
-    let password = this.restaurant.web.qmenuPop3Password;
-
-    try {
-      if (password.length > 20) {
-        password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: email, phrase: password }).toPromise();
-      }
-      this.retrievedCodeObject = await this._api.post(environment.autoGmbUrl + 'retrieveGodaddyEmailVerificationCode', { host: host, email: email, password: password }).toPromise();
-    } catch (error) {
-      alert('Error retrieving email: ' + JSON.stringify(error));
-    }
+    alert('obsolete');
 
   }
 }

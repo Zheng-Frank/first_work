@@ -11,6 +11,7 @@ import { IfDirective } from '@qmenu/ui/directives/if.directive';
 export class MonitoringDomainComponent implements OnInit {
   now = new Date();
 
+  pagination = true;
   domains = [];
   restaurants = [];
   invoices = [];

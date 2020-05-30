@@ -100,8 +100,7 @@ export class EmailCodeReaderComponent implements OnInit {
       newWeb[field] = newValue;
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
         // reset password:
-        const email = 'info@' + Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-        newWeb[field] = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: email, phrase: event.newValue }).toPromise();
+        alert("pop3 email is obsolete")
       }
 
       if (field === 'qmenuWebsite') {

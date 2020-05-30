@@ -117,7 +117,7 @@ export class EventDashboardComponent implements OnInit {
     // }, 3000);
 
     const cutoffExecution = new Date();
-    cutoffExecution.setDate(cutoffExecution.getDate() - 3);
+    cutoffExecution.setDate(cutoffExecution.getDate() - 1);
     const executions = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "execution",
       query: {
@@ -135,7 +135,7 @@ export class EventDashboardComponent implements OnInit {
       sort: {
         startedAt: -1
       }
-    }, 1000);
+    }, 800);
 
     this.listeners.map(listener => {
       listener.subscribers.map(subscriber => {
