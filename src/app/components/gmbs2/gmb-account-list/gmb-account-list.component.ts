@@ -295,9 +295,8 @@ export class GmbAccountListComponent implements OnInit {
 
   async login(event: FormEvent) {
     try {
-      let results: any = await this._gmb3.loginEmailAccount(event.object.email, true);
+      await this._api.post(environment.autoGmbUrl + "login", { email: event.object.email, stayAfterScan: true }).toPromise();
       event.acknowledge(null);
-      this._global.publishAlert(AlertType.Success, 'Scanned ' + event.object.email + ', found: ' + results.length);
     }
     catch (error) {
       console.log(error);

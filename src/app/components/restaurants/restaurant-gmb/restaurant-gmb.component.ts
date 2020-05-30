@@ -324,20 +324,6 @@ export class RestaurantGmbComponent implements OnInit {
     for (let al of row.accountLocationPairs) {
       console.log(al);
       if (al.location.status === 'Published') {
-        // await this._api
-        //   .post(environment.qmenuApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
-        //   .then(password => this._api.post(
-        //     environment.autoGmbUrl + 'updateWebsite', {
-        //     email: al.account.email,
-        //     password: password,
-        //     websiteUrl: target.website,
-        //     menuUrl: target.menuUrl,
-        //     orderAheadUrl: target.orderAheadUrl,
-        //     reservationsUrl: target.reservation,
-        //     appealId: al.location.appealId,
-        //     stayAfterScan: true
-        //   }
-        //   ).toPromise())
 
         try {
           const result = await this._api.post(environment.appApiUrl + 'utils/inject-gmb-urls', {
