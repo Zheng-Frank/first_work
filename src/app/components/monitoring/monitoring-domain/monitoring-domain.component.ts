@@ -70,6 +70,9 @@ export class MonitoringDomainComponent implements OnInit {
     },
     {
       label: 'Reasons'
+    },
+    {
+      label: 'Action'
     }
   ];
 
@@ -292,6 +295,13 @@ export class MonitoringDomainComponent implements OnInit {
       default:
         break;
     }
+  }
+
+  async applyAutoRenew(domain, shouldRenew) {
+    const result = await this._api.post(environment.qmenuApiUrl + 'utils/domain-renewal', {
+      domain,
+      shouldRenew
+    }).toPromise();
   }
 
 }
