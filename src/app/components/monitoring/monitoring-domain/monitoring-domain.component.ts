@@ -264,7 +264,18 @@ export class MonitoringDomainComponent implements OnInit {
   }
 
   getMatchingRestaurant(domain) {
-    return this.restaurants.find(rt => {
+    // return this.restaurants.find(rt => {
+    //   const qmenuWebsite = (rt.web || {}).qmenuWebsite || '';
+    //   const rtDomain = qmenuWebsite.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
+    //   const hostedDomain = domain.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
+
+    //   if (rtDomain === hostedDomain) {
+    //     return true;
+    //   }
+    //   return false;
+    // });
+
+    const matches = this.restaurants.filter(rt => {
       const qmenuWebsite = (rt.web || {}).qmenuWebsite || '';
       const rtDomain = qmenuWebsite.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
       const hostedDomain = domain.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
@@ -274,6 +285,15 @@ export class MonitoringDomainComponent implements OnInit {
       }
       return false;
     });
+
+    if(matches.length > 1) {
+      const match = matches.find(rt => !rt.disabled);
+      return match;
+    } else {
+      const [match] = matches;
+      return match;
+    }
+    
   }
 
   filter() {
