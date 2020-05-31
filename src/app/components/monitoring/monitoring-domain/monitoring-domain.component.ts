@@ -114,7 +114,7 @@ export class MonitoringDomainComponent implements OnInit {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setDate(sixMonthsAgo.getDate() - this.INVOICE_DAYS_THRESHOLD);
 
-    this.invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    this.invoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         'restaurant.disabled': { $ne: true },
@@ -125,9 +125,7 @@ export class MonitoringDomainComponent implements OnInit {
         "restaurant.id": 1,
         'restaurant.disabled': 1
       },
-      // sort: { toDate: -1 }, // this breaks server: not enought memory for sorting so index or reduce the limit
-      limit: 30000,
-    }).toPromise();
+    }, 20000);
 
     // flat map
     this.domainMap = this.domains.map(domain => {
