@@ -19,6 +19,7 @@ export class GmbBizListComponent implements OnInit {
   restaurantStatus = "restaurant status";
   restaurantProblems = "restaurant problems";
   gmbStatus = "GMB status";
+  gmbRole = "GMB role";
 
   gmbOwnerAndCounts = [];
   gmbWebsiteOwner = "GMB website owner";
@@ -97,6 +98,7 @@ export class GmbBizListComponent implements OnInit {
           "locations.name": 1,
           "locations.address": 1,
           "locations.status": 1,
+          "locations.role": 1,
           "locations.statusHistory.time": 1,
           "locations.statusHistory.status": 1
         },
@@ -133,7 +135,7 @@ export class GmbBizListComponent implements OnInit {
       }
     }
 
-    
+
 
     // create a cidMap
     const cidMap = {};
@@ -318,6 +320,21 @@ export class GmbBizListComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.googleListing && r.accountLocations.some(al => al.location.cid !== r.restaurant.googleListing.cid));
         break;
 
+      default:
+        break;
+    }
+
+    switch (this.gmbRole) {
+      case 'OWNER':
+      case 'CO_OWNER':
+      case 'MANAGER':
+      case 'COMMUNITY_MANAGER':
+        this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.location.role === this.gmbRole));
+        break;
+      case 'others':
+        const knownRoles = ['OWNER', 'CO_OWNER', 'MANAGER', 'COMMUNITY_MANAGER'];
+        this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => knownRoles.indexOf(al.location.status) < 0));
+        break;
       default:
         break;
     }
