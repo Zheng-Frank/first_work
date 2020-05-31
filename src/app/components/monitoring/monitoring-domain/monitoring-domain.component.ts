@@ -107,8 +107,8 @@ export class MonitoringDomainComponent implements OnInit {
         "googleAddress.formatted_address": 1,
         "web.qmenuWebsite": 1,
         "web.useBizWebsiteForAll": 1
-      },
-    }, 10000);
+      }
+    }, 5000);
 
     // --- invoices
     const sixMonthsAgo = new Date();
@@ -125,7 +125,8 @@ export class MonitoringDomainComponent implements OnInit {
         "restaurant.id": 1,
         'restaurant.disabled': 1
       },
-    }, 20000);
+      limit: 25000
+    }, 5000);
 
     // flat map
     this.domainMap = this.domains.map(domain => {
