@@ -198,7 +198,7 @@ export class MonitoringDomainComponent implements OnInit {
         entry.restaurantInsistedForAll = true;
         continue;
       }
-      
+
       // --- expiry time in upcoming expiryDaysTreshold days
       const now = new Date();
       const expiry = new Date(entry.domainExpiry);
@@ -286,14 +286,14 @@ export class MonitoringDomainComponent implements OnInit {
       return false;
     });
 
-    if(matches.length > 1) {
+    if (matches.length > 1) {
       const match = matches.find(rt => !rt.disabled);
       return match;
     } else {
       const [match] = matches;
       return match;
     }
-    
+
   }
 
   filter() {
@@ -307,7 +307,7 @@ export class MonitoringDomainComponent implements OnInit {
       case 'Domains to Renew':
         this.filteredDomains = this.domainMap.filter(e => e.shouldRenew);
         break;
-      
+
       case 'Domains to not Renew':
         this.filteredDomains = this.domainMap.filter(e => !e.shouldRenew);
         break;
@@ -318,10 +318,20 @@ export class MonitoringDomainComponent implements OnInit {
   }
 
   async applyAutoRenew(domain, shouldRenew) {
-    const result = await this._api.post(environment.qmenuApiUrl + 'utils/domain-renewal', {
-      domain,
-      shouldRenew
-    }).toPromise();
+
+    try {
+      const result = await this._api.post(environment.appApiUrl + 'utils/renew-aws-domain', {
+        domain,
+        shouldRenew
+      }).toPromise();
+      
+      console.log(result);
+
+    } catch (error) {
+      console.error(error);
+
+    }
+    
   }
 
 }
