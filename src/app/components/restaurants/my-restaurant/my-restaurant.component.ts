@@ -569,11 +569,6 @@ export class MyRestaurantComponent implements OnInit {
 
   async populate() {
 
-
-    if (new Date()) {
-      throw "sdgasdf";
-    }
-
     this.result = [];
     const myUsername = this.username;
     this.disabledTotal = 0;
