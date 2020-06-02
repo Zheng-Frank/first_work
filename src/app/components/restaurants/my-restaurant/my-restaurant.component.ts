@@ -387,7 +387,7 @@ export class MyRestaurantComponent implements OnInit {
       ],
     };
 
-    let uncomputedRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let uncomputedRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         salesBonus: null
@@ -398,9 +398,8 @@ export class MyRestaurantComponent implements OnInit {
         rateSchedules: 1,
         createdAt: 1,
         previousRestaurantId: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }      
+    }, 6000)
 
     // uncomputedRestaurants = uncomputedRestaurants.filter(r => r._id === '5b5bfd764f600614008fcff5');
 
