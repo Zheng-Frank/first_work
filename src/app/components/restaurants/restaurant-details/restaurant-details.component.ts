@@ -163,6 +163,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           stripeSecretKey: 1,
           surchargeAmount: 1,
           surchargeName: 1,
+          surchargeRate: 1,
           taxBeforePromotion: 1,
           taxOnDelivery: 1,
           taxRate: 1,

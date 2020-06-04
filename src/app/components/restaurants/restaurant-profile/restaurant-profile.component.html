@@ -50,7 +50,12 @@
 							<td class="pl-1">{{restaurant.taxRate | percentage}}</td>
 						</tr>
 						<tr>
-							<th class="text-right">Surcharge</th>
+							<th class="text-right">Surcharge Rate</th>
+							<td class="pl-1">{{restaurant.surchargeRate}}
+								{{restaurant.surchargeRate | percentage}}</td>
+						</tr>
+						<tr>
+							<th class="text-right">Surcharge Flat Fee</th>
 							<td class="pl-1">{{restaurant.surchargeName}}
 								{{restaurant.surchargeAmount | currency:'USD':'symbol'}}</td>
 						</tr>
@@ -208,7 +213,14 @@
 							</td>
 						</tr>
 						<tr>
-							<th class="text-right">Surcharge</th>
+								<th class="text-right">Surcharge Rate</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="surchargeRate" class="form-control"
+										placeholder="rate">
+								</td>
+							</tr>
+						<tr>
+							<th class="text-right">Surcharge Flat fee</th>
 							<td class="pl-1">
 								<input type="number" [(ngModel)]="surchargeAmount" class="form-control"
 									placeholder="surcharge amount">

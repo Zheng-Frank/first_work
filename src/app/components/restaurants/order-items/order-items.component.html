@@ -58,7 +58,7 @@
       </tr>
 
       <tr class="gray-border-top ">
-        <td class="text-sm-center" style="vertical-align: middle" attr.rowspan="{{3 + (alwaysDisplayDeliveryCharge || order.deliveryCharge ? 1: 0) + (alwaysDisplayTip || order.getTip() ? 1: 0) + (order.surchargeAmount ? 1: 0) + (order.ccProcessingRate || order.ccProcessingFlatFee ? 1: 0)}}">
+        <td class="text-sm-center" style="vertical-align: middle" attr.rowspan="{{3 + (alwaysDisplayDeliveryCharge || order.deliveryCharge ? 1: 0) + (alwaysDisplayTip || order.getTip() ? 1: 0) + (order.surchargeRate || order.surchargeAmount ? 1: 0) + (order.ccProcessingRate || order.ccProcessingFlatFee ? 1: 0)}}">
           <span class="box" *ngIf="order.specialInstructions"><strong>{{order.specialInstructions}}</strong></span></td>
         <td class="text-right text-nowrap">subtotal</td>
         <td class="text-right text-nowrap">{{order.getSubtotal() | money}}</td>
@@ -81,7 +81,7 @@
       </tr>
       <tr *ngIf="order.surchargeAmount">
         <td class="text-right text-nowrap">{{order.surchargeName || 'surcharge'}}</td>
-        <td class="text-right text-nowrap">{{order.surchargeAmount | money}}</td>
+        <td class="text-right text-nowrap">{{order.surchargeRate ? (order.surchargeRate*100).toFixed(2)+'%' : ''}}{{order.surchargeRate && order.surchargeAmount ? '+$'+order.surchargeAmount.toFixed(2) : ''}}</td>
       </tr>
       <tr *ngIf="order.getCreditCardProcessingFeeAmount()>0">
         <td class="text-right text-nowrap">credit card fee {{order.ccProcessingRate ? (order.ccProcessingRate*100).toFixed(2)+'%' : ''}}{{order.ccProcessingRate && order.ccProcessingFlatFee ? '+$'+order.ccProcessingFlatFee.toFixed(2) : ''}}</td>
