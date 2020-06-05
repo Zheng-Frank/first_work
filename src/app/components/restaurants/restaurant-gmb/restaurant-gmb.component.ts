@@ -317,6 +317,9 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   async inject(row) {
+    if (!this.restaurant.web || !this.restaurant.web.qmenuWebsite || !this.restaurant.menus || this.restaurant.menus.length === 0) {
+      this._global.publishAlert(AlertType.Danger, "restaurant NOT READY to inject anythiong yet");
+    }
     const target = Helper.getDesiredUrls(this.restaurant);
     if (!target.website) {
       return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
