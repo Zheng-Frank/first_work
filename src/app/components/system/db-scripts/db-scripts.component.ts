@@ -9,6 +9,7 @@ import { Restaurant } from '@qmenu/ui';
 import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
 import { Domain } from "src/app/classes/domain";
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: "app-db-scripts",
@@ -578,7 +579,7 @@ export class DbScriptsComponent implements OnInit {
     console.log(missingTimezoneRestaurants);
     for (let r of missingTimezoneRestaurants) {
       try {
-        
+
         const addressDetails = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
           formatted_address: r.googleAddress.formatted_address
         }).toPromise();
@@ -1635,8 +1636,8 @@ export class DbScriptsComponent implements OnInit {
       projection: {
         name: 1,
         "menus": 1
-      },     
-    },6000);
+      },
+    }, 6000);
     console.log(havingNullRestaurants);
     // remove mi, empty mc, and empty menu!
 
@@ -2606,16 +2607,16 @@ export class DbScriptsComponent implements OnInit {
       }
     }, 3000)
 
-    let result = serviceSettings.filter(r => (!r.disabled &&  r.googleListing && r.googleListing.gmbOwner==="qmenu" && r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > 0)));
+    let result = serviceSettings.filter(r => (!r.disabled && r.googleListing && r.googleListing.gmbOwner === "qmenu" && r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > 0)));
     let rtIds = result.map(r => r._id);
 
-    
+
     console.log("qMenu RTs=", rtIds);
     // console.log("qMenu RT IDs=", rtIds.slice(0,100));
     // console.log("qMenu RT IDs=", rtIds.slice(100,200));
     // console.log("qMenu RT IDs=", rtIds.slice(200, 300));
     // console.log("qMenu RT IDs=", rtIds.slice(300));
-    
+
 
   }
 
@@ -2860,6 +2861,32 @@ export class DbScriptsComponent implements OnInit {
     console.log('chineseIdString', chineseIdString);
   }
 
+  async getChineseOrEnglishRTs() {
+    const RTs = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        _id: 1,
+        'rateSchedules': 1
+      }
+    }, 3000)
+
+
+    let englishRts = RTs.filter(r => r.rateSchedules && r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
+    let chineseRts = RTs.filter(r =>  r.rateSchedules && !r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
+    console.log('englishRts length', englishRts.length);
+    console.log('chineseRts', chineseRts.length);
+    console.log('englishRts', englishRts);
+    console.log('chineseRts', chineseRts);
+
+    let englishIdString = englishRts.join(',');
+    let chineseIdString = chineseRts.join(',');
+    console.log('englishIdString', englishIdString);
+    console.log('chineseIdString', chineseIdString);
+
+    FileSaver.saveAs(new Blob([JSON.stringify(chineseIdString)], { type: "text" }), 'data.txt');
+
+  }
+
   async getRestaurantWithoutSingleDomain() {
 
     let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
@@ -2922,8 +2949,8 @@ export class DbScriptsComponent implements OnInit {
     let filteredRT2 = publishedRTs.filter(each => each.web && each.web.qmenuWebsite && each.web.qmenuWebsite.indexOf('qmenu.us') < 0 && each.web.qmenuWebsite.indexOf('https') < 0);
     console.log("godaddy RTs", filteredRT2);
 
-    console.log("qmenu.us RTs score >0", filteredRT1.filter(each => each.score >0));
-    console.log("godaddy RTs score >0", filteredRT2.filter(each => each.score >0));
+    console.log("qmenu.us RTs score >0", filteredRT1.filter(each => each.score > 0));
+    console.log("godaddy RTs score >0", filteredRT2.filter(each => each.score > 0));
 
 
 
