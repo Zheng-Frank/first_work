@@ -111,7 +111,7 @@ export class MonitoringOnboardingComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.agent !=='charity' &&  r.noMenu)
         break;
 
-      case 'Ready for Testing order':
+      case 'Having Menu':
         this.filteredRows = this.filteredRows.filter(r => r.agent !=='charity'&&  !r.noMenu && r.noOrder)
         break;
       default:

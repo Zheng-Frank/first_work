@@ -15,7 +15,7 @@
         <label for="">Filter by: </label>
         <select class="form-control mr-2 mb-1" [(ngModel)]="filterBy" (change)="filter()">
             <option>No Menu</option>
-            <option>Ready for Testing order</option>
+            <option>Having Menu</option>
         </select>
     </div>
 
@@ -79,7 +79,7 @@ Total : {{filteredRows.length}}
         <td>{{row.accountAndStatuses[0]?.role}}</td>
         <td class="text-wrap">
             <div *ngFor="let log of row.restaurant.logs">
-                {{log.time || MMMd}} <br>
+                {{log.time | date: 'short'}} <br>
                 {{log.problem}} <br>
                 {{log.response}}
                 <hr *ngIf="row.restaurant.logs.length>1">
