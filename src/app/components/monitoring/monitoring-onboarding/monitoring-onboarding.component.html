@@ -11,6 +11,16 @@
 </div>
 <div>
 
+    <div class="float-left form-inline">
+        <label for="">Filter by: </label>
+        <select class="form-control mr-2 mb-1" [(ngModel)]="filterBy" (change)="filter()">
+            <option>No Menu</option>
+            <option>Ready for Testing order</option>
+        </select>
+    </div>
+
+Total : {{filteredRows.length}}
+
 </div>
 <table class="table my-2">
     <tr>
@@ -21,6 +31,8 @@
         <th>GMB</th>
         <th class="text-nowrap">Has Menu</th>
         <th class="text-nowrap">Has Order</th>
+        <th class="text-nowrap">Status</th>
+        <th class="text-nowrap">Role</th>
         <th class="text-wrap">Logs</th>
     </tr>
     <tr *ngFor="let row of filteredRows; let i = index">
@@ -63,8 +75,11 @@
             <span *ngIf="row.noOrder" class="text-danger">?</span>
             <span *ngIf="!row.noOrder" class="text-success">✓</span>
         </td>
+        <td>{{row.accountAndStatuses[0]?.status}}</td>
+        <td>{{row.accountAndStatuses[0]?.role}}</td>
         <td class="text-wrap">
             <div *ngFor="let log of row.restaurant.logs">
+                {{log.time || MMMd}} <br>
                 {{log.problem}} <br>
                 {{log.response}}
                 <hr *ngIf="row.restaurant.logs.length>1">

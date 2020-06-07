@@ -59,6 +59,12 @@ export class GlobalService {
           accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"]
         },
         {
+          name: "ONBOARDING",
+          href: "#/onboarding",
+          fa: "fas fa-utensils",
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"]
+        },
+        {
           name: "Restaurants",
           href: "#/restaurants",
           fa: "fas fa-utensils",

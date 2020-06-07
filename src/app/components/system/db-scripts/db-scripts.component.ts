@@ -2866,21 +2866,23 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       projection: {
         _id: 1,
+        disabled: 1,
         'rateSchedules': 1
       }
     }, 3000)
 
 
-    let englishRts = RTs.filter(r => r.rateSchedules && r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
-    let chineseRts = RTs.filter(r =>  r.rateSchedules && !r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
+
+    let englishRts = RTs.filter(r =>  !r.disabled &&  r.rateSchedules && r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
+    let chineseRts = RTs.filter(r =>  !r.disabled &&  r.rateSchedules && !r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
     console.log('englishRts length', englishRts.length);
     console.log('chineseRts', chineseRts.length);
-    console.log('englishRts', englishRts);
-    console.log('chineseRts', chineseRts);
+    //console.log('englishRts', englishRts);
+    //console.log('chineseRts', chineseRts);
 
     let englishIdString = englishRts.join(',');
     let chineseIdString = chineseRts.join(',');
-    console.log('englishIdString', englishIdString);
+    //console.log('englishIdString', englishIdString);
     console.log('chineseIdString', chineseIdString);
 
     FileSaver.saveAs(new Blob([JSON.stringify(chineseIdString)], { type: "text" }), 'data.txt');
