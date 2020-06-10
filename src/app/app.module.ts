@@ -345,7 +345,7 @@ import { CourierDashboardComponent } from './components/couriers/courier-dashboa
     TaskService,
     CacheService,
     CrawlTemplateService,
-    AmazonConnectService,
+    AmazonConnectService
   ],
   bootstrap: [RootComponent]
 })

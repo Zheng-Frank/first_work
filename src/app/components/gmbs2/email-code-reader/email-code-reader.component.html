@@ -35,6 +35,8 @@
         class="text-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.email}}</span>
     </div>
 
+    <button class="btn btn-primary" (click)="syncGmbMenuHours()" [qLoading]="apiRequesting">Sync GMB Menu Hours</button>
+
     <button class="btn btn-primary" (click)="injectWebsiteAws()" [qLoading]="apiRequesting">Publish
       Website to AWS</button>
     <button class="btn btn-primary" (click)="injectWebsite()" [qLoading]="apiRequesting">Publish
