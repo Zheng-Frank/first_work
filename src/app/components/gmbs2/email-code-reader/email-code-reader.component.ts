@@ -205,67 +205,6 @@ export class EmailCodeReaderComponent implements OnInit {
   }
 
   // sync menu hours
-  applyOffset(date, offsetToEST) {
-    if (date) {
-      const cloned = new Date(date.valueOf());
-      const serverOffset = (new Date(date.toString('en-US')).valueOf() - new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' })).valueOf()) / 3600000;
-      const totalOffset = -serverOffset + (offsetToEST || 0);
-      cloned.setHours(cloned.getHours() + totalOffset);
-      return cloned;
-    }
-    return null;
-  }
-
-  mergeDates(ranges) {
-    let result = [], last;
-    ranges.forEach((r) => {
-      if (!last || r.start > last.end)
-        result.push(last = r);
-      else if (r.end > last.end)
-        last.end = r.end;
-    });
-    return result;
-  };
-
-  splitRanges(ranges) {
-    const partitionBy = (arr, ind) => {
-      const i = arr.findIndex(c => c.start < ind && ind <= c.end);
-      if (i < 0) return;
-      const cur = arr[i];
-      arr.splice(i, 1,
-        { start: cur.start, end: ind },
-        { start: ind, end: cur.end }
-      );
-    }
-
-    const foldInNewInterval = (arr, int) => {
-      partitionBy(arr, int.start);
-      partitionBy(arr, int.end);
-      for (let i = 0; i < arr.length; i++) {
-        if (int.start < arr[i].start) {
-          if (int.end < arr[i].start) {
-            arr.splice(i, 0, int);
-            return;
-          }
-          arr.splice(i, 0, { start: int.start, end: arr[i].start });
-          i++;
-          int.start = arr[i].start;
-        }
-        if (int.start === arr[i].start) {
-          int.start = arr[i].end;
-        }
-        if (int.end < int.start) {
-          return;
-        }
-      }
-      arr.push(int);
-    }
-
-    const ret = [];
-    ranges.forEach(i => foldInNewInterval(ret, { start: i.start, end: i.end }));
-    return ret;
-  }
-
   async syncGmbMenuHours() {
     try {
       const results = await this._api.post(environment.appApiUrl + "gmb/generic", {
