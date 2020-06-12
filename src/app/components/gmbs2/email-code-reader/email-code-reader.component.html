@@ -35,7 +35,7 @@
         class="text-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.email}}</span>
     </div>
 
-    <button class="btn btn-primary" (click)="syncGmbMenuHours()" [qLoading]="apiRequesting">Sync GMB Menu Hours</button>
+    
 
     <button class="btn btn-primary" (click)="injectWebsiteAws()" [qLoading]="apiRequesting">Publish
       Website to AWS</button>
@@ -43,6 +43,8 @@
       Website to Godaddy</button>
     <button class="btn btn-primary" (click)="clickRetrieve()" [qLoading]="apiRequesting">Retrieve
       Verification Code</button>
+
+    <button class="btn btn-primary" (click)="syncGmbMenuHours()" [qLoading]="apiRequesting">Sync GMB Menu Hours</button>
 
     <div class="alert alert-danger my-2 text-left" *ngIf="!restaurant?.web?.qmenuWebsite || restaurant?.web?.qmenuWebsite?.indexOf('qmenu') > 0">
       <h2 class="text-center">COSTLY ACTION. USE EXTREME CAUTION! 务必非常仔细以防止造成重大损失!</h2>
