@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, SimpleChanges, ViewChild } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { ApiService } from '../../../services/api.service';
@@ -9,13 +9,14 @@ import { Task } from 'src/app/classes/tasks/task';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { Helper } from 'src/app/classes/helper';
 import { GmbAccount } from 'src/app/classes/gmb/gmb-account';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 @Component({
   selector: 'app-restaurant-gmb',
   templateUrl: './restaurant-gmb.component.html',
   styleUrls: ['./restaurant-gmb.component.css']
 })
 export class RestaurantGmbComponent implements OnInit {
-
+  @ViewChild('addGMBInviteModal') addGMBInviteModal: ModalComponent;
   @Input() restaurant: Restaurant;
 
   relevantGmbRequests: any[] = [];
@@ -25,7 +26,11 @@ export class RestaurantGmbComponent implements OnInit {
   apiRequesting = false;
   now = new Date();
 
+  inviteEmail = '';
+  inviteRole = 'MANAGER';
+
   isAdmin = false;
+
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
   }
@@ -300,7 +305,6 @@ export class RestaurantGmbComponent implements OnInit {
     return Helper.areDomainsSame(gmbBiz.gmbWebsite, desiredWebsites.website);
   }
 
-
   /** item is in {menuUrls, reservations, and serviceProviders} */
   isOthersOk(gmbBiz: GmbBiz, item, target) {
     const desiredWebsites = Helper.getDesiredUrls(this.restaurant);
@@ -355,6 +359,43 @@ export class RestaurantGmbComponent implements OnInit {
       new: { _id: row.gmbBiz._id },
     }]).toPromise();
     this.gmbRows = this.gmbRows.filter(r => r != row);
+  }
+
+  showInviteGmbUserModal() {
+    this.addGMBInviteModal.show();
+  }
+
+  isValidEmail() {
+    return (/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/).test(this.inviteEmail)
+  }
+
+  async addGmbUser() {
+    try {
+
+      const payload = {
+        restaurantId: this.restaurant._id,
+        inviteEmail: this.inviteEmail,
+        role: this.inviteRole
+      };
+
+      console.log(payload);
+
+      await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "invite-gmb",
+        payload
+      }).toPromise();
+      this.inviteEmail = '';
+      this._global.publishAlert(AlertType.Success, 'Success!');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Warning, `Error while trying to Invite Gmb User: ${this.inviteEmail}`);
+      console.error(error);
+    }
+
+  }
+
+  hideInviteGmbUserModal() {
+    this.addGMBInviteModal.hide();
+    this.inviteEmail = '';
   }
 
 }
