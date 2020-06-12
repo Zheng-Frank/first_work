@@ -175,6 +175,45 @@ export class MyRestaurantComponent implements OnInit {
   }
 
   async computeGmbOrigin() {
+    // 6/1/2020: if gained within one day of self-reflected, it's assigned to qmenu
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        createdAt: { $gt: { $date: "2020-05-01T12:53:41.483Z" } }
+      },
+      projection: {
+        "name": 1,
+        "googleListing.cid": 1,
+        "googleListing.place_id": 1,
+        "salesBase": 1,
+        "salesBonus": 1,
+        "salesThreeMonthAverage": 1,
+        gmbOrigin: 1
+      }
+    }, 2000);
+    restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
+    const selfReflectedRequests = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'self-reflected-request',
+    }, 8000);
+
+    const placeIdTimes = {};
+    selfReflectedRequests.map(r => {
+      placeIdTimes[r.place_id] = placeIdTimes[r.place_id] || [];
+      placeIdTimes[r.place_id].push(new Date(r.createdAt));
+    });
+
+    // reset origin on 5/30/2020
+    for (let rt of restaurants) {
+      if (rt.gmbOrigin && new Date(rt.gmbOrigin.time) > new Date("5/30/2020")) {
+        const originTime = new Date(rt.gmbOrigin.time);
+        const selfRequestsTimes = placeIdTimes[rt.googleListing && rt.googleListing.place_id] || [];
+        if (rt.gmbOrigin.origin !== 'qMenu' && selfRequestsTimes.some(t => t.valueOf() < originTime.valueOf() && t.valueOf() > originTime.valueOf() - 1 * 24 * 3600000)) {
+          console.log(`reset ${rt._id}`);
+          delete rt.gmbOrigin;
+        }
+      }
+    }
+
     const gmbBizList = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       projection: {
@@ -193,19 +232,6 @@ export class MyRestaurantComponent implements OnInit {
       }
     }, 80);
     console.log(gmbAccounts);
-
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      projection: {
-        "name": 1,
-        "googleListing.cid": 1,
-        "salesBase": 1,
-        "salesBonus": 1,
-        "salesThreeMonthAverage": 1,
-        gmbOrigin: 1
-      }
-    }, 2000);
-    restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
 
     const selectedRestaurants = restaurants.filter(rt => !rt.gmbOrigin);
     // selectedRestaurants.length = 600;
@@ -247,13 +273,18 @@ export class MyRestaurantComponent implements OnInit {
 
       if (firstPublishedLocation) {
         console.log(firstPublishedLocation)
+        const place_id = firstPublishedLocation.place_id;
+        const originTime = new Date(firstPublishedLocation.statusHistory.filter(sh => sh.status === "Published").slice(-1)[0].time);
+        const selfRequestsTimes = placeIdTimes[place_id] || [];
+        const isSelfReflected = selfRequestsTimes.some(t => t.valueOf() < originTime.valueOf() && t.valueOf() > originTime.valueOf() - 2 * 24 * 3600000);
+        const origin = (!isSelfReflected && ["Published", "Suspended"].indexOf(firstPublishedLocation.statusHistory.slice(-1)[0].status) >= 0) ? "sales" : "qMenu";
         const gmbOrigin = {
-          time: new Date(firstPublishedLocation.statusHistory.filter(sh => sh.status === "Published").slice(-1)[0].time).toISOString(),
+          time: originTime.toISOString(),
           status: "Published",
           firstStatus: firstPublishedLocation.statusHistory.slice(-1)[0].status,
-          origin: ["Published", "Suspended"].indexOf(firstPublishedLocation.statusHistory.slice(-1)[0].status) >= 0 ? "sales" : "qMenu",
+          origin: origin,
           cid: firstPublishedLocation.cid,
-          place_id: firstPublishedLocation.place_id,
+          place_id: place_id,
           email: firstPublishedEmail,
           _id: rt._id
         };
@@ -263,6 +294,7 @@ export class MyRestaurantComponent implements OnInit {
     });
 
     console.log(gmbOrigins)
+
     for (let i = 0; i < gmbOrigins.length; i += 100) {
       const slice = gmbOrigins.slice(i, i + 100);
       const patches = slice.map(gmbOrigin => ({
@@ -387,7 +419,7 @@ export class MyRestaurantComponent implements OnInit {
       ],
     };
 
-    let uncomputedRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let uncomputedRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         salesBonus: null
@@ -398,9 +430,8 @@ export class MyRestaurantComponent implements OnInit {
         rateSchedules: 1,
         createdAt: 1,
         previousRestaurantId: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }      
+    }, 6000)
 
     // uncomputedRestaurants = uncomputedRestaurants.filter(r => r._id === '5b5bfd764f600614008fcff5');
 
@@ -536,6 +567,7 @@ export class MyRestaurantComponent implements OnInit {
   }
 
   async populate() {
+
     this.result = [];
     const myUsername = this.username;
     this.disabledTotal = 0;

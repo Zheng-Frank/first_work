@@ -63,7 +63,6 @@ export class EmailCodeReaderComponent implements OnInit {
 
   }
 
-
   async clickRetrieve() {
     this.retrievedObj = undefined;
     this.apiRequesting = true;
@@ -100,8 +99,7 @@ export class EmailCodeReaderComponent implements OnInit {
       newWeb[field] = newValue;
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
         // reset password:
-        const email = 'info@' + Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-        newWeb[field] = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: email, phrase: event.newValue }).toPromise();
+        alert("pop3 email is obsolete")
       }
 
       if (field === 'qmenuWebsite') {
@@ -203,6 +201,26 @@ export class EmailCodeReaderComponent implements OnInit {
     const result = await this._api.post(environment.appApiUrl + 'workflows/templates', postBody).toPromise();
 
     alert('Workflow created! Please visit workflows to start.');
+
+  }
+
+  // sync menu hours
+  async syncGmbMenuHours() {
+    try {
+      const results = await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "sync-gmb-menu-hours",
+        payload: {
+          "restaurantId": this.restaurant.id
+        }
+      }).toPromise();
+
+      console.log(results);
+
+      this._global.publishAlert(AlertType.Success, `Menu Hours Synced`);
+    } catch (error) {
+      console.error(error);
+      this._global.publishAlert(AlertType.Danger, `Couldn't sync menu hours`);
+    }
 
   }
 

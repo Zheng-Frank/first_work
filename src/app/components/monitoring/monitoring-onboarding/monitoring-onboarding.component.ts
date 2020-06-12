@@ -12,6 +12,7 @@ export class MonitoringOnboardingComponent implements OnInit {
 
   havingGMB: boolean;
   isWarning: boolean;
+  filterBy;
 
   rows = []; // {restaurant, noMenu, noOrder, hasGmb, hadGmb}
   filteredRows = [];
@@ -61,7 +62,8 @@ export class MonitoringOnboardingComponent implements OnInit {
       projection: {
         "email": 1,
         "locations.cid": 1,
-        "locations.status": 1
+        "locations.status": 1,
+        "locations.role": 1
       }
     }, 1000);
 
@@ -70,7 +72,7 @@ export class MonitoringOnboardingComponent implements OnInit {
       const row = dict[k];
       const accountAndStatuses = [];
       gmbAccounts.map(account => (account.locations || []).filter(loc => loc.cid && loc.cid === (row.restaurant.googleListing || {}).cid).map(loc => {
-        accountAndStatuses.push({ email: account.email, status: loc.status });
+        accountAndStatuses.push({ email: account.email, status: loc.status, role: loc.role });
 
       }));
       const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Reverification required', 'Published'];
@@ -96,7 +98,6 @@ export class MonitoringOnboardingComponent implements OnInit {
   }
 
   filter() {
-
     this.filteredRows = this.rows;
     if (this.havingGMB) {
       this.filteredRows = this.filteredRows.filter(r => r.accountAndStatuses[0] && r.accountAndStatuses[0].status === 'Published')
@@ -104,6 +105,20 @@ export class MonitoringOnboardingComponent implements OnInit {
     if (this.isWarning) {
       this.filteredRows = this.filteredRows.filter(r => (r.hadGmb && r.noMenu) || (!r.noMenu && r.hadGmb && r.noOrder))
     }
+
+    switch (this.filterBy) {
+      case 'No Menu':
+        this.filteredRows = this.filteredRows.filter(r => r.agent !=='charity' &&  r.noMenu)
+        break;
+
+      case 'Having Menu':
+        this.filteredRows = this.filteredRows.filter(r => r.agent !=='charity'&&  !r.noMenu && r.noOrder)
+        break;
+      default:
+        break;
+    }
+
+
     console.log(JSON.stringify(this.filteredRows));
   }
 

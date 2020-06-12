@@ -317,6 +317,10 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   async inject(row) {
+    if (!this.restaurant.web || !this.restaurant.web.qmenuWebsite || !this.restaurant.menus || this.restaurant.menus.length === 0) {
+      this._global.publishAlert(AlertType.Danger, "restaurant NOT READY to inject anythiong yet");
+      return;
+    }
     const target = Helper.getDesiredUrls(this.restaurant);
     if (!target.website) {
       return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
@@ -324,20 +328,6 @@ export class RestaurantGmbComponent implements OnInit {
     for (let al of row.accountLocationPairs) {
       console.log(al);
       if (al.location.status === 'Published') {
-        // await this._api
-        //   .post(environment.qmenuApiUrl + 'utils/crypto', { salt: al.account.email, phrase: al.account.password }).toPromise()
-        //   .then(password => this._api.post(
-        //     environment.autoGmbUrl + 'updateWebsite', {
-        //     email: al.account.email,
-        //     password: password,
-        //     websiteUrl: target.website,
-        //     menuUrl: target.menuUrl,
-        //     orderAheadUrl: target.orderAheadUrl,
-        //     reservationsUrl: target.reservation,
-        //     appealId: al.location.appealId,
-        //     stayAfterScan: true
-        //   }
-        //   ).toPromise())
 
         try {
           const result = await this._api.post(environment.appApiUrl + 'utils/inject-gmb-urls', {

@@ -32,13 +32,8 @@ export class GmbAccountHotlinkComponent implements OnInit {
         limit: 1
       }).toPromise();
 
-      let password = accounts[0].password;
-      if (password.length > 20) {
-        password = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: this.email, phrase: password }).toPromise();
-      }
-
       const target = 'login';
-      await this._api.post(environment.autoGmbUrl + target, { email: accounts[0].email, password: password, stayAfterScan: true, redirectUrl: this.redirectUrl }).toPromise();
+      await this._api.post(environment.autoGmbUrl + target, { email: accounts[0].email, stayAfterScan: true, redirectUrl: this.redirectUrl }).toPromise();
       this._global.publishAlert(AlertType.Success, 'Logged in.');
 
     }

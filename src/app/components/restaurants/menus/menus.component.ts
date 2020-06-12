@@ -9,7 +9,6 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { registerModuleFactory } from '@angular/core/src/linker/ng_module_factory_loader';
 
 @Component({
   selector: 'app-menus',
@@ -23,10 +22,13 @@ export class MenusComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @Output() onVisitMenuOptions = new EventEmitter();
+  @Output() menusChanged = new EventEmitter();
 
+  importMenu = false;
+  apiRequesting = false;
+  providerUrl;
+  providers = [];
   activeId = undefined;
-  crawlCMO = false;
-  crawlBM = false;
   cmoUrl;
   bmUrl;
 
@@ -42,6 +44,79 @@ export class MenusComponent implements OnInit {
   ngOnInit() {
   }
 
+  async populateProviders() {
+    this.apiRequesting = true;
+    try {
+      const providers = await this._api.post(environment.appApiUrl + "utils/menu", {
+        name: "get-service-providers",
+        payload: {
+          name: this.restaurant.name,
+          address: (this.restaurant.googleAddress || {} as any).formatted_address,
+          phone: (this.restaurant.googleListing || {}).phone
+        }
+      }).toPromise();
+      this.providers = providers.filter(p => ["slicelife", "grubhub", "beyondmenu", "chinesemenuonline"].indexOf(p.name || "unknown") >= 0).map(p => ({
+        name: p.name,
+        url: (p.menuUrl && p.menuUrl !== "unknown") ? p.menuUrl : p.url
+      }));
+      if (this.providers.length === 0) {
+        alert("no known providers found");
+      }
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Error on retrieving providers");
+      alert("timeout");
+    }
+    this.apiRequesting = false;
+  }
+
+  async crawl(synchronously) {
+    console.log(this.restaurant.googleAddress)
+    this.apiRequesting = true;
+    try {
+      this._global.publishAlert(AlertType.Info, "crawling...");
+      const provider = ["beyondmenu", "grubhub", "slicelife"].filter(p => this.providerUrl.indexOf(p) > 0)[0] || "chinesemenuonline";
+
+      if (synchronously) {
+        const crawledRestaurant = await this._api.post(environment.appApiUrl + "utils/menu", {
+          name: "crawl",
+          payload: {
+            url: this.providerUrl,
+            timezone: this.restaurant.googleAddress.timezone
+          }
+        }).toPromise();
+        this._global.publishAlert(AlertType.Info, "updating...");
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+          old: {
+            _id: this.restaurant._id
+          }, new: {
+            _id: this.restaurant._id,
+            menus: crawledRestaurant.menus,
+            menuOptions: crawledRestaurant.menuOptions
+          }
+        }]).toPromise();
+
+        this._global.publishAlert(AlertType.Info, "injecting images...");
+        await this._api.post(environment.appApiUrl + "utils/menu", {
+          name: "inject-images",
+          payload: {
+            restaurantId: this.restaurant._id,
+          }
+        }).toPromise();
+        this._global.publishAlert(AlertType.Info, "All done!");
+        this.menusChanged.emit();
+      } else {
+        await this._api.post(environment.appApiUrl + 'events',
+          [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'populate-menus', params: { provider: provider, restaurantId: this.restaurant._id, url: this.providerUrl } } }]
+        ).toPromise();
+        alert("Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.");
+      }
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Error on retrieving menus");
+    }
+    this.apiRequesting = false;
+  }
   async sortMenus(sortedMenus) {
     // let's REMOVE sortOrder of each menu and just rely on nature sequence
     sortedMenus.map(menu => delete menu.sortOrder);
@@ -444,18 +519,5 @@ export class MenusComponent implements OnInit {
     }
 
   }
-
-  async crawlCMOMenu() {
-    const result = await this._api.post(environment.appApiUrl + 'events',
-      [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'crawl-cmo', params: { restaurantId: this.restaurant._id, url: this.cmoUrl } } }]
-    ).toPromise();
-  }
-
-  async crawlBMMenu() {
-    const result = await this._api.post(environment.appApiUrl + 'events',
-      [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'crawl-bm', params: { restaurantId: this.restaurant._id, url: this.bmUrl } } }]
-    ).toPromise();
-  }
-
 
 }

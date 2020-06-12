@@ -28,7 +28,14 @@
             <option>lost in 48 hours</option>
             <option>secondary listing</option>
         </select>
-
+        <select class="form-control mr-2 mb-1" [(ngModel)]="gmbRole" (change)="filter()">
+            <option>GMB role</option>
+            <option>OWNER</option>
+            <option>CO_OWNER</option>
+            <option>MANAGER</option>
+            <option>COMMUNITY_MANAGER</option>
+            <option>others</option>
+        </select>
         <select class="form-control mr-2 mb-1" [(ngModel)]="gmbWebsiteOwner" (change)="filter()">
             <option>GMB website owner</option>
             <option>NOT qMenu</option>

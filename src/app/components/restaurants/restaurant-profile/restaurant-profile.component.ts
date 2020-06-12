@@ -49,6 +49,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'skipImageInjection',
     'hideOrderStatus',
     'hideTipInput',
+    'hidePrintingCCInfo',
     'skipShowTax',
     'menuHoursExtended',
     'notes',
@@ -85,7 +86,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     { value: -2, text: 'Mountain Time (GMT -7:00)' },
     { value: -3, text: 'Pacific Time (GMT -8:00)' },
     { value: -4, text: 'Alaska (GMT -9:00)' },
-    { value: -5, text: 'Hawaii (GMT -10:00)' }
+    { value: -5, text: 'Hawaii (GMT -10:00)' },
+    { value: -6, text: 'Hawaii Daylight Saving(GMT -11:00)' }
   ];
 
   preferredLanguages = [

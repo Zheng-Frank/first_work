@@ -227,8 +227,6 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
  */
   async handleUpdate(name, timestampVariableName, loadingVariableName) {
 
-
-
     if (loadingVariableName) {
       this[loadingVariableName] = true;
     }
@@ -256,7 +254,8 @@ export class TaskGmbApplyComponent implements OnInit, OnChanges {
 
         toPassword = toGmbAccount.password;
         if (toPassword.length > 20) {
-          toPassword = await this._api.post(environment.qmenuApiUrl + 'utils/crypto', { salt: toGmbAccount.email, phrase: toPassword }).toPromise();
+          alert("obsolete operation");
+          throw "removed function";
         }
       }
 

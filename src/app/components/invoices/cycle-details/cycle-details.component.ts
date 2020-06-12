@@ -15,6 +15,10 @@ export class CycleDetailsComponent implements OnInit {
   activeBlockName;
   activeBlock;
   sortingColumn;
+  total = 0;
+  nonCanceledTotal = 0;
+  paidTotal = 0;
+  sentTotal = 0;
 
   blocks = {
     ALL: {
@@ -281,9 +285,11 @@ export class CycleDetailsComponent implements OnInit {
     this.blocks.SKIPPED_MANUAL.rows = allRows.filter(r => r.skipAutoInvoicing);
   }
 
-  setActiveBlockName(blockName) {
+  async setActiveBlockName(blockName) {
+    // await this.recalculate();
     this.activeBlockName = blockName;
     this.activeBlock = this.blocks[this.activeBlockName];
+    this.filter();
   }
 
   sort(column) {
@@ -336,7 +342,8 @@ export class CycleDetailsComponent implements OnInit {
           isCanceled: 1,
           isPaymentCompleted: 1,
           isPaymentSent: 1,
-          isSent: 1
+          isSent: 1,
+          commission: 1
         },
         limit: 100000
       }).toPromise();
@@ -344,7 +351,7 @@ export class CycleDetailsComponent implements OnInit {
     }
 
     let updated = false;
-    ['isCanceled', 'isPaymentCompleted', 'isPaymentSent', 'isSent'].map(field => {
+    ['isCanceled', 'isPaymentCompleted', 'isPaymentSent', 'isSent', 'commission'].map(field => {
       invoices.map(invoice => {
         const cycleInvoice = invoiceIdRowDict[invoice._id];
         if (cycleInvoice[field] !== invoice[field]) {
@@ -397,6 +404,28 @@ export class CycleDetailsComponent implements OnInit {
 
   filter() {
     // angular auto triggers repaint
+    this.total = 0;
+    this.nonCanceledTotal = 0;
+    this.paidTotal = 0;
+    this.sentTotal = 0;
+    if (this.activeBlock && this.activeBlock.rows) {
+      this.activeBlock.rows.map(row => {
+        if (this.isRowVisible(row) && row.invoice) {
+          // const commission = Math.abs(row.invoice.commission || 0);
+          const balance = Math.abs(row.invoice.balance || 0);
+          if (row.invoice.isSent) {
+            this.sentTotal += balance;
+          }
+          if (row.invoice.isPaymentCompleted) {
+            this.paidTotal += balance;
+          }
+          if (!row.invoice.isCanceled) {
+            this.nonCanceledTotal += balance;
+          }
+          this.total += balance;
+        }
+      });
+    }
   }
 
 }

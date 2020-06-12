@@ -139,7 +139,7 @@ export class TaskGmbAppealSuspendedComponent implements OnInit, OnChanges {
 
 
   async appeal() {
-    await this._gmb.appeal([this.task]);
+    alert("Obsolete");
   }
 
 

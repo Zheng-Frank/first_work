@@ -227,20 +227,17 @@ export class MenuComponent implements OnInit {
   }
 
   mcDelete(mc: Mc) {
-    // menus -> menu -> mc
-    const oldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    // menus -> menu -> mc. We don't need to keep everything, just id is enough
-    oldMenus.map(menu => menu.mcs = menu.mcs.map(category => category.id));
-
-    const newMenus = JSON.parse(JSON.stringify(oldMenus));
-
-    newMenus.map(menu => menu.mcs = menu.mcs.filter(category => category !== mc.id));
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    newMenus.forEach(eachMenu => {
+      if(this.menu.id == eachMenu.id){
+        eachMenu.mcs = eachMenu.mcs.filter(category=> category.id !== mc.id)       
+      }      
+    });
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          menus: oldMenus
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus
@@ -400,24 +397,18 @@ export class MenuComponent implements OnInit {
 
 
   miDelete(mi: Mi) {
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    newMenus.forEach(eachMenu => {
+      if(this.menu.id == eachMenu.id){
+        eachMenu.mcs.map(mc => mc.mis = mc.mis.filter(item => item.id !== mi.id))       
+      }      
+    });
 
-    // menus -> menu -> mc
-    const oldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    // menus -> menu -> mc. We don't need to keep everything, just id is enough
-    // oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
-    //   id: category.id,
-    //   mis: category.mis.map(item => item.id)
-    // })));
-
-    const newMenus = JSON.parse(JSON.stringify(oldMenus));
-
-    newMenus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(item => item.id !== mi.id)));
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id'],
-          menus: oldMenus
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus

@@ -1,38 +1,97 @@
 <h1 class="text-center">Domains<br><small>{{filteredDomains.length}}</small></h1>
 <div class="clearfix my-2">
     <div class="float-left form-inline">
-        <select class="form-control mr-2 mb-1" [(ngModel)]="managedDomain" (change)="filter()">
-            <option>Manged Domains</option>
-            <option>only active</option>
+        <label for="">Filter by: </label>
+        <select class="form-control mr-2 mb-1" [(ngModel)]="mustRenew" (change)="filter()">
+            <option>Show All</option>
+            <option>Domains to Renew</option>
+            <option>Domains to not Renew</option>
         </select>
     </div>
 </div>
 
-<table class="table">
-    <tr>
-        <th>#</th>
-        <th>Domain</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Expiry</th>
-        <th>Auto Renew</th>
-    </tr>
-    <tr *ngFor="let domain of filteredDomains; let i = index">
-        <th>{{i + 1}}</th>
-        <td>
-            {{domain.name}}
-        </td>
-        <td>
-            {{domain.type}}
-        </td>
-        <td>
-            {{domain.status}}
-        </td>
-        <td>
-            {{domain.expiry}}
-        </td>
-        <td>
-            {{domain.autoRenew}}
-        </td>
-    </tr>
-</table>
+<div class="d-flex align-items-center justify-content-end">
+  <button class="btn btn-small btn-success mr-3" (click)="applyBulkAutoRenew(true)">Enable Selected</button>
+  <button class="btn btn-small btn-primary" (click)="applyBulkAutoRenew(false)">Disable Selected</button>
+</div>
+
+<div class="d-flex align-items-center justify-content-end">
+  <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i> Reload</button>
+</div>
+
+<q-table
+  [rows]="filteredDomains"
+  [tableColumnDescriptors]="myColumnDescriptors"
+  [compact]="true"
+  [pageSize]="pagination ? 100 : 100000"
+>
+  <tr *tableRowTemplate="let domain">
+    <!-- count -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{ filteredDomains.indexOf(domain) + 1 }}
+      </div>
+    </td>
+
+    <!-- select -->
+    <td>
+      <div class="h-100 d-flex align-items-center justify-content-center ml-3">
+        <input class="form-check-input " type="checkbox" (change)="toogleBulkAutoRenew($event, domain)">
+      </div>
+    </td>
+
+    <!-- domain name -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <a href="http://{{ domain.domainName }}" target="_blank" class="font-weight-bold">{{ domain.domainName }}</a>
+        <div class="text-muted">
+            <small><a routerLink="/restaurants/{{ domain.restaurantId }}" target="_blank">{{domain.restaurantName}}</a></small>
+        </div>
+      </div>
+    </td>
+
+    <!-- domain type -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{ domain.domainType }}
+      </div>
+    </td>
+
+    <!--  domain expiry eate  -->
+    <td>
+      <small class="h-100 d-flex flex-column justify-content-center">
+        {{domain.domainExpiry | date: 'MMM dd yyyy'}}
+      </small>
+    </td>
+
+    <!-- domain auto renew status -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <div class="font-weight-bold {{domain.domainAutoRenew ? 'text-success': 'text-danger'}}">{{domain.domainAutoRenew ? 'ENABLED': 'DISABLED' }}</div>
+      </div>
+    </td>
+
+    <!-- must auto renew -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <div class="font-weight-bold {{domain.shouldRenew ? 'text-success': 'text-danger'}}">{{domain.shouldRenew ? 'YES': 'NO'}}</div>
+      </div>
+    </td>
+
+    <!-- reasons -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">
+          <small *ngFor='let reason of domain.reasons'>
+              {{reason}}
+          </small>
+      </div>
+    </td>
+
+    <td>
+      <div class="h-100 d-flex align-items-center">
+        <button class="btn btn-small btn-primary mr-3" (click)="applyAutoRenew(domain, false)" *ngIf="domain.domainAutoRenew === true">Disable</button> 
+        <button class="btn btn-small btn-success" (click)="applyAutoRenew(domain, true)" *ngIf="domain.domainAutoRenew === false">Enable</button> 
+      </div>
+    </td>
+  </tr>
+</q-table>

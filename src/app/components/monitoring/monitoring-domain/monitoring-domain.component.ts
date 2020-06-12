@@ -2,85 +2,399 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { Helper } from 'src/app/classes/helper';
+import { AlertType } from 'src/app/classes/alert-type';
 @Component({
   selector: 'app-monitoring-domain',
   templateUrl: './monitoring-domain.component.html',
   styleUrls: ['./monitoring-domain.component.css']
 })
 export class MonitoringDomainComponent implements OnInit {
+  now = new Date();
+
+  pagination = true;
   domains = [];
+  restaurants = [];
+  invoices = [];
+
+  domainMap: any;
+
   filteredDomains = [];
-  domainRtDict= [];
-  managedDomain = 'Manged Domains';
+  mustRenew = 'Show All';
+
+  EXPIRY_DAYS_THRESHOLD = 60;
+  INVOICE_DAYS_THRESHOLD = 30 * 6;
+
+  refreshing = false;
+
+  bulkDomains = [];
+
+
+  domainWhiteList = [
+    'myqmenu.com',
+    'qdasher.com',
+    'qmenu360.com',
+    'qmenu365.com',
+    'qmenu.biz',
+    'qmenu.us',
+    'qmenudemo.com',
+    'qmenufood.com',
+    'qmenuprint.com',
+    'qmenuschoice.com',
+    'qmenutest.com',
+    'qmorders.com',
+    '4043829768.com'
+  ];
+
+  myColumnDescriptors = [
+    {
+      label: '#'
+    },
+    {
+      label: 'Select'
+    },
+    {
+      label: "Domain",
+      paths: ['domainName'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: 'Type',
+      paths: ['domainType'],
+      sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+    },
+    {
+      label: 'Expiry Date',
+      paths: ['domainExpiry'],
+      sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf()
+    },
+    {
+      label: 'Auto Renew',
+      paths: ['domainAutoRenew'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: 'Must Auto Renew',
+      paths: ['shouldRenew'],
+      sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+    },
+    {
+      label: 'Reasons'
+    },
+    {
+      label: 'Action'
+    }
+  ];
+
   constructor(private _api: ApiService, private _global: GlobalService) {
 
   }
+
   async ngOnInit() {
-    const domainBatchSize = 1000;
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'domain',
-        skip: this.domains.length,
-        limit: domainBatchSize
-      }).toPromise();
-      this.domains.push(...batch);
-      if (batch.length === 0 || batch.length < domainBatchSize) {
-        break;
-      }
-    }
+    this.refresh();
+  }
 
-    const restaurantBatchSize = 1000;
-    const allRestaurants = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        projection: {
-          name: 1,
-          "googleAddress.formatted_address": 1,
-          alias: 1,
-          disabled: 1,
-          score: 1,
-          googleListing: 1,
-          "rateSchedules.agent": 1,
-          web: 1,
-          createdAt: 1
-        },
-        skip: allRestaurants.length,
-        limit: restaurantBatchSize
-      }).toPromise();
-      allRestaurants.push(...batch);
-      if (batch.length === 0 || batch.length < restaurantBatchSize) {
-        break;
-      }
-    }
+  async refresh() {
+    this.refreshing = true;
+    // --- domains
+    const nextCoupleWeeks = new Date();
+    nextCoupleWeeks.setDate(nextCoupleWeeks.getDate() + this.EXPIRY_DAYS_THRESHOLD);
+    this.domains = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'domain',
+      query: {
+        type: { $ne: 'GODADDY' },
+        expiry: { $lte: { $date: nextCoupleWeeks } }
+      },
+    }, 10000);
 
-    this.domains.map(domain =>{
-      allRestaurants.map(rt=>{
-        let website = (rt.web || {}).qmenuWebsite;
-        if (!website || website.toLowerCase().indexOf(domain) >= 0) {
-          this.domainRtDict[domain] = rt;
+    // --- restaurants
+    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        _id: 1,
+        name: 1,
+        disabled: 1,
+        "googleAddress.formatted_address": 1,
+        "web.qmenuWebsite": 1,
+        "web.useBizWebsiteForAll": 1
+      }
+    }, 5000);
+
+    // --- invoices
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setDate(sixMonthsAgo.getDate() - this.INVOICE_DAYS_THRESHOLD);
+
+    this.invoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      query: {
+        'restaurant.disabled': { $ne: true },
+        toDate: { $gte: { $date: sixMonthsAgo } },
+      },
+      projection: {
+        toDate: 1,
+        "restaurant.id": 1,
+        'restaurant.disabled': 1
+      },
+      limit: 25000
+    }, 5000);
+
+    // flat map
+    this.domainMap = this.domains.map(domain => {
+      const matchingRestaurant: any = this.getMatchingRestaurant(domain.name);
+
+      if (matchingRestaurant) {
+        return {
+          _id: domain._id,
+          domainName: domain.name,
+          domainExpiry: domain.expiry,
+          domainStatus: domain.status,
+          domainType: domain.type,
+          domainAutoRenew: domain.autoRenew,
+
+          restaurantId: matchingRestaurant._id.toString(),
+          restaurantName: matchingRestaurant.name,
+          restaurantAddress: matchingRestaurant.googleAddress.formatted_address,
+          restaurantDisabled: matchingRestaurant.disabled,
+          restaurantWeb: matchingRestaurant.web
         }
-      })
+      } else {
+        return {
+          _id: domain._id,
+          domainName: domain.name,
+          domainExpiry: domain.expiry,
+          domainStatus: domain.status,
+          domainType: domain.type,
+          domainAutoRenew: domain.autoRenew
+        }
+      }
+
     });
 
+    // --- Auto renew conditions
+    for (const entry of this.domainMap) {
+      const reasons = [];
 
-    //this.domains.map(each => allRestaurants)
+      // --- whitelist 
+      if (this.domainWhiteList.includes(entry.domainName.replace('http://', '').replace('https://', '').replace('/', ''))) {
+        reasons.push('Whitelisted domain');
+        entry.reasons = reasons;
+        entry.isWhitelistDomain = true;
+        entry.shouldRenew = true;
+        continue;
+      }
+
+      // --- rt disabled
+      if (entry.restaurantDisabled && (entry.restaurantDisabled === true)) {
+        reasons.push('Restaurant is disabled');
+        entry.reasons = reasons;
+        continue;
+      }
+
+      if ((entry.restaurantDisabled && entry.restaurantDisabled === false) || (!entry.restaurantDisabled)) {
+        reasons.push('Restaurant is enabled');
+        entry.reasons = reasons;
+      }
+
+      // --- insisted website (rt uses its own domain)
+      if ((entry.restaurantWeb || {}).useBizMenuUrl === true) {
+        reasons.push('Insisted restaurant');
+        entry.reasons = reasons;
+        entry.restaurantInsisted = true;
+        continue;
+      }
+
+      // --- insisted all
+      if ((entry.restaurantWeb || {}).useBizWebsiteForAll === true) {
+        reasons.push('Insisted website for all');
+        entry.reasons = reasons;
+        entry.restaurantInsistedForAll = true;
+        continue;
+      }
+
+      // --- expiry time in upcoming expiryDaysTreshold days
+      const now = new Date();
+      const expiry = new Date(entry.domainExpiry);
+
+      const diffTime = expiry.getTime() - now.getTime();
+      const diffDays = Math.round(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
+
+      if (diffTime < 0) {
+        reasons.push(`Expired ${diffDays} days ago`);
+        entry.reasons = reasons;
+        entry.expired = true;
+      }
+
+      if (diffTime > 0) {
+        if (diffDays <= this.EXPIRY_DAYS_THRESHOLD) {
+          reasons.push(`Will expire in less than ${diffDays} days`);
+          entry.reasons = reasons;
+          entry.expired = false;
+        } else {
+          reasons.push(`Will expire in more than ${diffDays} days`);
+          entry.reasons = reasons;
+          entry.expired = false;
+        }
+      }
+
+      // --- no invoices in the past 6 months
+      const hasInvoiceInLastMonths = this.hasInvoices(entry.restaurantId ? entry.restaurantId : '');
+      if (hasInvoiceInLastMonths === true) {
+        reasons.push(`Have invoices for the past ${this.INVOICE_DAYS_THRESHOLD / 30} months`);
+        entry.reasons = reasons;
+        entry.hasInvoicesInLast6Months = true;
+      } else {
+        reasons.push(`Do not have invoices for over ${this.INVOICE_DAYS_THRESHOLD / 30} months`);
+        entry.reasons = reasons;
+        entry.hasInvoicesInLast6Months = false;
+      }
+
+      // --- no matching restaurant
+      if (!entry.restaurantId) {
+        reasons.push(`No restaurant linked to this domain`);
+        entry.reasons = reasons;
+        continue;
+      }
+
+      // --- should renew
+      if (entry.restaurantDisabled || entry.restaurantInsisted || entry.restaurantInsistedForAll || !entry.hasInvoicesInLast6Months || !entry.restaurantId) {
+        entry.shouldRenew = false;
+      } else if (entry.hasInvoicesInLast6Months) {
+        entry.shouldRenew = true;
+      }
+
+    }
+
+    this.refreshing = false;
 
     this.filter();
   }
 
-  filter() {
-    this.filteredDomains = this.domains.slice(0);
+  hasInvoices(restaurantId) {
+    if (!restaurantId) {
+      return false;
+    }
 
-    switch (this.managedDomain) {
-      case 'only active':
-        const now = new Date();
-        this.filteredDomains = this.filteredDomains.filter(e => e.status === 'ACTIVE' || (e.type === 'AWS' && new Date(e.expiry).valueOf() > now.valueOf()));
+    return !!this.invoices.find(invoice => invoice.restaurant.id === restaurantId);
+  }
+
+  getMatchingRestaurant(domain) {
+    // return this.restaurants.find(rt => {
+    //   const qmenuWebsite = (rt.web || {}).qmenuWebsite || '';
+    //   const rtDomain = qmenuWebsite.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
+    //   const hostedDomain = domain.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
+
+    //   if (rtDomain === hostedDomain) {
+    //     return true;
+    //   }
+    //   return false;
+    // });
+
+    const matches = this.restaurants.filter(rt => {
+      const qmenuWebsite = (rt.web || {}).qmenuWebsite || '';
+      const rtDomain = qmenuWebsite.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
+      const hostedDomain = domain.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
+
+      if (rtDomain === hostedDomain) {
+        return true;
+      }
+      return false;
+    });
+
+    if (matches.length > 1) {
+      const match = matches.find(rt => !rt.disabled);
+      return match;
+    } else {
+      const [match] = matches;
+      return match;
+    }
+
+  }
+
+  filter() {
+    this.refreshing = true;
+
+    this.filteredDomains = this.domainMap;
+
+    switch (this.mustRenew) {
+      case 'Show All':
+        this.filteredDomains = this.domainMap;
         break;
+
+      case 'Domains to Renew':
+        this.filteredDomains = this.domainMap.filter(e => e.shouldRenew);
+        break;
+
+      case 'Domains to not Renew':
+        this.filteredDomains = this.domainMap.filter(e => !e.shouldRenew);
+        break;
+
       default:
         break;
     }
+
+    this.refreshing = false;
+  }
+
+  async applyAutoRenew(domain, shouldRenew) {
+    try {
+      const result = await this._api.post(environment.appApiUrl + 'utils/renew-aws-domain', {
+        domain: domain.domainName,
+        shouldRenew
+      }).toPromise();
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=domain', [
+        {
+          old: { _id: domain._id },
+          new: { _id: domain._id, autoRenew: shouldRenew },
+        }
+      ]).toPromise();
+
+      this.refresh();
+
+      this._global.publishAlert(AlertType.Success, `Domain Rewnewal status for ${domain.domainName} updated succesfuly.`);
+    } catch (error) {
+      console.error(error);
+      this._global.publishAlert(AlertType.Danger, `Failed to update ${domain.domainName} renewal status.`);
+    }
+
+  }
+
+  toogleBulkAutoRenew($event, domain) {
+    if (!this.bulkDomains.includes(domain)) {
+      this.bulkDomains.push(domain);
+    } else {
+      this.bulkDomains = this.bulkDomains.filter(d => d.domainName !== domain.domainName);
+    }
+
+    // console.log(this.bulkDomains);
+  }
+
+  async applyBulkAutoRenew(shouldRenew) {
+    const failedRenew = [];
+
+    for (const domain of this.bulkDomains) {
+      const payload = {
+        domain: domain.domainName,
+        shouldRenew
+      };
+
+      const result = await this._api.post(environment.appApiUrl + 'utils/renew-aws-domain', payload).toPromise();
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=domain', [
+        {
+          old: { _id: domain._id },
+          new: { _id: domain._id, autoRenew: shouldRenew },
+        }
+      ]).toPromise();
+
+      console.log(result, domain.domainName);
+    }
+
+    this.bulkDomains = [];
+
+    await this.refresh();
+
+    this._global.publishAlert(AlertType.Success, `Domain Rewnewal status for pdated succesfuly.`);
+
   }
 
 }

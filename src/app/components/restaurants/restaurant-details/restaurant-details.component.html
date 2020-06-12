@@ -61,7 +61,7 @@
     <div class="card-body">
 
       <div *ngIf="activeTab === 'Menus'">
-        <app-menus [restaurant]="restaurant" (onVisitMenuOptions)="activeTab = 'Menu Options'"></app-menus>
+        <app-menus [restaurant]="restaurant" (onVisitMenuOptions)="activeTab = 'Menu Options'" (menusChanged)="loadDetails()"></app-menus>
       </div>
 
       <div *ngIf="activeTab === 'Menu Options'">

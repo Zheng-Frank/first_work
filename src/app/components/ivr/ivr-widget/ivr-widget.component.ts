@@ -48,7 +48,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
       console.log("INNER ON ENABLED");
     });
 
-    if (this._global.user.username === "june") {
+    if (this._global.user.username === "june" || this._global.user.username === "sajal") {
       this.ccpUrl = "https://qmenu.awsapps.com/connect/ccp-v2#";
     }
   }
