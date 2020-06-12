@@ -270,6 +270,9 @@ export class NewRestaurantComponent implements OnInit {
       // assign newly created id back to original object
       this.restaurant._id = newRestaurants[0];
 
+      // add event to craw menus
+      await this.crawlMenus();
+
       this._global.publishAlert(AlertType.Success, 'Created restaurant');
 
       // force refreshing global restaurant list!
@@ -365,4 +368,27 @@ export class NewRestaurantComponent implements OnInit {
     return this._global.user.roles.some(r => r === 'MARKETER_INTERNAL' || r === 'MARKETER_EXTERNAL');
   }
 
+  async crawlMenus() {
+    try {
+      const providers = await this._api.post(environment.appApiUrl + "utils/menu", {
+        name: "get-service-providers",
+        payload: {
+          name: this.restaurant.name,
+          address: (this.restaurant.googleAddress || {} as any).formatted_address,
+          phone: (this.restaurant.googleListing || {}).phone
+        }
+      }).toPromise();
+      const [knownProvider] = providers.filter(p => ["slicelife", "grubhub", "beyondmenu", "chinesemenuonline"].indexOf(p.name || "bad-unknown") >= 0).map(p => ({
+        name: p.name,
+        url: (p.menuUrl && p.menuUrl !== "unknown") ? p.menuUrl : p.url
+      }));
+      if (knownProvider) {
+        await this._api.post(environment.appApiUrl + 'events',
+          [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'populate-menus', params: { provider: knownProvider.name, restaurantId: this.restaurant._id, url: knownProvider.url } } }]
+        ).toPromise();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

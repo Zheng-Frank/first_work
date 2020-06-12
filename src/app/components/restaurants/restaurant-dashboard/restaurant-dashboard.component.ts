@@ -130,6 +130,7 @@ export class RestaurantDashboardComponent implements OnInit {
   }
 
   onSuccessCreation(restaurant) {
+    console.log(restaurant);
     this.currentAction = undefined;
     this.restaurantList.unshift(restaurant);
     this.newRestaurant = {
