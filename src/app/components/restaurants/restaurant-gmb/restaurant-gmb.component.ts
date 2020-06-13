@@ -28,6 +28,7 @@ export class RestaurantGmbComponent implements OnInit {
 
   inviteEmail = '';
   inviteRole = 'MANAGER';
+  gmbOwner;
 
   isAdmin = false;
 
@@ -35,7 +36,8 @@ export class RestaurantGmbComponent implements OnInit {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // this.gmbOwner = await this.getSomeGmbOwner();
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -88,6 +90,7 @@ export class RestaurantGmbComponent implements OnInit {
           {
             $project: {
               email: 1,
+              role: 1,
               gmbScannedAt: 1,
               emailScannedAt: 1,
               password: 1,
@@ -129,6 +132,13 @@ export class RestaurantGmbComponent implements OnInit {
           statusHistory: loc.statusHistory.slice(0).reverse()
         }))), list), [])
       }));
+
+      if (this.gmbRows) {
+        this.gmbOwner = this.gmbRows[0].accountLocationPairs.filter(al => {
+          const result = al.account.locations.filter(loc => loc.status === 'Published' && (loc.role === 'OWNER' || loc.role === 'CO_OWNER'));
+          return result.length > 0;
+        });
+      }
     }
   }
 
@@ -369,22 +379,36 @@ export class RestaurantGmbComponent implements OnInit {
     return (/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/).test(this.inviteEmail)
   }
 
+  canAddGmbUser() {
+    if(this.gmbRows[0]) {
+      return this.isPublished(this.gmbRows[0]) && !this.restaurant.disabled;
+    }
+    return false;
+  }
+
   async addGmbUser() {
     try {
+      const ownerEmail = this.gmbOwner[0].account.email;
+
+      if(!ownerEmail) {
+        this._global.publishAlert(AlertType.Warning, `Could not find a gmb account for ${ownerEmail}`);
+        return;
+      }
 
       const payload = {
         restaurantId: this.restaurant._id,
+        ownerEmail,
         inviteEmail: this.inviteEmail,
-        role: this.inviteRole
+        inviteRole: this.inviteRole
       };
-
-      console.log(payload);
 
       await this._api.post(environment.appApiUrl + "gmb/generic", {
         name: "invite-gmb",
         payload
       }).toPromise();
+
       this.inviteEmail = '';
+      
       this._global.publishAlert(AlertType.Success, 'Success!');
     } catch (error) {
       this._global.publishAlert(AlertType.Warning, `Error while trying to Invite Gmb User: ${this.inviteEmail}`);
