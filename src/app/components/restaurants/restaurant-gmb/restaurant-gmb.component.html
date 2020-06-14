@@ -172,7 +172,10 @@
           <ng-container *ngFor="let alPair of row.accountLocationPairs; let i = index;">
             <tr>
               <th class="bold-button">
-                <app-gmb-account-hotlink [email]="alPair.account.email"></app-gmb-account-hotlink>
+                <div>
+                  <app-gmb-account-hotlink [email]="alPair.account.email"></app-gmb-account-hotlink>
+                  <small *ngIf="alPair.location.role !== 'OWNER' && alPair.location.role !== 'CO_OWNER'" class="badge badge-info">{{alPair.location.role}}</small>
+                </div>
                 <div class="text-muted">
                   <small>Appeal Id: {{alPair.location.appealId}}</small><br>
                   <small>Scanned: {{alPair.account.gmbScannedAt | ago : now}}</small>
