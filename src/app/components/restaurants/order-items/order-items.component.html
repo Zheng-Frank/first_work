@@ -79,9 +79,9 @@
         </td>
         <td class="text-right text-nowrap">{{order.getTip() | money}}</td>
       </tr>
-      <tr *ngIf="order.surchargeAmount">
-        <td class="text-right text-nowrap">{{order.surchargeName || 'surcharge'}}</td>
-        <td class="text-right text-nowrap">{{order.surchargeRate ? (order.surchargeRate*100).toFixed(2)+'%' : ''}}{{order.surchargeRate && order.surchargeAmount ? '+$'+order.surchargeAmount.toFixed(2) : ''}}</td>
+      <tr *ngIf="order.getSurcharge() > 0">
+        <td class="text-right text-nowrap">{{order.surchargeName || 'surcharge'}} {{order.surchargeRate ? (order.surchargeRate*100).toFixed(2)+'%' : ''}}{{order.surchargeRate && order.surchargeAmount ? '+$'+order.surchargeAmount.toFixed(2) : ''}}</td>
+        <td class="text-right text-nowrap">{{order.getSurcharge() | money}}</td>
       </tr>
       <tr *ngIf="order.getCreditCardProcessingFeeAmount()>0">
         <td class="text-right text-nowrap">credit card fee {{order.ccProcessingRate ? (order.ccProcessingRate*100).toFixed(2)+'%' : ''}}{{order.ccProcessingRate && order.ccProcessingFlatFee ? '+$'+order.ccProcessingFlatFee.toFixed(2) : ''}}</td>
