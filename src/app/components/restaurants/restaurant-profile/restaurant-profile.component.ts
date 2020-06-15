@@ -25,6 +25,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'email',
     'taxRate',
     'surchargeAmount',
+    'surchargeRate',
     'surchargeName',
     'pickupTimeEstimate',
     'deliveryTimeEstimate',
