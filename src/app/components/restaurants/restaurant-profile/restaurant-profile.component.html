@@ -52,7 +52,7 @@
 						<tr>
 							<th class="text-right">Surcharge</th>
 							<td class="pl-1">{{restaurant.surchargeName || 'surcharge'}}
-								{{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}}{{restaurant.surchargeRate && restaurant.surchargeAmount ? '+$'+restaurant.surchargeAmount.toFixed(2) : ''}}
+								{{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}} {{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
 							</td>
 						</tr>
 						<tr>
