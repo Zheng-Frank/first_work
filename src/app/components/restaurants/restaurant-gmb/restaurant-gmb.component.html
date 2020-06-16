@@ -15,6 +15,7 @@
         Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
       <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Crawl Main
         Listing</button>
+      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="showInviteGmbUserModal()" [disabled]='!canAddGmbUser()'>Invite GMB User</button>
       <div *ngIf="restaurant.googleListing && !hasMainGmb()" class="my-2">
         No main GMB found.
         <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="createOrMatchMainGmb()">Create or Match
@@ -171,7 +172,10 @@
           <ng-container *ngFor="let alPair of row.accountLocationPairs; let i = index;">
             <tr>
               <th class="bold-button">
-                <app-gmb-account-hotlink [email]="alPair.account.email"></app-gmb-account-hotlink>
+                <div>
+                  <app-gmb-account-hotlink [email]="alPair.account.email"></app-gmb-account-hotlink>
+                  <small *ngIf="alPair.location.role !== 'OWNER' && alPair.location.role !== 'CO_OWNER'" class="badge badge-info">{{alPair.location.role}}</small>
+                </div>
                 <div class="text-muted">
                   <small>Appeal Id: {{alPair.location.appealId}}</small><br>
                   <small>Scanned: {{alPair.account.gmbScannedAt | ago : now}}</small>
@@ -212,5 +216,24 @@
       </li>
     </ul>
   </div>
+
+  <q-modal [title]="'Invite GMB User'" #addGMBInviteModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)='hideInviteGmbUserModal()'><span aria-hidden="true">×</span></button>
+
+    <div>
+      <label>Email:</label>
+      <input class="form-control" placeholder="i.e. someone@gmail.com" [(ngModel)]='inviteEmail'>
+    </div>
+
+    <label>Role:</label>
+    <select [(ngModel)]="inviteRole" class="form-control">
+      <option value="OWNER">Owner</option>
+      <option value="MANAGER">Manager</option>
+    </select>
+
+    <div class="mt-3 d-flex justify-content-end">
+      <button class="btn btn-small btn-primary" (click)='addGmbUser()' [disabled]="!isValidEmail()"><i class="fas fa-plus"></i> Invite Gmb User</button>
+    </div>
+  </q-modal>
 
 </ng-container>

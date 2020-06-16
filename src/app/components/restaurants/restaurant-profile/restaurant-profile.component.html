@@ -51,8 +51,9 @@
 						</tr>
 						<tr>
 							<th class="text-right">Surcharge</th>
-							<td class="pl-1">{{restaurant.surchargeName}}
-								{{restaurant.surchargeAmount | currency:'USD':'symbol'}}</td>
+							<td class="pl-1">{{restaurant.surchargeName || 'surcharge'}}
+								{{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}} {{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
+							</td>
 						</tr>
 						<tr>
 							<th class="text-right">CC Processing Rate</th>
@@ -207,8 +208,9 @@
 								<input type="number" [(ngModel)]="taxRate" class="form-control">
 							</td>
 						</tr>
+
 						<tr>
-							<th class="text-right">Surcharge</th>
+							<th class="text-right">Surcharge Flat fee</th>
 							<td class="pl-1">
 								<input type="number" [(ngModel)]="surchargeAmount" class="form-control"
 									placeholder="surcharge amount">
@@ -335,6 +337,13 @@
 													<th class="text-right">Hide Tip Input</th>
 													<td class="pl-1">
 														<input type="checkbox" [(ngModel)]="hideTipInput">
+													</td>
+												</tr>
+												<tr>
+													<th class="text-right">Surcharge Rate</th>
+													<td class="pl-1">
+														<input type="number" [(ngModel)]="surchargeRate"
+															class="form-control" placeholder="rate">
 													</td>
 												</tr>
 											</tbody>
