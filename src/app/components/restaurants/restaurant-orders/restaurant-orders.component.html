@@ -66,8 +66,12 @@
         </button>
         <h4 class="text-center">Reject Order</h4>
         <hr>
-        <app-order-reject-bar [order]="orderForModal" (onReject)="rejectOrder($event)">
-        </app-order-reject-bar>
+        <app-order-reject-bar [order]="orderForModal" (onReject)="rejectOrder($event)"></app-order-reject-bar>
+        <hr>
+        <div *ngIf="!!cancelError" class="d-flex flex-column align-items-center">
+            <span class="text-primary">ATTENTION</span>
+            <p class="text-primary">{{cancelError}}</p>
+        </div>
     </q-modal>
 
     <q-modal #banModal>
