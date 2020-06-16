@@ -1,6 +1,15 @@
-import {Component, Input, Output, EventEmitter} from '@angular/core';
-import {Order} from '@qmenu/ui';
-declare var $: any;
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Order } from '@qmenu/ui';
+const STATUS_SEQUENCE = [
+  'SUBMITTED',
+  'CONFIRMED',
+  'WIP',
+  'READY',
+  'DELIVERING',
+  'DELIVERED',
+  'CANCELED',
+  'COMPLETED'
+];
 
 @Component({
   selector: 'app-order-action-bar',
@@ -14,48 +23,47 @@ export class OrderActionBarComponent {
   }
 
   getStatusArray(): any[] {
-    let statusArray: any[] = [];
+    const oses = this.order["statuses"] || [];
+    oses.sort((o1, o2) => new Date(o1.createdAt || 0).valueOf() - new Date(o2.createdAt || 0).valueOf());
+    const lastStatusIndex = STATUS_SEQUENCE.indexOf((oses[oses.length - 1] || {}).status);
 
+    let statusArray: any[] = [];
     statusArray.push({
       dbStatus: 'CONFIRMED',
       status: 'Confirmed',
       action: 'Confirm',
-      finished: this.order.statusAfter('CONFIRMED'),
-      isCurrent: this.order.statusEqual('CONFIRMED')
+      finished: STATUS_SEQUENCE.indexOf("CONFIRMED") <= lastStatusIndex
     });
+
     statusArray.push({
       dbStatus: 'WIP',
       status: 'Cooking',
       action: 'Start cooking',
-      finished: this.order.statusAfter('WIP'),
-      isCurrent: this.order.statusEqual('WIP')
+      finished: STATUS_SEQUENCE.indexOf("WIP") <= lastStatusIndex
     });
 
-    if (this.order.type === 'PICKUP') {
-      statusArray.push({
-        dbStatus: 'READY',
-        status: 'Ready for pickup',
-        action: 'Ready for pickup',
-        finished: this.order.statusAfter('READY'),
-        isCurrent: this.order.statusEqual('READY')
-      });
-    } else if (this.order.type === 'DELIVERY') {
-      statusArray.push(
-        {
-          dbStatus: 'READY',
-          status: 'Ready for delivery',
-          action: 'Ready for delivery',
-          finished: this.order.statusAfter('READY'),
-          isCurrent: this.order.statusEqual('READY')
-        }
-      );
+    statusArray.push({
+      dbStatus: 'READY',
+      status: 'Ready for pickup',
+      action: 'Ready for pickup',
+      finished: STATUS_SEQUENCE.indexOf("READY") <= lastStatusIndex
+    });
+
+    if (this.order.type === 'DELIVERY') {
       statusArray.push(
         {
           dbStatus: 'DELIVERING',
           status: 'Delivering',
           action: 'Out for delivery',
-          finished: this.order.statusAfter('DELIVERING'),
-          isCurrent: this.order.statusEqual('DELIVERING')
+          finished: STATUS_SEQUENCE.indexOf("DELIVERING") <= lastStatusIndex
+        }
+      );
+      statusArray.push(
+        {
+          dbStatus: 'DELIVERED',
+          status: 'Delivered',
+          action: 'Delivered',
+          finished: STATUS_SEQUENCE.indexOf("DELIVERED") <= lastStatusIndex
         }
       );
     }
@@ -63,8 +71,7 @@ export class OrderActionBarComponent {
       dbStatus: 'COMPLETED',
       status: 'Completed',
       action: 'Complete',
-      finished: this.order.statusAfter('COMPLETED'),
-      isCurrent: this.order.statusEqual('COMPLETED')
+      finished: STATUS_SEQUENCE.indexOf("COMPLETED") <= lastStatusIndex
     });
     return statusArray;
   }
@@ -78,6 +85,6 @@ export class OrderActionBarComponent {
   }
 
   setStatus(status: string) {
-    this.onSetNewStatus.emit({ order: this.order, status: {status: status} });
+    this.onSetNewStatus.emit({ order: this.order, status: { status: status } });
   }
 }
