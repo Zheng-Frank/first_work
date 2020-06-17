@@ -39,6 +39,7 @@ export class RestaurantOrdersComponent implements OnInit {
   orderForModal: Order = null;
   now: Date = new Date();
   orderEvent: any;
+  cancelError = '';
 
   constructor(private _api: ApiService, private _ngZone: NgZone) {
   }
@@ -86,6 +87,7 @@ export class RestaurantOrdersComponent implements OnInit {
       this.populateOrders();
     }
   }
+
   async populateOrders() {
     const query = {
       restaurant: {
@@ -235,7 +237,6 @@ export class RestaurantOrdersComponent implements OnInit {
   getFormattedCreditCardNumber(number) {
     return (number || '').split('').reduce((a, e, i) => a + e + (i % 4 === 3 && (i < number.length - 1) ? '-' : ''), '');
   }
-
 
   async okBan(reasons) {
     if (!this.orderForModal || !this.orderForModal.customer) {
@@ -436,7 +437,11 @@ export class RestaurantOrdersComponent implements OnInit {
       });
       this.rejectModal.hide();
     } catch (error) {
-      alert('Error on cancelation: ' + JSON.stringify(error));
+      if(error && error.error.code === 'noncancelable_delivery') {
+        this.cancelError = 'Can not cancel. Order is on its way.';
+      }
+      console.log(error);
+      // alert('Error on cancelation: ' + JSON.stringify(error));
     }
   }
 
