@@ -35,19 +35,20 @@ export class OrderActionBarComponent {
       finished: STATUS_SEQUENCE.indexOf("CONFIRMED") <= lastStatusIndex
     });
 
-    statusArray.push({
-      dbStatus: 'WIP',
-      status: 'Cooking',
-      action: 'Start cooking',
-      finished: STATUS_SEQUENCE.indexOf("WIP") <= lastStatusIndex
-    });
-
-    statusArray.push({
-      dbStatus: 'READY',
-      status: 'Ready for pickup',
-      action: 'Ready for pickup',
-      finished: STATUS_SEQUENCE.indexOf("READY") <= lastStatusIndex
-    });
+    // statusArray.push({
+    //   dbStatus: 'WIP',
+    //   status: 'Cooking',
+    //   action: 'Start cooking',
+    //   finished: STATUS_SEQUENCE.indexOf("WIP") <= lastStatusIndex
+    // });
+    if (this.order.type !== 'DELIVERY') {
+      statusArray.push({
+        dbStatus: 'READY',
+        status: 'Ready for pickup',
+        action: 'Ready for pickup',
+        finished: STATUS_SEQUENCE.indexOf("READY") <= lastStatusIndex
+      });
+    }
 
     if (this.order.type === 'DELIVERY') {
       statusArray.push(

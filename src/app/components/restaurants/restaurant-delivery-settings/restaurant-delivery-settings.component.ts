@@ -32,6 +32,25 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   selectedCourier;
   couriers: any = [{ name: "Self delivery" }];
 
+  postmatesAvailability;
+  checkingPostmatesAvailability = false;
+  async checkPostmatesAvailability() {
+    this.checkingPostmatesAvailability = true;
+    try {
+      await this._api.post(environment.appApiUrl + 'delivery/check-service-availability', {
+        "address": this.restaurant.googleAddress.formatted_address,
+        courier: {
+          ...this.selectedCourier
+        }
+      }).toPromise();
+      this.postmatesAvailability = "available";
+    } catch (error) {
+      console.log(error);
+      this.postmatesAvailability = "not available";
+    }
+    this.checkingPostmatesAvailability = false;
+  }
+
   constructor(private _api: ApiService, private _global: GlobalService) {
     // populate couriers
     this._api.get(environment.qmenuApiUrl + "generic", {
@@ -128,7 +147,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     }
 
     console.log("selected", this.selectedCourier);
-console.log(newR.courier);
+    console.log(newR.courier);
     const caredFields = [
       "allowedCities",
       "allowedZipCodes",

@@ -92,8 +92,7 @@
             </div>
           </div>
 
-          <app-restaurant-delivery-closed-hours [restaurant]="restaurant"
-            *ngIf="!restaurant.courier">
+          <app-restaurant-delivery-closed-hours [restaurant]="restaurant" *ngIf="!restaurant.courier">
           </app-restaurant-delivery-closed-hours>
 
         </div>
@@ -110,6 +109,11 @@
                   <select class="form-control" id="courier-select" [(ngModel)]="selectedCourier">
                     <option *ngFor="let c of couriers" [ngValue]="c">{{c.name}}</option>
                   </select>
+                  <div class="text-right py-2" *ngIf="selectedCourier && selectedCourier.name === 'Postmates'">
+                    <span>{{postmatesAvailability}} </span>
+                    <button class="btn btn-link py-0 pr-0" (click)="checkPostmatesAvailability()"
+                      [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>
+                  </div>
                 </div>
               </td>
             </tr>
