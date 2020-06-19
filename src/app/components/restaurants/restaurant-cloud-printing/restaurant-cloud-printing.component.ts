@@ -35,7 +35,6 @@ export class RestaurantCloudPrintingComponent implements OnInit {
   }
 
   async ngOnInit() {
-    console.log(this.restaurant['printClients'])
     if (!this.restaurant['printClients']) {
       this.restaurant['printClients'] = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'print-client',

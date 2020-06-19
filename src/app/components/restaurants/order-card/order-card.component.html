@@ -52,7 +52,10 @@
       <strong> scheduled: {{order.timeToDeliver | MMMd : restaurant.offsetToEST}}
         {{order.timeToDeliver | shortTime: restaurant.offsetToEST}}</strong>
     </div>
-
+    <div class="mt-2 alert alert-info text-center px-1" *ngIf="order.delivery?.pickup_eta && (order.statusEqual('SUBMITTED') || order.statusEqual('CONFIRMED'))">
+      <i class="fa fa-car" aria-hidden="true"></i> Driver arrives ~
+      <strong>{{order.delivery?.pickup_eta | shortTime: restaurant.offsetToEST }}</strong>
+    </div>
     <small>
       <div class="text-sm-center"
         *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">

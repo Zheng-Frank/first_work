@@ -1,10 +1,11 @@
 <div *ngIf="order">
     <div *ngIf="!isCanceled()" class="stepwizard">
         <div class="stepwizard-row">
-            <div *ngFor="let s of getStatusArray(),let i=index" class="stepwizard-step disabled" (click)="setStatus(s.dbStatus)">
+            <div *ngFor="let s of getStatusArray(),let i=index" class="stepwizard-step disabled"
+                (click)="setStatus(s.dbStatus)">
                 <button type="button" class="btn {{s.finished? 'btn-success': 'btn-secondary'}} btn-circle">
-        {{isCompleted()? '&#10003;' : i+1}}
-      </button>
+                    {{isCompleted()? '&#10003;' : i+1}}
+                </button>
                 <p>{{s.status}}</p>
             </div>
         </div>

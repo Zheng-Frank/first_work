@@ -107,6 +107,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           channels: 1,
           closedDays: 1,
           closedHours: 1,
+          courier: 1,
           createdAt: 1,
           crm: 1,
           customizedRenderingStyles: 1,

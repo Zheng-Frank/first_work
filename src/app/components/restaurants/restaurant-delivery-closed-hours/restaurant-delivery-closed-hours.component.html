@@ -1,10 +1,7 @@
 <div class="card mb-2">
     <h5 class="card-title text-center pt-4 pb-2">
-        <span class="fa-stack fa-lg">
-          <i class="far fa fa-car fa-stack-1x"></i>
-          <i class="fa fa-ban fa-stack-2x text-danger"></i>
-        </span>
-        Delivery Closed Time
+      <i class="fa fa-ban text-danger"></i>
+        Delivery Closed Hours
         <br> <small>Define time slots when the delivery is closed.</small>
       </h5>
 
@@ -27,7 +24,7 @@
       </table>
       <div *qIf="editing">
         <div class="jumbotron app-jumbo">
-          <h5 class="text-xs-center">Add New Delivery Closed Time</h5>
+          <h5 class="text-xs-center">Add New Delivery Closed Hours</h5>
           <app-hour-picker-simple [hour]="hourInEditing"></app-hour-picker-simple>
           <div>
             <label class="m-t-1">Extra Comments:</label>

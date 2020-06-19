@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Restaurant, Hour} from '@qmenu/ui';
+import { Restaurant, Hour } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -29,9 +29,37 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   deliveryFromTimes = [{ value: null, text: 'At business open' }];
   deliveryEndTimes = [];
 
-  courier;
+  selectedCourier;
+  couriers: any = [{ name: "Self delivery" }];
+
+  postmatesAvailability;
+  checkingPostmatesAvailability = false;
+  async checkPostmatesAvailability() {
+    this.checkingPostmatesAvailability = true;
+    try {
+      await this._api.post(environment.appApiUrl + 'delivery/check-service-availability', {
+        "address": this.restaurant.googleAddress.formatted_address,
+        courier: {
+          ...this.selectedCourier
+        }
+      }).toPromise();
+      this.postmatesAvailability = "available";
+    } catch (error) {
+      console.log(error);
+      this.postmatesAvailability = "not available";
+    }
+    this.checkingPostmatesAvailability = false;
+  }
 
   constructor(private _api: ApiService, private _global: GlobalService) {
+    // populate couriers
+    this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "courier",
+      projection: { name: 1 },
+      limit: 1000000,
+      sort: { name: 1 }
+    }).subscribe(result => this.couriers.push(...result));
+
   }
 
   ngOnInit() {
@@ -56,7 +84,6 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       { value: 180, text: '180 minutes before closing' },
       { value: 240, text: '240 minutes before closing' },
     ];
-
   }
 
   toggleEditing() {
@@ -66,8 +93,8 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.allowedCities = (this.restaurant.allowedCities || []).join(',');
     this.deliveryArea = this.restaurant.deliveryArea;
     this.taxOnDelivery = this.restaurant.taxOnDelivery;
-    if(this.restaurant.deliveryHours){
-      this.deliveryHours= this.restaurant.deliveryHours.map(h => new Hour(h));
+    if (this.restaurant.deliveryHours) {
+      this.deliveryHours = this.restaurant.deliveryHours.map(h => new Hour(h));
     }
     this.editing = !this.editing;
     this.deliverySettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.deliverySettings || []));
@@ -82,12 +109,12 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     }
 
     this.deliveryEndMinutesBeforeClosing = this.restaurant.deliveryEndMinutesBeforeClosing;
-
+    this.selectedCourier = this.restaurant.courier ? this.couriers.filter(c => c._id === this.restaurant.courier._id)[0] : this.couriers[0];
   }
   update() {
 
-    const oldR = JSON.parse(JSON.stringify(this.restaurant));
-    const newR = JSON.parse(JSON.stringify(this.restaurant));
+    const oldR: any = { _id: this.restaurant.id };
+    const newR: any = { _id: this.restaurant.id };
 
     this.deliverySettingsInEditing = this.deliverySettingsInEditing.filter(ds => ds.distance);
     // make sure everything is number!
@@ -115,7 +142,35 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     newR.deliveryHours = this.deliveryHours;
     newR.deliveryArea = this.deliveryArea;
     newR.taxOnDelivery = this.taxOnDelivery;
+    if (this.selectedCourier._id) {
+      newR.courier = this.selectedCourier;
+    }
 
+    console.log("selected", this.selectedCourier);
+    console.log(newR.courier);
+    const caredFields = [
+      "allowedCities",
+      "allowedZipCodes",
+      "blockedCities",
+      "blockedZipCodes",
+      "courier",
+      "deliveryArea",
+      "deliveryEndMinutesBeforeClosing",
+      "deliveryFrom",
+      "deliveryHours",
+      "deliverySettings",
+      "taxOnDelivery",
+    ];
+
+    // making sure oldR has ALL cared fields and if no value for newR, delete it
+    caredFields.map(field => {
+      oldR[field] = "junk";
+      if (!newR[field] || newR[field].length === 0) {
+        delete newR[field];
+      }
+    });
+
+    console.log(oldR, newR);
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
@@ -123,35 +178,25 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
           new: newR
         }])
       .subscribe(
-      result => {
-        this.restaurant.deliverySettings = newR.deliverySettings;
-        this.restaurant.blockedCities = newR.blockedCities;
-        this.restaurant.blockedZipCodes = newR.blockedZipCodes;
-        this.restaurant.allowedCities = newR.allowedCities;
-        this.restaurant.allowedZipCodes = newR.allowedZipCodes;
-        this.restaurant.taxOnDelivery = newR.taxOnDelivery;
-        if(newR.deliveryHours){
-          this.restaurant.deliveryHours =  newR.deliveryHours.map(h => new Hour(h));
-        }
-        this.restaurant.deliveryArea = newR.deliveryArea;
-        if (newR.deliveryFrom) {
-          this.restaurant.deliveryFromTime = newR.deliveryFromTime;
-        }
-        if (newR.deliveryEndMinutesBeforeClosing || +newR.deliveryEndMinutesBeforeClosing === 0) {
-          this.restaurant.deliveryEndMinutesBeforeClosing = newR.deliveryEndMinutesBeforeClosing;
-        }
+        result => {
+          caredFields.map(field => {
+            if (newR[field] !== oldR[field]) {
+              this.restaurant[field] = newR[field];
+              if (field === "deliveryHours") {
+                this.restaurant.deliveryHours = (newR.deliveryHours || []).map(h => new Hour(h));
+              }
+            }
+          });
+          // let's update original, assuming everything successful
+          this._global.publishAlert(
+            AlertType.Success,
+            "Updated successfully"
+          );
 
-
-        // let's update original, assuming everything successful
-        this._global.publishAlert(
-          AlertType.Success,
-          "Updated successfully"
-        );
-
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
 
     this.editing = false;
@@ -159,8 +204,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   toggleTaxOnDelivery() {
-    this.taxOnDelivery = !this.restaurant.taxOnDelivery;
+    this.taxOnDelivery = !this.taxOnDelivery;
   }
+
 
   getDeliveryFromString() {
     if (this.restaurant.deliveryFromTime) {

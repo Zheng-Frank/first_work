@@ -282,8 +282,6 @@ export class GlobalService {
       const userList = users.map(r => new User(r));
       userList.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
       this._cache.set('users', userList, 30 * 60);
-
-      console.log(`loaded ${users.length} users`);
       return userList;
     }
   }

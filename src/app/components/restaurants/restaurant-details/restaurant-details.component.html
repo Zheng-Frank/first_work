@@ -61,7 +61,8 @@
     <div class="card-body">
 
       <div *ngIf="activeTab === 'Menus'">
-        <app-menus [restaurant]="restaurant" (onVisitMenuOptions)="activeTab = 'Menu Options'" (menusChanged)="loadDetails()"></app-menus>
+        <app-menus [restaurant]="restaurant" (onVisitMenuOptions)="activeTab = 'Menu Options'"
+          (menusChanged)="loadDetails()"></app-menus>
       </div>
 
       <div *ngIf="activeTab === 'Menu Options'">
@@ -81,7 +82,6 @@
         <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
       </div>
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
-
         <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
           <app-restaurant-profile [restaurant]="restaurant" [editable]="true"></app-restaurant-profile>
         </div>
@@ -94,11 +94,9 @@
         <div class="col-xl-6" *ngIf="isSectionVisible('closedHours')">
           <app-restaurant-closed-hours [restaurant]="restaurant"></app-restaurant-closed-hours>
         </div>
-
         <div class="col-xl-6" *ngIf="isSectionVisible('deliverySettings')">
           <app-restaurant-delivery-settings [restaurant]="restaurant"></app-restaurant-delivery-settings>
         </div>
-
         <div class="col-xl-6" *ngIf="isSectionVisible('promotions')">
           <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
         </div>
