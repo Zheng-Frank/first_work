@@ -15,7 +15,7 @@
         Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
       <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Crawl Main
         Listing</button>
-      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="showInviteGmbUserModal()" [disabled]='canAddGmbUser()'>Invite GMB User</button>
+      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="showInviteGmbUserModal()" [disabled]='!canAddGmbUser()'>Invite GMB User</button>
       <div *ngIf="restaurant.googleListing && !hasMainGmb()" class="my-2">
         No main GMB found.
         <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="createOrMatchMainGmb()">Create or Match
