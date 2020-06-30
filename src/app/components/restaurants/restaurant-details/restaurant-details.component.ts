@@ -112,7 +112,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           crm: 1,
           customizedRenderingStyles: 1,
           deliveryArea: 1,
-          deliveryByTme: 1,
           deliveryClosedHours: 1,
           deliveryEndMinutesBeforeClosing: 1,
           deliveryFromTime: 1,

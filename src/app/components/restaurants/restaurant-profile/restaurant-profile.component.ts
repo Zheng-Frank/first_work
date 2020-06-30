@@ -54,7 +54,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'skipShowTax',
     'menuHoursExtended',
     'notes',
-    'deliveryByTme',
     'insistedPrintCCInfo'
 
   ];
@@ -78,7 +77,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   timeZone;
   googleAddress: Address;
   preferredLanguage;
-  deliveryByTme;
 
   notification;
   timeZones = [
