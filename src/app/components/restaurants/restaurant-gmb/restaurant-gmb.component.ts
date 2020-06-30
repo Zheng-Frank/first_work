@@ -29,6 +29,7 @@ export class RestaurantGmbComponent implements OnInit {
   inviteEmail = '';
   inviteRole = 'MANAGER';
   gmbOwner;
+  hasGmbOwnership = false;
 
   isAdmin = false;
 
@@ -37,7 +38,23 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // this.gmbOwner = await this.getSomeGmbOwner();
+    this.hasGmbOwnership = await this.checkGmbOwnership();
+    console.log('Do we have ownership for this restaurnt?', this.hasGmbOwnership);
+  }
+
+  async checkGmbOwnership() {
+    try {
+      return await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "check-gmb-api-ownership",
+        payload: {
+          "restaurantId": this.restaurant._id
+        }
+      }).toPromise();
+    }
+    catch (error) {
+      console.error(`Error. Couldn't retrieve GMB ownership`, error);
+      return false;
+    }
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -379,13 +396,6 @@ export class RestaurantGmbComponent implements OnInit {
     return (/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/).test(this.inviteEmail)
   }
 
-  canAddGmbUser() {
-    if(this.gmbRows[0]) {
-      return this.isPublished(this.gmbRows[0]) && !this.restaurant.disabled;
-    }
-    return false;
-  }
-
   async addGmbUser() {
     try {
       const ownerEmail = this.gmbOwner[0].account.email;
@@ -408,7 +418,7 @@ export class RestaurantGmbComponent implements OnInit {
       }).toPromise();
 
       this.inviteEmail = '';
-      
+
       this._global.publishAlert(AlertType.Success, 'Success!');
     } catch (error) {
       this._global.publishAlert(AlertType.Warning, `Error while trying to Invite Gmb User: ${this.inviteEmail}`);
