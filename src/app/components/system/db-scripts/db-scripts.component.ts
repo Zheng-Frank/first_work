@@ -2574,10 +2574,9 @@ export class DbScriptsComponent implements OnInit {
     for (let r of serviceSettings) {
       const oldR = r;
       let newR = JSON.parse(JSON.stringify(r));
-      if (r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > 0)) {
+      if (r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > -1)) {
         if (!newR.requireZipcode || !newR.requireBillingAddress) {
           newR.requireZipcode = true;
-          newR.requireBillingAddress = true;
           updatedRestaurantPairs.push({
             old: {
               _id: r._id
