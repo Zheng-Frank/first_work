@@ -36,23 +36,21 @@ export class InvoiceViewerComponent implements OnInit {
     return this.invoice.restaurant.address.formatted_address.replace(', USA', '');
   }
 
-  cachedRateSchedules = [];
   getRateSchedules() {
-    if (this.cachedRateSchedules.length === 0 && this.invoice && this.invoice.orders) {
-      // createdAt, rate, fixed
-      for (let order of this.invoice.orders) {
-        const lastRateSchedule = this.cachedRateSchedules[this.cachedRateSchedules.length - 1];
-        if (!lastRateSchedule || lastRateSchedule.fixed !== order.fixed || lastRateSchedule.rate !== order.rate) {
-          this.cachedRateSchedules.push({
-            date: new Date(order.createdAt),
-            rate: order.rate,
-            fixed: order.fixed
-          });
-        }
+    const rateSchedules = [...this.invoice.restaurant.rateSchedules || []];
+    rateSchedules.sort((rs1, rs2) => new Date(rs1.date).valueOf() - new Date(rs2.date).valueOf());
+    // remove ones that were being replaced before invoice start
+    for (let i = rateSchedules.length - 1; i >= 0; i--) {
+      const rs = rateSchedules[i];
+      const newerOnes = rateSchedules.slice(i + 1);
+      const inFuture = new Date(rs.date).valueOf() > new Date(this.invoice.toDate).valueOf();
+      const replacedByNewer = newerOnes.some(rsNew => new Date(rsNew.date).valueOf() < new Date(this.invoice.fromDate).valueOf() && (rsNew.orderType || 'ALL') === (rs.orderType || "ALL"));
+      if (inFuture || replacedByNewer) {
+        rateSchedules.splice(i, 1);
       }
     }
 
-    return this.cachedRateSchedules;
+    return rateSchedules;
   }
 
 }

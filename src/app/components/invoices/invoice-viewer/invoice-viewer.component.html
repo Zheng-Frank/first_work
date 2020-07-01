@@ -133,6 +133,8 @@
                 <span *ngIf="rs.rate && rs.fixed">+</span>
                 <span *ngIf="rs.fixed">{{rs.fixed | currency:'USD':'symbol' }}</span>
                 since <span>{{rs.date | date: 'shortDate'}}</span>
+
+                <span *ngIf="rs.orderType"> for {{rs.orderType}}</span>
               </div>
             </span>
           </td>
