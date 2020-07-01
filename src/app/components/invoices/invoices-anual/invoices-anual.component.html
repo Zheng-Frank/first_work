@@ -168,21 +168,21 @@
             <ng-container *ngIf="statement.thirdPartyDeliveryCharge > 0 || statement.thirdPartyDeliveryTip > 0">
               <tr>
                 <th>
-                  Pay TME Delivery Fee
+                  Pay Third Party Delivery Fee
                 </th>
                 <td class="text-right">{{statement.thirdPartyDeliveryCharge | currency:'USD':'symbol' }}</td>
               </tr>
 
               <tr>
                 <th>
-                  Pay TME Delivery Tip (CC)
+                  Pay Third Party Delivery Tip (CC)
                 </th>
                 <td class="text-right">{{statement.thirdPartyDeliveryTip | currency:'USD':'symbol'}}</td>
               </tr>
 
               <tr>
                 <th>
-                  Pay TME Total
+                  Pay Third Party Total
                 </th>
                 <th class="text-right">
                   {{statement.thirdPartyDeliveryCharge + statement.thirdPartyDeliveryTip | currency:'USD':'symbol'}}

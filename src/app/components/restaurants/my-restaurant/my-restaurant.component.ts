@@ -179,7 +179,7 @@ export class MyRestaurantComponent implements OnInit {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        createdAt: { $gt: { $date: "2020-05-01T12:53:41.483Z" } }
+        // createdAt: { $gt: { $date: "2020-05-01T12:53:41.483Z" } }
       },
       projection: {
         "name": 1,
@@ -192,27 +192,51 @@ export class MyRestaurantComponent implements OnInit {
       }
     }, 2000);
     restaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
+    console.log("total restaurants", restaurants);
+
+    // tried to use GRANT and it isn't any better
+    const grantedSsrs = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbRequest',
+      query: {
+        selfReflectedStatus: "GRANT"
+      },
+      projection: {
+        email: 1,
+        date: 1,
+        place_id: 1,
+      }
+    }, 8000);
+    console.log("total grantedSsrs", grantedSsrs);
+
     const selfReflectedRequests = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'self-reflected-request',
     }, 8000);
+    console.log("total selfReflectedRequests", selfReflectedRequests);
 
     const placeIdTimes = {};
+    const placeIdSelfReflectedRequests = {};
     selfReflectedRequests.map(r => {
       placeIdTimes[r.place_id] = placeIdTimes[r.place_id] || [];
       placeIdTimes[r.place_id].push(new Date(r.createdAt));
+
+      placeIdSelfReflectedRequests[r.place_id] = placeIdSelfReflectedRequests[r.place_id] || [];
+      placeIdSelfReflectedRequests[r.place_id].push(r);
     });
 
-    // reset origin on 5/30/2020
-    for (let rt of restaurants) {
-      if (rt.gmbOrigin && new Date(rt.gmbOrigin.time) > new Date("5/30/2020")) {
-        const originTime = new Date(rt.gmbOrigin.time);
-        const selfRequestsTimes = placeIdTimes[rt.googleListing && rt.googleListing.place_id] || [];
-        if (rt.gmbOrigin.origin !== 'qMenu' && selfRequestsTimes.some(t => t.valueOf() < originTime.valueOf() && t.valueOf() > originTime.valueOf() - 1 * 24 * 3600000)) {
-          console.log(`reset ${rt._id}`);
-          delete rt.gmbOrigin;
-        }
-      }
-    }
+    console.log("placeIdSelfReflectedRequests", placeIdSelfReflectedRequests);
+    // reset origin on 6/1/2020
+    // for (let rt of restaurants) {
+    //   if (rt.gmbOrigin && new Date(rt.gmbOrigin.time) > new Date("5/15/2020")) {
+    //     const originTime = new Date(rt.gmbOrigin.time);
+    //     const selfRequestsTimes = placeIdTimes[rt.googleListing && rt.googleListing.place_id] || [];
+    //     if (true/*rt.gmbOrigin.origin !== 'qMenu' &&selfRequestsTimes.some(t => t.valueOf() < originTime.valueOf() && t.valueOf() > originTime.valueOf() - 1 * 24 * 3600000)*/ ) {
+    //       delete rt.gmbOrigin;
+    //     }
+    //   }
+    // }
+
+    const debugRt = restaurants.filter(rt => rt._id === "5ee8160b8b6849feecbb79ed");
+    console.log(debugRt);
 
     const gmbBizList = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
@@ -221,7 +245,8 @@ export class MyRestaurantComponent implements OnInit {
         qmenuId: 1
       }
     }, 8000);
-    console.log(gmbBizList);
+    console.log("total gmbBizList", gmbBizList);
+
     const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
@@ -231,18 +256,20 @@ export class MyRestaurantComponent implements OnInit {
         "locations.statusHistory": 1
       }
     }, 80);
-    console.log(gmbAccounts);
+    console.log("total gmbAccounts", gmbAccounts);
 
     const selectedRestaurants = restaurants.filter(rt => !rt.gmbOrigin);
     // selectedRestaurants.length = 600;
     // const selectedRestaurants = restaurants.filter(rt => rt._id === "5cea0f0e2c667c6b2eb45175");
+
+    console.log("restaurants without gmb origins", selectedRestaurants);
 
     const gmbOrigins = [];
     selectedRestaurants.map(rt => {
 
       const createdAt = new Date(parseInt(rt._id.substring(0, 8), 16) * 1000);
 
-      // case 1: restaurant created before 2018-9-6 (we didn't track)
+      // case 0: restaurant created before 2018-9-6 (we didn't track)
       if (createdAt.valueOf() < new Date('2018-09-6').valueOf()) {
         const gmbOrigin = {
           time: new Date('2018-09-6').toISOString(),
@@ -257,7 +284,7 @@ export class MyRestaurantComponent implements OnInit {
       const matchedCids = gmbBizList.filter(biz => biz.qmenuId === rt._id).map(biz => biz.cid);
       const cids = [(rt.googleListing || {}).cid, ...matchedCids].filter(cid => cid);
 
-      // case 1, had Published: if it's also the very first status of ALL, then it's from sales
+      // case 1, had Published: if it's also the very first status of ALL, then it's either from sales or from self-reflected
       let firstPublishedEmail;
       let firstPublishedLocation;
 
@@ -272,12 +299,15 @@ export class MyRestaurantComponent implements OnInit {
       }));
 
       if (firstPublishedLocation) {
-        console.log(firstPublishedLocation)
         const place_id = firstPublishedLocation.place_id;
         const originTime = new Date(firstPublishedLocation.statusHistory.filter(sh => sh.status === "Published").slice(-1)[0].time);
-        const selfRequestsTimes = placeIdTimes[place_id] || [];
-        const isSelfReflected = selfRequestsTimes.some(t => t.valueOf() < originTime.valueOf() && t.valueOf() > originTime.valueOf() - 2 * 24 * 3600000);
-        const origin = (!isSelfReflected && ["Published", "Suspended"].indexOf(firstPublishedLocation.statusHistory.slice(-1)[0].status) >= 0) ? "sales" : "qMenu";
+        const selfRequests = placeIdSelfReflectedRequests[place_id] || [];
+        const isSelfReflected2 = selfRequests.some(r => r.gmbAccount.email === firstPublishedEmail && new Date(r.createdAt).valueOf() < originTime.valueOf() && new Date(r.createdAt).valueOf() > originTime.valueOf() - 2 * 24 * 3600000);
+        const isSelfReflected3 = grantedSsrs.some(r => r.place_id === place_id && r.email === firstPublishedEmail && new Date(r.date).valueOf() < originTime.valueOf() && new Date(r.date).valueOf() > originTime.valueOf() - 2 * 24 * 3600000);
+        if (isSelfReflected2 !== isSelfReflected3) {
+          console.log("rt found", rt._id, rt.name, isSelfReflected2, isSelfReflected3);
+        }
+        const origin = (!(isSelfReflected3 || isSelfReflected2) && ["Published", "Suspended"].indexOf(firstPublishedLocation.statusHistory.slice(-1)[0].status) >= 0) ? "sales" : "qMenu";
         const gmbOrigin = {
           time: originTime.toISOString(),
           status: "Published",
@@ -294,6 +324,8 @@ export class MyRestaurantComponent implements OnInit {
     });
 
     console.log(gmbOrigins)
+    // if (new Date())
+    //   throw "DEBUG"
 
     for (let i = 0; i < gmbOrigins.length; i += 100) {
       const slice = gmbOrigins.slice(i, i + 100);
@@ -430,7 +462,7 @@ export class MyRestaurantComponent implements OnInit {
         rateSchedules: 1,
         createdAt: 1,
         previousRestaurantId: 1
-      }      
+      }
     }, 6000)
 
     // uncomputedRestaurants = uncomputedRestaurants.filter(r => r._id === '5b5bfd764f600614008fcff5');

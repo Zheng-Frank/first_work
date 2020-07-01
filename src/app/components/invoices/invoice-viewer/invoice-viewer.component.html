@@ -151,21 +151,21 @@
         <ng-container *ngIf="invoice.getThirdPartyDeliveryCharge() > 0 || invoice.getThirdPartyDeliveryTip() > 0">
           <tr>
             <th>
-              Pay TME Delivery Fee
+              Pay Third Party Delivery Fee
             </th>
             <td class="text-right">{{invoice.getThirdPartyDeliveryCharge() | currency:'USD':'symbol' }}</td>
           </tr>
 
           <tr>
             <th>
-              Pay TME Delivery Tip (CC)
+              Pay Third Party Delivery Tip (CC)
             </th>
             <td class="text-right">{{invoice.getThirdPartyDeliveryTip() | currency:'USD':'symbol'}}</td>
           </tr>
 
           <tr>
             <th>
-              Pay TME Total
+              Pay Third Party Delivery Total
             </th>
             <th class="text-right">{{invoice.getThirdPartyDeliveryCharge()+invoice.getThirdPartyDeliveryTip() |
               currency:'USD':'symbol'}}
