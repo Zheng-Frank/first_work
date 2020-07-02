@@ -1,15 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { AlertType } from 'src/app/classes/alert-type';
-
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 @Component({
   selector: 'app-broadcasting-editor',
   templateUrl: './broadcasting-editor.component.html',
   styleUrls: ['./broadcasting-editor.component.css']
 })
 export class BroadcastingEditorComponent implements OnInit {
+  @ViewChild('deleteBroadcastModal') deleteBroadcastModal: ModalComponent;
 
   now = new Date();
   
@@ -25,6 +26,8 @@ export class BroadcastingEditorComponent implements OnInit {
   };
 
   broadcastList = [];
+
+  currentBroadcastId;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -58,8 +61,9 @@ export class BroadcastingEditorComponent implements OnInit {
 
     try {
       if(broadcastData.channel) {
-        const broadcastResult = await this._api.post(environment.qmenuApiUrl + 'generic?resource=broadcast', broadcastData).toPromise();
-        console.log(broadcastResult);
+        const broadcastResult = await this._api.post(environment.qmenuApiUrl + 'generic?resource=broadcast', [broadcastData]).toPromise();
+        this._global.publishAlert(AlertType.Success, `Broadcast create succesfuly`);
+        await this.refresh();
       } else {
         this._global.publishAlert(AlertType.Danger, `Invalid broadcast channel`);
         console.error('Bad broadcast channel', broadcastData);
@@ -68,9 +72,26 @@ export class BroadcastingEditorComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, `Error while creating broadcast.`);
       console.error('Error while creating broadcast', error);
     }
-    
+  }
 
-    
+  showDeleteBroadcastModal(broadcastId) {
+    this.currentBroadcastId = broadcastId;
+    this.deleteBroadcastModal.show();
+  }
+
+  async deleteBroadcast() {
+    try {
+      if(this.currentBroadcastId !== '') {
+        await this._api.delete(environment.qmenuApiUrl + 'generic', {
+          resource: 'broadcast',
+          ids: [this.currentBroadcastId]
+        }).toPromise();
+      }
+      this.currentBroadcastId = '';
+    } catch (error) {
+      console.error('Error deleting broadcast');
+    }
+   
   }
 
 }
