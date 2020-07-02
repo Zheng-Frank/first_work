@@ -19,6 +19,11 @@ export class HomeComponent implements OnInit {
 
   isAdmin = false;
   isMenuEditor = false;
+
+  postmatesAvailability;
+  checkingPostmatesAvailability;
+  addressToCheckAvailability = '';
+
   constructor(private _router: Router , private _api: ApiService, private _global: GlobalService) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
     this.isMenuEditor = _global.user.roles.some(r => r === 'MENU_EDITOR');
@@ -58,6 +63,8 @@ export class HomeComponent implements OnInit {
       "image-manager": ['ADMIN'],
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],      
+      "courier-availability": ['ADMIN', 'CSR'],      
+      "broadcasting": ['CSR'],      
       "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
       "disabled-restaurants": ['ADMIN'],
       "monitoring-hours": ['ADMIN', 'CSR']      
@@ -69,6 +76,34 @@ export class HomeComponent implements OnInit {
     if (restaurant && restaurant._id) {
       this._router.navigate(['/restaurants/' + restaurant._id]);
     }
+  }
+
+  async checkPostmatesAvailability() {
+    const [postmatesCourier] = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "courier",
+      query: {
+        name: "Postmates"
+      },
+      projection: { name: 1 },
+      limit: 1000000,
+      sort: { name: 1 }
+    }).toPromise();
+
+    this.checkingPostmatesAvailability = true;
+
+    try {
+      await this._api.post(environment.appApiUrl + 'delivery/check-service-availability', {
+        "address": this.addressToCheckAvailability,
+        courier: {
+          ...postmatesCourier
+        }
+      }).toPromise();
+      this.postmatesAvailability = true
+    } catch (error) {
+      console.log(error);
+      this.postmatesAvailability = false;
+    }
+    this.checkingPostmatesAvailability = false;
   }
 
 }

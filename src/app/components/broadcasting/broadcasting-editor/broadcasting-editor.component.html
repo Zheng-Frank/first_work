@@ -1,0 +1,82 @@
+<div class="broadcasting-container d-flex flex-column">
+
+  <div class="row w-100">
+    <div class="col-md-3">
+      <div class="broadcasting__section">
+
+        <div class="d-flex flex-column w-100">
+          <div>
+
+            <h6>Previous Broadcasts</h6>
+            <div class="broadcast__list">
+              <div *ngIf="broadcastList.length > 0; else noBroadcasts">
+                <div>
+                  <p>Broadcast name</p>
+                  <p>Broadcast date</p>
+                  <p>Delete</p>
+                </div>
+              </div>
+              <ng-template #noBroadcasts>
+                <div class="d-flex justify-content-center mt-3">
+                  <small >No broadcast published</small>
+                </div>
+              </ng-template>
+            </div>
+
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="broadcasting__section">
+        <div class="w-100">
+          <div class="row d-flex align-items-center mb-2">
+            <div class="col-md-2">
+              <label> Channel:<span class="text-danger">*</span></label>
+            </div>
+            <div class="col-md-5">
+              <select class="form-control" [(ngModel)]="broadcast.channel">
+                <option>Biz App</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row d-flex align-items-center mb-2">
+            <div class="col-md-2">
+              <label> Name:<span class="text-danger">*</span></label>
+            </div>
+            <div class="col-md-5">
+              <input type="text" class="form-control" placeholder="i.e Biz App New Features"
+                [(ngModel)]="broadcast.name">
+            </div>
+          </div>
+
+          <div class="row d-flex align-items-center mb-2">
+            <div class="col-md-2">
+              <label> Template:<span class="text-danger">*</span></label>
+            </div>
+            <div class="col-md-10">
+              <textarea class="form-control" rows="12" [(ngModel)]="broadcast.template"></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="broadcasting__section">
+        <div class="w-100">
+          <h6>Preview</h6>
+          <div [innerHTML]="broadcast.template"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-center mr-2">
+    <button class="btn btn-small btn-primary" [disabled]="!canCreateBroadcast()" (click)="createBroadcast()">Create Broadcast</button>
+  </div>
+
+</div>
