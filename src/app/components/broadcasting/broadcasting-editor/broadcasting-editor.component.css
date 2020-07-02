@@ -18,4 +18,14 @@
   overflow-x: hidden;
 }
 
+.broadcast__item {
+  padding: 8px;
+}
 
+.broadcast__item:hover {
+  background-color: #eeeeee;
+}
+
+.broadcast__item-delete {
+  cursor: pointer;
+}
