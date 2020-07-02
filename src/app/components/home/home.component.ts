@@ -63,7 +63,7 @@ export class HomeComponent implements OnInit {
       "image-manager": ['ADMIN'],
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],      
-      "courier-availability": ['ADMIN', 'CSR'],      
+      "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],      
       "broadcasting": ['CSR'],      
       "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
       "disabled-restaurants": ['ADMIN'],

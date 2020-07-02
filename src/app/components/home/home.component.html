@@ -20,27 +20,6 @@
   </div>
 
 </div>
-
-<div class="card-group m-1">
-  <div class="card" *ngIf="isVisible('gmb-campaign')">
-    <div class="card-body">
-      <h5 class="card-title">
-        <i class="far fa-address-book"></i> GMB Campaign</h5>
-      <app-gmb-campaign></app-gmb-campaign>
-    </div>
-  </div>
-</div>
-
-<div class="card-group m-1">
-  <div class="card" *ngIf="isVisible('bulk-messaging')">
-    <div class="card-body">
-      <h5 class="card-title">
-        <i class="far fa-comment-dots"></i> Bulk Messaging</h5>
-      <app-bulk-messaging></app-bulk-messaging>
-    </div>
-  </div>
-</div>
-
 <div class="card-group m-1">
   <div class="card" *ngIf="isVisible('courier-availability')">
     <div class="card-body">
@@ -73,6 +52,27 @@
     </div>
   </div>
 </div>
+<div class="card-group m-1">
+  <div class="card" *ngIf="isVisible('gmb-campaign')">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="far fa-address-book"></i> GMB Campaign</h5>
+      <app-gmb-campaign></app-gmb-campaign>
+    </div>
+  </div>
+</div>
+
+<div class="card-group m-1">
+  <div class="card" *ngIf="isVisible('bulk-messaging')">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="far fa-comment-dots"></i> Bulk Messaging</h5>
+      <app-bulk-messaging></app-bulk-messaging>
+    </div>
+  </div>
+</div>
+
+
 
 <div class="card-group m-1">
   <div class="card" *ngIf="isVisible('broadcasting')">
