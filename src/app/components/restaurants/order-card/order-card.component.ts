@@ -77,8 +77,9 @@ export class OrderCardComponent implements OnInit {
 
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 3 days
-    //return true;
-    return !(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000);
+    // if admin and not qmenu collect
+    return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000))
+    || (this.isAdmin() && order.payment.method !== 'QMENU') ;
   }
 
   canShowAdjust(order: Order) {
