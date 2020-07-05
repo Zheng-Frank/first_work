@@ -43,7 +43,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "request.voHistory.options.verificationMethod": 1,
                 "request.voHistory.options.emailData.domainName": 1,
             }
-        }, 5000);
+        }, 3000);
 
         this.tasks = dbTasks.map(t => new Task(t));
         this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
