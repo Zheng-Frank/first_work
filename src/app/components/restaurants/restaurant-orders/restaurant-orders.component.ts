@@ -439,6 +439,8 @@ export class RestaurantOrdersComponent implements OnInit {
     } catch (error) {
       if(error && error.error.code === 'noncancelable_delivery') {
         this.cancelError = 'Can not cancel. Order is on its way.';
+      } else {
+        this.cancelError = error.error || JSON.stringify(error);
       }
       console.log(error);
       // alert('Error on cancelation: ' + JSON.stringify(error));
