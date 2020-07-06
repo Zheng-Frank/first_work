@@ -14,7 +14,7 @@ import { CourierPricing } from 'src/app/classes/courier-pricing';
 export class CourierDashboardComponent implements OnInit {
   @ViewChild("pricingModal") pricingModal;
   couriers: Courier[] = [];
-
+  courierRestaurants = {};
   now = new Date();
   editPricing(courier, pricing) {
     this.courierInEditing = courier;
@@ -128,14 +128,27 @@ export class CourierDashboardComponent implements OnInit {
       },
       limit: 3000
     }).toPromise();
+    this.couriers = couriers.map(c => new Courier(c));
+
     const restaurantsWithCouriers = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         courier: { $exists: true }
       },
+      projection: {
+        courier: 1,
+        name: 1,
+        alias: 1,
+        logo: 1,
+        "googleAddress.formatted_address": 1
+      },
       limit: 3000000
     }).toPromise();
-    this.couriers = couriers.map(c => new Courier(c));
+    restaurantsWithCouriers.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
+    restaurantsWithCouriers.map(rt => {
+      this.courierRestaurants[rt.courier._id] = this.courierRestaurants[rt.courier._id] || [];
+      this.courierRestaurants[rt.courier._id].push(rt);
+    });
   }
 
   async toggleEnabled(courier, event) {
@@ -146,6 +159,10 @@ export class CourierDashboardComponent implements OnInit {
       }
     ]).toPromise();
     this._global.publishAlert(AlertType.Success, "Status updated");
+  }
+
+  getCourierRestaurants(courier) {
+    return this.courierRestaurants[courier._id] || [];
   }
 
 }

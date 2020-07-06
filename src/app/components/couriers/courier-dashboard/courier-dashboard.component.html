@@ -1,7 +1,7 @@
 <h1 class="text-center">Couriers</h1>
 <div class="row">
   <!-- row has negative margins and we need to remove them! -->
-  <div *ngFor="let courier of couriers" class="col-sm-12 col-md-6 col-lg-4 mb-1">
+  <div *ngFor="let courier of couriers" class="col-sm-12 col-md-6 col-lg-4 mb-4">
     <div class="card card-body text-center">
       <h2>{{courier.name}}</h2>
       <div>TIMEZONE IS NOT IMPLEMENTED!</div>
@@ -28,6 +28,15 @@
         <li class="list-group-item text-right" *ngIf="courier.name !== 'Postmates'">
           <button type="button" class="btn btn-link" (click)="editPricing(courier, null)">
             + Add Pricing</button>
+        </li>
+      </ul>
+      <h3 class="mt-4">Restaurants</h3>
+      <ul class="list-group mt-2">
+        <li class="list-group-item d-flex justify-content-between align-items-left"
+          *ngFor="let restaurant of getCourierRestaurants(courier)">
+          <a class="media text-left" routerLink="/restaurants/{{restaurant._id}}" target="__blank">
+            <q-restaurant-media-object [restaurant]="restaurant"></q-restaurant-media-object>
+          </a>
         </li>
       </ul>
     </div>
