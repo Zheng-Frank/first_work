@@ -64,7 +64,7 @@ export class HomeComponent implements OnInit {
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],      
       "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],      
-      "broadcasting": ['CSR'],      
+      "broadcasting": ['ADMIN', 'CSR'],      
       "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
       "disabled-restaurants": ['ADMIN'],
       "monitoring-hours": ['ADMIN', 'CSR']      

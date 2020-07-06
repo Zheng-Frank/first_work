@@ -1,5 +1,5 @@
 .broadcasting-container {
-    height: 420px;
+    height: 500px;
     display: flex;
     justify-content: space-between;
 }
@@ -16,10 +16,12 @@
 .broadcast__list {
   overflow-y: scroll;
   overflow-x: hidden;
+  height: 400px;
 }
 
 .broadcast__item {
   padding: 8px;
+  margin: 10px;
 }
 
 .broadcast__item:hover {
@@ -29,3 +31,4 @@
 .broadcast__item-delete {
   cursor: pointer;
 }
+
