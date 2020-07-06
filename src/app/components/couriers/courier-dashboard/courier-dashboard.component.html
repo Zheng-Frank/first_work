@@ -30,7 +30,7 @@
             + Add Pricing</button>
         </li>
       </ul>
-      <h3 class="mt-4">Restaurants</h3>
+      <h3 class="mt-4">Restaurants ({{getCourierRestaurants(courier).length}})</h3>
       <ul class="list-group mt-2">
         <li class="list-group-item d-flex justify-content-between align-items-left"
           *ngFor="let restaurant of getCourierRestaurants(courier)">

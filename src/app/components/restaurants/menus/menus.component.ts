@@ -55,7 +55,7 @@ export class MenusComponent implements OnInit {
           phone: (this.restaurant.googleListing || {}).phone
         }
       }).toPromise();
-      this.providers = providers.filter(p => ["slicelife", "grubhub", "beyondmenu", "chinesemenuonline", "redpassion", "menufy"].indexOf(p.name || "unknown") >= 0).map(p => ({
+      this.providers = providers.filter(p => ["slicelife", "grubhub", "beyondmenu", "chinesemenuonline", "redpassion", "menufy", "doordash"].indexOf(p.name || "unknown") >= 0).map(p => ({
         name: p.name,
         url: (p.menuUrl && p.menuUrl !== "unknown") ? p.menuUrl : p.url
       }));
@@ -75,7 +75,7 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = true;
     try {
       this._global.publishAlert(AlertType.Info, "crawling...");
-      const provider = ["beyondmenu", "grubhub", "slicelife"].filter(p => this.providerUrl.indexOf(p) > 0)[0] || "chinesemenuonline";
+      const provider = ["beyondmenu", "grubhub", "slicelife", "doordash"].filter(p => this.providerUrl.indexOf(p) > 0)[0] || "chinesemenuonline";
 
       if (synchronously) {
         const crawledRestaurant = await this._api.post(environment.appApiUrl + "utils/menu", {

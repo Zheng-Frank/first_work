@@ -378,7 +378,7 @@ export class NewRestaurantComponent implements OnInit {
           phone: (this.restaurant.googleListing || {}).phone
         }
       }).toPromise();
-      const [knownProvider] = providers.filter(p => ["slicelife", "grubhub", "beyondmenu", "chinesemenuonline", "redpassion", "menufy"].indexOf(p.name || "bad-unknown") >= 0).map(p => ({
+      const [knownProvider] = providers.filter(p => ["slicelife", "grubhub", "beyondmenu", "chinesemenuonline", "redpassion", "menufy", "doordash"].indexOf(p.name || "bad-unknown") >= 0).map(p => ({
         name: p.name,
         url: (p.menuUrl && p.menuUrl !== "unknown") ? p.menuUrl : p.url
       }));
