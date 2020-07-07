@@ -55,8 +55,8 @@ export class MenusComponent implements OnInit {
           phone: (this.restaurant.googleListing || {}).phone
         }
       }).toPromise();
-      this.providers = providers.filter(p => ["slicelife", "grubhub", "beyondmenu", "chinesemenuonline", "redpassion", "menufy", "doordash"].indexOf(p.name || "unknown") >= 0).map(p => ({
-        name: p.name,
+      this.providers = providers.map(p => ({
+        name: p.name || "unknown",
         url: (p.menuUrl && p.menuUrl !== "unknown") ? p.menuUrl : p.url
       }));
       if (this.providers.length === 0) {
@@ -75,8 +75,6 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = true;
     try {
       this._global.publishAlert(AlertType.Info, "crawling...");
-      const provider = ["beyondmenu", "grubhub", "slicelife", "doordash"].filter(p => this.providerUrl.indexOf(p) > 0)[0] || "chinesemenuonline";
-
       if (synchronously) {
         const crawledRestaurant = await this._api.post(environment.appApiUrl + "utils/menu", {
           name: "crawl",
@@ -107,7 +105,7 @@ export class MenusComponent implements OnInit {
         this.menusChanged.emit();
       } else {
         await this._api.post(environment.appApiUrl + 'events',
-          [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'populate-menus', params: { provider: provider, restaurantId: this.restaurant._id, url: this.providerUrl } } }]
+          [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'populate-menus', params: { restaurantId: this.restaurant._id, url: this.providerUrl } } }]
         ).toPromise();
         alert("Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.");
       }
