@@ -22,6 +22,52 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async getMostUsedPhones() {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        "channels.value": 1,
+        "channels.type": 1,
+        "channels.notifications": 1,
+        disabled: 1,
+        name: 1,
+        score: 1
+      },
+    }, 1000000);
+    const valueRts = {};
+    restaurants.map(rt => {
+      if (!rt.disabled) {
+        (rt.channels || []).map(c => {
+          valueRts[c.value] = valueRts[c.value] || []
+          valueRts[c.value].push(rt);
+        });
+      }
+    });
+    const sortedEntries = Object.entries(valueRts).sort((e2, e1) => e1[1]["length"] - e2[1]["length"]);
+    console.log(sortedEntries);
+
+    const getCostScore = function (rt) {
+      let score = 0;
+      (rt.channels || []).filter(c => (c.notifications || []).indexOf("Order") >= 0).map(c => {
+        switch (c.type) {
+          case "SMS":
+            score += 1;
+            break;
+          case "Voice":
+          case "Fax":
+            score += 2;
+            break;
+          default:
+            break;
+        }
+      });
+      return score;
+
+    }
+    const withMostPhones = restaurants.filter(rt => !rt.disabled).sort((r2, r1) => getCostScore(r1) - getCostScore(r2));
+    console.log(withMostPhones);
+  }
+
 
   async migrateBlacklist() {
     const bannedCustomers = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -2872,8 +2918,8 @@ export class DbScriptsComponent implements OnInit {
 
 
 
-    let englishRts = RTs.filter(r =>  !r.disabled &&  r.rateSchedules && r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
-    let chineseRts = RTs.filter(r =>  !r.disabled &&  r.rateSchedules && !r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
+    let englishRts = RTs.filter(r => !r.disabled && r.rateSchedules && r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
+    let chineseRts = RTs.filter(r => !r.disabled && r.rateSchedules && !r.rateSchedules.some(r => r.agent === 'charity')).map(e => e._id);
     console.log('englishRts length', englishRts.length);
     console.log('chineseRts', chineseRts.length);
     //console.log('englishRts', englishRts);
