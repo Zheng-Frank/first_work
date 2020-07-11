@@ -29,7 +29,7 @@ export class OrderCardComponent implements OnInit {
   confirmBodyText;
   phoneNumberToText;
   showTexting: boolean = false;
-
+  displayingDeliveryDetails = false;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
