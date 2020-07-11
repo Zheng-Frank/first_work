@@ -22,7 +22,7 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
 
   showClose = false;
 
-  ccpUrl = 'https://qmenu.awsapps.com/connect/ccp#';
+  ccpUrl = "https://qmenu.awsapps.com/connect/ccp-v2#";
 
   connectedContact = undefined;
   pos1 = 0;
@@ -47,10 +47,6 @@ export class IvrWidgetComponent implements OnInit, AfterViewInit {
     this._connect.onEnabled.subscribe(enabled => {
       console.log("INNER ON ENABLED");
     });
-
-    if (this._global.user.username === "june" || this._global.user.username === "sajal") {
-      this.ccpUrl = "https://qmenu.awsapps.com/connect/ccp-v2#";
-    }
   }
 
   populateConnectedContact() {
