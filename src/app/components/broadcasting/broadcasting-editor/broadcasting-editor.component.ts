@@ -1,129 +1,92 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { AlertType } from 'src/app/classes/alert-type';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { b } from '@angular/core/src/render3';
 @Component({
   selector: 'app-broadcasting-editor',
   templateUrl: './broadcasting-editor.component.html',
   styleUrls: ['./broadcasting-editor.component.css']
 })
 export class BroadcastingEditorComponent implements OnInit {
-  @ViewChild('deleteBroadcastModal') deleteBroadcastModal: ModalComponent;
-
-  now = new Date();
-  broadcastChannels = ['Biz App', 'Postmates'];
   broadcast = {
     _id: '',
     createdAt: new Date(),
     name: '',
-    channel: 'Biz App',
-    template: ''
+    template: '',
+    restaurantListId: ''
   };
-  selectedBroadcast;
-  broadcastList = [];
-  isEditing = false;
+
+  broadcasts;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {
-    this.refresh();
-
-  }
-
-  ngAfterContentInit() {
-    this.refresh();
-  }
-
-  async refresh() {
-    this.broadcastList = await this._api.get(environment.qmenuApiUrl + 'generic', {
+  async ngOnInit() {
+    this.broadcasts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'broadcast',
-      limit: 1000
+      projection: {
+        _id: 1
+      },
+      limit: 500
     }).toPromise();
-
-    console.log(this.broadcastList);
   }
 
-  canCreateBroadcast() {
-    return !!this.broadcast.name && !!this.broadcast.channel && !!this.broadcast.template;
+
+  canPublishBroadcast() {
+    return !!this.broadcast.name && !!this.broadcast.template && !!this.broadcast.restaurantListId;
   }
 
-  async createBroadcast() {
-    const broadcastData = {
-      createAt: new Date(),
-      name: this.broadcast.name,
-      channel: this.broadcast.channel,
-      template: this.broadcast.template
-    };
-
+  async getRestaurant(rtId) {
     try {
-      if (!this.isEditing) {
-        const broadcastResult = await this._api.post(environment.qmenuApiUrl + 'generic?resource=broadcast', [broadcastData]).toPromise();
-        this._global.publishAlert(AlertType.Success, `Broadcast create succesfuly`);
-        this.isEditing = false;
-        this.resetBroadcast();
-      } else {
-        const broadcastResult = await this._api.patch(environment.qmenuApiUrl + 'generic?resource=broadcast', [
-          {
-            old: { _id: this.selectedBroadcast._id },
-            new: this.broadcast,
-          }
-        ]).toPromise();
-        this._global.publishAlert(AlertType.Success, `Broadcast edited succesfuly`);
-        this.resetBroadcast();
-        this.isEditing = false;
-      }
-
-      await this.refresh();
-
+      const result = await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'restaurant', query: { _id: { $oid: rtId } }, projection: { _id: 1, broadcasts: 1 } }).toPromise();
+      return result;
     } catch (error) {
-      this._global.publishAlert(AlertType.Danger, `Error while creating broadcast.`);
-      console.error('Error while creating broadcast', error);
+      console.error(error);
+      return;
     }
-  }
-
-  showDeleteBroadcastModal(broadcast) {
-    this.selectedBroadcast = broadcast;
-    this.deleteBroadcastModal.show();
-  }
-
-  async deleteBroadcast() {
-    try {
-      if (this.selectedBroadcast._id) {
-        await this._api.delete(environment.qmenuApiUrl + 'generic', {
-          resource: 'broadcast',
-          ids: [this.selectedBroadcast._id]
-        }).toPromise();
-        this.deleteBroadcastModal.hide();
-        await this.refresh();
-        this._global.publishAlert(AlertType.Success, `Broadcast deleted.`);
-      }
-    } catch (error) {
-      this._global.publishAlert(AlertType.Danger, `Error deleting broadcast`);
-      console.error('Error deleting broadcast', error);
-    }
-
-  }
-
-  editBroadcast(broadcast) {
-    this.selectedBroadcast = broadcast;
-    this.isEditing = true;
-    this.broadcast = { ...this.broadcastList.find(b => b._id === broadcast._id) };
-    console.log(this.broadcast);
-  }
-
-  cancelEdit() {
-    this.isEditing = false;
-    this.resetBroadcast();
   }
 
   resetBroadcast() {
-    this.broadcast.createdAt = new Date();
+    this.broadcast.restaurantListId = '';
     this.broadcast.name = '';
     this.broadcast.template = '';
+  }
 
+  async publishBroadcast() {
+    try {
+      const broadcastData = {
+        createAt: new Date(),
+        name: this.broadcast.name,
+        template: this.broadcast.template
+      };
+
+      const [createdBroadcast] = await this._api.post(environment.qmenuApiUrl + 'generic?resource=broadcast', [broadcastData]).toPromise();
+      this.broadcasts.push({_id: createdBroadcast});
+
+      const rtIdsList = this.broadcast.restaurantListId.split(',').map(id => id.trim()).filter(id => id !== '');
+      const allRestaurantRequests = rtIdsList.map(id => this.getRestaurant(id));
+      const restaurants = await Promise.all(allRestaurantRequests);
+      const broadcastsStripped = this.broadcasts.map(b => b._id);
+      let newIds = [];
+      let allPatchResquests = [];
+
+      for (const restaurant of restaurants) {
+        const [_restaurant] = restaurant;
+        newIds = broadcastsStripped.filter(x => !_restaurant.broadcasts.map(b => b._id).includes(x)).concat(_restaurant.broadcasts.map(b => b._id).filter(x => !broadcastsStripped.includes(x)));
+        const _newIds = newIds.map(n => { return { _id: n } });
+        const patchedBroadcasts = [..._restaurant.broadcasts, ..._newIds];
+        allPatchResquests.push(await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{ old: { _id: _restaurant._id }, new: { _id: _restaurant._id, broadcasts: patchedBroadcasts } }]).toPromise());
+      }
+
+      this.resetBroadcast();
+
+      const restaurantsPatched = await Promise.all(allPatchResquests);
+      this._global.publishAlert(AlertType.Success, `Broadcast published`);
+
+    } catch (error) {
+      console.error('error publishing broadcast', error);
+      this._global.publishAlert(AlertType.Danger, `Error while publishing broadcast.`);
+    }
   }
 
 }
