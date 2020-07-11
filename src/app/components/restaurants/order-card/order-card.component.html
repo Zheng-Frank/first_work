@@ -10,6 +10,8 @@
     <h4 class="text-sm-center">
       {{getCustomerName(order)}}
     </h4>
+    <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
+
     <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
       <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
     </div>
@@ -33,17 +35,20 @@
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
     </div>
+    <div class="text-uppercase highlight" *ngIf="order.type !== 'DELIVERY' && order.delivery">
+      <strong>Order type changed!</strong>
+    </div>
     <div class="text-sm-center card-text" *ngIf="order.address?.apt">
       <strong>{{order.address.apt}}</strong>
     </div>
     <a *ngIf="order.address" href="http://maps.google.com/?q={{order.address.formatted_address}}">
       <div class="text-sm-center card-text">{{order.address.formatted_address}}
       </div>
-
     </a>
     <div *ngIf="order.deliveryDistance" class="text-sm-center card-text">
       <strong>({{order.deliveryDistance.toFixed(1)}} miles)</strong>
     </div>
+
     <div class="text-sm-center" *ngIf="order.address?.specialInstructions">
       Extra Instructions: {{order.address.specialInstructions}}
     </div>
@@ -52,9 +57,26 @@
       <strong> scheduled: {{order.timeToDeliver | MMMd : restaurant.offsetToEST}}
         {{order.timeToDeliver | shortTime: restaurant.offsetToEST}}</strong>
     </div>
-    <div class="mt-2 alert alert-info text-center px-1" *ngIf="order.delivery?.pickup_eta && (order.statusEqual('SUBMITTED') || order.statusEqual('CONFIRMED'))">
-      <i class="fa fa-car" aria-hidden="true"></i> Driver arrives ~
-      <strong>{{order.delivery?.pickup_eta | shortTime: restaurant.offsetToEST }}</strong>
+    <div *ngIf="order.delivery?.courier" class="text-center">
+      <hr>
+      <div class="media mt-1 d-inline-block">
+        <div class="media-left" *ngIf="order.delivery?.courier?.img_href">
+          <img class="media-object img-rounded driver-thubmbnail" src="{{order.delivery?.courier?.img_href}}"
+            alt="{{order.delivery?.courier?.name}}">
+        </div>
+        <div class="media-body pl-1 text-left">
+          <div>
+            <span class="label">Driver</span><span class="value">{{order.delivery?.courier?.name}}</span>
+          </div>
+          <div>
+            <span class="label">Phone</span><span class="value">{{(order.delivery?.courier?.phone_number || '').slice(1) | tel}}</span>
+          </div>
+          <div>
+            <span class="label">Status</span><span
+              class="value text-uppercase {{order.delivery?.status === 'canceled' ? 'text-danger' : ''}}">{{order.delivery?.status}}</span>
+          </div>
+        </div>
+      </div>
     </div>
     <small>
       <div class="text-sm-center"
@@ -63,7 +85,6 @@
         <a routerLink="/order/{{order.customerPreviousOrderStatus.order}}">previous order</a> was canceled. Reason:
         <span class="text-danger">{{order.customerPreviousOrderStatus.comments}}</span>
       </div>
-      <div class="text-danger text-sm-center" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
     </small>
     <div class="mt-1">
       <app-order-action-bar *ngIf="order.isPending()" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)">
