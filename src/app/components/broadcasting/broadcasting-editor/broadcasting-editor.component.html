@@ -6,7 +6,7 @@
         <div class="d-flex flex-column w-100">
           <div>
 
-            <h6>Enter comma separated list of restaurant ids:</h6>
+            <h6>1. Enter comma separated list of restaurant ids:</h6>
             <div class="broadcast__list">
               <div>
                 <textarea class="form-control w-100 full-height" [(ngModel)]="broadcast.restaurantListId"></textarea>
@@ -17,43 +17,72 @@
 
       </div>
     </div>
+
+    <!--  -->
     <div class="col-md-5">
-      <div class="broadcasting__section">
-        <div class="w-100 full-height">
-          <div class="row d-flex align-items-center mb-2">
-            <div class="col-md-2">
-              <label> Name:<span class="text-danger">*</span></label>
-            </div>
-            <div class="col-md-5">
-              <input type="text" class="form-control" placeholder="i.e Biz App New Features"
-                [(ngModel)]="broadcast.name">
-            </div>
-          </div>
-
-          <div class="row d-flex align-items-center mb-2">
-            <div class="col-md-2">
-              <label> Template:<span class="text-danger">*</span></label>
-            </div>
-            <div class="col-md-10">
-              <textarea class="form-control" rows="12" [(ngModel)]="broadcast.template"></textarea>
-            </div>
-          </div>
-
-        </div>
+      <label>2. Select broadcast to publish:</label>
+      <select class="form-control" [(ngModel)]="selectedPreviousBroadcast" (change)="selectBroadcast($event.target.value)">
+        <option *ngFor="let broadcast of broadcasts" [value]="broadcast._id">{{broadcast.name}}</option>
+      </select>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-link" (click)="newBroadcastModal.show()">Create New Broadcast</button>
       </div>
     </div>
+    <!--  -->
+
     <div class="col-md-4">
       <div class="broadcasting__section">
         <div class="w-100">
           <h6>Preview</h6>
-          <div [innerHTML]="broadcast.template" class="broadcast__preview"></div>
+          <!-- <div [innerHTML]="broadcast.template" class="broadcast__preview"></div> -->
+          <iframe [srcdoc]="broadcast.template | sanitizeDom" class="broadcast__preview" frameBorder="0"></iframe>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="d-flex justify-content-center mr-2">
+  <div class="d-flex justify-content-end mr-2">
     <button class="btn btn-small btn-primary" [disabled]="!canPublishBroadcast()" (click)="publishBroadcast()">Publish Broadcast</button>
   </div>
 
 </div>
+
+<q-modal #newBroadcastModal>
+  <h4 class="text-center">Add New Broadcast</h4>
+  <hr>
+
+  <div class="broadcasting__section">
+    <div class="w-100">
+      <div class="row d-flex align-items-center mb-2">
+        <div class="col-md-3">
+          <label> Name:<span class="text-danger">*</span></label>
+        </div>
+        <div class="col-md-9">
+          <input type="text" class="form-control" placeholder="i.e Biz App New Features" [(ngModel)]="previewBroadcast.name">
+        </div>
+      </div>
+
+      <div class="row d-flex align-items-center mb-2">
+        <div class="col-md-3">
+          <label> Template:<span class="text-danger">*</span></label>
+        </div>
+        <div class="col-md-9">
+          <textarea class="form-control" rows="12" [(ngModel)]="previewBroadcast.template"></textarea>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <label> Preview:</label>
+          <iframe [srcdoc]="previewBroadcast.template | sanitizeDom" class="broadcast__preview" frameBorder="0"></iframe>
+        </div>
+      </div>
+
+      <div class="row d-flex justify-content-end mt-2">
+        <button class="btn btn-secondary mr-1" (click)="cancelAddBroadcast()">Cancel</button>
+        <button class="btn btn-small btn-primary" [disabled]="!canAddBroadcast()" (click)="createBroadcast()">Add</button>
+      </div>
+
+    </div>
+  </div>
+</q-modal>

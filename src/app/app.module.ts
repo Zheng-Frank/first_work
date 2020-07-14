@@ -172,6 +172,7 @@ import { RestaurantYelpComponent } from './components/restaurants/restaurant-yel
 import { DashboardItemComponent } from './components/monitoring/dashboard-item/dashboard-item.component';
 import { CourierDashboardComponent } from './components/couriers/courier-dashboard/courier-dashboard.component';
 import { BroadcastingEditorComponent } from './components/broadcasting/broadcasting-editor/broadcasting-editor.component';
+import { SanitizeDomPipe } from './pipes/sanitize-dom.pipe';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -323,6 +324,7 @@ import { BroadcastingEditorComponent } from './components/broadcasting/broadcast
     DashboardItemComponent,
     CourierDashboardComponent,
     BroadcastingEditorComponent,
+    SanitizeDomPipe,
 
 
 
