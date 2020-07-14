@@ -168,6 +168,17 @@ export class RestaurantOrdersComponent implements OnInit {
     );
   }
 
+  async handleOnChangeToSelfDelivery(order) {
+    try {
+      await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
+        orderId: order._id
+      }).toPromise();
+    } catch (error) {
+      console.log("errors")
+    }
+    this.populateOrders();
+  }
+
   handleOnDisplayCreditCard(order) {
     const explanations = {
       IN_PERSON: 'NO CREDIT CARD INFO WAS COLLECTED. THE CUSTOMER WILL SWIPE CARD IN PERSON.',
@@ -437,7 +448,7 @@ export class RestaurantOrdersComponent implements OnInit {
       });
       this.rejectModal.hide();
     } catch (error) {
-      if(error && error.error.code === 'noncancelable_delivery') {
+      if (error && error.error.code === 'noncancelable_delivery') {
         this.cancelError = 'Can not cancel. Order is on its way.';
       } else {
         this.cancelError = error.error || JSON.stringify(error);

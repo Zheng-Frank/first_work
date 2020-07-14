@@ -13,7 +13,8 @@
         <div *ngFor="let order of orders" class="col-sm-12 col-md-6 col-lg-4  app-pl-025 app-pr-025 mb-1">
             <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
                 (onReject)="handleOnReject($event)" (onBan)="handleOnBan($event)"
-                (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)">
+                (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
+                (onChangeToSelfDelivery)="handleOnChangeToSelfDelivery($event)">
             </app-order-card>
         </div>
     </div>

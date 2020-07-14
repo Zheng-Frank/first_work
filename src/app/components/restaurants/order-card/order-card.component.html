@@ -36,7 +36,11 @@
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
     </div>
     <div class="text-uppercase highlight" *ngIf="order.type !== 'DELIVERY' && order.delivery">
-      <strong>Order type changed!</strong>
+      <strong>Type changed to {{order.type}}!</strong>
+    </div>
+    <div class="text-uppercase highlight"
+      *ngIf="order.type === 'DELIVERY' && order.delivery && !order.courierId">
+      <strong>Delivery taken over by restaurant</strong>
     </div>
     <div class="text-sm-center card-text" *ngIf="order.address?.apt">
       <strong>{{order.address.apt}}</strong>
@@ -81,7 +85,7 @@
           </div>
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of order.delivery.updates || []">
-              <span >{{record.created | date : 'short'}}</span>&nbsp;<span class="value">{{record.status}}</span>
+              <span>{{record.created | date : 'short'}}</span>&nbsp;<span class="value">{{record.status}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
           </div>
@@ -129,6 +133,9 @@
           <i class="fa fa-envelope"></i> Send Email</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="setTexting()">
           <i class="fa fa-comments"></i> Send Text</a>
+        <a *ngIf="order.courierId && order.delivery && (order.delivery.status === 'pending' || order.delivery.status === 'canceled')"
+          role="button" class="text-primary text-nowrap card-link" (click)="changeToSelfDelivery()">
+          <i class="fa fa-car"></i> Change to Self-delivery</a>
 
 
       </div>

@@ -44,6 +44,10 @@ export class MenusComponent implements OnInit {
   ngOnInit() {
   }
 
+  hasMenuHoursMissing() {
+    return (this.restaurant.menus || []).some(menu => (menu.hours|| []).length === 0);
+  }
+
   async populateProviders() {
     this.apiRequesting = true;
     try {
