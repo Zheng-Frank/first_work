@@ -35,12 +35,8 @@
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
     </div>
-    <div class="text-uppercase highlight" *ngIf="order.type !== 'DELIVERY' && order.delivery">
-      <strong>Type changed to {{order.type}}!</strong>
-    </div>
-    <div class="text-uppercase highlight"
-      *ngIf="order.type === 'DELIVERY' && order.delivery && !order.courierId">
-      <strong>Delivery taken over by restaurant</strong>
+    <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
+      <strong>{{order.restaurantNotice}}</strong>
     </div>
     <div class="text-sm-center card-text" *ngIf="order.address?.apt">
       <strong>{{order.address.apt}}</strong>
