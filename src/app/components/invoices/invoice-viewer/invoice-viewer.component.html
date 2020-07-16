@@ -4,7 +4,8 @@
   <h6 class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate'}} -{{invoice.toDate | date: 'mediumDate'}}
   </h6>
 
-  <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6" [innerHTML]="invoice.paymentInstructions"></div>
+  <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6"
+    [innerHTML]="invoice.paymentInstructions"></div>
 
   <table class="table table-bordered">
     <tr>
@@ -104,7 +105,8 @@
 
         <tr>
           <th>Restaurant Collected</th>
-          <td class="text-right">{{invoice.getCashCollected() + invoice.getRestaurantCcCollected() | currency:'USD':'symbol'}}
+          <td class="text-right">
+            {{invoice.getCashCollected() + invoice.getRestaurantCcCollected() | currency:'USD':'symbol'}}
           </td>
         </tr>
 
@@ -124,7 +126,8 @@
             <span *ngIf="getRateSchedules().length === 1">
               <span *ngIf="getRateSchedules()[0].rate">{{getRateSchedules()[0].rate | percentage }}</span>
               <span *ngIf="getRateSchedules()[0].rate && getRateSchedules()[0].fixed">+</span>
-              <span *ngIf="getRateSchedules()[0].fixed">{{getRateSchedules()[0].fixed | currency:'USD':'symbol' }}</span>
+              <span
+                *ngIf="getRateSchedules()[0].fixed">{{getRateSchedules()[0].fixed | currency:'USD':'symbol' }}</span>
             </span>
 
             <span *ngIf="getRateSchedules().length > 1">
@@ -146,8 +149,10 @@
             Adjustments
           </th>
 
-          <td class="text-right" *ngIf="invoice.getAdjustment() >= 0">(credit) {{invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
-          <td class="text-right" *ngIf="invoice.getAdjustment() < 0">(debit) {{-invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="invoice.getAdjustment() >= 0">(credit)
+            {{invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
+          <td class="text-right" *ngIf="invoice.getAdjustment() < 0">(debit)
+            {{-invoice.getAdjustment() | currency:'USD':'symbol' }}</td>
         </tr>
 
         <ng-container *ngIf="invoice.getThirdPartyDeliveryCharge() > 0 || invoice.getThirdPartyDeliveryTip() > 0">
@@ -224,9 +229,10 @@
 
 
   <h3 class="text-center">Valid Orders ({{getValidOrders().length}})</h3>
-  
-  <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders ({{invoice.orders.length - getValidOrders().length}}) are crossed, ignored, and NOT calculated.</div>
-  
+
+  <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders
+    ({{invoice.orders.length - getValidOrders().length}}) are crossed, ignored, and NOT calculated.</div>
+
   <table class="table app-scaled-table">
     <tr>
       <th>Date Time</th>
@@ -237,6 +243,7 @@
       <th>Collector</th>
       <th class="text-right">Subtotal</th>
       <th class="text-right">Tax</th>
+      <th class="text-right">Courier</th>
       <th class="text-right">Delivery</th>
       <th class="text-right">Tip</th>
       <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">CC Fee</th>
@@ -253,6 +260,7 @@
       <td>{{order.payee}}</td>
       <td class="text-right">{{order.subtotal | currency:'USD':'symbol' }}</td>
       <td class="text-right">{{order.tax | currency:'USD':'symbol' }}</td>
+      <td class="text-right">{{order.deliveryBy ? 'qMenu': (order.type === 'DELIVERY' ? 'restaurant' : '') }}</td>
       <td class="text-right" *ngIf="order.deliveryCharge">{{order.deliveryCharge | currency:'USD':'symbol' }}</td>
       <td class="text-right" *ngIf="!order.deliveryCharge"></td>
       <td class="text-right" *ngIf="order.tip">{{order.tip | currency:'USD':'symbol' }}</td>
@@ -267,15 +275,17 @@
       </td>
       <td class="text-right">{{order.total | currency:'USD':'symbol' }}</td>
     </tr>
-    
+
     <tr>
       <th class="text-right" colspan="6">Sum</th>
       <th class="text-right">{{invoice.getSubtotal() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</th>
-      <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">{{invoice.getCcProcessingFee() | currency:'USD':'symbol'}}</th>
-      <th class="text-right" *ngIf="invoice.getSurcharge() > 0">{{invoice.getSurcharge() | currency:'USD':'symbol'}}</th>
+      <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">
+        {{invoice.getCcProcessingFee() | currency:'USD':'symbol'}}</th>
+      <th class="text-right" *ngIf="invoice.getSurcharge() > 0">{{invoice.getSurcharge() | currency:'USD':'symbol'}}
+      </th>
       <th class="text-right">{{invoice.getTotal() | currency:'USD':'symbol'}}</th>
     </tr>
   </table>
