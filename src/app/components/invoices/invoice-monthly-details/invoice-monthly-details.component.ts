@@ -110,7 +110,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
             },
             limit: 80000
           }),
-          this._api.get(environment.qmenuApiUrl + "generic", {
+          this._api.getBatch(environment.qmenuApiUrl + "generic", {
             resource: "restaurant",
             projection: {
               name: 1,
@@ -121,7 +121,7 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
               "googleAddress.formatted_address": 1
             },
             limit: 10000
-          }),
+          }, 5000),
           this._api.get(environment.qmenuApiUrl + "generic", {
             resource: "order",
             query: {
