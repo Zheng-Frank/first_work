@@ -3,7 +3,7 @@ export class Courier {
     _id: string;
     name: string;
     pricings: CourierPricing[];
-
+    drivers: any[];
     constructor(courier: any) {
         if (courier) {
             // copy every fields

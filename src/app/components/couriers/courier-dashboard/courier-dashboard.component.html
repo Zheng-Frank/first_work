@@ -30,6 +30,22 @@
             + Add Pricing</button>
         </li>
       </ul>
+
+      <h3 class="mt-4">Drivers ({{(courier.drivers || []).length}})</h3>
+      <ul class="list-group mt-2">
+        <li class="list-group-item d-flex justify-content-between align-items-left"
+          *ngFor="let driver of courier.drivers || []">
+
+          <div class="d-flex justify-content-between w-100">
+            <div>
+              <strong>{{driver.firstName}} {{driver.lastName}}</strong><span *ngIf="driver.isManager"> (manager)</span>
+            </div>
+            <span class="bg-danger px-1 text-light">{{driver.online ? 'Online' : 'Offline'}}</span>
+          </div>
+
+        </li>
+      </ul>
+
       <h3 class="mt-4">Restaurants ({{getCourierRestaurants(courier).length}})</h3>
       <ul class="list-group mt-2">
         <li class="list-group-item d-flex justify-content-between align-items-left"

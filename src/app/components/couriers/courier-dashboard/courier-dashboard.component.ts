@@ -144,11 +144,34 @@ export class CourierDashboardComponent implements OnInit {
       },
       limit: 3000000
     }).toPromise();
+
+    const drivers = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "driver",
+      query: {},
+      projection: {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        online: 1,
+        isManager: 1,
+        courier: 1
+      },
+      limit: 3000000
+    }).toPromise();
+
+    drivers.map(d => this.couriers.map(c => {
+      if (c._id === d.courier._id) {
+        c.drivers = c.drivers || [];
+        c.drivers.push(d);
+      }
+    }));
+
     restaurantsWithCouriers.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
     restaurantsWithCouriers.map(rt => {
       this.courierRestaurants[rt.courier._id] = this.courierRestaurants[rt.courier._id] || [];
       this.courierRestaurants[rt.courier._id].push(rt);
     });
+
   }
 
   async toggleEnabled(courier, event) {

@@ -124,7 +124,7 @@
           <td>
             <b>Commission</b>
             <span *ngIf="getRateSchedules().length === 1">
-              <span *ngIf="getRateSchedules()[0].rate">{{getRateSchedules()[0].rate | percentage }}</span>
+              <span *ngIf="getRateSchedules()[0].rate || !getRateSchedules()[0].fixed">{{getRateSchedules()[0].rate | percentage }}</span>
               <span *ngIf="getRateSchedules()[0].rate && getRateSchedules()[0].fixed">+</span>
               <span
                 *ngIf="getRateSchedules()[0].fixed">{{getRateSchedules()[0].fixed | currency:'USD':'symbol' }}</span>
@@ -132,7 +132,7 @@
 
             <span *ngIf="getRateSchedules().length > 1">
               <div *ngFor="let rs of getRateSchedules()">
-                <span *ngIf="rs.rate">{{rs.rate | percentage }}</span>
+                <span *ngIf="rs.rate || !rs.fixed">{{rs.rate || 0 | percentage }}</span>
                 <span *ngIf="rs.rate && rs.fixed">+</span>
                 <span *ngIf="rs.fixed">{{rs.fixed | currency:'USD':'symbol' }}</span>
                 since <span>{{rs.date | date: 'shortDate'}}</span>
