@@ -10,7 +10,7 @@ import { environment } from 'src/environments/environment';
 })
 export class MonitoringDashboardComponent implements OnInit {
 
-  monitoredItem = 'Placeholder';
+  monitoredItem = 'Dashboard Items';
   items = [];
 
   dashboardItems = [];
@@ -20,7 +20,8 @@ export class MonitoringDashboardComponent implements OnInit {
 
   ngOnInit() {
     const roleMap = {
-      "Placeholder": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
+      "Dashboard Items": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
+      "Diagnostics": ["ADMIN", "CSR", "ACCOUNTANT"],
       "Cloud Printers": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
       "GMB Tasks": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "GMB_SPECIALIST"],
       "DB": ["ADMIN"],

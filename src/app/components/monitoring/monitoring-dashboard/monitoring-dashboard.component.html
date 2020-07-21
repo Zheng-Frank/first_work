@@ -17,7 +17,7 @@
 <p>Select item:</p>
 <q-simple-radio [(ngModel)]="monitoredItem" [equalWidth]="true" [values]="items">
 </q-simple-radio>
-<ng-container *ngIf="monitoredItem === 'Placeholder'">
+<ng-container *ngIf="monitoredItem === 'Dashboard Items'">
 
     <!-- row has negative margins and we need to remove them! -->
     <div class="row ml-0 mr-0">
@@ -29,6 +29,7 @@
     </div>
 
 </ng-container>
+<app-monitoring-restaurants *ngIf="monitoredItem === 'Diagnostics'"></app-monitoring-restaurants>
 <app-monitoring-printers *ngIf="monitoredItem === 'Cloud Printers'"></app-monitoring-printers>
 <app-monitoring-gmb-tasks *ngIf="monitoredItem === 'GMB Tasks'"></app-monitoring-gmb-tasks>
 <app-monitoring-db *ngIf="monitoredItem === 'DB'"></app-monitoring-db>
