@@ -196,14 +196,13 @@ export class Helper {
             restaurantWebsite = 'http://' + restaurantWebsite;
         }
 
-        let aliasRedirect = aliasUrl + (restaurantWebsite ? '?target=' + encodeURIComponent(restaurantWebsite) : '');
-
         const insistedWebsite = web.useBizWebsite;
         const insistedAll = web.useBizWebsiteForAll;
 
         let targetWebsite = qmenuWebsite;
-        if (!targetWebsite || insistedAll || insistedWebsite) {
-            targetWebsite = aliasRedirect;
+
+        if (insistedAll || insistedWebsite) {
+            targetWebsite = restaurantWebsite || qmenuWebsite;
         }
 
         let menuUrl = restaurantWebsite || aliasUrl;
