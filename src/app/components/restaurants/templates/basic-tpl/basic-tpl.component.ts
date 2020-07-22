@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 import { Helper } from 'src/app/classes/helper';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from "src/app/classes/alert-type";
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-basic-tpl',
@@ -38,7 +39,7 @@ export class BasicTplComponent implements OnInit {
 
   restaurant;
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
     await this.init();
@@ -192,7 +193,7 @@ export class BasicTplComponent implements OnInit {
       // --- Upload Image
       this.headerImage = event;
 
-      const { Location: url }: any = await Helper.uploadImage(this.headerImage, this._api);
+      const { Location: url }: any = await Helper.uploadImage(this.headerImage, this._api, this._http);
       this.headerSliderImages[index] = url;
 
       // --- Save to DB
@@ -307,7 +308,7 @@ export class BasicTplComponent implements OnInit {
       // --- Upload Image
       this.specialtyImage = event;
 
-      const { Location: url }: any = await Helper.uploadImage(this.specialtyImage, this._api);
+      const { Location: url }: any = await Helper.uploadImage(this.specialtyImage, this._api, this._http);
       this.specialtyImages[index] = url;
 
       // --- Save to DB
@@ -364,7 +365,7 @@ export class BasicTplComponent implements OnInit {
       // --- Upload Image
       this.promoImage = event;
 
-      const { Location: url }: any = await Helper.uploadImage(this.promoImage, this._api);
+      const { Location: url }: any = await Helper.uploadImage(this.promoImage, this._api, this._http);
       this.promoImages[index] = url;
 
       // --- Save to DB

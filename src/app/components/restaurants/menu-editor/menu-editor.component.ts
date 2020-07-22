@@ -5,6 +5,7 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-menu-editor',
@@ -25,7 +26,7 @@ export class MenuEditorComponent implements OnInit {
 
   uploadImageError: string;
 
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService, private _http: HttpClient) { }
 
   ngOnInit() {
   }
@@ -107,7 +108,7 @@ export class MenuEditorComponent implements OnInit {
     this.uploadImageError = undefined;
     let files = event.target.files;
     try {
-      const data: any = await Helper.uploadImage(files, this._api);
+      const data: any = await Helper.uploadImage(files, this._api, this._http);
 
       if (data && data.Location) {
         this.menu.backgroundImageUrl = data.Location;

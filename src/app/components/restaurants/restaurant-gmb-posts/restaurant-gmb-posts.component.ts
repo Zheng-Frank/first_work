@@ -6,6 +6,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Helper } from '../../../classes/helper';
 import { componentRefresh } from '@angular/core/src/render3/instructions';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-restaurant-gmb-posts',
@@ -38,7 +39,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
   // email = '07katiereagan02@gmail.com';
   // locationName = 'accounts/103785446592950428715/locations/3777873802242891617' // location for 'Qmenu Inc'
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
     this.refresh();
@@ -112,7 +113,7 @@ export class RestaurantGmbPostsComponent implements OnInit {
     this.uploadImageError = undefined;
     this.files = event.target.files;
     try {
-      const data: any = await Helper.uploadImage(this.files, this._api);
+      const data: any = await Helper.uploadImage(this.files, this._api, this._http);
 
       if (data && data.Location) {
         this.imageUrl = data.Location;

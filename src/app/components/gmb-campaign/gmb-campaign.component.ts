@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
@@ -33,7 +34,7 @@ export class GmbCampaignComponent implements OnInit {
   }
 
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   ngOnInit() {
   }
@@ -132,7 +133,7 @@ export class GmbCampaignComponent implements OnInit {
     this.uploadImageError = undefined;
     this.files = event.target.files;
     try {
-      const data: any = await Helper.uploadImage(this.files, this._api);
+      const data: any = await Helper.uploadImage(this.files, this._api, this._http);
 
       if (data && data.Location) {
         this.imageUrl = data.Location;
