@@ -44,6 +44,7 @@ import { YelpDashboardComponent } from './components/yelp/yelp-dashboard/yelp-da
 import { YelpBusinessesComponent } from './components/yelp/yelp-businesses/yelp-businesses.component';
 import { CourierDashboardComponent } from './components/couriers/courier-dashboard/courier-dashboard.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
+import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
  
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
@@ -88,6 +89,7 @@ const routes: Routes = [
   { path: 'events', component: EventDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: '**', redirectTo: '/home' }
 ];
 
