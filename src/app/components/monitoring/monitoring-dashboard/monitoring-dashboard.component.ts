@@ -23,7 +23,7 @@ export class MonitoringDashboardComponent implements OnInit {
       "Dashboard Items": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
       "Diagnostics": ["ADMIN", "CSR", "ACCOUNTANT"],
       "Cloud Printers": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
-      "GMB Tasks": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "GMB_SPECIALIST"],
+      "GMB Tasks": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "GMB_SPECIALIST", "MARKETER_INTERNAL"],
       "DB": ["ADMIN"],
       "Events": ["ADMIN"],
       "Scripts": ["ADMIN"],

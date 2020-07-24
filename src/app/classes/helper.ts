@@ -2,61 +2,28 @@ import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api.service';
 import { Address } from '@qmenu/ui';
 import { HttpClient } from '@angular/common/http';
-declare var AWS: any;
 
 export class Helper {
 
-    
     static async uploadImage(files: File[], _api: ApiService, _http: HttpClient) {
-
-        if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
+        // let's take only the first file so far (possible for multiple files in future)
+        const [file] = files;
+        if (file.type.indexOf('image') < 0) {
             throw 'Invalid file type. Choose image only.';
-        } else if (files && files.length > 0 && files[0].size > 20000000) {
+        } else if (file.size > 20000000) {
             throw 'The image size exceeds 20M.';
         } else {
-            let file = files[0];
-
-            let response: any;
             const apiPath = `utils/s3-signed-url?contentType=${file.type}&prefix=menuImage&extension=${file.name.split('.').pop()}&bucket=chopst&expires=3600`;
-            
             // Get presigned url
             try {
-                response = await _api.get(environment.appApiUrl+ apiPath).toPromise();
+                const response = await _api.get(environment.appApiUrl + apiPath).toPromise();
+                const presignedUrl = response['url'];
+                await _http.put(presignedUrl, file).toPromise();
+                return { Location: presignedUrl.slice(0, presignedUrl.indexOf("?")) };
             } catch (error) {
-                return new Promise((resolve, reject) => {
-                    reject("Failed to get presigned Url");
-                })
+                throw "Failed to get presigned Url";
             }
-            
-            // Return a promise of putting image based on the presigned url
-            return new Promise((resolve, reject) => {
-                const callback = function (error, data) {
-                    if (error) {
-console.log("Callback got called, rejecting: " + error);
-                        reject(error);
-                    } else {
-console.log("Callback got called, resolving: " + JSON.stringify(data));
-                        resolve(data);
-                    }
-                }
-                this.putImage(response['url'], file, callback, _http);
-            });
         }
-        
-    }
-
-    // Send image based on presigned Url
-    static putImage(presignedUrl, file, callback, http: HttpClient) {
-        http.put(presignedUrl, file).subscribe(
-            (response) => {
-                const data = {Location: presignedUrl.slice(0, presignedUrl.indexOf("?"))};
-                callback(null, data);
-            },
-            (error) => {
-                callback(error, null);
-            },
-            () => {}
-        );
     }
 
     static areObjectsEqual(obj1, obj2) {
@@ -273,12 +240,12 @@ console.log("Callback got called, resolving: " + JSON.stringify(data));
 
     static getLine1(address: Address) {
         if (!address) {
-          return 'Address Missing';
+            return 'Address Missing';
         }
         return (address.street_number ? address.street_number : '') + ' '
-          + (address.route ? ' ' + address.route : '') +
-          (address.apt ? ', ' + address.apt : '');
-      }
+            + (address.route ? ' ' + address.route : '') +
+            (address.apt ? ', ' + address.apt : '');
+    }
 
     static getTimeZone(formatted_address) {
         const tzMap = {
@@ -310,17 +277,17 @@ console.log("Callback got called, resolving: " + JSON.stringify(data));
 
     static sanitizedName(menuItemName) {
         let processedName;
-    
+
         //remove (Lunch) and numbers
-        processedName= (menuItemName || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim()
+        processedName = (menuItemName || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim()
         processedName = processedName.replace('&', '');
         processedName = processedName.replace('.', ' ');
         // processedName = processedName.replace('w.', ' ');
         // processedName = processedName.replace('with', ' ');
-    
+
         // Remove non-English characters
         processedName = processedName.replace(/[^\x00-\x7F]/g, '');
-    
+
         // 19a Sesame Chicken --> Sesame Chicken
         // B Bourbon Chicken --> Bourbon Chicken
         let nameArray = processedName.split(' ');

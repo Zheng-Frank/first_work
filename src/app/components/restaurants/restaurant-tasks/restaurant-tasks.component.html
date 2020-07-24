@@ -1,7 +1,9 @@
 <div *ngIf="restaurant">
   <div class="mb-2 text-right">
+    <button class="btn btn-primary" (click)="createGmbRequestTask()" [qLoading]="refreshing">
+      <i class="fas fa-plus"></i> Create GMB Task</button>
     <button class="btn btn-primary" (click)="refreshGmbTasks()" [qLoading]="refreshing">
-      <i class="fas fa-search"></i> Refresh GMB Tasks</button>
+      <i class="fas fa-hourglass-half"></i> Refresh GMB Tasks</button>
   </div>
 
   <table>

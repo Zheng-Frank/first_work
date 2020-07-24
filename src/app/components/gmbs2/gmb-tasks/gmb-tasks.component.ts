@@ -15,12 +15,18 @@ import { Helper } from "src/app/classes/helper";
 export class GmbTasksComponent implements OnInit, OnDestroy {
 
     private async populateTasks() {
+        const myRoles = this.myUserRoles;
+        const myUsername = this.myUsername;
+        console.log(myRoles);
+        console.log(myUsername);
+        console.log(myRoles.indexOf("MARKETER_INTERNAL") >= 0 ? { assignee: myUsername } : {});
         // this.setQueryOr();
         const dbTasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
             resource: "task",
             query: {
                 result: null,
                 name: "GMB Request",
+                ...myRoles.indexOf("MARKETER_INTERNAL") >= 0 ? { assignee: myUsername } : {},
                 // "relatedMap.restaurantId": "58a34a2be1ddb61100f9e49c"
             },
             projection: {
@@ -47,7 +53,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
         this.tasks = dbTasks.map(t => new Task(t));
         this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
-
         // this.tasks.filter(t => !this.restaurantDict[t.relatedMap.restaurantId])
         //     .forEach(function (task) { console.log(`ERROR bad restaurant id ${task.relatedMap.restaurantId}! Task ID = ${task._id.toString()}`) });
 
@@ -192,6 +197,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.ownerList = Array.from(new Set(this.ownerList)).sort().filter(e => e != null);
 
         this.now = new Date();
+        this.filter();
 
     }
 
@@ -508,15 +514,18 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     async populate() {
         try {
+            // populate RTs first because tasks will do filter about them
+            await this.populateRTs();
             await Promise.all([
                 this.populateTasks(),
                 this.populatePostcardId(),
                 this.populateQMDomains(),
-                this.populateRTs(),
             ]);
+
         } catch (error) {
             this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
         }
+
         this.filter();
     }
 
