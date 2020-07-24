@@ -174,6 +174,7 @@ import { CourierDashboardComponent } from './components/couriers/courier-dashboa
 import { BroadcastingEditorComponent } from './components/broadcasting/broadcasting-editor/broadcasting-editor.component';
 import { SanitizeDomPipe } from './pipes/sanitize-dom.pipe';
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
+import { RestaurantsCourierListComponent } from './components/restaurants/restaurants-courier-list/restaurants-courier-list.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -327,6 +328,7 @@ import { PostmatesListComponent } from './components/restaurants/postmates-list/
     BroadcastingEditorComponent,
     SanitizeDomPipe,
     PostmatesListComponent,
+    RestaurantsCourierListComponent,
 
 
 

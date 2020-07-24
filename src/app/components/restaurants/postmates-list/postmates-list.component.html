@@ -1,3 +1,13 @@
-<p>
-  postmates-list works!
-</p>
+<h3>Restaurant List Supporting Postmates</h3>
+<div class="pb-2 text-right">
+    <button class="btn btn-primary" (click)="initDatabase()"><i class="fas fa-wave-square"></i> CLEAR ALL DATA!!!</button>
+    <button class="btn btn-primary" (click)="refresh()"><i class="fas fa-wave-square"></i> Refresh</button>
+    <button class="btn btn-primary" (click)="updateRestaurantList()"><i class="fas fa-wave-square"></i> Update Restaurants in List</button>
+    <button class="btn btn-primary" (click)="scanPostmates()"><i class="fas fa-wave-square"></i> Rescan</button>
+</div>
+
+<div class="card-body text-left" z>
+
+    <app-restaurants-courier-list [restaurantList]="postmatesList" [skeletalRestaurants]="skeletalRestaurants"
+        [user]="user"></app-restaurants-courier-list>
+</div>

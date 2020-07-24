@@ -2,6 +2,8 @@
 <!-- <app-restaurant-menu-shuffler [restaurant1]="fakeRestaurant1"  [restaurant2]="fakeRestaurant2"></app-restaurant-menu-shuffler> -->
 <div class="text-right mb-2">
   <div class="pb-2">
+    <button class="btn btn-primary" onclick="window.location.href='/#/postmates-list';" *ngIf="isButtonVisible('NEW')">
+      Delivery by Postmates</button>
     <button class="btn btn-primary" (click)="setAction('NEW')" *ngIf="isButtonVisible('NEW')">
       <i class="fas fa-plus"></i> Add New Restaurant</button>
     <!-- <button class="btn btn-info" (click)="setAction('CRAWL')" *ngIf="isButtonVisible('CRAWL')">

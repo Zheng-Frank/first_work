@@ -10,6 +10,9 @@ export class RestaurantWithCourier {
 
   name: string;
   address: string;
+  score: number;
+  timeZone: string;
+  agents: string[];
 
   courier: string;
   
