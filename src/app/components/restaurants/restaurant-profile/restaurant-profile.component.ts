@@ -6,6 +6,7 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-restaurant-profile',
@@ -94,7 +95,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     { value: 'CHINESE', text: 'Chinese' }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   ngOnInit() {
   }
@@ -213,7 +214,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.uploadImageError = undefined;
     let files = event.target.files;
     try {
-      const data: any = await Helper.uploadImage(files, this._api);
+      const data: any = await Helper.uploadImage(files, this._api, this._http);
       if (data && data.Location) {
         this.images.push(data.Location);
       }
@@ -230,7 +231,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.uploadImageError = undefined;
     let files = event.target.files;
     try {
-      const data: any = await Helper.uploadImage(files, this._api);
+      const data: any = await Helper.uploadImage(files, this._api, this._http);
 
       if (data && data.Location) {
         this.logo = data.Location;

@@ -6,6 +6,7 @@ import { Router, NavigationStart } from '@angular/router';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
+import { HttpClient } from '@angular/common/http';
 
 declare var $: any;
 
@@ -28,7 +29,7 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
 
   uploadImageError: string;
 
-  constructor(private _router: Router, private _api: ApiService) {
+  constructor(private _router: Router, private _api: ApiService, private _http: HttpClient) {
 
   }
 
@@ -71,7 +72,7 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
     this.uploadImageError = undefined;
     let files = event.target.files;
     try {
-        const data: any = await Helper.uploadImage(files, this._api);
+        const data: any = await Helper.uploadImage(files, this._api, this._http);
 
         if (data && data.Location) {
           (this.mc.images || []).push(data.Location);

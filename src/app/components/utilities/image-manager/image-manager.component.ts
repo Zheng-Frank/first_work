@@ -4,6 +4,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Helper } from '../../../classes/helper';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-image-manager',
@@ -22,7 +23,7 @@ export class ImageManagerComponent implements OnInit {
   rows = [];
   images = [];
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   ngOnInit() {
     this.reload();
@@ -73,7 +74,7 @@ export class ImageManagerComponent implements OnInit {
     this.uploadImageError = undefined;
     let files = event.target.files;
     try {
-      const data: any = await Helper.uploadImage(files, this._api);
+      const data: any = await Helper.uploadImage(files, this._api, this._http);
       console.log(data)
       if (data && data.Location) {
 

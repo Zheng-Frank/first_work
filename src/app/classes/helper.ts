@@ -1,81 +1,63 @@
 import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api.service';
 import { Address } from '@qmenu/ui';
+import { HttpClient } from '@angular/common/http';
 declare var AWS: any;
 
 export class Helper {
 
-    static awsAccessKeyId;
-    static awsSecretAccessKey;
-
-    // static uploadImage(files: File[], callback) {
-    //     if(!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
-    //         callback('Missing AWS kyes. Contact qMenu.', null);
-    //     }
-    //     else if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
-    //         callback('Invalid file type. Choose image only.', null);
-    //     } else if (files && files.length > 0 && files[0].size > 10000000) {
-    //         callback('The image size exceeds 10M.', null);
-    //     } else {
-    //         AWS.config.accessKeyId = Helper.awsAccessKeyId;
-    //         AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
-
-    //         let file = files[0];
-    //         let uuid = new Date().valueOf();
-    //         let ext = file.name.split('.').pop();
-
-    //         let bucket = new AWS.S3({ params: { Bucket: 'chopst', ContentType: 'image/jpeg' } });
-    //         let imageFile = { Key: 'menuImage/' + uuid + '.' + ext, Body: file };
-    //         bucket.upload(imageFile, callback);
-    //     }
-    // }
-
-    static async uploadImage(files: File[], _api: ApiService) {
-
-        if (!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
-            const keys = await _api.get(environment.qmenuApiUrl + "generic", {
-                resource: "key",
-                projection: {
-                    awsAccessKeyId: 1,
-                    awsSecretAccessKey: 1
-                },
-                limit: 1
-            }).toPromise();
-
-            Helper.awsAccessKeyId = keys[0].awsAccessKeyId;
-            Helper.awsSecretAccessKey = keys[0].awsSecretAccessKey;
-        }
+    
+    static async uploadImage(files: File[], _api: ApiService, _http: HttpClient) {
 
         if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
             throw 'Invalid file type. Choose image only.';
         } else if (files && files.length > 0 && files[0].size > 20000000) {
             throw 'The image size exceeds 20M.';
         } else {
-
-            AWS.config.accessKeyId = Helper.awsAccessKeyId;
-            AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
-
             let file = files[0];
-            let uuid = new Date().valueOf();
-            let ext = file.name.split('.').pop();
 
-            let bucket = new AWS.S3({ params: { Bucket: 'chopst', ContentType: 'image/jpeg' } });
-            let imageFile = { Key: 'menuImage/' + uuid + '.' + ext, Body: file };
-
-
+            let response: any;
+            const apiPath = `utils/s3-signed-url?contentType=${file.type}&prefix=menuImage&extension=${file.name.split('.').pop()}&bucket=chopst&expires=3600`;
+            
+            // Get presigned url
+            try {
+                response = await _api.get(environment.appApiUrl+ apiPath).toPromise();
+            } catch (error) {
+                return new Promise((resolve, reject) => {
+                    reject("Failed to get presigned Url");
+                })
+            }
+            
+            // Return a promise of putting image based on the presigned url
             return new Promise((resolve, reject) => {
                 const callback = function (error, data) {
                     if (error) {
+console.log("Callback got called, rejecting: " + error);
                         reject(error);
                     } else {
+console.log("Callback got called, resolving: " + JSON.stringify(data));
                         resolve(data);
                     }
                 }
-                bucket.upload(imageFile, callback);
+                this.putImage(response['url'], file, callback, _http);
             });
         }
+        
     }
 
+    // Send image based on presigned Url
+    static putImage(presignedUrl, file, callback, http: HttpClient) {
+        http.put(presignedUrl, file).subscribe(
+            (response) => {
+                const data = {Location: presignedUrl.slice(0, presignedUrl.indexOf("?"))};
+                callback(null, data);
+            },
+            (error) => {
+                callback(error, null);
+            },
+            () => {}
+        );
+    }
 
     static areObjectsEqual(obj1, obj2) {
         if (Object.is(obj1, obj2)) {
