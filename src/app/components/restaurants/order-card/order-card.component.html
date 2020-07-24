@@ -81,7 +81,7 @@
           </div>
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of order.delivery.updates || []">
-              <span>{{record.created | date : 'short'}}</span>&nbsp;<span class="value">{{record.status}}</span>
+              <span>{{record.created | shortTime: restaurant.offsetToEST}}</span>&nbsp;<span class="value">{{record.status}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
           </div>
