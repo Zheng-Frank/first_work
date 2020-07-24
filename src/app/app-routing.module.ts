@@ -82,7 +82,7 @@ const routes: Routes = [
   { path: 'gmb-businesses', component: GmbBizListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-requests', component: GmbRequestListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-pins', component: GmbPinsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
-  { path: 'gmb-tasks', component: GmbTasksComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "GMB", "CSR", "ACCOUNTANT"] } },
+  { path: 'gmb-tasks', component: GmbTasksComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "GMB", "CSR", "ACCOUNTANT", "MARKETER_INTERNAL"] } },
   { path: 'gmb-open', component: MonitoringGmbOpenComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'workflows', component: WorkflowDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
   { path: 'events', component: EventDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
