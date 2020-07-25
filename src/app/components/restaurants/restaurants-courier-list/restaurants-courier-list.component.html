@@ -1,8 +1,9 @@
 <div *ngIf="!restaurantList || restaurantList.length === 0">
-  Postmates list is empty
+  Postmates list is empty.
 </div>
 
-<q-simple-radio [(ngModel)]="selectedAvailability" [values]="availabilityList" (ngModelChange)="selectTask($event)">
+<q-simple-radio [(ngModel)]="selectedAvailability" [values]="availabilityList"
+  (ngModelChange)="selectAvailability($event)">
 </q-simple-radio>
 
 <div class="float-left form-inline mt-2">
@@ -13,6 +14,11 @@
   <select class="mr-5" [(ngModel)]="selectedAvailability" (change)="filter()">
     <!-- <option>All</option> -->
     <option *ngFor="let availability of availabilityList">{{availability}}</option>
+  </select>
+  <label class="mr-2"> Time Zone:</label>
+  <select class="mr-5" [(ngModel)]="selectedTimeZone" (change)="filter()">
+    <option>All</option>
+    <option *ngFor="let availability of timeZoneList">{{availability}}</option>
   </select>
   <!-- <label class="mr-2"> Time Zone:</label>
   <select class="mr-5" [(ngModel)]="timeZone" (change)="filter()">
@@ -61,7 +67,7 @@
 
 
 <q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
-  [pageSize]="pagination ? 100 : 100000">
+  [pageSize]="pagination ? 10 : 100000">
   <tr *tableRowTemplate="let task;">
     <td>{{filteredRestaurants.indexOf(task) + 1}}</td>
     <!-- <td>
@@ -79,13 +85,16 @@
     <td>
       {{task.restaurantId}}
       <br>
-      <a href = "#/restaurants/{{task.restaurantId}}" target="_blank">{{task.name}}</a>
+      <a href="#/restaurants/{{task.restaurantId}}" target="_blank">{{task.name}}</a>
       <br>
       {{task.address}}
     </td>
+    <td>{{task.timeZone}}</td>
+    <td>{{task.score | number : '1.0-1'}}</td>
     <!-- <td>{{task.address}}</td> -->
     <!-- <td (dblclick)="changeAvail(task)">{{task.availability || "unknown"}}</td> -->
     <td>{{task.availability || "unknown"}}</td>
+    <td>{{task.checkedAt | ago: now}}</td>
     <td class="text-right">
       <button class="btn btn-link py-0" (click)="call(task)">
         <i class="fas fa-phone"></i>
@@ -99,15 +108,15 @@
 
     <td *ngIf="task.log">
       <ng-container *ngFor="let log of task.log; index as logIndex">
-        <tr (click)="editLog(task, logIndex)" style="cursor: pointer;">
-          {{log.comments}}
-          <br>
-          time: {{task.log[logIndex].time | date:'short'}}
-          <br>
-          user: {{task.log[logIndex].user}}
-        </tr>
-      </ng-container>
-    </td>
+  <tr (click)="editLog(task, logIndex)" style="cursor: pointer;">
+    {{log.comments}}
+    <br>
+    time: {{task.log[logIndex].time | date:'short'}}
+    <br>
+    user: {{task.log[logIndex].user}}
+  </tr>
+  </ng-container>
+  </td>
 
 
   <!-- <td>{{task.name}}

@@ -27,9 +27,9 @@ export class RestaurantsCourierListComponent implements OnInit {
   @ViewChild("callModal") callModal: ModalComponent;
   @ViewChild("availabilityModal") availabilityModal: ModalComponent;
   @ViewChild("logEditorModal") logEditorModal: ModalComponent;
-  
 
-  now = new Date();
+
+  now = new Date()
   claimed;
   assignee: string;
   owner: string;
@@ -55,7 +55,7 @@ export class RestaurantsCourierListComponent implements OnInit {
   selectedAvailability = "All";
   availabilityList = ["All", "signed up", "available", "not available", "unknown"];
 
-  timeZone = "All";
+  selectedTimeZone = "All";
   timeZoneList = ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort();
 
   myColumnDescriptors = [
@@ -78,6 +78,17 @@ export class RestaurantsCourierListComponent implements OnInit {
       paths: ['name'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
+    {
+      label: "Time Zone",
+      paths: ['timeZone'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: "Score",
+      paths: ['score'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+      // sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+    },
     // {
     //   label: "address",
     //   paths: ['address'],
@@ -89,17 +100,17 @@ export class RestaurantsCourierListComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: "Checked at",
+      paths: ['checkedAt'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
       label: "Phone"
     },
     {
-      label: "Log",
+      label: "Logs",
     },
-    // {
-    //   label: "Score",
-    //   paths: ['name'],
-    //   sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
-    //   // sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
-    // },
+
     // {
     //   label: "Group"
     // },
@@ -135,14 +146,9 @@ export class RestaurantsCourierListComponent implements OnInit {
   filteredRestaurants = [];
 
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
-    console.log("Constructing");
-    console.log(this.restaurantList);
-  }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  async ngOnInit() {
-
-  }
+  ngOnInit() { }
 
   ngOnChanges(changes: SimpleChanges) {
     console.log("Changing");
@@ -157,15 +163,15 @@ export class RestaurantsCourierListComponent implements OnInit {
     }
   }
 
-  hasBadScanStatus(task) {
-    const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status;
-    return ['Timeout', 'LOCATION REMOVED FROM ACCOUNT', 'no matching restaurant'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
-  }
+  // hasBadScanStatus(task) {
+  //   const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status;
+  //   return ['Timeout', 'LOCATION REMOVED FROM ACCOUNT', 'no matching restaurant'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
+  // }
 
-  hasGoodScanStatus(task) {
-    const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status;
-    return status === null || [KnownError.GMB_WAITING_FOR_APPEAL, KnownError.GMB_UI_NOT_VERIFIABLE, 'SHOULD USE PHONE_CALL TO VERIFY', 'WAIT', 'NO AUTO POPULATION', 'null'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
-  }
+  // hasGoodScanStatus(task) {
+  //   const status = (((task.transfer || {}).statusHistory || [])[0] || {}).status;
+  //   return status === null || [KnownError.GMB_WAITING_FOR_APPEAL, KnownError.GMB_UI_NOT_VERIFIABLE, 'SHOULD USE PHONE_CALL TO VERIFY', 'WAIT', 'NO AUTO POPULATION', 'null'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
+  // }
 
   filter() {
     if (this.selectedAvailability === "All") {
@@ -173,6 +179,9 @@ export class RestaurantsCourierListComponent implements OnInit {
     }
     else {
       this.filteredRestaurants = this.restaurantList.filter(each => each.availability === this.selectedAvailability);
+    }
+    if (this.selectedTimeZone && this.selectedTimeZone !== "All") {
+      this.filteredRestaurants = this.filteredRestaurants.filter(t => t.timeZone === this.selectedTimeZone);
     }
     // if (this.selectedTaskName === 'All') {
     //   this.filteredTasks = this.restaurantList;
@@ -243,9 +252,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     //   });
     // }
 
-    // if (this.timeZone && this.timeZone !== "All") {
-    //   this.filteredTasks = this.filteredTasks.filter(t => t.gmbBiz && t.gmbBiz.timeZone === this.timeZone);
-    // }
+
 
     // this.assigneeList = this.restaurantList.map(t => t.assignee);
     // // reuturn unique
@@ -281,9 +288,17 @@ export class RestaurantsCourierListComponent implements OnInit {
     this.actionDone.emit(event);
   }
 
-  selectTask(item) {
-    this.filter();
-  }
+
+
+
+
+
+
+
+
+
+
+
 
   // getGMB(id) {
   //   //console.log(this.restaurantList);
@@ -436,5 +451,14 @@ export class RestaurantsCourierListComponent implements OnInit {
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, log: event.object.log, availability: event.object.availabilityNew } }]).toPromise();
     console.log(event.object);
     this.availabilityModal.hide(); // move to first line later???
+  }
+
+
+
+  //New start:
+
+  
+  selectAvailability(item) {
+    this.filter();
   }
 }

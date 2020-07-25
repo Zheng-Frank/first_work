@@ -4,6 +4,8 @@ import { environment } from "../../environments/environment";
 import { GlobalService } from "../services/global.service";
 import { RestaurantWithCourier } from '../classes/restaurant-courier'
 import { Courier } from "../classes/courier";
+import { Helper } from "src/app/classes/helper";
+
 @Injectable({
   providedIn: 'root'
 })
@@ -118,6 +120,22 @@ export class RestaurantCourierService {
 
   // Update restaurant list in courier database. To change!???
 
+  async viewRestaurants(){
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {},
+      limit: 10,
+      // projection: {
+      //   _id: 1,
+      //   "googleAddress._id": 1,
+      //   "googleAddress.formatted_address": 1,
+      //   name: 1,
+      //   courier: 1
+      // }
+    }, 5000);
+    console.log(restaurants);
+  }
+
   async updateRestaurantList() {
     const restaurants = await this.getRestaurantList();
     const restaurantListWithCourierNew = this.parseRestaurants(restaurants);
@@ -131,13 +149,15 @@ export class RestaurantCourierService {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {},
+      // query: {disabled: false}, //???
       limit: 15, // For test???
       projection: {
         _id: 1,
         "googleAddress._id": 1,
         "googleAddress.formatted_address": 1,
         name: 1,
-        courier: 1
+        courier: 1,
+        score: 1
       }
     }, 5000);
     const restaurantsExisting = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -160,6 +180,8 @@ export class RestaurantCourierService {
       cid: each.googleAddress._id,
       name: each.name,
       address: each.googleAddress.formatted_address,
+      score: each.score,
+      timeZone: Helper.getTimeZone(each.googleAddress.formatted_address),
       availability: (each.courier && each.courier.name === this.courier.name) ? "signed up" : null,
     }));
     return ret;
