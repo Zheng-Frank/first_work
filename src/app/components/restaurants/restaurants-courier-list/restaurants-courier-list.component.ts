@@ -10,6 +10,7 @@ import {
   AddressPickerComponent,
   FormBuilderComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { RestaurantCourierService } from "../../../services/restaurant-courier.service";
 
 @Component({
   selector: 'app-restaurants-courier-list',
@@ -22,6 +23,7 @@ export class RestaurantsCourierListComponent implements OnInit {
   @Input() restaurantList = [];
   @Input() user: User;
   @Output() actionDone = new EventEmitter();
+  @Input() restaurantCourierService: RestaurantCourierService;
   // @Input() skeletalRestaurants;
 
   @ViewChild("callModal") callModal: ModalComponent;
@@ -62,17 +64,6 @@ export class RestaurantsCourierListComponent implements OnInit {
     {
       label: 'Number'
     },
-    // {
-    //   label: "_id",
-    //   paths: ['_id'],
-    //   sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
-    //   // sort: 
-    // },
-    // {
-    //   label: "cid",
-    //   paths: ['cid'],
-    //   sort: (a, b) => Number(a) - Number(b)
-    // },
     {
       label: "Restaurant",
       paths: ['name'],
@@ -86,8 +77,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     {
       label: "Score",
       paths: ['score'],
-      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
-      // sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+      sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
     // {
     //   label: "address",
@@ -137,7 +127,6 @@ export class RestaurantsCourierListComponent implements OnInit {
     //   sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     //   // sort: (a, b) => (a || new Date(0)).valueOf() - (b || new Date(0)).valueOf()
     // },
-
   ];
 
   taskNames = ['All'];
@@ -155,10 +144,10 @@ export class RestaurantsCourierListComponent implements OnInit {
     console.log(this.restaurantList);
     console.log("Still changing");
     if (this.restaurantList) {
-      this.taskNames = ['All', ...Array.from(new Set(this.restaurantList.map(t => t.availability)))];
-      if (this.taskNames.indexOf(this.selectedTaskName) < 0) {
-        this.selectedTaskName = 'All';
-      }
+      // this.taskNames = ['All', ...Array.from(new Set(this.restaurantList.map(t => t.availability)))];
+      // if (this.taskNames.indexOf(this.selectedTaskName) < 0) {
+      //   this.selectedTaskName = 'All';
+      // }
       this.filter();
     }
   }
@@ -309,13 +298,12 @@ export class RestaurantsCourierListComponent implements OnInit {
   // }
 
 
-
-  taskInEditing = { name: '' }; //???
-  call(task) {
-    console.log("Calling task:");
-    console.log(task);
-    this.taskInEditing = task;
-    // this.selectedtask = task;
+  // New call log.
+  restaurantInEditing = {}; //???
+  call(restaurant) {
+    console.log("Calling restaurant:");
+    console.log(restaurant);
+    this.restaurantInEditing = restaurant;
     this.callModal.show();
   }
 
@@ -332,7 +320,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     // }
   }
 
-  formFieldDescriptors = [
+  newLogFieldDescriptors = [
     {
       field: "comments",
       label: "Comments",
@@ -341,28 +329,28 @@ export class RestaurantsCourierListComponent implements OnInit {
     },
   ]
 
-
   formRemove(event) { }
 
-  async scanSubmit(event) {
+  async newLogSubmit(event) {
     if (!event.object.comments) {
       return event.acknowledge("Must input comments");
     }
-    if (!event.object.log) {
-      event.object.log = [];
+    if (!event.object.callLogs) {
+      event.object.callLogs = [];
     }
+    this.editingNewCallLog = !this.editingNewCallLog;
     const newLog = {
       caller: this._global.user.username,
       time: (new Date()).toISOString(),
       comments: event.object.comments,
     }
 
-    event.object.log.unshift(newLog);
+    event.object.callLogs.unshift(newLog);
     event.object.comments = '';
     // post to database!!!
     // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: event.object }]).toPromise();
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, log: event.object.log, testField: "test" } }]).toPromise();
-    console.log(event.object);
+    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, callLogs: event.object.log, testField: "test" } }]).toPromise();
+    await this.restaurantCourierService.patchOneCallLogsChange(event.object);
     this.callModal.hide();
   }
 
@@ -377,19 +365,19 @@ export class RestaurantsCourierListComponent implements OnInit {
     },
   ]
   logInEditing: number;
-  editLog(task, logIndex: number) {
+  editLog(restaurant, logIndex: number) {
     console.log("Editing log.");
-    console.log(task);
-    this.taskInEditing = task;
+    console.log(restaurant);
+    this.restaurantInEditing = restaurant;
     this.logInEditing = logIndex;
-    task.comments = task.log[logIndex].comments;
+    restaurant.comments = restaurant.callLogs[logIndex].comments;
     // this.selectedtask = task;
     this.logEditorModal.show();
   }
 
   async logEditorSubmit(event) {
-    if (!event.object.log) {
-      event.object.log = [];
+    if (!event.object.callLogs) {
+      event.object.callLogs = [];
       console.log("Cannot edit log in empty list!");
       this.logEditorModal.hide();
       return;
@@ -400,58 +388,59 @@ export class RestaurantsCourierListComponent implements OnInit {
     //   comments: event.object.comments,
     // }
 
-    event.object.log[this.logInEditing].comments = event.object.comments;
+    event.object.callLogs[this.logInEditing].comments = event.object.comments;
     event.object.comments = '';
     // post to database!!!
     // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: event.object }]).toPromise();
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, log: event.object.log, testField: "test" } }]).toPromise();
+    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, callLogs: event.object.callLogs, testField: "test" } }]).toPromise();
+    await this.restaurantCourierService.patchOneCallLogsChange(event.object);
     console.log(event.object);
     this.logEditorModal.hide();
   }
   // Change availability: availabilityModal
 
-  availabilityFieldDescriptors = [
-    {
-      field: "availabilityNew",
-      label: "Availibility",
-      required: false,
-      inputType: "single-select",
-      items: [
-        "signed up",
-        "available",
-        "not available",
-        "unknown"
-      ].map(status => ({ object: status, text: status, selected: false }))
-    },
-  ]
+  // availabilityFieldDescriptors = [
+  //   {
+  //     field: "availabilityNew",
+  //     label: "Availibility",
+  //     required: false,
+  //     inputType: "single-select",
+  //     items: [
+  //       "signed up",
+  //       "available",
+  //       "not available",
+  //       "unknown"
+  //     ].map(status => ({ object: status, text: status, selected: false }))
+  //   },
+  // ]
 
-  changeAvail(task) {
-    console.log("Changing availability.");
-    console.log(task);
-    this.taskInEditing = task;
-    // this.selectedtask = task;
-    this.availabilityModal.show();
-  }
+  // changeAvail(task) {
+  //   console.log("Changing availability.");
+  //   console.log(task);
+  //   this.restaurantInEditing = task;
+  //   // this.selectedtask = task;
+  //   this.availabilityModal.show();
+  // }
 
-  async availabilitySubmit(event) {
-    if (!event.object.log) {
-      event.object.log = [];
-    }
+  // async availabilitySubmit(event) {
+  //   if (!event.object.callLogs) {
+  //     event.object.callLogs = [];
+  //   }
 
-    event.object.availability = event.object.availabilityNew;
-    const newLog = {
-      caller: this._global.user.username,
-      time: (new Date()).toISOString(),
-      comments: "availability changed to " + event.object.availabilityNew,
-    }
+  //   event.object.availability = event.object.availabilityNew;
+  //   const newLog = {
+  //     caller: this._global.user.username,
+  //     time: (new Date()).toISOString(),
+  //     comments: "availability changed to " + event.object.availabilityNew,
+  //   }
 
-    event.object.log.unshift(newLog);
-    // post to database!!!
-    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: event.object }]).toPromise();
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, log: event.object.log, availability: event.object.availabilityNew } }]).toPromise();
-    console.log(event.object);
-    this.availabilityModal.hide(); // move to first line later???
-  }
+  //   event.object.callLogs.unshift(newLog);
+  //   // post to database!!!
+  //   // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: event.object }]).toPromise();
+  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, callLogs: event.object.callLogs, availability: event.object.availabilityNew } }]).toPromise();
+  //   console.log(event.object);
+  //   this.availabilityModal.hide(); // move to first line later???
+  // }
 
 
 

@@ -15,11 +15,13 @@
     <!-- <option>All</option> -->
     <option *ngFor="let availability of availabilityList">{{availability}}</option>
   </select>
+
   <label class="mr-2"> Time Zone:</label>
   <select class="mr-5" [(ngModel)]="selectedTimeZone" (change)="filter()">
     <option>All</option>
     <option *ngFor="let availability of timeZoneList">{{availability}}</option>
   </select>
+
   <!-- <label class="mr-2"> Time Zone:</label>
   <select class="mr-5" [(ngModel)]="timeZone" (change)="filter()">
     <option>All</option>
@@ -62,14 +64,13 @@
   <label class="form-check-label mr-5" for="paginationCheck">
     Pagination
   </label>
-
 </div>
 
 
 <q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
   [pageSize]="pagination ? 10 : 100000">
-  <tr *tableRowTemplate="let task;">
-    <td>{{filteredRestaurants.indexOf(task) + 1}}</td>
+  <tr *tableRowTemplate="let restaurant;">
+    <td>{{filteredRestaurants.indexOf(restaurant) + 1}}</td>
     <!-- <td>
           <div class="badge badge-{{getTaskClass(task)}}" *ngIf="!task.result">{{task.scheduledAt | ago: now}}</div>
 
@@ -80,43 +81,33 @@
               </small>
           </div>
       </td> -->
-    <!-- <td>{{task._id}}</td> -->
-    <!-- <td>{{task.cid}}</td> -->
     <td>
-      {{task.restaurantId}}
+      {{restaurant.restaurantId}}
       <br>
-      <a href="#/restaurants/{{task.restaurantId}}" target="_blank">{{task.name}}</a>
+      <a href="#/restaurants/{{restaurant.restaurantId}}" target="_blank">{{restaurant.name}}</a>
       <br>
-      {{task.address}}
+      {{restaurant.address}}
     </td>
-    <td>{{task.timeZone}}</td>
-    <td>{{task.score | number : '1.0-1'}}</td>
-    <!-- <td>{{task.address}}</td> -->
-    <!-- <td (dblclick)="changeAvail(task)">{{task.availability || "unknown"}}</td> -->
-    <td>{{task.availability || "unknown"}}</td>
-    <td>{{task.checkedAt | ago: now}}</td>
+    <td>{{restaurant.timeZone}}</td>
+    <td>{{restaurant.score | number : '1.0-1'}}</td>
+    <td>{{restaurant.availability || "unknown"}}</td>
+    <td>{{restaurant.checkedAt | ago: now}}</td>
     <td class="text-right">
-      <button class="btn btn-link py-0" (click)="call(task)">
+      <button class="btn btn-link py-0" (click)="call(restaurant)">
         <i class="fas fa-phone"></i>
       </button>
     </td>
-    <!-- <td *ngIf="task.log" (click)="editLog(task)">
-      {{task.log[task.log.length - 1].comments}}
-      <br>
-      time: {{task.log[task.log.length - 1].time | date:'short'}}
-    </td> -->
-
-    <td *ngIf="task.log">
-      <ng-container *ngFor="let log of task.log; index as logIndex">
-  <tr (click)="editLog(task, logIndex)" style="cursor: pointer;">
-    {{log.comments}}
-    <br>
-    time: {{task.log[logIndex].time | date:'short'}}
-    <br>
-    user: {{task.log[logIndex].user}}
-  </tr>
-  </ng-container>
-  </td>
+    <td *ngIf="restaurant.callLogs">
+      <ng-container *ngFor="let log of restaurant.callLogs; index as logIndex">
+        <tr (click)="editLog(restaurant, logIndex)" style="cursor: pointer;">
+          {{log.comments}}
+          <br>
+          time: {{restaurant.callLogs[logIndex].time | date:'short'}}
+          <br>
+          caller: {{restaurant.callLogs[logIndex].caller}}
+        </tr>
+      </ng-container>
+    </td>
 
 
   <!-- <td>{{task.name}}
@@ -194,7 +185,7 @@
   </tr>
 </q-table>
 
-<q-modal [title]="taskInEditing.name" #callModal>
+<q-modal [title]="restaurantInEditing.name" #callModal>
 
   <div class="pb-2">
     <button class="btn btn-primary" (click)="toggleNewCallLog()">
@@ -202,7 +193,7 @@
   </div>
 
   <div class="card" *qIf="editingNewCallLog">
-    <q-form-builder [object]="taskInEditing" [fieldDescriptors]="formFieldDescriptors" (submit)="scanSubmit($event)"
+    <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="newLogFieldDescriptors" (submit)="newLogSubmit($event)"
       (remove)="formRemove($event)" (cancel)="callModal.hide()">
     </q-form-builder>
   </div>
@@ -287,17 +278,17 @@
 
 </q-modal>
 
-<q-modal [title]="taskInEditing.name" #availabilityModal>
+<!-- <q-modal [title]="restaurantInEditing.name" #availabilityModal>
 
-  <q-form-builder [object]="taskInEditing" [fieldDescriptors]="availabilityFieldDescriptors"
+  <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="availabilityFieldDescriptors"
     (submit)="availabilitySubmit($event)" (remove)="formRemove($event)" (cancel)="availabilityModal.hide()">
   </q-form-builder>
 
-</q-modal>
+</q-modal> -->
 
-<q-modal [title]="taskInEditing.name" #logEditorModal>
+<q-modal [title]="restaurantInEditing.name" #logEditorModal>
 
-  <q-form-builder [object]="taskInEditing" [fieldDescriptors]="logEditorFieldDescriptors"
+  <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="logEditorFieldDescriptors"
     (submit)="logEditorSubmit($event)" (remove)="formRemove($event)" (cancel)="logEditorModal.hide()">
   </q-form-builder>
 

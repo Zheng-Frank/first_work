@@ -10,39 +10,17 @@ import { Helper } from "src/app/classes/helper";
   providedIn: 'root'
 })
 export class RestaurantCourierService {
-
-  constructor(private _api: ApiService) {
-    this.databaseName = "postmates";
-    this.batchSizeForChecking = 200;
-    this.coolDownDays = 20;
-    this.checkingAvailability = false;
-  }
   courier: Courier;
   databaseName: string;
   batchSizeForChecking: number;
   coolDownDays: number;
   checkingAvailability: boolean;
 
-
-  async initDatabase() {
-    // await this.getRestaurantList();
-    console.log("Clearing database!!!");
-    const idList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: this.databaseName,
-      query: {},
-      projection: { _id: 1 },
-      limit: 10000,
-    }).toPromise();
-    console.log(idList);
-    await this._api.delete(
-      environment.qmenuApiUrl + "generic",
-      {
-        resource: this.databaseName,
-        ids: idList.map(each => each._id)
-      }
-    ).toPromise();
-    console.log("Deleted!!!")
-    return;
+  constructor(private _api: ApiService) {
+    this.databaseName = "postmates";
+    this.batchSizeForChecking = 200;
+    this.coolDownDays = 20;
+    this.checkingAvailability = false;
   }
 
   async getCourierByName(courierName: string) {
@@ -63,6 +41,84 @@ export class RestaurantCourierService {
     }
   }
 
+  // HTTP methods.
+
+  async postOne(restaurant) {
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, [restaurant]).toPromise();
+  }
+
+  async postMany(restaurants) {
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, restaurants).toPromise();
+    return;
+  }
+
+  async patchMany(restaurants: RestaurantWithCourier[]) {
+    const patchList = restaurants.map(each => ({
+      old: { _id: each._id },
+      new: each
+    }));
+    // console.log(patchList);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  }
+
+  async patchManyAvailabilityChanges(restaurants: RestaurantWithCourier[]) {
+    const patchList = restaurants.map(each => ({
+      old: { _id: each._id },
+      new: { _id: each._id, availability: each.availability, checkedAt: each.checkedAt }
+    }));
+    // console.log(patchList);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  }
+
+  async patchOneCallLogsChange(restaurant: RestaurantWithCourier) {
+    const patchList = [{
+      old: { _id: restaurant._id },
+      new: { _id: restaurant._id, callLogs: restaurant.callLogs }
+    }];
+    // console.log(patchList);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  }
+  
+  
+
+  async initDatabase() {
+    // await this.getRestaurantList();
+    console.log("Clearing database!!!");
+    const idList = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: this.databaseName,
+      query: {},
+      projection: { _id: 1 },
+      limit: 10000,  // Without limit, get will only get 2 documents???
+    }).toPromise();
+    console.log(idList);
+    await this._api.delete(
+      environment.qmenuApiUrl + "generic",
+      {
+        resource: this.databaseName,
+        ids: idList.map(each => each._id)
+      }
+    ).toPromise();
+    console.log("Deleted!!!")
+    return;
+  }
+
+  // For test use only.
+  async viewRestaurants(){
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {},
+      limit: 10,
+      // projection: {
+      //   _id: 1,
+      //   "googleAddress._id": 1,
+      //   "googleAddress.formatted_address": 1,
+      //   name: 1,
+      //   courier: 1
+      // }
+    }, 5000);
+    console.log(restaurants);
+  }  
+
   async reloadRestaurantData(): Promise<RestaurantWithCourier[]> {
     console.log("Reloading data...");
     const restaurantListRaw = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -78,63 +134,10 @@ export class RestaurantCourierService {
     return restaurantList;
   }
 
-  // HTTP methods.
-
-  async postOne(restaurant) {
-    await this._api.post(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, [restaurant]).toPromise();
-  }
-
-  async postMany(restaurants) {
-    await this._api.post(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, restaurants).toPromise();
-    return;
-  }
-
-  async patchManyAvailabilityChanges(restaurants: RestaurantWithCourier[]) {
-    const patchList = restaurants.map(each => ({
-      old: { _id: each._id },
-      new: { _id: each._id, availability: each.availability, checkedAt: each.checkedAt }
-    }));
-    console.log(patchList);
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  }
-
-  async patchOneCallLogsChange(restaurants: RestaurantWithCourier) {
-    const patchList = [{
-      old: { _id: restaurants._id },
-      new: { _id: restaurants._id, callLogs: restaurants.callLogs }
-    }];
-    console.log(patchList);
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  }
-
-  async patchMany(restaurants: RestaurantWithCourier[]) {
-    const patchList = restaurants.map(each => ({
-      old: { _id: each._id },
-      new: each
-    }));
-    console.log(patchList);
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  }
 
 
 
   // Update restaurant list in courier database. To change!???
-
-  async viewRestaurants(){
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {},
-      limit: 10,
-      // projection: {
-      //   _id: 1,
-      //   "googleAddress._id": 1,
-      //   "googleAddress.formatted_address": 1,
-      //   name: 1,
-      //   courier: 1
-      // }
-    }, 5000);
-    console.log(restaurants);
-  }
 
   async updateRestaurantList() {
     const restaurants = await this.getRestaurantList();
@@ -196,7 +199,7 @@ export class RestaurantCourierService {
     return;
   }
 
-  async getListToCheck() {
+  private async getListToCheck() {
     const blacklistForChecking = ["available", "signed up"];
 
     const restaurantsToCheck = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -218,7 +221,7 @@ export class RestaurantCourierService {
     return ret;
   }
 
-  async checkAvailability(restaurantList: RestaurantWithCourier[]) {
+  private async checkAvailability(restaurantList: RestaurantWithCourier[]) {
     for (let restaurant of restaurantList) {
       restaurant.availability = await this.checkAvailabilityByAddress(restaurant.address);
       restaurant.checkedAt = (new Date()).toISOString();
@@ -227,7 +230,7 @@ export class RestaurantCourierService {
     return;
   }
 
-  async checkAvailabilityByAddress(address: string) {
+  private async checkAvailabilityByAddress(address: string) {
     let availability: string;
     this.checkingAvailability = true;
     try {
