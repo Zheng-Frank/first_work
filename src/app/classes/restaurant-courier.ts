@@ -4,28 +4,33 @@ import { CallLog } from "./call-log";
 // Refer to: lead.ts
 
 export class RestaurantWithCourier {
-  _id: string;
-  restaurantId: string; // To match with the restaurant database.
-  cid: string;
+  _id: string = null;
+  restaurantId: string = null; // To match with the restaurant database.
+  cid: string = null;
 
-  name: string;
-  address: string;
-  score: number;
-  timeZone: string;
-  agents: string[];
+  name: string = null;
+  address: string = null;
+  score: number = null;
+  timeZone: string = null;
+  agents: string[] = null;
 
-  courier: string;
+  courier: string = null;
   
-  availability: string;
-  checkedAt: string; // ISO string of date and time.
+  availability: string = null;
+  checkedAt: string = null; // ISO string of date and time.
 
-  callLogs: CallLog[]; //For now, use caller, time and comments only.
+  callLogs: CallLog[] = null; //For now, use caller, time and comments only.
 
+  // constructor1(data?: Partial<RestaurantWithCourier>){
+  //   console.log(data);
+  //   Object.assign(this, data);
+  //   console.log(this);
+  // }
   constructor(data?: any, deepClone?: boolean){
     if(deepClone){
       if (data){
         for (let key in this){
-          if (data.hasOwnProperty(key)){ // necessary???
+          if (this.hasOwnProperty(key) && data.hasOwnProperty(key)){ // necessary???
             this[key] = JSON.parse(JSON.stringify(data[key]));
           }
         }
@@ -34,7 +39,7 @@ export class RestaurantWithCourier {
     else{
       if (data){
         for (let key in this){
-          if (data.hasOwnProperty(key)){ // necessary???
+            if (data.hasOwnProperty(key)){ // necessary???
             this[key] = data[key];
           }
         }

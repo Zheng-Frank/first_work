@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChange
 import { Task } from '../../../classes/tasks/task';
 import { ApiService } from "../../../services/api.service";
 import { GlobalService } from "../../../services/global.service";
+import { User } from '../../../classes/user';
 import { environment } from "../../../../environments/environment";
 import { KnownError } from 'src/app/classes/know-errors';
 import {
@@ -19,9 +20,9 @@ import {
 export class RestaurantsCourierListComponent implements OnInit {
 
   @Input() restaurantList = [];
-  @Input() user;
+  @Input() user: User;
   @Output() actionDone = new EventEmitter();
-  @Input() skeletalRestaurants;
+  // @Input() skeletalRestaurants;
 
   @ViewChild("callModal") callModal: ModalComponent;
   @ViewChild("availabilityModal") availabilityModal: ModalComponent;
@@ -83,8 +84,8 @@ export class RestaurantsCourierListComponent implements OnInit {
     //   sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     // },
     {
-      label: "postmatesAvailabilityGZ",
-      paths: ['postmatesAvailabilityGZ'],
+      label: "Availability",
+      paths: ['availability'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
@@ -148,7 +149,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     console.log(this.restaurantList);
     console.log("Still changing");
     if (this.restaurantList) {
-      this.taskNames = ['All', ...Array.from(new Set(this.restaurantList.map(t => t.postmatesAvailabilityGZ)))];
+      this.taskNames = ['All', ...Array.from(new Set(this.restaurantList.map(t => t.availability)))];
       if (this.taskNames.indexOf(this.selectedTaskName) < 0) {
         this.selectedTaskName = 'All';
       }
@@ -171,7 +172,7 @@ export class RestaurantsCourierListComponent implements OnInit {
       this.filteredRestaurants = this.restaurantList;
     }
     else {
-      this.filteredRestaurants = this.restaurantList.filter(each => each.postmatesAvailabilityGZ === this.selectedAvailability);
+      this.filteredRestaurants = this.restaurantList.filter(each => each.availability === this.selectedAvailability);
     }
     // if (this.selectedTaskName === 'All') {
     //   this.filteredTasks = this.restaurantList;
@@ -284,13 +285,13 @@ export class RestaurantsCourierListComponent implements OnInit {
     this.filter();
   }
 
-  getGMB(id) {
-    //console.log(this.restaurantList);
-    if (id) {
-      console.log(this.skeletalRestaurants.filter(r => r._id === id)[0].web)
-      return this.skeletalRestaurants.filter(r => r._id === id)[0].web;
-    }
-  }
+  // getGMB(id) {
+  //   //console.log(this.restaurantList);
+  //   if (id) {
+  //     console.log(this.skeletalRestaurants.filter(r => r._id === id)[0].web)
+  //     return this.skeletalRestaurants.filter(r => r._id === id)[0].web;
+  //   }
+  // }
 
 
 
@@ -422,7 +423,7 @@ export class RestaurantsCourierListComponent implements OnInit {
       event.object.log = [];
     }
 
-    event.object.postmatesAvailabilityGZ = event.object.availabilityNew;
+    event.object.availability = event.object.availabilityNew;
     const newLog = {
       caller: this._global.user.username,
       time: (new Date()).toISOString(),
@@ -432,7 +433,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     event.object.log.unshift(newLog);
     // post to database!!!
     // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: event.object }]).toPromise();
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, log: event.object.log, postmatesAvailabilityGZ: event.object.availabilityNew } }]).toPromise();
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, log: event.object.log, availability: event.object.availabilityNew } }]).toPromise();
     console.log(event.object);
     this.availabilityModal.hide(); // move to first line later???
   }
