@@ -179,7 +179,7 @@ export class OrderCardComponent implements OnInit {
             if (printer.autoPrintCopies > 0) {
               try {
                 await this._api.post(environment.appApiUrl + 'biz/orders/send', {
-                  orderId: this.order.id, type: pc.type, to: printer.name, key: printer.key, orderNumber: this.order.orderNumber, format: printer.format || "png"
+                  printClientId: pc._id, orderId: this.order.id, type: pc.type, to: printer.name, key: printer.key, orderNumber: this.order.orderNumber, format: printer.format || "png"
                 }).toPromise();
                 this._global.publishAlert(AlertType.Success, `Sent to ${pc.type}: ${printer.name}`);
 
