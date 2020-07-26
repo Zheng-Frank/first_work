@@ -30,7 +30,7 @@ export class PostmatesListComponent implements OnInit {
     this.restaurantCourierService.batchSizeForChecking = 10;
     this.restaurantCourierService.coolDownDays = 20;
     await this.refresh();
-    await this.restaurantCourierService.viewRestaurants();
+    // await this.restaurantCourierService.viewRestaurants(); // For debug use only.
     return;
   }
 

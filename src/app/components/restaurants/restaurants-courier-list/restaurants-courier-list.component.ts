@@ -161,6 +161,7 @@ export class RestaurantsCourierListComponent implements OnInit {
       // }
       this.filter();
     }
+    this.now = new Date();
   }
 
   // hasBadScanStatus(task) {
@@ -174,7 +175,7 @@ export class RestaurantsCourierListComponent implements OnInit {
   // }
 
   updateCallerList() {
-    this.callerList = Array.from(new Set([].concat(this.restaurantList.filter(
+    this.callerList = Array.from(new Set([].concat(...this.restaurantList.filter(
       each => (each.callers && each.callers.length)
     ).map(
       each => each.callers
@@ -187,12 +188,17 @@ export class RestaurantsCourierListComponent implements OnInit {
     if (this.selectedAvailability === "All") {
       this.filteredRestaurants = this.restaurantList;
     }
+    else if(this.selectedAvailability === "unknown"){
+      this.filteredRestaurants = this.restaurantList.filter(each => !(["signed up", "available", "not available"].includes(each.availability)));
+    }
     else {
       this.filteredRestaurants = this.restaurantList.filter(each => each.availability === this.selectedAvailability);
     }
+
     if (this.selectedTimeZone && this.selectedTimeZone !== "All") {
       this.filteredRestaurants = this.filteredRestaurants.filter(t => t.timeZone === this.selectedTimeZone);
     }
+
     if (this.selectedCaller && this.selectedCaller !== "All") {
       this.filteredRestaurants = this.filteredRestaurants.filter(t => (t.callers && t.callers.indexOf(this.selectedCaller) >= 0));
     }
@@ -276,30 +282,30 @@ export class RestaurantsCourierListComponent implements OnInit {
   }
 
 
-  getTaskClass(task) {
-    const day = 24 * 3600 * 1000;
-    const diff = this.now.valueOf() - task.scheduledAt.valueOf();
-    if (diff > day) {
-      return 'danger';
-    }
+  // getTaskClass(task) {
+  //   const day = 24 * 3600 * 1000;
+  //   const diff = this.now.valueOf() - task.scheduledAt.valueOf();
+  //   if (diff > day) {
+  //     return 'danger';
+  //   }
 
-    if (diff > 0) {
-      return 'warning';
-    }
+  //   if (diff > 0) {
+  //     return 'warning';
+  //   }
 
-    if (diff > -1 * day) {
-      return 'info';
-    }
-    return 'success';
-  }
+  //   if (diff > -1 * day) {
+  //     return 'info';
+  //   }
+  //   return 'success';
+  // }
 
-  getRoles(task: Task) {
-    return (task.roles || []).join(', ');
-  }
+  // getRoles(task: Task) {
+  //   return (task.roles || []).join(', ');
+  // }
 
-  triggerActionDone(event) {
-    this.actionDone.emit(event);
-  }
+  // triggerActionDone(event) {
+  //   this.actionDone.emit(event);
+  // }
 
 
 
@@ -370,21 +376,26 @@ export class RestaurantsCourierListComponent implements OnInit {
   formRemove(event) { }
 
   async newLogSubmit(event) {
-    console.log(event.object);
+    // console.log(event.object);
     event.object.callLogNew.comments = event.object.comments;
+
     if (!event.object.callLogNew.comments) {
       return event.acknowledge("Must input comments");
     }
     if (!event.object.callLogs) {
       event.object.callLogs = [];
     }
+
     this.callModal.hide();
     this.editingNewCallLog = false;
+
     event.object.callLogs.unshift(event.object.callLogNew);
     event.object.comments = '';
+
     this.restaurantCourierService.updateCallers(event.object);
     this.updateCallerList();
-    await this.restaurantCourierService.patchOneCallLogsChange(event.object);
+
+    await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
   }
 
   // Change log manually: logEditorModal
@@ -393,6 +404,12 @@ export class RestaurantsCourierListComponent implements OnInit {
     {
       field: "comments",
       label: "Comments",
+      required: true,
+      disabled: false
+    },
+    {
+      field: "caller", // Debug only.
+      label: "User",
       required: false,
       disabled: false
     },
@@ -407,6 +424,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     // restaurant.callLogNew = restaurant.callLogs[logIndex];
     // restaurant.comments = restaurant.callLogNew.comments;
     restaurant.comments = restaurant.callLogs[logIndex].comments;
+    restaurant.caller = restaurant.callLogs[logIndex].caller; // Debug only.
     // this.selectedtask = task;
     this.editingLog = true;
     this.logEditorModal.show();
@@ -420,60 +438,74 @@ export class RestaurantsCourierListComponent implements OnInit {
       this.logEditorModal.hide();
       return;
     }
-    console.log(event.object.callLogs[this.logInEditing]);
+    // console.log(event.object.callLogs[this.logInEditing]);
 
     this.logEditorModal.hide();
     this.editingLog = false;
 
     event.object.callLogs[this.logInEditing].comments = event.object.comments;
+    event.object.callLogs[this.logInEditing].caller = event.object.caller;  // Debug only.
     event.object.comments = '';
-    await this.restaurantCourierService.patchOneCallLogsChange(event.object);
+
+    this.restaurantCourierService.updateCallers(event.object);
+    this.updateCallerList();
+
+    await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
+
     console.log(event.object);
   }
+
   // Change availability: availabilityModal
 
-  // availabilityFieldDescriptors = [
-  //   {
-  //     field: "availabilityNew",
-  //     label: "Availibility",
-  //     required: false,
-  //     inputType: "single-select",
-  //     items: [
-  //       "signed up",
-  //       "available",
-  //       "not available",
-  //       "unknown"
-  //     ].map(status => ({ object: status, text: status, selected: false }))
-  //   },
-  // ]
+  availabilityFieldDescriptors = [
+    {
+      field: "availability",
+      label: "Availibility",
+      required: true,
+      inputType: "single-select",
+      items: [
+        "signed up",
+        "available",
+        "not available",
+        "unknown"
+      ].map(status => ({ object: status, text: status, selected: false }))
+    },
+  ]
 
-  // changeAvail(task) {
-  //   console.log("Changing availability.");
-  //   console.log(task);
-  //   this.restaurantInEditing = task;
-  //   // this.selectedtask = task;
-  //   this.availabilityModal.show();
-  // }
+  editingAvailability = false;
+  editAvailability(restaurant: RestaurantWithCourier) {
+    console.log("Changing availability.");
+    console.log(restaurant);
+    this.restaurantInEditing = restaurant;
+    // this.selectedtask = task;
+    this.editingAvailability = true;
+    this.availabilityModal.show();
+  }
 
-  // async availabilitySubmit(event) {
-  //   if (!event.object.callLogs) {
-  //     event.object.callLogs = [];
-  //   }
+  async availabilitySubmit(event) {
+    if (!event.object.callLogs) {
+      event.object.callLogs = [];
+    }
 
-  //   event.object.availability = event.object.availabilityNew;
-  //   const newLog = {
-  //     caller: this._global.user.username,
-  //     time: (new Date()).toISOString(),
-  //     comments: "availability changed to " + event.object.availabilityNew,
-  //   }
+    // event.object.availability = event.object.availabilityNew;
+    event.object.callLogNew = new CallLog({
+      caller: this._global.user.username,
+      time: new Date(),
+      comments: "availability changed to " + event.object.availability,
+    })
 
-  //   event.object.callLogs.unshift(newLog);
-  //   // post to database!!!
-  //   // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: event.object }]).toPromise();
-  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, callLogs: event.object.callLogs, availability: event.object.availabilityNew } }]).toPromise();
-  //   console.log(event.object);
-  //   this.availabilityModal.hide(); // move to first line later???
-  // }
+    event.object.callLogs.unshift(event.object.callLogNew);
+
+    this.restaurantCourierService.updateCallers(event.object);
+    this.updateCallerList();
+
+    this.restaurantCourierService.updateProperties([event.object], ["availability", "callLogs", "callers"]);
+
+    console.log(event.object);
+
+    this.availabilityModal.hide(); // move to first line later???
+    this.editingAvailability = false;
+  }
 
 
 

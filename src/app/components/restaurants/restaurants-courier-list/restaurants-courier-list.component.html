@@ -96,7 +96,7 @@
     </td>
     <td>{{restaurant.timeZone}}</td>
     <td>{{restaurant.score | number : '1.0-1'}}</td>
-    <td>{{restaurant.availability || "unknown"}}</td>
+    <td (click)="editAvailability(restaurant)" style="cursor: pointer;">{{restaurant.availability || "unknown"}}</td>
     <td>{{restaurant.checkedAt | ago: now}}</td>
     <td>{{restaurant.callers?restaurant.callers[0]:""}}</td>
     <td class="text-right">
@@ -106,15 +106,15 @@
     </td>
     <td *ngIf="restaurant.callLogs">
       <ng-container *ngFor="let log of restaurant.callLogs; index as logIndex">
-        <tr (click)="editLog(restaurant, logIndex)" style="cursor: pointer;">
-          {{log.comments}}
-          <br>
-          time: {{restaurant.callLogs[logIndex].time | date:'short'}}
-          <br>
-          caller: {{restaurant.callLogs[logIndex].caller}}
-        </tr>
-      </ng-container>
-    </td>
+  <tr (click)="editLog(restaurant, logIndex)" style="cursor: pointer;">
+    {{log.comments}}
+    <br>
+    time: {{restaurant.callLogs[logIndex].time | date:'short'}}
+    <br>
+    caller: {{restaurant.callLogs[logIndex].caller}}
+  </tr>
+  </ng-container>
+  </td>
 
 
   <!-- <td>{{task.name}}
@@ -200,8 +200,8 @@
   </div>
 
   <div class="card" *qIf="editingNewCallLog">
-    <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="newLogFieldDescriptors" (submit)="newLogSubmit($event)"
-      (remove)="formRemove($event)" (cancel)="callModal.hide()">
+    <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="newLogFieldDescriptors"
+      (submit)="newLogSubmit($event)" (remove)="formRemove($event)" (cancel)="callModal.hide()">
     </q-form-builder>
   </div>
 
@@ -285,20 +285,18 @@
 
 </q-modal>
 
-<!-- <q-modal [title]="restaurantInEditing.name" #availabilityModal>
-
-  <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="availabilityFieldDescriptors"
-    (submit)="availabilitySubmit($event)" (remove)="formRemove($event)" (cancel)="availabilityModal.hide()">
-  </q-form-builder>
-
-</q-modal> -->
+<q-modal [title]="restaurantInEditing.name" #availabilityModal>
+  <div *qIf="editingAvailability">
+    <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="availabilityFieldDescriptors"
+      (submit)="availabilitySubmit($event)" (remove)="formRemove($event)" (cancel)="availabilityModal.hide()">
+    </q-form-builder>
+  </div>
+</q-modal>
 
 <q-modal [title]="restaurantInEditing.name" #logEditorModal>
-  <div class="card" *qIf="editingLog">
+  <div *qIf="editingLog">
     <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="logEditorFieldDescriptors"
-    (submit)="logEditorSubmit($event)" (remove)="formRemove($event)" (cancel)="logEditorModal.hide()">
-  </q-form-builder>
+      (submit)="logEditorSubmit($event)" (remove)="formRemove($event)" (cancel)="logEditorModal.hide()">
+    </q-form-builder>
   </div>
-  
-
 </q-modal>

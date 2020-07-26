@@ -43,16 +43,31 @@ export class RestaurantCourierService {
 
   // HTTP methods.
 
-  async postOne(restaurant) {
-    await this._api.post(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, [restaurant]).toPromise();
-  }
-
-  async postMany(restaurants) {
+  private async postNew(restaurants) {
     await this._api.post(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, restaurants).toPromise();
     return;
   }
 
-  // async patchMany(restaurants: RestaurantWithCourier[]) {
+  private async patchChanges(restaurants: RestaurantWithCourier[], properties: string[]){
+    const propertiesWithId = [...properties, "_id"];
+    const patchList = restaurants.map(each => ({
+      old: { _id: each._id },
+      new: propertiesWithId.reduce((obj, key) => ({...obj, [key]: each[key]}), {})
+    }));
+    // console.log(patchList);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  }
+
+  async updateProperties(restaurants: RestaurantWithCourier[], properties: string[]){
+    await this.patchChanges(restaurants, properties);
+  }
+
+
+  // private async postOne(restaurant) {
+  //   await this._api.post(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, [restaurant]).toPromise();
+  // }
+
+  // private async patchMany(restaurants: RestaurantWithCourier[]) {
   //   const patchList = restaurants.map(each => ({
   //     old: { _id: each._id },
   //     new: each
@@ -61,32 +76,33 @@ export class RestaurantCourierService {
   //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
   // }
 
-  async patchManyAvailabilityChanges(restaurants: RestaurantWithCourier[]) {
-    const patchList = restaurants.map(each => ({
-      old: { _id: each._id },
-      new: { _id: each._id, availability: each.availability, checkedAt: each.checkedAt }
-    }));
-    // console.log(patchList);
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  }
+  // private async patchManyAvailabilityChanges(restaurants: RestaurantWithCourier[]) {
+  //   const patchList = restaurants.map(each => ({
+  //     old: { _id: each._id },
+  //     new: { _id: each._id, availability: each.availability, checkedAt: each.checkedAt }
+  //   }));
+  //   // console.log(patchList);
+  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  // }
 
-  async patchChangesOnOneProperty(restaurants: RestaurantWithCourier[], property: string){
-    const patchList = restaurants.map(each => ({
-      old: { _id: each._id },
-      new: { _id: each._id, [property]: each[property]}
-    }));
-    // console.log(patchList);
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  }
+  // private async patchChangesOnOneProperty(restaurants: RestaurantWithCourier[], property: string){
+  //   const patchList = restaurants.map(each => ({
+  //     old: { _id: each._id },
+  //     new: { _id: each._id, [property]: each[property]}
+  //   }));
+  //   // console.log(patchList);
+  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  // }
 
-  async patchOneCallLogsChange(restaurant: RestaurantWithCourier) {
-    const patchList = [{
-      old: { _id: restaurant._id },
-      new: { _id: restaurant._id, callLogs: restaurant.callLogs, callers: restaurant.callers }
-    }];
-    // console.log(patchList);
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  }
+
+  // private async patchOneCallLogsChange(restaurant: RestaurantWithCourier) {
+  //   const patchList = [{
+  //     old: { _id: restaurant._id },
+  //     new: { _id: restaurant._id, callLogs: restaurant.callLogs, callers: restaurant.callers }
+  //   }];
+  //   // console.log(patchList);
+  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  // }
 
 
 
@@ -133,8 +149,8 @@ export class RestaurantCourierService {
     const restaurantListRaw = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: this.databaseName,
       query: {},
-      // query: {disabled: false}, //???
-      sort: { scanedAt: -1 },
+      // query: {disabled: false}, 
+      sort: { updatedAt: -1 },
       // limit: 1,
     }, 10000);
     console.log(restaurantListRaw);
@@ -185,9 +201,9 @@ export class RestaurantCourierService {
       }
     })
 
-    await this.postMany(restaurantsToAdd);
-    await this.patchChangesOnOneProperty(restaurantsToChangeOnDisabled, "disabled");
-    await this.patchChangesOnOneProperty(restaurantsToChangeAvailability, "availability");
+    await this.postNew(restaurantsToAdd);
+    await this.patchChanges(restaurantsToChangeOnDisabled, ["disabled"]);
+    await this.patchChanges(restaurantsToChangeAvailability, ["availability"]);
 
     return;
   }
@@ -252,29 +268,30 @@ export class RestaurantCourierService {
   async scanCourierAvailability() {
     const restaurantsToCheck = (await this.getListToCheck()).map(each => new RestaurantWithCourier(each));
     await this.checkAvailability(restaurantsToCheck);
-    await this.patchManyAvailabilityChanges(restaurantsToCheck);
+    await this.patchChanges(restaurantsToCheck, ["availability", "checkedAt"]);
     console.log("Scaned!");
     return;
   }
 
   private async getListToCheck() {
-    const blacklistForChecking = ["available", "signed up"];
+    const blacklistForChecking = ["signed up"]; // Check all status other than "signed up". It does not detect confliction (signed up but actually not available).
+    // const blacklistForChecking = ["available", "signed up"]; // Check newly available ones only.
 
     const restaurantsToCheck = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: this.databaseName,
-      query: { availability: { $nin: blacklistForChecking } }, // check unavailable restaurants only (?)
+      query: { availability: { $nin: blacklistForChecking } },
       sort: { checkedAt: 1 }, // Note that null is always "smallest"
       limit: this.batchSizeForChecking,
       projection: {
         restaurantId: 1,
         address: 1,
-        checkedAt: 1
+        checkedAt: 1 // Will get ISOString from ISOString or Date!
       }
     }).toPromise();
     console.log(restaurantsToCheck);
-    const coolDownDate = new Date(Date.now() - this.coolDownDays * 86400 * 1000).toISOString();
-    console.log(coolDownDate);
-    const ret = restaurantsToCheck.filter(restaurant => !(restaurant.checkedAt && restaurant.checkedAt > coolDownDate));
+    const latestCheckDate = new Date(Date.now() - this.coolDownDays * 86400 * 1000).toISOString();
+    console.log(latestCheckDate);
+    const ret = restaurantsToCheck.filter(restaurant => !(restaurant.checkedAt && restaurant.checkedAt > latestCheckDate));
     console.log(ret)
     return ret;
   }
