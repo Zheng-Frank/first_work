@@ -7,6 +7,12 @@
 
         <button class="btn btn-primary" (click)="addNew()">
             <i class="fas fa-plus"></i> Add New</button>
+
+        <button *ngIf="canSuspendAll()" class="btn btn-primary" (click)="suspendAll()" [qLoading]="apiLoading">
+            <i class="fas fa-ban"></i> Suspend All</button>
+
+        <button *ngIf="canResumeAll()" class="btn btn-primary" (click)="resumeAll()" [qLoading]="apiLoading">
+            <i class="fas fa-ban"></i> Resume All</button>
     </div>
 
 </div>
@@ -45,7 +51,8 @@
         </td>
         <td class="text-nowrap">
             <div><span class="stats-item">Succeeded: </span>{{script.uowsHistory0.succeeded}}</div>
-            <div class=" {{script.uowsHistory0.failed > 0 ? 'alert-danger' : ''}}"><span class="stats-item">Failed: </span>{{script.uowsHistory0.failed}}</div>
+            <div class=" {{script.uowsHistory0.failed > 0 ? 'alert-danger' : ''}}"><span class="stats-item">Failed:
+                </span>{{script.uowsHistory0.failed}}</div>
             <div><span class="stats-item">In Progress: </span>{{script.uowsHistory0.inProgress}}</div>
             <div><span class="stats-item">Not Started: </span>{{script.uowsHistory0.notStarted}}</div>
             <div><span class="stats-item">Total: </span>{{script.uowsHistory0.total}}</div>
