@@ -174,7 +174,11 @@ export class RestaurantsCourierListComponent implements OnInit {
   // }
 
   updateCallerList() {
-    this.callerList = Array.from(new Set([].concat(this.restaurantList.filter(each => (each.callers && each.callers.length)).map(each => each.callers))));
+    this.callerList = Array.from(new Set([].concat(this.restaurantList.filter(
+      each => (each.callers && each.callers.length)
+    ).map(
+      each => each.callers
+    )))).sort();
     console.log("Updating caller list.");
     console.log(this.callerList);
   }

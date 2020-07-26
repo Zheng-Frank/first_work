@@ -12,7 +12,8 @@ export class RestaurantWithCourier {
   address: string = null;
   score: number = null;
   timeZone: string = null;
-  agents: string[] = null;
+
+  disabled = false;
 
   courier: string = null;
 

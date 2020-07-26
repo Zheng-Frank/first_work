@@ -52,14 +52,14 @@ export class RestaurantCourierService {
     return;
   }
 
-  async patchMany(restaurants: RestaurantWithCourier[]) {
-    const patchList = restaurants.map(each => ({
-      old: { _id: each._id },
-      new: each
-    }));
-    // console.log(patchList);
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  }
+  // async patchMany(restaurants: RestaurantWithCourier[]) {
+  //   const patchList = restaurants.map(each => ({
+  //     old: { _id: each._id },
+  //     new: each
+  //   }));
+  //   // console.log(patchList);
+  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  // }
 
   async patchManyAvailabilityChanges(restaurants: RestaurantWithCourier[]) {
     const patchList = restaurants.map(each => ({
@@ -70,10 +70,19 @@ export class RestaurantCourierService {
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
   }
 
+  async patchChangesOnOneProperty(restaurants: RestaurantWithCourier[], property: string){
+    const patchList = restaurants.map(each => ({
+      old: { _id: each._id },
+      new: { _id: each._id, [property]: each[property]}
+    }));
+    // console.log(patchList);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
+  }
+
   async patchOneCallLogsChange(restaurant: RestaurantWithCourier) {
     const patchList = [{
       old: { _id: restaurant._id },
-      new: { _id: restaurant._id, callLogs: restaurant.callLogs, callers: restaurant.callers}
+      new: { _id: restaurant._id, callLogs: restaurant.callLogs, callers: restaurant.callers }
     }];
     // console.log(patchList);
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
@@ -124,6 +133,7 @@ export class RestaurantCourierService {
     const restaurantListRaw = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: this.databaseName,
       query: {},
+      // query: {disabled: false}, //???
       sort: { scanedAt: -1 },
       // limit: 1,
     }, 10000);
@@ -140,14 +150,50 @@ export class RestaurantCourierService {
   // Update restaurant list in courier database. To change!???
 
   async updateRestaurantList() {
-    const restaurants = await this.getRestaurantList();
-    const restaurantListWithCourierNew = this.parseRestaurants(restaurants);
-    await this.postMany(restaurantListWithCourierNew);
+    const restaurants = await this.getRestaurants();
+    const restaurantsExisting = await this.getExistingRestaurants();
+
+    const restaurantIdToRestaurantExisting = this.getIdDictionary(restaurantsExisting);
+    // const restaurantIdsExisting = Object.keys(restaurantIdToRestaurantExisting);
+
+    const restaurantsToAdd = [];
+    const restaurantsToChangeOnDisabled = [];
+    const restaurantsToChangeAvailability = [];
+
+    restaurants.forEach(restaurant => {
+      const restaurantExisting = restaurantIdToRestaurantExisting[restaurant.restaurantId];
+      if (restaurantExisting) {
+        if (restaurantExisting.disabled !== restaurant.disabled) {
+          restaurantExisting.disabled = restaurant.disabled;
+          restaurantsToChangeOnDisabled.push(restaurantExisting);
+        }
+        if (restaurant.availability === "signed up") {
+          if (restaurantExisting.availability !== "signed up") {
+            restaurantExisting.availability = "signed up";
+            restaurantsToChangeAvailability.push(restaurantExisting);
+          }
+        }
+        else {
+          if (restaurantExisting.availability === "signed up") {
+            restaurantExisting.availability = "available";
+            restaurantsToChangeAvailability.push(restaurantExisting);
+          }
+        }
+      }
+      else {
+        restaurantsToAdd.push(restaurant);
+      }
+    })
+
+    await this.postMany(restaurantsToAdd);
+    await this.patchChangesOnOneProperty(restaurantsToChangeOnDisabled, "disabled");
+    await this.patchChangesOnOneProperty(restaurantsToChangeAvailability, "availability");
+
     return;
   }
 
   // ref: D:\Codes\Web\admin\src\app\components\restaurants\restaurant-delivery-settings\restaurant-delivery-settings.component.ts
-  private async getRestaurantList(acknowledge?) {
+  private async getRestaurants(acknowledge?) {
     // get all users
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -160,21 +206,11 @@ export class RestaurantCourierService {
         "googleAddress.formatted_address": 1,
         name: 1,
         courier: 1,
-        score: 1
+        score: 1,
+        disabled: 1,
       }
     }, 5000);
-    const restaurantsExisting = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: this.databaseName,
-      query: {},
-      projection: {
-        restaurantId: 1
-      }
-    }, 10000);
-    const restaurantIDsExisting = restaurantsExisting.map(restaurant => restaurant.restaurantId);
-    const ret = restaurants.filter(restaurant => !(restaurantIDsExisting.includes(restaurant._id)));
-    console.log(restaurants);
-    console.log(ret);
-    return ret;
+    return this.parseRestaurants(restaurants);
   }
 
   private parseRestaurants(restaurants) {
@@ -183,10 +219,32 @@ export class RestaurantCourierService {
       cid: each.googleAddress._id,
       name: each.name,
       address: each.googleAddress.formatted_address,
+      disabled: each.disabled,
       score: each.score,
       timeZone: Helper.getTimeZone(each.googleAddress.formatted_address),
       availability: (each.courier && each.courier.name === this.courier.name) ? "signed up" : null,
     }));
+    return ret;
+  }
+
+  private async getExistingRestaurants(acknowledge?) {
+    const restaurantsExisting = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: this.databaseName,
+      query: {},
+      projection: {
+        restaurantId: 1,
+        disabled: 1,
+        availability: 1,
+      }
+    }, 10000);
+    return restaurantsExisting;
+  }
+
+  private getIdDictionary(restaurants) {
+    const ret = {};
+    restaurants.forEach(each => {
+      ret[each.restaurantId] = each;
+    });
     return ret;
   }
 
