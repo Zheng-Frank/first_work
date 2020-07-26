@@ -10,6 +10,8 @@ import {
   AddressPickerComponent,
   FormBuilderComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { CallLog } from "../../../classes/call-log";
+import { RestaurantWithCourier } from "../../../classes/restaurant-courier";
 import { RestaurantCourierService } from "../../../services/restaurant-courier.service";
 
 @Component({
@@ -20,7 +22,7 @@ import { RestaurantCourierService } from "../../../services/restaurant-courier.s
 
 export class RestaurantsCourierListComponent implements OnInit {
 
-  @Input() restaurantList = [];
+  @Input() restaurantList: RestaurantWithCourier[] = [];
   @Input() user: User;
   @Output() actionDone = new EventEmitter();
   @Input() restaurantCourierService: RestaurantCourierService;
@@ -60,6 +62,9 @@ export class RestaurantsCourierListComponent implements OnInit {
   selectedTimeZone = "All";
   timeZoneList = ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort();
 
+  selectedCaller = "All";
+  callerList = [];
+
   myColumnDescriptors = [
     {
       label: 'Number'
@@ -93,6 +98,11 @@ export class RestaurantsCourierListComponent implements OnInit {
       label: "Checked at",
       paths: ['checkedAt'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: "Last called by",
+      // paths: ['callers[0]'],
+      // sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
       label: "Phone"
@@ -132,7 +142,7 @@ export class RestaurantsCourierListComponent implements OnInit {
   taskNames = ['All'];
   selectedTaskName = 'All';
 
-  filteredRestaurants = [];
+  filteredRestaurants: RestaurantWithCourier[] = [];
 
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -144,6 +154,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     console.log(this.restaurantList);
     console.log("Still changing");
     if (this.restaurantList) {
+      this.updateCallerList();
       // this.taskNames = ['All', ...Array.from(new Set(this.restaurantList.map(t => t.availability)))];
       // if (this.taskNames.indexOf(this.selectedTaskName) < 0) {
       //   this.selectedTaskName = 'All';
@@ -162,6 +173,12 @@ export class RestaurantsCourierListComponent implements OnInit {
   //   return status === null || [KnownError.GMB_WAITING_FOR_APPEAL, KnownError.GMB_UI_NOT_VERIFIABLE, 'SHOULD USE PHONE_CALL TO VERIFY', 'WAIT', 'NO AUTO POPULATION', 'null'].some(error => (JSON.stringify(status) || '').indexOf(error) >= 0);
   // }
 
+  updateCallerList() {
+    this.callerList = Array.from(new Set([].concat(this.restaurantList.filter(each => (each.callers && each.callers.length)).map(each => each.callers))));
+    console.log("Updating caller list.");
+    console.log(this.callerList);
+  }
+
   filter() {
     if (this.selectedAvailability === "All") {
       this.filteredRestaurants = this.restaurantList;
@@ -171,6 +188,9 @@ export class RestaurantsCourierListComponent implements OnInit {
     }
     if (this.selectedTimeZone && this.selectedTimeZone !== "All") {
       this.filteredRestaurants = this.filteredRestaurants.filter(t => t.timeZone === this.selectedTimeZone);
+    }
+    if (this.selectedCaller && this.selectedCaller !== "All") {
+      this.filteredRestaurants = this.filteredRestaurants.filter(t => (t.callers && t.callers.indexOf(this.selectedCaller) >= 0));
     }
     // if (this.selectedTaskName === 'All') {
     //   this.filteredTasks = this.restaurantList;
@@ -299,32 +319,46 @@ export class RestaurantsCourierListComponent implements OnInit {
 
 
   // New call log.
-  restaurantInEditing = {}; //???
-  call(restaurant) {
+  restaurantInEditing = new RestaurantWithCourier(); //???
+  call(restaurant: RestaurantWithCourier) {
     console.log("Calling restaurant:");
     console.log(restaurant);
     this.restaurantInEditing = restaurant;
+    // this.restaurantInEditing.callLogNew = new CallLog();
+    // this.restaurantInEditing.callLogNew.time = new Date();
+    // this.restaurantInEditing.callLogNew.caller = this._global.user.username;
+    // this.restaurantInEditing.callLogNew.comments = "";
+    console.log(restaurant);
     this.callModal.show();
   }
 
   editingNewCallLog = false;
   toggleNewCallLog() {
     this.editingNewCallLog = !this.editingNewCallLog;
-    // if (this.editingNewCallLog) {
-    //   this.newCallLog = new CallLog();
-    //   this.newCallLog.time = new Date();
-    //   this.newCallLog.caller = this._global.user.username;
-    //   if (this.selectedLead.phones && this.selectedLead.phones.length === 1) {
-    //     this.newCallLog.phone = this.selectedLead.phones[0];
-    //   }
-    // }
+    if (this.editingNewCallLog) {
+      this.restaurantInEditing.callLogNew = new CallLog();
+      this.restaurantInEditing.callLogNew.time = new Date();
+      this.restaurantInEditing.callLogNew.caller = this._global.user.username;
+      this.restaurantInEditing.callLogNew.comments = "";
+      // if (this.selectedLead.phones && this.selectedLead.phones.length === 1) {
+      //   this.newCallLog.phone = this.selectedLead.phones[0];
+      // }
+    }
+    this.restaurantInEditing.comments = this.restaurantInEditing.callLogNew.comments;
+    console.log(this.restaurantInEditing);
   }
 
   newLogFieldDescriptors = [
     {
-      field: "comments",
+      field: "comments", //callLogNew.comments does not work with required???
       label: "Comments",
-      required: true,
+      required: true, //Why??????????
+      disabled: false
+    },
+    {
+      field: "callLogNew.caller", // Debug only.
+      label: "User",
+      required: false,
       disabled: false
     },
   ]
@@ -332,26 +366,21 @@ export class RestaurantsCourierListComponent implements OnInit {
   formRemove(event) { }
 
   async newLogSubmit(event) {
-    if (!event.object.comments) {
+    console.log(event.object);
+    event.object.callLogNew.comments = event.object.comments;
+    if (!event.object.callLogNew.comments) {
       return event.acknowledge("Must input comments");
     }
     if (!event.object.callLogs) {
       event.object.callLogs = [];
     }
-    this.editingNewCallLog = !this.editingNewCallLog;
-    const newLog = {
-      caller: this._global.user.username,
-      time: (new Date()).toISOString(),
-      comments: event.object.comments,
-    }
-
-    event.object.callLogs.unshift(newLog);
-    event.object.comments = '';
-    // post to database!!!
-    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: event.object }]).toPromise();
-    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, callLogs: event.object.log, testField: "test" } }]).toPromise();
-    await this.restaurantCourierService.patchOneCallLogsChange(event.object);
     this.callModal.hide();
+    this.editingNewCallLog = false;
+    event.object.callLogs.unshift(event.object.callLogNew);
+    event.object.comments = '';
+    this.restaurantCourierService.updateCallers(event.object);
+    this.updateCallerList();
+    await this.restaurantCourierService.patchOneCallLogsChange(event.object);
   }
 
   // Change log manually: logEditorModal
@@ -360,42 +389,42 @@ export class RestaurantsCourierListComponent implements OnInit {
     {
       field: "comments",
       label: "Comments",
-      required: true,
+      required: false,
       disabled: false
     },
   ]
   logInEditing: number;
-  editLog(restaurant, logIndex: number) {
+  editingLog = false;
+  editLog(restaurant: RestaurantWithCourier, logIndex: number) {
     console.log("Editing log.");
     console.log(restaurant);
     this.restaurantInEditing = restaurant;
     this.logInEditing = logIndex;
+    // restaurant.callLogNew = restaurant.callLogs[logIndex];
+    // restaurant.comments = restaurant.callLogNew.comments;
     restaurant.comments = restaurant.callLogs[logIndex].comments;
     // this.selectedtask = task;
+    this.editingLog = true;
     this.logEditorModal.show();
   }
 
   async logEditorSubmit(event) {
+    // event.object.callLogNew.comments = event.object.comments;
     if (!event.object.callLogs) {
       event.object.callLogs = [];
       console.log("Cannot edit log in empty list!");
       this.logEditorModal.hide();
       return;
     }
-    // const newLog = {
-    //   caller: this._global.user.username,
-    //   time: (new Date()).toISOString(),
-    //   comments: event.object.comments,
-    // }
+    console.log(event.object.callLogs[this.logInEditing]);
+
+    this.logEditorModal.hide();
+    this.editingLog = false;
 
     event.object.callLogs[this.logInEditing].comments = event.object.comments;
     event.object.comments = '';
-    // post to database!!!
-    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: event.object }]).toPromise();
-    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=postmates', [{ old: { _id: event.object._id }, new: { _id: event.object._id, callLogs: event.object.callLogs, testField: "test" } }]).toPromise();
     await this.restaurantCourierService.patchOneCallLogsChange(event.object);
     console.log(event.object);
-    this.logEditorModal.hide();
   }
   // Change availability: availabilityModal
 
@@ -446,7 +475,7 @@ export class RestaurantsCourierListComponent implements OnInit {
 
   //New start:
 
-  
+
   selectAvailability(item) {
     this.filter();
   }

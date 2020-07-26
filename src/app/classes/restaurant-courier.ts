@@ -15,42 +15,37 @@ export class RestaurantWithCourier {
   agents: string[] = null;
 
   courier: string = null;
-  
+
   availability: string = null;
   checkedAt: string = null; // ISO string of date and time.
 
   callLogs: CallLog[] = null; //For now, use caller, time and comments only.
-
+  callers: string[] = null;
+  // callerMostRecent: string = null;
+  callLogNew: CallLog = null;
+  comments: string = null;
   // constructor1(data?: Partial<RestaurantWithCourier>){
   //   console.log(data);
   //   Object.assign(this, data);
   //   console.log(this);
   // }
-  constructor(data?: any, deepClone?: boolean){
-    if(deepClone){
-      if (data){
-        for (let key in this){
-          if (this.hasOwnProperty(key) && data.hasOwnProperty(key)){ // necessary???
-            this[key] = JSON.parse(JSON.stringify(data[key]));
-          }
+  constructor(data?: any) {
+    if (data) {
+      for (let key in this) {
+        if (this.hasOwnProperty(key) && data.hasOwnProperty(key)) { // necessary???
+          // this[key] = this[key].constructor(data[key]);
+          this[key] = JSON.parse(JSON.stringify(data[key]));
         }
       }
     }
-    else{
-      if (data){
-        for (let key in this){
-            if (data.hasOwnProperty(key)){ // necessary???
-            this[key] = data[key];
-          }
-        }
-      }
-    }
+    this.callLogs = (this.callLogs || []).map(log => new CallLog(log));
+    this.callLogNew = new CallLog(this.callLogNew);
   }
 
-  getLastCallLog() {
-    if (this.callLogs && this.callLogs.length) {
-      return this.callLogs[this.callLogs.length - 1];
-    }
-    return undefined;
-  }
+  // getLastCallLog():CallLog {
+  //   if (this.callLogs && this.callLogs.length) {
+  //     return this.callLogs[this.callLogs.length - 1];
+  //   }
+  //   return undefined;
+  // }
 }

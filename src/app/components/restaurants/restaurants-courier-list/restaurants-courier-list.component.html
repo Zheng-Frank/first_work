@@ -19,7 +19,13 @@
   <label class="mr-2"> Time Zone:</label>
   <select class="mr-5" [(ngModel)]="selectedTimeZone" (change)="filter()">
     <option>All</option>
-    <option *ngFor="let availability of timeZoneList">{{availability}}</option>
+    <option *ngFor="let timeZone of timeZoneList">{{timeZone}}</option>
+  </select>
+
+  <label class="mr-2"> Caller:</label>
+  <select class="mr-5" [(ngModel)]="selectedCaller" (change)="filter()">
+    <option>All</option>
+    <option *ngFor="let caller of callerList">{{caller}}</option>
   </select>
 
   <!-- <label class="mr-2"> Time Zone:</label>
@@ -92,6 +98,7 @@
     <td>{{restaurant.score | number : '1.0-1'}}</td>
     <td>{{restaurant.availability || "unknown"}}</td>
     <td>{{restaurant.checkedAt | ago: now}}</td>
+    <td>{{restaurant.callers?restaurant.callers[0]:""}}</td>
     <td class="text-right">
       <button class="btn btn-link py-0" (click)="call(restaurant)">
         <i class="fas fa-phone"></i>
@@ -287,9 +294,11 @@
 </q-modal> -->
 
 <q-modal [title]="restaurantInEditing.name" #logEditorModal>
-
-  <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="logEditorFieldDescriptors"
+  <div class="card" *qIf="editingLog">
+    <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="logEditorFieldDescriptors"
     (submit)="logEditorSubmit($event)" (remove)="formRemove($event)" (cancel)="logEditorModal.hide()">
   </q-form-builder>
+  </div>
+  
 
 </q-modal>

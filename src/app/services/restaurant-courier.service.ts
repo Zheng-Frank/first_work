@@ -73,13 +73,13 @@ export class RestaurantCourierService {
   async patchOneCallLogsChange(restaurant: RestaurantWithCourier) {
     const patchList = [{
       old: { _id: restaurant._id },
-      new: { _id: restaurant._id, callLogs: restaurant.callLogs }
+      new: { _id: restaurant._id, callLogs: restaurant.callLogs, callers: restaurant.callers}
     }];
     // console.log(patchList);
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
   }
-  
-  
+
+
 
   async initDatabase() {
     // await this.getRestaurantList();
@@ -103,7 +103,7 @@ export class RestaurantCourierService {
   }
 
   // For test use only.
-  async viewRestaurants(){
+  async viewRestaurants() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {},
@@ -117,7 +117,7 @@ export class RestaurantCourierService {
       // }
     }, 5000);
     console.log(restaurants);
-  }  
+  }
 
   async reloadRestaurantData(): Promise<RestaurantWithCourier[]> {
     console.log("Reloading data...");
@@ -177,7 +177,7 @@ export class RestaurantCourierService {
     return ret;
   }
 
-  private parseRestaurants(restaurants){
+  private parseRestaurants(restaurants) {
     const ret = restaurants.map(each => ({
       restaurantId: each._id,
       cid: each.googleAddress._id,
@@ -247,5 +247,25 @@ export class RestaurantCourierService {
     }
     this.checkingAvailability = false;
     return availability;
+  }
+
+  // Agents
+
+  updateCallers(restaurant: RestaurantWithCourier) {
+    if (restaurant.callLogs.length) {
+      if (!restaurant.callers || !restaurant.callers.length) {
+        restaurant.callers = [restaurant.callLogs[0].caller];
+      }
+      else {
+        if (restaurant.callers[0] != restaurant.callLogs[0].caller) {
+          const index = restaurant.callers.indexOf(restaurant.callLogs[0].caller);
+          if (index >= 0) {
+            restaurant.callers.splice(index, 1);
+          }
+          restaurant.callers.unshift(restaurant.callLogs[0].caller);
+        }
+      }
+    }
+    return;
   }
 }
