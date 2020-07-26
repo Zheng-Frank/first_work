@@ -1,7 +1,7 @@
 import { Hour } from "@qmenu/ui";
+import { CourierPricingItem } from "./courier-pricing-item";
 export class CourierPricing {
-    base: number;
-    perMile: number;
+    items: CourierPricingItem[];
     hours: Hour[];
 
     constructor(cp: any) {
@@ -16,6 +16,9 @@ export class CourierPricing {
         // convert hours to Hours type
         if (this.hours) {
             this.hours = this.hours.map(h => new Hour(h));
+        }
+        if (this.items) {
+            this.items = this.items.map(i => new CourierPricingItem(i));
         }
     }
 }

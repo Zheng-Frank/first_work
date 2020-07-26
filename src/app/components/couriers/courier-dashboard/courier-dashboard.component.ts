@@ -5,6 +5,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Courier } from 'src/app/classes/courier';
 import { CourierPricing } from 'src/app/classes/courier-pricing';
+import { CourierPricingItem } from 'src/app/classes/courier-pricing-item';
 
 @Component({
   selector: 'app-courier-dashboard',
@@ -16,6 +17,7 @@ export class CourierDashboardComponent implements OnInit {
   couriers: Courier[] = [];
   courierRestaurants = {};
   now = new Date();
+
   editPricing(courier, pricing) {
     this.courierInEditing = courier;
     if (pricing) {
@@ -24,41 +26,40 @@ export class CourierDashboardComponent implements OnInit {
 
     } else {
       this.pricingInEditing = new CourierPricing({
-        base: 3.99,
-        perMile: 1,
-        hours: []
+        hours: [],
+        items: []
       });
       this.pricingInEditingOriginal = undefined;
     }
     this.pricingModal.show();
   }
+
   pricingCancel() {
     this.pricingModal.hide();
+  }
+
+  addNewItem() {
+    this.pricingInEditing.items = this.pricingInEditing.items || [];
+    this.pricingInEditing.items.push({
+      distance: 0,
+      orderMinimum: 0,
+      charge: 0
+    });
+  }
+
+  removeItem(item) {
+    this.pricingInEditing.items = this.pricingInEditing.items.filter(i => i !== item);
   }
 
   courierInEditing: Courier;
   pricingInEditingOriginal: CourierPricing;
 
   pricingInEditing = new CourierPricing({
-    base: 3.99,
-    perMile: 1,
-    hours: []
+    hours: [],
+    items: []
   });
 
-  pricingFieldDescriptors = [
-    {
-      field: "base", //
-      label: "Base",
-      required: true,
-      inputType: "number"
-    },
-    {
-      field: "perMile", //
-      label: "Rate (per mile)",
-      required: true,
-      inputType: "number"
-    }
-  ];
+  pricingFieldDescriptors = [];
 
   async pricingSubmit(event) {
     const newPricings = (this.courierInEditing.pricings || []).slice(0); // make a shallow copy instead of manipulating old array directly
@@ -77,11 +78,17 @@ export class CourierDashboardComponent implements OnInit {
 
   async tryUpdatingNewPricings(courier, newPricings, eventAcknowledge) {
     try {
-      // making sure base and perMile are numbers
+      // making sure items are sorted and linted
       newPricings.map(pricing => {
-        pricing.base = +pricing.base || 0;
-        pricing.perMile = +pricing.perMile || 0;
+        pricing.items.map(i => {
+          i.distance = +i.distance || 0;
+          i.charge = +i.charge || 0;
+          i.orderMinimum = +i.orderMinimum || 0;
+        });
+        pricing.items = (pricing.items || []).filter(i => i.distance);
+        pricing.items.sort((i1, i2) => i1.distance - i2.distance);
       });
+
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=courier', [
         {
           old: { _id: this.courierInEditing._id },
@@ -160,7 +167,7 @@ export class CourierDashboardComponent implements OnInit {
     }).toPromise();
 
     drivers.map(d => this.couriers.map(c => {
-      if (c._id === d.courier._id) {
+      if (d.courier && c._id === d.courier._id) {
         c.drivers = c.drivers || [];
         c.drivers.push(d);
       }
