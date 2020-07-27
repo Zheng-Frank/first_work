@@ -392,7 +392,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     event.object.callLogs.unshift(event.object.callLogNew);
     event.object.comments = '';
 
-    this.restaurantCourierService.updateCallers(event.object);
+    this.restaurantCourierService.updateMostRecentCaller(event.object);
     this.updateCallerList();
 
     await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
@@ -424,7 +424,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     // restaurant.callLogNew = restaurant.callLogs[logIndex];
     // restaurant.comments = restaurant.callLogNew.comments;
     restaurant.comments = restaurant.callLogs[logIndex].comments;
-    restaurant.caller = restaurant.callLogs[logIndex].caller; // Debug only.
+    // restaurant.caller = restaurant.callLogs[logIndex].caller; // Debug only.
     // this.selectedtask = task;
     this.editingLog = true;
     this.logEditorModal.show();
@@ -447,7 +447,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     event.object.callLogs[this.logInEditing].caller = event.object.caller;  // Debug only.
     event.object.comments = '';
 
-    this.restaurantCourierService.updateCallers(event.object);
+    this.restaurantCourierService.updateMostRecentCaller(event.object);
     this.updateCallerList();
 
     await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
@@ -496,7 +496,7 @@ export class RestaurantsCourierListComponent implements OnInit {
 
     event.object.callLogs.unshift(event.object.callLogNew);
 
-    this.restaurantCourierService.updateCallers(event.object);
+    this.restaurantCourierService.updateMostRecentCaller(event.object);
     this.updateCallerList();
 
     this.restaurantCourierService.updateProperties([event.object], ["availability", "callLogs", "callers"]);

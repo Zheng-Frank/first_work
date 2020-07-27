@@ -17,14 +17,14 @@ export class RestaurantWithCourier {
 
   courier: string = null;
 
-  availability: string = null;
+  availability: string = null; // {"signed up", "available", "not available", "unknown", null}
   checkedAt: string = null; // ISO string of date and time.
 
-  callLogs: CallLog[] = null; //For now, use caller, time and comments only.
-  callers: string[] = null;
-  // callerMostRecent: string = null;
-  callLogNew: CallLog = null;
-  comments: string = null;
+  callLogs: CallLog[] = null; // For now, use caller, time and comments only. // Reverse chronological order
+  callers: string[] = null; // Reverse chronological order. No duplicates.
+  callLogNew: CallLog = null; // Temporary variable.
+  comments: string = null; // Temporary variable.
+
   // constructor1(data?: Partial<RestaurantWithCourier>){
   //   console.log(data);
   //   Object.assign(this, data);
@@ -33,8 +33,8 @@ export class RestaurantWithCourier {
   constructor(data?: any) {
     if (data) {
       for (let key in this) {
-        if (this.hasOwnProperty(key) && data.hasOwnProperty(key)) { // necessary???
-          // this[key] = this[key].constructor(data[key]);
+        if (this.hasOwnProperty(key) && data.hasOwnProperty(key)) {
+          // this[key] = this[key].constructor(data[key]); // Correct way for this idea???
           this[key] = JSON.parse(JSON.stringify(data[key]));
         }
       }
@@ -42,11 +42,4 @@ export class RestaurantWithCourier {
     this.callLogs = (this.callLogs || []).map(log => new CallLog(log));
     this.callLogNew = new CallLog(this.callLogNew);
   }
-
-  // getLastCallLog():CallLog {
-  //   if (this.callLogs && this.callLogs.length) {
-  //     return this.callLogs[this.callLogs.length - 1];
-  //   }
-  //   return undefined;
-  // }
 }

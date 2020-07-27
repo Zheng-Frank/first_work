@@ -11,14 +11,17 @@ import { RestaurantCourierService } from "../../../services/restaurant-courier.s
 })
 
 export class PostmatesListComponent implements OnInit {
-  courierName = "Postmates";
+  courierName: string;
+  courierDatabaseName: string;
   postmatesList: RestaurantWithCourier[];
-  user: User; //???
-  private restaurantCourierService: RestaurantCourierService; //???
+  user: User; // Not used yet.
+  private restaurantCourierService: RestaurantCourierService; // better way to call it???
 
   constructor(private _api: ApiService) { }
 
   ngOnInit() {
+    this.courierName = "Postmates"
+    this.courierDatabaseName = this.courierName.toLowerCase();
     this.initRestaurantCourierService();
   }
 
@@ -26,7 +29,7 @@ export class PostmatesListComponent implements OnInit {
   async initRestaurantCourierService() {
     this.restaurantCourierService = new RestaurantCourierService(this._api);
     await this.restaurantCourierService.getCourierByName(this.courierName);
-    this.restaurantCourierService.databaseName = this.courierName.toLowerCase(); // Database name is courier name in lower case.
+    this.restaurantCourierService.databaseName = this.courierDatabaseName;
     this.restaurantCourierService.batchSizeForChecking = 10;
     this.restaurantCourierService.coolDownDays = 20;
     await this.refresh();
@@ -54,7 +57,7 @@ export class PostmatesListComponent implements OnInit {
   }
   // Button: "Rescan"
   async scanPostmates() {
-    // await this.updateRestaurantList(); //???
+    // await this.updateRestaurantList(); // ???
     await this.restaurantCourierService.scanCourierAvailability();
     await this.refresh();
     return;
