@@ -1,15 +1,9 @@
-import { Injectable } from '@angular/core';
 import { ApiService } from "../services/api.service";
-import { GlobalService } from "../services/global.service";
 import { environment } from "../../environments/environment";
-import { Helper } from "../classes/helper";
-import { Courier } from "../classes/courier";
-import { RestaurantWithCourier } from '../classes/restaurant-courier'
-import { CallLog } from '../classes/call-log';
+import { Helper } from "./helper";
+import { Courier } from "./courier";
+import { RestaurantWithCourier } from './restaurant-courier'
 
-@Injectable({
-  providedIn: 'root'
-})
 export class RestaurantCourierService {
   courier: Courier;
   databaseName: string;

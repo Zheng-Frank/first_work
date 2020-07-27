@@ -2,7 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { User } from '../../../classes/user';
 import { RestaurantWithCourier } from "../../../classes/restaurant-courier";
-import { RestaurantCourierService } from "../../../services/restaurant-courier.service";
+import { RestaurantCourierService } from "../../../classes/restaurant-courier-service";
 
 @Component({
   selector: 'app-postmates-list',
@@ -31,7 +31,7 @@ export class PostmatesListComponent implements OnInit {
     await this.restaurantCourierService.getCourierByName(this.courierName);
     this.restaurantCourierService.databaseName = this.courierDatabaseName;
     this.restaurantCourierService.batchSizeForChecking = 10;
-    this.restaurantCourierService.coolDownDays = 20;
+    this.restaurantCourierService.coolDownDays = 1/24/60; // for test.
     await this.refresh();
     // await this.restaurantCourierService.viewRestaurants(); // For debug use only.
     return;

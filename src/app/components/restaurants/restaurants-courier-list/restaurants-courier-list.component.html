@@ -60,11 +60,7 @@
     <td *ngIf="restaurant.callLogs">
       <ng-container *ngFor="let log of restaurant.callLogs; index as logIndex">
         <tr (click)="editLog(restaurant, logIndex)" style="cursor: pointer;">
-          {{log.comments}}
-          <br>
-          time: {{log.time | date:'short'}}
-          <br>
-          caller: {{log.caller}}
+          {{log.time | date:'M/d'}} {{log.caller}}: {{log.comments}}
         </tr>
       </ng-container>
     </td>

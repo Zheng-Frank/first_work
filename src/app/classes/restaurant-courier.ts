@@ -1,8 +1,6 @@
 // import { Address } from "@qmenu/ui"
 import { CallLog } from "./call-log";
 
-// Refer to: lead.ts
-
 export class RestaurantWithCourier {
   _id: string = null;
   restaurantId: string = null; // To match with the restaurant database.

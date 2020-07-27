@@ -2,14 +2,15 @@
 <!-- <app-restaurant-menu-shuffler [restaurant1]="fakeRestaurant1"  [restaurant2]="fakeRestaurant2"></app-restaurant-menu-shuffler> -->
 <div class="text-right mb-2">
   <div class="pb-2">
+    <button class="btn btn-link" onclick="window.location.href='/#/postmates-list';">
+      <i class="fas fa-truck"></i> Delivery by Postmates</button>
+    <br>
     <button class="btn btn-primary" (click)="setAction('NEW')" *ngIf="isButtonVisible('NEW')">
       <i class="fas fa-plus"></i> Add New Restaurant</button>
     <!-- <button class="btn btn-info" (click)="setAction('CRAWL')" *ngIf="isButtonVisible('CRAWL')">
       <i class="fas fa-download"></i> Crawl Restaurant Data</button> -->
     <button class="btn btn-danger" (click)="setAction('REMOVE')" *ngIf="isButtonVisible('REMOVE')">
       <i class="fas fa-times"></i> Delete Restaurant</button>
-    <button class="btn btn-link" onclick="window.location.href='/#/postmates-list';">
-      <i class="fas fa-truck"></i> Delivery by Postmates</button>
   </div>
 
   <div class="card text-left bg-light" *qIf="currentAction === 'NEW'">

@@ -4,7 +4,7 @@ import { User } from '../../../classes/user';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { CallLog } from "../../../classes/call-log";
 import { RestaurantWithCourier } from "../../../classes/restaurant-courier";
-import { RestaurantCourierService } from "../../../services/restaurant-courier.service";
+import { RestaurantCourierService } from "../../../classes/restaurant-courier-service";
 
 @Component({
   selector: 'app-restaurants-courier-list',
@@ -135,11 +135,6 @@ export class RestaurantsCourierListComponent implements OnInit {
     console.log("Calling restaurant:");
     console.log(restaurant);
     this.restaurantInEditing = restaurant;
-    // this.restaurantInEditing.callLogNew = new CallLog();
-    // this.restaurantInEditing.callLogNew.time = new Date();
-    // this.restaurantInEditing.callLogNew.caller = this._global.user.username;
-    // this.restaurantInEditing.callLogNew.comments = "";
-    // console.log(restaurant);
     this.callModal.show();
   }
 
@@ -254,7 +249,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     event.object.callLogs[this.logInEditing].caller = event.object.caller;  // Debug only.
     event.object.comments = '';
 
-    this.restaurantCourierService.updateMostRecentCaller(event.object);
+    this.restaurantCourierService.updateCallers(event.object);
     this.updateCallerList();
 
     await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
