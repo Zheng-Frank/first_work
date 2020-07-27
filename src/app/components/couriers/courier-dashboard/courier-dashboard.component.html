@@ -49,7 +49,7 @@
             <div>
               <strong>{{driver.firstName}} {{driver.lastName}}</strong><span *ngIf="driver.isManager"> (manager)</span>
             </div>
-            <span class="bg-danger px-1 text-light">{{driver.online ? 'Online' : 'Offline'}}</span>
+            <span class="bg-{{driver.online ? 'success' : 'danger'}} px-1 text-light">{{driver.online ? 'Online' : 'Offline'}}</span>
           </div>
 
         </li>
