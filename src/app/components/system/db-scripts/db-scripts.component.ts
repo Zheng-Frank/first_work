@@ -2124,14 +2124,13 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async fixRateSchedules() {
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
         rateSchedules: 1,
         name: 1
-      },
-      limit: 6000
-    }).toPromise();
+      }
+    }, 5000);
     const updatedOldNewPairs = [];
     const updates = restaurants.map(r => {
       let updated = false;
@@ -2999,11 +2998,107 @@ export class DbScriptsComponent implements OnInit {
     console.log("qmenu.us RTs score >0", filteredRT1.filter(each => each.score > 0));
     console.log("godaddy RTs score >0", filteredRT2.filter(each => each.score > 0));
 
+  }
+
+  async getRTsClosedForLong(){
+
+    let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        _id: 1,
+        closedHours: 1,        
+        disabled: 1,
+        score: 1,
+      },
+      sort: {
+        updatedAt: 1
+      }
+    }, 3000);
 
 
+    let closedRT=[]
+    restaurants = restaurants.filter(r => !r.disabled)
 
+    restaurants.forEach(e => {
+
+      let closed =(e.closedHours || []).some(hour => {
+        if(hour){
+
+          let from = new Date(hour.fromTime);
+          let to = new Date(hour.toTime);
+  
+          let span = to.getTime() - from.getTime();
+          if (span > 3 * 30 * 24 * 3600000) {
+            return true;
+          }
+        }
+      })  
+      
+      if(closed){
+        closedRT.push(e._id);
+      }
+
+      
+      
+    });
+    console.log('closedRT', closedRT)
+  }   
+
+  async deletePastClosedHours(){
+    let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        _id: 1,
+        closedHours: 1,        
+        disabled: 1,
+        score: 1,
+      },
+      sort: {
+        updatedAt: 1
+      }
+    }, 3000);
+
+    const updatedOldNewPairs = [];
+    restaurants.map(r => {
+      let updated = false;
+      r.closedHours = r.closedHours || [];
+      for(let i = r.closedHours.length - 1; i >= 0; i--){
+        console.log('rt', r._id);
+        if(r.closedHours[i] && r.closedHours[i].toTime){
+          let toTime = new Date(r.closedHours[i].toTime);
+          let now = new Date();
+          let  Difference_In_Time = now.getTime() - toTime.getTime();   
+          // To calculate the no. of days between two dates 
+          let  Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24); 
+          if(Difference_In_Days > 1){
+            r.closedHours.splice(i, 1);
+            updated = true;
+          }
+        }
+      }
+
+      if (updated) {
+        updatedOldNewPairs.push({
+          old: { _id: r._id },
+          new: { _id: r._id, closedHours: r.closedHours }
+        });
+      }
+    });
+    console.log(updatedOldNewPairs);
+    if (updatedOldNewPairs.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedOldNewPairs).toPromise();
+    }
 
   }
+    
+
+
+
+
+
+  
 
 
 }

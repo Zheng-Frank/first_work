@@ -32,14 +32,6 @@ export class HomeComponent implements OnInit {
   async ngOnInit() {
     // retrieve restaurant list
     this.restaurantList = await this._global.getCachedRestaurantListForPicker();
-    // force log out
-    if (['sam', 'lemon'].indexOf(this._global.user.username) >= 0 && this._global.user.roles.some(r => r === 'ADMIN')) {
-      this._global.logout();
-    }
-
-    if (['abby'].indexOf(this._global.user.username) >= 0) {
-      this._global.logout();
-    }
     // const result = await this._api.get2(environment.qmenuApiUrl + 'generic2', {a: 123, b: 456, c: 789}).toPromise();
     // console.log(result);
   }

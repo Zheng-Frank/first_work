@@ -4,6 +4,7 @@ import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
+import { HttpClient } from '@angular/common/http';
 
 declare var $: any;
 @Component({
@@ -39,7 +40,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     showDetails = false;
     searchText = null;
 
-    constructor(private _router: Router, private _api: ApiService) {
+    constructor(private _router: Router, private _api: ApiService, private _http: HttpClient) {
 
     }
     ngOnInit() {
@@ -120,8 +121,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.uploadImageError = undefined;
         let files = event.target.files;
         try {
-            const data: any = await Helper.uploadImage(files, this._api);
-
+            const data: any = await Helper.uploadImage(files, this._api, this._http);
             if (data && data.Location) {
                 this.mi.imageObjs = this.mi.imageObjs || [];
                 // infer 3 Urls
@@ -132,6 +132,9 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
                     origin: 'CSR'
                 });
             }
+else {
+console.log("The data was null");   
+}
         }
         catch (err) {
             this.uploadImageError = err;

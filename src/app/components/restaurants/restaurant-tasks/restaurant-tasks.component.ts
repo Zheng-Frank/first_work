@@ -23,6 +23,39 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
   ngOnInit() {
   }
 
+  async createGmbRequestTask() {
+    if (!confirm("Create a new GMB Request task?")) {
+      return;
+    }
+    this.refreshing = true;
+    try {
+      await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [{
+        name: 'GMB Request',
+        assignee: this._global.user.username,
+        roles: [
+          "GMB",
+          "ADMIN"
+        ],
+        relatedMap: {
+          restaurantId: this.restaurant._id,
+          cid: this.restaurant.googleListing.cid,
+          place_id: this.restaurant.googleListing.place_id,
+          restaurantName: this.restaurant.name
+        },
+        conditionAtCreation: "sales from tasks tab",
+        request: {},
+        processorVersion: "v5"
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success! Please check your list!");
+
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed to create a GMB task!");
+    }
+    this.refreshing = false;
+    await this.reloadTasks();
+  }
+
   async showDetails(task) {
     this.selectedTask = task;
     this.taskDetailsModal.show();

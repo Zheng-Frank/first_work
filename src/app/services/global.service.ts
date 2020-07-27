@@ -62,7 +62,7 @@ export class GlobalService {
           name: "ONBOARDING",
           href: "#/onboarding",
           fa: "fas fa-utensils",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"]
+          accessibleRoles: ["ADMIN", "CSR", "ACCOUNTANT", "MENU_EDITOR"]
         },
         {
           name: "Restaurants",
@@ -116,7 +116,7 @@ export class GlobalService {
           name: "GMB Tasks",
           href: "#/gmb-tasks",
           fa: "fab fa-google",
-          accessibleRoles: ["ADMIN", "GMB", "GMB_SPECIALIST", "GMB_ADMIN"]
+          accessibleRoles: ["ADMIN", "GMB", "GMB_SPECIALIST", "GMB_ADMIN", "MARKETER_INTERNAL"]
         },
         {
           name: "Leads",

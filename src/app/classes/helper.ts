@@ -1,81 +1,30 @@
 import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api.service';
 import { Address } from '@qmenu/ui';
-declare var AWS: any;
+import { HttpClient } from '@angular/common/http';
 
 export class Helper {
 
-    static awsAccessKeyId;
-    static awsSecretAccessKey;
-
-    // static uploadImage(files: File[], callback) {
-    //     if(!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
-    //         callback('Missing AWS kyes. Contact qMenu.', null);
-    //     }
-    //     else if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
-    //         callback('Invalid file type. Choose image only.', null);
-    //     } else if (files && files.length > 0 && files[0].size > 10000000) {
-    //         callback('The image size exceeds 10M.', null);
-    //     } else {
-    //         AWS.config.accessKeyId = Helper.awsAccessKeyId;
-    //         AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
-
-    //         let file = files[0];
-    //         let uuid = new Date().valueOf();
-    //         let ext = file.name.split('.').pop();
-
-    //         let bucket = new AWS.S3({ params: { Bucket: 'chopst', ContentType: 'image/jpeg' } });
-    //         let imageFile = { Key: 'menuImage/' + uuid + '.' + ext, Body: file };
-    //         bucket.upload(imageFile, callback);
-    //     }
-    // }
-
-    static async uploadImage(files: File[], _api: ApiService) {
-
-        if (!Helper.awsAccessKeyId || !Helper.awsSecretAccessKey) {
-            const keys = await _api.get(environment.qmenuApiUrl + "generic", {
-                resource: "key",
-                projection: {
-                    awsAccessKeyId: 1,
-                    awsSecretAccessKey: 1
-                },
-                limit: 1
-            }).toPromise();
-
-            Helper.awsAccessKeyId = keys[0].awsAccessKeyId;
-            Helper.awsSecretAccessKey = keys[0].awsSecretAccessKey;
-        }
-
-        if (files && files.length > 0 && files[0].type.indexOf('image') < 0) {
+    static async uploadImage(files: File[], _api: ApiService, _http: HttpClient) {
+        // let's take only the first file so far (possible for multiple files in future)
+        const [file] = files;
+        if (file.type.indexOf('image') < 0) {
             throw 'Invalid file type. Choose image only.';
-        } else if (files && files.length > 0 && files[0].size > 20000000) {
+        } else if (file.size > 20000000) {
             throw 'The image size exceeds 20M.';
         } else {
-
-            AWS.config.accessKeyId = Helper.awsAccessKeyId;
-            AWS.config.secretAccessKey = Helper.awsSecretAccessKey;
-
-            let file = files[0];
-            let uuid = new Date().valueOf();
-            let ext = file.name.split('.').pop();
-
-            let bucket = new AWS.S3({ params: { Bucket: 'chopst', ContentType: 'image/jpeg' } });
-            let imageFile = { Key: 'menuImage/' + uuid + '.' + ext, Body: file };
-
-
-            return new Promise((resolve, reject) => {
-                const callback = function (error, data) {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(data);
-                    }
-                }
-                bucket.upload(imageFile, callback);
-            });
+            const apiPath = `utils/s3-signed-url?contentType=${file.type}&prefix=menuImage&extension=${file.name.split('.').pop()}&bucket=chopst&expires=3600`;
+            // Get presigned url
+            try {
+                const response = await _api.get(environment.appApiUrl + apiPath).toPromise();
+                const presignedUrl = response['url'];
+                await _http.put(presignedUrl, file).toPromise();
+                return { Location: presignedUrl.slice(0, presignedUrl.indexOf("?")) };
+            } catch (error) {
+                throw "Failed to get presigned Url";
+            }
         }
     }
-
 
     static areObjectsEqual(obj1, obj2) {
         if (Object.is(obj1, obj2)) {
@@ -291,12 +240,12 @@ export class Helper {
 
     static getLine1(address: Address) {
         if (!address) {
-          return 'Address Missing';
+            return 'Address Missing';
         }
         return (address.street_number ? address.street_number : '') + ' '
-          + (address.route ? ' ' + address.route : '') +
-          (address.apt ? ', ' + address.apt : '');
-      }
+            + (address.route ? ' ' + address.route : '') +
+            (address.apt ? ', ' + address.apt : '');
+    }
 
     static getTimeZone(formatted_address) {
         const tzMap = {
@@ -328,17 +277,17 @@ export class Helper {
 
     static sanitizedName(menuItemName) {
         let processedName;
-    
+
         //remove (Lunch) and numbers
-        processedName= (menuItemName || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim()
+        processedName = (menuItemName || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim()
         processedName = processedName.replace('&', '');
         processedName = processedName.replace('.', ' ');
         // processedName = processedName.replace('w.', ' ');
         // processedName = processedName.replace('with', ' ');
-    
+
         // Remove non-English characters
         processedName = processedName.replace(/[^\x00-\x7F]/g, '');
-    
+
         // 19a Sesame Chicken --> Sesame Chicken
         // B Bourbon Chicken --> Bourbon Chicken
         let nameArray = processedName.split(' ');

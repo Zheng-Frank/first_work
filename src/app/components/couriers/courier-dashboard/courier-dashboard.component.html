@@ -11,19 +11,28 @@
       <div><strong>{{courier.enabled? 'Accepting deliveries' : 'Not accepting deliveries'}}</strong></div>
 
       <ul class="list-group mt-3">
-        <li class="list-group-item d-flex justify-content-between align-items-center"
-          *ngFor="let pricing of (courier.pricings || [])">
+        <li class="list-group-item" *ngFor="let pricing of (courier.pricings || [])">
           <div>
-            <div class="pb-2">
-              <strong>{{(pricing.base || 0) | currency:'USD':'symbol'}}</strong> +
-              <strong>{{(pricing.perMile || 0) | currency:'USD':'symbol'}}</strong> / mi
+            <div *ngFor="let item of pricing.items || []" class="row text-center">
+              <div class="col-4">
+                {{item.distance}} miles
+              </div>
+              <div class="col-4">
+                {{item.orderMinimum | currency:'USD':'symbol'}}
+              </div>
+              <div class="col-4">
+                {{item.charge | currency:'USD':'symbol'}}
+              </div>
             </div>
+
             <q-hours-viewer [hours]="pricing.hours">
             </q-hours-viewer>
 
           </div>
-          <button class="btn btn-link py-0" (click)="editPricing(courier, pricing)"><i class="far fa-edit"></i>
-            Edit</button>
+          <div class="text-right">
+            <button class="btn btn-link py-0" (click)="editPricing(courier, pricing)"><i class="far fa-edit"></i>
+              Edit</button>
+          </div>
         </li>
         <li class="list-group-item text-right" *ngIf="courier.name !== 'Postmates'">
           <button type="button" class="btn btn-link" (click)="editPricing(courier, null)">
@@ -40,7 +49,7 @@
             <div>
               <strong>{{driver.firstName}} {{driver.lastName}}</strong><span *ngIf="driver.isManager"> (manager)</span>
             </div>
-            <span class="bg-danger px-1 text-light">{{driver.online ? 'Online' : 'Offline'}}</span>
+            <span class="bg-{{driver.online ? 'success' : 'danger'}} px-1 text-light">{{driver.online ? 'Online' : 'Offline'}}</span>
           </div>
 
         </li>
@@ -64,6 +73,46 @@
   <q-form-builder [object]="pricingInEditing" [showDelete]="this.pricingInEditingOriginal"
     [fieldDescriptors]="pricingFieldDescriptors" (submit)="pricingSubmit($event)" (cancel)="pricingCancel()"
     (remove)="pricingDelete($event)">
+
+    <div class="form-group">
+      <label>Breakdown by Miles</label>
+
+
+      <table class="table app-borderless w-100">
+        <thead>
+          <tr>
+            <th class="text-center">Distance (mile)</th>
+            <th class="text-center">Order Minimum</th>
+            <th class="text-center">Charge</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of pricingInEditing.items">
+            <td class="text-center">
+              <input type="number" class="form-control" [(ngModel)]="item.distance">
+            </td>
+            <td class="text-center">
+              <input type="number" class="form-control" [(ngModel)]="item.orderMinimum">
+            </td>
+            <td class="text-center">
+              <input type="number" class="form-control" [(ngModel)]="item.charge">
+            </td>
+            <td class="text-right">
+              <button class="btn btn-link py-0" (click)="removeItem(item)"><i class="fas fa-trash-alt"></i>
+                Delete</button>
+            </td>
+          </tr>
+          <tr>
+          <tr>
+            <td class="text-right" colspan="3">
+              <button type="button" class="btn btn-link" (click)="addNewItem()">
+                + Add New Row</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
 
     <div class="form-group">
       <label>Delivery Hours</label>

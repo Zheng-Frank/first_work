@@ -22,8 +22,43 @@ export class MonitoringScriptComponent implements OnInit {
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
+  
   async ngOnInit() {
     this.populate();
+  }
+
+  canSuspendAll() {
+    return this.routineScripts.length > 0 && this.routineScripts.some(s => !s.disabled);
+  }
+
+  canResumeAll() {
+    return this.routineScripts.length > 0 && this.routineScripts.some(s => s.disabledBackup === false);
+  }
+
+  async suspendAll() {
+    this.apiLoading = true;
+    for (let script of this.routineScripts.filter(s => !s.disabled)) {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [
+        {
+          old: { _id: script._id },
+          new: { _id: script._id, disabled: true, disabledBackup: false }
+        }]);
+    }
+    await this.populate();
+    this.apiLoading = false;
+  }
+
+  async resumeAll() {
+    this.apiLoading = true;
+    for (let script of this.routineScripts.filter(s => s.disabledBackup === false)) {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [
+        {
+          old: { _id: script._id, disabled: true, disabledBackup: false },
+          new: { _id: script._id }
+        }]);
+    }
+    await this.populate();
+    this.apiLoading = false;
   }
 
   async toggleSelected(script, errorsOnly?) {
@@ -37,7 +72,7 @@ export class MonitoringScriptComponent implements OnInit {
   }
 
   getScriptContent() {
-    if(this.errorsOnly) {
+    if (this.errorsOnly) {
       console.log(this.selectedScript.uowsHistory[0].uows);
       return this.selectedScript.uowsHistory[0].uows.filter(uow => uow.error);
     }
@@ -56,6 +91,7 @@ export class MonitoringScriptComponent implements OnInit {
         unitOfWorksGeneratorName: 1,
         parallelProcessors: 1,
         disabled: 1,
+        disabledBackup: 1,
         "uowsHistory.time": 1,
         "uowsHistory.uows.startedAt": 1,
         "uowsHistory.uows.endedAt": 1,
