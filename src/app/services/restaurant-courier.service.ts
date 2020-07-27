@@ -130,7 +130,7 @@ export class RestaurantCourierService {
       resource: this.databaseName,
       query: {},
       projection: { _id: 1 },
-      limit: 10000,  // Without limit, get will only get 2 documents???
+      limit: 1000000,  // Without limit, get will only get 2 documents???
     }).toPromise();
     console.log(idList);
 
