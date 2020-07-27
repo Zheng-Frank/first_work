@@ -69,8 +69,6 @@ export class RestaurantsCourierListComponent implements OnInit {
     },
     {
       label: "Last called by",
-      // paths: ['callers[0]'],
-      // sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
       label: "Phone"
@@ -156,13 +154,13 @@ export class RestaurantsCourierListComponent implements OnInit {
     {
       field: "comments", //callLogNew.comments does not work with required???
       label: "Comments",
-      required: true, //Why??????????
+      required: true,
       disabled: false
     },
     {
       field: "callLogNew.caller", // Debug only.
       label: "User",
-      required: true,
+      required: false,
       disabled: false
     },
   ]
@@ -223,10 +221,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     // console.log(restaurant);
     this.restaurantInEditing = restaurant;
     this.logInEditing = logIndex;
-    // restaurant.callLogNew = restaurant.callLogs[logIndex];
-    // restaurant.comments = restaurant.callLogNew.comments;
     restaurant.comments = restaurant.callLogs[logIndex].comments;
-    // restaurant.caller = restaurant.callLogs[logIndex].caller; // Debug only.
 
     this.editingLog = true;
     this.logEditorModal.show();
@@ -244,7 +239,6 @@ export class RestaurantsCourierListComponent implements OnInit {
     this.logEditorModal.hide();
     this.editingLog = false;
 
-    // event.object.callLogNew.comments = event.object.comments;
     event.object.callLogs[this.logInEditing].comments = event.object.comments;
     event.object.callLogs[this.logInEditing].caller = event.object.caller;  // Debug only.
     event.object.comments = '';
@@ -255,15 +249,14 @@ export class RestaurantsCourierListComponent implements OnInit {
     await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
   }
 
-  async removeLog(event){
-    // console.log(event);
+  async removeLogNotAllowed(event){
     this.logEditorModal.hide();
     this.editingLog = false;
 
+    // Uncomment the following lines to allow removing logs.
     event.object.callLogs.splice(this.logInEditing, 1);
     this.restaurantCourierService.updateCallers(event.object);
     this.updateCallerList();
-
     await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
   }
 

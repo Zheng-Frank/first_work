@@ -91,7 +91,8 @@
 <q-modal [title]="restaurantInEditing.name" #logEditorModal>
   <div *qIf="editingLog">
     <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="logEditorFieldDescriptors"
-      (submit)="logEditorSubmit($event)" (remove)="removeLog($event)" (cancel)="logEditorModal.hide()">
+      (submit)="logEditorSubmit($event)" (remove)="removeLogNotAllowed($event)" (cancel)="logEditorModal.hide()">
     </q-form-builder>
   </div>
+  {{restaurantInEditing | json}}
 </q-modal>

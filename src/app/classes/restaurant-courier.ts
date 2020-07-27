@@ -1,4 +1,3 @@
-// import { Address } from "@qmenu/ui"
 import { CallLog } from "./call-log";
 
 export class RestaurantWithCourier {
@@ -23,16 +22,10 @@ export class RestaurantWithCourier {
   callLogNew: CallLog = null; // Temporary variable.
   comments: string = null; // Temporary variable.
 
-  // constructor1(data?: Partial<RestaurantWithCourier>){
-  //   console.log(data);
-  //   Object.assign(this, data);
-  //   console.log(this);
-  // }
   constructor(data?: any) {
     if (data) {
       for (let key in this) {
         if (this.hasOwnProperty(key) && data.hasOwnProperty(key)) {
-          // this[key] = this[key].constructor(data[key]); // Correct way for this idea???
           this[key] = JSON.parse(JSON.stringify(data[key]));
         }
       }

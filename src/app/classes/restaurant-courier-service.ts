@@ -38,7 +38,6 @@ export class RestaurantCourierService {
 
   // Utils.
 
-  // add to some code base???
   private filterObjectByKeys(obj: Object, keys: string[]) {
     return keys.reduce((objFiltered, key) => ({ ...objFiltered, [key]: obj[key] }), {});
   }
@@ -73,50 +72,6 @@ export class RestaurantCourierService {
     await this.patchChanges(restaurants, properties);
   }
 
-
-  // private async postOne(restaurant) {
-  //   await this._api.post(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, [restaurant]).toPromise();
-  // }
-
-  // private async patchMany(restaurants: RestaurantWithCourier[]) {
-  //   const patchList = restaurants.map(each => ({
-  //     old: { _id: each._id },
-  //     new: each
-  //   }));
-  //   // console.log(patchList);
-  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  // }
-
-  // private async patchManyAvailabilityChanges(restaurants: RestaurantWithCourier[]) {
-  //   const patchList = restaurants.map(each => ({
-  //     old: { _id: each._id },
-  //     new: { _id: each._id, availability: each.availability, checkedAt: each.checkedAt }
-  //   }));
-  //   // console.log(patchList);
-  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  // }
-
-  // private async patchChangesOnOneProperty(restaurants: RestaurantWithCourier[], property: string){
-  //   const patchList = restaurants.map(each => ({
-  //     old: { _id: each._id },
-  //     new: { _id: each._id, [property]: each[property]}
-  //   }));
-  //   // console.log(patchList);
-  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  // }
-
-
-  // private async patchOneCallLogsChange(restaurant: RestaurantWithCourier) {
-  //   const patchList = [{
-  //     old: { _id: restaurant._id },
-  //     new: { _id: restaurant._id, callLogs: restaurant.callLogs, callers: restaurant.callers }
-  //   }];
-  //   // console.log(patchList);
-  //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
-  // }
-
-
-
   async initDatabase() { // Better way to delete all???
     console.log("Clearing database!!!");
 
@@ -124,7 +79,7 @@ export class RestaurantCourierService {
       resource: this.databaseName,
       query: {},
       projection: { _id: 1 },
-      limit: 1000000,  // Without limit, get will only get 2 documents???
+      limit: 1000000,  // Without limit, get will only get 2 documents
     }).toPromise();
     console.log(idList);
 
@@ -318,7 +273,7 @@ export class RestaurantCourierService {
       await this._api.post(environment.appApiUrl + 'delivery/check-service-availability', {
         "address": address,
         courier: {
-          ...this.courier // ??? why not courier: this.courier??? get a copy?
+          ...this.courier
         }
       }).toPromise();
       availability = "available";

@@ -15,7 +15,7 @@ export class PostmatesListComponent implements OnInit {
   courierDatabaseName: string;
   postmatesList: RestaurantWithCourier[];
   user: User; // Not used yet.
-  private restaurantCourierService: RestaurantCourierService; // better way to call it???
+  private restaurantCourierService: RestaurantCourierService;
 
   constructor(private _api: ApiService) { }
 
@@ -57,7 +57,6 @@ export class PostmatesListComponent implements OnInit {
   }
   // Button: "Rescan"
   async scanPostmates() {
-    // await this.updateRestaurantList(); // ???
     await this.restaurantCourierService.scanCourierAvailability();
     await this.refresh();
     return;
