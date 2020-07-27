@@ -63,7 +63,7 @@ export class RestaurantsCourierListComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: "Checked at",
+      label: "Scaned at",
       paths: ['checkedAt'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
@@ -167,7 +167,7 @@ export class RestaurantsCourierListComponent implements OnInit {
     {
       field: "callLogNew.caller", // Debug only.
       label: "User",
-      required: false,
+      required: true,
       disabled: false
     },
   ]

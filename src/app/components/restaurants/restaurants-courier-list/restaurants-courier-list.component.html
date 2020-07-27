@@ -76,11 +76,12 @@
     <button class="btn btn-primary" (click)="toggleNewCallLog()">
       <i class="fas fa-phone"></i> Add New Log</button>
   </div>
-  <div class="card" *qIf="editingNewCallLog">
+  <div *qIf="editingNewCallLog">
     <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="newLogFieldDescriptors"
       (submit)="newLogSubmit($event)" (remove)="removeNewLog($event)" (cancel)="callModal.hide()">
     </q-form-builder>
   </div>
+  {{restaurantInEditing | json}}
 </q-modal>
 
 <q-modal [title]="restaurantInEditing.name" #availabilityModal>
