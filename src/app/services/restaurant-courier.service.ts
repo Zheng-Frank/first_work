@@ -5,6 +5,7 @@ import { environment } from "../../environments/environment";
 import { Helper } from "../classes/helper";
 import { Courier } from "../classes/courier";
 import { RestaurantWithCourier } from '../classes/restaurant-courier'
+import { CallLog } from '../classes/call-log';
 
 @Injectable({
   providedIn: 'root'
@@ -44,11 +45,11 @@ export class RestaurantCourierService {
   // Utils.
 
   // add to some code base???
-  private filterObjectByKeys(obj: Object, keys: string[]){
-    return keys.reduce((objFiltered, key) => ({...objFiltered, [key]: obj[key]}), {});
+  private filterObjectByKeys(obj: Object, keys: string[]) {
+    return keys.reduce((objFiltered, key) => ({ ...objFiltered, [key]: obj[key] }), {});
   }
 
-  private arrayToDictByKey(arr: Object[], key: string){
+  private arrayToDictByKey(arr: Object[], key: string) {
     const dict = {};
     arr.forEach(each => {
       dict[each[key]] = each;
@@ -64,7 +65,7 @@ export class RestaurantCourierService {
     return;
   }
 
-  private async patchChanges(restaurants: RestaurantWithCourier[], properties: string[]){
+  private async patchChanges(restaurants: RestaurantWithCourier[], properties: string[]) {
     const propertiesWithId = [...properties, "_id"];
     const patchList = restaurants.map(each => ({
       old: { _id: each._id },
@@ -74,7 +75,7 @@ export class RestaurantCourierService {
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
   }
 
-  async updateProperties(restaurants: RestaurantWithCourier[], properties: string[]){
+  async updateProperties(restaurants: RestaurantWithCourier[], properties: string[]) {
     await this.patchChanges(restaurants, properties);
   }
 
@@ -274,7 +275,7 @@ export class RestaurantCourierService {
     return this.arrayToDictByKey(restaurants, "restaurantId");
   }
 
-  // Update courier availability. TODO: add types??? Postmates to couriers???
+  // Update courier availability.
   async scanCourierAvailability() {
     const restaurantsToCheck: RestaurantWithCourier[] = (await this.getListToCheck()).map(each => new RestaurantWithCourier(each));
     await this.checkAvailability(restaurantsToCheck);
@@ -351,6 +352,16 @@ export class RestaurantCourierService {
         }
       }
     }
+    return;
+  }
+
+  updateCallers(restaurant: RestaurantWithCourier) {
+    restaurant.callers = [];
+    restaurant.callLogs.forEach(each => {
+      if (!restaurant.callers.includes(each.caller)) {
+        restaurant.callers.push(each.caller);
+      }
+    })
     return;
   }
 }

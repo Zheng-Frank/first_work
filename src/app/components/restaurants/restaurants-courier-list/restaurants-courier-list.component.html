@@ -12,7 +12,6 @@
 
   <label class="mr-2"> Postmates availability:</label>
   <select class="mr-5" [(ngModel)]="selectedAvailability" (change)="filter()">
-    <!-- <option>All</option> -->
     <option *ngFor="let availability of availabilityList">{{availability}}</option>
   </select>
 
@@ -28,44 +27,6 @@
     <option *ngFor="let caller of callerList">{{caller}}</option>
   </select>
 
-  <!-- <label class="mr-2"> Time Zone:</label>
-  <select class="mr-5" [(ngModel)]="timeZone" (change)="filter()">
-    <option>All</option>
-    <option *ngFor="let tz of timeZoneList">{{tz}}</option>
-  </select>
-
-  <label class="mr-2"> Status:</label>
-  <select class="mr-5" [(ngModel)]="claimed" (change)="filter()">
-    <option>Any</option>
-    <option>Claimed</option>
-    <option>Not Claimed</option>
-  </select>
-
-
-  <label class="mr-2"> Assignee:</label>
-  <select class="mr-5" [(ngModel)]="assignee" (change)="filter()">
-    <option>All</option>
-    <option *ngFor="let assignee of assigneeList">{{assignee}}</option>
-  </select>
-
-  <label class="mr-2"> Owner:</label>
-  <select class="mr-5" [(ngModel)]="owner" (change)="filter()">
-    <option>All</option>
-    <option *ngFor="let owner of ownerList">{{owner}}</option>
-  </select>
-
-  <input class="form-check-input" type="checkbox" [(ngModel)]="onlyDirectSignUp" (change)="filter()"
-    id="onlyDirectSignUp">
-  <label class="form-check-label mr-5" for="onlyDirectSignUp">
-    Only Direct Sign Up
-  </label>
-
-  <label class="mr-2"> GMB:</label>
-  <select class="mr-5" [(ngModel)]="gmb" (change)="filter()">
-    <option>All</option>
-    <option *ngFor="let gmb of gmbList">{{gmb}}</option>
-  </select> -->
-
   <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
   <label class="form-check-label mr-5" for="paginationCheck">
     Pagination
@@ -73,23 +34,14 @@
 </div>
 
 
-<q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
+<q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
   [pageSize]="pagination ? 10 : 100000">
+  <!-- Change pagination when finalize??? -->
   <tr *tableRowTemplate="let restaurant;">
     <td>{{filteredRestaurants.indexOf(restaurant) + 1}}</td>
-    <!-- <td>
-          <div class="badge badge-{{getTaskClass(task)}}" *ngIf="!task.result">{{task.scheduledAt | ago: now}}</div>
-
-          <div *ngIf="task.result">
-              {{task.result}}
-              <small class="text-muted d-block">
-                  {{task.resultAt | date: 'short'}}
-              </small>
-          </div>
-      </td> -->
     <td>
-      {{restaurant.restaurantId}}
-      <br>
+      <!-- {{restaurant.restaurantId}}
+      <br> -->
       <a href="#/restaurants/{{restaurant.restaurantId}}" target="_blank">{{restaurant.name}}</a>
       <br>
       {{restaurant.address}}
@@ -97,8 +49,9 @@
     <td>{{restaurant.timeZone}}</td>
     <td>{{restaurant.score | number : '1.0-1'}}</td>
     <td (click)="editAvailability(restaurant)" style="cursor: pointer;">{{restaurant.availability || "unknown"}}</td>
+    <!-- <td>{{restaurant.availability || "unknown"}}</td> -->
     <td>{{restaurant.checkedAt | ago: now}}</td>
-    <td>{{restaurant.callers?restaurant.callers[0]:""}}</td>
+    <td>{{restaurant.callers?restaurant.callers[0]:null}}</td>
     <td class="text-right">
       <button class="btn btn-link py-0" (click)="call(restaurant)">
         <i class="fas fa-phone"></i>
@@ -106,189 +59,34 @@
     </td>
     <td *ngIf="restaurant.callLogs">
       <ng-container *ngFor="let log of restaurant.callLogs; index as logIndex">
-  <tr (click)="editLog(restaurant, logIndex)" style="cursor: pointer;">
-    {{log.comments}}
-    <br>
-    time: {{restaurant.callLogs[logIndex].time | date:'short'}}
-    <br>
-    caller: {{restaurant.callLogs[logIndex].caller}}
-  </tr>
-  </ng-container>
-  </td>
-
-
-  <!-- <td>{{task.name}}
-          <div class="text-muted" *ngIf="task.description">
-              <small>
-                  <a target="_blank"
-                      href="#/restaurants/{{task.relatedMap?.qmenuId || task.gmbBiz?.qmenuId}}">{{task.description}}</a>
-                  {{task.gmbBiz?.address}}
-                  <div *ngIf="task.transfer && task.transfer.fromEmail">
-                      <app-gmb-account-hotlink [email]="task.transfer.fromEmail"></app-gmb-account-hotlink>
-                      <span *ngIf="task.transfer.againstEmail">« {{task.transfer.againstEmail | emailName}}</span>
-                  </div>
-                  <div *ngIf="task.etc && task.etc.fromEmail">
-                      <app-gmb-account-hotlink [email]="task.etc.fromEmail"></app-gmb-account-hotlink>
-                  </div>
-              </small>
-          </div>
-      </td> -->
-  <!-- <td>{{task.gmbBiz?.timeZone}}</td>
-      <td class="text-nowrap">
-
-          <ng-container *ngFor="let vo of task.transfer?.verificationOptions || []">
-              <i *ngIf="!vo.unrecognized"
-                  class="fas fa-{{vo.method === 'EMAIL' ? 'at' : (vo.method === 'PHONE_CALL' ? 'phone' : (vo.method === 'ADDRESS' ? 'address-card' : 'question'))}} {{vo.verificationResponse ? 'text-success' : 'text-muted'}}"></i>
-              <i *ngIf="vo.unrecognized"
-                  class="opacity-30 fas fa-{{vo.method === 'EMAIL' ? 'at' : (vo.method === 'PHONE_CALL' ? 'phone' : (vo.method === 'ADDRESS' ? 'address-card' : 'question'))}} {{vo.verificationResponse ? 'text-success' : 'text-muted'}}"></i>
-
-              <div *ngIf="vo.verificationResponse" class="text-muted">
-                  <small>{{vo.verificationResponse.createTime | ago: now}}</small></div>
-          </ng-container>
-          <div class="text-warning" *ngIf="task.transfer?.code">
-              <i class="fas fa-2x fa-lightbulb"></i>
-          </div>
-          <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>
-          <div *ngIf="task.relatedMap.location?.statusHistory">
-              {{task.relatedMap.location.statusHistory[0].time | ago : now}}
-          </div>
-      </td>
-      <td>{{task.gmbBiz?.gmbOwner}}</td>
-      <td>{{task.score}}</td>
-      <td>{{getRoles(task)}}</td>
-      <td>{{task.assignee}}</td>
-      <td>
-          <div class="wrap" [innerHTML]="task.comments"> </div>
-          <div *ngIf="task.transfer && task.transfer.verificationMethod">
-              {{task.transfer.verificationMethod}}
-          </div>
-      </td>
-      <td>
-          <app-task-action-bar [task]="task" [user]="user" (actionDone)="triggerActionDone($event)">
-          </app-task-action-bar>
-      </td>
-      <td class="text-nowrap">
-          {{task.createdAt | ago:now}}
-          <div class="text-muted">
-              <small>{{task._id}}</small>
-          </div>
-          <div *ngIf="task.transfer && task.transfer.scannedAt" class="text-muted">
-              <small>{{task.transfer.scannedAt | ago: now}}</small>
-              <span *ngIf="hasBadScanStatus(task)" class="text-danger">
-                  <i class="fas fa-exclamation-triangle"></i>
-              </span>
-              <span *ngIf="hasGoodScanStatus(task)" class="text-success">
-                  <i class="fas fa-check"></i>
-              </span>
-          </div> -->
-
-  <!-- {{(task.transfer?.statusHistory || []) [0] | json}} -->
-
-
-  <!-- </td>
-      <td class="text-nowrap">
-          {{task.resultAt | ago:now}}
-      </td> -->
+        <tr (click)="editLog(restaurant, logIndex)" style="cursor: pointer;">
+          {{log.comments}}
+          <br>
+          time: {{log.time | date:'short'}}
+          <br>
+          caller: {{log.caller}}
+        </tr>
+      </ng-container>
+    </td>
   </tr>
 </q-table>
 
 <q-modal [title]="restaurantInEditing.name" #callModal>
-
   <div class="pb-2">
     <button class="btn btn-primary" (click)="toggleNewCallLog()">
       <i class="fas fa-phone"></i> Add New Log</button>
   </div>
-
   <div class="card" *qIf="editingNewCallLog">
     <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="newLogFieldDescriptors"
-      (submit)="newLogSubmit($event)" (remove)="formRemove($event)" (cancel)="callModal.hide()">
+      (submit)="newLogSubmit($event)" (remove)="removeNewLog($event)" (cancel)="callModal.hide()">
     </q-form-builder>
   </div>
-
-  <!-- <div class="table-responsive text-left" *ngIf="selectedLead.callLogs && selectedLead.callLogs.length > 0">
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th class="border-0">Result</th>
-          <th class="border-0">Date</th>
-          <th class="border-0">Number</th>
-          <th class="border-0 text-center">Line</th>
-          <th class="border-0">Callees</th>
-
-          <th class="border-0">Comments</th>
-        </tr>
-      </thead>
-      <tbody>
-        <ng-container *ngFor="let log of selectedLead.getDescSortedCallLogs()">
-          <tr (click)="selectCallLog(log)">
-            <td>
-              <span *ngIf="log.salesOutcome==='rejected'" class="text-danger">■</span>
-              <span *ngIf="log.salesOutcome==='interested'" class="text-warning">■</span>
-              <span *ngIf="log.salesOutcome==='success' || log.salesOutcome==='qmenuCustomer'"
-                class="text-success">■</span>
-              <span *ngIf="log.askedMoreInfo" class="text-info">
-                <i class="fas fa-info-circle"></i>
-              </span>
-              <span *ngIf="log.callbackTime" class="text-info">
-                <i class="fas fa-history"></i>
-              </span>
-            </td>
-            <td>
-              <small>{{log.time | date:'short'}}</small>
-            </td>
-            <td>*{{(log.phone || '').substring(6)}}</td>
-            <td *ngIf="log.lineStatus === 'connected'" class="text-center">
-              <i class="fas fa-check text-success"></i>
-            </td>
-            <td *ngIf="log.lineStatus === 'busy'" class="text-center">
-              <i class="fas fa-exclamation text-warning"></i>
-            </td>
-            <td *ngIf="log.lineStatus === 'voicemail'" class="text-center">
-              <i class="fas fa-cloud-upload-alt"></i>
-            </td>
-            <td>{{log.callees}}</td>
-
-            <td>
-              <app-lead-call-log [callLog]="log"></app-lead-call-log>
-            </td>
-          </tr>
-          <tr *ngIf="log.hasSameTimeAs(selectedCallLog)">
-            <td colspan="6">
-              <div class="card card-body">
-                <h5 class="card-title">Edit Call Log</h5>
-                <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog"
-                  (cancel)="selectedCallLog = null" (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)">
-                </app-call-logger>
-
-              </div>
-            </td>
-          </tr>
-        </ng-container>
-      </tbody>
-    </table>
-    <hr>
-    <span class="legend text-danger">■=Rejected</span>
-    <span class="legend text-warning">■=Interested</span>
-    <span class="legend text-success">■=Success</span>
-    <span class="legend text-info">
-      <i class="fas fa-info-circle"></i>=Asked More Info </span>
-    <br>
-    <span class="legend text-warning">
-      <i class="fas fa-exclamation"></i>=Busy</span>
-    <span class="legend">
-      <i class="fas fa-cloud-upload-alt"></i>=Voicemail</span>
-    <span class="legend text-success">
-      <i class="fas fa-check"></i>=Connected</span>
-    <span class="text-info">
-      <i class="fas fa-history"></i> Callback</span>
-  </div> -->
-
 </q-modal>
 
 <q-modal [title]="restaurantInEditing.name" #availabilityModal>
   <div *qIf="editingAvailability">
     <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="availabilityFieldDescriptors"
-      (submit)="availabilitySubmit($event)" (remove)="formRemove($event)" (cancel)="availabilityModal.hide()">
+      (submit)="availabilitySubmit($event)" (remove)="removeAvailabilityNotValid($event)" (cancel)="availabilityModal.hide()">
     </q-form-builder>
   </div>
 </q-modal>
@@ -296,7 +94,7 @@
 <q-modal [title]="restaurantInEditing.name" #logEditorModal>
   <div *qIf="editingLog">
     <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="logEditorFieldDescriptors"
-      (submit)="logEditorSubmit($event)" (remove)="formRemove($event)" (cancel)="logEditorModal.hide()">
+      (submit)="logEditorSubmit($event)" (remove)="removeLog($event)" (cancel)="logEditorModal.hide()">
     </q-form-builder>
   </div>
 </q-modal>
