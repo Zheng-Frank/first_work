@@ -19,21 +19,16 @@ export class RestaurantCourierService {
   }
 
   async getCourierByName(courierName: string) {
-    // console.log("loading couriers");
     const couriers = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "courier",
       query: { name: courierName },
       projection: { name: 1 },
       limit: 1
     }).toPromise();
-    // console.log(couriers);
     if (couriers.length) {
       this.courier = new Courier(couriers[0]);
-      return;
     }
-    else {
-      return;
-    }
+    return;
   }
 
   // Utils.
@@ -44,9 +39,7 @@ export class RestaurantCourierService {
 
   private arrayToDictByKey(arr: Object[], key: string) {
     const dict = {};
-    arr.forEach(each => {
-      dict[each[key]] = each;
-    });
+    arr.forEach(each => { dict[each[key]] = each; });
     return dict;
   }
 
@@ -64,7 +57,6 @@ export class RestaurantCourierService {
       old: { _id: each._id },
       new: this.filterObjectByKeys(each, propertiesWithId),
     }));
-    // console.log(patchList);
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=' + this.databaseName, patchList).toPromise();
   }
 
@@ -72,16 +64,15 @@ export class RestaurantCourierService {
     await this.patchChanges(restaurants, properties);
   }
 
-  async initDatabase() { // Better way to delete all???
+  async initDatabase() {
     console.log("Clearing database!!!");
 
     const idList = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: this.databaseName,
       query: {},
       projection: { _id: 1 },
-      limit: 1000000,  // Without limit, get will only get 2 documents
+      limit: 1000000,  // Without limit, get will only get 2 documents.
     }).toPromise();
-    console.log(idList);
 
     await this._api.delete(
       environment.qmenuApiUrl + "generic",
@@ -95,37 +86,29 @@ export class RestaurantCourierService {
   }
 
   // For test use only.
-  async viewRestaurants() {
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {},
-      limit: 10,
-      // projection: {
-      //   _id: 1,
-      //   "googleAddress._id": 1,
-      //   "googleAddress.formatted_address": 1,
-      //   name: 1,
-      //   courier: 1
-      // }
-    }, 5000);
-    console.log(restaurants);
-  }
+  // async viewRestaurants() {
+  //   const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+  //     resource: 'restaurant',
+  //     query: {},
+  //     limit: 10,
+  //     // projection: {
+  //     //   _id: 1,
+  //     //   "googleAddress._id": 1,
+  //     //   "googleAddress.formatted_address": 1,
+  //     //   name: 1,
+  //     //   courier: 1
+  //     // }
+  //   }, 5000);
+  //   console.log(restaurants);
+  // }
 
   async reloadRestaurantData(): Promise<RestaurantWithCourier[]> {
-    console.log("Reloading data...");
     const restaurantListRaw = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: this.databaseName,
-      query: {},
-      // query: {disabled: false}, 
+      query: { disabled: false },
       sort: { updatedAt: -1 },
-      // limit: 1,
-    }, 10000);
-    // console.log(restaurantListRaw);
-
+    }, 100000);
     const restaurantList = restaurantListRaw.map(each => new RestaurantWithCourier(each));
-    console.log(restaurantList);
-
-    console.log("Data reloaded.");
     return restaurantList;
   }
 
@@ -136,7 +119,6 @@ export class RestaurantCourierService {
     const restaurantsExisting = await this.getExistingRestaurants();
 
     const restaurantIdToRestaurantExisting = this.getRestaurantIdDictionary(restaurantsExisting);
-    // const restaurantIdsExisting = Object.keys(restaurantIdToRestaurantExisting);
 
     const restaurantsToAdd = [];
     const restaurantsToChangeOnDisabled = [];
@@ -178,8 +160,6 @@ export class RestaurantCourierService {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {},
-      // query: {disabled: false}, //Change when finalize???
-      limit: 15, // For test???
       projection: {
         _id: 1,
         "googleAddress._id": 1,
@@ -188,8 +168,8 @@ export class RestaurantCourierService {
         courier: 1,
         score: 1,
         disabled: 1,
-      }
-    }, 5000);
+      },
+    }, 100000);
     return this.parseRestaurants(restaurants);
   }
 
@@ -216,7 +196,7 @@ export class RestaurantCourierService {
         disabled: 1,
         availability: 1,
       }
-    }, 10000);
+    }, 100000);
     return restaurantsExisting;
   }
 
@@ -229,30 +209,29 @@ export class RestaurantCourierService {
     const restaurantsToCheck: RestaurantWithCourier[] = (await this.getListToCheck()).map(each => new RestaurantWithCourier(each));
     await this.checkAvailability(restaurantsToCheck);
     await this.patchChanges(restaurantsToCheck, ["availability", "checkedAt"]);
-    console.log("Scaned!");
     return;
   }
 
   private async getListToCheck() {
     const blacklistForChecking = ["signed up"]; // Check all status other than "signed up". It does not detect confliction (signed up but actually not available).
-    // const blacklistForChecking = ["available", "signed up"]; // Check for new available ones only.
+    const checkNewAvailableOnly = false; // True: Check for new available ones only.
+    if (checkNewAvailableOnly) {
+      blacklistForChecking.push("available");
+    }
 
     const restaurantsToCheck = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: this.databaseName,
       query: { availability: { $nin: blacklistForChecking } },
-      sort: { checkedAt: 1 }, // Note that null is always "smallest"
+      sort: { checkedAt: 1 }, // Note that null is always "smallest".
       limit: this.batchSizeForChecking,
       projection: {
         restaurantId: 1,
         address: 1,
-        checkedAt: 1 // Will get ISOString from ISOString or Date!
+        checkedAt: 1 // Will get ISOString from ISOString or Date.
       }
     }).toPromise();
-    // console.log(restaurantsToCheck);
     const latestCheckDate = new Date(Date.now() - this.coolDownDays * 86400 * 1000).toISOString();
-    // console.log(latestCheckDate);
     const ret = restaurantsToCheck.filter(restaurant => !(restaurant.checkedAt && restaurant.checkedAt > latestCheckDate));
-    // console.log(ret)
     return ret;
   }
 
@@ -263,7 +242,6 @@ export class RestaurantCourierService {
       restaurant.checkedAt = (new Date()).toISOString();
     }
     this.checkingAvailability = false;
-    // console.log(restaurantList);
     return;
   }
 
@@ -278,7 +256,7 @@ export class RestaurantCourierService {
       }).toPromise();
       availability = "available";
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       availability = "not available";
     }
     return availability;

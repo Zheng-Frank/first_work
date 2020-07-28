@@ -35,21 +35,17 @@
 
 
 <q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-  [pageSize]="pagination ? 10 : 100000">
-  <!-- Change pagination when finalize??? -->
+  [pageSize]="pagination ? 100 : 100000">
   <tr *tableRowTemplate="let restaurant;">
     <td>{{filteredRestaurants.indexOf(restaurant) + 1}}</td>
     <td>
-      <!-- {{restaurant.restaurantId}}
-      <br> -->
       <a href="#/restaurants/{{restaurant.restaurantId}}" target="_blank">{{restaurant.name}}</a>
       <br>
       {{restaurant.address}}
     </td>
     <td>{{restaurant.timeZone}}</td>
     <td>{{restaurant.score | number : '1.0-1'}}</td>
-    <td (click)="editAvailability(restaurant)" style="cursor: pointer;">{{restaurant.availability || "unknown"}}</td>
-    <!-- <td>{{restaurant.availability || "unknown"}}</td> -->
+    <td>{{restaurant.availability || "unknown"}}</td>
     <td>{{restaurant.checkedAt | ago: now}}</td>
     <td>{{restaurant.callers?restaurant.callers[0]:null}}</td>
     <td class="text-right">
@@ -77,7 +73,6 @@
       (submit)="newLogSubmit($event)" (remove)="removeNewLog($event)" (cancel)="callModal.hide()">
     </q-form-builder>
   </div>
-  {{restaurantInEditing | json}}
 </q-modal>
 
 <q-modal [title]="restaurantInEditing.name" #availabilityModal>
@@ -94,5 +89,4 @@
       (submit)="logEditorSubmit($event)" (remove)="removeLogNotAllowed($event)" (cancel)="logEditorModal.hide()">
     </q-form-builder>
   </div>
-  {{restaurantInEditing | json}}
 </q-modal>

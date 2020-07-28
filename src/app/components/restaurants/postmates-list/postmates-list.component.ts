@@ -14,7 +14,7 @@ export class PostmatesListComponent implements OnInit {
   courierName: string;
   courierDatabaseName: string;
   postmatesList: RestaurantWithCourier[];
-  user: User; // Not used yet.
+  user: User; // Not really used yet.
   private restaurantCourierService: RestaurantCourierService;
 
   constructor(private _api: ApiService) { }
@@ -33,7 +33,6 @@ export class PostmatesListComponent implements OnInit {
     this.restaurantCourierService.batchSizeForChecking = 10;
     this.restaurantCourierService.coolDownDays = 1/24/60; // for test.
     await this.refresh();
-    // await this.restaurantCourierService.viewRestaurants(); // For debug use only.
     return;
   }
 

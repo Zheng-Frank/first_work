@@ -83,8 +83,6 @@ export class RestaurantsCourierListComponent implements OnInit {
   ngOnInit() { }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log("Changing");
-    // console.log(this.restaurantList);
     this.now = new Date();
     if (this.restaurantList) {
       this.updateCallerList();
@@ -98,8 +96,6 @@ export class RestaurantsCourierListComponent implements OnInit {
     ).map(
       each => each.callers
     )))).sort();
-    console.log("Updating caller list.");
-    console.log(this.callerList);
   }
 
   filter() {
@@ -130,8 +126,6 @@ export class RestaurantsCourierListComponent implements OnInit {
 
   restaurantInEditing = new RestaurantWithCourier(); //???
   call(restaurant: RestaurantWithCourier) {
-    console.log("Calling restaurant:");
-    console.log(restaurant);
     this.restaurantInEditing = restaurant;
     this.callModal.show();
   }
@@ -147,28 +141,18 @@ export class RestaurantsCourierListComponent implements OnInit {
       });
     }
     this.restaurantInEditing.comments = this.restaurantInEditing.callLogNew.comments;
-    console.log(this.restaurantInEditing);
   }
 
   newLogFieldDescriptors = [
     {
-      field: "comments", //callLogNew.comments does not work with required???
+      field: "comments", //callLogNew.comments does not work with required: true
       label: "Comments",
       required: true,
       disabled: false
-    },
-    {
-      field: "callLogNew.caller", // Debug only.
-      label: "User",
-      required: false,
-      disabled: false
-    },
+    }
   ]
 
-  formRemove(event) { }
-
   async newLogSubmit(event) {
-    // console.log(event.object);
     event.object.callLogNew.comments = event.object.comments;
 
     if (!event.object.callLogNew.comments) {
@@ -204,21 +188,13 @@ export class RestaurantsCourierListComponent implements OnInit {
       label: "Comments",
       required: true,
       disabled: false
-    },
-    {
-      field: "caller", // Debug only.
-      label: "User",
-      required: false,
-      disabled: false
-    },
+    }
   ]
 
   logInEditing: number;
   editingLog = false;
 
   editLog(restaurant: RestaurantWithCourier, logIndex: number) {
-    // console.log("Editing log.");
-    // console.log(restaurant);
     this.restaurantInEditing = restaurant;
     this.logInEditing = logIndex;
     restaurant.comments = restaurant.callLogs[logIndex].comments;
@@ -234,13 +210,11 @@ export class RestaurantsCourierListComponent implements OnInit {
       this.logEditorModal.hide();
       return;
     }
-    // console.log(event.object.callLogs[this.logInEditing]);
 
     this.logEditorModal.hide();
     this.editingLog = false;
 
     event.object.callLogs[this.logInEditing].comments = event.object.comments;
-    event.object.callLogs[this.logInEditing].caller = event.object.caller;  // Debug only.
     event.object.comments = '';
 
     this.restaurantCourierService.updateCallers(event.object);
@@ -254,10 +228,10 @@ export class RestaurantsCourierListComponent implements OnInit {
     this.editingLog = false;
 
     // Uncomment the following lines to allow removing logs.
-    event.object.callLogs.splice(this.logInEditing, 1);
-    this.restaurantCourierService.updateCallers(event.object);
-    this.updateCallerList();
-    await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
+    // event.object.callLogs.splice(this.logInEditing, 1);
+    // this.restaurantCourierService.updateCallers(event.object);
+    // this.updateCallerList();
+    // await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
   }
 
   // Change availability: availabilityModal
@@ -279,8 +253,6 @@ export class RestaurantsCourierListComponent implements OnInit {
 
   editingAvailability = false;
   editAvailability(restaurant: RestaurantWithCourier) {
-    // console.log("Changing availability.");
-    // console.log(restaurant);
     this.restaurantInEditing = restaurant;
     
     this.editingAvailability = true;
@@ -295,7 +267,6 @@ export class RestaurantsCourierListComponent implements OnInit {
     this.availabilityModal.hide();
     this.editingAvailability = false;
 
-    // event.object.availability = event.object.availabilityNew;
     event.object.callLogNew = new CallLog({
       caller: this._global.user.username,
       time: new Date(),
@@ -308,7 +279,6 @@ export class RestaurantsCourierListComponent implements OnInit {
     this.updateCallerList();
 
     this.restaurantCourierService.updateProperties([event.object], ["availability", "callLogs", "callers"]);
-    // console.log(event.object);
   }
 
   removeAvailabilityNotValid(event){
