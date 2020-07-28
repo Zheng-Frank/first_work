@@ -75,14 +75,6 @@
   </div>
 </q-modal>
 
-<q-modal [title]="restaurantInEditing.name" #availabilityModal>
-  <div *qIf="editingAvailability">
-    <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="availabilityFieldDescriptors"
-      (submit)="availabilitySubmit($event)" (remove)="removeAvailabilityNotValid($event)" (cancel)="availabilityModal.hide()">
-    </q-form-builder>
-  </div>
-</q-modal>
-
 <q-modal [title]="restaurantInEditing.name" #logEditorModal>
   <div *qIf="editingLog">
     <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="logEditorFieldDescriptors"

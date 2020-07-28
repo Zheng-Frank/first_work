@@ -30,21 +30,14 @@ export class PostmatesListComponent implements OnInit {
     this.restaurantCourierService = new RestaurantCourierService(this._api);
     await this.restaurantCourierService.getCourierByName(this.courierName);
     this.restaurantCourierService.databaseName = this.courierDatabaseName;
-    this.restaurantCourierService.batchSizeForChecking = 10;
-    this.restaurantCourierService.coolDownDays = 1/24/60; // for test.
+    this.restaurantCourierService.batchSizeForChecking = 200;
+    this.restaurantCourierService.coolDownDays = 20;
     await this.refresh();
     return;
   }
 
   async refresh() {
     this.postmatesList = await this.restaurantCourierService.reloadRestaurantData();
-    return;
-  }
-
-  // Button: "CLEAR ALL DATA!!!"
-  async initPostmatesDatabase() {
-    await this.restaurantCourierService.initDatabase();
-    await this.refresh();
     return;
   }
 

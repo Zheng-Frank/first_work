@@ -64,27 +64,6 @@ export class RestaurantCourierService {
     await this.patchChanges(restaurants, properties);
   }
 
-  async initDatabase() {
-    console.log("Clearing database!!!");
-
-    const idList = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: this.databaseName,
-      query: {},
-      projection: { _id: 1 },
-      limit: 1000000,  // Without limit, get will only get 2 documents.
-    }).toPromise();
-
-    await this._api.delete(
-      environment.qmenuApiUrl + "generic",
-      {
-        resource: this.databaseName,
-        ids: idList.map(each => each._id)
-      }
-    ).toPromise();
-    console.log("Deleted!!!")
-    return;
-  }
-
   // For test use only.
   // async viewRestaurants() {
   //   const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {

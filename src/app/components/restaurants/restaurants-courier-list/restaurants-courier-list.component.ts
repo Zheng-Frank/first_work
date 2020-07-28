@@ -20,7 +20,6 @@ export class RestaurantsCourierListComponent implements OnInit {
   @Output() actionDone = new EventEmitter();
 
   @ViewChild("callModal") callModal: ModalComponent;
-  @ViewChild("availabilityModal") availabilityModal: ModalComponent;
   @ViewChild("logEditorModal") logEditorModal: ModalComponent;
 
   now = new Date()
@@ -124,7 +123,7 @@ export class RestaurantsCourierListComponent implements OnInit {
 
   // New call log.
 
-  restaurantInEditing = new RestaurantWithCourier(); //???
+  restaurantInEditing = new RestaurantWithCourier();
   call(restaurant: RestaurantWithCourier) {
     this.restaurantInEditing = restaurant;
     this.callModal.show();
@@ -217,72 +216,11 @@ export class RestaurantsCourierListComponent implements OnInit {
     event.object.callLogs[this.logInEditing].comments = event.object.comments;
     event.object.comments = '';
 
-    this.restaurantCourierService.updateCallers(event.object);
-    this.updateCallerList();
-
-    await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
+    await this.restaurantCourierService.updateProperties([event.object], ["callLogs"]);
   }
 
   async removeLogNotAllowed(event){
     this.logEditorModal.hide();
     this.editingLog = false;
-
-    // Uncomment the following lines to allow removing logs.
-    // event.object.callLogs.splice(this.logInEditing, 1);
-    // this.restaurantCourierService.updateCallers(event.object);
-    // this.updateCallerList();
-    // await this.restaurantCourierService.updateProperties([event.object], ["callLogs", "callers"]);
-  }
-
-  // Change availability: availabilityModal
-
-  availabilityFieldDescriptors = [
-    {
-      field: "availability",
-      label: "Availibility",
-      required: true,
-      inputType: "single-select",
-      items: [
-        "signed up",
-        "available",
-        "not available",
-        "unknown"
-      ].map(status => ({ object: status, text: status, selected: false }))
-    },
-  ]
-
-  editingAvailability = false;
-  editAvailability(restaurant: RestaurantWithCourier) {
-    this.restaurantInEditing = restaurant;
-    
-    this.editingAvailability = true;
-    this.availabilityModal.show();
-  }
-
-  async availabilitySubmit(event) {
-    if (!event.object.callLogs) {
-      event.object.callLogs = [];
-    }
-
-    this.availabilityModal.hide();
-    this.editingAvailability = false;
-
-    event.object.callLogNew = new CallLog({
-      caller: this._global.user.username,
-      time: new Date(),
-      comments: "availability changed to " + event.object.availability,
-    })
-
-    event.object.callLogs.unshift(event.object.callLogNew);
-
-    this.restaurantCourierService.updateMostRecentCaller(event.object);
-    this.updateCallerList();
-
-    this.restaurantCourierService.updateProperties([event.object], ["availability", "callLogs", "callers"]);
-  }
-
-  removeAvailabilityNotValid(event){
-    this.availabilityModal.hide();
-    this.editingAvailability = false;
   }
 }
