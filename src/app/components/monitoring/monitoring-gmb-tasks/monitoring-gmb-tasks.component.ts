@@ -36,7 +36,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
       },
       projection: { _id: 1, "request.locationName": 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1, canceledReason: 1 }
 
-    }, 100000);
+    }, 10000);
 
     const openStatusMap = {};
     const canceledStatusMap = {};
