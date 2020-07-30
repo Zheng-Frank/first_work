@@ -21,7 +21,12 @@
   </div>
     <q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
       <tr *tableRowTemplate="let r;">
-        <td><a target="_blank" href="#/restaurants/{{r.restaurantId}}">{{r.name}}</a></td>
+        <td>
+          <a target="_blank" href="#/restaurants/{{r.restaurantId}}">{{r.name}}</a>
+          <div class="text-muted">
+            <small>{{r.address}}</small>
+          </div>
+        </td>
         <td><app-gmb-account-hotlink [email]="r.gmbAccountEmail"></app-gmb-account-hotlink></td>
         <td>
           <div *ngFor="let req of r.requestInfos">{{req.date | ago : now}} | {{req.email}} | {{req.requester}}</div>

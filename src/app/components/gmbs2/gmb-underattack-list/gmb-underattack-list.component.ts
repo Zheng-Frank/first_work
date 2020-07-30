@@ -67,7 +67,7 @@ export class GmbUnderattackListComponent implements OnInit {
   async refresh() {
     this.now = new Date();
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 27);
 
 console.log("Starting retrieving data");
 
@@ -184,6 +184,7 @@ console.log("Finished with tasks");
       projection: {
         _id: 1,
         "googleListing.place_id": 1,
+        "googleAddress.formatted_address": 1,
         name: 1,
         score: 1
       }
@@ -193,6 +194,7 @@ console.log("Finished with tasks");
       restaurants.map(restaurant => {
         if (entry.place_id == restaurant.googleListing.place_id) {
           entry['restaurantId'] = restaurant._id;
+          entry['address'] = restaurant.googleAddress.formatted_address;
           entry['name'] =  restaurant.name;
           entry['score'] = restaurant.score;
         }
