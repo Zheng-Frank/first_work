@@ -28,6 +28,7 @@ import { IvrDashboardComponent } from './components/ivr/ivr-dashboard/ivr-dashbo
 import { GmbAccountListComponent } from './components/gmbs2/gmb-account-list/gmb-account-list.component';
 import { GmbBizListComponent } from './components/gmbs2/gmb-biz-list/gmb-biz-list.component';
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
+import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-list/gmb-underattack-list.component';
 import { WorkflowDashboardComponent } from './components/workflow/workflow-dashboard/workflow-dashboard.component';
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
 import { TransactionDashboardComponent } from './components/transaction/transaction-dashboard/transaction-dashboard.component';
@@ -81,6 +82,7 @@ const routes: Routes = [
   { path: 'gmb-accounts', component: GmbAccountListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-businesses', component: GmbBizListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-requests', component: GmbRequestListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
+  { path: 'gmb-underattacks', component: GmbUnderattackListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] }},
   { path: 'gmb-pins', component: GmbPinsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmb-tasks', component: GmbTasksComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "GMB", "CSR", "ACCOUNTANT", "MARKETER_INTERNAL"] } },
   { path: 'gmb-open', component: MonitoringGmbOpenComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },

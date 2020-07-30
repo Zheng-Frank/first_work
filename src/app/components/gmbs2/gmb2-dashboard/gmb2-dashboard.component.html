@@ -1,13 +1,13 @@
 <div id="action-panel" class="pt-2">
-  <button *ngIf="isGmbAdmin" class=" btn btn-info btn-status mr-4" routerLink="/gmb-accounts">
+  <button  class=" btn btn-info btn-status mr-4" routerLink="/gmb-accounts">
     <span class="h3">GMB Accounts</span>
     <hr>{{gmbAccounts.length}} <small>Published: {{publishedTotal}}, Suspended: {{suspendedTotal}}</small>
   </button>
-  <button *ngIf="isGmbAdmin" class="btn btn-success btn-status mr-4" routerLink="/gmb-businesses">
+  <button  class="btn btn-success btn-status mr-4" routerLink="/gmb-businesses">
     <span class="h3">GMB Biz</span>
     <hr>{{publishedTotal}}/{{gmbBizList.length}}
   </button>
-  <button *ngIf="isGmbAdmin" class="btn btn-warning btn-status mr-4" routerLink="/gmb-requests">
+  <button  class="btn btn-warning btn-status mr-4" routerLink="/gmb-requests">
     <span class="h3">Monthly Requests</span>
     <hr>{{gmbRequests.length}}
   </button>
@@ -17,6 +17,10 @@
   </button>
   <button class="btn btn-warning btn-status mr-4" routerLink="/gmb-open">
     <span class="h3">Open Status</span>
+    <hr>&nbsp;
+  </button>
+  <button class="btn btn-warning btn-status mr-4" routerLink="/gmb-underattacks">
+    <span class="h3">Underattacked Restaurant</span>
     <hr>&nbsp;
   </button>
 </div>

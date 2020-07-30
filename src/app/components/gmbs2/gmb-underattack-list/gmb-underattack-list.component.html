@@ -1,0 +1,47 @@
+<h2 class="text-center">GMB: Underattacked Restaurants</h2>
+<div class="text-center">avg. {{averageRequestsPerDay}} requests/day, {{numberOfRestaurant}} restaruants shown, for the past 7 days</div>
+<div class="text-center">
+  <button class="btn btn-link" (click)="refresh()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+</div>
+<!-- <div class="text-center">avg. {{averageRequestsPerDay}}/day</div> -->
+<!-- <div class="row">
+  <div class="col-6 px-2"> -->
+  <div class="clearfix mt-2">
+    <div class="float-left form-inline">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="notShowComplete" (change)="filter()" id="notShowCompleteCheck">
+      <label class="form-check-label mr-5" for="notShowComplete">
+        Only Show Incomplete
+      </label>
+      <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+      <label class="form-check-label mr-5" for="paginationCheck">
+        Pagination
+      </label>
+    </div>
+  </div>
+    <q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
+      <tr *tableRowTemplate="let r;">
+        <td><a target="_blank" href="#/restaurants/{{r.restaurantId}}">{{r.name}}</a></td>
+        <td><app-gmb-account-hotlink [email]="r.gmbAccountEmail"></app-gmb-account-hotlink></td>
+        <td>
+          <div *ngFor="let req of r.requestInfos">{{req.date | ago : now}} | {{req.email}} | {{req.requester}}</div>
+        </td>  
+        <td>{{r.score | number : '1.0-0'}}</td>
+        <td>
+          <button class="btn btn-primary" *ngIf="!r.checker" (click)="markRequestChecked(r.requestInfos, r.name)">
+            Complete
+          </button>
+          <div *ngIf="r.checker && r.checkedAt">
+            Completed
+            <div class="text-muted">
+              <small>
+                by {{r.checker}} at <br> {{r.checkedAt | ago : now}}
+              </small>
+            </div>
+          </div>
+        </td>
+        <!-- <td><div *ngFor="let req of r.requestInfos">{{req._id}}</div>{{r.place_id}}</td> -->
+      </tr>
+    </q-table>
+  <!-- </div>
+</div> -->
