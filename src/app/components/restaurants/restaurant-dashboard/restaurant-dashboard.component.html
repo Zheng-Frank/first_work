@@ -2,6 +2,9 @@
 <!-- <app-restaurant-menu-shuffler [restaurant1]="fakeRestaurant1"  [restaurant2]="fakeRestaurant2"></app-restaurant-menu-shuffler> -->
 <div class="text-right mb-2">
   <div class="pb-2">
+    <button class="btn btn-link" onclick="window.location.href='/#/postmates-list';">
+      <i class="fas fa-truck"></i> Delivery by Postmates</button>
+    <br>
     <button class="btn btn-primary" (click)="setAction('NEW')" *ngIf="isButtonVisible('NEW')">
       <i class="fas fa-plus"></i> Add New Restaurant</button>
     <!-- <button class="btn btn-info" (click)="setAction('CRAWL')" *ngIf="isButtonVisible('CRAWL')">
@@ -41,6 +44,7 @@
 <div class="card">
   <div class="card-body">
     <label>Search Restaurant:</label>
-    <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)"></q-restaurant-picker>
+    <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)">
+    </q-restaurant-picker>
   </div>
 </div>
