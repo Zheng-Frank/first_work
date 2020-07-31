@@ -15,7 +15,7 @@ export class PostmatesListComponent implements OnInit {
   courierDatabaseName: string;
   postmatesList: RestaurantWithCourier[];
   user: User; // Not really used yet.
-  private restaurantCourierService: RestaurantCourierService;
+  restaurantCourierService: RestaurantCourierService;
 
   constructor(private _api: ApiService) { }
 

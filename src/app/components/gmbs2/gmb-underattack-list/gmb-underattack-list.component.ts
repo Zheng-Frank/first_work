@@ -20,13 +20,13 @@ export class GmbUnderattackListComponent implements OnInit {
   rows = [];
   filteredRows = [];
   notShowComplete: boolean = false;
-  pagination:boolean = true;
+  pagination: boolean = true;
   averageRequestsPerDay = 0;
   numberOfRestaurant = 0;
-  inConfirmPhase:boolean = false;
+  inConfirmPhase: boolean = false;
 
   now = new Date();
-  
+  apiLoading = false;
 
   myColumnDescriptors = [
     {
@@ -65,11 +65,12 @@ export class GmbUnderattackListComponent implements OnInit {
   }
 
   async refresh() {
+    this.apiLoading = false;
     this.now = new Date();
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-console.log("Starting retrieving data");
+    console.log("Starting retrieving data");
 
     // Get Attacking Requests
     const requests = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -95,9 +96,9 @@ console.log("Starting retrieving data");
     }, 6000);
 
     requests.map(req => req.date = new Date(req.date));
-    requests.sort((r1, r2) => r2.date.valueOf() - r1.date.valueOf()); 
+    requests.sort((r1, r2) => r2.date.valueOf() - r1.date.valueOf());
 
-console.log("Finished with requests");
+    console.log("Finished with requests");
 
     const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
@@ -105,7 +106,7 @@ console.log("Finished with requests");
         email: 1,
         "locations.cid": 1,
         "locations.status": 1,
-        "locations.role" : 1
+        "locations.role": 1
       },
     }, 6000);
 
@@ -113,12 +114,12 @@ console.log("Finished with requests");
     const myCidSet = new Set();
     gmbAccounts.map(account => (account.locations || []).map(loc => {
       if (loc.cid && loc.status === "Published" && ["OWNER", "CO_OWNER", "MANAGER"].indexOf(loc.role) >= 0) {
-          myCidSet.add(loc.cid);
+        myCidSet.add(loc.cid);
       }
     }));
     const attackingRequests = requests.filter(req => !myEmailSet.has(req.email) && myCidSet.has(req.cid));
 
-console.log("Finished with accounts");
+    console.log("Finished with accounts");
 
     // Get Task
     const tasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -130,23 +131,23 @@ console.log("Finished with accounts");
       projection: {
         _id: 0,
         "relatedMap.place_id": 1,
-        "request.statusHistory": {$slice: 1},
+        "request.statusHistory": { $slice: 1 },
         "request.statusHistory.isError": 1,
-        "request.pinHistory" : {$slice: 1},
-        "request.pinHistory.pin" : 1,
+        "request.pinHistory": { $slice: 1 },
+        "request.pinHistory.pin": 1,
       }
     }, 6000);
 
     // Filtered out requests we have pin 
-    const safePlaceIdSet = 
+    const safePlaceIdSet =
       new Set(tasks.filter(task => (!task.request.statusHistory || !task.request.statusHistory[0] ||
-                                    !task.request.statusHistory[0].isError) &&
-                                    task.request.pinHistory && task.request.pinHistory[0] && task.request.pinHistory[0].pin)
-                    .map(task => task.relatedMap.place_id));
+        !task.request.statusHistory[0].isError) &&
+        task.request.pinHistory && task.request.pinHistory[0] && task.request.pinHistory[0].pin)
+        .map(task => task.relatedMap.place_id));
     const totalTaskPlaceIdSet = new Set(tasks.map(task => task.relatedMap.place_id));
-    const attackingIndangerRequests = attackingRequests.filter(request => totalTaskPlaceIdSet.has(request.place_id) 
-                                                                          && !safePlaceIdSet.has(request.place_id));
-console.log("Finished with tasks");
+    const attackingIndangerRequests = attackingRequests.filter(request => totalTaskPlaceIdSet.has(request.place_id)
+      && !safePlaceIdSet.has(request.place_id));
+    console.log("Finished with tasks");
 
     // Get average attacks per day
     const firstAttackDate = new Date(attackingIndangerRequests[attackingIndangerRequests.length - 1].date);
@@ -207,16 +208,16 @@ console.log("Finished with tasks");
         if (entry.place_id == restaurant.googleListing.place_id) {
           entry['restaurantId'] = restaurant._id;
           entry['address'] = restaurant.googleAddress.formatted_address;
-          entry['name'] =  restaurant.name;
+          entry['name'] = restaurant.name;
           entry['score'] = restaurant.score;
         }
       });
     });
 
-console.log("Finished with restaurants");
+    console.log("Finished with restaurants");
 
     this.rows = dict;
-
+    this.apiLoading = false;
     this.filter();
   }
 
@@ -242,7 +243,7 @@ console.log("Finished with restaurants");
     const newRequest = newRequests[0];
     // Find the corresponding UI row and update it
     const index = this.filteredRows.findIndex(row => row.requestInfos[0]._id == requestId);
-console.log("requestId is: " + requestId + " and the index is: " + index);
+    console.log("requestId is: " + requestId + " and the index is: " + index);
     if (index >= 0) {
       const newRow = this.filteredRows[index];
       newRow['checker'] = newRequest['checker'];
@@ -254,7 +255,7 @@ console.log("requestId is: " + requestId + " and the index is: " + index);
 
   // Update the database to store the completion information
   async markRequestChecked(requestInfos: any, name: string) {
-    if (confirm(`Are you sure to complete ${name?name:"this restaurant"}?`)) {
+    if (confirm(`Are you sure to complete ${name ? name : "this restaurant"}?`)) {
       try {
         for (const requestInfo of requestInfos) {
           const oldData = {
@@ -265,7 +266,7 @@ console.log("requestId is: " + requestId + " and the index is: " + index);
             checker: this._global.user.username,
             checkedAt: new Date()
           };
-          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{old: oldData, new: newData}]).toPromise();
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
         }
         this._global.publishAlert(AlertType.Success, `Request marked complete succesfuly`);
         await this.refreshSingleEntry(requestInfos[0]._id);
