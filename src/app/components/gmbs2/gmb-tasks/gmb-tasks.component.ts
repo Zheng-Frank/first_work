@@ -49,7 +49,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "request.voHistory.options.verificationMethod": 1,
                 "request.voHistory.options.emailData.domainName": 1,
             }
-        }, 3000);
+        }, 1000);
 
         this.tasks = dbTasks.map(t => new Task(t));
         this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
@@ -236,11 +236,15 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     async completePin(pinHistory) {
         if (confirm('Do not try too many times for this function. Too many failed tries will cause the verification disappear. Are you sure to use this PIN?')) {
             try {
-                await this._api.post(environment.gmbNgrok + 'task/complete', {
-                    taskId: this.modalTask._id,
-                    email: this.modalTask.request.email,
-                    locationName: this.modalTask.request.locationName,
-                    pin: pinHistory.pin
+                // await this._api.post(environment.gmbNgrok + 'task/complete', {
+                await this._api.post(environment.appApiUrl + 'gmb/generic', {
+                    name: "complete-pin",
+                    payload: {
+                        taskId: this.modalTask._id,
+                        email: this.modalTask.request.email,
+                        locationName: this.modalTask.request.locationName,
+                        pin: pinHistory.pin
+                    }
                 }).toPromise();
 
                 this._global.publishAlert(AlertType.Success, 'Verified Successfully');
@@ -252,18 +256,22 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
 
             await this.addComments(`tried PIN`);
-            await this.refreshSingleTask(this.modalTask._id);
+            // await this.refreshSingleTask(this.modalTask._id);
         }
     }
 
     async resetPin(pinHistory) {
         if (confirm('Are you sure to reset this PIN? This will not erase the PIN history but scanning task will not see it')) {
             try {
-                await this._api.post(environment.gmbNgrok + 'task/reset-pin', {
-                    taskId: this.modalTask._id,
-                    email: this.modalTask.request.email,
-                    locationName: this.modalTask.request.locationName,
-                    pin: pinHistory.pin
+                // await this._api.post(environment.gmbNgrok + 'task/reset-pin', {
+                await this._api.post(environment.appApiUrl + 'gmb/generic', {
+                    name: "reset-pin",
+                    payload: {
+                        taskId: this.modalTask._id,
+                        email: this.modalTask.request.email,
+                        locationName: this.modalTask.request.locationName,
+                        pin: pinHistory.pin
+                    }
                 }).toPromise();
 
                 this._global.publishAlert(AlertType.Success, 'PIN reset Successfully');
@@ -319,7 +327,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
             this.verifyingOption = undefined;
             await this.addComments(`tried verification`);
-            await this.refreshSingleTask(task._id);
+            // await this.refreshSingleTask(task._id); //happens on api side now
         }
     }
 
@@ -488,17 +496,21 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             return alert('Bad PIN to save');
         }
         try {
-            await this._api.post(environment.gmbNgrok + 'task/save-pin', {
-                taskId: this.modalTask._id,
-                pin: this.pin,
-                username: this._global.user.username
+            // await this._api.post(environment.gmbNgrok + 'task/save-pin', {
+            await this._api.post(environment.appApiUrl + 'gmb/generic', {
+                name: "save-pin",
+                payload: {
+                    taskId: this.modalTask._id,
+                    pin: this.pin,
+                    username: this._global.user.username
+                }
             }).toPromise();
         } catch (error) {
             console.log(error);
             alert('ERROR SAVING PIN');
         }
         this.pin = '';
-        await this.refreshSingleTask(this.modalTask._id);
+        // await this.refreshSingleTask(this.modalTask._id);
     }
 
     async addComments(comments) {
