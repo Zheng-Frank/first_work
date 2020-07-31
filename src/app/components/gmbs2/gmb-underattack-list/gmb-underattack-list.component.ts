@@ -67,7 +67,7 @@ export class GmbUnderattackListComponent implements OnInit {
   async refresh() {
     this.now = new Date();
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 27);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
 console.log("Starting retrieving data");
 
@@ -84,6 +84,7 @@ console.log("Starting retrieving data");
       projection: {
         _id: 1,
         place_id: 1,
+        cid: 1,
         gmbAccountEmail: 1,
         requester: 1,
         email: 1,
@@ -101,12 +102,21 @@ console.log("Finished with requests");
     const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
       projection: {
-        email: 1
+        email: 1,
+        "locations.cid": 1,
+        "locations.status": 1,
+        "locations.role" : 1
       },
     }, 6000);
 
     const myEmailSet = new Set(gmbAccounts.map(a => a.email));
-    const attackingRequests = requests.filter(req => !myEmailSet.has(req.email));
+    const myCidSet = new Set();
+    gmbAccounts.map(account => (account.locations || []).map(loc => {
+      if (loc.cid && loc.status === "Published" && ["OWNER", "CO_OWNER", "MANAGER"].indexOf(loc.role) >= 0) {
+          myCidSet.add(loc.cid);
+      }
+    }));
+    const attackingRequests = requests.filter(req => !myEmailSet.has(req.email) && myCidSet.has(req.cid));
 
 console.log("Finished with accounts");
 
@@ -127,6 +137,7 @@ console.log("Finished with accounts");
       }
     }, 6000);
 
+    // Filtered out requests we have pin 
     const safePlaceIdSet = 
       new Set(tasks.filter(task => (!task.request.statusHistory || !task.request.statusHistory[0] ||
                                     !task.request.statusHistory[0].isError) &&
@@ -142,7 +153,7 @@ console.log("Finished with tasks");
     const lastAttackdate = new Date(attackingIndangerRequests[0].date);
     this.averageRequestsPerDay = Math.ceil(attackingIndangerRequests.length / (1 + (lastAttackdate.valueOf() - firstAttackDate.valueOf()) / (24 * 3600000)));
 
-    // Group the requeset by restaurants
+    // Group the requeset by restaurants, transform into table entries
     let dict = [];
     attackingIndangerRequests.map(request => {
       const index = dict.findIndex(entry => entry.place_id == request.place_id);
@@ -190,6 +201,7 @@ console.log("Finished with tasks");
       }
     }, 6000);
 
+    // Attach restaurt's information to the requests 
     dict.map(entry => {
       restaurants.map(restaurant => {
         if (entry.place_id == restaurant.googleListing.place_id) {
