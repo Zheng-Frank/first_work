@@ -256,7 +256,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
 
             await this.addComments(`tried PIN`);
-            // await this.refreshSingleTask(this.modalTask._id);
+            await this.refreshSingleTask(this.modalTask._id);
         }
     }
 
@@ -327,7 +327,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
             this.verifyingOption = undefined;
             await this.addComments(`tried verification`);
-            // await this.refreshSingleTask(task._id); //happens on api side now
+            await this.refreshSingleTask(task._id);
         }
     }
 
@@ -510,7 +510,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             alert('ERROR SAVING PIN');
         }
         this.pin = '';
-        // await this.refreshSingleTask(this.modalTask._id);
+        await this.refreshSingleTask(this.modalTask._id);
     }
 
     async addComments(comments) {
