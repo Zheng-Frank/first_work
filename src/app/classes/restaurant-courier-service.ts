@@ -72,7 +72,6 @@ export class RestaurantCourierService {
   //     limit: 10,
   //     // projection: {
   //     //   _id: 1,
-  //     //   "googleAddress._id": 1,
   //     //   "googleAddress.formatted_address": 1,
   //     //   name: 1,
   //     //   courier: 1
@@ -141,7 +140,6 @@ export class RestaurantCourierService {
       query: {},
       projection: {
         _id: 1,
-        "googleAddress._id": 1,
         "googleAddress.formatted_address": 1,
         name: 1,
         courier: 1,
@@ -155,7 +153,6 @@ export class RestaurantCourierService {
   private parseRestaurants(restaurants) {
     const ret = restaurants.map(each => ({
       restaurantId: each._id,
-      cid: each.googleAddress._id,
       name: each.name,
       address: each.googleAddress.formatted_address,
       disabled: each.disabled,
