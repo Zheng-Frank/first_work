@@ -139,15 +139,16 @@ export class RestaurantCourierService {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {},
-      projection: {
-        _id: 1,
-        "googleAddress._id": 1,
-        "googleAddress.formatted_address": 1,
-        name: 1,
-        courier: 1,
-        score: 1,
-        disabled: 1,
-      },
+      limit: 10,
+      // projection: {
+      //   _id: 1,
+      //   "googleAddress._id": 1,
+      //   "googleAddress.formatted_address": 1,
+      //   name: 1,
+      //   courier: 1,
+      //   score: 1,
+      //   disabled: 1,
+      // },
     }, 100000);
     return this.parseRestaurants(restaurants);
   }

@@ -278,6 +278,8 @@
           (click)="trigger(modalTask, vo)">Trigger Email</button>
         <button *ngIf="vo.addressData?.address?.addressLines" class="btn btn-primary btn-sm"
           [qLoading]="verifyingOption === vo" (click)="trigger(modalTask, vo)">Trigger Postcard</button>
+        <button *ngIf="vo.addressData?.address?.addressLines" class="btn btn-primary btn-sm"
+          [qLoading]="verifyingOption === vo" (click)="sendGooglePin(modalTask, vo)">Send Google PIN</button>
       </div>
 
     </div>

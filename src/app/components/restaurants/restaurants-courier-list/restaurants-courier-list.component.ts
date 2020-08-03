@@ -196,6 +196,9 @@ export class RestaurantsCourierListComponent implements OnInit {
   editLog(restaurant: RestaurantWithCourier, logIndex: number) {
     this.restaurantInEditing = restaurant;
     this.logInEditing = logIndex;
+    if (this._global.user.username !== restaurant.callLogs[logIndex].caller){
+      return;
+    }
     restaurant.comments = restaurant.callLogs[logIndex].comments;
 
     this.editingLog = true;
