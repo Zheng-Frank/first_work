@@ -82,7 +82,7 @@
               (click)="displayingDeliveryDetails = !displayingDeliveryDetails">{{displayingDeliveryDetails ? 'less...' : 'more...'}}</button>
           </div>
           <div *ngIf="displayingDeliveryDetails">
-            <div *ngFor="let record of order.delivery.updates || []">
+            <div *ngFor="let record of getUpdatedStatuses()">
               <span>{{record.created | shortTime: restaurant.offsetToEST}}</span>&nbsp;<span class="value">{{record.status}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
