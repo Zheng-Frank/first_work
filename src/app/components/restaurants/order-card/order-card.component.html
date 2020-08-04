@@ -68,10 +68,12 @@
           <div>
             <span class="label">Driver</span><span class="value">{{order.delivery?.courier?.name}}</span>
           </div>
+          <!-- 
           <div>
             <span class="label">Phone</span><span
               class="value">{{(order.delivery?.courier?.phone_number || '').slice(1) | tel}}</span>
           </div>
+           -->
           <div>
             <span class="label">Status</span><span
               class="value text-uppercase {{order.delivery?.status === 'canceled' ? 'text-danger' : ''}}">{{order.delivery?.status}}</span>

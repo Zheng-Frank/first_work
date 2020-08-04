@@ -113,6 +113,7 @@ export class MonitoringDomainComponent implements OnInit {
         _id: 1,
         name: 1,
         disabled: 1,
+        alias: 1,
         "googleAddress.formatted_address": 1,
         "web.qmenuWebsite": 1,
         "web.useBizWebsiteForAll": 1
@@ -152,6 +153,7 @@ export class MonitoringDomainComponent implements OnInit {
 
           restaurantId: matchingRestaurant._id.toString(),
           restaurantName: matchingRestaurant.name,
+          restaurantAlias: matchingRestaurant.alias,
           restaurantAddress: matchingRestaurant.googleAddress.formatted_address,
           restaurantDisabled: matchingRestaurant.disabled,
           restaurantWeb: matchingRestaurant.web
@@ -277,17 +279,6 @@ export class MonitoringDomainComponent implements OnInit {
   }
 
   getMatchingRestaurant(domain) {
-    // return this.restaurants.find(rt => {
-    //   const qmenuWebsite = (rt.web || {}).qmenuWebsite || '';
-    //   const rtDomain = qmenuWebsite.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
-    //   const hostedDomain = domain.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
-
-    //   if (rtDomain === hostedDomain) {
-    //     return true;
-    //   }
-    //   return false;
-    // });
-
     const matches = this.restaurants.filter(rt => {
       const qmenuWebsite = (rt.web || {}).qmenuWebsite || '';
       const rtDomain = qmenuWebsite.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
@@ -334,12 +325,24 @@ export class MonitoringDomainComponent implements OnInit {
     this.refreshing = false;
   }
 
+  toogleBulkAutoRenew($event, domain) {
+    if (!this.bulkDomains.includes(domain)) {
+      this.bulkDomains.push(domain);
+    } else {
+      this.bulkDomains = this.bulkDomains.filter(d => d.domainName !== domain.domainName);
+    }
+
+    // console.log(this.bulkDomains);
+  }
+
   async applyAutoRenew(domain, shouldRenew) {
     try {
-      const result = await this._api.post(environment.appApiUrl + 'utils/renew-aws-domain', {
+      const payload = {
         domain: domain.domainName,
         shouldRenew
-      }).toPromise();
+      };
+      
+      const result = await this._api.post(environment.appApiUrl + 'utils/renew-aws-domain', payload).toPromise();
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=domain', [
         {
@@ -347,6 +350,8 @@ export class MonitoringDomainComponent implements OnInit {
           new: { _id: domain._id, autoRenew: shouldRenew },
         }
       ]).toPromise();
+
+      await this.setAlias(domain.restaurantId, domain.restaurantAlias);
 
       this.refresh();
 
@@ -356,16 +361,6 @@ export class MonitoringDomainComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, `Failed to update ${domain.domainName} renewal status.`);
     }
 
-  }
-
-  toogleBulkAutoRenew($event, domain) {
-    if (!this.bulkDomains.includes(domain)) {
-      this.bulkDomains.push(domain);
-    } else {
-      this.bulkDomains = this.bulkDomains.filter(d => d.domainName !== domain.domainName);
-    }
-
-    // console.log(this.bulkDomains);
   }
 
   async applyBulkAutoRenew(shouldRenew) {
@@ -386,15 +381,25 @@ export class MonitoringDomainComponent implements OnInit {
         }
       ]).toPromise();
 
-      console.log(result, domain.domainName);
+      await this.setAlias(domain.restaurantId, domain.restaurantAlias);
+
     }
 
     this.bulkDomains = [];
 
     await this.refresh();
 
-    this._global.publishAlert(AlertType.Success, `Domain Rewnewal status for pdated succesfuly.`);
+    this._global.publishAlert(AlertType.Success, `Domain Rewnewal status updated succesfuly.`);
+  }
 
+  async setAlias(restaurantId, restaurantAlias) {
+    const aliasUrl = environment.customerUrl + '#/' + restaurantAlias;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: restaurantId, web: {} },
+        new: { _id: restaurantId, web: { qmenuWebsite: aliasUrl } },
+      }
+    ]).toPromise();
   }
 
 }
