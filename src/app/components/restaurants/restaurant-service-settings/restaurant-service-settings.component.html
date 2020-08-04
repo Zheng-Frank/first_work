@@ -2,6 +2,7 @@
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="fas fa-coffee"></i>&nbsp;Service Settings</h3>
   <div class="text-center">{{getExcludedPaymentString()}}</div>
+  <div class="text-center" *ngIf="restaurant.ccProcessor === 'FATTMERCHANT'">Use Fattmerchant</div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <!--displaying-->
@@ -138,6 +139,14 @@
             <div class="slider round"></div>
           </label>
           Tax Before Promotion
+        </div>
+
+        <div>
+          <label class="switch">
+            <input type="checkbox" (click)="toggleCcProcessor()" [checked]="ccProcessor == 'FATTMERCHANT'">
+            <div class="slider round"></div>
+          </label>
+          Use Fattmerchant
         </div>
 
         <div class="pt-1 text-right">

@@ -104,6 +104,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           blockedZipCodes: 1,
           ccProcessingFlatFee: 1,
           ccProcessingRate: 1,
+          ccProcessor: 1,
           channels: 1,
           closedDays: 1,
           closedHours: 1,
