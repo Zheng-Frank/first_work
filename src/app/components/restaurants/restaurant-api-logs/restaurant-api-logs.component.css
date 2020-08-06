@@ -1,0 +1,11 @@
+.wrap {
+    word-break: break-all !important;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.align-top {
+    vertical-align: top;
+}

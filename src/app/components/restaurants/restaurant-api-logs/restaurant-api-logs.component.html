@@ -1,0 +1,38 @@
+<div *ngIf="restaurant">
+  <div class="mb-2 text-right">
+    <button class="btn btn-primary" (click)="reloadLogs()" [qLoading]="refreshing">
+      <i class="fas fa-hourglass-half"></i> Refresh</button>
+  </div>
+
+  <table>
+    <tr>
+      <th>Id</th>
+      <th>Username</th>
+      <th class="nowrap">Updated At</th>
+      <th>Resource</th>
+      <th>Actions</th>
+    </tr>
+    <tr *ngFor="let log of logs">
+      <td class="align-top"><button class="btn btn-link py-0" (click)="showDetails(log)">{{log.id}}</button></td>
+      <td class="align-top">{{log.name}}</td>
+      <td class="align-top nowrap ">{{log.time | date: 'medium'}}</td>
+      <td class="align-top">{{log.resource}}</td>
+      <td>
+        <table>
+          <tr *ngFor="let action of log.actions">
+            <td class="align-top">{{action.type}}</td>
+            <td class="wrap"><b>{{action.target.slice(1)}}</b>: {{action.old}} &#8594; {{action.new}}</td>
+          </tr>
+          <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</div>
+
+<q-modal #logDetailsModal>
+  <pre>
+    {{ selectedLog | json}}
+  </pre>
+</q-modal>
