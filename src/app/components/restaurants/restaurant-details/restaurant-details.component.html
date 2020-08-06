@@ -32,7 +32,7 @@
 
 
   <div *qIf="displayGooglePIN">
-    <send-google-pin [restaurantId]="restaurant._id"></send-google-pin>
+    <send-google-pin [restaurantId]="restaurant._id" (sendToLog) = "toggleGooglePIN()"></send-google-pin>
   </div>
 
   <div *qIf="displayTextReply">

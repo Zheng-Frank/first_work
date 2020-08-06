@@ -48,6 +48,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "request.voHistory.time": 1,
                 "request.voHistory.options.verificationMethod": 1,
                 "request.voHistory.options.emailData.domainName": 1,
+                "notification_status": 1,
             }
         }, 1000);
 
@@ -331,294 +332,39 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         }
     }
 
-
-    noticeLanguage; //???
-    noticeType; //???
-
-    async sendGooglePin(task, vo) {
-        console.log(task);
-        console.log(vo);
-        const restaurant = {}; //???
-        const contactList = this.getContactList(restaurant);
-        const noticeLanguage = this.noticeLanguage;
-        const noticeType = this.noticeType;
-        const messageInfoList = contactList.map(messageTo => ({
-            messageTo: messageTo,
-            noticeContent: this.getNoticeContent(messageTo, noticeLanguage, noticeType)
-        }));
-        this.sendMessages(messageInfoList);
+    // Send Google PIN message.
+    sendingGooglePinMessage = false;
+    triggerSendGooglePinMessage(){
+        this.sendingGooglePinMessage = !this.sendingGooglePinMessage;
+        console.log(this.sendingGooglePinMessage);
     }
 
-    private getContactList(restaurant) {
-        // ??? TODO: filter with sms that accepts orders.
-        const contactListRaw = (restaurant.channels || []).map(c => {
-            if (c.type === 'SMS') {
-                return { type: "sms", value: c.value }
-            }
-            else if (c.type === 'Email') {
-                return { type: "email", value: c.value }
-            }
-            // else if (c.type === 'Fax') {
-            //     return { type: "fax", value: c.value }
-            // }
-        });
-        const contactList = Array.from(new Set(contactListRaw)).filter(item => item);
-        return contactList;
-    }
-
-    private getNoticeContent(messageTo, noticeLanguage, noticeType) {
-        const contents = [
-            {
-                noticeType: 'First Notice',
-                messages: [
-                    {
-                        language: 'Chinese',
-                        body: [
-                            {
-                                type: "sms",
-                                contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!`
-
-                            },
-                            {
-                                type: "email",
-                                contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到844-793-5942或者给我们的客服打电话 404-382-9768. 多谢!`,
-                            },
-                            {
-                                type: "fax",
-                                contents: 'http://qmenu360.com/google-pin/1st_fax_cn.pdf'
-                            }
-                        ],
-
-                    },
-                    {
-                        language: 'English',
-                        body: [
-                            {
-                                type: "sms",
-                                contents: `This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`,
-
-                            },
-                            {
-                                type: "email",
-                                contents: 'Hi, <br>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 844-793-5942 or call us at 404-382-9768.<br> Thanks',
-                            },
-                            {
-                                type: "fax",
-                                contents: 'http://qmenu360.com/google-pin/1st_fax_en.pdf'
-                            }
-                        ],
-                    },
-                    {
-                        language: 'English/Chinese',
-                        body: [
-                            {
-                                type: "sms",
-                                contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!
-                            This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks`,
-
-                            },
-                            {
-                                type: "email",
-                                contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到844-793-5942或者给我们的客服打电话 404-382-9768. 多谢!<br>
-                            Hi, <br>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 844-793-5942 or call us at 404-382-9768.<br> Thanks`
-                            },
-                            {
-                                type: "fax",
-                                contents: 'http://qmenu360.com/google-pin/1st_fax_en_cn.pdf'
-                            }
-                        ],
-
-
-                    }
-                ]
-            },
-            {
-                noticeType: 'Follow up Notice',
-                messages: [
-                    {
-                        language: 'Chinese',
-                        body: [
-                            {
-                                type: "sms",
-                                contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!`
-
-                            },
-                            {
-                                type: "email",
-                                contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到844-793-5942或者给我们的客服打电话 404-382-9768. 多谢!`,
-                            },
-                            {
-                                type: "fax",
-                                contents: 'http://qmenu360.com/google-pin/2nd_fax_cn.pdf'
-                            }
-                        ],
-
-                    },
-                    {
-                        language: 'English',
-                        body: [
-                            {
-                                type: "sms",
-                                contents: `This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`,
-
-                            },
-                            {
-                                type: "email",
-                                contents: 'Hi, <br>This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 844-793-5942 or call us at 404-382-9768.<br> Thanks',
-                            },
-                            {
-                                type: "fax",
-                                contents: 'http://qmenu360.com/google-pin/2nd_fax_en.pdf'
-                            }
-                        ],
-                    },
-                    {
-                        language: 'English/Chinese',
-                        body: [
-                            {
-                                type: "sms",
-                                contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768. 多谢!
-                                This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`,
-
-                            },
-                            {
-                                type: "email",
-                                contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到844-793-5942或者给我们的客服打电话 404-382-9768. 多谢!<br>
-                                Hi, <br>This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 844-793-5942, or call us at 404-382-9768.<br> Thanks`,
-                            },
-                            {
-                                type: "fax",
-                                contents: 'http://qmenu360.com/google-pin/2nd_fax_en_cn.pdf'
-                            }
-                        ],
-
-
-                    }
-                ]
-            }
-        ]
-        if (messageTo && noticeLanguage && noticeType) {
-            const noticeContent = contents.find(e => e.noticeType === noticeType)
-                .messages.find(m => m.language === noticeLanguage)
-                .body.find(eachBody => eachBody.type === messageTo.type).contents;
-
-            console.log(noticeContent);
-            return noticeContent;
+    logSendingGooglePinMessage(event){
+        console.log(event);
+        console.log(this.modalTask);
+        const notification_status_new = {
+            user: this._global.user.username,
+            time: new Date(),
+            channels: event.channels,
+            comments: event.comments
         }
+        if (this.modalTask.notification_status){
+            console.log("add one");
+            this.modalTask.notification_status.unshift(notification_status_new);
+        }
+        else{
+            console.log("new array");
+            this.modalTask.notification_status = [notification_status_new];
+        }
+        console.log(this.modalTask.notification_status);
+        this.update(this.modalTask, "notification_status", this.modalTask.notification_status);
+        this.triggerSendGooglePinMessage();
     }
 
-    // private sendMessage(messageTo, noticeContent) {
-    //     console.log("messageTo", messageTo);
-    //     //console.log("type",(this.getContactList().filter(p=> p.value == this.messageTo))['type']);
-    //     if (messageTo.type === 'sms') {
-    //         this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-    //             "name": "send-sms",
-    //             "params": {
-    //                 "to": messageTo.value,
-    //                 "from": "8447935942",
-    //                 "providerName": "plivo",
-    //                 "message": noticeContent
-    //             }
-    //         }]).subscribe(
-    //             result => {
-    //                 this._global.publishAlert(
-    //                     AlertType.Success,
-    //                     "Message sent successfully"
-    //                 );
-    //             },
-    //             error => {
-    //                 this._global.publishAlert(AlertType.Danger, "Error sending message");
-    //             }
-    //         );
-    //     } else if (messageTo.type === 'email') {
-    //         this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-    //             "name": "send-email",
-    //             "params": {
-    //                 "to": messageTo.value,
-    //                 "subject": "QMenu Google PIN",
-    //                 "html": noticeContent
-    //             }
-    //         }]).subscribe(
-    //             result => {
-    //                 this._global.publishAlert(
-    //                     AlertType.Success,
-    //                     "Message sent successfully"
-    //                 );
-    //             },
-    //             error => {
-    //                 this._global.publishAlert(AlertType.Danger, "Error sending message");
-    //             }
-    //         );
+    showCompleteNotificationHistory = false;
 
-    //     }
-    //     // Fax disabled for now.
-    //     // else if (messageTo.type === 'fax') {
-    //     //     this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-    //     //         "name": "send-fax",
-    //     //         "params": {
-    //     //             "from": "8555582558",
-    //     //             "to": messageTo.value,
-    //     //             "mediaUrl": noticeContent,
-    //     //             "providerName": "twilio"
-    //     //         }
-    //     //     }]).subscribe(
-    //     //         result => {
-    //     //             this._global.publishAlert(
-    //     //                 AlertType.Success,
-    //     //                 "Message sent successfully"
-    //     //             );
-    //     //         },
-    //     //         error => {
-    //     //             this._global.publishAlert(AlertType.Danger, "Error sending message");
-    //     //         }
-    //     //     );
-
-    //     // }
-    // }
-
-    private sendMessages(messageInfoList) {
-        console.log("messageInfoList", messageInfoList);
-        //console.log("type",(this.getContactList().filter(p=> p.value == this.messageTo))['type']);
-        const jobs = messageInfoList.map(messageInfo => {
-            if (messageInfo.messageTo.type === 'sms') {
-                return {
-                    "name": "send-sms",
-                    "params": {
-                        "to": messageInfo.messageTo.value,
-                        "from": "8447935942",
-                        "providerName": "plivo",
-                        "message": messageInfo.noticeContent
-                    }
-                };
-            } else if (messageInfo.messageTo.type === 'email') {
-                return {
-                    "name": "send-email",
-                    "params": {
-                        "to": messageInfo.messageTo.value,
-                        "subject": "QMenu Google PIN",
-                        "html": messageInfo.noticeContent
-                    }
-                };
-            }
-            else {
-                return undefined;
-            }
-        }).filter(each => each);
-
-        if (jobs.length) {
-            this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
-                .subscribe(
-                    result => {
-                        this._global.publishAlert(
-                            AlertType.Success,
-                            "Message(s) sent successfully."
-                        );
-                    },
-                    error => {
-                        this._global.publishAlert(AlertType.Danger, "Error sending message(s).");
-                    }
-                );
-        }
+    triggerCompleteNotificationHistory(){
+        this.showCompleteNotificationHistory = !this.showCompleteNotificationHistory;
     }
 
 
@@ -858,7 +604,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 newTask = JSON.parse(JSON.stringify(oldTask));
                 delete obj[key];
             }
-
+            console.log(newTask);
             await this._api.patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }]);
             await this.refreshSingleTask(task._id);
 

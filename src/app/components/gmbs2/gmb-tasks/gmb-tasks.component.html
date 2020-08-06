@@ -232,6 +232,20 @@
 
   <div class="form-group">
     <label>Verification Options:</label>
+    <!-- <button class="btn btn-primary btn-sm" (click)="triggerCompleteNotificationHistory()"><i
+        class="fas fa-list"></i></button>
+    Last notified: {{(modalTask.notification_status ? modalTask.notification_status[0].time : null) | ago: now}}
+    <div *qIf="showCompleteNotificationHistory">
+      <div *ngFor="let notification of modalTask.notification_status">
+        Notified by {{notification.user}} at {{notification.time | ago: now}}
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm" [qLoading]="false" (click)="triggerSendGooglePinMessage()">Send Google PIN
+      Message</button>
+    <div *qIf="sendingGooglePinMessage">
+      <send-google-pin [restaurantId]="restaurant._id" (sendToLog)="logSendingGooglePinMessage($event)">
+      </send-google-pin>
+    </div> -->
     <!-- {{preferredVerificationOption | json}} -->
     <div *ngIf="preferredVerificationOption" class="alert alert-secondary">
       <div *ngIf="preferredVerificationOption.method === 'ADDRESS'">
@@ -269,6 +283,16 @@
         </span>
         <span *ngIf="vo.addressData?.address?.addressLines">
           {{vo.addressData?.address?.addressLines[0]}}
+          <br>
+          <br>
+          <button class="btn btn-primary btn-sm" (click)="triggerCompleteNotificationHistory()"><i
+              class="fas fa-list"></i></button>
+          Last notified: {{(modalTask.notification_status ? modalTask.notification_status[0].time : null) | ago: now}}
+          <div *qIf="showCompleteNotificationHistory">
+            <div *ngFor="let notification of modalTask.notification_status">
+              Notified by {{notification.user}} at {{notification.time | ago: now}}
+            </div>
+          </div>
         </span>
       </div>
       <div class="col-6 text-right">
@@ -278,8 +302,14 @@
           (click)="trigger(modalTask, vo)">Trigger Email</button>
         <button *ngIf="vo.addressData?.address?.addressLines" class="btn btn-primary btn-sm"
           [qLoading]="verifyingOption === vo" (click)="trigger(modalTask, vo)">Trigger Postcard</button>
+        <br>
+        <br>
         <button *ngIf="vo.addressData?.address?.addressLines" class="btn btn-primary btn-sm"
-          [qLoading]="verifyingOption === vo" (click)="sendGooglePin(modalTask, vo)">Send Google PIN</button>
+          [qLoading]="verifyingOption === vo" (click)="triggerSendGooglePinMessage()">Send Google PIN Message</button>
+        <div *qIf="vo.addressData?.address?.addressLines && sendingGooglePinMessage" style="text-align:left;">
+          <send-google-pin [restaurantId]="restaurant._id" (sendToLog)="logSendingGooglePinMessage($event)">
+          </send-google-pin>
+        </div>
       </div>
 
     </div>
