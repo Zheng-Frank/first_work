@@ -65,8 +65,8 @@
       </div>
     </div>
     <div class="alert alert-secondary" *ngIf="adjustingAllPrices">
-      <input [(ngModel)]="adjustPricesFactorPercent" placeholder="3%">
-      <input [(ngModel)]="adjustPricesFactorAmount" placeholder="0.75">
+      either <input [(ngModel)]="adjustPricesFactorPercent" placeholder="percentage, eg. 0.03">
+      or <input [(ngModel)]="adjustPricesFactorAmount" placeholder="fixed amount: eg. 0.75">
       <div class="py-2">
         <p *ngIf="adjustPricesFactor" class="text-warning">
           <b>Price of ALL ITEMS will be {{+adjustPricesFactor > 0 ? 'increased' : 'decreased' }}
