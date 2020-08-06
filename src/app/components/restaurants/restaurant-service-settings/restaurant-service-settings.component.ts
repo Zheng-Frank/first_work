@@ -1,5 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
@@ -34,7 +35,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   stripePublishableKey;
   stripeSecretKey;
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPacth: PrunedPatchService) {
   }
 
   getExcludedPaymentString() {
@@ -127,7 +128,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     newR.stripePublishableKey = (this.stripePublishableKey || '').trim();
     newR.stripeSecretKey = (this.stripeSecretKey||'').trim();
 
-    this._api
+    this._prunedPacth
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
           old: oldR,

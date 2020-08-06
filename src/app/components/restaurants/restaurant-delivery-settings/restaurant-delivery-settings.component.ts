@@ -3,6 +3,7 @@ import { Restaurant, Hour } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { AlertType } from "../../../classes/alert-type";
 
 @Component({
@@ -51,7 +52,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.checkingPostmatesAvailability = false;
   }
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
     // populate couriers
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "courier",
@@ -164,14 +165,14 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     // making sure oldR has ALL cared fields and if no value for newR, delete it
     caredFields.map(field => {
-      oldR[field] = "junk";
-      if (!newR[field] || newR[field].length === 0) {
+      oldR[field] = this.restaurant[field];
+      if ((!newR[field] && newR[field] != false) || newR[field].length === 0) {
         delete newR[field];
       }
     });
 
     console.log(oldR, newR);
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
           old: oldR,

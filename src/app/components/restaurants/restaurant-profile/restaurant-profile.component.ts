@@ -4,6 +4,7 @@ import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
+import { PrunedPatchService } from '../../../services/prunedPatch.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { HttpClient } from '@angular/common/http';
@@ -95,7 +96,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     { value: 'CHINESE', text: 'Chinese' }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
   }
@@ -157,7 +158,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.images = this.images;
     delete oldObj['images'];
 
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
           old: oldObj,

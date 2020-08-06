@@ -95,6 +95,14 @@ export class EmailCodeReaderComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, 'Error: no qMenu managed website found. Please enter managed website before entering a password');
       return;
     }
+    if (field === 'qmenuWebsite' && newValue) {
+      try {
+        await this._api.get(environment.appApiUrl + 'utils/check-url?url=' + newValue).toPromise();
+      } catch {
+        this._global.publishAlert(AlertType.Danger, 'Error: Please enter a valid qMenu managed website URL');
+        return;
+      }
+    }
     try {
       newWeb[field] = newValue;
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
