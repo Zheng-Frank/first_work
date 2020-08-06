@@ -3,7 +3,6 @@ import { CallLog } from "./call-log";
 export class RestaurantWithCourier {
   _id: string = null;
   restaurantId: string = null; // To match with the restaurant database.
-  cid: string = null;
 
   name: string = null;
   address: string = null;

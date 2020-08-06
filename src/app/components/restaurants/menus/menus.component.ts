@@ -45,7 +45,7 @@ export class MenusComponent implements OnInit {
   }
 
   hasMenuHoursMissing() {
-    return (this.restaurant.menus || []).some(menu => (menu.hours|| []).length === 0);
+    return (this.restaurant.menus || []).some(menu => (menu.hours || []).length === 0);
   }
 
   async populateProviders() {
@@ -254,6 +254,9 @@ export class MenusComponent implements OnInit {
 
       const newMenus = JSON.parse(JSON.stringify(oldMenus));
       newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => (mi.sizeOptions || []).map(item => {
+        if (!item) {
+          console.log(mi, mc);
+        }
         if (+item.price) {
           if (this.adjustPricesFactorAmount) {
             item.price = +((+item.price) + factor).toFixed(2);
@@ -267,22 +270,22 @@ export class MenusComponent implements OnInit {
 
       // keep menu hours
       newMenus.map((menu, index) => menu.hours = oldMenus[index].hours);
-
       // now let's patch!
       try {
         await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: {
             _id: this.restaurant['_id'],
-            menus: oldMenus
+            // menus: oldMenus 8/6/2020 just replace total to avoid dirty data problem causing 5f2c21e5e706a44974ce515a to fail
           }, new: {
             _id: this.restaurant['_id'],
             menus: newMenus
           }
         }]).toPromise();
-        this.restaurant.menus = newMenus;
+        this.restaurant.menus = newMenus.map(menu => new Menu(menu));
         this._global.publishAlert(AlertType.Success, "Success!");
         this.adjustingAllPrices = false;
       } catch (error) {
+        location.reload();
         console.log(error);
         this._global.publishAlert(AlertType.Danger, "Failed!");
         this.adjustingAllPrices = false;
