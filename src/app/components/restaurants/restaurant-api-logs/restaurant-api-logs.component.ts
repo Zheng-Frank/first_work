@@ -21,6 +21,7 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
   courseLogs = [];
   logs = [];
   selectedLog;
+  recordNumber = 20;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -48,7 +49,6 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
   }
 
   async reloadLogs() {
-    console.log('called')
     this.courseLogs = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "apilog",
       query: {
@@ -65,7 +65,7 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
       sort: {
         time: -1
       },
-      limit: 100
+      limit: this.recordNumber
     }).toPromise();
     this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
 
@@ -74,7 +74,6 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
     for(let log of this.courseLogs) {
       const actions = [];
       this.loadActions(log.body[0].old, log.body[0].new, "", actions);
-// console.log(actions);
       this.logs.push({
         id: log._id,
         name: log.token.user.username,
@@ -177,5 +176,49 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
         }
       }
     }
+  }
+
+  async onEdit(event) {
+    const newNumber = event.newValue;
+    // if need to cut
+    if (newNumber < this.recordNumber) {
+      this.logs = this.logs.slice(0, newNumber);
+    } else if (newNumber > this.recordNumber) {  // if need to get more
+      this.courseLogs = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "apilog",
+        query: {
+          "body.0.old._id": this.restaurant._id
+        },
+        projection: {
+          _id: 1,
+          "token.user.username": 1,
+          time: 1,
+          "queryStringParameters.resource": 1,
+          "body.old": 1,
+          "body.new": 1
+        },
+        sort: {
+          time: -1
+        },
+        skip: this.recordNumber,
+        limit: newNumber - this.recordNumber
+      }).toPromise();
+      this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
+  
+      // sort out the results;
+      for(let log of this.courseLogs) {
+        const actions = [];
+        this.loadActions(log.body[0].old, log.body[0].new, "", actions);
+        this.logs.push({
+          id: log._id,
+          name: log.token.user.username,
+          time: log.time,
+          resource: log.queryStringParameters.resource,
+          actions: actions,
+        });
+      }
+    }
+
+    this.recordNumber = this.logs.length;
   }
 }
