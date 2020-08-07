@@ -22,6 +22,10 @@ export class EmailCodeReaderComponent implements OnInit {
 
   now = new Date();
   templateNames = [];
+  qmButtonTemplate = '';
+  isCopiedToClipboard = false;
+  showCompleteButtonSnippet = false;
+
   constructor(private _api: ApiService, private _cache: CacheService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -40,6 +44,51 @@ export class EmailCodeReaderComponent implements OnInit {
       }
       this._cache.set('templateNames', this.templateNames, 300 * 60);
     }
+
+    this.qmButtonTemplate = this.getQmenuButtonTemplate(this.restaurant.alias);
+  }
+
+  getQmenuButtonTemplate(alias) {
+    const fillTemplate = (stringLiteral, alias) => stringLiteral[0] + alias + stringLiteral[1];
+    return fillTemplate`
+<a style='
+font-family: "Segoe UI",Roboto,"Helvetica Neue", Arial,"Noto Sans",sans-serif;
+box-sizing: border-box;
+text-decoration: none;
+display: inline-block;
+font-weight: 400;
+line-height: 1.5;
+overflow: hidden;
+user-select: none;
+-webkit-tap-highlight-color: transparent;
+box-shadow: 0 2px 5px 0 rgba(0,0,0,.16),0 2px 10px 0 rgba(0,0,0,.12);
+padding: .84rem 2.14rem;
+font-size: .81rem;
+transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+margin: .375rem;
+text-transform: uppercase;
+white-space: normal;
+background-color: #cd2730!important;
+color: #fff;
+border-radius: 10em;
+cursor: pointer;
+background-image: linear-gradient(to right,#cd2730,#fa4b00,#cd2730);' href="https://qmenu.us/#/${alias}">Order Online</a>
+`.replace(/\n/g, "");
+  }
+
+  copyToClipcboard(text) {
+    document.addEventListener('copy', (e: ClipboardEvent) => {
+      e.clipboardData.setData('text/plain', (text));
+      e.preventDefault();
+      document.removeEventListener('copy', null);
+    });
+    document.execCommand('copy');
+
+    this.isCopiedToClipboard = true;
+
+    setTimeout(() => {
+      this.isCopiedToClipboard = false;
+    }, 1000);
   }
 
   getEmail() {
