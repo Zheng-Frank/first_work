@@ -83,7 +83,7 @@ export class Invoice {
   }
 
   getSurcharge() {
-    return (this.orders || []).reduce((sum, o) => sum + (+(+o.surchargeAmount || 0).toFixed(2)) * (o.canceled ? 0 : 1), 0);
+    return (this.orders || []).reduce((sum, o) => sum + (+(+o.surcharge || 0).toFixed(2)) * (o.canceled ? 0 : 1), 0);
   }
   getSurchargeName() {
     for (let o of this.orders) {

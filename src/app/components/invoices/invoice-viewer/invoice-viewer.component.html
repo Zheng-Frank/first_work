@@ -269,8 +269,8 @@
         <span *ngIf="order.ccProcessingFee">{{order.ccProcessingFee | currency:'USD':'symbol' }}</span>
       </td>
       <td class="text-right" *ngIf="invoice.getSurcharge() > 0">
-        <span *ngIf="order.surchargeAmount">
-          {{order.surchargeAmount | currency:'USD':'symbol' }}
+        <span *ngIf="order.surcharge">
+          {{order.surcharge| currency:'USD':'symbol' }}
         </span>
       </td>
       <td class="text-right">{{order.total | currency:'USD':'symbol' }}</td>
