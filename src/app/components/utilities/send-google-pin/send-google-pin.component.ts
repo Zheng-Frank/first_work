@@ -13,7 +13,6 @@ import { AlertType } from "../../../classes/alert-type";
 export class SendGooglePINComponent implements OnChanges {
     @Input() restaurantId;
     @Output() sendToLog = new EventEmitter();
-    // sendToLog = new EventEmitter();
 
 
     lanugages = ['Chinese', 'English', 'English/Chinese'];
@@ -209,13 +208,11 @@ export class SendGooglePINComponent implements OnChanges {
                 .messages.find(m => m.language === noticeLanguage)
                 .body.find(eachBody => eachBody.type === messageTo.type).contents;
 
-            // console.log(noticeContent);
             return noticeContent;
         }
     }
 
     sendMessages() {
-        console.log("messageInfoList", this.messageInfoList);
         if (this.messageInfoList && this.messageInfoList.length) {
             const jobs = this.messageInfoList.map(messageInfo => {
                 if (messageInfo.messageTo.type === 'sms') {
@@ -242,7 +239,7 @@ export class SendGooglePINComponent implements OnChanges {
                     return undefined;
                 }
             }).filter(each => each);
-            console.log(jobs);
+
             if (jobs.length) {
                 this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
                     .subscribe(
@@ -258,79 +255,6 @@ export class SendGooglePINComponent implements OnChanges {
                         }
                     );
             }
-            // this.sendToLog.emit("somethingWrong");
         }
     }
-
-
-
-
-    // sendMessage() {
-    //     console.log("messageTo", this.messageTo);
-    //     //console.log("type",(this.getContactList().filter(p=> p.value == this.messageTo))['type']);
-    //     if (this.messageTo.type === 'sms') {
-    //         this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-    //             "name": "send-sms",
-    //             "params": {
-    //                 "to": this.messageTo.value,
-    //                 "from": "8447935942",
-    //                 "providerName": "plivo",
-    //                 "message": this.noticeContent
-    //             }
-    //         }]).subscribe(
-    //             result => {
-    //                 this._global.publishAlert(
-    //                     AlertType.Success,
-    //                     "Message sent successfully"
-    //                 );
-    //             },
-    //             error => {
-    //                 this._global.publishAlert(AlertType.Danger, "Error sending message");
-    //             }
-    //         );
-
-    //     } else if (this.messageTo.type === 'email') {
-    //         this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-    //             "name": "send-email",
-    //             "params": {
-    //                 "to": this.messageTo.value,
-    //                 "subject": "QMenu Google PIN",
-    //                 "html": this.noticeContent
-    //             }
-    //         }]).subscribe(
-    //             result => {
-    //                 this._global.publishAlert(
-    //                     AlertType.Success,
-    //                     "Message sent successfully"
-    //                 );
-    //             },
-    //             error => {
-    //                 this._global.publishAlert(AlertType.Danger, "Error sending message");
-    //             }
-    //         );
-
-    //     }
-    //     else if (this.messageTo.type === 'fax') {
-    //         this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-    //             "name": "send-fax",
-    //             "params": {
-    //                 "from": "8555582558",
-    //                 "to": this.messageTo.value,
-    //                 "mediaUrl": this.noticeContent,
-    //                 "providerName": "twilio"
-    //             }
-    //         }]).subscribe(
-    //             result => {
-    //                 this._global.publishAlert(
-    //                     AlertType.Success,
-    //                     "Message sent successfully"
-    //                 );
-    //             },
-    //             error => {
-    //                 this._global.publishAlert(AlertType.Danger, "Error sending message");
-    //             }
-    //         );
-
-    //     }
-    // }
 }

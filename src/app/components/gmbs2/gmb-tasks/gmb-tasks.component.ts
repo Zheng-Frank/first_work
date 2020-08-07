@@ -336,12 +336,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     sendingGooglePinMessage = false;
     triggerSendGooglePinMessage(){
         this.sendingGooglePinMessage = !this.sendingGooglePinMessage;
-        console.log(this.sendingGooglePinMessage);
     }
 
     logSendingGooglePinMessage(event){
-        console.log(event);
-        console.log(this.modalTask);
         const notification_status_new = {
             user: this._global.user.username,
             time: new Date(),
@@ -349,14 +346,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             comments: event.comments
         }
         if (this.modalTask.notification_status){
-            console.log("add one");
             this.modalTask.notification_status.unshift(notification_status_new);
         }
         else{
-            console.log("new array");
             this.modalTask.notification_status = [notification_status_new];
         }
-        console.log(this.modalTask.notification_status);
         this.update(this.modalTask, "notification_status", this.modalTask.notification_status);
         this.triggerSendGooglePinMessage();
     }
@@ -604,7 +598,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 newTask = JSON.parse(JSON.stringify(oldTask));
                 delete obj[key];
             }
-            console.log(newTask);
             await this._api.patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }]);
             await this.refreshSingleTask(task._id);
 

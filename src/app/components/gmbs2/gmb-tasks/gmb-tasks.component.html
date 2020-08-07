@@ -232,20 +232,6 @@
 
   <div class="form-group">
     <label>Verification Options:</label>
-    <!-- <button class="btn btn-primary btn-sm" (click)="triggerCompleteNotificationHistory()"><i
-        class="fas fa-list"></i></button>
-    Last notified: {{(modalTask.notification_status ? modalTask.notification_status[0].time : null) | ago: now}}
-    <div *qIf="showCompleteNotificationHistory">
-      <div *ngFor="let notification of modalTask.notification_status">
-        Notified by {{notification.user}} at {{notification.time | ago: now}}
-      </div>
-    </div>
-    <button class="btn btn-primary btn-sm" [qLoading]="false" (click)="triggerSendGooglePinMessage()">Send Google PIN
-      Message</button>
-    <div *qIf="sendingGooglePinMessage">
-      <send-google-pin [restaurantId]="restaurant._id" (sendToLog)="logSendingGooglePinMessage($event)">
-      </send-google-pin>
-    </div> -->
     <!-- {{preferredVerificationOption | json}} -->
     <div *ngIf="preferredVerificationOption" class="alert alert-secondary">
       <div *ngIf="preferredVerificationOption.method === 'ADDRESS'">
@@ -285,7 +271,7 @@
           {{vo.addressData?.address?.addressLines[0]}}
           <br>
           <br>
-          Last notified: {{(modalTask.notification_status ? modalTask.notification_status[0].time : null) | ago: now}} 
+          Last notified: {{(modalTask.notification_status ? modalTask.notification_status[0].time : null) | ago: now}}
           <br>
           <button class="btn btn sm text-muted pl-0"
             (click)="triggerCompleteNotificationHistory()">{{showCompleteNotificationHistory? "Less...": "More..."}}</button>
