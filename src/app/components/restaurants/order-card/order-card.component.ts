@@ -245,4 +245,12 @@ export class OrderCardComponent implements OnInit {
   isAdmin() {
     return this._global.user.roles.some(r => r === 'ADMIN');
   }
+
+  getUpdatedStatuses() {
+    const order: any = { ...this.order };
+    (order.delivery.updates || []).sort((a, b) => (new Date(a.created)).valueOf() - (new Date(b.created)).valueOf());
+    const updates = (order.delivery.updates || []).filter((update, index, self) => self.findIndex(_update => (_update.status === update.status)) === index)
+
+    return updates;
+  }
 }
