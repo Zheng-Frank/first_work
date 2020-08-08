@@ -280,6 +280,7 @@
       <th class="text-right" colspan="6">Sum</th>
       <th class="text-right">{{invoice.getSubtotal() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</th>
+      <th class="text-right"></th>
       <th class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.getTip() | currency:'USD':'symbol'}}</th>
       <th class="text-right" *ngIf="invoice.getCcProcessingFee() > 0">
