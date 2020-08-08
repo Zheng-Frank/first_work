@@ -1,0 +1,7 @@
+.wrap {
+    word-break: break-all !important;
+}
+
+.nowrap {
+    white-space: nowrap;
+}

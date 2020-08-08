@@ -2,6 +2,7 @@ import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from "../../../services/api.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
@@ -112,7 +113,7 @@ export class RestaurantContactsComponent implements OnInit {
   crm = "";
   crms = [];
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
     this.resetPersonFieldDescriptors();
@@ -307,7 +308,7 @@ export class RestaurantContactsComponent implements OnInit {
       newBody[field] = newValue;
 
 
-      this._api
+      this._prunedPatch
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: oldBody, new: newBody
         }])

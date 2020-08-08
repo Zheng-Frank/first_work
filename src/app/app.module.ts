@@ -45,9 +45,11 @@ import { InvoiceOptionEditorComponent } from './components/invoices/invoice-opti
 import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { CacheService } from './services/cache.service';
+import { PrunedPatchService } from './services/prunedPatch.service'
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
+import { RestaurantApiLogsComponent } from './components/restaurants/restaurant-api-logs/restaurant-api-logs.component'; 
 import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
@@ -176,6 +178,7 @@ import { BroadcastingEditorComponent } from './components/broadcasting/broadcast
 import { SanitizeDomPipe } from './pipes/sanitize-dom.pipe';
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
 import { RestaurantsCourierListComponent } from './components/restaurants/restaurants-courier-list/restaurants-courier-list.component';
+import { from } from 'rxjs';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -216,6 +219,7 @@ import { RestaurantsCourierListComponent } from './components/restaurants/restau
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
     RestaurantOrdersComponent,
+    RestaurantApiLogsComponent,
     RestaurantContactsComponent,
     RestaurantRateSchedulesComponent,
     RestaurantPaymentMeansComponent,
@@ -354,6 +358,7 @@ import { RestaurantsCourierListComponent } from './components/restaurants/restau
     ApiService,
     TaskService,
     CacheService,
+    PrunedPatchService,
     CrawlTemplateService,
     AmazonConnectService
   ],

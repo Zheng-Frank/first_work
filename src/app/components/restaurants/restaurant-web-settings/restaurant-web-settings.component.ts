@@ -3,6 +3,7 @@ import { Restaurant } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Helper } from 'src/app/classes/helper';
 
@@ -19,7 +20,7 @@ export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
   qmenuExclusive;
   agreeToCorporate;
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunePatch: PrunedPatchService) {
   }
 
   ngOnInit() {
@@ -34,11 +35,20 @@ export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
 
   async onEdit(event, field: string) {
     const web = this.restaurant.web || {};
+    const oldValue = JSON.parse(JSON.stringify(web[field]));
     const newValue = (event.newValue || '').trim();
 
     if (field === 'qmenuPop3Password' && !this.restaurant.web.qmenuWebsite) {
       this._global.publishAlert(AlertType.Danger, 'Error: no qMenu managed website found. Please enter managed website before entering a password');
       return;
+    }
+    if (newValue) {
+      try {
+        await this._api.get(environment.appApiUrl + 'utils/check-url?url=' + newValue).toPromise();
+      } catch {
+        this._global.publishAlert(AlertType.Danger, 'Error: Please enter a valid website URL');
+        return;
+      }
     }
     try {
       web[field] = newValue;
@@ -49,8 +59,8 @@ export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
       }
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: { _id: this.restaurant._id },
-        new: { _id: this.restaurant._id, web: web }
+        old: { _id: this.restaurant._id, web: {[field]:oldValue} },
+        new: { _id: this.restaurant._id, web: {[field]:newValue} }
       }]).toPromise();
 
       this.restaurant.web = web;
@@ -65,12 +75,13 @@ export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
     try {
       const web = this.restaurant.web || {};
 
+      const oldValue = JSON.parse(JSON.stringify(web[field]));
       const newValue = event.target.checked;
       web[field] = newValue;
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: { _id: this.restaurant._id },
-        new: { _id: this.restaurant._id, web: web }
+        old: { _id: this.restaurant._id, web: {[field]: oldValue} },
+        new: { _id: this.restaurant._id, web: {[field]: newValue} }
       }]).toPromise();
 
       this.restaurant.web = web;
