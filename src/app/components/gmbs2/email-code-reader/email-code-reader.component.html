@@ -27,6 +27,22 @@
       </q-edit-label>
     </div>
   </div>
+
+  <div class="form-group row">
+    <label class="col-4 col-form-label">qMenu Embedded Button</label>
+    <div class="col-8 text-left">
+      <!-- <textarea #tplClipboard class="form-control w-100 full-height" [(ngModel)]="qmButtonTemplate"></textarea> -->
+      <div class="d-inline-block w-100">
+        <p *ngIf="!showCompleteButtonSnippet" class="text-truncate">{{qmButtonTemplate}}</p>
+      </div>
+      <p *ngIf="showCompleteButtonSnippet">{{qmButtonTemplate}}</p>
+      <button class="btn btn-link p-0" (click)="showCompleteButtonSnippet = !showCompleteButtonSnippet">{{showCompleteButtonSnippet ? 'less...' : 'more...'}}</button>
+      <div class="d-flex justify-content-end pt-1">
+        <button class="btn btn-link p-0" (click)="copyToClipcboard(qmButtonTemplate)"><i *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i><i *ngIf="isCopiedToClipboard" class="fas fa-check"></i> {{isCopiedToClipboard ? 'Copied!' : 'Copy to Clipboard'}}</button>
+      </div>
+    </div>
+  </div>
+
   <div class="text-right">
     <div *ngIf="retrievedObj" class="mb-2">
       <span
