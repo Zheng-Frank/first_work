@@ -34,6 +34,7 @@
       |
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
+      <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
     </div>
     <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
       <strong>{{order.restaurantNotice}}</strong>
@@ -83,7 +84,8 @@
           </div>
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of getUpdatedStatuses()">
-              <span>{{record.created | shortTime: restaurant.offsetToEST}}</span>&nbsp;<span class="value">{{record.status}}</span>
+              <span>{{record.created | shortTime: restaurant.offsetToEST}}</span>&nbsp;<span
+                class="value">{{record.status}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
           </div>
