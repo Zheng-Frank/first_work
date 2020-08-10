@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, OnChanges, SimpleChanges, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
@@ -12,14 +12,12 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class SendGooglePINComponent implements OnChanges {
     @Input() restaurantId;
-    restaurant;
-    contactList = [];
-    messageTo;
-    messageSelected;
+    @Output() sendToLog = new EventEmitter();
+
+
     lanugages = ['Chinese', 'English', 'English/Chinese'];
     noticeLanguage;
-    noticeType;
-    noticeContent;
+
     contents = [
         {
             noticeType: 'First Notice',
@@ -152,109 +150,111 @@ export class SendGooglePINComponent implements OnChanges {
     ]
 
     noticeTypes = this.contents.map(each => each.noticeType);
+    noticeType;
+
+    contactList = [];
+    messageInfoList;
 
     constructor(private _api: ApiService, private _global: GlobalService) { }
 
     async ngOnChanges(changes: SimpleChanges) {
         if (this.restaurantId) {
-            const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
-                resource: "restaurant",
-                query: {
-                    _id: { $oid: this.restaurantId }
-                }
-            }).toPromise();
-            this.restaurant = restaurants[0];
-            const channels = (this.restaurant.channels || []).map(c => {
-                if (c.type === 'SMS') {
-                    return { type: "sms", value: c.value }
-                }
-                else if (c.type === 'Email') {
-                    return { type: "email", value: c.value }
-                }
-                else if (c.type === 'Fax') {
-                    return { type: "fax", value: c.value }
-                }
-            });
-            this.contactList = Array.from(new Set(channels)).filter(item => item);
+            const restaurant = await this.getRestaurantById(this.restaurantId);
+            this.contactList = this.getContactList(restaurant);
         }
     }
+
+    private async getRestaurantById(restaurantId) {
+        const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "restaurant",
+            query: {
+                _id: { $oid: restaurantId }
+            },
+            projection:{
+                channels: 1
+            },
+        }).toPromise();
+        return restaurants[0];
+    }
+
+    private getContactList(restaurant) {
+        const contactListRaw = (restaurant.channels || []).map(c => {
+            if (c.type === 'SMS' && c.notifications && c.notifications.includes('Order')) {
+                return { type: "sms", value: c.value }
+            }
+            else if (c.type === 'Email' && c.notifications && c.notifications.includes('Order')) {
+                return { type: "email", value: c.value }
+            }
+        });
+        const contactList = Array.from(new Set(contactListRaw)).filter(item => item);
+        return contactList;
+    }
+
     onChange() {
-        if (this.messageTo && this.noticeLanguage && this.noticeType) {
-            this.noticeContent = this.contents.find(e => e.noticeType === this.noticeType)
-                .messages.find(m => m.language === this.noticeLanguage)
-                .body.find(eachBody => eachBody.type === this.messageTo.type).contents;
+        this.messageInfoList = this.getMessageInfoList(this.contactList, this.noticeLanguage, this.noticeType);
+    }
 
-            console.log(this.noticeContent);
+    private getMessageInfoList(contactList, noticeLanguage, noticeType) {
+        const messageInfoList = contactList.map(messageTo => ({
+            messageTo: messageTo,
+            noticeContent: this.getNoticeContent(messageTo, noticeLanguage, noticeType)
+        }));
+        return messageInfoList;
+    }
+
+    private getNoticeContent(messageTo, noticeLanguage, noticeType) {
+        if (messageTo && noticeLanguage && noticeType) {
+            const noticeContent = this.contents.find(e => e.noticeType === noticeType)
+                .messages.find(m => m.language === noticeLanguage)
+                .body.find(eachBody => eachBody.type === messageTo.type).contents;
+
+            return noticeContent;
         }
     }
 
-    sendMessage() {
-        console.log("messageTo", this.messageTo);
-        //console.log("type",(this.getContactList().filter(p=> p.value == this.messageTo))['type']);
-        if (this.messageTo.type === 'sms') {
-            this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-                "name": "send-sms",
-                "params": {
-                    "to": this.messageTo.value,
-                    "from": "8447935942",
-                    "providerName": "plivo",
-                    "message": this.noticeContent
+    sendMessages() {
+        if (this.messageInfoList && this.messageInfoList.length) {
+            const jobs = this.messageInfoList.map(messageInfo => {
+                if (messageInfo.messageTo.type === 'sms') {
+                    return {
+                        "name": "send-sms",
+                        "params": {
+                            "to": messageInfo.messageTo.value,
+                            "from": "8447935942",
+                            "providerName": "plivo",
+                            "message": messageInfo.noticeContent
+                        }
+                    };
+                } else if (messageInfo.messageTo.type === 'email') {
+                    return {
+                        "name": "send-email",
+                        "params": {
+                            "to": messageInfo.messageTo.value,
+                            "subject": "QMenu Google PIN",
+                            "html": messageInfo.noticeContent
+                        }
+                    };
                 }
-            }]).subscribe(
-                result => {
-                    this._global.publishAlert(
-                        AlertType.Success,
-                        "Message sent successfully"
-                    );
-                },
-                error => {
-                    this._global.publishAlert(AlertType.Danger, "Error sending message");
+                else {
+                    return undefined;
                 }
-            );
+            }).filter(each => each);
 
-        } else if (this.messageTo.type === 'email') {
-            this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-                "name": "send-email",
-                "params": {
-                    "to": this.messageTo.value,
-                    "subject": "QMenu Google PIN",
-                    "html": this.noticeContent
-                }
-            }]).subscribe(
-                result => {
-                    this._global.publishAlert(
-                        AlertType.Success,
-                        "Message sent successfully"
+            if (jobs.length) {
+                this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
+                    .subscribe(
+                        result => {
+                            const message = "Message(s) sent successfully."
+                            this._global.publishAlert(AlertType.Success, message);
+                            this.sendToLog.emit({ channels: this.contactList, comments: message })
+                        },
+                        error => {
+                            const message = "Error sending message(s)."
+                            this._global.publishAlert(AlertType.Danger, message);
+                            this.sendToLog.emit({ channels: this.contactList, comments: message })
+                        }
                     );
-                },
-                error => {
-                    this._global.publishAlert(AlertType.Danger, "Error sending message");
-                }
-            );
-
+            }
         }
-        else if (this.messageTo.type === 'fax') {
-            this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-                "name": "send-fax",
-                "params": {
-                    "from": "8555582558",
-                    "to": this.messageTo.value,
-                    "mediaUrl": this.noticeContent,
-                    "providerName": "twilio"
-                }
-            }]).subscribe(
-                result => {
-                    this._global.publishAlert(
-                        AlertType.Success,
-                        "Message sent successfully"
-                    );
-                },
-                error => {
-                    this._global.publishAlert(AlertType.Danger, "Error sending message");
-                }
-            );
-
-        }
-
     }
 }

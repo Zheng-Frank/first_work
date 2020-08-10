@@ -32,7 +32,7 @@
 
 
   <div *qIf="displayGooglePIN">
-    <send-google-pin [restaurantId]="restaurant._id"></send-google-pin>
+    <send-google-pin [restaurantId]="restaurant._id" (sendToLog) = "toggleGooglePIN()"></send-google-pin>
   </div>
 
   <div *qIf="displayTextReply">
@@ -130,6 +130,9 @@
       </div>
       <div *ngIf="activeTab === 'Web Template'">
         <app-restaurant-web-template [restaurant]="restaurant"></app-restaurant-web-template>
+      </div>
+      <div *ngIf="activeTab === 'API Logs'">
+        <app-restaurant-api-logs [restaurant]="restaurant"></app-restaurant-api-logs>
       </div>
     </div>
   </div>

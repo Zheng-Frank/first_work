@@ -253,4 +253,23 @@ export class OrderCardComponent implements OnInit {
 
     return updates;
   }
+
+  postmatesStatus(status) {
+    switch(status) {
+      case 'pickup':
+        return 'Picking up the food';
+
+      case 'pickup_complete':
+        return 'Picked up the food';
+
+      case 'delivered':
+        return 'Delivered'
+
+      case 'dropoff':
+        return 'Delivering';
+
+      case 'delivered':
+        return 'Delivered';
+    }
+  }
 }

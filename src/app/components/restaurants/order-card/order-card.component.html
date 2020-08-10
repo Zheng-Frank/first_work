@@ -85,7 +85,7 @@
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of getUpdatedStatuses()">
               <span>{{record.created | shortTime: restaurant.offsetToEST}}</span>&nbsp;<span
-                class="value">{{record.status}}</span>
+                class="value">{{postmatesStatus(record.status)}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
           </div>

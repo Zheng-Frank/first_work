@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { Restaurant, Promotion } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
@@ -24,7 +25,7 @@ export class RestaurantPromotionsComponent implements OnInit {
 
   promotionsInEditing = [];
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
   }
@@ -113,7 +114,7 @@ export class RestaurantPromotionsComponent implements OnInit {
       );
     } else {
       // api update here...
-      this._api
+      this._prunedPatch
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: {
             _id: this.restaurant['_id'],

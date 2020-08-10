@@ -3,9 +3,11 @@ import { Restaurant, Hour } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { AlertType } from "../../../classes/alert-type";
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Helper } from '../../../classes/helper';
+import { from } from 'rxjs';
 
 @Component({
   selector: 'app-restaurant-closed-hours',
@@ -15,7 +17,7 @@ import { Helper } from '../../../classes/helper';
 export class RestaurantClosedHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
     this.initHourInEditing();
   }
 
@@ -65,7 +67,7 @@ export class RestaurantClosedHoursComponent implements OnInit {
       );
     } else {
       // api update here...
-      this._api
+      this._prunedPatch
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: {
             _id: this.restaurant['_id'],
