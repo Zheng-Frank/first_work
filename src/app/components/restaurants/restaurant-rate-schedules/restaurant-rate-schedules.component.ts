@@ -3,6 +3,7 @@ import { Restaurant } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { AlertType } from "../../../classes/alert-type";
 
 @Component({
@@ -17,7 +18,7 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   editing = false;
   rateSchedulesInEditing = [];
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
   }
@@ -57,7 +58,7 @@ export class RestaurantRateSchedulesComponent implements OnInit {
       alert('FAILED: no rate schedules for order types ' + uncoveredOrderTypes.join(', '));
       return;
     }
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
           old: oldR,
