@@ -468,15 +468,16 @@ export class RestaurantOrdersComponent implements OnInit {
 
   async undoRejectOrder() {
 
-    if ((this.undoOrder && this.undoOrder.paymentObj) && (this.undoOrder.paymentObj.paymentType !== 'CREDITCARD') && (this.undoOrder.paymentObj.method !== 'QMENU') && (this.undoOrder.statuses)) {
+    if ((this.undoOrder && this.undoOrder.paymentObj) && 
+       (this.undoOrder.paymentObj.method !== 'QMENU') && 
+       (this.undoOrder.statuses) && 
+       (this.undoOrder.paymentObj.paymentType !== 'STRIPE') && 
+       (!this.undoOrder.courierId)) {
       await this.populateOrders();
 
       let copyOrder = { ...this.undoOrder };
       copyOrder.statuses = copyOrder.statuses.filter(s => s.status !== 'CANCELED');
       const { customerNotice, restaurantNotie, ..._newOrder } = copyOrder;
-
-      console.log(this.undoOrder);
-      console.log(_newOrder);
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', [
         {
