@@ -35,7 +35,7 @@ export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
 
   async onEdit(event, field: string) {
     const web = this.restaurant.web || {};
-    const oldValue = JSON.parse(JSON.stringify(web[field]));
+    const oldValue = JSON.parse(JSON.stringify(web[field] || {}));
     const newValue = (event.newValue || '').trim();
 
     if (field === 'qmenuPop3Password' && !this.restaurant.web.qmenuWebsite) {
@@ -75,7 +75,7 @@ export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
     try {
       const web = this.restaurant.web || {};
 
-      const oldValue = JSON.parse(JSON.stringify(web[field]));
+      const oldValue = JSON.parse(JSON.stringify(web[field] || {}));
       const newValue = event.target.checked;
       web[field] = newValue;
 

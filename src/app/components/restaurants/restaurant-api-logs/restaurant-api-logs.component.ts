@@ -87,7 +87,6 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
   loadActions(oldO, newO, prefix, actions) {
     // if old is empty, new is not, then it's an adding action
     if (oldO == EMPTY_INDICATOR && newO != EMPTY_INDICATOR) {
-// console.log("it's added");
       actions.push({
         type: "Add",
         target: prefix,
@@ -99,7 +98,6 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
 
     // if old is not empty, new is, then it's an deleting action
     if (oldO != EMPTY_INDICATOR && newO == EMPTY_INDICATOR) {
-// console.log("it's removed");
       actions.push({
         type: "Remove",
         target: prefix,
@@ -111,7 +109,6 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
 
     // Check that they have the same type, if not, it's an update
     if (typeof oldO !== typeof newO) {
-      // console.log("Different type, it's updated");
       actions.push({
         type: "Update", 
         target: prefix, 
@@ -124,7 +121,6 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
     // 1. If type is value: Compare them directly, it's an update(unless empty objects in array)
     if (typeof oldO !== 'object') {
       if (oldO !== newO) {
-// console.log("They are different values, it's updated");
         actions.push({
           type: "Update",
           target: prefix,
@@ -135,33 +131,27 @@ export class RestaurantApiLogsComponent implements OnInit, OnChanges {
     }
     // 2. If type is array:  
     else if (Array.isArray(oldO)) {
-// console.log("They are arrays");
       // for elements both array has
       for (let i = 0; i < Math.min(oldO.length, newO.length); i++) {
-// console.log("Looking at element number " + i);
         this.loadActions(oldO[i], newO[i], `${prefix}[${i}]`, actions);
       }
 
       // if one is longer than another, fill the empty spots with empty indicators
       if (oldO.length > newO.length) {
         for (let i = newO.length; i < oldO.length; i++) {
-// console.log("Looking at element number " + i);
           this.loadActions(oldO[i], EMPTY_INDICATOR, `${prefix}[${i}]`, actions);
         }
       } else if (oldO.length < newO.length) {
         for (let i = oldO.length; i < newO.length; i++) {
-// console.log("Looking at element number " + i);
           this.loadActions(EMPTY_INDICATOR, newO[i], `${prefix}[${i}]`, actions);
         }
       }
     }
     // 3. If type is object:
     else {
-// console.log("It's an object");
       let prop;
       // iterate through the property of the oldO
       for (prop in oldO) {
-// console.log("Looking at property " + prop);
         // if newObject doesn't own that property, set EMPTY_INDICATOR
         if (!newO.hasOwnProperty(prop)) {
           this.loadActions(oldO[prop], EMPTY_INDICATOR, `${prefix}.${prop}`, actions);
