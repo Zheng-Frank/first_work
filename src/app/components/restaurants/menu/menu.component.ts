@@ -8,7 +8,6 @@ import { MenuItemsEditorComponent } from '../menu-items-editor/menu-items-editor
 
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
-import { PrunedPatchService } from '../../../services/prunedPatch.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 
@@ -37,7 +36,7 @@ export class MenuComponent implements OnInit {
   editingMis = false;
   mcOfSortingMis;
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
   }
@@ -56,10 +55,9 @@ export class MenuComponent implements OnInit {
     const mcIndex = this.menu.mcs.indexOf(this.mcOfSortingMis);
     try {
       this.mcOfSortingMis.mis.map(mi => delete mi.sortOrder);
-      await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          [`menus.${index}.mcs.${mcIndex}.mis`]: this.restaurant.menus[index].mcs[mcIndex].mis
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           [`menus.${index}.mcs.${mcIndex}.mis`]: sortedMis,
@@ -87,10 +85,9 @@ export class MenuComponent implements OnInit {
     console.log(index);
     try {
       this.menu.mcs.map(mc => delete mc.sortOrder);
-      await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          [`menus.${index}.mcs`]: this.restaurant.menus[index].mcs
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           [`menus.${index}.mcs`]: sortedMcs,
@@ -178,7 +175,7 @@ export class MenuComponent implements OnInit {
       ));
     }
 
-    this._prunedPatch
+    this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id'],
@@ -237,11 +234,10 @@ export class MenuComponent implements OnInit {
       }      
     });
 
-    this._prunedPatch
+    this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          menus: this.restaurant.menus
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus
@@ -345,12 +341,11 @@ export class MenuComponent implements OnInit {
     // bug: mi's sizeOptions tied to optionsEditor, which will cause side effects of adding one extra item automatically
     // temp fix to use cleanMiCopy
     const cleanMiCopy = this.cleanMiCopy(mi);
-    this._prunedPatch
+    this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         //Just just new menus to overwrite
         old: {
           _id: this.restaurant['_id'],
-          menus: this.restaurant.menus
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus
@@ -410,11 +405,10 @@ export class MenuComponent implements OnInit {
     });
 
 
-    this._prunedPatch
+    this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id'],
-          menus: this.restaurant.menus
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus
@@ -457,11 +451,10 @@ export class MenuComponent implements OnInit {
       });
     })
 
-    this._prunedPatch
+    this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
-          _id: this.restaurant['_id'],
-          menus: oldMenus
+          _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
           menus: newMenus
