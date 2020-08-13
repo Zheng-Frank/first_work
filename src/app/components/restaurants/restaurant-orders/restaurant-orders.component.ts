@@ -186,10 +186,10 @@ export class RestaurantOrdersComponent implements OnInit {
       STRIPE: 'The money was deposited to your Stripe account directly.',
       KEY_IN: 'PLEASE KEY-IN THE CREDIT CARD NUMBERS TO COLLECT THE ORDER MONEY.'
     };
-    Object.assign(this.payment, order.payment);
-    this.payment['explanation'] = explanations[order.payment.creditCardProcessingMethod || 'non-exist'];
+    this.payment = JSON.parse(JSON.stringify(order.payment));
+    this.payment['explanation'] = explanations[order.payment.method || 'non-exist'];
 
-    if (order.payment && order.payment.creditCardProcessingMethod === 'IN_PERSON') {
+    if (order.payment && order.payment.method === 'IN_PERSON') {
       this.paymentModal.show();
     } else {
       //  The payment of order was stripped off details due to security reasons. We need to get payment details from API.
@@ -197,7 +197,8 @@ export class RestaurantOrdersComponent implements OnInit {
       this._api.get(environment.appApiUrl + "biz/payment", { orderId: order.id })
         .subscribe(
           payment => {
-            Object.assign(this.payment, payment);
+            this.payment = JSON.parse(JSON.stringify(payment));
+            this.payment['explanation'] = explanations[order.payment.method || 'non-exist'];
             this.paymentModal.show();
           },
           error => {
