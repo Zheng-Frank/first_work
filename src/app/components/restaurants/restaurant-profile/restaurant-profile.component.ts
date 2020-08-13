@@ -109,8 +109,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     // console.log(params);
   }
 
-  selectAddress(address) {
+  async selectAddress(address) {
     this.googleAddress = address;
+    const addressDetails = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
+      formatted_address: address.formatted_address
+    }).toPromise();
+    this.googleAddress.timezone = addressDetails.timezone;
   }
 
   getMongoDate(mongoId) {
