@@ -40,7 +40,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
-
+    restaurantChains: ['ADMIN', 'CSR']
   }
 
   knownUsers = [];
@@ -201,7 +201,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-
   computeRestaurantStatus(restaurant: Restaurant) {
     return {
       menusOk: restaurant.menus && restaurant.menus.length > 0 && restaurant.menus.some(menu => !menu.disabled),
@@ -275,7 +274,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.displayGooglePIN = !this.displayGooglePIN;
   }
 
-
   getAddress() {
     return (this.restaurant.address || {});
   }
@@ -331,6 +329,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       + (address.route ? ' ' + address.route : '') +
       (address.apt ? ', ' + address.apt : '');
   }
+
   getLine2(address: Address) {
     if (!address) {
       return '';
