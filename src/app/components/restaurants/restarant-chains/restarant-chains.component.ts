@@ -104,9 +104,6 @@ export class RestarantChainsComponent implements OnInit, OnChanges {
       const newChain = { ...this.associatedTo };
       newChain.restaurants = newChain.restaurants.filter(r => r._id !== this.restaurant._id);
 
-      console.log(oldChain);
-      console.log(newChain);
-
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=chain', [
         {
           old: oldChain,
@@ -140,9 +137,6 @@ export class RestarantChainsComponent implements OnInit, OnChanges {
       };
 
       newChain.restaurants = newChain.restaurants ? [...newChain.restaurants, chainData] : [chainData];
-
-      console.log(oldChain);
-      console.log(newChain);
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=chain', [
         {
