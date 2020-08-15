@@ -1,20 +1,26 @@
 <h1 class="text-center">Running Status of Scripts</h1>
-<div class="text-right mb-2">
-    <div class="pb-2">
-
-        <button class="btn btn-primary" (click)="populate()" [qLoading]="apiLoading">
-            <i class="fas fa-sync"></i> Reload</button>
-
-        <button class="btn btn-primary" (click)="addNew()">
-            <i class="fas fa-plus"></i> Add New</button>
-
-        <button *ngIf="canSuspendAll()" class="btn btn-primary" (click)="suspendAll()" [qLoading]="apiLoading">
-            <i class="fas fa-ban"></i> Suspend All</button>
-
-        <button *ngIf="canResumeAll()" class="btn btn-primary" (click)="resumeAll()" [qLoading]="apiLoading">
-            <i class="fas fa-ban"></i> Resume All</button>
+<div class="d-flex justify-content-between mb-2">
+    <div>
+        <label class="checkbox-inline">
+            <input type="checkbox" [(ngModel)]="showDisabled"> Show disabled
+        </label>
     </div>
+    <div>
+        <div class="pb-2">
 
+            <button class="btn btn-primary" (click)="populate()" [qLoading]="apiLoading">
+                <i class="fas fa-sync"></i> Reload</button>
+
+            <button class="btn btn-primary" (click)="addNew()">
+                <i class="fas fa-plus"></i> Add New</button>
+
+            <button *ngIf="canSuspendAll()" class="btn btn-primary" (click)="suspendAll()" [qLoading]="apiLoading">
+                <i class="fas fa-ban"></i> Suspend All</button>
+
+            <button *ngIf="canResumeAll()" class="btn btn-primary" (click)="resumeAll()" [qLoading]="apiLoading">
+                <i class="fas fa-ban"></i> Resume All</button>
+        </div>
+    </div>
 </div>
 
 <table class="table">

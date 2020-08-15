@@ -17,12 +17,12 @@ export class MonitoringScriptComponent implements OnInit {
   routineScripts = [];
   selectedScript;
   errorsOnly;
-
+  showDisabled = false;
   editingFields = ["_id", "name", "description", "waitSecondsBetweenRuns", "waitSecondsBetweenUows", "parallelProcessors", "unitOfWorksGeneratorName", "disabled"];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
-  
+
   async ngOnInit() {
     this.populate();
   }
@@ -96,7 +96,7 @@ export class MonitoringScriptComponent implements OnInit {
         "uowsHistory.uows.startedAt": 1,
         "uowsHistory.uows.endedAt": 1,
         // "uowsHistory.uows.result.body": 1,
-        "uowsHistory.uows.error.message": 1,
+        "uowsHistory.uows.error": 1,
       },
       limit: 2000,
       sort: { name: 1 }
@@ -104,12 +104,12 @@ export class MonitoringScriptComponent implements OnInit {
     this.apiLoading = false;
 
     // fix uowsHistory, 5/13/2020, induced by premature termination of running lambdas!
-    for (let script of scripts) {
-      if (script.uowsHistory && !Array.isArray(script.uowsHistory)) {
-        await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [{ old: { _id: script._id, uowsHistory: [] }, new: { _id: script._id } }]);
-        script.uowsHistory = [];
-      }
-    }
+    // for (let script of scripts) {
+    //   if (script.uowsHistory && !Array.isArray(script.uowsHistory)) {
+    //     await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [{ old: { _id: script._id, uowsHistory: [] }, new: { _id: script._id } }]);
+    //     script.uowsHistory = [];
+    //   }
+    // }
 
     // compute stats of each uowsHistory
     scripts.map(script => (script.uowsHistory || []).map(uh => {
