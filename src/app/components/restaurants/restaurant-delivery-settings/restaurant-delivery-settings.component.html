@@ -46,7 +46,7 @@
               <tr *ngIf="restaurant.deliveryFromTime">
                 <th class="text-left">Start Time:</th>
                 <td class="pl-1">
-                  {{restaurant.deliveryFromTime | shortTime: restaurant.offsetToEST}}
+                  {{restaurant.deliveryFromTime | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}
                 </td>
               </tr>
               <tr>
@@ -57,7 +57,7 @@
                 <th class="text-left">Delivery Open Hours:</th>
                 <td>
                   <div class="text-left">
-                    <q-hours-viewer [offsetToEST]="restaurant.offsetToEST"
+                    <q-hours-viewer [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)"
                       [hours]="restaurant.deliveryHours ? restaurant.deliveryHours : []"></q-hours-viewer>
                   </div>
                 </td>

@@ -4,6 +4,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
+import { TimezoneService } from "../../../services/timezone.service";
 import { AlertType } from "../../../classes/alert-type";
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Helper } from '../../../classes/helper';
@@ -17,7 +18,7 @@ import { from } from 'rxjs';
 export class RestaurantClosedHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, private _timezone: TimezoneService) {
     this.initHourInEditing();
   }
 
@@ -47,7 +48,7 @@ export class RestaurantClosedHoursComponent implements OnInit {
 
     // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
     const jan = new Date(new Date().getFullYear(), 0, 1);
-    const browserHoursAhead = 5 - (this.restaurant.offsetToEST || 0) - jan.getTimezoneOffset() / 60;
+    const browserHoursAhead = 5 - (this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone)) - jan.getTimezoneOffset() / 60;
 
     hourClone.fromTime.setHours(hourClone.fromTime.getHours() + browserHoursAhead);
     hourClone.toTime.setHours(hourClone.toTime.getHours() + browserHoursAhead);

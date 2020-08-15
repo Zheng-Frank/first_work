@@ -9,6 +9,7 @@ import { Channel } from 'src/app/classes/channel';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertType } from 'src/app/classes/alert-type';
 import { GlobalService } from 'src/app/services/global.service';
+import { TimezoneService } from 'src/app/services/timezone.service';
 
 @Component({
   selector: 'app-invoices-anual',
@@ -55,7 +56,7 @@ export class InvoicesAnualComponent implements OnInit {
     toDate: null
   }];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _timezone: TimezoneService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
 
   async ngOnInit() {
 
@@ -160,7 +161,7 @@ export class InvoicesAnualComponent implements OnInit {
 
   getRestaurantTime(time, invoice): Date {
     const t = new Date(time);
-    t.setHours(t.getHours() + (invoice.restaurant.offsetToEST || 0));
+    t.setHours(t.getHours() + this._timezone.getOffsetToEST(invoice.restaurant.address.timezone || 0));
     return t;
   }
 

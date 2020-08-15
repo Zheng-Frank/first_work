@@ -1,3 +1,4 @@
+export * from './adjustedDate.pipe';
 export * from './appDate.pipe';
 export * from './EEE.pipe';
 export * from './EEEE.pipe';

@@ -29,8 +29,7 @@
       <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
     </h5>
     <div class="text-sm-center card-text">
-      <span>{{getSubmittedTime(order) | MMMd : order.restaurant.offsetToEST}}
-        {{getSubmittedTime(order) | shortTime: restaurant.offsetToEST}}</span>
+      <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</span>
       |
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
@@ -55,8 +54,7 @@
     </div>
     <div *ngIf="order.timeToDeliver" class="text-sm-center card-text alert-success">
       <span class="fa fa-clock-o"></span>
-      <strong> scheduled: {{order.timeToDeliver | MMMd : restaurant.offsetToEST}}
-        {{order.timeToDeliver | shortTime: restaurant.offsetToEST}}</strong>
+      <strong> scheduled: {{order.timeToDeliver | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</strong>
     </div>
     <div *ngIf="order.delivery?.courier" class="text-center">
       <hr>
@@ -84,7 +82,7 @@
           </div>
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of getUpdatedStatuses()">
-              <span>{{record.created | shortTime: restaurant.offsetToEST}}</span>&nbsp;<span
+              <span>{{record.created | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}</span>&nbsp;<span
                 class="value">{{postmatesStatus(record.status)}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>

@@ -5,6 +5,7 @@ import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { PrunedPatchService } from '../../../services/prunedPatch.service';
+import { TimezoneService } from "../../../services/timezone.service";
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { HttpClient } from '@angular/common/http';
@@ -76,27 +77,17 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   ccProcessingFlatFee: number;
   disableScheduling = false;
   disabled = false;
-  timeZone;
   googleAddress: Address;
   preferredLanguage;
 
   notification;
-  timeZones = [
-    { value: 0, text: 'Eastern Time (GMT -5:00)' },
-    { value: -1, text: 'Central Time (GMT -6:00)' },
-    { value: -2, text: 'Mountain Time (GMT -7:00)' },
-    { value: -3, text: 'Pacific Time (GMT -8:00)' },
-    { value: -4, text: 'Alaska (GMT -9:00)' },
-    { value: -5, text: 'Hawaii (GMT -10:00)' },
-    { value: -6, text: 'Hawaii Daylight Saving(GMT -11:00)' }
-  ];
 
   preferredLanguages = [
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService, private _timezone: TimezoneService) { }
 
   ngOnInit() {
   }
@@ -129,7 +120,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // special fields
     this.images = this.restaurant.images || [];
-    this.timeZone = this.timeZones.filter(z => z.value === (this.restaurant.offsetToEST || 0))[0];
     this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
   }
 
@@ -156,7 +146,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       newObj.googleAddress.apt = this.apt;
     }
 
-    newObj.offsetToEST = (this.timeZone && this.timeZone.value) || 0;
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
     // update those two fields!
     newObj.images = this.images;
@@ -203,16 +192,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     if (index >= 0) {
       this.images.splice(index, 1);
     }
-  }
-
-
-  getTimeZoneText() {
-    for (const t of this.timeZones) {
-      if (t.value === (this.restaurant.offsetToEST || 0)) {
-        return t.text;
-      }
-    }
-    return 'N/A';
   }
 
   async onUploadImage(event) {

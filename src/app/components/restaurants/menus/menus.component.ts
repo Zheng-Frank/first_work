@@ -7,6 +7,7 @@ import { Helper } from '../../../classes/helper';
 
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
+import { TimezoneService } from '../../../services/timezone.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 
@@ -39,7 +40,7 @@ export class MenusComponent implements OnInit {
   copyMenu = false;
   copyMenuToRestaurantId;
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _timezone: TimezoneService) { }
 
   ngOnInit() {
   }
