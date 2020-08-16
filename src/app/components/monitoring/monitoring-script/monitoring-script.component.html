@@ -1,8 +1,8 @@
-<h1 class="text-center">Running Status of Scripts</h1>
+<h1 class="text-center">Running Status of Scripts ({{routineScripts.length}})</h1>
 <div class="d-flex justify-content-between mb-2">
     <div>
         <label class="checkbox-inline">
-            <input type="checkbox" [(ngModel)]="showDisabled"> Show disabled
+            <input type="checkbox" (click)="toggleDisabled($event)"> Show disabled
         </label>
     </div>
     <div>
@@ -32,7 +32,7 @@
         <th>Stats
         <th></th>
     </tr>
-    <tr *ngFor="let script of routineScripts;" class="{{script.disabled ? 'script-disabled' : ''}}">
+    <tr *ngFor="let script of filteredRoutineScripts;" class="{{script.disabled ? 'script-disabled' : ''}}">
         <td>
             {{script.name}}
             <div class="text-muted text-small">

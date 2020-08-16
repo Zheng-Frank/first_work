@@ -15,6 +15,7 @@ export class MonitoringScriptComponent implements OnInit {
   scriptInEditing: any = {};
 
   routineScripts = [];
+  filteredRoutineScripts = [];
   selectedScript;
   errorsOnly;
   showDisabled = false;
@@ -25,6 +26,11 @@ export class MonitoringScriptComponent implements OnInit {
 
   async ngOnInit() {
     this.populate();
+  }
+
+  toggleDisabled(event) {
+    this.showDisabled = !this.showDisabled;
+    this.filter();
   }
 
   canSuspendAll() {
@@ -159,6 +165,16 @@ export class MonitoringScriptComponent implements OnInit {
 
     this.routineScripts = scripts;
     this.now = new Date();
+
+    this.filter();
+  }
+
+  filter() {
+    this.filteredRoutineScripts = this.routineScripts.filter(s => !s.disabled || this.showDisabled);
+
+    console.log(this.showDisabled);
+    console.log(this.routineScripts);
+    console.log(this.filteredRoutineScripts)
   }
 
   async populateDetails(routineScriptId) {
