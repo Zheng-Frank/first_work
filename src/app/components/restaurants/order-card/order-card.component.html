@@ -116,8 +116,10 @@
         <hr>
         <a role="button" class="text-danger text-nowrap card-link" (click)="ban()">
           <i class="fa fa-thumbs-down"></i> Ban</a>
-        <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order)">
+        <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order) && !isCanceled(order)">
           <i class="fa fa-times"></i> Cancel</a>
+        <a role="button" class="text-danger text-nowrap card-link" (click)="undoCancel()" *ngIf="canCancel(order) && isCanceled(order)">
+          <i class="fa fa-times"></i> Undo Cancel</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="print()" *ngIf="canPrint()">
           <i class="fa fa-print"></i> Print</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="fax()" *ngIf="canFax()">
