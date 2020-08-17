@@ -38,7 +38,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'images',
     'stripeSecretKey',
     'stripePublishableKey',
-    'offsetToEST',
     'preferredLanguage',
     'pickupMinimum',
     'disableScheduling',
