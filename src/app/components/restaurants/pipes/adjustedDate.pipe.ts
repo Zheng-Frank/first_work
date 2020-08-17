@@ -12,13 +12,12 @@ export class adjustedDatePipe extends DatePipe implements PipeTransform {
       // value.setHours(value.getHours() - offset);
       // return super.transform(value, format);
       value = new Date(value);
-      const restaurantOffsetToEST = (new Date(value.toLocaleString('en-US', { timeZone: timezone })).valueOf() - new Date(value.toLocaleString('en-US', { timeZone: 'America/New_York' })).valueOf()) / 3600000
-      
-      const cloned = new Date(value.valueOf());
-      const serverOffset = (new Date(value.toString('en-US')).valueOf() - new Date(value.toLocaleString('en-US', { timeZone: 'America/New_York' })).valueOf()) / 3600000;
-      const totalOffset = -serverOffset + (restaurantOffsetToEST || 0);
-      cloned.setHours(cloned.getHours() + totalOffset);
-      
+      const cloned = new Date(value.toLocaleString('en-US', { timeZone: timezone }));
+      // const restaurantOffsetToEST = (new Date(value.toLocaleString('en-US', { timeZone: timezone })).valueOf() - new Date(value.toLocaleString('en-US', { timeZone: 'America/New_York' })).valueOf()) / 3600000
+      // const cloned = new Date(value.valueOf());
+      // const serverOffset = (new Date(value.toString('en-US')).valueOf() - new Date(value.toLocaleString('en-US', { timeZone: 'America/New_York' })).valueOf()) / 3600000;
+      // const totalOffset = -serverOffset + (restaurantOffsetToEST || 0);
+      // cloned.setHours(cloned.getHours() + totalOffset);
       return super.transform(cloned, format);
     }
     return null;
