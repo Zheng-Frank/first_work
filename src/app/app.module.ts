@@ -180,6 +180,8 @@ import { PostmatesListComponent } from './components/restaurants/postmates-list/
 import { RestaurantsCourierListComponent } from './components/restaurants/restaurants-courier-list/restaurants-courier-list.component';
 import { from } from 'rxjs';
 import { RestarantChainsComponent } from './components/restaurants/restarant-chains/restarant-chains.component';
+import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
+import { ChainComponent } from './components/chains/chain/chain.component';
 @NgModule({
   declarations: [
     appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -337,6 +339,8 @@ import { RestarantChainsComponent } from './components/restaurants/restarant-cha
     PostmatesListComponent,
     RestaurantsCourierListComponent,
     RestarantChainsComponent,
+    ChainsDashboardComponent,
+    ChainComponent,
 
 
 
