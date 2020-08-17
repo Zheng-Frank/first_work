@@ -21,6 +21,7 @@ export class RestarantChainsComponent implements OnInit, OnChanges {
 
   chains = [];
   isAlreadyAssociated = false;
+  associatedTo;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -33,6 +34,11 @@ export class RestarantChainsComponent implements OnInit, OnChanges {
       resource: "chain",
       limit: 500
     }).toPromise();
+
+    console.log(this.chains);
+
+    [this.associatedTo] = this.chains.filter(c => c.restaurants.some(r => r._id === this.restaurant._id));
+    this.isAlreadyAssociated = !!this.associatedTo;
   }
 
   ngOnChanges(params) {

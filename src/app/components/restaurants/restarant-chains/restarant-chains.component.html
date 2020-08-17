@@ -4,7 +4,7 @@
     <div class="d-flex flex-column align-items-center p-2">
       <p>This Restaurant is a chain of</p>
       <h4>{{associatedTo.name}}</h4>
-      <p n*if="associatedTo.headquarter">HQ: {{associatedTo.headquarter}}</p>
+      <p *ngIf="associatedTo.headquarter">HQ: {{associatedTo.headquarter}}</p>
 
       <div class="w-100" >
         <p class="text-left">List of restaurants in this chain</p>
