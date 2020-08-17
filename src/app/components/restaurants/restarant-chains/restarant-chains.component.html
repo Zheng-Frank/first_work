@@ -13,7 +13,7 @@
           <small class="text-left">{{restaurant.googleAddress?.formatted_address}}</small>
         </div>
       </div>
-      <small *ngIf="associatedTo.restaurants.length === 0" class="mt-4 text-center">No restaurants in this chain yet</small>
+      <small *ngIf="associatedTo.restaurants?.length === 0" class="mt-4 text-center">No restaurants in this chain yet</small>
     </div>
   </div>
 
