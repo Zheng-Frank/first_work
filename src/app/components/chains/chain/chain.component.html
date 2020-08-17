@@ -1,0 +1,28 @@
+<div class="card card-body">
+  <h2 class="text-center">{{chain.name}}</h2>
+  <div class="text-center">HQ: {{chain.headquarter}}</div>
+
+  <div class="d-flex justify-content-end w-100">
+    <button class="btn btn-link btn-sm m-0 p-0" (click)="removeChain(chain._id)"><i class="fas fa-trash-alt"></i> Remove chain</button>
+  </div>
+
+  <ul class="list-group mt-4">
+    <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let restaurant of chain.restaurants">
+      <div class="d-flex flex-column">
+        <a class="text-left" routerLink="/restaurants/{{restaurant._id}}" target="__blank">{{restaurant.name}}</a>
+        <small class="text-left">{{restaurant.googleAddress?.formatted_address}}</small>
+      </div>
+      <button class="btn btn-link btn-sm m-0 p-0" (click)="removeAssociatedRestaurant(chain._id, restaurant._id)"><i class="fas fa-trash-alt"></i> Remove</button>
+    </li>
+  </ul>
+
+  <small *ngIf="chain.restaurants.length === 0" class="mt-4 text-center">No restaurants in this chain yet</small>
+
+  <div class="mt-4 d-flex flex-column add-association__container p-3">
+    <label>Enter restaurant id to associate to this chain:</label>
+    <div class="d-flex">
+      <input type="text" class="form-control" placeholder="Restaurant Id to associate to this chain" [(ngModel)]="restaurantIdToAssociate">
+      <button class="btn btn-primary btn-sm ml-3" (click)="associateToChain(chain._id)">Associate</button>
+    </div>
+  </div>
+</div>
