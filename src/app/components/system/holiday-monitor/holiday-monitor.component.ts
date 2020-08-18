@@ -36,7 +36,7 @@ export class HolidayMonitorComponent implements OnInit {
         disabled: 1,
         channels: 1,
         closedHours: 1,
-        offsetToEST: 1
+        'googleAddress.timezone': 1
       },
       limit: 6000
     }).toPromise()).map(r => new Restaurant(r));

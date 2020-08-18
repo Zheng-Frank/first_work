@@ -1,14 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { GmbRequest } from '../../../classes/gmb/gmb-request';
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
-import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
-import { zip } from 'rxjs';
-import { Task } from '../../../classes/tasks/task';
-import { Restaurant } from '@qmenu/ui';
 
 @Component({
   selector: 'app-gmb-underattack-list',
@@ -36,27 +30,25 @@ export class GmbUnderattackListComponent implements OnInit {
       label: "Restaurant Name"
     },
     {
+      label: "Timezone"
+    },
+    {
       label: "Account"
     },
     {
       label: "Request Info"
     },
-    // {
-    //   label: "Requested At",
-    //   paths: ['date'],
-    //   sort: (a, b) => a.valueOf() - b.valueOf()
-    // },
     {
       label: "Score",
       paths: ['score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
     {
-      label: "Completion Action"
+      label: "Logs"
     },
-    // {
-    //   label: "IDs"
-    // }
+    {
+      label: "Action"
+    }
   ];
 
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -72,8 +64,6 @@ export class GmbUnderattackListComponent implements OnInit {
     this.now = new Date();
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    console.log("Starting retrieving data");
 
     // Get Attacking Requests
     const requests = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -93,6 +83,9 @@ export class GmbUnderattackListComponent implements OnInit {
         requester: 1,
         email: 1,
         date: 1,
+        "logs.user": 1,
+        "logs.date": 1,
+        "logs.content": 1,
         checker: 1,
         checkedAt: 1
       },
@@ -100,8 +93,6 @@ export class GmbUnderattackListComponent implements OnInit {
 
     requests.map(req => req.date = new Date(req.date));
     requests.sort((r1, r2) => r2.date.valueOf() - r1.date.valueOf());
-
-    console.log("Finished with requests");
 
     const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbAccount',
@@ -121,8 +112,6 @@ export class GmbUnderattackListComponent implements OnInit {
       }
     }));
     const attackingRequests = requests.filter(req => !myEmailSet.has(req.email) && myCidSet.has(req.cid));
-
-    console.log("Finished with accounts");
 
     // Get Task
     const tasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -150,7 +139,6 @@ export class GmbUnderattackListComponent implements OnInit {
     const totalTaskPlaceIdSet = new Set(tasks.map(task => task.relatedMap.place_id));
     const attackingIndangerRequests = attackingRequests.filter(request => totalTaskPlaceIdSet.has(request.place_id)
       && !safePlaceIdSet.has(request.place_id));
-    console.log("Finished with tasks");
 
     // Get average attacks per day
     const firstAttackDate = new Date(attackingIndangerRequests[attackingIndangerRequests.length - 1].date);
@@ -171,6 +159,7 @@ export class GmbUnderattackListComponent implements OnInit {
             email: request.email,
             date: request.date
           }],
+          logs: request.logs,
           checker: request.checker,
           checkedAt: request.checkedAt
         });
@@ -181,11 +170,14 @@ export class GmbUnderattackListComponent implements OnInit {
           email: request.email,
           date: request.date
         });
-        // Doing this if one check in history will last forever
         // If the current request has one check and there's not one before (so we getting the newest check)
         if (request.checker && request.checkedAt && !dict[index].checker && !dict[index].checkedAt) {
           dict[index].checker = request.checker;
           dict[index].checkedAt = request.checkedAt;
+        }
+        // If there's a longer log, replace the log
+        if (request.logs && (!dict[index].logs || request.logs.length > dict[index].logs.length)) {
+          dict[index].logs = request.logs;
         }
       }
     });
@@ -200,6 +192,7 @@ export class GmbUnderattackListComponent implements OnInit {
         _id: 1,
         "googleListing.place_id": 1,
         "googleAddress.formatted_address": 1,
+        "googleAddress.timezone": 1,
         name: 1,
         score: 1
       }
@@ -211,13 +204,12 @@ export class GmbUnderattackListComponent implements OnInit {
         if (entry.place_id == restaurant.googleListing.place_id) {
           entry['restaurantId'] = restaurant._id;
           entry['address'] = restaurant.googleAddress.formatted_address;
+          entry['timezone'] = restaurant.googleAddress.timezone;
           entry['name'] = restaurant.name;
           entry['score'] = restaurant.score;
         }
       });
     });
-
-    console.log("Finished with restaurants");
 
     this.rows = dict;
     this.apiLoading = false;
@@ -241,26 +233,81 @@ export class GmbUnderattackListComponent implements OnInit {
     const newRequests = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "gmbRequest",
       query: { _id: { $oid: requestId } },
-      projection: { checker: 1, checkedAt: 1 }
+      projection: { 
+        checker: 1,
+        checkedAt: 1,
+        "logs.user": 1,
+        "logs.date": 1,
+        "logs.content": 1
+      }
     }).toPromise();
     const newRequest = newRequests[0];
     // Find the corresponding UI row and update it
-    const index = this.filteredRows.findIndex(row => row.requestInfos[0]._id == requestId);
-    console.log("requestId is: " + requestId + " and the index is: " + index);
+    const index = this.rows.findIndex(row => row.requestInfos[0]._id == requestId);
     if (index >= 0) {
-      const newRow = this.filteredRows[index];
+      const newRow = this.rows[index];
       newRow['checker'] = newRequest['checker'];
       newRow['checkedAt'] = newRequest['checkedAt'];
-      this.filteredRows[index] = newRow;
+      newRow['logs'] = newRequest['logs']; 
+      this.rows[index] = newRow;
       this.filter();
     }
   }
 
-  // Update the database to store the completion information
-  async markRequestChecked(requestInfos: any, name: string) {
-    if (confirm(`Are you sure to complete ${name ? name : "this restaurant"}?`)) {
+  getCurrentOffset(timezone: string) {
+    if (timezone) {
+      const now = new Date();
+      const offset = (new Date(now.toLocaleString('en-US', { timeZone: timezone })).valueOf() 
+                      - new Date(now.toLocaleString('en-US')).valueOf()) / 3600000;
+      if (offset > 0) {
+        return "+" + offset;
+      } else {
+        return offset;
+      }
+    } else {
+      return "+0";
+    }
+  }
+
+  async addLog(r: any) {
+    if (r.content) {
       try {
-        for (const requestInfo of requestInfos) {
+        // Copy and add the new log
+        const newLog = JSON.parse(JSON.stringify(r.logs || []));
+        newLog.push({
+          user: this._global.user.username,
+          date: new Date(),
+          content: r.content
+        });
+        for (const requestInfo of r.requestInfos) {
+          const oldData = {
+            _id: requestInfo._id,
+            logs: r.logs
+          };
+          const newData = {
+            _id: requestInfo._id,
+            logs: newLog
+          };
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
+        }
+        this._global.publishAlert(AlertType.Success, `Log added succesfuly`);
+        await this.refreshSingleEntry(r.requestInfos[0]._id);
+      } catch (error) {
+        console.error('error while adding comment.', error);
+        this._global.publishAlert(AlertType.Danger, `Error while adding comment.`);
+      }
+      r.content = "";
+    } else {
+      console.error("Log cannot be blank");
+      this._global.publishAlert(AlertType.Danger, `Log cannot be blank.`);
+    }
+  }  
+
+  // Update the database to store the completion information
+  async markRequestChecked(r: any) {
+    if (confirm(`Are you sure to complete ${r.name ? r.name : "this restaurant"}?`)) {
+      try {
+        for (const requestInfo of r.requestInfos) {
           const oldData = {
             _id: requestInfo._id
           };
@@ -272,10 +319,37 @@ export class GmbUnderattackListComponent implements OnInit {
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
         }
         this._global.publishAlert(AlertType.Success, `Request marked complete succesfuly`);
-        await this.refreshSingleEntry(requestInfos[0]._id);
+        // await this.refreshSingleEntry(r.requestInfos[0]._id);
+        r.content = 'marked COMPLETED';
+        this.addLog(r);
       } catch (error) {
-        console.error('error creating broadcast', error);
+        console.error('error while marking request complete.', error);
         this._global.publishAlert(AlertType.Danger, `Error while marking request complete.`);
+      }
+    }
+  }
+
+  async markRequestUnchecked(r: any) {
+    if (confirm(`Are you sure to redo ${r.name ? r.name : "this restaurant"}?`)) {
+      try {
+        for (const requestInfo of r.requestInfos) {
+          const oldData = {
+            _id: requestInfo._id,
+            checker: r.checker,
+            checkedAt: r.checkedAt
+          };
+          const newData = {
+            _id: requestInfo._id,
+          };
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
+        }
+        this._global.publishAlert(AlertType.Success, `Request marked incomplete succesfuly`);
+        // await this.refreshSingleEntry(r.requestInfos[0]._id);
+        r.content = 'reverted back to INCOMPLETED';
+        this.addLog(r);
+      } catch (error) {
+        console.error('error while marking request incomplete.', error);
+        this._global.publishAlert(AlertType.Danger, `Error while marking request incomplete.`);
       }
     }
   }

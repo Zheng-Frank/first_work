@@ -15,7 +15,8 @@
         <td>
             <div *ngFor="let badItem of row.badMenuAndHours">
                 {{badItem.menu.name}}
-                <q-hours-viewer *ngIf="badItem.hour" [offsetToEST]="row.restaurant.offsetToEST || 0" [hours]="[badItem.hour]"></q-hours-viewer>
+                <q-hours-viewer *ngIf="badItem.hour" [offsetToEST]="_timezone.getOffsetToEST(row.restaurant.googleAddress.timezone) || 0" 
+                    [hours]="[badItem.hour]"></q-hours-viewer>
                 <div *ngIf="!badItem.hour">Contains bad hour</div>
             </div>
         </td>
