@@ -11,7 +11,7 @@ import { Hour } from '@qmenu/ui';
 })
 export class MonitoringHoursComponent implements OnInit {
   rows = [];
-  constructor(private _api: ApiService, private _global: GlobalService, private _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) { }
 
   now = new Date();
   ngOnInit() {

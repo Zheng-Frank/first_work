@@ -38,7 +38,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   skipAutoInvoicingRestaurants = [];
   restaurantIdMap = {};
-  constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe, private _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe, public _timezone: TimezoneService) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
     while (d < new Date()) {
