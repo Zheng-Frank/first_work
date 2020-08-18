@@ -36,8 +36,8 @@
           <div><small>{{row.restaurant.id}}</small></div>
         </td>
         <td>
-          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | date:'MMM d yyyy'}} -
-            {{row.toDate | date:'MMM d'}}</a>
+          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | date:'MMM d yyyy' : 'EST'}} -
+            {{row.toDate | date:'MMM d' : 'EST'}}</a>
         </td>
         <td>
           {{row.balance | currency:'USD':'symbol'}}
@@ -72,8 +72,8 @@
           <div><small>{{row.restaurant.id}}</small></div>
         </td>
         <td>
-          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | date:'MMM d yyyy'}} -
-            {{row.toDate | date:'MMM d'}}</a>
+          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | date:'MMM d yyyy' : 'EST'}} -
+            {{row.toDate | date:'MMM d' : 'EST'}}</a>
         </td>
         <td>
           {{row.balance | currency:'USD':'symbol'}}
@@ -127,8 +127,8 @@
           <table class="table table-borderless table-sm">
             <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : ''}}">
               <td>
-                <a target="_blank" href="#/invoices/{{invoice._id}}"> {{invoice.fromDate | date:'MMM d yyyy'}} -
-                  {{invoice.toDate | date:'MMM d'}}</a>
+                <a target="_blank" href="#/invoices/{{invoice._id}}"> {{invoice.fromDate | date:'MMM d yyyy' : 'EST'}} -
+                  {{invoice.toDate | date:'MMM d' : 'EST'}}</a>
               </td>
               <td>
                 {{invoice.balance | currency:'USD':'symbol'}}
@@ -144,7 +144,7 @@
                 {{log.username}}
               </td>
               <td>
-                {{log.time | date:'MMM d'}}
+                {{log.time | date:'MMM d' : 'EST'}}
               </td>
               <td>
                 {{log.response}}
@@ -199,7 +199,7 @@
         </td>
         <td>
           <span class="badge badge-danger mx-1" *ngFor="let i of row.overlappedInvoices">{{i.fromDate | date:
-            "shortDate"}}
+            "shortDate" : 'EST'}}
             <span *ngIf="i.isPaymentCompleted && i.balance < 0">
               overpaid
             </span>
@@ -209,8 +209,8 @@
           </span>
         </td>
         <td>
-          <span class="badge badge-danger mx-1" *ngFor="let gap of row.gaps">{{gap.fromDate | date: "shortDate"}} -
-            {{gap.toDate | date: "shortDate"}} ({{gap.orders.length}})</span>
+          <span class="badge badge-danger mx-1" *ngFor="let gap of row.gaps">{{gap.fromDate | date: "shortDate" : 'EST'}} -
+            {{gap.toDate | date: "shortDate" : 'EST'}} ({{gap.orders.length}})</span>
         </td>
         <td>
           <span *ngIf="row.outstandingBalance < 0.005 && row.outstandingBalance > -0.005">0</span>
@@ -237,7 +237,7 @@
 <div *ngFor="let date of startDatesOfEachMonth" class="card text-center hvr-underline-reveal mx-1 mt-2"
   style="width: 20rem; display: inline-block; cursor: pointer;">
   <div class="card-body" routerLink="/invoices/monthly/{{date | date:'y-M-d'}}">
-    <h4 class="card-title">{{date | date:'MMMM y' }}</h4>
+    <h4 class="card-title">{{date | date:'MMMM y' : 'EST'}}</h4>
   </div>
 </div>
 

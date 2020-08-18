@@ -1,7 +1,7 @@
 <div class="container" *ngIf="invoice">
   <!--<h1 style="position:absolute; color: lightgray; font-style: italic;">PAID</h1>-->
   <h3 class="text-center">QMENU INVOICE</h3>
-  <h6 class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate'}} -{{invoice.toDate | date: 'mediumDate'}}
+  <h6 class="text-center">Date Range: {{invoice.fromDate | date: 'mediumDate' : 'EST'}} -{{invoice.toDate | date: 'mediumDate' : 'EST'}}
   </h6>
 
   <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6"
@@ -135,7 +135,7 @@
                 <span *ngIf="rs.rate || !rs.fixed">{{rs.rate || 0 | percentage }}</span>
                 <span *ngIf="rs.rate && rs.fixed">+</span>
                 <span *ngIf="rs.fixed">{{rs.fixed | currency:'USD':'symbol' }}</span>
-                since <span>{{rs.date | date: 'shortDate'}}</span>
+                since <span>{{rs.date | date: 'shortDate' : 'EST'}}</span>
 
                 <span *ngIf="rs.orderType"> for {{rs.orderType}}</span>
               </div>
@@ -252,7 +252,7 @@
     </tr>
 
     <tr *ngFor="let order of invoice.orders" [ngClass]="{'canceled' : order.canceled}">
-      <td style="white-space: nowrap">{{getRestaurantTime(order.createdAt) | date: 'short'}}</td>
+      <td style="white-space: nowrap">{{getRestaurantTime(order.createdAt) | date: 'short' : 'EST'}}</td>
       <td>{{order.orderNumber}}</td>
       <td>{{order.customer}}</td>
       <td>{{order.type}}</td>
