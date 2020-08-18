@@ -21,6 +21,7 @@
   </div>
     <q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
       <tr *tableRowTemplate="let r;">
+        <td>{{filteredRows.indexOf(r) + 1}}</td>
         <td>
           <a target="_blank" href="#/restaurants/{{r.restaurantId}}">{{r.name}}</a>
           <div class="text-muted">
