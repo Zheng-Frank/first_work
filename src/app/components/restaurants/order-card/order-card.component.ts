@@ -19,6 +19,7 @@ export class OrderCardComponent implements OnInit {
   @Output() onAdjust = new EventEmitter();
   @Output() onDisplayCreditCard = new EventEmitter();
   @Output() onReject = new EventEmitter();
+  @Output() onUndoReject = new EventEmitter();
   @Output() onBan = new EventEmitter();
   @Output() onChangeToSelfDelivery = new EventEmitter();
 
@@ -82,8 +83,7 @@ export class OrderCardComponent implements OnInit {
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 3 days
     // if admin and not qmenu collect
-    return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000))
-      || (this.isAdmin() && order.payment.method !== 'QMENU');
+    return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000)) || (this.isAdmin() && order.payment.method !== 'QMENU');
   }
 
   canShowAdjust(order: Order) {
@@ -222,6 +222,10 @@ export class OrderCardComponent implements OnInit {
 
   cancel() {
     this.onReject.emit(this.order);
+  }
+
+  undoCancel() {
+    this.onUndoReject.emit(this.order);
   }
 
   ban() {

@@ -180,6 +180,9 @@ import { SanitizeDomPipe } from './pipes/sanitize-dom.pipe';
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
 import { RestaurantsCourierListComponent } from './components/restaurants/restaurants-courier-list/restaurants-courier-list.component';
 import { from } from 'rxjs';
+import { RestarantChainsComponent } from './components/restaurants/restarant-chains/restarant-chains.component';
+import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
+import { ChainComponent } from './components/chains/chain/chain.component';
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -336,6 +339,9 @@ import { from } from 'rxjs';
     SanitizeDomPipe,
     PostmatesListComponent,
     RestaurantsCourierListComponent,
+    RestarantChainsComponent,
+    ChainsDashboardComponent,
+    ChainComponent,
 
 
 

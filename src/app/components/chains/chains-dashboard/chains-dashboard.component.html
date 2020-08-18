@@ -1,0 +1,32 @@
+<h1 class="text-center">Chains ({{chains.length}})</h1>
+
+<div class="d-flex justify-content-end w-100 mt-4 mb-4">
+  <button class="btn btn-primary" (click)="addChainModal.show()">+ Add Chain</button>
+</div>
+
+<div class="row">
+  <div *ngFor="let chain of chains" class="col-sm-12 col-md-6 col-lg-4 mb-4">
+    <app-chain 
+      [chain]="chain"
+      (onRemoveChain)="handleRemoveChain($event)"
+      (onRemoveAssociatedRestaurant)="handleRemoveAssociatedRestaurant($event)"
+      (onAssociateToChain)="handleAssociateToChain($event)"
+    >
+  </app-chain>
+  </div>
+</div>
+
+<q-modal #addChainModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4>Add chain</h4>
+  <hr>
+  <q-form-builder 
+    [object]="chainInEditting" 
+    [fieldDescriptors]="chainFieldDescriptors" 
+    (submit)="addChain($event)" 
+    (cancel)="addChainModal.hide()" 
+    [showDelete]="false">
+  </q-form-builder>
+</q-modal>

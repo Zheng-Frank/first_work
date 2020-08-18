@@ -24,6 +24,9 @@ export class GmbUnderattackListComponent implements OnInit {
 
   myColumnDescriptors = [
     {
+      label: "Number"
+    },
+    {
       label: "Restaurant Name"
     },
     {

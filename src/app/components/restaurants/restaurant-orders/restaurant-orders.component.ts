@@ -11,6 +11,8 @@ import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { OrderItem } from "@qmenu/ui";
+import { GlobalService } from 'src/app/services/global.service';
+
 declare var $: any;
 declare var io: any;
 
@@ -23,6 +25,7 @@ declare var io: any;
 export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('paymentModal') paymentModal: ModalComponent;
   @ViewChild('rejectModal') rejectModal: ModalComponent;
+  @ViewChild('undoRejectModal') undoRejectModal: ModalComponent;
   @ViewChild('banModal') banModal: ModalComponent;
   @ViewChild('adjustModal') adjustModal: ModalComponent;
 
@@ -40,8 +43,9 @@ export class RestaurantOrdersComponent implements OnInit {
   now: Date = new Date();
   orderEvent: any;
   cancelError = '';
+  undoOrder: any;
 
-  constructor(private _api: ApiService, private _ngZone: NgZone) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
 
   ngOnInit() {
@@ -52,13 +56,10 @@ export class RestaurantOrdersComponent implements OnInit {
     this.populateOrders();
   }
 
-
   showNotifier(orderEvent) {
     this.orderEvent = orderEvent;
     $('#order-notifier').show(1000); setTimeout(() => { $('#order-notifier').hide(1000); }, 10000);
   }
-
-
 
   attachNewOrderStatus(orderStatus) {
     // find the order and attach to status
@@ -133,6 +134,8 @@ export class RestaurantOrdersComponent implements OnInit {
       order.payment = order.paymentObj;
       order.orderStatuses = order.statuses;
       order.id = order._id;
+      order.customerNotice = order.customerNotice || '';
+      order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
       return new Order(order);
@@ -239,6 +242,11 @@ export class RestaurantOrdersComponent implements OnInit {
   handleOnReject(order) {
     this.orderForModal = order;
     this.rejectModal.show();
+  }
+
+  handleOnUndoReject(order) {
+    this.undoOrder = order;
+    this.undoRejectModal.show();
   }
 
   handleOnBan(order) {
@@ -459,6 +467,37 @@ export class RestaurantOrdersComponent implements OnInit {
     }
   }
 
+  async undoRejectOrder() {
+
+    if ((this.undoOrder && this.undoOrder.paymentObj) && 
+       (this.undoOrder.paymentObj.method !== 'QMENU') && 
+       (this.undoOrder.statuses) && 
+       (this.undoOrder.paymentObj.paymentType !== 'STRIPE') && 
+       (!this.undoOrder.courierId)) {
+      await this.populateOrders();
+
+      let copyOrder = { ...this.undoOrder };
+      copyOrder.statuses = copyOrder.statuses.filter(s => s.status !== 'CANCELED');
+      const { customerNotice, restaurantNotie, ..._newOrder } = copyOrder;
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', [
+        {
+          old: this.undoOrder,
+          new: _newOrder
+        }
+      ]).toPromise();
+
+      await this.populateOrders();
+
+      this._global.publishAlert(AlertType.Success, `Undo Cancel done`);
+
+    } else {
+      this._global.publishAlert(AlertType.Danger, `Undo Cancel failed`);
+    }
+
+    this.undoRejectModal.hide();
+  }
+
   async submitAdjustment(adjustment) {
     this.adjustModal.hide();
 
@@ -474,4 +513,5 @@ export class RestaurantOrdersComponent implements OnInit {
       alert('Tech difficulty to adjust order. Please DO NOT retry and call tech support 404-382-9768.');
     }
   }
+
 }
