@@ -28,7 +28,7 @@
             <small>{{r.address}}</small>
           </div>
         </td>
-        <td>{{getCurrentOffset(r.timezone)}}</td>
+        <td>{{_timezone.getOffsetNumber(r.timezone)}}</td>
         <td><app-gmb-account-hotlink [email]="r.gmbAccountEmail"></app-gmb-account-hotlink></td>
         <td>
           <div *ngFor="let req of r.requestInfos">{{req.date | ago : now}} | {{req.email}} | {{req.requester}}</div>

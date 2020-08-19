@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
+import { TimezoneService } from '../../../services/timezone.service';
 import { AlertType } from '../../../classes/alert-type';
 
 @Component({
@@ -51,7 +52,7 @@ export class GmbUnderattackListComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
     this.refresh();
     // this.test();
   }
@@ -251,21 +252,6 @@ export class GmbUnderattackListComponent implements OnInit {
       newRow['logs'] = newRequest['logs']; 
       this.rows[index] = newRow;
       this.filter();
-    }
-  }
-
-  getCurrentOffset(timezone: string) {
-    if (timezone) {
-      const now = new Date();
-      const offset = (new Date(now.toLocaleString('en-US', { timeZone: timezone })).valueOf() 
-                      - new Date(now.toLocaleString('en-US')).valueOf()) / 3600000;
-      if (offset > 0) {
-        return "+" + offset;
-      } else {
-        return offset;
-      }
-    } else {
-      return "+0";
     }
   }
 
