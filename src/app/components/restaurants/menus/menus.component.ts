@@ -40,7 +40,7 @@ export class MenusComponent implements OnInit {
   copyMenu = false;
   copyMenuToRestaurantId;
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
   }

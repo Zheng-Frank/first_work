@@ -56,7 +56,7 @@ export class InvoicesAnualComponent implements OnInit {
     toDate: null
   }];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _timezone: TimezoneService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
+  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
 
   async ngOnInit() {
 

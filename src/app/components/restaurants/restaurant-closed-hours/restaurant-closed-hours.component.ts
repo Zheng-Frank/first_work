@@ -18,7 +18,7 @@ import { from } from 'rxjs';
 export class RestaurantClosedHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, private _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
     this.initHourInEditing();
   }
 

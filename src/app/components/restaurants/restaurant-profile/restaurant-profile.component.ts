@@ -86,7 +86,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     { value: 'CHINESE', text: 'Chinese' }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService, private _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
   }

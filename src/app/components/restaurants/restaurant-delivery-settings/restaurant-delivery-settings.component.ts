@@ -53,7 +53,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.checkingPostmatesAvailability = false;
   }
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, private _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
     // populate couriers
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "courier",

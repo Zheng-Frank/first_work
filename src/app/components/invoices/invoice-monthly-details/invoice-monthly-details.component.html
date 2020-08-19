@@ -1,4 +1,4 @@
-<h1 class="text-center">{{startDate | date:'MMMM y' }}</h1>
+<h1 class="text-center">{{startDate | date:'MMMM y' : 'EST'}}</h1>
 <div>
   <ng-container *ngFor="let state of invoiceStates">
     <label class="{{state.css}}" for="inlineFormCustomSelect">{{state.label}}</label>
@@ -64,7 +64,7 @@
                 </div>
               </td>
               <td class="text-nowrap" routerLink="/invoices/{{invoice._id}}" class="{{getCssClass(invoice)}}">&#9632;
-                {{invoice.fromDate | date:'MMM d'}} - {{invoice.toDate | date:'MMM d'}}</td>
+                {{invoice.fromDate | date:'MMM d' : 'EST'}} - {{invoice.toDate | date:'MMM d' : 'EST'}}</td>
               <td class="text-right">{{invoice.total | currency:'USD':'symbol'}}</td>
 
               <td class="text-right">{{invoice.commission | currency:'USD':'symbol'}}</td>

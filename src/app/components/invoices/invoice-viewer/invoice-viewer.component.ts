@@ -10,7 +10,7 @@ import { TimezoneService } from '../../../services/timezone.service';
 })
 export class InvoiceViewerComponent implements OnInit {
   @Input() invoice: Invoice;
-  constructor(private _ref: ChangeDetectorRef, private _timezone: TimezoneService) { }
+  constructor(private _ref: ChangeDetectorRef, public _timezone: TimezoneService) { }
 
   ngOnInit() {
   }

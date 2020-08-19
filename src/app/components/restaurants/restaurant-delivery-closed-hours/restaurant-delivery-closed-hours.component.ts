@@ -16,7 +16,7 @@ import { Helper } from '../../../classes/helper';
 export class RestaurantDeliveryClosedHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
-  constructor(private _api: ApiService, private _global: GlobalService, private _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
     this.initHourInEditing();
   }
 
