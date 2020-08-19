@@ -225,8 +225,13 @@
     </div>
     <div class="alert alert-info"
         *ngIf="!(invoice.isPaymentSent || invoice.isPaymentCompleted) && isCreditCardOrStripe()">
-        <app-stripe [amount]="invoice.getBalance()" [hidePostalCode]="true" [invoiceId]="invoice._id"
-            (success)="paymentSuccess()"></app-stripe>
+        <app-stripe 
+            [amount]="invoice.getBalance()"
+            [hidePostalCode]="true"
+            [invoiceId]="invoice._id"
+            [currency]="invoiceCurrency"
+            (success)="paymentSuccess()">
+        </app-stripe>
     </div>
 </div>
 
