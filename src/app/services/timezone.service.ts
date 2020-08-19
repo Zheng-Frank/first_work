@@ -15,5 +15,20 @@ export class TimezoneService {
         } else {
             return 0
         }
-    }    
+    }
+    
+    getOffsetNumber(timezone: string) {
+        if (timezone) {
+            const now = new Date();
+            const offset = (new Date(now.toLocaleString('en-US', { timeZone: timezone })).valueOf() 
+                            - new Date(now.toLocaleString('en-US')).valueOf()) / 3600000;
+            if (offset > 0) {
+                return "+" + offset;
+            } else {
+                return offset;
+            }
+        } else {
+            return "+0";
+        }
+    }
 }
