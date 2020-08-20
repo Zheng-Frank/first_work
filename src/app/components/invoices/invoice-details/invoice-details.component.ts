@@ -45,6 +45,13 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   apiRequesting: 'Fax' | 'SMS' | 'Email' | 'Phone';
 
+  currencyMap = {
+    // 'US': 'USD', // this is the default
+    'CA': 'CAD'
+  };
+
+  invoiceCurrency;
+
   @ViewChild('adjustmentModal') adjustmentModal: ModalComponent;
 
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) {
@@ -99,7 +106,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
         this.restaurantId = restaurants[0]._id;
         this.restaurant = restaurants[0];
-        this.invoice.restaurant.paymentMeans = (restaurants[0].paymentMeans || [])
+        this.invoice.restaurant.paymentMeans = (restaurants[0].paymentMeans || []);
+        this.invoiceCurrency = this.currencyMap[restaurants[0].googleAddress && restaurants[0].googleAddress.country]; 
 
         // show only relevant payment means: Send to qMenu = balance > 0
         this.paymentMeans = (restaurants[0].paymentMeans || [])
