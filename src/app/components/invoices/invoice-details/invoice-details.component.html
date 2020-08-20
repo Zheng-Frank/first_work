@@ -51,9 +51,9 @@
                     <tr *ngFor="let log of restaurantLogs"
                         class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}">
 
-                        <td class="text-nowrap">{{log.time | date: 'shortDate' : 'EST'}}
+                        <td class="text-nowrap">{{log.time | adjustedDate: 'shortDate' : 'America/New_York'}}
                             <div class="text-muted">
-                                <small>{{log.time | date: 'shortTime' : 'EST'}}</small>
+                                <small>{{log.time | adjustedDate: 'shortTime' : 'America/New_York'}}</small>
                             </div>
                         </td>
                         <td>{{log.relatedOrders}}</td>
@@ -81,7 +81,7 @@
                 <tbody>
                     <tr *ngFor="let log of invoice.logs">
                         <td>{{log.user}}</td>
-                        <td>{{log.time | date: 'short' : 'EST'}}</td>
+                        <td>{{log.time | adjustedDate: 'short' : 'America/New_York'}}</td>
                         <td>{{log.action}}</td>
                         <td>{{(log.value || log.result?.fax?.status) | json}}</td>
                     </tr>
@@ -185,9 +185,9 @@
                     <tr *ngFor="let log of restaurantLogs"
                         class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}">
 
-                        <td class="text-nowrap">{{log.time | date: 'shortDate' : 'EST'}}
+                        <td class="text-nowrap">{{log.time | adjustedDate: 'shortDate' : 'America/New_York'}}
                             <div class="text-muted">
-                                <small>{{log.time | date: 'shortTime' : 'EST'}}</small>
+                                <small>{{log.time | adjustedDate: 'shortTime' : 'America/New_York'}}</small>
                             </div>
                         </td>
                         <td>{{log.relatedOrders}}</td>
@@ -215,7 +215,7 @@
                 <tbody>
                     <tr *ngFor="let log of invoice.logs">
                         <td>{{log.user}}</td>
-                        <td>{{log.time | date: 'short' : 'EST'}}</td>
+                        <td>{{log.time | adjustedDate: 'short' : 'America/New_York'}}</td>
                         <td>{{log.action}}</td>
                         <td>{{(log.value || log.result?.fax?.status) | json}}</td>
                     </tr>
