@@ -151,4 +151,8 @@ export class RestaurantDashboardComponent implements OnInit {
     }
   }
 
+  navigateTo(page) {
+    this._router.navigate([page]);
+  }
+
 }
