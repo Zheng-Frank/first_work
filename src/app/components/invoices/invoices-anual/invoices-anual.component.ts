@@ -204,7 +204,7 @@ export class InvoicesAnualComponent implements OnInit {
           // USE USD instead of $ because $ causes trouble for text :(
           message += '\n' + (statement.balance > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(statement.balance), 'USD');
           message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
-          message += '\nThank you for your business!'
+          message += '\nThank you for your business!\nDO NOT REPLY THIS MESSAGE'
 
           // we need to append '-' to end of $xxx.xx because of imessage bug
           const matches = message.match(/\.\d\d/g);
