@@ -17,7 +17,7 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
-    this.initHourInEditing();
+    // this.initHourInEditing();
   }
 
   hourInEditing;
@@ -30,6 +30,8 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
     this.hourInEditing = new Hour();
     this.hourInEditing.occurence = 'ONE-TIME';
     const d1 = new Date();
+    d1.setHours(d1.getHours() + (new Date(new Date().toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone })).valueOf() 
+      - new Date(new Date().toLocaleString('en-US')).valueOf()) / 3600000);
     d1.setHours(0, 0, 0, 0);
     this.hourInEditing.fromTime = d1;
     this.hourInEditing.toTime = new Date(d1.valueOf());
