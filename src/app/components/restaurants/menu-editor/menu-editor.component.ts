@@ -4,6 +4,7 @@ import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
+import { TimezoneService } from '../../../services/timezone.service';
 import { environment } from "../../../../environments/environment";
 import { HttpClient } from '@angular/common/http';
 
@@ -16,6 +17,7 @@ export class MenuEditorComponent implements OnInit {
 
   menu: Menu;
   @Input() offsetToEST = 0;
+  @Input() timezone = 'America/New_York';
   @Output() onDelete = new EventEmitter();
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
@@ -26,7 +28,7 @@ export class MenuEditorComponent implements OnInit {
 
   uploadImageError: string;
 
-  constructor(private _api: ApiService, private _http: HttpClient) { }
+  constructor(private _api: ApiService, private _http: HttpClient, private _timezone: TimezoneService) { }
 
   ngOnInit() {
   }
@@ -59,11 +61,9 @@ export class MenuEditorComponent implements OnInit {
     this.menu.hours.sort((a, b) => a.fromTime.valueOf() - b.fromTime.valueOf());
 
     // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
-    const jan = new Date(new Date().getFullYear(), 0, 1);
-    const browserHoursAhead = 5 - (this.offsetToEST || 0) - jan.getTimezoneOffset() / 60;
     hours.map(h => {
-      h.fromTime.setHours(h.fromTime.getHours() + browserHoursAhead);
-      h.toTime.setHours(h.toTime.getHours() + browserHoursAhead);
+      h.fromTime = this._timezone.transformToTargetTime(h.fromTime, this.timezone);
+      h.toTime = this._timezone.transformToTargetTime(h.toTime, this.timezone);
     });
 
     this.clickedAddHour = false;

@@ -48,12 +48,8 @@ export class RestaurantClosedHoursComponent implements OnInit {
     let newClosedHours = JSON.parse(JSON.stringify(this.restaurant.closedHours || []))
     const hourClone = new Hour(this.hourInEditing);
 
-    // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
-    const jan = new Date(new Date().getFullYear(), 0, 1);
-    const browserHoursAhead = 5 - (this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone)) - jan.getTimezoneOffset() / 60;
-
-    hourClone.fromTime.setHours(hourClone.fromTime.getHours() + browserHoursAhead);
-    hourClone.toTime.setHours(hourClone.toTime.getHours() + browserHoursAhead);
+    hourClone.fromTime = this._timezone.transformToTargetTime(hourClone.fromTime, this.restaurant.googleAddress.timezone);
+    hourClone.toTime = this._timezone.transformToTargetTime(hourClone.toTime, this.restaurant.googleAddress.timezone);
 
     newClosedHours.push(hourClone);
     this.toggleEditing();
