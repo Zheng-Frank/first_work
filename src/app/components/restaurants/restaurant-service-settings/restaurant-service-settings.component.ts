@@ -40,7 +40,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   getExcludedPaymentString() {
-    return [this.restaurant.requireZipcode ? 'Zip code is required' : '', this.restaurant.excludeAmex ? 'No American Express' : '', this.restaurant.excludeDiscover ? 'No Discover' : ''].filter(s => s).join(', ');
+    return [this.restaurant.requireZipcode ? 'Zip code is required' : '', this.restaurant.requireBillingAddress ? 'Billing address is required' : '', this.restaurant.excludeAmex ? 'No American Express' : '', this.restaurant.excludeDiscover ? 'No Discover' : ''].filter(s => s).join(', ');
   }
 
   getServies() {
@@ -120,6 +120,11 @@ export class RestaurantServiceSettingsComponent implements OnInit {
 
     const oldR = JSON.parse(JSON.stringify(this.restaurant));
     const newR = JSON.parse(JSON.stringify(this.restaurant));
+
+    // force requireZipcode and requireBillingAddress of Fattmerchant is ON
+
+    this.requireZipcode = this.requireZipcode || this.ccProcessor === 'FATTMERCHANT';
+    this.requireBillingAddress = this.requireBillingAddress || this.ccProcessor === 'FATTMERCHANT';
 
     newR.serviceSettings = this.serviceSettingsInEditing;
     newR.excludeAmex = this.excludeAmex;
