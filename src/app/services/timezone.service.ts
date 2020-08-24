@@ -13,7 +13,7 @@ export class TimezoneService {
             return (new Date(now.toLocaleString('en-US', { timeZone: restaurantTimezone })).valueOf() 
                         - new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })).valueOf()) / 3600000;
         } else {
-            return 0
+            return 0;
         }
     }
     
@@ -30,5 +30,12 @@ export class TimezoneService {
         } else {
             return "+0";
         }
+    }
+
+    transformToTargetTime(date: any, timezone: string) {
+        const clone = new Date(date);
+        const temp = new Date(clone.toLocaleString('en-US', { timeZone: timezone }));
+        clone.setHours(clone.getHours() + clone.getHours() - temp.getHours());
+        return clone;
     }
 }

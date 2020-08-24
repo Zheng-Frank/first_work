@@ -19,7 +19,7 @@ export class RestaurantClosedHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
-    this.initHourInEditing();
+    // this.initHourInEditing();
   }
 
   hourInEditing;
@@ -32,6 +32,8 @@ export class RestaurantClosedHoursComponent implements OnInit {
     this.hourInEditing = new Hour();
     this.hourInEditing.occurence = 'ONE-TIME';
     const d1 = new Date();
+    d1.setHours(d1.getHours() + (new Date(new Date().toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone })).valueOf() 
+      - new Date(new Date().toLocaleString('en-US')).valueOf()) / 3600000);
     d1.setHours(0, 0, 0, 0);
     this.hourInEditing.fromTime = d1;
     this.hourInEditing.toTime = new Date(d1.valueOf());
@@ -46,12 +48,8 @@ export class RestaurantClosedHoursComponent implements OnInit {
     let newClosedHours = JSON.parse(JSON.stringify(this.restaurant.closedHours || []))
     const hourClone = new Hour(this.hourInEditing);
 
-    // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
-    const jan = new Date(new Date().getFullYear(), 0, 1);
-    const browserHoursAhead = 5 - (this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone)) - jan.getTimezoneOffset() / 60;
-
-    hourClone.fromTime.setHours(hourClone.fromTime.getHours() + browserHoursAhead);
-    hourClone.toTime.setHours(hourClone.toTime.getHours() + browserHoursAhead);
+    hourClone.fromTime = this._timezone.transformToTargetTime(hourClone.fromTime, this.restaurant.googleAddress.timezone);
+    hourClone.toTime = this._timezone.transformToTargetTime(hourClone.toTime, this.restaurant.googleAddress.timezone);
 
     newClosedHours.push(hourClone);
     this.toggleEditing();
