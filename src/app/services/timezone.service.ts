@@ -35,7 +35,8 @@ export class TimezoneService {
     transformToTargetTime(date: any, timezone: string) {
         const clone = new Date(date);
         const temp = new Date(clone.toLocaleString('en-US', { timeZone: timezone }));
-        clone.setHours(clone.getHours() + clone.getHours() - temp.getHours());
+        const offset = clone.getHours() - temp.getHours() + (clone.getDate() - temp.getDate()) * 24;
+        clone.setHours(clone.getHours() + offset);
         return clone;
     }
 }
