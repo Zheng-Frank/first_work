@@ -339,4 +339,12 @@ export class GmbUnderattackListComponent implements OnInit {
       }
     }
   }
+
+  createAngularIndentifiableArray(array) {
+    if (array) {
+      return Array.from(array);
+    } else {
+      return [];
+    }
+  }
 }
