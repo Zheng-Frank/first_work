@@ -251,7 +251,20 @@ export class GmbUnderattackListComponent implements OnInit {
       newRow['checkedAt'] = newRequest['checkedAt'];
       newRow['logs'] = newRequest['logs']; 
       this.rows[index] = newRow;
-      this.filter();
+    }
+
+    const index2 = this.filteredRows.findIndex(row => row.requestInfos[0]._id == requestId);
+    if (index2 >= 0) {
+      const newRow = this.filteredRows[index2];
+      newRow['checker'] = newRequest['checker'];
+      newRow['checkedAt'] = newRequest['checkedAt'];
+      newRow['logs'] = newRequest['logs'];
+      if (newRow['checker'] && this.notShowComplete) {
+        this.filteredRows.splice(index2, 1);
+        this.numberOfRestaurant -= 1;
+      } else {
+        this.filteredRows[index2] = newRow;
+      }
     }
   }
 
