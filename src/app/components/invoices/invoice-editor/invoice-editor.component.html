@@ -19,9 +19,9 @@
         <td class="text-center">
           <input class="form-check-input" type="checkbox" [checked]="previousInvoice === invoice" (change)="togglePreviousInvoice(invoice)">
         </td>
-        <td>{{invoice.fromDate | date: 'MMM dd yyyy'}} - {{invoice.toDate | date: 'MMM dd yyyy'}}</td>
-        <td><small *ngIf="invoice.previousInvoiceId">{{invoice.fromDate | date: 'MMM dd'}} - {{invoice.toDate | date:
-            'MMM dd'}}</small></td>
+        <td>{{invoice.fromDate | adjustedDate: 'MMM dd yyyy' : 'America/New_York'}} - {{invoice.toDate | adjustedDate: 'MMM dd yyyy' : 'America/New_York'}}</td>
+        <td><small *ngIf="invoice.previousInvoiceId">{{invoice.fromDate | adjustedDate: 'MMM dd' : 'America/New_York'}} - {{invoice.toDate | adjustedDate:
+            'MMM dd' : 'America/New_York'}}</small></td>
         <td>{{invoice.balance | currency:'USD':'symbol'}}</td>
         <td>{{invoice.isPaymentCompleted ? 'Yes' : 'Payment NOT CLEARED'}}</td>
       </tr>

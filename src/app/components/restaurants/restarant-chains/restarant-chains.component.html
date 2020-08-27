@@ -1,0 +1,24 @@
+<div class="card mb-2 p-3">
+  <h3 class="card-title text-center pt-4 pb-2"><i class="fas fa-archway"></i> Chains (Associated Restaurants)</h3>
+  <div *ngIf="isAlreadyAssociated">
+    <div class="d-flex flex-column align-items-center p-2">
+      <p>This Restaurant is a chain of</p>
+      <h4>{{associatedTo.name}}</h4>
+      <p *ngIf="associatedTo.headquarter">HQ: {{associatedTo.headquarter}}</p>
+
+      <div class="w-100" >
+        <p class="text-left">List of restaurants in this chain</p>
+        <div class="d-flex flex-column mt-4" *ngFor="let restaurant of associatedTo.restaurants">
+          <a class="text-left" routerLink="/restaurants/{{restaurant._id}}" target="__blank">{{restaurant.name}}</a>
+          <small class="text-left">{{restaurant.googleAddress?.formatted_address}}</small>
+        </div>
+      </div>
+      <small *ngIf="associatedTo.restaurants?.length === 0" class="mt-4 text-center">No restaurants in this chain yet</small>
+    </div>
+  </div>
+
+  <div *ngIf="!isAlreadyAssociated">
+    <p class="mt-4 mb-4 text-center">No chain associated to this restaurant yet.</p>
+  </div> 
+
+</div>

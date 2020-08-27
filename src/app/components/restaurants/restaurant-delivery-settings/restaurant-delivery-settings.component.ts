@@ -3,6 +3,8 @@ import { Restaurant, Hour } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
+import { TimezoneService } from "../../../services/timezone.service";
 import { AlertType } from "../../../classes/alert-type";
 
 @Component({
@@ -51,7 +53,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.checkingPostmatesAvailability = false;
   }
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
     // populate couriers
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "courier",
@@ -63,13 +65,13 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   ngOnInit() {
-    const t = Date['parseRestaurantDate']('2000-01-01', this.restaurant.offsetToEST);
+    const t = Date['parseRestaurantDate']('2000-01-01', this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone));
     // t.setMinutes(t.getMinutes() + 60); // let's start with restaurant's 1AM
     const interval = 30;
     for (let i = 0; i < 24 * 60 / interval; i++) {
       let h = t.getHours();
       let m = t.getMinutes();
-      this.deliveryFromTimes.push({ value: new Date(t.getTime()), text: t['restaurant hh:MM a'](this.restaurant.offsetToEST) });
+      this.deliveryFromTimes.push({ value: new Date(t.getTime()), text: t['restaurant hh:MM a'](this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone)) });
       t.setMinutes(t.getMinutes() + interval);
     }
 
@@ -164,14 +166,14 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     // making sure oldR has ALL cared fields and if no value for newR, delete it
     caredFields.map(field => {
-      oldR[field] = "junk";
-      if (!newR[field] || newR[field].length === 0) {
+      oldR[field] = this.restaurant[field];
+      if ((!newR[field] && newR[field] != false) || newR[field].length === 0) {
         delete newR[field];
       }
     });
 
     console.log(oldR, newR);
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
           old: oldR,
@@ -211,7 +213,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   getDeliveryFromString() {
     if (this.restaurant.deliveryFromTime) {
       const colonedStartTime = new Date(this.restaurant.deliveryFromTime.getTime());
-      colonedStartTime.setHours(colonedStartTime.getHours() + (this.restaurant.offsetToEST || 0));
+      colonedStartTime.setHours(colonedStartTime.getHours() + this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone));
       for (const t of this.deliveryFromTimes) {
         if (t.value.valueOf() === colonedStartTime.valueOf()) {
           return t.text;
@@ -239,6 +241,13 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     });
     // sort!
     this.deliveryHours.sort((a, b) => a.fromTime.valueOf() - b.fromTime.valueOf());
+
+    // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
+    hours.map(h => {
+      h.fromTime = this._timezone.transformToTargetTime(h.fromTime, this.restaurant.googleAddress.timezone);
+      h.toTime = this._timezone.transformToTargetTime(h.toTime, this.restaurant.googleAddress.timezone);
+    });
+
     this.clickedAddHour = false;
   }
 

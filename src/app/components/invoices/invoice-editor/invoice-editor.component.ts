@@ -71,7 +71,6 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
           },
           projection: {
             name: 1,
-            offsetToEST: 1,
             rateSchedules: 1,
             logs: 1
           },
@@ -105,7 +104,6 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
             isPaymentCompleted: 1,
             isPaymentSent: 1,
             isCanceled: 1,
-            "restaurant.offsetToEST": 1,
             previousInvoiceId: 1,
             previousBalance: 1
           },

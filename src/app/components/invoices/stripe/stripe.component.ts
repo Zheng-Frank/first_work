@@ -13,6 +13,7 @@ export class StripeComponent implements OnInit {
   @Input() amount = 1.0;
   @Input() hidePostalCode = false;
   @Input() invoiceId = 0;
+  @Input() currency;
 
   @Output() success = new EventEmitter();
 
@@ -85,7 +86,8 @@ export class StripeComponent implements OnInit {
         const payload = {
           id: self.invoiceId,
           stripeToken: result.token,
-          amount: self.amount
+          amount: self.amount,
+          currency: self.currency
         };
         console.log('paylod', payload)
         self._api.post(environment.legacyApiUrl + 'invoice/pay', payload).subscribe(

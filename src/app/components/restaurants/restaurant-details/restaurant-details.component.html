@@ -32,7 +32,7 @@
 
 
   <div *qIf="displayGooglePIN">
-    <send-google-pin [restaurantId]="restaurant._id"></send-google-pin>
+    <send-google-pin [restaurantId]="restaurant._id" (sendToLog) = "toggleGooglePIN()"></send-google-pin>
   </div>
 
   <div *qIf="displayTextReply">
@@ -115,6 +115,9 @@
         <div class="col-xl-6" *ngIf="isSectionVisible('rateSchedules')">
           <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
         </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('restaurantChains')">
+          <app-restarant-chains [restaurant]="restaurant" ></app-restarant-chains>
+        </div>
       </div>
       <div *ngIf="activeTab === 'Logs'">
         <app-restaurant-logs [restaurant]="restaurant"></app-restaurant-logs>
@@ -130,6 +133,9 @@
       </div>
       <div *ngIf="activeTab === 'Web Template'">
         <app-restaurant-web-template [restaurant]="restaurant"></app-restaurant-web-template>
+      </div>
+      <div *ngIf="activeTab === 'API Logs'">
+        <app-restaurant-api-logs [restaurant]="restaurant"></app-restaurant-api-logs>
       </div>
     </div>
   </div>

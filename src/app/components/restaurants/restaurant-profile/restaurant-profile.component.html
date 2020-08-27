@@ -78,7 +78,7 @@
 						</tr>
 						<tr>
 							<th class="text-right">Time Zone</th>
-							<td class="pl-1">{{getTimeZoneText()}}</td>
+							<td class="pl-1">{{restaurant.googleAddress.timezone}}({{_timezone.getOffsetNumber(restaurant.googleAddress.timezone)}})</td>
 						</tr>
 						<tr>
 							<th class="text-right">Sales Agent</th>
@@ -262,16 +262,6 @@
 								<select class="form-control" [(ngModel)]="preferredLanguage">
 									<option *ngFor="let language of preferredLanguages" [ngValue]="language">
 										{{ language.text }}
-									</option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Time Zone</th>
-							<td class="pl-1">
-								<select class="form-control" [(ngModel)]="timeZone">
-									<option *ngFor="let zone of timeZones" [ngValue]="zone">
-										{{ zone.text }}
 									</option>
 								</select>
 							</td>

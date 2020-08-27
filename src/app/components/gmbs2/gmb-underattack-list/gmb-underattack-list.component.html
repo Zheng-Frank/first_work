@@ -21,26 +21,40 @@
   </div>
     <q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
       <tr *tableRowTemplate="let r;">
+        <td>{{filteredRows.indexOf(r) + 1}}</td>
         <td>
           <a target="_blank" href="#/restaurants/{{r.restaurantId}}">{{r.name}}</a>
           <div class="text-muted">
             <small>{{r.address}}</small>
           </div>
         </td>
+        <td>{{_timezone.getOffsetNumber(r.timezone)}}</td>
         <td><app-gmb-account-hotlink [email]="r.gmbAccountEmail"></app-gmb-account-hotlink></td>
         <td>
           <div *ngFor="let req of r.requestInfos">{{req.date | ago : now}} | {{req.email}} | {{req.requester}}</div>
         </td>  
         <td>{{r.score | number : '1.0-0'}}</td>
+        <td id="limitedWidth">
+          <div *ngFor="let log of r.logs">
+            &#8226; {{log.user}} on {{log.date | adjustedDate : 'M/dd' : r.timezone}}: {{log.content}}
+          </div>
+          <table><tr>
+              <td><input type="text" class="form-control" placeholder="Add a new log ..." [(ngModel)]="r.content" 
+                (keydown.enter)="addLog(r)"></td>
+              <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addLog(r)">Submit</button></td>         
+          </tr></table>
+        </td>
         <td>
-          <button class="btn btn-primary" *ngIf="!r.checker" (click)="markRequestChecked(r.requestInfos, r.name)">
+          <button class="btn btn-primary" *ngIf="!r.checker" (click)="markRequestChecked(r)">
             Complete
           </button>
           <div *ngIf="r.checker && r.checkedAt">
-            Completed
+            <button class="btn btn-outline-primary" (click)="markRequestUnchecked(r)">
+              Redo
+            </button>
             <div class="text-muted">
               <small>
-                by {{r.checker}} at <br> {{r.checkedAt | ago : now}}
+                completed by {{r.checker}} at {{r.checkedAt | ago : now}}
               </small>
             </div>
           </div>

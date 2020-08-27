@@ -45,9 +45,12 @@ import { InvoiceOptionEditorComponent } from './components/invoices/invoice-opti
 import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { CacheService } from './services/cache.service';
+import { PrunedPatchService } from './services/prunedPatch.service';
+import { TimezoneService } from './services/timezone.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
+import { RestaurantApiLogsComponent } from './components/restaurants/restaurant-api-logs/restaurant-api-logs.component'; 
 import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
@@ -110,7 +113,7 @@ import { OrderRejectBarComponent } from './components/restaurants/order-reject-b
 import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
 import { RestaurantWebSettingsComponent } from './components/restaurants/restaurant-web-settings/restaurant-web-settings.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
-import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
+import { adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
 import { RestaurantDeliveryClosedHoursComponent } from './components/restaurants/restaurant-delivery-closed-hours/restaurant-delivery-closed-hours.component';
 import { RestaurantClosedHoursComponent } from './components/restaurants/restaurant-closed-hours/restaurant-closed-hours.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
@@ -176,9 +179,13 @@ import { BroadcastingEditorComponent } from './components/broadcasting/broadcast
 import { SanitizeDomPipe } from './pipes/sanitize-dom.pipe';
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
 import { RestaurantsCourierListComponent } from './components/restaurants/restaurants-courier-list/restaurants-courier-list.component';
+import { from } from 'rxjs';
+import { RestarantChainsComponent } from './components/restaurants/restarant-chains/restarant-chains.component';
+import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
+import { ChainComponent } from './components/chains/chain/chain.component';
 @NgModule({
   declarations: [
-    appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
+    adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
     MonitoringScriptComponent,
@@ -216,6 +223,7 @@ import { RestaurantsCourierListComponent } from './components/restaurants/restau
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
     RestaurantOrdersComponent,
+    RestaurantApiLogsComponent,
     RestaurantContactsComponent,
     RestaurantRateSchedulesComponent,
     RestaurantPaymentMeansComponent,
@@ -331,6 +339,9 @@ import { RestaurantsCourierListComponent } from './components/restaurants/restau
     SanitizeDomPipe,
     PostmatesListComponent,
     RestaurantsCourierListComponent,
+    RestarantChainsComponent,
+    ChainsDashboardComponent,
+    ChainComponent,
 
 
 
@@ -354,6 +365,8 @@ import { RestaurantsCourierListComponent } from './components/restaurants/restau
     ApiService,
     TaskService,
     CacheService,
+    PrunedPatchService,
+    TimezoneService,
     CrawlTemplateService,
     AmazonConnectService
   ],

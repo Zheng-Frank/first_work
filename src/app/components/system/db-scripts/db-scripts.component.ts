@@ -319,52 +319,6 @@ export class DbScriptsComponent implements OnInit {
 
   }
 
-  async changeAZTimezone() {
-    const batchSize = 500;
-    const newOffsetToEST = -2
-    const rtList = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: {
-          "$or": [
-            {
-              "googleAddress.administrative_area_level_1": "AZ"
-            },
-            {
-              "googleAddress.state": "AZ"
-            }
-          ]
-        },
-        projection: {
-          name: 1,
-          "googleAddress": 1,
-          offsetToEST: 1
-        },
-        skip: rtList.length,
-        limit: batchSize
-      }).toPromise();
-      rtList.push(...batch);
-      if (batch.length === 0 || batch.length < batchSize) {
-        break;
-      }
-    }
-
-    let updatedRestaurantPairs = [];
-    for (let r of rtList) {
-      let newR = JSON.parse(JSON.stringify(r));
-      newR.offsetToEST = newOffsetToEST;
-      updatedRestaurantPairs.push({
-        old: { _id: r._id },
-        new: { _id: r._id, offsetToEST: newOffsetToEST }
-      })
-      console.log(updatedRestaurantPairs);
-      if (updatedRestaurantPairs.length > 0) {
-        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurantPairs).toPromise();
-      }
-    }
-
-  }
   async purge(dbName) {
     if (['job', 'event'].indexOf(dbName) < 0) {
       alert('Not supported');
@@ -1246,7 +1200,6 @@ export class DbScriptsComponent implements OnInit {
           },
           projection: {
             "restaurant.name": 1,
-            "restaurant.offsetToEST": 1,
             createdAt: 1,
             orders: 1
           },
@@ -2045,16 +1998,14 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async removeEmptySizeOption() {
-    const restaurantIds = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const restaurantIds = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       projection: {
         name: 1,
       },
-      limit: 6000
-    }).toPromise();
+    }, 6000)
 
     const batchSize = 50;
-
     const batchedIds = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedIds) {
@@ -2070,18 +2021,46 @@ export class DbScriptsComponent implements OnInit {
           "menus": 1
         },
         limit: batchSize
-      }).toPromise()).map(r => new Restaurant(r));
+      }).toPromise());
 
-      const badRestaurants = restaurants.filter(r => r.menus.some(menu => menu.mcs.some(mc => mc.mis.some(mi => !mi || !mi.sizeOptions || mi.sizeOptions.length === 0 || mi.sizeOptions.some(so => !so.name)))));
-      console.log(badRestaurants);
+      restaurants.map(r => {
+        if (r.menus && !Array.isArray(r.menus)) {
+          throw "menus not array"
+        }
+        (r.menus || []).map(m => {
+          if (m && m.mcs && !Array.isArray(m.mcs)) {
+            //console.log(r._id);
+            console.log(m)
+            throw "mcs not array"
+          }
+          (m.mcs || []).map(mc => {
+            if (mc && mc.mis && !Array.isArray(mc.mis)) {
+              console.log(mc)
+              throw "mis not array"
+            }
+            (mc.mis || []).map(mi => {
+              if (mi && mi.sizeOptions && !Array.isArray(mi.sizeOptions)) {
+                console.log(r._id, mi, mc)
+                //throw "sizeOptions not array"
+              }
+            })
+          })
+        })
+      })
+
+
+      const badRestaurants = restaurants.filter(r => {
+        return (r.menus || []).some(menu => (menu.mcs || []).some(mc => (mc.mis || []).some(mi => !mi || !mi.sizeOptions || !Array.isArray(mi.sizeOptions) || mi.sizeOptions.length === 0 || mi.sizeOptions.some(so => !so || !so.name))))
+      });
       if (badRestaurants.length > 0) {
         // patch!
         const fixedMenu = function (restaurant) {
+          console.log(restaurant._id);
           const clone = JSON.parse(JSON.stringify(restaurant));
           // remove null menu item
-          clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions)));
+          clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions && Array.isArray(mi.sizeOptions))));
           // fix size options
-          clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so.name))));
+          clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so && so.name))));
           // fix menu 
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions.length > 0)));
           return clone.menus;
@@ -3000,14 +2979,14 @@ export class DbScriptsComponent implements OnInit {
 
   }
 
-  async getRTsClosedForLong(){
+  async getRTsClosedForLong() {
 
     let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: 'restaurant',
       projection: {
         name: 1,
         _id: 1,
-        closedHours: 1,        
+        closedHours: 1,
         disabled: 1,
         score: 1,
       },
@@ -3017,41 +2996,41 @@ export class DbScriptsComponent implements OnInit {
     }, 3000);
 
 
-    let closedRT=[]
+    let closedRT = []
     restaurants = restaurants.filter(r => !r.disabled)
 
     restaurants.forEach(e => {
 
-      let closed =(e.closedHours || []).some(hour => {
-        if(hour){
+      let closed = (e.closedHours || []).some(hour => {
+        if (hour) {
 
           let from = new Date(hour.fromTime);
           let to = new Date(hour.toTime);
-  
+
           let span = to.getTime() - from.getTime();
           if (span > 3 * 30 * 24 * 3600000) {
             return true;
           }
         }
-      })  
-      
-      if(closed){
+      })
+
+      if (closed) {
         closedRT.push(e._id);
       }
 
-      
-      
+
+
     });
     console.log('closedRT', closedRT)
-  }   
+  }
 
-  async deletePastClosedHours(){
+  async deletePastClosedHours() {
     let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: 'restaurant',
       projection: {
         name: 1,
         _id: 1,
-        closedHours: 1,        
+        closedHours: 1,
         disabled: 1,
         score: 1,
       },
@@ -3064,15 +3043,15 @@ export class DbScriptsComponent implements OnInit {
     restaurants.map(r => {
       let updated = false;
       r.closedHours = r.closedHours || [];
-      for(let i = r.closedHours.length - 1; i >= 0; i--){
+      for (let i = r.closedHours.length - 1; i >= 0; i--) {
         console.log('rt', r._id);
-        if(r.closedHours[i] && r.closedHours[i].toTime){
+        if (r.closedHours[i] && r.closedHours[i].toTime) {
           let toTime = new Date(r.closedHours[i].toTime);
           let now = new Date();
-          let  Difference_In_Time = now.getTime() - toTime.getTime();   
+          let Difference_In_Time = now.getTime() - toTime.getTime();
           // To calculate the no. of days between two dates 
-          let  Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24); 
-          if(Difference_In_Days > 1){
+          let Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+          if (Difference_In_Days > 1) {
             r.closedHours.splice(i, 1);
             updated = true;
           }
@@ -3092,13 +3071,13 @@ export class DbScriptsComponent implements OnInit {
     }
 
   }
-    
 
 
 
 
 
-  
+
+
 
 
 }

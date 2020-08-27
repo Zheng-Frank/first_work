@@ -40,7 +40,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
-
+    restaurantChains: ['ADMIN', 'CSR']
   }
 
   knownUsers = [];
@@ -59,6 +59,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
       "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
       "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+      "API Logs": ['ADMIN'],
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
@@ -104,6 +105,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           blockedZipCodes: 1,
           ccProcessingFlatFee: 1,
           ccProcessingRate: 1,
+          ccProcessor: 1,
           channels: 1,
           closedDays: 1,
           closedHours: 1,
@@ -137,7 +139,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           name: 1,
           notes: 1,
           notification: 1,
-          offsetToEST: 1,
           paymentMeans: 1,
           people: 1,
           pickupMinimum: 1,
@@ -199,7 +200,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         );
     }
   }
-
 
   computeRestaurantStatus(restaurant: Restaurant) {
     return {
@@ -274,7 +274,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.displayGooglePIN = !this.displayGooglePIN;
   }
 
-
   getAddress() {
     return (this.restaurant.address || {});
   }
@@ -330,6 +329,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       + (address.route ? ' ' + address.route : '') +
       (address.apt ? ', ' + address.apt : '');
   }
+
   getLine2(address: Address) {
     if (!address) {
       return '';

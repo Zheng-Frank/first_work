@@ -19,7 +19,7 @@ export const environment = {
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
   stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg',
   testOrderId: "5af213f552d5d11400e35550",
-  shortUrlBase: "https://2vevc851r7.execute-api.us-east-1.amazonaws.com/dev/"
+  shortUrlBase: "https://2vevc851r7.execute-api.us-east-1.amazonaws.com/dev/",
 
   // production: true,
   // env: "prod",
@@ -32,7 +32,6 @@ export const environment = {
   // taskUrl: "https://qtask.ngrok.io/",
   // invoicingApiUrl: "http://localhost:8888/",
   // gmbNgrok: "https://gmb.ngrok.io/",
-  // socketUrl: 'https://api.myqmenu.com/',
   // bizUrl: 'https://biz.qmenu.us/',
   // customerUrl: 'https://qmenu.us/',
   // thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',

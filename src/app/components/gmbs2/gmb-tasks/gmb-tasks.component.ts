@@ -48,6 +48,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "request.voHistory.time": 1,
                 "request.voHistory.options.verificationMethod": 1,
                 "request.voHistory.options.emailData.domainName": 1,
+                "notification_status": 1,
             }
         }, 1000);
 
@@ -331,6 +332,35 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         }
     }
 
+    // Send Google PIN message.
+    sendingGooglePinMessage = false;
+    triggerSendGooglePinMessage(){
+        this.sendingGooglePinMessage = !this.sendingGooglePinMessage;
+    }
+
+    logSendingGooglePinMessage(event){
+        const notification_status_new = {
+            user: this._global.user.username,
+            time: new Date(),
+            channels: event.channels,
+            comments: event.comments
+        }
+        if (this.modalTask.notification_status){
+            this.modalTask.notification_status.unshift(notification_status_new);
+        }
+        else{
+            this.modalTask.notification_status = [notification_status_new];
+        }
+        this.update(this.modalTask, "notification_status", this.modalTask.notification_status);
+        this.triggerSendGooglePinMessage();
+    }
+
+    showCompleteNotificationHistory = false;
+
+    triggerCompleteNotificationHistory(){
+        this.showCompleteNotificationHistory = !this.showCompleteNotificationHistory;
+    }
+
 
     join(values) {
         return (values || []).join(', ')
@@ -568,7 +598,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 newTask = JSON.parse(JSON.stringify(oldTask));
                 delete obj[key];
             }
-
             await this._api.patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }]);
             await this.refreshSingleTask(task._id);
 

@@ -1,5 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
@@ -29,16 +30,17 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   excludeDiscover = false;
   requireZipcode = false;
   requireBillingAddress = false;
-  taxBeforePromotion =false;
+  taxBeforePromotion = false;
+  ccProcessor;
 
   stripePublishableKey;
   stripeSecretKey;
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPacth: PrunedPatchService) {
   }
 
   getExcludedPaymentString() {
-    return [this.restaurant.requireZipcode ? 'Zip code is required' : '', this.restaurant.excludeAmex ? 'No American Express' : '', this.restaurant.excludeDiscover ? 'No Discover' : ''].filter(s => s).join(', ');
+    return [this.restaurant.requireZipcode ? 'Zip code is required' : '', this.restaurant.requireBillingAddress ? 'Billing address is required' : '', this.restaurant.excludeAmex ? 'No American Express' : '', this.restaurant.excludeDiscover ? 'No Discover' : ''].filter(s => s).join(', ');
   }
 
   getServies() {
@@ -77,15 +79,16 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     this.excludeAmex = this.restaurant.excludeAmex;
     this.excludeDiscover = this.restaurant.excludeDiscover;
     this.taxBeforePromotion = this.restaurant.taxBeforePromotion;
+    this.ccProcessor = this.restaurant['ccProcessor'];
     this.requireZipcode = this.restaurant.requireZipcode;
-    this.requireBillingAddress= this.restaurant.requireBillingAddress;
+    this.requireBillingAddress = this.restaurant.requireBillingAddress;
     this.stripePublishableKey = this.restaurant.stripePublishableKey;
     this.stripeSecretKey = this.restaurant.stripeSecretKey;
 
     this.serviceSettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.serviceSettings || []));
     // make sure it has all service types
     this.serviceTypes.map(st => {
-      if (!this.serviceSettingsInEditing.some(serviceSetting => (serviceSetting.name? serviceSetting.name: '') === st)) {
+      if (!this.serviceSettingsInEditing.some(serviceSetting => (serviceSetting.name ? serviceSetting.name : '') === st)) {
         this.serviceSettingsInEditing.push({ name: st, paymentMethods: [] });
       }
     });
@@ -118,16 +121,22 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     const oldR = JSON.parse(JSON.stringify(this.restaurant));
     const newR = JSON.parse(JSON.stringify(this.restaurant));
 
+    // force requireZipcode and requireBillingAddress of Fattmerchant is ON
+
+    this.requireZipcode = this.requireZipcode || this.ccProcessor === 'FATTMERCHANT';
+    this.requireBillingAddress = this.requireBillingAddress || this.ccProcessor === 'FATTMERCHANT';
+
     newR.serviceSettings = this.serviceSettingsInEditing;
     newR.excludeAmex = this.excludeAmex;
     newR.excludeDiscover = this.excludeDiscover;
     newR.taxBeforePromotion = this.taxBeforePromotion;
+    newR.ccProcessor = this.ccProcessor ? this.ccProcessor : undefined;
     newR.requireZipcode = this.requireZipcode;
     newR.requireBillingAddress = this.requireBillingAddress;
     newR.stripePublishableKey = (this.stripePublishableKey || '').trim();
-    newR.stripeSecretKey = (this.stripeSecretKey||'').trim();
+    newR.stripeSecretKey = (this.stripeSecretKey || '').trim();
 
-    this._api
+    this._prunedPacth
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
           old: oldR,
@@ -140,10 +149,12 @@ export class RestaurantServiceSettingsComponent implements OnInit {
             AlertType.Success,
             "Updated successfully"
           );
-          
+
           this.restaurant.serviceSettings = this.serviceSettingsInEditing;
           this.restaurant.excludeAmex = this.excludeAmex;
           this.restaurant.excludeDiscover = this.excludeDiscover;
+          this.restaurant.taxBeforePromotion = this.taxBeforePromotion;
+          this.restaurant['ccProcessor'] = this.ccProcessor;
           this.restaurant.requireZipcode = this.requireZipcode;
           this.restaurant.requireBillingAddress = this.requireBillingAddress;
           this.restaurant.stripePublishableKey = this.stripePublishableKey;
@@ -177,6 +188,14 @@ export class RestaurantServiceSettingsComponent implements OnInit {
 
   toggleTaxBeforePromotion() {
     this.taxBeforePromotion = !this.taxBeforePromotion;
+  }
+
+  toggleCcProcessor() {
+    if (this.ccProcessor) {
+      this.ccProcessor = undefined;
+    } else {
+      this.ccProcessor = 'FATTMERCHANT';
+    }
   }
 
 

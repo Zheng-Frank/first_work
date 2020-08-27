@@ -19,6 +19,7 @@ export class OrderCardComponent implements OnInit {
   @Output() onAdjust = new EventEmitter();
   @Output() onDisplayCreditCard = new EventEmitter();
   @Output() onReject = new EventEmitter();
+  @Output() onUndoReject = new EventEmitter();
   @Output() onBan = new EventEmitter();
   @Output() onChangeToSelfDelivery = new EventEmitter();
 
@@ -82,8 +83,7 @@ export class OrderCardComponent implements OnInit {
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 3 days
     // if admin and not qmenu collect
-    return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000))
-      || (this.isAdmin() && order.payment.method !== 'QMENU');
+    return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000)) || (this.isAdmin() && order.payment.method !== 'QMENU');
   }
 
   canShowAdjust(order: Order) {
@@ -224,6 +224,10 @@ export class OrderCardComponent implements OnInit {
     this.onReject.emit(this.order);
   }
 
+  undoCancel() {
+    this.onUndoReject.emit(this.order);
+  }
+
   ban() {
     this.onBan.emit(this.order);
   }
@@ -244,5 +248,32 @@ export class OrderCardComponent implements OnInit {
 
   isAdmin() {
     return this._global.user.roles.some(r => r === 'ADMIN');
+  }
+
+  getUpdatedStatuses() {
+    const order: any = { ...this.order };
+    (order.delivery.updates || []).sort((a, b) => (new Date(a.created)).valueOf() - (new Date(b.created)).valueOf());
+    const updates = (order.delivery.updates || []).filter((update, index, self) => self.findIndex(_update => (_update.status === update.status)) === index)
+
+    return updates;
+  }
+
+  postmatesStatus(status) {
+    switch(status) {
+      case 'pickup':
+        return 'Picking up the food';
+
+      case 'pickup_complete':
+        return 'Picked up the food';
+
+      case 'delivered':
+        return 'Delivered'
+
+      case 'dropoff':
+        return 'Delivering';
+
+      case 'delivered':
+        return 'Delivered';
+    }
   }
 }

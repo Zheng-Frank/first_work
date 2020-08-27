@@ -36,7 +36,7 @@
 
 <q-table [rows]="getFilteredTransactions()" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
   <tr *tableRowTemplate="let transaction;">
-    <th>{{transactions.indexOf(transaction) + 1}}</th>
+    <td>{{getFilteredTransactions().indexOf(transaction) + 1}}</td>
     <td>{{transaction.time | date : 'shortDate'}}</td>
     <td>{{transaction.payer}}</td>
     <td>{{transaction.payee}}</td>

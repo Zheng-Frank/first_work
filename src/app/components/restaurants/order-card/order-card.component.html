@@ -29,11 +29,11 @@
       <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
     </h5>
     <div class="text-sm-center card-text">
-      <span>{{getSubmittedTime(order) | MMMd : order.restaurant.offsetToEST}}
-        {{getSubmittedTime(order) | shortTime: restaurant.offsetToEST}}</span>
+      <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</span>
       |
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
+      <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
     </div>
     <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
       <strong>{{order.restaurantNotice}}</strong>
@@ -54,8 +54,7 @@
     </div>
     <div *ngIf="order.timeToDeliver" class="text-sm-center card-text alert-success">
       <span class="fa fa-clock-o"></span>
-      <strong> scheduled: {{order.timeToDeliver | MMMd : restaurant.offsetToEST}}
-        {{order.timeToDeliver | shortTime: restaurant.offsetToEST}}</strong>
+      <strong> scheduled: {{order.timeToDeliver | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</strong>
     </div>
     <div *ngIf="order.delivery?.courier" class="text-center">
       <hr>
@@ -68,10 +67,12 @@
           <div>
             <span class="label">Driver</span><span class="value">{{order.delivery?.courier?.name}}</span>
           </div>
+          <!-- 
           <div>
             <span class="label">Phone</span><span
               class="value">{{(order.delivery?.courier?.phone_number || '').slice(1) | tel}}</span>
           </div>
+           -->
           <div>
             <span class="label">Status</span><span
               class="value text-uppercase {{order.delivery?.status === 'canceled' ? 'text-danger' : ''}}">{{order.delivery?.status}}</span>
@@ -80,8 +81,9 @@
               (click)="displayingDeliveryDetails = !displayingDeliveryDetails">{{displayingDeliveryDetails ? 'less...' : 'more...'}}</button>
           </div>
           <div *ngIf="displayingDeliveryDetails">
-            <div *ngFor="let record of order.delivery.updates || []">
-              <span>{{record.created | shortTime: restaurant.offsetToEST}}</span>&nbsp;<span class="value">{{record.status}}</span>
+            <div *ngFor="let record of getUpdatedStatuses()">
+              <span>{{record.created | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}</span>&nbsp;<span
+                class="value">{{postmatesStatus(record.status)}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
           </div>
@@ -112,8 +114,10 @@
         <hr>
         <a role="button" class="text-danger text-nowrap card-link" (click)="ban()">
           <i class="fa fa-thumbs-down"></i> Ban</a>
-        <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order)">
+        <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order) && !isCanceled(order)">
           <i class="fa fa-times"></i> Cancel</a>
+        <a role="button" class="text-danger text-nowrap card-link" (click)="undoCancel()" *ngIf="canCancel(order) && isCanceled(order)">
+          <i class="fa fa-times"></i> Undo Cancel</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="print()" *ngIf="canPrint()">
           <i class="fa fa-print"></i> Print</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="fax()" *ngIf="canFax()">
