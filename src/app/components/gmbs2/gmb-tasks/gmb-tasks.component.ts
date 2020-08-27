@@ -72,6 +72,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     relatedTasks = [];
 
     qmenuDomains = new Set();
+    publishedCids = new Set();
     modalTask;
     restaurant;
     verificationOptions = [];
@@ -334,21 +335,21 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     // Send Google PIN message.
     sendingGooglePinMessage = false;
-    triggerSendGooglePinMessage(){
+    triggerSendGooglePinMessage() {
         this.sendingGooglePinMessage = !this.sendingGooglePinMessage;
     }
 
-    logSendingGooglePinMessage(event){
+    logSendingGooglePinMessage(event) {
         const notification_status_new = {
             user: this._global.user.username,
             time: new Date(),
             channels: event.channels,
             comments: event.comments
         }
-        if (this.modalTask.notification_status){
+        if (this.modalTask.notification_status) {
             this.modalTask.notification_status.unshift(notification_status_new);
         }
-        else{
+        else {
             this.modalTask.notification_status = [notification_status_new];
         }
         this.update(this.modalTask, "notification_status", this.modalTask.notification_status);
@@ -357,7 +358,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     showCompleteNotificationHistory = false;
 
-    triggerCompleteNotificationHistory(){
+    triggerCompleteNotificationHistory() {
         this.showCompleteNotificationHistory = !this.showCompleteNotificationHistory;
     }
 
@@ -437,16 +438,17 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.rowModal.show();
 
         this.preferredVerificationOption = undefined;
-        const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
-            resource: "gmbAccount",
-            query: { "locations.cid": theTask.relatedMap.cid },
-            limit: 100000,
-            projection: {
-                "locations.cid": 1,
-                "locations.status": 1
-            }
-        }).toPromise();
-        this.isPublished = relatedAccounts.some(acct => acct.locations.some(loc => loc.cid === theTask.relatedMap.cid && loc.status === 'Published'));
+        // const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
+        //     resource: "gmbAccount",
+        //     query: { "locations.cid": theTask.relatedMap.cid },
+        //     limit: 100000,
+        //     projection: {
+        //         "locations.cid": 1,
+        //         "locations.status": 1
+        //     }
+        // }).toPromise();
+        // this.isPublished = relatedAccounts.some(acct => acct.locations.some(loc => loc.cid === theTask.relatedMap.cid && loc.status === 'Published'));
+        this.isPublished = this.publishedCids.has(theTask.relatedMap.cid);
 
         this.taskScheduledAt = theTask.scheduledAt || new Date();
         const verificationOptions = (((theTask.request.voHistory || [])[0] || { options: [] }).options || []).filter(vo => vo.verificationMethod !== 'SMS').map(vo => ({
@@ -562,6 +564,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 this.populateTasks(),
                 this.populatePostcardId(),
                 this.populateQMDomains(),
+                this.populatePublishedCids()
             ]);
 
         } catch (error) {
@@ -716,6 +719,20 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.qmenuDomains = await this._global.getCachedDomains();
     }
 
+    private async populatePublishedCids() {
+        const allPublished = await this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "gmbAccount",
+            query: {},
+            limit: 100000,
+            projection: {
+                _id: 0,
+                "locations.cid": 1,
+                "locations.status": 1
+            }
+        }).toPromise();
+        allPublished.forEach(acct => acct.locations.forEach(loc => { if (loc.status === "Published") this.publishedCids.add(loc.cid) }));
+    }
+
     ngOnChanges(changes: SimpleChanges) {
 
     }
@@ -768,12 +785,14 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         if (this.shouldCall) {
             // No qMenu emails and having phone call options
             this.filteredTasks = this.filteredTasks.filter(t => {
-                const gmb = ((this.restaurantDict[t.relatedMap.restaurantId] || {}).googleListing || {}).gmbOwner;
+                // const gmb = ((this.restaurantDict[t.relatedMap.restaurantId] || {}).googleListing || {}).gmbOwner;
+                const published = this.publishedCids.has(t.relatedMap.cid);
                 const ownerDeclined = t.request.ownerDeclined;
                 const lastVos = ((((t.request || {}).voHistory || [])[0] || {}).options) || [];
                 const hasQmenuEmailVo = lastVos.some(vo => vo.emailData && this.qmenuDomains.has(vo.emailData.domainName));
                 const hasPhoneVo = lastVos.some(vo => vo.verificationMethod === "PHONE_CALL");
-                return gmb !== "qmenu" && !ownerDeclined && !hasQmenuEmailVo && hasPhoneVo;
+                // return gmb !== "qmenu" && !ownerDeclined && !hasQmenuEmailVo && hasPhoneVo;
+                return !published && !ownerDeclined && !hasQmenuEmailVo && hasPhoneVo;
             });
         }
 
