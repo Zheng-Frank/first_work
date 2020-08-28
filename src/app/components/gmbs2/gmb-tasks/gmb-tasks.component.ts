@@ -745,6 +745,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     owner = "All";
     ownerList = [];
 
+    verified = "No";
     shouldCall = false;
     hasPhone = false;
     hasPostcard = false; // NOT sent
@@ -754,6 +755,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     filter() {
 
         this.filteredTasks = this.tasks;
+
+        if (this.verified !== "Any") {
+            this.filteredTasks = this.filteredTasks.filter(t => (this.verified === 'Yes') === (this.publishedCids.has( t.relatedMap.cid )));
+        }
 
         if (this.assignee === "NON-CLAIMED") {
             this.filteredTasks = this.filteredTasks.filter(t => !t.assignee);
