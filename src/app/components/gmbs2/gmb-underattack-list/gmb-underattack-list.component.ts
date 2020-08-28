@@ -259,12 +259,7 @@ export class GmbUnderattackListComponent implements OnInit {
       newRow['checker'] = newRequest['checker'];
       newRow['checkedAt'] = newRequest['checkedAt'];
       newRow['logs'] = newRequest['logs'];
-      if (newRow['checker'] && this.notShowComplete) {
-        this.filteredRows.splice(index2, 1);
-        this.numberOfRestaurant -= 1;
-      } else {
-        this.filteredRows[index2] = newRow;
-      }
+      this.filteredRows[index2] = newRow;
     }
   }
 
