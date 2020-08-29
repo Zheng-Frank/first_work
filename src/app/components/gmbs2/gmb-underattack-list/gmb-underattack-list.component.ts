@@ -18,7 +18,6 @@ export class GmbUnderattackListComponent implements OnInit {
   pagination: boolean = true;
   averageRequestsPerDay = 0;
   numberOfRestaurant = 0;
-  inConfirmPhase: boolean = false;
 
   now = new Date();
   apiLoading = false;
