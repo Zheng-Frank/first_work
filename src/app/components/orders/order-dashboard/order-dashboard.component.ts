@@ -59,7 +59,7 @@ export class OrderDashboardComponent implements OnInit {
 
   searchOrders() {
     zip(
-      this._api.get(environment.qmenuApiUrl + "generic", {
+      this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "order",
         query: {
           $or: [
@@ -99,9 +99,9 @@ export class OrderDashboardComponent implements OnInit {
           createdAt: 1,
           orderNumber: 1,
           'runtime.standalone': 1
-        },
-        limit: 100000
-      }),
+        }
+        
+      }, 30000),
 
       this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
