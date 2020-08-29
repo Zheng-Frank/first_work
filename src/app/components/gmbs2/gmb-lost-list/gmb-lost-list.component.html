@@ -26,6 +26,7 @@
     </td>
     <td>{{r.score | number : '1.0-0'}}</td>
     <td>{{r.lostDate | ago : now}}</td>
+    <td>{{r.owner}}</td>
     <td id="limitedWidth">
       <div *ngFor="let comment of createAngularIndentifiableArray(r.comments)">
         &#8226; {{comment.user}} on {{comment.date | adjustedDate : 'M/dd' : r.timezone}}: {{comment.content}}
@@ -37,10 +38,15 @@
       </tr></table>
     </td>
     <td>
-      <div *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
-        <button class="btn btn-link py-0" (click)="showDetails(task)">{{task}}</button>
-      </div>
-    </td> 
+      <table>
+        <tr *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
+          <td>{{task.date | date: 'medium'}}</td>
+          <td><button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id}}</button></td>
+          <td><app-gmb-account-hotlink *ngIf="task.email" [email]="task.email"></app-gmb-account-hotlink></td>
+          <td>{{task.status}}</td>
+        </tr>
+      </table>
+    </td>
     <!-- <td>{{r.eventId}}</td> -->
   </tr>
 </q-table>
