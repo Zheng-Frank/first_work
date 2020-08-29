@@ -41,6 +41,11 @@ export class GmbLostListComponent implements OnInit {
       sort: (a, b) => a.valueOf() - b.valueOf()
     },
     {
+      label: "Current Owner",
+      paths: ['owner'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
       label: "Comments"
     },
     {
@@ -100,6 +105,8 @@ export class GmbLostListComponent implements OnInit {
         "googleListing.cid": 1,
         "googleAddress.formatted_address": 1,
         "googleAddress.timezone": 1,
+        "gmbOwnerHistory.gmbOwner": 1,
+        "gmbOwnerHistory": { $slice: 1 },
         name: 1,
         score: 1
       }
@@ -114,6 +121,10 @@ export class GmbLostListComponent implements OnInit {
       projection: {
         _id: 1,
         "relatedMap.cid": 1,
+        createdAt: 1,
+        "request.email": 1,
+        "request.statusHistory": { $slice: 1 },
+        "request.statusHistory.status": 1
       }
     }, 6000);
 
@@ -134,13 +145,13 @@ export class GmbLostListComponent implements OnInit {
       trueLostEvents.map(event => {
         if (event.params.cid === restaurant.googleListing.cid) {
           const index = dict.findIndex(entry => entry.cid == event.params.cid);
-          if (index >= 0) {
+          if (index >= 0) {  // if event already exists, pick the older one
             if (event.createdAt > dict[index].lostDate) {
               dict[index].eventId = event._id;
               dict[index].lostDate = event.createdAt;
               dict[index].comments = event.comments;
             }
-          } else {
+          } else {  // If no event tied to the restaurant yet
             dict.push({
               eventId: event._id,
               restaurantId: restaurant._id,
@@ -148,6 +159,7 @@ export class GmbLostListComponent implements OnInit {
               address: restaurant.googleAddress.formatted_address,
               score: restaurant.score,
               lostDate: event.createdAt,
+              owner: ((restaurant.gmbOwnerHistory || [])[0] || {}).gmbOwner,
               comments: event.comments,
               tasks: [],
               timezone: restaurant.googleAddress.timezone,
@@ -165,7 +177,12 @@ export class GmbLostListComponent implements OnInit {
           if (!entry.tasks) {
             entry.tasks = []
           }
-          entry.tasks.push(task._id);
+          entry.tasks.push({
+            id: task._id,
+            date: task.createdAt,
+            email: (task.request || {}).email,
+            status: (((task.request || {}).statusHistory || [])[0] || {}).status
+          });
         }
       });
     });
