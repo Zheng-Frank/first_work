@@ -1,0 +1,53 @@
+<h2 class="text-center">GMB: Recent Lost Restaurants</h2>
+<div class="text-center">avg. {{averageLossesPerDay}} restaurant lost/day, {{numberOfRestaurant}} restaurant shown, for the past 10 days</div>
+<div class="text-center">
+  <button class="btn btn-link" (click)="refresh()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+</div>
+<!-- <div class="text-center">avg. {{averageRequestsPerDay}}/day</div> -->
+<!-- <div class="row">
+  <div class="col-6 px-2"> -->
+<div class="clearfix mt-2">
+  <div class="float-left form-inline">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+    <label class="form-check-label mr-5" for="paginationCheck">
+      Pagination
+    </label>
+  </div>
+</div>
+<q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
+  <tr *tableRowTemplate="let r;">
+    <td>{{rows.indexOf(r) + 1}}</td>
+    <td>
+      <a target="_blank" href="#/restaurants/{{r.restaurantId}}">{{r.name}}</a>
+      <div class="text-muted">
+        <small>{{r.address}}</small>
+      </div>
+    </td>
+    <td>{{r.score | number : '1.0-0'}}</td>
+    <td>{{r.lostDate | ago : now}}</td>
+    <td id="limitedWidth">
+      <div *ngFor="let comment of createAngularIndentifiableArray(r.comments)">
+        &#8226; {{comment.user}} on {{comment.date | adjustedDate : 'M/dd' : r.timezone}}: {{comment.content}}
+      </div>
+      <table><tr>
+          <td><input type="text" class="form-control" placeholder="Add a new comment ..." [(ngModel)]="r.content" 
+            (keydown.enter)="addComment(r)"></td>
+          <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addComment(r)">Submit</button></td>         
+      </tr></table>
+    </td>
+    <td>
+      <div *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
+        <button class="btn btn-link py-0" (click)="showDetails(task)">{{task}}</button>
+      </div>
+    </td> 
+    <!-- <td>{{r.eventId}}</td> -->
+  </tr>
+</q-table>
+  <!-- </div>
+</div> -->
+<q-modal #taskDetailsModal>
+  <pre>
+    {{ selectedTask | json}}
+  </pre>
+</q-modal>
