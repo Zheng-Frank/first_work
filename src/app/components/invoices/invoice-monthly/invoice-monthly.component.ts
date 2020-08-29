@@ -88,16 +88,15 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async populateRestaurantIdMap() {
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {},
       projection: {
         name: 1,
         disabled: 1,
         rateSchedules: 1
-      },
-      limit: 200000
-    }).toPromise();
+      }     
+    }, 200000);
     restaurants.map(rt => rt.agent = (rt.rateSchedules || []).map(rs => rs.agent).slice(-1)[0]);
     this.restaurantIdMap = restaurants.reduce((map, rt) => (map[rt._id] = rt, map), {});
   }
@@ -344,7 +343,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   async populatePaymentSentButNotCompleted() {
 
-    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const invoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         isCanceled: { $ne: true },
@@ -358,11 +357,10 @@ export class InvoiceMonthlyComponent implements OnInit {
         balance: 1,
         "restaurant.name": 1,
         "restaurant.id": 1
-      },
-      limit: 200000
-    }).toPromise();
+      }
+    }, 100000);
 
-    const beingRolledInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const beingRolledInvoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         previousInvoiceId: { $exists: true },
@@ -370,9 +368,8 @@ export class InvoiceMonthlyComponent implements OnInit {
       },
       projection: {
         previousInvoiceId: 1
-      },
-      limit: 200000
-    }).toPromise();
+      }
+    }, 200000);
 
     this.beingRolledInvoiceSet = new Set(beingRolledInvoices.map(invoice => invoice.previousInvoiceId));
     this.paymentSentButNotCompletedRows = invoices;
@@ -387,7 +384,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   async populateRolledButLaterPaid() {
     this.rolledButLaterCompletedRows = [];
-    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const invoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         isCanceled: { $ne: true }
@@ -403,9 +400,8 @@ export class InvoiceMonthlyComponent implements OnInit {
         isPaymentCompleted: 1,
         isPaymentSent: 1,
         "restaurant.name": 1
-      },
-      limit: 200000
-    }).toPromise();
+      }
+    }, 200000);
 
     const dict = {};
     invoices.map(invoice => dict[invoice._id] = invoice);
@@ -494,7 +490,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     });
 
 
-    const havingReferenceInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const havingReferenceInvoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         previousInvoiceId: { $exists: true },
@@ -504,12 +500,12 @@ export class InvoiceMonthlyComponent implements OnInit {
         previousInvoiceId: 1
       },
       limit: 800000
-    }).toPromise();
+    }, 100000);
 
 
     const beingReferencedIds = new Set(havingReferenceInvoices.map(i => i.previousInvoiceId));
 
-    const collectionLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const collectionLogs = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         "logs.type": "collection"
@@ -521,8 +517,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         "logs.type": 1,
         "googleListing.cid": 1
       },
-      limit: 200000
-    }).toPromise();
+    }, 2000);
 
     collectionLogs.map(restaurant => {
       if (idRowMap[restaurant._id]) {
