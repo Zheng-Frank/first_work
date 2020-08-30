@@ -15,7 +15,12 @@ export class GmbLostListComponent implements OnInit {
   @ViewChild('taskDetailsModal') taskDetailsModal;
 
   rows = [];
+  filteredRows = [];
+  
   pagination: boolean = true;
+  statusOptions;
+  selectedStatus = "All";
+
   averageLossesPerDay = 0;
   numberOfRestaurant = 0;
   selectedTask;
@@ -170,6 +175,8 @@ export class GmbLostListComponent implements OnInit {
       });
     });
 
+    this.statusOptions = new Set();
+    this.statusOptions.add("All");
     // Match up above with tasks
     tasks.map(task => {
       dict.map(entry => {
@@ -177,12 +184,17 @@ export class GmbLostListComponent implements OnInit {
           if (!entry.tasks) {
             entry.tasks = []
           }
+          const status = (((task.request || {}).statusHistory || [])[0] || {}).status;
           entry.tasks.push({
             id: task._id,
             date: task.createdAt,
             email: (task.request || {}).email,
-            status: (((task.request || {}).statusHistory || [])[0] || {}).status
+            status: status
           });
+          // Update option list
+          if (status) {
+            this.statusOptions.add(status);
+          }
         }
       });
     });
@@ -196,7 +208,30 @@ export class GmbLostListComponent implements OnInit {
     this.averageLossesPerDay = Math.ceil(this.numberOfRestaurant / (1 + (lastLostdate.valueOf() - firstLostDate.valueOf()) / (24 * 3600000)));
 
     this.rows = dict;
+    this.filter();
+
     this.apiLoading = false;
+  }
+
+  async filter() {
+    this.filteredRows = this.rows;
+
+    if (this.selectedStatus !== "All") {
+      this.filteredRows = this.filteredRows.filter(entry => {
+        let match = false;
+        if (entry.tasks) {
+          entry.tasks.map(task => {
+            if (task.status === this.selectedStatus) {
+              match = true;
+            }
+          });
+        }
+        return match;
+      });
+    }
+
+    // Update number of restaurants shown
+    this.numberOfRestaurant = this.filteredRows.length;
   }
 
   // Refresh a single entry's completion status
@@ -219,6 +254,12 @@ export class GmbLostListComponent implements OnInit {
       const newRow = this.rows[index];
       newRow['comments'] = newEvent['comments']; 
       this.rows[index] = newRow;
+    }
+    const index2 = this.filteredRows.findIndex(row => row.eventId == eventId);
+    if (index2 >= 0) {
+      const newRow = this.filteredRows[index2];
+      newRow['comments'] = newEvent['comments']; 
+      this.filteredRows[index2] = newRow;
     }
   }
 
