@@ -14,7 +14,8 @@ export class CycleDetailsComponent implements OnInit {
 
   activeBlockName;
   activeBlock;
-  sortingColumn;
+  sortingColumn = 'balance';
+  sortingDirection = 1;
   total = 0;
   nonCanceledTotal = 0;
   paidTotal = 0;
@@ -283,6 +284,8 @@ export class CycleDetailsComponent implements OnInit {
     this.blocks.SKIPPED_0.rows = allRows.filter(r => !r.invoice && r.error && r.error.balance === 0);
     this.blocks.SKIPPED_ERROR.rows = allRows.filter(r => !r.invoice && r.error && !r.error.hasOwnProperty('balance'));
     this.blocks.SKIPPED_MANUAL.rows = allRows.filter(r => r.skipAutoInvoicing);
+
+    this.sort();
   }
 
   async setActiveBlockName(blockName) {
@@ -292,27 +295,30 @@ export class CycleDetailsComponent implements OnInit {
     this.filter();
   }
 
-  sort(column) {
-    Object.keys(this.blocks).map(field => {
+  sort(column?) {
+    if (column) {
       if (this.sortingColumn === column) {
-        this.blocks[field].rows.reverse();
+        this.sortingDirection *= -1;
       } else {
-        this.blocks[field].rows.sort((r1, r2) => {
-          switch (column) {
-            case 'balance':
-              const b1 = (r1.invoice || {}).balance || 0;
-              const b2 = (r2.invoice || {}).balance || 0;
-              return b1 - b2;
-            case 'name':
-              return r1.name > r2.name ? 1 : -1;
-            default:
-              break;
-          }
-        });
+        this.sortingColumn = column;
       }
-    });
+    }
 
-    this.sortingColumn = column;
+    // perform sorting based on column and direction
+    Object.keys(this.blocks).map(field => {
+      this.blocks[field].rows.sort((r1, r2) => {
+        switch (this.sortingColumn) {
+          case 'balance':
+            const b1 = (r1.invoice || {}).balance || 0;
+            const b2 = (r2.invoice || {}).balance || 0;
+            return this.sortingDirection * (b1 - b2);
+          case 'name':
+            return this.sortingDirection * (r1.name > r2.name ? 1 : -1);
+          default:
+            break;
+        }
+      });
+    });
 
   }
 
