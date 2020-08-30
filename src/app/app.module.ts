@@ -54,6 +54,7 @@ import { RestaurantApiLogsComponent } from './components/restaurants/restaurant-
 import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
+import { RestaurantFeeSchedulesComponent } from './components/restaurants/restaurant-fee-schedules/restaurant-fee-schedules.component';
 import { RestaurantPaymentMeansComponent } from './components/restaurants/restaurant-payment-means/restaurant-payment-means.component';
 import { RestaurantServiceSettingsComponent } from './components/restaurants/restaurant-service-settings/restaurant-service-settings.component';
 import { RestaurantCloudPrintingComponent } from './components/restaurants/restaurant-cloud-printing/restaurant-cloud-printing.component';
@@ -226,6 +227,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     RestaurantApiLogsComponent,
     RestaurantContactsComponent,
     RestaurantRateSchedulesComponent,
+    RestaurantFeeSchedulesComponent,
     RestaurantPaymentMeansComponent,
     RestaurantServiceSettingsComponent,
     RestaurantCloudPrintingComponent,
