@@ -13,11 +13,15 @@
     <label class="form-check-label mr-5" for="paginationCheck">
       Pagination
     </label>
+    <label class="mr-2"> Task Status:</label>
+    <select class="mr-5 w-25" [(ngModel)]="selectedStatus" (change)="filter()">
+        <option *ngFor="let option of statusOptions">{{option}}</option>
+    </select>
   </div>
 </div>
-<q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
   <tr *tableRowTemplate="let r;">
-    <td>{{rows.indexOf(r) + 1}}</td>
+    <td>{{filteredRows.indexOf(r) + 1}}</td>
     <td>
       <a target="_blank" href="#/restaurants/{{r.restaurantId}}">{{r.name}}</a>
       <div class="text-muted">
@@ -27,6 +31,16 @@
     <td>{{r.score | number : '1.0-0'}}</td>
     <td>{{r.lostDate | ago : now}}</td>
     <td>{{r.owner}}</td>
+    <td class="mw-50">
+      <table>
+        <tr *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
+          <td class="w-25">{{task.date | date: 'medium'}}</td>
+          <td class="w-25"><button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id}}</button></td>
+          <td class="w-25"><app-gmb-account-hotlink *ngIf="task.email" [email]="task.email"></app-gmb-account-hotlink></td>
+          <td class="w-25">{{task.status}}</td>
+        </tr>
+      </table>
+    </td>
     <td id="limitedWidth">
       <div *ngFor="let comment of createAngularIndentifiableArray(r.comments)">
         &#8226; {{comment.user}} on {{comment.date | adjustedDate : 'M/dd' : r.timezone}}: {{comment.content}}
@@ -36,16 +50,6 @@
             (keydown.enter)="addComment(r)"></td>
           <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addComment(r)">Submit</button></td>         
       </tr></table>
-    </td>
-    <td>
-      <table>
-        <tr *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
-          <td>{{task.date | date: 'medium'}}</td>
-          <td><button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id}}</button></td>
-          <td><app-gmb-account-hotlink *ngIf="task.email" [email]="task.email"></app-gmb-account-hotlink></td>
-          <td>{{task.status}}</td>
-        </tr>
-      </table>
     </td>
     <!-- <td>{{r.eventId}}</td> -->
   </tr>
