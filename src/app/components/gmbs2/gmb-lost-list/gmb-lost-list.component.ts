@@ -51,11 +51,11 @@ export class GmbLostListComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: "Comments"
-    },
-    {
       label: "Tasks"
     },
+    {
+      label: "Comments"
+    }
   ];
 
   constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
