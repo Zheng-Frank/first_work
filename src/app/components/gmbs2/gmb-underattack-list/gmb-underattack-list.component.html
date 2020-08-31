@@ -31,11 +31,11 @@
         <td>{{_timezone.getOffsetNumber(r.timezone)}}</td>
         <td><app-gmb-account-hotlink [email]="r.gmbAccountEmail"></app-gmb-account-hotlink></td>
         <td>
-          <div *ngFor="let req of r.requestInfos">{{req.date | ago : now}} | {{req.email}} | {{req.requester}}</div>
+          <div *ngFor="let req of createAngularIndentifiableArray(r.requestInfos)">{{req.date | ago : now}} | {{req.email}} | {{req.requester}}</div>
         </td>  
         <td>{{r.score | number : '1.0-0'}}</td>
         <td id="limitedWidth">
-          <div *ngFor="let log of r.logs">
+          <div *ngFor="let log of createAngularIndentifiableArray(r.logs)">
             &#8226; {{log.user}} on {{log.date | adjustedDate : 'M/dd' : r.timezone}}: {{log.content}}
           </div>
           <table><tr>
