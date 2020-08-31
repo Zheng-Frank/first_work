@@ -730,7 +730,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "locations.status": 1
             }
         }).toPromise();
-        allPublished.forEach(acct => acct.locations.forEach(loc => { if (loc.status === "Published") this.publishedCids.add(loc.cid) }));
+        allPublished.forEach(acct => (acct.locations || []).forEach(loc => { if (loc.status === "Published") this.publishedCids.add(loc.cid) }));
     }
 
     ngOnChanges(changes: SimpleChanges) {
