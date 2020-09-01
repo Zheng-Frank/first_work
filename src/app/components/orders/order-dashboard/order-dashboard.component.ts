@@ -254,7 +254,7 @@ export class OrderDashboardComponent implements OnInit {
         this.rows.map(row => {
           let agent = 'none';
           if (row.restaurant.rateSchedules && row.restaurant.rateSchedules.length > 0) {
-            agent = row.restaurant.rateSchedules[0].agent;
+            agent = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length-1].agent;
           }
           agentDict[agent] = agentDict[agent] || {
             restaurant: 0,

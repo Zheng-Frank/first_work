@@ -57,7 +57,7 @@ export class GmbBizListComponent implements OnInit {
           disabled: 1,
           score: 1,
           "deliverySettings": { $slice: -1 },
-          "rateSchedules": { $slice: 1 },
+          "rateSchedules": { $slice: -1 },
           "rateSchedules.agent": 1,
           "serviceSettings.name": 1,
           "serviceSettings.paymentMethods": 1,
