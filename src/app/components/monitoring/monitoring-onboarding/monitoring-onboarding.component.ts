@@ -45,9 +45,10 @@ export class MonitoringOnboardingComponent implements OnInit {
 
 
     // restaurantIdsWith
+    const validRestaurant = allRestaurants.filter(r => ((r.rateSchedules || [])[0] || {}).agent !== "invalid");
     const havingOrderRestaurantIdSet = new Set(await this._api.get(environment.legacyApiUrl + 'utilities/distinctOrderRestaurantIds').toPromise());
-    const restaurantsWithoutValidMenusAndNotDisabled = allRestaurants.filter(r => !r.disabled && (!r.menus || r.menus.filter(menu => !menu.disabled).length === 0));
-    const restaurantsWithoutAnyOrder = allRestaurants.filter(r => !havingOrderRestaurantIdSet.has(r._id));
+    const restaurantsWithoutValidMenusAndNotDisabled = validRestaurant.filter(r => !r.disabled && (!r.menus || r.menus.filter(menu => !menu.disabled).length === 0));
+    const restaurantsWithoutAnyOrder = validRestaurant.filter(r => !havingOrderRestaurantIdSet.has(r._id));
 
     const dict = {};
     restaurantsWithoutValidMenusAndNotDisabled.map(r => dict[r._id] = { restaurant: r, noMenu: true });
