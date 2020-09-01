@@ -39,6 +39,7 @@ export class MonitoringOnboardingComponent implements OnInit {
         "googleListing.cid": 1,
         createdAt: 1,
         "rateSchedules.agent": 1,
+        "rateSchedules": { $slice: -1 },
         logs: { $slice: -2 },
       }
     }, 4000);
