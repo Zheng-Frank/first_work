@@ -163,8 +163,12 @@ export class MonitoringScriptComponent implements OnInit {
     // make a static uowsHistory0 to each 
     scripts.map(script => script.uowsHistory0 = (script.uowsHistory || [])[0] || {});
 
-    this.routineScripts = scripts;
     this.now = new Date();
+    const currentTime = this.now.getTime();
+    //overdue if late more than 3 minutes
+    scripts.map(script => script.overDue = script.uowsHistory0.time && currentTime - script.uowsHistory0.time > script.waitSecondsBetweenRuns * 1000 + 180000);
+
+    this.routineScripts = scripts;
 
     this.filter();
   }
