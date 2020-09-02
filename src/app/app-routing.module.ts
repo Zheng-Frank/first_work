@@ -47,6 +47,7 @@ import { YelpBusinessesComponent } from './components/yelp/yelp-businesses/yelp-
 import { CourierDashboardComponent } from './components/couriers/courier-dashboard/courier-dashboard.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
+import { InvalidListComponent } from './components/restaurants/invalid-list/invalid-list.component';
 import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
  
 const routes: Routes = [
@@ -96,6 +97,7 @@ const routes: Routes = [
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'invalid-list', component: InvalidListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
 ];
 
