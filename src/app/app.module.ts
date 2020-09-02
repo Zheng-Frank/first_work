@@ -180,6 +180,7 @@ import { CourierDashboardComponent } from './components/couriers/courier-dashboa
 import { BroadcastingEditorComponent } from './components/broadcasting/broadcasting-editor/broadcasting-editor.component';
 import { SanitizeDomPipe } from './pipes/sanitize-dom.pipe';
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
+import { InvalidListComponent } from './components/restaurants/invalid-list/invalid-list.component';
 import { RestaurantsCourierListComponent } from './components/restaurants/restaurants-courier-list/restaurants-courier-list.component';
 import { from } from 'rxjs';
 import { RestarantChainsComponent } from './components/restaurants/restarant-chains/restarant-chains.component';
@@ -342,6 +343,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     BroadcastingEditorComponent,
     SanitizeDomPipe,
     PostmatesListComponent,
+    InvalidListComponent,
     RestaurantsCourierListComponent,
     RestarantChainsComponent,
     ChainsDashboardComponent,

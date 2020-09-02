@@ -50,7 +50,7 @@
             {{(script.waitSecondsBetweenRuns / 3600).toFixed(1)}} hrs
         </td>
         <td>
-            {{script.uowsHistory0.time | ago : now}}
+            <div class="{{script.overDue ? 'alert-danger' : ''}}"><span>{{script.uowsHistory0.time | ago : now}}</span></div>
         </td>
         <td>
             {{script.uowsHistory0.duration}}s

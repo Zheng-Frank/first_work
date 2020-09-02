@@ -1,0 +1,28 @@
+<h2 class="text-center">Invalid Restaurants</h2>
+<div class="text-center">{{numberOfRestaurant}} restaurant shown</div>
+<div class="text-center">
+  <button class="btn btn-link" (click)="refresh()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+</div>
+<div class="clearfix mt-2">
+  <div class="float-left form-inline">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+    <label class="form-check-label mr-5" for="paginationCheck">
+      Pagination
+    </label>
+  </div>
+</div>
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
+  <tr *tableRowTemplate="let r;">
+    <td>{{filteredRows.indexOf(r) + 1}}</td>
+    <td>
+      <a target="_blank" href="#/restaurants/{{r.id}}">{{r.name}}</a>
+      <div class="text-muted">
+        <small>{{r.address}}</small>
+      </div>
+    </td>
+    <td>{{r.createdAt | yMMMd}}</td>
+  </tr>
+</q-table>
+  <!-- </div>
+</div> -->
