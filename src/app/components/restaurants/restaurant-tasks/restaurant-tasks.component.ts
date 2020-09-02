@@ -99,7 +99,7 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
   async refreshGmbTasks() {
     this.refreshing = true;
 
-    const openTasks = this.tasks.filter(t => !t.result);
+    const openTasks = this.tasks.filter(t => t.name === 'GMB Request' && !t.result);
     try {
       for (let task of openTasks) {
         await this._api.post(environment.appApiUrl + "gmb/generic", {
