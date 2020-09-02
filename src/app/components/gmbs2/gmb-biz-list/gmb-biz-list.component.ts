@@ -268,7 +268,7 @@ export class GmbBizListComponent implements OnInit {
 
     // Filter out restaurants with invalid agent first
     if (this.restaurantProblems !== "restaurant problems") {
-      this.filteredRows = this.filteredRows.filter(r => ((r.rateSchedules || [])[0] || {}).agent !== "invalid");
+      this.filteredRows = this.filteredRows.filter(r => ((r.restaurant.rateSchedules || [])[0] || {}).agent !== "invalid");
     }
     switch (this.restaurantProblems) {
       case 'bad service settings':
