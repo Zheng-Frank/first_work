@@ -276,7 +276,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                     }
                 }).toPromise();
 
-                this._global.publishAlert(AlertType.Success, 'PIN reset Successfully');
+                this._global.publishAlert(AlertType.Success, 'PIN reset Successfully, refreshing task');
 
             } catch (error) {
                 console.log(error);
@@ -285,7 +285,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
 
             await this.addComments(`PIN reset`);
-            await this.refreshSingleTask(this.modalTask._id);
+            await this.hardRefresh(this.modalTask);
         }
     }
 
@@ -320,7 +320,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                     }
                 }).toPromise();
 
-                this._global.publishAlert(AlertType.Success, 'triggered successfully');
+                this._global.publishAlert(AlertType.Success, 'triggered successfully, refreshing task');
 
             } catch (error) {
                 console.log(error);
@@ -329,7 +329,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
             this.verifyingOption = undefined;
             await this.addComments(`tried verification`);
-            await this.refreshSingleTask(task._id);
+            await this.hardRefresh(task);
         }
     }
 

@@ -172,10 +172,8 @@
                 <th class="text-left">Delivery Open Hours</th>
                 <td class="pl-1">
                   <div *ngFor="let hour of deliveryHours">
-                    {{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime :
-                      offsetToEST}}
-                    - {{hour.toTime | shortTime
-                      : offsetToEST}}
+                    {{hour.fromTime | adjustedDate : 'E h:mm a' : restaurant.googleAddress.timezone}}
+                    - {{hour.toTime | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}
                     <button type="button" class="btn btn-link text-danger py-0" (click)="deleteHour(hour)"><i
                         class="fas fa-trash-alt"></i></button>
                   </div>
