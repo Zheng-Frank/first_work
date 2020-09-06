@@ -1,38 +1,48 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, SimpleChanges, OnChanges } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
-import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { AlertType } from "../../../classes/alert-type";
 import { FeeSchedule } from 'src/app/classes/fee-schedule';
 import { OrderType } from 'src/app/classes/order-type';
 import { ChargeBasis } from 'src/app/classes/charge-basis';
-import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { ModalComponent, FormBuilderComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { FormSubmit } from '@qmenu/ui/classes';
+import { TimezoneHelper } from 'src/app/classes/timezone-helper';
+import { OrderPaymentMethod } from 'src/app/classes/order-payment-method';
+import { CurrencyPipe } from '@angular/common';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-restaurant-fee-schedules',
   templateUrl: './restaurant-fee-schedules.component.html',
-  styleUrls: ['./restaurant-fee-schedules.component.css']
+  styleUrls: ['./restaurant-fee-schedules.component.css'],
+  providers: [CurrencyPipe]
 })
-export class RestaurantFeeSchedulesComponent implements OnInit {
+export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @ViewChild('modalFeeSchedule') modalFeeSchedule: ModalComponent;
-
+  @ViewChild('editingForm') editingForm: FormBuilderComponent;
   @Input() restaurant: Restaurant;
   @Input() users = [];
 
   feeSchedules: FeeSchedule[] = [];
 
   now = new Date();
-
   chargeBasisMap = {
     [ChargeBasis.Monthly]: 'monthly',
     [ChargeBasis.OrderSubtotal]: 'order subtotal',
     [ChargeBasis.CollectedInvoiceCommission]: 'commission',
   };
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
+  constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
+  }
+
+  async ngOnChanges(changes: SimpleChanges) {
+    this.feeSchedules = [];
+    if (this.restaurant) {
+      this.feeSchedules = (this.restaurant['feeSchedules'] || []).map(fs => new FeeSchedule(fs));
+    }
+  }
 
   ngOnInit() {
 
@@ -40,7 +50,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit {
       chargeBasis: ChargeBasis.OrderSubtotal,
       payer: 'CUSTOMER',
       payee: 'RESTAURANT',
-      fromTime: '2020-01-01',
+      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('01/01/2020'), this.restaurant.googleAddress.timezone),
       name: 'CC fee',
       amount: 0.99,
       rate: 0.03,
@@ -52,8 +62,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit {
       chargeBasis: ChargeBasis.OrderSubtotal,
       payer: 'CUSTOMER',
       payee: 'QMENU',
-      fromTime: '2020-01-01',
-      toTime: '2020-08-01',
+      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('01/01/2020'), this.restaurant.googleAddress.timezone),
+      toTime: TimezoneHelper.transformToTimezoneDate(new Date('08/01/2020'), this.restaurant.googleAddress.timezone),
       name: 'booking fee',
       amount: 0.99,
       createdAt: 2,
@@ -63,8 +73,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit {
       chargeBasis: ChargeBasis.OrderSubtotal,
       payer: 'RESTAURANT',
       payee: 'QMENU',
-      fromTime: '2020-01-01',
-      toTime: '2022-01-01',
+      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('01/01/2020'), this.restaurant.googleAddress.timezone),
+      toTime: TimezoneHelper.transformToTimezoneDate(new Date('12/05/2020'), this.restaurant.googleAddress.timezone),
       amount: 0.99,
       createdAt: 3,
     });
@@ -73,7 +83,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit {
       chargeBasis: ChargeBasis.OrderSubtotal,
       payer: 'RESTAURANT',
       payee: 'QMENU',
-      fromTime: '2020-08-01',
+      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('08/01/2020'), this.restaurant.googleAddress.timezone),
       amount: 1.00,
       orderTypes: [OrderType.Delivery],
       createdAt: 4,
@@ -83,88 +93,240 @@ export class RestaurantFeeSchedulesComponent implements OnInit {
       chargeBasis: ChargeBasis.Monthly,
       payer: 'RESTAURANT',
       payee: 'QMENU',
-      fromTime: '2020-08-01',
-      monthlyAmount: 199.00,
+      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('08/01/2020'), this.restaurant.googleAddress.timezone),
+      amount: 199.00,
       createdAt: 5,
     });
 
     const salesCommission = new FeeSchedule({
       chargeBasis: ChargeBasis.CollectedInvoiceCommission,
       payer: 'QMENU',
-      payee: 'sam',
-      fromTime: '2020-01-01',
+      payee: 'gary',
+      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('01/01/2020'), this.restaurant.googleAddress.timezone),
       rate: 0.15,
       orderTypes: [OrderType.Pickup, OrderType.DineIn],
       createdAt: 6,
     });
 
-    this.feeSchedules.push(ccFee, bookingFee, normalRate, deliveryRate, monthlyFee, salesCommission);
+    // this.feeSchedules.push(ccFee, bookingFee, normalRate, deliveryRate, monthlyFee, salesCommission);
   }
 
   feeScheduleInEditing: any = {};
 
+  nameDescriptor = {
+    field: "name", //
+    label: "Name (optional)",
+    required: false,
+    inputType: "text",
+    items: [
+      { object: "Email", text: "Email", selected: false },
+      { object: "Phone", text: "Phone", selected: false },
+      { object: "SMS", text: "SMS", selected: false },
+      { object: "Fax", text: "Fax", selected: false }
+    ]
+  };
+
+  payerDescriptor = {
+    field: "payer", //
+    label: "Payer (出钱方)",
+    required: true,
+    inputType: "single-select",
+    items: [
+      { object: "CUSTOMER", text: "customer", selected: false },
+      { object: "RESTAURANT", text: "restaurant", selected: false },
+      { object: "QMENU", text: "qmenu", selected: false },
+    ]
+  };
+
+  payeeCustomer = { object: "CUSTOMER", text: "customer", selected: false };
+  payeeRestaurant = { object: "RESTAURANT", text: "restaurant", selected: false };
+  payeeQmenu = { object: "QMENU", text: "qmenu", selected: false };
+  payeeSales = { object: 'NONE', text: 'NONE', seleted: false };
+
+
+  payeeDescriptor = {
+    field: "payee", //
+    label: "Payee (收钱方)",
+    required: true,
+    inputType: "single-select",
+    items: [this.payeeCustomer, this.payeeRestaurant, this.payeeQmenu, this.payeeSales]
+  };
+
+  fromTimeDescriptor = {
+    field: "fromTime", //
+    label: "Start Date (起始日期)",
+    required: true,
+    inputType: "date"
+  };
+
+  toTimeDescriptor = {
+    field: "toTime", //
+    label: "End Date (截止日期，optional)",
+    required: false,
+    inputType: "date"
+  };
+
+  chargeBasisSubtotal = { object: ChargeBasis.OrderSubtotal, text: "order subtotal", selected: false };
+  chargeBasisMonthly = { object: ChargeBasis.Monthly, text: "monthly fee", selected: false };
+  chargeBasisCommission = { object: ChargeBasis.CollectedInvoiceCommission, text: "commission", selected: false };
+
+  chargeBasisDescriptor = {
+    field: "chargeBasis", //
+    label: "Charge Basis (收费基准)",
+    required: true,
+    inputType: "single-select",
+    items: []
+  };
+
+  rateDescriptor = {
+    field: "rate", //
+    label: "Rate (率)",
+    required: false,
+    inputType: "number"
+  };
+
+  amountDescriptor = {
+    field: "amount", //
+    label: "Fixed Amount (固定费用)",
+    required: false,
+    inputType: "number"
+  };
+
+  orderTypesDescriptor = {
+    field: "orderTypes", //
+    label: "Limitation of Order Types (限定订单种类)",
+    required: false,
+    inputType: "multi-select",
+    items: [
+      { object: OrderType.Pickup, text: "pickup", selected: false },
+      { object: OrderType.Delivery, text: "delivery", selected: false },
+      { object: OrderType.DineIn, text: "dine-in", selected: false },
+    ]
+  };
+
+  orderPaymentMethodsDescriptor = {
+    field: "orderPaymentMethods", //
+    label: "Limitation of Payment Methods (限定付款方式, CC = 信用卡)",
+    required: false,
+    inputType: "multi-select",
+    items: [
+      { object: OrderPaymentMethod.Cash, text: "Cash", selected: false },
+      { object: OrderPaymentMethod.InPerson, text: "CC: swipe in-person", selected: false },
+      { object: OrderPaymentMethod.KeyIn, text: "CC: key-in", selected: false },
+      { object: OrderPaymentMethod.Qmenu, text: "CC: qMenu collect", selected: false },
+      { object: OrderPaymentMethod.Stripe, text: "CC: restaurant using stripe", selected: false },
+    ]
+  };
+
   fieldDescriptors = [
-    {
-      field: "name", //
-      label: "Name (optional)",
-      required: false,
-      inputType: "text",
-      items: [
-        { object: "Email", text: "Email", selected: false },
-        { object: "Phone", text: "Phone", selected: false },
-        { object: "SMS", text: "SMS", selected: false },
-        { object: "Fax", text: "Fax", selected: false }
-      ]
-    },
-    {
-      field: "payer", //
-      label: "Payer (付款方)",
-      required: true,
-      inputType: "single-select",
-      items: [
-        { object: "CUSTOMER", text: "customer", selected: false },
-        { object: "RESTAURANT", text: "restaurant", selected: false },
-        { object: "QMENU", text: "qmenu", selected: false },
-      ]
-    },
-    {
-      field: "payee", //
-      label: "Payee (收款方)",
-      required: true,
-      inputType: "single-select",
-      items: [
-        { object: "CUSTOMER", text: "customer", selected: false },
-        { object: "RESTAURANT", text: "restaurant", selected: false },
-        { object: "QMENU", text: "qmenu", selected: false },
-      ]
-    },
-    {
-      field: "fromTime", //
-      label: "Start Date",
-      required: true,
-      inputType: "date"
-    },
-    {
-      field: "toTime", //
-      label: "End Date (optional)",
-      required: false,
-      inputType: "date"
-    },
-    {
-      field: "chargeBasis", //
-      label: "Charge Basis",
-      required: true,
-      inputType: "single-select",
-      items: [
-        { object: ChargeBasis.OrderSubtotal, text: "order subtotal", selected: false },
-        { object: ChargeBasis.Monthly, text: "monthly fee", selected: false },
-        { object: ChargeBasis.CollectedInvoiceCommission, text: "commission", selected: false },
-      ]
-    },
+    this.nameDescriptor,
+    this.payerDescriptor,
+    this.payeeDescriptor,
+    this.fromTimeDescriptor,
+    this.toTimeDescriptor,
+    this.chargeBasisDescriptor,
+    this.orderTypesDescriptor,
+    this.orderPaymentMethodsDescriptor
   ];
 
-  edit(feeSchedule?) {
+  validPayerPayees = {
+    CUSTOMER: [this.payeeRestaurant, this.payeeQmenu],
+    RESTAURANT: [this.payeeQmenu],
+    QMENU: [this.payeeSales]
+  };
+
+  updateFormBuilder() {
+
+    this.fieldDescriptors.length = 0; // clear existing first
+
+    // rule #1: always show name and payer
+    this.fieldDescriptors.push(
+      this.nameDescriptor,
+      this.payerDescriptor,
+    );
+
+    if (!this.feeScheduleInEditing.payer) {
+      return;
+    }
+
+    // rule #2: if there is a payer, always show payee, from time, to time, and charge basis 
+    this.fieldDescriptors.push(
+      this.payeeDescriptor,
+      this.fromTimeDescriptor,
+      this.toTimeDescriptor,
+      this.chargeBasisDescriptor,
+    );
+
+    switch (this.feeScheduleInEditing.payer) {
+      case 'CUSTOMER':
+        this.feeScheduleInEditing.chargeBasis = ChargeBasis.OrderSubtotal;
+        // only possible payees:
+        this.payeeDescriptor.items = [this.payeeRestaurant, this.payeeQmenu];
+        // only possible charge basis:
+        this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal];
+        break;
+      case 'RESTAURANT':
+        this.feeScheduleInEditing.payee = this.payeeQmenu.object;
+        this.payeeDescriptor.items = [this.payeeQmenu];
+        this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisMonthly];
+        break;
+      case 'QMENU':
+        this.feeScheduleInEditing.payee = this.payeeSales.object;
+        this.feeScheduleInEditing.chargeBasis = ChargeBasis.CollectedInvoiceCommission;
+        this.payeeDescriptor.items = [this.payeeSales];
+        this.chargeBasisDescriptor.items = [this.chargeBasisCommission];
+        break;
+      default:
+        break;
+    }
+
+    // make amount and percent labels displays better
+    this.rateDescriptor.label = `Rate (${(100 * (this.feeScheduleInEditing.rate || 0)).toFixed(1)}%)`;
+    this.amountDescriptor.label = `Fixed Amount (${this._currencyPipe.transform(this.feeScheduleInEditing.amount || 0, 'USD')})`;
+
+    // conditionally add more descriptors
+    switch (this.feeScheduleInEditing.chargeBasis) {
+      case ChargeBasis.OrderSubtotal:
+        this.fieldDescriptors.push(
+          this.rateDescriptor,
+          this.amountDescriptor,
+          this.orderTypesDescriptor,
+          this.orderPaymentMethodsDescriptor
+        );
+        break;
+      case ChargeBasis.Monthly:
+        this.fieldDescriptors.push(
+          this.amountDescriptor,
+        );
+        break;
+      case ChargeBasis.CollectedInvoiceCommission:
+        this.fieldDescriptors.push(
+          this.rateDescriptor,
+          this.orderTypesDescriptor,
+        );
+        break;
+      default:
+        console.log("default;")
+        break;
+    }
+    // trigger changes to rebind things
+    this.editingForm.ngOnChanges();
+  }
+
+  formChanged(event) {
+    // things changed, let's update the form builder
+    this.updateFormBuilder();
+  }
+
+  edit(feeSchedule?: FeeSchedule) {
+    // first, let's make sure payeeSales is there!
+    const [salesAgent] = ((this.restaurant || {} as any).rateSchedules || []).map(rs => rs.agent);
+    this.payeeSales.object = salesAgent || 'NONE';
+    this.payeeSales.text = salesAgent || 'NONE';
+
     this.feeScheduleInEditing = new FeeSchedule(feeSchedule);
+
+    // the following will condition the editor
     // when in editing, we need "2020-08-19" type of format, usibng fr-CA to do so
     if (this.feeScheduleInEditing.fromTime) {
       this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: this.restaurant.googleAddress.timezone || 'America/New_York' });
@@ -172,21 +334,85 @@ export class RestaurantFeeSchedulesComponent implements OnInit {
     if (this.feeScheduleInEditing.toTime) {
       this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: this.restaurant.googleAddress.timezone || 'America/New_York' });
     }
+
+    this.updateFormBuilder();
+
+    // end condition
     this.modalFeeSchedule.show();
+
   }
 
-  submit(event) {
-    event.acknowledge(null);
-    console.log(event)
+  async submit(event) {
+    console.log(event);
+    this.modalFeeSchedule.hide();
+
+    const myFs = new FeeSchedule(this.feeScheduleInEditing);
+    // turn 2020-09-01 to timezone form
+    const getTransformedDate = (dateString) => {
+      const [year, month, date] = dateString.split('-');
+      return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), this.restaurant.googleAddress.timezone);
+    }
+    if (this.feeScheduleInEditing.fromTime) {
+      myFs.fromTime = getTransformedDate(this.feeScheduleInEditing.fromTime);
+    }
+    if (this.feeScheduleInEditing.toTime) {
+      myFs.toTime = getTransformedDate(this.feeScheduleInEditing.toTime);
+    }
+
+    // collect payment methods or payment types
+    myFs.orderPaymentMethods = this.orderPaymentMethodsDescriptor.items.filter(op => op.selected).map(op => op.object);
+    myFs.orderTypes = this.orderTypesDescriptor.items.filter(ot => ot.selected).map(ot => ot.object);
+    switch (myFs.chargeBasis) {
+      case ChargeBasis.OrderSubtotal:
+        break;
+      case ChargeBasis.Monthly:
+        delete myFs.orderPaymentMethods;
+        delete myFs.orderTypes;
+        delete myFs.rate;
+        break;
+      case ChargeBasis.CollectedInvoiceCommission:
+        delete myFs.amount;
+        delete myFs.orderPaymentMethods;
+        break;
+      default:
+        break;
+    }
+
+    const index = this.feeSchedules.findIndex(fs => fs.createdAt === myFs.createdAt);
+    let newFeeSchedules;
+    if (index >= 0) {
+      newFeeSchedules = [...this.feeSchedules.slice(0, index), myFs, ...this.feeSchedules.slice(index + 1)];
+    }
+    else {
+      myFs.createdAt = new Date().valueOf(); // we use timestamp as id
+      newFeeSchedules = [... this.feeSchedules, myFs];
+    }
+    await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
   }
 
   cancel(event) {
     this.modalFeeSchedule.hide();
   }
 
-  remove(event: FormSubmit) {
-    console.log(event)
-    event.acknowledge(null);
+  async remove(event: FormSubmit) {
+    const newFeeSchedules = this.feeSchedules.filter(fs => fs.createdAt !== this.feeScheduleInEditing.createdAt);
+    await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
   }
 
+  async saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, acknowledge) {
+    try {
+      await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+        {
+          old: { _id: this.restaurant._id, feeSchedules: [...this.feeSchedules] },
+          new: { _id: this.restaurant._id, feeSchedules: newFeeSchedules },
+        }]);
+      this.feeSchedules = newFeeSchedules;
+      this.restaurant['feeSchedules'] = newFeeSchedules;
+      acknowledge(null);
+      this.modalFeeSchedule.hide();
+    }
+    catch (error) {
+      acknowledge(JSON.stringify(error));
+    }
+  }
 }

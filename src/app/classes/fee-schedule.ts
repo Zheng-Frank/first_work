@@ -40,7 +40,6 @@ export class FeeSchedule {
     // the following fields are all optional
     rate?: number;
     amount?: number;
-    monthlyAmount?: number;
 
     // constraints
     orderTypes?: OrderType[];

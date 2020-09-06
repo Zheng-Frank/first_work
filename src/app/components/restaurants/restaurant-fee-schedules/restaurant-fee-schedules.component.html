@@ -16,9 +16,6 @@
 
         <td class="text-nowrap">
           <div *ngIf="feeSchedule.name">{{feeSchedule.name}}</div>
-          <div *ngIf="feeSchedule.monthlyAmount" class="my-text-b">
-            {{feeSchedule.monthlyAmount |currency:'USD':'symbol'}}
-          </div>
           <div *ngIf="feeSchedule.rate || feeSchedule.amount" class="my-text-b">
             <span *ngIf="feeSchedule.rate">{{feeSchedule.rate | percent }}</span>
             <span *ngIf="feeSchedule.rate && feeSchedule.amount"> + </span>
@@ -30,8 +27,8 @@
         </td>
         <td class="text-lowercase text-nowrap">{{feeSchedule.payer}} → {{feeSchedule.payee}}
           <div class="my-text-small">
-            {{ feeSchedule.fromTime | date: 'shortDate' }} → <span
-              *ngIf=" feeSchedule.toTime">{{ feeSchedule.toTime | date: 'shortDate' }}</span>
+            {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : restaurant.googleAddress.timezone }} → <span
+              *ngIf=" feeSchedule.toTime">{{ feeSchedule.toTime | adjustedDate: 'shortDate' : restaurant.googleAddress.timezone }}</span>
           </div>
         </td>
 
@@ -49,6 +46,7 @@
         <td>
           <button class="btn btn-link p-0" (click)="edit(feeSchedule)">Edit</button>
         </td>
+
       </tr>
       <tr>
         <td colspan="4">
@@ -63,20 +61,11 @@
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">×</span>
   </button>
-  {{feeScheduleInEditing | json}}
-  <q-form-builder [object]="feeScheduleInEditing" [showDelete]="feeScheduleInEditing.createdAt"
-    [fieldDescriptors]="fieldDescriptors" (submit)="submit($event)" (cancel)="cancel($event)" (remove)="remove($event)">
-
-    <div class="form-group" *ngIf="feeScheduleInEditing.chargeBasis === 'ORDER_SUBTOTAL'">
-      <label>order related</label>
-    </div>
-
-    <div class="form-group" *ngIf="feeScheduleInEditing.chargeBasis === 'MONTHLY'">
-      <label>Monthly</label>
-    </div>
-    <div class="form-group" *ngIf="feeScheduleInEditing.chargeBasis === 'COLLECTED_INVOICE_COMMISSION'">
-      <label>commission</label>
-    </div>
-
+  <q-form-builder #editingForm [object]="feeScheduleInEditing" [showDelete]="feeScheduleInEditing.createdAt"
+    [fieldDescriptors]="fieldDescriptors" (change)="formChanged($event)" (submit)="submit($event)"
+    (cancel)="cancel($event)" (remove)="remove($event)">
   </q-form-builder>
+  <pre>
+    {{feeScheduleInEditing | json}}
+  </pre>
 </q-modal>
