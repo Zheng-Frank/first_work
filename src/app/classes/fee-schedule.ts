@@ -11,7 +11,14 @@ export class FeeSchedule {
     chargeBasis: ChargeBasis;
     createdBy?: string;
     createdAt?: number;
+    // the following fields are all optional
+    rate?: number;
+    amount?: number;
 
+    // constraints
+    orderTypes?: OrderType[];
+    orderPaymentMethods?: OrderPaymentMethod[];
+    
     constructor(fs?: any) {
         if (fs) {
             // copy every fields
@@ -37,12 +44,6 @@ export class FeeSchedule {
         });
     }
 
-    // the following fields are all optional
-    rate?: number;
-    amount?: number;
 
-    // constraints
-    orderTypes?: OrderType[];
-    orderPaymentMethods?: OrderPaymentMethod[];
 
 }

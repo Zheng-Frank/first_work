@@ -10,3 +10,6 @@
 .my-text-b {
     font-weight: 700;
 }
+
+td:first-child { padding-left: 0.25rem; };
+th:first-child { padding-left: 0.25rem; };

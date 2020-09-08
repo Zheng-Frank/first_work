@@ -25,93 +25,21 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   @Input() users = [];
 
+  now = new Date(); // to tell if a fee schedule is expired
   feeSchedules: FeeSchedule[] = [];
 
-  now = new Date();
+  feeScheduleInEditing: any = {};
+  fieldDescriptors = [];
+
+  showExpired = false;
+
+  // for displaying
   chargeBasisMap = {
     [ChargeBasis.Monthly]: 'monthly',
     [ChargeBasis.OrderSubtotal]: 'order subtotal',
     [ChargeBasis.CollectedInvoiceCommission]: 'commission',
   };
 
-  constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
-  }
-
-  async ngOnChanges(changes: SimpleChanges) {
-    this.feeSchedules = [];
-    if (this.restaurant) {
-      this.feeSchedules = (this.restaurant['feeSchedules'] || []).map(fs => new FeeSchedule(fs));
-    }
-  }
-
-  ngOnInit() {
-
-    const ccFee = new FeeSchedule({
-      chargeBasis: ChargeBasis.OrderSubtotal,
-      payer: 'CUSTOMER',
-      payee: 'RESTAURANT',
-      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('01/01/2020'), this.restaurant.googleAddress.timezone),
-      name: 'CC fee',
-      amount: 0.99,
-      rate: 0.03,
-      orderPaymentMethods: ['KEY_IN', 'QMENU', 'IN_PERSON', 'STRIPE'],
-      createdAt: 1,
-    });
-
-    const bookingFee = new FeeSchedule({
-      chargeBasis: ChargeBasis.OrderSubtotal,
-      payer: 'CUSTOMER',
-      payee: 'QMENU',
-      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('01/01/2020'), this.restaurant.googleAddress.timezone),
-      toTime: TimezoneHelper.transformToTimezoneDate(new Date('08/01/2020'), this.restaurant.googleAddress.timezone),
-      name: 'booking fee',
-      amount: 0.99,
-      createdAt: 2,
-    });
-
-    const normalRate = new FeeSchedule({
-      chargeBasis: ChargeBasis.OrderSubtotal,
-      payer: 'RESTAURANT',
-      payee: 'QMENU',
-      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('01/01/2020'), this.restaurant.googleAddress.timezone),
-      toTime: TimezoneHelper.transformToTimezoneDate(new Date('12/05/2020'), this.restaurant.googleAddress.timezone),
-      amount: 0.99,
-      createdAt: 3,
-    });
-
-    const deliveryRate = new FeeSchedule({
-      chargeBasis: ChargeBasis.OrderSubtotal,
-      payer: 'RESTAURANT',
-      payee: 'QMENU',
-      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('08/01/2020'), this.restaurant.googleAddress.timezone),
-      amount: 1.00,
-      orderTypes: [OrderType.Delivery],
-      createdAt: 4,
-    });
-
-    const monthlyFee = new FeeSchedule({
-      chargeBasis: ChargeBasis.Monthly,
-      payer: 'RESTAURANT',
-      payee: 'QMENU',
-      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('08/01/2020'), this.restaurant.googleAddress.timezone),
-      amount: 199.00,
-      createdAt: 5,
-    });
-
-    const salesCommission = new FeeSchedule({
-      chargeBasis: ChargeBasis.CollectedInvoiceCommission,
-      payer: 'QMENU',
-      payee: 'gary',
-      fromTime: TimezoneHelper.transformToTimezoneDate(new Date('01/01/2020'), this.restaurant.googleAddress.timezone),
-      rate: 0.15,
-      orderTypes: [OrderType.Pickup, OrderType.DineIn],
-      createdAt: 6,
-    });
-
-    // this.feeSchedules.push(ccFee, bookingFee, normalRate, deliveryRate, monthlyFee, salesCommission);
-  }
-
-  feeScheduleInEditing: any = {};
 
   nameDescriptor = {
     field: "name", //
@@ -218,22 +146,18 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     ]
   };
 
-  fieldDescriptors = [
-    this.nameDescriptor,
-    this.payerDescriptor,
-    this.payeeDescriptor,
-    this.fromTimeDescriptor,
-    this.toTimeDescriptor,
-    this.chargeBasisDescriptor,
-    this.orderTypesDescriptor,
-    this.orderPaymentMethodsDescriptor
-  ];
 
-  validPayerPayees = {
-    CUSTOMER: [this.payeeRestaurant, this.payeeQmenu],
-    RESTAURANT: [this.payeeQmenu],
-    QMENU: [this.payeeSales]
-  };
+  constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
+  }
+
+  async ngOnChanges(changes: SimpleChanges) {
+    this.feeSchedules = [];
+    if (this.restaurant) {
+      this.feeSchedules = (this.restaurant['feeSchedules'] || []).map(fs => new FeeSchedule(fs));
+    }
+  }
+
+  ngOnInit() { }
 
   updateFormBuilder() {
 
@@ -306,7 +230,6 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         );
         break;
       default:
-        console.log("default;")
         break;
     }
     // trigger changes to rebind things
@@ -343,7 +266,6 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   }
 
   async submit(event) {
-    console.log(event);
     this.modalFeeSchedule.hide();
 
     const myFs = new FeeSchedule(this.feeScheduleInEditing);
@@ -414,5 +336,17 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     catch (error) {
       acknowledge(JSON.stringify(error));
     }
+  }
+
+  feeSchedulePaymentMethodsLimitationString(feeSchedule: FeeSchedule) {
+    return feeSchedule.orderPaymentMethods.every(pm => ['IN_PERSON', 'KEY_IN', 'STRIPE', 'QMENU',].indexOf(pm) >= 0) ? 'credit card orders' : feeSchedule.orderPaymentMethods.join(', ');
+  }
+
+  isFeeScheduleExpired(feeSchedule) {
+    return feeSchedule.toTime && this.now > feeSchedule.toTime;
+  }
+
+  getExpiredFeeSchedules() {
+    return this.feeSchedules.filter(fs => this.isFeeScheduleExpired(fs));
   }
 }
