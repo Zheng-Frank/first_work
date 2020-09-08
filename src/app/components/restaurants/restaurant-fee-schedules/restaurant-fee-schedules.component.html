@@ -69,7 +69,7 @@
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">×</span>
   </button>
-  <q-form-builder #editingForm [object]="feeScheduleInEditing" [showDelete]="feeScheduleInEditing.createdAt"
+  <q-form-builder #editingForm [object]="feeScheduleInEditing" [showDelete]="feeScheduleInEditing.id"
     [fieldDescriptors]="fieldDescriptors" (change)="formChanged($event)" (submit)="submit($event)"
     (cancel)="cancel($event)" (remove)="remove($event)">
   </q-form-builder>

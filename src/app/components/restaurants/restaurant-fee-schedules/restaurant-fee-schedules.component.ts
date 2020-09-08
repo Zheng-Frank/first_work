@@ -300,13 +300,13 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         break;
     }
 
-    const index = this.feeSchedules.findIndex(fs => fs.createdAt === myFs.createdAt);
+    const index = this.feeSchedules.findIndex(fs => fs.id === myFs.id);
     let newFeeSchedules;
     if (index >= 0) {
       newFeeSchedules = [...this.feeSchedules.slice(0, index), myFs, ...this.feeSchedules.slice(index + 1)];
     }
     else {
-      myFs.createdAt = new Date().valueOf(); // we use timestamp as id
+      myFs.id = new Date().valueOf().toString(); // we use timestamp as id
       newFeeSchedules = [... this.feeSchedules, myFs];
     }
     await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
@@ -317,7 +317,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   }
 
   async remove(event: FormSubmit) {
-    const newFeeSchedules = this.feeSchedules.filter(fs => fs.createdAt !== this.feeScheduleInEditing.createdAt);
+    const newFeeSchedules = this.feeSchedules.filter(fs => fs.id !== this.feeScheduleInEditing.id);
     await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
   }
 

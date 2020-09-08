@@ -3,14 +3,13 @@ import { OrderPaymentMethod } from "./order-payment-method";
 import { ChargeBasis } from "./charge-basis";
 
 export class FeeSchedule {
+    id: string;
     payer: 'CUSTOMER' | 'RESTAURANT' | 'QMENU';
     payee: string;
     fromTime: Date;
     toTime?: Date;
     name?: string;
     chargeBasis: ChargeBasis;
-    createdBy?: string;
-    createdAt?: number;
     // the following fields are all optional
     rate?: number;
     amount?: number;
@@ -18,7 +17,7 @@ export class FeeSchedule {
     // constraints
     orderTypes?: OrderType[];
     orderPaymentMethods?: OrderPaymentMethod[];
-    
+
     constructor(fs?: any) {
         if (fs) {
             // copy every fields
