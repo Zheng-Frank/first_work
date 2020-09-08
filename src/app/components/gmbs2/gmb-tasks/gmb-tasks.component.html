@@ -327,7 +327,7 @@
       </div>
       <div class="col-6 text-right">
         <button class="btn btn-outline-secondary" (click)="resetPin(ph)" *ngIf="ph.pin">Reset PIN</button>
-        <button class="btn btn-primary" (click)="completePin(ph)" *ngIf="ph.pin">Verify PIN</button>
+        <button class="btn btn-primary" (click)="completePin(ph)" *ngIf="ph.pin && !isPublished">Verify PIN</button>
       </div>
     </div>
 
