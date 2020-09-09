@@ -270,9 +270,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                     name: "reset-pin",
                     payload: {
                         taskId: this.modalTask._id,
-                        email: this.modalTask.request.email,
-                        locationName: this.modalTask.request.locationName,
-                        pin: pinHistory.pin
+                        username: this._global.user.username
                     }
                 }).toPromise();
 
@@ -757,7 +755,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.filteredTasks = this.tasks;
 
         if (this.verified !== "Any") {
-            this.filteredTasks = this.filteredTasks.filter(t => (this.verified === 'Yes') === (this.publishedCids.has( t.relatedMap.cid )));
+            this.filteredTasks = this.filteredTasks.filter(t => (this.verified === 'Yes') === (this.publishedCids.has(t.relatedMap.cid)));
         }
 
         if (this.assignee === "NON-CLAIMED") {
