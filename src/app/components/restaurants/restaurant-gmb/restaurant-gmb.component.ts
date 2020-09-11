@@ -310,7 +310,7 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   isPublished(row) {
-    return row.accountLocationPairs.some(al => al.location.status === 'Published');
+    return row.accountLocationPairs.some(al => al.location.status === 'Published' && ['OWNER','CO_OWNER', 'MANAGER'].find(r => r === al.location.role));
   }
 
   hasMainGmb() {

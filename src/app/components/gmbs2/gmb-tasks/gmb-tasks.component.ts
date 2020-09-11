@@ -100,6 +100,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     //help display postcardID
     postcardIds = new Map();
 
+    //manual error fixes
+    manualFixes = ["UPDATE_INFO_REQUIRED"];
+
     tabs = [
         { label: 'Mine', rows: [] },
         { label: 'Non-claimed', rows: [] },
@@ -108,6 +111,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         { label: 'All Closed', rows: [] },
         { label: 'Errors', rows: [] },
         { label: 'VO Changed', rows: [] },
+        { label: 'Manual Fixes', rows: [] },
 
     ];
 
@@ -562,7 +566,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 this.populateTasks(),
                 this.populatePostcardId(),
                 this.populateQMDomains(),
-                this.populatePublishedCids()
+                this.populatePublishedCids(),
+                this.populateManualFixes()
             ]);
 
         } catch (error) {
@@ -728,8 +733,23 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "locations.status": 1
             }
         }).toPromise();
-        allPublished.forEach(acct => (acct.locations || []).forEach(loc => { if (loc.status === "Published") this.publishedCids.add(loc.cid) }));
+        allPublished.forEach(acct => (acct.locations || []).forEach(loc => { 
+            if (loc.status === "Published" && ['OWNER','CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid) }));
     }
+
+    private async populateManualFixes() {
+        const [result] = await this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "config",
+            query: { key: "GMB_TASK_MANUAL_FIX_REQUIRED" },
+            limit: 1,
+            projection: {
+                _id: 0,
+                "value": 1
+            }
+        }).toPromise();
+        this.manualFixes = result.value;
+    }
+
 
     ngOnChanges(changes: SimpleChanges) {
 
@@ -839,6 +859,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                     && t.request.statusHistory[0].isError,
                 "VO Changed": t => !t.result && t.request && t.request.voHistory && t.request.voHistory[0] && t.request.voHistory[0].time
                     && ((this.now.getTime() - new Date(t.request.voHistory[0].time).getTime()) / 86400000) < 1,
+                "Manual Fixes": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0]
+                    && t.request.statusHistory[0].isError
+                    && t.request.statusHistory[0].status
+                    && this.manualFixes.some(msg => t.request.statusHistory[0].status.indexOf(msg) >= 0)
             };
             tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
         });
