@@ -730,7 +730,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             projection: {
                 _id: 0,
                 "locations.cid": 1,
-                "locations.status": 1
+                "locations.status": 1,
+                "locations.role": 1
             }
         }).toPromise();
         allPublished.forEach(acct => (acct.locations || []).forEach(loc => { 
