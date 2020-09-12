@@ -2247,7 +2247,7 @@ export class DbScriptsComponent implements OnInit {
 
     });
 
-    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest', 'disableAutoTask'];
+    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest'];
 
     Object.keys(cidMap).map(cid => {
       let restaurants = cidMap[cid].restaurants || [];

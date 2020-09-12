@@ -262,10 +262,7 @@ export class NewRestaurantComponent implements OnInit {
       if (this.restaurant.googleListing && this.restaurant.googleListing.gmbWebsite) {
         this.restaurant.web.bizManagedWebsite = this.restaurant.googleListing.gmbWebsite;
       }
-      if (this.skipApplyGmb) {
-        this.restaurant.web.disableAutoTask = true;
-      }
-
+  
       const newRestaurants = await this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [this.restaurant]).toPromise();
       // assign newly created id back to original object
       this.restaurant._id = newRestaurants[0];
