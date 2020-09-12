@@ -89,7 +89,7 @@
                         (edit)="updateAutoPrintCopies($event, row, printer)"></q-edit-label>
                     <ng-container *ngIf="row.type === 'phoenix'">
                         format:
-                        <q-edit-label [value]="printer.format" [type]="'select'" [options]="['', 'esc', 'gdi', 'pdf']"
+                        <q-edit-label [value]="printer.format" [type]="'select'" [options]="['', 'esc', 'gdi', 'pdf', 'png2esc']"
                             (edit)="updateFormat($event, row, printer)"></q-edit-label>
                     </ng-container>
                 </span>
