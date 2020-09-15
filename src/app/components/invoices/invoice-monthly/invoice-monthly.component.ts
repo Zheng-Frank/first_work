@@ -563,7 +563,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     // let's put a localTimeString to it
     this.overdueRows.map(row => {
       const time = new Date();
-      time.setHours(time.getHours() + this._timezone.getOffsetToEST(row.restaurant.address.timezone));
+      time.setHours(time.getHours() + this._timezone.getOffsetToEST((row.restaurant.address || {}).timezone));
       row.localTimeString = time.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' });
     });
     // now populate overdueAgents unique agents
