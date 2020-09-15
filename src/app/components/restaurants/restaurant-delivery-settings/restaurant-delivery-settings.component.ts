@@ -244,8 +244,8 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
     hours.map(h => {
-      h.fromTime = this._timezone.transformToTargetTime(h.fromTime, this.restaurant.googleAddress.timezone);
-      h.toTime = this._timezone.transformToTargetTime(h.toTime, this.restaurant.googleAddress.timezone);
+      h.fromTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.fromTime, this.restaurant.googleAddress.timezone);
+      h.toTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.toTime, this.restaurant.googleAddress.timezone);
     });
 
     this.clickedAddHour = false;

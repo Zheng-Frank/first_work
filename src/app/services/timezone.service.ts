@@ -39,4 +39,13 @@ export class TimezoneService {
         clone.setHours(clone.getHours() + offset);
         return clone;
     }
+
+    transformToTargetTimeUsingCurrentOffset(date: any, timezone: string) {
+        const clone = new Date(date);
+        const temp1 = new Date();
+        const temp2 = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+        const offset = temp1.getHours() - temp2.getHours() + (temp1.getDate() - temp2.getDate()) * 24;
+        clone.setHours(clone.getHours() + offset);
+        return clone;
+    }
 }
