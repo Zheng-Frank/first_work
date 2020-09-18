@@ -1,0 +1,28 @@
+<ng-container *ngIf="system && system.ccProcessorSettings">
+  Changes will take effect immediately
+  <div class="row">
+    <div class="col col-sm-4" *ngFor="let provider of system.ccProcessorSettings.providers">
+      <div class="card">
+        <div
+          class="card-header clearfix {{system.ccProcessorSettings.defaultProviderName === provider.name ? 'bg-success text-white' : ''}}">
+          <div class="float-left">{{provider.name | uppercase}}</div>
+          <div class="float-right" *ngIf="system.ccProcessorSettings.defaultProviderName === provider.name"><i
+              class="fas fa-check"></i>
+            Default</div>
+          <div class="float-right" *ngIf="system.ccProcessorSettings.defaultProviderName !== provider.name">
+            <button class="btn btn-link custom-btn-link" (click)="setDefault(provider)">Set as Default</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="system && system.ccProcessorSettings && system.ccProcessorSettings.customized" class="card card-body mt-2">
+    <div *ngFor="let c of system.ccProcessorSettings.customized">
+      <h4>Use {{c.providerName}}</h4>
+      <div>
+        <q-values [(ngModel)]="c.restaurantIds" (ngModelChange)="customizedUpdated($event)"></q-values>
+      </div>
+    </div>
+  </div>
+
+</ng-container>
