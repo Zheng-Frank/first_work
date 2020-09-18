@@ -112,13 +112,13 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         // show only relevant payment means: Send to qMenu = balance > 0
         this.paymentMeans = (restaurants[0].paymentMeans || [])
           .map(pm => new PaymentMeans(pm))
-          .filter(pm => (pm.direction === 'Send' && this.invoice.getBalance() > 0) || (pm.direction === 'Receive' && this.invoice.getBalance() < 0));
+          .filter(pm => (pm.direction === 'Send' && this.invoice.balance > 0) || (pm.direction === 'Receive' && this.invoice.balance < 0));
 
         // inject paymentMeans to invoice. If multiple, choose the first only
         const firstPm = this.paymentMeans[0];
         if (firstPm) {
           // https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-dollars-currency-string-in-javascript
-          const amountString = '$' + Math.abs(this.invoice.getBalance()).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+          const amountString = '$' + Math.abs(this.invoice.balance).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 
           const wordingMap = {
             'Check': 'Please send payment check in the amount of ' + amountString + ' to:<br>qMenu, Inc.<br>7778 McGinnis Ferry Rd, Suite 276<br>Suwanee, GA 30024',
@@ -180,6 +180,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   async computeDerivedFields() {
     await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: this.invoice['_id'] || this.invoice.id }).toPromise();
     this._global.publishAlert(AlertType.Success, "Success!");
+    this.loadInvoice();
   }
 
   async toggleInvoiceStatus(field) {
@@ -351,7 +352,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       let message = 'QMENU INVOICE:';
       message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';
       // USE USD instead of $ because $ causes trouble for text :(
-      message += '\n' + (this.invoice.getBalance() > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.getBalance()), 'USD');
+      message += '\n' + (this.invoice.balance > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.balance), 'USD');
       message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
       // if (this.invoice.paymentInstructions) {
       //   message += '\n' + this.invoice.paymentInstructions.replace(/\<br\>/g, '\n');
@@ -421,7 +422,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   }
   async sendPaperCheck() {
-    let amount = +(this.invoice.getBalance().toFixed(2));
+    let amount = +(this.invoice.balance.toFixed(2));
     if (amount < 0) {
       amount = Math.abs(amount);
     }
@@ -533,7 +534,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   showSendPaperCheck() {
     if (!this.invoice.isPaymentSent || !this.invoice.isPaymentCompleted) {
-      if (this.invoice.restaurant.paymentMeans && this.invoice.restaurant.paymentMeans.length > 0 && this.invoice.getBalance() < 0) {
+      if (this.invoice.restaurant.paymentMeans && this.invoice.restaurant.paymentMeans.length > 0 && this.invoice.balance < 0) {
         let paymentMean = this.invoice.restaurant.paymentMeans[0];
         if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
           return true;
