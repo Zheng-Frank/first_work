@@ -121,11 +121,6 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     const oldR = JSON.parse(JSON.stringify(this.restaurant));
     const newR = JSON.parse(JSON.stringify(this.restaurant));
 
-    // force requireZipcode and requireBillingAddress of Fattmerchant is ON
-
-    this.requireZipcode = this.requireZipcode || this.ccProcessor === 'FATTMERCHANT';
-    this.requireBillingAddress = this.requireBillingAddress || this.ccProcessor === 'FATTMERCHANT';
-
     newR.serviceSettings = this.serviceSettingsInEditing;
     newR.excludeAmex = this.excludeAmex;
     newR.excludeDiscover = this.excludeDiscover;
@@ -189,15 +184,6 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   toggleTaxBeforePromotion() {
     this.taxBeforePromotion = !this.taxBeforePromotion;
   }
-
-  toggleCcProcessor() {
-    if (this.ccProcessor) {
-      this.ccProcessor = undefined;
-    } else {
-      this.ccProcessor = 'FATTMERCHANT';
-    }
-  }
-
 
   shouldShowStripeInput() {
     return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'STRIPE'));
