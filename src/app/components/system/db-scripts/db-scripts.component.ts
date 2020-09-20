@@ -22,6 +22,22 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async fixBadMenuHours() {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        "menus.hours": 1,
+        name: 1
+      },
+    }, 3000);
+    for (let r of restaurants) {
+      const hasBadHours = (r.menus || []).some(menu => (menu.hours || []).some(hour => !hour || !hour.fromTime || !hour.toTime /*|| !hour.occurence */));
+      if (hasBadHours) {
+        console.log(r);
+      }
+    }
+  }
+
   async getMostUsedPhones() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
