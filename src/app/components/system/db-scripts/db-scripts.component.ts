@@ -31,7 +31,7 @@ export class DbScriptsComponent implements OnInit {
       },
     }, 3000);
     for (let r of restaurants) {
-      const hasBadHours = (r.menus || []).some(menu => (menu.hours || []).some(hour => !hour || !hour.fromTime || !hour.toTime /*|| !hour.occurence */));
+      const hasBadHours = (r.menus || []).some(menu => !Array.isArray(menu.hours || []) || (menu.hours || []).some(hour => !hour || !hour.fromTime || !hour.toTime /*|| !hour.occurence */));
       if (hasBadHours) {
         console.log(r);
       }
