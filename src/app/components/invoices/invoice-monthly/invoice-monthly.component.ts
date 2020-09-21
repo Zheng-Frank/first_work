@@ -517,7 +517,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         "logs.type": 1,
         "googleListing.cid": 1
       },
-    }, 2000);
+    }, 1000);
 
     collectionLogs.map(restaurant => {
       if (idRowMap[restaurant._id]) {

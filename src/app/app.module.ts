@@ -102,6 +102,7 @@ import { TaskGmbApplyComponent } from './components/tasks/task-gmb-apply/task-gm
 import { GmbAccountHotlinkComponent } from './components/gmbs2/gmb-account-hotlink/gmb-account-hotlink.component';
 import { TaskGeneratorComponent } from './components/tasks/task-generator/task-generator.component';
 import { SmsSettingsComponent } from './components/system/sms-settings/sms-settings.component';
+import { CcProessorSettingsComponent } from './components/system/cc-processor-settings/cc-processor-settings.component';
 import { FaxSettingsComponent } from './components/system/fax-settings/fax-settings.component';
 import { VoiceSettingsComponent } from './components/system/voice-settings/voice-settings.component';
 import { TaskGmbAppealSuspendedComponent } from './components/tasks/task-gmb-appeal-suspended/task-gmb-appeal-suspended.component';
@@ -275,6 +276,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     GmbAccountHotlinkComponent,
     TaskGeneratorComponent,
     SmsSettingsComponent,
+    CcProessorSettingsComponent,
     FaxSettingsComponent,
     VoiceSettingsComponent,
     QuickDatePickerComponent,

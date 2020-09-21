@@ -1,0 +1,45 @@
+<ng-container *ngIf="system && system.ccProcessorSettings">
+  <div>
+    <p>* Changes will take effect immediately!</p>
+    <p>* For STRIPE, use requireZipcode and requireBillingAddress settings from restaurant</p>
+    <p>* For FATTMERCHANT, use requireZipcode and requireBillingAddress settings from system settings (must match NMI!)
+    </p>
+
+  </div>
+  <div class="row">
+    <div class="col col-sm-4" *ngFor="let provider of system.ccProcessorSettings.providers">
+      <div class="card">
+        <div
+          class="card-header clearfix {{system.ccProcessorSettings.defaultProviderName === provider.name ? 'bg-success text-white' : ''}}">
+          <div class="float-left">{{provider.name | uppercase}}</div>
+          <div class="float-right" *ngIf="system.ccProcessorSettings.defaultProviderName === provider.name"><i
+              class="fas fa-check"></i>
+            Default</div>
+          <div class="float-right" *ngIf="system.ccProcessorSettings.defaultProviderName !== provider.name">
+            <button class="btn btn-link custom-btn-link" (click)="setDefault(provider)">Set as Default</button></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="pb-4" *ngIf="provider.requireZipcode || provider.requireBillingAddress">
+          <p>Zip code: {{provider.requireZipcode ? 'required' : 'NOT required'}}</p>
+          <p>Billing address: {{provider.requireBillingAddress ? 'required' : 'NOT required'}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="system && system.ccProcessorSettings && system.ccProcessorSettings.customized"
+    class="card card-body mt-2">
+    <div *ngFor="let c of system.ccProcessorSettings.customized">
+      <h4>Customized: {{c.providerName}}</h4>
+      <div *ngIf="c.requireZipcode || c.requireBillingAddress">
+        <p>Zip code: {{c.requireZipcode ? 'required' : 'NOT required'}}</p>
+        <p>Billing address: {{c.requireBillingAddress ? 'required' : 'NOT required'}}</p>
+      </div>
+      <div>
+        <q-values [(ngModel)]="c.restaurantIds" (ngModelChange)="customizedUpdated($event)"></q-values>
+      </div>
+    </div>
+  </div>
+
+</ng-container>
