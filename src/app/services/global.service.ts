@@ -243,10 +243,9 @@ export class GlobalService {
 
   async getCachedRestaurantListForPicker(forceRefresh?: boolean) {
     if (forceRefresh || !this._cache.get('restaurantListForPicker')) {
-      const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+      const restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {},
-        limit: 10000000,
         projection: {
           name: 1,
           alias: 1,
@@ -258,7 +257,7 @@ export class GlobalService {
           "googleListing.cid": 1,
           "rateSchedules": 1
         }
-      }).toPromise();
+      }, 10000);
       this._cache.set('restaurantListForPicker', restaurants, 60 * 60);
     }
 
