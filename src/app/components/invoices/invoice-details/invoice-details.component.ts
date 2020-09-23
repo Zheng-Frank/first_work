@@ -276,11 +276,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
     // we need recalculate the values!
     let i = new Invoice(updatedInvoice);
-    i.computeDerivedValues();
     // back to use POJS
     updatedInvoice = JSON.parse(JSON.stringify(i));
-
-
 
     this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
       result => {

@@ -5,7 +5,6 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { zip } from 'rxjs';
 import { Log } from 'src/app/classes/log';
 
 @Component({
@@ -173,7 +172,6 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
       // we need to update calculated fields!
       const originInvoice = JSON.parse(JSON.stringify(invoice));
       const newInvoice = new Invoice(invoice);
-      newInvoice.computeDerivedValues();
 
       const invoiceIds = await this._api
         .patch(environment.qmenuApiUrl + "generic?resource=invoice", [{
