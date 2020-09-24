@@ -189,7 +189,7 @@
 
   <hr>
   <div *ngIf="modalTask?.request.email" class="text-center">
-    <app-gmb-account-hotlink [email]="modalTask?.request.email"></app-gmb-account-hotlink>
+    <app-gmb-account-hotlink [email]="modalTask?.request.email" [appealId]="modalTask?.request.appealId"></app-gmb-account-hotlink>
     <label>[postcard ID: {{postcardIds.get(modalTask?.request.email)}}]</label>
   </div>
 

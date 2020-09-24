@@ -94,7 +94,7 @@
                     {{row.restaurant.agent}}
                 </td>
                 <td>
-                    <app-gmb-account-hotlink [email]="al.account.email"></app-gmb-account-hotlink>
+                    <app-gmb-account-hotlink [email]="al.account.email" [appealId]="al.location?.appealId"></app-gmb-account-hotlink>
                 </td>
                 <td>
                     <a href="https://www.google.com/search?ludocid={{al.location?.cid}}&q={{al.location?.name}}"

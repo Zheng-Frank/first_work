@@ -36,7 +36,7 @@
         <tr *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
           <td class="w-25">{{task.date | date: 'medium'}}</td>
           <td class="w-25"><button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id}}</button></td>
-          <td class="w-25"><app-gmb-account-hotlink *ngIf="task.email" [email]="task.email"></app-gmb-account-hotlink></td>
+          <td class="w-25"><app-gmb-account-hotlink *ngIf="task.email" [email]="task.email" [appealId]="task.appealId"></app-gmb-account-hotlink></td>
           <td class="w-25">{{task.status}}</td>
         </tr>
       </table>

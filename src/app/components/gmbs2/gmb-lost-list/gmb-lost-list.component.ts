@@ -128,6 +128,7 @@ export class GmbLostListComponent implements OnInit {
         "relatedMap.cid": 1,
         createdAt: 1,
         "request.email": 1,
+        "request.appealId": 1,
         "request.statusHistory": { $slice: 1 },
         "request.statusHistory.status": 1
       }
@@ -189,6 +190,7 @@ export class GmbLostListComponent implements OnInit {
             id: task._id,
             date: task.createdAt,
             email: (task.request || {}).email,
+            appealId: (task.request || {}).appealId,
             status: status
           });
           // Update option list

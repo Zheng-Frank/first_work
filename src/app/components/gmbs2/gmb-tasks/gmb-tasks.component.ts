@@ -38,6 +38,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "relatedMap.restaurantId": 1,
                 "relatedMap.restaurantName": 1,
                 "relatedMap.cid": 1,
+                "request.appealId": 1,
                 "request.refreshedAt": 1,
                 "request.ownerDeclined": 1,
                 "request.statusHistory.status": 1,

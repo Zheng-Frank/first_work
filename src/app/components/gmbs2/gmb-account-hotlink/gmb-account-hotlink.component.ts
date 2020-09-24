@@ -16,6 +16,7 @@ export class GmbAccountHotlinkComponent implements OnInit {
   @Input() muted;
   @Input() targetPage = 'GMB'; // or 'EMAIL'
   @Input() redirectUrl;
+  @Input() appealId;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -23,17 +24,21 @@ export class GmbAccountHotlinkComponent implements OnInit {
   }
 
   async login() {
+
+    if (this.appealId && !this.redirectUrl) this.redirectUrl = `https://business.google.com/edit/l/${this.appealId}`;
+
     try {
       const accounts = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "gmbAccount",
         query: {
           email: this.email
         },
+        projection: {_id: 0, email: 1 },
         limit: 1
       }).toPromise();
 
       const target = 'login';
-      await this._api.post(environment.autoGmbUrl + target, { email: accounts[0].email, stayAfterScan: true, redirectUrl: this.redirectUrl }).toPromise();
+      await this._api.post(environment.autoGmbUrl + target, { email: accounts[0].email, redirectUrl: this.redirectUrl }).toPromise();
       this._global.publishAlert(AlertType.Success, 'Logged in.');
 
     }
