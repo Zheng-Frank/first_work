@@ -29,7 +29,7 @@
           </div>
         </td>
         <td>{{_timezone.getOffsetNumber(r.timezone)}}</td>
-        <td><app-gmb-account-hotlink [email]="r.gmbAccountEmail"></app-gmb-account-hotlink></td>
+        <td><app-gmb-account-hotlink [email]="r.gmbAccountEmail" [appealId]="r.appealId"></app-gmb-account-hotlink></td>
         <td>
           <div *ngFor="let req of createAngularIndentifiableArray(r.requestInfos)">{{req.date | ago : now}} | {{req.email}} | {{req.requester}}</div>
         </td>  
