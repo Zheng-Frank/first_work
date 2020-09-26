@@ -5,6 +5,7 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+import { rS } from '@angular/core/src/render3';
 
 declare var $: any;
 
@@ -189,7 +190,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
               return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
             }
 
-            const canEdit = this._global.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0) || (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
+            const canEdit = this._global.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0) || (rt.rateSchedules).some(rs => rs.agent === 'invalid') || (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
             this.readonly = !canEdit;
 
           },
