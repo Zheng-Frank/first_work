@@ -28,10 +28,9 @@ Total: {{rows.length}}
 
     <td>
       <div *ngFor="let hour of row.restaurant.closedHours || []" class="text-nowrap"><strong>
-          {{hour.fromTime | MMMd : row.restaurant.offsetToEST}} {{hour.fromTime | shortTime :
-          row.restaurant.offsetToEST}}
+          {{hour.fromTime | adjustedDate : 'MMM d h:mm a' : row.restaurant.googleAddress.timezone}}
           -
-          {{hour.toTime | MMMd : row.restaurant.offsetToEST}} {{hour.toTime | shortTime : row.restaurant.offsetToEST}}</strong></div>
+          {{hour.toTime | adjustedDate : 'MMM d h:mm a' : row.restaurant.googleAddress.timezone}}</strong></div>
 
     </td>
   </tr>

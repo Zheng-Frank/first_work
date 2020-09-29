@@ -87,7 +87,14 @@ export class Task {
         name: 'Others (其他)',
         roles: ['ADMIN'],
         scheduledAt: new Date()
+      },
+      {
+        name: 'Testing Order/Cloud Printing (测试订单或者云打印)',
+        roles: ['ADMIN'],
+        assignee: 'vivi',
+        scheduledAt: new Date()
       }
+
     ].sort((a, b) => a.name > b.name ? 1 : -1);
 
     constructor(task?: any) {

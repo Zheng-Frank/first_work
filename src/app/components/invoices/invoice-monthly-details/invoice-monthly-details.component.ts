@@ -100,7 +100,6 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
               balance: 1,
               commission: 1,
               "restaurant.id": 1,
-              "restaurant.offsetToEST": 1,
               isCanceled: 1,
               isPaymentCompleted: 1,
               isPaymentSent: 1,
@@ -116,7 +115,6 @@ export class InvoiceMonthlyDetailsComponent implements OnInit {
               name: 1,
               serviceSettings: 1,
               disabled: 1,
-              offsetToEST: 1,
               channels: 1,
               "googleAddress.formatted_address": 1
             },

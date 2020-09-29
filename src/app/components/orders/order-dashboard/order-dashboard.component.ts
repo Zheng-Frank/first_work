@@ -59,7 +59,7 @@ export class OrderDashboardComponent implements OnInit {
 
   searchOrders() {
     zip(
-      this._api.get(environment.qmenuApiUrl + "generic", {
+      this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "order",
         query: {
           $or: [
@@ -99,9 +99,9 @@ export class OrderDashboardComponent implements OnInit {
           createdAt: 1,
           orderNumber: 1,
           'runtime.standalone': 1
-        },
-        limit: 100000
-      }),
+        }
+        
+      }, 30000),
 
       this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
@@ -254,7 +254,7 @@ export class OrderDashboardComponent implements OnInit {
         this.rows.map(row => {
           let agent = 'none';
           if (row.restaurant.rateSchedules && row.restaurant.rateSchedules.length > 0) {
-            agent = row.restaurant.rateSchedules[0].agent;
+            agent = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length-1].agent;
           }
           agentDict[agent] = agentDict[agent] || {
             restaurant: 0,

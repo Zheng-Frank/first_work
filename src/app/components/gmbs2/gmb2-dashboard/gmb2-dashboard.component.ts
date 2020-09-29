@@ -29,7 +29,7 @@ export class Gmb2DashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.isGmbAdmin = this._global.user.roles.some(role => role === 'GMB_SPECIALIST');
+    this.isGmbAdmin = this._global.user.roles.some(role => role === 'GMB_SPECIALIST' || role === 'ADMIN');
   }
 
   refresh() {

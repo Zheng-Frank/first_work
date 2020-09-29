@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Invoice } from '../../../classes/invoice';
+import { TimezoneService } from '../../../services/timezone.service';
 
 @Component({
   selector: 'app-invoice-viewer',
@@ -9,7 +10,7 @@ import { Invoice } from '../../../classes/invoice';
 })
 export class InvoiceViewerComponent implements OnInit {
   @Input() invoice: Invoice;
-  constructor(private _ref: ChangeDetectorRef) { }
+  constructor(private _ref: ChangeDetectorRef, public _timezone: TimezoneService) { }
 
   ngOnInit() {
   }
@@ -20,7 +21,7 @@ export class InvoiceViewerComponent implements OnInit {
 
   getRestaurantTime(time): Date {
     const t = new Date(time);
-    t.setHours(t.getHours() + (this.invoice.restaurant.offsetToEST || 0));
+    t.setHours(t.getHours() + this._timezone.getOffsetToEST(this.invoice.restaurant.address.timezone));
     return t;
   }
 

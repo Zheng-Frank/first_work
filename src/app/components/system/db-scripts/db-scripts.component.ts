@@ -22,6 +22,22 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async fixBadMenuHours() {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        "menus.hours": 1,
+        name: 1
+      },
+    }, 3000);
+    for (let r of restaurants) {
+      const hasBadHours = (r.menus || []).some(menu => !Array.isArray(menu.hours || []) || (menu.hours || []).some(hour => !hour || !hour.fromTime || !hour.toTime /*|| !hour.occurence */));
+      if (hasBadHours) {
+        console.log(r);
+      }
+    }
+  }
+
   async getMostUsedPhones() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -319,52 +335,6 @@ export class DbScriptsComponent implements OnInit {
 
   }
 
-  async changeAZTimezone() {
-    const batchSize = 500;
-    const newOffsetToEST = -2
-    const rtList = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: {
-          "$or": [
-            {
-              "googleAddress.administrative_area_level_1": "AZ"
-            },
-            {
-              "googleAddress.state": "AZ"
-            }
-          ]
-        },
-        projection: {
-          name: 1,
-          "googleAddress": 1,
-          offsetToEST: 1
-        },
-        skip: rtList.length,
-        limit: batchSize
-      }).toPromise();
-      rtList.push(...batch);
-      if (batch.length === 0 || batch.length < batchSize) {
-        break;
-      }
-    }
-
-    let updatedRestaurantPairs = [];
-    for (let r of rtList) {
-      let newR = JSON.parse(JSON.stringify(r));
-      newR.offsetToEST = newOffsetToEST;
-      updatedRestaurantPairs.push({
-        old: { _id: r._id },
-        new: { _id: r._id, offsetToEST: newOffsetToEST }
-      })
-      console.log(updatedRestaurantPairs);
-      if (updatedRestaurantPairs.length > 0) {
-        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurantPairs).toPromise();
-      }
-    }
-
-  }
   async purge(dbName) {
     if (['job', 'event'].indexOf(dbName) < 0) {
       alert('Not supported');
@@ -1246,7 +1216,6 @@ export class DbScriptsComponent implements OnInit {
           },
           projection: {
             "restaurant.name": 1,
-            "restaurant.offsetToEST": 1,
             createdAt: 1,
             orders: 1
           },
@@ -2294,7 +2263,7 @@ export class DbScriptsComponent implements OnInit {
 
     });
 
-    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest', 'disableAutoTask'];
+    const migrateFields = ['bizManagedWebsite', 'useBizWebsite', 'useBizWebsiteForAll', 'qmenuWebsite', 'qmenuPop3Password', 'ignoreGmbOwnershipRequest'];
 
     Object.keys(cidMap).map(cid => {
       let restaurants = cidMap[cid].restaurants || [];

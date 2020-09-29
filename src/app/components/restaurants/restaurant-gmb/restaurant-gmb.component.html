@@ -173,7 +173,7 @@
             <tr>
               <th class="bold-button">
                 <div>
-                  <app-gmb-account-hotlink [email]="alPair.account.email"></app-gmb-account-hotlink>
+                  <app-gmb-account-hotlink [email]="alPair.account.email" [appealId]="alPair.location.appealId"></app-gmb-account-hotlink>
                   <small *ngIf="alPair.location.role !== 'OWNER' && alPair.location.role !== 'CO_OWNER'" class="badge badge-info">{{alPair.location.role}}</small>
                 </div>
                 <div class="text-muted">

@@ -98,8 +98,8 @@
   <div class="tab-content">
     <div *ngFor="let menu of getMenus()" class="tab-pane  {{getActiveId() == menu.id ? 'active' : ''}} pt-1"
       role="tabpanel">
-      <app-menu [restaurant]="restaurant" [menu]="menu" [offsetToEST]="restaurant.offsetToEST" (onEdit)="edit($event)"
-        (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
+      <app-menu [restaurant]="restaurant" [menu]="menu" [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" 
+        (onEdit)="edit($event)" (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
     </div>
     <div class="tab-pane  {{!getActiveId() ? 'active' : ''}} pt-1" role="tabpanel">
       <div *ngIf="getMenus().length === 0" class="text-center mb-1">
@@ -115,8 +115,8 @@
     </button>
     <h4 class="text-center">{{menuEditor.menu?.id ? 'Edit Menu' : 'Create New Menu'}}</h4>
     <hr>
-    <app-menu-editor #menuEditor [offsetToEST]="restaurant.offsetToEST" (onDone)="onDoneEditing($event)"
-      (onDelete)="onDelete($event)"></app-menu-editor>
+    <app-menu-editor #menuEditor [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" [timezone]="restaurant.googleAddress.timezone"
+      (onDone)="onDoneEditing($event)" (onDelete)="onDelete($event)"></app-menu-editor>
   </q-modal>
 
   <div class="app-plus">

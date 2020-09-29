@@ -9,6 +9,7 @@ import { Channel } from 'src/app/classes/channel';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertType } from 'src/app/classes/alert-type';
 import { GlobalService } from 'src/app/services/global.service';
+import { TimezoneService } from 'src/app/services/timezone.service';
 
 @Component({
   selector: 'app-invoices-anual',
@@ -55,7 +56,7 @@ export class InvoicesAnualComponent implements OnInit {
     toDate: null
   }];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
+  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
 
   async ngOnInit() {
 
@@ -160,7 +161,7 @@ export class InvoicesAnualComponent implements OnInit {
 
   getRestaurantTime(time, invoice): Date {
     const t = new Date(time);
-    t.setHours(t.getHours() + (invoice.restaurant.offsetToEST || 0));
+    t.setHours(t.getHours() + this._timezone.getOffsetToEST(invoice.restaurant.address.timezone || 0));
     return t;
   }
 
@@ -203,7 +204,7 @@ export class InvoicesAnualComponent implements OnInit {
           // USE USD instead of $ because $ causes trouble for text :(
           message += '\n' + (statement.balance > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(statement.balance), 'USD');
           message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
-          message += '\nThank you for your business!'
+          message += '\nThank you for your business!\nDO NOT REPLY THIS MESSAGE'
 
           // we need to append '-' to end of $xxx.xx because of imessage bug
           const matches = message.match(/\.\d\d/g);

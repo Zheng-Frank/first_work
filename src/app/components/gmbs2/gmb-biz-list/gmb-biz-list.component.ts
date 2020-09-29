@@ -57,7 +57,7 @@ export class GmbBizListComponent implements OnInit {
           disabled: 1,
           score: 1,
           "deliverySettings": { $slice: -1 },
-          "rateSchedules": { $slice: 1 },
+          "rateSchedules": { $slice: -1 },
           "rateSchedules.agent": 1,
           "serviceSettings.name": 1,
           "serviceSettings.paymentMethods": 1,
@@ -95,6 +95,7 @@ export class GmbBizListComponent implements OnInit {
           email: 1,
           "locations.statusHistory": { $slice: 2 },
           "locations.cid": 1,
+          "locations.appealId": 1,
           "locations.name": 1,
           "locations.address": 1,
           "locations.status": 1,
@@ -266,6 +267,10 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
+    // Filter out restaurants with invalid agent first
+    if (this.restaurantProblems !== "restaurant problems") {
+      this.filteredRows = this.filteredRows.filter(r => ((r.restaurant.rateSchedules || [])[0] || {}).agent !== "invalid");
+    }
     switch (this.restaurantProblems) {
       case 'bad service settings':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant._id && (!r.restaurant.serviceSettings || !r.restaurant.serviceSettings.some(setting => setting.paymentMethods && setting.paymentMethods.length > 0)));

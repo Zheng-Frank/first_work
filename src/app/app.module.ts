@@ -45,7 +45,8 @@ import { InvoiceOptionEditorComponent } from './components/invoices/invoice-opti
 import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { CacheService } from './services/cache.service';
-import { PrunedPatchService } from './services/prunedPatch.service'
+import { PrunedPatchService } from './services/prunedPatch.service';
+import { TimezoneService } from './services/timezone.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
@@ -89,6 +90,7 @@ import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.compon
 import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor/gmb-account-editor.component';
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-list/gmb-underattack-list.component';
+import { GmbLostListComponent } from './components/gmbs2/gmb-lost-list/gmb-lost-list.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -99,6 +101,7 @@ import { TaskGmbApplyComponent } from './components/tasks/task-gmb-apply/task-gm
 import { GmbAccountHotlinkComponent } from './components/gmbs2/gmb-account-hotlink/gmb-account-hotlink.component';
 import { TaskGeneratorComponent } from './components/tasks/task-generator/task-generator.component';
 import { SmsSettingsComponent } from './components/system/sms-settings/sms-settings.component';
+import { CcProessorSettingsComponent } from './components/system/cc-processor-settings/cc-processor-settings.component';
 import { FaxSettingsComponent } from './components/system/fax-settings/fax-settings.component';
 import { VoiceSettingsComponent } from './components/system/voice-settings/voice-settings.component';
 import { TaskGmbAppealSuspendedComponent } from './components/tasks/task-gmb-appeal-suspended/task-gmb-appeal-suspended.component';
@@ -112,7 +115,7 @@ import { OrderRejectBarComponent } from './components/restaurants/order-reject-b
 import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
 import { RestaurantWebSettingsComponent } from './components/restaurants/restaurant-web-settings/restaurant-web-settings.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
-import { appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
+import { adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
 import { RestaurantDeliveryClosedHoursComponent } from './components/restaurants/restaurant-delivery-closed-hours/restaurant-delivery-closed-hours.component';
 import { RestaurantClosedHoursComponent } from './components/restaurants/restaurant-closed-hours/restaurant-closed-hours.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
@@ -177,6 +180,7 @@ import { CourierDashboardComponent } from './components/couriers/courier-dashboa
 import { BroadcastingEditorComponent } from './components/broadcasting/broadcasting-editor/broadcasting-editor.component';
 import { SanitizeDomPipe } from './pipes/sanitize-dom.pipe';
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
+import { InvalidListComponent } from './components/restaurants/invalid-list/invalid-list.component';
 import { RestaurantsCourierListComponent } from './components/restaurants/restaurants-courier-list/restaurants-courier-list.component';
 import { from } from 'rxjs';
 import { RestarantChainsComponent } from './components/restaurants/restarant-chains/restarant-chains.component';
@@ -184,7 +188,7 @@ import { ChainsDashboardComponent } from './components/chains/chains-dashboard/c
 import { ChainComponent } from './components/chains/chain/chain.component';
 @NgModule({
   declarations: [
-    appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
+    adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
     RootComponent,
     HomeComponent,
     MonitoringScriptComponent,
@@ -262,6 +266,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     GmbAccountEditorComponent,
     GmbRequestListComponent,
     GmbUnderattackListComponent,
+    GmbLostListComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,
     TaskGmbAppealSuspendedComponent,
@@ -269,6 +274,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     GmbAccountHotlinkComponent,
     TaskGeneratorComponent,
     SmsSettingsComponent,
+    CcProessorSettingsComponent,
     FaxSettingsComponent,
     VoiceSettingsComponent,
     QuickDatePickerComponent,
@@ -337,6 +343,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     BroadcastingEditorComponent,
     SanitizeDomPipe,
     PostmatesListComponent,
+    InvalidListComponent,
     RestaurantsCourierListComponent,
     RestarantChainsComponent,
     ChainsDashboardComponent,
@@ -365,6 +372,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     TaskService,
     CacheService,
     PrunedPatchService,
+    TimezoneService,
     CrawlTemplateService,
     AmazonConnectService
   ],

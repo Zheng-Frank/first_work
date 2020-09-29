@@ -3,6 +3,13 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Fix Menu Hours</h5>
+            <p class="card-text">Find out which restaurants have bad menu hours (null as one hour) and remove bad hours. Safe to run multiple times</p>
+            <button class="btn btn-primary" (click)="fixBadMenuHours()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Get Most Used Phones</h5>
             <p class="card-text">Find out which phones are mostly used and restaurants with most SMS phones</p>
             <button class="btn btn-primary" (click)="getMostUsedPhones()">Execute</button>
@@ -41,14 +48,6 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Change AZ Timezone</h5>
-            <p class="card-text">Since AZ don't follow daylight saving, need set timezone as PDT at the begining for
-                daylight saving, set to MDT at the end of daylight saving(Need hard coded value)</p>
-            <button class="btn btn-primary" (click)="changeAZTimezone()">Execute</button>
-        </div>
-    </div>
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Purge Jobs</h5>

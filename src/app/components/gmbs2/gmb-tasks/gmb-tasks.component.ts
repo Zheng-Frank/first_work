@@ -38,6 +38,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "relatedMap.restaurantId": 1,
                 "relatedMap.restaurantName": 1,
                 "relatedMap.cid": 1,
+                "request.appealId": 1,
                 "request.refreshedAt": 1,
                 "request.ownerDeclined": 1,
                 "request.statusHistory.status": 1,
@@ -72,6 +73,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     relatedTasks = [];
 
     qmenuDomains = new Set();
+    publishedCids = new Set();
     modalTask;
     restaurant;
     verificationOptions = [];
@@ -99,6 +101,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     //help display postcardID
     postcardIds = new Map();
 
+    //manual error fixes
+    manualFixes = ["UPDATE_INFO_REQUIRED"];
+
     tabs = [
         { label: 'Mine', rows: [] },
         { label: 'Non-claimed', rows: [] },
@@ -107,6 +112,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         { label: 'All Closed', rows: [] },
         { label: 'Errors', rows: [] },
         { label: 'VO Changed', rows: [] },
+        { label: 'Manual Fixes', rows: [] },
 
     ];
 
@@ -269,13 +275,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                     name: "reset-pin",
                     payload: {
                         taskId: this.modalTask._id,
-                        email: this.modalTask.request.email,
-                        locationName: this.modalTask.request.locationName,
-                        pin: pinHistory.pin
+                        username: this._global.user.username
                     }
                 }).toPromise();
 
-                this._global.publishAlert(AlertType.Success, 'PIN reset Successfully');
+                this._global.publishAlert(AlertType.Success, 'PIN reset Successfully, refreshing task');
 
             } catch (error) {
                 console.log(error);
@@ -284,7 +288,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
 
             await this.addComments(`PIN reset`);
-            await this.refreshSingleTask(this.modalTask._id);
+            await this.hardRefresh(this.modalTask);
         }
     }
 
@@ -319,7 +323,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                     }
                 }).toPromise();
 
-                this._global.publishAlert(AlertType.Success, 'triggered successfully');
+                this._global.publishAlert(AlertType.Success, 'triggered successfully, refreshing task');
 
             } catch (error) {
                 console.log(error);
@@ -328,27 +332,27 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
             this.verifyingOption = undefined;
             await this.addComments(`tried verification`);
-            await this.refreshSingleTask(task._id);
+            await this.hardRefresh(task);
         }
     }
 
     // Send Google PIN message.
     sendingGooglePinMessage = false;
-    triggerSendGooglePinMessage(){
+    triggerSendGooglePinMessage() {
         this.sendingGooglePinMessage = !this.sendingGooglePinMessage;
     }
 
-    logSendingGooglePinMessage(event){
+    logSendingGooglePinMessage(event) {
         const notification_status_new = {
             user: this._global.user.username,
             time: new Date(),
             channels: event.channels,
             comments: event.comments
         }
-        if (this.modalTask.notification_status){
+        if (this.modalTask.notification_status) {
             this.modalTask.notification_status.unshift(notification_status_new);
         }
-        else{
+        else {
             this.modalTask.notification_status = [notification_status_new];
         }
         this.update(this.modalTask, "notification_status", this.modalTask.notification_status);
@@ -357,7 +361,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     showCompleteNotificationHistory = false;
 
-    triggerCompleteNotificationHistory(){
+    triggerCompleteNotificationHistory() {
         this.showCompleteNotificationHistory = !this.showCompleteNotificationHistory;
     }
 
@@ -437,16 +441,17 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.rowModal.show();
 
         this.preferredVerificationOption = undefined;
-        const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
-            resource: "gmbAccount",
-            query: { "locations.cid": theTask.relatedMap.cid },
-            limit: 100000,
-            projection: {
-                "locations.cid": 1,
-                "locations.status": 1
-            }
-        }).toPromise();
-        this.isPublished = relatedAccounts.some(acct => acct.locations.some(loc => loc.cid === theTask.relatedMap.cid && loc.status === 'Published'));
+        // const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
+        //     resource: "gmbAccount",
+        //     query: { "locations.cid": theTask.relatedMap.cid },
+        //     limit: 100000,
+        //     projection: {
+        //         "locations.cid": 1,
+        //         "locations.status": 1
+        //     }
+        // }).toPromise();
+        // this.isPublished = relatedAccounts.some(acct => acct.locations.some(loc => loc.cid === theTask.relatedMap.cid && loc.status === 'Published'));
+        this.isPublished = this.publishedCids.has(theTask.relatedMap.cid);
 
         this.taskScheduledAt = theTask.scheduledAt || new Date();
         const verificationOptions = (((theTask.request.voHistory || [])[0] || { options: [] }).options || []).filter(vo => vo.verificationMethod !== 'SMS').map(vo => ({
@@ -562,6 +567,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 this.populateTasks(),
                 this.populatePostcardId(),
                 this.populateQMDomains(),
+                this.populatePublishedCids(),
+                this.populateManualFixes()
             ]);
 
         } catch (error) {
@@ -716,6 +723,36 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.qmenuDomains = await this._global.getCachedDomains();
     }
 
+    private async populatePublishedCids() {
+        const allPublished = await this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "gmbAccount",
+            query: {},
+            limit: 100000,
+            projection: {
+                _id: 0,
+                "locations.cid": 1,
+                "locations.status": 1,
+                "locations.role": 1
+            }
+        }).toPromise();
+        allPublished.forEach(acct => (acct.locations || []).forEach(loc => { 
+            if (loc.status === "Published" && ['OWNER','CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid) }));
+    }
+
+    private async populateManualFixes() {
+        const [result] = await this._api.get(environment.qmenuApiUrl + "generic", {
+            resource: "config",
+            query: { key: "GMB_TASK_MANUAL_FIX_REQUIRED" },
+            limit: 1,
+            projection: {
+                _id: 0,
+                "value": 1
+            }
+        }).toPromise();
+        this.manualFixes = result.value;
+    }
+
+
     ngOnChanges(changes: SimpleChanges) {
 
     }
@@ -728,6 +765,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     owner = "All";
     ownerList = [];
 
+    verified = "No";
     shouldCall = false;
     hasPhone = false;
     hasPostcard = false; // NOT sent
@@ -737,6 +775,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     filter() {
 
         this.filteredTasks = this.tasks;
+
+        if (this.verified !== "Any") {
+            this.filteredTasks = this.filteredTasks.filter(t => (this.verified === 'Yes') === (this.publishedCids.has(t.relatedMap.cid)));
+        }
 
         if (this.assignee === "NON-CLAIMED") {
             this.filteredTasks = this.filteredTasks.filter(t => !t.assignee);
@@ -768,12 +810,14 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         if (this.shouldCall) {
             // No qMenu emails and having phone call options
             this.filteredTasks = this.filteredTasks.filter(t => {
-                const gmb = ((this.restaurantDict[t.relatedMap.restaurantId] || {}).googleListing || {}).gmbOwner;
+                // const gmb = ((this.restaurantDict[t.relatedMap.restaurantId] || {}).googleListing || {}).gmbOwner;
+                const published = this.publishedCids.has(t.relatedMap.cid);
                 const ownerDeclined = t.request.ownerDeclined;
                 const lastVos = ((((t.request || {}).voHistory || [])[0] || {}).options) || [];
                 const hasQmenuEmailVo = lastVos.some(vo => vo.emailData && this.qmenuDomains.has(vo.emailData.domainName));
                 const hasPhoneVo = lastVos.some(vo => vo.verificationMethod === "PHONE_CALL");
-                return gmb !== "qmenu" && !ownerDeclined && !hasQmenuEmailVo && hasPhoneVo;
+                // return gmb !== "qmenu" && !ownerDeclined && !hasQmenuEmailVo && hasPhoneVo;
+                return !published && !ownerDeclined && !hasQmenuEmailVo && hasPhoneVo;
             });
         }
 
@@ -817,6 +861,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                     && t.request.statusHistory[0].isError,
                 "VO Changed": t => !t.result && t.request && t.request.voHistory && t.request.voHistory[0] && t.request.voHistory[0].time
                     && ((this.now.getTime() - new Date(t.request.voHistory[0].time).getTime()) / 86400000) < 1,
+                "Manual Fixes": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0]
+                    && t.request.statusHistory[0].isError
+                    && t.request.statusHistory[0].status
+                    && this.manualFixes.some(msg => t.request.statusHistory[0].status.indexOf(msg) >= 0)
             };
             tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
         });

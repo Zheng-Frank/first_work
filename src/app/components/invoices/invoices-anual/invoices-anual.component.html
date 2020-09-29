@@ -22,8 +22,8 @@
 
     <div *ngIf='statement.fromDate !== null && statement.toDate !== null'>
 
-      <h6 class="text-center">Date Range: {{statement.fromDate | date: 'MMM dd yyyy'}} -
-        {{statement.toDate | date: 'MMM dd yyyy'}}</h6>
+      <h6 class="text-center">Date Range: {{statement.fromDate | adjustedDate: 'MMM dd yyyy' : 'America/New_York'}} -
+        {{statement.toDate | adjustedDate: 'MMM dd yyyy' : 'America/New_York'}}</h6>
 
       <!-- <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6" [innerHTML]="invoice.paymentInstructions"></div> -->
 
@@ -263,7 +263,7 @@
         <tbody>
           <tr *ngFor="let invoice of getFilteredInvoices(statement.year)" routerLink="/invoices/{{invoice._id}}"
             class="{{getCssClass(invoice)}} {{invoice.isCanceled ?  'canceled' : ''}}" role="button">
-            <td>{{invoice.fromDate | date: 'MMM dd yyyy'}} - {{invoice.toDate | date: 'MMM dd yyyy'}}</td>
+            <td>{{invoice.fromDate | adjustedDate: 'MMM dd yyyy' : 'America/New_York'}} - {{invoice.toDate | adjustedDate: 'MMM dd yyyy' : 'America/New_York'}}</td>
             <td class="text-right">{{invoice.subtotal | currency:'USD':'symbol'}}</td>
             <!--<td class="text-right">{{invoice.getTax() | currency:'USD':'symbol'}}</td>
             <td class="text-right">{{invoice.getDeliveryCharge() | currency:'USD':'symbol'}}</td>

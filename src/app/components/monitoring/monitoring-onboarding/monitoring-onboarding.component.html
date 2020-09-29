@@ -55,14 +55,14 @@ Total : {{filteredRows.length}}
             <ng-container *ngIf="row.accountAndStatuses[0]?.status === 'Published'">
                 <img [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
                 <br>
-                <app-gmb-account-hotlink [email]="row.accountAndStatuses[0].email"></app-gmb-account-hotlink>
+                <app-gmb-account-hotlink [email]="row.accountAndStatuses[0].email" [appealId]="row.accountAndStatuses[0].appealId"></app-gmb-account-hotlink>
             </ng-container>
 
             <ng-container *ngIf="row.accountAndStatuses[0]?.status !== 'Published'">
                 <div *ngFor="let item of row.accountAndStatuses">
                     <span>{{item.status}}</span>
                     <br>
-                    <app-gmb-account-hotlink [email]="item.email"></app-gmb-account-hotlink>
+                    <app-gmb-account-hotlink [email]="item.email" [appealId]="item.appealId"></app-gmb-account-hotlink>
                 </div>
             </ng-container>
 

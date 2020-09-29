@@ -135,7 +135,7 @@ export class EventDashboardComponent implements OnInit {
       sort: {
         startedAt: -1
       }
-    }, 800);
+    }, 400);
 
     this.listeners.map(listener => {
       listener.subscribers.map(subscriber => {

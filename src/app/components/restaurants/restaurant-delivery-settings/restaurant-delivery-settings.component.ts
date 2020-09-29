@@ -4,6 +4,7 @@ import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
+import { TimezoneService } from "../../../services/timezone.service";
 import { AlertType } from "../../../classes/alert-type";
 
 @Component({
@@ -52,7 +53,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.checkingPostmatesAvailability = false;
   }
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
     // populate couriers
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "courier",
@@ -64,13 +65,13 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   ngOnInit() {
-    const t = Date['parseRestaurantDate']('2000-01-01', this.restaurant.offsetToEST);
+    const t = Date['parseRestaurantDate']('2000-01-01', this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone));
     // t.setMinutes(t.getMinutes() + 60); // let's start with restaurant's 1AM
     const interval = 30;
     for (let i = 0; i < 24 * 60 / interval; i++) {
       let h = t.getHours();
       let m = t.getMinutes();
-      this.deliveryFromTimes.push({ value: new Date(t.getTime()), text: t['restaurant hh:MM a'](this.restaurant.offsetToEST) });
+      this.deliveryFromTimes.push({ value: new Date(t.getTime()), text: t['restaurant hh:MM a'](this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone)) });
       t.setMinutes(t.getMinutes() + interval);
     }
 
@@ -212,7 +213,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   getDeliveryFromString() {
     if (this.restaurant.deliveryFromTime) {
       const colonedStartTime = new Date(this.restaurant.deliveryFromTime.getTime());
-      colonedStartTime.setHours(colonedStartTime.getHours() + (this.restaurant.offsetToEST || 0));
+      colonedStartTime.setHours(colonedStartTime.getHours() + this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone));
       for (const t of this.deliveryFromTimes) {
         if (t.value.valueOf() === colonedStartTime.valueOf()) {
           return t.text;
@@ -242,11 +243,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.deliveryHours.sort((a, b) => a.fromTime.valueOf() - b.fromTime.valueOf());
 
     // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
-    const jan = new Date(new Date().getFullYear(), 0, 1);
-    const browserHoursAhead = 5 - (this.restaurant.offsetToEST || 0) - jan.getTimezoneOffset() / 60;
     hours.map(h => {
-      h.fromTime.setHours(h.fromTime.getHours() + browserHoursAhead);
-      h.toTime.setHours(h.toTime.getHours() + browserHoursAhead);
+      h.fromTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.fromTime, this.restaurant.googleAddress.timezone);
+      h.toTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.toTime, this.restaurant.googleAddress.timezone);
     });
 
     this.clickedAddHour = false;

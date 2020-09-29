@@ -40,7 +40,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   getExcludedPaymentString() {
-    return [this.restaurant.requireZipcode ? 'Zip code is required' : '', this.restaurant.excludeAmex ? 'No American Express' : '', this.restaurant.excludeDiscover ? 'No Discover' : ''].filter(s => s).join(', ');
+    return [this.restaurant.requireZipcode ? 'Zip code is required' : '', this.restaurant.requireBillingAddress ? 'Billing address is required' : '', this.restaurant.excludeAmex ? 'No American Express' : '', this.restaurant.excludeDiscover ? 'No Discover' : ''].filter(s => s).join(', ');
   }
 
   getServies() {
@@ -184,15 +184,6 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   toggleTaxBeforePromotion() {
     this.taxBeforePromotion = !this.taxBeforePromotion;
   }
-
-  toggleCcProcessor() {
-    if (this.ccProcessor) {
-      this.ccProcessor = undefined;
-    } else {
-      this.ccProcessor = 'FATTMERCHANT';
-    }
-  }
-
 
   shouldShowStripeInput() {
     return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'STRIPE'));

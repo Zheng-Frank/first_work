@@ -55,12 +55,6 @@
       <div class="form-group row">
         <label class="col-4 col-form-label pt-0">GMB</label>
         <div class="col-8 text-left">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="id_disableAutoTask" [checked]="restaurant.web?.disableAutoTask"
-              (change)="toggle($event, 'disableAutoTask')">
-            <label class="form-check-label" for="id_disableAutoTask"> Skip creating only initial 'Apply GMB Ownership'
-              task</label>
-          </div>
           <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="id_ignoreGmbOwnershipRequest" [checked]="restaurant.web?.ignoreGmbOwnershipRequest"
               (change)="toggle($event, 'ignoreGmbOwnershipRequest')">
@@ -83,7 +77,6 @@
           </div>
         </div>
       </div>
-
     </li>
 
   </ul>

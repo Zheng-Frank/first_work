@@ -8,10 +8,10 @@
         <tr *ngFor="let hour of (restaurant.closedHours || [])">
           <td>
             <div class="text-nowrap"><strong>
-                {{hour.fromTime | yMMMd : restaurant.offsetToEST}} {{hour.fromTime | shortTime : restaurant.offsetToEST}}
+                {{hour.fromTime | adjustedDate : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
                 -
-                {{hour.toTime | yMMMd : restaurant.offsetToEST}}
-                {{hour.toTime | shortTime : restaurant.offsetToEST}}</strong></div>
+                {{hour.toTime | adjustedDate : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
+              </strong></div>
             <div *ngIf="hour.comment">{{hour.comment}}</div>
           </td>
           <td scope="row" *ngIf="editing" class="text-xs-right" (click)="remove(hour)"><i

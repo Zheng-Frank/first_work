@@ -39,15 +39,17 @@ export class MonitoringOnboardingComponent implements OnInit {
         "googleListing.cid": 1,
         createdAt: 1,
         "rateSchedules.agent": 1,
+        "rateSchedules": { $slice: -1 },
         logs: { $slice: -2 },
       }
     }, 4000);
 
 
     // restaurantIdsWith
+    const validRestaurant = allRestaurants.filter(r => ((r.rateSchedules || [])[0] || {}).agent !== "invalid");
     const havingOrderRestaurantIdSet = new Set(await this._api.get(environment.legacyApiUrl + 'utilities/distinctOrderRestaurantIds').toPromise());
-    const restaurantsWithoutValidMenusAndNotDisabled = allRestaurants.filter(r => !r.disabled && (!r.menus || r.menus.filter(menu => !menu.disabled).length === 0));
-    const restaurantsWithoutAnyOrder = allRestaurants.filter(r => !havingOrderRestaurantIdSet.has(r._id));
+    const restaurantsWithoutValidMenusAndNotDisabled = validRestaurant.filter(r => !r.disabled && (!r.menus || r.menus.filter(menu => !menu.disabled).length === 0));
+    const restaurantsWithoutAnyOrder = validRestaurant.filter(r => !havingOrderRestaurantIdSet.has(r._id));
 
     const dict = {};
     restaurantsWithoutValidMenusAndNotDisabled.map(r => dict[r._id] = { restaurant: r, noMenu: true });
@@ -63,16 +65,17 @@ export class MonitoringOnboardingComponent implements OnInit {
         "email": 1,
         "locations.cid": 1,
         "locations.status": 1,
-        "locations.role": 1
+        "locations.role": 1,
+        "locations.appealId": 1,
       }
-    }, 1000);
+    }, 100);
 
 
     Object.keys(dict).map(k => {
       const row = dict[k];
       const accountAndStatuses = [];
       gmbAccounts.map(account => (account.locations || []).filter(loc => loc.cid && loc.cid === (row.restaurant.googleListing || {}).cid).map(loc => {
-        accountAndStatuses.push({ email: account.email, status: loc.status, role: loc.role });
+        accountAndStatuses.push({ email: account.email, status: loc.status, role: loc.role, appealId: loc.appealId });
 
       }));
       const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Reverification required', 'Published'];

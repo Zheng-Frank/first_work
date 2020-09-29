@@ -12,8 +12,8 @@
           <td>
             <div class="text-nowrap">
               <strong>
-                {{hour.fromTime | MMMd : restaurant.offsetToEST}} {{hour.fromTime | shortTime : restaurant.offsetToEST}} - {{hour.toTime
-                | MMMd : restaurant.offsetToEST}} {{hour.toTime | shortTime : restaurant.offsetToEST}}</strong>
+                {{hour.fromTime | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}} - {{hour.toTime
+                | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</strong>
             </div>
             <div *ngIf="hour.comment">{{hour.comment}}</div>
           </td>

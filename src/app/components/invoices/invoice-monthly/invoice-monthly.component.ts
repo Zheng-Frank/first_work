@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
+import { TimezoneService } from '../../../services/timezone.service';
 import { environment } from "../../../../environments/environment";
 import { Invoice } from 'src/app/classes/invoice';
 
@@ -37,7 +38,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   skipAutoInvoicingRestaurants = [];
   restaurantIdMap = {};
-  constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe, public _timezone: TimezoneService) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
     while (d < new Date()) {
@@ -87,16 +88,15 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async populateRestaurantIdMap() {
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {},
       projection: {
         name: 1,
         disabled: 1,
         rateSchedules: 1
-      },
-      limit: 200000
-    }).toPromise();
+      }     
+    }, 200000);
     restaurants.map(rt => rt.agent = (rt.rateSchedules || []).map(rs => rs.agent).slice(-1)[0]);
     this.restaurantIdMap = restaurants.reduce((map, rt) => (map[rt._id] = rt, map), {});
   }
@@ -343,7 +343,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   async populatePaymentSentButNotCompleted() {
 
-    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const invoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         isCanceled: { $ne: true },
@@ -357,11 +357,10 @@ export class InvoiceMonthlyComponent implements OnInit {
         balance: 1,
         "restaurant.name": 1,
         "restaurant.id": 1
-      },
-      limit: 200000
-    }).toPromise();
+      }
+    }, 100000);
 
-    const beingRolledInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const beingRolledInvoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         previousInvoiceId: { $exists: true },
@@ -369,9 +368,8 @@ export class InvoiceMonthlyComponent implements OnInit {
       },
       projection: {
         previousInvoiceId: 1
-      },
-      limit: 200000
-    }).toPromise();
+      }
+    }, 200000);
 
     this.beingRolledInvoiceSet = new Set(beingRolledInvoices.map(invoice => invoice.previousInvoiceId));
     this.paymentSentButNotCompletedRows = invoices;
@@ -386,7 +384,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   async populateRolledButLaterPaid() {
     this.rolledButLaterCompletedRows = [];
-    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const invoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         isCanceled: { $ne: true }
@@ -402,9 +400,8 @@ export class InvoiceMonthlyComponent implements OnInit {
         isPaymentCompleted: 1,
         isPaymentSent: 1,
         "restaurant.name": 1
-      },
-      limit: 200000
-    }).toPromise();
+      }
+    }, 200000);
 
     const dict = {};
     invoices.map(invoice => dict[invoice._id] = invoice);
@@ -447,7 +444,7 @@ export class InvoiceMonthlyComponent implements OnInit {
           "restaurant.id": 1,
           "restaurant.name": 1,
           "restaurant.rateSchedules": 1,
-          "restaurant.offsetToEST": 1,
+          "restaurant.address.timezone": 1,
           fromDate: 1,
           toDate: 1,
           previousInvoiceId: 1,
@@ -493,7 +490,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     });
 
 
-    const havingReferenceInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const havingReferenceInvoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       query: {
         previousInvoiceId: { $exists: true },
@@ -503,12 +500,12 @@ export class InvoiceMonthlyComponent implements OnInit {
         previousInvoiceId: 1
       },
       limit: 800000
-    }).toPromise();
+    }, 100000);
 
 
     const beingReferencedIds = new Set(havingReferenceInvoices.map(i => i.previousInvoiceId));
 
-    const collectionLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const collectionLogs = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         "logs.type": "collection"
@@ -520,8 +517,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         "logs.type": 1,
         "googleListing.cid": 1
       },
-      limit: 200000
-    }).toPromise();
+    }, 1000);
 
     collectionLogs.map(restaurant => {
       if (idRowMap[restaurant._id]) {
@@ -567,7 +563,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     // let's put a localTimeString to it
     this.overdueRows.map(row => {
       const time = new Date();
-      time.setHours(time.getHours() + row.restaurant.offsetToEST || 0);
+      time.setHours(time.getHours() + this._timezone.getOffsetToEST((row.restaurant.address || {}).timezone));
       row.localTimeString = time.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' });
     });
     // now populate overdueAgents unique agents
