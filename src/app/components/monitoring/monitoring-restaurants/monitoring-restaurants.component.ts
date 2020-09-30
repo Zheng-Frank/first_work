@@ -3,6 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { TimezoneService } from 'src/app/services/timezone.service';
+
 @Component({
   selector: 'app-monitoring-restaurants',
   templateUrl: './monitoring-restaurants.component.html',
@@ -23,6 +24,9 @@ export class MonitoringRestaurantsComponent implements OnInit {
 
   daysCreated = 'ALL';
   daysCreatedList = ['ALL', '0 - 7', '8 - 30', '> 30'];
+
+  timeZone = "ALL";
+  timeZoneList = ["ALL", ...["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort()];
 
   score = 'ALL';
   scoreList = ['ALL', 'NOT 0', '0', '1', '2', '3', '4', '> 4'];
@@ -53,6 +57,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
       paths: ['timezone'],
       sort: (a, b) => (a || 0) - (b || 0)
     },
+
     {
       label: "Score",
       paths: ['score'],
@@ -120,6 +125,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
       // sum all errors in each item
       rt.errors = (((rt.diagnostics || [])[0] || {}).result || []).reduce((sum, item) => sum + (item.errors || []).length, 0);
       rt.gmbPublished = rt.googleListing && rt.googleListing.cid && publishedCids.has(rt.googleListing.cid);
+      rt.timezone = Helper.getTimeZone((rt.googleAddress || {}).formatted_address);
     });
 
     // populate errorItems:
@@ -192,6 +198,11 @@ export class MonitoringRestaurantsComponent implements OnInit {
       }
       if (!ok) {
         return false;
+      }
+
+      // timezone
+      if(this.timeZone !== 'ALL') {
+        ok = Helper.getTimeZone((rt.googleAddress || {}).formatted_address) === this.timeZone;
       }
 
       // score
