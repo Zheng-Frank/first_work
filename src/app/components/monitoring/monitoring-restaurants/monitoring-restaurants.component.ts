@@ -125,7 +125,6 @@ export class MonitoringRestaurantsComponent implements OnInit {
       // sum all errors in each item
       rt.errors = (((rt.diagnostics || [])[0] || {}).result || []).reduce((sum, item) => sum + (item.errors || []).length, 0);
       rt.gmbPublished = rt.googleListing && rt.googleListing.cid && publishedCids.has(rt.googleListing.cid);
-      rt.timezone = Helper.getTimeZone((rt.googleAddress || {}).formatted_address);
     });
 
     // populate errorItems:
@@ -198,11 +197,6 @@ export class MonitoringRestaurantsComponent implements OnInit {
       }
       if (!ok) {
         return false;
-      }
-
-      // timezone
-      if(this.timeZone !== 'ALL') {
-        ok = Helper.getTimeZone((rt.googleAddress || {}).formatted_address) === this.timeZone;
       }
 
       // score
