@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+import { TimezoneService } from 'src/app/services/timezone.service';
 @Component({
   selector: 'app-monitoring-restaurants',
   templateUrl: './monitoring-restaurants.component.html',
@@ -48,6 +49,11 @@ export class MonitoringRestaurantsComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: "Time zone",
+      paths: ['timezone'],
+      sort: (a, b) => (a || 0) - (b || 0)
+    },
+    {
       label: "Score",
       paths: ['score'],
       sort: (a, b) => (a || 0) - (b || 0)
@@ -61,7 +67,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
   ];
 
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
   }
 
   async ngOnInit() {
