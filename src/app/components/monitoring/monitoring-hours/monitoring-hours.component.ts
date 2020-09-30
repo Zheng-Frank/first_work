@@ -22,7 +22,7 @@ export class MonitoringHoursComponent implements OnInit {
     // all restaurant stubs
 
     const allRestaurants = [];
-    const batchSize = 4000;
+    const batchSize = 3000;
     let skip = 0;
     while (true) {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {

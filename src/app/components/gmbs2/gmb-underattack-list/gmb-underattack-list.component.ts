@@ -89,7 +89,7 @@ export class GmbUnderattackListComponent implements OnInit {
         checker: 1,
         checkedAt: 1
       },
-    }, 6000);
+    }, 1000);
 
     requests.map(req => req.date = new Date(req.date));
     requests.sort((r1, r2) => r2.date.valueOf() - r1.date.valueOf());
@@ -99,10 +99,12 @@ export class GmbUnderattackListComponent implements OnInit {
       projection: {
         email: 1,
         "locations.cid": 1,
+        "locations.place_id": 1,
         "locations.status": 1,
-        "locations.role": 1
+        "locations.role": 1,
+        "locations.appealId": 1,
       },
-    }, 6000);
+    }, 100);
 
     const myEmailSet = new Set(gmbAccounts.map(a => a.email));
     const myCidSet = new Set();
@@ -126,7 +128,7 @@ export class GmbUnderattackListComponent implements OnInit {
         "request.statusHistory": { $slice: 1 },
         "request.statusHistory.isError": 1,
         "request.pinHistory": { $slice: 1 },
-        "request.pinHistory.pin": 1,
+        "request.pinHistory.pin": 1
       }
     }, 6000);
 
@@ -168,7 +170,7 @@ export class GmbUnderattackListComponent implements OnInit {
           _id: request._id,
           requester: request.requester,
           email: request.email,
-          date: request.date
+          date: request.date,
         });
         // If the current request has one check and there's not one before (so we getting the newest check)
         if (request.checker && request.checkedAt && !dict[index].checker && !dict[index].checkedAt) {
@@ -200,15 +202,15 @@ export class GmbUnderattackListComponent implements OnInit {
 
     // Attach restaurt's information to the requests 
     dict.map(entry => {
-      restaurants.map(restaurant => {
-        if (entry.place_id == restaurant.googleListing.place_id) {
-          entry['restaurantId'] = restaurant._id;
-          entry['address'] = restaurant.googleAddress.formatted_address;
-          entry['timezone'] = restaurant.googleAddress.timezone;
-          entry['name'] = restaurant.name;
-          entry['score'] = restaurant.score;
-        }
-      });
+      entry['appealId'] = (((gmbAccounts.find( it => it.email = entry.gmbAccountEmail ) ||{}).locations || []).find( it => it.place_id === entry.place_id) ||{}).appealId;
+      const restaurant = restaurants.find(r => r.googleListing.place_id === entry.place_id);
+      if (restaurant) {
+        entry['restaurantId'] = restaurant._id;
+        entry['address'] = restaurant.googleAddress.formatted_address;
+        entry['timezone'] = restaurant.googleAddress.timezone;
+        entry['name'] = restaurant.name;
+        entry['score'] = restaurant.score;
+      }
     });
 
     this.rows = dict;
@@ -233,7 +235,7 @@ export class GmbUnderattackListComponent implements OnInit {
     const newRequests = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "gmbRequest",
       query: { _id: { $oid: requestId } },
-      projection: { 
+      projection: {
         checker: 1,
         checkedAt: 1,
         "logs.user": 1,
@@ -248,7 +250,7 @@ export class GmbUnderattackListComponent implements OnInit {
       const newRow = this.rows[index];
       newRow['checker'] = newRequest['checker'];
       newRow['checkedAt'] = newRequest['checkedAt'];
-      newRow['logs'] = newRequest['logs']; 
+      newRow['logs'] = newRequest['logs'];
       this.rows[index] = newRow;
     }
 
@@ -294,7 +296,7 @@ export class GmbUnderattackListComponent implements OnInit {
       console.error("Log cannot be blank");
       this._global.publishAlert(AlertType.Danger, `Log cannot be blank.`);
     }
-  }  
+  }
 
   // Update the database to store the completion information
   async markRequestChecked(r: any) {
