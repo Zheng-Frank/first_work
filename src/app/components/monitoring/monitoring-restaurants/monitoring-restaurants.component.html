@@ -47,7 +47,9 @@
             <br>
             <small>{{rt.googleAddress?.formatted_address}}</small>
         </td>
-        <td>{{rt.timezone}}</td>
+
+        <td style="width: 100px;">{{_timezone.getOffsetNumber(rt.timezone)}} </td>
+
         <td>{{rt.score}}</td>
         <td>{{rt.gmbPublished}}</td>
         <td class="text-nowrap">
