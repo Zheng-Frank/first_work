@@ -500,7 +500,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         previousInvoiceId: 1
       },
       limit: 800000
-    }, 100000);
+    }, 30000);
 
 
     const beingReferencedIds = new Set(havingReferenceInvoices.map(i => i.previousInvoiceId));
