@@ -37,8 +37,8 @@ export class RestarantChainsComponent implements OnInit, OnChanges {
 
     console.log(this.chains);
 
-    [this.associatedTo] = this.chains.filter(c => c.restaurants.some(r => r._id === this.restaurant._id));
-    this.associatedTo.restaurants = this.associatedTo.restaurants ? this.associatedTo.restaurants.filter(r => r._id !== this.restaurant._id): {}; 
+    this.associatedTo = this.chains.find(c => c.restaurants.some(r => r._id === this.restaurant._id));
+    if (this.associatedTo) this.associatedTo.restaurants = this.associatedTo.restaurants ? this.associatedTo.restaurants.filter(r => r._id !== this.restaurant._id) : {};
     this.isAlreadyAssociated = !!this.associatedTo;
   }
 
