@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
 import { Invoice } from '../../../classes/invoice';
-import { TimezoneService } from '../../../services/timezone.service';
-import { KeyValue } from '@angular/common';
+import { FeeSchedule, ChargeBasis } from '@qmenu/ui';
 
 interface keyValue {
   key: string,
@@ -20,19 +19,42 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
 
   leftRows: keyValue[] = [];
   rightRows: keyValue[] = [];
+  // for displaying
+  chargeBasisMap = {
+    [ChargeBasis.Monthly]: 'monthly',
+    [ChargeBasis.OrderSubtotal]: 'order subtotal',
+    [ChargeBasis.OrderPreTotal]: 'order total',
+    [ChargeBasis.PaidInvoiceCommission]: 'commission',
+  };
 
-  constructor(private _ref: ChangeDetectorRef, public _timezone: TimezoneService) { }
+  orderTypes = new Set();
+  orderPaymentMethods = new Set();
+
+  couriers = new Set();
+
+  constructor(private _ref: ChangeDetectorRef) { }
 
   ngOnInit() {
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.invoice) {
-      this.computeTabularData();
+      this.computeData();
     }
   }
 
-  computeTabularData() {
+  computeData() {
+    this.orderTypes = new Set();
+    this.orderPaymentMethods = new Set();
+    this.invoice.orders.map(o => {
+      this.orderTypes.add(o.type);
+      this.orderPaymentMethods.add(o.paymentType);
+      if (o.type === 'DELIVERY') {
+        this.couriers.add(o.deliveryBy ? 'qMenu' : 'restaurant');
+      }
+    });
+    console.log(this.orderTypes);
+    console.log(this.orderPaymentMethods)
     const invoice = this.invoice;
     this.leftRows = [
       {
@@ -106,6 +128,11 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
         value: invoice.commission
       },
 
+      invoice.feesForQmenu && {
+        key: `Customer paid fees to qMenu`,
+        value: invoice.feesForQmenu
+      },
+
       // adjustment
       invoice.adjustment && {
         key: `Adjustments (${invoice.adjustment >= 0 ? 'credit' : 'debit'})`,
@@ -138,46 +165,10 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     ].filter(kv => kv);
 
 
-
-    //   <tr>
-    //     <td>
-    //       <b>Commission</b>
-    //       <span *ngIf="getRateSchedules().length === 1">
-    //         <span
-    //           *ngIf="getRateSchedules()[0].rate || !getRateSchedules()[0].fixed">{{getRateSchedules()[0].rate | percentage }}</span>
-    //         <span *ngIf="getRateSchedules()[0].rate && getRateSchedules()[0].fixed">+</span>
-    //         <span
-    //           *ngIf="getRateSchedules()[0].fixed">{{getRateSchedules()[0].fixed | currency:'USD':'symbol' }}</span>
-    //       </span>
-
-    //       <span *ngIf="getRateSchedules().length > 1">
-    //         <div *ngFor="let rs of getRateSchedules()">
-    //           <span *ngIf="rs.rate || !rs.fixed">{{rs.rate || 0 | percentage }}</span>
-    //           <span *ngIf="rs.rate && rs.fixed">+</span>
-    //           <span *ngIf="rs.fixed">{{rs.fixed | currency:'USD':'symbol' }}</span>
-    //           since <span>{{rs.date | adjustedDate: 'shortDate' : 'America/New_York'}}</span>
-
-    //           <span *ngIf="rs.orderType"> for {{rs.orderType}}</span>
-    //         </div>
-    //       </span>
-    //     </td>
-    //     <td class="text-right">{{invoice.commission | currency:'USD':'symbol' }}</td>
-    //   </tr>
-
   }
 
   refresh() {
     this._ref.detectChanges();
-  }
-
-  getRestaurantTime(time): Date {
-    const t = new Date(time);
-    t.setHours(t.getHours() + this._timezone.getOffsetToEST(this.invoice.restaurant.address.timezone));
-    return t;
-  }
-
-  getAbs(value) {
-    return Math.abs(value);
   }
 
   getValidOrders() {
@@ -203,6 +194,80 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     }
 
     return rateSchedules;
+  }
+
+  getFeeSchedules() {
+    // date, payer, payee, orderTypes, orderPaymentMethods
+    const feeSchedules = this.invoice.restaurant.feeSchedules || this.convertRateSchedulesToFeeSchedules(this.invoice.restaurant.rateSchedules || []);
+    // filter: only show applicable ones
+    const applicableOnes = feeSchedules.filter(fs => {
+      const inFuture = new Date(fs.fromTime) > new Date(this.invoice.toDate);
+      const inPast = new Date(fs.toTime) < new Date(this.invoice.fromDate);
+      const orderTypesOk = !fs.orderTypes || fs.orderTypes.some(ot => this.orderTypes.has(ot));
+      const orderPaymentMethodsOk = !fs.orderPaymentMethods || fs.orderPaymentMethods.some(pm => this.orderPaymentMethods.has(pm));
+      return orderTypesOk && orderPaymentMethodsOk && fs.payee === 'QMENU' && fs.payer === 'RESTAURANT' && (!fs.toTime || !(inFuture || inPast));
+    });
+    return applicableOnes.map(fs => new FeeSchedule(fs));
+  }
+
+  private convertRateSchedulesToFeeSchedules(rateSchedules) {
+
+    // REFER to apex implementation of migrating rateSchedules to feeSchedules
+    // orderType: "PICKUP", date: "2020-06-16", rate: 0.03, agent: "sui", commission: 0, fixed: 0
+    const sortedRateSchedules = rateSchedules.filter(rs => rs && rs.date).sort((rs1, rs2) => new Date(rs1.date).valueOf() - new Date(rs2.date).valueOf());
+
+
+    // prep: split all by order types
+    const splittedRateSchedules = [];
+    sortedRateSchedules.map(rs => {
+      if (rs.orderType && rs.orderType !== 'ALL') {
+        splittedRateSchedules.push(rs);
+      } else {
+        ['PICKUP', 'DELIVERY', 'DINE-IN'].map(orderType => {
+          const newRs = JSON.parse(JSON.stringify(rs));
+          newRs.orderType = orderType;
+          splittedRateSchedules.push(newRs);
+        });
+      }
+    });
+
+    // put an end date to old ones
+    for (let i = 1; i < splittedRateSchedules.length; i++) {
+      const oldOnes = splittedRateSchedules.slice(0, i);
+      const currOne = splittedRateSchedules[i];
+      oldOnes.map(ors => {
+        if (!ors.endDate && ors.orderType === currOne.orderType) {
+          ors.endDate = currOne.date;
+        }
+      });
+    }
+
+    // merge by {date, endDate, rate, fixed, agent, commission} but different orderType
+    const keyMap = {};
+    splittedRateSchedules.map(rs => {
+      const key = '' + rs.date + rs.endDate + rs.rate + rs.fixed + rs.agent + rs.commission;
+      keyMap[key] = keyMap[key] || [];
+      keyMap[key].push(rs);
+    });
+
+    const feeSchedules = Object.values(keyMap).map(rsList => {
+      const orderTypes = (rsList as any).map(rs => rs.orderType);
+      const orderTypesObj = orderTypes.length < 3 ? { orderTypes: orderTypes } : {}; // no need to limit since it applies to ALL types
+      // from RT to QMENU
+      return ({
+        payer: 'RESTAURANT',
+        payee: 'QMENU',
+        fromTime: new Date(rsList[0].date),
+        ...rsList[0].endDate ? { toTime: new Date(rsList[0].endDate) } : {},
+        chargeBasis: 'ORDER_SUBTOTAL',
+        id: performance.now().toString(), // poorman's ID
+        ...orderTypesObj,
+        rate: rsList[0].rate || 0,
+        amount: rsList[0].fixed || 0
+      });
+
+    });
+    return feeSchedules;
   }
 
 }

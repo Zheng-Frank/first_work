@@ -142,70 +142,31 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
       return alert('Missing restaurant');
     }
 
-    const i = {
-      restaurant: this.restaurant,
-      fromDate: this.fromDate,
+    const payload = {
+      restaurantId: this.restaurantId,
       toDate: this.toDate,
-      previousInvoiceId: this.previousInvoice ? this.previousInvoice._id : undefined,
-      previousBalance: this.previousInvoice ? this.previousInvoice.balance : undefined,
-      payments: this.previousInvoice && this.previousInvoice.isPaymentCompleted ? [{ amount: this.previousInvoice.balance }] : undefined,
-      adjustments: this.outstandingAdjustmentLogs.filter(adj => adj.selected).map(adj => ({
-        name: adj.log.adjustmentReason,
-        amount: adj.log.adjustmentAmount,
-        time: adj.log.time
-      }))
+      // fromDate (optional, if not given, we will compute a previous invoice, otherwise ignore previous invoice!)
+      ... this.previousInvoice ? {} : { fromDate: this.fromDate },
+      balanceThreshold: 0.01, // override default $10
+      payoutThreshold: 0.01 // override default $50
     };
 
+    console.log(payload);
     try {
-      const invoice = await this._api.post(environment.legacyApiUrl + 'invoice', {
-        restaurantId: i.restaurant._id,
-        fromDate: new Date(i.fromDate),
-        toDate: new Date(i.toDate),
-        previousInvoiceId: i.previousInvoiceId,
-        previousBalance: i.previousBalance,
-        payments: i.payments,
-        username: this._global.user.username,
-        adjustments: i.adjustments
-      }).toPromise();
-
-      invoice._id = invoice._id || invoice.id; // legacy returns id instead of _id
-      // we need to update calculated fields!
-      const originInvoice = JSON.parse(JSON.stringify(invoice));
-      const newInvoice = new Invoice(invoice);
-
-      const invoiceIds = await this._api
-        .patch(environment.qmenuApiUrl + "generic?resource=invoice", [{
-          old: originInvoice,
-          new: newInvoice
-        }]).toPromise();
-
-      this._global.publishAlert(AlertType.Success, "Created invoice for " + i.restaurant.name);
-
-
-      // mark adjustment logs as resolved
-      if (i.adjustments && i.adjustments.length > 0 && this.restaurant.logs) {
-        const oldLogs = this.restaurant.logs;
-        const newLogs = JSON.parse(JSON.stringify(oldLogs));
-        newLogs.map(log => i.adjustments.map(adjustment => {
-          if (adjustment.time === log.time) {
-            log.resolved = true;
-          }
-        }));
-        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-          old: { _id: this.restaurant['_id'] },
-          new: { _id: this.restaurant['_id'], logs: newLogs }
-        }]).toPromise();
-        this.restaurant.logs = newLogs.map(log => new Log(log));
-      }
-
+      const invoice = await this._api.post(environment.appApiUrl + 'invoices', payload).toPromise();
       this.create.emit({
-        invoice: newInvoice,
+        invoice: new Invoice(invoice),
         restaurant: this.restaurant
       });
+      this._global.publishAlert(AlertType.Success, "Created invoice for " + this.restaurant.name);
 
     } catch (error) {
-      console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Error Creating Invoice")
+      let message = error.error;
+
+      if (typeof message !== 'string') {
+        message = "Failed to create the invoice!";
+      }
+      this._global.publishAlert(AlertType.Danger, message, 60000);
     }
 
   }

@@ -271,6 +271,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     this.modalFeeSchedule.hide();
 
     const myFs = new FeeSchedule(this.feeScheduleInEditing);
+    // making sure data type are correct! sometimes after binding values become strings
+    myFs.amount = +myFs.amount || 0;
+    myFs.rate = +myFs.rate || 0;
+    
     // turn 2020-09-01 to timezone form
     const getTransformedDate = (dateString) => {
       const [year, month, date] = dateString.split('-');

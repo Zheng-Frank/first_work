@@ -1,8 +1,7 @@
 <div class="container" *ngIf="invoice">
-  <!--<h1 style="position:absolute; color: lightgray; font-style: italic;">PAID</h1>-->
   <h3 class="text-center">QMENU INVOICE</h3>
-  <h6 class="text-center">Date Range: {{invoice.fromDate | adjustedDate: 'mediumDate' : 'America/New_York'}}
-    -{{invoice.toDate | adjustedDate: 'mediumDate' : 'America/New_York'}}
+  <h6 class="text-center">Date Range: {{invoice.fromDate | adjustedDate: 'shortDate' : 'America/New_York'}}
+    -{{invoice.toDate | adjustedDate: 'shortDate' : 'America/New_York'}}
   </h6>
 
   <div *ngIf="invoice.paymentInstructions" class="card p-2 mb-2 text-center h6"
@@ -65,12 +64,44 @@
       </table>
     </div>
   </div>
-<pre>
-  1. formula for calculating final balance
-  2. applicable fee schedules
-  3. for order row items, only show column if it has values (skip no value columns to save space)
-</pre>
+  <div>
+    <div class="fee-schedules-heading">
 
+      * Fee Schedules:
+    </div>
+    <div class="fee-schedules-content">
+      <div *ngFor="let feeSchedule of getFeeSchedules()">
+
+        <span *ngIf="feeSchedule.name">{{feeSchedule.name}}</span>
+
+        <!-- value -->
+        <span *ngIf="feeSchedule.rate || !feeSchedule.amount"
+          class="my-text-b">{{feeSchedule.rate | percentage }}</span>
+        <span *ngIf="feeSchedule.rate && feeSchedule.amount"> + </span>
+        <span *ngIf="feeSchedule.amount" class="my-text-b">{{feeSchedule.amount |currency:'USD':'symbol'}}</span>
+        <span *ngIf="feeSchedule.chargeBasis === 'MONTHLY'"> per month</span>
+        <span *ngIf="feeSchedule.chargeBasis === 'ORDER_SUBTOTAL'"> per order</span>
+
+        <!-- order type and payment methods -->
+        <span
+          *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0 || feeSchedule.orderPaymentMethods && feeSchedule.orderPaymentMethods.length > 0"
+          class="text-lowercase">
+          for {{(feeSchedule.orderTypes || []).concat(feeSchedule.orderPaymentMethods || []).join(', ')}}
+        </span>
+
+        <!-- time -->
+        <span *ngIf="!feeSchedule.toTime">
+          since {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : 'America/New_York' }}
+        </span>
+        <span *ngIf="feeSchedule.toTime">
+          from {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : 'America/New_York' }} to
+          {{ feeSchedule.toTime | adjustedDate: 'shortDate' : 'America/New_York'  }}
+        </span>
+
+      </div>
+    </div>
+  </div>
+  <hr>
   <!--adjustments section-->
   <div *ngIf="invoice.adjustments && invoice.adjustments.length > 0">
     <h3 class="text-center">Adjustments</h3>
@@ -82,10 +113,6 @@
       </tr>
     </table>
   </div>
-  <!-- <pre>
-
-{{invoice | json}}
-</pre> -->
   <!--adjustments section-->
   <div>
     <h3 class="text-center">Your Sales Tax</h3>
@@ -107,13 +134,13 @@
 
 
   <h3 class="text-center">Valid Orders ({{getValidOrders().length}})</h3>
+  <div class="text-center">* fees are not shown for each order due to limited space.</div>
 
   <div class="text-center" *ngIf="invoice.hasCanceledOrders()">Canceled orders
     ({{invoice.orders.length - getValidOrders().length}}) are crossed, ignored, and NOT calculated.</div>
-
   <table class="table app-scaled-table">
     <tr>
-      <th>Date Time</th>
+      <th>Date</th>
       <th>Order#</th>
       <th>Customer</th>
       <th>Type</th>
@@ -121,51 +148,39 @@
       <th>Collector</th>
       <th class="text-right">Subtotal</th>
       <th class="text-right">Tax</th>
-      <th class="text-right">Courier</th>
+      <th class="text-right" *ngIf="couriers.size > 1">Courier</th>
       <th class="text-right">Delivery</th>
       <th class="text-right">Tip</th>
-      <th class="text-right" *ngIf="invoice.ccProcessingFee > 0">CC Fee</th>
-      <th class="text-right" *ngIf="invoice.surcharge > 0">{{invoice.surchargeName}}</th>
       <th class="text-right">Total</th>
     </tr>
 
     <tr *ngFor="let order of invoice.orders" [ngClass]="{'canceled' : order.canceled}">
       <td style="white-space: nowrap">
-        {{getRestaurantTime(order.createdAt) | adjustedDate: 'short' : 'America/New_York'}}</td>
+        {{order.createdAt | adjustedDate: 'shortDate' : 'America/New_York'}}</td>
       <td>{{order.orderNumber}}</td>
       <td>{{order.customer}}</td>
       <td>{{order.type}}</td>
-      <td>{{order.paymentType}}</td>
+      <td>{{order.paymentType === 'CREDITCARD' ? 'CC' : order.paymentType}}</td>
       <td>{{order.payee}}</td>
       <td class="text-right">{{order.subtotal | currency:'USD':'symbol' }}</td>
       <td class="text-right">{{order.tax | currency:'USD':'symbol' }}</td>
-      <td class="text-right">{{order.deliveryBy ? 'qMenu': (order.type === 'DELIVERY' ? 'restaurant' : '') }}</td>
+      <td class="text-right" *ngIf="couriers.size > 1">
+        {{order.deliveryBy ? 'qMenu': (order.type === 'DELIVERY' ? 'restaurant' : '') }}</td>
       <td class="text-right" *ngIf="order.deliveryCharge">{{order.deliveryCharge | currency:'USD':'symbol' }}</td>
       <td class="text-right" *ngIf="!order.deliveryCharge"></td>
       <td class="text-right" *ngIf="order.tip">{{order.tip | currency:'USD':'symbol' }}</td>
       <td class="text-right" *ngIf="!order.tip"></td>
-      <td class="text-right" *ngIf="invoice.ccProcessingFee > 0">
-        <span *ngIf="order.ccProcessingFee">{{order.ccProcessingFee | currency:'USD':'symbol' }}</span>
-      </td>
-      <td class="text-right" *ngIf="invoice.surcharge > 0">
-        <span *ngIf="order.surcharge">
-          {{order.surcharge| currency:'USD':'symbol' }}
-        </span>
-      </td>
       <td class="text-right">{{order.total | currency:'USD':'symbol' }}</td>
     </tr>
 
     <tr>
+
       <th class="text-right" colspan="6">Sum</th>
       <th class="text-right">{{invoice.subtotal | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.tax | currency:'USD':'symbol'}}</th>
-      <th class="text-right"></th>
+      <th class="text-right" *ngIf="couriers.size > 1"></th>
       <th class="text-right">{{invoice.deliveryCharge | currency:'USD':'symbol'}}</th>
       <th class="text-right">{{invoice.tip | currency:'USD':'symbol'}}</th>
-      <th class="text-right" *ngIf="invoice.ccProcessingFee > 0">
-        {{invoice.ccProcessingFee | currency:'USD':'symbol'}}</th>
-      <th class="text-right" *ngIf="invoice.surcharge > 0">{{invoice.surcharge | currency:'USD':'symbol'}}
-      </th>
       <th class="text-right">{{invoice.total | currency:'USD':'symbol'}}</th>
     </tr>
   </table>

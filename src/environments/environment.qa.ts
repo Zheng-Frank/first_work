@@ -18,6 +18,7 @@ export const environment = {
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
   stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg',
+  fattmerchantWebToken: 'qMenu-8c21919909a7',
   testOrderId: "5af213f552d5d11400e35550",
   shortUrlBase: "https://2vevc851r7.execute-api.us-east-1.amazonaws.com/dev/"
 };

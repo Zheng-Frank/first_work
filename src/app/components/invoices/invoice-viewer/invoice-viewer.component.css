@@ -23,6 +23,22 @@ h3::first-letter {
     font-size: 113%;
 }
 
-.subtotal th{
+.subtotal th {
     font-size: 113%;
+}
+
+.my-text-b {
+    font-weight: 700;
+}
+
+.fee-schedules-heading {
+    display: inline-block;
+    font-weight: 700;
+    width: 8.5rem;
+    vertical-align: top;
+}
+
+.fee-schedules-content {
+    display: inline-block;
+    vertical-align: top;
 }

@@ -15,6 +15,7 @@ export const environment = {
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
   stripePublishableKey: 'pk_live_uSs2MVVyG0vn6TICsTIyXG6Y',
+  fattmerchantWebToken: 'qMenu-Inc-71e10ca6d824',
   testOrderId: "5c720fd092edbd4b28883ee1",
   shortUrlBase: "https://qmenu.biz/"
 };
