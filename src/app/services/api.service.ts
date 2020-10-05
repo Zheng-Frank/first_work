@@ -57,8 +57,24 @@ export class ApiService {
     let skip = 0;
     let oneBatch;
     do {
-      payload['skip'] = skip;
-      payload['limit'] = Math.min(batchSize, payloadLimit - result.length);
+      const limit = Math.min(batchSize, payloadLimit - result.length);
+      if (payload && payload.aggregate && Array.isArray(payload.aggregate)) {
+        const aggrSkip = payload.aggregate.find(op => op['$skip']);
+        if (aggrSkip) {
+          aggrSkip['$skip'] = skip;
+        } else {
+          payload.aggregate.push({ '$skip': skip })
+        }
+        const aggrLimit = payload.aggregate.find(op => op['$limit']);
+        if (aggrLimit) {
+          aggrLimit['$limit'] = limit;
+        } else {
+          payload.aggregate.push({ '$limit': limit })
+        }
+      } else {
+        payload['skip'] = skip;
+        payload['limit'] = Math.min(batchSize, payloadLimit - result.length);
+      }
       oneBatch = await this.get(api, batchPayload).toPromise();
       result.push(...oneBatch);
       skip += batchSize;
