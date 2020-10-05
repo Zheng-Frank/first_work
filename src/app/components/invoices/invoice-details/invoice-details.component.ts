@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 
@@ -13,7 +13,6 @@ import { Log } from "../../../classes/log";
 import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Channel } from '../../../classes/channel';
-import { Observable, from } from 'rxjs';
 import { Helper } from "../../../classes/helper";
 import { FattmerchantComponent } from '../fattmerchant/fattmerchant.component';
 import { StripeComponent } from '../stripe/stripe.component';
@@ -231,11 +230,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     $('#footer').show();
   }
 
-  paymentSuccess() {
-    this.loadInvoice();
-    this._global.publishAlert(AlertType.Success, 'Payment Success.');
-  }
-
   setDisplay(item) {
     if (this.display === item) {
       this.display = '';
@@ -410,21 +404,26 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     return (this.restaurantLogs || []).filter(log => !log.resolved);
   }
 
-  sendInvoice(channel: Channel) {
+  async sendInvoice(channel: Channel) {
     this.apiRequesting = channel.type;
-    // we need to get shorten URL, mainly for SMS.
-    const url = environment.bizUrl + 'index.html#/invoice/' + (this.invoice.id || this.invoice['_id']);
 
-    this._api.post(environment.appApiUrl + 'utils/shorten-url', { longUrl: url }).pipe(mergeMap(shortUrlObj => {
+    try {
+
+      // we need to get shorten URL, mainly for SMS.
+      const invoiceId = this.invoice.id || this.invoice['_id'];
+      const url = environment.bizUrl + 'index.html#/invoice/' + invoiceId;
+
+      const shortUrlObj = await this._api.post(environment.appApiUrl + 'utils/shorten-url', { longUrl: url }).toPromise();
+
       let message = 'QMENU INVOICE:';
-      message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';
+      message += '\nFrom ' + new Date(this.invoice.fromDate).toLocaleDateString('en-US', { timeZone: 'America/New_York' }) + ' to ' + new Date(this.invoice.toDate).toLocaleDateString('en-US', { timeZone: 'America/New_York' }) + '. ';
       // USE USD instead of $ because $ causes trouble for text :(
       message += '\n' + (this.invoice.balance > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.balance), 'USD');
       message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
       // if (this.invoice.paymentInstructions) {
       //   message += '\n' + this.invoice.paymentInstructions.replace(/\<br\>/g, '\n');
       // }
-      message += '\nThank you for your business!'
+      message += '\nThank you for your business! \nDO NOT REPLY TO THIS MESSAGE';
 
       // we need to append '-' to end of $xxx.xx because of imessage bug
       const matches = message.match(/\.\d\d/g);
@@ -434,36 +433,55 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
       switch (channel.type) {
         case 'Fax':
-          return this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
+          // await this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] }).toPromise();
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            "name": "send-fax",
+            "params": {
+              "from": "8555582558",
+              "to": channel.value,
+              "mediaUrl": `${environment.utilsApiUrl}invoice-renderer?invoiceId=${invoiceId}&format=pdf`,
+              "providerName": "twilio"
+            }
+          }]).toPromise();
         case 'Email':
-          return this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
+          // return this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] }).toPromise();
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-email",
+            params: {
+              to: channel.value,
+              subject: `qMenu Invoice from ${new Date(this.invoice.fromDate).toLocaleDateString('en-US', { timeZone: 'America/New_York' })} to ${new Date(this.invoice.toDate).toLocaleDateString('en-US', { timeZone: 'America/New_York' })}`,
+              html: message.replace(/\n/g, '<br>')
+            }
+          }]).toPromise();
         case 'SMS':
-          return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: channel.value, message: message });
+          // return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: channel.value, message: message }).toPromise();
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-sms",
+            params: {
+              to: channel.value,
+              from: "8447935942",
+              providerName: "plivo",
+              message: message
+            }
+          }]).toPromise();
         default: break;
       }
-
-    }))
-      .subscribe(
-        async result => {
-          this.apiRequesting = undefined;
-          this._global.publishAlert(AlertType.Success, channel.type + ' Send');
-          if (!this.invoice.isSent) {
-            this.setInvoiceStatus('isSent', true);
-          }
-          await this.addLog(
-            {
-              time: new Date(),
-              action: channel.type,
-              user: this._global.user.username,
-              value: channel.value
-            }
-          );
-        },
-        error => {
-          this.apiRequesting = undefined;
-          this._global.publishAlert(AlertType.Danger, "Error shortening URL");
+      this._global.publishAlert(AlertType.Success, channel.type + ' Send');
+      if (!this.invoice.isSent) {
+        this.setInvoiceStatus('isSent', true);
+      }
+      await this.addLog(
+        {
+          time: new Date(),
+          action: channel.type,
+          user: this._global.user.username,
+          value: channel.value
         }
       );
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, "Error shortening URL");
+    }
+    this.apiRequesting = undefined;
   }
 
   async addLog(log) {

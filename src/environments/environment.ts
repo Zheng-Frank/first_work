@@ -13,7 +13,7 @@ export const environment = {
   invoicingApiUrl: "http://localhost:8888/",
   gmbNgrok: "https://gmb.ngrok.io/",
   socketUrl: "https://quez.herokuapp.com:443/",
-  bizUrl: 'https://qa-biz.herokuapp.com/',
+  bizUrl: 'https://qa-biz.qmenu.us/',
   customerUrl: 'https://qa-customer.herokuapp.com/',
   thumnailUrl: 'https://s3.amazonaws.com/chopstresized/128_menuImage/',
   normalResUrl: 'https://s3.amazonaws.com/chopstresized/768_menuImage/',
