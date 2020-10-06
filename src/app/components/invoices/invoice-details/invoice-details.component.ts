@@ -408,63 +408,16 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     this.apiRequesting = channel.type;
 
     try {
-
       // we need to get shorten URL, mainly for SMS.
       const invoiceId = this.invoice.id || this.invoice['_id'];
-      const url = environment.bizUrl + 'index.html#/invoice/' + invoiceId;
-
-      const shortUrlObj = await this._api.post(environment.appApiUrl + 'utils/shorten-url', { longUrl: url }).toPromise();
-
-      let message = 'QMENU INVOICE:';
-      message += '\nFrom ' + new Date(this.invoice.fromDate).toLocaleDateString('en-US', { timeZone: 'America/New_York' }) + ' to ' + new Date(this.invoice.toDate).toLocaleDateString('en-US', { timeZone: 'America/New_York' }) + '. ';
-      // USE USD instead of $ because $ causes trouble for text :(
-      message += '\n' + (this.invoice.balance > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.balance), 'USD');
-      message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
-      // if (this.invoice.paymentInstructions) {
-      //   message += '\n' + this.invoice.paymentInstructions.replace(/\<br\>/g, '\n');
-      // }
-      message += '\nThank you for your business! \nDO NOT REPLY TO THIS MESSAGE';
-
-      // we need to append '-' to end of $xxx.xx because of imessage bug
-      const matches = message.match(/\.\d\d/g);
-      matches.map(match => {
-        message = message.replace(match, match + '-');
-      });
-
       switch (channel.type) {
         case 'Fax':
-          // await this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] }).toPromise();
-          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-            "name": "send-fax",
-            "params": {
-              "from": "8555582558",
-              "to": channel.value,
-              "mediaUrl": `${environment.utilsApiUrl}invoice-renderer?invoiceId=${invoiceId}&format=pdf`,
-              "providerName": "twilio"
-            }
-          }]).toPromise();
         case 'Email':
-          // return this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] }).toPromise();
-          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-            name: "send-email",
-            params: {
-              to: channel.value,
-              subject: `qMenu Invoice from ${new Date(this.invoice.fromDate).toLocaleDateString('en-US', { timeZone: 'America/New_York' })} to ${new Date(this.invoice.toDate).toLocaleDateString('en-US', { timeZone: 'America/New_York' })}`,
-              html: message.replace(/\n/g, '<br>')
-            }
-          }]).toPromise();
         case 'SMS':
-          // return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: channel.value, message: message }).toPromise();
-          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-            name: "send-sms",
-            params: {
-              to: channel.value,
-              from: "8447935942",
-              providerName: "plivo",
-              message: message
-            }
-          }]).toPromise();
-        default: break;
+          await this._api.post(environment.appApiUrl + 'invoices/send', { invoiceId: invoiceId, type: channel.type.toLowerCase(), to: channel.value }).toPromise();
+          break;
+        default:
+          break;
       }
       this._global.publishAlert(AlertType.Success, channel.type + ' Send');
       if (!this.invoice.isSent) {
@@ -479,7 +432,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         }
       );
     } catch (error) {
-      this._global.publishAlert(AlertType.Danger, "Error shortening URL");
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Error");
     }
     this.apiRequesting = undefined;
   }
