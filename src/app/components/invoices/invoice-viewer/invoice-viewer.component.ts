@@ -123,8 +123,8 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
       },
       // commission goes here...
 
-      invoice.stripeFee && {
-        key: `Commissions to qMenu`,
+      invoice.commission && {
+        key: `Commissions to qMenu *`,
         value: invoice.commission
       },
 

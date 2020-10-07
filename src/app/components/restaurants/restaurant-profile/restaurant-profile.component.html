@@ -8,6 +8,11 @@
 				<table class="table table-borderless table-sm">
 					<tbody>
 						<tr>
+							<th class="text-right">Sales Agent</th>
+							<td class="pl-1">{{restaurant.salesAgent}}
+							</td>
+						</tr>
+						<tr>
 							<th class="text-right">Name</th>
 							<td class="pl-1">{{restaurant.name}} ({{getMongoDate(restaurant._id) | date: 'shortDate'}})
 							</td>
@@ -52,7 +57,8 @@
 						<tr>
 							<th class="text-right">Surcharge</th>
 							<td class="pl-1">{{restaurant.surchargeName || 'surcharge'}}
-								{{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}} {{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
+								{{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}}
+								{{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
 							</td>
 						</tr>
 						<tr>
@@ -78,7 +84,9 @@
 						</tr>
 						<tr>
 							<th class="text-right">Time Zone</th>
-							<td class="pl-1">{{restaurant.googleAddress.timezone}}({{_timezone.getOffsetNumber(restaurant.googleAddress.timezone)}})</td>
+							<td class="pl-1">
+								{{restaurant.googleAddress.timezone}}({{_timezone.getOffsetNumber(restaurant.googleAddress.timezone)}})
+							</td>
 						</tr>
 						<tr>
 							<th class="text-right">Sales Agent</th>
@@ -154,6 +162,12 @@
 			<div *qIf="editing">
 				<table class="table table-borderless table-sm">
 					<tbody>
+						<tr>
+							<th class="text-right">Sales Agent</th>
+							<td class="pl-1">
+								<input type="text" [(ngModel)]="salesAgent" class="form-control">
+							</td>
+						</tr>
 						<tr>
 							<th class="text-right">Name</th>
 							<td class="pl-1">
@@ -325,9 +339,10 @@
 												</tr>
 												<tr>
 													<th class="text-right">Surcharge Rate</th>
-														<td class="pl-1">
-														<input type="number" style="width: auto;" [(ngModel)]="surchargeRate"
-															class="form-control" placeholder="rate">
+													<td class="pl-1">
+														<input type="number" style="width: auto;"
+															[(ngModel)]="surchargeRate" class="form-control"
+															placeholder="rate">
 													</td>
 												</tr>
 											</tbody>
