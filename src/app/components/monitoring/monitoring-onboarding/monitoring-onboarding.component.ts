@@ -65,16 +65,17 @@ export class MonitoringOnboardingComponent implements OnInit {
         "email": 1,
         "locations.cid": 1,
         "locations.status": 1,
-        "locations.role": 1
+        "locations.role": 1,
+        "locations.appealId": 1,
       }
-    }, 1000);
+    }, 100);
 
 
     Object.keys(dict).map(k => {
       const row = dict[k];
       const accountAndStatuses = [];
       gmbAccounts.map(account => (account.locations || []).filter(loc => loc.cid && loc.cid === (row.restaurant.googleListing || {}).cid).map(loc => {
-        accountAndStatuses.push({ email: account.email, status: loc.status, role: loc.role });
+        accountAndStatuses.push({ email: account.email, status: loc.status, role: loc.role, appealId: loc.appealId });
 
       }));
       const statusOrder = ['Duplicate', 'Verification required', 'Pending verification', 'Suspended', 'Reverification required', 'Published'];

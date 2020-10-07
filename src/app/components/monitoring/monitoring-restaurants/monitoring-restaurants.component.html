@@ -16,6 +16,11 @@
         <option *ngFor="let item of daysCreatedList">{{item}}</option>
     </select>
 
+    <label class="mr-2"> Time Zone:</label>
+    <select class="mr-5" [(ngModel)]="timeZone" (change)="filter()">
+        <option *ngFor="let item of timeZoneList">{{item}}</option>
+    </select>
+
     <label class="mr-2"> Score:</label>
     <select class="mr-5" [(ngModel)]="score" (change)="filter()">
         <option *ngFor="let item of scoreList">{{item}}</option>
@@ -25,8 +30,8 @@
     <select class="mr-5" [(ngModel)]="errorName" (change)="filter()">
         <option *ngFor="let item of errorNameList">{{item}}</option>
     </select>
-    <label class="mr-2"> Detaied Errors:</label>
-    <select class="mr-5" [(ngModel)]="detailedError" (change)="filter()">
+    <label class="mr-2"> Detailed Errors:</label>
+    <select class="mr-5" [(ngModel)]="detailedError" (change)="filter()" style="width: 200px;">
         <option *ngFor="let item of detailedErrorList">{{item}}</option>
     </select>
 </div>
@@ -42,6 +47,9 @@
             <br>
             <small>{{rt.googleAddress?.formatted_address}}</small>
         </td>
+
+        <td style="width: 100px;">{{rt.timezoneOffset}} </td>
+
         <td>{{rt.score}}</td>
         <td>{{rt.gmbPublished}}</td>
         <td class="text-nowrap">

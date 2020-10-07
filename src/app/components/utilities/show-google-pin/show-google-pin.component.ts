@@ -65,7 +65,7 @@ export class ShowGooglePINComponent implements OnInit {
             //     rateSchedules: 1,
             //     "googleAddress.formatted_address": 1
             // }
-        }, 100000);
+        }, 5000);
         console.log(this.restaurantList)
 
         this.populate();
@@ -274,7 +274,7 @@ export class ShowGooglePINComponent implements OnInit {
         }
 
         if (this.agent && this.agent !== "All") {
-            this.filteredRows = this.filteredRows.filter(r => r.gmbBiz && r.gmbBiz.some(b => b.restaurant && b.restaurant.rateSchedules.some(r => r.agent === this.agent)));
+            this.filteredRows = this.filteredRows.filter(r => r.gmbBiz && r.gmbBiz.some(b => b.restaurant && (b.restaurant.rateSchedules || []).some(r => r.agent === this.agent)));
         }
 
     }
