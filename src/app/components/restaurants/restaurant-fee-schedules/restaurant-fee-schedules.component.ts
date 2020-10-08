@@ -37,7 +37,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     [ChargeBasis.Monthly]: 'monthly',
     [ChargeBasis.OrderSubtotal]: 'order subtotal',
     [ChargeBasis.OrderPreTotal]: 'order total',
-    [ChargeBasis.PaidInvoiceCommission]: 'commission',
+    [ChargeBasis.Commission]: 'commission',
   };
 
 
@@ -97,7 +97,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   chargeBasisSubtotal = { object: ChargeBasis.OrderSubtotal, text: "order subtotal", selected: false };
   chargeBasisPreTotal = { object: ChargeBasis.OrderPreTotal, text: "order total", selected: false };
   chargeBasisMonthly = { object: ChargeBasis.Monthly, text: "monthly fee", selected: false };
-  chargeBasisCommission = { object: ChargeBasis.PaidInvoiceCommission, text: "commission", selected: false };
+  chargeBasisCommission = { object: ChargeBasis.Commission, text: "commission", selected: false };
 
   chargeBasisDescriptor = {
     field: "chargeBasis", //
@@ -197,7 +197,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         break;
       case 'QMENU':
         this.feeScheduleInEditing.payee = this.payeeSales.object;
-        this.feeScheduleInEditing.chargeBasis = ChargeBasis.PaidInvoiceCommission;
+        this.feeScheduleInEditing.chargeBasis = ChargeBasis.Commission;
         this.payeeDescriptor.items = [this.payeeSales];
         this.chargeBasisDescriptor.items = [this.chargeBasisCommission];
         break;
@@ -225,7 +225,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
           this.amountDescriptor,
         );
         break;
-      case ChargeBasis.PaidInvoiceCommission:
+      case ChargeBasis.Commission:
         this.fieldDescriptors.push(
           this.rateDescriptor,
           this.orderTypesDescriptor,
@@ -298,7 +298,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         delete myFs.orderTypes;
         delete myFs.rate;
         break;
-      case ChargeBasis.PaidInvoiceCommission:
+      case ChargeBasis.Commission:
         delete myFs.amount;
         delete myFs.orderPaymentMethods;
         break;

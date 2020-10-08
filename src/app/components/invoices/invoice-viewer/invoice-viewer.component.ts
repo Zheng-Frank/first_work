@@ -24,7 +24,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     [ChargeBasis.Monthly]: 'monthly',
     [ChargeBasis.OrderSubtotal]: 'order subtotal',
     [ChargeBasis.OrderPreTotal]: 'order total',
-    [ChargeBasis.PaidInvoiceCommission]: 'commission',
+    [ChargeBasis.Commission]: 'commission',
   };
 
   orderTypes = new Set();
