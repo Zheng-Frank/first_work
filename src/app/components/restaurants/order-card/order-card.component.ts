@@ -237,7 +237,7 @@ export class OrderCardComponent implements OnInit {
   }
 
   getOrderLink() {
-    return environment.legacyApiUrl + 'utilities/order/' + this.order.id;
+    return `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=restaurantOrderPos&format=html`;
   }
 
   isCanceled(order: Order) {

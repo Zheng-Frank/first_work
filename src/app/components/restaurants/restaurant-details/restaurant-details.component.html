@@ -4,6 +4,10 @@
 </div>
 
 <div *ngIf="restaurant">
+
+  <div class="col-xl-6" *ngIf="restaurant.feeSchedules && isSectionVisible('rateSchedules')">
+    <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
+  </div>
   <div class="text-center text-light">
     <q-banner [maskingColor]="'rgba(0, 0, 0, 0.3)'"
       [backgroundImageUrl]="(restaurant.images && restaurant.images[restaurant.images.length - 1] || '')">
@@ -32,7 +36,7 @@
 
 
   <div *qIf="displayGooglePIN">
-    <send-google-pin [restaurantId]="restaurant._id" (sendToLog) = "toggleGooglePIN()"></send-google-pin>
+    <send-google-pin [restaurantId]="restaurant._id" (sendToLog)="toggleGooglePIN()"></send-google-pin>
   </div>
 
   <div *qIf="displayTextReply">
@@ -116,7 +120,7 @@
           <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('restaurantChains')">
-          <app-restarant-chains [restaurant]="restaurant" ></app-restarant-chains>
+          <app-restarant-chains [restaurant]="restaurant"></app-restarant-chains>
         </div>
       </div>
       <div *ngIf="activeTab === 'Logs'">

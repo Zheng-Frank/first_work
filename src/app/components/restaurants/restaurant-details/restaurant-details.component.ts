@@ -94,7 +94,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         resource: "restaurant",
         query: query,
         projection: {
-
           // profile needed fields
           alias: 1,
           allowedCities: 1,
@@ -125,6 +124,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           disableScheduling: 1,
           excludeAmex: 1,
           excludeDiscover: 1,
+          feeSchedules: 1,
           gmbOrigin: 1,
           gmbOwnerHistory: 1,
           googleAddress: 1,
@@ -154,6 +154,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           requireBillingAddress: 1,
           requireZipcode: 1,
           restaurantId: 1,
+          salesAgent: 1,
           score: 1,
           serviceSettings: 1,
           skipImageInjection: 1,

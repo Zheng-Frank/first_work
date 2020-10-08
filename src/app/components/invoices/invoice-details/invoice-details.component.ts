@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 
@@ -13,12 +13,13 @@ import { Log } from "../../../classes/log";
 import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Channel } from '../../../classes/channel';
-import { Observable, from } from 'rxjs';
 import { Helper } from "../../../classes/helper";
+import { FattmerchantComponent } from '../fattmerchant/fattmerchant.component';
+import { StripeComponent } from '../stripe/stripe.component';
 
 declare var $: any;
 declare var window: any;
-
+declare var dsBridge: any;
 
 @Component({
   selector: 'app-invoice-details',
@@ -51,6 +52,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   };
 
   invoiceCurrency;
+  isApp = false;
 
   @ViewChild('adjustmentModal') adjustmentModal: ModalComponent;
 
@@ -59,6 +61,69 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     if (this.canEdit) {
       this.display = 'paymentMeans';
     }
+  }
+
+  shouldShowStripe() {
+    return (this.isApp || this.invoiceCurrency === 'CAD') && this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
+  }
+
+  shouldShowFattmerchant() {
+    return (!this.isApp && this.invoiceCurrency !== 'CAD') && this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
+  }
+
+  @ViewChild("myStripe") myStripe: StripeComponent;
+  payingStripe = false;
+  stripeError = undefined;
+  async payStripe() {
+
+    this.stripeError = undefined;
+    this.payingStripe = true;
+    try {
+      const token = await this.myStripe.tokenize();
+      console.log(token);
+      const payResult = await this._api.post(environment.appApiUrl + "invoices/pay", {
+        id: this.invoice["_id"],
+        amount: Math.abs(this.invoice.balance),
+        currency: this.invoiceCurrency,
+        stripeToken: token
+      }).toPromise();
+      console.log(payResult);
+      this._global.publishAlert(AlertType.Success, "Success");
+      this.loadInvoice();
+    }
+    catch (error) {
+      const extractedError = (error.error || {}).message || (error.error || {}).body || error.error || JSON.stringify(error);
+      console.log("failed", error);
+      this.stripeError = extractedError;
+    }
+    this.payingStripe = false;
+  }
+
+  @ViewChild("myFattmerchant") myFattmerchant: FattmerchantComponent;
+  fattmerchantError;
+  payingFattmerchant = false;
+  async payFattmerchant() {
+    this.fattmerchantError = undefined;
+    this.payingFattmerchant = true;
+    try {
+      const token = await this.myFattmerchant.tokenize(this.invoice.balance);
+      console.log(token);
+      const payResult = await this._api.post(environment.appApiUrl + "invoices/pay", {
+        id: this.invoice["_id"],
+        amount: Math.abs(this.invoice.balance),
+        currency: "USD",
+        fattmerchantWebToken: token
+      }).toPromise();
+      console.log(payResult);
+      this._global.publishAlert(AlertType.Success, "Success");
+      this.loadInvoice();
+    }
+    catch (error) {
+      const extractedError = (error.error || {}).message || (error.error || {}).body || error.error || JSON.stringify(error);
+      console.log("failed", error);
+      this.fattmerchantError = extractedError;
+    }
+    this.payingFattmerchant = false;
   }
 
   canEdit() {
@@ -70,6 +135,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   isCreditCardOrStripe() {
+    console.log(this.paymentMeans);
     return this.paymentMeans && this.paymentMeans.some(pm => pm.type === 'Credit Card' || pm.type === 'Stripe');
   }
 
@@ -107,18 +173,22 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         this.restaurantId = restaurants[0]._id;
         this.restaurant = restaurants[0];
         this.invoice.restaurant.paymentMeans = (restaurants[0].paymentMeans || []);
-        this.invoiceCurrency = this.currencyMap[restaurants[0].googleAddress && restaurants[0].googleAddress.country]; 
+        this.invoiceCurrency = this.currencyMap[restaurants[0].googleAddress && restaurants[0].googleAddress.country];
+        try {
+          this.isApp = !!(dsBridge && dsBridge.hasNativeMethod('getHardwareInfo'));
+        } catch (error) {
+        }
 
         // show only relevant payment means: Send to qMenu = balance > 0
         this.paymentMeans = (restaurants[0].paymentMeans || [])
           .map(pm => new PaymentMeans(pm))
-          .filter(pm => (pm.direction === 'Send' && this.invoice.getBalance() > 0) || (pm.direction === 'Receive' && this.invoice.getBalance() < 0));
+          .filter(pm => (pm.direction === 'Send' && this.invoice.balance > 0) || (pm.direction === 'Receive' && this.invoice.balance < 0));
 
         // inject paymentMeans to invoice. If multiple, choose the first only
         const firstPm = this.paymentMeans[0];
         if (firstPm) {
           // https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-dollars-currency-string-in-javascript
-          const amountString = '$' + Math.abs(this.invoice.getBalance()).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+          const amountString = '$' + Math.abs(this.invoice.balance).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 
           const wordingMap = {
             'Check': 'Please send payment check in the amount of ' + amountString + ' to:<br>qMenu, Inc.<br>7778 McGinnis Ferry Rd, Suite 276<br>Suwanee, GA 30024',
@@ -160,11 +230,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     $('#footer').show();
   }
 
-  paymentSuccess() {
-    this.loadInvoice();
-    this._global.publishAlert(AlertType.Success, 'Payment Success.');
-  }
-
   setDisplay(item) {
     if (this.display === item) {
       this.display = '';
@@ -180,6 +245,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   async computeDerivedFields() {
     await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: this.invoice['_id'] || this.invoice.id }).toPromise();
     this._global.publishAlert(AlertType.Success, "Success!");
+    this.loadInvoice();
   }
 
   async toggleInvoiceStatus(field) {
@@ -275,11 +341,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
     // we need recalculate the values!
     let i = new Invoice(updatedInvoice);
-    i.computeDerivedValues();
     // back to use POJS
     updatedInvoice = JSON.parse(JSON.stringify(i));
-
-
 
     this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
       result => {
@@ -341,61 +404,38 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     return (this.restaurantLogs || []).filter(log => !log.resolved);
   }
 
-  sendInvoice(channel: Channel) {
+  async sendInvoice(channel: Channel) {
     this.apiRequesting = channel.type;
-    // we need to get shorten URL, mainly for SMS.
-    const url = environment.bizUrl + 'index.html#/invoice/' + (this.invoice.id || this.invoice['_id']);
-    // const url = environment.legacyApiUrl + 'utilities/invoice/' + (this.invoice.id || this.invoice['_id']);
 
-    this._api.post(environment.appApiUrl + 'utils/shorten-url', { longUrl: url }).pipe(mergeMap(shortUrlObj => {
-      let message = 'QMENU INVOICE:';
-      message += '\nFrom ' + this.datePipe.transform(this.invoice.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(this.invoice.toDate, 'shortDate') + '. ';
-      // USE USD instead of $ because $ causes trouble for text :(
-      message += '\n' + (this.invoice.getBalance() > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(this.invoice.getBalance()), 'USD');
-      message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
-      // if (this.invoice.paymentInstructions) {
-      //   message += '\n' + this.invoice.paymentInstructions.replace(/\<br\>/g, '\n');
-      // }
-      message += '\nThank you for your business!'
-
-      // we need to append '-' to end of $xxx.xx because of imessage bug
-      const matches = message.match(/\.\d\d/g);
-      matches.map(match => {
-        message = message.replace(match, match + '-');
-      });
-
+    try {
+      // we need to get shorten URL, mainly for SMS.
+      const invoiceId = this.invoice.id || this.invoice['_id'];
       switch (channel.type) {
         case 'Fax':
-          return this._api.post(environment.legacyApiUrl + 'utilities/sendFax', { faxNumber: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
         case 'Email':
-          return this._api.post(environment.legacyApiUrl + 'utilities/sendEmail', { email: channel.value, invoiceId: this.invoice.id || this.invoice['_id'] });
         case 'SMS':
-          return this._api.post(environment.legacyApiUrl + 'twilio/sendText', { phoneNumber: channel.value, message: message });
-        default: break;
+          await this._api.post(environment.appApiUrl + 'invoices/send', { invoiceId: invoiceId, type: channel.type.toLowerCase(), to: channel.value }).toPromise();
+          break;
+        default:
+          break;
       }
-
-    }))
-      .subscribe(
-        async result => {
-          this.apiRequesting = undefined;
-          this._global.publishAlert(AlertType.Success, channel.type + ' Send');
-          if (!this.invoice.isSent) {
-            this.setInvoiceStatus('isSent', true);
-          }
-          await this.addLog(
-            {
-              time: new Date(),
-              action: channel.type,
-              user: this._global.user.username,
-              value: channel.value
-            }
-          );
-        },
-        error => {
-          this.apiRequesting = undefined;
-          this._global.publishAlert(AlertType.Danger, "Error shortening URL");
+      this._global.publishAlert(AlertType.Success, channel.type + ' Send');
+      if (!this.invoice.isSent) {
+        this.setInvoiceStatus('isSent', true);
+      }
+      await this.addLog(
+        {
+          time: new Date(),
+          action: channel.type,
+          user: this._global.user.username,
+          value: channel.value
         }
       );
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Error");
+    }
+    this.apiRequesting = undefined;
   }
 
   async addLog(log) {
@@ -421,7 +461,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   }
   async sendPaperCheck() {
-    let amount = +(this.invoice.getBalance().toFixed(2));
+    let amount = +(this.invoice.balance.toFixed(2));
     if (amount < 0) {
       amount = Math.abs(amount);
     }
@@ -533,7 +573,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   showSendPaperCheck() {
     if (!this.invoice.isPaymentSent || !this.invoice.isPaymentCompleted) {
-      if (this.invoice.restaurant.paymentMeans && this.invoice.restaurant.paymentMeans.length > 0 && this.invoice.getBalance() < 0) {
+      if (this.invoice.restaurant.paymentMeans && this.invoice.restaurant.paymentMeans.length > 0 && this.invoice.balance < 0) {
         let paymentMean = this.invoice.restaurant.paymentMeans[0];
         if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
           return true;

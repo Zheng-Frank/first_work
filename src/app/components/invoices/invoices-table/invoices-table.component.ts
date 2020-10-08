@@ -30,4 +30,10 @@ export class InvoicesTableComponent implements OnInit {
     }
   }
 
+  newTab(invoice) {
+    // routerLink="/invoices/{{invoice._id}}" 
+    console.log(invoice)
+    window.open(`#/invoices/${invoice._id}`, '_blank');
+  }
+
 }

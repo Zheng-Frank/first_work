@@ -434,10 +434,6 @@ export class RestaurantOrdersComponent implements OnInit {
         },
         error => console.log(error));
 
-      // this._api.post(environment.legacyApiUrl + "customer/ban", { customer: this.orderForModal.customer, reasons: reasons })
-      //   .subscribe(
-      //     d => { this.banModal.hide(); },
-      //     error => console.log(error));
     } else {
       alert('no customer found');
     }

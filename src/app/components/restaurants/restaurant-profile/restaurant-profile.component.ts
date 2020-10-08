@@ -24,6 +24,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   apt: string;
 
   fields = [
+    'salesAgent',
     'name',
     'email',
     'taxRate',
@@ -223,7 +224,5 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     catch (err) {
       this.uploadImageError = err;
     }
-
-
   }
 }
