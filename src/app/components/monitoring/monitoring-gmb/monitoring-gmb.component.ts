@@ -109,19 +109,16 @@ export class MonitoringGmbComponent implements OnInit {
     //this.domains = this.domains.filter(e=> !e.status || e.status ==='ACTIVE');
 
     //allRestaurants = allRestaurants.filter(r => r._id === '5ad9d66f8ffa501400cdeb84');
-    this.domains.map(domain => {
-      allRestaurants.map(rt => {
-        let website = rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.toLowerCase();
-        // compare http://www.biteofchinatogo.com/ to biteofchinatogo.com
-        website = website && website.replace(/(^\w+:|^)\/\//, '').replace('/', '').replace('www.', '');
-        //For Godaddy website, it is already expired but transfer to AWS
-        //"status": "TRANSFERRED_OUT",
-        //"type": "GODADDY",
-        if (website === domain.name && domain.status !=="TRANSFERRED_OUT") {
-          this.domainRtDict[rt._id] = domain;
-        }
 
-      })
+    const websiteDomainMap = new Map();
+    this.domains.forEach(d => { if (d.status !== "TRANSFERRED_OUT") websiteDomainMap.set(d.name, d) });
+
+    allRestaurants.forEach(rt => {
+      let website = rt.web && rt.web.qmenuWebsite && rt.web.qmenuWebsite.toLowerCase();
+      // compare http://www.biteofchinatogo.com/ to biteofchinatogo.com
+      website = website && website.replace(/(^\w+:|^)\/\//, '').replace('/', '').replace('www.', '');
+      const domain = websiteDomainMap.get(website);
+      if (domain) this.domainRtDict[rt._id] = domain;
     });
 
     this.rows = allRestaurants.map(r => ({
