@@ -1,10 +1,9 @@
 import { Component, OnInit, Input, ViewChild, SimpleChanges, OnChanges } from '@angular/core';
-import { Restaurant, FeeSchedule } from '@qmenu/ui';
+import { Restaurant, FeeSchedule, ChargeBasis } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { OrderType } from 'src/app/classes/order-type';
-import { ChargeBasis } from 'src/app/classes/charge-basis';
 import { ModalComponent, FormBuilderComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { FormSubmit } from '@qmenu/ui/classes';
 import { TimezoneHelper } from 'src/app/classes/timezone-helper';

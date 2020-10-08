@@ -19,7 +19,6 @@ import { StripeComponent } from '../stripe/stripe.component';
 
 declare var $: any;
 declare var window: any;
-declare var dsBridge: any;
 
 @Component({
   selector: 'app-invoice-details',
@@ -52,8 +51,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   };
 
   invoiceCurrency;
-  isApp = false;
-
   @ViewChild('adjustmentModal') adjustmentModal: ModalComponent;
 
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) {
@@ -64,11 +61,11 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   shouldShowStripe() {
-    return (this.isApp || this.invoiceCurrency === 'CAD') && this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
+    return (this.invoiceCurrency === 'CAD') && this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
   }
 
   shouldShowFattmerchant() {
-    return (!this.isApp && this.invoiceCurrency !== 'CAD') && this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
+    return (this.invoiceCurrency !== 'CAD') && this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
   }
 
   @ViewChild("myStripe") myStripe: StripeComponent;
@@ -174,10 +171,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         this.restaurant = restaurants[0];
         this.invoice.restaurant.paymentMeans = (restaurants[0].paymentMeans || []);
         this.invoiceCurrency = this.currencyMap[restaurants[0].googleAddress && restaurants[0].googleAddress.country];
-        try {
-          this.isApp = !!(dsBridge && dsBridge.hasNativeMethod('getHardwareInfo'));
-        } catch (error) {
-        }
 
         // show only relevant payment means: Send to qMenu = balance > 0
         this.paymentMeans = (restaurants[0].paymentMeans || [])
