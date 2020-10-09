@@ -19,6 +19,7 @@ import { StripeComponent } from '../stripe/stripe.component';
 
 declare var $: any;
 declare var window: any;
+const FATT_LIMIT = 299;
 
 @Component({
   selector: 'app-invoice-details',
@@ -61,11 +62,11 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   shouldShowStripe() {
-    return (this.invoiceCurrency === 'CAD') && this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
+    return this.invoice && (this.invoiceCurrency === 'CAD' || this.invoice.balance > FATT_LIMIT) && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
   }
 
   shouldShowFattmerchant() {
-    return (this.invoiceCurrency !== 'CAD') && this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
+    return this.invoice && (this.invoiceCurrency !== 'CAD' && this.invoice.balance <= FATT_LIMIT) && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
   }
 
   @ViewChild("myStripe") myStripe: StripeComponent;
