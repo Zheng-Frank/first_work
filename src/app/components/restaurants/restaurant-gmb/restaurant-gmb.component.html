@@ -13,9 +13,10 @@
       <span *ngIf="restaurant.googleListing" class="px-4">Main cid: <strong>{{restaurant.googleListing?.cid}}</strong>
         |
         Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
-      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Crawl Main
-        Listing</button>
-      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="showInviteGmbUserModal()" [disabled]='!hasGmbOwnership'>Invite GMB User</button>
+      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Revalidate
+        "googleListing"</button>
+      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="showInviteGmbUserModal()"
+        [disabled]='!hasGmbOwnership'>Invite GMB User</button>
       <div *ngIf="restaurant.googleListing && !hasMainGmb()" class="my-2">
         No main GMB found.
         <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="createOrMatchMainGmb()">Create or Match
@@ -173,8 +174,10 @@
             <tr>
               <th class="bold-button">
                 <div>
-                  <app-gmb-account-hotlink [email]="alPair.account.email" [appealId]="alPair.location.appealId"></app-gmb-account-hotlink>
-                  <small *ngIf="alPair.location.role !== 'OWNER' && alPair.location.role !== 'CO_OWNER'" class="badge badge-info">{{alPair.location.role}}</small>
+                  <app-gmb-account-hotlink [email]="alPair.account.email" [appealId]="alPair.location.appealId">
+                  </app-gmb-account-hotlink>
+                  <small *ngIf="alPair.location.role !== 'OWNER' && alPair.location.role !== 'CO_OWNER'"
+                    class="badge badge-info">{{alPair.location.role}}</small>
                 </div>
                 <div class="text-muted">
                   <small>Appeal Id: {{alPair.location.appealId}}</small><br>
@@ -218,7 +221,8 @@
   </div>
 
   <q-modal [title]="'Invite GMB User'" #addGMBInviteModal>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)='hideInviteGmbUserModal()'><span aria-hidden="true">×</span></button>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)='hideInviteGmbUserModal()'><span
+        aria-hidden="true">×</span></button>
 
     <div>
       <label>Email:</label>
@@ -232,7 +236,8 @@
     </select>
 
     <div class="mt-3 d-flex justify-content-end">
-      <button class="btn btn-small btn-primary" (click)='addGmbUser()' [disabled]="!isValidEmail()"><i class="fas fa-plus"></i> Invite Gmb User</button>
+      <button class="btn btn-small btn-primary" (click)='addGmbUser()' [disabled]="!isValidEmail()"><i
+          class="fas fa-plus"></i> Invite Gmb User</button>
     </div>
   </q-modal>
 

@@ -1,6 +1,6 @@
 {
   "name": "admin",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -39,6 +39,7 @@
     "ng-click-outside": "^3.3.0",
     "ng-pick-datetime": "^6.0.15",
     "ngx-mask": "^8.0.0",
+    "parse-address": "^1.1.2",
     "rxjs": "6.0.0",
     "zone.js": "^0.8.24"
   },
