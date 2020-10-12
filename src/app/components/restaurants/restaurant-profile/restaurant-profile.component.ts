@@ -24,7 +24,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   apt: string;
 
   fields = [
-    'salesAgent',
     'name',
     'email',
     'taxRate',

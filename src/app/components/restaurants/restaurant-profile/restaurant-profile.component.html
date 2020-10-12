@@ -8,11 +8,6 @@
 				<table class="table table-borderless table-sm">
 					<tbody>
 						<tr>
-							<th class="text-right">Sales Agent</th>
-							<td class="pl-1">{{restaurant.salesAgent}}
-							</td>
-						</tr>
-						<tr>
 							<th class="text-right">Name</th>
 							<td class="pl-1">{{restaurant.name}} ({{getMongoDate(restaurant._id) | date: 'shortDate'}})
 							</td>
@@ -54,22 +49,29 @@
 							<th class="text-right">Tax Rate</th>
 							<td class="pl-1">{{restaurant.taxRate | percentage}}</td>
 						</tr>
-						<tr>
-							<th class="text-right">Surcharge</th>
-							<td class="pl-1">{{restaurant.surchargeName || 'surcharge'}}
-								{{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}}
-								{{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">CC Processing Rate</th>
-							<td class="pl-1">{{restaurant.ccProcessingRate | percentage}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">CC Processing Flat Fee</th>
-							<td class="pl-1">{{restaurant.ccProcessingFlatFee | currency:'USD':'symbol'}}</td>
+						<ng-container *ngIf="!restaurant.feeSchedules">
+							<tr>
+								<th class="text-right">Surcharge</th>
+								<td class="pl-1">{{restaurant.surchargeName || 'surcharge'}}
+									{{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}}
+									{{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">Surcharge Rate</th>
+								<td class="pl-1">{{restaurant.surchargeRate | percentage}}</td>
+							</tr>
+							<tr>
+								<th class="text-right">CC Processing Rate</th>
+								<td class="pl-1">{{restaurant.ccProcessingRate | percentage}}</td>
+							</tr>
+							<tr>
+								<th class="text-right">CC Processing Flat Fee</th>
+								<td class="pl-1">{{restaurant.ccProcessingFlatFee | currency:'USD':'symbol'}}</td>
 
-						</tr>
+							</tr>
+						</ng-container>
+
 						<tr>
 							<th class="text-right">Disable Scheduling</th>
 							<td class="pl-1">{{!!restaurant.disableScheduling}}</td>
@@ -141,10 +143,6 @@
 												<tr>
 													<th class="text-right">Hide Tip Input</th>
 													<td class="pl-1">{{!!restaurant.hideTipInput}}</td>
-												</tr>
-												<tr>
-													<th class="text-right">Surcharge Rate</th>
-													<td class="pl-1">{{restaurant.surchargeRate | percentage}}</td>
 												</tr>
 											</tbody>
 										</table>
@@ -222,35 +220,41 @@
 								<input type="number" [(ngModel)]="taxRate" class="form-control">
 							</td>
 						</tr>
+						<ng-container *ngIf="!restaurant.feeSchedules">
+							<tr>
+								<th class="text-right">Surcharge</th>
+								<td class="pl-1">
+									<label>text to show customer:</label>
+									<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1"
+										placeholder="text to show customer">
+									<label>fixed amount</label>
+									<input type="number" [(ngModel)]="surchargeAmount" class="form-control"
+										placeholder="surcharge amount">
+									<label>rate</label>
+									<input type="number" style="width: auto;" [(ngModel)]="surchargeRate"
+										class="form-control" placeholder="rate">
+									<small>* This is money charged to customer for every online order and the collected
+										money goes to restaurant.
+										<i class="fas fa-exclamation"></i> It may drive customers away.</small>
+								</td>
+							</tr>
+							<tr>
+								<th class="text-right">CC Processing Rate</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="ccProcessingRate" class="form-control"
+										placeholder="rate">
+								</td>
+							</tr>
+							<tr>
 
-						<tr>
-							<th class="text-right">Surcharge Flat fee</th>
-							<td class="pl-1">
-								<input type="number" [(ngModel)]="surchargeAmount" class="form-control"
-									placeholder="surcharge amount">
-								<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1"
-									placeholder="text to show customer">
-								<small>* This is money charged to customer for every online order and the collected
-									money goes to restaurant.
-									<i class="fas fa-exclamation"></i> It may drive customers away.</small>
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">CC Processing Rate</th>
-							<td class="pl-1">
-								<input type="number" [(ngModel)]="ccProcessingRate" class="form-control"
-									placeholder="rate">
-							</td>
-						</tr>
-						<tr>
-
-							<th class="text-right">CC Processing Flat Fee
-							</th>
-							<td class="pl-1">
-								<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control"
-									placeholder="fee">
-							</td>
-						</tr>
+								<th class="text-right">CC Processing Flat Fee
+								</th>
+								<td class="pl-1">
+									<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control"
+										placeholder="fee">
+								</td>
+							</tr>
+						</ng-container>
 						<tr>
 							<th class="text-right">Disable Scheduling</th>
 							<td class="pl-1">
@@ -335,14 +339,6 @@
 													<th class="text-right">Hide Tip Input</th>
 													<td class="pl-1">
 														<input type="checkbox" [(ngModel)]="hideTipInput">
-													</td>
-												</tr>
-												<tr>
-													<th class="text-right">Surcharge Rate</th>
-													<td class="pl-1">
-														<input type="number" style="width: auto;"
-															[(ngModel)]="surchargeRate" class="form-control"
-															placeholder="rate">
 													</td>
 												</tr>
 											</tbody>
