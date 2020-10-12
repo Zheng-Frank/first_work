@@ -1,0 +1,77 @@
+<div class="card mb-2">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="fas fa-chart-pie"></i> Fee Schedules</h3>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0"><input type="checkbox"
+          [(ngModel)]="showExpired"> Show expired
+        ({{getExpiredFeeSchedules().length}})</label>
+      <table class="table table-borderless table-striped table-sm">
+        <thead>
+          <tr>
+            <th>Payer → Payee</th>
+            <th>Assessment</th>
+            <th>Conditions</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let feeSchedule of feeSchedules">
+            <tr *ngIf="showExpired || !isFeeScheduleExpired(feeSchedule)"
+              class="{{isFeeScheduleExpired(feeSchedule) ? 'expired' : '' }} ">
+              <td class="text-lowercase text-nowrap my-text-b">{{feeSchedule.payer}} → {{feeSchedule.payee}}
+                <div class="my-text-small">
+                  {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : restaurant.googleAddress.timezone }} → <span
+                    *ngIf=" feeSchedule.toTime">{{ feeSchedule.toTime | adjustedDate: 'shortDate' : restaurant.googleAddress.timezone }}</span>
+                </div>
+              </td>
+              <td class="text-nowrap">
+                <div *ngIf="feeSchedule.rate || feeSchedule.amount" class="my-text-b">
+                  <span *ngIf="feeSchedule.rate">{{feeSchedule.rate | percentage }}</span>
+                  <span *ngIf="feeSchedule.rate && feeSchedule.amount"> + </span>
+                  <span *ngIf="feeSchedule.amount">{{feeSchedule.amount |currency:'USD':'symbol'}}</span>
+                </div>
+                <div *ngIf="feeSchedule.name">{{feeSchedule.name}}</div>
+                <div class="my-text-small text-muted">
+                  {{chargeBasisMap[feeSchedule.chargeBasis]}}
+                </div>
+              </td>
+
+              <td>
+                <div *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0" class="text-lowercase">
+                  {{feeSchedule.orderTypes.join(', ')}}
+                </div>
+
+                <div *ngIf="feeSchedule.orderPaymentMethods && feeSchedule.orderPaymentMethods.length > 0"
+                  class="text-lowercase">
+                  {{feeSchedulePaymentMethodsLimitationString(feeSchedule)}}
+                </div>
+              </td>
+
+              <td>
+                <button class="btn btn-link p-0" (click)="edit(feeSchedule)">Edit</button>
+              </td>
+
+            </tr>
+          </ng-container>
+
+          <tr>
+            <td colspan="4">
+              <button class="btn btn-link px-0" (click)="edit()">+ Add New</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </li>
+  </ul>
+</div>
+
+<q-modal #modalFeeSchedule>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <q-form-builder #editingForm [object]="feeScheduleInEditing" [showDelete]="feeScheduleInEditing.id"
+    [fieldDescriptors]="fieldDescriptors" (change)="formChanged($event)" (submit)="submit($event)"
+    (cancel)="cancel($event)" (remove)="remove($event)">
+  </q-form-builder>
+</q-modal>

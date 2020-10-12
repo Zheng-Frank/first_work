@@ -26,7 +26,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
   daysCreatedList = ['ALL', '0 - 7', '8 - 30', '> 30'];
 
   timeZone = "ALL";
-  timeZoneList = ["ALL", ...["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort()];
+  timeZoneList = ["ALL", ...this.range(-17, 18)];
 
   score = 'ALL';
   scoreList = ['ALL', 'NOT 0', '0', '1', '2', '3', '4', '> 4'];
@@ -54,7 +54,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
     },
     {
       label: "Time zone",
-      paths: ['timezone'],
+      paths: ['timezoneOffset'],
       sort: (a, b) => (a || 0) - (b || 0)
     },
 
@@ -78,6 +78,16 @@ export class MonitoringRestaurantsComponent implements OnInit {
   async ngOnInit() {
     this.populate();
   }
+
+  range (start, end) {
+    return Array.from({length: (end - start)}, (v, k) => k + start).map(n => {
+      if(n <= 0) {
+        return `${n}`;
+      } else {
+        return `+${n}`;
+      }
+    });
+  } 
 
   async populate() {
 
@@ -125,7 +135,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
       // sum all errors in each item
       rt.errors = (((rt.diagnostics || [])[0] || {}).result || []).reduce((sum, item) => sum + (item.errors || []).length, 0);
       rt.gmbPublished = rt.googleListing && rt.googleListing.cid && publishedCids.has(rt.googleListing.cid);
-      rt.timezone = Helper.getTimeZone((rt.googleAddress || {}).formatted_address);
+      rt.timezoneOffset = this._timezone.getOffsetNumber((rt.googleAddress || {}).timezone)
     });
 
     // populate errorItems:
@@ -202,8 +212,12 @@ export class MonitoringRestaurantsComponent implements OnInit {
 
       // timezone
       if(this.timeZone !== 'ALL') {
-        ok = Helper.getTimeZone((rt.googleAddress || {}).formatted_address) === this.timeZone;
+        ok = Number(rt.timezoneOffset) === Number(this.timeZone);
       }
+      if (!ok) {
+        return false;
+      }
+
 
       // score
       const score = rt.score || 0;

@@ -1,0 +1,61 @@
+<div class="row">
+  <div class="col-8 form-group">
+    <label for="cardNumber">
+      <i class="{{cardTypeFaClass[cardType] ? 'fab ' +  cardTypeFaClass[cardType]: 'far fa-credit-card'}} pr-1"></i>
+      Card Number
+    </label>
+    <div id="fattjs-number" class="iframe-height"></div>
+    <div class="text-danger my-text-tiny" [innerHTML]="cardNumberError || ''"></div>
+  </div>
+  <div class="col-4">
+    <div class="form-group">
+      <label for="cvc">CVC</label>
+      <div id="fattjs-cvv" class="iframe-height"></div>
+      <div class="text-danger my-text-tiny" [innerHTML]="cvcError || ''"></div>
+    </div>
+  </div>
+
+  <div class="col-4">
+    <div class="form-group">
+      <label for="cardExpirationMonth">Month</label>
+
+      <input [(ngModel)]="month" type="tel" class="form-control" id="cardExpirationMonth" autocomplete="cc-exp-month"
+        [mask]="00" (focusout)="validateMonth()">
+      <div class="text-danger my-text-tiny" [innerHTML]="monthError || ''"></div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="form-group">
+      <label for="cardExpirationYear">Year</label>
+
+      <input [(ngModel)]="year" type="tel" class="form-control" id="cardExpirationYear" autocomplete="cc-exp-year"
+        [mask]="0000" (focusout)="validateYear()">
+      <div class="text-danger my-text-tiny" [innerHTML]="yearError || ''"></div>
+    </div>
+  </div>
+
+  <div class="col-4" *ngIf="requireZipcode">
+    <div class="form-group">
+      <label for="zipcode">ZIP Code</label>
+      <input [(ngModel)]="zipcode" class="form-control" id="zipcode" type="tel" pattern="[0-9]{5}" mask="00000"
+        autocomplete="postal-code" (focusout)="validateZipcode()">
+      <div class="text-danger my-text-tiny" [innerHTML]="zipcodeError || ''"></div>
+    </div>
+  </div>
+  <div class="col-8" *ngIf="requireNames">
+    <div class="form-group">
+      <label for="cardHolder">Card Holder Name</label>
+      <input [(ngModel)]="names" class="form-control" id="cardHolder" type="text" maxlength="80"
+        autocomplete="cc-name" (focusout)="validateNames()" placeholder="first last">
+      <div class="text-danger my-text-tiny" [innerHTML]="namesError || ''"></div>
+    </div>
+  </div>
+  <div class="col-4" *ngIf="requirePhone">
+    <div class="form-group">
+      <label for="phoneNumber">Phone</label>
+      <input [(ngModel)]="phone" class="form-control" id="phoneNumber" type="tel" mask="000-000-0000"
+        autocomplete="phone" (focusout)="validatePhone()">
+      <div class="text-danger my-text-tiny" [innerHTML]="phoneError || ''"></div>
+    </div>
+  </div>
+</div>

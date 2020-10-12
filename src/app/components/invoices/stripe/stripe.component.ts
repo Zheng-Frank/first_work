@@ -10,18 +10,10 @@ declare var Stripe: any;
 })
 export class StripeComponent implements OnInit {
 
-  @Input() amount = 1.0;
   @Input() hidePostalCode = false;
-  @Input() invoiceId = 0;
-  @Input() currency;
-
-  @Output() success = new EventEmitter();
 
   stripe;
   card;
-
-  apiRequesting = false;
-  apiError = undefined;
 
   constructor(private _api: ApiService) { }
 
@@ -53,8 +45,6 @@ export class StripeComponent implements OnInit {
 
     // Create an instance of the card Element.
     this.card = elements.create('card', { hidePostalCode: this.hidePostalCode, style: style });
-
-
     // Add an instance of the card Element into the `card-element` <div>.
     this.card.mount('#card-element');
 
@@ -70,40 +60,17 @@ export class StripeComponent implements OnInit {
     });
   }
 
-  submit() {
-    this.apiRequesting = true;
-    const self = this;
-
-    this.apiError = undefined;
-    this.stripe.createToken(this.card).then(function (result) {
+  async tokenize() {
+    try {
+      const result = await this.stripe.createToken(this.card);
       if (result.error) {
-        self.apiRequesting = false;
-        // Inform the user if there was an error.
-        var errorElement = document.getElementById('card-errors');
-        errorElement.textContent = result.error.message;
-      } else {
-        // Send the token to your server.
-        const payload = {
-          id: self.invoiceId,
-          stripeToken: result.token,
-          amount: self.amount,
-          currency: self.currency
-        };
-        console.log('paylod', payload)
-        self._api.post(environment.legacyApiUrl + 'invoice/pay', payload).subscribe(
-          result => {
-            self.apiRequesting = false;
-
-            self.success.emit();
-          },
-          error => {
-            self.apiRequesting = false;
-            self.apiError = error;
-            console.log(error);
-          }
-        );
+        throw result.error;
       }
-    });
+      return result.token;
+    } catch (error) {
+      var errorElement = document.getElementById('card-errors');
+      errorElement.textContent = error.message;
+      throw error.message;
+    }
   }
-
 }

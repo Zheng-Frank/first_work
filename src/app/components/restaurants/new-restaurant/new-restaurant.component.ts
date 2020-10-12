@@ -316,6 +316,7 @@ export class NewRestaurantComponent implements OnInit {
 
       }
 
+/** not needed anymore A.X. 10/1/2020
       // see if we need to create Apply GMB task!
       if (!this.skipApplyGmb) {
         // making sure it's not already published somewhere!
@@ -352,7 +353,7 @@ export class NewRestaurantComponent implements OnInit {
 
         this._global.publishAlert(AlertType.Info, 'No apply GMB ownership task is created!');
       }
-
+*/
       // redirect to details page
       this._router.navigate(['/restaurants/' + this.restaurant._id]);
       this.apiRequesting = false;

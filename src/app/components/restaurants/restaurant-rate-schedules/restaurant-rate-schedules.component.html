@@ -1,6 +1,9 @@
 <div class="card mb-2">
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="fas fa-percent"></i> Rate Schedules</h3>
+  <div class="text-center">
+    <button class="btn btn-link" (click)="convertToFeeSchedules()">→ Convert to Fees Schedules</button>
+  </div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
 
@@ -79,7 +82,7 @@
         </table>
 
         <div class="alert alert-info">
-          <p><b>DO NOT remote valid historical rate schedules</b></p>
+          <p><b>DO NOT remove valid historical fee schedules</b></p>
           <p><b>Rate: </b>percentage that qMenu charges restaurant for each order. Eg., input 0.04 for 4%</p>
           <p><b>Fixed: </b>dollar amount that qMenu charges restaurant for each order</p>
 

@@ -98,13 +98,13 @@ export class RestaurantDashboardComponent implements OnInit {
             throw 'This restaurant has orders!';
           } else {
             nameOfRestaurant = result[0][0].name;
-            return this._api.delete(
+            return zip(this._api.delete(
               environment.qmenuApiUrl + "generic",
               {
                 resource: 'restaurant',
                 ids: [result[0][0]._id]
               }
-            );
+            ), this.deleteRtGmbTasks(this.removeId));
           }
         }))
       .subscribe(
@@ -153,6 +153,24 @@ export class RestaurantDashboardComponent implements OnInit {
 
   navigateTo(page) {
     this._router.navigate([page]);
+  }
+
+  deleteRtGmbTasks(rtId = 'non-existing') {
+    return this._api.get(
+      environment.qmenuApiUrl + "generic",
+      {
+        resource: 'task',
+        query: { name: "GMB Request", "relatedMap.restaurantId": rtId },
+        projection: { _id: 1 }
+      }
+    ).pipe(
+      mergeMap(gmbTasks => this._api.delete(
+        environment.qmenuApiUrl + "generic",
+        {
+          resource: 'task',
+          ids: gmbTasks.map(t => t._id.toString())
+        }
+      )));
   }
 
 }

@@ -5,11 +5,11 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { Task } from 'src/app/classes/tasks/task';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { Helper } from 'src/app/classes/helper';
-import { GmbAccount } from 'src/app/classes/gmb/gmb-account';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { parseAddress } from "parse-address";
+
 @Component({
   selector: 'app-restaurant-gmb',
   templateUrl: './restaurant-gmb.component.html',
@@ -35,11 +35,11 @@ export class RestaurantGmbComponent implements OnInit {
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
+    console.log(parseAddress)
   }
 
   async ngOnInit() {
     this.hasGmbOwnership = await this.checkGmbOwnership();
-    console.log('Do we have ownership for this restaurnt?', this.hasGmbOwnership);
   }
 
   async checkGmbOwnership() {
@@ -178,33 +178,51 @@ export class RestaurantGmbComponent implements OnInit {
 
     this.apiRequesting = true;
     const name = this.restaurant.name;
-    const address = this.restaurant.googleAddress.formatted_address;
-
+    const address = this.restaurant.googleAddress.formatted_address.replace(", USA", "");
+    const parsedRtAddress = parseAddress(address);
+    console.log("parsed RT ", parsedRtAddress);
     let crawledResult;
     try {
-      const query = { q: [name, address].join(" ") };
+
+      console.log("trying 1")
+      // using name + address
+      const query = { q: [name, address].join(", ") };
       crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", query).toPromise();
+      const parsed = parseAddress(crawledResult.address.replace(", USA", ""));
+      console.log("parsed", parsed);
+      if (parsedRtAddress.zip !== parsed.zip || parsedRtAddress.number !== parsed.number) {
+        crawledResult = undefined;
+      }
     }
     catch (error) {
+      console.log(error);
+      crawledResult = undefined;
     }
 
     if (!crawledResult) {
+      console.log("trying 2")
+
       // use only city state and zip code!
       // "#4, 6201 Whittier Boulevard, Los Angeles, CA 90022" -->  Los Angeles, CA 90022
       const addressTokens = address.split(", ");
       try {
-        const query = { q: name + ' ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
+        const query = { q: name + ', ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
         crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", query).toPromise();
+        const parsed = parseAddress(crawledResult.address.replace(", USA", ""));
+        console.log("parsed", parsed);
+        if (parsedRtAddress.zip !== parsed.zip || parsedRtAddress.number !== parsed.number) {
+          crawledResult = undefined;
+        }
       }
       catch (error) {
+        console.log(error);
+        crawledResult = undefined;
       }
     }
 
     if (!crawledResult) {
-      this._global.publishAlert(AlertType.Danger, 'GMB crawling failed: No result found!');
-    }
-
-    else {
+      this._global.publishAlert(AlertType.Danger, 'GMB crawling failed: No matching result found!');
+    } else {
       // inject this listing result to restaurant!
       crawledResult.crawledAt = new Date();
       this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -310,7 +328,7 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   isPublished(row) {
-    return row.accountLocationPairs.some(al => al.location.status === 'Published' && ['OWNER','CO_OWNER', 'MANAGER'].find(r => r === al.location.role));
+    return row.accountLocationPairs.some(al => al.location.status === 'Published' && ['OWNER', 'CO_OWNER', 'MANAGER'].find(r => r === al.location.role));
   }
 
   hasMainGmb() {
@@ -400,7 +418,7 @@ export class RestaurantGmbComponent implements OnInit {
     try {
       const ownerEmail = this.gmbOwner[0].account.email;
 
-      if(!ownerEmail) {
+      if (!ownerEmail) {
         this._global.publishAlert(AlertType.Warning, `Could not find a gmb account for ${ownerEmail}`);
         return;
       }

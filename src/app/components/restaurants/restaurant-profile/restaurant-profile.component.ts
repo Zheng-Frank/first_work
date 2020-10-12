@@ -223,7 +223,5 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     catch (err) {
       this.uploadImageError = err;
     }
-
-
   }
 }

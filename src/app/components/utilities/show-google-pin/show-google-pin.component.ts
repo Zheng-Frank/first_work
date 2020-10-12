@@ -65,7 +65,7 @@ export class ShowGooglePINComponent implements OnInit {
             //     rateSchedules: 1,
             //     "googleAddress.formatted_address": 1
             // }
-        }, 100000);
+        }, 5000);
         console.log(this.restaurantList)
 
         this.populate();

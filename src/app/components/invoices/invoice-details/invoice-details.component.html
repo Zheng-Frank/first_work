@@ -1,5 +1,4 @@
 <!-- View ONLY panel -->
-<button (click)="computeDerivedFields()">COMPUTE DERIVED</button>
 <div *ngIf="invoice && !canEdit() && canView()" class="card mt-2 no-print">
     <div class="card-body">
         <div *ngIf="invoice.isCanceled" class="text-danger app-invoice-canceled text-muted">
@@ -141,9 +140,6 @@
             </div>
         </ng-container>
 
-
-
-
         <div class="mt-2">
             <button class="btn btn-info" (click)="setDisplay('logs')">
                 <i class="fas fa-history"></i> Show Logs({{getUnresolvedLogs().length}})</button>
@@ -223,22 +219,30 @@
             </table>
         </div>
     </div>
-    <div class="alert alert-info"
-        *ngIf="!(invoice.isPaymentSent || invoice.isPaymentCompleted) && isCreditCardOrStripe()">
-        <app-stripe 
-            [amount]="invoice.getBalance()"
-            [hidePostalCode]="true"
-            [invoiceId]="invoice._id"
-            [currency]="invoiceCurrency"
-            (success)="paymentSuccess()">
-        </app-stripe>
+    <div class="alert alert-info" *ngIf="shouldShowStripe()">
+        <h3>Secure Online Payment</h3>
+        <app-stripe #myStripe [hidePostalCode]="true"></app-stripe>
+        <div *ngIf="stripeError" class="py-2 text-danger">{{stripeError}}</div>
+        <div class="form-group">
+            <button class="btn btn-lg btn-success btn-block" (click)="payStripe()" [qLoading]="payingStripe">
+                Click to Pay {{invoice.balance |  currency:'USD':'symbol'}}
+            </button>
+        </div>
+    </div>
+    <div class="alert alert-info" *ngIf="shouldShowFattmerchant()">
+        <h3>Secure Online Payment</h3>
+        <app-fattmerchant #myFattmerchant [requirePhone]="false"></app-fattmerchant>
+        <div *ngIf="fattmerchantError" class="py-2 text-danger">{{fattmerchantError}}</div>
+        <div class="form-group">
+            <button class="btn btn-lg btn-success btn-block" (click)="payFattmerchant()"
+                [qLoading]="payingFattmerchant">
+                Click to Pay {{invoice.balance |  currency:'USD':'symbol'}}
+            </button>
+        </div>
     </div>
 </div>
 
-
-
 <app-invoice-viewer [invoice]="invoice" #myInvoiceViewer></app-invoice-viewer>
-
 
 
 <q-modal #adjustmentModal>

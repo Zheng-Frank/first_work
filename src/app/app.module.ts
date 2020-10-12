@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
+import { NgxMaskModule, IConfig } from 'ngx-mask';
 import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { RootComponent } from './components/root/root.component';
@@ -54,6 +55,8 @@ import { RestaurantApiLogsComponent } from './components/restaurants/restaurant-
 import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
+import { RestaurantSalesComponent } from './components/restaurants/restaurant-sales/restaurant-sales.component';
+import { RestaurantFeeSchedulesComponent } from './components/restaurants/restaurant-fee-schedules/restaurant-fee-schedules.component';
 import { RestaurantPaymentMeansComponent } from './components/restaurants/restaurant-payment-means/restaurant-payment-means.component';
 import { RestaurantServiceSettingsComponent } from './components/restaurants/restaurant-service-settings/restaurant-service-settings.component';
 import { RestaurantCloudPrintingComponent } from './components/restaurants/restaurant-cloud-printing/restaurant-cloud-printing.component';
@@ -119,6 +122,7 @@ import { adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, 
 import { RestaurantDeliveryClosedHoursComponent } from './components/restaurants/restaurant-delivery-closed-hours/restaurant-delivery-closed-hours.component';
 import { RestaurantClosedHoursComponent } from './components/restaurants/restaurant-closed-hours/restaurant-closed-hours.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
+import { FattmerchantComponent } from './components/invoices/fattmerchant/fattmerchant.component';
 import { CheckEmailComponent } from './components/utilities/check-email/check-email.component';
 import { SendGooglePINComponent } from './components/utilities/send-google-pin/send-google-pin.component';
 import { ShowGooglePINComponent } from './components/utilities/show-google-pin/show-google-pin.component';
@@ -229,6 +233,8 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     RestaurantApiLogsComponent,
     RestaurantContactsComponent,
     RestaurantRateSchedulesComponent,
+    RestaurantSalesComponent,
+    RestaurantFeeSchedulesComponent,
     RestaurantPaymentMeansComponent,
     RestaurantServiceSettingsComponent,
     RestaurantCloudPrintingComponent,
@@ -289,6 +295,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     RestaurantDeliverySettingsComponent,
     RestaurantWebSettingsComponent,
     StripeComponent,
+    FattmerchantComponent,
     CheckEmailComponent,
     SendGooglePINComponent,
     ShowGooglePINComponent,
@@ -357,6 +364,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
+    NgxMaskModule.forRoot(),
     FormsModule,
     HttpModule,
     UiModule,
