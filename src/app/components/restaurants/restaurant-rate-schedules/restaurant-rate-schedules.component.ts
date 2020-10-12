@@ -23,6 +23,26 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   ngOnInit() {
   }
 
+  converting = false;
+  async convertToFeeSchedules() {
+    this.converting = true;
+    try {
+      const results = await this._api.post(environment.appApiUrl + "lambdas/data", {
+        name: "migrate-fee-schedules",
+        payload: {
+          restaurantIds: [this.restaurant._id],
+        }
+      }).toPromise();
+      const [rtFeeSchedules] = results;
+      console.log("converted", rtFeeSchedules);
+      this.restaurant.feeSchedules = rtFeeSchedules.feeSchedules;
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
+    this.converting = false;
+  }
+
   dateChanged(date) {
   }
 
