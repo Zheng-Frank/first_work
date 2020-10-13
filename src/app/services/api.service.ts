@@ -50,7 +50,7 @@ export class ApiService {
    */
   async getBatch(api, payload, batchSize) {
 
-    let batchPayload = payload || {};
+    let batchPayload = {...payload};
     const payloadLimit = batchPayload.limit || Number.MAX_VALUE; //old limit
 
     const result = [];
@@ -58,22 +58,22 @@ export class ApiService {
     let oneBatch;
     do {
       const limit = Math.min(batchSize, payloadLimit - result.length);
-      if (payload && payload.aggregate && Array.isArray(payload.aggregate)) {
-        const aggrSkip = payload.aggregate.find(op => op['$skip']);
+      if (batchPayload.aggregate && Array.isArray(batchPayload.aggregate)) {
+        const aggrSkip = batchPayload.aggregate.find(op => op.hasOwnProperty('$skip'));
         if (aggrSkip) {
           aggrSkip['$skip'] = skip;
         } else {
-          payload.aggregate.push({ '$skip': skip })
+          batchPayload.aggregate.push({ '$skip': skip });
         }
-        const aggrLimit = payload.aggregate.find(op => op['$limit']);
+        const aggrLimit = batchPayload.aggregate.find(op => op['$limit']);
         if (aggrLimit) {
           aggrLimit['$limit'] = limit;
         } else {
-          payload.aggregate.push({ '$limit': limit })
+          batchPayload.aggregate.push({ '$limit': limit });
         }
       } else {
-        payload['skip'] = skip;
-        payload['limit'] = Math.min(batchSize, payloadLimit - result.length);
+        batchPayload['skip'] = skip;
+        batchPayload['limit'] = Math.min(batchSize, payloadLimit - result.length);
       }
       oneBatch = await this.get(api, batchPayload).toPromise();
       result.push(...oneBatch);
