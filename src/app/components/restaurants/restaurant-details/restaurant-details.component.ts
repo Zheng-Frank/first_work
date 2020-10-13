@@ -40,7 +40,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-    webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
+    webSettings: ['ADMIN', 'GMB_SPECIALIST'],
     restaurantChains: ['ADMIN', 'CSR']
   }
 
