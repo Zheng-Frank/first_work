@@ -11,10 +11,10 @@ import { AlertType } from 'src/app/classes/alert-type';
   styleUrls: ['./yelp-businesses.component.css']
 })
 export class YelpBusinessesComponent implements OnInit {
-  isAdmin = false;
+  // isAdmin = false;
   // showUnmatching = false;
   restaurants = [];
-  tasks = [];
+  // tasks = [];
   accounts = [];
   flatRows = [];
   filteredRows = [];
@@ -22,8 +22,8 @@ export class YelpBusinessesComponent implements OnInit {
   pagination = false;
   refreshing = false;
   restaurantStatus = "All";
-  currentUser = '';
-  username = '';
+  // currentUser = '';
+  // username = '';
 
   myColumnDescriptors = [
     {
@@ -39,9 +39,9 @@ export class YelpBusinessesComponent implements OnInit {
       paths: ['rating'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
-    {
-      label: 'Websites'
-    },
+    // {
+    //   label: 'Websites'
+    // },
     {
       label: 'Yelp Account',
       paths: ['gmb_email'],
@@ -53,14 +53,17 @@ export class YelpBusinessesComponent implements OnInit {
       // sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: 'Logs'
+    },
+    {
       label: 'Actions'
     }
   ];
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.refresh();
-    this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
-    this.username = this._global.user.username;
+    // this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
+    // this.username = this._global.user.username;
   }
 
   ngOnInit() {
@@ -72,26 +75,26 @@ export class YelpBusinessesComponent implements OnInit {
   }
 
   isTaskAssigned(yid) {
-    return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.assignee !== undefined)).length > 0);
+    // return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.assignee !== undefined)).length > 0);
   }
 
   isTaskClosed(yid) {
-    return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.result === 'CLOSED')).length > 0)
+    // return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.result === 'CLOSED')).length > 0)
   }
 
   getAssigneeName(yid) {
-    const [task] = this.tasks.filter(t => (t.relatedMap.yelpId === yid));
-    if (task) {
-      return task.assignee;
-    }
+    // const [task] = this.tasks.filter(t => (t.relatedMap.yelpId === yid));
+    // if (task) {
+    //   return task.assignee;
+    // }
   }
 
   isTaskAssignee(yid) {
-    return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.assignee === this.username)).length > 0)
+    // return (this.tasks.filter(t => (t.relatedMap.yelpId === yid) && (t.assignee === this.username)).length > 0)
   }
 
   canTaskBeDone(yid) {
-    return !this.isTaskAssigned(yid) && !this.isTaskClosed(yid);
+    // return !this.isTaskAssigned(yid) && !this.isTaskClosed(yid);
   }
 
   async assignYelpTask(id, name, yid) {
@@ -108,7 +111,7 @@ export class YelpBusinessesComponent implements OnInit {
       description: `Claim task for yelp ID: ${yid}`,
       roles: ['GMB', 'ADMIN'],
       relatedMap: { restaurantId: id, yelpId: yid, email: randomAccount.email },
-      assignee: this.username,
+      // assignee: this.username,
       comments: `Yelp Id: ${yid}, Email: ${randomAccount.email}`,
 
     };
@@ -144,25 +147,26 @@ export class YelpBusinessesComponent implements OnInit {
         "yelpListing.url": 1,
         'googleAddress.formatted_address': 1,
         rateSchedules: 1,
-        disabled: 1
+        disabled: 1,
+        "web.qmenuWebsite": 1
       },
     }, 3000);
 
     // --- tasks
-    this.tasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: "task",
-      projection: {
-        assignee: 1,
-        result: 1,
-        "relatedMap.yelpId": 1,
-        "relatedMap.email": 1,
-        "relatedMap.restaurantId": 1,
+    // this.tasks = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    //   resource: "task",
+    //   projection: {
+    //     assignee: 1,
+    //     result: 1,
+    //     "relatedMap.yelpId": 1,
+    //     "relatedMap.email": 1,
+    //     "relatedMap.restaurantId": 1,
 
-      },
-      query: {
-        name: { "$eq": "Yelp Request" },
-      }
-    }, 8000);
+    //   },
+    //   query: {
+    //     name: { "$eq": "Yelp Request" },
+    //   }
+    // }, 8000);
 
     // --- accounts
     this.accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -317,27 +321,27 @@ export class YelpBusinessesComponent implements OnInit {
   }
 
   getTaskEmail(yid) {
-    const [result] = this.tasks.filter(t => t.relatedMap.yelpId === yid); // hashmap
-    if (result) {
-      return result.relatedMap.email;
-    }
+    // const [result] = this.tasks.filter(t => t.relatedMap.yelpId === yid); // hashmap
+    // if (result) {
+    //   return result.relatedMap.email;
+    // }
   }
 
   async claim(rt, yid) {
     try {
-      const accountEmail = this.getTaskEmail(yid);
+      // const accountEmail = this.getTaskEmail(yid);
 
-      if (!accountEmail) {
-        this._global.publishAlert(AlertType.Danger, 'Failed to login');
-        return;
-      }
+      // if (!accountEmail) {
+      //   this._global.publishAlert(AlertType.Danger, 'Failed to login');
+      //   return;
+      // }
 
       const target = 'claim-yelp';
       const { city, zip_code, country, state, street } = rt.location;
       const [streetShortened] = street.split('\n')
       const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
 
-      await this._api.post(environment.autoGmbUrl + target, { email: accountEmail, name: rt.qMenuName, location }).toPromise();
+      await this._api.post(environment.autoGmbUrl + target, { email: 'sharonhjrivera@gmail.com', name: rt.qMenuName, location }).toPromise();
       this._global.publishAlert(AlertType.Success, 'Logged in.');
     }
     catch (error) {

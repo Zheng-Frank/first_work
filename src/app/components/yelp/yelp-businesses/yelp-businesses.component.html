@@ -30,14 +30,14 @@
 >
   <tr *tableRowTemplate="let rt">
     <!-- count -->
-    <td>
+    <td style="width: 50px;">
       <div class="h-100 d-flex flex-column justify-content-center">
         {{ filteredRows.indexOf(rt) + 1 }}
       </div>
     </td>
 
     <!-- restaurant name -->
-    <td>
+    <td style="width: 300px;">
       <div class="h-100 d-flex flex-column justify-content-center">
         <a href="{{ rt.url }}" target="_blank">{{ rt.yelpName }}</a>
         <div class="text-muted">
@@ -56,7 +56,7 @@
     </td>
 
     <!-- score -->
-    <td>
+    <td style="width: 120px;">
       <div class="h-100 d-flex flex-column justify-content-center">
         {{ rt.rating }}
       </div>
@@ -64,15 +64,17 @@
 
     <!--  websites  -->
     <!-- TODO: Make it editable and save changes to db -->
-    <td>
+    <!-- 
+    <td style="width: 300px;">
       <small class="h-100 d-flex flex-column justify-content-center">
-        <div>Q: {{ rt.qmenuWebsite }}</div>
-        <div>R: {{ rt.website }}</div>
+        <span>Q: <a href="{{rt.qmenuWebsite}}">{{ rt.qmenuWebsite }}</a></span>
+        <span>R: <a href="{{rt.website}}">{{ rt.website }}</a></span>
       </small>
-    </td>
+    </td> 
+    -->
 
     <!-- yelp account -->
-    <td>
+    <td style="width: 120px;">
       <div class="h-100 d-flex flex-column justify-content-center">
         <div *ngIf='rt.isRTPublished === true; else rtNotPublished'>
           <app-gmb-account-hotlink [email]="getPublishedAccount(rt.yid)"></app-gmb-account-hotlink>
@@ -84,6 +86,7 @@
     </td>
 
     <!-- yelp status -->
+    <!--     
     <td>
       <div class="h-100 d-flex flex-column justify-content-center">
         <div *ngIf="rt.isRTPublished; else notPublished">
@@ -93,26 +96,38 @@
           {{rt.claimedStatus}}
         </ng-template>
       </div>
-    </td>
-
-    <td>
+    </td> 
+    -->
+    <td style="width: 120px;">
       <div class="h-100 d-flex flex-column justify-content-center">
-        <div *ngIf="isTaskAssigned(rt.yid); else notTaskAssigned" class="h-100 d-flex flex-column justify-content-center">
-          <div *ngIf="rt.claimedStatus === 'Reclaimable' || (rt.claimedStatus === 'Open' && canTaskBeDone(rt.yid))">
-            <button *ngIf="isTaskAssigned(rt.yid) && !rt.isClaimTaskClosed; else taskClosed" class="btn btn-link fix-v-align py-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
+        <div class="h-100 d-flex flex-column justify-content-center">
+          <div *ngIf="(rt.claimedStatus === 'Reclaimable' || rt.claimedStatus === 'Open'); else nonClaimableStatus">
+            <button class="btn btn-link fix-v-align py-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
               {{ rt.claimedStatus === "Open" ? "Claim" : "Reclaim" }}
             </button>
-            <ng-template #taskClosed>
-              <div>Task Closed</div>
-            </ng-template>
           </div>
+          <ng-template #nonClaimableStatus>
+            {{rt.claimedStatus}}
+          </ng-template>
         </div>
-        <ng-template #notTaskAssigned class="h-100 d-flex flex-column justify-content-center">
-          <button *ngIf="rt.claimedStatus === 'Open' || rt.claimedStatus === 'Reclaimable'" class="btn btn-small btn-primary" (click)="assignYelpTask(rt._id, rt.name, rt.yid)">
-            Create task
+      </div>
+    </td>
+
+    <!-- Logs -->
+    <td>
+      <div class="h-100 d-flex flex-column justify-content-center">LOGS HERE</div>
+    </td>
+
+    <!-- Actions -->
+    <td style="width: 250px;">
+      <div class="h-100 d-flex flex-column justify-content-center">
+        <div class="h-100 d-flex flex-column justify-content-center">
+          <button class="btn btn-link fix-v-align py-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
+            COMPLETE|REJECTED
           </button>
-        </ng-template>
+        </div>
       </div>
     </td>
   </tr>
+
 </q-table>
