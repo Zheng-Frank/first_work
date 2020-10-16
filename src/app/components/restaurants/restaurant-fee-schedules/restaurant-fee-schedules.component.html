@@ -27,7 +27,7 @@
                 </div>
               </td>
               <td class="text-nowrap">
-                <div *ngIf="feeSchedule.rate || feeSchedule.amount" class="my-text-b">
+                <div class="my-text-b">
                   <span *ngIf="feeSchedule.rate">{{feeSchedule.rate | percentage }}</span>
                   <span *ngIf="feeSchedule.rate && feeSchedule.amount"> + </span>
                   <span *ngIf="feeSchedule.amount">{{feeSchedule.amount |currency:'USD':'symbol'}}</span>
