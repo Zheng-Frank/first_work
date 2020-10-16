@@ -147,8 +147,8 @@ export class InvoiceEditorComponent implements OnInit, OnChanges {
       toDate: this.toDate,
       // fromDate (optional, if not given, we will compute a previous invoice, otherwise ignore previous invoice!)
       ... this.previousInvoice ? {} : { fromDate: this.fromDate },
-      balanceThreshold: 0.01, // override default $10
-      payoutThreshold: 0.01 // override default $50
+      balanceThreshold: 0, // override default $10
+      payoutThreshold: 0 // override default $50
     };
 
     console.log(payload);

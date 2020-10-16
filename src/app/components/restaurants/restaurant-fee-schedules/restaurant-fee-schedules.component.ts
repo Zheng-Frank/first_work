@@ -35,15 +35,16 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   chargeBasisMap = {
     [ChargeBasis.Monthly]: 'monthly',
     [ChargeBasis.OrderSubtotal]: 'order subtotal',
-    [ChargeBasis.OrderPreTotal]: 'order total',
+    [ChargeBasis.OrderPreTotal]: 'order pre-total',
+    [ChargeBasis.OrderTotal]: 'order total',
     [ChargeBasis.Commission]: 'commission',
   };
 
 
   nameDescriptor = {
     field: "name", //
-    label: "Name (optional)",
-    required: false,
+    label: "Name",
+    required: true,
     inputType: "text",
     items: [
       { object: "Email", text: "Email", selected: false },
@@ -94,7 +95,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   };
 
   chargeBasisSubtotal = { object: ChargeBasis.OrderSubtotal, text: "order subtotal", selected: false };
-  chargeBasisPreTotal = { object: ChargeBasis.OrderPreTotal, text: "order total", selected: false };
+  chargeBasisPreTotal = { object: ChargeBasis.OrderPreTotal, text: "order total before CC", selected: false };
+  chargeBasisTotal = { object: ChargeBasis.OrderTotal, text: "order total", selected: false };
   chargeBasisMonthly = { object: ChargeBasis.Monthly, text: "monthly fee", selected: false };
   chargeBasisCommission = { object: ChargeBasis.Commission, text: "commission", selected: false };
 
@@ -192,7 +194,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       case 'RESTAURANT':
         this.feeScheduleInEditing.payee = this.payeeQmenu.object;
         this.payeeDescriptor.items = [this.payeeQmenu];
-        this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisMonthly];
+        this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisTotal, this.chargeBasisMonthly];
         break;
       case 'QMENU':
         this.feeScheduleInEditing.payee = this.payeeSales.object;
@@ -212,6 +214,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     switch (this.feeScheduleInEditing.chargeBasis) {
       case ChargeBasis.OrderSubtotal:
       case ChargeBasis.OrderPreTotal:
+      case ChargeBasis.OrderTotal:
         this.fieldDescriptors.push(
           this.rateDescriptor,
           this.amountDescriptor,
@@ -273,7 +276,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // making sure data type are correct! sometimes after binding values become strings
     myFs.amount = +myFs.amount || 0;
     myFs.rate = +myFs.rate || 0;
-    
+
     // turn 2020-09-01 to timezone form
     const getTransformedDate = (dateString) => {
       const [year, month, date] = dateString.split('-');

@@ -1,6 +1,6 @@
 {
   "name": "admin",
-  "version": "1.6.8",
+  "version": "1.6.9",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -25,7 +25,7 @@
     "@angular/platform-browser": "^6.1.2",
     "@angular/platform-browser-dynamic": "^6.1.2",
     "@angular/router": "^6.1.2",
-    "@qmenu/ui": "git+https://github.com/garysui/qmenu-ui-dist.git#v0.28.0",
+    "@qmenu/ui": "git+https://github.com/garysui/qmenu-ui-dist.git#v0.28.1",
     "@swimlane/ngx-graph": "^6.1.0",
     "aws-sdk": "^2.641.0",
     "bootstrap": "^4.1.3",

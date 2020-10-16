@@ -1,6 +1,7 @@
 <div class="card mb-2">
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="fas fa-chart-pie"></i> Fee Schedules</h3>
+  <div class="text-danger text-center">DO NOT REMOVE OLD FEE SCHEDULES (请不要删除老的设置)</div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0"><input type="checkbox"
@@ -30,6 +31,8 @@
                   <span *ngIf="feeSchedule.rate">{{feeSchedule.rate | percentage }}</span>
                   <span *ngIf="feeSchedule.rate && feeSchedule.amount"> + </span>
                   <span *ngIf="feeSchedule.amount">{{feeSchedule.amount |currency:'USD':'symbol'}}</span>
+                  <span *ngIf="!feeSchedule.rate && !feeSchedule.amount">0</span>
+                  
                 </div>
                 <div *ngIf="feeSchedule.name">{{feeSchedule.name}}</div>
                 <div class="my-text-small text-muted">
