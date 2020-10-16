@@ -36,6 +36,11 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     }
   }
 
+  isActualDate(date) {
+    // fake date which is 2020-01-01 and having 
+    return new Date(date).valueOf() !== new Date("2020-01-01").valueOf();
+  }
+
   computeData() {
     this.orderTypes = new Set();
     this.orderPaymentMethods = new Set();
@@ -43,7 +48,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
       this.orderTypes.add(o.type);
       this.orderPaymentMethods.add(o.paymentType); //only CASH or CREDITCARD
       this.orderPaymentMethods.add(o.creditCardProcessingMethod);
-      
+
       if (o.type === 'DELIVERY') {
         this.couriers.add(o.deliveryBy ? 'qMenu' : 'restaurant');
       }
@@ -76,12 +81,12 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
       },
 
       invoice.feesForRestaurant && {
-        key: `Restaurant Fees`,
+        key: `Customer Paid Fees to Restaurant`,
         value: invoice.feesForRestaurant
       },
 
       invoice.feesForQmenu && {
-        key: `qMenu Fees`,
+        key: `Customer Paid Fees to qMenu`,
         value: invoice.feesForQmenu
       },
       {
@@ -122,7 +127,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
       },
 
       invoice.feesForQmenu && {
-        key: `Customer paid fees to qMenu`,
+        key: `Customer Paid Fees to qMenu`,
         value: invoice.feesForQmenu
       },
 

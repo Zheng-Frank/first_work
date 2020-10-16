@@ -1,4 +1,5 @@
 <div class="container" *ngIf="invoice">
+
   <h3 class="text-center">QMENU INVOICE</h3>
   <h6 class="text-center">Date Range: {{invoice.fromDate | adjustedDate: 'shortDate' : 'America/New_York'}}
     -{{invoice.toDate | adjustedDate: 'shortDate' : 'America/New_York'}}
@@ -72,7 +73,7 @@
     <div class="fee-schedules-content">
       <div *ngFor="let feeSchedule of getFeeSchedules()">
 
-        {{feeSchedule.payer}} pays {{feeSchedule.payee}} 
+        {{feeSchedule.payer}} pays {{feeSchedule.payee}}
         <span *ngIf="feeSchedule.name">{{feeSchedule.name + ' '}}</span>
         <!-- value -->
         <span *ngIf="feeSchedule.rate || !feeSchedule.amount"
@@ -85,20 +86,21 @@
 
         <!-- order type and payment methods -->
         <span
-          *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0 || feeSchedule.orderPaymentMethods && feeSchedule.orderPaymentMethods.length > 0"
+          *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0"
           class="text-lowercase">
-          for {{(feeSchedule.orderTypes || []).concat(feeSchedule.orderPaymentMethods || []).join(', ')}}
+          for {{(feeSchedule.orderTypes || []).join(', ')}}
         </span>
 
-        <!-- time -->
-        <span *ngIf="!feeSchedule.toTime">
-          since {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : 'America/New_York' }}
-        </span>
-        <span *ngIf="feeSchedule.toTime">
-          from {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : 'America/New_York' }} to
-          {{ feeSchedule.toTime | adjustedDate: 'shortDate' : 'America/New_York'  }}
-        </span>
-
+        <!-- time, excluding fake date which is 2020-01-01 -->
+        <ng-container *ngIf="isActualDate(feeSchedule.fromTime)">
+          <span *ngIf="!feeSchedule.toTime">
+            since {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : 'America/New_York' }}
+          </span>
+          <span *ngIf="feeSchedule.toTime">
+            from {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : 'America/New_York' }} to
+            {{ feeSchedule.toTime | adjustedDate: 'shortDate' : 'America/New_York'  }}
+          </span>
+        </ng-container>
       </div>
     </div>
   </div>

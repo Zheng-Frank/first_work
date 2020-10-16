@@ -133,7 +133,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   isCreditCardOrStripe() {
-    console.log(this.paymentMeans);
     return this.paymentMeans && this.paymentMeans.some(pm => pm.type === 'Credit Card' || pm.type === 'Stripe');
   }
 
