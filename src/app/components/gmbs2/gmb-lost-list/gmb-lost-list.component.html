@@ -32,15 +32,17 @@
     <td>{{r.lostDate | ago : now}}</td>
     <td>{{r.owner}}</td>
     <td class="mw-50">
-      <table>
-        <tr *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
-          <td class="w-25">{{task.date | date: 'medium'}}</td>
-          <td class="w-25"><button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id}}</button></td>
-          <td class="w-25"><app-gmb-account-hotlink *ngIf="task.email" [email]="task.email" [appealId]="task.appealId"></app-gmb-account-hotlink></td>
-          <td class="w-25">{{task.status}}</td>
-        </tr>
-      </table>
+      <div class="row" *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
+        <!-- <div class="col-6 text-small text-nowrap px-0">{{task.date | date: 'short'}} <button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id.slice(-4)}}</button> <app-gmb-account-hotlink *ngIf="task.email" [email]="task.email" [appealId]="task.appealId"></app-gmb-account-hotlink></div>
+        <div class="col-6 text-small text-nowrap px-0">{{task.status}}</div> -->
+       
+        <div class="col-3 text-small text-nowrap px-0">{{task.date | date: 'short'}}</div>
+        <div class="col-2 px-0"><button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id.slice(-4)}}</button></div>
+        <div class="col-3 px-0"><app-gmb-account-hotlink *ngIf="task.email" [email]="task.email" [appealId]="task.appealId"></app-gmb-account-hotlink></div>
+        <div class="col-4 text-small px-0">{{task.status}}</div>
+      </div>
     </td>
+    <td>{{now | adjustedDate : 'shortTime' : r.timezone}}</td>
     <td id="limitedWidth">
       <div *ngFor="let comment of createAngularIndentifiableArray(r.comments)">
         &#8226; {{comment.user}} on {{comment.date | adjustedDate : 'M/dd' : r.timezone}}: {{comment.content}}

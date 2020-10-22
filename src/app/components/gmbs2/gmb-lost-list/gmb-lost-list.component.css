@@ -1,4 +1,12 @@
-#limitedWidth 
-{
-    width: 20%
+#limitedWidth {
+    width: 20%;
+}
+
+.text-small {
+    font-size: 85%;
+}
+
+::ng-deep .btn-link {
+    padding-top: 0;
+    padding-bottom: 0;
 }

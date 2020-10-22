@@ -4,7 +4,6 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { TimezoneService } from '../../../services/timezone.service';
 import { AlertType } from '../../../classes/alert-type';
-import { last } from '@angular/router/src/utils/collection';
 
 @Component({
   selector: 'app-gmb-lost-list',
@@ -30,7 +29,7 @@ export class GmbLostListComponent implements OnInit {
 
   myColumnDescriptors = [
     {
-      label: "Number"
+      label: "#"
     },
     {
       label: "Restaurant Name"
@@ -41,17 +40,20 @@ export class GmbLostListComponent implements OnInit {
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
     {
-      label: "Lost Date",
+      label: "Lost",
       paths: ['lostDate'],
       sort: (a, b) => a.valueOf() - b.valueOf()
     },
     {
-      label: "Current Owner",
+      label: "GMB",
       paths: ['owner'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
       label: "Tasks"
+    },
+    {
+      label: "Local Time"
     },
     {
       label: "Comments"
@@ -284,7 +286,7 @@ export class GmbLostListComponent implements OnInit {
           comments: newComment
         };
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=event', [{ old: oldData, new: newData }]).toPromise();
-        this._global.publishAlert(AlertType.Success, `Comment added succesfuly`);
+        this._global.publishAlert(AlertType.Success, `Comment added successfully`);
         await this.refreshSingleEntry(r.eventId);
       } catch (error) {
         console.error('error while adding comment.', error);
