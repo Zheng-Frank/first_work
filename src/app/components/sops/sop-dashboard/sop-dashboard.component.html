@@ -1,10 +1,10 @@
 <h1 class="text-center">Standard Operating Procedures ({{sops.length}})</h1>
 
-
+{{showingDisabled}}
 <div class="d-flex justify-content-between mb-2">
   <div>
     <label class="checkbox-inline">
-      <input type="checkbox" (click)="toggleDisabled($event)"> Show disabled
+      <input type="checkbox" [(ngModel)]="showingDisabled"> Show disabled
     </label>
   </div>
   <div>
@@ -29,16 +29,19 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let sop of sops">
-      <td>{{sop.createdAt | date: 'shortDate'}}</td>
-      <td>{{sop.version}}</td>
-      <td>{{sop.name}}</td>
-      <td><a *ngIf="sop.docLink" target="__blank" href="{{sop.docLink}}" class="doc-link">{{sop.docLink}}</a></td>
-      <td>{{sopDict[sop._id]}}</td>
-      <td>
-        <button class="btn btn-link py-0" (click)="edit(sop)">Edit</button>
-      </td>
-    </tr>
+    <ng-container *ngFor="let sop of sops">
+      <tr class="{{sop.disabled ? 'disabled' : ''}}" *ngIf="">
+        <td>{{sop.createdAt | date: 'shortDate'}}</td>
+        <td>{{sop.version}}</td>
+        <td>{{sop.name}}</td>
+        <td><a *ngIf="sop.docLink" target="__blank" href="{{sop.docLink}}" class="doc-link">{{sop.docLink}}</a></td>
+        <td>{{sopDict[sop._id] || 0}}</td>
+        <td>
+          <button class="btn btn-link py-0" (click)="edit(sop)">Edit</button>
+        </td>
+      </tr>
+    </ng-container>
+
   </tbody>
 </table>
 <pre>

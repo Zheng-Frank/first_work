@@ -16,6 +16,7 @@ import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 export class SopDashboardComponent implements OnInit {
   @ViewChild('editModal') editModal: ModalComponent;
 
+  showingDisabled = false;
   sopInEditing = {};
   apiLoading = false;
   fieldDescriptors = [

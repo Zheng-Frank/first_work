@@ -115,7 +115,8 @@ export class GmbLostListComponent implements OnInit {
         "gmbOwnerHistory.gmbOwner": 1,
         "gmbOwnerHistory": { $slice: 1 },
         name: 1,
-        score: 1
+        score: 1,
+        disabled: 1
       }
     }, 6000);
 
@@ -164,6 +165,7 @@ export class GmbLostListComponent implements OnInit {
               eventId: event._id,
               restaurantId: restaurant._id,
               name: restaurant.name,
+              disabled: restaurant.disabled,
               address: restaurant.googleAddress.formatted_address,
               score: restaurant.score,
               lostDate: event.createdAt,
@@ -211,7 +213,7 @@ export class GmbLostListComponent implements OnInit {
     this.numberOfRestaurant = dict.length;
     this.averageLossesPerDay = Math.ceil(this.numberOfRestaurant / (1 + (lastLostdate.valueOf() - firstLostDate.valueOf()) / (24 * 3600000)));
 
-    this.rows = dict;
+    this.rows = dict.filter(r => !r.disabled);
     this.filter();
 
     this.apiLoading = false;

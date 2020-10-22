@@ -10,3 +10,8 @@
     white-space: nowrap;
     display: block;
 }
+
+.disabled {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
