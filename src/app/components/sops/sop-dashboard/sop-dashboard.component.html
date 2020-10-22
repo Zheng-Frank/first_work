@@ -1,0 +1,56 @@
+<h1 class="text-center">Standard Operating Procedures ({{sops.length}})</h1>
+
+
+<div class="d-flex justify-content-between mb-2">
+  <div>
+    <label class="checkbox-inline">
+      <input type="checkbox" (click)="toggleDisabled($event)"> Show disabled
+    </label>
+  </div>
+  <div>
+    <div class="pb-2">
+      <button class="btn btn-primary" (click)="populate()" [qLoading]="apiLoading">
+        <i class="fas fa-sync"></i> Reload</button>
+      <button class="btn btn-primary" (click)="addNew()">
+        <i class="fas fa-plus"></i> Add New</button>
+    </div>
+  </div>
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Version</th>
+      <th>Name</th>
+      <th>Doc Link</th>
+      <th>Operations Count</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let sop of sops">
+      <td>{{sop.createdAt | date: 'shortDate'}}</td>
+      <td>{{sop.version}}</td>
+      <td>{{sop.name}}</td>
+      <td><a *ngIf="sop.docLink" target="__blank" href="{{sop.docLink}}" class="doc-link">{{sop.docLink}}</a></td>
+      <td>{{sopDict[sop._id]}}</td>
+      <td>
+        <button class="btn btn-link py-0" (click)="edit(sop)">Edit</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<pre>
+  Click it will take to details page
+</pre>
+
+<!--the editing modal-->
+<q-modal #editModal>
+  <h3>
+    {{sopInEditing._id ? 'Edit SOP' : 'Create New SOP'}}
+  </h3>
+  <q-form-builder [object]="sopInEditing" [fieldDescriptors]="fieldDescriptors" (submit)="formSubmit($event)"
+    (remove)="formDelete($event)" (cancel)="editModal.hide()" [showDelete]="sopInEditing._id">
+  </q-form-builder>
+</q-modal>

@@ -84,7 +84,7 @@ export class BasicTplComponent implements OnInit {
         new: newRestaurant
       }]).toPromise();
 
-      this._global.publishAlert(AlertType.Success, 'Link saved succesfuly. Publishing to AWS now...');
+      this._global.publishAlert(AlertType.Success, 'Link saved successfully. Publishing to AWS now...');
 
 
       // --- Re publish changes
@@ -113,7 +113,7 @@ export class BasicTplComponent implements OnInit {
 
       console.log('updateLinks() nvalidation result:', result);
 
-      this._global.publishAlert(AlertType.Success, 'Link published to AWS succesfuly');
+      this._global.publishAlert(AlertType.Success, 'Link published to AWS successfully');
 
     } catch (error) {
       await this.init();
@@ -235,7 +235,7 @@ export class BasicTplComponent implements OnInit {
 
       console.log('uploadHeaderImage() nvalidation result:', result);
 
-      this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS succesfuly');
+      this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS successfully');
 
     } catch (error) {
       await this.init();
@@ -286,7 +286,7 @@ export class BasicTplComponent implements OnInit {
 
       console.log('deleteHeaderSliderImage() nvalidation result:', result);
 
-      this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS succesfuly');
+      this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS successfully');
 
     } catch (error) {
       await this.init();
@@ -350,7 +350,7 @@ export class BasicTplComponent implements OnInit {
 
       console.log('uploadSpecialtyImage() nvalidation result:', result);
 
-      this._global.publishAlert(AlertType.Success, 'Specialty Image(s) published to AWS succesfuly');
+      this._global.publishAlert(AlertType.Success, 'Specialty Image(s) published to AWS successfully');
 
     } catch (error) {
       await this.init();
@@ -407,7 +407,7 @@ export class BasicTplComponent implements OnInit {
 
       console.log('uploadPromoImage() nvalidation result:', result);
 
-      this._global.publishAlert(AlertType.Success, 'Order/Promo Image(s) published to AWS succesfuly');
+      this._global.publishAlert(AlertType.Success, 'Order/Promo Image(s) published to AWS successfully');
 
     } catch (error) {
       await this.init();

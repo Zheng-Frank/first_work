@@ -285,7 +285,7 @@ export class GmbUnderattackListComponent implements OnInit {
           };
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
         }
-        this._global.publishAlert(AlertType.Success, `Log added succesfuly`);
+        this._global.publishAlert(AlertType.Success, `Log added successfully`);
         await this.refreshSingleEntry(r.requestInfos[0]._id);
       } catch (error) {
         console.error('error while adding comment.', error);
@@ -313,7 +313,7 @@ export class GmbUnderattackListComponent implements OnInit {
           };
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
         }
-        this._global.publishAlert(AlertType.Success, `Request marked complete succesfuly`);
+        this._global.publishAlert(AlertType.Success, `Request marked complete successfully`);
         // await this.refreshSingleEntry(r.requestInfos[0]._id);
         r.content = 'marked COMPLETED';
         this.addLog(r);
@@ -338,7 +338,7 @@ export class GmbUnderattackListComponent implements OnInit {
           };
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
         }
-        this._global.publishAlert(AlertType.Success, `Request marked incomplete succesfuly`);
+        this._global.publishAlert(AlertType.Success, `Request marked incomplete successfully`);
         // await this.refreshSingleEntry(r.requestInfos[0]._id);
         r.content = 'reverted back to INCOMPLETED';
         this.addLog(r);

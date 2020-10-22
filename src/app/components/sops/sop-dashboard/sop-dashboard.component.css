@@ -1,0 +1,12 @@
+.graph-container {
+    width: 960px;
+    max-width: 960px;
+}
+
+.doc-link {
+    text-overflow: ellipsis;
+    max-width: 10rem;
+    overflow: hidden;
+    white-space: nowrap;
+    display: block;
+}

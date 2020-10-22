@@ -76,24 +76,24 @@ export class GlobalService {
           fa: "fas fa-history",
           accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
-        {
-          name: "Payments",
-          href: "#/payments",
-          fa: "fas fa-hand-holding-usd",
-          accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
-        },
+        // {
+        //   name: "Payments",
+        //   href: "#/payments",
+        //   fa: "fas fa-hand-holding-usd",
+        //   accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
+        // },
         {
           name: "Invoices",
           href: "#/invoices",
           fa: "fas fa-dollar-sign",
           accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
         },
-        {
-          name: "Orders",
-          href: "#/orders",
-          fa: "fas fa-shopping-bag",
-          accessibleRoles: ["ADMIN", "ORDER_MANAGER"]
-        },
+        // {
+        //   name: "Orders",
+        //   href: "#/orders",
+        //   fa: "fas fa-shopping-bag",
+        //   accessibleRoles: ["ADMIN", "ORDER_MANAGER"]
+        // },
         {
           name: "Tasks",
           href: "#/tasks",
@@ -130,17 +130,23 @@ export class GlobalService {
           fa: "fas fa-tasks",
           accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER"]
         },
-        {
-          name: "Users",
-          href: "#/users",
-          fa: "fas fa-users",
-          accessibleRoles: ["ADMIN"]
-        },
+        // {
+        //   name: "Users",
+        //   href: "#/users",
+        //   fa: "fas fa-users",
+        //   accessibleRoles: ["ADMIN"]
+        // },
         {
           name: "Workflows",
           href: "#/workflows",
           fa: "fas fa-project-diagram",
           accessibleRoles: ["ADMIN", "MENU_EDITOR"]
+        },
+        {
+          name: "SOPs",
+          href: "#/sops",
+          fa: "fas fa-project-diagram",
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
           name: "Monitoring",
@@ -154,12 +160,12 @@ export class GlobalService {
           fa: "fas fa-cog",
           accessibleRoles: ["ADMIN"]
         },
-        {
-          name: "Transactions",
-          href: "#/transaction",
-          fa: "fas fa-dollar-sign",
-          accessibleRoles: ["ADMIN"]
-        },
+        // {
+        //   name: "Transactions",
+        //   href: "#/transaction",
+        //   fa: "fas fa-dollar-sign",
+        //   accessibleRoles: ["ADMIN"]
+        // },
         { name: "Me", href: "#/profile", fa: "fas fa-user" }
       ];
 
