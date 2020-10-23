@@ -1,0 +1,141 @@
+<div *ngIf="sop && sop._id">
+  <!-- snippet section -->
+  <div class="text-center">
+    <h1>{{sop.name}}</h1>
+    <div>version: {{sop.version}}</div>
+    <div *ngIf="sop.docLink"><a target="__blank" href="{{sop.docLink}}">{{sop.docLink}}</a></div>
+  </div>
+  <div class="graph-container p-1 border bg-light" *ngIf="sop.blocks && sop.blocks.length> 0">
+    <ngx-graph [links]="links" [nodes]="nodes" [autoZoom]="true"
+      [draggingEnabled]="false" [autoCenter]="true">
+      <ng-template #defsTemplate>
+        <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="4" orient="auto">
+          <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
+        </svg:marker>
+      </ng-template>
+
+      <ng-template #nodeTemplate let-node>
+        <svg:g class="node">
+          <svg:rect [attr.rx]="node.starting? 10 : 0" [attr.ry]="node.starting ? 10 : 0"
+            [attr.width]="node.dimension.width" [attr.height]="node.dimension.height" [attr.fill]="node.color" />
+          <svg:text alignment-baseline="central" [attr.x]="10" [attr.y]="node.dimension.height / 2">
+            {{node.label}}
+          </svg:text>
+        </svg:g>
+      </ng-template>
+
+      <ng-template #linkTemplate let-link>
+        <svg:g class="edge">
+          <svg:path class="line" stroke-width="2" marker-end="url(#arrow)"></svg:path>
+          <svg:text class="edge-label" text-anchor="middle">
+            <textPath class="text-path" [attr.href]="'#' + link.id" [style.dominant-baseline]="link.dominantBaseline"
+              startOffset="50%">
+              {{link.label}}
+            </textPath>
+          </svg:text>
+        </svg:g>
+      </ng-template>
+    </ngx-graph>
+  </div>
+  <h2 class="text-center pt-4">Operations ({{sopInstances.length}})</h2>
+  <div class="py-2 text-right">
+    <button class="btn btn-primary" (click)="populate()" [qLoading]="apiLoading">
+      <i class="fas fa-sync"></i> Reload</button>
+    <button class="btn btn-primary" (click)="addNew()">
+      <i class="fas fa-plus"></i> Add New Operation</button>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Created By</th>
+        <th>params</th>
+        <th>Progress</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let instance of sopInstances">
+        <tr>
+          <td>
+            {{instance.createdAt | date: 'shortDate'}}
+          </td>
+          <td>
+            {{instance.username}}
+          </td>
+          <td>
+            A LIST OF PARAMS
+          </td>
+          <td>
+            <div class="progress" style="height: 30px">
+              <div class="progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25"
+                aria-valuemin="0" aria-valuemax="100">25%</div>
+            </div>
+          </td>
+          <td>
+            <button class="btn btn-primary btn-sm" (click)="edit(instance)">Edit</button>
+          </td>
+        </tr>
+        <!-- <tr class="{{sop.disabled ? 'disabled' : ''}}" *ngIf="showingDisabled || !sop.disabled">
+          <td></td>
+          <td>{{sop.version}}</td>
+          <td>{{sop.name}}</td>
+          <td><a *ngIf="sop.docLink" target="__blank" href="{{sop.docLink}}" class="doc-link">{{sop.docLink}}</a></td>
+          <td>{{sopDict[sop._id] || 0}}</td>
+          <td>
+            <button class="btn btn-link py-0" (click)="edit(sop)">Edit</button>
+          </td> 
+        </tr>-->
+      </ng-container>
+
+    </tbody>
+  </table>
+
+</div>
+
+<!--the editing modal-->
+<q-modal #updateModal>
+
+  <div class="graph-container p-1 border bg-light">
+    <ngx-graph *ngIf="editingNodes && editingNodes.length > 0" [links]="editingLinks"  [nodes]="editingNodes"
+       [autoZoom]="true" [draggingEnabled]="false" [autoCenter]="true">
+      <ng-template #defsTemplate>
+        <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="4" orient="auto">
+          <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
+        </svg:marker>
+      </ng-template>
+
+      <ng-template #nodeTemplate let-node>
+        <svg:g class="node">
+          <svg:rect [attr.rx]="node.starting? 10 : 0" [attr.ry]="node.starting ? 10 : 0"
+            [attr.width]="node.dimension.width" [attr.height]="node.dimension.height" [attr.fill]="node.color" />
+          <svg:text alignment-baseline="central" [attr.x]="10" [attr.y]="node.dimension.height / 2">
+            {{node.label}}
+          </svg:text>
+        </svg:g>
+      </ng-template>
+
+      <ng-template #linkTemplate let-link>
+        <svg:g class="edge">
+          <svg:path class="line" stroke-width="2" marker-end="url(#arrow)"></svg:path>
+          <svg:text class="edge-label" text-anchor="middle">
+            <textPath class="text-path" [attr.href]="'#' + link.id" [style.dominant-baseline]="link.dominantBaseline"
+              startOffset="50%">
+              {{link.label}}
+            </textPath>
+          </svg:text>
+        </svg:g>
+      </ng-template>
+    </ngx-graph>
+  </div>
+  <pre>
+    Actionable blocks
+    list ALL blocks,
+    ONLY visible block
+  </pre>
+  <q-form-builder *ngIf="instanceInEditing" [object]="instanceInEditing" [fieldDescriptors]="fieldDescriptors"
+    (change)="formChange($event)" (submit)="formSubmit($event)" (cancel)="updateModal.hide()"
+    (remove)="formDelete($event)" [showDelete]="true">
+  </q-form-builder>
+  <pre>{{instanceInEditing | json}}</pre>
+</q-modal>

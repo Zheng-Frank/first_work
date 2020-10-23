@@ -3,10 +3,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
-import {
-  ModalComponent,
-  AddressPickerComponent
-} from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 @Component({
   selector: 'app-sop-dashboard',
@@ -132,10 +129,6 @@ export class SopDashboardComponent implements OnInit {
       console.error('Error while removing chain', error);
       event.acknowledge(error);
     }
-  }
-
-  toggleDisabled() {
-
   }
 
 }

@@ -1,6 +1,4 @@
 <h1 class="text-center">Standard Operating Procedures ({{sops.length}})</h1>
-
-{{showingDisabled}}
 <div class="d-flex justify-content-between mb-2">
   <div>
     <label class="checkbox-inline">
@@ -30,10 +28,12 @@
   </thead>
   <tbody>
     <ng-container *ngFor="let sop of sops">
-      <tr class="{{sop.disabled ? 'disabled' : ''}}" *ngIf="">
+      <tr class="{{sop.disabled ? 'disabled' : ''}}" *ngIf="showingDisabled || !sop.disabled">
         <td>{{sop.createdAt | date: 'shortDate'}}</td>
         <td>{{sop.version}}</td>
-        <td>{{sop.name}}</td>
+        <td>
+          <a routerLink="/sops/{{sop._id}}">{{sop.name}}</a>
+        </td>
         <td><a *ngIf="sop.docLink" target="__blank" href="{{sop.docLink}}" class="doc-link">{{sop.docLink}}</a></td>
         <td>{{sopDict[sop._id] || 0}}</td>
         <td>

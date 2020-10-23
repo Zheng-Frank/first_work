@@ -32,6 +32,7 @@ import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-
 import { GmbLostListComponent } from './components/gmbs2/gmb-lost-list/gmb-lost-list.component';
 import { WorkflowDashboardComponent } from './components/workflow/workflow-dashboard/workflow-dashboard.component';
 import { SopDashboardComponent } from './components/sops/sop-dashboard/sop-dashboard.component';
+import { SopDetailsComponent } from './components/sops/sop-details/sop-details.component';
 import { MonitoringDashboardComponent } from './components/monitoring/monitoring-dashboard/monitoring-dashboard.component';
 import { TransactionDashboardComponent } from './components/transaction/transaction-dashboard/transaction-dashboard.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
@@ -95,6 +96,7 @@ const routes: Routes = [
   { path: 'gmb-open', component: MonitoringGmbOpenComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'workflows', component: WorkflowDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
   { path: 'sops', component: SopDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', "CSR", "ACCOUNTANT", "MARKETER"] } },
+  { path: 'sops/:id', component: SopDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', "CSR", "ACCOUNTANT", "MARKETER"] } },
   { path: 'events', component: EventDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
