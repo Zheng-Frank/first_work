@@ -45,12 +45,12 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     field: "name", //
     label: "Name",
     required: true,
-    inputType: "text",
+    inputType: "single-select",
     items: [
-      { object: "Email", text: "Email", selected: false },
-      { object: "Phone", text: "Phone", selected: false },
-      { object: "SMS", text: "SMS", selected: false },
-      { object: "Fax", text: "Fax", selected: false }
+      { object: "service fee", text: "service fee", selected: false },
+      { object: "credit card fee", text: "credit card fee", selected: false },
+      { object: "monthly fee", text: "monthly fee", selected: false },
+      { object: "commission", text: "commission", selected: false }
     ]
   };
 
