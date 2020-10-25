@@ -127,7 +127,7 @@
         <a role="button" class="text-primary text-nowrap card-link" (click)="showCreditCard()"
           *ngIf="canShowCreditCard(order)">
           <i class="fa fa-credit-card"></i> View</a>
-        <a *ngIf="isAdmin()" target="_blank" class="text-primary text-nowrap card-link" href="{{getOrderLink()}}">
+        <a *ngIf="isViewable(order)" target="_blank" class="text-primary text-nowrap card-link" href="{{getOrderLink()}}">
           <i class="fa fa-eye"></i> View Order</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="sendEmail()" *ngIf="canSendEmail()">
           <i class="fa fa-envelope"></i> Send Email</a>
