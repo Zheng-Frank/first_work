@@ -24,8 +24,10 @@ export class YelpDashboardComponent implements OnInit {
     this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       query: { yelpListing: { $exists: true } },
       resource: 'restaurant',
-      ptojection: { yelpListing: 1 }
+      projection: { yelpListing: 1 }
     }, 50000);
+
+    this.restaurants = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true);
   }
   
 }

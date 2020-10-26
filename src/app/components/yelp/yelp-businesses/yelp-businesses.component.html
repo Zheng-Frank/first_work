@@ -15,20 +15,17 @@
       </select>
     </div>
   </div>
+  <!-- 
   <div class="col-md-10 d-flex align-items-center justify-content-end">
-    <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing">
-      <i class="fas fa-sync-alt"></i> Reload
-    </button>
+    <button class="btn btn-link" (click)="populate()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i> Reload All</button>
   </div>
+   -->
 </div>
 
-<q-table
-  [rows]="filteredRows"
-  [tableColumnDescriptors]="myColumnDescriptors"
-  [compact]="true"
-  [pageSize]="pagination ? 100 : 100000"
->
-  <tr *tableRowTemplate="let rt">
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
+  [pageSize]="pagination ? 100 : 100000">
+  <tr *tableRowTemplate="let rt" class="{{(filteredRows.indexOf(rt) + 1) % 2 !== 0 ? 'table-row-bg': ''}}">
+
     <!-- count -->
     <td style="width: 50px;">
       <div class="h-100 d-flex flex-column justify-content-center">
@@ -43,7 +40,8 @@
         <div class="text-muted">
           <div>Yelp Id : {{ rt.yid }}</div>
           <div>
-            <a routerLink="/restaurants/{{ rt._id }}" target="_blank"><i class="fas fa-external-link-alt"></i> qMenu restaurant page</a>
+            <a routerLink="/restaurants/{{ rt._id }}" target="_blank"><i class="fas fa-external-link-alt"></i> qMenu
+              restaurant page</a>
           </div>
         </div>
         <div class="text-muted">
@@ -62,52 +60,32 @@
       </div>
     </td>
 
-    <!--  websites  -->
-    <!-- TODO: Make it editable and save changes to db -->
-    <!-- 
-    <td style="width: 300px;">
-      <small class="h-100 d-flex flex-column justify-content-center">
-        <span>Q: <a href="{{rt.qmenuWebsite}}">{{ rt.qmenuWebsite }}</a></span>
-        <span>R: <a href="{{rt.website}}">{{ rt.website }}</a></span>
-      </small>
-    </td> 
-    -->
-
-    <!-- yelp account -->
-    <td style="width: 120px;">
-      <div class="h-100 d-flex flex-column justify-content-center">
-        <div *ngIf='rt.isRTPublished === true; else rtNotPublished'>
-          <app-gmb-account-hotlink [email]="getPublishedAccount(rt.yid)"></app-gmb-account-hotlink>
+    <!-- account -->
+    <td style="width: 150px;">
+      <div class="h-100">
+        <div *ngIf='rt.isRTPublished; else rtNotPublished'>
+          <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(getPublishedAccount(rt.yid))">{{getUsername(getPublishedAccount(rt.yid))}}</button>
         </div>
         <ng-template #rtNotPublished>
-          <app-gmb-account-hotlink [email]="getTaskEmail(rt.yid)"></app-gmb-account-hotlink>
+          <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(rt.yelpEmail)">{{getUsername(rt.yelpEmail)}}</button>
         </ng-template>
       </div>
     </td>
 
     <!-- yelp status -->
-    <!--     
-    <td>
-      <div class="h-100 d-flex flex-column justify-content-center">
-        <div *ngIf="rt.isRTPublished; else notPublished">
-          <span class="text-success h-100 d-flex flex-column justify-content-center">Published ✔︎</span>
-        </div>
-        <ng-template #notPublished class="h-100 d-flex flex-column justify-content-center">
-          {{rt.claimedStatus}}
-        </ng-template>
-      </div>
-    </td> 
-    -->
     <td style="width: 120px;">
       <div class="h-100 d-flex flex-column justify-content-center">
         <div class="h-100 d-flex flex-column justify-content-center">
-          <div *ngIf="(rt.claimedStatus === 'Reclaimable' || rt.claimedStatus === 'Open'); else nonClaimableStatus">
-            <button class="btn btn-link fix-v-align py-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
-              {{ rt.claimedStatus === "Open" ? "Claim" : "Reclaim" }}
-            </button>
+          <div *ngIf="rt.isRTPublished; else notPublished">
+            <span class="text-success">Published ✓</span>
           </div>
-          <ng-template #nonClaimableStatus>
-            {{rt.claimedStatus}}
+          <ng-template #notPublished>
+            <div *ngIf="(rt.claimedStatus === 'Reclaimable' || rt.claimedStatus === 'Open'); else nonClaimableStatus">
+              <button class="btn btn-link fix-v-align p-0" (click)="claim(rt)">{{ rt.claimedStatus === "Open" ? "Claim" : "Reclaim" }}</button>
+            </div>
+            <ng-template #nonClaimableStatus>
+              {{rt.claimedStatus}}
+            </ng-template>
           </ng-template>
         </div>
       </div>
@@ -115,16 +93,29 @@
 
     <!-- Logs -->
     <td>
-      <div class="h-100 d-flex flex-column justify-content-center">LOGS HERE</div>
+      <div *ngIf="rt.isRequested" class="h-100 d-flex flex-column justify-content-center mr-3">
+        <div>
+          <small class="font-italic" *ngIf="(rt.logs || []).length === 0">No logs yet.</small>
+        </div>
+        <div *ngFor="let log of (rt.logs || [])">
+          <div>
+            <span class="font-weight-bold">{{log.user}}</span><small class="font-italic"> {{log.date | adjustedDate : 'MMM dd' : rt.timezone}}</small>
+            <div>{{log.content}}</div>
+          </div>
+        </div>
+        <div class="d-flex pt-1">
+          <input type="text" class="form-control" placeholder="Add a new log ..." (keydown.enter)="addLogButton.click()" [(ngModel)]="rt.currentLog" >
+          <button type="button" class="btn btn-outline-success btn-sm ml-2" style="width: 80px;" #addLogButton (click)="addLog(rt.yid, rt.currentLog)" [disabled]="!rt.currentLog">Add Log</button>
+        </div>
+      </div>
     </td>
 
-    <!-- Actions -->
-    <td style="width: 250px;">
-      <div class="h-100 d-flex flex-column justify-content-center">
+    <!-- Reload Single -->
+    <td style="width: 100px;">
+      <div *ngIf="rt.isRequested" class="h-100 d-flex flex-column justify-content-center">
         <div class="h-100 d-flex flex-column justify-content-center">
-          <button class="btn btn-link fix-v-align py-0 {{ muted ? 'text-muted' : ''}}" (click)="claim(rt, rt.yid)">
-            COMPLETE|REJECTED
-          </button>
+          <button class="btn btn-link" (click)="refreshSingle(rt._id, rt.yid, rt.yelpEmail)" [qLoading]="refreshing"><i
+              class="fas fa-sync-alt"></i> Reload</button>
         </div>
       </div>
     </td>
