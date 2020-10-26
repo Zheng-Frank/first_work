@@ -21,8 +21,8 @@ export class YelpBusinessesComponent implements OnInit {
   refreshing = false;
   username = '';
   restaurantStatus = "All";
+  pagination = false;
 
-  // pagination = false;
   // // currentUser = '';
   // isAdmin = false;
   // now = new Date();
