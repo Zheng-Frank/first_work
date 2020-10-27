@@ -13,6 +13,14 @@
       <label class="form-check-label mr-5" for="notShowComplete">
         Only Show Incomplete
       </label>
+
+      <label class="mr-2" style="padding-left: 15px"> BM requst:</label>
+      <select class="form-control mr-5" [(ngModel)]="bmRequest" (change)="filter()">
+        <option>All</option>
+        <option value="24">More than 1 day ago</option>
+        <option value="72">More than 3 days ago</option>
+      </select>
+
       <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
       <label class="form-check-label mr-5" for="paginationCheck">
         Pagination
