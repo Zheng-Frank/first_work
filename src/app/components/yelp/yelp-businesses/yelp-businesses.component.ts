@@ -148,6 +148,7 @@ export class YelpBusinessesComponent implements OnInit {
       this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: {
+          googleAddress: { $ne: null }
         },
         projection: {
           name: 1,
