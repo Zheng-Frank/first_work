@@ -355,7 +355,7 @@ export class MonitoringDomainComponent implements OnInit {
 
       this.refresh();
 
-      this._global.publishAlert(AlertType.Success, `Domain Rewnewal status for ${domain.domainName} updated succesfuly.`);
+      this._global.publishAlert(AlertType.Success, `Domain Rewnewal status for ${domain.domainName} updated successfully.`);
     } catch (error) {
       console.error(error);
       this._global.publishAlert(AlertType.Danger, `Failed to update ${domain.domainName} renewal status.`);
@@ -389,7 +389,7 @@ export class MonitoringDomainComponent implements OnInit {
 
     await this.refresh();
 
-    this._global.publishAlert(AlertType.Success, `Domain Rewnewal status updated succesfuly.`);
+    this._global.publishAlert(AlertType.Success, `Domain Rewnewal status updated successfully.`);
   }
 
   async setAlias(restaurantId, restaurantAlias) {

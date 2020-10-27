@@ -121,7 +121,7 @@ export class BroadcastingEditorComponent implements OnInit {
       const [createdBroadcast] = await this._api.post(environment.qmenuApiUrl + 'generic?resource=broadcast', [broadcastData]).toPromise();
 
       this.broadcasts.push({_id: createdBroadcast});
-      this._global.publishAlert(AlertType.Success, `Broadcast created succesfuly`);
+      this._global.publishAlert(AlertType.Success, `Broadcast created successfully`);
       await this.refresh();
       this.newBroadcastModal.hide();
       this.resetBroadcast();

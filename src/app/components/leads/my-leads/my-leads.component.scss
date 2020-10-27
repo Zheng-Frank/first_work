@@ -6,11 +6,11 @@ tr:hover {
   cursor: pointer;
 }
 
-/deep/ .modal-header {
+::ng-deep .modal-header {
   text-align: center;
 }
 
-/deep/ .modal-dialog {
+::ng-deep .modal-dialog {
   max-width: 90%;
 }
 

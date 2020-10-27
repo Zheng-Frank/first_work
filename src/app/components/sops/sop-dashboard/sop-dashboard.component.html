@@ -1,0 +1,70 @@
+<h1 class="text-center">Standard Operating Procedures ({{sops.length}})</h1>
+<div class="d-flex justify-content-between mb-2">
+  <div>
+    <!-- <label class="checkbox-inline">
+      <input type="checkbox" [(ngModel)]="showingDisabled"> Show disabled
+    </label> -->
+    <div>
+      <button *ngFor="let ts of tagSelectors" type="button"
+        class="btn btn-sm {{ts.selected ? 'btn-success' : 'btn-outline-dark '}} mr-2"
+        (click)="selectTag(ts)">{{ts.tag}}</button>
+    </div>
+  </div>
+  <div>
+    <div class="pb-2">
+      <button class="btn btn-primary" (click)="populate()" [qLoading]="apiLoading">
+        <i class="fas fa-sync"></i> Reload</button>
+      <button class="btn btn-primary" (click)="addNew()">
+        <i class="fas fa-plus"></i> Add New</button>
+    </div>
+  </div>
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Name</th>
+      <th>Version</th>
+      <th>Tags</th>
+      <th>Doc Link</th>
+      <th>Operations Count</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngFor="let sop of sops">
+      <tr class="{{sop.disabled ? 'disabled' : ''}}" *ngIf="isSopRowVisible(sop)">
+        <td>{{sop.createdAt | date: 'shortDate'}}</td>
+        <td>
+          <strong>
+            <ng-container *ngIf="sop.blocks && sop.blocks.length > 0; else noBlocks">
+              <a routerLink="/sops/{{sop._id}}">{{sop.name}} <i class="fas fa-project-diagram"></i></a>
+            </ng-container>
+            <ng-template #noBlocks>
+              {{sop.name}}
+            </ng-template>
+          </strong>
+        </td>
+        <td>{{sop.version}}</td>
+        <td><span *ngFor="let tag of sop.tags || []" class="badge badge-info mx-1">{{tag}}</span></td>
+        <td><a *ngIf="sop.docLink" target="__blank" href="{{sop.docLink}}" class="doc-link">{{sop.docLink}}</a></td>
+        <td>{{sopDict[sop._id] || 0}}</td>
+        <td>
+          <button class="btn btn-link py-0" (click)="edit(sop)">Edit</button>
+        </td>
+      </tr>
+    </ng-container>
+
+  </tbody>
+</table>
+
+<!--the editing modal-->
+<q-modal #editModal>
+  <h3>
+    {{sopInEditing._id ? 'Edit SOP' : 'Create New SOP'}}
+  </h3>
+  <q-form-builder [object]="sopInEditing" [fieldDescriptors]="fieldDescriptors" (submit)="formSubmit($event)"
+    (remove)="formDelete($event)" (cancel)="editModal.hide()" [showDelete]="sopInEditing._id">
+  </q-form-builder>
+</q-modal>
