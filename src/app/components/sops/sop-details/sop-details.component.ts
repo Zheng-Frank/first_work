@@ -17,7 +17,7 @@ export class SopDetailsComponent implements OnInit {
   apiLoading = false;
   sopInstances = [];
 
-  sop = {};
+  sop: any = {};
   links = [];
   nodes = [];
 
@@ -84,15 +84,32 @@ export class SopDetailsComponent implements OnInit {
 
     for (let i = 0; i < blocks.length; i++) {
       const block = blocks[i];
-      const executed = (block.executions || [])[0]
-      this.fieldDescriptors.push({
-        field: `sop.blocks.${i}.done`, //
-        label: block.name,
-        required: false,
-        inputType: "checkbox",
-        disabled: !readyBlocks.some(b => b === block)
-      });
+      const executions = block.executions || []
+
+      if (executions.length > 0) {
+        this.fieldDescriptors.push({
+          field: `createdAt`, // any random field to make it true
+          label: `${block.name} (${executions[0].username})`,
+          required: false,
+          inputType: "checkbox",
+          disabled: true
+        });
+      } else {
+        this.fieldDescriptors.push({
+          field: `sop.blocks.${i}.done`, //
+          label: block.name,
+          required: false,
+          inputType: "checkbox",
+          disabled: !readyBlocks.some(b => b === block)
+        });
+      }
     }
+  }
+
+  getPercentage(instance) {
+    const totalBlocks = instance.sop.blocks.length;
+    const executedBlocks = instance.sop.blocks.filter(b => (b.executions || []).length > 0).length;
+    return Math.floor((100 * (executedBlocks) / totalBlocks));
   }
 
   async addNew() {
@@ -236,7 +253,27 @@ export class SopDetailsComponent implements OnInit {
   }
 
   async formSubmit(event) {
-    event.acknowledge("submit")
+    // record executions to original instance?
+    console.log(this.instanceInEditing);
+    const [original] = this.sopInstances.filter(si => si._id === this.instanceInEditing._id);
+    console.log(original);
+    const originalBlocks = original.sop.blocks;
+    const newBlocks = this.instanceInEditing.sop.blocks;
+
+    try {
+      await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=sop-instance", [
+        {
+          old: { _id: this.instanceInEditing._id, sop: { blocks: originalBlocks } },
+          new: { _id: this.instanceInEditing._id, sop: { blocks: newBlocks } },
+
+        }]);
+      event.acknowledge();
+      original.sop.blocks = newBlocks;
+      this.updateModal.hide();
+    }
+    catch (error) {
+      event.acknowledge(JSON.stringify(error));
+    }
   }
 
   async formDelete(event) {
@@ -265,20 +302,18 @@ export class SopDetailsComponent implements OnInit {
     if (editedBlock) {
 
       editedBlock.executions = editedBlock.executions || [];
-      editedBlock.executions.push({
+      // unshift, always the first is the last
+      editedBlock.executions.unshift({
         startedAt: new Date(),
         endedAt: new Date(),
-        result: true
+        result: true,
+        username: this._global.user.username
       });
       delete editedBlock.done;
       this.refreshPopup(this.instanceInEditing);
 
       console.log("all done!");
     }
-  }
-
-  getProgress(instance) {
-    
   }
 
 }

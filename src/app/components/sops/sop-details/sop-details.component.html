@@ -5,9 +5,8 @@
     <div>version: {{sop.version}}</div>
     <div *ngIf="sop.docLink"><a target="__blank" href="{{sop.docLink}}">{{sop.docLink}}</a></div>
   </div>
-  <div class="graph-container p-1 border bg-light" *ngIf="sop.blocks && sop.blocks.length> 0">
-    <ngx-graph [links]="links" [nodes]="nodes" [autoZoom]="true"
-      [draggingEnabled]="false" [autoCenter]="true">
+  <div class="graph-container p-1 border bg-light"  *ngIf="sop.blocks && sop.blocks.length> 0">
+    <ngx-graph [links]="links" [nodes]="nodes" [autoZoom]="true" [draggingEnabled]="false" [autoCenter]="true">
       <ng-template #defsTemplate>
         <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="4" orient="auto">
           <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
@@ -68,8 +67,9 @@
           </td>
           <td>
             <div class="progress" style="height: 30px">
-              <div class="progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25"
-                aria-valuemin="0" aria-valuemax="100">25%</div>
+              <div class="progress-bar bg-success" role="progressbar"
+                [ngStyle]="{ 'width': getPercentage(instance) + '%'}" [attr.aria-valuenow]="getPercentage(instance)"
+                aria-valuemin="0" aria-valuemax="100">{{getPercentage(instance)}}%</div>
             </div>
           </td>
           <td>
@@ -128,14 +128,9 @@
       </ng-template>
     </ngx-graph>
   </div>
-  <pre>
-    Actionable blocks
-    list ALL blocks,
-    ONLY visible block
-  </pre>
   <q-form-builder *ngIf="instanceInEditing" [object]="instanceInEditing" [fieldDescriptors]="fieldDescriptors"
     (change)="formChange($event)" (submit)="formSubmit($event)" (cancel)="updateModal.hide()"
     (remove)="formDelete($event)" [showDelete]="true">
   </q-form-builder>
-  <pre>{{instanceInEditing | json}}</pre>
+  <!-- <pre>{{instanceInEditing | json}}</pre> -->
 </q-modal>
