@@ -129,7 +129,7 @@ export class SopDashboardComponent implements OnInit {
     try {
       const cloned = JSON.parse(JSON.stringify(this.sopInEditing));
       // turn tags back to array of strings
-      cloned.tags = (this.sopInEditing.tags || '').split(",").map(tag => tag.trim()).sort();
+      cloned.tags = (this.sopInEditing.tags || '').split(",").map(tag => tag.trim()).filter(tag => tag).sort();
       if (this.sopInEditing.hasOwnProperty("_id")) {
         const [oldSop] = this.sops.filter(sop => sop._id === this.sopInEditing['_id']);
         await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=sop", [

@@ -1,14 +1,13 @@
 <h1 class="text-center">Standard Operating Procedures ({{sops.length}})</h1>
 <div class="d-flex justify-content-between mb-2">
   <div>
-    <!-- <label class="checkbox-inline">
+    <label class="checkbox-inline">
       <input type="checkbox" [(ngModel)]="showingDisabled"> Show disabled
-    </label> -->
-    <div>
-      <button *ngFor="let ts of tagSelectors" type="button"
-        class="btn btn-sm {{ts.selected ? 'btn-success' : 'btn-outline-dark '}} mr-2"
-        (click)="selectTag(ts)">{{ts.tag}}</button>
-    </div>
+    </label>
+    <button *ngFor="let ts of tagSelectors" type="button"
+      class="btn btn-sm {{ts.selected ? 'btn-success' : 'btn-outline-dark '}} mr-2 mb-2"
+      (click)="selectTag(ts)">{{ts.tag}}</button>
+
   </div>
   <div>
     <div class="pb-2">
