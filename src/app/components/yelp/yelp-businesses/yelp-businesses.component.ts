@@ -21,7 +21,7 @@ export class YelpBusinessesComponent implements OnInit {
   refreshing = false;
   username = '';
   restaurantStatus = "All";
-  pagination = false;
+  pagination = true;
 
   // // currentUser = '';
   // isAdmin = false;
@@ -199,7 +199,7 @@ export class YelpBusinessesComponent implements OnInit {
         }
       });
 
-      this.restaurants = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true);
+      this.restaurants = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true && rt.googleAddress && rt.googleAddress.formatted_address);
 
       this.flatRows = this.restaurants.map(row => {
         const restaurant_yelpRequest = this.yelpRequest.find(y => y.yid === row.yelpListing.yid);
@@ -213,7 +213,7 @@ export class YelpBusinessesComponent implements OnInit {
           qmenuWebsite: row.web ? row.web.qmenuWebsite : '',
           website: row.yelpListing.website,
           url: row.yelpListing.url,
-          googleFormattedAddress: row.googleAddress ? row.googleAddress.formatted_address.replace(', USA', '') : '',
+          googleFormattedAddress: row.googleAddress && row.googleAddress.formatted_address && row.googleAddress.formatted_address.replace(', USA', ''),
           isSameAddress: this.hasSameAddress(row.googleAddress ? row.googleAddress.formatted_address.replace(', USA', '') : '', this.getYelpFormattedAddress(row.yelpListing.location)),
           location: row.yelpListing.location,
           timezone: row.googleAddress.timezone,
@@ -361,7 +361,7 @@ export class YelpBusinessesComponent implements OnInit {
   async claim(rt) {
     try {
       this.refreshing = true;
-      
+
       const account = await this.getRandomAccount();
 
       if (!account) {
