@@ -1,3 +1,7 @@
+.table-row-bg {
+  background-color: #f7f7f7;
+}
+
 td {
-  height: 120px;
+  vertical-align: middle;
 }
