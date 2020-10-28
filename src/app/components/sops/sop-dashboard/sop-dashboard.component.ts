@@ -110,7 +110,7 @@ export class SopDashboardComponent implements OnInit {
         });
       }
     });
-    this.tagSelectors.sort((ts1, ts2) => ts1.tag > ts2.tag ? 1 : -1);
+    this.tagSelectors.sort((ts1, ts2) => ts1.tag.toLowerCase() > ts2.tag.toLowerCase() ? 1 : -1);
   }
 
   selectTag(ts) {
