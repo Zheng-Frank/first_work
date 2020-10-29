@@ -21,7 +21,7 @@ export class YelpBusinessesComponent implements OnInit {
   refreshing = false;
   username = '';
   restaurantStatus = "All";
-  pagination = true;
+  pagination = false;
 
   // // currentUser = '';
   // isAdmin = false;
@@ -89,7 +89,7 @@ export class YelpBusinessesComponent implements OnInit {
   }
 
   getYelpFormattedAddress(location) {
-    if (location) {
+    if (location && location.street) {
       let [choppedAddress] = location.street.split('\n');
       const yelpFormattedAddress = `${choppedAddress}, ${location.city}, ${location.state} ${location.zip_code}`;
 
