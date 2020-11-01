@@ -1,6 +1,6 @@
 {
   "name": "admin",
-  "version": "1.6.18",
+  "version": "1.6.19",
   "license": "MIT",
   "scripts": {
     "ng": "ng",

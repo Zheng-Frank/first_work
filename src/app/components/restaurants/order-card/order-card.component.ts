@@ -62,6 +62,13 @@ export class OrderCardComponent implements OnInit {
     return null;
   }
 
+  getCustomerEmail(order: Order) {
+    if (order.customer) {
+      return order.customer.email;
+    }
+    return null;
+  }
+
   handleOnSetNewStatus(data) {
     this.onSetNewStatus.emit(data);
     // hide details if it is over

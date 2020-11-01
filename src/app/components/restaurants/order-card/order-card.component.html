@@ -28,6 +28,10 @@
     <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
       <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
     </h5>
+
+    <h5 *ngIf="getCustomerEmail(order)" class="text-sm-center">
+      <a href="mailto:{{getCustomerEmail(order)}}">{{getCustomerEmail(order)}}</a>
+    </h5>
     <div class="text-sm-center card-text">
       <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</span>
       |
