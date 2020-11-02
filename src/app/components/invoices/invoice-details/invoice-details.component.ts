@@ -238,7 +238,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   async computeDerivedFields() {
     await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: this.invoice['_id'] || this.invoice.id }).toPromise();
     this._global.publishAlert(AlertType.Success, "Success!");
-    this.loadInvoice();
+    await this.loadInvoice();
   }
 
   async toggleInvoiceStatus(field) {
@@ -337,26 +337,24 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     // back to use POJS
     updatedInvoice = JSON.parse(JSON.stringify(i));
 
-    this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        Object.assign(this.invoice, i);
-        this._global.publishAlert(
-          AlertType.Success,
-          adjustment.name + " was added"
-        );
-        this.addLog({
-          time: new Date(),
-          action: "adjust",
-          user: this._global.user.username,
-          value: adjustment
-        });
-        this.loadInvoice();
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
-    );
+    try {
+
+      const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
+      Object.assign(this.invoice, i);
+      this._global.publishAlert(
+        AlertType.Success,
+        adjustment.name + " was added"
+      );
+      this.addLog({
+        time: new Date(),
+        action: "adjust",
+        user: this._global.user.username,
+        value: adjustment
+      });
+
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+    }
 
     this.adjustmentModal.hide();
 

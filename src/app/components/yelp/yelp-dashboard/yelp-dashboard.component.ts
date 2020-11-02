@@ -25,7 +25,7 @@ export class YelpDashboardComponent implements OnInit {
       query: { yelpListing: { $exists: true } },
       resource: 'restaurant',
       projection: { yelpListing: 1 }
-    }, 50000);
+    }, 5000);
 
     this.restaurants = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true);
   }
