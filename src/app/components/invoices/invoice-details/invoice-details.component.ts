@@ -238,7 +238,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   async computeDerivedFields() {
     await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: this.invoice['_id'] || this.invoice.id }).toPromise();
     this._global.publishAlert(AlertType.Success, "Success!");
-    this.loadInvoice();
+    await this.loadInvoice();
   }
 
   async toggleInvoiceStatus(field) {
