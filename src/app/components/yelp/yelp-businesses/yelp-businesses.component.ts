@@ -23,11 +23,6 @@ export class YelpBusinessesComponent implements OnInit {
   restaurantStatus = "All";
   pagination = false;
 
-  // // currentUser = '';
-  // isAdmin = false;
-  // now = new Date();
-
-
   myColumnDescriptors = [
     {
       label: '#'
@@ -50,6 +45,9 @@ export class YelpBusinessesComponent implements OnInit {
       label: 'Yelp Status',
       // paths: ['claimedStatus'],
       // sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: 'Website'
     },
     {
       label: 'Logs'
@@ -107,8 +105,9 @@ export class YelpBusinessesComponent implements OnInit {
     this.refreshing = false;
 
     switch (this.restaurantStatus) {
-      case 'Open':
-        this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Open');
+      case 'Claimable':
+      case 'Reclaimable':
+        this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Open' || r.claimedStatus === 'Reclaimable');
         break;
 
       case 'Published':
@@ -117,10 +116,6 @@ export class YelpBusinessesComponent implements OnInit {
 
       case 'Unclaimable':
         this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Unclaimable');
-        break;
-
-      case 'Reclaimable':
-        this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Reclaimable');
         break;
 
       case 'Unknown':
@@ -212,7 +207,7 @@ export class YelpBusinessesComponent implements OnInit {
           rating: row.yelpListing.rating,
           qmenuWebsite: row.web ? row.web.qmenuWebsite : '',
           website: row.yelpListing.website,
-          url: row.yelpListing.url,
+          url: row.yelpListing.url && row.yelpListing.url.split('?')[0] || '',
           googleFormattedAddress: row.googleAddress && row.googleAddress.formatted_address && row.googleAddress.formatted_address.replace(', USA', ''),
           isSameAddress: this.hasSameAddress(row.googleAddress ? row.googleAddress.formatted_address.replace(', USA', '') : '', this.getYelpFormattedAddress(row.yelpListing.location)),
           location: row.yelpListing.location,
@@ -234,6 +229,7 @@ export class YelpBusinessesComponent implements OnInit {
     }
 
   }
+
 
   async addLog(yelpId, currentLog) {
 
@@ -430,5 +426,60 @@ export class YelpBusinessesComponent implements OnInit {
     }
   }
 
+  async onAssignYelpUrl(event, field: string, rt) {
+
+    if(field === 'url') {
+      const [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: { _id: { $oid: rt._id } },
+        projection: { _id: 1, yelpListing: 1 }
+      }).toPromise();
+
+
+      const newValue = (event.newValue || '').trim();
+      
+      if (restaurant) {
+        const oldYelpListing = { ...restaurant.yelpListing  };
+        const newYelpListing = { ...restaurant.yelpListing, url: newValue };
+
+        console.log(oldYelpListing, newYelpListing)
+
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+          {
+            old: { _id: restaurant._id, yelpListing: oldYelpListing },
+            new: { _id: restaurant._id, yelpListing: newYelpListing }
+          }
+        ]).toPromise();
+
+        this._global.publishAlert(AlertType.Success, `URL updated succesfuly`);
+  
+        // refresh
+        const index = this.flatRows.findIndex(r => r._id === rt._id);
+        this.flatRows[index].url = newValue;
+  
+      } else {
+        this._global.publishAlert(AlertType.Danger, `Error: No restaurnt found with id ${rt._id}`);
+      }
+    }
+    
+
+    // save restaurant.yelpListing.url
+
+    // const oldWeb = {};
+    // const newWeb = {};
+    // oldWeb[field] = event.oldValue;
+
+    // const newValue = (event.newValue || '').trim();
+
+    // if (field === 'url' && newValue) {
+    //   try {
+    //     await this._api.get(environment.appApiUrl + 'utils/check-url?url=' + newValue).toPromise();
+    //   } catch {
+    //     this._global.publishAlert(AlertType.Danger, 'Error: Please enter a valid website URL');
+    //     return;
+    //   }
+    // }
+
+  }
 
 }
