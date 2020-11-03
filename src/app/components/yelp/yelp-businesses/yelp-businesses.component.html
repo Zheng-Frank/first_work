@@ -7,10 +7,10 @@
       <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantStatus" (change)="filter()">
         <option>All</option>
         <option>Published</option>
+        <option>Unmatched</option>
         <option>Claimable</option>
         <option>Unclaimable</option>
         <option>Unknown</option>
-        <option>Error</option>
       </select>
     </div>
   </div>
@@ -21,19 +21,18 @@
    -->
 </div>
 
-<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
-  [pageSize]="pagination ? 100 : 100000">
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
   <tr *tableRowTemplate="let rt" class="w-100 {{(filteredRows.indexOf(rt) + 1) % 2 !== 0 ? 'table-row-bg': ''}}">
 
     <!-- count -->
-    <td style="width: 50px;">
+    <td>
       <div class="h-100 d-flex flex-column justify-content-center">
         {{ filteredRows.indexOf(rt) + 1 }}
       </div>
     </td>
 
     <!-- restaurant name -->
-    <td style="width: 20em;">
+    <td>
       <div class="h-100 d-flex flex-column justify-content-center">
         <a href="{{ rt.url }}" target="_blank">{{ rt.yelpName }}</a>
         <div class="text-muted">
@@ -41,8 +40,10 @@
           <!-- <div>Yelp Id : {{ rt.yid }}</div> -->
           <div *ngIf="rt.yid">YID: {{ rt.yid }}</div>
           <div *ngIf="!rt.url">
-            <div class="text-danger">NO MATCHING URL YET</div>
-            <q-edit-label [value]="rt.url" (edit)="onAssignYelpUrl($event, 'url', rt)"></q-edit-label>
+            <div class="text-danger">NO MATCHING URL YET ({{rt.qMenuName}})</div>
+            <div>
+              <span>Yelp URL:</span><q-edit-label [value]="rt.url" (edit)="onAssignYelpUrl($event, 'url', rt)"></q-edit-label>
+            </div>
           </div>
           <div *ngIf="rt.url && !rt.yid" class="text-danger">WAITING TO BE CRAWLED</div>
           <div><a routerLink="/restaurants/{{ rt._id }}" target="_blank"><i class="fas fa-external-link-alt"></i> qMenu restaurant page</a></div>
@@ -66,13 +67,20 @@
 
     <!-- account -->
     <td >
-      <div class="h-100">
+      <div class="h-100" class="d-flex flex-column">
         <div *ngIf='rt.isRTPublished; else rtNotPublished'>
-          <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(getPublishedAccount(rt.yid))">{{getUsername(getPublishedAccount(rt.yid))}}</button>
+          <div>
+            <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(getPublishedAccount(rt.yid))"><i class="fab fa-yelp mr-1" aria-hidden="true"></i> {{getUsername(getPublishedAccount(rt.yid))}}</button>
+          </div>
         </div>
         <ng-template #rtNotPublished>
-          <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(rt.yelpEmail)">{{getUsername(rt.yelpEmail)}}</button>
+          <div *ngIf="getUsername(rt.yelpEmail)">
+            <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(rt.yelpEmail)"><i class="fab fa-yelp mr-1" aria-hidden="true"></i> {{getUsername(rt.yelpEmail)}}</button>
+          </div>
         </ng-template>
+        <div *ngIf="rt.yelpEmail || getUsername(getPublishedAccount(rt.yid))">
+          <button class="btn btn-link btn-sm p-0 m-0" (click)="login(rt.yelpEmail)"><i class="fab fa-google mr-1"></i> (Open GMail)</button>
+        </div>
       </div>
     </td>
 
@@ -96,10 +104,13 @@
     </td>
 
     <!-- Website -->
-    <td style="min-width: 20em;">
+    <td>
       <div class="d-flex flex-column">
         <div class="small">Q: <a href="{{rt.qmenuWebsite}}" target="_blank">{{rt.qmenuWebsite}}</a></div>
-        <div class="small">Y: <a href="{{rt.url}}" target="_blank">{{rt.url}}</a></div>
+        <div class="small">Y: <a href="http://{{rt.website}}" target="_blank">{{rt.website}}</a></div>
+        <div *ngIf="rt.isRTPublished">
+          <button class="btn btn-link p-0 mt-1" (click)="injectWebsite(rt)"> Inject QMenu Website </button>
+        </div>
       </div>
     </td>
 

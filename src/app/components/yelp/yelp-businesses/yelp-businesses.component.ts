@@ -122,8 +122,8 @@ export class YelpBusinessesComponent implements OnInit {
         this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Unknown');
         break;
 
-      case 'Error':
-        this.filteredRows = this.restaurants.filter(r => r.claimedStatus === 'Error');
+      case 'Unmatched':
+        this.filteredRows = this.flatRows.filter(r => !r.url);
         break;
 
       default:
@@ -174,7 +174,7 @@ export class YelpBusinessesComponent implements OnInit {
           yelpEmail: 1,
           logs: 1
         }
-      }, 10000);
+      }, 3000);
 
       // --- accounts
       this.accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -205,7 +205,7 @@ export class YelpBusinessesComponent implements OnInit {
           yelpName: row.yelpListing.name,
           claimedStatus: row.yelpListing.claimedStatus,
           rating: row.yelpListing.rating,
-          qmenuWebsite: row.web ? row.web.qmenuWebsite : '',
+          qmenuWebsite: (row.web && row.web.qmenuWebsite || '').replace('https://', ''),
           website: row.yelpListing.website,
           url: row.yelpListing.url && row.yelpListing.url.split('?')[0] || '',
           googleFormattedAddress: row.googleAddress && row.googleAddress.formatted_address && row.googleAddress.formatted_address.replace(', USA', ''),
@@ -287,6 +287,30 @@ export class YelpBusinessesComponent implements OnInit {
 
   async refreshSingle(restaurantId, yelpId, email) {
     try {
+      // refresh account listings in case ownership gained
+      await this._api.post(environment.appApiUrl + "yelp/generic", {
+        name: "refresh-yelp-account-listing",
+        payload: { email }
+      }).toPromise();
+
+      // --- accounts
+      this.accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        projection: {
+          email: 1,
+          yelpLocations: 1
+        },
+        query: {
+          isYelpEmail: true
+        },
+      }, 1000);
+
+      this.accounts.map(account => {
+        if (account.yelpLocations) {
+          this.allLocations.push(...account.yelpLocations);
+        }
+      });
+
       const flatRow = await this._api.post(environment.appApiUrl + "yelp/generic", {
         name: "refresh-yelp-rt-listing",
         payload: {
@@ -297,6 +321,7 @@ export class YelpBusinessesComponent implements OnInit {
 
       const index = this.flatRows.findIndex(r => r.yid === yelpId);
       this.flatRows[index] = { ...this.flatRows[index], ...flatRow };
+      this.flatRows[index].isRTPublished = this.isPublished(yelpId);
 
       this.filter();
 
@@ -428,7 +453,7 @@ export class YelpBusinessesComponent implements OnInit {
 
   async onAssignYelpUrl(event, field: string, rt) {
 
-    if(field === 'url') {
+    if (field === 'url') {
       const [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: { _id: { $oid: rt._id } },
@@ -437,9 +462,9 @@ export class YelpBusinessesComponent implements OnInit {
 
 
       const newValue = (event.newValue || '').trim();
-      
+
       if (restaurant) {
-        const oldYelpListing = { ...restaurant.yelpListing  };
+        const oldYelpListing = { ...restaurant.yelpListing };
         const newYelpListing = { ...restaurant.yelpListing, url: newValue };
 
         console.log(oldYelpListing, newYelpListing)
@@ -452,16 +477,16 @@ export class YelpBusinessesComponent implements OnInit {
         ]).toPromise();
 
         this._global.publishAlert(AlertType.Success, `URL updated succesfuly`);
-  
+
         // refresh
         const index = this.flatRows.findIndex(r => r._id === rt._id);
         this.flatRows[index].url = newValue;
-  
+
       } else {
         this._global.publishAlert(AlertType.Danger, `Error: No restaurnt found with id ${rt._id}`);
       }
     }
-    
+
 
     // save restaurant.yelpListing.url
 
@@ -479,6 +504,71 @@ export class YelpBusinessesComponent implements OnInit {
     //     return;
     //   }
     // }
+
+  }
+
+  async login(email) {
+    try {
+      await this._api.post(environment.autoGmbUrl + "login", { email, stayAfterScan: true, redirectUrl: 'https://mail.google.com' }).toPromise();
+    }
+    catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error scanning ' + email);
+    }
+  }
+
+
+  async injectWebsite(rt) {
+    try {
+      if (rt.qmenuWebsite) {
+        const [handlingAccount] = await this._api.get(environment.qmenuApiUrl + "generic", {
+          resource: "gmbAccount",
+          query: {
+            "yelpLocations": {
+              $elemMatch: {
+                'yid': (rt.yid),
+              }
+            },
+            "email": rt.yelpEmail
+          },
+          projection: { email: 1 },
+          limit: 1
+        }).toPromise();
+
+        if (!handlingAccount) {
+          this._global.publishAlert(AlertType.Danger, `No handling yelp account handling this restaurant`);
+          return;
+        }
+
+        const email = handlingAccount.email;
+        const yid = rt.yid;
+        const newUrl = rt.qmenuWebsite;
+        const isOwner = !!handlingAccount;
+
+        // console.log({ email, yid, newUrl, isOwner });
+
+        const result = await this._api.post(environment.appApiUrl + "yelp/generic", {
+          name: "inject-website-address",
+          payload: {
+            email,
+            yid,
+            newUrl,
+            isOwner
+          }
+        }).toPromise();
+
+        // Roundtrip slow, if we got till here is ok shallow update ui
+        // await this.refreshSingle(rt._id, rt.yid, email);
+
+        const index = this.flatRows.findIndex(r => r.yid === rt.yid);
+        this.flatRows[index].website == this.flatRows[index].qmenuWebsite;
+        this._global.publishAlert(AlertType.Success, `Website url injected succesfully.. `);
+      }
+
+    } catch (error) {
+      console.error(error);
+      this._global.publishAlert(AlertType.Danger, `Error while injecting Yelp website.`);
+    }
 
   }
 
