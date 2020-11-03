@@ -23,6 +23,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   @Input() users = [];
 
+  username;
   now = new Date(); // to tell if a fee schedule is expired
   feeSchedules: FeeSchedule[] = [];
 
@@ -150,6 +151,18 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
 
   constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
+    this.username = this._global.user.username;
+  }
+
+  async startover() {
+    if (confirm('Be very careful! ALL FEE SCHEDULES WILL BE REMOVED. Are you sure?')) {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+        {
+          old: { _id: this.restaurant._id, feeSchedules: [] },
+          new: { _id: this.restaurant._id },
+        }]).toPromise();
+      location.reload();
+    }
   }
 
   async ngOnChanges(changes: SimpleChanges) {
