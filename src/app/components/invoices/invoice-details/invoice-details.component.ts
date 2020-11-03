@@ -8,7 +8,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { mergeMap, observeOn } from 'rxjs/operators';
-import { Restaurant } from '@qmenu/ui';
+import { FeeSchedule, Restaurant } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
 import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -161,7 +161,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
               paymentMeans: 1,
               channels: 1,
               googleAddress: 1,
-              logs: 1
+              logs: 1,
+              feeSchedules: 1
             },
             limit: 1
           })
@@ -233,6 +234,41 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   downloadPdf() {
     window.print();
+  }
+
+  async applyFeeSchedules() {
+
+    if (this.restaurant.feeSchedules && this.restaurant.feeSchedules.length > 0) {
+      try {
+        const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice",
+          [{
+            old: {
+              _id: this.invoice['_id'],
+              restaurant: {}
+            }, new: {
+              _id: this.invoice['_id'],
+              restaurant: {
+                feeSchedules: this.restaurant.feeSchedules
+              }
+            }
+          }]).toPromise();
+
+        await this.addLog({
+          time: new Date(),
+          action: "apply fee schedules",
+          user: this._global.user.username,
+          value: `old: ${JSON.stringify(this.invoice.restaurant.feeSchedules || [])}`
+        });
+      } catch (error) {
+        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      }
+
+      await this.computeDerivedFields();
+
+    } else {
+      this._global.publishAlert(AlertType.Danger, "No fee schedules found for restaurant");
+    }
+
   }
 
   async computeDerivedFields() {
@@ -350,7 +386,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         AlertType.Success,
         adjustment.name + " was added"
       );
-      this.addLog({
+      await this.addLog({
         time: new Date(),
         action: "adjust",
         user: this._global.user.username,
