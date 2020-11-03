@@ -482,7 +482,7 @@ export class MonitoringPrintersComponent implements OnInit {
     // all restaurant stubs
     const allClients = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'print-client'
-    }, 200000);
+    }, 1000);
     const allRestaurants = await this._global.getCachedRestaurantListForPicker();
 
     const restaurantDict = allRestaurants.reduce((map, r) => (map[r._id] = r, map), {});
@@ -607,7 +607,7 @@ export class MonitoringPrintersComponent implements OnInit {
       // all restaurant stubs
       const allExistingClients = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: 'print-client'
-      }, 200000);
+      }, 5000);
       console.log('stubs')
       const newClients = printingClients.filter(c => {
         // fei-e ==> sn or name match
