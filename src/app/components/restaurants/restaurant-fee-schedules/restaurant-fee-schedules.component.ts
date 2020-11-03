@@ -23,6 +23,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   @Input() users = [];
 
+  username;
   now = new Date(); // to tell if a fee schedule is expired
   feeSchedules: FeeSchedule[] = [];
 
@@ -150,6 +151,18 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
 
   constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
+    this.username = this._global.user.username;
+  }
+
+  async startover() {
+    if (confirm('Be very careful! ALL FEE SCHEDULES WILL BE REMOVED. Are you sure?')) {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+        {
+          old: { _id: this.restaurant._id, feeSchedules: [] },
+          new: { _id: this.restaurant._id },
+        }]).toPromise();
+      location.reload();
+    }
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -256,10 +269,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // the following will condition the editor
     // when in editing, we need "2020-08-19" type of format, usibng fr-CA to do so
     if (this.feeScheduleInEditing.fromTime) {
-      this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: this.restaurant.googleAddress.timezone || 'America/New_York' });
+      this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York' });
     }
     if (this.feeScheduleInEditing.toTime) {
-      this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: this.restaurant.googleAddress.timezone || 'America/New_York' });
+      this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York' });
     }
 
     this.updateFormBuilder();
@@ -280,7 +293,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // turn 2020-09-01 to timezone form
     const getTransformedDate = (dateString) => {
       const [year, month, date] = dateString.split('-');
-      return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), this.restaurant.googleAddress.timezone);
+      return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), 'America/New_York');
     }
     if (this.feeScheduleInEditing.fromTime) {
       myFs.fromTime = getTransformedDate(this.feeScheduleInEditing.fromTime);
