@@ -1,7 +1,11 @@
 <div class="card mb-2">
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="fas fa-chart-pie"></i> Fee Schedules</h3>
-  <div class="text-danger text-center">DO NOT REMOVE OLD FEE SCHEDULES (请不要删除老的设置)</div>
+    <ul class="text-danger text-left">
+      <li>请不要删除老的设置 (DO NOT REMOVE OLD FEE SCHEDULES)</li>
+      <li>如果有新的收费标准将替代老的收费标准，那么应该把老的收费标准设置截止日期，添加新的收费标准 (IF A NEW FEE SCHEDULE IS GOING TO REPLACE OLD ONES, THEN SET END DATE OF OLD ONES
+    AND ADD THE NEW FEE SCHEDULE)</li>
+    </ul>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0"><input type="checkbox"
@@ -22,8 +26,8 @@
               class="{{isFeeScheduleExpired(feeSchedule) ? 'expired' : '' }} ">
               <td class="text-lowercase text-nowrap my-text-b">{{feeSchedule.payer}} → {{feeSchedule.payee}}
                 <div class="my-text-small">
-                  {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : restaurant.googleAddress.timezone }} → <span
-                    *ngIf=" feeSchedule.toTime">{{ feeSchedule.toTime | adjustedDate: 'shortDate' : restaurant.googleAddress.timezone }}</span>
+                  {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : 'America/New_York' }} → <span
+                    *ngIf=" feeSchedule.toTime">{{ feeSchedule.toTime | adjustedDate: 'shortDate' : 'America/New_York' }}</span>
                 </div>
               </td>
               <td class="text-nowrap">
@@ -32,7 +36,7 @@
                   <span *ngIf="feeSchedule.rate && feeSchedule.amount"> + </span>
                   <span *ngIf="feeSchedule.amount">{{feeSchedule.amount |currency:'USD':'symbol'}}</span>
                   <span *ngIf="!feeSchedule.rate && !feeSchedule.amount">0</span>
-                  
+
                 </div>
                 <div *ngIf="feeSchedule.name">{{feeSchedule.name}}</div>
                 <div class="my-text-small text-muted">
