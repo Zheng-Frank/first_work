@@ -62,7 +62,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   shouldShowStripe() {
-    return this.invoice && (this.invoiceCurrency === 'CAD' || this.invoice.balance > FATT_LIMIT) && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
+    return this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
   }
 
   shouldShowFattmerchant() {
