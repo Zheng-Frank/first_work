@@ -26,7 +26,7 @@ export class RestaurantYelpComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
     this.refresh();
-    
+
   }
 
   async refresh() {
@@ -70,7 +70,7 @@ export class RestaurantYelpComponent implements OnInit {
         return qmenuAddress.trim() === yelpAddress;
       });
 
-      if(result.length > 0){
+      if (result.length > 0) {
         matchingAccount.push(account);
       }
     }
@@ -104,8 +104,8 @@ export class RestaurantYelpComponent implements OnInit {
   isWebsiteOk() {
     const qmenuWebsite = (this.restaurant.web && this.restaurant.web.qmenuWebsite) ? this.restaurant.web.qmenuWebsite : '';
     const yelpWebsite = (this.restaurant.yelpListing && this.restaurant.yelpListing.website) ? this.restaurant.yelpListing.website : '';
-    
-    if(!qmenuWebsite && !yelpWebsite) {
+
+    if (!qmenuWebsite && !yelpWebsite) {
       return false;
     }
 
@@ -119,13 +119,7 @@ export class RestaurantYelpComponent implements OnInit {
         return;
       }
 
-      console.log({
-        email: this.restaurant.yelpListing.gmb_email,
-        restaurantId: this.restaurant.id
-      }); 
-
-
-      await this._api.post(environment.appApiUrl + "yelp/generic", {
+      const refreshed = await this._api.post(environment.appApiUrl + "yelp/generic", {
         name: "refresh-yelp-rt-listing",
         payload: {
           "email": this.restaurant.yelpListing.gmb_email,
@@ -133,8 +127,9 @@ export class RestaurantYelpComponent implements OnInit {
         }
       }).toPromise();
 
+      this.restaurant.yelpListing = refreshed;
       this._global.publishAlert(AlertType.Success, 'Listing refreshed');
-      console.log('Listing refreshed');
+
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Error trying to refresh main listing');
@@ -164,6 +159,7 @@ export class RestaurantYelpComponent implements OnInit {
     }).toPromise();
 
     console.log(result);
+
     this._global.publishAlert(AlertType.Success, `Website url injected succesfully.. `);
   }
 }
