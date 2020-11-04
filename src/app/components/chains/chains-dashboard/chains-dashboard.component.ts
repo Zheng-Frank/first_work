@@ -60,7 +60,7 @@ export class ChainsDashboardComponent implements OnInit {
         }
       ).toPromise();
 
-      this._global.publishAlert(AlertType.Success, 'Chain removed succesfuly');
+      this._global.publishAlert(AlertType.Success, 'Chain removed successfully');
       await this.refresh();
 
     } catch (error) {
@@ -147,7 +147,7 @@ export class ChainsDashboardComponent implements OnInit {
         }
       ]).toPromise();
 
-      this._global.publishAlert(AlertType.Success, 'Restauarant associated succesfuly');
+      this._global.publishAlert(AlertType.Success, 'Restauarant associated successfully');
       await this.refresh();
     } else {
       this._global.publishAlert(AlertType.Warning, 'Restauarant already associated to a chain');
@@ -169,7 +169,7 @@ export class ChainsDashboardComponent implements OnInit {
         event.acknowledge(null);
 
         await this._api.post(environment.qmenuApiUrl + 'generic?resource=chain', [chainData]).toPromise();
-        this._global.publishAlert(AlertType.Success, 'Chain added succesfuly');
+        this._global.publishAlert(AlertType.Success, 'Chain added successfully');
         await this.refresh();
         this.chainInEditting = {};
         this.addChainModal.hide();

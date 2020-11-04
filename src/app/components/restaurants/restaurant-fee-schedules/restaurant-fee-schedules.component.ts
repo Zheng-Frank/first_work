@@ -23,6 +23,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   @Input() users = [];
 
+  username;
   now = new Date(); // to tell if a fee schedule is expired
   feeSchedules: FeeSchedule[] = [];
 
@@ -35,21 +36,22 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   chargeBasisMap = {
     [ChargeBasis.Monthly]: 'monthly',
     [ChargeBasis.OrderSubtotal]: 'order subtotal',
-    [ChargeBasis.OrderPreTotal]: 'order total',
+    [ChargeBasis.OrderPreTotal]: 'order pre-total',
+    [ChargeBasis.OrderTotal]: 'order total',
     [ChargeBasis.Commission]: 'commission',
   };
 
 
   nameDescriptor = {
     field: "name", //
-    label: "Name (optional)",
-    required: false,
-    inputType: "text",
+    label: "Name",
+    required: true,
+    inputType: "single-select",
     items: [
-      { object: "Email", text: "Email", selected: false },
-      { object: "Phone", text: "Phone", selected: false },
-      { object: "SMS", text: "SMS", selected: false },
-      { object: "Fax", text: "Fax", selected: false }
+      { object: "service fee", text: "service fee", selected: false },
+      { object: "credit card fee", text: "credit card fee", selected: false },
+      { object: "monthly fee", text: "monthly fee", selected: false },
+      { object: "commission", text: "commission", selected: false }
     ]
   };
 
@@ -94,7 +96,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   };
 
   chargeBasisSubtotal = { object: ChargeBasis.OrderSubtotal, text: "order subtotal", selected: false };
-  chargeBasisPreTotal = { object: ChargeBasis.OrderPreTotal, text: "order total", selected: false };
+  chargeBasisPreTotal = { object: ChargeBasis.OrderPreTotal, text: "order total before CC", selected: false };
+  chargeBasisTotal = { object: ChargeBasis.OrderTotal, text: "order total", selected: false };
   chargeBasisMonthly = { object: ChargeBasis.Monthly, text: "monthly fee", selected: false };
   chargeBasisCommission = { object: ChargeBasis.Commission, text: "commission", selected: false };
 
@@ -148,6 +151,18 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
 
   constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
+    this.username = this._global.user.username;
+  }
+
+  async startover() {
+    if (confirm('Be very careful! ALL FEE SCHEDULES WILL BE REMOVED. Are you sure?')) {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+        {
+          old: { _id: this.restaurant._id, feeSchedules: [] },
+          new: { _id: this.restaurant._id },
+        }]).toPromise();
+      location.reload();
+    }
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -192,7 +207,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       case 'RESTAURANT':
         this.feeScheduleInEditing.payee = this.payeeQmenu.object;
         this.payeeDescriptor.items = [this.payeeQmenu];
-        this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisMonthly];
+        this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisTotal, this.chargeBasisMonthly];
         break;
       case 'QMENU':
         this.feeScheduleInEditing.payee = this.payeeSales.object;
@@ -212,6 +227,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     switch (this.feeScheduleInEditing.chargeBasis) {
       case ChargeBasis.OrderSubtotal:
       case ChargeBasis.OrderPreTotal:
+      case ChargeBasis.OrderTotal:
         this.fieldDescriptors.push(
           this.rateDescriptor,
           this.amountDescriptor,
@@ -253,10 +269,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // the following will condition the editor
     // when in editing, we need "2020-08-19" type of format, usibng fr-CA to do so
     if (this.feeScheduleInEditing.fromTime) {
-      this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: this.restaurant.googleAddress.timezone || 'America/New_York' });
+      this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York' });
     }
     if (this.feeScheduleInEditing.toTime) {
-      this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: this.restaurant.googleAddress.timezone || 'America/New_York' });
+      this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York' });
     }
 
     this.updateFormBuilder();
@@ -273,11 +289,11 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // making sure data type are correct! sometimes after binding values become strings
     myFs.amount = +myFs.amount || 0;
     myFs.rate = +myFs.rate || 0;
-    
+
     // turn 2020-09-01 to timezone form
     const getTransformedDate = (dateString) => {
       const [year, month, date] = dateString.split('-');
-      return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), this.restaurant.googleAddress.timezone);
+      return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), 'America/New_York');
     }
     if (this.feeScheduleInEditing.fromTime) {
       myFs.fromTime = getTransformedDate(this.feeScheduleInEditing.fromTime);

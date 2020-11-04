@@ -19,13 +19,6 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
 
   leftRows: keyValue[] = [];
   rightRows: keyValue[] = [];
-  // for displaying
-  chargeBasisMap = {
-    [ChargeBasis.Monthly]: 'monthly',
-    [ChargeBasis.OrderSubtotal]: 'order subtotal',
-    [ChargeBasis.OrderPreTotal]: 'order total',
-    [ChargeBasis.Commission]: 'commission',
-  };
 
   orderTypes = new Set();
   orderPaymentMethods = new Set();
@@ -43,18 +36,23 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     }
   }
 
+  isActualDate(date) {
+    // fake date which is 2020-01-01 and having 
+    return new Date(date).valueOf() !== new Date("2020-01-01").valueOf();
+  }
+
   computeData() {
     this.orderTypes = new Set();
     this.orderPaymentMethods = new Set();
     this.invoice.orders.map(o => {
       this.orderTypes.add(o.type);
-      this.orderPaymentMethods.add(o.paymentType);
+      this.orderPaymentMethods.add(o.paymentType); //only CASH or CREDITCARD
+      this.orderPaymentMethods.add(o.creditCardProcessingMethod);
+
       if (o.type === 'DELIVERY') {
         this.couriers.add(o.deliveryBy ? 'qMenu' : 'restaurant');
       }
     });
-    console.log(this.orderTypes);
-    console.log(this.orderPaymentMethods)
     const invoice = this.invoice;
     this.leftRows = [
       {
@@ -83,12 +81,12 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
       },
 
       invoice.feesForRestaurant && {
-        key: `Restaurant Fees`,
+        key: `Customer Paid Fees to Restaurant`,
         value: invoice.feesForRestaurant
       },
 
       invoice.feesForQmenu && {
-        key: `qMenu Fees`,
+        key: `Customer Paid Fees to qMenu`,
         value: invoice.feesForQmenu
       },
       {
@@ -129,7 +127,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
       },
 
       invoice.feesForQmenu && {
-        key: `Customer paid fees to qMenu`,
+        key: `Customer Paid Fees to qMenu`,
         value: invoice.feesForQmenu
       },
 
@@ -203,9 +201,9 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     const applicableOnes = feeSchedules.filter(fs => {
       const inFuture = new Date(fs.fromTime) > new Date(this.invoice.toDate);
       const inPast = new Date(fs.toTime) < new Date(this.invoice.fromDate);
-      const orderTypesOk = !fs.orderTypes || fs.orderTypes.some(ot => this.orderTypes.has(ot));
-      const orderPaymentMethodsOk = !fs.orderPaymentMethods || fs.orderPaymentMethods.some(pm => this.orderPaymentMethods.has(pm));
-      return orderTypesOk && orderPaymentMethodsOk && fs.payee === 'QMENU' && fs.payer === 'RESTAURANT' && (!fs.toTime || !(inFuture || inPast));
+      const orderTypesOk = !fs.orderTypes || fs.orderTypes.length === 0 || fs.orderTypes.some(ot => this.orderTypes.has(ot));
+      const orderPaymentMethodsOk = !fs.orderPaymentMethods || fs.orderPaymentMethods.length === 0 || fs.orderPaymentMethods.some(pm => this.orderPaymentMethods.has(pm));
+      return orderTypesOk && orderPaymentMethodsOk && fs.payer !== 'QMENU' && /*fs.payee === 'QMENU' && fs.payer === 'RESTAURANT' &&*/ (!fs.toTime || !(inFuture || inPast));
     });
     return applicableOnes.map(fs => new FeeSchedule(fs));
   }

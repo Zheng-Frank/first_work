@@ -8,7 +8,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { mergeMap, observeOn } from 'rxjs/operators';
-import { Restaurant } from '@qmenu/ui';
+import { FeeSchedule, Restaurant } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
 import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -62,7 +62,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   shouldShowStripe() {
-    return this.invoice && (this.invoiceCurrency === 'CAD' || this.invoice.balance > FATT_LIMIT) && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
+    return this.invoice && !(this.invoice.isPaymentSent || this.invoice.isPaymentCompleted) && this.isCreditCardOrStripe()
   }
 
   shouldShowFattmerchant() {
@@ -133,7 +133,6 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   isCreditCardOrStripe() {
-    console.log(this.paymentMeans);
     return this.paymentMeans && this.paymentMeans.some(pm => pm.type === 'Credit Card' || pm.type === 'Stripe');
   }
 
@@ -162,7 +161,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
               paymentMeans: 1,
               channels: 1,
               googleAddress: 1,
-              logs: 1
+              logs: 1,
+              feeSchedules: 1
             },
             limit: 1
           })
@@ -236,10 +236,50 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     window.print();
   }
 
+  async applyFeeSchedules() {
+
+    if (this.restaurant.feeSchedules && this.restaurant.feeSchedules.length > 0) {
+      try {
+        const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice",
+          [{
+            old: {
+              _id: this.invoice['_id'],
+              restaurant: {}
+            }, new: {
+              _id: this.invoice['_id'],
+              restaurant: {
+                feeSchedules: this.restaurant.feeSchedules
+              }
+            }
+          }]).toPromise();
+
+        await this.addLog({
+          time: new Date(),
+          action: "apply fee schedules",
+          user: this._global.user.username,
+          value: `old: ${JSON.stringify(this.invoice.restaurant.feeSchedules || [])}`
+        });
+      } catch (error) {
+        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      }
+
+      await this.computeDerivedFields();
+
+    } else {
+      this._global.publishAlert(AlertType.Danger, "No fee schedules found for restaurant");
+    }
+
+  }
+
   async computeDerivedFields() {
-    await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: this.invoice['_id'] || this.invoice.id }).toPromise();
-    this._global.publishAlert(AlertType.Success, "Success!");
-    this.loadInvoice();
+    try {
+      await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: this.invoice['_id'] || this.invoice.id }).toPromise();
+      this._global.publishAlert(AlertType.Success, "Success!");
+      await this.loadInvoice();
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, error.error);
+    }
   }
 
   async toggleInvoiceStatus(field) {
@@ -338,26 +378,24 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     // back to use POJS
     updatedInvoice = JSON.parse(JSON.stringify(i));
 
-    this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).subscribe(
-      result => {
-        // let's update original, assuming everything successful
-        Object.assign(this.invoice, i);
-        this._global.publishAlert(
-          AlertType.Success,
-          adjustment.name + " was added"
-        );
-        this.addLog({
-          time: new Date(),
-          action: "adjust",
-          user: this._global.user.username,
-          value: adjustment
-        });
-        this.loadInvoice();
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
-    );
+    try {
+
+      const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
+      Object.assign(this.invoice, i);
+      this._global.publishAlert(
+        AlertType.Success,
+        adjustment.name + " was added"
+      );
+      await this.addLog({
+        time: new Date(),
+        action: "adjust",
+        user: this._global.user.username,
+        value: adjustment
+      });
+
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+    }
 
     this.adjustmentModal.hide();
 

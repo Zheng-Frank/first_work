@@ -15,6 +15,7 @@ export class GmbUnderattackListComponent implements OnInit {
   rows = [];
   filteredRows = [];
   notShowComplete: boolean = false;
+  bmRequest;
   pagination: boolean = true;
   averageRequestsPerDay = 0;
   numberOfRestaurant = 0;
@@ -63,7 +64,7 @@ export class GmbUnderattackListComponent implements OnInit {
     this.apiLoading = false;
     this.now = new Date();
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 45);
 
     // Get Attacking Requests
     const requests = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -224,6 +225,11 @@ export class GmbUnderattackListComponent implements OnInit {
     if (this.notShowComplete) {
       this.filteredRows = this.filteredRows.filter(row => !row.checker && !row.checkedAt);
     }
+      if (this.bmRequest && this.bmRequest != 'All') {
+      let hoursAgo = 60 * 60 * 1000 * this.bmRequest;
+      this.filteredRows = this.filteredRows.filter(row => row.requestInfos && 
+        row.requestInfos.some(each => each.email.indexOf("beyondmenu.com") >= 0 &&  (new Date().valueOf() - new Date(each.date).valueOf()) > hoursAgo ));
+    }
     // Update number of restaurant shown
     this.numberOfRestaurant = this.filteredRows.length;
   }
@@ -285,7 +291,7 @@ export class GmbUnderattackListComponent implements OnInit {
           };
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
         }
-        this._global.publishAlert(AlertType.Success, `Log added succesfuly`);
+        this._global.publishAlert(AlertType.Success, `Log added successfully`);
         await this.refreshSingleEntry(r.requestInfos[0]._id);
       } catch (error) {
         console.error('error while adding comment.', error);
@@ -313,7 +319,7 @@ export class GmbUnderattackListComponent implements OnInit {
           };
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
         }
-        this._global.publishAlert(AlertType.Success, `Request marked complete succesfuly`);
+        this._global.publishAlert(AlertType.Success, `Request marked complete successfully`);
         // await this.refreshSingleEntry(r.requestInfos[0]._id);
         r.content = 'marked COMPLETED';
         this.addLog(r);
@@ -338,7 +344,7 @@ export class GmbUnderattackListComponent implements OnInit {
           };
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbRequest', [{ old: oldData, new: newData }]).toPromise();
         }
-        this._global.publishAlert(AlertType.Success, `Request marked incomplete succesfuly`);
+        this._global.publishAlert(AlertType.Success, `Request marked incomplete successfully`);
         // await this.refreshSingleEntry(r.requestInfos[0]._id);
         r.content = 'reverted back to INCOMPLETED';
         this.addLog(r);

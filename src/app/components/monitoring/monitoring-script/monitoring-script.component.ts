@@ -109,13 +109,19 @@ export class MonitoringScriptComponent implements OnInit {
     }).toPromise();
     this.apiLoading = false;
 
+    let fixedThings = false;
     // fix uowsHistory, 5/13/2020, induced by premature termination of running lambdas!
-    // for (let script of scripts) {
-    //   if (script.uowsHistory && !Array.isArray(script.uowsHistory)) {
-    //     await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [{ old: { _id: script._id, uowsHistory: [] }, new: { _id: script._id } }]);
-    //     script.uowsHistory = [];
-    //   }
-    // }
+    for (let script of scripts) {
+      if (script.uowsHistory && !Array.isArray(script.uowsHistory)) {
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=routine-script", [{ old: { _id: script._id, uowsHistory: [] }, new: { _id: script._id } }]);
+        script.uowsHistory = [];
+        fixedThings = true;
+      }
+    }
+
+    if (fixedThings) {
+      alert('corrupted data detected. please reload.')
+    }
 
     // compute stats of each uowsHistory
     scripts.map(script => (script.uowsHistory || []).map(uh => {

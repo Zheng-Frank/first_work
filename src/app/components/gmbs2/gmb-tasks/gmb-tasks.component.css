@@ -2,7 +2,7 @@
   white-space: pre-wrap;
 }
 
-/deep/ th {
+::ng-deep th {
   white-space: nowrap;
 }
 .min-w-6 {

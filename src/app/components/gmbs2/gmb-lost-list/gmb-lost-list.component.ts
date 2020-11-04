@@ -4,7 +4,6 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { TimezoneService } from '../../../services/timezone.service';
 import { AlertType } from '../../../classes/alert-type';
-import { last } from '@angular/router/src/utils/collection';
 
 @Component({
   selector: 'app-gmb-lost-list',
@@ -30,7 +29,7 @@ export class GmbLostListComponent implements OnInit {
 
   myColumnDescriptors = [
     {
-      label: "Number"
+      label: "#"
     },
     {
       label: "Restaurant Name"
@@ -41,17 +40,20 @@ export class GmbLostListComponent implements OnInit {
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
     {
-      label: "Lost Date",
+      label: "Lost",
       paths: ['lostDate'],
       sort: (a, b) => a.valueOf() - b.valueOf()
     },
     {
-      label: "Current Owner",
+      label: "GMB",
       paths: ['owner'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
       label: "Tasks"
+    },
+    {
+      label: "Local Time"
     },
     {
       label: "Comments"
@@ -113,7 +115,8 @@ export class GmbLostListComponent implements OnInit {
         "gmbOwnerHistory.gmbOwner": 1,
         "gmbOwnerHistory": { $slice: 1 },
         name: 1,
-        score: 1
+        score: 1,
+        disabled: 1
       }
     }, 6000);
 
@@ -162,6 +165,7 @@ export class GmbLostListComponent implements OnInit {
               eventId: event._id,
               restaurantId: restaurant._id,
               name: restaurant.name,
+              disabled: restaurant.disabled,
               address: restaurant.googleAddress.formatted_address,
               score: restaurant.score,
               lostDate: event.createdAt,
@@ -209,7 +213,7 @@ export class GmbLostListComponent implements OnInit {
     this.numberOfRestaurant = dict.length;
     this.averageLossesPerDay = Math.ceil(this.numberOfRestaurant / (1 + (lastLostdate.valueOf() - firstLostDate.valueOf()) / (24 * 3600000)));
 
-    this.rows = dict;
+    this.rows = dict.filter(r => !r.disabled);
     this.filter();
 
     this.apiLoading = false;
@@ -284,7 +288,7 @@ export class GmbLostListComponent implements OnInit {
           comments: newComment
         };
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=event', [{ old: oldData, new: newData }]).toPromise();
-        this._global.publishAlert(AlertType.Success, `Comment added succesfuly`);
+        this._global.publishAlert(AlertType.Success, `Comment added successfully`);
         await this.refreshSingleEntry(r.eventId);
       } catch (error) {
         console.error('error while adding comment.', error);

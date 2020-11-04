@@ -147,6 +147,8 @@
                 <i class="fas fa-hand-holding-usd"></i> Show Payment Means({{paymentMeans.length}})</button>
             <button class="btn btn-info" (click)="downloadPdf()">
                 <i class="far fa-file-pdf"></i> Download PDF</button>
+            <button class="btn btn-info" (click)="applyFeeSchedules()">
+                <i class="fas fa-sync-alt"></i> Re-apply Fee Schedules</button>
             <button class="btn btn-info" (click)="computeDerivedFields()">
                 <i class="fas fa-sync-alt"></i> Recalculate</button>
             <span *ngIf="!invoice.isCanceled">
@@ -219,23 +221,24 @@
             </table>
         </div>
     </div>
-    <div class="alert alert-info" *ngIf="shouldShowStripe()">
-        <h3>Secure Online Payment</h3>
-        <app-stripe #myStripe [hidePostalCode]="true"></app-stripe>
-        <div *ngIf="stripeError" class="py-2 text-danger">{{stripeError}}</div>
-        <div class="form-group">
-            <button class="btn btn-lg btn-success btn-block" (click)="payStripe()" [qLoading]="payingStripe">
-                Click to Pay {{invoice.balance |  currency:'USD':'symbol'}}
-            </button>
-        </div>
-    </div>
+
     <div class="alert alert-info" *ngIf="shouldShowFattmerchant()">
-        <h3>Secure Online Payment</h3>
+        <h3>Fattmerchant Pay (preferred whenever possible to save money)</h3>
         <app-fattmerchant #myFattmerchant [requirePhone]="false"></app-fattmerchant>
         <div *ngIf="fattmerchantError" class="py-2 text-danger">{{fattmerchantError}}</div>
         <div class="form-group">
             <button class="btn btn-lg btn-success btn-block" (click)="payFattmerchant()"
                 [qLoading]="payingFattmerchant">
+                Click to Pay {{invoice.balance |  currency:'USD':'symbol'}}
+            </button>
+        </div>
+    </div>
+    <div class="alert alert-secondary" *ngIf="shouldShowStripe()">
+        <h3>Stripe Pay (when Fattmerchant doesn't work)</h3>
+        <app-stripe #myStripe [hidePostalCode]="true"></app-stripe>
+        <div *ngIf="stripeError" class="py-2 text-danger">{{stripeError}}</div>
+        <div class="form-group">
+            <button class="btn btn-lg btn-success btn-block" (click)="payStripe()" [qLoading]="payingStripe">
                 Click to Pay {{invoice.balance |  currency:'USD':'symbol'}}
             </button>
         </div>

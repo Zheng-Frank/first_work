@@ -41,6 +41,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
+    restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],    
     restaurantChains: ['ADMIN', 'CSR']
   }
 

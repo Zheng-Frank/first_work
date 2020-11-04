@@ -62,6 +62,13 @@ export class OrderCardComponent implements OnInit {
     return null;
   }
 
+  getCustomerEmail(order: Order) {
+    if (order.customer) {
+      return order.customer.email;
+    }
+    return null;
+  }
+
   handleOnSetNewStatus(data) {
     this.onSetNewStatus.emit(data);
     // hide details if it is over
@@ -237,7 +244,7 @@ export class OrderCardComponent implements OnInit {
   }
 
   getOrderLink() {
-    return `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=restaurantOrderPos&format=html`;
+    return `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=restaurantOrderFax&format=pdf`;
   }
 
   isCanceled(order: Order) {
@@ -248,6 +255,10 @@ export class OrderCardComponent implements OnInit {
 
   isAdmin() {
     return this._global.user.roles.some(r => r === 'ADMIN');
+  }
+
+  isViewable(order: Order){
+    return this.isAdmin() ||  !(order.payment.paymentType === 'CREDITCARD' &&  order.payment.method === 'KEY_IN')
   }
 
   getUpdatedStatuses() {
