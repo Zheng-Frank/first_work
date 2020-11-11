@@ -44,6 +44,7 @@ export class RestaurantOrdersComponent implements OnInit {
   orderEvent: any;
   cancelError = '';
   undoOrder: any;
+  isPostmatesStatusDelivered = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
@@ -241,6 +242,7 @@ export class RestaurantOrdersComponent implements OnInit {
 
   handleOnReject(order) {
     this.orderForModal = order;
+    this.isPostmatesStatusDelivered = this.orderForModal && this.orderForModal['delivery'] && this.orderForModal['delivery'].status === 'delivered';
     this.rejectModal.show();
   }
 
