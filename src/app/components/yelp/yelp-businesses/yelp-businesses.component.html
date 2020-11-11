@@ -38,13 +38,11 @@
         <div class="text-muted">
           
           <!-- <div>Yelp Id : {{ rt.yid }}</div> -->
-          <div *ngIf="rt.yid">YID: {{ rt.yid }}</div>
+          <small *ngIf="rt.yid">YID: {{ rt.yid }}</small>
           <div *ngIf="!rt.url">
             <div class="text-danger">NO MATCHING URL YET ({{rt.qMenuName}})</div>
-            <div>
-              <span>Yelp URL:</span><q-edit-label [value]="rt.url" (edit)="onAssignYelpUrl($event, 'url', rt)"></q-edit-label>
-            </div>
           </div>
+          <div><span>Yelp URL:</span><q-edit-label [value]="rt.url" (edit)="onAssignYelpUrl($event, 'url', rt)"></q-edit-label></div>
           <div *ngIf="rt.url && !rt.yid" class="text-danger">WAITING TO BE CRAWLED</div>
           <div><a routerLink="/restaurants/{{ rt._id }}" target="_blank"><i class="fas fa-external-link-alt"></i> qMenu restaurant page</a></div>
           <div>{{rt._id}}</div>
@@ -122,8 +120,8 @@
         </div>
         <div *ngFor="let log of (rt.logs || [])">
           <div>
-            <span class="font-weight-bold">{{log.user}}</span><small class="font-italic"> {{log.date | adjustedDate : 'MMM dd' : rt.timezone}}</small>
-            <div>{{log.content}}</div>
+            <span class="font-weight-bold">{{log && log.user}}</span><small class="font-italic"> {{log && log.date | adjustedDate : 'MMM dd' : rt.timezone}}</small>
+            <div>{{log && log.content}}</div>
           </div>
         </div>
         <div class="d-flex pt-1">

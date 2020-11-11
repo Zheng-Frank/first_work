@@ -219,6 +219,18 @@ export class YelpBusinessesComponent implements OnInit {
         }
       });
 
+      // --- Duplicates
+      const unique = []
+      const duplicates = this.flatRows.filter(o => {
+        if (unique.find(i => i.yid === o.yid)) {
+          return true
+        }
+        unique.push(o)
+        return false;
+      });
+      console.log(duplicates.filter(d => d.yid));
+      // ---
+
       this.refreshing = false;
       this.filter();
 
