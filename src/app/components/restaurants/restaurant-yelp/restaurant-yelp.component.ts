@@ -31,27 +31,14 @@ export class RestaurantYelpComponent implements OnInit {
 
   async refresh() {
     // --- get gmbAccounts
-    const batchSize = 50;
-    let skip = 0;
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: "gmbAccount",
-        query: {
-          isYelpEmail: true
-        },
-        projection: {
-          yelpLocations: 1,
-          email: 1,
-        },
-        skip: skip,
-        limit: batchSize
-      }).toPromise();
-      if (batch.length === 0) {
-        break;
+    this.accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccounts',
+      query: {isYelpEmail: true},
+      projection: {
+        yelpLocations: 1,
+        email: 1,
       }
-      this.accounts.push(...batch);
-      skip += batchSize;
-    }
+    }, 1000);
 
     this.accounts = this.accounts.filter(account => account.yelpLocations != undefined);
   }
