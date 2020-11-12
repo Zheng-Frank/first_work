@@ -163,7 +163,7 @@ console.log("The data was null");
         let valid = true;
         if (this.mi.sizeOptions) {
             this.mi.sizeOptions.forEach((i: Item) => {
-                if (i.name && !(+i.price > 0)) {
+                if (i.name && !(+i.price >= 0)) {
                     valid = false;
                 }
             });
