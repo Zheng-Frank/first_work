@@ -132,9 +132,9 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
                     origin: 'CSR'
                 });
             }
-else {
-console.log("The data was null");   
-}
+            else {
+                console.log("The data was null");
+            }
         }
         catch (err) {
             this.uploadImageError = err;
@@ -188,7 +188,7 @@ console.log("The data was null");
         // sanitize size options
         if (this.mi.sizeOptions) {
             for (let i = this.mi.sizeOptions.length - 1; i >= 0; i--) {
-                if (!this.mi.sizeOptions[i].name || !this.mi.sizeOptions[i].price) {
+                if (!this.mi.sizeOptions[i].name || !(+this.mi.sizeOptions[i].price >= 0)) {
                     this.mi.sizeOptions.splice(i, 1);
                 }
             }

@@ -37,7 +37,7 @@
         </td> -->
 
         <td valign="top" class="text-right">
-            <div *ngIf="mi.sizeOptions.length > 0 && mi.sizeOptions[0].price >0">
+            <div *ngIf="mi.sizeOptions.length > 0 && mi.sizeOptions[0].price >= 0">
               <p *ngFor="let p of mi.sizeOptions" class="text-right " style="white-space: nowrap">
                 <span class="text-primary">{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</span>
                 {{(p.price ? p.price : 0) | currency: 'USD' :'symbol'}}{{ mi.sizeOptions.length === 1 && getMaxCost() > p.price ? '+' : ''}}
