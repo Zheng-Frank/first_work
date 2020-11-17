@@ -81,6 +81,10 @@
 							<td class="pl-1">{{restaurant.pickupMinimum | money}}</td>
 						</tr>
 						<tr>
+							<th class="text-right">CC Minimum Charge</th>
+							<td class="pl-1">{{restaurant.ccMinimumCharge | money}}</td>
+						</tr>
+						<tr>
 							<th class="text-right">Preferred Language</th>
 							<td class="pl-1">{{restaurant.preferredLanguage}}</td>
 						</tr>
@@ -274,6 +278,14 @@
 								<input type="number" [(ngModel)]="pickupMinimum" class="form-control">
 							</td>
 						</tr>
+
+						<tr>
+							<th class="text-right">CC Minimum Charge</th>
+							<td class="pl-1">
+								<input type="number" [(ngModel)]="ccMinimumCharge" class="form-control">
+							</td>
+						</tr>
+
 						<tr>
 							<th class="text-right">Order Call Language</th>
 							<td class="pl-1">
