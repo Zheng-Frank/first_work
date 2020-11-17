@@ -45,6 +45,9 @@ export class EmailCodeReaderComponent implements OnInit {
       this._cache.set('templateNames', this.templateNames, 300 * 60);
     }
 
+  }
+
+  ngOnChanges() {
     this.qmButtonTemplate = this.getQmenuButtonTemplate(this.restaurant.alias);
   }
 
