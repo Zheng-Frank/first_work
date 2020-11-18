@@ -35,6 +35,8 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   couriers: any = [{ name: "Self delivery" }];
 
   postmatesAvailability;
+  firstNotifications = true;
+  secondNotifications = true;
   checkingPostmatesAvailability = false;
   async checkPostmatesAvailability() {
     this.checkingPostmatesAvailability = true;
@@ -95,6 +97,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.allowedCities = (this.restaurant.allowedCities || []).join(',');
     this.deliveryArea = this.restaurant.deliveryArea;
     this.taxOnDelivery = this.restaurant.taxOnDelivery;
+    this.firstNotifications = !this.restaurant["muteFirstNotifications"];
+    this.secondNotifications = !this.restaurant["muteSecondNotifications"];
+
     if (this.restaurant.deliveryHours) {
       this.deliveryHours = this.restaurant.deliveryHours.map(h => new Hour(h));
     }
@@ -144,6 +149,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     newR.deliveryHours = this.deliveryHours;
     newR.deliveryArea = this.deliveryArea;
     newR.taxOnDelivery = this.taxOnDelivery;
+    newR.muteFirstNotifications = !this.firstNotifications;
+    newR.muteSecondNotifications = !this.secondNotifications;
+    
     if (this.selectedCourier._id) {
       newR.courier = this.selectedCourier;
     }
@@ -162,6 +170,8 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       "deliveryHours",
       "deliverySettings",
       "taxOnDelivery",
+      "muteFirstNotifications",
+      "muteSecondNotifications"
     ];
 
     // making sure oldR has ALL cared fields and if no value for newR, delete it
@@ -209,6 +219,13 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.taxOnDelivery = !this.taxOnDelivery;
   }
 
+  toggleFirstNotifications() {
+    this.firstNotifications = !this.firstNotifications;
+  }
+
+  toggleSecondNotifications() {
+    this.secondNotifications = !this.secondNotifications;
+  }
 
   getDeliveryFromString() {
     if (this.restaurant.deliveryFromTime) {
