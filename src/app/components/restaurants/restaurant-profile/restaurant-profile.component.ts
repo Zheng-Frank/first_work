@@ -40,6 +40,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'stripePublishableKey',
     'preferredLanguage',
     'pickupMinimum',
+    'ccMinimumCharge',
     'disableScheduling',
     'disabled',
     'notification',
@@ -69,6 +70,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   pickupTimeEstimate: number;
   deliveryTimeEstimate: number;
   pickupMinimum: number;
+  ccMinimumCharge: number;
   logo: string;
   images: string[] = [];
 
@@ -140,6 +142,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
     newObj.deliveryTimeEstimate = +this.deliveryTimeEstimate || undefined;
     newObj.pickupMinimum = +this.pickupMinimum || undefined;
+    newObj.ccMinimumCharge = +this.ccMinimumCharge || undefined;
     if (this.googleAddress) {
       newObj.googleAddress = JSON.parse(JSON.stringify(this.googleAddress));
       newObj.googleAddress.apt = this.apt;

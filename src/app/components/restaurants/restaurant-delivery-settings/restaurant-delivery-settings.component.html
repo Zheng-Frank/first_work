@@ -17,6 +17,13 @@
                   style="height: 2rem">
               </td>
             </tr>
+            <tr *ngIf="restaurant.courier?.name === 'Postmates'">
+              <th class="text-left">Notifications (订单通知):</th>
+              <td class="pl-1">
+                <div *ngIf="!restaurant.muteFirstNotifications">first round (第一轮)</div>
+                <div *ngIf="!restaurant.muteSecondNotifications">second round (第二轮)</div>
+              </td>
+            </tr>
             <tr>
               <th class="text-left">Taxable:</th>
               <td class="pl-1">{{restaurant.taxOnDelivery ? 'Yes' : 'No'}}</td>
@@ -110,11 +117,32 @@
                     <option *ngFor="let c of couriers" [ngValue]="c">{{c.name}}</option>
                   </select>
                   <div class="text-right py-2" *ngIf="selectedCourier && selectedCourier.name === 'Postmates'">
+
                     <span>{{postmatesAvailability}} </span>
                     <button class="btn btn-link py-0 pr-0" (click)="checkPostmatesAvailability()"
                       [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>
                   </div>
                 </div>
+              </td>
+            </tr>
+
+            <tr *ngIf="selectedCourier && selectedCourier.name === 'Postmates'">
+              <th class="text-left">First Round Notifications(第一轮通知)</th>
+              <td class="pl-1">
+                <label class="switch">
+                  <input type="checkbox" (click)="toggleFirstNotifications()" [checked]="firstNotifications">
+                  <div class="slider round"></div>
+                </label>
+              </td>
+            </tr>
+
+            <tr *ngIf="selectedCourier && selectedCourier.name === 'Postmates'">
+              <th class="text-left">Second Round Notifications(第二轮通知)</th>
+              <td class="pl-1">
+                <label class="switch">
+                  <input type="checkbox" (click)="toggleSecondNotifications()" [checked]="secondNotifications">
+                  <div class="slider round"></div>
+                </label>
               </td>
             </tr>
 
