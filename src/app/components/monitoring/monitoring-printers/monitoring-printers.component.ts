@@ -482,7 +482,7 @@ export class MonitoringPrintersComponent implements OnInit {
     // all restaurant stubs
     const allClients = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'print-client'
-    }, 1000);
+    }, 500);
     const allRestaurants = await this._global.getCachedRestaurantListForPicker();
 
     const restaurantDict = allRestaurants.reduce((map, r) => (map[r._id] = r, map), {});
