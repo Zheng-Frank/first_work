@@ -77,7 +77,6 @@ export class MenuEditorComponent implements OnInit {
     this.menu.hours = this.menu.hours.filter(h => h !== hour);
   }
 
-
   ok() {
     this.onDone.emit(this.menu);
     this.clickedDelete = false;
@@ -96,6 +95,7 @@ export class MenuEditorComponent implements OnInit {
     this.clickedDelete = false;
     this.onDelete.emit(this.menu);
   }
+
   cancelDeletion() {
     this.clickedDelete = false;
   }
