@@ -55,6 +55,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
           status: 1,
           restaurantCcCollected: 1,
           qMenuCcCollected: 1,
+          feesForQmenu:1,
           cashCollected: 1,
           "restaurant.id": 1,
           isCanceled: 1,

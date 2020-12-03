@@ -534,6 +534,7 @@ export class MyRestaurantComponent implements OnInit {
         projection: {
           isCanceled: 1,
           commission: 1,
+          feesForQmenu:1,
           fromDate: 1,
           toDate: 1,
           isPaymentCompleted: 1,

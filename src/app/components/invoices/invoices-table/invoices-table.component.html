@@ -35,7 +35,7 @@
       <td class="text-right">{{invoice.total | currency:'USD':'symbol'}}</td>
       <td class="text-right">{{invoice.restaurantCcCollected + invoice.cashCollected | currency:'USD':'symbol'}}</td>
       <td class="text-right">{{invoice.qMenuCcCollected | currency:'USD':'symbol'}}</td>
-      <td class="text-right">{{invoice.commission | currency:'USD':'symbol'}}</td>
+      <td class="text-right">{{(invoice.commission >0 ? invoice.commission: invoice.commission + invoice.feesForQmenu) | currency:'USD':'symbol'}}</td>
       <td class="text-right">{{invoice.balance | currency:'USD':'symbol'}}</td>
       <!--<td class="text-right">{{order.total | currency:'USD':'symbol'}}</td>-->
     </tr>
