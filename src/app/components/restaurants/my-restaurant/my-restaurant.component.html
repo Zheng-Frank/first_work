@@ -144,7 +144,7 @@
               {{invoice.toDate | date:'MMM d'}}</a>
           </td>
           <td>
-            {{(invoice.commission || 0) - (invoice.adjustment - invoice.transactionAdjustment) | currency:'USD':'symbol'}}
+            {{(invoice.commission >0 ? invoice.commission: invoice.commission + invoice.feesForQmenu || 0) - (invoice.adjustment - invoice.transactionAdjustment) | currency:'USD':'symbol'}}            
           </td>
         </tr>
       </table>

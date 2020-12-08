@@ -64,19 +64,20 @@
     </label>
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="hasPhone" id="hasPhoneCheck" (change)="filter()">
-    <label class="form-check-label mr-4" for="hasPhoneCheck">
+    <label class="form-check-label mr-2" for="hasPhoneCheck">
       Phone
     </label>
 
-    <input class="form-check-input" type="checkbox" [(ngModel)]="hasPostcard" id="hasPostcardCheck" (change)="filter()">
-    <label class="form-check-label mr-5" for="hasPostcardCheck">
-      Postcard Not Sent
-    </label>
+    <label class="mr-2"> Postcard:</label>
+    <select class="mr-4" [(ngModel)]="postcardFilter" (change)="filter()">
+      <option>Not Sent</option>
+      <option>Sent</option>
+      <option>Any</option>
+    </select>
 
-    <input class="form-check-input" type="checkbox" [(ngModel)]="hasPendingPostcard" id="hasPendingPostcardCheck"
-      (change)="filter()">
-    <label class="form-check-label mr-5" for="hasPendingPostcardCheck">
-      Postcard Sent
+    <input class="form-check-input" type="checkbox" [(ngModel)]="hasCourier" id="hasCourier" (change)="filter()">
+    <label class="form-check-label mr-5" for="hasCourier">
+      Courier
     </label>
 
     <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
@@ -102,6 +103,7 @@
           <td>
             <a target="_blank"
               href="#/restaurants/{{row.relatedMap?.restaurantId}}">{{row.relatedMap?.restaurantName}}</a>
+            <i class="fa fa-taxi" *ngIf="row.courier"></i>
             <div class="text-muted">
               <small>
                 {{row.address}}

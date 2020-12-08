@@ -657,6 +657,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             statusClass: this.getStatusClass(task),
             address: (formatedAddr.split(', USA'))[0],
             score: this.restaurantDict[task.relatedMap.restaurantId].score,
+            courier: (this.restaurantDict[task.relatedMap.restaurantId].courier||{}).name,
             rowNumber: rowNumber,
             gmbOwner: (this.restaurantDict[task.relatedMap.restaurantId].googleListing || {}).gmbOwner,
             task: task,
@@ -713,7 +714,8 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "googleListing.gmbOwner": 1,
                 "googleListing.phone": 1,
                 score: 1,
-                "web.qmenuWebsite": 1 // for qmenu domains
+                "web.qmenuWebsite": 1, // for qmenu domains
+                "courier.name": 1
             }
         }).toPromise();
         this.restaurantDict = restaurants.reduce((dict, rt) => (dict[rt._id] = rt, dict), {});
@@ -768,8 +770,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     verified = "No";
     shouldCall = false;
     hasPhone = false;
-    hasPostcard = false; // NOT sent
-    hasPendingPostcard = false;
+    hasCourier = false;
+    // hasPostcard = false; // NOT sent
+    // hasPendingPostcard = false;
+    postcardFilter = "Any";
     ownerDeclined = "Any";
 
     filter() {
@@ -831,7 +835,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         };
 
         //filter verification options
-        if (this.hasPostcard) {
+        if (this.postcardFilter === 'Not Sent') {
             this.filteredTasks = this.filteredTasks.filter(t => {
                 const lastVos = ((((t.request || {}).voHistory || [])[0] || {}).options) || [];
                 const availableVos = lastVos.map(op => op.verificationMethod);
@@ -842,13 +846,18 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         };
 
         //filter pending address
-        if (this.hasPendingPostcard) {
+        if (this.postcardFilter === 'Sent') {
             this.filteredTasks = this.filteredTasks.filter(t => {
                 const verifications = ((t.request.verificationHistory || [])[0] || { verifications: [] }).verifications;
                 const pendingAddressVerification = verifications.filter(v => v.method === 'ADDRESS' && v.state === 'PENDING')[0];
                 return pendingAddressVerification;
             });
         };
+
+        //filter courier
+        if( this.hasCourier ){
+            this.filteredTasks = this.filteredTasks.filter( t => (this.restaurantDict[t.relatedMap.restaurantId]||{}).courier );
+        }
 
         this.tabs.map(tab => {
             const filterMap = {
