@@ -68,12 +68,12 @@
       <div class="h-100" class="d-flex flex-column">
         <div *ngIf='rt.isRTPublished; else rtNotPublished'>
           <div>
-            <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(getPublishedAccount(rt.yid))"><i class="fab fa-yelp mr-1" aria-hidden="true"></i> {{getUsername(getPublishedAccount(rt.yid))}}</button>
+            <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(getPublishedAccount(rt.yid), rt.yid)"><i class="fab fa-yelp mr-1" aria-hidden="true"></i> {{getUsername(getPublishedAccount(rt.yid))}}</button>
           </div>
         </div>
         <ng-template #rtNotPublished>
           <div *ngIf="getUsername(rt.yelpEmail)">
-            <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(rt.yelpEmail)"><i class="fab fa-yelp mr-1" aria-hidden="true"></i> {{getUsername(rt.yelpEmail)}}</button>
+            <button class="btn btn-link fix-v-align p-0 m-0" (click)="loginYelp(rt.yelpEmail, rt.yid)"><i class="fab fa-yelp mr-1" aria-hidden="true"></i> {{getUsername(rt.yelpEmail)}}</button>
           </div>
         </ng-template>
         <div *ngIf="rt.yelpEmail || getUsername(getPublishedAccount(rt.yid))">

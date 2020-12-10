@@ -32,15 +32,15 @@ export class RestaurantYelpComponent implements OnInit {
   async refresh() {
     // --- get gmbAccounts
     this.accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbAccounts',
-      query: {isYelpEmail: true},
+      resource: 'gmbAccount',
+      query: { isYelpEmail: true },
       projection: {
         yelpLocations: 1,
         email: 1,
       }
     }, 1000);
 
-    this.accounts = this.accounts.filter(account => account.yelpLocations != undefined);
+    this.accounts = this.accounts.filter(account => account.yelpLocations !== undefined || account.yelpLocations !== null);
   }
 
   getHandlingAccount() {
@@ -70,22 +70,12 @@ export class RestaurantYelpComponent implements OnInit {
   }
 
   isPublished() {
-
-    const allLocations = [];
-
-    this.accounts.map(account => {
-      allLocations.push(...account.yelpLocations);
-    });
-
-    const qmenuAddress = this.restaurant.googleAddress.formatted_address.replace(', USA', '').replace(', US', '');
-    const matches = allLocations.filter(yelpLocation => {
-      const [shortStreet] = yelpLocation.location.street.split('\n');
-      const yelpAddress = `${shortStreet.trim()}, ${yelpLocation.location.city}, ${yelpLocation.location.state} ${yelpLocation.location.zip_code}`;
-
-      return qmenuAddress === yelpAddress;
-    });
-
-    return matches.length > 0;
+    if(this.restaurant && this.restaurant.yelpListing) {
+      const owningAccount =  this.accounts.find(account => account.yelpLocations.find(location => location.yid === this.restaurant.yelpListing.yid));
+      // console.log(`${this.restaurant.name} handled in yelp by ${owningAccount.email}`);
+      return !!owningAccount;
+    }
+    return false;
   }
 
   isWebsiteOk() {

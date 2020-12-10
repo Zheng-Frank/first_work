@@ -68,14 +68,20 @@ export class YelpBusinessesComponent implements OnInit {
 
   }
 
-  async loginYelp(email) {
+  async loginYelp(email, yid, url) {
     try {
+      const payload = { email };
+
+      if(this.isPublished(yid)) {
+        payload['yid'] = yid;
+      }
+
       const target = 'login-yelp';
-      await this._api.post(environment.autoGmbUrl + target, { email }).toPromise();
+      await this._api.post(environment.autoGmbUrl + target, payload).toPromise();
       this._global.publishAlert(AlertType.Success, 'Login to Yelp initiated.');
 
+      this.refreshing = false;
     } catch (error) {
-
       console.error(error);
       this._global.publishAlert(AlertType.Danger, 'Error login into yelp.');
     }
@@ -228,7 +234,7 @@ export class YelpBusinessesComponent implements OnInit {
         unique.push(o)
         return false;
       });
-      console.log(duplicates.filter(d => d.yid));
+      // console.log(duplicates.filter(d => d.yid));
       // ---
 
       this.refreshing = false;
