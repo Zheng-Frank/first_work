@@ -33,6 +33,9 @@ export class YelpBusinessesComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: 'Time Zone',
+    },
+    {
       label: 'Score',
       paths: ['rating'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
@@ -221,7 +224,7 @@ export class YelpBusinessesComponent implements OnInit {
           yelpEmail: restaurant_yelpRequest && restaurant_yelpRequest.yelpEmail,
           logs: (restaurant_yelpRequest && restaurant_yelpRequest.logs) || [],
           isRTPublished: this.isPublished(row.yelpListing.yid),
-          isRequested: !!restaurant_yelpRequest
+          isRequested: !!restaurant_yelpRequest,
         }
       });
 
