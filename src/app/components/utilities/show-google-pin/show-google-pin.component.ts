@@ -187,7 +187,7 @@ export class ShowGooglePINComponent implements OnInit {
                 id: each['_id'],
                 gmbBiz: this.getGmbBizFromPhone(each.params.body.From),
                 from: (each.params.body.From || "").length == 11 ? each.params.body.From.toString().substring(1) : each.params.body.From,
-                text: each.params.body.Text.replace(/\+/g, ' ').trim(),
+                text: (each.params.body.Text || "").replace(/\+/g, ' ').trim(),
                 time: each.createdAt,
                 done: codes.some(code => code == each.params.body.Text.replace(/\+/g, ' ').trim())
             }
