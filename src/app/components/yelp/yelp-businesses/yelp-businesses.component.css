@@ -20,22 +20,26 @@ td {
 }
 
 :host ::ng-deep th:nth-child(4) {
-  width: 15% !important;
+  width: 5% !important;
 }
 
 :host ::ng-deep th:nth-child(5) {
-  width: 7% !important;
+  width: 15% !important;
 }
 
 :host ::ng-deep th:nth-child(6) {
-  width: 10%;
+  width: 7% !important;
 }
 
 :host ::ng-deep th:nth-child(7) {
-  width: 30% !important;
+  width: 10%;
 }
 
 :host ::ng-deep th:nth-child(8) {
+  width: 30% !important;
+}
+
+:host ::ng-deep th:nth-child(9) {
   width: 10% !important;
 }
 
