@@ -126,7 +126,7 @@ export class CyclesComponent implements OnInit {
       },
     }, 10000);
 
-    const notProcessedRestaurants = restaurants.filter(r => !cycleRestaurants.some(cr => cr.restaurant._id === r._id));
+    const notProcessedRestaurants = restaurants.filter(r => !r.skipAutoInvoicing && !cycleRestaurants.some(cr => cr.restaurant._id === r._id));
 
     // batch processing
     const batchSize = 20;
