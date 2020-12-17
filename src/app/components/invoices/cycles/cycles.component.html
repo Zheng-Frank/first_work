@@ -10,7 +10,7 @@
     <div class="card-body">
       <h5 class="card-title">New Cycle (safe to run multiple times, open console to see progress)</h5>
       <q-form-builder [object]="thresholds" [showDelete]="false" [fieldDescriptors]="fieldDescriptors"
-        (submit)="formSubmit($event)" (cancel)="formCancel()">
+        (submit)="formSubmit($event)" (cancel)="formCancel()" (change)="formChange($event)">
       </q-form-builder>
     </div>
   </div>
