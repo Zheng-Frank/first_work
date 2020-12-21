@@ -310,7 +310,10 @@ export class RestaurantGmbComponent implements OnInit {
         ]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Matched existing GMB');
 
-      } else if (this.restaurant.googleListing && this.restaurant.googleListing.address.indexOf(this.restaurant.googleAddress.postal_code) >= 0 && this.restaurant.googleAddress.postal_code) {
+      } else if (this.restaurant.googleListing &&
+        this.restaurant.googleListing.address &&
+        this.restaurant.googleListing.address.indexOf(this.restaurant.googleAddress.postal_code) >= 0 &&
+        this.restaurant.googleAddress.postal_code) {
         await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [
           { ...this.restaurant.googleListing, qmenuId: this.restaurant.id || this.restaurant['_id'] }
         ]).toPromise();
