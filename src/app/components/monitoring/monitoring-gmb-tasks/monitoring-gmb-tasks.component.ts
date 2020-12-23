@@ -31,8 +31,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
       resource: 'task',
       query: {
         name: "GMB Request",
-        // "request.statusHistory.0.isError": true,
-        $or: [{ result: null }, { canceledReason: { $ne: null } }]
+        result: null
       },
       projection: { _id: 1, "request.locationName": 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1, canceledReason: 1 }
 
