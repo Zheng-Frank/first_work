@@ -86,12 +86,10 @@ export class CloudPrintingSettingsComponent implements OnInit {
     this.clearOrderView();
   }
 
-
-
   async addOrderView() {
     try {
       this.orderView = {
-        copies: this.orderView.copies,
+        copies: Number(this.orderView.copies),
         format: this.orderView.format,
         template: this.orderView.template,
         customizedRenderingStyles: this.orderView.customizedRenderingStyles,
@@ -238,46 +236,13 @@ export class CloudPrintingSettingsComponent implements OnInit {
     this.orderView = JSON.parse(JSON.stringify(orderView));
     this.menus = this.orderView.menus;
     this.orderViewIndex = orderViewIndex;
-
-    // this.onMenuSelected(orderView.menus && orderView.menus[0] && orderView.menus[0].name || '');
-    // this.onCategorySelected(orderView.menus && orderView.menus[0] && orderView.menus[0].mcs && orderView.menus[0].mcs[0].name || '');
-    // this.onItemSelected(orderView.menus && orderView.menus[0] && orderView.menus[0].mcs && orderView.menus[0].mcs[0] && orderView.menus[0].mcs[0].mis && orderView.menus[0].mcs[0].mis[0].name || '')
-
     this.editOrderViewModal.show();
   }
 
   async editOrderView() {
     try {
-
-      // const oldPrinters = this.restaurant['printSettings'].printers;
-      // const newPrinters = JSON.parse(JSON.stringify(oldPrinters));
-
-      // this.orderView.menus = [{
-      //   name: this.selected.menu,
-      //   mcs: [{
-      //     name: this.selected.category,
-      //     mis: [{
-      //       name: this.selected.item
-      //     }]
-      //   }]
-      // }];
-
-      // newPrinters[this.printer.cid].orderViews[this.orderViewIndex] = this.orderView;
-
-      // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-      //   {
-      //     old: { _id: this.restaurant._id, printSettings: { printers: oldPrinters } },
-      //     new: { _id: this.restaurant._id, printSettings: { printers: newPrinters } }
-      //   }
-      // ]).toPromise();
-
-      // this.menus = [];
-      // this.editOrderViewModal.hide();
-      // this.clearOrderView();
-      // this.refresh();
-
       this.orderView = {
-        copies: this.orderView.copies,
+        copies: Number(this.orderView.copies),
         format: this.orderView.format,
         template: this.orderView.template,
         customizedRenderingStyles: this.orderView.customizedRenderingStyles,
