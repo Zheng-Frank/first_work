@@ -214,7 +214,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
               printerName: this.printer.printerName,
               format: format.toUpperCase(), // for back compatibility
               url: url,
-              copies: this.orderView.copies || 1
+              copies: this.orderView.copies || 0
             }
           }
         }
