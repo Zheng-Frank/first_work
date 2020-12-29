@@ -1,0 +1,12 @@
+:host ::ng-deep .modal-dialog {
+  max-width: 650px;
+}
+
+[class*="col-"].gutter-3 {
+  padding-left:3px;
+  padding-right:3px;
+}
+.row.gutter-5 {
+  margin-left:-3px;
+  margin-right:-3px
+}

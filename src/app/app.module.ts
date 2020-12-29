@@ -59,7 +59,6 @@ import { RestaurantSalesComponent } from './components/restaurants/restaurant-sa
 import { RestaurantFeeSchedulesComponent } from './components/restaurants/restaurant-fee-schedules/restaurant-fee-schedules.component';
 import { RestaurantPaymentMeansComponent } from './components/restaurants/restaurant-payment-means/restaurant-payment-means.component';
 import { RestaurantServiceSettingsComponent } from './components/restaurants/restaurant-service-settings/restaurant-service-settings.component';
-import { RestaurantCloudPrintingComponent } from './components/restaurants/restaurant-cloud-printing/restaurant-cloud-printing.component';
 import { PromotionEditorComponent } from './components/restaurants/promotion-editor/promotion-editor.component';
 import { PromotionViewerComponent } from './components/restaurants/promotion-viewer/promotion-viewer.component';
 import { RestaurantPromotionsComponent } from './components/restaurants/restaurant-promotions/restaurant-promotions.component';
@@ -192,6 +191,7 @@ import { from } from 'rxjs';
 import { RestarantChainsComponent } from './components/restaurants/restarant-chains/restarant-chains.component';
 import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
 import { ChainComponent } from './components/chains/chain/chain.component';
+import { CloudPrintingSettingsComponent } from './components/restaurants/cloud-printing-settings/cloud-printing-settings.component';
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -239,7 +239,6 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     RestaurantFeeSchedulesComponent,
     RestaurantPaymentMeansComponent,
     RestaurantServiceSettingsComponent,
-    RestaurantCloudPrintingComponent,
     PromotionEditorComponent,
     PromotionViewerComponent,
     RestaurantClosedHoursComponent,
@@ -359,6 +358,7 @@ import { ChainComponent } from './components/chains/chain/chain.component';
     RestarantChainsComponent,
     ChainsDashboardComponent,
     ChainComponent,
+    CloudPrintingSettingsComponent,
 
 
 
