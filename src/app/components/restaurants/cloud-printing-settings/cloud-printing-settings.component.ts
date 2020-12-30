@@ -191,19 +191,31 @@ export class CloudPrintingSettingsComponent implements OnInit {
     this.menus = this.menus.filter(menu => menu.name !== menuName);
   }
 
+  getTestOrderRenderingUrl() {
+    const format = this.orderView.format || 'png';
+    const customizedRenderingStyles = encodeURIComponent(this.orderView.customizedRenderingStyles || '');
+    const menus = encodeURIComponent(JSON.stringify(this.menus || []));
+    const template = this.orderView.template === 'chef' ? 'restaurantOrderPosChef' : 'restaurantOrderPos';
+
+    let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos&injectedStyles=${customizedRenderingStyles}`;
+    if (format === 'esc' || format === 'gdi' || format === 'pdf' || (this.printer.info && this.printer.info.version && +this.printer.info.version.split(".")[0] >= 3)) {
+      // ONLY newest phoenix support chef view so for now
+      url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=${template}&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}&menus=${menus}`;
+      if (format === 'pdf') {
+        url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderFax&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}`;
+      }
+    }
+    return url;
+  }
+
+  previewTestOrder() {
+    window.open(this.getTestOrderRenderingUrl(), "_blank", "scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400");
+  }
+
   async printTestOrder() {
     try {
       const format = this.orderView.format || 'png';
-      const injectedStyles = this.orderView.customizedRenderingStyles || '';
-
-      let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
-      if (format === 'esc' || format === 'gdi' || format === 'pdf' || (this.printer.info && this.printer.info.version && +this.printer.info.version.split(".")[0] >= 3)) {
-        url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderPos&format=${format}${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
-        if (format === 'pdf') {
-          url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderFax&format=${format}${injectedStyles ? ('&injectedStyles=' + encodeURIComponent(injectedStyles)) : ''}`;
-        }
-      }
-
+      const url = this.getTestOrderRenderingUrl();
       await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
         name: "send-phoenix",
         params: {
@@ -214,7 +226,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
               printerName: this.printer.printerName,
               format: format.toUpperCase(), // for back compatibility
               url: url,
-              copies: this.orderView.copies || 0
+              copies: this.orderView.copies || 1 // default to 1
             }
           }
         }
