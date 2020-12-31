@@ -74,13 +74,13 @@ export class CloudPrintingSettingsComponent implements OnInit {
       console.error(error);
       this._global.publishAlert(AlertType.Danger, "Error while toggling 'Use New Settings'");
     }
-    
+
   }
 
   async refresh() {
     this.apiLoading = true;
 
-    this.useNewSettings = this.restaurant['useNewSettings'];
+    this.useNewSettings = (this.restaurant['printSettings'] || {}).useNewSettings;
 
     this.printClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'print-client',
@@ -343,7 +343,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
   }
 
   async pullPrinters(printClient) {
-    
+
     switch (printClient.type) {
       case 'longhorn':
         try {
@@ -441,7 +441,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
             return this._global.publishAlert(AlertType.Danger, "Error occured on client's computer.");
           }
 
-          
+
         }
         this.apiLoading = false;
         this._global.publishAlert(AlertType.Danger, "Timeout");
@@ -450,7 +450,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
         alert('not implemented yet')
         break;
     }
-    
+
   }
 
 }
