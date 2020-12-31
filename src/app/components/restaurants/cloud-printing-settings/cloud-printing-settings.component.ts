@@ -216,12 +216,6 @@ export class CloudPrintingSettingsComponent implements OnInit {
     this.orderViewIndex = orderViewIndex;
     this.printClient = printClient;
 
-    const allMenus = [];
-    (printClient.printers[this.printer.cid] && printClient.printers[this.printer.cid].orderViews || []).map(ov => {
-      (ov.menus || []).map(menu => {
-        allMenus.push(menu)
-      });
-    });
     this.isEditing = isEditing;
     this.menus = isEditing ? JSON.parse(JSON.stringify(orderView.menus)) : [];
     this.orderViewModal.show();
