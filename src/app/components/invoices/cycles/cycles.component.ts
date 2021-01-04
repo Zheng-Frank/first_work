@@ -88,6 +88,8 @@ export class CyclesComponent implements OnInit {
         restaurants: 1,
         balanceThreshold: 1,
         payoutThreshold: 1,
+        createdAt: 1,
+        updatedAt: 1
       },
       limit: 1
     }).toPromise();
@@ -126,8 +128,24 @@ export class CyclesComponent implements OnInit {
       },
     }, 10000);
 
-    const notProcessedRestaurants = restaurants.filter(r => !r.skipAutoInvoicing && !cycleRestaurants.some(cr => cr.restaurant._id === r._id));
+    const skippedAutoInvoicingRestaurants = restaurants.filter(r => r.skipAutoInvoicing && !cycleRestaurants.some(cr => cr.restaurant._id === r._id));
+    // insert a dummy body for skipped auto invoicing restaurants!
+    if (skippedAutoInvoicingRestaurants.length > 0) {
+      const skippedCycleRestaurants = skippedAutoInvoicingRestaurants.map(rt => ({
+        restaurant: rt,
+        cycle: {
+          _id: cycle._id,
+          balanceThreshold: cycle.balanceThreshold,
+          payoutThreshold: cycle.payoutThreshold,
+          toDate: cycle.toDate,
+          createdAt: { $date: cycle.createdAt },
+          updatedAt: { $date: cycle.updatedAt }
+        }
+      }));
+      await this._api.post(environment.qmenuApiUrl + "generic?resource=restaurant-cycle", skippedCycleRestaurants).toPromise();
+    }
 
+    const notProcessedRestaurants = restaurants.filter(r => !r.skipAutoInvoicing && !cycleRestaurants.some(cr => cr.restaurant._id === r._id));
     // batch processing
     const batchSize = 20;
     const batches = Array(Math.ceil(notProcessedRestaurants.length / batchSize)).fill(0).map((i, index) => notProcessedRestaurants.slice(index * batchSize, (index + 1) * batchSize));

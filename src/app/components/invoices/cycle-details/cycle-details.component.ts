@@ -25,6 +25,7 @@ export class CycleDetailsComponent implements OnInit {
   nonCanceledTotal = 0;
   paidTotal = 0;
   sentTotal = 0;
+  skipAutoInvoicingRestaurants = new Set();
 
   blocks = {
     ALL: {
@@ -102,10 +103,11 @@ export class CycleDetailsComponent implements OnInit {
   };
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     this._route.params.subscribe(
-      params => {
+      async params => {
         this.cycleId = params.id;
+        await this.populatePaymentMeansAndDisabled();
         this.loadCycle();
-        this.populatePaymentMeansAndDisabled();
+        console.log(this.skipAutoInvoicingRestaurants)
       });
   }
   ngOnInit() {
@@ -230,11 +232,15 @@ export class CycleDetailsComponent implements OnInit {
       resource: "restaurant",
       projection: {
         paymentMeans: 1,
-        disabled: 1
+        disabled: 1,
+        skipAutoInvoicing: 1,
       },
       limit: 100000
     }).toPromise();
     rtPms.map(rt => {
+      if (rt.skipAutoInvoicing) {
+        this.skipAutoInvoicingRestaurants.add(rt._id);
+      }
       if (rt.disabled) {
         this.disabledSet.add(rt._id);
       }
@@ -345,8 +351,7 @@ export class CycleDetailsComponent implements OnInit {
     this.blocks.SKIPPED_TOO_SMALL.rows = allRows.filter(r => !r.invoice && r.error && r.error.balance);
     this.blocks.SKIPPED_0.rows = allRows.filter(r => !r.invoice && r.error && r.error.balance === 0);
     this.blocks.SKIPPED_ERROR.rows = allRows.filter(r => !r.invoice && r.error && !r.error.hasOwnProperty('balance'));
-    this.blocks.SKIPPED_MANUAL.rows = allRows.filter(r => r.skipAutoInvoicing);
-
+    this.blocks.SKIPPED_MANUAL.rows = allRows.filter(r => r.skipAutoInvoicing || this.skipAutoInvoicingRestaurants.has(r._id));
     this.sort();
   }
 
@@ -394,7 +399,7 @@ export class CycleDetailsComponent implements OnInit {
   }
 
   isRowVisible(row) {
-    const pmItem = this.getPaymentMeans(row);
+    const pmItem = this.getPaymentMeans(row) || {};
     const paymentMeansOk = this.paymentMeansFilter === 'select payment means...' || pmItem.text === this.paymentMeansFilter;
     const details = (pmItem.paymentMeans || {}).details || {};
     const hasCardNumberOrRoutingNumber = details.cardNumber || details.routingNumber;
