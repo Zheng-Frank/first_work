@@ -164,6 +164,25 @@ export class OrderCardComponent implements OnInit {
 
   }
 
+  getTestOrderRenderingUrl(printClient, orderView, menus) {
+    const format = orderView.format || 'png';
+    const customizedRenderingStyles = encodeURIComponent(orderView.customizedRenderingStyles || '');
+    const menusEncoded = encodeURIComponent(JSON.stringify(menus || []));
+    const template = orderView.template === 'chef' ? 'restaurantOrderPosChef' : 'restaurantOrderPos';
+
+    // url: "https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/renderer?orderId=5c720fd092edbd4b28883ee1&template=restaurantOrderPosChef&format=png&customizedRenderingStyles=body%20%7B%20color%3A%20red%3B%20%7D&menus=%5B%7B%22name%22%3A%22All%20Day%20Menu%22%2C%22mcs%22%3A%5B%7B%22name%22%3A%22SPECIAL%20DISHES%22%2C%22mis%22%3A%5B%7B%22name%22%3A%221.Egg%20Roll%20(2)%22%7D%5D%7D%5D%7D%5D"
+
+    let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos&injectedStyles=${customizedRenderingStyles}`;
+    if (format === 'esc' || format === 'gdi' || format === 'pdf' || (printClient.info && printClient.info.version && +printClient.info.version.split(".")[0] >= 3)) {
+      // ONLY newest phoenix support chef view so for now
+      url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=${template}&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}&menus=${menusEncoded}`;
+      if (format === 'pdf') {
+        url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderFax&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}`;
+      }
+    }
+    return url;
+  }
+
   async confirm() {
     switch (this.confirmAction) {
       case 'PRINT':
@@ -183,17 +202,122 @@ export class OrderCardComponent implements OnInit {
         // });
         for (let pc of printClients) {
           for (let printer of pc.printers || []) {
-            if (printer.autoPrintCopies > 0) {
-              try {
-                await this._api.post(environment.appApiUrl + 'biz/orders/send', {
-                  printClientId: pc._id, orderId: this.order.id, type: pc.type, to: printer.name, key: printer.key, orderNumber: this.order.orderNumber, format: printer.format || "png"
-                }).toPromise();
-                this._global.publishAlert(AlertType.Success, `Sent to ${pc.type}: ${printer.name}`);
+            // if (printer.autoPrintCopies > 0) {
+            //   try {
+            //     await this._api.post(environment.appApiUrl + 'biz/orders/send', {
+            //       printClientId: pc._id, orderId: this.order.id, type: pc.type, to: printer.name, key: printer.key, orderNumber: this.order.orderNumber, format: printer.format || "png"
+            //     }).toPromise();
+            //     this._global.publishAlert(AlertType.Success, `Sent to ${pc.type}: ${printer.name}`);
 
-              } catch (error) {
-                console.log(error);
-                this._global.publishAlert(AlertType.Danger, `Failed printing to ${pc.type}: ${printer.name}`);
+            //   } catch (error) {
+            //     console.log(error);
+            //     this._global.publishAlert(AlertType.Danger, `Failed printing to ${pc.type}: ${printer.name}`);
+            //   }
+            // }
+            if (this.restaurant['printSettings'] && this.restaurant['printSettings'].useNewSettings) {
+              // multi-views support!
+              for (let orderView of printer.orderViews || []) {
+                const { copies } = orderView;
+                if (copies > 0) {
+                  const format = orderView.format || "png";
+                  const customizedRenderingStyles = orderView.customizedRenderingStyles || "";
+                  const template = format === "pdf" ? "restaurantOrderFax" : (orderView.template === "chef" ? "restaurantOrderPosChef" : "restaurantOrderPos");
+                  const menus = orderView.menus || [];
+
+                  let orderRenderingUrl;
+                  if (format === "esc" || format === "gdi" || (format === "pdf") || (pc.info && pc.info.version && +pc.info.version.split(".")[0] >= 3)) {
+                    const stage = environment.env;
+                    orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=${template}&format=${format}&customizedRenderingStyles=${encodeURIComponent(customizedRenderingStyles)}&menus=${encodeURIComponent(JSON.stringify(menus))}`;
+                  }
+                  else {
+                    let legacyUrl = 'https://api.myqmenu.com/';
+                    if (environment.env === 'dev') {
+                      legacyUrl = "https://quez.herokuapp.com/";
+                    }
+                    orderRenderingUrl = legacyUrl + 'utilities/order/' + this.order.id + '?format=pos';
+                  }
+
+                  // await prepareJobAndEvent('send-phoenix', {
+                  //   orderId: order._id.toString(),
+                  //   printClientId: pc._id.toString(),
+                  //   data: {
+                  //     type: "PRINT",
+                  //     data: {
+                  //       printerName: printer.name,
+                  //       url: orderRenderingUrl,
+                  //       format: format.toUpperCase(),
+                  //       copies: printer.autoPrintCopies
+                  //     }
+                  //   }
+                  // });
+                  // const url = this.getTestOrderRenderingUrl(pc, orderView, menus);
+
+                  await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+                    name: "send-phoenix",
+                    params: {
+                      printClientId: pc._id,
+                      data: {
+                        "type": "PRINT",
+                        data: {
+                          printerName: printer.name,
+                          format: format.toUpperCase(), // for back compatibility
+                          url: orderRenderingUrl,
+                          copies: printer.copies || 1 // default to 1
+                        }
+                      }
+                    }
+                  }]).toPromise();
+
+                }
               }
+            }
+            else if (printer.autoPrintCopies > 0 && pc.type === "phoenix") {
+              let orderRenderingUrl;
+              const format = printer.format || "png";
+              if (format === "esc" || format === "gdi" || (format === "pdf") || (pc.info && pc.info.version && +pc.info.version.split(".")[0] >= 3)) {
+                const stage = environment.env;
+                orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=restaurantOrderPos&format=${format}`;
+                if (format === "pdf") {
+                  orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=restaurantOrderFax&format=${format}`;
+                }
+              }
+              else {
+                let legacyUrl = 'https://api.myqmenu.com/';
+                if (environment.env === 'dev') {
+                  legacyUrl = "https://quez.herokuapp.com/";
+                }
+                orderRenderingUrl = legacyUrl + 'utilities/order/' + this.order.id + '?format=pos';
+              }
+
+              // await prepareJobAndEvent('send-phoenix', {
+              //   orderId: this.order.id.toString(),
+              //   printClientId: pc._id.toString(),
+              //   data: {
+              //     type: "PRINT",
+              //     data: {
+              //       printerName: printer.name,
+              //       url: orderRenderingUrl,
+              //       format: format.toUpperCase(),
+              //       copies: printer.autoPrintCopies
+              //     }
+              //   }
+              // });
+              await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+                name: "send-phoenix",
+                params: {
+                  printClientId: pc._id,
+                  data: {
+                    "type": "PRINT",
+                    data: {
+                      printerName: printer.name,
+                      format: format.toUpperCase(), // for back compatibility
+                      url: orderRenderingUrl,
+                      copies: printer.settings && printer.settings.copies || 1 // default to 1
+                    }
+                  }
+                }
+              }]).toPromise();
+
             }
           }
         }
@@ -257,8 +381,8 @@ export class OrderCardComponent implements OnInit {
     return this._global.user.roles.some(r => r === 'ADMIN');
   }
 
-  isViewable(order: Order){
-    return this.isAdmin() ||  !(order.payment.paymentType === 'CREDITCARD' &&  order.payment.method === 'KEY_IN')
+  isViewable(order: Order) {
+    return this.isAdmin() || !(order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'KEY_IN')
   }
 
   getUpdatedStatuses() {
@@ -270,7 +394,7 @@ export class OrderCardComponent implements OnInit {
   }
 
   postmatesStatus(status) {
-    switch(status) {
+    switch (status) {
       case 'pickup':
         return 'Picking up the food';
 

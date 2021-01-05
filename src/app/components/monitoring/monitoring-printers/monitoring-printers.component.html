@@ -99,7 +99,7 @@
                 Printers
             </button>
             <button class="btn btn-link d-block" (click)="refreshStatus(row)">Refresh Status</button>
-            <button class="btn btn-link d-block" (click)="printTestOrder(row)" *ngIf="row.printers?.length > 0"> Print Test Order</button>
+            <!-- <button class="btn btn-link d-block" (click)="printTestOrder(row)" *ngIf="row.printers?.length > 0"> Print Test Order</button> -->
             <button class="btn btn-link d-block" (click)="suspendConnection(row)" *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
             <button class="btn btn-link d-block" (click)="emulateUpdate(row)" *ngIf="['phoenix'].indexOf(row.type) >= 0">Emulate Update</button>
             <button class="btn btn-link d-block" (click)="remove(row)"> Delete</button>

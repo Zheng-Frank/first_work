@@ -179,25 +179,83 @@ export class CloudPrintingSettingsComponent implements OnInit {
   }
 
   async printTestOrder() {
+    // try {
+    //   const format = this.orderView.format || 'png';
+    //   const url = this.getTestOrderRenderingUrl();
+
+    //   await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+    //     name: "send-phoenix",
+    //     params: {
+    //       printClientId: this.printClient._id,
+    //       data: {
+    //         "type": "PRINT",
+    //         data: {
+    //           printerName: this.printer.name,
+    //           format: format.toUpperCase(), // for back compatibility
+    //           url: url,
+    //           copies: this.orderView.copies || 1 // default to 1
+    //         }
+    //       }
+    //     }
+    //   }]).toPromise();
+    //   this._global.publishAlert(AlertType.Info, "Print job sent");
+    // } catch (error) {
+    //   console.error(error);
+    //   this._global.publishAlert(AlertType.Danger, "Error while trying to print test order");
+    // }
     try {
-      const format = this.orderView.format || 'png';
-      const url = this.getTestOrderRenderingUrl();
-      await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
-        name: "send-phoenix",
-        params: {
-          printClientId: this.printer._id,
-          data: {
-            "type": "PRINT",
-            data: {
-              printerName: this.printer.printerName,
-              format: format.toUpperCase(), // for back compatibility
-              url: url,
-              copies: this.orderView.copies || 1 // default to 1
+      switch (this.printClient.type) {
+        case 'fei-e':
+
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-order-fei-e",
+            params: {
+              sn: this.printer.name,
+              key: this.printer.key,
+              orderId: environment.testOrderId,
+              copies: this.printer.autoPrintCopies || 1
             }
-          }
-        }
-      }]).toPromise();
-      this._global.publishAlert(AlertType.Info, "Print job sent");
+          }]).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
+
+        case 'longhorn':
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-order-longhorn",
+            params: {
+              printerName: this.printer.name,
+              orderId: environment.testOrderId,
+              copies: this.printer.autoPrintCopies || 1,
+              format: this.printer.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png'
+            }
+          }]).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
+
+        case 'phoenix':
+          const format = this.orderView.format || 'png';
+          const url = this.getTestOrderRenderingUrl();
+
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-phoenix",
+            params: {
+              printClientId: this.printClient._id,
+              data: {
+                "type": "PRINT",
+                data: {
+                  printerName: this.printer.name,
+                  format: format.toUpperCase(), // for back compatibility
+                  url: url,
+                  copies: this.orderView.copies || 1 // default to 1
+                }
+              }
+            }
+          }]).toPromise();
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
+        default:
+          alert('not yet impelemented');
+      }
     } catch (error) {
       console.error(error);
       this._global.publishAlert(AlertType.Danger, "Error while trying to print test order");
@@ -207,7 +265,6 @@ export class CloudPrintingSettingsComponent implements OnInit {
   cancelOrderViewModal() {
     this.orderViewModal.hide();
     this.clearOrderView();
-    console.log('cancelOrderViewModal()');
   }
 
   showOrderViewModal(printer, orderView, orderViewIndex, printClient, isEditing) {
@@ -217,7 +274,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
     this.printClient = printClient;
 
     this.isEditing = isEditing;
-    this.menus = isEditing ? JSON.parse(JSON.stringify(orderView.menus)) : [];
+    this.menus = isEditing ? JSON.parse(JSON.stringify(orderView.menus || [])) : [];
     this.orderViewModal.show();
   }
 
@@ -241,6 +298,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
       }
 
       if (this.isEditing) {
+        const x = newPrinters[this.printer.cid];
         newPrinters[this.printer.cid].orderViews[this.orderViewIndex] = this.orderView;
 
         oldPrinters.map(oldPrinter => delete oldPrinter.cid);
@@ -279,9 +337,9 @@ export class CloudPrintingSettingsComponent implements OnInit {
 
     } catch (error) {
       console.error(error);
+      this.refresh();
       this._global.publishAlert(AlertType.Danger, this.isEditing ? "Error while trying to Edit Order View" : "Error while trying to Add Order View");
     }
-
   }
 
   async deleteOrderView() {
@@ -321,6 +379,8 @@ export class CloudPrintingSettingsComponent implements OnInit {
     const menus = encodeURIComponent(JSON.stringify(this.menus || []));
     const template = this.orderView.template === 'chef' ? 'restaurantOrderPosChef' : 'restaurantOrderPos';
 
+    // url: "https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/renderer?orderId=5c720fd092edbd4b28883ee1&template=restaurantOrderPosChef&format=png&customizedRenderingStyles=body%20%7B%20color%3A%20red%3B%20%7D&menus=%5B%7B%22name%22%3A%22All%20Day%20Menu%22%2C%22mcs%22%3A%5B%7B%22name%22%3A%22SPECIAL%20DISHES%22%2C%22mis%22%3A%5B%7B%22name%22%3A%221.Egg%20Roll%20(2)%22%7D%5D%7D%5D%7D%5D"
+
     let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos&injectedStyles=${customizedRenderingStyles}`;
     if (format === 'esc' || format === 'gdi' || format === 'pdf' || (this.printClient.info && this.printClient.info.version && +this.printClient.info.version.split(".")[0] >= 3)) {
       // ONLY newest phoenix support chef view so for now
@@ -333,7 +393,82 @@ export class CloudPrintingSettingsComponent implements OnInit {
   }
 
   previewTestOrder() {
-    window.open(this.getTestOrderRenderingUrl(), "_blank", "scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400");
+    window.open(this.getTestOrderRenderingUrl(), "_blank", "scrollbars=yes,resizable=yes,top=500,left=500,width=500,height=500");
+  }
+
+  async migrate() {
+    // for (const printClient of this.printClients) {
+    //   // try {
+    //     const oldPrinters = JSON.parse(JSON.stringify(printClient.printers));
+    //     const newPrinters = JSON.parse(JSON.stringify(printClient.printers));
+
+    //     newPrinters.map(printer => {
+    //       printer.orderViews = [{
+    //         copies: printer.autoPrintCopies || null,
+    //         format: printer.format || '',
+    //         customizedRenderingStyles: this.restaurant.customizedRenderingStyles || ''
+    //       }];
+    //     });
+
+    //     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [
+    //       {
+    //         old: { _id: printClient._id, printers: oldPrinters },
+    //         new: { _id: printClient._id, printers: newPrinters }
+    //       }
+    //     ]).toPromise();
+
+    //   // } catch (error) {
+    //   //   console.error(error);
+    //   //   this._global.publishAlert(AlertType.Danger, 'Migration failed');
+    //   // }
+    // }
+
+    // this._global.publishAlert(AlertType.Success, 'Migration completed');
+
+
+    const migratePromiseJob = (printClient) => {
+      return new Promise(async (resolve, reject) => {
+        const oldPrinters = JSON.parse(JSON.stringify(printClient.printers));
+        const newPrinters = JSON.parse(JSON.stringify(printClient.printers));
+
+        newPrinters.map(printer => {
+          printer.orderViews = [{
+            copies: printer.autoPrintCopies || null,
+            format: printer.format || '',
+            customizedRenderingStyles: this.restaurant.customizedRenderingStyles || ''
+          }];
+        });
+
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [
+          {
+            old: { _id: printClient._id, printers: oldPrinters },
+            new: { _id: printClient._id, printers: newPrinters }
+          }
+        ]).toPromise();
+      });
+    }
+
+    const promiseMigrateJobs = [];
+    const failedPromiseMigrateJobs = [];
+
+    for (const printClient of this.printClients) {
+      migratePromiseJob.id = printClient._id;
+      promiseMigrateJobs.push(migratePromiseJob(printClient));
+    }
+
+    // Promise.allSettled shim by Jake Archivald, modified to include error info
+    await Promise.all(promiseMigrateJobs.map(p => p.catch((error) => {
+      failedPromiseMigrateJobs.push({ id: p.id, error });
+      return undefined;
+    })));
+
+    if (failedPromiseMigrateJobs.length === 0) {
+      this._global.publishAlert(AlertType.Success, 'Migration completed');
+    } else {
+      this._global.publishAlert(AlertType.Success, 'Some or all of migration jobs failed');
+      console.log('Failed migrated Jobs:', failedPromiseMigrateJobs);
+    }
+
   }
 
   async pullPrinters(printClient) {
