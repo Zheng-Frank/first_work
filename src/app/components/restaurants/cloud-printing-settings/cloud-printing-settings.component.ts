@@ -452,13 +452,12 @@ export class CloudPrintingSettingsComponent implements OnInit {
     const failedPromiseMigrateJobs = [];
 
     for (const printClient of this.printClients) {
-      migratePromiseJob.id = printClient._id;
       promiseMigrateJobs.push(migratePromiseJob(printClient));
     }
 
     // Promise.allSettled shim by Jake Archivald, modified to include error info
     await Promise.all(promiseMigrateJobs.map(p => p.catch((error) => {
-      failedPromiseMigrateJobs.push({ id: p.id, error });
+      failedPromiseMigrateJobs.push(error);
       return undefined;
     })));
 
