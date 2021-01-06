@@ -428,23 +428,30 @@ export class CloudPrintingSettingsComponent implements OnInit {
 
     const migratePromiseJob = (printClient) => {
       return new Promise(async (resolve, reject) => {
-        const oldPrinters = JSON.parse(JSON.stringify(printClient.printers));
-        const newPrinters = JSON.parse(JSON.stringify(printClient.printers));
+        try {
+          const oldPrinters = JSON.parse(JSON.stringify(printClient.printers));
+          const newPrinters = JSON.parse(JSON.stringify(printClient.printers));
 
-        newPrinters.map(printer => {
-          printer.orderViews = [{
-            copies: printer.autoPrintCopies || null,
-            format: printer.format || '',
-            customizedRenderingStyles: this.restaurant.customizedRenderingStyles || ''
-          }];
-        });
+          newPrinters.map(printer => {
+            printer.orderViews = [{
+              copies: printer.autoPrintCopies || null,
+              format: printer.format || '',
+              customizedRenderingStyles: this.restaurant.customizedRenderingStyles || ''
+            }];
+          });
 
-        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [
-          {
-            old: { _id: printClient._id, printers: oldPrinters },
-            new: { _id: printClient._id, printers: newPrinters }
-          }
-        ]).toPromise();
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=print-client', [
+            {
+              old: { _id: printClient._id, printers: oldPrinters },
+              new: { _id: printClient._id, printers: newPrinters }
+            }
+          ]).toPromise();
+
+          resolve(true);
+
+        } catch (error) {
+          reject(error);
+        }
       });
     }
 
@@ -463,11 +470,11 @@ export class CloudPrintingSettingsComponent implements OnInit {
       if (failedPromiseMigrateJobs.length === 0) {
         this._global.publishAlert(AlertType.Success, 'Migration completed');
       } else {
-        this._global.publishAlert(AlertType.Success, 'Some or all of migration jobs failed');
+        this._global.publishAlert(AlertType.Danger, 'Some or all of migration jobs failed');
         console.log('Failed migrated Jobs:', failedPromiseMigrateJobs);
       }
     });
-    
+
   }
 
   async pullPrinters(printClient) {
