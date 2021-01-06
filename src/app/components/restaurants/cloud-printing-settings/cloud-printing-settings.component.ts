@@ -456,18 +456,18 @@ export class CloudPrintingSettingsComponent implements OnInit {
     }
 
     // Promise.allSettled shim by Jake Archivald, modified to include error info
-    await Promise.all(promiseMigrateJobs.map(p => p.catch((error) => {
+    Promise.all(promiseMigrateJobs.map(p => p.catch((error) => {
       failedPromiseMigrateJobs.push(error);
       return undefined;
-    })));
-
-    if (failedPromiseMigrateJobs.length === 0) {
-      this._global.publishAlert(AlertType.Success, 'Migration completed');
-    } else {
-      this._global.publishAlert(AlertType.Success, 'Some or all of migration jobs failed');
-      console.log('Failed migrated Jobs:', failedPromiseMigrateJobs);
-    }
-
+    }))).then(() => {
+      if (failedPromiseMigrateJobs.length === 0) {
+        this._global.publishAlert(AlertType.Success, 'Migration completed');
+      } else {
+        this._global.publishAlert(AlertType.Success, 'Some or all of migration jobs failed');
+        console.log('Failed migrated Jobs:', failedPromiseMigrateJobs);
+      }
+    });
+    
   }
 
   async pullPrinters(printClient) {
