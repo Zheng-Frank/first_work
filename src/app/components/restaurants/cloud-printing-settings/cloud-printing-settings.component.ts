@@ -58,6 +58,14 @@ export class CloudPrintingSettingsComponent implements OnInit {
     this.refresh();
   }
 
+  printClientHasDefaultPrinters(printClient) {
+    return ((printClient || {}).printers || []).some(printer => printer.autoPrintCopies && printer.autoPrintCopies > 0);
+  }
+
+  isDefaultPrinter(printer) {
+    return printer && printer.autoPrintCopies && printer.autoPrintCopies > 0;
+  }
+
   async toggleUseNewSettings() {
     console.log(this.useNewSettings);
     try {
