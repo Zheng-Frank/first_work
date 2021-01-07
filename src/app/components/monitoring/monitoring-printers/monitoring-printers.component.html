@@ -72,8 +72,7 @@
                     <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
                 </div>
             </div>
-            <q-edit-label [value]="(row.restaurant || {})._id" (edit)="onEditRestaurantId($event, row)">
-            </q-edit-label>
+            <q-edit-label [value]="(row.restaurant || {})._id" (edit)="onEditRestaurantId($event, row)"></q-edit-label>
 
             <div *ngIf="row.restaurant?.disabled">DISABLED RESTAURANT</div>
         </td>
@@ -81,16 +80,13 @@
             <div *ngFor="let printer of (row.printers || [])">
                 <label class="checkbox-inline {{printer.autoPrintCopies > 0 ? '' : 'font-weight-normal text-muted'}}">
                     <input type="checkbox" [ngModel]="printer.autoPrintCopies > 0"
-                        (click)="togglePrinter($event, row, printer)"> {{printer.name}} {{printer.settings?.IsDefaultPrinter ? "(default)" : ""}}
-                </label>
+                        (click)="togglePrinter($event, row, printer)"> {{printer.name}} {{printer.settings?.IsDefaultPrinter ? "(default)" : ""}} </label>
                 <span *ngIf="printer.autoPrintCopies > 0">
                     copies:
-                    <q-edit-label [value]="printer.autoPrintCopies" [type]="'select'" [options]="[1, 2, 3, 4]"
-                        (edit)="updateAutoPrintCopies($event, row, printer)"></q-edit-label>
+                    <q-edit-label [value]="printer.autoPrintCopies" [type]="'select'" [options]="[1, 2, 3, 4]" (edit)="updateAutoPrintCopies($event, row, printer)"></q-edit-label>
                     <ng-container *ngIf="row.type === 'phoenix'">
                         format:
-                        <q-edit-label [value]="printer.format" [type]="'select'" [options]="['', 'esc', 'gdi', 'pdf', 'png2esc']"
-                            (edit)="updateFormat($event, row, printer)"></q-edit-label>
+                        <q-edit-label [value]="printer.format" [type]="'select'" [options]="['', 'esc', 'gdi', 'pdf', 'png2esc']" (edit)="updateFormat($event, row, printer)"></q-edit-label>
                     </ng-container>
                 </span>
 
@@ -99,19 +95,14 @@
             </div>
         </td>
         <td>
-            <button class="btn btn-link d-block" (click)="pullPrinters(row)"
-                *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull
+            <button class="btn btn-link d-block" (click)="pullPrinters(row)" *ngIf="['phoenix', 'longhorn'].indexOf(row.type) >= 0" [qLoading]="busyRows.indexOf(row) >= 0">Pull
                 Printers
             </button>
             <button class="btn btn-link d-block" (click)="refreshStatus(row)">Refresh Status</button>
-            <button class="btn btn-link d-block" (click)="printTestOrder(row)" *ngIf="row.printers?.length > 0">
-                Print Test Order</button>
-            <button class="btn btn-link d-block" (click)="suspendConnection(row)"
-                *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
-            <button class="btn btn-link d-block" (click)="emulateUpdate(row)"
-                *ngIf="['phoenix'].indexOf(row.type) >= 0">Emulate Update</button>
-            <button class="btn btn-link d-block" (click)="remove(row)">
-                Delete</button>
+            <!-- <button class="btn btn-link d-block" (click)="printTestOrder(row)" *ngIf="row.printers?.length > 0"> Print Test Order</button> -->
+            <button class="btn btn-link d-block" (click)="suspendConnection(row)" *ngIf="['phoenix'].indexOf(row.type) >= 0">Suspend Connection (1 minute)</button>
+            <button class="btn btn-link d-block" (click)="emulateUpdate(row)" *ngIf="['phoenix'].indexOf(row.type) >= 0">Emulate Update</button>
+            <button class="btn btn-link d-block" (click)="remove(row)"> Delete</button>
 
         </td>
     </tr>

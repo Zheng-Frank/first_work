@@ -177,7 +177,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           yelpListing: 1,
           phones: 1,
           muteFirstNotifications: 1,
-          muteSecondNotifications: 1
+          muteSecondNotifications: 1,
+          printSettings: 1,
+          useNewSettings: 1
         },
         limit: 1
       })

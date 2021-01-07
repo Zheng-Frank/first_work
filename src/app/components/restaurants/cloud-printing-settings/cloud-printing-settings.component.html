@@ -1,0 +1,198 @@
+<div class="card p-2">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="fas fa-print"></i> Cloud Printing Settings
+  </h3>
+
+  <div class="d-flex flex-column mb-3 align-items-end justify-content-end p-2">
+    <div class="form-inline">
+      <label><input class="form-check-input" type="checkbox" [(ngModel)]="useNewSettings" (change)="toggleUseNewSettings()"> Use New Settings</label>
+    </div>
+    <div>
+      <button type="button" class="btn btn-sm btn-primary" (click)="migrate()">Migrate</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <div *ngFor="let printClient of printClients; let printClientIndex = index" class="m-2">
+    <div *ngIf="printClientHasDefaultPrinters(printClient)" class="d-flex flex-column mb-3 bg-lightgray p-3">
+      <div class="row">
+        <div class="col-sm-2"><strong>Type</strong></div>
+        <div class="col-sm-10">{{printClient.type }}</div>
+      </div>
+      <div class="row">
+        <div class="col-sm-2"><strong>Id</strong></div>
+        <div class="col-sm-10 text-info"><strong>{{printClient?.guid ? printClient?.guid: 'N/A' }}</strong></div>
+      </div>
+      <div class="row">
+        <div class="col-sm-2"><strong>Version</strong></div>
+        <div class="col-sm-10">{{printClient.info?.version || 'N/A'}}</div>
+      </div>
+    </div>
+
+    <div *ngIf="printClientHasDefaultPrinters(printClient)">
+
+      <div class="row">
+        <div class="col-sm-3"><strong>Printer Name</strong> </div>
+        <div class="col-sm-9">
+          <div class="row">
+            <div class="col-sm-2"><strong>Template</strong></div>
+            <div class="col-sm-6"><strong>Menu/Categories/Items</strong></div>
+            <div class="col-sm-2"><strong>Copies</strong></div>
+            <div class="col-sm-2"><strong>Action</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngFor="let printer of printClient.printers || []">
+        <div *ngIf="isDefaultPrinter(printer)" class="row mb-2 border-bottom">
+          <div class="col-sm-3">
+            <div>
+              <small class="{{printer.autoPrintCopies && printer.autoPrintCopies > 0 ? 'font-weight-bold text-success': ''}}">{{ printer.name}}</small>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column col-sm-9 mb-4">
+            <div *ngFor="let orderView of printer.orderViews; let orderViewIndex = index" class="row border-bottom">
+              <div class="col-sm-2 d-flex h-100 align-items-center"><span>{{orderView.template || 'default'}}</span>
+              </div>
+              <div class="col-sm-6">
+                <div>
+                  <span *ngIf="orderView && orderView.menus && orderView.menus.length === 0 || !orderView.menus"><small>All Menus ➜ All Categories ➜ All Items</small></span>
+                  <div *ngFor="let menu of orderView.menus">
+                    <div>
+                      <span><small>{{menu.name ? menu.name: 'All Menus'}}</small></span>
+                      <span *ngFor="let category of menu.mcs">
+                        <span *ngIf="category.name; else noCategoryEdit"><small> ➜ {{category.name}}</small></span>
+                        <ng-template #noCategoryEdit><span><small> ➜ All Categories</small></span></ng-template>
+                        <span *ngFor="let item of category.mis">
+                          <span *ngIf="item.name; else noItemEdit"><small> ➜ {{item.name}}</small></span>
+                          <ng-template #noItemEdit><span><small> ➜ All Items</small></span></ng-template>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-2 d-flex h-100 align-items-center"><span>{{orderView.copies || 1}}</span></div>
+              <div class="col-sm-2">
+                <div class="d-flex h-100 align-items-center">
+                  <button type="button" class="btn btn-link m-0 p-0" (click)="showOrderViewModal(printer, orderView, orderViewIndex, printClient, true)">Edit</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex fjustify-content-start mt-1">
+              <button type="button" class="btn btn-link m-0 p-0" (click)="showOrderViewModal(printer, defaultOrderView, -1, printClient, false)">+ Add Order View</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="d-flex justify-content-end mt-4 mb-3">
+        <button type="button" class="btn btn-sm btn-primary mr-2" (click)="pullPrinters(printClient)" [qLoading]="apiLoading">Pull Printers</button>
+        <!-- <button type="button" class="btn btn-sm btn-primary mr-2" (click)="refreshStatus()">Refresh Status</button> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<q-modal #orderViewModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelOrderViewModal()">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4>{{ isEditing ? 'Edit Order View' : 'Add Order View'}}</h4>
+
+  <div>
+    <label>Menu / Category / Item</label>
+    <div class="d-flex flex-column mb-3">
+      <div class="d-flex flex-column">
+        <div *ngFor="let menu of menus; let menuIndex = index">
+          <div class="d-flex align-items-center">
+            <div class="mr-2"><button type="button" class="btn btn-link m-0 p-0" (click)="deleteMenu(menuIndex)"><i class="far fa-trash-alt"></i></button></div>
+            <span>{{menu.name ? menu.name: 'All Menus'}}</span>
+            <span *ngFor="let category of menu.mcs">
+              <span> ➜ {{category.name? category.name: 'All Categories'}}</span>
+              <span *ngFor="let item of category.mis">
+                <span> ➜ {{item.name ? item.name: 'All Items'}}</span>
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="d-flex">
+      <select class="form-control mr-2" (change)="onMenuSelected($event.target.value)" [(ngModel)]="selected.menu">
+        <option value=""></option>
+        <option *ngFor="let menu of restaurant.menus">{{menu.name}}</option>
+      </select>
+      <select class="form-control mr-2" (change)="onCategorySelected($event.target.value)" [(ngModel)]="selected.category">
+        <option value=""></option>
+        <option *ngFor="let category of categories">{{category.name}}</option>
+      </select>
+      <select class="form-control mr-2" (change)="onItemSelected($event.target.value)" [(ngModel)]="selected.item">
+        <option value=""></option>
+        <option *ngFor="let item of items">{{item.name}}</option>
+      </select>
+      <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-link" (click)="addMenus()">Add</button>
+      </div>
+    </div>
+
+
+    <div class="d-flex flex-column mt-4 mb-2">
+      <label>Copies</label>
+      <select class="form-control" [(ngModel)]="orderView.copies">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+      <label>Format</label>
+      <select class="form-control" [(ngModel)]="orderView.format">
+        <option value="">png</option>
+        <option value="esc">esc</option>
+        <option value="pdf">pdf</option>
+        <option value="png2esc">png2esc</option>
+      </select>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+      <label>Template <span class="text-primary">*</span></label>
+      <select class="form-control" [(ngModel)]="orderView.template">
+        <option value="">default</option>
+        <option value="chef">Chef</option>
+      </select>
+      <small class="text-primary"><strong>* Chef view is supported ONLY on version 3 and above</strong></small>
+    </div>
+
+
+    <div class="d-flex flex-column mb-2">
+      <label>Customized Styles</label>
+      <textarea class="form-control" rows="5" [(ngModel)]="orderView.customizedRenderingStyles"></textarea>
+    </div>
+
+    <div class="d-flex flex-column">
+      <label>Printer Actions</label>
+      <div class="d-flex">
+        <button type="button" class="btn btn-sm btn-primary mr-2" (click)="printTestOrder()">Print Test Order</button>
+        <button type="button" class="btn btn-sm btn-link mr-2" (click)="previewTestOrder()">Preview Test Order</button>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-1">
+      <button type="button" class="btn btn-secondary mr-3" (click)="cancelOrderViewModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" (click)="saveChangesOrderView()">Ok</button>
+    </div>
+
+    <div *ngIf="isEditing" class="d-flex justify-content-end mt-4">
+      <button type="button" class="btn btn-link" (click)="deleteOrderView()">Delete</button>
+    </div>
+
+  </div>
+</q-modal>
