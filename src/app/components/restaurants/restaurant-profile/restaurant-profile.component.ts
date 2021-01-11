@@ -57,7 +57,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'skipShowTax',
     'menuHoursExtended',
     'notes',
-    'insistedPrintCCInfo'
+    'insistedPrintCCInfo',
+    'comebackDate'
 
   ];
 
@@ -87,6 +88,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
   ];
+
+  comebackDate = null;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) { }
 
