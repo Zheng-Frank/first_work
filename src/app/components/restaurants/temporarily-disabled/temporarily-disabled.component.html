@@ -1,0 +1,28 @@
+<h2 class="text-center">Temporarily Disabled Restaurants</h2>
+<div class="text-center">{{restaurants.length}} restaurant(s) shown</div>
+<div class="text-center">
+  <button class="btn btn-link" (click)="refresh()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+</div>
+<div class="clearfix mt-2">
+  <div class="d-flex form-inline">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+    <label class="form-check-label" for="paginationCheck">Pagination</label>
+  </div>
+</div>
+<q-table [rows]="restaurants" [tableColumnDescriptors]="columnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
+  <tr *tableRowTemplate="let rt;">
+    <td class="align-middle">{{restaurants.indexOf(rt) + 1}}</td>
+    <td class="align-middle">
+      <div class="d-flex flex-column">
+        <a target="_blank" href="#/restaurants/{{rt._id}}">{{rt.name}}</a>
+        <small>{{rt._id}}</small>
+        <small class="text-muted">{{rt.googleAddress?.formatted_address}}</small>
+      </div>
+    </td>
+    <td class="align-middle">
+      <div *ngIf="rt.comebackDate !== null">-{{rt.comebackDate | yMMMd}}</div>
+      <div *ngIf="rt.comebackDate === null">Unknown</div>
+    </td>
+  </tr>
+</q-table>
