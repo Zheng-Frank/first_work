@@ -128,6 +128,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           feeSchedules: 1,
           gmbOrigin: 1,
           gmbOwnerHistory: 1,
+          gmbSettings: 1,
           googleAddress: 1,
           googleListing: 1,
           hideOrderStatus: 1,
