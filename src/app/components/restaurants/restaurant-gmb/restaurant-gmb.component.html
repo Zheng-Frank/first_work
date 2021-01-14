@@ -5,6 +5,26 @@
   <div class="alert alert-info" *ngIf="gmbRows.length > 1">
     <h1>{{gmbRows.length}} GMBs</h1>
   </div>
+  <div class="text-left">
+    <div class="form-check mb-2">
+      <span class="mr-4">GMB Sync Categories:</span>
+      <span>
+      <input class="form-check-input" type="checkbox" id="id_syncHours" [checked]="restaurant.gmbSettings?.syncCategories?.indexOf('HOURS') >= 0"
+        (change)="toggleSync($event, 'HOURS')">
+      <label class="form-check-label mr-4" for="id_syncHours">Hours</label>
+    </span>
+    <span>
+      <input class="form-check-input" type="checkbox" id="id_syncWebsites" [checked]="restaurant.gmbSettings?.syncCategories?.indexOf('WEBSITES') >= 0"
+        (change)="toggleSync($event, 'WEBSITES')" disabled="true">
+      <label class="form-check-label mr-4" for="id_syncWebsites">Websites</label>
+    </span>
+    <span>
+      <input class="form-check-input" type="checkbox" id="id_syncService" [checked]="restaurant.gmbSettings?.syncCategories?.indexOf('SERVICE') >= 0"
+        (change)="toggleSync($event, 'SERVICE')" disabled="true">
+      <label class="form-check-label mr-4" for="id_syncService">Service Settings</label>
+    </span>
+    </div>
+  </div>
 
   <div class="card text-right mb-4">
     <div class="card-body">

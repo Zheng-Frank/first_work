@@ -453,4 +453,25 @@ export class RestaurantGmbComponent implements OnInit {
     this.inviteEmail = '';
   }
 
+  async toggleSync(event, field) {
+    try {
+      const syncCategories = (this.restaurant.gmbSettings || {}).syncCategories || [];
+      const newCategories = new Set(syncCategories);      
+      event.target.checked ? newCategories.add(field) : newCategories.delete(field); 
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: this.restaurant._id, "gmbSettings.syncCategories": syncCategories },
+        new: { _id: this.restaurant._id, "gmbSettings.syncCategories": [...newCategories] }
+      }]).toPromise();
+
+      this.restaurant.gmbSettings.syncCategories = [...newCategories];
+
+      this._global.publishAlert(AlertType.Success, 'Updated');
+
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, error);
+    }
+  }
+
+
 }
