@@ -282,7 +282,22 @@ export class GmbAccountListComponent implements OnInit {
 
   async login(event: FormEvent) {
     try {
-      await this._api.post(environment.autoGmbUrl + "login", { email: event.object.email, stayAfterScan: true }).toPromise();
+      const [account] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: "gmbAccount",
+        query: {
+          email: event.object.email
+        },
+        projection: {
+          cookies: 1
+        },
+        limit: 1
+      }).toPromise();
+
+      if(!account || !account.cookies) {
+        throw `Unable to find cookies for ${event.object.email}`;
+      }
+
+      await this._api.post(environment.autoGmbUrl + "login", { email: event.object.email, stayAfterScan: true, cookies: account.cookies }).toPromise();
       event.acknowledge(null);
     }
     catch (error) {
