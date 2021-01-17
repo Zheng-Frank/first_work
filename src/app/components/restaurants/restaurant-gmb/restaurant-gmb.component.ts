@@ -455,9 +455,10 @@ export class RestaurantGmbComponent implements OnInit {
 
   async toggleSync(event, field) {
     try {
-      const syncCategories = (this.restaurant.gmbSettings || {}).syncCategories || [];
-      const newCategories = new Set(syncCategories);      
-      event.target.checked ? newCategories.add(field) : newCategories.delete(field); 
+      if ( !this.restaurant.gmbSettings ) this.restaurant.gmbSettings = {};
+      const syncCategories = this.restaurant.gmbSettings.syncCategories || [];
+      const newCategories = new Set(syncCategories);
+      event.target.checked ? newCategories.add(field) : newCategories.delete(field);
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant._id, "gmbSettings.syncCategories": syncCategories },
@@ -473,5 +474,16 @@ export class RestaurantGmbComponent implements OnInit {
     }
   }
 
-
+  isSyncHours() {
+    return this.restaurant.gmbSettings && this.restaurant.gmbSettings.syncCategories
+      && this.restaurant.gmbSettings.syncCategories.indexOf('HOURS') >= 0;
+  }
+  isSyncWebsites() {
+    return this.restaurant.gmbSettings && this.restaurant.gmbSettings.syncCategories
+      && this.restaurant.gmbSettings.syncCategories.indexOf('WEBSITES') >= 0;
+  }
+  isSyncService() {
+    return this.restaurant.gmbSettings && this.restaurant.gmbSettings.syncCategories
+      && this.restaurant.gmbSettings.syncCategories.indexOf('SERVICE') >= 0;
+  }
 }
