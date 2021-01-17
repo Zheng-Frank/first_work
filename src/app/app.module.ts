@@ -192,6 +192,7 @@ import { RestarantChainsComponent } from './components/restaurants/restarant-cha
 import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
 import { ChainComponent } from './components/chains/chain/chain.component';
 import { CloudPrintingSettingsComponent } from './components/restaurants/cloud-printing-settings/cloud-printing-settings.component';
+import { RestaurantFaxSettingsComponent } from './components/restaurants/fax-settings/fax-settings.component';
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -359,6 +360,7 @@ import { CloudPrintingSettingsComponent } from './components/restaurants/cloud-p
     ChainsDashboardComponent,
     ChainComponent,
     CloudPrintingSettingsComponent,
+    RestaurantFaxSettingsComponent
 
 
 
