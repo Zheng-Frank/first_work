@@ -193,6 +193,7 @@ import { ChainsDashboardComponent } from './components/chains/chains-dashboard/c
 import { ChainComponent } from './components/chains/chain/chain.component';
 import { CloudPrintingSettingsComponent } from './components/restaurants/cloud-printing-settings/cloud-printing-settings.component';
 import { TemporarilyDisabledComponent } from './components/restaurants/temporarily-disabled/temporarily-disabled.component';
+import { RestaurantFaxSettingsComponent } from './components/restaurants/fax-settings/fax-settings.component';
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -361,9 +362,7 @@ import { TemporarilyDisabledComponent } from './components/restaurants/temporari
     ChainComponent,
     CloudPrintingSettingsComponent,
     TemporarilyDisabledComponent,
-
-
-
+    RestaurantFaxSettingsComponent
   ],
   imports: [
     BrowserModule,

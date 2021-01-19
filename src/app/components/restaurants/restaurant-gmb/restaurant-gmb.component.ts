@@ -453,4 +453,37 @@ export class RestaurantGmbComponent implements OnInit {
     this.inviteEmail = '';
   }
 
+  async toggleSync(event, field) {
+    try {
+      if ( !this.restaurant.gmbSettings ) this.restaurant.gmbSettings = {};
+      const syncCategories = this.restaurant.gmbSettings.syncCategories || [];
+      const newCategories = new Set(syncCategories);
+      event.target.checked ? newCategories.add(field) : newCategories.delete(field);
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: this.restaurant._id, "gmbSettings.syncCategories": syncCategories },
+        new: { _id: this.restaurant._id, "gmbSettings.syncCategories": [...newCategories] }
+      }]).toPromise();
+
+      this.restaurant.gmbSettings.syncCategories = [...newCategories];
+
+      this._global.publishAlert(AlertType.Success, 'Updated');
+
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, error);
+    }
+  }
+
+  isSyncHours() {
+    return this.restaurant.gmbSettings && this.restaurant.gmbSettings.syncCategories
+      && this.restaurant.gmbSettings.syncCategories.indexOf('HOURS') >= 0;
+  }
+  isSyncWebsites() {
+    return this.restaurant.gmbSettings && this.restaurant.gmbSettings.syncCategories
+      && this.restaurant.gmbSettings.syncCategories.indexOf('WEBSITES') >= 0;
+  }
+  isSyncService() {
+    return this.restaurant.gmbSettings && this.restaurant.gmbSettings.syncCategories
+      && this.restaurant.gmbSettings.syncCategories.indexOf('SERVICE') >= 0;
+  }
 }
