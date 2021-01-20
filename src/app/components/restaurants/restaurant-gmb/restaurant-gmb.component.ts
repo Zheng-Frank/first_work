@@ -484,6 +484,6 @@ export class RestaurantGmbComponent implements OnInit {
   }
   isSyncService() {
     return this.restaurant.gmbSettings && this.restaurant.gmbSettings.syncCategories
-      && this.restaurant.gmbSettings.syncCategories.indexOf('SERVICE') >= 0;
+      && this.restaurant.gmbSettings.syncCategories.indexOf('SERVICE_SETTINGS') >= 0;
   }
 }
