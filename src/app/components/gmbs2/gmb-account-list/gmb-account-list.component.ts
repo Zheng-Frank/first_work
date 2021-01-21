@@ -76,7 +76,7 @@ export class GmbAccountListComponent implements OnInit {
         isAgencyAcct: 1,
         isYelpEmail: 1
       }
-    }, 50);    
+    }, 40);    
 
     // add 24 hours suspended and duplicate!
     accountList.map(a => {
