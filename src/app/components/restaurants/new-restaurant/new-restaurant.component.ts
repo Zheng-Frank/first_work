@@ -179,7 +179,7 @@ export class NewRestaurantComponent implements OnInit {
         {
           "value": crawledResult.phone,
           "type": 'Phone',
-          "notifications": ['Order']
+          "notifications": ['Order', 'Business']
         }
       ];
     }
