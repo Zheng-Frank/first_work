@@ -1,22 +1,56 @@
 <ng-container *ngIf="gmbRows">
   <div class="text-left">
     <div class="form-check mb-2">
-      <span class="mr-4">GMB Sync Categories:</span>
-      <span>
-        <input class="form-check-input" type="checkbox" id="id_syncHours" [checked]="isSyncHours()"
-          (change)="toggleSync($event, 'HOURS')">
-        <label class="form-check-label mr-4" for="id_syncHours">Hours</label>
-      </span>
-      <span>
-        <input class="form-check-input" type="checkbox" id="id_syncWebsites" [checked]="isSyncWebsites()"
-          (change)="toggleSync($event, 'WEBSITES')" disabled="true">
-        <label class="form-check-label mr-4" for="id_syncWebsites">Websites</label>
-      </span>
-      <span>
-        <input class="form-check-input" type="checkbox" id="id_syncService" [checked]="isSyncService()"
-          (change)="toggleSync($event, 'SERVICE_SETTINGS')">
-        <label class="form-check-label mr-4" for="id_syncService">Service Settings</label>
-      </span>
+      Sync Settings:
+      <table>
+        <tr>
+          <td class="mainCategory">
+            <label class="switch">
+              <input type="checkbox" (click)="toggleSync($event, 'HOURS')" [checked]="isSyncCategory('HOURS')">
+              <div class="slider round"></div>
+            </label>
+            Hours
+          </td>
+          <td class="mainCategory">
+            <label class="switch">
+              <input class="form-check-input" type="checkbox" id="id_syncWebsites"
+                [checked]="isSyncCategory('WEBSITES')" (change)="toggleSync($event, 'WEBSITES')" disabled="true">
+              <div class="slider round"></div>
+            </label>
+            Websites
+          </td>
+          <td class="mainCategory">
+            <label class="switch">
+              <input class="form-check-input" type="checkbox" id="id_syncService"
+                [checked]="isSyncCategory('SERVICE_SETTINGS')" (change)="toggleSync($event, 'SERVICE_SETTINGS')">
+              <div class="slider round"></div>
+            </label>
+            Service Settings
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="subCategory">
+              <input class="form-check-input" type="checkbox" id="id_syncHours"
+                [checked]="isSyncSubCategory('HOURS', 'HOURS_REGULAR')"
+                (change)="toggleSync($event, 'HOURS', 'HOURS_REGULAR')" [disabled]="!isSyncCategory('HOURS')">
+              <label class="form-check-label mr-4" for="id_syncHours">Regular</label>
+            </div>
+            <div class="subCategory">
+              <input class="form-check-input" type="checkbox" id="id_syncHours"
+                [checked]="isSyncSubCategory('HOURS', 'HOURS_SPECIAL_OPEN')"
+                (change)="toggleSync($event, 'HOURS', 'HOURS_SPECIAL_OPEN')" [disabled]="!isSyncCategory('HOURS')">
+              <label class="form-check-label mr-4" for="id_syncHours">Special Open</label>
+            </div>
+            <div class="subCategory">
+              <input class="form-check-input" type="checkbox" id="id_syncHours"
+                [checked]="isSyncSubCategory('HOURS', 'HOURS_SPECIAL_CLOSED')"
+                (change)="toggleSync($event, 'HOURS', 'HOURS_SPECIAL_CLOSED')" [disabled]="!isSyncCategory('HOURS')">
+              <label class="form-check-label mr-4" for="id_syncHours">Special Closed</label>
+            </div>
+          </td>
+        </tr>
+      </table>
     </div>
   </div>
   <div *ngIf="gmbRows.length === 0">
@@ -32,6 +66,7 @@
       <span *ngIf="restaurant.googleListing" class="px-4">Main cid: <strong>{{restaurant.googleListing?.cid}}</strong>
         |
         Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
+      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="syncGmb()">Sync GMB</button>
       <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Revalidate
         "googleListing"</button>
       <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="showInviteGmbUserModal()"

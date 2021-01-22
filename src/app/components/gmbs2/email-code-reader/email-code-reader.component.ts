@@ -268,13 +268,14 @@ background-image: linear-gradient(to right,#cd2730,#fa4b00,#cd2730);' href="http
   async syncGmbMenuHours() {
     try {
       const results = await this._api.post(environment.appApiUrl + "gmb/generic", {
-        name: "sync-gmb-menu-hours",
+        name: "sync-one-rt",
         payload: {
-          "restaurantId": this.restaurant.id
+          "rtId": this.restaurant.id,
+          categories: ['HOURS_REGULAR', 'HOURS_SPECIAL_OPEN'],
+          forceRecent: true,
+          syncDisabled: true
         }
       }).toPromise();
-
-      console.log(results);
 
       this._global.publishAlert(AlertType.Success, `Menu Hours Synced`);
     } catch (error) {
