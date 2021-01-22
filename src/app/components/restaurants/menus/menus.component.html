@@ -13,6 +13,7 @@
       <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices (整体提价)</button>
       <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
         (调整菜单次序)</button>
+      <button class="btn btn-link" (click)="syncGmbMenuHours()">Sync GMB Hours (发布到GMB)</button>
 
     </ng-container>
     <ng-container *ngIf="getMenus().length === 0">

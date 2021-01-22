@@ -189,5 +189,23 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'STRIPE'));
   }
 
+  async syncGmbServiceSettings() {
+    try {
+      await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "sync-one-rt",
+        payload: {
+          "rtId": this.restaurant._id,
+          categories: ['SERVICE_SETTINGS'],
+          forceRecent: true,
+          syncDisabled: true
+        }
+      }).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Synced');
+    }
+    catch (error) {
+      console.error(`Error. Couldn't sync GMB`, error);
+      return false;
+    }
+  }
 }
 
