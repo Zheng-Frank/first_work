@@ -501,24 +501,4 @@ export class RestaurantGmbComponent implements OnInit {
       && this.restaurant.gmbSettings.syncCategories[main][sub]
       && this.restaurant.gmbSettings.syncCategories[main][sub].on;
   }
-
-  async syncGmb(categories) {
-    try {
-      await this._api.post(environment.appApiUrl + "gmb/generic", {
-        name: "sync-one-rt",
-        payload: {
-          "rtId": this.restaurant._id,
-          ...categories ? { categories: categories } : {},
-          forceRecent: true,
-          syncDisabled: true
-        }
-      }).toPromise();
-      this._global.publishAlert(AlertType.Success, 'Synced');
-    }
-    catch (error) {
-      console.error(`Error. Couldn't sync GMB`, error);
-      return false;
-    }
-  }
-
 }

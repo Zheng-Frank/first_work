@@ -65,8 +65,7 @@
         {{restaurant.gmbOrigin.time | date:'shortDate'}} </span>
       <span *ngIf="restaurant.googleListing" class="px-4">Main cid: <strong>{{restaurant.googleListing?.cid}}</strong>
         |
-        Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
-      <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="syncGmb()" [disabled]="true">Sync GMB</button>
+        Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>      
       <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Revalidate
         "googleListing"</button>
       <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="showInviteGmbUserModal()"
