@@ -22,7 +22,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     'IN_PERSON': 'Credit card: swipe in-person',
     'QMENU': 'Credit card: let qMenu collect on behalf of restaurant',
     'KEY_IN': 'Credit card: send numbers to restaurant for key-in',
-    'STRIPE': 'Credit card: deposit to restaurant\'s Stripe account directly'
+    'STRIPE': 'Credit card: deposit to restaurant\'s Stripe account directly',
+    'SPREEDLY': 'Spreedly (configure settings below)'
   };
 
   serviceSettingsInEditing = [];
@@ -35,6 +36,9 @@ export class RestaurantServiceSettingsComponent implements OnInit {
 
   stripePublishableKey;
   stripeSecretKey;
+
+  supportedGateways = [];
+  gateway: any = {};
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPacth: PrunedPatchService) {
   }
@@ -56,6 +60,20 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.populate();
+    this.gateway = { ...(this.restaurant['spreedlyGateway'] || {}) };
+  }
+
+  async populate() {
+    this.supportedGateways = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'payment-gateway',
+      query: { gateway_type: { $nin: ['stripe', 'stripe_payment_intents'] } },
+      projection: {
+        name: 1,
+        gateway_type: 1,
+        auth_modes: 1
+      },
+    }, 100);
   }
 
   isServiceEnabled(service) {
@@ -105,8 +123,9 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     } else {
       service.paymentMethods.push(paymentMethod);
       // also remove mutually exclusive payment types!
-      const mutexTypes = ['QMENU', 'KEY_IN', 'STRIPE', 'IN_PERSON'];
+      const mutexTypes = ['QMENU', 'KEY_IN', 'STRIPE', 'IN_PERSON', 'SPREEDLY'];
       if (mutexTypes.indexOf(paymentMethod) >= 0) {
+        this.gateway = {};
         mutexTypes.filter(mt => mt !== paymentMethod).map(type => {
           if (service.paymentMethods.indexOf(type) >= 0) {
             service.paymentMethods.splice(service.paymentMethods.indexOf(type), 1);
@@ -187,6 +206,43 @@ export class RestaurantServiceSettingsComponent implements OnInit {
 
   shouldShowStripeInput() {
     return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'STRIPE'));
+  }
+
+  shouldShowSpreedlyInput() {
+    return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'SPREEDLY'));
+  }
+
+  changeGateway(gatewayType) {
+    this.gateway = {};
+    this.gateway.gateway_type = gatewayType;
+    this.gateway.credentials = this.getCredentialFields(gatewayType)
+  }
+
+  getCredentialFields(gatewayType) {
+    const gateway = this.supportedGateways.find(g => g.gateway_type === gatewayType);
+
+    if (gateway) {
+      const authMode = (gateway && gateway.auth_modes || []).find(a => a.auth_mode_type === 'default');
+      if (authMode) {
+        if (authMode.credentials && authMode.credentials.length > 0) {
+          return authMode.credentials;
+        } else {
+          console.log('no credentials found');
+        }
+
+      } else {
+        console.log('no default auth mode');
+      }
+    } else {
+      console.log('gateway type not found');
+    }
+  }
+
+  createGateway() {
+
+    // ask for confirmation when rt has already spreedlyGAteway field set and with gateway_type
+    console.log(this.gateway);
+
   }
 
 }

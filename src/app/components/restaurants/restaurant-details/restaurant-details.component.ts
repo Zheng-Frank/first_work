@@ -5,7 +5,6 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { rS } from '@angular/core/src/render3';
 
 declare var $: any;
 
@@ -180,7 +179,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           muteFirstNotifications: 1,
           muteSecondNotifications: 1,
           printSettings: 1,
-          useNewSettings: 1
+          useNewSettings: 1,
+          spreedlyGateway: 1
         },
         limit: 1
       })

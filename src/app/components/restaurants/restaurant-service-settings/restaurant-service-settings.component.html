@@ -100,8 +100,39 @@
 
             </div>
           </div>
-
         </div>
+
+        <div *ngIf="shouldShowSpreedlyInput()" class="mb-4 pb-2">
+          <h5>Spreedly Gateway Setup</h5>
+
+          <div class="row d-flex align-items-center mb-3 mt-4">
+            <div class="col-sm-2">
+              <label>Gateway</label>
+            </div>
+            <div class="col-sm-10">
+              <select class="form-control" ngDefaultControl [(ngModel)]="gateway.gateway_type" (change)="changeGateway($event.target.value)">
+                <option value="" selected>-- Select a Payment Processor ---</option>
+                <option *ngFor="let gateway of supportedGateways" value="{{gateway.gateway_type}}">{{gateway.name}}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row d-flex align-items-center mb-3" *ngFor="let credential of gateway.credentials">
+            <div class="col-sm-2">
+              <label>{{credential.label}}</label>
+            </div>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" [(ngModel)]="gateway[credential.name]">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end">
+            <button class="btn btn-sm btn-primary" (click)="createGateway()">Create Gateway</button>
+          </div>
+        </div>
+
+        <hr>
+
         <div>
           <label class="switch">
             <input type="checkbox" (click)="toggleZipcode()" [checked]="requireZipcode">
