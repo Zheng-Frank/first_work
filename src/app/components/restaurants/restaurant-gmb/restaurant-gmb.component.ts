@@ -310,7 +310,10 @@ export class RestaurantGmbComponent implements OnInit {
         ]).toPromise();
         this._global.publishAlert(AlertType.Success, 'Matched existing GMB');
 
-      } else if (this.restaurant.googleListing && this.restaurant.googleListing.address.indexOf(this.restaurant.googleAddress.postal_code) >= 0 && this.restaurant.googleAddress.postal_code) {
+      } else if (this.restaurant.googleListing &&
+        this.restaurant.googleListing.address &&
+        this.restaurant.googleListing.address.indexOf(this.restaurant.googleAddress.postal_code) >= 0 &&
+        this.restaurant.googleAddress.postal_code) {
         await this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbBiz', [
           { ...this.restaurant.googleListing, qmenuId: this.restaurant.id || this.restaurant['_id'] }
         ]).toPromise();
@@ -450,4 +453,52 @@ export class RestaurantGmbComponent implements OnInit {
     this.inviteEmail = '';
   }
 
+  async toggleSync(event, category, subCategory) {
+    try {
+      if (!this.restaurant.gmbSettings) this.restaurant.gmbSettings = {};
+      if (!this.restaurant.gmbSettings.syncCategories) this.restaurant.gmbSettings.syncCategories = {};
+      if (!this.restaurant.gmbSettings.syncCategories[category]) this.restaurant.gmbSettings.syncCategories[category] = {};
+
+      let oldObj = { _id: this.restaurant._id };
+      let newObj = Object.assign({}, oldObj);
+      if (!subCategory) {
+        const old = this.restaurant.gmbSettings.syncCategories[category].on;
+        this.restaurant.gmbSettings.syncCategories[category].on = !old;
+
+        oldObj[`gmbSettings.syncCategories.${category}.on`] = old;
+        newObj[`gmbSettings.syncCategories.${category}.on`] = !old; //FIXME
+
+      } else {
+        if (!this.restaurant.gmbSettings.syncCategories[category][subCategory])
+          this.restaurant.gmbSettings.syncCategories[category][subCategory] = {};
+        const old = this.restaurant.gmbSettings.syncCategories[category][subCategory].on;
+        this.restaurant.gmbSettings.syncCategories[category][subCategory].on = !old;
+
+        oldObj[`gmbSettings.syncCategories.${category}.${subCategory}.on`] = old;
+        newObj[`gmbSettings.syncCategories.${category}.${subCategory}.on`] = !old;
+      }
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: oldObj,
+        new: newObj
+      }]).toPromise();
+
+      this._global.publishAlert(AlertType.Success, 'Updated');
+
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, error);
+    }
+  }
+
+  isSyncCategory(category) {
+    return this.restaurant.gmbSettings
+      && this.restaurant.gmbSettings.syncCategories
+      && this.restaurant.gmbSettings.syncCategories[category]
+      && this.restaurant.gmbSettings.syncCategories[category].on;
+  }
+  isSyncSubCategory(main, sub) {
+    return this.isSyncCategory(main)
+      && this.restaurant.gmbSettings.syncCategories[main][sub]
+      && this.restaurant.gmbSettings.syncCategories[main][sub].on;
+  }
 }

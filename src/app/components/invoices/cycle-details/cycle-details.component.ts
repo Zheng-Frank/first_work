@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { AlertType } from 'src/app/classes/alert-type';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
@@ -10,7 +11,11 @@ import { environment } from 'src/environments/environment';
 })
 export class CycleDetailsComponent implements OnInit {
 
+  isLastCycle = true;
   cycle;
+  restaurantCycleList = [];
+  invoiceList = [];
+  restaurantInvoiceDict = {};
 
   activeBlockName;
   activeBlock;
@@ -20,6 +25,7 @@ export class CycleDetailsComponent implements OnInit {
   nonCanceledTotal = 0;
   paidTotal = 0;
   sentTotal = 0;
+  skipAutoInvoicingRestaurants = new Set();
 
   blocks = {
     ALL: {
@@ -85,12 +91,23 @@ export class CycleDetailsComponent implements OnInit {
   paymentMeansFilter = "select payment means...";
   paymentFrequencyFilter = "select usage frequency...";
 
+  invoiceProjection = {
+    isCanceled: 1,
+    isPaymentCompleted: 1,
+    isPaymentSent: 1,
+    isSent: 1,
+    commission: 1,
+    balance: 1,
+    cycleId: 1,
+    "restaurant.id": 1
+  };
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     this._route.params.subscribe(
-      params => {
+      async params => {
         this.cycleId = params.id;
-        this.loadCycle(params.id);
-        this.populatePaymentMeansAndDisabled();
+        await this.populatePaymentMeansAndDisabled();
+        this.loadCycle();
+        console.log(this.skipAutoInvoicingRestaurants)
       });
   }
   ngOnInit() {
@@ -110,7 +127,7 @@ export class CycleDetailsComponent implements OnInit {
   async processOne(row) {
     console.log(row);
     try {
-      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/process', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/process', { invoiceId: row.invoice._id, restaurantCycleId: row.rcId }).toPromise();
       console.log(message);
     } catch (error) {
       console.log(error);
@@ -122,12 +139,12 @@ export class CycleDetailsComponent implements OnInit {
     console.log(row);
     this.paying = true;
     try {
-      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/pay', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/pay', { invoiceId: row.invoice._id, restaurantCycleId: row.rcId }).toPromise();
       console.log(message);
     } catch (error) {
       console.log(error);
     }
-    await this.recalculate();
+    await this.reloadInvoice(row.invoice._id);
     this.paying = false;
   }
 
@@ -136,12 +153,12 @@ export class CycleDetailsComponent implements OnInit {
     console.log(row);
     this.sending = true;
     try {
-      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/send', { invoiceId: row.invoice._id, cycleId: this.cycleId }).toPromise();
+      const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/send', { invoiceId: row.invoice._id, restaurantCycleId: row.rcId }).toPromise();
       console.log(message);
     } catch (error) {
       console.log(error);
     }
-    await this.recalculate();
+    await this.reloadInvoice(row.invoice._id);
     this.sending = false;
   }
 
@@ -153,19 +170,24 @@ export class CycleDetailsComponent implements OnInit {
       this.processing = true;
       this.processingMessages.unshift('finding unprocessed...');
       // first, recalculate all
-      await this.recalculate();
-      const unprocessedRestaurants = this.cycle.restaurants.filter(r => r.invoice && !['isCanceled', 'isPaymentCompleted', 'isPaymentSent', 'isSent'].some(state => r.invoice[state]));
-      this.processingMessages.unshift(`found ${unprocessedRestaurants.length}`);
+      await this.loadCycle();
+
+      const unprocessedRows = this.restaurantCycleList.filter(row => {
+        const invoice = this.restaurantInvoiceDict[row.restaurant._id];
+        return invoice && !['isCanceled', 'isPaymentCompleted', 'isPaymentSent', 'isSent'].some(state => invoice[state]);
+      });
+
+      this.processingMessages.unshift(`found ${unprocessedRows.length}`);
       // let's order by balance: so we process out sending ones first
-      unprocessedRestaurants.sort((rt1, rt2) => rt1.invoice.balance - rt2.invoice.balance);
-      console.log(unprocessedRestaurants);
-      for (let rt of unprocessedRestaurants) {
+      unprocessedRows.sort((row1, row2) => this.restaurantInvoiceDict[row1.restaurant._id].balance - this.restaurantInvoiceDict[row2.restaurant._id].balance);
+      console.log(unprocessedRows);
+      for (let row of unprocessedRows) {
         if (!this.processing) {
           break;
         }
         try {
-          this.processingMessages.unshift(`processing ${rt.name}...`);
-          const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/process', { invoiceId: rt.invoice._id, cycleId: this.cycleId }).toPromise();
+          this.processingMessages.unshift(`processing ${row.restaurant.name}...`);
+          const message = await this._api.post(environment.invoicingApiUrl + 'invoicing/process', { invoiceId: this.restaurantInvoiceDict[row.restaurant._id]._id, restaurantCycleId: row._id }).toPromise();
           console.log(message);
           this.processingMessages.unshift(`done: ${message}`);
         } catch (error) {
@@ -179,31 +201,30 @@ export class CycleDetailsComponent implements OnInit {
             this.processingMessages.length = 20;
           }
         }
+        await this.reloadInvoice(this.restaurantInvoiceDict[row.restaurant._id]._id);
       }
-      await this.recalculate();
+      await this.loadCycle();
       this.processingMessages.unshift(`ALL DONE!`);
       this.processing = false;
     }
   }
 
   async resetDangling() {
-    const danglingErredRestaurants = this.cycle.restaurants.filter(rt => rt.error === 'dangling invoices found');
-    // const danglingErredRestaurants = this.cycle.restaurants.filter(rt => rt.error === "start date is too old to auto process");
-    // const newRestaurants = JSON.parse(JSON.stringify(this.cycle.restaurants));
-    for (let rt of danglingErredRestaurants) {
-      delete rt.error;
-    }
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=cycle', [
-      {
-        old: {
-          _id: this.cycle._id
-        },
-        new: {
-          _id: this.cycle._id,
-          restaurants: this.cycle.restaurants
-        }
+    const danglingErredRestaurants = this.blocks.ALL.rows.filter(rt => rt.error === 'dangling invoices found');
+    // we just need to delete ALL restaurant-cycle of dangling
+    if (danglingErredRestaurants.length > 0) {
+      try {
+        await this._api.delete(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant-cycle',
+          ids: danglingErredRestaurants.map(d => d.rcId)
+        }).toPromise();
+        this._global.publishAlert(AlertType.Success, `Reset ${danglingErredRestaurants.length}`);
+      } catch (error) {
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(error), 120000);
       }
-    ]).toPromise();
+    } else {
+      this._global.publishAlert(AlertType.Danger, 'No dangling restaurants found');
+    }
   }
 
   async populatePaymentMeansAndDisabled() {
@@ -211,11 +232,15 @@ export class CycleDetailsComponent implements OnInit {
       resource: "restaurant",
       projection: {
         paymentMeans: 1,
-        disabled: 1
+        disabled: 1,
+        skipAutoInvoicing: 1,
       },
       limit: 100000
     }).toPromise();
     rtPms.map(rt => {
+      if (rt.skipAutoInvoicing) {
+        this.skipAutoInvoicingRestaurants.add(rt._id);
+      }
       if (rt.disabled) {
         this.disabledSet.add(rt._id);
       }
@@ -252,18 +277,61 @@ export class CycleDetailsComponent implements OnInit {
       };
     });
   }
-  async loadCycle(id) {
-    const existingCycles = await this._api.get(environment.qmenuApiUrl + "generic", {
+  async loadCycle() {
+    const allCycles = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "cycle",
+      query: {},
+      projection: {
+        createdAt: 1
+      },
+      limit: 1000000
+    }).toPromise();
+
+    allCycles.sort((c1, c2) => new Date(c1.createdAt).valueOf() - new Date(c2.createdAt).valueOf());
+    this.isLastCycle = allCycles[allCycles.length - 1]._id === this.cycleId;
+    const [existingCycle] = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "cycle",
       query: {
-        _id: { $oid: id }
+        _id: { $oid: this.cycleId }
+      },
+      projection: {
+        restaurants: 0, // moved restaurants to new structure, so no need to load them!
       },
       limit: 1
     }).toPromise();
-    this.cycle = existingCycles[0];
 
+    this.cycle = existingCycle;
+
+    const restaurantCycles = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant-cycle",
+      query: {
+        "cycle._id": this.cycle._id
+      },
+      projection: {
+        cycle: 0,
+        "restaurant.error.screenshot": 0,
+      }
+    }, 7000); // assuming 7000
+    this.restaurantCycleList = restaurantCycles;
+
+    const invoices = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "invoice",
+      query: {
+        "cycleId": this.cycle._id
+      },
+      projection: this.invoiceProjection,
+    }, 7000); // assuming 7000
+    this.invoiceList = invoices;
+
+    this.invoiceList.map(invoice => {
+      this.restaurantInvoiceDict[invoice.restaurant.id] = invoice;
+    });
     // compute!
-    const allRows = this.cycle.restaurants.filter(r => r).slice(0);
+    this.computeAndSort();
+  }
+
+  private computeAndSort() {
+    const allRows = this.restaurantCycleList.filter(rc => rc.restaurant).map(rc => ({ ...rc.restaurant, rcId: rc._id, invoice: this.restaurantInvoiceDict[rc.restaurant._id] }));
     this.blocks.ALL.rows = allRows;
     this.blocks.INVOICES.rows = allRows.filter(r => r.invoice);
     this.blocks.SKIPPED.rows = allRows.filter(r => !r.invoice && r.error);
@@ -283,8 +351,7 @@ export class CycleDetailsComponent implements OnInit {
     this.blocks.SKIPPED_TOO_SMALL.rows = allRows.filter(r => !r.invoice && r.error && r.error.balance);
     this.blocks.SKIPPED_0.rows = allRows.filter(r => !r.invoice && r.error && r.error.balance === 0);
     this.blocks.SKIPPED_ERROR.rows = allRows.filter(r => !r.invoice && r.error && !r.error.hasOwnProperty('balance'));
-    this.blocks.SKIPPED_MANUAL.rows = allRows.filter(r => r.skipAutoInvoicing);
-
+    this.blocks.SKIPPED_MANUAL.rows = allRows.filter(r => r.skipAutoInvoicing || this.skipAutoInvoicingRestaurants.has(r._id));
     this.sort();
   }
 
@@ -322,69 +389,6 @@ export class CycleDetailsComponent implements OnInit {
 
   }
 
-  async recalculate() {
-    // refresh cycle first
-    await this.loadCycle(this.cycleId);
-    // get ALL invoices
-    const invoiceIdRowDict = {};
-    this.cycle.restaurants.map(r => {
-      if (r && r.invoice) {
-        invoiceIdRowDict[r.invoice._id] = r.invoice;
-      }
-    });
-
-    const allIds = Object.keys(invoiceIdRowDict);
-    const batchSize = 150;
-    let batchedIds = Array(Math.ceil(allIds.length / batchSize)).fill(0).map((i, index) => allIds.slice(index * batchSize, (index + 1) * batchSize));
-
-    const invoices = [];
-    for (let batch of batchedIds) {
-      const batchedInvoices = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "invoice",
-        query: {
-          _id: { $in: batch.map(id => ({ $oid: id })) }
-        },
-        projection: {
-          isCanceled: 1,
-          isPaymentCompleted: 1,
-          isPaymentSent: 1,
-          isSent: 1,
-          commission: 1
-        },
-        limit: 100000
-      }).toPromise();
-      invoices.push(...batchedInvoices);
-    }
-
-    let updated = false;
-    ['isCanceled', 'isPaymentCompleted', 'isPaymentSent', 'isSent', 'commission'].map(field => {
-      invoices.map(invoice => {
-        const cycleInvoice = invoiceIdRowDict[invoice._id];
-        if (cycleInvoice[field] !== invoice[field]) {
-          updated = true;
-          cycleInvoice[field] = invoice[field];
-          if (invoice[field] === undefined) {
-            delete cycleInvoice[field];
-          }
-        }
-      });
-    });
-    if (updated) {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=cycle', [
-        {
-          old: {
-            _id: this.cycle._id
-          },
-          new: {
-            _id: this.cycle._id,
-            restaurants: this.cycle.restaurants
-          }
-        }
-      ]).toPromise();
-      this.loadCycle(this.cycleId);
-    }
-  }
-
   getPaymentMeans(row) {
     return this.paymentMeansDict[row._id + (row.invoice && row.invoice.balance > 0 ? 'Send' : 'Receive')];
   }
@@ -395,7 +399,7 @@ export class CycleDetailsComponent implements OnInit {
   }
 
   isRowVisible(row) {
-    const pmItem = this.getPaymentMeans(row);
+    const pmItem = this.getPaymentMeans(row) || {};
     const paymentMeansOk = this.paymentMeansFilter === 'select payment means...' || pmItem.text === this.paymentMeansFilter;
     const details = (pmItem.paymentMeans || {}).details || {};
     const hasCardNumberOrRoutingNumber = details.cardNumber || details.routingNumber;
@@ -432,6 +436,20 @@ export class CycleDetailsComponent implements OnInit {
         }
       });
     }
+  }
+
+  private async reloadInvoice(invoiceId) {
+    const [invoice] = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "invoice",
+      query: {
+        "_id": { $oid: invoiceId }
+      },
+      projection: this.invoiceProjection,
+    }).toPromise(); // assuming 7000
+    // update the invoiceList and restaurantInvoiceMap
+    this.invoiceList = this.invoiceList.map(i => i._id === invoice._id ? invoice : i);
+    this.restaurantInvoiceDict[invoice.restaurant.id] = invoice;
+    this.computeAndSort();
   }
 
 }

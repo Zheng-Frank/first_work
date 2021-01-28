@@ -51,6 +51,7 @@ import { MonitoringOnboardingComponent } from './components/monitoring/monitorin
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
 import { InvalidListComponent } from './components/restaurants/invalid-list/invalid-list.component';
 import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
+import { TemporarilyDisabledComponent } from './components/restaurants/temporarily-disabled/temporarily-disabled.component';
  
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
@@ -102,6 +103,7 @@ const routes: Routes = [
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'invalid-list', component: InvalidListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR','MARKETER_INTERNAL'] } },
+  { path: 'temporarily-disabled', component: TemporarilyDisabledComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR','MARKETER_INTERNAL'] } },
   { path: '**', redirectTo: '/home' }
 ];
 
