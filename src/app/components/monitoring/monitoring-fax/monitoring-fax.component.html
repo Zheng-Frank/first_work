@@ -1,23 +1,30 @@
-<button class="btn btn-primary" (click)="findPhaxioFailedNumbers()">Execute</button>
+<div class="card">
+  <h2 class="card-title m-3">
+    <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a>
+  </h2>
+  <div class="card-body">
+    <button class="btn btn-primary" (click)="findPhaxioFailedNumbers()">Fax Problems ({{rows.length}})</button>
+    <br/> <br/> <br/>
+    <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+      <tr *tableRowTemplate="let row;" class="{{!row.succeededOnce ? 'text-danger' : ''}}">
+        <td>
+          <a target="_blank" href="#/restaurants/{{row.restaurant?._id}}">{{row.restaurant?.name}}</a>
+          <div><small>{{row.restaurant?._id}}</small></div>
+        </td>
+        <td>
+          {{row.phone}}
+        </td>
+        <td>
+          {{ getErrorsCount(row)}}
+        </td>
+        <td>
+          <div *ngFor="let error of row.errorList">
+            {{error}}
 
-<q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-    <tr *tableRowTemplate="let row;" class="{{!row.succeededOnce ? 'text-danger' : ''}}">
-        <td>
-            <a target="_blank" href="#/restaurants/{{row.restaurant?._id}}">{{row.restaurant?.name}}</a>
-            <div><small>{{row.restaurant?._id}}</small></div>
-        </td>
-        <td>
-            {{row.phone}}
-        </td>
-        <td>
-            {{ getErrorsCount(row)}}
-        </td>
-        <td>
-            <div *ngFor="let error of row.errorList">
-                {{error}}
-
-            </div>
+          </div>
         </td>
         <td>{{row.succeededOnce}}</td>
-    </tr>
-</q-table>
+      </tr>
+    </q-table>
+  </div>
+</div>

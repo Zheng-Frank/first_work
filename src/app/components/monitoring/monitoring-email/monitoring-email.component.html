@@ -1,16 +1,23 @@
-<button class="btn btn-primary" (click)="findFailedEmails()">Execute</button>
-
-<q-table [rows]="badSnsEventRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-    <tr *tableRowTemplate="let row;">
+<div class="card">
+  <h2 class="card-title m-3">
+    <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a>
+  </h2>
+  <div class="card-body">
+    <button class="btn btn-primary" (click)="findFailedEmails()">Email Problems({{badSnsEventRows.length}}) </button>
+    <br/> <br/> <br/>
+    <q-table [rows]="badSnsEventRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+      <tr *tableRowTemplate="let row;">
         <td>
-            <a target="_blank" href="#/restaurants/{{getRestaurant(row)?._id}}">{{getRestaurant(row)?.name}}</a>
-            <div><small>{{getRestaurant(row)?._id}}</small></div>
+          <a target="_blank" href="#/restaurants/{{getRestaurant(row)?._id}}">{{getRestaurant(row)?.name}}</a>
+          <div><small>{{getRestaurant(row)?._id}}</small></div>
         </td>
         <td>
-            {{row.params.mail.destination[0]}}
+          {{row.params.mail.destination[0]}}
         </td>
         <td>
-            {{ row.params.notificationType}}
+          {{ row.params.notificationType}}
         </td>
-    </tr>
-</q-table>
+      </tr>
+    </q-table>
+  </div>
+</div>
