@@ -3,7 +3,7 @@
         <div class="col-md-12">
             <!-- <input type="text" [(ngModel)]="searchText" class="form-control" placeholder="search order#, phone, name..."> -->
             <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
-                class="form-control" placeholder="search order#">
+                class="form-control" placeholder="Search by order# or phone">
         </div>
         <div *ngIf="searchText" class="text-muted">Found: {{orders.length}}</div>
     </div>
@@ -14,7 +14,7 @@
             <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
                 (onReject)="handleOnReject($event)" 
                 (onUndoReject)="handleOnUndoReject($event)"
-                (onBan)="handleOnBan($event)"
+                (onBan)="handleOnBan($event)"  
                 (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
                 (onChangeToSelfDelivery)="handleOnChangeToSelfDelivery($event)">
 
@@ -110,7 +110,7 @@
         <div class="alert-success mt-1 mt-1">Banned customers will NOT see the reasons.</div>
 
         <h5 class="pt-1 pb-1">Reasons (check all that applies)</h5>
-        <app-ban-customer (onBan)="okBan($event)"></app-ban-customer>
+        <app-ban-customer (onBan)="okBan($event)" ></app-ban-customer>
 
     </q-modal>
 
