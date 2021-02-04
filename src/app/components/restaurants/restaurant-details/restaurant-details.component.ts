@@ -181,7 +181,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           muteSecondNotifications: 1,
           printSettings: 1,
           useNewSettings: 1,
-          comebackDate: 1
+          comebackDate: 1,
+          ccMinimumCharge: 1
         },
         limit: 1
       })
