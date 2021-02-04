@@ -11,7 +11,7 @@
       {{getCustomerName(order)}}
     </h4>
     <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
-
+   <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
     <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
       <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
     </div>
@@ -116,8 +116,11 @@
       </div>
       <div class="text-right">
         <hr>
-        <a role="button" class="text-danger text-nowrap card-link" (click)="ban()">
-          <i class="fa fa-thumbs-down"></i> Ban</a>
+        <a role="button" class="text-danger text-nowrap card-link" (click)="ban(order)" *ngIf="!isBanned(order)">
+          <i class="fa fa-thumbs-down" ></i> Ban</a>
+          <a role="button" class="text-danger text-nowrap card-link" (click)="ban(order)"  *ngIf="isBanned(order)">
+            <i class="fa fa-thumbs-up" ></i> Unban</a>
+
         <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order) && !isCanceled(order)">
           <i class="fa fa-times"></i> Cancel</a>
         <a role="button" class="text-danger text-nowrap card-link" (click)="undoCancel()" *ngIf="canCancel(order) && isCanceled(order)">
