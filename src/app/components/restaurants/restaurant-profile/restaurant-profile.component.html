@@ -266,9 +266,26 @@
 							</td>
 						</tr>
 						<tr *ngIf="isAdmin()">
-							<th class="text-right">Disabled</th>
+							<th class="text-right p-0">Disabled</th>
 							<td class="pl-1">
-								<input type="checkbox" [(ngModel)]="disabled">
+								<div class="d-flex flex-column">
+									<input type="checkbox" [(ngModel)]="disabled" (ngModelChange)="disabledHandle()">
+									<div *ngIf="disabled" class="mt-3">
+										<div>
+											<small class="font-weight-bold">Disable it temporarily?</small>
+											<q-simple-radio [(ngModel)]="isTemporarilyDisabled" [equalWidth]="true" [values]="['Yes', 'No']" (ngModelChange)="disabledHandle()"></q-simple-radio>
+											<div *ngIf="isTemporarilyDisabled === 'Yes'">
+												<small class="font-weight-bold">Comeback Date</small>
+												<input type="date" class="form-control" [(ngModel)]="comebackDate" [min]="now">
+												<div class="d-flex justify-content-end">
+													<small *ngIf="isComebackDateCorrectlySet" class="text-success mt-1">Done</small>
+													<button *ngIf="!isComebackDateCorrectlySet" class="btn btn-link m-0 p-0" (click)="setComebackDateAsUnknown()"><small>Set as unknown date</small></button>
+												</div>
+											</div>
+										</div>
+									</div>
+									
+								</div>
 							</td>
 						</tr>
 

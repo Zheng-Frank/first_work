@@ -5,7 +5,6 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { rS } from '@angular/core/src/render3';
 
 declare var $: any;
 
@@ -38,6 +37,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     promotions: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    faxSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
@@ -128,6 +128,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           feeSchedules: 1,
           gmbOrigin: 1,
           gmbOwnerHistory: 1,
+          gmbSettings: 1,
           googleAddress: 1,
           googleListing: 1,
           hideOrderStatus: 1,
@@ -177,7 +178,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           yelpListing: 1,
           phones: 1,
           muteFirstNotifications: 1,
-          muteSecondNotifications: 1
+          muteSecondNotifications: 1,
+          printSettings: 1,
+          useNewSettings: 1,
+          comebackDate: 1
         },
         limit: 1
       })
@@ -342,6 +346,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return (address.locality ? address.locality + ', ' : (address.sublocality ? address.sublocality + ', ' : ''))
       + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
       + ' ' + address.postal_code;
+  }
+
+  isDate(dateToParse) {
+    return !isNaN(Date.parse(dateToParse));
   }
 
 }

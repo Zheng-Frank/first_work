@@ -4,10 +4,10 @@
   <div class="text-right mb-2">
     <!-- <button class="btn btn-primary" (click)="fix()">
       <i class="fas fa-sync"></i> Fix</button> -->
-    <button class="btn btn-primary" (click)="recalculate()">
-      <i class="fas fa-sync"></i> Recalculate</button>
+    <button class="btn btn-primary" (click)="loadCycle(id)">
+      <i class="fas fa-sync"></i> Reload</button>
   </div>
-{{sortingDirection}}{{sortingColumn}}
+  <!-- {{sortingDirection}} {{sortingColumn}} -->
   <table class="table table-bordered text-center">
     <tbody>
       <tr>
@@ -107,7 +107,7 @@
   </table>
 
   <div class="alert alert-info">
-    <button class="btn btn-primary" (click)="processAll()">
+    <button class="btn btn-primary" (click)="processAll()" *ngIf="isLastCycle">
       <i class="fas fa-sync"></i> {{processing? 'STOP PROCESSING' : 'START PROCESSING'}}</button>
     <div *ngFor="let message of processingMessages">
       {{message}}
@@ -185,10 +185,12 @@
             </td>
             <td><span *ngIf="row.invoice?.balance">{{row.invoice?.balance | currency:'USD':'symbol'}}</span></td>
             <td class="text-danger">
-              <button (click)="sendOne(row)" [qLoading]="sending"
-                *ngIf="row.invoice && !row.invoice?.isSent">Send</button>
-              <button (click)="payOne(row)" [qLoading]="paying"
-                *ngIf="row.invoice && !row.invoice?.isPaymentSent">Pay</button>
+              <div *ngIf="isLastCycle">
+                <button (click)="sendOne(row)" [qLoading]="sending"
+                  *ngIf="row.invoice && !row.invoice?.isSent">Send</button>
+                <button (click)="payOne(row)" [qLoading]="paying"
+                  *ngIf="row.invoice && !row.invoice?.isPaymentSent">Pay</button>
+              </div>
               {{row.error | json}}
             </td>
           </tr>

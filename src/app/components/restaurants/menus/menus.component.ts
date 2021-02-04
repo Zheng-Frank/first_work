@@ -55,9 +55,7 @@ export class MenusComponent implements OnInit {
       const providers = await this._api.post(environment.appApiUrl + "utils/menu", {
         name: "get-service-providers",
         payload: {
-          name: this.restaurant.name,
-          address: (this.restaurant.googleAddress || {} as any).formatted_address,
-          phone: (this.restaurant.googleListing || {}).phone
+          ludocid: (this.restaurant.googleListing || {}).cid
         }
       }).toPromise();
       this.providers = providers.map(p => ({
@@ -525,5 +523,27 @@ export class MenusComponent implements OnInit {
     }
 
   }
+
+    // sync menu hours
+    async syncGmbMenuHours() {
+      try {
+        const results = await this._api.post(environment.appApiUrl + "gmb/generic", {
+          name: "sync-one-rt",
+          payload: {
+            "rtId": this.restaurant.id,
+            categories: ['HOURS_REGULAR', 'HOURS_SPECIAL_OPEN'],
+            forceRecent: true,
+            syncDisabled: true
+          }
+        }).toPromise();
+  
+        this._global.publishAlert(AlertType.Success, `Menu Hours Synced`);
+      } catch (error) {
+        console.error(error);
+        this._global.publishAlert(AlertType.Danger, `Couldn't sync menu hours`);
+      }
+  
+    }
+  
 
 }

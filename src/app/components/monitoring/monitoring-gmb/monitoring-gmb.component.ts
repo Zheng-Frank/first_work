@@ -27,68 +27,43 @@ export class MonitoringGmbComponent implements OnInit {
   }
 
   async populate() {
-    const restaurantBatchSize = 1000;
-    let allRestaurants = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        projection: {
-          name: 1,
-          "googleAddress.formatted_address": 1,
-          alias: 1,
-          disabled: 1,
-          score: 1,
-          googleListing: 1,
-          "rateSchedules.agent": 1,
-          web: 1,
-          createdAt: 1
-        },
-        skip: allRestaurants.length,
-        limit: restaurantBatchSize
-      }).toPromise();
-      allRestaurants.push(...batch);
-      if (batch.length === 0 || batch.length < restaurantBatchSize) {
-        break;
+
+    const allRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        "googleAddress.formatted_address": 1,
+        alias: 1,
+        disabled: 1,
+        score: 1,
+        googleListing: 1,
+        "rateSchedules.agent": 1,
+        web: 1,
+        createdAt: 1
       }
-    }
+    }, 1000)
 
 
-    const gmbAccountBatchSize = 1000;
-    const gmbAccountsWithLocations = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbAccount',
-        query: {
-          locations: { $exists: 1 }
-        },
-        projection: {
-          "email": 1,
-          password: 1,
-          "locations.cid": 1,
-          "locations.status": 1,
-          "locations.appealId": 1
-        },
-        skip: gmbAccountsWithLocations.length,
-        limit: gmbAccountBatchSize
-      }).toPromise();
-      gmbAccountsWithLocations.push(...batch);
-      if (batch.length === 0 || batch.length < gmbAccountBatchSize) {
-        break;
-      }
-    }
 
-    const domainBatchSize = 3000;
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'domain',
-        skip: this.domains.length,
-        limit: domainBatchSize
-      }).toPromise();
-      this.domains.push(...batch);
-      if (batch.length === 0 || batch.length < domainBatchSize) {
-        break;
+    const gmbAccountsWithLocations = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {
+        locations: { $exists: 1 }
+      },
+      projection: {
+        "email": 1,
+        password: 1,
+        "locations.cid": 1,
+        "locations.status": 1,
+        "locations.appealId": 1
       }
-    }
+    }, 200)
+
+
+    const domains = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'domain'
+    }, 3000)
+
 
     const cidAccountLocationMap = {};
 

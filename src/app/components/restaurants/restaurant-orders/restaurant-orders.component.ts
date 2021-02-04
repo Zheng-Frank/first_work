@@ -298,6 +298,8 @@ export class RestaurantOrdersComponent implements OnInit {
         reasons: reasons
       };
     }
+
+    // NOTE: we no longer use customer.bannedReasons. instead, we a blacklist item, type 'CUSTOMER' to indicate if the customer is banned
     generatedBlacklist[customer._id] = {
       type: 'CUSTOMER',
       value: customer._id,
@@ -394,51 +396,10 @@ export class RestaurantOrdersComponent implements OnInit {
         }).toPromise();
       }
     }
+
+    // update customer.bannedReasons and order's customerObj.bannedReasons
     this.banModal.hide();
     this.populateOrders();
-  }
-
-  async okBanOld(reasons) {
-    if (this.orderForModal && this.orderForModal.customer) {
-
-
-      let op = '$set';
-      if (!reasons || reasons.length === 0) {
-        op = '$unset';
-      }
-
-      const customerQuery = {
-        _id: { $oid: this.orderForModal.customer['_id'] }
-      };
-      const orderQuery =
-      {
-        customer: { $oid: this.orderForModal.customer['_id'] }
-      };
-
-      zip(this._api.patch(environment.appApiUrl + 'biz', {
-        resource: 'customer',
-        query: customerQuery,
-        op: op,
-        field: 'bannedReasons',
-        value: reasons
-      }),
-        this._api.patch(environment.appApiUrl + 'biz', {
-          resource: 'order',
-          query: orderQuery,
-          op: op,
-          field: "customerObj.bannedReasons",
-          value: reasons
-        }),
-      ).subscribe(
-        d => {
-          this.banModal.hide();
-          this.populateOrders();
-        },
-        error => console.log(error));
-
-    } else {
-      alert('no customer found');
-    }
   }
 
   async rejectOrder(event) {

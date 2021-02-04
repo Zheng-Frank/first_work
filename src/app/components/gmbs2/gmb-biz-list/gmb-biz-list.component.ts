@@ -40,104 +40,64 @@ export class GmbBizListComponent implements OnInit {
   async refresh() {
     // restaurants -> gmbBiz -> published status
 
-    const restaurants = [];
-    const restaurantBatchSize = 3000;
-    let restaurantSkip = 0;
 
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        projection: {
-          name: 1,
-          "googleListing.cid": 1,
-          "googleListing.gmbOwner": 1,
-          "googleListing.gmbWebsite": 1,
-          "googleListing.gmbOpen": 1,
-          "googleAddress.formatted_address": 1,
-          disabled: 1,
-          score: 1,
-          "deliverySettings": { $slice: -1 },
-          "rateSchedules": { $slice: -1 },
-          "rateSchedules.agent": 1,
-          "serviceSettings.name": 1,
-          "serviceSettings.paymentMethods": 1,
-          "deliverySettings.charge": 1,
-          "menus.hours": 1,
-          "menus.disabled": 1,
-          "rateSchedules.rate": 1,
-          "rateSchedules.fixed": 1,
-          "web.qmenuWebsite": 1,
-          "web.bizManagedWebsite": 1,
-          "web.useBizWebsite": 1,
-          "web.useBizWebsiteForAll": 1
-        },
-        skip: restaurantSkip,
-        limit: restaurantBatchSize
-      }).toPromise();
-
-      restaurants.push(...batch);
-
-      if (batch.length === 0) {
-        break;
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        "googleListing.cid": 1,
+        "googleListing.gmbOwner": 1,
+        "googleListing.gmbWebsite": 1,
+        "googleListing.gmbOpen": 1,
+        "googleAddress.formatted_address": 1,
+        disabled: 1,
+        score: 1,
+        "deliverySettings": { $slice: -1 },
+        "rateSchedules": { $slice: -1 },
+        "rateSchedules.agent": 1,
+        "serviceSettings.name": 1,
+        "serviceSettings.paymentMethods": 1,
+        "deliverySettings.charge": 1,
+        "menus.hours": 1,
+        "menus.disabled": 1,
+        "rateSchedules.rate": 1,
+        "rateSchedules.fixed": 1,
+        "web.qmenuWebsite": 1,
+        "web.bizManagedWebsite": 1,
+        "web.useBizWebsite": 1,
+        "web.useBizWebsiteForAll": 1
       }
-      restaurantSkip += restaurantBatchSize;
-    }
+    }, 2000); 
 
-
-    const gmbAccounts = [];
-    const gmbAccountBatchSize = 60;
-    let gmbAccountSkip = 0;
-
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbAccount',
-        projection: {
-          email: 1,
-          "locations.statusHistory": { $slice: 2 },
-          "locations.cid": 1,
-          "locations.appealId": 1,
-          "locations.name": 1,
-          "locations.address": 1,
-          "locations.status": 1,
-          "locations.role": 1,
-          "locations.statusHistory.time": 1,
-          "locations.statusHistory.status": 1
-        },
-        skip: gmbAccountSkip,
-        limit: gmbAccountBatchSize
-      }).toPromise();
-
-      gmbAccounts.push(...batch);
-
-      if (batch.length === 0) {
-        break;
+    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: 'gmbAccount',
+      projection: {
+        email: 1,
+        "locations.statusHistory": { $slice: 2 },
+        "locations.cid": 1,
+        "locations.appealId": 1,
+        "locations.name": 1,
+        "locations.address": 1,
+        "locations.status": 1,
+        "locations.role": 1,
+        "locations.statusHistory.time": 1,
+        "locations.statusHistory.status": 1
       }
-      gmbAccountSkip += gmbAccountBatchSize;
-    }
+    }, 60);
 
-    const gmbBizBatchSize = 3000;
-    const gmbBizList = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'gmbBiz',
-        projection: {
-          name: 1,
-          cid: 1,
-          qmenuId: 1,
-          gmbOwner: 1,
-          gmbWebsite: 1
-        },
-        skip: gmbBizList.length,
-        limit: gmbBizBatchSize
-      }).toPromise();
-      gmbBizList.push(...batch);
-      if (batch.length === 0 || batch.length < gmbBizBatchSize) {
-        break;
+
+    const gmbBizList = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: 'gmbBiz',
+      projection: {
+        name: 1,
+        cid: 1,
+        qmenuId: 1,
+        gmbOwner: 1,
+        gmbWebsite: 1
       }
-    }
+    }, 2000);
 
-
-
+  
     // create a cidMap
     const cidMap = {};
 

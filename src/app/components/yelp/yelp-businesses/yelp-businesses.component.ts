@@ -79,6 +79,21 @@ export class YelpBusinessesComponent implements OnInit {
         payload['yid'] = yid;
       }
 
+      const [account] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        query: { email },
+        projection: {
+          email: 1,
+          yelpPassword: 1
+        }
+      }).toPromise();
+
+      if(!account) {
+        throw `No account found for ${email}`;
+      }
+
+      payload['account'] = account;
+
       const target = 'login-yelp';
       await this._api.post(environment.autoGmbUrl + target, payload).toPromise();
       this._global.publishAlert(AlertType.Success, 'Login to Yelp initiated.');
@@ -390,6 +405,7 @@ export class YelpBusinessesComponent implements OnInit {
       },
       projection: {
         email: 1,
+        yelpPassword: 1
       }
     }, 8000);
 
@@ -436,7 +452,7 @@ export class YelpBusinessesComponent implements OnInit {
         const [streetShortened] = street.split('\n')
         const location = `${streetShortened}, ${city}, ${state} ${zip_code}, ${country}`;
 
-        await this._api.post(environment.autoGmbUrl + 'claim-yelp', { email: account.email, name: rt.qMenuName, location }).toPromise();
+        await this._api.post(environment.autoGmbUrl + 'claim-yelp', { account, name: rt.qMenuName, location }).toPromise();
 
         this.refreshing = false;
       } else {
@@ -461,7 +477,7 @@ export class YelpBusinessesComponent implements OnInit {
 
         this.refreshing = false;
 
-        await this._api.post(environment.autoGmbUrl + 'claim-yelp', { email: yelpRequest.yelpEmail, name: rt.qMenuName, location }).toPromise();
+        await this._api.post(environment.autoGmbUrl + 'claim-yelp', { account, name: rt.qMenuName, location }).toPromise();
         this._global.publishAlert(AlertType.Success, 'Claim/Reclaim initiated.');
       }
 
@@ -530,7 +546,20 @@ export class YelpBusinessesComponent implements OnInit {
 
   async login(email) {
     try {
-      await this._api.post(environment.autoGmbUrl + "login", { email, stayAfterScan: true, redirectUrl: 'https://mail.google.com' }).toPromise();
+      const [account] = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "gmbAccount",
+        query: {
+          email: email
+        },
+        projection: {_id: 0, email: 1, cookies: 1 },
+        limit: 1
+      }).toPromise();
+
+      if(!account) {
+        throw `No account found for ${email}`;
+      }
+
+      await this._api.post(environment.autoGmbUrl + "login", { email, stayAfterScan: true, redirectUrl: 'https://mail.google.com', cookies: account.cookies }).toPromise();
     }
     catch (error) {
       console.log(error);

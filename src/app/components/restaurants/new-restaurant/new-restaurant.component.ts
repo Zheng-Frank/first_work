@@ -101,7 +101,28 @@ export class NewRestaurantComponent implements OnInit {
       const addressDetails = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
         place_id: crawledResult.place_id
       }).toPromise();
-      this.restaurant.googleAddress = addressDetails;
+      // crawledResult.address MAY have wrong city name! eg. 52-35 Metropolitan Ave, Ridgewood, NY 11385
+      // in this case, addressDetails doesn't have locality and sublocality_level_1.
+      // we can try our luck with another API call, using address instead of place_id, without the city
+      if (!(addressDetails.locality || addressDetails.sublocality_level_1 || addressDetails.postal_code_suffix)) {
+        const addressTokens = crawledResult.address.replace(", USA", "").split(",");
+        // remove city
+        addressTokens.splice(addressTokens.length - 2, 1);
+        const addressWithoutCity = addressTokens.join(",");
+        const a2 = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
+          formatted_address: addressWithoutCity
+        }).toPromise();
+
+        if (!(a2.locality || a2.sublocality_level_1 || a2.postal_code_suffix)) {
+          alert("Bad address, please notify your manager! 地址查询出错，请通知经理");
+          throw "still bad address"
+        }
+        this.restaurant.googleAddress = a2;
+
+      } else {
+        this.restaurant.googleAddress = addressDetails;
+      }
+
     } catch (error) {
       this.apiRequesting = false;
       this.checkExistenceError = "Error: google address query.";
@@ -179,7 +200,7 @@ export class NewRestaurantComponent implements OnInit {
         {
           "value": crawledResult.phone,
           "type": 'Phone',
-          "notifications": ['Order']
+          "notifications": ['Order', 'Business']
         }
       ];
     }
@@ -262,7 +283,7 @@ export class NewRestaurantComponent implements OnInit {
       if (this.restaurant.googleListing && this.restaurant.googleListing.gmbWebsite) {
         this.restaurant.web.bizManagedWebsite = this.restaurant.googleListing.gmbWebsite;
       }
-  
+
       const newRestaurants = await this._api.post(environment.qmenuApiUrl + 'generic?resource=restaurant', [this.restaurant]).toPromise();
       // assign newly created id back to original object
       this.restaurant._id = newRestaurants[0];
@@ -291,10 +312,10 @@ export class NewRestaurantComponent implements OnInit {
 
         // update qmenuId!
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbBiz', existingGmbs.map(biz =>
-          ({
-            old: { _id: biz._id },
-            new: { _id: biz._id, qmenuId: this.restaurant._id }
-          }))).toPromise();
+        ({
+          old: { _id: biz._id },
+          new: { _id: biz._id, qmenuId: this.restaurant._id }
+        }))).toPromise();
         this._global.publishAlert(AlertType.Info, 'Found matching GMB Biz');
         // assign newly created id back to original object
         gmbBiz = existingGmbs[0];
@@ -316,44 +337,44 @@ export class NewRestaurantComponent implements OnInit {
 
       }
 
-/** not needed anymore A.X. 10/1/2020
-      // see if we need to create Apply GMB task!
-      if (!this.skipApplyGmb) {
-        // making sure it's not already published somewhere!
-        const relevantAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-          resource: 'gmbAccount',
-          query: {
-            "locations.status": "Published",
-            "locations.cid": this.restaurant.googleListing.cid
-          },
-          projection: {
-            "locations.status": 1
-          },
-          limit: 100
-        }).toPromise();
-
-        if (relevantAccounts.length > 0) {
-          this._global.publishAlert(AlertType.Success, 'GMB already published!');
-        } else {
-          const task = {
-            name: 'Apply GMB Ownership',
-            scheduledAt: { $date: new Date() },
-            description: gmbBiz.name,
-            roles: ['GMB', 'ADMIN'],
-            relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
-            transfer: {}
-          };
-
-          await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [task]).toPromise();
-          this._global.publishAlert(AlertType.Success, 'Created new Apply GMB Ownership task');
-        }
-
-
-      } else {
-
-        this._global.publishAlert(AlertType.Info, 'No apply GMB ownership task is created!');
-      }
-*/
+      /** not needed anymore A.X. 10/1/2020
+            // see if we need to create Apply GMB task!
+            if (!this.skipApplyGmb) {
+              // making sure it's not already published somewhere!
+              const relevantAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+                resource: 'gmbAccount',
+                query: {
+                  "locations.status": "Published",
+                  "locations.cid": this.restaurant.googleListing.cid
+                },
+                projection: {
+                  "locations.status": 1
+                },
+                limit: 100
+              }).toPromise();
+      
+              if (relevantAccounts.length > 0) {
+                this._global.publishAlert(AlertType.Success, 'GMB already published!');
+              } else {
+                const task = {
+                  name: 'Apply GMB Ownership',
+                  scheduledAt: { $date: new Date() },
+                  description: gmbBiz.name,
+                  roles: ['GMB', 'ADMIN'],
+                  relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
+                  transfer: {}
+                };
+      
+                await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [task]).toPromise();
+                this._global.publishAlert(AlertType.Success, 'Created new Apply GMB Ownership task');
+              }
+      
+      
+            } else {
+      
+              this._global.publishAlert(AlertType.Info, 'No apply GMB ownership task is created!');
+            }
+      */
       // redirect to details page
       this._router.navigate(['/restaurants/' + this.restaurant._id]);
       this.apiRequesting = false;
