@@ -338,7 +338,8 @@ export class RestaurantOrdersComponent implements OnInit {
   handleOnBan(order:Order) {
     //判断 customer 的bannerReason 属性是否为false
     // judge customer 's property ,bannerReasons (is it undefined?)
-    if(order&&order.customer&&order.customer.bannedReasons&&order.customer.bannedReasons instanceof Array && order.customer.bannedReasons.length>0){
+    if(order && order.customer && order.customer.bannedReasons 
+      && order.customer.bannedReasons instanceof Array && order.customer.bannedReasons.length > 0){
         this.orderForModal = order;
         this.okBan([]);
     }else{

@@ -85,7 +85,7 @@ export class OrderCardComponent implements OnInit {
   canSendEmail(order: Order) {
     return this.restaurant && (this.restaurant.channels || []).some(c => c.type === 'Email' && (c.notifications || []).some(n => n === 'Order'));
   }
- 
+
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 3 days
     // if admin and not qmenu collect
@@ -363,11 +363,11 @@ export class OrderCardComponent implements OnInit {
    * @param {*} order
    * @memberof OrderCardComponent
    */
-  ban(order:Order) {
-   // console.log("374行 order card ：ban:"+JSON.stringify(order.customer));
+  ban(order: Order) {
+    // console.log("374行 order card ：ban:"+JSON.stringify(order.customer));
     this.onBan.emit(order);
   }
- 
+
   getBannedReasons() {
     // if(this.order){
     //      if(this.order.customer){
@@ -387,17 +387,15 @@ export class OrderCardComponent implements OnInit {
    * @returns
    * @memberof OrderCardComponent
    */
-  isBanned(order:Order){
-  //  return order.customer.disabled;
-  //如果order.customer当前属性值为undefined ,则当前用户未被禁止
-  //（If customer 'property named bannedReasons is undefined,he is not banned!）
-   //console.log("order carn 409行 ："+JSON.stringify(order.customer));
-  if(order&&order.customer&&order.customer.bannedReasons&&order.customer.bannedReasons instanceof Array && order.customer.bannedReasons.length>0){
-      return true;
-   }else{
-     return false;
-   }
+  isBanned(order: Order) {
+    //  return order.customer.disabled;
+    //如果order.customer当前属性值为undefined ,则当前用户未被禁止
+    //（If customer 'property named bannedReasons is undefined,he is not banned!）
+    //console.log("order carn 409行 ："+JSON.stringify(order.customer));
+    return order && order.customer && order.customer.bannedReasons && order.customer.bannedReasons instanceof Array
+      && order.customer.bannedReasons.length > 0;
   }
+
   isCanceled(order: Order) {
     // status are not completed, not canceled, and time is not over 2 days
     // 1000 * 3600 * 48 = 172800000

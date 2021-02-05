@@ -118,8 +118,8 @@
         <hr>
         <a role="button" class="text-danger text-nowrap card-link" (click)="ban(order)" *ngIf="!isBanned(order)">
           <i class="fa fa-thumbs-down" ></i> Ban</a>
-          <a role="button" class="text-danger text-nowrap card-link" (click)="ban(order)"  *ngIf="isBanned(order)">
-            <i class="fa fa-thumbs-up" ></i> Unban</a>
+        <a role="button" class="text-danger text-nowrap card-link" (click)="ban(order)"  *ngIf="isBanned(order)">
+          <i class="fa fa-thumbs-up" ></i> Unban</a>
 
         <a role="button" class="text-danger text-nowrap card-link" (click)="cancel()" *ngIf="canCancel(order) && !isCanceled(order)">
           <i class="fa fa-times"></i> Cancel</a>
