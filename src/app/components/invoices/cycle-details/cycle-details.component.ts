@@ -312,7 +312,17 @@ export class CycleDetailsComponent implements OnInit {
         "restaurant.error.screenshot": 0,
       }
     }, 7000); // assuming 7000
-    this.restaurantCycleList = restaurantCycles;
+
+    // 02/01/2021: unfortunately, we've allowed duplicated restaurant-cycle in. So let's only keep the unique ones (first appearance)
+    const appearedRestaurantIds = new Set();
+    const uniqueOnes = restaurantCycles.filter(rc => {
+      if (!appearedRestaurantIds.has(rc.restaurant._id)) {
+        appearedRestaurantIds.add(rc.restaurant._id);
+        return true;
+      }
+      return false;
+    });
+    this.restaurantCycleList = uniqueOnes;
 
     const invoices = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "invoice",

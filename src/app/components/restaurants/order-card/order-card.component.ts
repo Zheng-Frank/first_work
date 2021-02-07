@@ -32,7 +32,6 @@ export class OrderCardComponent implements OnInit {
   phoneNumberToText;
   showTexting: boolean = false;
   displayingDeliveryDetails = false;
-
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
@@ -358,17 +357,43 @@ export class OrderCardComponent implements OnInit {
   undoCancel() {
     this.onUndoReject.emit(this.order);
   }
-
-  ban() {
-    this.onBan.emit(this.order);
+  /**
+   * 绑定发射事件
+   *Bind launch event
+   * @param {*} order
+   * @memberof OrderCardComponent
+   */
+  ban(order: Order) {
+    // console.log("374行 order card ：ban:"+JSON.stringify(order.customer));
+    this.onBan.emit(order);
   }
 
   getBannedReasons() {
+    // if(this.order){
+    //      if(this.order.customer){
+    //       return this.order.customer.bannedReasons.join(', ');
+    //      }
+    // }
     return this.order && this.order.customer && this.order.customer.bannedReasons && this.order.customer.bannedReasons.join(', ');
   }
 
   getOrderLink() {
     return `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=restaurantOrderFax&format=pdf`;
+  }
+  /**
+   * 通过父组件注入属性判断是否显示紧致控件
+   *Judge whether to display compact control by injecting property into parent component
+   * @param {Order} order
+   * @returns
+   * @memberof OrderCardComponent
+   */
+  isBanned(order: Order) {
+    //  return order.customer.disabled;
+    //如果order.customer当前属性值为undefined ,则当前用户未被禁止
+    //（If customer 'property named bannedReasons is undefined,he is not banned!）
+    //console.log("order carn 409行 ："+JSON.stringify(order.customer));
+    return order && order.customer && order.customer.bannedReasons && order.customer.bannedReasons instanceof Array
+      && order.customer.bannedReasons.length > 0;
   }
 
   isCanceled(order: Order) {
