@@ -18,7 +18,6 @@ export class OtherModulesComponent implements OnInit {
   manage_Images_count:number=0;
   banned_customer_count:number=0;
 
-
   constructor(private _api:ApiService) { }
 
   ngOnInit() {
