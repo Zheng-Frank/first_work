@@ -104,24 +104,26 @@ export class NewRestaurantComponent implements OnInit {
       // crawledResult.address MAY have wrong city name! eg. 52-35 Metropolitan Ave, Ridgewood, NY 11385
       // in this case, addressDetails doesn't have locality and sublocality_level_1.
       // we can try our luck with another API call, using address instead of place_id, without the city
-      if (!(addressDetails.locality || addressDetails.sublocality_level_1 || addressDetails.postal_code_suffix)) {
-        const addressTokens = crawledResult.address.replace(", USA", "").split(",");
-        // remove city
-        addressTokens.splice(addressTokens.length - 2, 1);
-        const addressWithoutCity = addressTokens.join(",");
-        const a2 = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
-          formatted_address: addressWithoutCity
-        }).toPromise();
+      //commented out on 02/08/21, since we w
+      // if (!(addressDetails.locality || addressDetails.sublocality_level_1 || addressDetails.postal_code_suffix)) {
+      //   const addressTokens = crawledResult.address.replace(", USA", "").split(",");
+      //   // remove city
+      //   addressTokens.splice(addressTokens.length - 2, 1);
+      //   const addressWithoutCity = addressTokens.join(",");
+      //   const a2 = await this._api.get(environment.qmenuApiUrl + "utils/google-address", {
+      //     formatted_address: addressWithoutCity
+      //   }).toPromise();
 
-        if (!(a2.locality || a2.sublocality_level_1 || a2.postal_code_suffix)) {
-          alert("Bad address, please notify your manager! 地址查询出错，请通知经理");
-          throw "still bad address"
-        }
-        this.restaurant.googleAddress = a2;
+      //   if (!(a2.locality || a2.sublocality_level_1 || a2.postal_code_suffix)) {
+      //     alert("Bad address, please notify your manager! 地址查询出错，请通知经理");
+      //     throw "still bad address"
+      //   }
+      //   this.restaurant.googleAddress = a2;
 
-      } else {
-        this.restaurant.googleAddress = addressDetails;
-      }
+      // } else {
+      //   this.restaurant.googleAddress = addressDetails;
+      // }
+      this.restaurant.googleAddress = addressDetails;
 
     } catch (error) {
       this.apiRequesting = false;

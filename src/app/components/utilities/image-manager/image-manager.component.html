@@ -1,86 +1,94 @@
-<div class="text-right pb-2">
-  <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
-  <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
-</div>
-<table class="table table-striped">
-  <tr>
-    <th></th>
-    <th>
-      Menu Names
-    </th>
-    <th>
-      Images
-    </th>
-    <th>
-      Delete
-    </th>
-  </tr>
-  <tr *ngFor="let row of rows; let i = index">
-    <td>
-      {{i+1}}
-    </td>
-    <td>
-      <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
-    </td>
-    <td class="pl-1">
-      <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
-        <img src="{{img.url192}}" (click)="thumbnailClick(row)">
-        <button (click)="deleteImage(img, row)" class="btn btn-secondary close-button transparent">
-          <i class="fas fa-times"></i>
-        </button>
-        <button (click)="deleteImage(img, row)" class="btn btn-link text-danger close-button">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div *ngIf="uploadImageError">
-        <span class="text-danger">{{uploadImageError}}</span>
-      </div>
-      <div class="app-limit-file">
-        <input type="file" (change)="onUploadImage($event, row)" />
-      </div>
-      <div>
-        <small class="text-warning">Image may take time to show</small>
-      </div>
-    </td>
-    <td>
-      <button class="btn btn-link" (click)="deleteRow(row)">Delete</button>
-    </td>
-  </tr>
+<div class="card">
+  <h2 class="card-title m-3">
+    <!-- <i [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
+    <h1 class="text-center">Manage Images ({{rows.length}})</h1>
+  </h2>
+  <div class="card-body">
+    <div class="text-right pb-2">
+      <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
+      <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
+    </div>
+    <table class="table table-striped">
+      <tr>
+        <th></th>
+        <th>
+          Menu Names
+        </th>
+        <th>
+          Images
+        </th>
+        <th>
+          Delete
+        </th>
+      </tr>
+      <tr *ngFor="let row of rows; let i = index">
+        <td>
+          {{i+1}}
+        </td>
+        <td>
+          <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
+        </td>
+        <td class="pl-1">
+          <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
+            <img src="{{img.url192}}" (click)="thumbnailClick(row)">
+            <button (click)="deleteImage(img, row)" class="btn btn-secondary close-button transparent">
+              <i class="fas fa-times"></i>
+            </button>
+            <button (click)="deleteImage(img, row)" class="btn btn-link text-danger close-button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div *ngIf="uploadImageError">
+            <span class="text-danger">{{uploadImageError}}</span>
+          </div>
+          <div class="app-limit-file">
+            <input type="file" (change)="onUploadImage($event, row)" />
+          </div>
+          <div>
+            <small class="text-warning">Image may take time to show</small>
+          </div>
+        </td>
+        <td>
+          <button class="btn btn-link" (click)="deleteRow(row)">Delete</button>
+        </td>
+      </tr>
 
-</table>
-<div class="text-right pb-2">
-  <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
-  <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
-</div>
+    </table>
+    <div class="text-right pb-2">
+      <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
+      <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
+    </div>
 
-<q-modal #modalZoom *ngIf="clickedMi">
-  <div class="modal-header" data-dismiss="modal">
-    <button type="button" class="close" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
-    <h4 class="modal-title">{{clickedMi.name}}</h4>
-  </div>
-  <div class="modal-body">
-    <img *ngIf="images.length==1" class="img-responsive w-100" src="{{images[0].url768}}" />
-    <div *ngIf="images.length>1" id="carousel-example-generic" class="carousel slide" data-ride="carousel">
-      <div class="carousel-inner">
-        <div *ngFor="let image of images;let i = index;" class="carousel-item {{i == 0 ? 'active':''}}">
-          <img class="img-responsive w-100" src="{{image.url768}}">
+    <q-modal #modalZoom *ngIf="clickedMi">
+      <div class="modal-header" data-dismiss="modal">
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title">{{clickedMi.name}}</h4>
+      </div>
+      <div class="modal-body">
+        <img *ngIf="images.length==1" class="img-responsive w-100" src="{{images[0].url768}}" />
+        <div *ngIf="images.length>1" id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+          <div class="carousel-inner">
+            <div *ngFor="let image of images;let i = index;" class="carousel-item {{i == 0 ? 'active':''}}">
+              <img class="img-responsive w-100" src="{{image.url768}}">
+            </div>
+          </div>
+
+          <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
         </div>
       </div>
-
-      <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="sr-only">Previous</span>
-      </a>
-      <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="sr-only">Next</span>
-      </a>
-    </div>
-     </div>
-  <p class="text-xs-center text-muted"><small>Images are generic and for reference only.</small></p>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      <p class="text-xs-center text-muted"><small>Images are generic and for reference only.</small></p>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </q-modal>
   </div>
-</q-modal>
+</div>

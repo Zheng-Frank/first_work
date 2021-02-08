@@ -24,7 +24,7 @@ export class HomeComponent implements OnInit {
   checkingPostmatesAvailability;
   addressToCheckAvailability = '';
 
-  constructor(private _router: Router , private _api: ApiService, private _global: GlobalService) {
+  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
     this.isMenuEditor = _global.user.roles.some(r => r === 'MENU_EDITOR');
   }
@@ -35,7 +35,7 @@ export class HomeComponent implements OnInit {
     // const result = await this._api.get2(environment.qmenuApiUrl + 'generic2', {a: 123, b: 456, c: 789}).toPromise();
     // console.log(result);
   }
-
+  
   select(restaurant) {
     if (this.selectedRestaurant === restaurant) {
       this.selectedRestaurant = undefined;
@@ -43,24 +43,26 @@ export class HomeComponent implements OnInit {
     }
     this.selectedRestaurant = restaurant;
   }
-
+  
   isVisible(section) {
     const sectionRolesMap = {
       email: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       template: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       search: ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
-      "fax-problems": ['ADMIN', 'CSR'],
-      "email-problems": ['ADMIN', 'CSR'],
-      "unconfirmed-orders": ['ADMIN', 'CSR'],
-      "image-manager": ['ADMIN'],
+     // "fax-problems": ['ADMIN', 'CSR'],
+     // "email-problems": ['ADMIN', 'CSR'],
+     // "unconfirmed-orders": ['ADMIN', 'CSR'],
+      "other-moudles":['ADMIN','CSR'], 
+     // "image-manager": ['ADMIN'],
       "gmb-campaign": ['ADMIN'],
-      "bulk-messaging": ['ADMIN'],      
-      "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],      
-      "broadcasting": ['ADMIN', 'CSR'],      
+      "bulk-messaging": ['ADMIN'],
+      "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],
+      "broadcasting": ['ADMIN', 'CSR'],
       "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
-      "disabled-restaurants": ['ADMIN'],
-      "monitoring-hours": ['ADMIN', 'CSR']      
+      //"disabled-restaurants": ['ADMIN'],
+      //"monitoring-hours": ['ADMIN', 'CSR']
     }
+    
     return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
 
