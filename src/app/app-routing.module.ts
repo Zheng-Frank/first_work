@@ -1,3 +1,11 @@
+import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
+import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
+import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
+import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
+import { MonitoringEmailComponent } from './components/monitoring/monitoring-email/monitoring-email.component';
+import { MonitoringDomainComponent } from './components/monitoring/monitoring-domain/monitoring-domain.component';
+import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
@@ -52,6 +60,7 @@ import { PostmatesListComponent } from './components/restaurants/postmates-list/
 import { InvalidListComponent } from './components/restaurants/invalid-list/invalid-list.component';
 import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
 import { TemporarilyDisabledComponent } from './components/restaurants/temporarily-disabled/temporarily-disabled.component';
+import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/monitoring-unconfirmed-orders/monitoring-unconfirmed-orders.component';
  
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
@@ -63,10 +72,10 @@ const routes: Routes = [
   { path: 'invoices/cycles/:id', component: CycleDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/monthly/:startDate', component: InvoiceMonthlyDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/:id', component: InvoiceDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR', 'INVOICE_VIEWER'] } },
-  { path: 'leads', component: LeadDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', "GMB"] } },
+  { path: 'leads', component: LeadDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', "GMB","CSR"] } },
   { path: 'my-leads', component: MyLeadsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR'] } },
   { path: 'login', component: LoginComponent },
-  { path: 'orders', component: OrderDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
+  { path: 'orders', component: OrderDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT','CSR'] } },
   { path: 'profile', component: ProfileComponent },
   { path: 'restaurants', component: RestaurantDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', "CSR", "ACCOUNTANT", "MARKETER"] } },
   { path: 'restaurants/diagnostics', component: MonitoringRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
@@ -104,6 +113,13 @@ const routes: Routes = [
   { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'invalid-list', component: InvalidListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR','MARKETER_INTERNAL'] } },
   { path: 'temporarily-disabled', component: TemporarilyDisabledComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR','MARKETER_INTERNAL'] } },
+  { path:'unconfirmed-orders',component:MonitoringUnconfirmedOrdersComponent,canActivate:[RoleGuard],data:{roles:['ADMIN', 'CSR']}},
+  { path:'fax-problems',component:MonitoringFaxComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}},
+  { path:'email-problems',component:MonitoringEmailComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}} ,
+  { path:'monitoring-hours',component:MonitoringHoursComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}} ,
+  { path:'disabled-restaurants',component:MonitoringDisabledRestaurantsComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}} ,
+  { path:'manage-images',component:ImageManagerComponent,canActivate:[RoleGuard],data:{roles:['ADMIN']}} ,
+  { path:'banned-customers', component: BannedCustomersComponent,canActivate:[RoleGuard],data:{roles: ['ADMIN', 'GMB','CSR']}},
   { path: '**', redirectTo: '/home' }
 ];
 
