@@ -3,8 +3,7 @@
     <div class="col-md-3 form-inline" style="margin-right:-50px;">
       <label class="mr-2 ml-2"> Search order by:</label>
       <select [(ngModel)]="type" class="form-control">
-          <option>Order Number</option>
-        <option *ngFor="let type of searchTypes">{{type}}</option>
+        <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
       </select>
     </div>
     <div class="col-md-9">

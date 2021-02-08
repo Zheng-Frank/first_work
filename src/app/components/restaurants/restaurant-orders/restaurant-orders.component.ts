@@ -47,7 +47,7 @@ export class RestaurantOrdersComponent implements OnInit {
   cancelError = '';
   undoOrder: any;
   isPostmatesStatusDelivered = false;
-  searchTypes = [ 'Cutomer Phone', 'Postmates ID'];
+  searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID'];
   type='Order Number';//  concrete search type
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
@@ -99,7 +99,7 @@ search(event) {
       this.orders = this.orders.filter((order) => String(order.orderNumber).indexOf(this.searchText)!=-1);
     }else if(this.type == 'Postmates ID'){
       this.orders = this.orders.filter((order) => order.delivery);
-    }else if(this.type == 'Cutomer Phone'){
+    }else if(this.type == 'Customer Phone'){
       this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
     }
   }
