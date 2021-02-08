@@ -73,6 +73,11 @@
       <div *ngIf="activeTab === 'Invoices'">
         <app-restaurant-invoices [restaurant]="restaurant"></app-restaurant-invoices>
       </div>
+
+      <div *ngIf="activeTab === '1099K'">
+        <app-restaurant-form1099-k [restaurant]="restaurant"></app-restaurant-form1099-k>
+      </div>
+
       <div *ngIf="activeTab === 'Orders'">
         <app-restaurant-orders [restaurant]="restaurant"></app-restaurant-orders>
       </div>
@@ -86,8 +91,8 @@
         <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
           <app-restaurant-profile [restaurant]="restaurant" [editable]="true"></app-restaurant-profile>
         </div>
-        <div class="col-xl-6" *ngIf="isSectionVisible('webSettings')">        
-            <app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>       
+        <div class="col-xl-6" *ngIf="isSectionVisible('webSettings')">
+            <app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('restaurantManagedWebSettings')">
           <app-restaurant-web-settings [restaurant]="restaurant"></app-restaurant-web-settings>

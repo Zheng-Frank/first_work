@@ -1,7 +1,9 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { DomSanitizer } from '@angular/platform-browser';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { PDFDocument } from 'pdf-lib';
 
 
 import { ApiService } from "../../../services/api.service";
@@ -9,9 +11,8 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { mergeMap, observeOn } from 'rxjs/operators';
-import { FeeSchedule, Restaurant } from '@qmenu/ui';
+import { FeeSchedule, Restaurant, Order } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
-import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Channel } from '../../../classes/channel';
 import { Helper } from "../../../classes/helper";
@@ -25,84 +26,95 @@ import { Helper } from "../../../classes/helper";
 
 export class Form1099KComponent implements OnInit {
 
-  constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
+  orders: Order[] = [];
+  calculationComplete = false;
+  form1099kRequired = false;
+  displayMessage = false;
+
+  orderCount = 0;
+  sumOfTransactions = 0;
+
+  formLink;
+
+  @Input() restaurant: Restaurant;
+
+
+  constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe, private sanitizer: DomSanitizer) { }
 
   ngOnInit() {
   }
 
-  // checkAllRestaurants and checkIndividualRestaurant param "year" refers to the tax year
-  // in question, not the current year
+  async populateOrders() {
+    const lastYear = new Date().getFullYear() - 1;
 
-  async checkAllRestaurants(year) {
-    const restaurantList = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
+    const query = {
+      restaurant: {
+        $oid: this.restaurant._id
       },
-      projection: {
-        "name": 1,
-        "alias": 1,
-        "1099k": 1
+      "paymentObj.method": "QMENU",
+      $expr: {
+        $eq: [{ $year: "$createdAt" }, lastYear]
       }
-    }, 25000);
+    }
 
-    for (const restaurant in restaurantList) {
-      for (const form in restaurant["1099k"]) {
-        if (form["year"] === year) {
-          // A form for this restaurant and year already exists, so we don't need to generate another one
-          // break this inner loop?
-        }
-      }
-      this.checkIndividualRestaurant(restaurant["name"], year);
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: query,
+      projection: {
+        logs: 0,
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 25000
+    }).toPromise();
+
+    // assemble back to order:
+    this.orders = orders.map(order => {
+      order.customer = order.customerObj;
+      order.payment = order.paymentObj;
+      order.orderStatuses = order.statuses;
+      order.id = order._id;
+      order.customerNotice = order.customerNotice || '';
+      order.restaurantNotie = order.restaurantNotie || '';
+      // making it back-compatible to display bannedReasons
+
+      return new Order(order);
+    });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.restaurant) {
+      this.populateOrders();
     }
   }
 
-  async checkIndividualRestaurant(restaurantName, year) {
+  async checkIndividualRestaurant() {
+    // Eventually: query db for this restaurant for an already existing 1099k for this year
     const restaurantTotals = {
       orderCount: 0,
       sumOfTransactions: 0
     };
 
-    const currentYear = new Date(year, 0, 1);
-    const nextYear = new Date(year + 1, 0, 1);
-
-    const invoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'invoice',
-      query: {
-        "restaurant.name": restaurantName,
-        "orders.payee": "qMenu",
-        "orders.createdAt": {
-          "$gte": new Date(currentYear),
-          "$lt": new Date(nextYear)
-        }
-      },
-      projection: {
-        createdAt: 1,
-        fromDate: 1,
-        toDate: 1,
-        previousInvoiceId: 1,
-        orders: 1,
-        isPaymentCompleted: 1,
-        isPaymentSent: 1,
-        restaurant: 1
-      }
-    }, 30);
-
-    for (const entry of invoices) {
-      for (const order of entry.orders) {
-        if (order.payee === 'qMenu' && order.canceled === false) {
-          restaurantTotals.orderCount += 1;
-          restaurantTotals.sumOfTransactions += order.total;
-        }
+    for (const order of this.orders) {
+      if (order.orderStatuses[order.orderStatuses.length - 1].status !== "CANCELED") {
+        const total = order.getTotal();
+        const roundedTotal = Math.round(100 * (total + Number.EPSILON)) / 100;
+        restaurantTotals.sumOfTransactions += roundedTotal;
+        restaurantTotals.orderCount += 1;
       }
     }
 
-    if (restaurantTotals.orderCount >= 200 && restaurantTotals.sumOfTransactions >= 20000) {
-      // Only populate the form data for restaurants that actually need it
-      const restaurantAddress = invoices[0].restaurant.address;
+    this.calculationComplete = true;
+
+    // THESE ARE NOT THE CORRECT VALUES. orderCount should be 200 and sumOfTransactions should be 20000
+    if (restaurantTotals.orderCount >= 50 && restaurantTotals.sumOfTransactions >= 1500) {
+      this.form1099kRequired = true;
+      const restaurantAddress = this.restaurant.googleAddress;
       const form1099KData = {
-        name: restaurantName,
+        name: this.restaurant.name,
         formUrl: '',
-        year: year,
+        year: new Date().getFullYear() - 1,
         orderCount: restaurantTotals.orderCount,
         sumOfTransactions: restaurantTotals.sumOfTransactions,
         streetAddress: restaurantAddress.street_number + " " + restaurantAddress.route,
@@ -123,25 +135,107 @@ export class Form1099KComponent implements OnInit {
         }
       };
 
-      for (const entry of invoices) {
-        for (const order of entry.orders) {
-          if (order.payee === 'qMenu' && order.canceled === false) {
-            form1099KData.monthlyTotals[new Date(order.createdAt).getMonth()] += order.total;
-          }
+      for (const order of this.orders) {
+        if (order.orderStatuses[order.orderStatuses.length - 1].status !== "CANCELED") {
+          const total = order.getTotal();
+          const roundedTotal = Math.round(100 * (total + Number.EPSILON)) / 100;
+          form1099KData.monthlyTotals[new Date(order.createdAt).getMonth()] += roundedTotal;
         }
       }
 
       this.generateForm1099kPDF(form1099KData);
     } else {
-      // message: "Based on a review of qMenu's records, you do not require a Form 1099-K for this year"
+      this.displayMessage = true;
     }
   }
   async generateForm1099kPDF(form1099KData) {
-    // 1) Use pdf-lib (maybe?) to generate a pdf
-    // 2)
+    const formTemplateUrl = "../../../../assets/form1099k/f1099k.pdf"
+    const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
+    const pdfDoc = await PDFDocument.load(formBytes);
+    const form = pdfDoc.getForm();
+
+    // This block of code will retrieve all the field names in a file, but isn't necessrary to
+    // actually generate the form if you already know the names.
+
+    // const fields = form.getFields();
+    // fields.forEach(field => {
+    //   const name = field.getName();
+    //   console.log('Field name: ', name);
+    // })
+
+    const qMenuAddress = `
+    qMenu, Inc.
+    107 Technology Pkwy NW, Ste. 211
+    Peachtree Corners, GA 30092`;
+
+    // Filer's name
+    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_1[0]').setText(qMenuAddress);
+    // Filer checkbox
+    form.getCheckBox('topmostSubform[0].Copy1[0].LeftCol[0].FILERCheckbox_ReadOrder[0].c2_3[0]').check();
+
+    // Transaction reporting checkbox
+    form.getCheckBox('topmostSubform[0].Copy1[0].LeftCol[0].c2_5[0]').check();
+    // Payee's name
+    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_2[0]').setText(form1099KData.name);
+    // Street address
+    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_3[0]').setText(form1099KData.streetAddress);
+    // City, State, and ZIP code
+    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_4[0]').setText(form1099KData.cityStateAndZip);
+    // PSE name and telephone
+    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_5[0]').setText('Name and phone');
+    // Account number
+    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_6[0]').setText('account number');
+    // Filer's TIN
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_7[0]').setText('Filer TIN');
+    // Payee's TIN
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_8[0]').setText('Payee TIN');
+    // Box 1a Gross amount
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_9[0]').setText(form1099KData.sumOfTransactions.toString())
+    // Box 1b card not present transactions
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box1b_ReadOrder[0].f2_10[0]').setText(form1099KData.sumOfTransactions.toString())
+    // Box 2 - Merchant category code (Always 5812 for restaurants)
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_11[0]').setText('5812');
+    // Box 3 - Number of payment transactions
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_12[0]').setText(form1099KData.orderCount.toString())
+    // Box 4 - Federal income tax withheld
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_13[0]').setText('');
+    // Box 5a - January income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5a_ReadOrder[0].f2_14[0]').setText(form1099KData.monthlyTotals[0].toString());
+    // Box 5b - February income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_15[0]').setText(form1099KData.monthlyTotals[1].toString());
+    // Box 5c - March income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5c_ReadOrder[0].f2_16[0]').setText(form1099KData.monthlyTotals[2].toString())
+    // Box 5d - April income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_17[0]').setText(form1099KData.monthlyTotals[3].toString())
+    // Box 5e - May income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5e_ReadOrder[0].f2_18[0]').setText(form1099KData.monthlyTotals[4].toString());
+    // Box 5f - June income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_19[0]').setText(form1099KData.monthlyTotals[5].toString());
+    // Box 5g - July income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5g_ReadOrder[0].f2_20[0]').setText(form1099KData.monthlyTotals[6].toString());
+    // Box 5h - August income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_21[0]').setText(form1099KData.monthlyTotals[7].toString());
+    // Box 5i - September income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5i_ReadOrder[0].f2_22[0]').setText(form1099KData.monthlyTotals[8].toString());
+    // Box 5j - October income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_23[0]').setText(form1099KData.monthlyTotals[9].toString());
+    // Box 5k - November income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5k_ReadOrder[0].f2_24[0]').setText(form1099KData.monthlyTotals[10].toString());
+    // Box 5l - December income
+    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_25[0]').setText(form1099KData.monthlyTotals[11].toString());
+
+    const pdfBytes = await pdfDoc.save();
+
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = "Form1099K.pdf";
+    this.formLink = link;
+    link.click();
   }
 
-  async downloadForm1099kPDF() {
-
+  sanitizeLink(url: string) {
+    return this.sanitizer.bypassSecurityTrustUrl(url);
   }
 }

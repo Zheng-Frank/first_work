@@ -1,3 +1,10 @@
-<p>
-  form1099-k works!
-</p>
+<div *ngIf="!restaurant">
+  No restaurant data.
+</div>
+
+<div *ngIf="restaurant">
+  <div *ngIf="!calculationComplete"> <button (click)='checkIndividualRestaurant()' > Click here to generate a Form 1099K</button> </div>
+  <div *ngIf="formLink"> <a [href]="sanitizeLink(formLink)" download="Form1099k.pdf">Click here to download your Form 1099K</a> </div>
+  <div *ngIf="displayMessage"> Based on a review of our transaction records from last year, we have determined that you do not require a Form 1099-K from qMenu. </div>
+
+</div>

@@ -40,6 +40,7 @@
     "ng-pick-datetime": "^6.0.15",
     "ngx-mask": "^8.0.0",
     "parse-address": "^1.1.2",
+    "pdf-lib": "^1.16.0",
     "rxjs": "6.0.0",
     "zone.js": "^0.8.24"
   },
