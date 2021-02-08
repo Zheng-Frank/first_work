@@ -47,8 +47,8 @@ export class RestaurantOrdersComponent implements OnInit {
   cancelError = '';
   undoOrder: any;
   isPostmatesStatusDelivered = false;
-
-
+  searchTypes = [ 'Cutomer Phone', 'Postmates ID'];
+  type='Order Number';//  concrete search type
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
 
@@ -85,71 +85,25 @@ export class RestaurantOrdersComponent implements OnInit {
       this.maxCount++;
     }
   }
-
-  search(event) {
-    //let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
-    if (!this.searchText || (this.searchText && this.searchText.length <= 4)) {
+/**
+ * this function is used to search order by order number ,phone,customer
+ *
+ * @param {*} event
+ * @memberof RestaurantOrdersComponent
+ */
+search(event) {
+    let regexp = /^[0-9]{3,4}$/;
+    if(!this.searchText){
       this.populateOrders();
-    } else {
-      this.populateOrdersByPhoneNumber();
+    }else if(this.type == 'Order Number'&&this.searchText && regexp.test(this.searchText)){
+      this.orders = this.orders.filter((order) => String(order.orderNumber).indexOf(this.searchText)!=-1);
+    }else if(this.type == 'Postmates ID'){
+      this.orders = this.orders.filter((order) => order.delivery);
+    }else if(this.type == 'Cutomer Phone'){
+      this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
     }
   }
-
-  /**
-   * this is used to query order by  ''(Even if '',all queries can be done) or by  phone number .
-   *
-   * @memberof RestaurantOrdersComponent
-   */
-  async populateOrdersByPhoneNumber() {
-    const query = {
-      restaurant: {
-        $oid: this.restaurant._id
-      }
-    } as any;
-   
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "order",
-      query: query,
-      projection: {
-        logs: 0,
-      },
-      sort: {
-        createdAt: -1
-      },
-      limit: 50
-    }).toPromise();
-    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
  
-    const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "blacklist",
-      query: {
-        "value": { $in: customerIds },
-        disabled: { $ne: true }
-      },
-      projection: {
-        disabled: 1,
-        reasons: 1,
-        value: 1
-      },
-      limit: 100000
-    }).toPromise();
-    const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
-    // assemble back to order:
-    this.orders = orders.map(order => {
-      order.customer = order.customerObj;
-      order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
-      order.id = order._id;
-      order.customerNotice = order.customerNotice || '';
-      order.restaurantNotie = order.restaurantNotie || '';
-      // making it back-compatible to display bannedReasons
-      order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      var o= new Order(order);
-      return o;
-    });
-    console.log(this.orders.length);
-    this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
-  }
   /**
      *
      * @memberof RestaurantOrdersComponent
@@ -162,16 +116,20 @@ export class RestaurantOrdersComponent implements OnInit {
     } as any;
 
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
-
-    if (this.searchText && regexp.test(this.searchText)) {
-      //console.log("searchText:"+this.searchText);
-      query.orderNumber = +this.searchText
-    }
-   // 
+    // if (!this.searchText) {
+      
+    // }else if(this.type == 'Order Number'){
+    //   query.orderNumber = +this.searchText;
+    // }
+    // if (this.searchText && regexp.test(this.searchText)) {
+    //   //console.log("searchText:"+this.searchText);
+    //   query.orderNumber = +this.searchText
+    // }
+    // 
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
-      projection: {//返回那几
+      projection: {//返回除logs以外的所有行
         logs: 0,
       },
       sort: {
@@ -188,7 +146,7 @@ export class RestaurantOrdersComponent implements OnInit {
      * 
      */
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
-   
+
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "blacklist",
       query: {
@@ -200,18 +158,18 @@ export class RestaurantOrdersComponent implements OnInit {
         reasons: 1, //
         // reasons: {$slice: -10}, 数组里面前两个
         value: 1,
-        orders:1 
+        orders: 1
       },
       limit: 100000,
-      sort:{
-        createAt:1
+      sort: {
+        createAt: 1
       }
     }).toPromise();
-    
+
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      //  order.orderNumber=order.orderNumber;
+      order.orderNumber=order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
       order.orderStatuses = order.statuses;
@@ -220,11 +178,15 @@ export class RestaurantOrdersComponent implements OnInit {
       order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      var o= new Order(order);
-     // console.log("238行：订单："+JSON.stringify(o));
-       return o;
+      var o = new Order(order);
+      // console.log("238行：订单："+JSON.stringify(o));
+      return o;
     });
-  
+    // if(this.type == 'Postmates ID'){
+    //   this.orders = this.orders.filter((order) => order.delivery);
+    // }else if(this.type == 'Cutomer Phone'){
+    //   this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
+    // }
   }
 
   async handleOnSetNewStatus(data) {
@@ -335,25 +297,24 @@ export class RestaurantOrdersComponent implements OnInit {
     this.undoRejectModal.show();
   }
 
-  handleOnBan(order:Order) {
+  handleOnBan(order: Order) {
     //判断 customer 的bannerReason 属性是否为false
     // judge customer 's property ,bannerReasons (is it undefined?)
-    if(order && order.customer && order.customer.bannedReasons 
-      && order.customer.bannedReasons instanceof Array && order.customer.bannedReasons.length > 0){
-        this.orderForModal = order;
-        this.okBan([]);
-    }else{
+    if (order && order.customer && order.customer.bannedReasons && order.customer.bannedReasons instanceof Array && order.customer.bannedReasons.length > 0) {
+      this.orderForModal = order;
+      this.okBan([]);
+    } else {
       this.orderForModal = order;
       this.banModal.show();
     }
   }
-  
+
   getFormattedCreditCardNumber(number) {
     return (number || '').split('').reduce((a, e, i) => a + e + (i % 4 === 3 && (i < number.length - 1) ? '-' : ''), '');
   }
- 
-async okBan(reasons) {
-    
+
+  async okBan(reasons) {
+
     if (!this.orderForModal || !this.orderForModal.customer) {
       alert("No customer found");
       return;
@@ -394,6 +355,8 @@ async okBan(reasons) {
         reasons: reasons
       };
     }
+
+    // NOTE: we no longer use customer.bannedReasons. instead, we a blacklist item, type 'CUSTOMER' to indicate if the customer is banned
     generatedBlacklist[customer._id] = {
       type: 'CUSTOMER',
       value: customer._id,
@@ -441,7 +404,7 @@ async okBan(reasons) {
     }
 
     const existingBlackList = await this._api.get(`${environment.appApiUrl}app/blacklist?values=${encodeURIComponent(JSON.stringify(Object.keys(generatedBlacklist)))}`).toPromise();
-    if (!reasons || reasons.length === 0) {  //黑名单弃用 ,顾客被禁止（Blacklist abandoned, customers banned）
+    if (!reasons || reasons.length === 0) {  //黑名单启用 ,顾客被禁止（Blacklist abandoned, customers banned）
       // no reason is provided? disable them
       const enabledExistingblacklist = existingBlackList.filter(b => !b.disabled);
       for (let item of enabledExistingblacklist) {
@@ -453,7 +416,7 @@ async okBan(reasons) {
             }
           },
           op: "$set",//更新 update
-          field: "disabled", 
+          field: "disabled",
           value: true
         }).toPromise();
       }
@@ -481,7 +444,7 @@ async okBan(reasons) {
         }).toPromise();
         //      ${environment.qmenuApiUrl}generic 
         await this._api.patch(`${environment.appApiUrl}app`, {
-          resource: 'blacklist',  
+          resource: 'blacklist',
           query: {
             _id: { $oid: item._id }
           },
@@ -494,49 +457,6 @@ async okBan(reasons) {
     //this.okBanOld(reasons);//okBanOldCustomer() 
     this.banModal.hide();// 隐藏模块（hide the dialog）
     this.populateOrders(); //刷新订单界面(refresh order bound)
-  }
-
-  async okBanOld(reasons) {
-    if (this.orderForModal && this.orderForModal.customer) {
-
-
-      let op = '$set';
-      if (!reasons || reasons.length === 0) {
-        op = '$unset';
-      }
-
-      const customerQuery = {
-        _id: { $oid: this.orderForModal.customer['_id'] }
-      };
-      const orderQuery =
-      {
-        customer: { $oid: this.orderForModal.customer['_id'] }
-      };
-
-      zip(this._api.patch(environment.appApiUrl + 'biz', {
-        resource: 'customer',
-        query: customerQuery,
-        op: op,
-        field: 'bannedReasons',
-        value: reasons
-      }),
-        this._api.patch(environment.appApiUrl + 'biz', {
-          resource: 'order',
-          query: orderQuery,
-          op: op,
-          field: "customerObj.bannedReasons",
-          value: reasons
-        }),
-      ).subscribe(
-        d => {
-          this.banModal.hide();
-          this.populateOrders();
-        },
-        error => console.log(error));
-
-    } else {
-      alert('no customer found');
-    }
   }
 
   async rejectOrder(event) {
