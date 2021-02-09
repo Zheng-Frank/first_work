@@ -264,24 +264,23 @@ background-image: linear-gradient(to right,#cd2730,#fa4b00,#cd2730);' href="http
 
   }
 
-  // sync menu hours
-  async syncGmbMenuHours() {
+  async syncGmb(categories) {
     try {
-      const results = await this._api.post(environment.appApiUrl + "gmb/generic", {
-        name: "sync-gmb-menu-hours",
+      await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "sync-one-rt",
         payload: {
-          "restaurantId": this.restaurant.id
+          "rtId": this.restaurant._id,
+          ...categories ? { categories: categories } : {},
+          forceRecent: true,
+          syncDisabled: true
         }
       }).toPromise();
-
-      console.log(results);
-
-      this._global.publishAlert(AlertType.Success, `Menu Hours Synced`);
-    } catch (error) {
-      console.error(error);
-      this._global.publishAlert(AlertType.Danger, `Couldn't sync menu hours`);
+      this._global.publishAlert(AlertType.Success, 'Synced');
     }
-
+    catch (error) {
+      console.error(`Error. Couldn't sync GMB`, error);
+      return false;
+    }
   }
 
 }

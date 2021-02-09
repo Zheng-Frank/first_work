@@ -127,7 +127,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
       this.categories = this.items = [];
     }
 
-    const menu = this.restaurant.menus.find(menu => menu.name === menuName);
+    const menu = this.restaurant.menus.find(menu => String(menu.name).trim() === String(menuName).trim());
 
     if (menu) {
       this.categories = menu.mcs || [];
@@ -143,7 +143,7 @@ export class CloudPrintingSettingsComponent implements OnInit {
       this.selected.category = this.selected.item = '';
     }
 
-    const menu = this.restaurant.menus.find(menu => menu.name === this.selected.menu)
+    const menu = this.restaurant.menus.find(menu => String(menu.name).trim() === String(this.selected.menu).trim());
     if (menu) {
       const categories = menu.mcs.find(cat => cat.name === categoryName);
       if (categories) {

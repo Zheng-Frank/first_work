@@ -354,9 +354,6 @@ export class RestaurantServiceSettingsComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, "Error creating gateway");
       console.error(error);
     }
-
-
   }
-
 }
 

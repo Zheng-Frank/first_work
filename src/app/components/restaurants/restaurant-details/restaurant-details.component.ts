@@ -37,6 +37,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     promotions: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    faxSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
@@ -180,7 +181,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           muteSecondNotifications: 1,
           printSettings: 1,
           useNewSettings: 1,
-          ccHandler: 1
+          ccHandler: 1,
+          comebackDate: 1,
+          ccMinimumCharge: 1
+
         },
         limit: 1
       })
@@ -345,6 +349,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return (address.locality ? address.locality + ', ' : (address.sublocality ? address.sublocality + ', ' : ''))
       + (address.administrative_area_level_1 ? address.administrative_area_level_1 : '')
       + ' ' + address.postal_code;
+  }
+
+  isDate(dateToParse) {
+    return !isNaN(Date.parse(dateToParse));
   }
 
 }

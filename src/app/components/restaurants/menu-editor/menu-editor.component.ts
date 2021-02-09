@@ -78,6 +78,11 @@ export class MenuEditorComponent implements OnInit {
   }
 
   ok() {
+    
+    if(this.menu && this.menu.name) {
+      this.menu.name = this.menu.name.trim();
+    }
+
     this.onDone.emit(this.menu);
     this.clickedDelete = false;
   }

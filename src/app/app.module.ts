@@ -192,6 +192,10 @@ import { RestarantChainsComponent } from './components/restaurants/restarant-cha
 import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
 import { ChainComponent } from './components/chains/chain/chain.component';
 import { CloudPrintingSettingsComponent } from './components/restaurants/cloud-printing-settings/cloud-printing-settings.component';
+import { TemporarilyDisabledComponent } from './components/restaurants/temporarily-disabled/temporarily-disabled.component';
+import { RestaurantFaxSettingsComponent } from './components/restaurants/fax-settings/fax-settings.component';
+import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
+import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -359,9 +363,10 @@ import { CloudPrintingSettingsComponent } from './components/restaurants/cloud-p
     ChainsDashboardComponent,
     ChainComponent,
     CloudPrintingSettingsComponent,
-
-
-
+    TemporarilyDisabledComponent,
+    RestaurantFaxSettingsComponent,
+    OtherModulesComponent,
+    BannedCustomersComponent
   ],
   imports: [
     BrowserModule,

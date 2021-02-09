@@ -31,6 +31,7 @@ export class MonitoringFaxComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+    this.findPhaxioFailedNumbers();
   }
 
   async findPhaxioFailedNumbers() {
@@ -64,7 +65,6 @@ export class MonitoringFaxComponent implements OnInit {
 
     // organize errors by type:
     this.rows = Object.keys(numberFailureLogs).map(phone => numberFailureLogs[phone]);
-
     this.rows.map(row => row.errorList = Object.keys(row.errors).map(k => `${k} (${row.errors[k]})`));
 
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
