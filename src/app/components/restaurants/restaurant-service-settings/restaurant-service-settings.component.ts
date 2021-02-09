@@ -226,7 +226,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     const gateway = this.supportedGateways.find(g => g.gateway_type === gatewayType);
 
     if (gateway) {
-      const [authMode] = (gateway && gateway.auth_modes || []);
+      const [authMode] = (gateway && gateway.auth_modes || {});
       if (authMode) {
         if (authMode.credentials && authMode.credentials.length > 0) {
           return authMode.credentials;
