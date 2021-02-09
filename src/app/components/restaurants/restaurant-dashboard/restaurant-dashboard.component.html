@@ -5,6 +5,7 @@
     <button class="btn btn-link pr-0 mr-3" (click)="navigateTo('/postmates-list')"><i class="fas fa-truck"></i> Delivery by Postmates</button>
     <button class="btn btn-link pr-0" (click)="navigateTo('/chains')"><i class="fas fa-archway"></i> Restaurant Chains</button>
     <button class="btn btn-link pr-0" (click)="navigateTo('/invalid-list')"><i class="fas fa-exclamation-triangle"></i> Invalid Restaurants</button>
+    <button class="btn btn-link pr-0" (click)="navigateTo('/temporarily-disabled')"><i class="fas fa-utensils"></i> Temporarily Disabled Restaurants</button>
     <br>
     <button class="btn btn-primary" (click)="setAction('NEW')" *ngIf="isButtonVisible('NEW')">
       <i class="fas fa-plus"></i> Add New Restaurant</button>

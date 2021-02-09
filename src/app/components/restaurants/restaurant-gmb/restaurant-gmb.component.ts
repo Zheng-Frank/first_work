@@ -453,18 +453,35 @@ export class RestaurantGmbComponent implements OnInit {
     this.inviteEmail = '';
   }
 
-  async toggleSync(event, field) {
+  async toggleSync(event, category, subCategory) {
     try {
-      const syncCategories = (this.restaurant.gmbSettings || {}).syncCategories || [];
-      const newCategories = new Set(syncCategories);      
-      event.target.checked ? newCategories.add(field) : newCategories.delete(field); 
+      if (!this.restaurant.gmbSettings) this.restaurant.gmbSettings = {};
+      if (!this.restaurant.gmbSettings.syncCategories) this.restaurant.gmbSettings.syncCategories = {};
+      if (!this.restaurant.gmbSettings.syncCategories[category]) this.restaurant.gmbSettings.syncCategories[category] = {};
+
+      let oldObj = { _id: this.restaurant._id };
+      let newObj = Object.assign({}, oldObj);
+      if (!subCategory) {
+        const old = this.restaurant.gmbSettings.syncCategories[category].on;
+        this.restaurant.gmbSettings.syncCategories[category].on = !old;
+
+        oldObj[`gmbSettings.syncCategories.${category}.on`] = old;
+        newObj[`gmbSettings.syncCategories.${category}.on`] = !old; //FIXME
+
+      } else {
+        if (!this.restaurant.gmbSettings.syncCategories[category][subCategory])
+          this.restaurant.gmbSettings.syncCategories[category][subCategory] = {};
+        const old = this.restaurant.gmbSettings.syncCategories[category][subCategory].on;
+        this.restaurant.gmbSettings.syncCategories[category][subCategory].on = !old;
+
+        oldObj[`gmbSettings.syncCategories.${category}.${subCategory}.on`] = old;
+        newObj[`gmbSettings.syncCategories.${category}.${subCategory}.on`] = !old;
+      }
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: { _id: this.restaurant._id, "gmbSettings.syncCategories": syncCategories },
-        new: { _id: this.restaurant._id, "gmbSettings.syncCategories": [...newCategories] }
+        old: oldObj,
+        new: newObj
       }]).toPromise();
-
-      this.restaurant.gmbSettings.syncCategories = [...newCategories];
 
       this._global.publishAlert(AlertType.Success, 'Updated');
 
@@ -473,5 +490,15 @@ export class RestaurantGmbComponent implements OnInit {
     }
   }
 
-
+  isSyncCategory(category) {
+    return this.restaurant.gmbSettings
+      && this.restaurant.gmbSettings.syncCategories
+      && this.restaurant.gmbSettings.syncCategories[category]
+      && this.restaurant.gmbSettings.syncCategories[category].on;
+  }
+  isSyncSubCategory(main, sub) {
+    return this.isSyncCategory(main)
+      && this.restaurant.gmbSettings.syncCategories[main][sub]
+      && this.restaurant.gmbSettings.syncCategories[main][sub].on;
+  }
 }
