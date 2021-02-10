@@ -9,8 +9,6 @@ import { PDFDocument } from 'pdf-lib';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
-import { mergeMap, observeOn } from 'rxjs/operators';
 import { FeeSchedule, Restaurant, Order } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -45,6 +43,7 @@ export class Form1099KComponent implements OnInit {
   }
 
   async populateOrders() {
+    console.log('populateOrders, line 46')
     const lastYear = new Date().getFullYear() - 1;
 
     const query = {
@@ -83,9 +82,26 @@ export class Form1099KComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.restaurant) {
+    const lastYear = new Date().getFullYear() - 1;
+    console.log(this.form1099KIndexOf(2020));
+    if (this.form1099KIndexOf(lastYear) >= 0) {
+      this.generateForm1099kPDF(this.restaurant.form1099ks[this.form1099KIndexOf(lastYear)]);
+    } else if (this.restaurant) {
       this.populateOrders();
     }
+  }
+
+  form1099KIndexOf(year) {
+    let index = -1;
+    if (this.restaurant.form1099ks) {
+      this.restaurant.form1099ks.forEach((form1099kObj, i) => {
+        if (form1099kObj.year === year) {
+          index = i;
+          return;
+        }
+      });
+    }
+    return index;
   }
 
   async checkIndividualRestaurant() {
@@ -93,7 +109,7 @@ export class Form1099KComponent implements OnInit {
       orderCount: 0,
       sumOfTransactions: 0
     };
-
+    console.log(this.orders);
     for (const order of this.orders) {
       if (order.orderStatuses[order.orderStatuses.length - 1].status !== "CANCELED") {
         const total = order.getTotal();
@@ -106,7 +122,7 @@ export class Form1099KComponent implements OnInit {
 
     this.calculationComplete = true;
 
-    // THESE ARE NOT THE CORRECT VALUES. orderCount should be 200 and sumOfTransactions should be 20000
+    // Make sure the values on the line below are actually 200 and 20000, respectively.
     if (restaurantTotals.orderCount >= 50 && restaurantTotals.sumOfTransactions >= 1500) {
       this.form1099kRequired = true;
       const restaurantAddress = this.restaurant.googleAddress;
@@ -142,7 +158,6 @@ export class Form1099KComponent implements OnInit {
         }
       }
 
-
       this.generateForm1099kPDF(form1099KData);
     } else {
       this.displayMessage = true;
@@ -154,9 +169,8 @@ export class Form1099KComponent implements OnInit {
     const pdfDoc = await PDFDocument.load(formBytes);
     const form = pdfDoc.getForm();
 
-    // This block of code will retrieve all the field names in a file, but isn't necessrary to
-    // actually generate the form if you already know the names.
-
+    /* This block of code will retrieve & log all the field names in a file, but isn't necessrary to actually generate the form if you already know the names.
+*/
     // const fields = form.getFields();
     // fields.forEach(field => {
     //   const name = field.getName();
@@ -169,66 +183,65 @@ export class Form1099KComponent implements OnInit {
     Peachtree Corners, GA 30092`;
 
     // Filer's name
-    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_01[0]').setText(qMenuAddress);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_01[0]`).setText(qMenuAddress);
     // Filer checkbox
-    form.getCheckBox('topmostSubform[0].Copy1[0].LeftCol[0].FILERCheckbox_ReadOrder[0].c2_3[0]').check();
+    form.getCheckBox(`topmostSubform[0].CopyB[0].LeftCol[0].FILERCheckbox_ReadOrder[0].c2_3[0]`).check();
 
     // Transaction reporting checkbox
-    form.getCheckBox('topmostSubform[0].Copy1[0].LeftCol[0].c2_5[0]').check();
+    form.getCheckBox(`topmostSubform[0].CopyB[0].LeftCol[0].c2_5[0]`).check();
     // Payee's name
-    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_02[0]').setText(form1099KData.name);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_02[0]`).setText(form1099KData.name);
     // Street address
-    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_03[0]').setText(form1099KData.streetAddress);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_03[0]`).setText(form1099KData.streetAddress);
     // City, State, and ZIP code
-    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_04[0]').setText(form1099KData.cityStateAndZip);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_04[0]`).setText(form1099KData.cityStateAndZip);
     // PSE name and telephone
-    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_05[0]').setText('Name and phone');
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_05[0]`).setText('');
     // Account number
-    form.getTextField('topmostSubform[0].Copy1[0].LeftCol[0].f2_06[0]').setText('account number');
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_06[0]`).setText('');
     // Filer's TIN
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_07[0]').setText('qMenu TIN');
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_07[0]`).setText('81-4208444');
     // Payee's TIN
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_08[0]').setText('');
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_08[0]`).setText('');
     // Box 1a Gross amount
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_09[0]').setText(form1099KData.sumOfTransactions.toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_09[0]`).setText(form1099KData.sumOfTransactions.toFixed(2))
     // Box 1b card not present transactions
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box1b_ReadOrder[0].f2_10[0]').setText(form1099KData.sumOfTransactions.toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_10[0]`).setText(form1099KData.sumOfTransactions.toFixed(2))
     // Box 2 - Merchant category code (Always 5812 for restaurants)
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_11[0]').setText('5812');
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_11[0]`).setText('5812');
     // Box 3 - Number of payment transactions
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_12[0]').setText(form1099KData.orderCount.toString())
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_12[0]`).setText(form1099KData.orderCount.toString())
     // Box 4 - Federal income tax withheld
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_13[0]').setText('');
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_13[0]`).setText('');
     // Box 5a - January income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5a_ReadOrder[0].f2_14[0]').setText(form1099KData.monthlyTotals[0].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5a_ReadOrder[0].f2_14[0]`).setText(form1099KData.monthlyTotals[0].toFixed(2));
     // Box 5b - February income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_15[0]').setText(form1099KData.monthlyTotals[1].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_15[0]`).setText(form1099KData.monthlyTotals[1].toFixed(2));
     // Box 5c - March income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5c_ReadOrder[0].f2_16[0]').setText(form1099KData.monthlyTotals[2].toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5c_ReadOrder[0].f2_16[0]`).setText(form1099KData.monthlyTotals[2].toFixed(2))
     // Box 5d - April income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_17[0]').setText(form1099KData.monthlyTotals[3].toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_17[0]`).setText(form1099KData.monthlyTotals[3].toFixed(2))
     // Box 5e - May income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5e_ReadOrder[0].f2_18[0]').setText(form1099KData.monthlyTotals[4].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5e_ReadOrder[0].f2_18[0]`).setText(form1099KData.monthlyTotals[4].toFixed(2));
     // Box 5f - June income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_19[0]').setText(form1099KData.monthlyTotals[5].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_19[0]`).setText(form1099KData.monthlyTotals[5].toFixed(2));
     // Box 5g - July income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5g_ReadOrder[0].f2_20[0]').setText(form1099KData.monthlyTotals[6].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5g_ReadOrder[0].f2_20[0]`).setText(form1099KData.monthlyTotals[6].toFixed(2));
     // Box 5h - August income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_21[0]').setText(form1099KData.monthlyTotals[7].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_21[0]`).setText(form1099KData.monthlyTotals[7].toFixed(2));
     // Box 5i - September income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5i_ReadOrder[0].f2_22[0]').setText(form1099KData.monthlyTotals[8].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5i_ReadOrder[0].f2_22[0]`).setText(form1099KData.monthlyTotals[8].toFixed(2));
     // Box 5j - October income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_23[0]').setText(form1099KData.monthlyTotals[9].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_23[0]`).setText(form1099KData.monthlyTotals[9].toFixed(2));
     // Box 5k - November income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box5k_ReadOrder[0].f2_24[0]').setText(form1099KData.monthlyTotals[10].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5k_ReadOrder[0].f2_24[0]`).setText(form1099KData.monthlyTotals[10].toFixed(2));
     // Box 5l - December income
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].f2_25[0]').setText(form1099KData.monthlyTotals[11].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_25[0]`).setText(form1099KData.monthlyTotals[11].toFixed(2));
     // Box 6 - State
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box6_ReadOrder[0].f2_26[0]').setText(form1099KData.state);
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box6_ReadOrder[0].f2_26[0]`).setText(form1099KData.state);
     // Box 7 - State ID
-    form.getTextField('topmostSubform[0].Copy1[0].RghtCol[0].Box7_ReadOrder[0].f2_28[0]').setText('');
-    // Box 8 - State Income tax withheld
-    form.getTextField('topmostSubform[0].CopyC[0].RightCol[0].f2_30[0]').setText('')
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box7_ReadOrder[0].f2_28[0]`).setText('');
+
 
     const pdfBytes = await pdfDoc.save();
 
@@ -238,7 +251,7 @@ export class Form1099KComponent implements OnInit {
     link.href = window.URL.createObjectURL(blob);
     link.download = "Form1099K.pdf";
     this.formLink = link;
-    link.click();
+    this.updateRestaurantRecord(form1099KData);
   }
 
   sanitizeLink(url: string) {
@@ -247,5 +260,19 @@ export class Form1099KComponent implements OnInit {
 
   round(num) {
     return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
+
+  async updateRestaurantRecord(form1099KData) {
+    let restaurant1099KData;
+    if (this.restaurant.form1099ks) {
+      restaurant1099KData = this.restaurant.form1099ks.push(form1099KData);
+    } else {
+      restaurant1099KData = [form1099KData];
+    }
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+      old: { _id: this.restaurant._id },
+      new: { _id: this.restaurant._id, form1099ks: restaurant1099KData }
+    }
+    ]).toPromise();
   }
 }
