@@ -261,64 +261,90 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   async createGateway() {
 
     const ccHandler = this.restaurant['ccHandler'] || {};
-    let overwriteGateway = false;
 
     try {
+
       if (this.isValidGateway(this.gateway)) {
         if (ccHandler && ccHandler.gateway_token) {
+          // --- overwrite
           if (confirm('There is a gateway asigned for this restaurant already. Do you want to overwrite it?')) {
-            overwriteGateway = true
-          }
-        } else {
-          overwriteGateway = false;
-        }
+            const gatewayResponse = await this._api.post(environment.appApiUrl + 'lambdas/spreedly', {
+              name: "create-gateway",
+              payload: {
+                gatewayDetails: {
+                  ...this.gateway
+                },
+                sandbox: true // TODO: remove in production
+              }
+            }).toPromise();
 
-        const gatewayResponse = await this._api.post(environment.appApiUrl + 'lambdas/spreedly', {
-          name: "create-gateway",
-          payload: {
-            gatewayDetails: {
-              ...this.gateway
-            },
-            sandbox: true // TODO: remove in production
-          }
-        }).toPromise();
+            const { status, data: { gateway: { token } } } = gatewayResponse;
 
-        const { status, data: { gateway: { token } } } = gatewayResponse;
+            if (status === 201) {
+              const oldCcHandler = JSON.parse(JSON.stringify(ccHandler));
+              let newCcHandler = JSON.parse(JSON.stringify(ccHandler));
 
-        if (status === 201) {
-          const oldCcHandler = JSON.parse(JSON.stringify(ccHandler));
-          let newCcHandler = JSON.parse(JSON.stringify(ccHandler));
+              newCcHandler = {
+                type: 'SPREEDLY',
+                ...this.gateway,
+                gateway_token: token
+              };
 
-          newCcHandler = {
-            type: 'SPREEDLY',
-            ...this.gateway,
-            gateway_token: token
-          };
+              oldCcHandler.gateway_type = ccHandler.gateway_type;
 
-          if (overwriteGateway) {
-            oldCcHandler.gateway_type = ccHandler.gateway_type;
+              try {
+                await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+                  {
+                    old: {
+                      _id: { $oid: this.restaurant._id },
+                      ccHandler: oldCcHandler
+                    },
+                    new: {
+                      _id: { $oid: this.restaurant._id },
+                      ccHandler: newCcHandler
+                    },
+                  }
+                ]).toPromise();
 
-            try {
-              await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
-                {
-                  old: {
-                    _id: { $oid: this.restaurant._id },
-                    ccHandler: oldCcHandler
-                  },
-                  new: {
-                    _id: { $oid: this.restaurant._id },
-                    ccHandler: newCcHandler
-                  },
-                }
-              ]).toPromise();
-
-              this._global.publishAlert(AlertType.Success, "Gateway overwriten successfuly");
-            } catch (error) {
-              console.error(error);
-              this._global.publishAlert(AlertType.Danger, "Error while setting up spreedly gateway");
+                this._global.publishAlert(AlertType.Success, "Gateway overwriten successfuly");
+              } catch (error) {
+                console.error(error);
+                this._global.publishAlert(AlertType.Danger, "Error while setting up spreedly gateway");
+              }
+            } else {
+              this._global.publishAlert(AlertType.Danger, "Error while requesting creation of spreedly gateway");
+              console.error(gatewayResponse);
             }
           } else {
-            try {
+            // --- cancel
+            return;
+          }
+        } else {
+          // --- create new
+          try {
+            const gatewayResponse = await this._api.post(environment.appApiUrl + 'lambdas/spreedly', {
+              name: "create-gateway",
+              payload: {
+                gatewayDetails: {
+                  ...this.gateway
+                },
+                sandbox: true // TODO: remove in production
+              }
+            }).toPromise();
+
+            const { status, data: { gateway: { token } } } = gatewayResponse;
+            if (status === 201) {
+              const oldCcHandler = JSON.parse(JSON.stringify(ccHandler));
+              let newCcHandler = JSON.parse(JSON.stringify(ccHandler));
+
+              newCcHandler = {
+                type: 'SPREEDLY',
+                ...this.gateway,
+                gateway_token: token
+              };
+
+              oldCcHandler.gateway_type = ccHandler.gateway_type;
+
               await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
                 {
                   old: {
@@ -333,23 +359,19 @@ export class RestaurantServiceSettingsComponent implements OnInit {
               ]).toPromise();
 
               this._global.publishAlert(AlertType.Success, "Gateway created successfuly");
-            } catch (error) {
-              console.error(error);
-              this._global.publishAlert(AlertType.Danger, "Error while creating gateway");
+            } else {
+              this._global.publishAlert(AlertType.Danger, "Error while requesting creation of spreedly gateway");
+              console.error(gatewayResponse);
             }
+          } catch(error) {
+            console.error(error);
+            this._global.publishAlert(AlertType.Danger, "Error while setting up spreedly gateway");
           }
-
-
-        } else {
-          this._global.publishAlert(AlertType.Danger, "Error while setting up spreedly gateway");
-          console.error(gatewayResponse);
         }
-
       } else {
         this._global.publishAlert(AlertType.Danger, "Error gateway info is malformed");
         console.error(this.gateway);
       }
-
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, "Error creating gateway");
       console.error(error);
