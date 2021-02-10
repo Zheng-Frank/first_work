@@ -37,7 +37,9 @@ export class GmbSuspendedListComponent implements OnInit {
             label: "Account"
         },
         {
-            label: "Suspended At"
+            label: "Suspended At",
+            paths: ['lastAt'],
+            sort: (a, b) => a - b
         },
         {
             label: "Score",
@@ -78,7 +80,7 @@ export class GmbSuspendedListComponent implements OnInit {
                     email: loc.email,
                     place_id: loc.place_id,
                     locationName: loc.locationName,
-                    lastAt: loc.lastAt,
+                    lastAt: new Date(loc.lastAt),
                     appealId: loc.appealId,
                     checker: loc.checker,
                     checkedAt: loc.checkedAt,
