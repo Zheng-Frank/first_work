@@ -724,16 +724,18 @@ export class SeamlessIntegrationComponent implements OnInit {
       console.log("HERE 2");
       // If ID exists, then don't run the operation
 
-      const foundRes = await this._api
+      const [foundRes] = await this._api
         .get(environment.qmenuApiUrl + "generic", {
           resource: "restaurant",
+          projection: { selfSignup: 1, disabled: 1 },
           query: { _id: { $oid: id } },
           limit: 100000,
         })
         .toPromise();
 
       //  DO NOT CHANGE THE UUID IF ALREADY EXISTS
-      if (foundRes) {
+      if (foundRes && !foundRes.disabled) {
+        alert("RESTAURANT ALREADY EXISTS");
         console.log("RESTAURANT ALREADY EXISTS ", foundRes);
         return;
       }
