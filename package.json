@@ -41,6 +41,7 @@
     "ngx-mask": "^8.0.0",
     "parse-address": "^1.1.2",
     "rxjs": "6.0.0",
+    "uuidv4": "^6.2.6",
     "zone.js": "^0.8.24"
   },
   "devDependencies": {
