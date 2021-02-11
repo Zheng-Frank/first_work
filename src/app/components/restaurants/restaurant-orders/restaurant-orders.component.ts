@@ -53,11 +53,10 @@ export class RestaurantOrdersComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.populateOrders();
     this.onNewOrderReceived.subscribe(
       d => this.showNotifier(d)
     );
-
-    this.populateOrders();
   }
 
   showNotifier(orderEvent) {
@@ -178,9 +177,8 @@ search(event) {
       order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      var o = new Order(order);
       // console.log("238行：订单："+JSON.stringify(o));
-      return o;
+      return new Order(order);
     });
     // if(this.type == 'Postmates ID'){
     //   this.orders = this.orders.filter((order) => order.delivery);

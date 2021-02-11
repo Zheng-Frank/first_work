@@ -1,14 +1,12 @@
 <div *ngIf="orders">
-  <div class="form-group row" >
-    <div class="col-md-3 form-inline" style="margin-right:-50px;">
+  <div class="form-group form-inline" >
       <label class="mr-2 ml-2"> Search order by:</label>
       <select [(ngModel)]="type" class="form-control">
         <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
       </select>
-    </div>
     <div class="col-md-9">
       <!-- <input type="text" [(ngModel)]="searchText" class="form-control" placeholder="search order#, phone, name..."> -->
-      <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText" class="form-control"
+      <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText" style="width: 100%;" class="form-control"
         placeholder="Search by order# or phone or postmates id">
     </div>
     <div *ngIf="searchText" class="text-muted">Found: {{orders.length}}</div>
