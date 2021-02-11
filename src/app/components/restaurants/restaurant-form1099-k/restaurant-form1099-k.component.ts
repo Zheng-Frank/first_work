@@ -40,23 +40,22 @@ export class Form1099KComponent implements OnInit {
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe, private sanitizer: DomSanitizer) { }
 
   ngOnInit() {
+    this.populateOrders();
   }
 
-  async populateOrders() {
-    console.log('populateOrders, line 46')
-    const lastYear = new Date().getFullYear() - 1;
 
+  async populateOrders() {
     const query = {
       restaurant: {
         $oid: this.restaurant._id
       },
       "paymentObj.method": "QMENU",
       $expr: {
-        $eq: [{ $year: "$createdAt" }, lastYear]
+        $eq: [{ $year: "$createdAt" }, 2020]
       }
-    }
+    } as any;
 
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
       projection: {
@@ -64,9 +63,11 @@ export class Form1099KComponent implements OnInit {
       },
       sort: {
         createdAt: -1
-      },
-      limit: 25000
-    }).toPromise();
+      }
+    }, 50);
+    console.log(orders);
+    // get blocked customers and assign back to each order blacklist reasons
+
 
     // assemble back to order:
     this.orders = orders.map(order => {
@@ -76,19 +77,18 @@ export class Form1099KComponent implements OnInit {
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
-
       return new Order(order);
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    const lastYear = new Date().getFullYear() - 1;
-    console.log(this.form1099KIndexOf(2020));
-    if (this.form1099KIndexOf(lastYear) >= 0) {
-      this.generateForm1099kPDF(this.restaurant.form1099ks[this.form1099KIndexOf(lastYear)]);
-    } else if (this.restaurant) {
-      this.populateOrders();
-    }
+    // const lastYear = new Date().getFullYear() - 1;
+    // console.log(this.form1099KIndexOf(2020));
+    // if (this.form1099KIndexOf(lastYear) >= 0) {
+    //   this.generateForm1099kPDF(this.restaurant.form1099ks[this.form1099KIndexOf(lastYear)]);
+    // } else if (this.restaurant) {
+    // this.populateOrders();
+    // }
   }
 
   form1099KIndexOf(year) {
@@ -105,11 +105,12 @@ export class Form1099KComponent implements OnInit {
   }
 
   async checkIndividualRestaurant() {
-    const restaurantTotals = {
+    let restaurantTotals = {
       orderCount: 0,
       sumOfTransactions: 0
     };
     console.log(this.orders);
+    console.log(restaurantTotals.orderCount, restaurantTotals.sumOfTransactions)
     for (const order of this.orders) {
       if (order.orderStatuses[order.orderStatuses.length - 1].status !== "CANCELED") {
         const total = order.getTotal();
@@ -123,7 +124,7 @@ export class Form1099KComponent implements OnInit {
     this.calculationComplete = true;
 
     // Make sure the values on the line below are actually 200 and 20000, respectively.
-    if (restaurantTotals.orderCount >= 50 && restaurantTotals.sumOfTransactions >= 1500) {
+    if (restaurantTotals.orderCount >= 1 && restaurantTotals.sumOfTransactions >= 1) {
       this.form1099kRequired = true;
       const restaurantAddress = this.restaurant.googleAddress;
       const form1099KData = {
@@ -163,14 +164,15 @@ export class Form1099KComponent implements OnInit {
       this.displayMessage = true;
     }
   }
+
   async generateForm1099kPDF(form1099KData) {
-    const formTemplateUrl = "../../../../assets/form1099k/f1099k.pdf"
+    const formTemplateUrl = "../../../../assets/form1099k/f1099k_2020.pdf";
     const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(formBytes);
     const form = pdfDoc.getForm();
 
-    /* This block of code will retrieve & log all the field names in a file, but isn't necessrary to actually generate the form if you already know the names.
-*/
+    /* This block of code will retrieve & log all the field names in a file, but isn't necessrary to actually generate the form if you already know the names. */
+
     // const fields = form.getFields();
     // fields.forEach(field => {
     //   const name = field.getName();
@@ -242,16 +244,16 @@ export class Form1099KComponent implements OnInit {
     // Box 7 - State ID
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box7_ReadOrder[0].f2_28[0]`).setText('');
 
-
-    const pdfBytes = await pdfDoc.save();
-
+    const outputDoc = await PDFDocument.create();
+    const [fourthPage] = await outputDoc.copyPages(pdfDoc, [3])
+    outputDoc.addPage(fourthPage);
+    const pdfBytes = await outputDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
 
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
     link.download = "Form1099K.pdf";
     this.formLink = link;
-    this.updateRestaurantRecord(form1099KData);
   }
 
   sanitizeLink(url: string) {
