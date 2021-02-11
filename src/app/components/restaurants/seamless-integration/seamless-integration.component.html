@@ -1,0 +1,479 @@
+<div class="container">
+  <h2 class="text-center">New Self-Signups</h2>
+  <h6 class="text-center">{{ entriesLength }} Entries shown</h6>
+
+  <div class="modal" tabindex="-1" role="dialog" id="exampleModal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Upload CSV</h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-footer">
+          <div class="container">
+            <div class="row">
+              <div class="col-sm-4">
+                <input
+                  class="hidden"
+                  type="file"
+                  #fileInput
+                  id="upload-file"
+                  name="upload-file"
+                  accept=".csv"
+                  ngf-max-size="2MB"
+                  (change)="addFileList($event.target.files)"
+                />
+              </div>
+              <div class="col-sm-4"></div>
+              <div class="col-sm-4">
+                <button (click)="reset()">Reset File</button>
+              </div>
+            </div>
+          </div>
+          <br />
+          <div class="container">
+            <div class="row">
+              <div class="form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="exampleCheck1"
+                  (click)="designatePostcardFlag()"
+                />
+                <label class="form-check-label" for="exampleCheck1"
+                  >Send Postcard to Every Added Restaurant</label
+                >
+              </div>
+            </div>
+            <br />
+            <br />
+            <p class="row">
+              Columns should be "restaurant_name" followed by
+              "restaurant_zip_code".
+            </p>
+            <button
+              (click)="addAttachment()"
+              class="row text-center btn btn-primary"
+            >
+              Submit
+            </button>
+            <br />
+            <br />
+            <div class="row">
+              <div *ngIf="currentlyUploading" class="col-sm-4">Loading...</div>
+              <div
+                *ngIf="currentlyUploading"
+                class="spinner-border text-center"
+                role="status"
+              >
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+
+            <br />
+            <div *ngIf="invalidFormat" class="text-center">
+              Invalid format, please follow instructions
+            </div>
+            <div *ngIf="!currentlyUploading && rowsProcessed != null">
+              <div class="alert alert-secondary text-center" role="alert">
+                Check send history to find RTs sent with Postcard
+              </div>
+              <div class="alert alert-success text-center">
+                We successfully added postcards to
+                {{ successEveryLobCount }} restaurants
+              </div>
+              <div class="alert alert-danger text-center">
+                We failed to add postcards to
+                {{ failEveryLobCount }} restaurants
+              </div>
+              <div class="text-center">
+                {{ processedLength }} processed.
+                {{ (afterCsvLength - beforeCsvLength - processedLength) * -1 }}
+                duplicates purged. {{ afterCsvLength - beforeCsvLength }} more
+                records added.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="modal" tabindex="-1" role="dialog" id="uploadSingle">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Single Restaurant by ID</h5>
+
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <br />
+          <form>
+            <div class="form-group">
+              <div class="container-fluid">
+                <input
+                  style
+                  type="email"
+                  class="form-control"
+                  id="exampleInputEmail1"
+                  aria-describedby="emailHelp"
+                  placeholder="Enter ID"
+                  (change)="updateId($event.target.value)"
+                />
+                <div class="container-fluid">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [checked]="getSinglePostcard()"
+                    id="send-postcard-checkbox"
+                    (click)="toggleSendSinglePostcard()"
+                  />
+                  <label class="form-check-label" for="send-postcard-checkbox"
+                    >Send Postcard Added Restaurant</label
+                  >
+                </div>
+                <div *ngIf="sendSingleRTSuccess" class="container-fluid">
+                  <div class="alert alert-success">
+                    We successfully added the restaurant! Reload to see update.
+                  </div>
+                </div>
+                <div *ngIf="sendSingleLobSuccess" class="container-fluid">
+                  <div class="alert alert-success">
+                    We successfully sent a lob postcard!
+                  </div>
+                </div>
+                <div *ngIf="sendSingleRTFail" class="container-fluid">
+                  <div class="alert alert-danger">
+                    We failed to add the restaurant.
+                  </div>
+                </div>
+                <div *ngIf="sendSingleLobFail" class="container-fluid">
+                  <div class="alert alert-danger">
+                    We failed to send the lob postcard
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-check text-center">
+              <button
+                (click)="submitSingleRestaurant(singleRestaurantId)"
+                type="submit"
+                class="btn btn-primary"
+              >
+                Enter
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="row">
+          <h5>Show: &nbsp;</h5>
+          <div class="dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="dropdownMenuButton"
+              data-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              {{ currentCriteria }} &nbsp;
+            </button>
+            &nbsp; &nbsp;
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a
+                class="dropdown-item"
+                [ngClass]="{ active: currentCriteria === 'All' }"
+                (click)="showAll()"
+                >All</a
+              >
+              <a
+                class="dropdown-item"
+                [ngClass]="{ active: currentCriteria === 'Completed' }"
+                (click)="showCompleted()"
+                >Completed</a
+              >
+              <a
+                class="dropdown-item"
+                [ngClass]="{ active: currentCriteria === 'Progress' }"
+                (click)="showProgress()"
+                >Progress</a
+              >
+              <a
+                class="dropdown-item"
+                [ngClass]="{ active: currentCriteria === 'Unopened' }"
+                (click)="showUnopened()"
+                >Unopened</a
+              >
+              <a
+                class="dropdown-item"
+                [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
+                (click)="showPostcardNotSent()"
+                >Postcard Not Sent</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-4 text-center">
+        <button (click)="reload()" class="btn btn-link">
+          <i class="fas fa-sync-alt"></i>
+          Reload
+        </button>
+      </div>
+      <div class="col-sm-4 text-right">
+        <button
+          class="btn btn-primary rowButton text-nowrap btn-sm mr-1"
+          [disabled]="sendPostCards.length < 1 ? true : false"
+          (click)="firePostCards()"
+        >
+          Send Postcard
+        </button>
+        <button
+          class="btn btn-secondary rowButton text-nowrap btn-sm mr-1"
+          data-toggle="modal"
+          data-target="#uploadSingle"
+        >
+          Add 1 RT
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary rowButton text-nowrap btn-sm"
+          data-toggle="modal"
+          data-target="#exampleModal"
+        >
+          Upload RTs
+        </button>
+      </div>
+      <!-- <div class="col-1"></div> -->
+    </div>
+
+    <div *ngIf="postCardsSentSuccess" class="alert alert-success" role="alert">
+      We successfully sent postcards to {{ this.successLobCount }} restaurants:
+      {{ this.successLobRestaurants }}
+    </div>
+    <div *ngIf="postCardsSentFail" class="alert alert-danger" role="alert">
+      We failed to send postcards to {{ this.failLobCount }} restaurants:
+      {{ this.failLobRestaurants }}
+    </div>
+
+    <br />
+    <div>
+      Note: to send a postcard, check the boxes next to the restaurant(s) you
+      want to target, then click "Send postcard" button.
+    </div>
+    <div class="row">
+      <h4 class="col-md-4 text-left">Restaurant</h4>
+      <h4 class="col-md-4 offset-sm-4 text-right">Sign Up Info</h4>
+    </div>
+
+    <div
+      *ngFor="
+        let data of currentRestaurants.slice(
+          60 * (currentPagination - 1),
+          60 * currentPagination
+        )
+      "
+      class="card"
+    >
+      <div class="container">
+        <div class="row">
+          {{ log("here") }}
+          <div class="col-sm-4" class="card-body">
+            <div class="row">
+              <div class="form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  [checked]="getPostCardsToFire(data._id)"
+                  id="exampleCheck1"
+                  (click)="patchPostCard($event.target.value, data._id)"
+                />
+              </div>
+
+              <h5 class="card-title">
+                <a [href]="'https://qa-csr.qmenu.us/#/restaurants/' + data._id"
+                  >{{ data.name }}
+                </a>
+              </h5>
+            </div>
+            <h6 class="card-subtitle mb-2 text-muted">{{ data._id }}</h6>
+            <p class="card-subtitle">{{ data[1] }}</p>
+            <p class="card-subtitle">
+              {{ data.googleAddress.formatted_address }}
+            </p>
+            <p class="card-subtitle">Owner: {{ getOwner(data._id) }}</p>
+            <a
+              (click)="toggleSendHistory(data._id)"
+              *ngIf="!getSendHistoryBoolean(data._id)"
+              class="card-subtitle"
+            >
+              {{
+                getSendHistory(data._id).length > 0
+                  ? "Show Send History"
+                  : "Never Sent"
+              }}
+            </a>
+            <a
+              (click)="toggleSendHistory(data._id)"
+              *ngIf="getSendHistoryBoolean(data._id)"
+              class="card-subtitle"
+            >
+              Hide Send History
+            </a>
+            <br />
+            <a *ngIf="getSendHistoryBoolean(data._id)">
+              <table class="table">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Sent Data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of getSendHistory(data._id)">
+                      <th scope="row">{{ item }}</th>
+                    </tr>
+                  </tbody>
+                </table>
+              </table>
+            </a>
+          </div>
+
+          <div align="end" class="col-sm-4">
+            <br />
+            <p class="card-subtitle">
+              <b>
+                {{ getAnalytics(data._id) }}
+              </b>
+            </p>
+            <p class="card-subtitle">
+              Promo: {{ data.selfSignup ? data.selfSignup.code : "N/A" }}
+            </p>
+            <a
+              (click)="toggleAnalytic(data._id)"
+              *ngIf="!getAnalyticBoolean(data._id)"
+              class="card-subtitle"
+            >
+              Show Analytics
+            </a>
+            <a
+              (click)="toggleAnalytic(data._id)"
+              *ngIf="getAnalyticBoolean(data._id)"
+              class="card-subtitle"
+            >
+              Hide Analytics
+            </a>
+            <br />
+            <br />
+
+            <div class="row">
+              <div class="col-sm-3"></div>
+
+              <div class="col-sm-9 text-right">
+                <div
+                  *ngIf="getAnalyticBoolean(data._id)"
+                  class="panel panel-default"
+                >
+                  <!-- Default panel contents -->
+
+                  <!-- Table -->
+                  <table class="table">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Analytic</th>
+                          <th scope="col">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          *ngFor="let item of getAnalytic(data._id) | keyvalue"
+                        >
+                          <th scope="row">{{ item.key }}</th>
+                          <td>{{ item.value }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr />
+        </div>
+      </div>
+    </div>
+  </div>
+  <br />
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-2 offset-sm-8 text-right">
+        <nav aria-label="Page navigation example">
+          <ul class="pagination">
+            <li class="page-item">
+              <a class="page-link" (click)="setPreviousPagination()"
+                >Previous</a
+              >
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 1 }"
+              class="page-item active"
+            >
+              <a class="page-link" (click)="setPagination(1)">1</a>
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 2 }"
+              class="page-item"
+            >
+              <a class="page-link" (click)="setPagination(2)">2</a>
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 3 }"
+              class="page-item"
+            >
+              <a class="page-link" (click)="setPagination(3)">3</a>
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 4 }"
+              class="page-item"
+            >
+              <a class="page-link" (click)="setPagination(4)">4</a>
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 5 }"
+              class="page-item"
+            >
+              <a class="page-link" (click)="setPagination(5)">5</a>
+            </li>
+
+            <li class="page-item">
+              <a class="page-link" (click)="setNextPagination()">Next</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
