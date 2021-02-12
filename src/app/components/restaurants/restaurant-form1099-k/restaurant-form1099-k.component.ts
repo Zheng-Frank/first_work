@@ -61,7 +61,7 @@ export class Form1099KComponent implements OnInit {
       sort: {
         createdAt: -1
       }
-    }, 200);
+    }, 250);
 
     this.orders = orders.map(order => {
       order.payment = order.paymentObj;
@@ -88,7 +88,7 @@ export class Form1099KComponent implements OnInit {
     restaurantTotals.sumOfTransactions = this.round(restaurantTotals.sumOfTransactions);
 
     // Make sure the values on the line below are actually 200 and 20000, respectively.
-    if (restaurantTotals.orderCount >= 1 && restaurantTotals.sumOfTransactions >= 1) {
+    if (restaurantTotals.orderCount >= 200 && restaurantTotals.sumOfTransactions >= 20000) {
       const restaurantAddress = this.restaurant.googleAddress;
       const form1099KData = {
         name: this.restaurant.name,
@@ -132,11 +132,12 @@ export class Form1099KComponent implements OnInit {
     switch (form1099KData.year) {
       case 2021:
         formTemplateUrl = "../../../../assets/form1099k/f1099k_2021.pdf";
+        break;
       case 2020:
         formTemplateUrl = "../../../../assets/form1099k/f1099k_2020.pdf";
         break;
       default:
-        console.log('Form generation is not supported for this year');
+        console.log(`Form generation is not supported for ${form1099KData.year}`);
     }
 
     const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
@@ -211,10 +212,8 @@ export class Form1099KComponent implements OnInit {
 
     form.updateFieldAppearances();
 
-    const outputDoc = await PDFDocument.create();
-    const [docPage] = await outputDoc.copyPages(pdfDoc, [0])
-    outputDoc.addPage(docPage);
-    const pdfBytes = await outputDoc.save();
+
+    const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
 
     const link = document.createElement('a');
