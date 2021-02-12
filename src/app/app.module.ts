@@ -51,7 +51,7 @@ import { TimezoneService } from './services/timezone.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
-import { RestaurantApiLogsComponent } from './components/restaurants/restaurant-api-logs/restaurant-api-logs.component'; 
+import { RestaurantApiLogsComponent } from './components/restaurants/restaurant-api-logs/restaurant-api-logs.component';
 import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
@@ -195,6 +195,8 @@ import { ChainComponent } from './components/chains/chain/chain.component';
 import { CloudPrintingSettingsComponent } from './components/restaurants/cloud-printing-settings/cloud-printing-settings.component';
 import { TemporarilyDisabledComponent } from './components/restaurants/temporarily-disabled/temporarily-disabled.component';
 import { RestaurantFaxSettingsComponent } from './components/restaurants/fax-settings/fax-settings.component';
+import { Form1099KComponent } from './components/restaurants/restaurant-form1099-k/restaurant-form1099-k.component';
+
 import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 @NgModule({
@@ -367,6 +369,7 @@ import { BannedCustomersComponent } from './components/restaurants/banned-custom
     CloudPrintingSettingsComponent,
     TemporarilyDisabledComponent,
     RestaurantFaxSettingsComponent,
+    Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent
   ],
