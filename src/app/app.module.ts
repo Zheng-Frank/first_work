@@ -92,6 +92,7 @@ import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.compon
 import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor/gmb-account-editor.component';
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-list/gmb-underattack-list.component';
+import { GmbSuspendedListComponent } from './components/gmbs2/gmb-suspended-list/gmb-suspended-list.component';
 import { GmbLostListComponent } from './components/gmbs2/gmb-lost-list/gmb-lost-list.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
@@ -196,6 +197,8 @@ import { TemporarilyDisabledComponent } from './components/restaurants/temporari
 import { RestaurantFaxSettingsComponent } from './components/restaurants/fax-settings/fax-settings.component';
 import { Form1099KComponent } from './components/restaurants/restaurant-form1099-k/restaurant-form1099-k.component';
 
+import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
+import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -277,6 +280,7 @@ import { Form1099KComponent } from './components/restaurants/restaurant-form1099
     GmbAccountEditorComponent,
     GmbRequestListComponent,
     GmbUnderattackListComponent,
+    GmbSuspendedListComponent,
     GmbLostListComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,
@@ -365,7 +369,9 @@ import { Form1099KComponent } from './components/restaurants/restaurant-form1099
     CloudPrintingSettingsComponent,
     TemporarilyDisabledComponent,
     RestaurantFaxSettingsComponent,
-    Form1099KComponent
+    Form1099KComponent,
+    OtherModulesComponent,
+    BannedCustomersComponent
   ],
   imports: [
     BrowserModule,

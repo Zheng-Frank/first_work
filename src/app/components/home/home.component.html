@@ -83,8 +83,17 @@
     </div>
   </div>
 </div>
-
 <div class="card-group">
+  <div class="card" *ngIf="isVisible('other-moudles')">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="fa fa-th"></i> Other Modules</h5>
+        <app-other-modules></app-other-modules>
+    </div>
+  </div>
+</div>
+
+<!-- <div class="card-group">
   <div class="card" *ngIf="isVisible('unconfirmed-orders')">
     <div class="card-body">
       <h5 class="card-title">
@@ -109,7 +118,7 @@
       <app-monitoring-email></app-monitoring-email>
     </div>
   </div>
-</div>
+</div> 
 
 
 <div class="card-group" *ngIf="isVisible('monitoring-hours')">
@@ -143,3 +152,4 @@
     </div>
   </div>
 </div>
+-->

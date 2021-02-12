@@ -66,7 +66,7 @@
             Website to AWS</button>
           <button class="btn btn-primary" (click)="syncGmb(['HOURS_REGULAR', 'HOURS_SPECIAL_OPEN'])" [qLoading]="apiRequesting">Sync GMB Menu
             Hours</button>
-          <button class="btn btn-primary" (click)="syncGmb(['SERVICE_SETTINGS'])" [qLoading]="apiRequesting">Sync GMB Service SETTINGS</button>
+          <button class="btn btn-primary" (click)="syncGmb(['SERVICE_SETTINGS'])" [qLoading]="apiRequesting">Sync GMB Service Settings</button>
   
           <div class="alert alert-danger my-2 text-left"
             *ngIf="!restaurant?.web?.qmenuWebsite || restaurant?.web?.qmenuWebsite?.indexOf('qmenu') > 0">

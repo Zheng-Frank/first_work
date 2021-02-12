@@ -109,8 +109,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     return !isNaN(Date.parse(dateToParse));
   }
 
-  isAdmin(){
-    return this._global.user.roles.some(r => r ==='ADMIN');
+  isDisabledEditable(){
+    return this._global.user.roles.some(r => r ==='ADMIN' || r === 'ACCOUNTANT' );
   }
 
   ngOnChanges(params) {

@@ -91,6 +91,10 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
       delete this.mc.menuOptionIds;
     }
 
+    if(this.mc && this.mc.name) {
+      this.mc.name = this.mc.name.trim();
+    }
+
     this.onDone.emit(this.mc);
   }
 

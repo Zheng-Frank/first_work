@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -10,6 +10,9 @@ import { AlertType } from "../../../classes/alert-type";
   styleUrls: ['./monitoring-unconfirmed-orders.component.css']
 })
 export class MonitoringUnconfirmedOrdersComponent implements OnInit {
+
+ 
+  //unconfirmed_orders_count:number;
 
   rows = []; // {restaurant, orders}
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -50,6 +53,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     yesterday.setDate(yesterday.getDate() - 1);
 
     const unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() > yesterday.valueOf() && new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
+    //this.unconfirmed_orders_count=unconfirmedOrders.length;
 
     // group by restaurants
     const rtIdDict = unconfirmedOrders.reduce((dict, order) => (
