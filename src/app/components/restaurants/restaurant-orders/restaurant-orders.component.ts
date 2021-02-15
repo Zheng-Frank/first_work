@@ -92,15 +92,16 @@ export class RestaurantOrdersComponent implements OnInit {
  */
 search(event) {
     let regexp = /^[0-9]{3,4}$/;
-    if(!this.searchText){
-      this.populateOrders();
-    }else if(this.type == 'Order Number'&&this.searchText && regexp.test(this.searchText)){
-      this.orders = this.orders.filter((order) => String(order.orderNumber).indexOf(this.searchText)!=-1);
-    }else if(this.type == 'Postmates ID'){
-      this.orders = this.orders.filter((order) => order.delivery);
-    }else if(this.type == 'Customer Phone'){
-      this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
-    }
+    // if(!this.searchText){
+    //   this.populateOrders();
+    // }else if(this.type == 'Order Number'&&this.searchText && regexp.test(this.searchText)){
+    //   this.orders = this.orders.filter((order) => String(order.orderNumber).indexOf(this.searchText)!=-1);
+    // }else if(this.type == 'Postmates ID'){
+    //   this.orders = this.orders.filter((order) => order.delivery);
+    // }else if(this.type == 'Customer Phone'){
+    //   this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
+    // }
+  this.populateOrders();
   }
  
   /**
@@ -115,16 +116,20 @@ search(event) {
     } as any;
 
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
-    // if (!this.searchText) {
-      
-    // }else if(this.type == 'Order Number'){
-    //   query.orderNumber = +this.searchText;
-    // }
-    // if (this.searchText && regexp.test(this.searchText)) {
-    //   //console.log("searchText:"+this.searchText);
-    //   query.orderNumber = +this.searchText
-    // }
-    // 
+    if(!this.searchText){
+
+    }else if(this.type == 'Order Number'&&this.searchText && regexp.test(this.searchText)){
+      query.orderNumber = +this.searchText;
+    }else if(this.type == 'Postmates ID'&&this.searchText){
+      query['delivery.id']={
+        $regex:this.searchText
+      }
+    }else if(this.type == 'Customer Phone'&&this.searchText){
+      query['customerObj.phone']={
+        $regex:this.searchText
+      }
+    }
+    console.log(JSON.stringify(query))
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -164,7 +169,7 @@ search(event) {
         createAt: 1
       }
     }).toPromise();
-
+    
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
@@ -180,11 +185,7 @@ search(event) {
       // console.log("238行：订单："+JSON.stringify(o));
       return new Order(order);
     });
-    // if(this.type == 'Postmates ID'){
-    //   this.orders = this.orders.filter((order) => order.delivery);
-    // }else if(this.type == 'Cutomer Phone'){
-    //   this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
-    // }
+ 
   }
 
   async handleOnSetNewStatus(data) {
