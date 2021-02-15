@@ -1,6 +1,6 @@
 {
   "name": "admin",
-  "version": "1.7.13",
+  "version": "1.7.15",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -40,7 +40,8 @@
     "ng-pick-datetime": "^6.0.15",
     "ngx-mask": "^8.0.0",
     "parse-address": "^1.1.2",
-    "rxjs": "6.0.0",
+    "pdf-lib": "^1.16.0",
+    "rxjs": "6.3.3",
     "zone.js": "^0.8.24"
   },
   "devDependencies": {
@@ -62,6 +63,6 @@
     "protractor": "^5.3.2",
     "ts-node": "~5.0.1",
     "tslint": "~5.9.1",
-    "typescript": "~2.7.2"
+    "typescript": "^2.8.4"
   }
 }
