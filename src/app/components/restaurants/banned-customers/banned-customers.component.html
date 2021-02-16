@@ -1,32 +1,153 @@
 <div class="card">
   <h2 class="card-title m-3">
-    <!-- <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
+    <!-- <i [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
     <h1 class="text-center">Banned Customers ({{bannedCustomerRows.length}})</h1>
   </h2>
   <div class="card-body">
+    <div class="container">
+      <div class="row mb-3">
+        <div class="col-3 form-inline">
+          <label class="mr-2 ml-2"> Search customer by:</label>
+          <select [(ngModel)]="type" class="form-control">
+            <option>All</option>
+            <option *ngFor="let type of searchTypes">{{type}}</option>
+          </select>
+        </div>
+        <div class="col-3">
+          <input type="text" [(ngModel)]="searchText" class="form-control" style="margin-left:-25px;"
+            placeholder="ID, name, phone, email# ...">
+        </div>
+        <div class="col-3">
+          <button class="btn btn-primary" style="width:200px;" (click)="searchCustomer()">
+            <i class="fas fa-search"></i> Search</button>
+        </div>
+      </div>
+    </div>
     <q-table [rows]="bannedCustomerRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
       <tr *tableRowTemplate="let row;">
+
         <td>
-          {{row.customer_name}}
+          {{row.customer?.firstName +'  '+row.customer?.lastName  }}
         </td>
         <td>
-          {{row.customer_id}}
+          <button (click)="viewCustomer(row.customer)" class="btn btn-link">
+            {{row.customer?._id}}
+          </button>
         </td>
         <td>
-          {{ row.orders_number}}
+          {{ row.count}}
         </td>
         <td>
-          <div  (click)="Unban(row)" class="text-danger">
-              <!-- <a role="button" class="text-danger text-nowrap card-link" (click)="Unban(row)"  ></a> -->
-                  <!-- <i class="fa fa-thumbs-up text-danger " *ngIf="{{row. orders_ban }}" ></i> Unban -->
-                  <i class="fa fa-thumbs-up text-danger" ></i> Unban
-          </div>
+          <button (click)="unBan(row)" class="btn btn-link">
+            <i class="fa fa-thumbs-up text-danger"></i> Unban
+          </button>
         </td>
       </tr>
     </q-table>
   </div>
+
+  <q-modal #viewCustomerModal>
+    <div *ngIf="displayingCustomer">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span>×</span>
+      </button>
+      <h4 class="text-center">{{isEdit? 'Edit Customer' : 'View Customer'}}</h4>
+
+      <hr>
+      <div *ngIf="!isEdit">
+        <div class="text-left mt-1">
+          <div class="ml-3 pt-2 pb-2">
+            First name: {{displayingCustomer?.firstName}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            Last name: {{displayingCustomer?.lastName}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            Email: {{displayingCustomer?.email}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            Gender: {{displayingCustomer?.gender}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            Phone: {{displayingCustomer?.phone}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            CreatedAt: {{displayingCustomer?.updatedAt| date:'yyyy-MM-dd HH:MM:SS'}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            UpdatedAt: {{displayingCustomer?.createdAt| date:'yyyy-MM-dd HH:MM:SS'}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            IPs: [<span *ngFor="let ip of displayingCustomer.ips;let last = last ;">{{ip}}{{last?'':', '}}</span>]
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            socialId: {{displayingCustomer?.socialId}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            socialProvider: {{displayingCustomer?.socialProvider}}
+          </div>
+          <div class="ml-3 pt-2 pb-2">
+            socialProfilePhoto: {{displayingCustomer?.socialProfilePhoto}}
+          </div>
+          <div class="text-right mt-1">
+            <button class="btn btn-danger" (click)="edit()">Edit</button>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="isEdit">
+        <div class="form-group">
+          <label>First name:</label>
+          <input type="text" [(ngModel)]="editingCustomer.firstName" class="form-control" />
+          <div class="text-danger" *ngIf="!editingCustomer.firstName">first name is required!</div>
+        </div>
+        <div class="form-group">
+          <label>Last name:</label>
+          <input type="text" [(ngModel)]="editingCustomer.lastName" class="form-control" />
+          <div class="text-danger" *ngIf="!editingCustomer.lastName">last name is required!</div>
+        </div>
+        <div class="form-group">
+          <label>Email:</label>
+          <input type="text" [(ngModel)]="editingCustomer.email" class="form-control" />
+          <span class="text-danger" *ngIf="!isEmailValid(editingCustomer.email)">please input a valid email!</span>
+        </div>
+        <div class="form-group">
+          <span class="mb-2" style="font-weight: bold;">Gender:</span>
+          <select [(ngModel)]="editingCustomer.gender" class="form-control">
+            <option [value]="editingCustomer.gender"> {{editingCustomer.gender}}</option>
+            <option *ngFor="let g of genders;" [value]="g">{{g}}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Phone:</label>
+          <input type="text" [(ngModel)]="editingCustomer.phone" class="form-control" />
+          <div class="text-danger" *ngIf="!isPhoneValid(editingCustomer.phone)">please input a valid phone!</div>
+        </div>
+        <div class="form-group">
+          CreatedAt: {{editingCustomer?.updatedAt| date:'yyyy-MM-dd HH:MM:SS'}}
+        </div>
+        <div class="form-group">
+          UpdatedAt: {{editingCustomer?.createdAt| date:'yyyy-MM-dd HH:MM:SS'}}
+        </div>
+        <div class="form-group">
+          IPs: [<span *ngFor="let ip of editingCustomer.ips;let last = last ;">{{ip}}{{last?'':', '}}</span>]
+        </div>
+        <div class="form-group">
+          socialId: {{editingCustomer?.socialId}}
+        </div>
+        <div class="form-group">
+          socialProvider: {{editingCustomer?.socialProvider}}
+        </div>
+        <div class="form-group">
+          socialProfilePhoto: {{editingCustomer?.socialProfilePhoto}}
+        </div>
+        <div class="text-right mt-1">
+          <button type="button" class="btn btn-secondary" (click)="isEdit=false">Cancel</button>
+          <button class="btn btn-danger" type="button" [disabled]="!isFormValid()" (click)="submit()">Submit</button>
+        </div>
+      </div>
+    </div>
+    <!-- <pre>
+        {{displayingCustomer|json}}
+    </pre> -->
+  </q-modal>
 </div>
-
-
-
-
