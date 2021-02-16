@@ -6,6 +6,46 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./schemas.component.css']
 })
 export class SchemasComponent implements OnInit {
+  currentSchema:any;
+  currentDbName:string;
+  isCopiedToClipboard = false;
+  isShowLastModel=false;// show lastest json model schemas.
+  changeCollectionView(){
+    this.schemas.forEach(schema => {
+      if(schema.dbName==this.currentDbName){
+          this.currentSchema=schema;
+      }
+    });
+  }
+  /**
+   * this function is used to prepare to go to json online website to view its format structure
+   */
+  copyToClipcboard(currentSchema) {
+    if(!currentSchema){
+      return alert('please select a json schema before!');
+    }else{
+      let text='';
+      if(this.isShowLastModel){
+        text=JSON.stringify(currentSchema.lastestSchema);
+      }else{
+        text=JSON.stringify(currentSchema.fullSchema);
+      }
+      
+      document.addEventListener('copy', (e: ClipboardEvent) => {
+        e.clipboardData.setData('text/plain', (text));
+        e.preventDefault();
+        document.removeEventListener('copy', null);
+      });
+      document.execCommand('copy');
+  
+      this.isCopiedToClipboard = true;
+  
+      setTimeout(() => {
+        this.isCopiedToClipboard = false;
+      }, 1000);
+    }
+  }
+
   schemas =[{
     dbName: 'restaurant',
     lastestSchema: {},
@@ -173,7 +213,7 @@ export class SchemasComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-
+    this.isCopiedToClipboard = false;
   }
 
 }
