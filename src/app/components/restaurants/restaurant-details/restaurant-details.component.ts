@@ -55,6 +55,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
+      "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
@@ -126,6 +127,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           excludeAmex: 1,
           excludeDiscover: 1,
           feeSchedules: 1,
+          form1099ks: 1,
           gmbOrigin: 1,
           gmbOwnerHistory: 1,
           gmbSettings: 1,
@@ -181,8 +183,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           muteSecondNotifications: 1,
           printSettings: 1,
           useNewSettings: 1,
+          ccHandler: 1,
           comebackDate: 1,
           ccMinimumCharge: 1
+
         },
         limit: 1
       })

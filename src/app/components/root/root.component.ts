@@ -24,6 +24,7 @@ export class RootComponent implements OnInit {
   appVersion;
   now = new Date();
   ivrEnabled = false;
+  apiRequesting = false;
   constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef, private _router: Router, private _connect: AmazonConnectService) {
     _api.onApiError.subscribe(error => {
       if (error && error.error && error.error.status === 401) {
@@ -31,6 +32,8 @@ export class RootComponent implements OnInit {
       }
     });
     _connect.onEnabled.subscribe(enabled => this.ivrEnabled = enabled);
+    this._api.onApiRequesting.subscribe((url) => { setTimeout(() => this.apiRequesting = true, 0); });
+    this._api.onApiDone.subscribe((url) => { setTimeout(() => this.apiRequesting = false, 0); });
   }
 
   ngOnInit() {
@@ -55,10 +58,6 @@ export class RootComponent implements OnInit {
 
   getFullYear() {
     return this.now.getFullYear();
-  }
-
-  isApiRequesting() {
-    return this._api.urlsInRequesting.length > 0;
   }
 
   getMenus() {

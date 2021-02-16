@@ -1,0 +1,68 @@
+<h2 class="text-center">GMB: Suspended Locations</h2>
+<div class="text-center">{{numberOfLocations}} locations</div>
+<div class="text-center">
+  <button class="btn btn-link" (click)="refresh()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+</div>
+<div class="clearfix mt-2">
+  <div class="float-left form-inline">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="notShowComplete" (change)="filter()"
+      id="notShowCompleteCheck">
+    <label class="form-check-label mr-5" for="notShowComplete">
+      Only Show Incomplete
+    </label>
+
+    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+    <label class="form-check-label mr-5" for="paginationCheck">
+      Pagination
+    </label>
+  </div>
+</div>
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
+  [pageSize]="pagination ? 100 : 100000">
+  <tr *tableRowTemplate="let r;">
+    <td>{{filteredRows.indexOf(r) + 1}}</td>
+    <td *ngIf="r.id">
+      <a target="_blank" href="#/restaurants/{{r.id}}">{{r.name}}</a>
+      <div class="text-muted">
+        <small>{{r.address}}</small>
+      </div>
+    </td>
+    <td *ngIf="!r.id">
+      no match
+    </td>
+    <td class="timezoneOffset">{{_timezone.getOffsetNumber(r.timezone) | number : '1.0-0'}}</td>
+    <td>
+      <app-gmb-account-hotlink [email]="r.email" [appealId]="r.appealId"></app-gmb-account-hotlink>
+    </td>
+    <td>{{r.lastAt | ago : now}}</td>
+    <td>{{r.score | number : '1.0-0'}}</td>
+    <td id="limitedWidth">
+      <div *ngFor="let log of createAngularIndentifiableArray(r.reinstateLogs)">
+        &#8226; {{log.user}} on {{log.date | adjustedDate : 'M/dd' : r.timezone}}: {{log.content}}
+      </div>
+      <table>
+        <tr>
+          <td><input type="text" class="form-control" placeholder="Add a new log ..." [(ngModel)]="r.content"
+              (keydown.enter)="addLog(r)"></td>
+          <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addLog(r)">Submit</button></td>
+        </tr>
+      </table>
+    </td>
+    <td>
+      <button class="btn btn-primary" *ngIf="!r.checker" (click)="complete(r)">
+        Complete
+      </button>
+      <div *ngIf="r.checker && r.checkedAt">
+        <button class="btn btn-outline-primary" (click)="redo(r)">
+          Redo
+        </button>
+        <div class="text-muted">
+          <small>
+            completed by {{r.checker}} at {{r.checkedAt | ago : now}}
+          </small>
+        </div>
+      </div>
+    </td>
+  </tr>
+</q-table>
