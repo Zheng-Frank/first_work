@@ -429,9 +429,9 @@ export class SeamlessIntegrationComponent implements OnInit {
         if (event.ownerName) {
           eventOutput.ownerName = event.ownerName;
         }
-        if (event.Alternate_number) {
+        if (event.alternateNumber) {
           // console.log("EVENT ALTERNATE NUMBER", event.alternateNumber);
-          eventOutput.alternateNumber = event.Alternate_number;
+          eventOutput.alternateNumber = event.alternateNumber;
         }
         if (event.placedTestOrder) {
           eventOutput.placedTestOrder = true;
