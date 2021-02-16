@@ -125,9 +125,21 @@ search(event) {
         $regex:this.searchText
       }
     }else if(this.type == 'Customer Phone'&&this.searchText){
-      query['customerObj.phone']={
-        $regex:this.searchText
+      if(this.searchText.indexOf('-')!=-1){ //to make  it support query order with phone number using - to split
+        let str_arr=this.searchText.split('-');
+        let queryStr='';
+        str_arr.forEach(function(s){
+          queryStr+=s
+        });
+        query['customerObj.phone']={
+          $regex:queryStr
+        }
+      }else{ //the situation of the phone number don't have '-'  
+        query['customerObj.phone']={
+          $regex:this.searchText
+        }
       }
+     
     }
     console.log(JSON.stringify(query))
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
