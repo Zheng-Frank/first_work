@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from "uuid";
   styleUrls: ["./seamless-integration.component.css"],
 })
 export class SeamlessIntegrationComponent implements OnInit {
+  style = "English";
   fileList;
   sendSingleRTSuccess;
   sendSingleRTFail;
@@ -36,7 +37,7 @@ export class SeamlessIntegrationComponent implements OnInit {
   rowsProcessed: number;
   singleRestaurantId;
   people;
-  currentRestaurants: any;
+  currentRestaurants = [];
   allRestaurants: any;
   progressRestaurants;
   progressRestaurantIds: any;
@@ -82,6 +83,11 @@ export class SeamlessIntegrationComponent implements OnInit {
   log(val) {
     // // console.log(val);
   }
+
+  selectStyle(style) {
+    this.style = style;
+  }
+
   getPostCardsToFire(id) {
     return this.sendPostCards.some((postCard) => postCard.id === id);
     // Api call
@@ -94,7 +100,7 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.sendSinglePostcard = !this.sendSinglePostcard;
   }
   async firePostCards() {
-    // // console.log("");
+    console.log("FIRE POSTCARDS");
 
     //dynanmic
     // // console.log("POSTCARDS", this.sendPostCards);
@@ -102,6 +108,13 @@ export class SeamlessIntegrationComponent implements OnInit {
     let successCount = 0;
     for (let i = 0; i < this.sendPostCards.length; i++) {
       // console.log("CODE", this.sendPostCards[i].code);
+
+      // const backUrl =
+      //   "http://b70f6f0ad523.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=back";
+      // const frontUrl =
+      //   "http://b70f6f0ad523.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=front";
+      console.log("FIRE POSTCARDS");
+      console.log(this.sendPostCards[i]);
       try {
         let sendResult = await this._api
           .post(environment.appApiUrl + "utils/send-postcard", {
@@ -109,10 +122,10 @@ export class SeamlessIntegrationComponent implements OnInit {
             address: this.sendPostCards[i].address,
             frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
               this.sendPostCards[i].code
-            )}%26side%3Dfront&format=jpg`,
+            )}%26side%3Dfront%26style%3d${this.style}&format=jpg`,
             backUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
               this.sendPostCards[i].code
-            )}%26side%3Dback&format=jpg`,
+            )}%26side%3Dback%26style%3d${this.style}&format=jpg`,
           })
           .toPromise();
 
@@ -120,6 +133,7 @@ export class SeamlessIntegrationComponent implements OnInit {
           ...sendResult,
           restaurantId: this.sendPostCards[i].restaurantId,
         };
+        console.log("LOB POST CARD ", sendResult);
         this.successLobRestaurants.push(this.sendPostCards[i].name);
 
         this.createLobAnalytic(sendResult);
@@ -146,7 +160,7 @@ export class SeamlessIntegrationComponent implements OnInit {
       } catch (e) {
         this.failLobRestaurants.push(this.sendPostCards[i].name);
 
-        // console.log("FAILED TO CREATE LOB OBJECT", this.sendPostCards[i]);
+        console.log("FAILED TO CREATE LOB OBJECT", e);
       }
     }
     // console.log("LOB SUCCESS", this.successLobRestaurants);
@@ -415,9 +429,9 @@ export class SeamlessIntegrationComponent implements OnInit {
         if (event.ownerName) {
           eventOutput.ownerName = event.ownerName;
         }
-        if (event.alternateNumber) {
+        if (event.Alternate_number) {
           // console.log("EVENT ALTERNATE NUMBER", event.alternateNumber);
-          eventOutput.alternateNumber = event.alternateNumber;
+          eventOutput.alternateNumber = event.Alternate_number;
         }
         if (event.placedTestOrder) {
           eventOutput.placedTestOrder = true;
@@ -432,6 +446,10 @@ export class SeamlessIntegrationComponent implements OnInit {
     });
 
     return eventOutput;
+  }
+
+  getPreview(code) {
+    return `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${code}%26side%3Dback%26style%3d${this.style}&format=jpg`;
   }
 
   getOwner(id) {
@@ -488,7 +506,15 @@ export class SeamlessIntegrationComponent implements OnInit {
               let restaurantId = crawledResult[0]._id;
 
               if (this.designatePostcard) {
-                // send LOB response
+                // send LOB response'
+                // const backUrl =
+                //   "http://bf1651968fee.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=back";
+                // const frontUrl =
+                //   "http://bf1651968fee.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=front";
+                //   frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=${encodeURIComponent(
+                // frontUrl
+                // )}&format=jpg`,
+
                 try {
                   let lobObj = await this._api
                     .post(environment.appApiUrl + "utils/send-postcard", {
@@ -496,10 +522,10 @@ export class SeamlessIntegrationComponent implements OnInit {
                       address: crawledResult[0].googleAddress.formatted_address,
                       frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                         crawledResult[0].selfSignup.code
-                      )}%26side%3Dfront&format=jpg`,
+                      )}%26side%3Dfront%26style%3d${this.style}&format=jpg`,
                       backUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                         crawledResult[0].selfSignup.code
-                      )}%26side%3Dback&format=jpg`,
+                      )}%26side%3Dback%26style%3d${this.style}&format=jpg`,
                     })
                     .toPromise();
                   lobObj = { ...lobObj, restaurantId };
@@ -604,9 +630,10 @@ export class SeamlessIntegrationComponent implements OnInit {
         // // console.log("MATCHED ", event);
         if (event.date_created) {
           let sendDate = new Date(event.date_created).toUTCString();
+          let url = event.url;
           // console.log("MATCHED ", event.restaurantId);
-          sendHistory.push(sendDate);
-          // sendHistory.push({sendData, url})
+          // sendHistory.push(sendDate);
+          sendHistory.push({ sendDate, url });
         }
       }
     });
@@ -719,9 +746,10 @@ export class SeamlessIntegrationComponent implements OnInit {
     // if not disabled, do not enter to self signup. They are already working with us, if disabled, intention is clear & want to create selfsignup campaign
 
     try {
-      console.log("HERE");
+      console.log("HERE 5");
+      console.log(uuidv4);
       let code = uuidv4().slice(0, 6);
-      console.log("HERE 2");
+      console.log("HERE 6");
       // If ID exists, then don't run the operation
 
       const [foundRes] = await this._api
@@ -739,7 +767,6 @@ export class SeamlessIntegrationComponent implements OnInit {
         console.log("RESTAURANT ALREADY EXISTS ", foundRes);
         return;
       }
-
       const resource = await this._api
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
           {
@@ -785,6 +812,7 @@ export class SeamlessIntegrationComponent implements OnInit {
             })
             .toPromise();
           lobObj = { ...lobObj, restaurantId: resource[0] };
+          console.log("LOB ANALYTIC ", lobObj);
           this.createLobAnalytic(lobObj);
           // // console.log("LOB SINGLE SUCCESS");
           this.sendSingleLobSuccess = true;
@@ -800,6 +828,7 @@ export class SeamlessIntegrationComponent implements OnInit {
         }
       }
     } catch (e) {
+      console.log("ERROR ", e);
       this.sendSingleRTFail = true;
       if (this.sendSinglePostcard) {
         this.sendSingleLobFail = true;

@@ -186,63 +186,91 @@
     </div>
 
     <div class="row">
-      <div class="col-sm-4">
-        <div class="row">
-          <h5>Show: &nbsp;</h5>
-          <div class="dropdown">
-            <button
-              class="btn btn-secondary dropdown-toggle"
-              type="button"
-              id="dropdownMenuButton"
-              data-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false"
-            >
-              {{ currentCriteria }} &nbsp;
-            </button>
-            &nbsp; &nbsp;
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a
-                class="dropdown-item"
-                [ngClass]="{ active: currentCriteria === 'All' }"
-                (click)="showAll()"
-                >All</a
-              >
-              <a
-                class="dropdown-item"
-                [ngClass]="{ active: currentCriteria === 'Completed' }"
-                (click)="showCompleted()"
-                >Completed</a
-              >
-              <a
-                class="dropdown-item"
-                [ngClass]="{ active: currentCriteria === 'Progress' }"
-                (click)="showProgress()"
-                >Progress</a
-              >
-              <a
-                class="dropdown-item"
-                [ngClass]="{ active: currentCriteria === 'Unopened' }"
-                (click)="showUnopened()"
-                >Unopened</a
-              >
-              <a
-                class="dropdown-item"
-                [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
-                (click)="showPostcardNotSent()"
-                >Postcard Not Sent</a
-              >
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="col-sm-4"></div>
       <div class="col-sm-4 text-center">
         <button (click)="reload()" class="btn btn-link">
           <i class="fas fa-sync-alt"></i>
           Reload
         </button>
       </div>
-      <div class="col-sm-4 text-right">
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <span class="dropdown">
+          <b>Show: &nbsp; </b>
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="dropdownMenuButton"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            {{ currentCriteria }} &nbsp;
+          </button>
+          &nbsp; &nbsp;
+          <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'All' }"
+              (click)="showAll()"
+              >All</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Completed' }"
+              (click)="showCompleted()"
+              >Completed</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Progress' }"
+              (click)="showProgress()"
+              >Progress</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Unopened' }"
+              (click)="showUnopened()"
+              >Unopened</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
+              (click)="showPostcardNotSent()"
+              >Postcard Not Sent</a
+            >
+          </span>
+        </span>
+      </div>
+
+      <div class="col-sm-6 text-center">
+        Postcard style:
+
+        <button
+          class="btn btn-default dropdown-toggle"
+          type="button"
+          id="dropdownMenu1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="true"
+        >
+          {{ style }}
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <li>
+            <button class="btn" (click)="selectStyle('English')">
+              English
+            </button>
+          </li>
+          <li>
+            <button class="btn" (click)="selectStyle('Chinese')">
+              Chinese
+            </button>
+          </li>
+        </ul>
+
         <button
           class="btn btn-primary rowButton text-nowrap btn-sm mr-1"
           [disabled]="sendPostCards.length < 1 ? true : false"
@@ -266,8 +294,9 @@
           Upload RTs
         </button>
       </div>
-      <!-- <div class="col-1"></div> -->
     </div>
+
+    <!-- <div class="col-1"></div> -->
 
     <div *ngIf="postCardsSentSuccess" class="alert alert-success" role="alert">
       We successfully sent postcards to {{ this.successLobCount }} restaurants:
@@ -318,7 +347,12 @@
                 </a>
               </h5>
             </div>
-            <h6 class="card-subtitle mb-2 text-muted">{{ data._id }}</h6>
+            <h6 class="card-subtitle mb-2 text-muted">
+              {{ data._id }}
+              <a target="_blank" [href]="getPreview(data.selfSignup.code)">
+                (Preview Postcard)
+              </a>
+            </h6>
             <p class="card-subtitle">{{ data[1] }}</p>
             <p class="card-subtitle">
               {{ data.googleAddress.formatted_address }}
@@ -353,7 +387,13 @@
                   </thead>
                   <tbody>
                     <tr *ngFor="let item of getSendHistory(data._id)">
-                      <th scope="row">{{ item }}</th>
+                      <!-- <th scope="row">{{ item }}</th> -->
+                      <th scope="row">
+                        {{ item.sendDate }} {{ "   "
+                        }}<a target="_blank" href="{{ item.url }}"
+                          >View Postcard Sent</a
+                        >
+                      </th>
                     </tr>
                   </tbody>
                 </table>
