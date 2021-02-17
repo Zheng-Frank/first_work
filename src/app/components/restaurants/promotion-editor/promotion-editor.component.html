@@ -38,24 +38,31 @@
   </div>
 
   <label class="mt-1">Excluded Platforms:</label>
-  <div *ngFor="let platform of ['APP', 'Web']" class="pl-4">
-    <label class="mt-1">
-      <input type="checkbox" [checked]="!isPlatformIncluded(platform)" (change)="togglePlatform(platform)">
-      {{platform}}</label>
+  <div class="checkboxRow">
+    <div *ngFor="let platform of ['APP', 'Web']" class="pl-4">
+      <label class="mt-1">
+        <input type="checkbox" [checked]="!isPlatformIncluded(platform)" (change)="togglePlatform(platform)">
+        {{platform}}</label>
+    </div>
   </div>
 
+
   <label class="mt-1">Excluded Order Types:</label>
-  <div *ngFor="let orderType of ['Pickup', 'Delivery', 'Dine-in']" class="pl-4">
-    <label class="mt-1">
-      <input type="checkbox" [checked]="!isOrderTypeIncluded(orderType)" (change)="toggleOrderType(orderType)">
-      {{orderType}}</label>
+  <div class="checkboxRow">
+    <div *ngFor="let orderType of ['Pickup', 'Delivery', 'Dine-in']" class="pl-4">
+      <label class="mt-1">
+        <input type="checkbox" [checked]="!isOrderTypeIncluded(orderType)" (change)="toggleOrderType(orderType)">
+        {{orderType}}</label>
+    </div>
   </div>
 
   <label class="mt-1">Excluded Menus:</label>
-  <div *ngFor="let menu of (menus || [])" class="pl-4">
-    <label class="mt-1">
-      <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="toggleMenu(menu)">
-      {{menu.name}}</label>
+  <div class="checkboxRow">
+    <div *ngFor="let menu of (menus || [])" class="pl-4">
+      <label class="mt-1">
+        <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="toggleMenu(menu)">
+        {{menu.name}}</label>
+    </div>
   </div>
 
   <div class="mt-1 text-right">
