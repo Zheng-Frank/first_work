@@ -147,7 +147,7 @@ export class SchemasComponent implements OnInit {
     },
     //order document full object model 
     {
-      dbName: 'customer',
+      dbName: 'order',
       lastestSchema: {},
       fullSchema: {
         "_id": "",
@@ -1010,7 +1010,7 @@ export class SchemasComponent implements OnInit {
     },
     //restaurant document full object model 
     {
-      dbName: 'customer',
+      dbName: 'restaurant',
       lastestSchema: {},
       fullSchema: {
         "_id": "",
