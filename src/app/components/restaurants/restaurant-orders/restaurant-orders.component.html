@@ -6,7 +6,7 @@
       <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
     </select>
     <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
-      class="form-control col-7" placeholder="Search by order# or phone or postmates id">
+      class="form-control col-7" placeholder="Search">
     <div *ngIf="searchText" class="text-muted float-left col-1">Found: {{orders.length}}</div>
   </div>
 
