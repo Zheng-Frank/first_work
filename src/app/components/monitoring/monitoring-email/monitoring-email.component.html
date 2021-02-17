@@ -4,7 +4,7 @@
     <h1 class="text-center">Email Problems ({{badSnsEventRows.length}})</h1>
   </h2>
   <div class="card-body">
-    <button class="btn btn-primary" (click)="findFailedEmails()">Email Problems({{badSnsEventRows.length}}) </button>
+    <button class="btn btn-primary" (click)="findFailedEmails()">Execute</button>
     <br/> <br/> <br/>
     <q-table [rows]="badSnsEventRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
       <tr *tableRowTemplate="let row;">
