@@ -38,7 +38,7 @@
   </div>
 
   <label class="mt-1">Excluded Platforms:</label>
-  <div class="checkboxRow">
+  <div class="d-flex flex-row">
     <div *ngFor="let platform of ['APP', 'Web']" class="pl-4">
       <label class="mt-1">
         <input type="checkbox" [checked]="!isPlatformIncluded(platform)" (change)="togglePlatform(platform)">
@@ -48,7 +48,7 @@
 
 
   <label class="mt-1">Excluded Order Types:</label>
-  <div class="checkboxRow">
+  <div class="d-flex flex-row">
     <div *ngFor="let orderType of ['Pickup', 'Delivery', 'Dine-in']" class="pl-4">
       <label class="mt-1">
         <input type="checkbox" [checked]="!isOrderTypeIncluded(orderType)" (change)="toggleOrderType(orderType)">
@@ -57,7 +57,7 @@
   </div>
 
   <label class="mt-1">Excluded Menus:</label>
-  <div class="checkboxRow">
+  <div class="d-flex flex-row">
     <div *ngFor="let menu of (menus || [])" class="pl-4">
       <label class="mt-1">
         <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="toggleMenu(menu)">
