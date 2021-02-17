@@ -7,7 +7,7 @@
   <div *ngIf="promotion.percentage && promotion.amount">Amount: {{promotion.percentage}}% +
     {{promotion.amount | currency:'USD':'symbol'}}</div>
   <div *ngIf="!promotion.percentage && !promotion.amount">Amount: $0.00</div>
-  <div [ngClass]="{'text-danger': promotion.expiry < today}">Epxires: {{promotion.expiry | yMMMd: offsetToEST}}</div>
+  <div [ngClass]="{'text-danger': promotion.expiry < today}">Expires: {{promotion.expiry | yMMMd: offsetToEST}}</div>
   <div>Order Minimum: {{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
   <small>
     <div *ngIf="promotion.public">
