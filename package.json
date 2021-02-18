@@ -7,7 +7,7 @@
     "start": "ng serve",
     "build": "ng build",
     "deploy-qa": "ng build --prod --configuration=qa && aws s3 sync dist/admin s3://qmenu-domains/qa-csr.qmenu.us && aws cloudfront create-invalidation --distribution-id E145Y3EKTAQBTJ --paths \"/index.html\"",
-    "deploy-prod": "ng build --prod --configuration=prod && aws s3 sync dist/admin s3://qmenu-domains/csr.qmenu.us && aws cloudfront create-invalidation --distribution-id EONS08EC2015T --paths \"/index.html\"",
+    "deploy-prod": "ng build --prod --configuration=production && aws s3 sync dist/admin s3://qmenu-domains/csr.qmenu.us && aws cloudfront create-invalidation --distribution-id EONS08EC2015T --paths \"/index.html\"",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
