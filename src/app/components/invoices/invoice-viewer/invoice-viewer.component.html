@@ -85,9 +85,7 @@
         <span *ngIf="feeSchedule.chargeBasis === 'ORDER_TOTAL'"> per order</span>
 
         <!-- order type and payment methods -->
-        <span
-          *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0"
-          class="text-lowercase">
+        <span *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0" class="text-lowercase">
           for {{(feeSchedule.orderTypes || []).join(', ')}}
         </span>
 
@@ -187,4 +185,58 @@
       <th class="text-right">{{invoice.total | currency:'USD':'symbol'}}</th>
     </tr>
   </table>
+  <hr>
+  <span>
+    Transaction Breakdowns.
+    Please note that we are unable to include tips paid in cash that were not indicated by the customer through our
+    system.
+  </span>
+  <table class="table app-scaled-table mb-5">
+    <tbody>
+      <tr>
+        <th></th>
+        <th>Tips</th>
+        <th>Tax</th>
+        <th>Subtotal</th>
+        <th>Total</th>
+      </tr>
+      <tr>
+        <th class="text-center">Cash</th>
+        <td>{{Cash?.tips | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th class="text-center">Qmenu collect</th>
+        <td>{{qmenuCollect?.tips | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollect?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollect?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollect?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th class="text-center">Swipe in person</th>
+        <td>{{swipeInPerson?.tips | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInperson?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th class="text-center">Restaurant collect</th>
+        <td>{{restaurantCollect?.tips | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantCollect?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantCollect?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantCollect?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th class="text-center">Total</th>
+        <td>{{total?.tips | currency:'USD':'symbol'}}</td>
+        <td>{{total?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{total?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{total?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <hr>
+  <div class="mb-5"></div>
 </div>

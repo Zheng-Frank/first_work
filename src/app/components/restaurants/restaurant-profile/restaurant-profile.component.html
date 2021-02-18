@@ -1,451 +1,539 @@
 <div class="card mb-2">
-	<h3 class="card-title text-center pt-4 pb-2">
-		<i class="far fa-building"></i> Profile</h3>
-	<ul class="list-group list-group-flush">
-		<li class="list-group-item">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="far fa-building"></i> Profile</h3>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
 
-			<div *qIf="!editing">
-				<table class="table table-borderless table-sm">
-					<tbody>
-						<tr>
-							<th class="text-right">Name</th>
-							<td class="pl-1">{{restaurant.name}} ({{getMongoDate(restaurant._id) | date: 'shortDate'}})
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Address</th>
-							<td class="pl-1">{{restaurant.googleAddress?.formatted_address}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Address Extra</th>
-							<td class="pl-1">{{restaurant.googleAddress?.apt}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">ID</th>
-							<td class="pl-1">{{restaurant._id}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Restaurant ID</th>
-							<td class="pl-1">{{restaurant.restaurantId}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Alias</th>
-							<td class="pl-1">{{restaurant.alias}}</td>
-						</tr>
+      <div *qIf="!editing">
+        <table class="table table-borderless table-sm">
+          <tbody>
+            <!-- Basic Information -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Basic Information</th>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Name</th>
+              <td class="pl-1">{{restaurant.name}} ({{getMongoDate(restaurant._id) | date: 'shortDate'}})
+              </td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Address</th>
+              <td class="pl-1">{{restaurant.googleAddress?.formatted_address}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Address Extra</th>
+              <td class="pl-1">{{restaurant.googleAddress?.apt}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">ID</th>
+              <td class="pl-1">{{restaurant._id}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Restaurant ID</th>
+              <td class="pl-1">{{restaurant.restaurantId}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Alias</th>
+              <td class="pl-1">{{restaurant.alias}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Time Zone</th>
+              <td class="pl-1">
+                {{restaurant.googleAddress.timezone}}({{_timezone.getOffsetNumber(restaurant.googleAddress.timezone)}})
+              </td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Tax Rate</th>
+              <td class="pl-1">{{restaurant.taxRate | percentage}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Disabled</th>
+              <td class="pl-1">{{!!restaurant.disabled}}</td>
+            </tr>
+            <!--Preferences -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Preferences</th>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Preferred Language</th>
+              <td class="pl-1">{{restaurant.preferredLanguage}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Website Broadcast</th>
+              <td class="pl-1">{{restaurant.notification || 'N/A'}}</td>
+            </tr>
+            <!-- Fee/Minimum Settings -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Fee/Minimum Settings</th>
+            </tr>
+            <ng-container *ngIf="!restaurant.feeSchedules">
+              <tr>
+                <th class="text-center pl-5">Surcharge</th>
+                <td class="pl-1">{{restaurant.surchargeName || 'surcharge'}}
+                  {{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}}
+                  {{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
+                </td>
+              </tr>
+              <tr>
+                <th class="text-center pl-5">Surcharge Rate</th>
+                <td class="pl-1">{{restaurant.surchargeRate | percentage}}</td>
+              </tr>
+              <tr>
+                <th class="text-center pl-5">CC Processing Rate</th>
+                <td class="pl-1">{{restaurant.ccProcessingRate | percentage}}</td>
+              </tr>
+              <tr>
+                <th class="text-center pl-5">CC Processing Flat Fee</th>
+                <td class="pl-1">{{restaurant.ccProcessingFlatFee | currency:'USD':'symbol'}}</td>
 
-						<tr>
-							<th class="text-right">Website Broadcast</th>
-							<td class="pl-1">{{restaurant.notification || 'N/A'}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Time Estimate for Pickup</th>
-							<td class="pl-1">{{restaurant.pickupTimeEstimate || 'N/A'}} minutes</td>
-						</tr>
-						<tr>
-							<th class="text-right">Time Estimate for Delivery</th>
-							<td class="pl-1">{{restaurant.deliveryTimeEstimate || 'N/A'}} minutes</td>
-						</tr>
-						<tr>
-							<th class="text-right">Tax Rate</th>
-							<td class="pl-1">{{restaurant.taxRate | percentage}}</td>
-						</tr>
-						<ng-container *ngIf="!restaurant.feeSchedules">
-							<tr>
-								<th class="text-right">Surcharge</th>
-								<td class="pl-1">{{restaurant.surchargeName || 'surcharge'}}
-									{{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}}
-									{{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">Surcharge Rate</th>
-								<td class="pl-1">{{restaurant.surchargeRate | percentage}}</td>
-							</tr>
-							<tr>
-								<th class="text-right">CC Processing Rate</th>
-								<td class="pl-1">{{restaurant.ccProcessingRate | percentage}}</td>
-							</tr>
-							<tr>
-								<th class="text-right">CC Processing Flat Fee</th>
-								<td class="pl-1">{{restaurant.ccProcessingFlatFee | currency:'USD':'symbol'}}</td>
-
-							</tr>
-						</ng-container>
-
-						<tr>
-							<th class="text-right">Disable Scheduling</th>
-							<td class="pl-1">{{!!restaurant.disableScheduling}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Pickup Minimum</th>
-							<td class="pl-1">{{restaurant.pickupMinimum | money}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">CC Minimum Charge</th>
-							<td class="pl-1">{{restaurant.ccMinimumCharge | money}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Preferred Language</th>
-							<td class="pl-1">{{restaurant.preferredLanguage}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Time Zone</th>
-							<td class="pl-1">
-								{{restaurant.googleAddress.timezone}}({{_timezone.getOffsetNumber(restaurant.googleAddress.timezone)}})
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Sales Agent</th>
-							<td class="pl-1">{{(restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}</td>
-						</tr>
-						<tr>
-							<th class="text-right">Disabled</th>
-							<td class="pl-1">{{!!restaurant.disabled}}</td>
-						</tr>
-
-						<tr>
-							<th class="text-right">Notes</th>
-							<td class="pl-1" style="white-space: pre-wrap">{{restaurant.notes}}</td>
-						</tr>
-						<tr>
-							<button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
+              </tr>
+            </ng-container>
+            <tr>
+              <th class="text-center pl-5">Pickup Minimum</th>
+              <td class="pl-1">{{restaurant.pickupMinimum | money}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">CC Minimum Charge</th>
+              <td class="pl-1">{{restaurant.ccMinimumCharge | money}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Time Estimate for Pickup</th>
+              <td class="pl-1">{{restaurant.pickupTimeEstimate || 'N/A'}} minutes</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Time Estimate for Delivery</th>
+              <td class="pl-1">{{restaurant.deliveryTimeEstimate || 'N/A'}} minutes</td>
+            </tr>
+            <!-- Other Preferences -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Other Preferences </th>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Disable Scheduling</th>
+              <td class="pl-1">{{!!restaurant.disableScheduling}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Sales Agent</th>
+              <td class="pl-1">{{(restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}</td>
+            </tr>
+            <tr>
+              <th class="text-center pl-5">Notes</th>
+              <td class="pl-1" style="white-space: pre-wrap">{{restaurant.notes}}</td>
+            </tr>
+            <tr>
+              <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
 								details...'}}
-							</button>
-							<div *qIf="showDetails">
-								<ul class="list-group list-group-flush">
-									<li class="list-group-item">
-										<table class="table table-borderless table-sm">
-											<tbody>
-												<tr>
-													<th class="text-right">Hide Order Status on Customer Side</th>
-													<td class="pl-1">{{!!restaurant.hideOrderStatus}}</td>
-												</tr>
-												<tr>
-													<th class="text-right">Skip Order Confirmation</th>
-													<td class="pl-1">{{!!restaurant.skipOrderConfirmation}}</td>
-												</tr>
-												<tr>
-													<th class="text-right">Skip Auto Invoicing</th>
-													<td class="pl-1">{{!!restaurant.skipAutoInvoicing}}</td>
-												</tr>
-												<tr>
-													<th class="text-right">Not Show Tax Option to Customer</th>
-													<td class="pl-1">{{!!restaurant.skipShowTax}}</td>
-												</tr>
-												<tr>
-													<th class="text-right">Skip Image Inject</th>
-													<td class="pl-1">{{!!restaurant.skipImageInjection}}</td>
-												</tr>
-												<tr>
-													<th class="text-right">Allow submitting order at close time</th>
-													<td class="pl-1">{{!!restaurant.menuHoursExtended}}</td>
-												</tr>
-												<tr>
-													<th class="text-right">Hide printing CC</th>
-													<td class="pl-1">{{!!restaurant.hidePrintingCCInfo}}</td>
-												</tr>
-												<tr>
-													<th class="text-right">Hide Tip Input</th>
-													<td class="pl-1">{{!!restaurant.hideTipInput}}</td>
-												</tr>
-											</tbody>
-										</table>
-									</li>
-								</ul>
+              </button>
+              <div *qIf="showDetails">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">
+                    <table class="table table-borderless table-sm">
+                      <tbody>
+                        <tr>
+                          <th class="text-right">Hide Order Status on Customer Side</th>
+                          <td class="pl-1">{{!!restaurant.hideOrderStatus}}</td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Skip Order Confirmation</th>
+                          <td class="pl-1">{{!!restaurant.skipOrderConfirmation}}</td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Skip Auto Invoicing</th>
+                          <td class="pl-1">{{!!restaurant.skipAutoInvoicing}}</td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Not Show Tax Option to Customer</th>
+                          <td class="pl-1">{{!!restaurant.skipShowTax}}</td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Skip Image Inject</th>
+                          <td class="pl-1">{{!!restaurant.skipImageInjection}}</td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Allow submitting order at close time</th>
+                          <td class="pl-1">{{!!restaurant.menuHoursExtended}}</td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Hide printing CC</th>
+                          <td class="pl-1">{{!!restaurant.hidePrintingCCInfo}}</td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Hide Tip Input</th>
+                          <td class="pl-1">{{!!restaurant.hideTipInput}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </li>
+                </ul>
 
-							</div>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+              </div>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
 
-			<!--editing view-->
-			<div *qIf="editing">
-				<table class="table table-borderless table-sm">
-					<tbody>
-						<tr>
-							<th class="text-right">Sales Agent</th>
-							<td class="pl-1">
-								<input type="text" [(ngModel)]="salesAgent" class="form-control">
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Name</th>
-							<td class="pl-1">
-								<input type="text" [(ngModel)]="name" class="form-control">
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Address</th>
-							<td class="pl-1">
-								<q-address-picker [address]="address" (pick)="selectAddress($event)"></q-address-picker>
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Address Extra</th>
-							<td class="pl-1">
-								<input type="text" class="form-control" placeholder="eg. Suite 300" [(ngModel)]="apt">
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right" style="width: 33%">Domain</th>
-							<td class="pl-1">
-								<input type="text" [(ngModel)]="domain" class="form-control"
-									placeholder="domain name, eg. qmenutest.com">
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right" style="width: 33%">Website Broadcast</th>
-							<td class="pl-1">
-								<input type="text" [(ngModel)]="notification" class="form-control"
-									placeholder="important message showing on website">
-							</td>
-						</tr>
+      <!--editing view-->
+      <div *qIf="editing">
+        <table class="table table-borderless table-sm">
+          <tbody>
+            <!-- Basic Information -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Basic Information</th>
+              <td>
+                <button class="btn btn-link" (click)="ifShowBasicInformation=!ifShowBasicInformation">
+                  <i class="fa fa-angle-right" *ngIf="!ifShowBasicInformation"></i>
+                  <i class="fa fa-angle-down" *ngIf="ifShowBasicInformation"></i>
+                </button>
+              </td>
+            </tr>
+            <ng-container *ngIf="ifShowBasicInformation">
+              <tr>
+                <th class="text-right">Sales Agent</th>
+                <td class="pl-1">
+                  <input type="text" [(ngModel)]="salesAgent" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right" style="width: 33%">Domain</th>
+                <td class="pl-1">
+                  <input type="text" [(ngModel)]="domain" class="form-control"
+                    placeholder="domain name, eg. qmenutest.com">
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2"></td>
+              </tr>
+              <tr>
+                <th class="text-right">Time Estimate for Pickup (mins)</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Time Estimate for Delivery (mins)</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Disable Scheduling</th>
+                <td class="pl-1">
+                  <input type="checkbox" [(ngModel)]="disableScheduling">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Name</th>
+                <td class="pl-1">
+                  <input type="text" [(ngModel)]="name" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Address</th>
+                <td class="pl-1">
+                  <q-address-picker [address]="address" (pick)="selectAddress($event)"></q-address-picker>
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Address Extra</th>
+                <td class="pl-1">
+                  <input type="text" class="form-control" placeholder="eg. Suite 300" [(ngModel)]="apt">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Tax Rate</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="taxRate" class="form-control">
+                </td>
+              </tr>
+              <tr *ngIf="isDisabledEditable()">
+                <th class="text-right p-0">Disabled</th>
+                <td class="pl-1">
+                  <div class="d-flex flex-column">
+                    <input type="checkbox" [(ngModel)]="disabled" (ngModelChange)="disabledHandle()">
+                    <div *ngIf="disabled" class="mt-3">
+                      <div>
+                        <small class="font-weight-bold">Disable it temporarily?</small>
+                        <q-simple-radio [(ngModel)]="isTemporarilyDisabled" [equalWidth]="true" [values]="['Yes', 'No']"
+                          (ngModelChange)="disabledHandle()"></q-simple-radio>
+                        <div *ngIf="isTemporarilyDisabled === 'Yes'">
+                          <small class="font-weight-bold">Comeback Date</small>
+                          <input type="date" class="form-control" [(ngModel)]="comebackDate" [min]="now">
+                          <div class="d-flex justify-content-end">
+                            <small *ngIf="isComebackDateCorrectlySet" class="text-success mt-1">Done</small>
+                            <button *ngIf="!isComebackDateCorrectlySet" class="btn btn-link m-0 p-0"
+                              (click)="setComebackDateAsUnknown()"><small>Set as unknown date</small></button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+            <!--Preferences -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Other Preferences </th>
+              <td>
+                <button class="btn btn-link" (click)="ifShowPreferences=!ifShowPreferences">
+                  <i class="fa fa-angle-right" *ngIf="!ifShowPreferences"></i>
+                  <i class="fa fa-angle-down" *ngIf="ifShowPreferences"></i>
+                </button>
+              </td>
+            </tr>
+            <ng-container *ngIf="ifShowPreferences">
+              <tr>
+                <th class="text-right">Order Call Language</th>
+                <td class="pl-1">
+                  <select class="form-control" [(ngModel)]="preferredLanguage">
+                    <option *ngFor="let language of preferredLanguages" [ngValue]="language">
+                      {{ language.text }}
+                    </option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right" style="width: 33%">Website Broadcast</th>
+                <td class="pl-1">
+                  <input type="text" [(ngModel)]="notification" class="form-control"
+                    placeholder="important message showing on website">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Logo</th>
+                <td class="pl-1">
+                  <hr>
+                  <div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
+                    <img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
+                    <button (click)="deleteLogo(img)" class="btn btn-secondary close-button transparent">
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <button (click)="deleteLogo(img)" class="btn btn-link close-button text-danger">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div *ngIf="uploadLogoError">
+                    <span class="text-danger">{{uploadLogoError}}</span>
+                  </div>
+                  <div class="app-limit-file">
+                    <input type="file" (change)="onUploadLogo($event)" />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Photos</th>
+                <td class="pl-1">
+                  <div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
+                    <img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
+                    <button (click)="deleteImage(img)" class="btn btn-secondary close-button transparent">
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <button (click)="deleteImage(img)" class="btn btn-link close-button text-danger">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div *ngIf="uploadImageError">
+                    <span class="text-danger">{{uploadImageError}}</span>
+                  </div>
+                  <div class="app-limit-file">
+                    <input type="file" (change)="onUploadImage($event)" />
+                  </div>
+                  <div>
+                    <small class="text-warning">Image may take time to show</small>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+            <!-- Fee/Minimum Settings -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Fee/Minimum Settings</th>
+              <td>
+                <button class="btn btn-link" (click)="ifShowFee_MinimumSettings=!ifShowFee_MinimumSettings">
+                  <i class="fa fa-angle-right" *ngIf="!ifShowFee_MinimumSettings"></i>
+                  <i class="fa fa-angle-down" *ngIf="ifShowFee_MinimumSettings"></i>
+                </button>
+              </td>
+            </tr>
+            <ng-container *ngIf="ifShowFee_MinimumSettings">
+              <ng-container *ngIf="!restaurant.feeSchedules">
+                <tr>
+                  <th class="text-right">Surcharge</th>
+                  <td class="pl-1">
+                    <label>text to show customer:</label>
+                    <input type="text" [(ngModel)]="surchargeName" class="form-control mt-1"
+                      placeholder="text to show customer">
+                    <label>fixed amount</label>
+                    <input type="number" [(ngModel)]="surchargeAmount" class="form-control"
+                      placeholder="surcharge amount">
+                    <label>rate</label>
+                    <input type="number" style="width: auto;" [(ngModel)]="surchargeRate" class="form-control"
+                      placeholder="rate">
+                    <small>* This is money charged to customer for every online order and the collected
+                      money goes to restaurant.
+                      <i class="fas fa-exclamation"></i> It may drive customers away.</small>
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-right">Pickup Minimum</th>
+                  <td class="pl-1">
+                    <input type="number" [(ngModel)]="pickupMinimum" class="form-control">
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-right">CC Minimum Charge</th>
+                  <td class="pl-1">
+                    <input type="number" [(ngModel)]="ccMinimumCharge" class="form-control">
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-right">CC Processing Rate</th>
+                  <td class="pl-1">
+                    <input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-right">CC Processing Flat Fee
+                  </th>
+                  <td class="pl-1">
+                    <input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control" placeholder="fee">
+                  </td>
+                </tr>
+              </ng-container>
+            </ng-container>
+            <!-- Other Preferences -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Other Preferences </th>
+              <td>
+                <button class="btn btn-link" (click)="ifShowOtherPreferences=!ifShowOtherPreferences">
+                  <i class="fa fa-angle-right" *ngIf="!ifShowOtherPreferences"></i>
+                  <i class="fa fa-angle-down" *ngIf="ifShowOtherPreferences"></i>
+                </button>
+              </td>
+            </tr>
+            <ng-container *ngIf="ifShowOtherPreferences">
+              <tr>
+                <th class="text-right">Sales Agent</th>
+                <td class="pl-1">
+                  <input type="text" [(ngModel)]="salesAgent" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right" style="width: 33%">Domain</th>
+                <td class="pl-1">
+                  <input type="text" [(ngModel)]="domain" class="form-control"
+                    placeholder="domain name, eg. qmenutest.com">
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2"></td>
+              </tr>
+              <tr>
+                <th class="text-right">Time Estimate for Pickup (mins)</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Time Estimate for Delivery (mins)</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Disable Scheduling</th>
+                <td class="pl-1">
+                  <input type="checkbox" [(ngModel)]="disableScheduling">
+                </td>
+              </tr>
+            </ng-container>
 
-						<tr>
-							<td colspan="2"></td>
-						</tr>
-						<tr>
-							<th class="text-right">Time Estimate for Pickup (mins)</th>
-							<td class="pl-1">
-								<input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Time Estimate for Delivery (mins)</th>
-							<td class="pl-1">
-								<input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Tax Rate</th>
-							<td class="pl-1">
-								<input type="number" [(ngModel)]="taxRate" class="form-control">
-							</td>
-						</tr>
-						<ng-container *ngIf="!restaurant.feeSchedules">
-							<tr>
-								<th class="text-right">Surcharge</th>
-								<td class="pl-1">
-									<label>text to show customer:</label>
-									<input type="text" [(ngModel)]="surchargeName" class="form-control mt-1"
-										placeholder="text to show customer">
-									<label>fixed amount</label>
-									<input type="number" [(ngModel)]="surchargeAmount" class="form-control"
-										placeholder="surcharge amount">
-									<label>rate</label>
-									<input type="number" style="width: auto;" [(ngModel)]="surchargeRate"
-										class="form-control" placeholder="rate">
-									<small>* This is money charged to customer for every online order and the collected
-										money goes to restaurant.
-										<i class="fas fa-exclamation"></i> It may drive customers away.</small>
-								</td>
-							</tr>
-							<tr>
-								<th class="text-right">CC Processing Rate</th>
-								<td class="pl-1">
-									<input type="number" [(ngModel)]="ccProcessingRate" class="form-control"
-										placeholder="rate">
-								</td>
-							</tr>
-							<tr>
+            <!-- show/hide detail -->
+            <tr>
+              <button class="btn btn-link"
+                (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More...'}}
+              </button>
+              <div *qIf="showDetails">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">
+                    <table class="table table-borderless table-sm">
+                      <tbody>
+                        <tr>
+                          <th class="text-right">Hide Order Status on Customer Side</th>
+                          <td class="pl-1">
+                            <input type="checkbox" [(ngModel)]="hideOrderStatus">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Skip Order Confirmation</th>
+                          <td class="pl-1">
+                            <input type="checkbox" [(ngModel)]="skipOrderConfirmation">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Skip Auto Invoicing</th>
+                          <td class="pl-1">
+                            <input type="checkbox" [(ngModel)]="skipAutoInvoicing">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Not Show Tax Option to Customer</th>
+                          <td class="pl-1">
+                            <input type="checkbox" [(ngModel)]="skipShowTax">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Skip Image Injection</th>
+                          <td class="pl-1">
+                            <input type="checkbox" [(ngModel)]="skipImageInjection">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Allow submitting order at close time</th>
+                          <td class="pl-1">
+                            <input type="checkbox" [(ngModel)]="menuHoursExtended">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Hide printing CC</th>
+                          <td class="pl-1">
+                            <input type="checkbox" [(ngModel)]="hidePrintingCCInfo">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-right">Hide Tip Input</th>
+                          <td class="pl-1">
+                            <input type="checkbox" [(ngModel)]="hideTipInput">
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </li>
+                </ul>
+              </div>
+            </tr>
 
-								<th class="text-right">CC Processing Flat Fee
-								</th>
-								<td class="pl-1">
-									<input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control"
-										placeholder="fee">
-								</td>
-							</tr>
-						</ng-container>
-						<tr>
-							<th class="text-right">Disable Scheduling</th>
-							<td class="pl-1">
-								<input type="checkbox" [(ngModel)]="disableScheduling">
-							</td>
-						</tr>
-						<tr *ngIf="isDisabledEditable()">
-							<th class="text-right p-0">Disabled</th>
-							<td class="pl-1">
-								<div class="d-flex flex-column">
-									<input type="checkbox" [(ngModel)]="disabled" (ngModelChange)="disabledHandle()">
-									<div *ngIf="disabled" class="mt-3">
-										<div>
-											<small class="font-weight-bold">Disable it temporarily?</small>
-											<q-simple-radio [(ngModel)]="isTemporarilyDisabled" [equalWidth]="true" [values]="['Yes', 'No']" (ngModelChange)="disabledHandle()"></q-simple-radio>
-											<div *ngIf="isTemporarilyDisabled === 'Yes'">
-												<small class="font-weight-bold">Comeback Date</small>
-												<input type="date" class="form-control" [(ngModel)]="comebackDate" [min]="now">
-												<div class="d-flex justify-content-end">
-													<small *ngIf="isComebackDateCorrectlySet" class="text-success mt-1">Done</small>
-													<button *ngIf="!isComebackDateCorrectlySet" class="btn btn-link m-0 p-0" (click)="setComebackDateAsUnknown()"><small>Set as unknown date</small></button>
-												</div>
-											</div>
-										</div>
-									</div>
-									
-								</div>
-							</td>
-						</tr>
+            <tr>
+              <th class="text-right">Notes</th>
+              <td class="pl-1">
+                <div class="form-group">
+                  <textarea class="form-control" rows="5" [(ngModel)]="notes"></textarea>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" class="text-right pl-1">
+                <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+                <button class="btn btn-primary" [disabled]="!isEmailValid()" (click)="ok()">OK</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-right" *ngIf="!editing && editable">
+        <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
+      </div>
 
-						<tr>
-							<th class="text-right">Pickup Minimum</th>
-							<td class="pl-1">
-								<input type="number" [(ngModel)]="pickupMinimum" class="form-control">
-							</td>
-						</tr>
+    </li>
 
-						<tr>
-							<th class="text-right">CC Minimum Charge</th>
-							<td class="pl-1">
-								<input type="number" [(ngModel)]="ccMinimumCharge" class="form-control">
-							</td>
-						</tr>
-
-						<tr>
-							<th class="text-right">Order Call Language</th>
-							<td class="pl-1">
-								<select class="form-control" [(ngModel)]="preferredLanguage">
-									<option *ngFor="let language of preferredLanguages" [ngValue]="language">
-										{{ language.text }}
-									</option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<button class="btn btn-link"
-								(click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More...'}}
-							</button>
-							<div *qIf="showDetails">
-								<ul class="list-group list-group-flush">
-									<li class="list-group-item">
-										<table class="table table-borderless table-sm">
-											<tbody>
-												<tr>
-													<th class="text-right">Hide Order Status on Customer Side</th>
-													<td class="pl-1">
-														<input type="checkbox" [(ngModel)]="hideOrderStatus">
-													</td>
-												</tr>
-												<tr>
-													<th class="text-right">Skip Order Confirmation</th>
-													<td class="pl-1">
-														<input type="checkbox" [(ngModel)]="skipOrderConfirmation">
-													</td>
-												</tr>
-												<tr>
-													<th class="text-right">Skip Auto Invoicing</th>
-													<td class="pl-1">
-														<input type="checkbox" [(ngModel)]="skipAutoInvoicing">
-													</td>
-												</tr>
-												<tr>
-													<th class="text-right">Not Show Tax Option to Customer</th>
-													<td class="pl-1">
-														<input type="checkbox" [(ngModel)]="skipShowTax">
-													</td>
-												</tr>
-												<tr>
-													<th class="text-right">Skip Image Injection</th>
-													<td class="pl-1">
-														<input type="checkbox" [(ngModel)]="skipImageInjection">
-													</td>
-												</tr>
-												<tr>
-													<th class="text-right">Allow submitting order at close time</th>
-													<td class="pl-1">
-														<input type="checkbox" [(ngModel)]="menuHoursExtended">
-													</td>
-												</tr>
-												<tr>
-													<th class="text-right">Hide printing CC</th>
-													<td class="pl-1">
-														<input type="checkbox" [(ngModel)]="hidePrintingCCInfo">
-													</td>
-												</tr>
-												<tr>
-													<th class="text-right">Hide Tip Input</th>
-													<td class="pl-1">
-														<input type="checkbox" [(ngModel)]="hideTipInput">
-													</td>
-												</tr>
-											</tbody>
-										</table>
-									</li>
-								</ul>
-
-							</div>
-						</tr>
-						<tr>
-							<th class="text-right">Logo</th>
-							<td class="pl-1">
-								<hr>
-								<div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
-									<img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
-									<button (click)="deleteLogo(img)"
-										class="btn btn-secondary close-button transparent">
-										<i class="fas fa-times"></i>
-									</button>
-									<button (click)="deleteLogo(img)" class="btn btn-link close-button text-danger">
-										<i class="fas fa-times"></i>
-									</button>
-								</div>
-								<div *ngIf="uploadLogoError">
-									<span class="text-danger">{{uploadLogoError}}</span>
-								</div>
-								<div class="app-limit-file">
-									<input type="file" (change)="onUploadLogo($event)" />
-								</div>
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Photos</th>
-							<td class="pl-1">
-								<div *ngFor="let img of images" class="pr-1 pb-1"
-									style="display:inline-block; position:relative">
-									<img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
-									<button (click)="deleteImage(img)"
-										class="btn btn-secondary close-button transparent">
-										<i class="fas fa-times"></i>
-									</button>
-									<button (click)="deleteImage(img)" class="btn btn-link close-button text-danger">
-										<i class="fas fa-times"></i>
-									</button>
-								</div>
-								<div *ngIf="uploadImageError">
-									<span class="text-danger">{{uploadImageError}}</span>
-								</div>
-								<div class="app-limit-file">
-									<input type="file" (change)="onUploadImage($event)" />
-								</div>
-								<div>
-									<small class="text-warning">Image may take time to show</small>
-								</div>
-							</td>
-						</tr>
-						<tr>
-							<th class="text-right">Notes</th>
-							<td class="pl-1">
-								<div class="form-group">
-									<textarea class="form-control" rows="5" [(ngModel)]="notes"></textarea>
-								</div>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="2" class="text-right pl-1">
-								<button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-								<button class="btn btn-primary" [disabled]="!isEmailValid()" (click)="ok()">OK</button>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="text-right" *ngIf="!editing && editable">
-				<button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
-			</div>
-
-		</li>
-
-	</ul>
+  </ul>
 </div>

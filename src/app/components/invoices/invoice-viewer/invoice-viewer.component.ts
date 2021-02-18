@@ -24,7 +24,37 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
   orderPaymentMethods = new Set();
 
   couriers = new Set();
-
+  // Transaction breakdowns
+  Cash={
+    tips:0,
+    tax:0,
+    subtotal:0,
+    total:0
+  };
+  qmenuCollect={
+    tips:0,
+    tax:0,
+    subtotal:0,
+    total:0
+  };
+  swipeInPerson={
+    tips:0,
+    tax:0,
+    subtotal:0,
+    total:0
+  };
+  restaurantCollect={
+    tips:0,
+    tax:0,
+    subtotal:0,
+    total:0
+  };
+  total={
+    tips:0,
+    tax:0,
+    subtotal:0,
+    total:0
+  };
   constructor(private _ref: ChangeDetectorRef) { }
 
   ngOnInit() {
@@ -44,6 +74,41 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
   computeData() {
     this.orderTypes = new Set();
     this.orderPaymentMethods = new Set();
+    //computer the transaction breakdowns
+    this.invoice.orders.forEach(io => {
+      console.log("io" + JSON.stringify(io));
+      if (io.paymentType == "CASH") {
+        this.Cash.tips += io.tip;
+        this.Cash.tax += io.tax;
+        this.Cash.subtotal += io.subtotal;
+        this.Cash.total += io.total;
+      }
+      if (io.payee == "qMenu") { //收款人 in Chinese
+        this.qmenuCollect.tips +=io.tip;
+        this.qmenuCollect.tax +=io.tax;
+        this.qmenuCollect.subtotal += io.subtotal;
+        this.qmenuCollect.total += io.total;
+      }
+      if (io.payee == "restaurant") {
+        this.restaurantCollect.tips += io.tip;
+        this.restaurantCollect.tax += io.tax;
+        this.restaurantCollect.subtotal += io.subtotal;
+        this.restaurantCollect.total += io.total;
+      }
+      if (io.paymentType == "CREDITCARD") {
+        this.swipeInPerson.tips = +io.tip;
+        this.swipeInPerson.tax = +io.tax;
+        this.swipeInPerson.subtotal = +io.subtotal;
+        this.swipeInPerson.total = +io.total;
+      }
+    });
+    this.total.tips=this.Cash.tips+this.qmenuCollect.tips+this.restaurantCollect.tips+this.swipeInPerson.total;
+    this.total.tax=this.Cash.tax+this.qmenuCollect.tax+this.restaurantCollect.tax+this.swipeInPerson.tax;
+    this.total.subtotal=this.Cash.subtotal+this.qmenuCollect.subtotal+this.restaurantCollect.subtotal
+    +this.swipeInPerson.subtotal;
+    this.total.total=this.Cash.total+this.qmenuCollect.total+this.restaurantCollect.total
+    +this.swipeInPerson.total;
+
     this.invoice.orders.map(o => {
       this.orderTypes.add(o.type);
       this.orderPaymentMethods.add(o.paymentType); //only CASH or CREDITCARD
