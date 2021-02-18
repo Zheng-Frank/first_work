@@ -1,6 +1,6 @@
 <div *ngIf="orders">
   <div class="form-group row">
-    <label class="col-2 text-center pl-5" style="line-height: 35px; vertical-align: center;min-width:182.6px;max-width:182.6px;"> Search order by:
+    <label class="col-2 text-center pl-5" style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
     </label>
     <select [(ngModel)]="type" class="form-control mr-3 col-2"  style="min-width:180px;max-width:180px;">
       <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
