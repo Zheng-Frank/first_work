@@ -189,40 +189,6 @@
             </tr>
             <ng-container *ngIf="ifShowBasicInformation">
               <tr>
-                <th class="text-right">Sales Agent</th>
-                <td class="pl-1">
-                  <input type="text" [(ngModel)]="salesAgent" class="form-control">
-                </td>
-              </tr>
-              <tr>
-                <th class="text-right" style="width: 33%">Domain</th>
-                <td class="pl-1">
-                  <input type="text" [(ngModel)]="domain" class="form-control"
-                    placeholder="domain name, eg. qmenutest.com">
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2"></td>
-              </tr>
-              <tr>
-                <th class="text-right">Time Estimate for Pickup (mins)</th>
-                <td class="pl-1">
-                  <input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
-                </td>
-              </tr>
-              <tr>
-                <th class="text-right">Time Estimate for Delivery (mins)</th>
-                <td class="pl-1">
-                  <input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
-                </td>
-              </tr>
-              <tr>
-                <th class="text-right">Disable Scheduling</th>
-                <td class="pl-1">
-                  <input type="checkbox" [(ngModel)]="disableScheduling">
-                </td>
-              </tr>
-              <tr>
                 <th class="text-right">Name</th>
                 <td class="pl-1">
                   <input type="text" [(ngModel)]="name" class="form-control">
@@ -244,6 +210,19 @@
                 <th class="text-right">Tax Rate</th>
                 <td class="pl-1">
                   <input type="number" [(ngModel)]="taxRate" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Sales Agent</th>
+                <td class="pl-1">
+                  <input type="text" [(ngModel)]="salesAgent" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right" style="width: 33%">Domain</th>
+                <td class="pl-1">
+                  <input type="text" [(ngModel)]="domain" class="form-control"
+                    placeholder="domain name, eg. qmenutest.com">
                 </td>
               </tr>
               <tr *ngIf="isDisabledEditable()">
@@ -273,7 +252,7 @@
             </ng-container>
             <!--Preferences -->
             <tr>
-              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Other Preferences </th>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Preferences </th>
               <td>
                 <button class="btn btn-link" (click)="ifShowPreferences=!ifShowPreferences">
                   <i class="fa fa-angle-right" *ngIf="!ifShowPreferences"></i>
@@ -282,6 +261,27 @@
               </td>
             </tr>
             <ng-container *ngIf="ifShowPreferences">
+              <!-- <tr>
+                <td colspan="2"></td>
+              </tr> -->
+              <tr>
+                <th class="text-right">Time Estimate for Pickup (mins)</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Time Estimate for Delivery (mins)</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Disable Ordering Ahead</th>
+                <td class="pl-1">
+                  <input type="checkbox" [(ngModel)]="disableScheduling">
+                </td>
+              </tr>
               <tr>
                 <th class="text-right">Order Call Language</th>
                 <td class="pl-1">
@@ -374,18 +374,6 @@
                   </td>
                 </tr>
                 <tr>
-                  <th class="text-right">Pickup Minimum</th>
-                  <td class="pl-1">
-                    <input type="number" [(ngModel)]="pickupMinimum" class="form-control">
-                  </td>
-                </tr>
-                <tr>
-                  <th class="text-right">CC Minimum Charge</th>
-                  <td class="pl-1">
-                    <input type="number" [(ngModel)]="ccMinimumCharge" class="form-control">
-                  </td>
-                </tr>
-                <tr>
                   <th class="text-right">CC Processing Rate</th>
                   <td class="pl-1">
                     <input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
@@ -399,6 +387,18 @@
                   </td>
                 </tr>
               </ng-container>
+              <tr>
+                <th class="text-right">Pickup Minimum</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="pickupMinimum" class="form-control">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">CC Minimum Charge</th>
+                <td class="pl-1">
+                  <input type="number" [(ngModel)]="ccMinimumCharge" class="form-control">
+                </td>
+              </tr>
             </ng-container>
             <!-- Other Preferences -->
             <tr>
@@ -412,39 +412,55 @@
             </tr>
             <ng-container *ngIf="ifShowOtherPreferences">
               <tr>
-                <th class="text-right">Sales Agent</th>
+                <th class="text-right">Hide Order Status on Customer Side</th>
                 <td class="pl-1">
-                  <input type="text" [(ngModel)]="salesAgent" class="form-control">
+                  <input type="checkbox" [(ngModel)]="hideOrderStatus">
                 </td>
               </tr>
               <tr>
-                <th class="text-right" style="width: 33%">Domain</th>
+                <th class="text-right">Skip Order Confirmation</th>
                 <td class="pl-1">
-                  <input type="text" [(ngModel)]="domain" class="form-control"
-                    placeholder="domain name, eg. qmenutest.com">
+                  <input type="checkbox" [(ngModel)]="skipOrderConfirmation">
                 </td>
               </tr>
               <tr>
-                <td colspan="2"></td>
-              </tr>
-              <tr>
-                <th class="text-right">Time Estimate for Pickup (mins)</th>
+                <th class="text-right">Skip Auto Invoicing</th>
                 <td class="pl-1">
-                  <input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
+                  <input type="checkbox" [(ngModel)]="skipAutoInvoicing">
                 </td>
               </tr>
               <tr>
-                <th class="text-right">Time Estimate for Delivery (mins)</th>
+                <th class="text-right">Not Show Tax Option to Customer</th>
                 <td class="pl-1">
-                  <input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
+                  <input type="checkbox" [(ngModel)]="skipShowTax">
                 </td>
               </tr>
               <tr>
-                <th class="text-right">Disable Scheduling</th>
+                <th class="text-right">Skip Image Injection</th>
                 <td class="pl-1">
-                  <input type="checkbox" [(ngModel)]="disableScheduling">
+                  <input type="checkbox" [(ngModel)]="skipImageInjection">
                 </td>
               </tr>
+              <tr>
+                <th class="text-right">Allow submitting order at close time</th>
+                <td class="pl-1">
+                  <input type="checkbox" [(ngModel)]="menuHoursExtended">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Hide printing CC</th>
+                <td class="pl-1">
+                  <input type="checkbox" [(ngModel)]="hidePrintingCCInfo">
+                </td>
+              </tr>
+              <tr>
+                <th class="text-right">Hide Tip Input</th>
+                <td class="pl-1">
+                  <input type="checkbox" [(ngModel)]="hideTipInput">
+                </td>
+              </tr>
+
+
             </ng-container>
 
             <!-- show/hide detail -->
@@ -453,62 +469,7 @@
                 (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More...'}}
               </button>
               <div *qIf="showDetails">
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item">
-                    <table class="table table-borderless table-sm">
-                      <tbody>
-                        <tr>
-                          <th class="text-right">Hide Order Status on Customer Side</th>
-                          <td class="pl-1">
-                            <input type="checkbox" [(ngModel)]="hideOrderStatus">
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-right">Skip Order Confirmation</th>
-                          <td class="pl-1">
-                            <input type="checkbox" [(ngModel)]="skipOrderConfirmation">
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-right">Skip Auto Invoicing</th>
-                          <td class="pl-1">
-                            <input type="checkbox" [(ngModel)]="skipAutoInvoicing">
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-right">Not Show Tax Option to Customer</th>
-                          <td class="pl-1">
-                            <input type="checkbox" [(ngModel)]="skipShowTax">
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-right">Skip Image Injection</th>
-                          <td class="pl-1">
-                            <input type="checkbox" [(ngModel)]="skipImageInjection">
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-right">Allow submitting order at close time</th>
-                          <td class="pl-1">
-                            <input type="checkbox" [(ngModel)]="menuHoursExtended">
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-right">Hide printing CC</th>
-                          <td class="pl-1">
-                            <input type="checkbox" [(ngModel)]="hidePrintingCCInfo">
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-right">Hide Tip Input</th>
-                          <td class="pl-1">
-                            <input type="checkbox" [(ngModel)]="hideTipInput">
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </li>
-                </ul>
+
               </div>
             </tr>
 

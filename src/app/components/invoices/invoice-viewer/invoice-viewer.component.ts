@@ -75,9 +75,11 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     this.orderTypes = new Set();
     this.orderPaymentMethods = new Set();
     //computer the transaction breakdowns
-    this.invoice.orders.forEach(io => {
-      console.log("io" + JSON.stringify(io));
+    const valid_order=this.invoice.orders.filter(o => !o.canceled);
+    valid_order.forEach(io => {
+      // console.log("io" + JSON.stringify(io));
       if (io.paymentType == "CASH") {
+        // console.log("CASH total "+io.total);
         this.Cash.tips += io.tip;
         this.Cash.tax += io.tax;
         this.Cash.subtotal += io.subtotal;
