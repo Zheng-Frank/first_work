@@ -47,6 +47,10 @@
               <td class="pl-1">{{restaurant.taxRate | percentage}}</td>
             </tr>
             <tr>
+              <th class="text-left pl-5">Sales Agent</th>
+              <td class="pl-1">{{(restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}</td>
+            </tr>
+            <tr>
               <th class="text-left pl-5">Disabled</th>
               <td class="pl-1">{{!!restaurant.disabled}}</td>
             </tr>
@@ -112,10 +116,7 @@
               <th class="text-left pl-5">Disable Scheduling</th>
               <td class="pl-1">{{!!restaurant.disableScheduling}}</td>
             </tr>
-            <tr>
-              <th class="text-left pl-5">Sales Agent</th>
-              <td class="pl-1">{{(restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}</td>
-            </tr>
+            
             <tr>
               <th class="text-left pl-5">Notes</th>
               <td class="pl-1" style="white-space: pre-wrap">{{restaurant.notes}}</td>
@@ -256,12 +257,6 @@
           </h4>
         </div>
         <ng-container *ngIf="ifShowPreferences">
-          <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Time Estimate for Pickup (mins)</label>
-            <div class="col-7 text-left">
-              <input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
-            </div>
-          </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Time Estimate for Pickup (mins)</label>
             <div class="col-7 text-left">
