@@ -49,6 +49,10 @@ export class RestaurantOrdersComponent implements OnInit {
   isPostmatesStatusDelivered = false;
   searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID'];
   type='Order Number';//  concrete search type
+  showAdvancedSearch:boolean=false;//show advanced Search ,time picker ,search a period time of orders.
+  fromDate; //time picker to search order.
+  toDate;
+
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
 
@@ -57,6 +61,76 @@ export class RestaurantOrdersComponent implements OnInit {
     this.onNewOrderReceived.subscribe(
       d => this.showNotifier(d)
     );
+  }
+  /**
+   *
+   *
+   * @param {*} from
+   * @param {*} to
+   * @memberof RestaurantOrdersComponent
+   */
+  async doSearchOrderByTime(from,to){
+    console.log("from time:"+from+","+typeof from+" to time:"+to+","+typeof to);
+    let f=new Date(from);
+    let t=new Date(to);
+    console.log("from :"+f+"to :"+t);
+    if(f>t){
+      return alert("please input a correct format date!");
+    }
+    const query = {
+      restaurant: {
+        $oid: this.restaurant._id
+      },
+      createAt:{$gte:from,$lte:to} // less than and greater than
+    } as any;
+
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: query,
+      projection: {//返回除logs以外的所有行
+        logs: 0,
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 50
+    }).toPromise();
+    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+
+    const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "blacklist",
+      query: {
+        "value": { $in: customerIds },
+        disabled: { $ne: true }
+      },
+      projection: {
+        disabled: 1,
+        reasons: 1, //
+        // reasons: {$slice: -10}, 数组里面前两个
+        value: 1,
+        orders: 1
+      },
+      limit: 100000,
+      sort: {
+        createAt: 1
+      }
+    }).toPromise();
+    
+    const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
+    // assemble back to order:
+    this.orders = orders.map(order => {
+      order.orderNumber=order.orderNumber;
+      order.customer = order.customerObj;
+      order.payment = order.paymentObj;
+      order.orderStatuses = order.statuses;
+      order.id = order._id;
+      order.customerNotice = order.customerNotice || '';
+      order.restaurantNotie = order.restaurantNotie || '';
+      // making it back-compatible to display bannedReasons
+      order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
+      // console.log("238行：订单："+JSON.stringify(o));
+      return new Order(order);
+    });
   }
 
   showNotifier(orderEvent) {
