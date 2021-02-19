@@ -533,4 +533,5 @@ export class MenusComponent implements OnInit {
   showPromotionsComponent() {
     this.showPromotions = true;
     this.activeId = undefined;
+  }
 }
