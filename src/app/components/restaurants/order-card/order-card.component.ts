@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
@@ -9,8 +10,10 @@ declare var $: any;
 @Component({
   selector: 'app-order-card',
   templateUrl: './order-card.component.html',
-  styleUrls: ['./order-card.component.css']
+  styleUrls: ['./order-card.component.css'],
+  providers: [DatePipe]
 })
+
 export class OrderCardComponent implements OnInit {
   @Input() order: Order;
   @Input() restaurant: Restaurant;
@@ -32,7 +35,7 @@ export class OrderCardComponent implements OnInit {
   phoneNumberToText;
   showTexting: boolean = false;
   displayingDeliveryDetails = false;
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService,private datePipe: DatePipe) {
   }
 
   ngOnInit() {
