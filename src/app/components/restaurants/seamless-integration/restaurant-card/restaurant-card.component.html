@@ -1,0 +1,134 @@
+<div class="container">
+  <div class="row">
+    <div class="col-sm-4" class="card-body">
+      <div class="row">
+        <div class="form-check">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            [checked]="getPostCardsToFire(data._id)"
+            id="exampleCheck1"
+            (click)="patchPostCard($event.target.value, data._id)"
+          />
+        </div>
+
+        <h5 class="card-title">
+          <a [href]="'https://qa-csr.qmenu.us/#/restaurants/' + id"
+            >{{ name }}
+          </a>
+        </h5>
+      </div>
+      <h6 class="card-subtitle mb-2 text-muted">
+        {{ id }}
+        <a target="_blank" [href]="getPreview(data.selfSignup.code)">
+          (Preview Postcard)
+        </a>
+      </h6>
+      <p class="card-subtitle">{{ data[1] }}</p>
+      <p class="card-subtitle">
+        {{ address }}
+      </p>
+      <p class="card-subtitle">Owner: {{ getOwner(id) }}</p>
+      <a
+        class="card-subtitle"
+        href="https://qa-csr.qmenu.us/#/logs"
+        target="_blank"
+        >Show Logs</a
+      >
+      <br />
+      <a
+        (click)="toggleSendHistory(id)"
+        *ngIf="!getSendHistoryBoolean(id)"
+        class="card-subtitle"
+      >
+        {{ getSendHistory(id).length > 0 ? "Show Send History" : "Never Sent" }}
+      </a>
+      <a
+        (click)="toggleSendHistory(id)"
+        *ngIf="getSendHistoryBoolean(id)"
+        class="card-subtitle"
+      >
+        Hide Send History
+      </a>
+      <br />
+      <br />
+      <a *ngIf="getSendHistoryBoolean(id)">
+        <table class="table">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Sent Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of getSendHistory(id)">
+                <!-- <th scope="row">{{ item }}</th> -->
+                <th scope="row">
+                  {{ item.sendDate }} {{ "   "
+                  }}<a target="_blank" href="{{ item.url }}"
+                    >View Postcard Sent</a
+                  >
+                </th>
+              </tr>
+            </tbody>
+          </table>
+        </table>
+      </a>
+    </div>
+
+    <div align="end" class="col-sm-4">
+      <br />
+      <p class="card-subtitle">
+        <b>
+          {{ getAnalytics(id) }}
+        </b>
+      </p>
+      <p class="card-subtitle">Promo: {{ code ? code : "N/A" }}</p>
+      <a
+        (click)="toggleAnalytic(id)"
+        *ngIf="!getAnalyticBoolean(id)"
+        class="card-subtitle"
+      >
+        Show Analytics
+      </a>
+      <a
+        (click)="toggleAnalytic(id)"
+        *ngIf="getAnalyticBoolean(id)"
+        class="card-subtitle"
+      >
+        Hide Analytics
+      </a>
+      <br />
+      <br />
+
+      <div class="row">
+        <div class="col-sm-3"></div>
+
+        <div class="col-sm-9 text-right">
+          <div *ngIf="getAnalyticBoolean(id)" class="panel panel-default">
+            <!-- Default panel contents -->
+
+            <!-- Table -->
+            <table class="table">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Analytic</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of getAnalytic(id) | keyvalue">
+                    <th scope="row">{{ item.key }}</th>
+                    <td>{{ item.value }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr />
+  </div>
+</div>

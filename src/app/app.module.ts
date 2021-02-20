@@ -209,6 +209,10 @@ import { RestaurantFaxSettingsComponent } from "./components/restaurants/fax-set
 import { OtherModulesComponent } from "./components/monitoring/other-modules/other-modules.component";
 import { BannedCustomersComponent } from "./components/restaurants/banned-customers/banned-customers.component";
 import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
+import { UploadCsvComponent } from "./components/restaurants/seamless-integration/upload-csv/upload-csv.component";
+import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
+import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
+import { RestaurantCardComponent } from "./components/restaurants/seamless-integration/restaurant-card/restaurant-card.component";
 
 @NgModule({
   declarations: [
@@ -393,6 +397,10 @@ import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-
     OtherModulesComponent,
     BannedCustomersComponent,
     SeamlessIntegrationComponent,
+    UploadCsvComponent,
+    AddOneRtComponent,
+    SendPostcardComponent,
+    RestaurantCardComponent,
   ],
   imports: [
     BrowserModule,
