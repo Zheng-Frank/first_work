@@ -64,16 +64,25 @@ export class RestaurantOrdersComponent implements OnInit {
   }
   /**
    *
+   *cancel the advanced date search
+   * @memberof RestaurantOrdersComponent
+   */
+  cacelDoSearchOrderByTime(){
+    this.showAdvancedSearch=false;
+    this.populateOrders();
+  }
+  /**
    *
+   * this function is used to filter order by createdAt
    * @param {*} from
    * @param {*} to
    * @memberof RestaurantOrdersComponent
    */
   async doSearchOrderByTime(from,to){
-    console.log("from time:"+from+","+typeof from+" to time:"+to+","+typeof to);
+    // console.log("from time:"+from+","+typeof from+" to time:"+to+","+typeof to);
     let f=new Date(from);
     let t=new Date(to);
-    console.log("from :"+f+"to :"+t);
+    // console.log("from :"+f+"to :"+t);
     if(f>t){
       return alert("please input a correct format date!");
     }
@@ -81,9 +90,16 @@ export class RestaurantOrdersComponent implements OnInit {
       restaurant: {
         $oid: this.restaurant._id
       },
-      createdAt: {
-        $gte: { $date: from }
-      } // less than and greater than
+      $and:[{
+        createdAt: {
+          $gte: { $date: from }
+        } // less than and greater than
+      },{
+        createdAt:{
+          $lte:{$date:to}
+        }
+      }
+    ]
     } as any;
    // ISO-Date()
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
