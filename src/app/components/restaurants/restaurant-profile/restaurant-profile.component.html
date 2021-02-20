@@ -188,38 +188,38 @@
         <ng-container *ngIf="ifShowBasicInformation">
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Name</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="text" [(ngModel)]="name" class="form-control">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Address</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <q-address-picker [address]="address" (pick)="selectAddress($event)"></q-address-picker>
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Address Extra</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="text" class="form-control" placeholder="eg. Suite 300" [(ngModel)]="apt">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Tax Rate</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="number" [(ngModel)]="taxRate" class="form-control">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Sales Agent</label>
-            <div class="col-7 text-left">
-              <input type="text" [(ngModel)]="salesAgent" class="form-control">
+            <label class="col-4 col-form-label pt-0 pl-5">Domain</label>
+            <div class="pl-1 col-7">
+              <input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Domain</label>
-            <div class="col-7 text-left">
-              <input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
+            <label class="col-4 col-form-label pt-0 pl-5">Sales Agent</label>
+            <div class="pl-1 col-7">
+              <input type="text" [(ngModel)]="salesAgent" class="form-control">
             </div>
           </div>
           <div *ngIf="isDisabledEditable()">
@@ -259,25 +259,25 @@
         <ng-container *ngIf="ifShowPreferences">
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Time Estimate for Pickup (mins)</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Time Estimate for Delivery (mins)</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Disable Ordering Ahead</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="disableScheduling">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Order Call Language</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <select class="form-control" [(ngModel)]="preferredLanguage">
                 <option *ngFor="let language of preferredLanguages" [ngValue]="language">
                   {{ language.text }}
@@ -287,7 +287,7 @@
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Website Broadcast</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="text" [(ngModel)]="notification" class="form-control"
                 placeholder="important message showing on website">
             </div>
@@ -316,7 +316,7 @@
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Photos</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
                 <img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
                 <button (click)="deleteImage(img)" class="btn btn-secondary close-button transparent">
@@ -367,26 +367,26 @@
             </div>
             <div class="form-group row">
               <label class="col-4 col-form-label pt-0 pl-5">CC Processing Rate</label>
-              <div class="col-7 text-left">
+              <div class="pl-1 col-7">
                 <input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
               </div>
             </div>
             <div class="form-group row">
               <label class="col-4 col-form-label pt-0 pl-5">CC Processing Flat Fee</label>
-              <div class="col-7 text-left">
+              <div class="pl-1 col-7">
                 <input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control" placeholder="fee">
               </div>
             </div>
           </ng-container>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Pickup Minimum</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="number" [(ngModel)]="pickupMinimum" class="form-control">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">CC Minimum Charge</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="number" [(ngModel)]="ccMinimumCharge" class="form-control">
             </div>
           </div>
@@ -403,43 +403,43 @@
         <ng-container *ngIf="ifShowOtherPreferences">
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Hide Order Status on Customer Side</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="hideOrderStatus">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Skip Order Confirmation</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="skipOrderConfirmation">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Not Show Tax Option to Customer</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="skipShowTax">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Skip Image Injection</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="skipImageInjection">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Allow submitting order at close time</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="menuHoursExtended">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Hide printing CC</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="hidePrintingCCInfo">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Hide Tip Input</label>
-            <div class="col-7 text-left">
+            <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="hideTipInput">
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { tap } from 'rxjs/operators';
 import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
 import { Invoice } from '../../../classes/invoice';
 import { FeeSchedule, ChargeBasis } from '@qmenu/ui';
@@ -25,35 +26,41 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
 
   couriers = new Set();
   // Transaction breakdowns
-  Cash={
-    tips:0,
-    tax:0,
-    subtotal:0,
-    total:0
+  Cash = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0
   };
-  qmenuCollect={
-    tips:0,
-    tax:0,
-    subtotal:0,
-    total:0
+  swipeInPerson = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0
   };
-  swipeInPerson={
-    tips:0,
-    tax:0,
-    subtotal:0,
-    total:0
+  keyIn = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0
   };
-  restaurantCollect={
-    tips:0,
-    tax:0,
-    subtotal:0,
-    total:0
+  restaurantStripe = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0
   };
-  total={
-    tips:0,
-    tax:0,
-    subtotal:0,
-    total:0
+  qmenuCollected = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0
+  };
+  total = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0
   };
   constructor(private _ref: ChangeDetectorRef) { }
 
@@ -75,41 +82,49 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     this.orderTypes = new Set();
     this.orderPaymentMethods = new Set();
     //computer the transaction breakdowns
-    const valid_order=this.invoice.orders.filter(o => !o.canceled);
+    const valid_order = this.invoice.orders.filter(o => !o.canceled);
     valid_order.forEach(io => {
-      // console.log("io" + JSON.stringify(io));
+      console.log("io" + JSON.stringify(io));
       if (io.paymentType == "CASH") {
         // console.log("CASH total "+io.total);
-        this.Cash.tips += io.tip;
+        this.Cash.tip += io.tip;
         this.Cash.tax += io.tax;
         this.Cash.subtotal += io.subtotal;
         this.Cash.total += io.total;
+      } else if (io.paymentType == 'CREDITCARD') {
+        if(io.creditCardProcessingMethod=='SWIPE'){
+          this.swipeInPerson.tip += io.tip;
+          this.swipeInPerson.tax += io.tax;
+          this.swipeInPerson.subtotal += io.subtotal;
+          this.swipeInPerson.total += io.total;
+        }
+        if(io.creditCardProcessingMethod=='KEY_IN'){
+          this.keyIn.tip=io.tip;
+          this.keyIn.tax=io.tax;
+          this.keyIn.subtotal=io.subtotal;
+          this.keyIn.total=io.io.total;
+        }
+        if (io.creditCardProcessingMethod == "QMENU") { 
+          this.qmenuCollected.tip += io.tip;
+          this.qmenuCollected.tax += io.tax;
+          this.qmenuCollected.subtotal += io.subtotal;
+          this.qmenuCollected.total += io.total;
+        }
+        if (io.creditCardProcessingMethod == "STRIPE") {
+          this.restaurantStripe.tip += io.tip;
+          this.restaurantStripe.tax += io.tax;
+          this.restaurantStripe.subtotal += io.subtotal;
+          this.restaurantStripe.total += io.total;
+        }
       }
-      if (io.payee == "qMenu") { //收款人 in Chinese
-        this.qmenuCollect.tips +=io.tip;
-        this.qmenuCollect.tax +=io.tax;
-        this.qmenuCollect.subtotal += io.subtotal;
-        this.qmenuCollect.total += io.total;
-      }
-      if (io.payee == "restaurant") {
-        this.restaurantCollect.tips += io.tip;
-        this.restaurantCollect.tax += io.tax;
-        this.restaurantCollect.subtotal += io.subtotal;
-        this.restaurantCollect.total += io.total;
-      }
-      if (io.paymentType == "CREDITCARD") {
-        this.swipeInPerson.tips = +io.tip;
-        this.swipeInPerson.tax = +io.tax;
-        this.swipeInPerson.subtotal = +io.subtotal;
-        this.swipeInPerson.total = +io.total;
-      }
+
     });
-    this.total.tips=this.Cash.tips+this.qmenuCollect.tips+this.restaurantCollect.tips+this.swipeInPerson.total;
-    this.total.tax=this.Cash.tax+this.qmenuCollect.tax+this.restaurantCollect.tax+this.swipeInPerson.tax;
-    this.total.subtotal=this.Cash.subtotal+this.qmenuCollect.subtotal+this.restaurantCollect.subtotal
-    +this.swipeInPerson.subtotal;
-    this.total.total=this.Cash.total+this.qmenuCollect.total+this.restaurantCollect.total
-    +this.swipeInPerson.total;
+    this.total.tip = this.Cash.tip + this.qmenuCollected.tip + this.restaurantStripe.tip + this.swipeInPerson.tip+this.keyIn.tip;
+    this.total.tax = this.Cash.tax + this.qmenuCollected.tax + this.restaurantStripe.tax + this.swipeInPerson.tax+this.keyIn.tax;
+    this.total.subtotal = this.Cash.subtotal + this.qmenuCollected.subtotal + this.restaurantStripe.subtotal
+      + this.swipeInPerson.subtotal+this.keyIn.subtotal;
+    this.total.total = this.Cash.total + this.qmenuCollected.total + this.restaurantStripe.total
+      + this.swipeInPerson.total+this.keyIn.total;
 
     this.invoice.orders.map(o => {
       this.orderTypes.add(o.type);

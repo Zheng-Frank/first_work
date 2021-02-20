@@ -191,7 +191,7 @@
     Please note that we are unable to include tips paid in cash that were not indicated by the customer through our
     system.
   </span>
-  <table class="table app-scaled-table mb-5">
+  <table class="table  mb-5">
     <tbody>
       <tr>
         <th></th>
@@ -202,35 +202,42 @@
       </tr>
       <tr>
         <th class="text-center">Cash</th>
-        <td>{{Cash?.tips | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.tip | currency:'USD':'symbol'}}</td>
         <td>{{Cash?.tax | currency:'USD':'symbol'}}</td>
         <td>{{Cash?.subtotal | currency:'USD':'symbol'}}</td>
         <td>{{Cash?.total  | currency:'USD':'symbol'}}</td>
       </tr>
       <tr>
-        <th class="text-center">Qmenu collect</th>
-        <td>{{qmenuCollect?.tips | currency:'USD':'symbol'}}</td>
-        <td>{{qmenuCollect?.tax | currency:'USD':'symbol'}}</td>
-        <td>{{qmenuCollect?.subtotal | currency:'USD':'symbol'}}</td>
-        <td>{{qmenuCollect?.total | currency:'USD':'symbol'}}</td>
-      </tr>
-      <tr>
-        <th class="text-center">Swipe in person</th>
-        <td>{{swipeInPerson?.tips | currency:'USD':'symbol'}}</td>
+        <th class="text-center">Swipe in person (CC)</th>
+        <td>{{swipeInPerson?.tip | currency:'USD':'symbol'}}</td>
         <td>{{swipeInPerson?.tax | currency:'USD':'symbol'}}</td>
-        <td>{{swipeInperson?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.subtotal | currency:'USD':'symbol'}}</td>
         <td>{{swipeInPerson?.total | currency:'USD':'symbol'}}</td>
       </tr>
       <tr>
-        <th class="text-center">Restaurant collect</th>
-        <td>{{restaurantCollect?.tips | currency:'USD':'symbol'}}</td>
-        <td>{{restaurantCollect?.tax | currency:'USD':'symbol'}}</td>
-        <td>{{restaurantCollect?.subtotal | currency:'USD':'symbol'}}</td>
-        <td>{{restaurantCollect?.total | currency:'USD':'symbol'}}</td>
+        <th class="text-center">Key-in (CC)</th>
+        <td>{{keyIn?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th class="text-center">Restaurant Stripe (CC)</th>
+        <td>{{restaurantStripe?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th class="text-center">Qmenu Collect (CC)</th>
+        <td>{{qmenuCollected?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.total | currency:'USD':'symbol'}}</td>
       </tr>
       <tr>
         <th class="text-center">Total</th>
-        <td>{{total?.tips | currency:'USD':'symbol'}}</td>
+        <td>{{total?.tip | currency:'USD':'symbol'}}</td>
         <td>{{total?.tax | currency:'USD':'symbol'}}</td>
         <td>{{total?.subtotal | currency:'USD':'symbol'}}</td>
         <td>{{total?.total | currency:'USD':'symbol'}}</td>
