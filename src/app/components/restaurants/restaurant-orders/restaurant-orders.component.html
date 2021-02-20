@@ -8,9 +8,9 @@
     <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
       class="form-control col-7" placeholder="Search">
     <div *ngIf="searchText" class="text-muted float-left col-1">Found: {{orders.length}}</div>
-    <button type="button" class="btn btn-link" (click)="showAdvancedSearch = !showAdvancedSearch">
-        Show advanced search..</button>
     </div>
+    <button type="button" class="btn btn-link" (click)="showAdvancedSearch = !showAdvancedSearch">
+      Show advanced search..</button>
   <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
       <div class="row" >
           <div class="col col-sm-6">

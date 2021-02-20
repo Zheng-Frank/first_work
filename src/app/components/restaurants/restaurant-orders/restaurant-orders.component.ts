@@ -81,9 +81,11 @@ export class RestaurantOrdersComponent implements OnInit {
       restaurant: {
         $oid: this.restaurant._id
       },
-      createAt:{$gte:from,$lte:to} // less than and greater than
+      createdAt: {
+        $gte: { $date: from }
+      } // less than and greater than
     } as any;
-
+   // ISO-Date()
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
