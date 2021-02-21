@@ -3,6 +3,7 @@ import * as csvtojsonV2 from "csvtojson";
 import { ViewChild, ElementRef } from "@angular/core";
 import { environment } from "src/environments/environment";
 import { ApiService } from "src/app/services/api.service";
+
 import { v4 as uuidv4 } from "uuid";
 
 @Component({
@@ -54,7 +55,6 @@ export class SeamlessIntegrationComponent implements OnInit {
   lobHistory = [];
   failLobCount;
   successLobCount;
-  failedRestaurants;
 
   readonly VAPID_PUBLIC_KEY =
     "BIgJiFe6Y_nxJPFTM9bvEJGWduQbjtRrn7dXJa_vef9uZrowP4YyMTLZP15DrkLjsYLlLAFz519PUMpPFq-THwI";
@@ -237,7 +237,7 @@ export class SeamlessIntegrationComponent implements OnInit {
         }
       }
     });
-    // console.log("POSTCARDS", this.sendPostCards);
+    console.log("POSTCARDS", this.sendPostCards);
   }
 
   markAsPostCardSentFlag() {
@@ -362,27 +362,6 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
-  getLog(id) {}
-
-  async createLobAnalytic(params) {
-    try {
-      const analyticEvents = await this._api
-        .post(environment.appApiUrl + "smart-restaurant/api", {
-          method: "create",
-          resource: "analytics-event",
-          payload: {
-            src: "lob-admin",
-            name: "lob-event",
-            ...params,
-          },
-        })
-        .toPromise();
-      console.log("Analytic events posted", analyticEvents);
-    } catch (e) {
-      // console.log("ERROR CREATING LOB ANALYTIC ", e);
-    }
-  }
-
   markAsPostCardFalse() {
     this.markAsPostCardSent = false;
   }
@@ -395,14 +374,14 @@ export class SeamlessIntegrationComponent implements OnInit {
 
     // // console.log("ANALYTICS IN FORM FILTER", this.seamlessEvents);
     const eventOutput = {
-      // id: "N/A",
+      id: "N/A",
       source: "N/A",
       formStarted: false,
       previewMenuOpened: false,
       ownerName: "N/A",
       ownerPhone: "N/A",
       alternateNumber: "N/A",
-      placedOrder: false,
+      placedTestOrder: false,
       formComplete: false,
       wentToBizPortal: false,
     };
@@ -413,7 +392,7 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
     this.seamlessEvents.forEach((event) => {
       if (event.restaurantId === id) {
-        // eventOutput.id = event.restaurantId;
+        eventOutput.id = "id";
         eventOutput.formStarted = true;
         if (event.signUpType === "nonPromo") {
           event.source = "Non Promo";
@@ -435,8 +414,8 @@ export class SeamlessIntegrationComponent implements OnInit {
           // console.log("EVENT ALTERNATE NUMBER", event.alternateNumber);
           eventOutput.alternateNumber = event.alternateNumber;
         }
-        if (event.placedOrder) {
-          eventOutput.placedOrder = true;
+        if (event.placedTestOrder) {
+          eventOutput.placedTestOrder = true;
         }
         if (event.formComplete) {
           eventOutput.formComplete = true;
@@ -466,6 +445,120 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.fileList = files;
   }
 
+  addAttachment() {
+    let files = this.fileList;
+    if (files && files.length > 0) {
+      let file: File = files.item(0);
+
+      let reader: FileReader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = async (e) => {
+        let csv: string = reader.result as string;
+        let csvRows = await csvtojsonV2({
+          noheader: true,
+          output: "csv",
+        }).fromString(csv);
+
+        if (csvRows[0].length != 2) {
+          this.invalidFormat = true;
+          return;
+        }
+        csvRows = csvRows.slice(1);
+        if (csvRows.length === 0) {
+          this.invalidFormat = true;
+          return;
+        }
+        // csvRows.length = 1;
+        const importData = async () => {
+          this.currentlyUploading = true;
+          this.processedLength = csvRows.length;
+          for (let row of csvRows) {
+            this.invalidFormat = false;
+            let q = `${row[0]}, ${row[1]}`;
+            try {
+              const crawledResult = await this._api
+                .post(
+                  environment.appApiUrl +
+                    "utils/find-or-create-restaurant-by-gmb",
+                  { q }
+                )
+                .toPromise();
+              // console.log(crawledResult);
+              let restaurantId = crawledResult[0]._id;
+
+              if (this.designatePostcard) {
+                // send LOB response'
+                // const backUrl =
+                //   "http://bf1651968fee.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=back";
+                // const frontUrl =
+                //   "http://bf1651968fee.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=front";
+                //   frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=${encodeURIComponent(
+                // frontUrl
+                // )}&format=jpg`,
+
+                try {
+                  let lobObj = await this._api
+                    .post(environment.appApiUrl + "utils/send-postcard", {
+                      name: crawledResult[0].name,
+                      address: crawledResult[0].googleAddress.formatted_address,
+                      frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
+                        crawledResult[0].selfSignup.code
+                      )}%26side%3Dfront%26style%3d${this.style}&format=jpg`,
+                      backUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
+                        crawledResult[0].selfSignup.code
+                      )}%26side%3Dback%26style%3d${this.style}&format=jpg`,
+                    })
+                    .toPromise();
+                  lobObj = { ...lobObj, restaurantId };
+                  this.createLobAnalytic(lobObj);
+                  this.successEveryLobCount += 1;
+                } catch (e) {
+                  this.failEveryLobCount += 1;
+                  // console.log("ONE EVERY LOB FAILED ", e);
+                }
+              }
+              await this._api
+                .patch(
+                  environment.qmenuApiUrl + "generic?resource=restaurant",
+                  [
+                    {
+                      old: { _id: restaurantId, selfSignup: {} },
+                      new: {
+                        _id: restaurantId,
+                        selfSignup: { postcardSent: true },
+                      },
+                    },
+                  ]
+                )
+                .toPromise();
+            } catch (error) {
+              // console.log("IMPORTING FAILED ", error);
+            }
+          }
+        };
+
+        try {
+          await importData();
+          // // console.log(
+          //   `WE SUCCESSFULLY SENT POSTCARDS TO ${this.successEveryLobCount}`);
+          this.currentlyUploading = false;
+          const selfSignupRestaurantsAfter = await this._api
+            .get(environment.qmenuApiUrl + "generic", {
+              resource: "restaurant",
+              query: { selfSignup: { $exists: true } },
+              limit: 100000,
+            })
+            .toPromise();
+          this.afterCsvLength = selfSignupRestaurantsAfter.length;
+          this.rowsProcessed = this.afterCsvLength - this.beforeCsvLength;
+          this.currentRestaurants = selfSignupRestaurantsAfter;
+          // // console.log(`We imported ${this.rowsProcessed} restaurants`);
+        } catch (e) {
+          // console.log("import failed");
+        }
+      };
+    }
+  }
   setPreviousPagination() {
     this.currentPagination += 1;
   }
@@ -479,7 +572,6 @@ export class SeamlessIntegrationComponent implements OnInit {
   async resetCsvInformation() {
     // console.log("I am here");
     this.rowsProcessed = null;
-    this.failedRestaurants = null;
     const selfSignupRestaurants = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",

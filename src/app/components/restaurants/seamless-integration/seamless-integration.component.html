@@ -1,190 +1,9 @@
 <div class="container">
   <h2 class="text-center">New Self-Signups</h2>
   <h6 class="text-center">{{ entriesLength }} Entries shown</h6>
-
-  <div class="modal" tabindex="-1" role="dialog" id="exampleModal">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Upload CSV</h5>
-          <button
-            type="button"
-            class="close"
-            data-dismiss="modal"
-            aria-label="Close"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-
-        <div class="modal-footer">
-          <div class="container">
-            <div class="row">
-              <div class="col-sm-4">
-                <input
-                  class="hidden"
-                  type="file"
-                  #fileInput
-                  id="upload-file"
-                  name="upload-file"
-                  accept=".csv"
-                  ngf-max-size="2MB"
-                  (change)="addFileList($event.target.files)"
-                />
-              </div>
-              <div class="col-sm-4"></div>
-              <div class="col-sm-4">
-                <button (click)="reset()">Reset File</button>
-              </div>
-            </div>
-          </div>
-          <br />
-          <div class="container">
-            <div class="row">
-              <div class="form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="exampleCheck1"
-                  (click)="designatePostcardFlag()"
-                />
-                <label class="form-check-label" for="exampleCheck1"
-                  >Send Postcard to Every Added Restaurant</label
-                >
-              </div>
-            </div>
-            <br />
-            <br />
-            <p class="row">
-              Columns should be "restaurant_name" followed by
-              "restaurant_zip_code".
-            </p>
-            <button
-              (click)="addAttachment()"
-              class="row text-center btn btn-primary"
-            >
-              Submit
-            </button>
-            <br />
-            <br />
-            <div class="row">
-              <div *ngIf="currentlyUploading" class="col-sm-4">Loading...</div>
-              <div
-                *ngIf="currentlyUploading"
-                class="spinner-border text-center"
-                role="status"
-              >
-                <span class="sr-only">Loading...</span>
-              </div>
-            </div>
-
-            <br />
-            <div *ngIf="invalidFormat" class="text-center">
-              Invalid format, please follow instructions
-            </div>
-            <div *ngIf="!currentlyUploading && rowsProcessed != null">
-              <div class="alert alert-secondary text-center" role="alert">
-                Check send history to find RTs sent with Postcard
-              </div>
-              <div class="alert alert-success text-center">
-                We successfully added postcards to
-                {{ successEveryLobCount }} restaurants
-              </div>
-              <div class="alert alert-danger text-center">
-                We failed to add postcards to
-                {{ failEveryLobCount }} restaurants
-              </div>
-              <div class="text-center">
-                {{ processedLength }} processed.
-                {{ (afterCsvLength - beforeCsvLength - processedLength) * -1 }}
-                duplicates purged. {{ afterCsvLength - beforeCsvLength }} more
-                records added.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!--  -->
 
   <div class="container">
-    <div class="modal" tabindex="-1" role="dialog" id="uploadSingle">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Add Single Restaurant by ID</h5>
-
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <br />
-          <form>
-            <div class="form-group">
-              <div class="container-fluid">
-                <input
-                  style
-                  type="email"
-                  class="form-control"
-                  id="exampleInputEmail1"
-                  aria-describedby="emailHelp"
-                  placeholder="Enter ID"
-                  (change)="updateId($event.target.value)"
-                />
-                <div class="container-fluid">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    [checked]="getSinglePostcard()"
-                    id="send-postcard-checkbox"
-                    (click)="toggleSendSinglePostcard()"
-                  />
-                  <label class="form-check-label" for="send-postcard-checkbox"
-                    >Send Postcard Added Restaurant</label
-                  >
-                </div>
-                <div *ngIf="sendSingleRTSuccess" class="container-fluid">
-                  <div class="alert alert-success">
-                    We successfully added the restaurant! Reload to see update.
-                  </div>
-                </div>
-                <div *ngIf="sendSingleLobSuccess" class="container-fluid">
-                  <div class="alert alert-success">
-                    We successfully sent a lob postcard!
-                  </div>
-                </div>
-                <div *ngIf="sendSingleRTFail" class="container-fluid">
-                  <div class="alert alert-danger">
-                    We failed to add the restaurant.
-                  </div>
-                </div>
-                <div *ngIf="sendSingleLobFail" class="container-fluid">
-                  <div class="alert alert-danger">
-                    We failed to send the lob postcard
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-check text-center">
-              <button
-                (click)="submitSingleRestaurant(singleRestaurantId)"
-                type="submit"
-                class="btn btn-primary"
-              >
-                Enter
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
     <div class="row">
       <div class="col-sm-4"></div>
       <div class="col-sm-4 text-center">
@@ -271,7 +90,10 @@
           </li>
         </ul>
 
-        <app-send-postcard></app-send-postcard>
+        <app-send-postcard
+          [style]="style"
+          [postcards]="sendPostCards"
+        ></app-send-postcard>
         <app-add-one-rt></app-add-one-rt>
         <app-upload-csv></app-upload-csv>
       </div>
@@ -307,15 +129,144 @@
       "
       class="card"
     >
-      <app-restaurant-card
-        [name]="data.name"
-        [id]="data._id"
-        [address]="data.googleAddress.formatted_address"
-        [code]='data.selfSignup.code
-      >
-      </app-restaurant-card>
+      <div class="container">
+        <div class="row">
+          {{ log("here") }}
+          <div class="col-sm-4" class="card-body">
+            <div class="row">
+              <div class="form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  [checked]="getPostCardsToFire(data._id)"
+                  id="exampleCheck1"
+                  (click)="patchPostCard($event.target.value, data._id)"
+                />
+              </div>
 
-     
+              <h5 class="card-title">
+                <a [href]="'https://qa-csr.qmenu.us/#/restaurants/' + data._id"
+                  >{{ data.name }}
+                </a>
+              </h5>
+            </div>
+            <h6 class="card-subtitle mb-2 text-muted">
+              {{ data._id }}
+              <a target="_blank" [href]="getPreview(data.selfSignup.code)">
+                (Preview Postcard)
+              </a>
+            </h6>
+            <p class="card-subtitle">{{ data[1] }}</p>
+            <p class="card-subtitle">
+              {{ data.googleAddress.formatted_address }}
+            </p>
+            <p class="card-subtitle">Owner: {{ getOwner(data._id) }}</p>
+            <a
+              (click)="toggleSendHistory(data._id)"
+              *ngIf="!getSendHistoryBoolean(data._id)"
+              class="card-subtitle"
+            >
+              {{
+                getSendHistory(data._id).length > 0
+                  ? "Show Send History"
+                  : "Never Sent"
+              }}
+            </a>
+            <a
+              (click)="toggleSendHistory(data._id)"
+              *ngIf="getSendHistoryBoolean(data._id)"
+              class="card-subtitle"
+            >
+              Hide Send History
+            </a>
+            <br />
+            <a *ngIf="getSendHistoryBoolean(data._id)">
+              <table class="table">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Sent Data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of getSendHistory(data._id)">
+                      <!-- <th scope="row">{{ item }}</th> -->
+                      <th scope="row">
+                        {{ item.sendDate }} {{ "   "
+                        }}<a target="_blank" href="{{ item.url }}"
+                          >View Postcard Sent</a
+                        >
+                      </th>
+                    </tr>
+                  </tbody>
+                </table>
+              </table>
+            </a>
+          </div>
+
+          <div align="end" class="col-sm-4">
+            <br />
+            <p class="card-subtitle">
+              <b>
+                {{ getAnalytics(data._id) }}
+              </b>
+            </p>
+            <p class="card-subtitle">
+              Promo: {{ data.selfSignup ? data.selfSignup.code : "N/A" }}
+            </p>
+            <a
+              (click)="toggleAnalytic(data._id)"
+              *ngIf="!getAnalyticBoolean(data._id)"
+              class="card-subtitle"
+            >
+              Show Analytics
+            </a>
+            <a
+              (click)="toggleAnalytic(data._id)"
+              *ngIf="getAnalyticBoolean(data._id)"
+              class="card-subtitle"
+            >
+              Hide Analytics
+            </a>
+            <br />
+            <br />
+
+            <div class="row">
+              <div class="col-sm-3"></div>
+
+              <div class="col-sm-9 text-right">
+                <div
+                  *ngIf="getAnalyticBoolean(data._id)"
+                  class="panel panel-default"
+                >
+                  <!-- Default panel contents -->
+
+                  <!-- Table -->
+                  <table class="table">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Analytic</th>
+                          <th scope="col">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          *ngFor="let item of getAnalytic(data._id) | keyvalue"
+                        >
+                          <th scope="row">{{ item.key }}</th>
+                          <td>{{ item.value }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr />
+        </div>
+      </div>
     </div>
   </div>
   <br />

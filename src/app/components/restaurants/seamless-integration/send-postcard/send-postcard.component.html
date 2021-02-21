@@ -1,7 +1,21 @@
 <button
   class="btn btn-primary rowButton text-nowrap btn-sm mr-1"
-  [disabled]="sendPostCards.length < 1 ? true : false"
+  [disabled]="postcards.length < 1 ? true : false"
   (click)="firePostCards()"
 >
   Send Postcard
 </button>
+
+<div *ngIf="showLobOutput" class="row">
+  <div *ngIf="showLobOutput" class="alert alert-success" role="alert">
+    We successfully sent postcards to
+    {{ this.successLobRestaurants.length }} restaurants:
+    {{ this.successLobRestaurants }}
+  </div>
+
+  <div *ngIf="showLobOutput" class="alert alert-danger" role="alert">
+    We failed to send postcards to
+    {{ this.failLobRestaurants.length }} restaurants:
+    {{ this.failLobRestaurants }}
+  </div>
+</div>
