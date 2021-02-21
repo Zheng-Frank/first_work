@@ -4,7 +4,7 @@
   data-toggle="modal"
   data-target="#exampleModal"
 >
-  Upload RTs
+  Upload RT
 </button>
 
 <div class="modal" tabindex="-1" role="dialog" id="exampleModal">
@@ -26,7 +26,7 @@
         <div class="container">
           <div class="row">
             <div class="col-sm-4">
-              <!-- <input
+              <input
                 class="hidden"
                 type="file"
                 #fileInput
@@ -39,40 +39,32 @@
             </div>
             <div class="col-sm-4"></div>
             <div class="col-sm-4">
-              <button (click)="reset()">Reset File</button>
-            </div> -->
+              <button (click)="reset()">Reset</button>
             </div>
           </div>
-          <br />
-          <div class="container">
-            <div class="row">
-              <div class="form-check">
-                <!-- <input
+        </div>
+        <br />
+        <div class="container">
+          <div class="row">
+            <div class="form-check">
+              <input
                 type="checkbox"
                 class="form-check-input"
                 id="exampleCheck1"
                 (click)="designatePostcardFlag()"
-              /> -->
-                <label class="form-check-label" for="exampleCheck1"
-                  >Send Postcard to Every Added Restaurant</label
-                >
-              </div>
+              />
+              <label class="form-check-label" for="exampleCheck1"
+                >Send Postcard to Every Added Restaurant</label
+              >
             </div>
             <br />
             <br />
-            <p class="row">
-              Columns should be "restaurant_name" followed by
-              "restaurant_zip_code".
-            </p>
-            <button
-              (click)="addAttachment()"
-              class="row text-center btn btn-primary"
-            >
-              Submit
-            </button>
-            <br />
-            <br />
-            <!-- <div class="row">
+            <p>Columns should be "rt_name", "rt_zip_code" & "language".</p>
+          </div>
+          <br />
+          <br />
+
+          <div class="row">
             <div *ngIf="currentlyUploading" class="col-sm-4">Loading...</div>
             <div
               *ngIf="currentlyUploading"
@@ -81,32 +73,83 @@
             >
               <span class="sr-only">Loading...</span>
             </div>
-          </div> -->
 
-            <br />
-            <!-- <div *ngIf="invalidFormat" class="text-center">
-            Invalid format, please follow instructions
+            <div *ngIf="invalidFormat" class="text-center">
+              Invalid format, please follow instructions
+            </div>
+            <div *ngIf="!currentlyUploading">
+              <div class="alert alert-secondary text-center" role="alert">
+                Reload the page to see the updated list of restaurants!
+              </div>
+
+              <hr />
+
+              <div class="alert alert-success text-center">
+                We successfully added
+                {{ successRestaurants.length }} restaurants
+              </div>
+              <hr />
+
+              <div class="alert alert-success text-center">
+                We successfully sent postcards to
+                {{ successLobCount }} restaurants
+              </div>
+
+              <hr />
+
+              <div class="alert alert-danger text-center">
+                We failed to add these restaurants
+              </div>
+
+              <hr />
+
+              <table class="table">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">RT Name</th>
+                      <th scope="col">RT Address</th>
+                      <th scope="col">RT Language</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of failedRestaurants">
+                      <th scope="row">{{ item.name }}</th>
+                      <td>{{ item.address }}</td>
+                      <td>{{ item.language }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </table>
+              <hr />
+
+              <div class="alert alert-danger text-center">
+                We failed to sent postcards to these restaurants:
+              </div>
+
+              <table class="table">
+                <table class="table">
+                  <tbody>
+                    <tr *ngFor="let item of failLobRestaurants">
+                      <th>{{ item }}</th>
+                    </tr>
+                  </tbody>
+                </table>
+              </table>
+            </div>
           </div>
-          <div *ngIf="!currentlyUploading && rowsProcessed != null">
-            <div class="alert alert-secondary text-center" role="alert">
-              Check send history to find RTs sent with Postcard
-            </div>
-            <div class="alert alert-success text-center">
-              We successfully added postcards to
-              {{ successEveryLobCount }} restaurants
-            </div>
-            <div class="alert alert-danger text-center">
-              We failed to add postcards to
-              {{ failEveryLobCount }} restaurants
-            </div>
-            <div class="text-center">
-              {{ processedLength }} processed.
-              {{ (afterCsvLength - beforeCsvLength - processedLength) * -1 }}
-              duplicates purged. {{ afterCsvLength - beforeCsvLength }} more
-              records added.
-            </div> -->
-            <!-- </div> -->
-          </div>
+          <br />
+          <br />
+          <button
+            (click)="addAttachment()"
+            class="row text-center btn btn-primary"
+          >
+            Submit
+          </button>
+          <br />
+          <br />
+
+          <br />
         </div>
       </div>
     </div>

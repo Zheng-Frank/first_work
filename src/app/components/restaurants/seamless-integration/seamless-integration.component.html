@@ -101,15 +101,6 @@
 
     <!-- <div class="col-1"></div> -->
 
-    <div *ngIf="postCardsSentSuccess" class="alert alert-success" role="alert">
-      We successfully sent postcards to {{ this.successLobCount }} restaurants:
-      {{ this.successLobRestaurants }}
-    </div>
-    <div *ngIf="postCardsSentFail" class="alert alert-danger" role="alert">
-      We failed to send postcards to {{ this.failLobCount }} restaurants:
-      {{ this.failLobRestaurants }}
-    </div>
-
     <br />
     <div>
       Note: to send a postcard, check the boxes next to the restaurant(s) you
@@ -131,7 +122,6 @@
     >
       <div class="container">
         <div class="row">
-          {{ log("here") }}
           <div class="col-sm-4" class="card-body">
             <div class="row">
               <div class="form-check">

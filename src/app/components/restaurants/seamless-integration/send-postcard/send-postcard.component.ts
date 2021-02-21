@@ -9,11 +9,11 @@ import { environment } from "src/environments/environment";
 })
 export class SendPostcardComponent implements OnInit {
   @Input() postcards = [];
-  @Input() style = ''
-  showLobOutput = false
-  successLobRestaurants = []
-  failLobRestaurants = []
-
+  @Input() style = "";
+  showLobOutput = false;
+  successLobRestaurants = [];
+  failLobRestaurants = [];
+  loading = false;
 
   constructor(private _api: ApiService) {}
 
@@ -34,17 +34,14 @@ export class SendPostcardComponent implements OnInit {
         .toPromise();
       console.log("Analytic events posted", analyticEvents);
     } catch (e) {
-      // console.log("ERROR CREATING LOB ANALYTIC ", e);
+      console.log("ERROR CREATING LOB ANALYTIC ", e);
     }
   }
 
-
   async firePostCards() {
     console.log("FIRING THESE POSTCARDS ", this.postcards);
-    console.log("THIS.POSTCARDS ", this.postcards)
-    //dynanmic
-    // // console.log("POSTCARDS", this.postcards);
-    // Insert restaurant properties into name address
+    console.log("THIS.POSTCARDS ", this.postcards);
+    this.loading = true;
     let successCount = 0;
     for (let i = 0; i < this.postcards.length; i++) {
       // console.log("CODE", this.postcards[i].code);
@@ -101,62 +98,16 @@ export class SendPostcardComponent implements OnInit {
         this.failLobRestaurants.push(this.postcards[i].name);
 
         console.log("FAILED TO CREATE LOB OBJECT", e);
-      }
-      finally {
-        this.postcards = []
-        this.showLobOutput = true
+      } finally {
+        this.loading = false;
+        this.postcards = [];
+        this.showLobOutput = true;
         setTimeout(() => {
-          this.showLobOutput = false
-          this.successLobRestaurants = []
-          this.failLobRestaurants = []
-        }, 8000)
+          this.showLobOutput = false;
+          this.successLobRestaurants = [];
+          this.failLobRestaurants = [];
+        }, 8000);
       }
-  
-    } 
-    // console.log("LOB SUCCESS", this.successLobRestaurants);
-    // console.log("LOB FAIL", this.failLobRestaurants);
-    // this.successLobCount = successCount;
-    // this.failLobCount = this.postcards.length - successCount;
-    // this.postcards = [];
-
-    // console.log("SUCCESS LOB COUNT ", this.successLobCount);
-    // console.log("FAIL LOB COUNT ", this.failLobCount);
-  //   if (
-  //     this.successLobRestaurants.length > 0 &&
-  //     this.failLobRestaurants.length > 0
-  //   ) {
-  //     this.postCardsSentSuccess = true;
-  //     this.postCardsSentFail = true;
-
-  //     setTimeout(() => {
-  //       this.postCardsSentSuccess = false;
-  //       this.postCardsSentFail = false;
-  //       this.successLobRestaurants = [];
-  //       this.failLobRestaurants = [];
-  //       this.successLobCount = 0;
-  //       this.failLobCount = 0;
-  //     }, 7000);
-
-  //   } else if (this.successLobRestaurants.length > 0) {
-  //     this.postCardsSentSuccess = true;
-  //     setTimeout(() => {
-  //       this.postCardsSentSuccess = false;
-  //       this.successLobRestaurants = [];
-  //       this.successLobCount = 0;
-  //       this.failLobCount = 0;
-  //     }, 7000);
-  //     this.reload();
-  //   } else if (this.failLobRestaurants.length > 0) {
-  //     this.postCardsSentFail = true;
-  //     setTimeout(() => {
-  //       this.postCardsSentFail = false;
-  //       this.failLobRestaurants = [];
-  //       this.successLobCount = 0;
-  //       this.failLobCount = 0;
-  //     }, 7000);
-  //     this.reload();
-  //   } else {
-  //     this.reload();
-  //   }
-  // }
+    }
+  }
 }
