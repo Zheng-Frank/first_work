@@ -12,36 +12,12 @@ import * as csvtojsonV2 from "csvtojson";
 export class UploadCsvComponent implements OnInit {
   list = true;
   fileList;
-  successLobCount = 0;
-  failLobRestaurants = ["Sichuan", "Burger King", "Mcdonalds"];
+  successLobRestaurants = [];
+  failLobRestaurants = [];
   successRestaurants = [];
-  failedRestaurants = [
-    {
-      name: "Sichuan",
-      address: "34534 park way",
-      language: "Chinese",
-    },
-    {
-      name: "Sichuan",
-      address: "34534 park way",
-      language: "Chinese",
-    },
-    {
-      name: "Sichuan",
-      address: "34534 park way",
-      language: "Chinese",
-    },
-    {
-      name: "Sichuan",
-      address: "34534 park way",
-      language: "Chinese",
-    },
-    {
-      name: "Sichuan",
-      address: "34534 park way",
-      language: "Chinese",
-    },
-  ];
+  failedRestaurants = [];
+  alreadyWorkWithUs = [];
+  showOutput = false;
   designatePostcard;
   rowsProcessed = 0;
   currentlyUploading: boolean = false;
@@ -56,7 +32,7 @@ export class UploadCsvComponent implements OnInit {
   constructor(private _api: ApiService) {}
 
   ngOnInit() {
-    console.log("INVALID FORMAT ", this.invalidFormat);
+    // console.log("INVALID FORMAT ", this.invalidFormat);
   }
 
   designatePostcardFlag() {
@@ -65,8 +41,14 @@ export class UploadCsvComponent implements OnInit {
   }
 
   reset() {
-    this.resetCsvInformation();
-    this.successLobCount = 0;
+    this.failLobRestaurants = [];
+    this.successRestaurants = [];
+    this.failedRestaurants = [];
+    this.alreadyWorkWithUs = [];
+    this.currentlyUploading = false;
+    this.designatePostcard = false;
+    this.showOutput = false;
+    this.successLobRestaurants = [];
     this.invalidFormat = false;
     this.myInputVariable.nativeElement.value = "";
   }
@@ -91,17 +73,18 @@ export class UploadCsvComponent implements OnInit {
         if (csvRows[0].length != 3) {
           console.log("INVALID AMOUNT OF ROWS ", csvRows[0].length);
           this.invalidFormat = true;
-          return;
         }
         csvRows = csvRows.slice(1);
         if (csvRows.length === 0) {
           console.log("NO DATA IN CSV");
           this.invalidFormat = true;
-          return;
         }
         // csvRows.length = 1;
         const importData = async () => {
           this.currentlyUploading = true;
+          if (this.invalidFormat) {
+            return;
+          }
           // this.processedLength = csvRows.length;
           for (let row of csvRows) {
             // this.invalidFormat = false;
@@ -114,6 +97,7 @@ export class UploadCsvComponent implements OnInit {
             } else {
               language = "English";
             }
+
             try {
               const crawledResult = await this._api
                 .post(
@@ -123,16 +107,20 @@ export class UploadCsvComponent implements OnInit {
                 )
                 .toPromise();
               // console.log(crawledResult);
+
               if (
                 crawledResult[0].disabled.toString().toLowerCase() === "false"
               ) {
-                console.log(
-                  "THIS RESTAURANT ALREADY WORKS WITH US, NOT ADDING RESTAURANT OR SENDING POST CARD ",
-                  crawledResult[0].name
-                );
-                continue;
+                this.alreadyWorkWithUs.push(crawledResult[0].name);
+                console.log("THIS RESTAURANT ALREADY WORKS WITH US");
               }
-              // TODO: CHECK DISABLED
+
+              this.successRestaurants.push({
+                name: row[0],
+                address: row[1],
+                language: row[2],
+              });
+
               let restaurantId = crawledResult[0]._id;
               if (this.designatePostcard) {
                 // send LOB response'
@@ -158,7 +146,7 @@ export class UploadCsvComponent implements OnInit {
                     .toPromise();
                   lobObj = { ...lobObj, restaurantId };
                   this.createLobAnalytic(lobObj);
-                  this.successLobCount += 1;
+                  this.successLobRestaurants.push(crawledResult[0].name);
                   try {
                     await this._api
                       .patch(
@@ -179,10 +167,13 @@ export class UploadCsvComponent implements OnInit {
                   }
                 } catch (e) {
                   this.failLobRestaurants.push(row[0]);
-                  // console.log("ONE EVERY LOB FAILED ", e);
+                  console.log("THIS LOB FAILED", row[0], e);
                 }
               }
             } catch (error) {
+              if (this.designatePostcard) {
+                this.failLobRestaurants.push(row[0]);
+              }
               this.failedRestaurants.push({
                 name: row[0],
                 address: row[1],
@@ -194,11 +185,16 @@ export class UploadCsvComponent implements OnInit {
         };
         try {
           await importData();
-          setTimeout(() => {
-            this.currentlyUploading = false;
-            this.failedRestaurants = [];
-            this.successRestaurants = [];
-          }, 8000);
+          console.log("SUCCESS RESTAURANTS ", this.successRestaurants);
+          console.log("FAIL RESTAURANTS ", this.failedRestaurants);
+          console.log("SUCCESS LOB RESTAURANTS ", this.successLobRestaurants);
+          console.log("FAIL LOB RESTAURANTS ", this.failLobRestaurants);
+          console.log(
+            "RESTAURANTS THAT ALREADY WORK WITH US ",
+            this.alreadyWorkWithUs
+          );
+          this.currentlyUploading = false;
+          this.showOutput = true;
         } catch (e) {
           // console.log("import failed");
         }
@@ -223,18 +219,5 @@ export class UploadCsvComponent implements OnInit {
     } catch (e) {
       // console.log("ERROR CREATING LOB ANALYTIC ", e);
     }
-  }
-
-  async resetCsvInformation() {
-    // console.log("I am here");
-    this.rowsProcessed = null;
-    const selfSignupRestaurants = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: { selfSignup: { $exists: true } },
-        limit: 100000,
-      })
-      .toPromise();
-    // this.beforeCsvLength = selfSignupRestaurants.length;
   }
 }

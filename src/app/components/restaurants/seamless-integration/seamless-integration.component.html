@@ -91,6 +91,7 @@
         </ul>
 
         <app-send-postcard
+          (finishedSendingPCs)="emptySendPostcards()"
           [style]="style"
           [postcards]="sendPostCards"
         ></app-send-postcard>

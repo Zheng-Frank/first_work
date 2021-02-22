@@ -39,8 +39,7 @@ export class SeamlessIntegrationComponent implements OnInit {
   selectStyle(style) {
     this.style = style;
   }
-
-  emptySendPostcards() {
+  called() {
     this.sendPostCards = [];
   }
 
@@ -75,6 +74,12 @@ export class SeamlessIntegrationComponent implements OnInit {
       }
     });
     console.log("POSTCARDS", this.sendPostCards);
+  }
+
+  emptySendPostcards() {
+    this.reload();
+    console.log("IN EMPTY POSTCARDS");
+    this.sendPostCards = [];
   }
 
   toggleAnalytic(id) {

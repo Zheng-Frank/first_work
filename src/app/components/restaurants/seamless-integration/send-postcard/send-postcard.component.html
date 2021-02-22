@@ -18,6 +18,7 @@
           class="close"
           data-dismiss="modal"
           aria-label="Close"
+          (click)="reset()"
         >
           <span aria-hidden="true">&times;</span>
         </button>
@@ -48,8 +49,6 @@
                 </div>
 
                 <div *ngIf="showLobOutput && !loading">
-                  <hr />
-                  <h6>Please Reload the Page to see updated send history</h6>
                   <div class="alert alert-success text-center">
                     We successfully sent postcards to these
                     {{ successLobRestaurants.length }} restaurants:
@@ -58,8 +57,6 @@
                       {{ item }} ,
                     </div>
                   </div>
-                  <hr />
-
                   <hr />
 
                   <div class="alert alert-danger text-center">

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, OnInit, Input, Output, EventEmitter } from "@angular/core";
 import { ApiService } from "src/app/services/api.service";
 import { environment } from "src/environments/environment";
 
@@ -14,6 +14,12 @@ export class SendPostcardComponent implements OnInit {
   successLobRestaurants = [];
   failLobRestaurants = [];
   loading = false;
+
+  @Output() finishedSendingPCs = new EventEmitter();
+
+  finishedSendingPC() {
+    this.finishedSendingPCs.emit();
+  }
 
   constructor(private _api: ApiService) {}
 
@@ -36,6 +42,12 @@ export class SendPostcardComponent implements OnInit {
     } catch (e) {
       console.log("ERROR CREATING LOB ANALYTIC ", e);
     }
+  }
+
+  reset() {
+    this.showLobOutput = false;
+    this.successLobRestaurants = [];
+    this.failLobRestaurants = [];
   }
 
   async firePostCards() {
@@ -99,14 +111,10 @@ export class SendPostcardComponent implements OnInit {
 
         console.log("FAILED TO CREATE LOB OBJECT", e);
       } finally {
+        this.finishedSendingPC();
         this.loading = false;
         this.postcards = [];
         this.showLobOutput = true;
-        setTimeout(() => {
-          this.showLobOutput = false;
-          this.successLobRestaurants = [];
-          this.failLobRestaurants = [];
-        }, 8000);
       }
     }
   }

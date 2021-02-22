@@ -77,7 +77,7 @@
             <div *ngIf="invalidFormat" class="text-center">
               Invalid format, please follow instructions
             </div>
-            <div *ngIf="!currentlyUploading">
+            <div *ngIf="showOutput && !invalidFormat">
               <div class="alert alert-secondary text-center" role="alert">
                 Reload the page to see the updated list of restaurants!
               </div>
@@ -85,25 +85,57 @@
               <hr />
 
               <div class="alert alert-success text-center">
-                We successfully added
+                We successfully processed
                 {{ successRestaurants.length }} restaurants
               </div>
+              <table *ngIf="successLobRestaurants.length > 0" class="table">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">RT Name</th>
+                      <th scope="col">RT Address</th>
+                      <th scope="col">RT Language</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of successRestaurants">
+                      <th scope="row">{{ item.name }}</th>
+                      <td>{{ item.address }}</td>
+                      <td>{{ item.language }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </table>
+
               <hr />
 
               <div class="alert alert-success text-center">
                 We successfully sent postcards to
-                {{ successLobCount }} restaurants
+                {{ successLobRestaurants.length }} restaurants
               </div>
+
+              <table *ngIf="successLobRestaurants" class="table">
+                <table class="table">
+                  <tbody>
+                    <tr *ngFor="let item of successLobRestaurants">
+                      <th>{{ item }}</th>
+                    </tr>
+                  </tbody>
+                </table>
+              </table>
 
               <hr />
 
-              <div class="alert alert-danger text-center">
+              <div
+                *ngIf="failedRestaurants.length > 0"
+                class="alert alert-danger text-center"
+              >
                 We failed to add these restaurants
               </div>
 
               <hr />
 
-              <table class="table">
+              <table *ngIf="failedRestaurants.length > 0" class="table">
                 <table class="table">
                   <thead>
                     <tr>
@@ -123,14 +155,36 @@
               </table>
               <hr />
 
-              <div class="alert alert-danger text-center">
+              <div
+                *ngIf="failLobRestaurants.length > 0"
+                class="alert alert-danger text-center"
+              >
                 We failed to sent postcards to these restaurants:
+              </div>
+
+              <table *ngIf="failLobRestaurants" class="table">
+                <table class="table">
+                  <tbody>
+                    <tr *ngFor="let item of failLobRestaurants">
+                      <th>{{ item }}</th>
+                    </tr>
+                  </tbody>
+                </table>
+              </table>
+
+              <hr />
+
+              <div
+                *ngIf="alreadyWorkWithUs.length > 0"
+                class="alert alert-danger text-center"
+              >
+                These restaurants already work us
               </div>
 
               <table class="table">
                 <table class="table">
                   <tbody>
-                    <tr *ngFor="let item of failLobRestaurants">
+                    <tr *ngFor="let item of alreadyWorkWithUs">
                       <th>{{ item }}</th>
                     </tr>
                   </tbody>

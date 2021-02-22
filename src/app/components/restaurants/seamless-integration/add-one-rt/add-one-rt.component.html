@@ -9,7 +9,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Add Single Restaurant by IDss</h5>
+        <h5 class="modal-title">Add Single Restaurant by ID</h5>
 
         <button
           type="button"
@@ -44,6 +44,17 @@
               <label class="form-check-label" for="send-postcard-checkbox"
                 >Send Postcard Added Restaurant</label
               >
+            </div>
+
+            <div *ngIf="loading" class="col-sm-4 text-center">
+              <div
+                *ngIf="loading"
+                class="spinner-border text-center"
+                role="status"
+              >
+                <span class="sr-only">Still Processing...</span>
+              </div>
+              Loading...
             </div>
             <div *ngIf="sendSingleRTSuccess" class="container-fluid">
               <div class="alert alert-success">

@@ -15,6 +15,7 @@ export class AddOneRtComponent implements OnInit {
   sendSingleLobFail;
   sendSinglePostcard = false;
   singleRestaurantId;
+  loading = false;
   constructor(private _api: ApiService) {}
 
   ngOnInit() {}
@@ -28,12 +29,10 @@ export class AddOneRtComponent implements OnInit {
     // console.log("ID", id);
 
     // if not disabled, do not enter to self signup. They are already working with us, if disabled, intention is clear & want to create selfsignup campaign
-
+    this.loading = true;
     try {
-      console.log("HERE 5");
       console.log(uuidv4);
       let code = uuidv4().slice(0, 6);
-      console.log("HERE 6");
       // If ID exists, then don't run the operation
 
       const [foundRes] = await this._api
@@ -119,6 +118,7 @@ export class AddOneRtComponent implements OnInit {
       }
       // // console.log("COULDN'T ADD SINGLE RT", e);
     } finally {
+      this.loading = false;
       setTimeout(() => {
         this.sendSingleLobFail = false;
         this.sendSingleLobSuccess = false;
