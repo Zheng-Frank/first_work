@@ -9,13 +9,15 @@ import { v4 as uuidv4 } from "uuid";
   styleUrls: ["./add-one-rt.component.css"],
 })
 export class AddOneRtComponent implements OnInit {
-  sendSingleRTSuccess;
-  sendSingleRTFail;
+  sendSingleRTSuccess = false;
+  sendSingleRTFail = false;
   sendSingleLobSuccess = false;
-  sendSingleLobFail;
+  sendSingleLobFail = false;
   sendSinglePostcard = false;
   singleRestaurantId;
   loading = false;
+  showOutput = false;
+
   constructor(private _api: ApiService) {}
 
   ngOnInit() {}
@@ -27,7 +29,7 @@ export class AddOneRtComponent implements OnInit {
 
   async submitSingleRestaurant(id) {
     // console.log("ID", id);
-
+    console.log("POSTCARD FLAG ", this.sendSinglePostcard);
     // if not disabled, do not enter to self signup. They are already working with us, if disabled, intention is clear & want to create selfsignup campaign
     this.loading = true;
     try {
@@ -46,6 +48,7 @@ export class AddOneRtComponent implements OnInit {
 
       //  DO NOT CHANGE THE UUID IF ALREADY EXISTS
       if (foundRes && !foundRes.disabled) {
+        console.log("FOUND RES  ", foundRes);
         alert("RESTAURANT ALREADY EXISTS");
         // console.log("RESTAURANT ALREADY EXISTS ", foundRes);
         return;
@@ -61,6 +64,8 @@ export class AddOneRtComponent implements OnInit {
           },
         ])
         .toPromise();
+
+      console.log("RESOURCE AFTER PATCHING ", resource);
       // // console.log("RESOURCE", resource);
       if (resource[0]) {
         // // console.log("IN RESOURCE");
@@ -72,13 +77,18 @@ export class AddOneRtComponent implements OnInit {
       if (this.sendSinglePostcard) {
         // LOB api call
         // // console.log("ENTERED SINGLE POSTCARD");
-        const foundRes = await this._api
+
+        console.log("RESOURCE IN SEND POSTCARD ", resource);
+
+        const [foundRes] = await this._api
           .get(environment.qmenuApiUrl + "generic", {
             resource: "restaurant",
             query: { _id: { $oid: resource[0] } },
             limit: 100000,
           })
           .toPromise();
+
+        console.log("FOUND RES ", foundRes);
 
         // console.log("FOUND SINGLE RES ", foundRes);
         try {
@@ -99,15 +109,9 @@ export class AddOneRtComponent implements OnInit {
           this.createLobAnalytic(lobObj);
           // // console.log("LOB SINGLE SUCCESS");
           this.sendSingleLobSuccess = true;
-          setTimeout(() => {
-            this.sendSingleLobSuccess = false;
-          }, 7000);
         } catch (e) {
           // // console.log("LOB SINGLE FAILED ", e);
           this.sendSingleLobFail = true;
-          setTimeout(() => {
-            this.sendSingleLobFail = false;
-          }, 7000);
         }
       }
     } catch (e) {
@@ -118,14 +122,20 @@ export class AddOneRtComponent implements OnInit {
       }
       // // console.log("COULDN'T ADD SINGLE RT", e);
     } finally {
+      this.showOutput = true;
       this.loading = false;
-      setTimeout(() => {
-        this.sendSingleLobFail = false;
-        this.sendSingleLobSuccess = false;
-        this.sendSingleRTSuccess = false;
-        this.sendSingleRTFail = false;
-      }, 10000);
     }
+  }
+
+  reset() {
+    this.sendSingleRTSuccess = false;
+    this.sendSingleRTFail = false;
+    this.sendSingleLobSuccess = false;
+    this.sendSingleLobFail = false;
+    this.sendSinglePostcard = false;
+    this.singleRestaurantId;
+    this.loading = false;
+    this.showOutput = false;
   }
 
   getSinglePostcard() {

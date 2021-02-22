@@ -24,6 +24,17 @@
       <form>
         <div class="form-group">
           <div class="container-fluid">
+            <div class="form-check">
+              <button
+                (click)="reset()"
+                type="submit"
+                class="btn btn-primary text-left"
+              >
+                Reset
+              </button>
+            </div>
+            <br />
+
             <input
               style
               type="email"
@@ -46,22 +57,30 @@
               >
             </div>
 
-            <div *ngIf="loading" class="col-sm-4 text-center">
-              <div
-                *ngIf="loading"
-                class="spinner-border text-center"
-                role="status"
-              >
-                <span class="sr-only">Still Processing...</span>
+            <br />
+            <div class="form-check">
+              <div *ngIf="loading" class="col-sm-4 text-center">
+                <h6>PROCESS STILL EXECUTING DO NOT QUIT</h6>
+                <div
+                  *ngIf="loading"
+                  class="spinner-border text-center"
+                  role="status"
+                >
+                  <span class="sr-only"></span>
+                </div>
               </div>
-              Loading...
             </div>
+
+            <br />
             <div *ngIf="sendSingleRTSuccess" class="container-fluid">
               <div class="alert alert-success">
                 We successfully added the restaurant! Reload to see update.
               </div>
             </div>
-            <div *ngIf="sendSingleLobSuccess" class="container-fluid">
+            <div
+              *ngIf="sendSinglePostcard && sendSingleLobSuccess"
+              class="container-fluid"
+            >
               <div class="alert alert-success">
                 We successfully sent a lob postcard!
               </div>
@@ -71,7 +90,10 @@
                 We failed to add the restaurant.
               </div>
             </div>
-            <div *ngIf="sendSingleLobFail" class="container-fluid">
+            <div
+              *ngIf="sendSinglePostcard && sendSingleLobFail"
+              class="container-fluid"
+            >
               <div class="alert alert-danger">
                 We failed to send the lob postcard
               </div>

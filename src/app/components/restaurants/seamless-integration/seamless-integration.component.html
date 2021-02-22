@@ -136,7 +136,9 @@
               </div>
 
               <h5 class="card-title">
-                <a [href]="'https://qa-csr.qmenu.us/#/restaurants/' + data._id"
+                <a
+                  target="_blank"
+                  [href]="'https://qa-csr.qmenu.us/#/restaurants/' + data._id"
                   >{{ data.name }}
                 </a>
               </h5>
@@ -152,6 +154,11 @@
               {{ data.googleAddress.formatted_address }}
             </p>
             <p class="card-subtitle">Owner: {{ getOwner(data._id) }}</p>
+            <div>
+              <a target="_blank" href="/#/logs" class="card-subtitle">
+                Show Logs
+              </a>
+            </div>
             <a
               (click)="toggleSendHistory(data._id)"
               *ngIf="!getSendHistoryBoolean(data._id)"
