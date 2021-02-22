@@ -52,7 +52,6 @@ export class RestaurantOrdersComponent implements OnInit {
   showAdvancedSearch:boolean=false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
   toDate;
-
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
 
