@@ -28,6 +28,7 @@ export class SeamlessIntegrationComponent implements OnInit {
   currentCriteria: string = "All";
   ownerNames: string[];
   sendPostCards = [];
+  currentLanguage = "All";
 
   readonly VAPID_PUBLIC_KEY =
     "BIgJiFe6Y_nxJPFTM9bvEJGWduQbjtRrn7dXJa_vef9uZrowP4YyMTLZP15DrkLjsYLlLAFz519PUMpPFq-THwI";
@@ -39,8 +40,39 @@ export class SeamlessIntegrationComponent implements OnInit {
   selectStyle(style) {
     this.style = style;
   }
-  called() {
-    this.sendPostCards = [];
+
+  setLanguage(language) {
+    this.currentLanguage = language;
+  }
+
+  showEnglishRestaurants() {
+    let englishRestaurantIDs = new Set();
+    this.seamlessEvents.forEach((event) => {
+      if (
+        event.language &&
+        event.language.toLowerCase() === "english" &&
+        event.restaurantId
+      ) {
+        englishRestaurantIDs.add(event.restaurantId);
+      }
+    });
+    let englishIds = Array.from(englishRestaurantIDs);
+    console.log(englishIds);
+  }
+
+  showChineseRestaurants() {
+    let chineseRestaurantIDs = new Set();
+    this.seamlessEvents.forEach((event) => {
+      if (
+        event.language &&
+        event.language.toLowerCase() === "chinese" &&
+        event.restaurantId
+      ) {
+        chineseRestaurantIDs.add(event.restaurantId);
+      }
+    });
+    let englishIds = Array.from(chineseRestaurantIDs);
+    console.log(englishIds);
   }
 
   getPostCardsToFire(id) {
@@ -74,6 +106,20 @@ export class SeamlessIntegrationComponent implements OnInit {
       }
     });
     console.log("POSTCARDS", this.sendPostCards);
+  }
+
+  getLanguage(id) {
+    for (let i = 0; i < this.seamlessEvents.length; i++) {
+      let event = this.seamlessEvents[i];
+      if (event.restaurantId == id && event.language) {
+        if (event.language.toLowerCase() === "english") {
+          return "English";
+        } else if (event.language.toLowerCase() === "chinese") {
+          return "Chinese";
+        } else {
+        }
+      }
+    }
   }
 
   emptySendPostcards() {
@@ -202,7 +248,7 @@ export class SeamlessIntegrationComponent implements OnInit {
 
     // // console.log("ANALYTICS IN FORM FILTER", this.seamlessEvents);
     const eventOutput = {
-      id: "N/A",
+      // id: "N/A",
       source: "N/A",
       formStarted: false,
       previewMenuOpened: false,
@@ -220,14 +266,11 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
     this.seamlessEvents.forEach((event) => {
       if (event.restaurantId === id) {
-        eventOutput.id = "id";
         eventOutput.formStarted = true;
-        if (event.signUpType === "nonPromo") {
-          event.source = "Non Promo";
+        if (event.source) {
+          eventOutput.source = event.source;
         }
-        if (event.signUpType === "Promo") {
-          event.source = "Promo";
-        }
+
         if (event.menuOpened) {
           eventOutput.previewMenuOpened = true;
         }

@@ -27,6 +27,7 @@
           >
             {{ currentCriteria }} &nbsp;
           </button>
+
           &nbsp; &nbsp;
           <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             <a
@@ -58,6 +59,41 @@
               [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
               (click)="showPostcardNotSent()"
               >Postcard Not Sent</a
+            >
+          </span>
+        </span>
+        <span class="dropdown">
+          <b>Language: &nbsp; </b>
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="dropdownMenuButton1"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            {{ currentLanguage }} &nbsp;
+          </button>
+
+          &nbsp; &nbsp;
+          <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentLanguage === 'All' }"
+              (click)="showAll()"
+              >All</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentLanguage === 'English' }"
+              (click)="showEnglishRestaurants()"
+              >English</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentLanguage === 'Chinese' }"
+              (click)="showChineseRestaurants()"
+              >Chinese</a
             >
           </span>
         </span>
@@ -141,6 +177,9 @@
                   [href]="'https://qa-csr.qmenu.us/#/restaurants/' + data._id"
                   >{{ data.name }}
                 </a>
+                <span *ngIf="getLanguage(data._id)">
+                  - {{ getLanguage(data._id) }}
+                </span>
               </h5>
             </div>
             <h6 class="card-subtitle mb-2 text-muted">
