@@ -22,8 +22,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     'IN_PERSON': 'Credit card: swipe in-person',
     'QMENU': 'Credit card: let qMenu collect on behalf of restaurant',
     'KEY_IN': 'Credit card: send numbers to restaurant for key-in',
-    'STRIPE': 'Credit card: deposit to restaurant\'s Stripe account directly',
-    'SPREEDLY': 'Spreedly (configure settings below)'
+    'STRIPE': 'Credit card: deposit to restaurant\'s account directly (configure below)'
   };
 
   serviceSettingsInEditing = [];
@@ -40,6 +39,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   supportedGateways = [];
   gateway: any = {};
   gatewayType;
+  ccProcessorSelected = '';
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPacth: PrunedPatchService) {
   }
@@ -61,6 +61,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.ccProcessorSelected = this.getCcProcessor();
     this.populate();
   }
 
@@ -128,7 +129,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     } else {
       service.paymentMethods.push(paymentMethod);
       // also remove mutually exclusive payment types!
-      const mutexTypes = ['QMENU', 'KEY_IN', 'STRIPE', 'IN_PERSON', 'SPREEDLY'];
+      const mutexTypes = ['QMENU', 'KEY_IN', 'STRIPE', 'IN_PERSON'];
       if (mutexTypes.indexOf(paymentMethod) >= 0) {
         mutexTypes.filter(mt => mt !== paymentMethod).map(type => {
           if (service.paymentMethods.indexOf(type) >= 0) {
@@ -208,12 +209,12 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     this.taxBeforePromotion = !this.taxBeforePromotion;
   }
 
-  shouldShowStripeInput() {
+  shouldShowCCProcessorForm() {
     return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'STRIPE'));
   }
 
-  shouldShowSpreedlyInput() {
-    return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'SPREEDLY'));
+  getCcProcessor() {
+    return this.restaurant['ccHandler'].type ? 'SPREEDLY': 'STRIPE';
   }
 
   changeGateway(gatewayType) {
