@@ -9,7 +9,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { RootComponent } from './components/root/root.component';
 import { HomeComponent } from './components/home/home.component';
 import { LogsDashboardComponent } from './components/logs/logs-dashboard/logs-dashboard.component';
-import { Bs4Component } from './components/bs4/bs4.component';
+import { Bs4Component } from './components/development/bs4/bs4.component';
 import { HeaderComponent } from './components/header/header.component';
 
 import { UiModule } from '@qmenu/ui';
