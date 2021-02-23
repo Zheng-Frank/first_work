@@ -10,6 +10,8 @@ import { RootComponent } from './components/root/root.component';
 import { HomeComponent } from './components/home/home.component';
 import { LogsDashboardComponent } from './components/logs/logs-dashboard/logs-dashboard.component';
 import { Bs4Component } from './components/development/bs4/bs4.component';
+import { UIPreviewComponent } from './components/development/ui-preview/ui-preview/ui-preview.component';
+import { DocViewerComponent } from './components/development/ui-preview/doc-viewer/doc-viewer.component';
 import { HeaderComponent } from './components/header/header.component';
 
 import { UiModule } from '@qmenu/ui';
@@ -210,6 +212,8 @@ import { SchemasComponent } from './components/system/schemas/schemas.component'
     MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
+    UIPreviewComponent,
+    DocViewerComponent,
     EventDashboardComponent,
     HeaderComponent,
     LoginComponent,
