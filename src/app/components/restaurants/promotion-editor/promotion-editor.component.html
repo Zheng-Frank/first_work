@@ -34,12 +34,16 @@
   </div>
 
   <div *qIf="radioSelection === 'Free Item'">
-    <label class="mt-1">Specify Free Item</label> <span><input type="checkbox" [checked]="useFreeItemName" name="itemName" (change)="toggleFreeItemCheckbox($event)"> Choose from menu N unit(s) of </span>
+    <label class="mt-1">Specify Free Item</label> <span><input type="checkbox" [checked]="useFreeItemName"
+        name="itemName" (change)="toggleFreeItemCheckbox($event)"> Choose from menu
+      <input type="number" [(ngModel)]="freeItemNameQty" min="1" max="10"> unit(s) of </span>
     <div>
       <input type="input" class="form-control" [(ngModel)]="promotion.freeItem" placeholder="e.g. 20 oz. Soda">
     </div>
 
-    <label class="mt-1">Select Free Item</label> <span><input type="checkbox" [checked]="useFreeItemList" name="itemList" (change)="toggleFreeItemCheckbox($event)"> Choose from menu N unit(s) of </span>
+    <label class="mt-1">Select Free Item</label> <span><input type="checkbox" [checked]="useFreeItemList"
+        name="itemList" (change)="toggleFreeItemCheckbox($event)"> Choose from menu <input type="number"
+        [(ngModel)]="freeItemListQty" min="1" max="10"> unit(s) of </span>
     <div>
       <div *ngFor="let menu of freeItemList; let menuIndex = index">
         <div class="d-flex align-items-center">
@@ -55,7 +59,8 @@
         </div>
       </div>
       <div class="d-flex">
-        <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'freeItemList')" [(ngModel)]="selected.freeItemList.menu">
+        <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'freeItemList')"
+          [(ngModel)]="selected.freeItemList.menu">
           <option value=""></option>
           <option *ngFor="let menu of menus">{{menu.name}}</option>
         </select>
@@ -64,7 +69,8 @@
           <option value=""></option>
           <option *ngFor="let category of categories">{{category.name}}</option>
         </select>
-        <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'freeItemList')" [(ngModel)]="selected.freeItemList.item">
+        <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'freeItemList')"
+          [(ngModel)]="selected.freeItemList.item">
           <option value=""></option>
           <option *ngFor="let item of items">{{item.name}}</option>
         </select>
@@ -78,7 +84,7 @@
   <label class="mt-1"><u> Eligibility </u></label><br>
 
   <label class="mt-1">Order Minimum ($):</label> <span>
-    <q-toggle [(ngModel)]="fromSelectionToggle"></q-toggle> From Selection
+    <q-toggle [(ngModel)]="fromSelectionToggle" (change)="deleteOrderEligibilityList()"></q-toggle> From Selection
   </span>
   <div>
     <input type="tel" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
@@ -99,7 +105,8 @@
       </div>
     </div>
     <div class="d-flex">
-      <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'withOrderFromList')" [(ngModel)]="selected.withOrderFromList.menu">
+      <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'withOrderFromList')"
+        [(ngModel)]="selected.withOrderFromList.menu">
         <option value=""></option>
         <option *ngFor="let menu of menus">{{menu.name}}</option>
       </select>
@@ -108,7 +115,8 @@
         <option value=""></option>
         <option *ngFor="let category of categories">{{category.name}}</option>
       </select>
-      <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'withOrderFromList')" [(ngModel)]="selected.withOrderFromList.item">
+      <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'withOrderFromList')"
+        [(ngModel)]="selected.withOrderFromList.item">
         <option value=""></option>
         <option *ngFor="let item of items">{{item.name}}</option>
       </select>
@@ -151,14 +159,14 @@
     </div>
   </div>
 
-  <label class="mt-1">Excluded Menus:</label>
+  <!-- <label class="mt-1">Excluded Menus:</label>
   <div class="d-flex flex-row">
     <div *ngFor="let menu of (menus || [])" class="pl-4">
       <label class="mt-1">
         <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="toggleMenu(menu)">
         {{menu.name}}</label>
     </div>
-  </div>
+  </div> -->
 
   <div class="mt-1 text-right">
     <button *ngIf="promotion.id" class="btn btn-link text-danger" (click)="remove()">Delete</button>

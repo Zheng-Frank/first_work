@@ -40,9 +40,12 @@ export class PromotionEditorComponent implements OnInit {
   items = [];
 
   freeItemName = '';
-  freeItemList = [];
-
+  freeItemNameQty = 1;
   useFreeItemName = false;
+
+
+  freeItemList = [];
+  freeItemListQty = 1;
   useFreeItemList = false;
 
 
@@ -220,7 +223,7 @@ export class PromotionEditorComponent implements OnInit {
     if (this.selected.freeItemList.menu) {
       this.freeItemList = [...this.freeItemList, freeItem];
     }
-
+    console.log(this.freeItemList);
     this.selected.freeItemList = {};
   }
 
@@ -228,8 +231,39 @@ export class PromotionEditorComponent implements OnInit {
     this.withOrderFromList.splice(index, 1);
   }
 
+  deleteOrderEligibilityList() {
+    this.withOrderFromList = [];
+  }
+
   deleteFreeItem(index) {
     this.freeItemList.splice(index, 1);
+  }
+
+  suggestPromotionTitle() {
+    let suggestedTitle;
+    if (this.promotion.name) {
+      return null;
+    }
+    if (this.radioSelection === '$ Discount') {
+      if (this.promotion.amount && this.promotion.orderMinimum && this.withOrderFromList) {
+        suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min order of select items`
+      } else if (this.promotion.amount && this.promotion.orderMinimum) {
+        suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min order`
+      }
+    } else if (this.radioSelection === '% Discount') {
+      if (this.promotion.percentage && this.promotion.orderMinimum && this.withOrderFromList) {
+        suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order of select items`
+      } else if (this.promotion.percentage && this.promotion.orderMinimum) {
+        suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order`
+      }
+    } else if (this.radioSelection === "Free Item") {
+      if (this.promotion.percentage && this.promotion.orderMinimum && this.withOrderFromList) {
+        suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order of select items`
+      } else if (this.promotion.percentage && this.promotion.orderMinimum) {
+        suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order`
+      }
+    }
+    return suggestedTitle;
   }
 
   toggleFreeItemCheckbox(event) {
