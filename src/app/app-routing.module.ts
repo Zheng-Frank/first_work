@@ -1,3 +1,4 @@
+import { SchemasComponent } from './components/system/schemas/schemas.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
@@ -122,6 +123,7 @@ const routes: Routes = [
   { path:'disabled-restaurants',component:MonitoringDisabledRestaurantsComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}} ,
   { path:'manage-images',component:ImageManagerComponent,canActivate:[RoleGuard],data:{roles:['ADMIN']}} ,
   { path:'banned-customers', component: BannedCustomersComponent,canActivate:[RoleGuard],data:{roles: ['ADMIN', 'GMB','CSR']}},
+  { path:'schemas', component: SchemasComponent,canActivate:[RoleGuard],data:{roles: ['ADMIN', 'GMB','CSR']}},
   { path: '**', redirectTo: '/home' }
 ];
 

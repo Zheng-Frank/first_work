@@ -199,6 +199,7 @@ import { Form1099KComponent } from './components/restaurants/restaurant-form1099
 
 import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
+import { SchemasComponent } from './components/system/schemas/schemas.component';
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -371,7 +372,8 @@ import { BannedCustomersComponent } from './components/restaurants/banned-custom
     RestaurantFaxSettingsComponent,
     Form1099KComponent,
     OtherModulesComponent,
-    BannedCustomersComponent
+    BannedCustomersComponent,
+    SchemasComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,45 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">Database Collection Json Schemas</h1>
+  </h2>
+  <div class="card-body">
+    <!-- d-flex justify-content-center is used to make the html content align center. -->
+    <div class="form-inline form-group d-flex justify-content-center">
+      <!-- form-group class name used to margin some distance of its bottom -->
+      <!-- Select a collection to view its all json structure. -->
+      <label class="ml-5">View its all json schemas:</label>
+      <select class="form-control col-3 ml-5" [(ngModel)]="currentDbName" (change)="changeCollectionView()">
+        <option *ngFor="let s of schemas" [value]="s.dbName">{{s.dbName}}</option>
+      </select>
+      <!-- 
+        the example comes from email-code-reader.component.ts
+        <div class="d-flex justify-content-end pt-1">
+          <button class="btn btn-link p-0" (click)="copyToClipcboard(qmButtonTemplate)"><i
+              *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i><i *ngIf="isCopiedToClipboard"
+              class="fas fa-check"></i> {{isCopiedToClipboard ? 'Copied!' : 'Copy to Clipboard'}}</button>
+        </div> -->
+      <button class="btn btn-primary col-2 ml-3" (click)="copyToClipcboard(currentSchema)"><i
+          *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i><i *ngIf="isCopiedToClipboard"
+          class="fas fa-check"></i> {{isCopiedToClipboard ? 'Copied!' : 'Copy to Clipboard'}}</button>
+      <a href="http://json.94275.cn/" target="_blank" class="btn btn-link">Go to json online</a>
+      <!-- <button class="btn btn-primary col-2 ml-3" (click)="goToJsonOnline()">Go to json online</button> -->
+      <!-- 
+        the example comes from task list.
+        <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+        <label class="form-check-label mr-5" for="paginationCheck">
+            Pagination
+        </label>
+       -->
+      <input class="form-check-input" type="checkbox" [(ngModel)]="isShowLastModel" (change)="!isShowLastModel"/>
+      <label class="form-check-label ml-3">Show lastest schemas</label>
+    </div>
+    <div class="container" style="width:60%">
+      <pre class="jumbotron" *ngIf="!isShowLastModel">
+          {{currentSchema?.fullSchema|json}}
+      </pre>
+      <pre class="jumbotron" *ngIf="isShowLastModel">
+          {{currentSchema?.lastestSchema|json}}
+      </pre>
+    </div>
+  </div>
+</div>
