@@ -95,6 +95,14 @@ export class OrderCardComponent implements OnInit {
     return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000)) || (this.isAdmin() && order.payment.method !== 'QMENU');
   }
 
+  /**
+   * this function is used to judge canceled order who submit
+   */
+  isCanceledOrderStatusesSubmit(order: Order){
+    const status=order.orderStatuses.filter(statuses=>statuses.status=='SUBMITTED');
+    return status.length>0&&status[0].updatedBy=='BY_CUSTOMER';
+  }
+
   canShowAdjust(order: Order) {
     // we can only adjust order within 3 days
     return !order.statusEqual('CANCELED') && new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 3 * 24 * 3600 * 1000;
