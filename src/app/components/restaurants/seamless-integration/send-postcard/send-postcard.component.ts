@@ -103,7 +103,7 @@ export class SendPostcardComponent implements OnInit {
               ])
               .toPromise();
           } catch (e) {
-            // console.log("FAILED TO PATCH RESTAURANT");
+            console.log("FAILED TO PATCH RESTAURANT");
           }
         } catch (e) {
           this.failLobRestaurants.push(this.postcards[i].name);
