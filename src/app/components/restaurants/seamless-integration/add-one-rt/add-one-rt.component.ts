@@ -44,6 +44,7 @@ export class AddOneRtComponent implements OnInit {
     try {
       console.log(uuidv4);
       let code = uuidv4().slice(0, 6);
+      console.log("TYPE OF CODE ", typeof code);
       // If ID exists, then don't run the operation
 
       const [foundRes] = await this._api

@@ -200,6 +200,7 @@
           <br />
           <button
             (click)="addAttachment()"
+            [disabled]="currentlyUploading"
             class="row text-center btn btn-primary"
           >
             Submit

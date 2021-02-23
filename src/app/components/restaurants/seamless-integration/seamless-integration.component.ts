@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { ViewChild, ElementRef } from "@angular/core";
 import { environment } from "src/environments/environment";
 import { ApiService } from "src/app/services/api.service";
+import { SwPush } from "@angular/service-worker";
 
 @Component({
   selector: "app-seamless-integration",
@@ -31,11 +32,29 @@ export class SeamlessIntegrationComponent implements OnInit {
   currentLanguage = "All";
 
   readonly VAPID_PUBLIC_KEY =
-    "BIgJiFe6Y_nxJPFTM9bvEJGWduQbjtRrn7dXJa_vef9uZrowP4YyMTLZP15DrkLjsYLlLAFz519PUMpPFq-THwI";
+    "BFzW7k_ZOAYwQQR0VSwJ3_Z4G1IINc8m-WT1casJqrntlfB9yKy5HJ3WH7OPdRIg3tpzszF9udJKkDjua4NaMhQ";
 
   @ViewChild("fileInput") myInputVariable: ElementRef;
 
-  constructor(private _api: ApiService) {}
+  constructor(private _api: ApiService, private swPush: SwPush) {
+    this.swPush
+      .requestSubscription({
+        serverPublicKey: this.VAPID_PUBLIC_KEY,
+      })
+      .then((sub) => console.log("SUB ", sub))
+      .catch((err) =>
+        console.error("Could not subscribe to notifications", err)
+      );
+  }
+
+  // subscribeToNotifications() {
+
+  //     this.swPush.requestSubscription({
+  //         serverPublicKey: this.VAPID_PUBLIC_KEY
+  //     })
+  //     .then(sub => this.newsletterService.addPushSubscriber(sub).subscribe())
+  //     .catch(err => console.error("Could not subscribe to notifications", err));
+  // }
 
   selectStyle(style) {
     this.style = style;

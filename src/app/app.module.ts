@@ -212,6 +212,8 @@ import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-
 import { UploadCsvComponent } from "./components/restaurants/seamless-integration/upload-csv/upload-csv.component";
 import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
 import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
+import { ServiceWorkerModule } from "@angular/service-worker";
+import { environment } from "../environments/environment";
 
 @NgModule({
   declarations: [
@@ -412,6 +414,7 @@ import { SendPostcardComponent } from "./components/restaurants/seamless-integra
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
     NgxGraphModule,
+    ServiceWorkerModule.register("ngsw-worker.js", { enabled: true }),
   ],
   providers: [
     GlobalService,
