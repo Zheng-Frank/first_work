@@ -201,42 +201,67 @@
         <th>Total</th>
       </tr>
       <tr>
-        <th class="text-center">Cash</th>
+        <th>
+          <div class="text-left" style="margin-left:30%;">
+            Cash
+          </div>
+        </th>
         <td>{{Cash?.tip | currency:'USD':'symbol'}}</td>
         <td>{{Cash?.tax | currency:'USD':'symbol'}}</td>
         <td>{{Cash?.subtotal | currency:'USD':'symbol'}}</td>
         <td>{{Cash?.total  | currency:'USD':'symbol'}}</td>
       </tr>
       <tr>
-        <th class="text-center">Swipe in person (CC)</th>
+
+        <th>
+          <div class="text-left" style="margin-left:30%;">
+            Swipe in person (CC)
+          </div>
+        </th>
         <td>{{swipeInPerson?.tip | currency:'USD':'symbol'}}</td>
         <td>{{swipeInPerson?.tax | currency:'USD':'symbol'}}</td>
         <td>{{swipeInPerson?.subtotal | currency:'USD':'symbol'}}</td>
         <td>{{swipeInPerson?.total | currency:'USD':'symbol'}}</td>
       </tr>
       <tr>
-        <th class="text-center">Key-in (CC)</th>
+        <th>
+          <div class="text-left" style="margin-left:30%;">
+            Key-in (CC)
+          </div>
+        </th>
         <td>{{keyIn?.tip | currency:'USD':'symbol'}}</td>
         <td>{{keyIn?.tax | currency:'USD':'symbol'}}</td>
         <td>{{keyIn?.subtotal | currency:'USD':'symbol'}}</td>
         <td>{{keyIn?.total | currency:'USD':'symbol'}}</td>
       </tr>
       <tr>
-        <th class="text-center">Restaurant Stripe (CC)</th>
+        <th>
+          <div class="text-left" style="margin-left:30%;">
+            Restaurant Stripe (CC)
+          </div>
+        </th>
         <td>{{restaurantStripe?.tip | currency:'USD':'symbol'}}</td>
         <td>{{restaurantStripe?.tax | currency:'USD':'symbol'}}</td>
         <td>{{restaurantStripe?.subtotal | currency:'USD':'symbol'}}</td>
         <td>{{restaurantStripe?.total | currency:'USD':'symbol'}}</td>
       </tr>
       <tr>
-        <th class="text-center">Qmenu Collect (CC)</th>
+        <th>
+          <div class="text-left" style="margin-left:30%;">
+            Qmenu Collect (CC)
+          </div>
+        </th>
         <td>{{qmenuCollected?.tip | currency:'USD':'symbol'}}</td>
         <td>{{qmenuCollected?.tax | currency:'USD':'symbol'}}</td>
         <td>{{qmenuCollected?.subtotal | currency:'USD':'symbol'}}</td>
         <td>{{qmenuCollected?.total | currency:'USD':'symbol'}}</td>
       </tr>
       <tr>
-        <th class="text-center">Total</th>
+        <th>
+          <div class="text-left" style="margin-left:30%;">
+            Total
+          </div>
+        </th>
         <td>{{total?.tip | currency:'USD':'symbol'}}</td>
         <td>{{total?.tax | currency:'USD':'symbol'}}</td>
         <td>{{total?.subtotal | currency:'USD':'symbol'}}</td>
