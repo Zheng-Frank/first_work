@@ -55,6 +55,38 @@
               <label class="form-check-label" for="send-postcard-checkbox"
                 >Send Postcard Added Restaurant</label
               >
+              <span class="dropdown">
+                <b>Style: &nbsp; </b>
+                <button
+                  class="btn btn-secondary dropdown-toggle"
+                  type="button"
+                  id="dropdownMenuButton1"
+                  data-toggle="dropdown"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                >
+                  {{ style }} &nbsp;
+                </button>
+
+                &nbsp; &nbsp;
+                <span
+                  class="dropdown-menu"
+                  aria-labelledby="dropdownMenuButton1"
+                >
+                  <a
+                    class="dropdown-item"
+                    [ngClass]="{ active: style === 'English' }"
+                    (click)="setEnglishStyle()"
+                    >English</a
+                  >
+                  <a
+                    class="dropdown-item"
+                    [ngClass]="{ active: style === 'Chinese' }"
+                    (click)="setChineseStyle()"
+                    >Chinese</a
+                  >
+                </span>
+              </span>
             </div>
 
             <br />

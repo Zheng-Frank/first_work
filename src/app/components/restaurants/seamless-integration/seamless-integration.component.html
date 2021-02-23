@@ -193,11 +193,11 @@
               {{ data.googleAddress.formatted_address }}
             </p>
             <p class="card-subtitle">Owner: {{ getOwner(data._id) }}</p>
-            <div>
-              <a target="_blank" href="/#/logs" class="card-subtitle">
+            <!-- <div>
+              <a target="_blank" href='/#/logs' + data.id class="card-subtitle">
                 Show Logs
               </a>
-            </div>
+            </div> -->
             <a
               (click)="toggleSendHistory(data._id)"
               *ngIf="!getSendHistoryBoolean(data._id)"

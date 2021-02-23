@@ -54,7 +54,6 @@ export class SendPostcardComponent implements OnInit {
     console.log("FIRING THESE POSTCARDS ", this.postcards);
     console.log("THIS.POSTCARDS ", this.postcards);
     this.loading = true;
-    let successCount = 0;
     const fire = async () => {
       for (let i = 0; i < this.postcards.length; i++) {
         // console.log("CODE", this.postcards[i].code);
@@ -106,7 +105,6 @@ export class SendPostcardComponent implements OnInit {
           } catch (e) {
             // console.log("FAILED TO PATCH RESTAURANT");
           }
-          successCount += 1;
         } catch (e) {
           this.failLobRestaurants.push(this.postcards[i].name);
 

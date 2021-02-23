@@ -17,6 +17,7 @@ export class AddOneRtComponent implements OnInit {
   singleRestaurantId;
   loading = false;
   showOutput = false;
+  style = "English";
 
   constructor(private _api: ApiService) {}
 
@@ -25,6 +26,14 @@ export class AddOneRtComponent implements OnInit {
   updateId(val) {
     this.singleRestaurantId = val;
     // // console.log(this.singleRestaurantId);
+  }
+
+  setEnglishStyle() {
+    this.style = "English";
+  }
+
+  setChineseStyle() {
+    this.style = "Chinese";
   }
 
   async submitSingleRestaurant(id) {
@@ -98,12 +107,13 @@ export class AddOneRtComponent implements OnInit {
               address: foundRes.googleAddress.formatted_address,
               frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                 code
-              )}%26side%3Dfront&format=jpg`,
+              )}%26side%3Dfront%26style%3d${this.style}&format=jpg`,
               backUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                 code
-              )}%26side%3Dback&format=jpg`,
+              )}%26side%3Dback%26style%3d${this.style}&format=jpg`,
             })
             .toPromise();
+
           lobObj = { ...lobObj, restaurantId: resource[0] };
           console.log("LOB ANALYTIC ", lobObj);
           this.createLobAnalytic(lobObj);

@@ -45,34 +45,54 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.currentLanguage = language;
   }
 
-  showEnglishRestaurants() {
-    let englishRestaurantIDs = new Set();
-    this.seamlessEvents.forEach((event) => {
-      if (
-        event.language &&
-        event.language.toLowerCase() === "english" &&
-        event.restaurantId
-      ) {
-        englishRestaurantIDs.add(event.restaurantId);
+  async showEnglishRestaurants() {
+    this.currentLanguage = "English";
+    this.currentCriteria = "All";
+
+    let englishRTs = [];
+    this.currentRestaurants = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: { selfSignup: { $exists: true } },
+        limit: 100000,
+      })
+      .toPromise();
+    for (let i = 0; i < this.currentRestaurants.length; i++) {
+      let res = this.currentRestaurants[i];
+      let lang = this.getLanguage(res._id)
+        ? this.getLanguage(res._id).toLowerCase()
+        : null;
+      console.log("LANG ", lang);
+
+      if (lang === "english") {
+        englishRTs.push(res);
       }
-    });
-    let englishIds = Array.from(englishRestaurantIDs);
-    console.log(englishIds);
+    }
+    this.currentRestaurants = englishRTs;
   }
 
-  showChineseRestaurants() {
-    let chineseRestaurantIDs = new Set();
-    this.seamlessEvents.forEach((event) => {
-      if (
-        event.language &&
-        event.language.toLowerCase() === "chinese" &&
-        event.restaurantId
-      ) {
-        chineseRestaurantIDs.add(event.restaurantId);
+  async showChineseRestaurants() {
+    this.currentLanguage = "Chinese";
+    this.currentCriteria = "All";
+
+    this.currentRestaurants = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: { selfSignup: { $exists: true } },
+        limit: 100000,
+      })
+      .toPromise();
+    let chineseRTs = [];
+    for (let i = 0; i < this.currentRestaurants.length; i++) {
+      let res = this.currentRestaurants[i];
+      let lang = this.getLanguage(res._id)
+        ? this.getLanguage(res._id).toLowerCase()
+        : null;
+      if (lang === "chinese") {
+        chineseRTs.push(res);
       }
-    });
-    let englishIds = Array.from(chineseRestaurantIDs);
-    console.log(englishIds);
+    }
+    this.currentRestaurants = chineseRTs;
   }
 
   getPostCardsToFire(id) {
@@ -366,6 +386,7 @@ export class SeamlessIntegrationComponent implements OnInit {
   }
 
   async showAll() {
+    this.currentLanguage = "All";
     this.currentCriteria = "All";
     this.currentRestaurants = await this._api
       .get(environment.qmenuApiUrl + "generic", {
@@ -380,6 +401,8 @@ export class SeamlessIntegrationComponent implements OnInit {
 
   async showProgress() {
     this.currentCriteria = "Progress";
+    this.currentLanguage = "All";
+
     this.currentPagination = 1;
     // // console.log("Progress RESTAURANT IDS", this.progressRestaurantIds);
     this.currentRestaurants = this.allRestaurants.filter((restaurant) => {
@@ -388,6 +411,7 @@ export class SeamlessIntegrationComponent implements OnInit {
   }
   showCompleted() {
     this.currentCriteria = "Completed";
+    this.currentLanguage = "All";
     this.currentPagination = 1;
     // // console.log("COMPLETED RESTAURANT IDS", this.completedRestaurantsIds);
     // console.log("HERE ");
@@ -398,6 +422,8 @@ export class SeamlessIntegrationComponent implements OnInit {
   }
   showUnopened() {
     this.currentCriteria = "Unopened";
+    this.currentLanguage = "All";
+
     this.currentRestaurants = this.unopenedRestaurants;
     this.currentPagination = 1;
     // analytics query of all analytics with restaurantId and

@@ -25,6 +25,7 @@
       <div class="modal-footer">
         <div class="container">
           <div class="row">
+            <a [href]="fileUrl" download="file.txt">DownloadFile</a>
             <div class="col-sm-4">
               <input
                 class="hidden"
@@ -88,7 +89,7 @@
                 We successfully processed
                 {{ successRestaurants.length }} restaurants
               </div>
-              <table *ngIf="successLobRestaurants.length > 0" class="table">
+              <table *ngIf="successRestaurants.length > 0" class="table">
                 <table class="table">
                   <thead>
                     <tr>
@@ -109,7 +110,10 @@
 
               <hr />
 
-              <div class="alert alert-success text-center">
+              <div
+                *ngIf="successLobRestaurants.length > 0"
+                class="alert alert-success text-center"
+              >
                 We successfully sent postcards to
                 {{ successLobRestaurants.length }} restaurants
               </div>
@@ -133,9 +137,9 @@
                 We failed to add these restaurants
               </div>
 
-              <hr />
-
               <table *ngIf="failedRestaurants.length > 0" class="table">
+                <hr />
+
                 <table class="table">
                   <thead>
                     <tr>
