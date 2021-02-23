@@ -55,16 +55,16 @@
         </div>
       </div>
       <div class="d-flex">
-        <select class="form-control mr-2" (change)="onMenuSelected($event.target.value)" [(ngModel)]="selected.menu">
+        <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'freeItemList')" [(ngModel)]="selected.freeItemList.menu">
           <option value=""></option>
           <option *ngFor="let menu of menus">{{menu.name}}</option>
         </select>
-        <select class="form-control mr-2" (change)="onCategorySelected($event.target.value)"
-          [(ngModel)]="selected.category">
+        <select class="form-control mr-2" (change)="onCategorySelected($event.target.value, 'freeItemList')"
+          [(ngModel)]="selected.freeItemList.category">
           <option value=""></option>
           <option *ngFor="let category of categories">{{category.name}}</option>
         </select>
-        <select class="form-control mr-2" (change)="onItemSelected($event.target.value)" [(ngModel)]="selected.item">
+        <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'freeItemList')" [(ngModel)]="selected.freeItemList.item">
           <option value=""></option>
           <option *ngFor="let item of items">{{item.name}}</option>
         </select>
@@ -99,21 +99,21 @@
       </div>
     </div>
     <div class="d-flex">
-      <select class="form-control mr-2" (change)="onMenuSelected($event.target.value)" [(ngModel)]="selected.menu">
+      <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'withOrderFromList')" [(ngModel)]="selected.withOrderFromList.menu">
         <option value=""></option>
         <option *ngFor="let menu of menus">{{menu.name}}</option>
       </select>
-      <select class="form-control mr-2" (change)="onCategorySelected($event.target.value)"
-        [(ngModel)]="selected.category">
+      <select class="form-control mr-2" (change)="onCategorySelected($event.target.value, 'withOrderFromList')"
+        [(ngModel)]="selected.withOrderFromList.category">
         <option value=""></option>
         <option *ngFor="let category of categories">{{category.name}}</option>
       </select>
-      <select class="form-control mr-2" (change)="onItemSelected($event.target.value)" [(ngModel)]="selected.item">
+      <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'withOrderFromList')" [(ngModel)]="selected.withOrderFromList.item">
         <option value=""></option>
         <option *ngFor="let item of items">{{item.name}}</option>
       </select>
       <div class="d-flex justify-content-end">
-        <button type="button" class="btn btn-link" (click)="updatedWithOrderFromList()">Add</button>
+        <button type="button" class="btn btn-link" (click)="updateWithOrderFromList()">Add</button>
       </div>
     </div>
   </div>

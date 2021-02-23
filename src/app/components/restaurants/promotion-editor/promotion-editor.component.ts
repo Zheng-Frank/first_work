@@ -22,9 +22,17 @@ export class PromotionEditorComponent implements OnInit {
   expiry;
 
   selected: any = {
-    menu: '',
-    category: '',
-    item: ''
+    withOrderFromList: {
+      menu: '',
+      category: '',
+      item: ''
+    },
+    freeItemList: {
+      menu: '',
+      category: '',
+      item: ''
+    }
+
   };
 
   withOrderFromList = [];
@@ -136,11 +144,11 @@ export class PromotionEditorComponent implements OnInit {
   }
 
 
-  onMenuSelected(menuName) {
-    this.selected.menu = menuName;
+  onMenuSelected(menuName, subproperty) {
+    this.selected[subproperty].menu = menuName;
 
-    if (!this.selected.menu) {
-      this.selected.category = this.selected.item = '';
+    if (!this.selected[subproperty].menu) {
+      this.selected[subproperty].category = this.selected[subproperty].item = '';
       this.categories = this.items = [];
     }
 
@@ -152,15 +160,15 @@ export class PromotionEditorComponent implements OnInit {
     }
   }
 
-  onCategorySelected(categoryName) {
-    this.selected.category = categoryName;
+  onCategorySelected(categoryName, subproperty) {
+    this.selected[subproperty].category = categoryName;
 
-    if (!this.selected.category) {
+    if (!this.selected[subproperty].category) {
       this.items = [];
-      this.selected.category = this.selected.item = '';
+      this.selected[subproperty].category = this.selected[subproperty].item = '';
     }
 
-    const menu = this.menus.find(menu => String(menu.name).trim() === String(this.selected.menu).trim());
+    const menu = this.menus.find(menu => String(menu.name).trim() === String(this.selected[subproperty].menu).trim());
     if (menu) {
       const categories = menu.mcs.find(cat => cat.name === categoryName);
       if (categories) {
@@ -172,61 +180,52 @@ export class PromotionEditorComponent implements OnInit {
     }
   }
 
-  onItemSelected(itemName) {
-    this.selected.item = itemName;
+  onItemSelected(itemName, subproperty) {
+    this.selected[subproperty].item = itemName;
   }
 
   updateWithOrderFromList() {
     const menu: any = {};
 
-    if (this.selected.menu) {
-      menu.name = this.selected.menu;
-      if (this.selected.category) {
-        menu.mcs = [{ name: this.selected.category }];
-        if (this.selected.item) {
-          menu.mcs[0].mis = [{ name: this.selected.item }]
+    if (this.selected.withOrderFromList.menu) {
+      menu.name = this.selected.withOrderFromList.menu;
+      if (this.selected.withOrderFromList.category) {
+        menu.mcs = [{ name: this.selected.withOrderFromList.category }];
+        if (this.selected.withOrderFromList.item) {
+          menu.mcs[0].mis = [{ name: this.selected.withOrderFromList.item }]
         }
       }
     }
 
-    if (this.selected.menu) {
+    if (this.selected.withOrderFromList.menu) {
       this.withOrderFromList = [...this.withOrderFromList, menu];
     }
 
-    this.selected = {};
-
-    console.log('updateWithOrderFromList');
-    console.log(this.withOrderFromList);
-    console.log(this.freeItemList);
+    this.selected.withOrderFromList = {};
   }
 
   addFreeItem() {
     const freeItem: any = {};
 
-    if (this.selected.freeItem) {
-      freeItem.name = this.selected.menu;
-      if (this.selected.category) {
-        freeItem.mcs = [{ name: this.selected.category }];
-        if (this.selected.item) {
-          freeItem.mcs[0].mis = [{ name: this.selected.item }]
+    if (this.selected.freeItemList) {
+      freeItem.name = this.selected.freeItemList.menu;
+      if (this.selected.freeItemList.category) {
+        freeItem.mcs = [{ name: this.selected.freeItemList.category }];
+        if (this.selected.freeItemList.item) {
+          freeItem.mcs[0].mis = [{ name: this.selected.freeItemList.item }]
         }
       }
     }
 
-    if (this.selected.menu) {
+    if (this.selected.freeItemList.menu) {
       this.freeItemList = [...this.freeItemList, freeItem];
     }
 
-    this.selected = {};
-
-    console.log('addFreeItem');
-    console.log(this.freeItemList);
-    console.log(this.withOrderFromList)
+    this.selected.freeItemList = {};
   }
 
   deleteOrder(index) {
     this.withOrderFromList.splice(index, 1);
-    console.log(this.withOrderFromList);
   }
 
   deleteFreeItem(index) {
