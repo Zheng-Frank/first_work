@@ -7,20 +7,115 @@
   <div class="{{promotion.code ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.code" placeholder="eg. spring5">
   </div>
+  <br>
+  <label class="mt-1"><u>Promotion </u></label>
+  <p>Promotion type</p>
 
-  <label class="mt-1">Fixed Amount($):</label>
-  <div>
-    <input type="tel" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
+  <q-simple-radio [(ngModel)]="radioSelection" [equalWidth]="true" [values]="['$ Discount', '% Discount', 'Free Item']">
+  </q-simple-radio>
+
+  <br>
+  <div *qIf="radioSelection === '$ Discount'">
+    <label class="mt-1">Fixed Amount ($):</label><span *ngIf="promotion.amount > promotion.orderMinimum"> ERROR Amount
+      cannot exceed dollar minimum</span>
+    <div>
+      <input type="tel" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
+    </div>
   </div>
 
-  <label class="mt-1">Percentage(%):</label>
-  <div>
-    <input type="tel" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
+  <div *qIf="radioSelection === '% Discount'">
+    <label class="mt-1">Percentage Discount(%):</label><span
+      *ngIf="promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0"> ERROR Invalid
+      percentage</span>
+    <div>
+      <input type="tel" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
+
+    </div>
   </div>
 
-  <label class="mt-1">Order Minimum ($):</label>
+  <div *qIf="radioSelection === 'Free Item'">
+    <label class="mt-1">Specify Free Item</label> <span><input type="checkbox" [checked]="useFreeItemName" name="itemName" (change)="toggleFreeItemCheckbox($event)"> Choose from menu N unit(s) of </span>
+    <div>
+      <input type="input" class="form-control" [(ngModel)]="promotion.freeItem" placeholder="e.g. 20 oz. Soda">
+    </div>
+
+    <label class="mt-1">Select Free Item</label> <span><input type="checkbox" [checked]="useFreeItemList" name="itemList" (change)="toggleFreeItemCheckbox($event)"> Choose from menu N unit(s) of </span>
+    <div>
+      <div *ngFor="let menu of freeItemList; let menuIndex = index">
+        <div class="d-flex align-items-center">
+          <div class="mr-2"><button type="button" class="btn btn-link m-0 p-0" (click)="deleteFreeItem(menuIndex)"><i
+                class="far fa-trash-alt"></i></button></div>
+          <span>{{menu.name ? menu.name: 'All Menus'}}</span>
+          <span *ngFor="let category of menu.mcs">
+            <span> ➜ {{category.name? category.name: 'All Categories'}}</span>
+            <span *ngFor="let item of category.mis">
+              <span> ➜ {{item.name ? item.name: 'All Items'}}</span>
+            </span>
+          </span>
+        </div>
+      </div>
+      <div class="d-flex">
+        <select class="form-control mr-2" (change)="onMenuSelected($event.target.value)" [(ngModel)]="selected.menu">
+          <option value=""></option>
+          <option *ngFor="let menu of menus">{{menu.name}}</option>
+        </select>
+        <select class="form-control mr-2" (change)="onCategorySelected($event.target.value)"
+          [(ngModel)]="selected.category">
+          <option value=""></option>
+          <option *ngFor="let category of categories">{{category.name}}</option>
+        </select>
+        <select class="form-control mr-2" (change)="onItemSelected($event.target.value)" [(ngModel)]="selected.item">
+          <option value=""></option>
+          <option *ngFor="let item of items">{{item.name}}</option>
+        </select>
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-link" (click)="addFreeItem()">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <label class="mt-1"><u> Eligibility </u></label><br>
+
+  <label class="mt-1">Order Minimum ($):</label> <span>
+    <q-toggle [(ngModel)]="fromSelectionToggle"></q-toggle> From Selection
+  </span>
   <div>
     <input type="tel" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
+  </div>
+  <div *qIf="fromSelectionToggle">
+    <label class="mt-1"> From Selection: </label>
+    <div *ngFor="let menu of withOrderFromList; let menuIndex = index">
+      <div class="d-flex align-items-center">
+        <div class="mr-2"><button type="button" class="btn btn-link m-0 p-0" (click)="deleteOrder(menuIndex)"><i
+              class="far fa-trash-alt"></i></button></div>
+        <span>{{menu.name ? menu.name: 'All Menus'}}</span>
+        <span *ngFor="let category of menu.mcs">
+          <span> ➜ {{category.name? category.name: 'All Categories'}}</span>
+          <span *ngFor="let item of category.mis">
+            <span> ➜ {{item.name ? item.name: 'All Items'}}</span>
+          </span>
+        </span>
+      </div>
+    </div>
+    <div class="d-flex">
+      <select class="form-control mr-2" (change)="onMenuSelected($event.target.value)" [(ngModel)]="selected.menu">
+        <option value=""></option>
+        <option *ngFor="let menu of menus">{{menu.name}}</option>
+      </select>
+      <select class="form-control mr-2" (change)="onCategorySelected($event.target.value)"
+        [(ngModel)]="selected.category">
+        <option value=""></option>
+        <option *ngFor="let category of categories">{{category.name}}</option>
+      </select>
+      <select class="form-control mr-2" (change)="onItemSelected($event.target.value)" [(ngModel)]="selected.item">
+        <option value=""></option>
+        <option *ngFor="let item of items">{{item.name}}</option>
+      </select>
+      <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-link" (click)="updatedWithOrderFromList()">Add</button>
+      </div>
+    </div>
   </div>
 
   <label class="mt-1">Expiration Date:</label>
