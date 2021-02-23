@@ -29,6 +29,7 @@ export class RestaurantPromotionsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
+    this.migrateExcludedMenusToIncludedMenus();
   }
 
   toggleEditing() {
@@ -89,8 +90,8 @@ export class RestaurantPromotionsComponent implements OnInit {
     const newPromotions = (this.restaurant.promotions || []).slice(0);
     if (promotion.id) {
       // find the replace the promotion
-      for(let i = 0; i < newPromotions.length; i++) {
-        if(newPromotions[i].id === promotion.id) {
+      for (let i = 0; i < newPromotions.length; i++) {
+        if (newPromotions[i].id === promotion.id) {
           newPromotions[i] = promotion;
         }
       }
@@ -139,6 +140,18 @@ export class RestaurantPromotionsComponent implements OnInit {
           }
         );
     }
+  }
+
+  migrateExcludedMenusToIncludedMenus() {
+    this.restaurant.promotions.forEach((promotion, index) => {
+      // if (!promotion.withOrderFromList) {
+      const withOrderFromList = (this.restaurant.menus || []).filter((menu) => {
+        return promotion.excludedMenuIds.indexOf(menu.id) < 0;
+      }).map((entry) => new Object({ name: entry.name }));
+      console.log(withOrderFromList);
+      // }
+
+    })
   }
 
 }
