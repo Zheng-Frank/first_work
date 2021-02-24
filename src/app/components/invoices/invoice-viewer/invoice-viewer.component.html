@@ -198,74 +198,73 @@
         <th>Tips</th>
         <th>Tax</th>
         <th>Subtotal</th>
-        <th>Total</th>
+        <th class="text-right">Total</th>
       </tr>
-      <tr>
+      <tr *ngIf="Cash.total!=0">
         <th>
-          <div class="text-left" style="margin-left:30%;">
+          <div class="text-left" >
             Cash
           </div>
         </th>
         <td>{{Cash?.tip | currency:'USD':'symbol'}}</td>
         <td>{{Cash?.tax | currency:'USD':'symbol'}}</td>
         <td>{{Cash?.subtotal | currency:'USD':'symbol'}}</td>
-        <td>{{Cash?.total  | currency:'USD':'symbol'}}</td>
+        <td class="text-right">{{Cash?.total  | currency:'USD':'symbol'}}</td>
       </tr>
-      <tr>
-
+      <tr *ngIf="swipeInPerson.total!=0">
         <th>
-          <div class="text-left" style="margin-left:30%;">
+          <div class="text-left" >
             Swipe in person (CC)
           </div>
         </th>
         <td>{{swipeInPerson?.tip | currency:'USD':'symbol'}}</td>
         <td>{{swipeInPerson?.tax | currency:'USD':'symbol'}}</td>
         <td>{{swipeInPerson?.subtotal | currency:'USD':'symbol'}}</td>
-        <td>{{swipeInPerson?.total | currency:'USD':'symbol'}}</td>
+        <td class="text-right">{{swipeInPerson?.total | currency:'USD':'symbol'}}</td>
       </tr>
-      <tr>
+      <tr *ngIf="keyIn.total!=0">
         <th>
-          <div class="text-left" style="margin-left:30%;">
+          <div class="text-left" >
             Key-in (CC)
           </div>
         </th>
         <td>{{keyIn?.tip | currency:'USD':'symbol'}}</td>
         <td>{{keyIn?.tax | currency:'USD':'symbol'}}</td>
         <td>{{keyIn?.subtotal | currency:'USD':'symbol'}}</td>
-        <td>{{keyIn?.total | currency:'USD':'symbol'}}</td>
+        <td class="text-right">{{keyIn?.total | currency:'USD':'symbol'}}</td>
       </tr>
-      <tr>
+      <tr *ngIf="restaurantStripe.total!=0">
         <th>
-          <div class="text-left" style="margin-left:30%;">
+          <div class="text-left">
             Restaurant Stripe (CC)
           </div>
         </th>
         <td>{{restaurantStripe?.tip | currency:'USD':'symbol'}}</td>
         <td>{{restaurantStripe?.tax | currency:'USD':'symbol'}}</td>
         <td>{{restaurantStripe?.subtotal | currency:'USD':'symbol'}}</td>
-        <td>{{restaurantStripe?.total | currency:'USD':'symbol'}}</td>
+        <td class="text-right">{{restaurantStripe?.total | currency:'USD':'symbol'}}</td>
       </tr>
-      <tr>
+      <tr *ngIf="qmenuCollected.total!=0">
         <th>
-          <div class="text-left" style="margin-left:30%;">
+          <div class="text-left" >
             Qmenu Collect (CC)
           </div>
         </th>
         <td>{{qmenuCollected?.tip | currency:'USD':'symbol'}}</td>
         <td>{{qmenuCollected?.tax | currency:'USD':'symbol'}}</td>
         <td>{{qmenuCollected?.subtotal | currency:'USD':'symbol'}}</td>
-        <td>{{qmenuCollected?.total | currency:'USD':'symbol'}}</td>
+        <td class="text-right">{{qmenuCollected?.total | currency:'USD':'symbol'}}</td>
       </tr>
-      <tr>
+      <tr >
         <th>
-          <div class="text-left" style="margin-left:30%;">
+          <div class="text-left" >
             Total
           </div>
         </th>
         <td>{{total?.tip | currency:'USD':'symbol'}}</td>
         <td>{{total?.tax | currency:'USD':'symbol'}}</td>
         <td>{{total?.subtotal | currency:'USD':'symbol'}}</td>
-        <td>{{total?.total | currency:'USD':'symbol'}}</td>
+        <td class="text-right">{{total?.total | currency:'USD':'symbol'}}</td>
       </tr>
     </tbody>
   </table>

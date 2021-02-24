@@ -16,8 +16,8 @@ interface keyValue {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InvoiceViewerComponent implements OnInit, OnChanges {
-  @Input() invoice: Invoice;
-
+  @Input()
+  invoice: Invoice;
   leftRows: keyValue[] = [];
   rightRows: keyValue[] = [];
 
@@ -25,7 +25,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
   orderPaymentMethods = new Set();
 
   couriers = new Set();
-  // Transaction breakdowns
+  // Transaction breakdowns,a table to show order bill more briefly
   Cash = {
     tip: 0,
     tax: 0,
@@ -84,47 +84,56 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     //computer the transaction breakdowns
     const valid_order = this.invoice.orders.filter(o => !o.canceled);
     valid_order.forEach(io => {
-      console.log("io" + JSON.stringify(io));
+      // console.log("io" + JSON.stringify(io));
       if (io.paymentType == "CASH") {
-        // console.log("CASH total "+io.total);
-        this.Cash.tip += io.tip;
-        this.Cash.tax += io.tax;
-        this.Cash.subtotal += io.subtotal;
-        this.Cash.total += io.total;
+        // console.log("io.paymentType == CASH: " + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+        this.Cash.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
+        this.Cash.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+        this.Cash.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+        this.Cash.total += (io.total == null || io.total == undefined ? 0 : io.total);
       } else if (io.paymentType == 'CREDITCARD') {
-        if(io.creditCardProcessingMethod=='SWIPE'){
-          this.swipeInPerson.tip += io.tip;
-          this.swipeInPerson.tax += io.tax;
-          this.swipeInPerson.subtotal += io.subtotal;
-          this.swipeInPerson.total += io.total;
+        if (io.creditCardProcessingMethod == 'SWIPE') {
+          // console.log("io.creditCardProcessingMethod==SWIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+          this.swipeInPerson.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
+          this.swipeInPerson.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+          this.swipeInPerson.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+          this.swipeInPerson.total += (io.total == null || io.total == undefined ? 0 : io.total);
         }
-        if(io.creditCardProcessingMethod=='KEY_IN'){
-          this.keyIn.tip=io.tip;
-          this.keyIn.tax=io.tax;
-          this.keyIn.subtotal=io.subtotal;
-          this.keyIn.total=io.io.total;
+        if (io.creditCardProcessingMethod == 'KEY_IN') {
+          // console.log("io.creditCardProcessingMethod==KEY_IN:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+          this.keyIn.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
+          this.keyIn.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+          this.keyIn.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+          this.keyIn.total += (io.total == null || io.total == undefined ? 0 : io.total);
         }
-        if (io.creditCardProcessingMethod == "QMENU") { 
-          this.qmenuCollected.tip += io.tip;
-          this.qmenuCollected.tax += io.tax;
-          this.qmenuCollected.subtotal += io.subtotal;
-          this.qmenuCollected.total += io.total;
+        if (io.creditCardProcessingMethod == "QMENU") {
+          // console.log("io.creditCardProcessingMethod == 'QMENU':" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+          this.qmenuCollected.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
+          this.qmenuCollected.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+          this.qmenuCollected.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+          this.qmenuCollected.total += (io.total == null || io.total == undefined ? 0 : io.total);
         }
         if (io.creditCardProcessingMethod == "STRIPE") {
-          this.restaurantStripe.tip += io.tip;
-          this.restaurantStripe.tax += io.tax;
-          this.restaurantStripe.subtotal += io.subtotal;
-          this.restaurantStripe.total += io.total;
+          console.log("io.creditCardProcessingMethod == STRIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+          this.restaurantStripe.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
+          this.restaurantStripe.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+          this.restaurantStripe.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+          this.restaurantStripe.total += (io.total == null || io.total == undefined ? 0 : io.total);
         }
       }
 
     });
-    this.total.tip = this.Cash.tip + this.qmenuCollected.tip + this.restaurantStripe.tip + this.swipeInPerson.tip+this.keyIn.tip;
-    this.total.tax = this.Cash.tax + this.qmenuCollected.tax + this.restaurantStripe.tax + this.swipeInPerson.tax+this.keyIn.tax;
+    // console.log("Cash.total:"+this.Cash.total);
+    // console.log("this.swipeInPerson.total:"+this.swipeInPerson.total);
+    // console.log("this.keyIn.total"+this.keyIn.total);
+    // console.log("this.qmenuCollected.total:"+this.qmenuCollected.total);
+    // console.log("this.restaurantStripe.total"+this.restaurantStripe.total);
+    this.total.tip = this.Cash.tip + this.qmenuCollected.tip + this.restaurantStripe.tip + this.swipeInPerson.tip + this.keyIn.tip;
+    this.total.tax = this.Cash.tax + this.qmenuCollected.tax + this.restaurantStripe.tax + this.swipeInPerson.tax + this.keyIn.tax;
     this.total.subtotal = this.Cash.subtotal + this.qmenuCollected.subtotal + this.restaurantStripe.subtotal
-      + this.swipeInPerson.subtotal+this.keyIn.subtotal;
+      + this.swipeInPerson.subtotal + this.keyIn.subtotal;
     this.total.total = this.Cash.total + this.qmenuCollected.total + this.restaurantStripe.total
-      + this.swipeInPerson.total+this.keyIn.total;
+      + this.swipeInPerson.total + this.keyIn.total;
 
     this.invoice.orders.map(o => {
       this.orderTypes.add(o.type);
