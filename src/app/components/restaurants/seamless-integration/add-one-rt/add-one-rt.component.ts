@@ -125,11 +125,11 @@ export class AddOneRtComponent implements OnInit {
               .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
                 {
                   old: {
-                    _id: this.postcards[i].restaurantId,
+                    _id: foundRes.restaurantId,
                     selfSignup: {},
                   },
                   new: {
-                    _id: this.postcards[i].restaurantId,
+                    _id: foundRes.restaurantId,
                     selfSignup: { postcardSent: true },
                   },
                 },

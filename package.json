@@ -36,6 +36,7 @@
     "crypto-js": "^3.1.9-1",
     "csvtojson": "^2.0.10",
     "file-saver": "^1.3.8",
+    "fs": "0.0.1-security",
     "jwt-decode": "^2.2.0",
     "lz-string": "^1.4.4",
     "mime-types": "^2.1.26",
@@ -45,6 +46,7 @@
     "objects-to-csv": "^1.3.6",
     "parse-address": "^1.1.2",
     "rxjs": "6.0.0",
+    "stream": "0.0.2",
     "uuidv4": "^6.2.6",
     "zone.js": "^0.8.24"
   },
@@ -55,7 +57,7 @@
     "@types/crypto-js": "^3.1.43",
     "@types/jasmine": "^2.8.8",
     "@types/jasminewd2": "~2.0.3",
-    "@types/node": "~8.9.4",
+    "@types/node": "^7.0.7",
     "codelyzer": "~4.2.1",
     "jasmine-core": "~2.99.1",
     "jasmine-spec-reporter": "~4.2.1",
@@ -67,6 +69,6 @@
     "protractor": "^5.3.2",
     "ts-node": "~5.0.1",
     "tslint": "~5.9.1",
-    "typescript": "~2.7.2"
+    "typescript": "^2.9.2"
   }
 }

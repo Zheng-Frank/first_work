@@ -4,8 +4,7 @@ import { ApiService } from "src/app/services/api.service";
 import { environment } from "src/environments/environment";
 import * as csvtojsonV2 from "csvtojson";
 import { DomSanitizer } from "@angular/platform-browser";
-import { saveAs } from "file-saver/FileSaver";
-import ObjectsToCsv from "objects-to-csv";
+// import ObjectsToCsv from "objects-to-csv";
 
 @Component({
   selector: "app-upload-csv",
@@ -40,13 +39,10 @@ export class UploadCsvComponent implements OnInit {
     // console.log("INVALID FORMAT ", this.invalidFormat);
   }
 
-  downloadFile(restaurantInfo) {
-    const data = new ObjectsToCsv(restaurantInfo);
-
-    var blob = new Blob([data], { type: "application/octet-stream" });
-    var url = window.URL.createObjectURL(blob);
-    saveAs(blob, "output.csv");
-    window.open(url);
+  async downloadFile(restaurantInfo) {
+    // const csv = new ObjectsToCsv(restaurantInfo);
+    // // Save to file:
+    // await csv.toDisk("./test.csv");
   }
 
   designatePostcardFlag() {
@@ -211,8 +207,11 @@ export class UploadCsvComponent implements OnInit {
               postcardSentStatus,
             };
             this.designatePostcard
-              ? finalOutput
-              : { ...finalOutput, lobStatus: postcardSentStatus };
+              ? this.restaurantInfo.push(finalOutput)
+              : this.restaurantInfo.push({
+                  ...finalOutput,
+                  lobStatus: postcardSentStatus,
+                });
           }
         };
         try {
