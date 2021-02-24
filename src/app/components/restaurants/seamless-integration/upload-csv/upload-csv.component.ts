@@ -5,6 +5,7 @@ import { environment } from "src/environments/environment";
 import * as csvtojsonV2 from "csvtojson";
 import { DomSanitizer } from "@angular/platform-browser";
 import { saveAs } from "file-saver/FileSaver";
+import ObjectsToCsv from "objects-to-csv";
 
 @Component({
   selector: "app-upload-csv",
@@ -14,11 +15,12 @@ import { saveAs } from "file-saver/FileSaver";
 export class UploadCsvComponent implements OnInit {
   list = true;
   fileList;
-  successLobRestaurants = [];
-  failLobRestaurants = [];
-  successRestaurants = [];
-  failedRestaurants = [];
-  alreadyWorkWithUs = [];
+  restaurantInfo = [];
+  // successLobRestaurants = [];
+  // failLobRestaurants = [];
+  // successRestaurants = [];
+  // failedRestaurants = [];
+  // alreadyWorkWithUs = [];
   showOutput = false;
   designatePostcard;
   rowsProcessed = 0;
@@ -38,81 +40,12 @@ export class UploadCsvComponent implements OnInit {
     // console.log("INVALID FORMAT ", this.invalidFormat);
   }
 
-  downloadFile(
-    successRestaurants,
-    failRestaurants,
-    successLobRestaurants,
-    failLobRestaurants
-  ) {
-    let data = "";
-    let header =
-      "SUCCESS RESTAURANTS                    ADDRESS                                         LANGUAGE";
-    let newLine = "\r\n";
-    data += header;
-    data += newLine;
-    data +=
-      "--------------------------------------------------------------------------------------";
-    data += newLine;
-    if (successRestaurants) {
-      for (let i = 0; i < successRestaurants.length; i++) {
-        data += `${successRestaurants[i].name}  |     ${successRestaurants[i].address} |   ${successRestaurants[i].language} `;
-        data += newLine;
-      }
-    }
-
-    if (failRestaurants) {
-      data += newLine;
-      data += newLine;
-      data += newLine;
-      data +=
-        "FAIL RESTAURANTS                    ADDRESS                                         LANGUAGE";
-      data += newLine;
-      data +=
-        "--------------------------------------------------------------------------------------";
-      data += newLine;
-      for (let i = 0; i < failRestaurants.length; i++) {
-        data += `${failRestaurants[i].name}  |     ${failRestaurants[i].address} |   ${failRestaurants[i].language} `;
-        data += newLine;
-      }
-    }
-
-    if (successLobRestaurants) {
-      data += newLine;
-      data += newLine;
-      data += newLine;
-      data +=
-        "SUCCESS LOB RESTAURANTS                    ADDRESS                                         LANGUAGE";
-      data += newLine;
-      data +=
-        "--------------------------------------------------------------------------------------";
-      data += newLine;
-
-      for (let i = 0; i < successLobRestaurants.length; i++) {
-        data += `${successLobRestaurants[i].name}  |     ${successLobRestaurants[i].address} |   ${successLobRestaurants[i].language} `;
-        data += newLine;
-      }
-    }
-
-    if (failLobRestaurants) {
-      data += newLine;
-      data += newLine;
-      data += newLine;
-      data +=
-        "FAIL LOB RESTAURANTS                    ADDRESS                                         LANGUAGE";
-      data += newLine;
-      data +=
-        "--------------------------------------------------------------------------------------";
-      data += newLine;
-
-      for (let i = 0; i < failLobRestaurants.length; i++) {
-        data += `${failLobRestaurants[i].name}  |     ${failLobRestaurants[i].address} |   ${failLobRestaurants[i].language} `;
-        data += newLine;
-      }
-    }
+  downloadFile(restaurantInfo) {
+    const data = new ObjectsToCsv(restaurantInfo);
 
     var blob = new Blob([data], { type: "application/octet-stream" });
     var url = window.URL.createObjectURL(blob);
-    saveAs(blob, "file_name.txt");
+    saveAs(blob, "output.csv");
     window.open(url);
   }
 
@@ -122,14 +55,10 @@ export class UploadCsvComponent implements OnInit {
   }
 
   reset() {
-    this.failLobRestaurants = [];
-    this.successRestaurants = [];
-    this.failedRestaurants = [];
-    this.alreadyWorkWithUs = [];
+    this.restaurantInfo = [];
     this.currentlyUploading = false;
     this.designatePostcard = false;
     this.showOutput = false;
-    this.successLobRestaurants = [];
     this.invalidFormat = false;
     this.myInputVariable.nativeElement.value = "";
   }
@@ -140,6 +69,22 @@ export class UploadCsvComponent implements OnInit {
 
   addAttachment() {
     this.currentlyUploading = true;
+    let header = {
+      "Restaurant-Name": "Restaurant Name",
+      "Restaurant-Address": "Restaurant Address",
+      "Postcard-Style": "Postcard Style",
+      "Restaurant-Processed-Status": "Restaurant Processed Status",
+      "Already-Work-Us": "Already Work With Us",
+    };
+
+    if (this.designatePostcard) {
+      this.restaurantInfo.push({
+        ...header,
+        "Postcard Sent Status": "Postcard Sent Status",
+      });
+    } else {
+      this.restaurantInfo.push(header);
+    }
     let files = this.fileList;
     if (files && files.length > 0) {
       let file: File = files.item(0);
@@ -169,6 +114,14 @@ export class UploadCsvComponent implements OnInit {
           // this.processedLength = csvRows.length;
           for (let row of csvRows) {
             // this.invalidFormat = false;
+
+            let restaurantName = row[0];
+            let restaurantAddress = row[1];
+            let postcardStyle = row[2];
+            let processedStatus = "FAILED";
+            let alreadyWorkWithUs = "FALSE";
+            let postcardSentStatus = "FAILED";
+
             let q = `${row[0]}, ${row[1]}`;
             let language = row[2];
             if (language.toLowerCase() === "english") {
@@ -190,15 +143,10 @@ export class UploadCsvComponent implements OnInit {
               // console.log(crawledResult);
 
               if (!crawledResult[0].disabled) {
-                this.alreadyWorkWithUs.push(crawledResult[0].name);
-                continue;
+                alreadyWorkWithUs = "TRUE";
               }
 
-              this.successRestaurants.push({
-                name: row[0],
-                address: row[1],
-                language: row[2],
-              });
+              processedStatus = "SUCCESSFUL";
 
               let restaurantId = crawledResult[0]._id;
               if (this.designatePostcard) {
@@ -225,11 +173,7 @@ export class UploadCsvComponent implements OnInit {
                     .toPromise();
                   lobObj = { ...lobObj, restaurantId };
                   this.createLobAnalytic(lobObj);
-                  this.successLobRestaurants.push({
-                    name: row[0],
-                    address: row[1],
-                    language: row[2],
-                  });
+                  postcardSentStatus = "SENT";
                   try {
                     await this._api
                       .patch(
@@ -249,49 +193,31 @@ export class UploadCsvComponent implements OnInit {
                     console.log("PATCHING FAILED "), e;
                   }
                 } catch (e) {
-                  this.failLobRestaurants.push({
-                    name: row[0],
-                    address: row[1],
-                    language: row[2],
-                  });
+                  postcardSentStatus = "FAILED";
+
                   console.log("THIS LOB FAILED", row[0], e);
                 }
               }
             } catch (error) {
-              if (this.designatePostcard) {
-                this.failLobRestaurants.push({
-                  name: row[0],
-                  address: row[1],
-                  language: row[2],
-                });
-              }
-              this.failedRestaurants.push({
-                name: row[0],
-                address: row[1],
-                language: row[2],
-              });
-              console.log("ERROR ", error);
+              postcardSentStatus = "FAILED";
+              processedStatus = "FAILED";
             }
+            let finalOutput = {
+              restaurantName,
+              restaurantAddress,
+              postcardStyle,
+              processedStatus,
+              alreadyWorkWithUs,
+              postcardSentStatus,
+            };
+            this.designatePostcard
+              ? finalOutput
+              : { ...finalOutput, lobStatus: postcardSentStatus };
           }
         };
         try {
           await importData();
-          console.log("SUCCESS RESTAURANTS ", this.successRestaurants);
-          console.log("FAIL RESTAURANTS ", this.failedRestaurants);
-          console.log("SUCCESS LOB RESTAURANTS ", this.successLobRestaurants);
-          console.log("FAIL LOB RESTAURANTS ", this.failLobRestaurants);
-          console.log(
-            "RESTAURANTS THAT ALREADY WORK WITH US ",
-            this.alreadyWorkWithUs
-          );
-          this.currentlyUploading = false;
-          this.showOutput = true;
-          this.downloadFile(
-            this.successRestaurants,
-            this.failedRestaurants,
-            this.successLobRestaurants,
-            this.failLobRestaurants
-          );
+
           this.reset();
         } catch (e) {
           // console.log("import failed");

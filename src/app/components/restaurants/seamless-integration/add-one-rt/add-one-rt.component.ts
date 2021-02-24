@@ -120,6 +120,24 @@ export class AddOneRtComponent implements OnInit {
           this.createLobAnalytic(lobObj);
           // // console.log("LOB SINGLE SUCCESS");
           this.sendSingleLobSuccess = true;
+          try {
+            await this._api
+              .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+                {
+                  old: {
+                    _id: this.postcards[i].restaurantId,
+                    selfSignup: {},
+                  },
+                  new: {
+                    _id: this.postcards[i].restaurantId,
+                    selfSignup: { postcardSent: true },
+                  },
+                },
+              ])
+              .toPromise();
+          } catch (e) {
+            // console.log("FAILED TO PATCH RESTAURANT");
+          }
         } catch (e) {
           // // console.log("LOB SINGLE FAILED ", e);
           this.sendSingleLobFail = true;
