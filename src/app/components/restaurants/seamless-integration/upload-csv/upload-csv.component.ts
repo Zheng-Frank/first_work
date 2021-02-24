@@ -4,6 +4,8 @@ import { ApiService } from "src/app/services/api.service";
 import { environment } from "src/environments/environment";
 import * as csvtojsonV2 from "csvtojson";
 import { DomSanitizer } from "@angular/platform-browser";
+import { saveAs } from "file-saver/FileSaver";
+
 // import ObjectsToCsv from "objects-to-csv";
 
 @Component({
@@ -38,11 +40,35 @@ export class UploadCsvComponent implements OnInit {
   ngOnInit() {
     // console.log("INVALID FORMAT ", this.invalidFormat);
   }
+  objectsToCSV(arr) {
+    const array = [Object.keys(arr[0])].concat(arr);
+    return array
+      .map((row) => {
+        return Object.values(row)
+          .map((value) => {
+            return typeof value === "string" ? JSON.stringify(value) : value;
+          })
+          .toString();
+      })
+      .join("\n");
+  }
 
   async downloadFile(restaurantInfo) {
-    // const csv = new ObjectsToCsv(restaurantInfo);
-    // // Save to file:
-    // await csv.toDisk("./test.csv");
+    console.log("RESTAURANT INFO ", restaurantInfo);
+    let header = {
+      "Restaurant-Name": "Restaurant Name",
+      "Restaurant-Address": "Restaurant Address",
+      "Postcard-Style": "Postcard Style",
+      "Restaurant-Processed-Status": "Restaurant Processed Status",
+      "Already-Work-Us": "Already Work With Us",
+    };
+
+    let data = this.objectsToCSV(restaurantInfo);
+    console.log(data);
+    var blob = new Blob([data], { type: "application/octet-stream" });
+    var url = window.URL.createObjectURL(blob);
+    saveAs(blob, "output.csv");
+    window.open(url);
   }
 
   designatePostcardFlag() {
@@ -65,22 +91,7 @@ export class UploadCsvComponent implements OnInit {
 
   addAttachment() {
     this.currentlyUploading = true;
-    let header = {
-      "Restaurant-Name": "Restaurant Name",
-      "Restaurant-Address": "Restaurant Address",
-      "Postcard-Style": "Postcard Style",
-      "Restaurant-Processed-Status": "Restaurant Processed Status",
-      "Already-Work-Us": "Already Work With Us",
-    };
 
-    if (this.designatePostcard) {
-      this.restaurantInfo.push({
-        ...header,
-        "Postcard Sent Status": "Postcard Sent Status",
-      });
-    } else {
-      this.restaurantInfo.push(header);
-    }
     let files = this.fileList;
     if (files && files.length > 0) {
       let file: File = files.item(0);
@@ -204,19 +215,20 @@ export class UploadCsvComponent implements OnInit {
               postcardStyle,
               processedStatus,
               alreadyWorkWithUs,
-              postcardSentStatus,
             };
-            this.designatePostcard
-              ? this.restaurantInfo.push(finalOutput)
-              : this.restaurantInfo.push({
+            !this.designatePostcard
+              ? (this.restaurantInfo.push(finalOutput), console.log("HERE!"))
+              : (this.restaurantInfo.push({
                   ...finalOutput,
-                  lobStatus: postcardSentStatus,
-                });
+                  postcardSentStatus: postcardSentStatus,
+                }),
+                console.log("HERE 2"));
           }
+          console.log(this.restaurantInfo);
         };
         try {
           await importData();
-
+          this.downloadFile(this.restaurantInfo);
           this.reset();
         } catch (e) {
           // console.log("import failed");
