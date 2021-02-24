@@ -21,8 +21,6 @@ export class UIPreviewComponent implements OnInit {
 
     const mi: any = { "sizeOptions": { "0": { "price": 2 }, "1": { "price": 3.5 } }, "id": "1542438211451-0", "category": "1542438211451" };
 
-    const mc = new Mc(mcs[0]);
-
   }
 
   paymentMeans = {
