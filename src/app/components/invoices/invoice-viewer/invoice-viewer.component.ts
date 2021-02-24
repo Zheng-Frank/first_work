@@ -92,7 +92,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
         this.Cash.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
         this.Cash.total += (io.total == null || io.total == undefined ? 0 : io.total);
       } else if (io.paymentType == 'CREDITCARD') {
-        if (io.creditCardProcessingMethod == 'SWIPE') {
+        if (io.creditCardProcessingMethod == 'IN_PERSON') {//SWIPE
           // console.log("io.creditCardProcessingMethod==SWIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
           this.swipeInPerson.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
           this.swipeInPerson.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
@@ -114,7 +114,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.qmenuCollected.total += (io.total == null || io.total == undefined ? 0 : io.total);
         }
         if (io.creditCardProcessingMethod == "STRIPE") {
-          console.log("io.creditCardProcessingMethod == STRIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+          // console.log("io.creditCardProcessingMethod == STRIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
           this.restaurantStripe.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
           this.restaurantStripe.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
           this.restaurantStripe.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);

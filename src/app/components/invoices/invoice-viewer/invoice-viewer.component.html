@@ -162,6 +162,7 @@
       <td>{{order.customer}}</td>
       <td>{{order.type}}</td>
       <td>{{order.paymentType === 'CREDITCARD' ? 'CC' : order.paymentType}}</td>
+         <!-- {{order.creditCardProcessingMethod}} -->
       <td>{{order.payee}}</td>
       <td class="text-right">{{order.subtotal | currency:'USD':'symbol' }}</td>
       <td class="text-right">{{order.tax | currency:'USD':'symbol' }}</td>
@@ -211,7 +212,7 @@
         <td>{{Cash?.subtotal | currency:'USD':'symbol'}}</td>
         <td class="text-right">{{Cash?.total  | currency:'USD':'symbol'}}</td>
       </tr>
-      <tr *ngIf="swipeInPerson.total!=0">
+      <tr *ngIf="swipeInPerson.total!=0" >
         <th>
           <div class="text-left" >
             Swipe in person (CC)
