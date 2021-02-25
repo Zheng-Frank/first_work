@@ -210,11 +210,11 @@ export class UploadCsvComponent implements OnInit {
               processedStatus = "FAILED";
             }
             let finalOutput = {
-              restaurantName,
-              restaurantAddress,
-              postcardStyle,
-              processedStatus,
-              alreadyWorkWithUs,
+              "Restaurant Name": restaurantName,
+              "Restuarant Address": restaurantAddress,
+              "Postcard Style": postcardStyle,
+              "Process Status": processedStatus,
+              "Work With Us": alreadyWorkWithUs,
             };
             !this.designatePostcard
               ? (this.restaurantInfo.push(finalOutput), console.log("HERE!"))
