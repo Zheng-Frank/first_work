@@ -87,40 +87,46 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     const valid_order = this.invoice.orders.filter(o => !o.canceled);
     valid_order.forEach(io => {
       // console.log("io" + JSON.stringify(io));
+
       if (io.paymentType == "CASH") {
         // console.log("io.paymentType == CASH: " + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
         this.Cash.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
-        this.Cash.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+        this.Cash.tax += (io.tax == null || io.tax == undefined ? 0 :Math.round(io.tax*100)/100);
         this.Cash.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
-        this.Cash.total += (io.total == null || io.total == undefined ? 0 : io.total);
+        this.Cash.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
+        console.log("io.paymentType == CASH: "+this.Cash.tax);
       } else if (io.paymentType == 'CREDITCARD') {
         if (io.creditCardProcessingMethod == 'IN_PERSON') {//SWIPE
           // console.log("io.creditCardProcessingMethod==SWIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
           this.swipeInPerson.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
-          this.swipeInPerson.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+          this.swipeInPerson.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax*100)/100);
           this.swipeInPerson.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
-          this.swipeInPerson.total += (io.total == null || io.total == undefined ? 0 : io.total);
+          this.swipeInPerson.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100 );
+          console.log("io.paymentType == IN_PERSON: "+this.swipeInPerson.tax);
         }
         if (io.creditCardProcessingMethod == 'KEY_IN') {
           // console.log("io.creditCardProcessingMethod==KEY_IN:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
           this.keyIn.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
-          this.keyIn.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+          this.keyIn.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax*100)/100);
           this.keyIn.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
-          this.keyIn.total += (io.total == null || io.total == undefined ? 0 : io.total);
+          this.keyIn.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
+          console.log("io.paymentType == KEY_IN: "+this.keyIn.tax);
         }
         if (io.creditCardProcessingMethod == "QMENU") {
           // console.log("io.creditCardProcessingMethod == 'QMENU':" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
           this.qmenuCollected.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
-          this.qmenuCollected.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+          this.qmenuCollected.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax*100)/100);
           this.qmenuCollected.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
-          this.qmenuCollected.total += (io.total == null || io.total == undefined ? 0 : io.total);
+          this.qmenuCollected.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
+          console.log("io.paymentType == QMENU: "+this.qmenuCollected.tax);
         }
         if (io.creditCardProcessingMethod == "STRIPE") {
           // console.log("io.creditCardProcessingMethod == STRIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
           this.restaurantStripe.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
-          this.restaurantStripe.tax += (io.tax == null || io.tax == undefined ? 0 : io.tax);
+          this.restaurantStripe.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax*100)/100);
           this.restaurantStripe.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
-          this.restaurantStripe.total += (io.total == null || io.total == undefined ? 0 : io.total);
+          this.restaurantStripe.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
+          console.log("io.paymentType == STRIPE: "+this.restaurantStripe.tax);
         }
       }
 
