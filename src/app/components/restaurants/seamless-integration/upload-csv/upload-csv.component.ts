@@ -23,7 +23,7 @@ export class UploadCsvComponent implements OnInit {
   // failedRestaurants = [];
   // alreadyWorkWithUs = [];
   showOutput = false;
-  designatePostcard;
+  designatePostcard = false;
   rowsProcessed = 0;
   currentlyUploading: boolean = false;
   invalidFormat = false;
@@ -89,6 +89,7 @@ export class UploadCsvComponent implements OnInit {
   }
 
   addAttachment() {
+    console.log("POSTCARD FLAG VALUE ", this.designatePostcard);
     this.currentlyUploading = true;
 
     let files = this.fileList;
