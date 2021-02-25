@@ -17,7 +17,9 @@ export class PromotionEditorComponent implements OnInit {
   @Output() onCancel = new EventEmitter();
   @Output() onDelete = new EventEmitter();
 
-  radioSelection = '$ Discount';
+  promotionType = '$ Discount';
+  eligibility = 'Order Minimum';
+
   fromSelectionToggle = false;
   expiry;
 
@@ -31,6 +33,11 @@ export class PromotionEditorComponent implements OnInit {
       menu: '',
       category: '',
       item: ''
+    },
+    percentageList: {
+      menu: '',
+      category: '',
+      item: ''
     }
 
   };
@@ -40,13 +47,13 @@ export class PromotionEditorComponent implements OnInit {
   items = [];
 
   freeItemName = '';
-  freeItemNameQty = 1;
-  useFreeItemName = false;
+
+  freeItemQty = 1;
+  useFreeItemList = false;
 
 
   freeItemList = [];
-  freeItemListQty = 1;
-  useFreeItemList = false;
+  percentageList = [];
 
 
   constructor() { }
@@ -244,19 +251,19 @@ export class PromotionEditorComponent implements OnInit {
     if (this.promotion.name) {
       return null;
     }
-    if (this.radioSelection === '$ Discount') {
+    if (this.promotionType === '$ Discount') {
       if (this.promotion.amount && this.promotion.orderMinimum && this.withOrderFromList) {
         suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min order of select items`
       } else if (this.promotion.amount && this.promotion.orderMinimum) {
         suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min order`
       }
-    } else if (this.radioSelection === '% Discount') {
+    } else if (this.promotionType === '% Discount') {
       if (this.promotion.percentage && this.promotion.orderMinimum && this.withOrderFromList) {
         suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order of select items`
       } else if (this.promotion.percentage && this.promotion.orderMinimum) {
         suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order`
       }
-    } else if (this.radioSelection === "Free Item") {
+    } else if (this.promotionType === "Free Item") {
       if (this.promotion.percentage && this.promotion.orderMinimum && this.withOrderFromList) {
         suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order of select items`
       } else if (this.promotion.percentage && this.promotion.orderMinimum) {
@@ -266,23 +273,4 @@ export class PromotionEditorComponent implements OnInit {
     return suggestedTitle;
   }
 
-  toggleFreeItemCheckbox(event) {
-    if (!this.useFreeItemName && !this.useFreeItemList) {
-      if (event.target.name === 'itemName') {
-        this.useFreeItemName = true;
-      } else if (event.target.name === 'itemList') {
-        this.useFreeItemList = true;
-      }
-    } else if (this.useFreeItemName) {
-      if (event.target.name === 'itemList') {
-        this.useFreeItemList = true;
-      }
-      this.useFreeItemName = false;
-    } else if (this.useFreeItemList) {
-      if (event.target.name === 'itemName') {
-        this.useFreeItemName = true;
-      }
-      this.useFreeItemList = false;
-    }
-  }
 }
