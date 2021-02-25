@@ -221,6 +221,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   cancel() {
+    this.ifShowBasicInformation=true;
     this.editing = false;
   }
 

@@ -134,7 +134,7 @@
             }
         ]
       -->
-        Order was canceled :(<div>{{order.getCurrentStatusComments()}}</div>)
+        Order was canceled :(<div>{{order.getCurrentStatusComments()}}</div>
         <hr class="text-danger">
         <span *ngIf="isCanceledOrderStatusesSubmit(order)">
           Canceled by [{{getCustomerName(order)}}] on [{{getSubmittedTime(order) | date:'yyyy-MM-dd HH:mm:ss'}}]

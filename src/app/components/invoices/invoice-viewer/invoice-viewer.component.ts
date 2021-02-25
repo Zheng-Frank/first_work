@@ -77,7 +77,9 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     // fake date which is 2020-01-01 and having 
     return new Date(date).valueOf() !== new Date("2020-01-01").valueOf();
   }
-
+ /***
+  * the function is used of xxx
+  */
   computeData() {
     this.orderTypes = new Set();
     this.orderPaymentMethods = new Set();
