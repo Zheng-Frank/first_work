@@ -14,6 +14,8 @@ export class SeamlessIntegrationComponent implements OnInit {
   entriesLength;
   designatePostcard: boolean = false;
   progressAndCompleted;
+  pagination = true;
+  mytable = ["test1", "test2"];
   agentAnalytics;
   people = [];
   currentRestaurants = [];
@@ -88,6 +90,7 @@ export class SeamlessIntegrationComponent implements OnInit {
       }
     }
     this.currentRestaurants = englishRTs;
+    this.entriesLength = this.currentRestaurants.length;
   }
 
   async showChineseRestaurants() {
@@ -112,6 +115,7 @@ export class SeamlessIntegrationComponent implements OnInit {
       }
     }
     this.currentRestaurants = chineseRTs;
+    this.entriesLength = this.currentRestaurants.length;
   }
 
   getPostCardsToFire(id) {
@@ -415,6 +419,7 @@ export class SeamlessIntegrationComponent implements OnInit {
       })
       .toPromise();
     this.currentPagination = 1;
+    this.entriesLength = this.currentRestaurants.length;
     this.filterRestaurantsCriteria();
   }
 
@@ -427,6 +432,7 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.currentRestaurants = this.allRestaurants.filter((restaurant) => {
       return this.progressRestaurantIds.includes(restaurant._id);
     });
+    this.entriesLength = this.currentRestaurants.length;
   }
   showCompleted() {
     this.currentCriteria = "Completed";
@@ -437,6 +443,8 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.currentRestaurants = this.allRestaurants.filter((restaurant) => {
       return this.completedRestaurantsIds.includes(restaurant._id);
     });
+    this.entriesLength = this.currentRestaurants.length;
+
     // console.log("CURRENT COMPLETED RESTAURANTS", this.currentRestaurants);
   }
   showUnopened() {
@@ -444,6 +452,8 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.currentLanguage = "All";
 
     this.currentRestaurants = this.unopenedRestaurants;
+    this.entriesLength = this.currentRestaurants.length;
+
     this.currentPagination = 1;
     // analytics query of all analytics with restaurantId and
   }
@@ -493,13 +503,17 @@ export class SeamlessIntegrationComponent implements OnInit {
     const postcardNotSentRestaurants = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
-        query: { "selfSignup.postcardSent": { $exists: false } },
+        query: {
+          selfSignup: { $exists: true },
+          "selfSignup.postcardSent": { $exists: false },
+        },
         limit: 100000,
       })
       .toPromise();
     // console.log(postcardNotSentRestaurants);
 
     this.currentRestaurants = postcardNotSentRestaurants;
+    this.entriesLength = this.currentRestaurants.length;
   }
 
   getAnalytics(id: string) {

@@ -151,6 +151,9 @@ export class AddOneRtComponent implements OnInit {
       }
       // // console.log("COULDN'T ADD SINGLE RT", e);
     } finally {
+      setTimeout(() => {
+        this.reset();
+      }, 6000);
       this.showOutput = true;
       this.loading = false;
     }

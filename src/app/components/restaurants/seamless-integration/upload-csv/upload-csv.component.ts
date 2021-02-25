@@ -66,9 +66,7 @@ export class UploadCsvComponent implements OnInit {
     let data = this.objectsToCSV(restaurantInfo);
     console.log(data);
     var blob = new Blob([data], { type: "application/octet-stream" });
-    var url = window.URL.createObjectURL(blob);
     saveAs(blob, "output.csv");
-    window.open(url);
   }
 
   designatePostcardFlag() {
@@ -78,6 +76,7 @@ export class UploadCsvComponent implements OnInit {
 
   reset() {
     this.restaurantInfo = [];
+    this.fileList = null;
     this.currentlyUploading = false;
     this.designatePostcard = false;
     this.showOutput = false;
@@ -156,7 +155,7 @@ export class UploadCsvComponent implements OnInit {
               processedStatus = "SUCCESSFUL";
 
               let restaurantId = crawledResult[0]._id;
-              if (this.designatePostcard) {
+              if (this.designatePostcard && alreadyWorkWithUs != "TRUE") {
                 // send LOB response'
                 // const backUrl =
                 //   "http://bf1651968fee.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=back";
