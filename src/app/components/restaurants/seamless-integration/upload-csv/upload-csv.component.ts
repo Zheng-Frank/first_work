@@ -219,7 +219,7 @@ export class UploadCsvComponent implements OnInit {
               ? (this.restaurantInfo.push(finalOutput), console.log("HERE!"))
               : (this.restaurantInfo.push({
                   ...finalOutput,
-                  postcardSentStatus: postcardSentStatus,
+                  "Postcard Sent Status": postcardSentStatus,
                 }),
                 console.log("HERE 2"));
           }
@@ -228,7 +228,7 @@ export class UploadCsvComponent implements OnInit {
         try {
           await importData();
           if (!this.invalidFormat) {
-            this.downloadFile(this.restaurantInfo);
+            await this.downloadFile(this.restaurantInfo);
             this.reset();
           }
         } catch (e) {
