@@ -153,7 +153,7 @@ export class CyclesComponent implements OnInit {
     for (let batch of batches) {
       console.log("batch...");
       const allResults = await Promise.all(batch.map(r => this.processOneRestaurantInvoice(r, cycle, cycleRestaurants)));
-      await new Promise(resolve => setTimeout(() => { resolve() }, 2000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       console.log("batch done");
     }
 
@@ -189,6 +189,7 @@ export class CyclesComponent implements OnInit {
         toDate: cycle.toDate,
         restaurantId: r._id,
         payoutThreshold: cycle.payoutThreshold,
+        maxAdjustmentThreshold: 3, // override default number 2, requested by mo, 2/16/2021
         balanceThreshold: cycle.balanceThreshold,
         cycleId: cycle._id
       };
