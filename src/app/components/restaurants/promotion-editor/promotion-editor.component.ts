@@ -18,7 +18,7 @@ export class PromotionEditorComponent implements OnInit {
   @Output() onDelete = new EventEmitter();
 
   promotionType = '$ Discount';
-  eligibility = 'Order Minimum';
+  eligibility = 'Order Minimum ($)';
 
   fromSelectionToggle = false;
   expiry;
@@ -34,7 +34,7 @@ export class PromotionEditorComponent implements OnInit {
       category: '',
       item: ''
     },
-    percentageList: {
+    percentDiscountList: {
       menu: '',
       category: '',
       item: ''
@@ -53,7 +53,7 @@ export class PromotionEditorComponent implements OnInit {
 
 
   freeItemList = [];
-  percentageList = [];
+  percentDiscountList = [];
 
 
   constructor() { }
@@ -79,6 +79,26 @@ export class PromotionEditorComponent implements OnInit {
   // }
 
   isPromotionValid() {
+    // To be valid, a promotion must:
+    // 1) Have something that the customer gets for meeting the criteria. This is represented by promotion amount, percentage, or freeItemName/freeItemList
+    // 2) Have criteria that the customer can meet. This is represented by the promotion minimum order amount, or the list of menus/items/categories that the customer can buy from.
+    // 3) Have a valid title. This can be entered by the user. Or, if suggestPromotionTitle can produce one automatically, we can use that title.
+    // 4) Must not violate any of these rules:
+    // - Percentage must be valid (0 < promotion.percentage <= 90), no fractional percents
+    // - Promotion amount cannot exceed minimum purchase amount
+
+    // Additional validation will be done in the cart component and/or the promotion class itself. The above tests are the only ones we can apply in the promotionEditor (I think?)
+    if (!this.promotionType || !this.eligibility) {
+      return false;
+    }
+
+    if (!this.promotion.amount && !this.promotion.percentage && !(this.promotion.freeItemName || '').length && !(this.promotion.freeItemList || []).length) {
+      return false;
+    }
+    if (!this.promotion.orderMinimum && !(this.promotion.withOrderFromList || []).length) {
+      return false;
+    }
+
     return this.promotion.name;
   }
 
@@ -194,56 +214,34 @@ export class PromotionEditorComponent implements OnInit {
     this.selected[subproperty].item = itemName;
   }
 
-  updateWithOrderFromList() {
-    const menu: any = {};
+  addEntryToList(listName) {
+    const newEntry: any = {};
 
-    if (this.selected.withOrderFromList.menu) {
-      menu.name = this.selected.withOrderFromList.menu;
-      if (this.selected.withOrderFromList.category) {
-        menu.mcs = [{ name: this.selected.withOrderFromList.category }];
-        if (this.selected.withOrderFromList.item) {
-          menu.mcs[0].mis = [{ name: this.selected.withOrderFromList.item }]
+    if (this.selected[listName]) {
+      newEntry.name = this.selected[listName].menu;
+      if (this.selected[listName].category) {
+        newEntry.mcs = [{ name: this.selected[listName].category }];
+        if (this.selected[listName].item) {
+          newEntry.mcs[0].mis = [{ name: this.selected[listName].item }]
         }
       }
     }
 
-    if (this.selected.withOrderFromList.menu) {
-      this.withOrderFromList = [...this.withOrderFromList, menu];
+    if (this.selected[listName].menu) {
+      this.promotion[listName] = [...this.promotion[listName] || [], newEntry];
     }
-
-    this.selected.withOrderFromList = {};
+    console.log(this.promotion[listName]);
+    this.selected[listName] = {};
   }
 
-  addFreeItem() {
-    const freeItem: any = {};
-
-    if (this.selected.freeItemList) {
-      freeItem.name = this.selected.freeItemList.menu;
-      if (this.selected.freeItemList.category) {
-        freeItem.mcs = [{ name: this.selected.freeItemList.category }];
-        if (this.selected.freeItemList.item) {
-          freeItem.mcs[0].mis = [{ name: this.selected.freeItemList.item }]
-        }
-      }
+  deleteEntryFromList(listName, index) {
+    if (this.promotion[listName] && this.promotion[listName][index]) {
+      this.promotion[listName].splice(index, 1);
     }
-
-    if (this.selected.freeItemList.menu) {
-      this.freeItemList = [...this.freeItemList, freeItem];
-    }
-    console.log(this.freeItemList);
-    this.selected.freeItemList = {};
-  }
-
-  deleteOrder(index) {
-    this.withOrderFromList.splice(index, 1);
   }
 
   deleteOrderEligibilityList() {
     this.withOrderFromList = [];
-  }
-
-  deleteFreeItem(index) {
-    this.freeItemList.splice(index, 1);
   }
 
   suggestPromotionTitle() {
