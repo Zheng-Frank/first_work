@@ -129,6 +129,7 @@
             (click)="submitSingleRestaurant(singleRestaurantId)"
             type="submit"
             class="btn btn-primary"
+            [disabled]="!singleRestaurantId || loading || showOutput"
           >
             Enter
           </button>

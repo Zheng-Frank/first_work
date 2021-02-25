@@ -14,7 +14,7 @@ export class AddOneRtComponent implements OnInit {
   sendSingleLobSuccess = false;
   sendSingleLobFail = false;
   sendSinglePostcard = false;
-  singleRestaurantId;
+  singleRestaurantId = "";
   loading = false;
   showOutput = false;
   style = "English";
@@ -154,8 +154,6 @@ export class AddOneRtComponent implements OnInit {
       setTimeout(() => {
         this.reset();
       }, 6000);
-      this.showOutput = true;
-      this.loading = false;
     }
   }
 
@@ -165,7 +163,7 @@ export class AddOneRtComponent implements OnInit {
     this.sendSingleLobSuccess = false;
     this.sendSingleLobFail = false;
     this.sendSinglePostcard = false;
-    this.singleRestaurantId;
+    this.singleRestaurantId = "";
     this.loading = false;
     this.showOutput = false;
   }
