@@ -60,6 +60,7 @@ export class AddOneRtComponent implements OnInit {
       if (foundRes && !foundRes.disabled) {
         console.log("FOUND RES  ", foundRes);
         alert("RESTAURANT ALREADY EXISTS");
+        this.reset();
         // console.log("RESTAURANT ALREADY EXISTS ", foundRes);
         return;
       }
@@ -143,6 +144,7 @@ export class AddOneRtComponent implements OnInit {
           this.sendSingleLobFail = true;
         }
       }
+      this.loading = false;
     } catch (e) {
       console.log("ERROR ", e);
       this.sendSingleRTFail = true;

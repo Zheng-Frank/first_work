@@ -28,6 +28,7 @@
             <div class="col-sm-4">
               <input
                 class="hidden"
+                [disabled]="currentlyUploading"
                 type="file"
                 #fileInput
                 id="upload-file"
@@ -39,7 +40,9 @@
             </div>
             <div class="col-sm-4"></div>
             <div class="col-sm-4">
-              <button (click)="reset()">Reset</button>
+              <button [disabled]="currentlyUploading" (click)="reset()">
+                Reset
+              </button>
             </div>
           </div>
         </div>
@@ -48,6 +51,7 @@
           <div class="row">
             <div class="form-check">
               <input
+                [disabled]="currentlyUploading"
                 type="checkbox"
                 class="form-check-input"
                 id="exampleCheck1"
@@ -81,7 +85,8 @@
             </div>
 
             <div *ngIf="invalidFormat" class="text-center">
-              Invalid format, please follow instructions
+              Invalid format! Please review CSV upload instructions, fix CSV,
+              and try again
             </div>
             <div *ngIf="showOutput && !invalidFormat">
               <div class="alert alert-secondary text-center" role="alert">

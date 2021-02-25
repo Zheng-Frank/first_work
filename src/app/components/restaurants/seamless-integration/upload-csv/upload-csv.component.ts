@@ -3,10 +3,7 @@ import { ViewChild, ElementRef } from "@angular/core";
 import { ApiService } from "src/app/services/api.service";
 import { environment } from "src/environments/environment";
 import * as csvtojsonV2 from "csvtojson";
-import { DomSanitizer } from "@angular/platform-browser";
 import { saveAs } from "file-saver/FileSaver";
-
-// import ObjectsToCsv from "objects-to-csv";
 
 @Component({
   selector: "app-upload-csv",
@@ -35,9 +32,10 @@ export class UploadCsvComponent implements OnInit {
     console.log("VALUE ", val);
   }
 
-  constructor(private _api: ApiService, private sanitizer: DomSanitizer) {}
+  constructor(private _api: ApiService) {}
 
   ngOnInit() {
+    console.log("CURRENT POSTCARD VALUE ", this.designatePostcard);
     // console.log("INVALID FORMAT ", this.invalidFormat);
   }
   objectsToCSV(arr) {
@@ -71,6 +69,7 @@ export class UploadCsvComponent implements OnInit {
 
   designatePostcardFlag() {
     this.designatePostcard = !this.designatePostcard;
+    console.log("CURRENT POSTCARD VALUE ", this.designatePostcard);
     // // console.log(this.designatePostcard);
   }
 
@@ -78,7 +77,6 @@ export class UploadCsvComponent implements OnInit {
     this.restaurantInfo = [];
     this.fileList = null;
     this.currentlyUploading = false;
-    this.designatePostcard = false;
     this.showOutput = false;
     this.invalidFormat = false;
     this.myInputVariable.nativeElement.value = "";
@@ -91,7 +89,7 @@ export class UploadCsvComponent implements OnInit {
   addAttachment() {
     console.log("POSTCARD FLAG VALUE ", this.designatePostcard);
     this.currentlyUploading = true;
-
+    this.invalidFormat = false;
     let files = this.fileList;
     if (files && files.length > 0) {
       let file: File = files.item(0);
@@ -116,6 +114,7 @@ export class UploadCsvComponent implements OnInit {
         const importData = async () => {
           this.currentlyUploading = true;
           if (this.invalidFormat) {
+            this.currentlyUploading = false;
             return;
           }
           // this.processedLength = csvRows.length;
@@ -228,8 +227,10 @@ export class UploadCsvComponent implements OnInit {
         };
         try {
           await importData();
-          this.downloadFile(this.restaurantInfo);
-          this.reset();
+          if (!this.invalidFormat) {
+            this.downloadFile(this.restaurantInfo);
+            this.reset();
+          }
         } catch (e) {
           // console.log("import failed");
         }

@@ -2,7 +2,6 @@ import { Component, OnInit } from "@angular/core";
 import { ViewChild, ElementRef } from "@angular/core";
 import { environment } from "src/environments/environment";
 import { ApiService } from "src/app/services/api.service";
-import { SwPush } from "@angular/service-worker";
 
 @Component({
   selector: "app-seamless-integration",
@@ -38,16 +37,7 @@ export class SeamlessIntegrationComponent implements OnInit {
 
   @ViewChild("fileInput") myInputVariable: ElementRef;
 
-  constructor(private _api: ApiService, private swPush: SwPush) {
-    this.swPush
-      .requestSubscription({
-        serverPublicKey: this.VAPID_PUBLIC_KEY,
-      })
-      .then((sub) => console.log("SUB ", sub))
-      .catch((err) =>
-        console.error("Could not subscribe to notifications", err)
-      );
-  }
+  constructor(private _api: ApiService) {}
 
   // subscribeToNotifications() {
 
