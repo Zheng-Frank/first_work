@@ -130,12 +130,16 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     // console.log("this.keyIn.total"+this.keyIn.total);
     // console.log("this.qmenuCollected.total:"+this.qmenuCollected.total);
     // console.log("this.restaurantStripe.total"+this.restaurantStripe.total);
-    this.total.tip = this.Cash.tip + this.qmenuCollected.tip + this.restaurantStripe.tip + this.swipeInPerson.tip + this.keyIn.tip;
-    this.total.tax = this.Cash.tax + this.qmenuCollected.tax + this.restaurantStripe.tax + this.swipeInPerson.tax + this.keyIn.tax;
-    this.total.subtotal = this.Cash.subtotal + this.qmenuCollected.subtotal + this.restaurantStripe.subtotal
-      + this.swipeInPerson.subtotal + this.keyIn.subtotal;
-    this.total.total = this.Cash.total + this.qmenuCollected.total + this.restaurantStripe.total
-      + this.swipeInPerson.total + this.keyIn.total;
+    // this.total.tip = this.Cash.tip + this.qmenuCollected.tip + this.restaurantStripe.tip + this.swipeInPerson.tip + this.keyIn.tip;
+    // this.total.tax = this.Cash.tax + this.qmenuCollected.tax + this.restaurantStripe.tax + this.swipeInPerson.tax + this.keyIn.tax;
+    // this.total.subtotal = this.Cash.subtotal + this.qmenuCollected.subtotal + this.restaurantStripe.subtotal
+    //   + this.swipeInPerson.subtotal + this.keyIn.subtotal;
+    // this.total.total = this.Cash.total + this.qmenuCollected.total + this.restaurantStripe.total
+    //   + this.swipeInPerson.total + this.keyIn.total;
+    this.total.tip=this.invoice.tip;
+    this.total.tax=this.invoice.tax;
+    this.total.subtotal=this.invoice.subtotal;
+    this.total.total=this.invoice.total;
 
     this.invoice.orders.map(o => {
       this.orderTypes.add(o.type);

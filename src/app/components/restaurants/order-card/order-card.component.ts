@@ -98,9 +98,29 @@ export class OrderCardComponent implements OnInit {
   /**
    * this function is used to judge canceled order who submit
    */
-  isCanceledOrderStatusesSubmit(order: Order){
-    const status=order.orderStatuses.filter(statuses=>statuses.status=='SUBMITTED');
-    return status.length>0&&status[0].updatedBy=='BY_CUSTOMER';
+  whoCancelOrder(order: Order){
+    const status=order.orderStatuses.filter(statuses=>statuses.status=='CANCELED');
+    if(status.length>0){
+      return status[0].updatedBy;
+    }
+  }
+  getCancelOrderCSRName(order){
+    const status=order.orderStatuses.filter(statuses=>statuses.status=='CANCELED');
+    if(status.length>0){
+      return status[0].canceledCSRName;
+    }
+  }
+  /**
+   *this function is used to get order canceled time (who canceled the order)
+   *
+   * @param {*} order
+   * @memberof OrderCardComponent
+   */
+  getOrderCanceledTime(order){
+    const status=order.orderStatuses.filter(statuses=>statuses.status=='CANCELED');
+    if(status.length>0){
+      return status[0].createdAt;
+    }
   }
 
   canShowAdjust(order: Order) {

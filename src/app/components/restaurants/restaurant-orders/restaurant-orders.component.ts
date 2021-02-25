@@ -141,7 +141,7 @@ search(event) {
       }
      
     }
-    console.log(JSON.stringify(query))
+    // console.log(JSON.stringify(query))
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -153,6 +153,7 @@ search(event) {
       },
       limit: 50
     }).toPromise();
+    console.log(orders);
     // get blocked customers and assign back to each order blacklist reasons
     /**
      * orders.filter(function(){
