@@ -33,31 +33,33 @@
             <a
               class="dropdown-item"
               [ngClass]="{ active: currentCriteria === 'All' }"
-              (click)="showAll()"
+              (click)="renderRestaurants('All', this.currentLanguage)"
               >All</a
             >
             <a
               class="dropdown-item"
               [ngClass]="{ active: currentCriteria === 'Completed' }"
-              (click)="showCompleted()"
+              (click)="renderRestaurants('Completed', this.currentLanguage)"
               >Completed</a
             >
             <a
               class="dropdown-item"
               [ngClass]="{ active: currentCriteria === 'Progress' }"
-              (click)="showProgress()"
+              (click)="renderRestaurants('Progress', this.currentLanguage)"
               >Progress</a
             >
             <a
               class="dropdown-item"
               [ngClass]="{ active: currentCriteria === 'Unopened' }"
-              (click)="showUnopened()"
+              (click)="renderRestaurants('Unopened', this.currentLanguage)"
               >Unopened</a
             >
             <a
               class="dropdown-item"
               [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
-              (click)="showPostcardNotSent()"
+              (click)="
+                renderRestaurants('Postcard Not Sent', this.currentLanguage)
+              "
               >Postcard Not Sent</a
             >
           </span>
@@ -80,19 +82,19 @@
             <a
               class="dropdown-item"
               [ngClass]="{ active: currentLanguage === 'All' }"
-              (click)="showAll()"
+              (click)="renderRestaurants(currentCriteria, 'All')"
               >All</a
             >
             <a
               class="dropdown-item"
               [ngClass]="{ active: currentLanguage === 'English' }"
-              (click)="showEnglishRestaurants()"
+              (click)="renderRestaurants(currentCriteria, 'English')"
               >English</a
             >
             <a
               class="dropdown-item"
               [ngClass]="{ active: currentLanguage === 'Chinese' }"
-              (click)="showChineseRestaurants()"
+              (click)="renderRestaurants(currentCriteria, 'Chinese')"
               >Chinese</a
             >
           </span>

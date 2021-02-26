@@ -18,13 +18,12 @@ export class SeamlessIntegrationComponent implements OnInit {
   agentAnalytics;
   people = [];
   currentRestaurants = [];
-  allRestaurants: any;
+  allRestaurants: [];
   progressRestaurants;
   progressRestaurantIds: any;
   completedRestaurantsIds: string[];
   unopenedRestaurants: string[];
   unopenedRestaurantIds;
-  currentPagination: number = 1;
   seamlessEvents = [];
   lobEvents = [];
   currentCriteria: string = "All";
@@ -56,56 +55,48 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.currentLanguage = language;
   }
 
-  async showEnglishRestaurants() {
-    this.currentLanguage = "English";
-    this.currentCriteria = "All";
-
-    let englishRTs = [];
-    this.currentRestaurants = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: { selfSignup: { $exists: true } },
-        limit: 100000,
-      })
-      .toPromise();
-    for (let i = 0; i < this.currentRestaurants.length; i++) {
-      let res = this.currentRestaurants[i];
-      let lang = this.getLanguage(res._id)
-        ? this.getLanguage(res._id).toLowerCase()
-        : null;
-      console.log("LANG ", lang);
-
-      if (lang === "english") {
-        englishRTs.push(res);
-      }
+  async renderRestaurants(criteria, lang) {
+    this.currentCriteria = criteria;
+    this.currentLanguage = lang;
+    let restaurants;
+    switch (this.currentCriteria) {
+      case "Completed":
+        restaurants = this.showCompleted();
+        break;
+      case "Progress":
+        restaurants = this.showProgress();
+        break;
+      case "Postcard Not Sent":
+        restaurants = await this.showPostcardNotSent();
+        break;
+      case "Unopened":
+        restaurants = this.showUnopened();
+        break;
+      default:
+        restaurants = this.showAll();
+        break;
     }
-    this.currentRestaurants = englishRTs;
-    this.entriesLength = this.currentRestaurants.length;
-  }
 
-  async showChineseRestaurants() {
-    this.currentLanguage = "Chinese";
-    this.currentCriteria = "All";
+    console.log("RESTAUANTS AFTER ", restaurants);
 
-    this.currentRestaurants = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: { selfSignup: { $exists: true } },
-        limit: 100000,
-      })
-      .toPromise();
-    let chineseRTs = [];
-    for (let i = 0; i < this.currentRestaurants.length; i++) {
-      let res = this.currentRestaurants[i];
-      let lang = this.getLanguage(res._id)
-        ? this.getLanguage(res._id).toLowerCase()
-        : null;
-      if (lang === "chinese") {
-        chineseRTs.push(res);
+    if (this.currentLanguage != "All") {
+      let langRTs = [];
+      for (let i = 0; i < restaurants.length; i++) {
+        let res = restaurants[i];
+        let lang = this.getLanguage(res._id)
+          ? this.getLanguage(res._id).toLowerCase()
+          : null;
+        if (lang === this.currentLanguage.toLowerCase()) {
+          langRTs.push(res);
+        }
       }
+      this.currentRestaurants = langRTs;
+      this.entriesLength = this.currentRestaurants.length;
+    } else {
+      console.log("HERE language All! ", restaurants);
+      this.currentRestaurants = restaurants;
+      this.entriesLength = this.currentRestaurants.length;
     }
-    this.currentRestaurants = chineseRTs;
-    this.entriesLength = this.currentRestaurants.length;
   }
 
   getPostCardsToFire(id) {
@@ -124,7 +115,6 @@ export class SeamlessIntegrationComponent implements OnInit {
             (postcard) => postcard.restaurantId === restaurantId
           )
         ) {
-          // console.log("TRUE!");
           this.sendPostCards = this.sendPostCards.filter(
             (postcard) => postcard.restaurantId !== restaurantId
           );
@@ -180,22 +170,21 @@ export class SeamlessIntegrationComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      const selfSignupRestaurants = await this._api
+      this.allRestaurants = await this._api
         .get(environment.qmenuApiUrl + "generic", {
           resource: "restaurant",
           query: { selfSignup: { $exists: true } },
           limit: 100000,
         })
         .toPromise();
-      this.entriesLength = selfSignupRestaurants.length;
-      this.allRestaurants = selfSignupRestaurants;
-      this.allRestaurants.map((restaurant) => {
+      this.allRestaurants.map((restaurant: any) => {
         restaurant.showAnalytics = false;
         restaurant.showSendHistory = false;
         return restaurant;
       });
+      this.filterRestaurantsCriteria();
       // console.log(selfSignupRestaurants);
-      this.currentRestaurants = selfSignupRestaurants;
+      this.currentRestaurants = this.allRestaurants;
       this.currentRestaurants.map((restaurant) => {
         restaurant.showAnalytics = false;
         return restaurant;
@@ -206,14 +195,13 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
 
     try {
-      const events = await this._api
+      this.seamlessEvents = await this._api
         .get(environment.qmenuApiUrl + "generic", {
           resource: "analytics-event",
           query: { src: "self-signup" },
           limit: 100000,
         })
         .toPromise();
-      this.seamlessEvents = events;
       // // console.log("SEAMLESSEVENTS ", this.seamlessEvents);
 
       this.filterRestaurantsCriteria();
@@ -345,16 +333,6 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
-  setPreviousPagination() {
-    this.currentPagination += 1;
-  }
-  setNextPagination() {
-    this.currentPagination -= 1;
-  }
-  setPagination(num: number) {
-    this.currentPagination = num;
-  }
-
   toggleSendHistory(id) {
     // console.log("ID ", id);
     // console.log(this.currentRestaurants);
@@ -395,56 +373,32 @@ export class SeamlessIntegrationComponent implements OnInit {
   async reload() {
     this.ngOnInit();
     this.currentCriteria = "All";
-    this.currentPagination = 1;
   }
 
-  async showAll() {
-    this.currentLanguage = "All";
+  showAll() {
     this.currentCriteria = "All";
-    this.currentRestaurants = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: { selfSignup: { $exists: true } },
-        limit: 100000,
-      })
-      .toPromise();
-    this.currentPagination = 1;
-    this.entriesLength = this.currentRestaurants.length;
-    this.filterRestaurantsCriteria();
+    return this.allRestaurants;
   }
 
-  async showProgress() {
+  showProgress() {
     this.currentCriteria = "Progress";
-    this.currentLanguage = "All";
-
-    this.currentPagination = 1;
-    // // console.log("Progress RESTAURANT IDS", this.progressRestaurantIds);
-    this.currentRestaurants = this.allRestaurants.filter((restaurant) => {
+    let progressRestaurants = this.allRestaurants.filter((restaurant: any) => {
       return this.progressRestaurantIds.includes(restaurant._id);
     });
-    this.entriesLength = this.currentRestaurants.length;
+    console.log("PROGRESS ", progressRestaurants);
+    return progressRestaurants;
   }
   showCompleted() {
     this.currentCriteria = "Completed";
-    this.currentLanguage = "All";
-    this.currentPagination = 1;
-    // // console.log("COMPLETED RESTAURANT IDS", this.completedRestaurantsIds);
-    // console.log("HERE ");
-    this.currentRestaurants = this.allRestaurants.filter((restaurant) => {
+    return this.allRestaurants.filter((restaurant: any) => {
       return this.completedRestaurantsIds.includes(restaurant._id);
     });
-    this.entriesLength = this.currentRestaurants.length;
 
     // console.log("CURRENT COMPLETED RESTAURANTS", this.currentRestaurants);
   }
   showUnopened() {
-    this.currentCriteria = "Unopened";
-    this.currentLanguage = "All";
-
-    this.currentRestaurants = this.unopenedRestaurants;
-    this.entriesLength = this.currentRestaurants.length;
-
-    this.currentPagination = 1;
+    console.log("UNOPENED RESTAURANTS ", this.unopenedRestaurants);
+    return this.unopenedRestaurants;
     // analytics query of all analytics with restaurantId and
   }
 
@@ -453,7 +407,6 @@ export class SeamlessIntegrationComponent implements OnInit {
     let completedRestaurants = this.seamlessEvents.filter((analytic) => {
       return "formComplete" in analytic;
     });
-    // // console.log("COMPLETED RESTAURANTS", completedRestaurants);
     this.completedRestaurantsIds = completedRestaurants.map(
       (restaurant) => restaurant.restaurantId
     );
@@ -465,8 +418,6 @@ export class SeamlessIntegrationComponent implements OnInit {
       );
     });
 
-    // // console.log("PROGRESS RESTAURANTS", progressRestaurants);
-
     this.progressRestaurantIds = progressRestaurants.map((restaurant) => {
       return restaurant.restaurantId;
     });
@@ -477,20 +428,14 @@ export class SeamlessIntegrationComponent implements OnInit {
       this.completedRestaurantsIds
     );
 
-    this.unopenedRestaurants = this.currentRestaurants.filter((restaurant) => {
+    this.unopenedRestaurants = this.allRestaurants.filter((restaurant: any) => {
       return !progressAndCompleted.includes(restaurant._id);
     });
-
-    // console.log("PROGRESS RESTAURANT IDS", this.progressRestaurantIds);
-
-    // console.log("FILTERED RESTAURANTS", this.completedRestaurantsIds);
-
-    // Postcard sent restaurants
   }
 
   async showPostcardNotSent() {
     this.currentCriteria = "Postcard Not Sent";
-    const postcardNotSentRestaurants = await this._api
+    return await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "restaurant",
         query: {
@@ -501,9 +446,6 @@ export class SeamlessIntegrationComponent implements OnInit {
       })
       .toPromise();
     // console.log(postcardNotSentRestaurants);
-
-    this.currentRestaurants = postcardNotSentRestaurants;
-    this.entriesLength = this.currentRestaurants.length;
   }
 
   getAnalytics(id: string) {
