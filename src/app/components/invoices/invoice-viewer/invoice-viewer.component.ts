@@ -26,41 +26,47 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
 
   couriers = new Set();
   // Transaction breakdowns,a table to show order bill more briefly
-  Cash = {
+  Cash = { // 支付方式(payment way)
     tip: 0,
     tax: 0,
-    subtotal: 0,
-    total: 0
+    subtotal: 0, //食物花的钱
+    total: 0,
+    deliveryCharge:0
   };
   swipeInPerson = {
     tip: 0,
     tax: 0,
     subtotal: 0,
-    total: 0
+    total: 0,
+    deliveryCharge:0
   };
   keyIn = {
     tip: 0,
     tax: 0,
     subtotal: 0,
-    total: 0
+    total: 0,
+    deliveryCharge:0
   };
   restaurantStripe = {
     tip: 0,
     tax: 0,
     subtotal: 0,
-    total: 0
+    total: 0,
+    deliveryCharge:0
   };
   qmenuCollected = {
     tip: 0,
     tax: 0,
     subtotal: 0,
-    total: 0
+    total: 0,
+    deliveryCharge:0
   };
   total = {
     tip: 0,
     tax: 0,
     subtotal: 0,
-    total: 0
+    total: 0,
+    deliveryCharge:0
   };
   constructor(private _ref: ChangeDetectorRef) { }
 
@@ -87,13 +93,13 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     const valid_order = this.invoice.orders.filter(o => !o.canceled);
     valid_order.forEach(io => {
       // console.log("io" + JSON.stringify(io));
-
       if (io.paymentType == "CASH") {
         // console.log("io.paymentType == CASH: " + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
         this.Cash.tip += (io.tip == null || io.tip == undefined ? 0 : io.tip);
         this.Cash.tax += (io.tax == null || io.tax == undefined ? 0 :Math.round(io.tax*100)/100);
         this.Cash.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
         this.Cash.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
+        this.Cash.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
         console.log("io.paymentType == CASH: "+this.Cash.tax);
       } else if (io.paymentType == 'CREDITCARD') {
         if (io.creditCardProcessingMethod == 'IN_PERSON') {//SWIPE
@@ -102,6 +108,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.swipeInPerson.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax*100)/100);
           this.swipeInPerson.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.swipeInPerson.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100 );
+          this.swipeInPerson.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
           console.log("io.paymentType == IN_PERSON: "+this.swipeInPerson.tax);
         }
         if (io.creditCardProcessingMethod == 'KEY_IN') {
@@ -110,6 +117,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.keyIn.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax*100)/100);
           this.keyIn.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.keyIn.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
+          this.keyIn.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
           console.log("io.paymentType == KEY_IN: "+this.keyIn.tax);
         }
         if (io.creditCardProcessingMethod == "QMENU") {
@@ -118,6 +126,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.qmenuCollected.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax*100)/100);
           this.qmenuCollected.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.qmenuCollected.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
+          this.qmenuCollected.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
           console.log("io.paymentType == QMENU: "+this.qmenuCollected.tax);
         }
         if (io.creditCardProcessingMethod == "STRIPE") {
@@ -126,6 +135,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.restaurantStripe.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax*100)/100);
           this.restaurantStripe.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.restaurantStripe.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
+          this.restaurantStripe.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
           console.log("io.paymentType == STRIPE: "+this.restaurantStripe.tax);
         }
       }
@@ -146,7 +156,9 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     this.total.tax=this.invoice.tax;
     this.total.subtotal=this.invoice.subtotal;
     this.total.total=this.invoice.total;
-
+    this.total.deliveryCharge=this.Cash.deliveryCharge + this.qmenuCollected.deliveryCharge + this.restaurantStripe.deliveryCharge
+      + this.swipeInPerson.deliveryCharge + this.keyIn.deliveryCharge;
+    console.log("this.total.deliveryCharge:"+this.total.deliveryCharge);
     this.invoice.orders.map(o => {
       this.orderTypes.add(o.type);
       this.orderPaymentMethods.add(o.paymentType); //only CASH or CREDITCARD
