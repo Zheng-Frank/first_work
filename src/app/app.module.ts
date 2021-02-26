@@ -202,6 +202,11 @@ import { Form1099KComponent } from './components/restaurants/restaurant-form1099
 import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 import { SchemasComponent } from './components/system/schemas/schemas.component';
+import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
+import { UploadCsvComponent } from "./components/restaurants/seamless-integration/upload-csv/upload-csv.component";
+import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
+import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
+
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -377,7 +382,11 @@ import { SchemasComponent } from './components/system/schemas/schemas.component'
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
-    SchemasComponent
+    SchemasComponent,
+    SeamlessIntegrationComponent,
+    UploadCsvComponent,
+    AddOneRtComponent,
+    SendPostcardComponent,
   ],
   imports: [
     BrowserModule,

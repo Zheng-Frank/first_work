@@ -2,30 +2,65 @@
 <!-- <app-restaurant-menu-shuffler [restaurant1]="fakeRestaurant1"  [restaurant2]="fakeRestaurant2"></app-restaurant-menu-shuffler> -->
 <div class="text-right mb-2">
   <div class="pb-2">
-    <button class="btn btn-link pr-0 mr-3" (click)="navigateTo('/postmates-list')"><i class="fas fa-truck"></i> Delivery by Postmates</button>
-    <button class="btn btn-link pr-0" (click)="navigateTo('/chains')"><i class="fas fa-archway"></i> Restaurant Chains</button>
-    <button class="btn btn-link pr-0" (click)="navigateTo('/invalid-list')"><i class="fas fa-exclamation-triangle"></i> Invalid Restaurants</button>
-    <button class="btn btn-link pr-0" (click)="navigateTo('/temporarily-disabled')"><i class="fas fa-utensils"></i> Temporarily Disabled Restaurants</button>
-    <br>
-    <button class="btn btn-primary" (click)="setAction('NEW')" *ngIf="isButtonVisible('NEW')">
-      <i class="fas fa-plus"></i> Add New Restaurant</button>
+    <button
+      class="btn btn-link pr-0 mr-3"
+      (click)="navigateTo('/postmates-list')"
+    >
+      <i class="fas fa-truck"></i> Delivery by Postmates
+    </button>
+    <button class="btn btn-link pr-0" (click)="navigateTo('/chains')">
+      <i class="fas fa-archway"></i> Restaurant Chains
+    </button>
+    <button class="btn btn-link pr-0" (click)="navigateTo('/invalid-list')">
+      <i class="fas fa-exclamation-triangle"></i> Invalid Restaurants
+    </button>
+    <button
+      class="btn btn-link pr-0"
+      (click)="navigateTo('/temporarily-disabled')"
+    >
+      <i class="fas fa-utensils"></i> Temporarily Disabled Restaurants
+    </button>
+    <button
+      class="btn btn-link pr-0"
+      (click)="navigateTo('/seamless-integration')"
+    >
+      <i class="fas fa-globe"></i> New Signups
+    </button>
+    <br />
+    <button
+      class="btn btn-primary"
+      (click)="setAction('NEW')"
+      *ngIf="isButtonVisible('NEW')"
+    >
+      <i class="fas fa-plus"></i> Add New Restaurant
+    </button>
     <!-- <button class="btn btn-info" (click)="setAction('CRAWL')" *ngIf="isButtonVisible('CRAWL')">
       <i class="fas fa-download"></i> Crawl Restaurant Data</button> -->
-    <button class="btn btn-danger" (click)="setAction('REMOVE')" *ngIf="isButtonVisible('REMOVE')">
-      <i class="fas fa-times"></i> Delete Restaurant</button>
+    <button
+      class="btn btn-danger"
+      (click)="setAction('REMOVE')"
+      *ngIf="isButtonVisible('REMOVE')"
+    >
+      <i class="fas fa-times"></i> Delete Restaurant
+    </button>
   </div>
 
   <div class="card text-left bg-light" *qIf="currentAction === 'NEW'">
     <div class="card-body">
       <h5 class="card-title">Create New Restaurant</h5>
-      <app-new-restaurant (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()"></app-new-restaurant>
+      <app-new-restaurant
+        (success)="onSuccessCreation($event)"
+        (cancel)="onCancelCreation()"
+      ></app-new-restaurant>
     </div>
   </div>
 
   <div class="card text-left bg-light" *qIf="currentAction === 'CRAWL'">
     <div class="card-body">
       <h5 class="card-title">Crawl Restaurant</h5>
-      <app-restaurant-crawler (restaurantCreate)="onSuccessCreation($event)"></app-restaurant-crawler>
+      <app-restaurant-crawler
+        (restaurantCreate)="onSuccessCreation($event)"
+      ></app-restaurant-crawler>
     </div>
   </div>
 
@@ -34,11 +69,28 @@
       <h5 class="card-title">Remove Restaurant</h5>
       <div class="form-group">
         <label for="formGroupExampleInput">Restaurant ID</label>
-        <input type="text" class="form-control" placeholder="Restaurant ID" [(ngModel)]="removeId">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Restaurant ID"
+          [(ngModel)]="removeId"
+        />
       </div>
       <div class="text-right mt-4">
-        <button class="btn btn-secondary" (click)="currentAction = null" [disabled]="requesting">Cancel</button>
-        <button class="btn btn-primary" (click)="removeRestaurant()" [qLoading]="requesting">Delete Restaurant</button>
+        <button
+          class="btn btn-secondary"
+          (click)="currentAction = null"
+          [disabled]="requesting"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="removeRestaurant()"
+          [qLoading]="requesting"
+        >
+          Delete Restaurant
+        </button>
       </div>
     </div>
   </div>
@@ -46,7 +98,11 @@
 <div class="card">
   <div class="card-body">
     <label>Search Restaurant:</label>
-    <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurantList" (select)="selectRestaurant($event)">
+    <q-restaurant-picker
+      #myRestaurantPicker
+      [restaurants]="restaurantList"
+      (select)="selectRestaurant($event)"
+    >
     </q-restaurant-picker>
   </div>
 </div>
