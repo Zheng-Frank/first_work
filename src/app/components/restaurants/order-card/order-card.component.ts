@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
@@ -9,8 +10,10 @@ declare var $: any;
 @Component({
   selector: 'app-order-card',
   templateUrl: './order-card.component.html',
-  styleUrls: ['./order-card.component.css']
+  styleUrls: ['./order-card.component.css'],
+  providers: [DatePipe]
 })
+
 export class OrderCardComponent implements OnInit {
   @Input() order: Order;
   @Input() restaurant: Restaurant;
@@ -32,7 +35,7 @@ export class OrderCardComponent implements OnInit {
   phoneNumberToText;
   showTexting: boolean = false;
   displayingDeliveryDetails = false;
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService,private datePipe: DatePipe) {
   }
 
   ngOnInit() {
@@ -90,6 +93,34 @@ export class OrderCardComponent implements OnInit {
     // status are not completed, not canceled, and time is not over 3 days
     // if admin and not qmenu collect
     return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000)) || (this.isAdmin() && order.payment.method !== 'QMENU');
+  }
+
+  /**
+   * this function is used to judge canceled order who submit
+   */
+  whoCancelOrder(order: Order){
+    const status=order.orderStatuses.filter(statuses=>statuses.status=='CANCELED');
+    if(status.length>0){
+      return status[0].updatedBy;
+    }
+  }
+  getCancelOrderCSRName(order){
+    const status=order.orderStatuses.filter(statuses=>statuses.status=='CANCELED');
+    if(status.length>0){
+      return status[0].canceledCSRName;
+    }
+  }
+  /**
+   *this function is used to get order canceled time (who canceled the order)
+   *
+   * @param {*} order
+   * @memberof OrderCardComponent
+   */
+  getOrderCanceledTime(order){
+    const status=order.orderStatuses.filter(statuses=>statuses.status=='CANCELED');
+    if(status.length>0){
+      return status[0].createdAt;
+    }
   }
 
   canShowAdjust(order: Order) {

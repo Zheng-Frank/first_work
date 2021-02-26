@@ -23,7 +23,10 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   editing: boolean = false;
   address: Address;
   apt: string;
-
+  ifShowBasicInformation:boolean=true; //using stretching transformation at  the restaurant profile setting edit page
+  ifShowPreferences:boolean=false;
+  ifShowFee_MinimumSettings:boolean=false;
+  ifShowOtherPreferences:boolean=false;
   fields = [
     'name',
     'email',
@@ -218,6 +221,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   cancel() {
+    this.ifShowBasicInformation=true;
     this.editing = false;
   }
 
