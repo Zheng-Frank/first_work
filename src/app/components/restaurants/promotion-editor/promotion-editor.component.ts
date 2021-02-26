@@ -99,6 +99,10 @@ export class PromotionEditorComponent implements OnInit {
       return false;
     }
 
+    if (!this.validatePromotionNumbers()) {
+      return false;
+    }
+
     return this.promotion.name;
   }
 
@@ -230,7 +234,7 @@ export class PromotionEditorComponent implements OnInit {
     if (this.selected[listName].menu) {
       this.promotion[listName] = [...this.promotion[listName] || [], newEntry];
     }
-    console.log(this.promotion[listName]);
+    console.log(this.suggestPromotionTitle());
     this.selected[listName] = {};
   }
 
@@ -244,31 +248,54 @@ export class PromotionEditorComponent implements OnInit {
     this.withOrderFromList = [];
   }
 
+  validatePromotionNumbers() {
+    if (this.promotionType === '$ Discount') {
+      if (this.promotion.amount > this.promotion.orderMinimum) {
+        return false;
+      }
+    }
+
+    if (this.promotionType === '% Discount') {
+      if (this.promotion.percentage >= 90 || this.promotion.percentage < 0 || this.promotion.percentage % 1 !== 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   suggestPromotionTitle() {
     let suggestedTitle;
     if (this.promotion.name) {
       return null;
+    } else if (!this.validatePromotionNumbers()) {
+      return null;
     }
+    const dollar = "Order Minimum ($)";
+    const select = "Order of Select Item(s)";
     if (this.promotionType === '$ Discount') {
-      if (this.promotion.amount && this.promotion.orderMinimum && this.withOrderFromList) {
-        suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min order of select items`
-      } else if (this.promotion.amount && this.promotion.orderMinimum) {
+      if (this.promotion.amount && this.eligibility === select && (this.promotion.withOrderFromList || []).length) {
+        suggestedTitle = `$${this.promotion.amount} off with order of certain menu items`;
+      } else if (this.promotion.amount && this.promotion.orderMinimum && this.eligibility === dollar) {
         suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min order`
       }
     } else if (this.promotionType === '% Discount') {
-      if (this.promotion.percentage && this.promotion.orderMinimum && this.withOrderFromList) {
-        suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order of select items`
-      } else if (this.promotion.percentage && this.promotion.orderMinimum) {
-        suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order`
+      if (this.promotion.percentage && this.eligibility === select && (this.promotion.withOrderFromList || []).length) {
+        suggestedTitle = `${this.promotion.percentage}% off with purchase of certain menu items`
+      } else if (this.promotion.percentage && this.eligibility === dollar && this.promotion.orderMinimum) {
+        suggestedTitle = `${this.promotion.percentage}% off with $${this.promotion.orderMinimum} min order`
       }
     } else if (this.promotionType === "Free Item") {
-      if (this.promotion.percentage && this.promotion.orderMinimum && this.withOrderFromList) {
-        suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order of select items`
-      } else if (this.promotion.percentage && this.promotion.orderMinimum) {
-        suggestedTitle = `${this.promotion.amount}% off with $${this.promotion.orderMinimum} min order`
+      if ((this.promotion.freeItemName || (this.promotion.freeItemList || []).length) && (this.promotion.withOrderFromList || []).length && this.eligibility === select) {
+        suggestedTitle = `Free Item with purchase of select menu items`
+      } else if ((this.promotion.freeItemName || (this.promotion.freeItemList || []).length) && this.promotion.orderMinimum && this.eligibility === dollar) {
+        suggestedTitle = `Free Item with $${this.promotion.orderMinimum} min order`
       }
     }
     return suggestedTitle;
+  }
+
+  useSuggestedTitle() {
+    this.promotion.name = this.suggestPromotionTitle();
   }
 
 }

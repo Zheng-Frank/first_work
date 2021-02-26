@@ -3,6 +3,7 @@
   <div class="{{promotion.name ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.name" placeholder="eg. $5 off $50">
   </div>
+  <div *qIf="suggestPromotionTitle()">Suggested Title: <button type="button" class="btn btn-link" (click)="useSuggestedTitle()">{{suggestPromotionTitle()}}</button></div>
   <label class="mt-1">Code:</label>
   <div class="{{promotion.code ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.code" placeholder="eg. spring5">
@@ -19,24 +20,26 @@
   </div>
 
   <div *qIf="promotionType === '$ Discount'">
-    <label class="mt-1">Fixed Amount ($):</label><span *ngIf="promotion.amount > promotion.orderMinimum"> ERROR Amount
-      cannot exceed dollar minimum</span>
+    <label class="mt-1">Fixed Amount ($):</label>
+    <div *qIf="promotion.amount > promotion.orderMinimum" class="text-danger font-weight-bold"> Error: Promotion amount
+      cannot exceed minimum order amount</div>
     <div>
       <input type="tel" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
     </div>
   </div>
 
   <div *qIf="promotionType === '% Discount'">
-    <label class="mt-1">Percentage Discount(%):</label><span
-      *ngIf="promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0"> ERROR Invalid
-      percentage</span>
+    <label class="mt-1">Percentage Discount(%):</label>
+    <div *qIf="promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0" class="text-danger font-weight-bold"> Error: Invalid
+      percentage</div>
     <div>
       <input type="tel" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
     </div>
 
     <label class="mt-1">Applicable items:</label>
     <div>
-      Add entries to this list and discount will only be applied to items, menus, or categories in the list. Leave the list blank and discount will
+      Add entries to this list and discount will only be applied to items, menus, or categories in the list. Leave the
+      list blank and discount will
       be applied to entire order.
     </div>
     <div *ngFor="let menu of (promotion.percentDiscountList || []); let menuIndex = index">
