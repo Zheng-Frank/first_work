@@ -1,0 +1,33 @@
+<div class="card mt-2">
+  <h5 class="card-header">{{name}}</h5>
+  <div>{{description}}</div>
+  <div class="card-body">
+    <table>
+      <tr *ngIf="inputs && inputs.length > 0">
+        <th>Inputs</th>
+        <td>
+          <span *ngFor="let input of (inputs ||[])">{{input}} </span>
+        </td>
+      </tr>
+      <tr *ngIf="outputs && outputs.length > 0">
+        <th>Outputs</th>
+        <td>
+          <span *ngFor="let output of (outputs ||[])">{{output}} </span>
+        </td>
+      </tr>
+      <tr *ngIf="methods && methods.length > 0">
+        <th>Methods</th>
+        <td>
+          <span *ngFor="let method of (methods ||[])">{{method}} </span>
+        </td>
+      </tr>
+      <tr *ngIf="fields && fields.length > 0">
+        <th>Fields</th>
+        <td>
+          <span *ngFor="let field of (fields ||[])">{{field}} </span>
+        </td>
+      </tr>
+    </table>
+    <ng-content></ng-content>
+  </div>
+</div>
