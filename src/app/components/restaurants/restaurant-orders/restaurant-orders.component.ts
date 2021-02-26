@@ -79,11 +79,20 @@ export class RestaurantOrdersComponent implements OnInit {
    */
   async doSearchOrderByTime(from,to){
     // console.log("from time:"+from+","+typeof from+" to time:"+to+","+typeof to);
-    let f=new Date(from);
-    let t=new Date(to);
+    if(from==undefined){
+      return alert("please input a correct from time date format!");
+    }
+    if(to==undefined){
+      return alert("please input a correct to time date format !");
+    }
+    let tostr=to.split('-');
+    tostr[2]=(parseInt(tostr[2])+1)+"";//enlarge the day range to get correct timezone
+    to=tostr.join('-');
+    const f = new Date(from.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    const t=new Date(to.toLocaleString('en-US',{timeZone:this.restaurant.googleAddress.timezone}));
     // console.log("from :"+f+"to :"+t);
     if(f>t){
-      return alert("please input a correct format date!");
+      return alert("please input a correct date format,from time is less than or equals to time!");
     }
     const query = {
       restaurant: {
@@ -91,11 +100,11 @@ export class RestaurantOrdersComponent implements OnInit {
       },
       $and:[{
         createdAt: {
-          $gte: { $date: from }
+          $gte: { $date: f }
         } // less than and greater than
       },{
         createdAt:{
-          $lte:{$date:to}
+          $lte:{$date:t}
         }
       }
     ]
