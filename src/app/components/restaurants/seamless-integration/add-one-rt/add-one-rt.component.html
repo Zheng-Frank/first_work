@@ -37,25 +37,21 @@
               (change)="updateId($event.target.value)"
             />
             <div class="container-fluid">
-              <div class="send-postcard-options">
-                <div>
-                  <div class="send-postcard-options-left-content">
-                    <div>
-                      <span>
-                        <input
-                          type="checkbox"
-                          class="form-check-input"
-                          [checked]="getSinglePostcard()"
-                          id="send-postcard-checkbox"
-                          (click)="toggleSendSinglePostcard()"
-                        />
-                        <label
-                          class="form-check-label"
-                          for="send-postcard-checkbox"
-                          >Send Postcard Added Restaurant</label
-                        >
-                      </span>
-                    </div>
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col-sm-6">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      [checked]="getSinglePostcard()"
+                      id="send-postcard-checkbox"
+                      (click)="toggleSendSinglePostcard()"
+                    />
+                    <label class="form-check-label" for="send-postcard-checkbox"
+                      >Send Postcard Added Restaurant</label
+                    >
+                  </div>
+                  <div class="col-sm-6">
                     <span class="dropdown">
                       <b>Style: &nbsp; </b>
                       <button

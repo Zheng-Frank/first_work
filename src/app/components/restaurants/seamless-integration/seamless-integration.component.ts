@@ -18,7 +18,7 @@ export class SeamlessIntegrationComponent implements OnInit {
   agentAnalytics;
   people = [];
   currentRestaurants = [];
-  allRestaurants: [];
+  allRestaurants: any[];
   progressRestaurants;
   progressRestaurantIds: any;
   completedRestaurantsIds: string[];
@@ -185,6 +185,7 @@ export class SeamlessIntegrationComponent implements OnInit {
       this.filterRestaurantsCriteria();
       // console.log(selfSignupRestaurants);
       this.currentRestaurants = this.allRestaurants;
+      this.entriesLength = this.currentRestaurants.length;
       this.currentRestaurants.map((restaurant) => {
         restaurant.showAnalytics = false;
         return restaurant;
