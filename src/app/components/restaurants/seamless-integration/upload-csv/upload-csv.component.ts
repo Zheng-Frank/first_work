@@ -76,6 +76,7 @@ export class UploadCsvComponent implements OnInit {
   reset() {
     this.restaurantInfo = [];
     this.fileList = null;
+    this.designatePostcard = false;
     this.currentlyUploading = false;
     this.showOutput = false;
     this.invalidFormat = false;
