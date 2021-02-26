@@ -100,7 +100,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
         this.Cash.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
         this.Cash.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
         this.Cash.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
-        console.log("io.paymentType == CASH: "+this.Cash.tax);
+        // console.log("io.paymentType == CASH: "+this.Cash.tax);
       } else if (io.paymentType == 'CREDITCARD') {
         if (io.creditCardProcessingMethod == 'IN_PERSON') {//SWIPE
           // console.log("io.creditCardProcessingMethod==SWIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
@@ -109,7 +109,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.swipeInPerson.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.swipeInPerson.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100 );
           this.swipeInPerson.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
-          console.log("io.paymentType == IN_PERSON: "+this.swipeInPerson.tax);
+          // console.log("io.paymentType == IN_PERSON: "+this.swipeInPerson.tax);
         }
         if (io.creditCardProcessingMethod == 'KEY_IN') {
           // console.log("io.creditCardProcessingMethod==KEY_IN:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
@@ -118,7 +118,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.keyIn.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.keyIn.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
           this.keyIn.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
-          console.log("io.paymentType == KEY_IN: "+this.keyIn.tax);
+          // console.log("io.paymentType == KEY_IN: "+this.keyIn.tax);
         }
         if (io.creditCardProcessingMethod == "QMENU") {
           // console.log("io.creditCardProcessingMethod == 'QMENU':" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
@@ -127,7 +127,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.qmenuCollected.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.qmenuCollected.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
           this.qmenuCollected.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
-          console.log("io.paymentType == QMENU: "+this.qmenuCollected.tax);
+          // console.log("io.paymentType == QMENU: "+this.qmenuCollected.tax);
         }
         if (io.creditCardProcessingMethod == "STRIPE") {
           // console.log("io.creditCardProcessingMethod == STRIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
@@ -136,7 +136,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           this.restaurantStripe.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.restaurantStripe.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total*100)/100);
           this.restaurantStripe.deliveryCharge+=(io.deliveryCharge==null||io.deliveryCharge==undefined?0:io.deliveryCharge);
-          console.log("io.paymentType == STRIPE: "+this.restaurantStripe.tax);
+          // console.log("io.paymentType == STRIPE: "+this.restaurantStripe.tax);
         }
       }
 
@@ -158,7 +158,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     this.total.total=this.invoice.total;
     this.total.deliveryCharge=this.Cash.deliveryCharge + this.qmenuCollected.deliveryCharge + this.restaurantStripe.deliveryCharge
       + this.swipeInPerson.deliveryCharge + this.keyIn.deliveryCharge;
-    console.log("this.total.deliveryCharge:"+this.total.deliveryCharge);
+    // console.log("this.total.deliveryCharge:"+this.total.deliveryCharge);
     this.invoice.orders.map(o => {
       this.orderTypes.add(o.type);
       this.orderPaymentMethods.add(o.paymentType); //only CASH or CREDITCARD
