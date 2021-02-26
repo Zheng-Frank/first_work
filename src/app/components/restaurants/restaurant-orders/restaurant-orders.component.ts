@@ -66,7 +66,7 @@ export class RestaurantOrdersComponent implements OnInit {
    *cancel the advanced date search
    * @memberof RestaurantOrdersComponent
    */
-  cacelDoSearchOrderByTime(){
+  cancelDoSearchOrderByTime(){
     this.showAdvancedSearch=false;
     this.populateOrders();
   }
