@@ -85,6 +85,9 @@ export class RestaurantOrdersComponent implements OnInit {
     if(to==undefined){
       return alert("please input a correct to time date format !");
     }
+    let fromstr=from.split('-');
+    fromstr[2]=(parseInt(fromstr[2])+1)+"";
+    from=fromstr.join('-');
     let tostr=to.split('-');
     tostr[2]=(parseInt(tostr[2])+1)+"";//enlarge the day range to get correct timezone
     to=tostr.join('-');
