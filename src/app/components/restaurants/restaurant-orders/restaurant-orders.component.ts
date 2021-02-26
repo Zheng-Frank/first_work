@@ -78,7 +78,7 @@ export class RestaurantOrdersComponent implements OnInit {
    * @memberof RestaurantOrdersComponent
    */
   async doSearchOrderByTime(from,to){
-    // console.log("from time:"+from+","+typeof from+" to time:"+to+","+typeof to);
+    console.log("from time:"+from+","+typeof from+" to time:"+to+","+typeof to);
     if(from==undefined){
       return alert("please input a correct from time date format!");
     }
@@ -93,7 +93,7 @@ export class RestaurantOrdersComponent implements OnInit {
     to=tostr.join('-');
     const f = new Date(from.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
     const t=new Date(to.toLocaleString('en-US',{timeZone:this.restaurant.googleAddress.timezone}));
-    // console.log("from :"+f+"to :"+t);
+    console.log("from :"+f+"to :"+t);
     if(f>t){
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
