@@ -1,0 +1,14 @@
+td {
+    text-align: left;
+    padding: 0.5rem;
+}
+
+td span{
+    border: 1px solid lightgray;
+    margin-left: 2rem;
+    padding: 2px;
+}
+
+.card {
+    overflow: hidden;
+}
