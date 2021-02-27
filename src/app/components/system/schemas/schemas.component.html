@@ -7,7 +7,7 @@
     <div class="form-inline form-group d-flex justify-content-center">
       <!-- form-group class name used to margin some distance of its bottom -->
       <!-- Select a collection to view its all json structure. -->
-      <label class="ml-5">View its all json schemas:</label>
+      <label class="ml-5">Select a JSON schema:</label>
       <select class="form-control col-3 ml-5" [(ngModel)]="currentDbName" (change)="changeCollectionView()">
         <option *ngFor="let s of schemas" [value]="s.dbName">{{s.dbName}}</option>
       </select>
