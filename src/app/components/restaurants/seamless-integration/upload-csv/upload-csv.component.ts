@@ -125,6 +125,10 @@ export class UploadCsvComponent implements OnInit {
             let restaurantName = row[0];
             let restaurantAddress = row[1];
             let postcardStyle = row[2];
+
+            if (!restaurantName || !restaurantAddress) {
+              continue;
+            }
             let processedStatus = "FAILED";
             let alreadyWorkWithUs = "FALSE";
             let postcardSentStatus = "FAILED";
