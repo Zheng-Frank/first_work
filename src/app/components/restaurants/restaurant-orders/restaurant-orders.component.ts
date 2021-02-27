@@ -13,6 +13,7 @@ import { AlertType } from '../../../classes/alert-type';
 import { OrderItem } from "@qmenu/ui";
 import { GlobalService } from 'src/app/services/global.service';
 import { Key } from 'protractor';
+import { TimezoneHelper } from 'src/app/classes/timezone-helper';
 
 declare var $: any;
 declare var io: any;
@@ -48,8 +49,8 @@ export class RestaurantOrdersComponent implements OnInit {
   undoOrder: any;
   isPostmatesStatusDelivered = false;
   searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID'];
-  type='Order Number';//  concrete search type
-  showAdvancedSearch:boolean=false;//show advanced Search ,time picker ,search a period time of orders.
+  type = 'Order Number';//  concrete search type
+  showAdvancedSearch: boolean = false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
   toDate;
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
@@ -66,9 +67,23 @@ export class RestaurantOrdersComponent implements OnInit {
    *cancel the advanced date search
    * @memberof RestaurantOrdersComponent
    */
-  cancelDoSearchOrderByTime(){
-    this.showAdvancedSearch=false;
+  cancelDoSearchOrderByTime() {
+    this.showAdvancedSearch = false;
     this.populateOrders();
+  }
+  GetTimeFromTimeZone(searchdate,timeZone) {
+    var lDate = new Date(searchdate);
+    var localTime = lDate.getTime();
+    var localOffset = lDate.getTimezoneOffset() * 60000; //本地和0时区的偏移
+    var utc = localTime + localOffset; //得到0时区时间
+    var placeTime = utc + (3600000 * timeZone); //当地时间
+    var pdate = new Date(placeTime);
+   
+    return pdate.toLocaleString();
+  }
+  getTransformedDate (dateString,timezone){
+    const [year, month, date] = dateString.split('-');
+    return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone);
   }
   /**
    *
@@ -77,42 +92,46 @@ export class RestaurantOrdersComponent implements OnInit {
    * @param {*} to
    * @memberof RestaurantOrdersComponent
    */
-  async doSearchOrderByTime(from,to){
-    console.log("from time:"+from+","+typeof from+" to time:"+to+","+typeof to);
-    if(from==undefined){
+  async doSearchOrderByTime(from, to) {
+    console.log("from time:" + from + "," + typeof from + " to time:" + to + "," + typeof to);
+    if (from == undefined) {
       return alert("please input a correct from time date format!");
     }
-    if(to==undefined){
+    if (to == undefined) {
       return alert("please input a correct to time date format !");
     }
-    let fromstr=from.split('-');
-    fromstr[2]=(parseInt(fromstr[2])+1)+"";
-    from=fromstr.join('-');
-    let tostr=to.split('-');
-    tostr[2]=(parseInt(tostr[2])+1)+"";//enlarge the day range to get correct timezone
-    to=tostr.join('-');
-    const f = new Date(from.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    const t=new Date(to.toLocaleString('en-US',{timeZone:this.restaurant.googleAddress.timezone}));
-    console.log("from :"+f+"to :"+t);
-    if(f>t){
+    // let f=this.GetTimeFromTimeZone(from,this.restaurant.googleAddress.timezone);
+    // let t=this.GetTimeFromTimeZone(to,this.restaurant.googleAddress.timezone);
+    // let fromstr = from.split('-');
+    // fromstr[2] = (parseInt(fromstr[2]) + 1) + "";
+    // from = fromstr.join('-');
+    // let tostr = to.split('-');
+    // tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
+    // to = tostr.join('-');
+    // const f = new Date(from.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    // const t = new Date(to.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    const f=this.getTransformedDate(from,this.restaurant.googleAddress.timezone);
+    const t=this.getTransformedDate(to,this.restaurant.googleAddress.timezone);
+    console.log("from :" + f + "to :" + t);
+    if (f > t) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
     const query = {
       restaurant: {
         $oid: this.restaurant._id
       },
-      $and:[{
+      $and: [{
         createdAt: {
           $gte: { $date: f }
         } // less than and greater than
-      },{
-        createdAt:{
-          $lte:{$date:t}
+      }, {
+        createdAt: {
+          $lte: { $date: t }
         }
       }
-    ]
+      ]
     } as any;
-   // ISO-Date()
+    // ISO-Date()
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -144,11 +163,11 @@ export class RestaurantOrdersComponent implements OnInit {
         createAt: 1
       }
     }).toPromise();
-    
+
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.orderNumber=order.orderNumber;
+      order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
       order.orderStatuses = order.statuses;
@@ -187,13 +206,13 @@ export class RestaurantOrdersComponent implements OnInit {
       this.maxCount++;
     }
   }
-/**
- * this function is used to search order by order number ,phone,customer
- *
- * @param {*} event
- * @memberof RestaurantOrdersComponent
- */
-search(event) {
+  /**
+   * this function is used to search order by order number ,phone,customer
+   *
+   * @param {*} event
+   * @memberof RestaurantOrdersComponent
+   */
+  search(event) {
     let regexp = /^[0-9]{3,4}$/;
     // if(!this.searchText){
     //   this.populateOrders();
@@ -204,9 +223,9 @@ search(event) {
     // }else if(this.type == 'Customer Phone'){
     //   this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
     // }
-  this.populateOrders();
+    this.populateOrders();
   }
- 
+
   /**
      *
      * @memberof RestaurantOrdersComponent
@@ -219,30 +238,30 @@ search(event) {
     } as any;
 
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
-    if(!this.searchText){
+    if (!this.searchText) {
 
-    }else if(this.type == 'Order Number'&&this.searchText && regexp.test(this.searchText)){
+    } else if (this.type == 'Order Number' && this.searchText && regexp.test(this.searchText)) {
       query.orderNumber = +this.searchText;
-    }else if(this.type == 'Postmates ID'&&this.searchText){
-      query['delivery.id']={
-        $regex:this.searchText
+    } else if (this.type == 'Postmates ID' && this.searchText) {
+      query['delivery.id'] = {
+        $regex: this.searchText
       }
-    }else if(this.type == 'Customer Phone'&&this.searchText){
-      if(this.searchText.indexOf('-')!=-1){ //to make  it support query order with phone number using - to split
-        let str_arr=this.searchText.split('-');
-        let queryStr='';
-        str_arr.forEach(function(s){
-          queryStr+=s
+    } else if (this.type == 'Customer Phone' && this.searchText) {
+      if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
+        let str_arr = this.searchText.split('-');
+        let queryStr = '';
+        str_arr.forEach(function (s) {
+          queryStr += s
         });
-        query['customerObj.phone']={
-          $regex:queryStr
+        query['customerObj.phone'] = {
+          $regex: queryStr
         }
-      }else{ //the situation of the phone number don't have '-'  
-        query['customerObj.phone']={
-          $regex:this.searchText
+      } else { //the situation of the phone number don't have '-'  
+        query['customerObj.phone'] = {
+          $regex: this.searchText
         }
       }
-     
+
     }
     console.log(JSON.stringify(query))
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -284,11 +303,11 @@ search(event) {
         createAt: 1
       }
     }).toPromise();
-    
+
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.orderNumber=order.orderNumber;
+      order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
       order.orderStatuses = order.statuses;
@@ -300,7 +319,7 @@ search(event) {
       // console.log("238行：订单："+JSON.stringify(o));
       return new Order(order);
     });
- 
+
   }
 
   async handleOnSetNewStatus(data) {
