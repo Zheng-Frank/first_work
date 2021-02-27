@@ -38,12 +38,12 @@ export class SeamlessIntegrationComponent implements OnInit {
 
   constructor(private _api: ApiService) {}
 
-  // subscribeToNotifications() {
+  //   subscribeToNotifications() {
 
   //     this.swPush.requestSubscription({
   //         serverPublicKey: this.VAPID_PUBLIC_KEY
   //     })
-  //     .then(sub => this.newsletterService.addPushSubscriber(sub).subscribe())
+  //     .then(sub => console.log(sub))
   //     .catch(err => console.error("Could not subscribe to notifications", err));
   // }
 
@@ -90,10 +90,29 @@ export class SeamlessIntegrationComponent implements OnInit {
           langRTs.push(res);
         }
       }
+
       this.currentRestaurants = langRTs;
       this.entriesLength = this.currentRestaurants.length;
     } else {
       console.log("HERE language All! ", restaurants);
+      restaurants = restaurants.map((res) => {
+        res.currentDate = this.getTimeComplete(res._id).time;
+        return res;
+      });
+      restaurants = restaurants.sort((a, b) => {
+        if (a.currentDate < b.currentDate) {
+          return 1;
+        } else if (a.currentDate > b.currentDate) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+
+      restaurants.forEach((res) => {
+        console.log(res.currentDate);
+      });
+
       this.currentRestaurants = restaurants;
       this.entriesLength = this.currentRestaurants.length;
     }
@@ -170,6 +189,22 @@ export class SeamlessIntegrationComponent implements OnInit {
 
   async ngOnInit() {
     try {
+      this.seamlessEvents = await this._api
+        .get(environment.qmenuApiUrl + "generic", {
+          resource: "analytics-event",
+          query: { src: "self-signup" },
+          limit: 100000,
+        })
+        .toPromise();
+      // // console.log("SEAMLESSEVENTS ", this.seamlessEvents);
+
+      // this.filterRestaurantsCriteria();
+
+      // // console.log("THESE ARE EVENTS", events);
+    } catch (e) {
+      // console.log("EVENT FAIL", e);
+    }
+    try {
       this.allRestaurants = await this._api
         .get(environment.qmenuApiUrl + "generic", {
           resource: "restaurant",
@@ -180,10 +215,24 @@ export class SeamlessIntegrationComponent implements OnInit {
       this.allRestaurants.map((restaurant: any) => {
         restaurant.showAnalytics = false;
         restaurant.showSendHistory = false;
+        restaurant.currentDate = this.getTimeComplete(restaurant._id).time;
         return restaurant;
+      });
+      this.allRestaurants = this.allRestaurants.sort((a, b) => {
+        if (a.currentDate < b.currentDate) {
+          return 1;
+        } else if (a.currentDate > b.currentDate) {
+          return -1;
+        } else {
+          return 0;
+        }
       });
       this.filterRestaurantsCriteria();
       // console.log(selfSignupRestaurants);
+
+      this.allRestaurants.forEach((res) => {
+        console.log(res.currentDate);
+      });
       this.currentRestaurants = this.allRestaurants;
       this.entriesLength = this.currentRestaurants.length;
       this.currentRestaurants.map((restaurant) => {
@@ -193,23 +242,6 @@ export class SeamlessIntegrationComponent implements OnInit {
       // // console.log("CURRENT RESTAURANTS", this.currentRestaurants);
     } catch (e) {
       // console.log("FAILURE RETRIEVING RESTAURANTS", e);
-    }
-
-    try {
-      this.seamlessEvents = await this._api
-        .get(environment.qmenuApiUrl + "generic", {
-          resource: "analytics-event",
-          query: { src: "self-signup" },
-          limit: 100000,
-        })
-        .toPromise();
-      // // console.log("SEAMLESSEVENTS ", this.seamlessEvents);
-
-      this.filterRestaurantsCriteria();
-
-      // // console.log("THESE ARE EVENTS", events);
-    } catch (e) {
-      // console.log("EVENT FAIL", e);
     }
 
     try {
@@ -449,7 +481,7 @@ export class SeamlessIntegrationComponent implements OnInit {
     // console.log(postcardNotSentRestaurants);
   }
 
-  getAnalytics(id: string) {
+  getTimeComplete(id: string) {
     let formCompleteTime: string;
     let formStartedTime: string;
     let startedForm = this.seamlessEvents.some((analytic) => {
@@ -467,16 +499,25 @@ export class SeamlessIntegrationComponent implements OnInit {
     });
 
     if (!startedForm) {
-      return "Unopened";
+      return {
+        status: "Unopened",
+        time: -1,
+      };
     }
     if (startedForm && !completedForm) {
       formStartedTime = new Date(formStartedTime).toUTCString();
-      return `Progress at ${formStartedTime}`;
+      return {
+        status: `Progress at ${formStartedTime}`,
+        time: new Date(formStartedTime).getTime(),
+      };
     }
 
     if (completedForm) {
       formCompleteTime = new Date(formCompleteTime).toUTCString();
-      return `Completed at ${formCompleteTime}`;
+      return {
+        status: `Completed at ${formCompleteTime}`,
+        time: new Date(formCompleteTime).getTime(),
+      };
     }
   }
 
