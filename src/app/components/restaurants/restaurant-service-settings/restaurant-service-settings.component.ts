@@ -214,7 +214,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   getCcProcessor() {
-    return this.restaurant['ccHandler'].type ? 'SPREEDLY': 'STRIPE';
+    return this.restaurant['ccHandler'] && this.restaurant['ccHandler'].type ? 'SPREEDLY': 'STRIPE';
   }
 
   changeGateway(gatewayType) {
