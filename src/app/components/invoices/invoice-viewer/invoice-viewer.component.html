@@ -85,9 +85,7 @@
         <span *ngIf="feeSchedule.chargeBasis === 'ORDER_TOTAL'"> per order</span>
 
         <!-- order type and payment methods -->
-        <span
-          *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0"
-          class="text-lowercase">
+        <span *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0" class="text-lowercase">
           for {{(feeSchedule.orderTypes || []).join(', ')}}
         </span>
 
@@ -164,6 +162,7 @@
       <td>{{order.customer}}</td>
       <td>{{order.type}}</td>
       <td>{{order.paymentType === 'CREDITCARD' ? 'CC' : order.paymentType}}</td>
+      <!-- {{order.creditCardProcessingMethod}} -->
       <td>{{order.payee}}</td>
       <td class="text-right">{{order.subtotal | currency:'USD':'symbol' }}</td>
       <td class="text-right">{{order.tax | currency:'USD':'symbol' }}</td>
@@ -187,4 +186,85 @@
       <th class="text-right">{{invoice.total | currency:'USD':'symbol'}}</th>
     </tr>
   </table>
+  <hr>
+  <span>
+    Transaction Breakdowns.
+    Please note that we are unable to include tips paid in cash that were not indicated by the customer through our
+    system.
+  </span>
+  <table class="table  mb-5">
+    <tbody>
+      <!-- subtotal, tips, delivery fee, tax, total -->
+      <tr>
+        <th></th>
+        <th>Subtotal</th>
+        <th>Tips</th>
+        <th>Delivery Fee</th>
+        <th>Tax</th>
+        <th class="text-right" style="padding-right:0 !important">Total</th>
+      </tr>
+      <tr *ngIf="Cash.total!=0">
+        <th style="padding-left:0 !important">
+          Cash
+        </th>
+        <td>{{Cash?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.tax | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{Cash?.total  | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="swipeInPerson.total!=0">
+        <th style="padding-left:0 !important">
+          Swipe in person (CC)
+        </th>
+        <td>{{swipeInPerson?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.tax | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{swipeInPerson?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="keyIn.total!=0">
+        <th style="padding-left:0 !important">
+          Key-in (CC)
+        </th>
+        <td>{{keyIn?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.tax | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{keyIn?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="restaurantStripe.total!=0">
+        <th style="padding-left:0 !important">
+          Restaurant Stripe (CC)
+        </th>
+        <td>{{restaurantStripe?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.tax | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{restaurantStripe?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="qmenuCollected.total!=0">
+        <th style="padding-left:0 !important">
+          Qmenu Collect (CC)
+        </th>
+        <td>{{qmenuCollected?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.tax | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{qmenuCollected?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th style="padding-left:0 !important">
+          Total
+        </th>
+        <td>{{total?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{total?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{total?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td>{{total?.tax | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{total?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <hr>
+  <div class="mb-5"></div>
 </div>

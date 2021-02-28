@@ -1,0 +1,149 @@
+<button
+  class="btn btn-secondary rowButton text-nowrap btn-sm mr-1"
+  data-toggle="modal"
+  data-target="#uploadSingle"
+>
+  Add 1 RT
+</button>
+<div class="modal" tabindex="-1" role="dialog" id="uploadSingle">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Single Restaurant by ID</h5>
+
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <br />
+      <form>
+        <div class="form-group">
+          <div class="container-fluid">
+            <br />
+
+            <input
+              style
+              [value]="singleRestaurantId"
+              type="email"
+              class="form-control"
+              id="exampleInputEmail1"
+              aria-describedby="emailHelp"
+              placeholder="Enter ID"
+              (change)="updateId($event.target.value)"
+            />
+            <div class="container-fluid">
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col-sm-6">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      [checked]="getSinglePostcard()"
+                      id="send-postcard-checkbox"
+                      (click)="toggleSendSinglePostcard()"
+                    />
+                    <label class="form-check-label" for="send-postcard-checkbox"
+                      >Send Postcard Added Restaurant</label
+                    >
+                  </div>
+                  <div class="col-sm-6">
+                    <span class="dropdown">
+                      <b>Style: &nbsp; </b>
+                      <button
+                        class="btn btn-secondary dropdown-toggle"
+                        type="button"
+                        id="dropdownMenuButton1"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                      >
+                        {{ style }} &nbsp;
+                      </button>
+
+                      &nbsp; &nbsp;
+                      <span
+                        class="dropdown-menu"
+                        aria-labelledby="dropdownMenuButton1"
+                      >
+                        <a
+                          class="dropdown-item"
+                          [ngClass]="{ active: style === 'English' }"
+                          (click)="setEnglishStyle()"
+                          >English</a
+                        >
+                        <a
+                          class="dropdown-item"
+                          [ngClass]="{ active: style === 'Chinese' }"
+                          (click)="setChineseStyle()"
+                          >Chinese</a
+                        >
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <br />
+            <div class="form-check">
+              <div *ngIf="loading" class="col-sm-4 offset-sm-4 text-center">
+                <h6>PROCESS STILL EXECUTING DO NOT QUIT</h6>
+                <div
+                  *ngIf="loading"
+                  class="spinner-border text-center"
+                  role="status"
+                >
+                  <span class="sr-only"></span>
+                </div>
+              </div>
+            </div>
+
+            <br />
+            <div *ngIf="sendSingleRTSuccess" class="container-fluid">
+              <div class="alert alert-success">
+                We successfully added the restaurant! Reload to see update.
+              </div>
+            </div>
+            <div
+              *ngIf="sendSinglePostcard && sendSingleLobSuccess"
+              class="container-fluid"
+            >
+              <div class="alert alert-success">
+                We successfully sent a lob postcard!
+              </div>
+            </div>
+            <div *ngIf="sendSingleRTFail" class="container-fluid">
+              <div class="alert alert-danger">
+                We failed to add the restaurant.
+              </div>
+            </div>
+            <div
+              *ngIf="sendSinglePostcard && sendSingleLobFail"
+              class="container-fluid"
+            >
+              <div class="alert alert-danger">
+                We failed to send the lob postcard
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-check text-center">
+          <button
+            (click)="submitSingleRestaurant(singleRestaurantId)"
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!singleRestaurantId || loading || showOutput"
+          >
+            Enter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
