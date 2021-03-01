@@ -76,17 +76,17 @@ export class RestaurantOrdersComponent implements OnInit {
   //   var localTime = lDate.getTime();
   //   var localOffset = lDate.getTimezoneOffset() * 60000; //本地和0时区的偏移
   //   var utc = localTime + localOffset; //得到0时区时间
-  //   var placeTime = utc + (3600000 * timeZone); //当地时间
+  //   var placeTime = utc + (3600000 * TimeZone.getTimeZone("EST")); //当地时间
   //   var pdate = new Date(placeTime);
-   
+
   //   return pdate.toLocaleString();
   // }
-  getTransformedDate (dateString,timezone){
-    const [year, month, date] = dateString.split('-');
-     let time=TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), 'America/New_York');
-     console.log("time:"+TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), 'America/New_York'));
-     return time;
-  }
+  // getTransformedDate (dateString,timezone){
+  //   const [year, month, date] = dateString.split('-');
+  //   //  let time=TimezoneHelper.transformToTimezoneDate(new Date(dateString), 'America/New_York');
+  //    console.log("time:"+TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone));
+  //    return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone);
+  // }
   /**
    *
    * this function is used to filter order by createdAt
@@ -108,13 +108,22 @@ export class RestaurantOrdersComponent implements OnInit {
     // fromstr[2] = (parseInt(fromstr[2]) + 1) + "";
     // from = fromstr.join('-');
     // let tostr = to.split('-');
-    // tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
+    // tostr[2] = (parseInt(tostr[2]) + 5) + "";//enlarge the day range to get correct timezone
     // to = tostr.join('-');
-    // const f = new Date(from.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const t = new Date(to.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    const f=this.getTransformedDate(from,this.restaurant.googleAddress.timezone);
-    const t=this.getTransformedDate(to,this.restaurant.googleAddress.timezone);
-    console.log("from :" + f + "to :" + t);
+    const fromValue = new Date(from);
+    const toValue = new Date(to);
+    const f = new Date(fromValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    const t = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    // const f1=this.getTransformedDate(from,this.restaurant.googleAddress.timezone);
+    // const t1=this.getTransformedDate(to,this.restaurant.googleAddress.timezone);
+    let America_local_f = f.getTime();
+    let localOffset_f = (24+5) * 60 * 60000; //本地和0时区的偏移
+    let utcf = new Date((America_local_f + localOffset_f)); //得到0时区时间
+    let America_local_t = t.getTime();
+    let localOffset_t = (48+5) * 60 * 60000;//一共需要相后加4天
+    let utct = new Date((America_local_t + localOffset_t));
+    console.log("from :" + f + ",to :" + t);
+    console.log("from1:" + utcf + ",to1:" + utct);
     if (f > t) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
@@ -124,11 +133,11 @@ export class RestaurantOrdersComponent implements OnInit {
       },
       $and: [{
         createdAt: {
-          $gte: { $date: f }
+          $gte: { $date: utcf  }
         } // less than and greater than
       }, {
         createdAt: {
-          $lte: { $date: t }
+          $lte: { $date: utct  }
         }
       }
       ]

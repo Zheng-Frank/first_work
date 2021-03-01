@@ -10,6 +10,7 @@ export class adjustedDatePipe extends DatePipe implements PipeTransform {
     if (value) {
       value = new Date(value);
       const cloned = new Date(value.toLocaleString('en-US', { timeZone: timezone }));
+      console.log("cloned:"+cloned);
       return super.transform(cloned, format);
     }
     return null;
