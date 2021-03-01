@@ -71,19 +71,21 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-  GetTimeFromTimeZone(searchdate,timeZone) {
-    var lDate = new Date(searchdate);
-    var localTime = lDate.getTime();
-    var localOffset = lDate.getTimezoneOffset() * 60000; //本地和0时区的偏移
-    var utc = localTime + localOffset; //得到0时区时间
-    var placeTime = utc + (3600000 * timeZone); //当地时间
-    var pdate = new Date(placeTime);
+  // GetTimeFromTimeZone(searchdate,timeZone) {
+  //   var lDate = new Date(searchdate);
+  //   var localTime = lDate.getTime();
+  //   var localOffset = lDate.getTimezoneOffset() * 60000; //本地和0时区的偏移
+  //   var utc = localTime + localOffset; //得到0时区时间
+  //   var placeTime = utc + (3600000 * timeZone); //当地时间
+  //   var pdate = new Date(placeTime);
    
-    return pdate.toLocaleString();
-  }
+  //   return pdate.toLocaleString();
+  // }
   getTransformedDate (dateString,timezone){
     const [year, month, date] = dateString.split('-');
-    return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone);
+     let time=TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), 'America/New_York');
+     console.log("time:"+TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), 'America/New_York'));
+     return time;
   }
   /**
    *

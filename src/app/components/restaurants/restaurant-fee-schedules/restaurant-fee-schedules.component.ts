@@ -292,16 +292,17 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
     // turn 2020-09-01 to timezone form
     const getTransformedDate = (dateString) => {
-      const [year, month, date] = dateString.split('-');
-      return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), 'America/New_York');
+      // const [year, month, date] = dateString.split('-');
+      return TimezoneHelper.transformToTimezoneDate(new Date(dateString), 'America/New_York');
     }
+    console.log("this.feeScheduleInEditing.fromTime:"+this.feeScheduleInEditing.fromTime);
+    console.log("this.feeScheduleInEditing.toTime:"+this.feeScheduleInEditing.toTime);
     if (this.feeScheduleInEditing.fromTime) {
       myFs.fromTime = getTransformedDate(this.feeScheduleInEditing.fromTime);
     }
     if (this.feeScheduleInEditing.toTime) {
       myFs.toTime = getTransformedDate(this.feeScheduleInEditing.toTime);
     }
-
     // collect payment methods or payment types
     myFs.orderPaymentMethods = this.orderPaymentMethodsDescriptor.items.filter(op => op.selected).map(op => op.object);
     myFs.orderTypes = this.orderTypesDescriptor.items.filter(ot => ot.selected).map(ot => ot.object);
