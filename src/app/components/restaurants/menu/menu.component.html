@@ -7,6 +7,12 @@
 
       <h2 class="text-center">{{menu.name}}</h2>
       <h4 *ngIf="menu.nontaxable" class="text-center  text-danger">NO TAX</h4>
+
+      <!-- only when we have qr dine-in settings, the following makes sense to show -->
+      <div *ngIf="restaurant.qrSettings" class="text-center">
+        <span class="badge badge-danger text-uppercase">{{targetWording[menu.targetCustomer || 'ONLINE_ONLY']}}</span>
+      </div>
+
       <small>
         <div *ngIf="menu.description" class="card-subtitle">{{menu.description}}</div>
         <div class="text-center">
