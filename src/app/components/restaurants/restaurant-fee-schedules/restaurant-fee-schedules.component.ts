@@ -295,8 +295,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       // const [year, month, date] = dateString.split('-');
       return TimezoneHelper.transformToTimezoneDate(new Date(dateString), 'America/New_York');
     }
-    console.log("this.feeScheduleInEditing.fromTime:"+this.feeScheduleInEditing.fromTime);
-    console.log("this.feeScheduleInEditing.toTime:"+this.feeScheduleInEditing.toTime);
+    // console.log("this.feeScheduleInEditing.fromTime:"+this.feeScheduleInEditing.fromTime);
+    // console.log("this.feeScheduleInEditing.toTime:"+this.feeScheduleInEditing.toTime);
     if (this.feeScheduleInEditing.fromTime) {
       myFs.fromTime = getTransformedDate(this.feeScheduleInEditing.fromTime);
     }
