@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, DoCheck } from '@angular/core';
 import { Promotion, Menu } from '@qmenu/ui';
 
 @Component({
@@ -6,7 +6,7 @@ import { Promotion, Menu } from '@qmenu/ui';
   templateUrl: './promotion-editor.component.html',
   styleUrls: ['./promotion-editor.component.css']
 })
-export class PromotionEditorComponent implements OnInit {
+export class PromotionEditorComponent implements DoCheck {
 
   @Input() promotion: Promotion;
   @Input() offsetToEST: number;
@@ -22,6 +22,9 @@ export class PromotionEditorComponent implements OnInit {
 
   fromSelectionToggle = false;
   expiry;
+
+  freeItemListMaxLength = 3;
+  oldPromotionID = null;
 
   selected: any = {
     withOrderFromList: {
@@ -58,16 +61,41 @@ export class PromotionEditorComponent implements OnInit {
 
   constructor() { }
 
-  ngOnInit() {
+  ngDoCheck() {
+    if (this.promotion) {
+      if (!this.oldPromotionID) {
+        this.oldPromotionID = this.promotion.id;
+        this.onNewPromotionLoaded();
+      } else {
+        if (this.oldPromotionID !== this.promotion.id) {
+          this.oldPromotionID = this.promotion.id;
+          this.onNewPromotionLoaded();
+        }
+      }
+    }
   }
 
-  // getExpiry() {
-  //   if (this.promotion.expiry) {
-  //     return this.promotion.expiry['restaurant yyyy-mm-dd'](this.offsetToEST);
-  //   }
-  //   console.log('restaurant yyyy-mm-dd', new Date()['restaurant yyyy-mm-dd'](this.offsetToEST))
-  //   return new Date()['restaurant yyyy-mm-dd'](this.offsetToEST);
-  // }
+  onNewPromotionLoaded() {
+    // when we detect that a new coupon has been loaded into the editor modal, update the display properties
+    // so that 
+    this.promotionType = '$ Discount';
+    this.eligibility = 'Order Minimum ($)';
+    if (this.promotion.percentage && this.promotion.amount === 0) {
+      this.promotionType = '% Discount';
+    } else if (this.promotion.freeItemName || (this.promotion.freeItemList || []).length) {
+      this.promotionType = 'Free Item';
+    }
+    if ((this.promotion.withOrderFromList || []).length) {
+      this.eligibility = 'Order of Select Item(s)';
+    }
+  }
+  getExpiry() {
+    if (this.promotion.expiry) {
+      return this.promotion.expiry['restaurant yyyy-mm-dd'](this.offsetToEST);
+    }
+    console.log('restaurant yyyy-mm-dd', new Date()['restaurant yyyy-mm-dd'](this.offsetToEST))
+    return new Date()['restaurant yyyy-mm-dd'](this.offsetToEST);
+  }
 
   // expiryChanged(event) {
   //   if (event.target.value) {

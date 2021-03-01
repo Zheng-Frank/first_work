@@ -3,7 +3,8 @@
   <div class="{{promotion.name ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.name" placeholder="eg. $5 off $50">
   </div>
-  <div *qIf="suggestPromotionTitle()">Suggested Title: <button type="button" class="btn btn-link" (click)="useSuggestedTitle()">{{suggestPromotionTitle()}}</button></div>
+  <div *qIf="suggestPromotionTitle()">Suggested Title: <button type="button" class="btn btn-link"
+      (click)="useSuggestedTitle()">{{suggestPromotionTitle()}}</button></div>
   <label class="mt-1">Code:</label>
   <div class="{{promotion.code ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.code" placeholder="eg. spring5">
@@ -30,7 +31,8 @@
 
   <div *qIf="promotionType === '% Discount'">
     <label class="mt-1">Percentage Discount(%):</label>
-    <div *qIf="promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0" class="text-danger font-weight-bold"> Error: Invalid
+    <div *qIf="promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0"
+      class="text-danger font-weight-bold"> Error: Invalid
       percentage</div>
     <div>
       <input type="tel" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
@@ -114,8 +116,14 @@
           <option *ngFor="let item of items">{{item.name}}</option>
         </select>
         <div class="d-flex justify-content-end">
-          <button type="button" class="btn btn-link" (click)="addEntryToList('freeItemList')">Add</button>
+          <button type="button" class="btn btn-link" (click)="addEntryToList('freeItemList')"
+            [disabled]="!selected.freeItemList.menu || !selected.freeItemList.category || !selected.freeItemList.item || promotion.freeItemList.length === freeItemListMaxLength">
+            Add</button>
         </div>
+      </div>
+      <div *ngIf="promotion.freeItemList.length === freeItemListMaxLength" class="text-danger font-weight-bold">
+        <small> Maximum number of items for customer to choose from is {{freeItemListMaxLength}}. Please delete an existing item
+          before adding a new one. </small>
       </div>
     </div>
     <ng-template #textFieldEntry>
