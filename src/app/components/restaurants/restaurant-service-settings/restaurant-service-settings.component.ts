@@ -145,7 +145,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     const oldR = JSON.parse(JSON.stringify(this.restaurant));
     const newR = JSON.parse(JSON.stringify(this.restaurant));
 
-    if(JSON.stringify(oldR) === JSON.stringify(newR)) {
+    if(JSON.stringify(newR.serviceSettings) === JSON.stringify(this.serviceSettingsInEditing)) {
       this._global.publishAlert(AlertType.Success, "Already up to date");
       this.editing = false;
       return;
