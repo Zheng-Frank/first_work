@@ -30,22 +30,19 @@ export class SeamlessIntegrationComponent implements OnInit {
   ownerNames: string[];
   sendPostCards = [];
   currentLanguage = "All";
+  polling = false
+  pollingCompletedRestaurantsLength;
+  pollingBegan = false
 
   readonly VAPID_PUBLIC_KEY =
     "BFzW7k_ZOAYwQQR0VSwJ3_Z4G1IINc8m-WT1casJqrntlfB9yKy5HJ3WH7OPdRIg3tpzszF9udJKkDjua4NaMhQ";
 
   @ViewChild("fileInput") myInputVariable: ElementRef;
 
-  constructor(private _api: ApiService) {}
+  constructor(private _api: ApiService) {
 
-  // subscribeToNotifications() {
+  }
 
-  //     this.swPush.requestSubscription({
-  //         serverPublicKey: this.VAPID_PUBLIC_KEY
-  //     })
-  //     .then(sub => this.newsletterService.addPushSubscriber(sub).subscribe())
-  //     .catch(err => console.error("Could not subscribe to notifications", err));
-  // }
 
   selectStyle(style) {
     this.style = style;
@@ -90,10 +87,29 @@ export class SeamlessIntegrationComponent implements OnInit {
           langRTs.push(res);
         }
       }
+
       this.currentRestaurants = langRTs;
       this.entriesLength = this.currentRestaurants.length;
     } else {
       console.log("HERE language All! ", restaurants);
+      restaurants = restaurants.map((res) => {
+        res.currentDate = this.getTimeComplete(res._id).time;
+        return res;
+      });
+      restaurants = restaurants.sort((a, b) => {
+        if (a.currentDate < b.currentDate) {
+          return 1;
+        } else if (a.currentDate > b.currentDate) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+
+      restaurants.forEach((res) => {
+        console.log(res.currentDate);
+      });
+
       this.currentRestaurants = restaurants;
       this.entriesLength = this.currentRestaurants.length;
     }
@@ -168,31 +184,48 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
+  ngOnAfterViewInit() {
+    console.log("CALLED HERE NG AFTER")
+  }
+
+  async startPolling() {
+
+
+    console.log("POLL RUNNING")
+    let pollingCompletedRestaurants = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "analytics-event",
+        query: { src: "self-signup" },
+        limit: 100000,
+      })
+      .toPromise();
+    let curCompleteLength = [...new Set(pollingCompletedRestaurants.filter((analytic) => {
+      return "formComplete" in analytic;
+    }).map(res => res._id))].length
+
+    console.log('CUR COMPLETE LENGTH ', curCompleteLength)
+    console.log("CURRENTLY COMPLETED LENGTH ", this.pollingCompletedRestaurantsLength)
+
+    if (!this.pollingBegan) {
+      console.log("POLL JUST NOW BEGGINNING")
+      this.pollingBegan = true;
+      this.pollingCompletedRestaurantsLength = curCompleteLength
+    } else if (curCompleteLength > this.pollingCompletedRestaurantsLength) {
+      // create new notification
+
+      new Notification('NEW RESTAURANT SIGNUP');
+      this.pollingCompletedRestaurantsLength = curCompleteLength
+    } else {
+      // new Notification('NOTHING CHANGED');
+
+      console.log("EQUAL COMPARISON")
+    }
+  }
+
   async ngOnInit() {
-    try {
-      this.allRestaurants = await this._api
-        .get(environment.qmenuApiUrl + "generic", {
-          resource: "restaurant",
-          query: { selfSignup: { $exists: true } },
-          limit: 100000,
-        })
-        .toPromise();
-      this.allRestaurants.map((restaurant: any) => {
-        restaurant.showAnalytics = false;
-        restaurant.showSendHistory = false;
-        return restaurant;
-      });
-      this.filterRestaurantsCriteria();
-      // console.log(selfSignupRestaurants);
-      this.currentRestaurants = this.allRestaurants;
-      this.entriesLength = this.currentRestaurants.length;
-      this.currentRestaurants.map((restaurant) => {
-        restaurant.showAnalytics = false;
-        return restaurant;
-      });
-      // // console.log("CURRENT RESTAURANTS", this.currentRestaurants);
-    } catch (e) {
-      // console.log("FAILURE RETRIEVING RESTAURANTS", e);
+    await Notification.requestPermission();
+    if (!this.polling) {
+      setInterval(() => this.startPolling(), 300000)
     }
 
     try {
@@ -205,11 +238,48 @@ export class SeamlessIntegrationComponent implements OnInit {
         .toPromise();
       // // console.log("SEAMLESSEVENTS ", this.seamlessEvents);
 
-      this.filterRestaurantsCriteria();
-
       // // console.log("THESE ARE EVENTS", events);
     } catch (e) {
       // console.log("EVENT FAIL", e);
+    }
+    try {
+      this.allRestaurants = await this._api
+        .get(environment.qmenuApiUrl + "generic", {
+          resource: "restaurant",
+          query: { selfSignup: { $exists: true } },
+          limit: 100000,
+        })
+        .toPromise();
+      this.allRestaurants.map((restaurant: any) => {
+        restaurant.showAnalytics = false;
+        restaurant.showSendHistory = false;
+        restaurant.currentDate = this.getTimeComplete(restaurant._id).time;
+        return restaurant;
+      });
+      this.allRestaurants = this.allRestaurants.sort((a, b) => {
+        if (a.currentDate < b.currentDate) {
+          return 1;
+        } else if (a.currentDate > b.currentDate) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+      this.filterRestaurantsCriteria();
+      // console.log(selfSignupRestaurants);
+
+      this.allRestaurants.forEach((res) => {
+        console.log(res.currentDate);
+      });
+      this.currentRestaurants = this.allRestaurants;
+      this.entriesLength = this.currentRestaurants.length;
+      this.currentRestaurants.map((restaurant) => {
+        restaurant.showAnalytics = false;
+        return restaurant;
+      });
+      // // console.log("CURRENT RESTAURANTS", this.currentRestaurants);
+    } catch (e) {
+      // console.log("FAILURE RETRIEVING RESTAURANTS", e);
     }
 
     try {
@@ -260,6 +330,8 @@ export class SeamlessIntegrationComponent implements OnInit {
       // console.log("ERROR GETTING OWNER NAMES", e);
     }
   }
+
+
 
   handleClick() {
     document.getElementById("upload-file").click();
@@ -449,7 +521,7 @@ export class SeamlessIntegrationComponent implements OnInit {
     // console.log(postcardNotSentRestaurants);
   }
 
-  getAnalytics(id: string) {
+  getTimeComplete(id: string) {
     let formCompleteTime: string;
     let formStartedTime: string;
     let startedForm = this.seamlessEvents.some((analytic) => {
@@ -467,16 +539,25 @@ export class SeamlessIntegrationComponent implements OnInit {
     });
 
     if (!startedForm) {
-      return "Unopened";
+      return {
+        status: "Unopened",
+        time: -1,
+      };
     }
     if (startedForm && !completedForm) {
       formStartedTime = new Date(formStartedTime).toUTCString();
-      return `Progress at ${formStartedTime}`;
+      return {
+        status: `Progress at ${formStartedTime}`,
+        time: new Date(formStartedTime).getTime(),
+      };
     }
 
     if (completedForm) {
       formCompleteTime = new Date(formCompleteTime).toUTCString();
-      return `Completed at ${formCompleteTime}`;
+      return {
+        status: `Completed at ${formCompleteTime}`,
+        time: new Date(formCompleteTime).getTime(),
+      };
     }
   }
 
