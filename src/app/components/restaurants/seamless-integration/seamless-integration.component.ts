@@ -30,22 +30,19 @@ export class SeamlessIntegrationComponent implements OnInit {
   ownerNames: string[];
   sendPostCards = [];
   currentLanguage = "All";
+  polling = false
+  pollingCompletedRestaurantsLength;
+  pollingBegan = false
 
   readonly VAPID_PUBLIC_KEY =
     "BFzW7k_ZOAYwQQR0VSwJ3_Z4G1IINc8m-WT1casJqrntlfB9yKy5HJ3WH7OPdRIg3tpzszF9udJKkDjua4NaMhQ";
 
   @ViewChild("fileInput") myInputVariable: ElementRef;
 
-  constructor(private _api: ApiService) {}
+  constructor(private _api: ApiService) {
 
-  //   subscribeToNotifications() {
+  }
 
-  //     this.swPush.requestSubscription({
-  //         serverPublicKey: this.VAPID_PUBLIC_KEY
-  //     })
-  //     .then(sub => console.log(sub))
-  //     .catch(err => console.error("Could not subscribe to notifications", err));
-  // }
 
   selectStyle(style) {
     this.style = style;
@@ -187,7 +184,50 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
+  ngOnAfterViewInit() {
+    console.log("CALLED HERE NG AFTER")
+  }
+
+  async startPolling() {
+
+
+    console.log("POLL RUNNING")
+    let pollingCompletedRestaurants = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "analytics-event",
+        query: { src: "self-signup" },
+        limit: 100000,
+      })
+      .toPromise();
+    let curCompleteLength = [...new Set(pollingCompletedRestaurants.filter((analytic) => {
+      return "formComplete" in analytic;
+    }).map(res => res._id))].length
+
+    console.log('CUR COMPLETE LENGTH ', curCompleteLength)
+    console.log("CURRENTLY COMPLETED LENGTH ", this.pollingCompletedRestaurantsLength)
+
+    if (!this.pollingBegan) {
+      console.log("POLL JUST NOW BEGGINNING")
+      this.pollingBegan = true;
+      this.pollingCompletedRestaurantsLength = curCompleteLength
+    } else if (curCompleteLength > this.pollingCompletedRestaurantsLength) {
+      // create new notification
+
+      new Notification('NEW RESTAURANT SIGNUP');
+      this.pollingCompletedRestaurantsLength = curCompleteLength
+    } else {
+      // new Notification('NOTHING CHANGED');
+
+      console.log("EQUAL COMPARISON")
+    }
+  }
+
   async ngOnInit() {
+    await Notification.requestPermission();
+    if (!this.polling) {
+      setInterval(() => this.startPolling(), 300000)
+    }
+
     try {
       this.seamlessEvents = await this._api
         .get(environment.qmenuApiUrl + "generic", {
@@ -197,8 +237,6 @@ export class SeamlessIntegrationComponent implements OnInit {
         })
         .toPromise();
       // // console.log("SEAMLESSEVENTS ", this.seamlessEvents);
-
-      // this.filterRestaurantsCriteria();
 
       // // console.log("THESE ARE EVENTS", events);
     } catch (e) {
@@ -292,6 +330,8 @@ export class SeamlessIntegrationComponent implements OnInit {
       // console.log("ERROR GETTING OWNER NAMES", e);
     }
   }
+
+
 
   handleClick() {
     document.getElementById("upload-file").click();
