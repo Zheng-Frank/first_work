@@ -1,3 +1,126 @@
-<p>
-  ivr-agent-analysis works!
-</p>
+<div class="container">
+  <h2 class="text-center">Agent Call Stats Dashboard</h2>
+  <h6 class="text-center">{{ entriesLength }} Entries shown</h6>
+  <!--  -->
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4 text-center">
+        <button (click)="reload()" class="btn btn-link">
+          <i class="fas fa-sync-alt"></i>
+          Reload
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <span class="dropdown">
+          <b>View: &nbsp; </b>
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="dropdownMenuButton"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Last 24 hours
+          </button>
+
+          &nbsp; &nbsp;
+          <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'All' }"
+              (click)="renderRestaurants('All', this.currentLanguage)"
+              >All</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Completed' }"
+              (click)="renderRestaurants('Completed', this.currentLanguage)"
+              >Completed</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Progress' }"
+              (click)="renderRestaurants('Progress', this.currentLanguage)"
+              >Progress</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Unopened' }"
+              (click)="renderRestaurants('Unopened', this.currentLanguage)"
+              >Unopened</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
+              (click)="
+                renderRestaurants('Postcard Not Sent', this.currentLanguage)
+              "
+              >Postcard Not Sent</a
+            >
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <hr />
+
+    <div class="row">
+      <div class="col-sm-4" class="card-body">
+        <div class="row">
+          <div class="form-check">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              id="exampleCheck1"
+            />
+          </div>
+
+          <h5 class="card-title">
+            <a
+              target="_blank"
+              [href]="'https://qa-csr.qmenu.us/#/restaurants/'"
+            >
+              Random Data
+            </a>
+            <span> English </span>
+          </h5>
+        </div>
+        <h6 class="card-subtitle mb-2 text-muted">
+          asdasdasdsd
+          <a target="_blank"> (Preview Postcard) </a>
+        </h6>
+        <p class="card-subtitle">Random Text</p>
+        <p class="card-subtitle">455 Park Creek Way</p>
+        <p class="card-subtitle">Owner: Varun</p>
+        <!-- <div>
+        <a target="_blank" href='/#/logs' + data.id class="card-subtitle">
+          Show Logs
+        </a>
+      </div> -->
+        <a class="card-subtitle"> Show Send History </a>
+        <a class="card-subtitle"> Hide Send History </a>
+        <br />
+      </div>
+
+      <div align="end" class="col-sm-4">
+        <br />
+        <p class="card-subtitle">
+          <b> Time Completed </b>
+        </p>
+        <p class="card-subtitle">Promo: asdasd</p>
+        <a class="card-subtitle"> Show Analytics </a>
+
+        <br />
+        <br />
+      </div>
+    </div>
+    <hr />
+  </div>
+</div>
