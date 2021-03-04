@@ -137,14 +137,8 @@
       -->
         Order was canceled :(<div>{{order.getCurrentStatusComments()}}</div>
         <hr class="text-danger">
-        <span *ngIf="whoCancelOrder(order)=='BY_CUSTOMER'">
-          Canceled by the customer on {{getOrderCanceledTime(order) | date:'yyyy-MM-dd HH:mm:ss'}}
-        </span>
-        <span *ngIf="whoCancelOrder(order)=='BY_RESTAURANT'">
-          Canceled by the restaurant on {{getOrderCanceledTime(order) | date:'yyyy-MM-dd HH:mm:ss'}}
-        </span>
-        <span *ngIf="whoCancelOrder(order)=='BY_CSR'">
-          Canceled by {{getCancelOrderCSRName(order)||"CSR"}} on {{getOrderCanceledTime(order) |  adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}
+        <span>
+          Canceled by {{whoCancelOrder(order)}} on {{getOrderCanceledTime(order) | date:'yyyy-MM-dd HH:mm:ss'}}
         </span>
       </div>
       <div class="text-right">
