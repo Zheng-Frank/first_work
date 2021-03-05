@@ -1,8 +1,18 @@
 <div *ngIf="menu">
   <div *ngIf="menu.id" class="mb-1">
-    <app-switch (onSelectValue)="selectSwitchValue($event)" [selectedValue]="menu.disabled ? 'Disabled' : 'Enabled'" [values]="['Enabled', 'Disabled']"></app-switch>
+    <app-switch (onSelectValue)="selectSwitchValue($event)" [selectedValue]="menu.disabled ? 'Disabled' : 'Enabled'"
+      [values]="['Enabled', 'Disabled']"></app-switch>
   </div>
-
+  <div class="form-group">
+    <label>Menu visibility (target customer):</label>
+    <div>
+      <div *ngFor="let target of targets; let i = index" class="d-inline-block pr-2">
+        <input type="radio" name="target" id="target-{{i}}" [value]="target" [(ngModel)]="selectedTarget">
+        <label for="target-{{i}}">{{target.text}}</label>
+      </div>
+      <div class="text-danger" *ngIf="!restaurant?.qrSettings && selectedTarget?.value !== 'ONLINE_ONLY' ">WARNING: The restaurant has no QR Dine-in Settings yet. "Online only" is recommended.</div>
+    </div>
+  </div>
   <div class="form-group {{!menu.name ? 'has-danger' : ''}}">
     <label>Menu Name:</label>
     <input type="text" class="form-control" [(ngModel)]="menu.name" placeholder="eg. Seasonal Special" autofocus>
@@ -10,59 +20,66 @@
 
   <div class="form-group">
     <label>Menu Description (optional):</label>
-    <input type="text" class="form-control" [(ngModel)]="menu.description" placeholder="eg. Freshly from local market" autofocus>
+    <input type="text" class="form-control" [(ngModel)]="menu.description" placeholder="eg. Freshly from local market"
+      autofocus>
   </div>
 
   <label class="mt-1">Serve Hours:</label>
-  <div class="text-muted" *ngIf="menu.hours && menu.hours.length > 0"><small>Hours are not grouped here but they will be in user view</small></div>
-  <div *ngFor="let hour of getHours()">    
-    <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime : offsetToEST}} - {{hour.toTime | shortTime : offsetToEST}}</div>
-    <div class="pull-xs-right"><button type="button" class="btn btn-link text-danger pt-0 pb-0" (click)="deleteHour(hour)">X</button></div>
+  <div class="text-muted" *ngIf="menu.hours && menu.hours.length > 0"><small>Hours are not grouped here but they will be
+      in user view</small></div>
+  <div *ngFor="let hour of getHours()">
+    <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime : offsetToEST}} -
+      {{hour.toTime | shortTime : offsetToEST}}</div>
+    <div class="pull-xs-right"><button type="button" class="btn btn-link text-danger pt-0 pb-0"
+        (click)="deleteHour(hour)">X</button></div>
     <div class="clearfix"></div>
   </div>
   <div class="clearfix"></div>
-  <div class="pull-xs-right"><button type="button" class="btn btn-link" (click)="clickedAddHour = !clickedAddHour">+ Add Hour</button></div>
+  <div class="pull-xs-right"><button type="button" class="btn btn-link" (click)="clickedAddHour = !clickedAddHour">+ Add
+      Hour</button></div>
 
   <div class="clearfix"></div>
   <div *qIf="clickedAddHour" style="font-size: smaller">
-<div class="card card-block">
-  <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"></q-hours-picker>
-</div>
-</div>
+    <div class="card card-block">
+      <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"></q-hours-picker>
+    </div>
+  </div>
 
-<label class="mt-1">Background Image:</label>
-<div class="clearfix"></div>
-<div *ngIf="menu.backgroundImageUrl" class="pr-1 pb-1" style="display:inline-block; position:relative">
-<img class="img-thumbnail app-thumbnail-h-6" src="{{menu.backgroundImageUrl}}">
-<button (click)="deleteBackgroundImage()" class="btn btn-secondary fas fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-<button (click)="deleteBackgroundImage()" class="btn btn-link fas fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
-</div>
+  <label class="mt-1">Background Image:</label>
+  <div class="clearfix"></div>
+  <div *ngIf="menu.backgroundImageUrl" class="pr-1 pb-1" style="display:inline-block; position:relative">
+    <img class="img-thumbnail app-thumbnail-h-6" src="{{menu.backgroundImageUrl}}">
+    <button (click)="deleteBackgroundImage()" class="btn btn-secondary fas fa-times"
+      style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+    <button (click)="deleteBackgroundImage()" class="btn btn-link fas fa-times text-danger"
+      style="position:absolute; top:0px; right:1rem"></button>
+  </div>
 
-<div *ngIf="uploadImageError">
-  <span class="text-danger">{{uploadImageError}}</span>
-</div>
-<input type="file" (change)="onUploadImageChange($event)">
-<hr>
-<div><label><input type="checkbox" [(ngModel)]="menu.nontaxable"> Nontaxable (no tax collection)</label></div>
+  <div *ngIf="uploadImageError">
+    <span class="text-danger">{{uploadImageError}}</span>
+  </div>
+  <input type="file" (change)="onUploadImageChange($event)">
+  <hr>
+  <div><label><input type="checkbox" [(ngModel)]="menu.nontaxable"> Nontaxable (no tax collection)</label></div>
 
-<!--action bar-->
-<hr>
-<div class="text-right">
-  <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">  
+  <!--action bar-->
+  <hr>
+  <div class="text-right">
+    <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">
       Cancel
     </button>
-  <button *ngIf="menu.id && enableDelete" type="button" class="btn btn-link" (click)="delete()"> 
+    <button *ngIf="menu.id && enableDelete" type="button" class="btn btn-link" (click)="delete()">
       <span class="text-danger"> Delete</span>
     </button>
-  <button type="button" class="btn btn-primary" (click)="ok()" [disabled]="!isValid()">
+    <button type="button" class="btn btn-primary" (click)="ok()" [disabled]="!isValid()">
       <span class="fas fa-check"></span> OK
     </button>
-</div>
-<div *qIf="clickedDelete">
-  <div class="text-danger text-right mt-1">Deletion can not be undone. Are you sure?</div>
-  <div class="text-right mt-1">
-    <button type="button" class="btn btn-secondary" (click)="cancelDeletion()">Cancel</button>
-    <button *ngIf="menu.id" type="button" class="btn btn-danger" (click)="confirmDeletion()">Confirm Deletion</button>
   </div>
-</div>
+  <div *qIf="clickedDelete">
+    <div class="text-danger text-right mt-1">Deletion can not be undone. Are you sure?</div>
+    <div class="text-right mt-1">
+      <button type="button" class="btn btn-secondary" (click)="cancelDeletion()">Cancel</button>
+      <button *ngIf="menu.id" type="button" class="btn btn-danger" (click)="confirmDeletion()">Confirm Deletion</button>
+    </div>
+  </div>
 </div>

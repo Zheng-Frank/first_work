@@ -114,7 +114,7 @@
     </button>
     <h4 class="text-center">{{menuEditor.menu?.id ? 'Edit Menu' : 'Create New Menu'}}</h4>
     <hr>
-    <app-menu-editor #menuEditor [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" [timezone]="restaurant.googleAddress.timezone"
+    <app-menu-editor #menuEditor [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" [timezone]="restaurant.googleAddress.timezone" [restaurant]="restaurant"
       (onDone)="onDoneEditing($event)" (onDelete)="onDelete($event)"></app-menu-editor>
   </q-modal>
 
