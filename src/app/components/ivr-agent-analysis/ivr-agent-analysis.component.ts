@@ -24,6 +24,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   agents;
   datum;
   totalTimes = []
+  entries
 
   objData = {};
 
@@ -235,6 +236,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
         totalCalls: obj[x]['totalCalls']
       })
     }
+    this.entries = arr.length
+
     let arr4 = [...arr]
     arr4.sort((a, b) => b.totalCalls - a.totalCalls)
     // console.log("TOTAL CALLS SORT ", arr4)
@@ -255,7 +258,17 @@ export class IvrAgentAnalysisComponent implements OnInit {
     // console.log("ALL DATA ", obj)
   }
 
+  getData(agentName) {
+    console.log(this.objData)
+    return this.objData[agentName]
+  }
 
+  log(val) {
+    console.log(val)
+  }
+  str_pad_left(string, pad, length) {
+    return (new Array(length + 1).join(pad) + string).slice(-length);
+  }
 
 }
 

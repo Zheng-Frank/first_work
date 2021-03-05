@@ -1,103 +1,27 @@
 <div class="container">
   <h2 class="text-center">Agent Call Stats Dashboard</h2>
-  <h6 class="text-center">{{ entriesLength }} Entries shown</h6>
-  <!--  -->
-
-  <div class="container">
-    <div class="row">
-      <div class="col-sm-4"></div>
-      <div class="col-sm-4 text-center">
-        <button (click)="reload()" class="btn btn-link">
-          <i class="fas fa-sync-alt"></i>
-          Reload
-        </button>
-      </div>
+  <h6 class="text-center">{{ entries }} Entries shown</h6>
+  <div class="row">
+    <div class="col text-center">
+      <button (click)="reload()" class="text-center btn btn-link">
+        <i class="fas fa-sync-alt"></i>
+        Reload
+      </button>
     </div>
-    <div class="container">
-      <div class="row mt-4">
-        <div class="col-sm"></div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-6">
-        <span class="dropdown">
-          <b>View: &nbsp; </b>
-          <button
-            class="btn btn-secondary dropdown-toggle"
-            type="button"
-            id="dropdownMenuButton"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            Last 24 hours
-          </button>
-
-          &nbsp; &nbsp;
-          <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'All' }"
-              (click)="renderRestaurants('All', this.currentLanguage)"
-              >All</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'Completed' }"
-              (click)="renderRestaurants('Completed', this.currentLanguage)"
-              >Completed</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'Progress' }"
-              (click)="renderRestaurants('Progress', this.currentLanguage)"
-              >Progress</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'Unopened' }"
-              (click)="renderRestaurants('Unopened', this.currentLanguage)"
-              >Unopened</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
-              (click)="
-                renderRestaurants('Postcard Not Sent', this.currentLanguage)
-              "
-              >Postcard Not Sent</a
-            >
-          </span>
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <div class="container">
-    <hr />
-
-    <div class="row" *ngFor="let item of objData | keyvalue">
-      <div class="col-sm-4" class="card-body">
-        <h5 class="card-subtitle mb-2">Name: Annie</h5>
-        <h6 class="card-subtitle mb-2">Total Calls: 54</h6>
-        <p class="card-subtitle">Duration: 75 minutes</p>
-        <p class="card-subtitle">Avg Call Time: 2:42 min</p>
-        <canvas width="1100" height="150" #lineCanvas></canvas>
-
-        <!-- <div>
-        <a target="_blank" href='/#/logs' + data.id class="card-subtitle">
-          Show Logs
-        </a>
-      </div> -->
-      </div>
-    </div>
-    <hr />
   </div>
 </div>
 
-<div *ngIf="objData">
-  DATA NOW EXISTS
-  <div *ngFor="let item of objData | keyvalue">
-    <canvas #cmp>{{ item.key }}</canvas>
+<div class="container">
+  <div class="row" *ngFor="let item of objData | keyvalue" class="card-body">
+    <hr />
+    <div>
+      Agent Name: <b>{{ item.key }}</b>
+    </div>
+    <div>Total Calls: {{ getData(item.key).totalCalls }}</div>
+    <div>Avg CallTime (Seconds): {{ getData(item.key).avgCallTime }}</div>
+    <div>Total Call Time: {{ getData(item.key).totalCallTime }}</div>
+
+    <canvas width="800" height="175" #cmp>{{ item.key }}</canvas>
+    <hr />
   </div>
 </div>
