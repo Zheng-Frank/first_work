@@ -9,6 +9,30 @@
       </button>
     </div>
   </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <span class="dropdown">
+        <b>View: &nbsp; </b>
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          Last 24 Hours &nbsp;
+        </button>
+
+        &nbsp; &nbsp;
+        <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <a class="dropdown-item">All</a>
+          <a class="dropdown-item">English</a>
+          <a class="dropdown-item">Chinese</a>
+        </span>
+      </span>
+    </div>
+  </div>
 </div>
 
 <div class="container">
@@ -18,10 +42,12 @@
       Agent Name: <b>{{ item.key }}</b>
     </div>
     <div>Total Calls: {{ getData(item.key).totalCalls }}</div>
-    <div>Avg CallTime (Seconds): {{ getData(item.key).avgCallTime }}</div>
-    <div>Total Call Time: {{ getData(item.key).totalCallTime }}</div>
+    <div>Avg Call Time: {{ secondsToHms(getData(item.key).avgCallTime) }}</div>
+    <div>
+      Total Call Time: {{ secondsToHms(getData(item.key).totalCallTime) }}
+    </div>
 
-    <canvas width="800" height="175" #cmp>{{ item.key }}</canvas>
+    <canvas width="800" height="100" #cmp>{{ item.key }}</canvas>
     <hr />
   </div>
 </div>

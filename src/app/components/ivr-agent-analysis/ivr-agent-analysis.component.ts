@@ -37,7 +37,6 @@ export class IvrAgentAnalysisComponent implements OnInit {
         let arr = (this.components.toArray())
 
         arr.forEach(el => {
-          console.log("EL IS ", el)
           let agent = el.nativeElement.innerHTML
           let data = this.processChartData(agent)
           new Chart(el.nativeElement, {
@@ -84,7 +83,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     );
   }
   reload() {
-
+    this.ngOnInit()
   }
 
   async ngOnInit() {
@@ -119,11 +118,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
     let currentStartDay = new Date();
     currentStartDay.setHours(0, 0, 0, 0);
-    this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 168)
+    this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 48)
 
     console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
 
-    this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 144)
+    this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
 
 
     console.log("CURRENT START OF THE DAY ", new Date(this.currentEndDay))
@@ -251,7 +250,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
       return b.avgCallTime - a.avgCallTime
     })
     this.objData = obj
-    console.log("OBJ DATA DONE ", this.objData)
+    // console.log("OBJ DATA DONE ", this.objData)
     return obj
     // console.log("AVG CALL SORT", arr2)
 
@@ -259,15 +258,23 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   getData(agentName) {
-    console.log(this.objData)
+    // console.log(this.objData)
     return this.objData[agentName]
   }
 
   log(val) {
     console.log(val)
   }
-  str_pad_left(string, pad, length) {
-    return (new Array(length + 1).join(pad) + string).slice(-length);
+  secondsToHms(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+
+    var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+    var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
+    var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+    return hDisplay + mDisplay + sDisplay;
   }
 
 }
