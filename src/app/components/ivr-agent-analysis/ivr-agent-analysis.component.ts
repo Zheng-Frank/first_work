@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, QueryList, ViewChildren, ElementRef } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { Chart } from 'chart.js';
@@ -14,34 +14,82 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   @ViewChild('lineCanvas') lineCanvas;
   @ViewChild('lineCanvas2') lineCanvas2;
+  @ViewChildren('cmp') components: QueryList<ElementRef>;
 
 
-  title = 'Charts.js in Angular 9';
-
-  lineChart: any;
-  lineChart2: any
-
+  currentStartDay;
+  currentEndDay;
   agentData = null
   segmentedData = null
   agents;
+  datum;
+  totalTimes = []
+
+  objData = {};
+
 
   constructor(private _api: ApiService) { }
+  ngAfterViewInit() {
+    // print array of CustomComponent objects
+    this.components.changes.subscribe(
+      () => {
+        let arr = (this.components.toArray())
 
+        arr.forEach(el => {
+          console.log("EL IS ", el)
+          let agent = el.nativeElement.innerHTML
+          let data = this.processChartData(agent)
+          new Chart(el.nativeElement, {
+            options: {
+              scales: {
+                yAxes: [{
+                  ticks: {
+                    max: 1,
+                    min: 0,
+                    spanGaps: true,
+
+                    stepSize: 1
+                  }
+                }]
+              }
+            },
+            showTooltips: true,
+
+            type: 'line',
+            data: {
+              labels: this.totalTimes,
+              datasets: [
+                {
+                  label: 'Activity Over 24 Hours',
+                  fill: true,
+                  lineTension: 0.1,
+                  backgroundColor: 'rgba(252, 3, 3,1.0)',
+                  borderCapStyle: 'butt',
+                  borderDash: [],
+                  borderDashOffset: 0.0,
+                  borderJoinStyle: 'miter',
+                  pointRadius: 1,
+                  stepSize: 1,
+                  pointHitRadius: 10,
+                  data: data,
+                  spanGaps: false,
+                }
+              ]
+            }
+          });
+        })
+
+      }
+    );
+  }
   reload() {
 
   }
 
-
-
-
-
-  lineChartMethod() {
-    let example = this.segmentedData['alice.xie'].callData
-
-    console.log("EXAMPLE ", example)
+  async ngOnInit() {
     let timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
     // AM 
-    let totalTimes = []
+
     for (let i = 0; i < timePeriods.length; i++) {
       for (let x = 0; x < 60; x++) {
         let time: any = (timePeriods[i] + x)
@@ -52,7 +100,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
         } else {
           time = `${time[0]}${time[1]}:${time[2]}${time[3]}AM`
         }
-        totalTimes.push(time)
+        this.totalTimes.push(time)
       }
     }
     for (let i = 0; i < timePeriods.length; i++) {
@@ -65,109 +113,21 @@ export class IvrAgentAnalysisComponent implements OnInit {
         } else {
           time = `${time[0]}${time[1]}:${time[2]}${time[3]}PM`
         }
-        totalTimes.push(time)
+        this.totalTimes.push(time)
       }
     }
-    console.log(totalTimes)
+    let currentStartDay = new Date();
+    currentStartDay.setHours(0, 0, 0, 0);
+    this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 168)
 
-    let agentActivity = []
+    console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
 
-    for (let i = 0; i < 720; i++) {
-      if (Math.random() <= .05) {
-        agentActivity.push(1)
-        agentActivity.push(1)
+    this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 144)
 
-      }
-      else {
-        agentActivity.push(Number.NaN)
-        agentActivity.push(Number.NaN)
 
-      }
-    }
+    console.log("CURRENT START OF THE DAY ", new Date(this.currentEndDay))
 
-    this.lineChart = new Chart(this.lineCanvas.nativeElement, {
-      options: {
-        scales: {
-          yAxes: [{
-            ticks: {
-              max: 1,
-              min: 0,
-              spanGaps: true,
 
-              stepSize: 1
-            }
-          }]
-        }
-      },
-      showTooltips: true,
-
-      type: 'line',
-      data: {
-        labels: totalTimes,
-        datasets: [
-          {
-            label: 'Activity Over 24 Hours',
-            fill: true,
-            lineTension: 0.1,
-            backgroundColor: 'rgba(252, 3, 3,1.0)',
-            borderCapStyle: 'butt',
-            borderDash: [],
-            borderDashOffset: 0.0,
-            borderJoinStyle: 'miter',
-            pointRadius: 1,
-            stepSize: 1,
-            pointHitRadius: 10,
-            data: agentActivity,
-            spanGaps: false,
-          }
-        ]
-      }
-    });
-    this.lineChart2 = new Chart(this.lineCanvas2.nativeElement, {
-      options: {
-        scales: {
-          yAxes: [{
-            ticks: {
-              max: 1,
-              min: 0,
-              stepSize: 1
-            }
-          }]
-        }
-      },
-      type: 'line',
-      data: {
-        labels: totalTimes,
-        datasets: [
-          {
-            label: 'Activity Over 24 Hours',
-            fill: true,
-            lineTension: 0.1,
-            backgroundColor: 'rgba(75,192,192,0.4)',
-            borderColor: 'rgba(75,192,192,1)',
-            borderCapStyle: 'butt',
-            borderDash: [],
-            borderDashOffset: 0.0,
-            borderJoinStyle: 'miter',
-            pointBorderColor: 'rgba(75,192,192,1)',
-            pointBackgroundColor: '#fff',
-            pointBorderWidth: 1,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pointHoverBorderColor: 'rgba(220,220,220,1)',
-            pointHoverBorderWidth: 2,
-            pointRadius: 1,
-            stepSize: 1,
-            pointHitRadius: 10,
-            data: agentActivity,
-            spanGaps: false,
-          }
-        ]
-      }
-    });
-  }
-
-  async ngOnInit() {
 
     let ivrData = await this._api
       .get(environment.qmenuApiUrl + "generic", {
@@ -176,8 +136,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
           "Channel": 'VOICE',
           Agent: { $ne: null },
           createdAt: {
-            $gt: new Date().setHours(new Date().getHours() - 108),
-            $lt: new Date().setHours(new Date().getHours() - 72)
+            $gt: this.currentStartDay,
+            $lt: this.currentEndDay
           }
         },
         projection: {
@@ -191,10 +151,29 @@ export class IvrAgentAnalysisComponent implements OnInit {
       })
       .toPromise();
     this.agentData = ivrData
-    this.getAgents(this.agentData)
-    this.lineChartMethod();
+    this.agents = this.getAgents(this.agentData)
+  }
 
-    // console.log(ivrData)
+  processChartData(agentName) {
+    let data = []
+    for (let i = 0; i < 1440; i++) {
+      data.push(Number.NaN)
+    }
+    let example = this.agents[agentName].callData
+
+    example.forEach((callData) => {
+      if (callData && callData.start && callData.end) {
+        let unitOfTime = Math.floor(((new Date(callData.start).getTime() - this.currentStartDay) / 86400000) * 1440)
+        let lengthOfCall = (new Date(callData.end).getTime() - new Date(callData.start).getTime()) / 1000
+        let counter = unitOfTime
+        for (let i = 0; i <= lengthOfCall; i += 60) {
+          data[counter] = 1
+          counter += 1
+        }
+        data[counter] = 1
+      }
+    })
+    return data
   }
 
   getAgents(agentData) {
@@ -268,9 +247,20 @@ export class IvrAgentAnalysisComponent implements OnInit {
     arr2.sort((a, b) => {
       return b.avgCallTime - a.avgCallTime
     })
+    this.objData = obj
+    console.log("OBJ DATA DONE ", this.objData)
+    return obj
     // console.log("AVG CALL SORT", arr2)
 
     // console.log("ALL DATA ", obj)
   }
 
+
+
 }
+
+
+ // Start at 12:00AM of the day of the current Day
+  // End At 11:59PM and at the end of the current Day
+  // Segment the time between into 1440 evenly spaced out points
+  // Find where the current call fits into that 1440 space distribution, and loop through and fill in those values as 1, at the rest as Number.NaN

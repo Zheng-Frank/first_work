@@ -76,17 +76,12 @@
   <div class="container">
     <hr />
 
-    <div class="row">
+    <div class="row" *ngFor="let item of objData | keyvalue">
       <div class="col-sm-4" class="card-body">
-        <div class="row">
-          <h5 class="card-title">Total Calls: 54</h5>
-        </div>
-        <h6 class="card-subtitle mb-2 text-muted">
-          Avg Call Time: 52 min
-          <a target="_blank"> (OUTBOUND ONLY) </a>
-        </h6>
-        <p class="card-subtitle">Duration: 65 minutes</p>
-        <p class="card-subtitle">Name: Jennica</p>
+        <h5 class="card-subtitle mb-2">Name: Annie</h5>
+        <h6 class="card-subtitle mb-2">Total Calls: 54</h6>
+        <p class="card-subtitle">Duration: 75 minutes</p>
+        <p class="card-subtitle">Avg Call Time: 2:42 min</p>
         <canvas width="1100" height="150" #lineCanvas></canvas>
 
         <!-- <div>
@@ -100,28 +95,9 @@
   </div>
 </div>
 
-<div class="container">
-  <hr />
-
-  <div class="row">
-    <div class="col-sm-4" class="card-body">
-      <div class="row">
-        <h5 class="card-title">Total Calls: 65</h5>
-      </div>
-      <h6 class="card-subtitle mb-2 text-muted">
-        Avg Call Time: 5 min
-        <a target="_blank"> (OUTBOUND ONLY) </a>
-      </h6>
-      <p class="card-subtitle">Duration: 32 minutes</p>
-      <p class="card-subtitle">Name: Alicia</p>
-      <canvas width="1100" height="150" #lineCanvas2></canvas>
-
-      <!-- <div>
-      <a target="_blank" href='/#/logs' + data.id class="card-subtitle">
-        Show Logs
-      </a>
-    </div> -->
-    </div>
+<div *ngIf="objData">
+  DATA NOW EXISTS
+  <div *ngFor="let item of objData | keyvalue">
+    <canvas #cmp>{{ item.key }}</canvas>
   </div>
-  <hr />
 </div>
