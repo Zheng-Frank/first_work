@@ -22,10 +22,10 @@
 
   <div *qIf="promotionType === '$ Discount'">
     <label class="mt-1">Fixed Amount ($):</label>
-    <div *qIf="promotion.amount > promotion.orderMinimum" class="text-danger font-weight-bold"> Error: Promotion amount
+    <div *qIf="promotion.amount > promotion.orderMinimum && eligibility === 'Order Minimum ($)'" class="text-danger font-weight-bold"> Error: Promotion amount
       cannot exceed minimum order amount</div>
     <div>
-      <input type="tel" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
+      <input type="number" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
     </div>
   </div>
 
@@ -35,7 +35,7 @@
       class="text-danger font-weight-bold"> Error: Invalid
       percentage</div>
     <div>
-      <input type="tel" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
+      <input type="number" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
     </div>
 
     <label class="mt-1">Applicable items:</label>
@@ -146,7 +146,7 @@
     Customer is eligible for promotion if their order subtotal is at least this amount.
     <br>
     <label class="mt-1">Minimum Order ($)</label>
-    <input type="tel" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
+    <input type="number" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
   </div>
   <div *qIf="eligibility === 'Order of Select Item(s)'">
     Customer is eligible for promotion if they buy any item contained in this list, or in any menu or category contained
@@ -170,17 +170,17 @@
       <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'withOrderFromList')"
         [(ngModel)]="selected.withOrderFromList.menu">
         <option value=""></option>
-        <option *ngFor="let menu of menus">{{menu.name}}</option>
+        <option [value]="menu.name" *ngFor="let menu of menus">{{menu.name}}</option>
       </select>
       <select class="form-control mr-2" (change)="onCategorySelected($event.target.value, 'withOrderFromList')"
         [(ngModel)]="selected.withOrderFromList.category">
         <option value=""></option>
-        <option *ngFor="let category of categories">{{category.name}}</option>
+        <option [value]="category.name" *ngFor="let category of categories">{{category.name}}</option>
       </select>
       <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'withOrderFromList')"
         [(ngModel)]="selected.withOrderFromList.item">
         <option value=""></option>
-        <option *ngFor="let item of items">{{item.name}}</option>
+        <option [value]="item.name" *ngFor="let item of items">{{item.name}}</option>
       </select>
       <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-link" (click)="addEntryToList('withOrderFromList')">Add</button>

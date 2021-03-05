@@ -63,10 +63,14 @@ export class PromotionEditorComponent implements DoCheck {
 
   ngDoCheck() {
     if (this.promotion) {
-      if (!this.oldPromotionID) {
+      if (!this.oldPromotionID && !this.promotion.id) {
+        // A newly created promotion has no id
+        this.oldPromotionID = 'New Promo';
+        this.onNewPromotionLoaded();
+      } else if (!this.oldPromotionID) {
         this.oldPromotionID = this.promotion.id;
         this.onNewPromotionLoaded();
-      } else {
+      } else if (this.oldPromotionID && this.promotion.id) {
         if (this.oldPromotionID !== this.promotion.id) {
           this.oldPromotionID = this.promotion.id;
           this.onNewPromotionLoaded();
@@ -76,8 +80,6 @@ export class PromotionEditorComponent implements DoCheck {
   }
 
   onNewPromotionLoaded() {
-    // when we detect that a new coupon has been loaded into the editor modal, update the display properties
-    // so that 
     this.promotionType = '$ Discount';
     this.eligibility = 'Order Minimum ($)';
     if (this.promotion.percentage && this.promotion.amount === 0) {
@@ -89,6 +91,7 @@ export class PromotionEditorComponent implements DoCheck {
       this.eligibility = 'Order of Select Item(s)';
     }
   }
+
   getExpiry() {
     if (this.promotion.expiry) {
       return this.promotion.expiry['restaurant yyyy-mm-dd'](this.offsetToEST);
@@ -147,6 +150,7 @@ export class PromotionEditorComponent implements DoCheck {
     this.promotion.amount = Math.abs(+this.promotion.amount || 0);
     this.promotion.percentage = Math.abs(+this.promotion.percentage || 0);
     this.promotion.orderMinimum = Math.abs(+this.promotion.orderMinimum || 0);
+    this.removeUnwantedFields();
     if (!this.promotion.expiry) {
       if (typeof this.promotion.expiry === 'string') {
         this.promotion.expiry = new Date(this.promotion.expiry);
@@ -157,17 +161,6 @@ export class PromotionEditorComponent implements DoCheck {
       //this.promotion.expiry.setMonth(this.promotion.expiry.getMonth() + 1);
     }
     this.onDone.emit(this.promotion);
-  }
-
-  toggleMenu(menu) {
-    if (this.promotion.excludedMenuIds.indexOf(menu.id) >= 0) {
-      this.promotion.excludedMenuIds = this.promotion.excludedMenuIds.filter(id => id !== menu.id);
-    } else {
-      if (this.promotion.excludedMenuIds.length === this.menus.length - 1) {
-        this.promotion.excludedMenuIds.pop();
-      }
-      this.promotion.excludedMenuIds.push(menu.id);
-    }
   }
 
   isMenuIncluded(menu) {
@@ -247,6 +240,7 @@ export class PromotionEditorComponent implements DoCheck {
   }
 
   addEntryToList(listName) {
+    console.log(this.selected[listName])
     const newEntry: any = {};
 
     if (this.selected[listName]) {
@@ -262,7 +256,6 @@ export class PromotionEditorComponent implements DoCheck {
     if (this.selected[listName].menu) {
       this.promotion[listName] = [...this.promotion[listName] || [], newEntry];
     }
-    console.log(this.suggestPromotionTitle());
     this.selected[listName] = {};
   }
 
@@ -272,12 +265,8 @@ export class PromotionEditorComponent implements DoCheck {
     }
   }
 
-  deleteOrderEligibilityList() {
-    this.withOrderFromList = [];
-  }
-
   validatePromotionNumbers() {
-    if (this.promotionType === '$ Discount') {
+    if (this.promotionType === '$ Discount' && this.eligibility === 'Order Minimum ($)') {
       if (this.promotion.amount > this.promotion.orderMinimum) {
         return false;
       }
@@ -326,4 +315,28 @@ export class PromotionEditorComponent implements DoCheck {
     this.promotion.name = this.suggestPromotionTitle();
   }
 
+  removeUnwantedFields() {
+    if (this.promotionType === '$ Discount') {
+      this.promotion.freeItemList = [];
+      this.promotion.freeItemName = '';
+      this.promotion.freeItemQty = 0;
+      this.promotion.percentage = 0;
+      this.promotion.percentDiscountList = [];
+    } else if (this.promotionType === '% Discount') {
+      this.promotion.amount = 0;
+      this.promotion.freeItemList = [];
+      this.promotion.freeItemName = '';
+      this.promotion.freeItemQty = 0;
+    } else if (this.promotionType === 'Free Item') {
+      this.promotion.amount = 0;
+      this.promotion.percentage = 0;
+      this.promotion.percentDiscountList = [];
+    }
+
+    if (this.eligibility === 'Order Minimum ($)') {
+      this.promotion.withOrderFromList = [];
+    } else if (this.eligibility === 'Order of Select Item(s)') {
+      this.promotion.orderMinimum = 0;
+    }
+  }
 }
