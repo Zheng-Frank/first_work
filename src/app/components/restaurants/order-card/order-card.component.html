@@ -38,6 +38,7 @@
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
       <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
+      <span *ngIf="order.paymentObj.stripeObject && order.paymentObj.stripeObject.spreedlyGatewayToken"> (SPRE)</span>
     </div>
     <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
       <strong>{{order.restaurantNotice}}</strong>

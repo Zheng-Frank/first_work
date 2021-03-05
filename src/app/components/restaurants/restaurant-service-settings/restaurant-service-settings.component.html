@@ -1,12 +1,14 @@
 <div class="card mb-2">
   <h3 class="card-title text-center pt-4 pb-2">
-    <i class="fas fa-coffee"></i>&nbsp;Service Settings</h3>
+    <i class="fas fa-coffee"></i>&nbsp;Service Settings
+  </h3>
   <div class="text-center">{{getExcludedPaymentString()}}</div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <!--displaying-->
       <div *qIf="!editing">
-        <table class="table table-borderless table-sm" *ngIf="restaurant.serviceSettings && restaurant.serviceSettings.length > 0">
+        <table class="table table-borderless table-sm"
+          *ngIf="restaurant.serviceSettings && restaurant.serviceSettings.length > 0">
           <thead>
             <tr>
               <th>Service</th>
@@ -30,7 +32,8 @@
                 <small>
                   <ul>
                     <li *ngFor="let method of (service.paymentMethods || [])">{{paymentDescriptionMap[method]}}
-                      <span *ngIf="service.name === 'Delivery' && method === 'IN_PERSON'"> (DRIVER MUST HAVE CREDIT CARD PROCESSOR!)</span>
+                      <span *ngIf="service.name === 'Delivery' && method === 'IN_PERSON'"> (DRIVER MUST HAVE CREDIT CARD
+                        PROCESSOR!)</span>
                     </li>
                   </ul>
                 </small>
@@ -38,7 +41,8 @@
             </tr>
           </tbody>
         </table>
-        <div class="text-danger" *ngIf="!restaurant.serviceSettings || restaurant.serviceSettings.length === 0">No service setup yet</div>
+        <div class="text-danger" *ngIf="!restaurant.serviceSettings || restaurant.serviceSettings.length === 0">No
+          service setup yet</div>
       </div>
 
       <!--editing-->
@@ -66,16 +70,20 @@
               </td>
               <td>
                 <label class="switch">
-                 <input type="checkbox" (click)="toggleService(service)" [checked]="isServiceEnabled(service)">
-                 <div class="slider round"></div>
-               </label>
-             </td>
+                  <input type="checkbox" (click)="toggleService(service)" [checked]="isServiceEnabled(service)">
+                  <div class="slider round"></div>
+                </label>
+              </td>
               <td>
                 <div>
                   <div class="form-check" *ngFor="let paymentMethod of getPaymentMethods()">
                     <label class="form-check-label">
-                      <input type="checkbox" class="form-check-input" [checked]="isPaymentMethodSelected(service, paymentMethod)" (change)="servicePaymentMethodChange(service, paymentMethod)"> {{paymentDescriptionMap[paymentMethod]}}
-                      <span *ngIf="service.name === 'Delivery' && paymentMethod === 'IN_PERSON'"> (DRIVER MUST HAVE CREDIT CARD PROCESSOR!)</span>
+                      <input type="checkbox" class="form-check-input"
+                        [checked]="isPaymentMethodSelected(service, paymentMethod)"
+                        (change)="servicePaymentMethodChange(service, paymentMethod)">
+                      {{paymentDescriptionMap[paymentMethod]}}
+                      <span *ngIf="service.name === 'Delivery' && paymentMethod === 'IN_PERSON'"> (DRIVER MUST HAVE
+                        CREDIT CARD PROCESSOR!)</span>
                     </label>
                   </div>
                 </div>
@@ -83,52 +91,59 @@
             </tr>
           </tbody>
         </table>
-        <hr>
-        <div *ngIf="shouldShowStripeInput()" class="mb-4 pb-2">
-          <h5>Stripe Setup</h5>
 
-          <div class="form-group">
-            <label>Stripe Publishable Key</label>
-            <div>
-              <input type="text" [(ngModel)]="stripePublishableKey" class="form-control" placeholder="publishable key">
+        <div *ngIf="shouldShowCCProcessorForm()" class="mt-3 pt-3">
+          <q-simple-radio [(ngModel)]="ccProcessorSelected" [equalWidth]="true" [values]="['STRIPE', 'SPREEDLY']">
+          </q-simple-radio>
+          <div [ngSwitch]="ccProcessorSelected">
+            <div *ngSwitchCase="'STRIPE'">
+              <h5>Stripe Setup</h5>
 
+              <div class="form-group">
+                <label>Stripe Publishable Key</label>
+                <div>
+                  <input type="text" [(ngModel)]="stripePublishableKey" class="form-control"
+                    placeholder="publishable key">
+
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Stripe Secret Key</label>
+                <div>
+                  <input type="text" [(ngModel)]="stripeSecretKey" class="form-control" placeholder="secret key">
+
+                </div>
+              </div>
             </div>
-          </div>
+            <div *ngSwitchCase="'SPREEDLY'">
+              <h5>Spreedly Gateway Setup</h5>
 
-          <div class="form-group">
-            <label>Stripe Secret Key</label>
-            <div>
-              <input type="text" [(ngModel)]="stripeSecretKey" class="form-control" placeholder="secret key">
+              <div class="row d-flex align-items-center mb-3 mt-4">
+                <div class="col-sm-2">
+                  <label>Gateway</label>
+                </div>
+                <div class="col-sm-10">
+                  <select class="form-control" [(ngModel)]="gatewayType" (change)="changeGateway($event.target.value)">
+                    <option *ngFor="let gateway of supportedGateways" [value]="gateway.gateway_type">{{gateway.name}}
+                    </option>
+                  </select>
+                </div>
+              </div>
 
+              <div class="row d-flex align-items-center mb-3" *ngFor="let credential of gateway.credentials">
+                <div class="col-sm-2">
+                  <label>{{credential.label}}</label>
+                </div>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" [(ngModel)]="gateway[credential.name]">
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-sm btn-primary" (click)="createGateway()">Create Gateway</button>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div *ngIf="shouldShowSpreedlyInput()" class="mb-4 pb-2">
-          <h5>Spreedly Gateway Setup</h5>
-
-          <div class="row d-flex align-items-center mb-3 mt-4">
-            <div class="col-sm-2">
-              <label>Gateway</label>
-            </div>
-            <div class="col-sm-10">
-              <select class="form-control" [(ngModel)]="gatewayType" (change)="changeGateway($event.target.value)">
-                <option *ngFor="let gateway of supportedGateways" [value]="gateway.gateway_type">{{gateway.name}}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="row d-flex align-items-center mb-3" *ngFor="let credential of gateway.credentials">
-            <div class="col-sm-2">
-              <label>{{credential.label}}</label>
-            </div>
-            <div class="col-sm-10">
-              <input type="text" class="form-control" [(ngModel)]="gateway[credential.name]">
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-end">
-            <button class="btn btn-sm btn-primary" (click)="createGateway()">Create Gateway</button>
           </div>
         </div>
 
@@ -141,7 +156,7 @@
           </label>
           Require Zip Code
         </div>
-  
+
         <div>
           <label class="switch">
             <input type="checkbox" (click)="toggleBillingAddress()" [checked]="requireBillingAddress">
@@ -163,7 +178,7 @@
           </label>
           Exclude Discover
         </div>
-  
+
         <div>
           <label class="switch">
             <input type="checkbox" (click)="toggleTaxBeforePromotion()" [checked]="taxBeforePromotion">
@@ -178,7 +193,7 @@
         </div>
       </div>
       <div class="text-right" *ngIf="!editing">
-        <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>        
+        <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
       </div>
     </li>
   </ul>
