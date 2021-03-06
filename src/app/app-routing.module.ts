@@ -65,6 +65,7 @@ import { ChainsDashboardComponent } from './components/chains/chains-dashboard/c
 import { TemporarilyDisabledComponent } from './components/restaurants/temporarily-disabled/temporarily-disabled.component';
 import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/monitoring-unconfirmed-orders/monitoring-unconfirmed-orders.component';
 import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
+import { IvrAgentAnalysisComponent } from "./components/ivr-agent-analysis/ivr-agent-analysis.component";
 
 
 const routes: Routes = [
@@ -119,17 +120,17 @@ const routes: Routes = [
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
 
-  { path: 'invalid-list', component: InvalidListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR','MARKETER_INTERNAL'] } },
-  { path: 'temporarily-disabled', component: TemporarilyDisabledComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR','MARKETER_INTERNAL'] } },
-  { path:'unconfirmed-orders',component:MonitoringUnconfirmedOrdersComponent,canActivate:[RoleGuard],data:{roles:['ADMIN', 'CSR']}},
-  { path:'fax-problems',component:MonitoringFaxComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}},
-  { path:'email-problems',component:MonitoringEmailComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}} ,
-  { path:'monitoring-hours',component:MonitoringHoursComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}} ,
-  { path:'disabled-restaurants',component:MonitoringDisabledRestaurantsComponent,canActivate:[RoleGuard],data:{roles:['ADMIN','CSR']}} ,
-  { path:'manage-images',component:ImageManagerComponent,canActivate:[RoleGuard],data:{roles:['ADMIN']}} ,
-  { path:'banned-customers', component: BannedCustomersComponent,canActivate:[RoleGuard],data:{roles: ['ADMIN', 'GMB','CSR']}},
-  { path:'schemas', component: SchemasComponent,canActivate:[RoleGuard],data:{roles: ['ADMIN', 'GMB','CSR']}},
-  { path: "seamless-integration", component: SeamlessIntegrationComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "CSR", "MARKETER_INTERNAL"]},},
+  { path: 'invalid-list', component: InvalidListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER_INTERNAL'] } },
+  { path: 'temporarily-disabled', component: TemporarilyDisabledComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER_INTERNAL'] } },
+  { path: 'unconfirmed-orders', component: MonitoringUnconfirmedOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'fax-problems', component: MonitoringFaxComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'email-problems', component: MonitoringEmailComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'monitoring-hours', component: MonitoringHoursComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'disabled-restaurants', component: MonitoringDisabledRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'manage-images', component: ImageManagerComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'banned-customers', component: BannedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
+  { path: 'schemas', component: SchemasComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
+  { path: "seamless-integration", component: SeamlessIntegrationComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "CSR", "MARKETER_INTERNAL"] }, }, { path: "ivr-agent-analysis", component: IvrAgentAnalysisComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "CSR", "MARKETER_INTERNAL"] }, },
   { path: '**', redirectTo: '/home' }
 ];
 

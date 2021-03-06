@@ -33,6 +33,7 @@
 >>>>>>> e30c923b0fa353a3353d7b8ff0e2e1953294e808
     "@swimlane/ngx-graph": "^6.1.0",
     "bootstrap": "^4.1.3",
+    "chart.js": "^2.9.4",
     "classlist.js": "^1.1.20150312",
     "core-js": "^2.5.7",
     "crypto-js": "^3.1.9-1",
@@ -41,6 +42,7 @@
     "jwt-decode": "^2.2.0",
     "lz-string": "^1.4.4",
     "mime-types": "^2.1.26",
+    "moment": "^2.29.1",
     "ng-click-outside": "^3.3.0",
     "ng-pick-datetime": "^6.0.15",
     "ngx-mask": "^8.0.0",
