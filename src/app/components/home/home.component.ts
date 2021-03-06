@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit {
       "other-moudles":['ADMIN','CSR'], 
      // "image-manager": ['ADMIN'],
       "gmb-campaign": ['ADMIN'],
-      "bulk-messaging": ['ADMIN'],
+      "bulk-messaging": ['ADMIN','CSR'],
       "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],
       "broadcasting": ['ADMIN', 'CSR'],
       "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
