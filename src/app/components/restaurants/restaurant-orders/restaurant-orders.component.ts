@@ -5,7 +5,7 @@ import { Restaurant, Order, Customer } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Observable, zip } from 'rxjs';
-// import moment from 'moment-timezone'
+import moment from 'moment-timezone'
 import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -87,11 +87,11 @@ export class RestaurantOrdersComponent implements OnInit {
   //    console.log("time:"+TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone));
   //    return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone);
   // }
-  // convertTimeAtTimezoneToUTC(input: string, zone: string) {
-  //   var m = moment.tz(input, zone).utc().format();
+  convertTimeAtTimezoneToUTC(input: string, zone: string) {
+    var m = moment.tz(input, zone).utc().format();
 
-  //   return m;
-  // }
+    return m;
+  }
   /**
    *
    * this function is used to filter order by createdAt
@@ -100,7 +100,7 @@ export class RestaurantOrdersComponent implements OnInit {
    * @memberof RestaurantOrdersComponent
    */
   async doSearchOrderByTime(from, to) {
-    console.log("from time:" + from + "," + typeof from + " to time:" + to + "," + typeof to);
+    // console.log("from time:" + from + "," + typeof from + " to time:" + to + "," + typeof to);
     if (from == undefined) {
       return alert("please input a correct from time date format!");
     }
@@ -112,15 +112,15 @@ export class RestaurantOrdersComponent implements OnInit {
     // let fromstr = from.split('-');
     // fromstr[2] = (parseInt(fromstr[2]) + 1) + "";
     // from = fromstr.join('-');
-    // let tostr = to.split('-');
-    // tostr[2] = (parseInt(tostr[2]) + 5) + "";//enlarge the day range to get correct timezone
-    // to = tostr.join('-');
-    const fromValue = new Date(from);
-    const toValue = new Date(to);
-    const f = new Date(fromValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    const t = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
-    // const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
+    let tostr = to.split('-');
+    tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
+    to = tostr.join('-');
+    // const fromValue = new Date(from);
+    // const toValue = new Date(to);
+    // const f = new Date(fromValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    // const t = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
+    const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
     // console.log("utcf:" + utcf);
     // console.log("utct" + utct);
     // const f1=this.getTransformedDate(from,this.restaurant.googleAddress.timezone);
@@ -131,9 +131,9 @@ export class RestaurantOrdersComponent implements OnInit {
     // let America_local_t = t.getTime();
     // let localOffset_t = (48+5) * 60 * 60000;//一共需要相后加4天
     // let utct = new Date((America_local_t + localOffset_t));
-    // console.log("from :" + f + ",to :" + t);
+    // console.log("from :" + utcf +typeof(utcf)+ ",to :" + utct);
     // console.log("from1:" + utcf + ",to1:" + utct);
-    if (f > t) {
+    if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
     const query = {
@@ -142,11 +142,11 @@ export class RestaurantOrdersComponent implements OnInit {
       },
       $and: [{
         createdAt: {
-          $gte: { $date: f }
+          $gte: { $date: utcf }
         } // less than and greater than
       }, {
         createdAt: {
-          $lte: { $date: t }
+          $lte: { $date: utct }
         }
       }
       ]
