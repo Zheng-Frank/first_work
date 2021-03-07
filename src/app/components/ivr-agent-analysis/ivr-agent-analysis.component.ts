@@ -20,13 +20,13 @@ export class IvrAgentAnalysisComponent implements OnInit {
   currentStartDay;
   currentEndDay;
   agentData = null
-  segmentedData = null
   agents;
-  datum;
   totalTimes = []
-  entries
+  entriesLength
+  agentMappedData = {};
+  sortBy = 'Total Calls'
+  sorting = 'Ascending'
 
-  objData = {};
 
 
   constructor(private _api: ApiService) { }
@@ -83,7 +83,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     );
   }
   reload() {
-    this.ngOnInit()
+    // this.ngOnInit()
   }
 
   async ngOnInit() {
@@ -118,11 +118,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
     let currentStartDay = new Date();
     currentStartDay.setHours(0, 0, 0, 0);
-    this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 48)
+    this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 192)
 
     console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
 
-    this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
+    this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 168)
 
 
     console.log("CURRENT START OF THE DAY ", new Date(this.currentEndDay))
@@ -151,7 +151,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
       })
       .toPromise();
     this.agentData = ivrData
-    this.agents = this.getAgents(this.agentData)
+    this.agents = this.processAgents(this.agentData)
   }
 
   processChartData(agentName) {
@@ -176,90 +176,72 @@ export class IvrAgentAnalysisComponent implements OnInit {
     return data
   }
 
-  getAgents(agentData) {
+  processAgents(agentData) {
     this.agents = [...new Set(agentData.map(obj => obj.Agent.Username))]
     // console.log("THESE ARE THE AGENTS ", this.agents)
-
-    let obj = {}
-
+    let agent_mapped_data = {}
     this.agents.forEach(agent => {
-      obj[agent] = {
+      agent_mapped_data[agent] = {
         totalCalls: 0,
         callData: [],
         totalCallTime: 0,
-        idleTime: 0,
-        avgIdleTime: 0,
-        avgCallTime: 0
-
       }
     })
 
-    // console.log(obj)
-
     agentData.map((data) => {
-      obj[data.Agent.Username].callData.push({
+      agent_mapped_data[data.Agent.Username].callData.push({
         start: data.ConnectedToSystemTimestamp,
         end: data.DisconnectTimestamp,
         duration: data.Agent.AgentInteractionDuration,
-        afterContactDuration: data.Agent.AfterContactWorkDuration
       })
     })
 
-    this.segmentedData = obj
 
-    // total calls
-    for (const x in obj) {
-      obj[x]['totalCalls'] = obj[x]['callData'].length
-    }
-
-    // totalCallTime + AVG CAll time + afterContact
-
-    for (const x in obj) {
+    // total calls + avg call time + total_calltime
+    for (const agentName in agent_mapped_data) {
+      agent_mapped_data[agentName]['totalCalls'] = agent_mapped_data[agentName]['callData'].length
       let sum = 0
-      let sum2 = 0
-      obj[x]['callData'].forEach(obj => {
+      agent_mapped_data[agentName]['callData'].forEach(obj => {
         sum += obj.duration
-        sum2 += obj.afterContactDuration
       })
-      obj[x]['totalCallTime'] = sum;
-      obj[x]['totalAfterContactDuration'] = sum2
-      obj[x]['avgCallTime'] = sum / obj[x]['totalCalls'];
-      obj[x]['avgAfterContactDuration'] = sum2 / obj[x]['totalCalls'];
+      agent_mapped_data[agentName]['totalCallTime'] = sum;
+      agent_mapped_data[agentName]['avgCallTime'] = sum / agent_mapped_data[agentName]['totalCalls'];
     }
-    let arr = []
-    for (const x in obj) {
-      arr.push({
-        agent: x,
-        totalCallTime: obj[x]['totalCallTime'],
-        avgCallTime: obj[x]['avgCallTime'],
-        totalCalls: obj[x]['totalCalls']
-      })
-    }
-    this.entries = arr.length
 
-    let arr4 = [...arr]
+
+    this.agentMappedData = agent_mapped_data
+    return agent_mapped_data
+
+  }
+
+  sort() {
+    // agentMappedData is the final data structure
+    let agentArrayData = []
+    for (const agentName in this.agentMappedData) {
+      agentArrayData.push({
+        agent: agentName,
+        totalCallTime: this.agentMappedData[agentName]['totalCallTime'],
+        avgCallTime: this.agentMappedData[agentName]['avgCallTime'],
+        totalCalls: this.agentMappedData[agentName]['totalCalls']
+      })
+    }
+    this.entriesLength = agentArrayData.length
+
+    let arr4 = [...agentArrayData]
     arr4.sort((a, b) => b.totalCalls - a.totalCalls)
-    // console.log("TOTAL CALLS SORT ", arr4)
-    let arr2 = [...arr]
-    arr.sort((a, b) => {
+    let arr2 = [...agentArrayData]
+    agentArrayData.sort((a, b) => {
       return b.totalCallTime - a.totalCallTime
     })
-    // console.log("TOTAL CALL TIME SORT", arr)
 
     arr2.sort((a, b) => {
       return b.avgCallTime - a.avgCallTime
     })
-    this.objData = obj
-    // console.log("OBJ DATA DONE ", this.objData)
-    return obj
-    // console.log("AVG CALL SORT", arr2)
 
-    // console.log("ALL DATA ", obj)
   }
 
   getData(agentName) {
-    // console.log(this.objData)
-    return this.objData[agentName]
+    return this.agentMappedData[agentName]
   }
 
   log(val) {

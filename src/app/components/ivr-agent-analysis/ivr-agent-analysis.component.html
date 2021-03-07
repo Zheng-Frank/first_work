@@ -9,8 +9,10 @@
       </button>
     </div>
   </div>
+  <br />
+
   <div class="row">
-    <div class="col-sm-6">
+    <div class="col-sm-12">
       <span class="dropdown">
         <b>View: &nbsp; </b>
         <button
@@ -26,17 +28,58 @@
 
         &nbsp; &nbsp;
         <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-          <a class="dropdown-item">All</a>
-          <a class="dropdown-item">English</a>
-          <a class="dropdown-item">Chinese</a>
+          <a class="dropdown-item">Last 48 Hours</a>
+          <a class="dropdown-item">Last 72 Hours</a>
         </span>
       </span>
+      <span class="dropdown">
+        <b>Sort By: &nbsp; </b>
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          Total Calls &nbsp;
+        </button>
+
+        &nbsp; &nbsp;
+        <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <a class="dropdown-item">Avg Call Time</a>
+          <a class="dropdown-item">Total Call Time</a>
+        </span>
+      </span>
+      <span class="dropdown">
+        <b>Sorting: &nbsp; </b>
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          Ascending &nbsp;
+        </button>
+
+        &nbsp; &nbsp;
+        <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <a class="dropdown-item">Descending</a>
+        </span>
+      </span>
+      <!-- <span> <app-quick-date-picker></app-quick-date-picker> </span> -->
     </div>
   </div>
 </div>
 
 <div class="container">
-  <div class="row" *ngFor="let item of objData | keyvalue" class="card-body">
+  <div
+    class="row"
+    *ngFor="let item of agentMappedData | keyvalue"
+    class="card-body"
+  >
     <hr />
     <div>
       Agent Name: <b>{{ item.key }}</b>
