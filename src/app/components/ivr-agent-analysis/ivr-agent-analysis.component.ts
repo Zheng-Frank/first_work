@@ -177,6 +177,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   processAgents(agentData) {
+
+    // Array representation
+
+    // Object representation
+
     this.agents = [...new Set(agentData.map(obj => obj.Agent.Username))]
     // console.log("THESE ARE THE AGENTS ", this.agents)
     let agent_mapped_data = {}
@@ -227,6 +232,18 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
     this.entriesLength = agentArrayData.length
 
+    switch (this.sortBy) {
+      case 'Total Calls':
+        this.sorting === 'Ascending' ? null : null
+        break
+      case 'Avg Calls':
+        this.sorting === 'Ascending' ? null : null
+        break
+      case 'Call Time':
+        this.sorting === 'Ascending' ? null : null
+        break
+      default:
+    }
     let arr4 = [...agentArrayData]
     arr4.sort((a, b) => b.totalCalls - a.totalCalls)
     let arr2 = [...agentArrayData]
