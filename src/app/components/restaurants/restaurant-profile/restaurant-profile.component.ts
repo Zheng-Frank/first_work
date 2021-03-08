@@ -229,13 +229,13 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.serviceSettings = ['Pickup', 'Delivery', 'Dine-in'].map(type => {
       const setting = this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};
       const tip = this.tipSettings[type];
-      setting.tipSuggestion = {
+      const tipSuggestion = {
         amount: tip.defaultAmount, rate: tip.defaultPercentage ? tip.defaultPercentage / 100 : undefined
       };
-      setting.tipMinimum = {
+      const tipMinimum = {
         amount: tip.minimumAmount, rate: tip.minimumPercentage ? tip.minimumPercentage / 100 : undefined
       };
-      return setting;
+      return {...setting, tipSuggestion, tipMinimum};
     });
 
     // make sure types are correct!
@@ -259,6 +259,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     // update those two fields!
     newObj.images = this.images;
     delete oldObj['images'];
+
+    console.log(oldObj, newObj)
 
     this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
