@@ -89,7 +89,6 @@ export class RestaurantOrdersComponent implements OnInit {
   // }
   convertTimeAtTimezoneToUTC(input: string, zone: string) {
     var m = moment.tz(input, zone).utc().format();
-
     return m;
   }
   /**
@@ -107,11 +106,6 @@ export class RestaurantOrdersComponent implements OnInit {
     if (to == undefined) {
       return alert("please input a correct to time date format !");
     }
-    // let f=this.GetTimeFromTimeZone(from,this.restaurant.googleAddress.timezone);
-    // let t=this.GetTimeFromTimeZone(to,this.restaurant.googleAddress.timezone);
-    // let fromstr = from.split('-');
-    // fromstr[2] = (parseInt(fromstr[2]) + 1) + "";
-    // from = fromstr.join('-');
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
@@ -121,18 +115,7 @@ export class RestaurantOrdersComponent implements OnInit {
     // const t = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
     const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
     const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
-    // console.log("utcf:" + utcf);
-    // console.log("utct" + utct);
-    // const f1=this.getTransformedDate(from,this.restaurant.googleAddress.timezone);
-    // const t1=this.getTransformedDate(to,this.restaurant.googleAddress.timezone);
-    // let America_local_f = f.getTime();
-    // let localOffset_f = (24+5) * 60 * 60000; //本地和0时区的偏移
-    // let utcf = new Date((America_local_f + localOffset_f)); //得到0时区时间
-    // let America_local_t = t.getTime();
-    // let localOffset_t = (48+5) * 60 * 60000;//一共需要相后加4天
-    // let utct = new Date((America_local_t + localOffset_t));
-    // console.log("from :" + utcf +typeof(utcf)+ ",to :" + utct);
-    // console.log("from1:" + utcf + ",to1:" + utct);
+   
     if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
