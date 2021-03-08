@@ -19,7 +19,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   currentStartDay;
   currentEndDay;
-  agentData = null
+  rawIvrData = null
   agents;
   totalTimes = []
   entriesLength
@@ -150,8 +150,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
         limit: 10000,
       })
       .toPromise();
-    this.agentData = ivrData
-    this.agents = this.processAgents(this.agentData)
+    this.rawIvrData = ivrData
+    this.agents = this.processAgents(this.rawIvrData)
   }
 
   processChartData(agentName) {
@@ -159,6 +159,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
     for (let i = 0; i < 1440; i++) {
       data.push(Number.NaN)
     }
+
+    // 
+
+    // let example = this.agents.filter(agent => agent.)
+
     let example = this.agents[agentName].callData
 
     example.forEach((callData) => {
@@ -176,13 +181,12 @@ export class IvrAgentAnalysisComponent implements OnInit {
     return data
   }
 
-  processAgents(agentData) {
+  processAgents(rawIvrData) {
 
-    // Array representation
 
     // Object representation
 
-    this.agents = [...new Set(agentData.map(obj => obj.Agent.Username))]
+    this.agents = [...new Set(rawIvrData.map(obj => obj.Agent.Username))]
     // console.log("THESE ARE THE AGENTS ", this.agents)
     let agent_mapped_data = {}
     this.agents.forEach(agent => {
@@ -193,7 +197,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
       }
     })
 
-    agentData.map((data) => {
+    rawIvrData.map((data) => {
       agent_mapped_data[data.Agent.Username].callData.push({
         start: data.ConnectedToSystemTimestamp,
         end: data.DisconnectTimestamp,
@@ -242,6 +246,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
       case 'Call Time':
         this.sorting === 'Ascending' ? null : null
         break
+      case 'Agent Name':
+        this.sorting === 'Ascending' ? null : null
       default:
     }
     let arr4 = [...agentArrayData]
