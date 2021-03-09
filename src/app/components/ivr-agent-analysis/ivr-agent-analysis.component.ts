@@ -181,8 +181,39 @@ export class IvrAgentAnalysisComponent implements OnInit {
         //   let data = this.processBarData(agent)
         //   new Chart(el.nativeElement, {
         //     type: 'bar',
-        //     data: data,
-        //     options: {}
+        //     data: {
+        //       labels: ['BJP', 'INC', 'AAP', 'CPI', 'CPI-M', 'NCP'],
+        //       datasets: [{
+        //         label: '# of Votes',
+        //         data: [200, 50, 30, 15, 20, 34],
+        //         backgroundColor: [
+        //           'rgba(255, 99, 132, 0.2)',
+        //           'rgba(54, 162, 235, 0.2)',
+        //           'rgba(255, 206, 86, 0.2)',
+        //           'rgba(75, 192, 192, 0.2)',
+        //           'rgba(153, 102, 255, 0.2)',
+        //           'rgba(255, 159, 64, 0.2)'
+        //         ],
+        //         borderColor: [
+        //           'rgba(255,99,132,1)',
+        //           'rgba(54, 162, 235, 1)',
+        //           'rgba(255, 206, 86, 1)',
+        //           'rgba(75, 192, 192, 1)',
+        //           'rgba(153, 102, 255, 1)',
+        //           'rgba(255, 159, 64, 1)'
+        //         ],
+        //         borderWidth: 1
+        //       }]
+        //     },
+        //     options: {
+        //       scales: {
+        //         yAxes: [{
+        //           ticks: {
+        //             beginAtZero: true
+        //           }
+        //         }]
+        //       }
+        //     }
         //   })
         // })
 
@@ -312,11 +343,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
     switch (criteria) {
       case 'Custom Date':
         let currentStartDay = new Date(this.inputDateOne);
+        currentStartDay.setHours(0, 0, 0, 0);
         let currentEndDay = new Date(this.inputDateTwo)
-        console.log("CUSTOM INPUT 1 ", this.inputDateOne)
-        console.log("CUSTOM INPUT 2 ", this.inputDateTwo)
-        console.log("CUSTOM QUERY CURRENT START ", currentStartDay)
-        console.log("CUSTOM QUERY CURRENT END ", currentEndDay)
         this.currentStartDay = currentStartDay.getTime()
         console.log("CURRENT START OF THE DAY CUSTOM QUERY", new Date(this.currentStartDay))
         this.currentEndDay = currentEndDay.getTime()
