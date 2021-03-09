@@ -320,7 +320,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
         dayDistribution = 86400000
         break
       case 'Last 48 hours':
-        dayDistribution = 129600000
+        console.log("ENTERED 48 hours")
+        dayDistribution = 172800000
         break
       case 'Last 3 days':
         dayDistribution = 259200000
