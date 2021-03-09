@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild, QueryList, ViewChildren, ElementRef } fro
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { Chart } from 'chart.js';
-import { P } from '@angular/core/src/render3';
 
 
 
