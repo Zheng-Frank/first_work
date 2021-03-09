@@ -32,7 +32,68 @@ export class IvrAgentAnalysisComponent implements OnInit {
   validDate = true
   showHistogram = false
   showLine = true
+  agentMappingNames = {
+    alanxue: 'Xue, Alan',
+    "alice.xie": "Xie, Alice",
+    "amy.yang": "Yang, Amy",
+    "annie.cheng": "Cheng, Annie",
+    "anny.fang": "Fang, Anny",
+    "bikram.rai.csr": "Rai, Bikram",
+    "bikram.rai.gmb": "Rai, Bikram",
+    "carrie.li": "Li, Carrie",
+    "cathy.fu": "fu, cathy",
+    "chris.xu": "Xu, Chris",
+    "cici.yang": "Yang, Cici",
+    "decenith": "qmenu, decenith",
+    "demi.he": "He, Demi",
+    "dixon.adair": "Adair, Dixon",
+    "dyney.yang": "Yang, Dyney",
+    "emily.hu": "Hu, Emily",
+    "felix.ou": "Ou, Felix",
+    "garysui": "Sui, Gary",
+    "gmb.test": "test, gmb",
+    "hayley.xiong": "Xiong, Hayley",
+    "iggy.susara": "Susara, Iggy",
+    "ivy.li": "Li, Ivy",
+    "jay": "esplana, jay",
+    "jennica.cuevas": "Cuevas, Jennica",
+    "jhon.medick": "medick, jhon",
+    "jhunno.flores": "Flores, Jhunno",
+    "joanan.yuan": "Yuan, Joanan",
+    "judy.song": "Song, Judy",
+    "julia.xiong": "Xiong, Julia",
+    "june.borah.csr": "Borah, June",
+    "june.borah.gmb": "Borah, June",
+    "kk.chen": "Chen, KK",
+    "lina.yang": "yang, lina",
+    "lucy.yuan": "Yuan, Lucy",
+    "mary.zhang": "Zhang, Mary",
+    "max.yi": "yi, max",
+    "may.lin": "Lin, May",
+    "merry.empic": "Empic, Merry",
+    "mia.yang": "Yang, Mia",
+    "nicole.hu": "Hu, Nicole",
+    "outbound": "Only, Outbound",
+    "piapi": "qmenu, piapi",
+    "sacha.luo": "Luo, Sacha",
+    "sajal.khati": "Khati, Sajal",
+    "sandy.he": "He, Sandy",
+    "sean": "Lyu, Sean",
+    "sherry.zhao": "Zhao, Sherry",
+    "sunny.fu": "fu, sunny",
+    "vivi.hu": "Hu, Vivi",
+    "yinghong.mo": "Mo, Yinghong"
 
+  }
+
+
+  getAgent(key) {
+    if (key in this.agentMappingNames) {
+      return this.agentMappingNames[key]
+    } else {
+      return key
+    }
+  }
 
   constructor(private _api: ApiService) { }
 
@@ -323,6 +384,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
     console.log("QUERYING DATA")
 
+    // if querying is <=3 days, showLine is true, else showHistogram is true
+
     let ivrData = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
@@ -457,17 +520,20 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
     switch (sortBy) {
       case 'Total Call Time':
-        sortType === 'Ascending' ? agentArrayData.sort((a, b) => b.totalCallTime - a.totalCallTime) : agentArrayData.sort((a, b) => a.totalCallTime - b.totalCallTime)
+        sortType !== 'Ascending' ? agentArrayData.sort((a, b) => b.totalCallTime - a.totalCallTime) : agentArrayData.sort((a, b) => a.totalCallTime - b.totalCallTime)
         break
       case 'Total Calls':
-        sortType === 'Ascending' ? agentArrayData.sort((a, b) => b.totalCalls - a.totalCalls) : agentArrayData.sort((a, b) => a.totalCalls - b.totalCalls)
+        sortType !== 'Ascending' ? agentArrayData.sort((a, b) => b.totalCalls - a.totalCalls) : agentArrayData.sort((a, b) => a.totalCalls - b.totalCalls)
         break
       case 'Avg Call Time':
-        sortType === 'Ascending' ? agentArrayData.sort((a, b) => b.avgCallTime - a.avgCallTime) : agentArrayData.sort((a, b) => a.avgCallTime - b.avgCallTime)
+        sortType !== 'Ascending' ? agentArrayData.sort((a, b) => b.avgCallTime - a.avgCallTime) : agentArrayData.sort((a, b) => a.avgCallTime - b.avgCallTime)
         break
+      // case 'Meaningful Calls':
+      //   sortType !== 'Ascending' ? agentArrayData.sort((a, b) => b.avgCallTime - a.avgCallTime) : agentArrayData.sort((a, b) => a.avgCallTime - b.avgCallTime)
+      //   break
       case 'Sales Produced':
         console.log("NOT YET IMPLEMENTED YET")
-        sortType === 'Ascending' ? null : null
+        sortType !== 'Ascending' ? null : null
       default:
     }
 

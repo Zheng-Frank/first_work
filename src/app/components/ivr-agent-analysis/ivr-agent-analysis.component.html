@@ -126,7 +126,7 @@
   >
     <hr />
     <div>
-      Agent Name: <b>{{ item.key }}</b>
+      Agent Name: <b>{{ getAgent(item.key) }}</b>
     </div>
     <div>Total Calls: {{ getData(item.key).totalCalls }}</div>
     <div>Avg Call Time: {{ secondsToHms(getData(item.key).avgCallTime) }}</div>
