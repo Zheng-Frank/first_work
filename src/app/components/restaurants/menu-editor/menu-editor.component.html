@@ -28,8 +28,8 @@
   <div class="text-muted" *ngIf="menu.hours && menu.hours.length > 0"><small>Hours are not grouped here but they will be
       in user view</small></div>
   <div *ngFor="let hour of getHours()">
-    <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime : offsetToEST}} -
-      {{hour.toTime | shortTime : offsetToEST}}</div>
+    <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.isFromTimeNextDay() ? 'next': ''}} {{hour.fromTime | shortTime : offsetToEST}} -
+     {{hour.isToTimeNextDay() ? 'next': ''}} {{hour.toTime | shortTime : offsetToEST}}</div>
     <div class="pull-xs-right"><button type="button" class="btn btn-link text-danger pt-0 pb-0"
         (click)="deleteHour(hour)">X</button></div>
     <div class="clearfix"></div>
