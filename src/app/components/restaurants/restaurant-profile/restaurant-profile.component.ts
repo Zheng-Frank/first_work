@@ -137,7 +137,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
         tipSuggestion: {},
         tipMinimum: {}
       };
-      const {tipSuggestion, tipMinimum} = setting;
+      const {tipSuggestion, tipMinimum, tipHide = false} = setting;
       if (tipSuggestion) {
         this.tipSettings[type].defaultPercentage = tipSuggestion.rate ? tipSuggestion.rate * 100 : tipSuggestion.rate;
         this.tipSettings[type].defaultAmount = tipSuggestion.amount;
@@ -146,6 +146,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
         this.tipSettings[type].minimumPercentage = tipMinimum.rate ? tipMinimum.rate * 100 : tipMinimum.rate;
         this.tipSettings[type].minimumAmount = tipMinimum.amount;
       }
+      this.tipSettings[type].tipHide = tipHide;
     });
   }
 
@@ -229,13 +230,15 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.serviceSettings = ['Pickup', 'Delivery', 'Dine-in'].map(type => {
       const setting = this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};
       const tip = this.tipSettings[type];
-      const tipSuggestion = {
+      const newTipSuggestion = {
         amount: tip.defaultAmount, rate: tip.defaultPercentage ? tip.defaultPercentage / 100 : undefined
       };
-      const tipMinimum = {
+      const newTipMinimum = {
         amount: tip.minimumAmount, rate: tip.minimumPercentage ? tip.minimumPercentage / 100 : undefined
       };
-      return {...setting, tipSuggestion, tipMinimum};
+
+      const { tipSuggestion, tipMinimum, tipHide, ...rest } = setting;
+      return {...rest, tipSuggestion: newTipSuggestion, tipMinimum: newTipMinimum, tipHide: tip.tipHide};
     });
 
     // make sure types are correct!
