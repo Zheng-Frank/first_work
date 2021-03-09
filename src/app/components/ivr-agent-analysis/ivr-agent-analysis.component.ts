@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, QueryList, ViewChildren, ElementRef } fro
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { Chart } from 'chart.js';
+import { P } from '@angular/core/src/render3';
 
 
 
@@ -30,6 +31,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
   inputDateOne
   inputDateTwo
   validDate = true
+  showHistogram = false
+  showLine = true
 
 
   constructor(private _api: ApiService) { }
@@ -46,6 +49,12 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
     if (dateOne && dateTwo && (dateOne > dateTwo)) {
       this.validDate = false
+    }
+
+    if (dateOne && dateTwo) {
+      console.log("QUERYING FOR THE DATA DATE 1 ", this.inputDateOne)
+      console.log("QUERYING FOR THE DATA DATE 2", this.inputDateTwo)
+      this.queryData(this.criteria)
     }
 
   }
@@ -66,6 +75,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
         }
         console.log("BOTH DATES NOT ENTERED")
         this.criteria = 'Custom Date'
+        this.queryData(this.criteria)
         break
       case '24Hours':
         this.criteria = 'Last 24 hours'
@@ -93,15 +103,32 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
 
   }
+
+  processBarData(agent) {
+
+  }
+
   ngAfterViewInit() {
     // print array of CustomComponent objects
     this.components.changes.subscribe(
       () => {
+
         let arr = (this.components.toArray())
+        // If less than 7 days render line graph, elsewise render histogram 
+
+        // arr.forEach(el => {
+        //   let agent = el.nativeElement.innerHTML
+        //   let data = this.processBarData(agent)
+        //   new Chart(el.nativeElement, {
+        //     type: 'bar',
+        //     data: data,
+        //     options: {}
+        //   })
+        // })
 
         arr.forEach(el => {
           let agent = el.nativeElement.innerHTML
-          let data = this.processChartData(agent)
+          let data = this.processLineChartData(agent)
           new Chart(el.nativeElement, {
             options: {
               scales: {
@@ -146,13 +173,13 @@ export class IvrAgentAnalysisComponent implements OnInit {
     );
   }
   reload() {
-    // this.ngOnInit()
+    this.queryData(this.criteria)
   }
 
   populateTimePeriods(criteria) {
     this.totalTimes = []
     if (criteria == 'Custom Date' && (!this.inputDateOne || !this.inputDateTwo)) {
-      console.log("THIS WAS CALLED INCORRECTLY ")
+      console.log("THIS WAS CALLED BUT TWO DATES ARE NOT ENTERED YET ")
       console.log("DATE 1 POPULATE TIME PERIODS ", this.inputDateOne)
       console.log("DATE 2 POPULATE TIME PERIODS ", this.inputDateTwo)
     }
@@ -179,6 +206,9 @@ export class IvrAgentAnalysisComponent implements OnInit {
         increments = 3
         break
       case 'Custom Date':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 36
+        increments = 3
         break
       default:
         timePeriodsLength = 12
@@ -220,9 +250,20 @@ export class IvrAgentAnalysisComponent implements OnInit {
     console.log("THIS IS TOTAL TIMES ", this.totalTimes)
 
     switch (criteria) {
-
+      case 'Custom Date':
+        let currentStartDay = new Date(this.inputDateOne);
+        let currentEndDay = new Date(this.inputDateTwo)
+        console.log("CUSTOM INPUT 1 ", this.inputDateOne)
+        console.log("CUSTOM INPUT 2 ", this.inputDateTwo)
+        console.log("CUSTOM QUERY CURRENT START ", currentStartDay)
+        console.log("CUSTOM QUERY CURRENT END ", currentEndDay)
+        this.currentStartDay = currentStartDay.getTime()
+        console.log("CURRENT START OF THE DAY CUSTOM QUERY", new Date(this.currentStartDay))
+        this.currentEndDay = currentEndDay.getTime()
+        console.log("CURRENT END OF THE DAY CUSTOM QUERY", new Date(this.currentEndDay))
+        break
       case 'Last 24 hours':
-        let currentStartDay = new Date();
+        currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
         this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
@@ -278,6 +319,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   async queryData(criteria) {
     this.populateTimePeriods(criteria)
+    console.log("QUERYING FOR DATA WITH THIS CURRENT START DAY ", this.currentStartDay)
+    console.log("QUERYING FOR DATA WITH THIS CURRENT END DAY ", this.currentEndDay)
+
+    console.log("QUERYING DATA")
+
     let ivrData = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
@@ -299,6 +345,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
         limit: 10000,
       })
       .toPromise();
+    console.log("THE IVR DATA ", ivrData)
     this.rawIvrData = ivrData
     this.agents = this.processAgents(this.rawIvrData)
   }
@@ -307,7 +354,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     await this.queryData(this.criteria)
   }
 
-  processChartData(agentName) {
+  processLineChartData(agentName) {
     let data = []
     for (let i = 0; i < 1440; i++) {
       data.push(Number.NaN)
@@ -328,6 +375,9 @@ export class IvrAgentAnalysisComponent implements OnInit {
         dayDistribution = 172800000
         break
       case 'Last 3 days':
+        dayDistribution = 259200000
+        break
+      case 'Custom Date':
         dayDistribution = 259200000
         break
       default:
@@ -388,6 +438,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
     // let sortedData = this.sort(agent_mapped_data, this.sortBy, this.sorting)
     this.agentMappedData = agent_mapped_data
+    this.entriesLength = Object.keys(agent_mapped_data).length
     return agent_mapped_data
 
   }
@@ -398,9 +449,9 @@ export class IvrAgentAnalysisComponent implements OnInit {
     for (const agentName in data) {
       agentArrayData.push({
         agent: agentName,
-        totalCallTime: this.agentMappedData[agentName]['totalCallTime'],
-        avgCallTime: this.agentMappedData[agentName]['avgCallTime'],
-        totalCalls: this.agentMappedData[agentName]['totalCalls']
+        totalCallTime: data[agentName]['totalCallTime'],
+        avgCallTime: data[agentName]['avgCallTime'],
+        totalCalls: data[agentName]['totalCalls']
       })
     }
     this.entriesLength = agentArrayData.length
