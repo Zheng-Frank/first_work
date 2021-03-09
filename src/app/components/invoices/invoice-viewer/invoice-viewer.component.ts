@@ -68,6 +68,34 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     total: 0,
     deliveryCharge: 0
   };
+  //Transaction breakdown by serviceType
+  deliveryServiceType = {
+    subtotal: 0,
+    tax: 0,
+    tip: 0,
+    deliveryFee: 0,
+    total: 0
+  }
+  pickupServiceType = {
+    subtotal: 0,
+    tax: 0,
+    tip: 0,
+    deliveryFee: 0,
+    total: 0
+  }
+  dine_inServiceType = {
+    subtotal: 0,
+    tax: 0,
+    tip: 0,
+    total: 0
+  }
+  totalOfServiceType = {
+    subtotal: 0,
+    tax: 0,
+    tip: 0,
+    deliveryFee: 0,
+    total: 0
+  }
   constructor(private _ref: ChangeDetectorRef) { }
 
   ngOnInit() {
@@ -139,13 +167,33 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
           // console.log("io.paymentType == STRIPE: "+this.restaurantStripe.tax);
         }
       }
-
+      //count the money of order service type 
+       if (io.type == 'DELIVERY') {
+        this.deliveryServiceType.subtotal+=(io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+        this.deliveryServiceType.tax+=(io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+        this.deliveryServiceType.tip+=(io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+        this.deliveryServiceType.deliveryFee+=(io.deliveryCharge == null || io.deliveryCharge == undefined ? 0 : io.deliveryCharge);
+        this.deliveryServiceType.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+      } else if (io.type == 'PICKUP') {
+        this.pickupServiceType.subtotal+=(io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+        this.pickupServiceType.tax+=(io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+        this.pickupServiceType.tip+=(io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+        this.pickupServiceType.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+      } else if (io.type == 'DINE-IN') {
+        this.dine_inServiceType.subtotal+=(io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+        this.dine_inServiceType.tax+=(io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+        this.dine_inServiceType.tip+=(io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+        this.dine_inServiceType.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+      }
     });
     // console.log("Cash.total:"+this.Cash.total);
     // console.log("this.swipeInPerson.total:"+this.swipeInPerson.total);
     // console.log("this.keyIn.total"+this.keyIn.total);
     // console.log("this.qmenuCollected.total:"+this.qmenuCollected.total);
     // console.log("this.restaurantStripe.total"+this.restaurantStripe.total);
+    console.log("this.deliveryServiceType.total:"+this.deliveryServiceType.total);
+    console.log("this.pickupServiceType.total:"+this.pickupServiceType.total);
+    console.log("this.dine_inServiceType.total:"+this.dine_inServiceType.total);
     // this.total.tip = this.Cash.tip + this.qmenuCollected.tip + this.restaurantStripe.tip + this.swipeInPerson.tip + this.keyIn.tip;
     // this.total.tax = this.Cash.tax + this.qmenuCollected.tax + this.restaurantStripe.tax + this.swipeInPerson.tax + this.keyIn.tax;
     // this.total.subtotal = this.Cash.subtotal + this.qmenuCollected.subtotal + this.restaurantStripe.subtotal
