@@ -26,7 +26,6 @@ export class IvrAgentAnalysisComponent implements OnInit {
   agentMappedData = {};
   sortBy = 'Total Calls'
   sorting = 'Ascending'
-  customDate = false
   criteria = 'Last 24 hours'
   inputDateOne
   inputDateTwo
