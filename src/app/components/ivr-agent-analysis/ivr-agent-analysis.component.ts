@@ -26,10 +26,43 @@ export class IvrAgentAnalysisComponent implements OnInit {
   agentMappedData = {};
   sortBy = 'Total Calls'
   sorting = 'Ascending'
-
+  customDate = false
+  criteria = 'Last 24 hours'
+  inputDateOne
+  inputDateTwo
 
 
   constructor(private _api: ApiService) { }
+
+  setCriteria(type) {
+    console.log("INPUT DATE 1 ", this.inputDateOne)
+    console.log("INPUT DATE 2 ", this.inputDateTwo)
+
+    switch (type) {
+      case 'customDate':
+        this.criteria = 'Custom Date'
+        break
+      case '24Hours':
+        this.criteria = 'Last 24 hours'
+        break
+      case '48Hours':
+        this.criteria = 'Last 48 hours'
+        break
+      case '3Days':
+        this.criteria = 'Last 3 days'
+        break
+      case '7Days':
+        this.criteria = 'Last 7 days'
+        break
+      case '30Days':
+        this.criteria = 'Last 30 days'
+        break
+      default:
+        console.log("NO CRITERIA SPECIFIED")
+        break
+    }
+
+  }
   ngAfterViewInit() {
     // print array of CustomComponent objects
     this.components.changes.subscribe(

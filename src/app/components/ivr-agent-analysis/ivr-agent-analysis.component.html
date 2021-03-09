@@ -23,13 +23,33 @@
           aria-haspopup="true"
           aria-expanded="false"
         >
-          Last 24 Hours &nbsp;
+          {{ criteria }} &nbsp;
         </button>
+        <span *ngIf="criteria == 'Custom Date'"></span>
+          &nbsp; &nbsp; <input [(ngModel)]='inputDateOne' type="date" required/> &nbsp; to &nbsp;
+          <input [(ngModel)]='inputDateTwo' type="date" />
+        </span>
 
         &nbsp; &nbsp;
         <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-          <a class="dropdown-item">Last 48 Hours</a>
-          <a class="dropdown-item">Last 72 Hours</a>
+          <a (click)="setCriteria('24Hours')" class="dropdown-item"
+            >Last 24 Hours</a
+          >
+          <a (click)="setCriteria('48Hours')" class="dropdown-item"
+            >Last 48 Hours</a
+          >
+          <a (click)="setCriteria('3Days')" class="dropdown-item"
+            >Last 3 Days</a
+          >
+          <a (click)="setCriteria('7Days')" class="dropdown-item"
+            >Last 7 Days</a
+          >
+          <a (click)="setCriteria('30Days')" class="dropdown-item"
+            >Last 30 Days</a
+          >
+          <a (click)="setCriteria('customDate')" class="dropdown-item"
+            >Custom Date</a
+          >
         </span>
       </span>
       <span class="dropdown">
