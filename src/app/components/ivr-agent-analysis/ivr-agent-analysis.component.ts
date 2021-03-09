@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild, QueryList, ViewChildren, ElementRef } fro
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { Chart } from 'chart.js';
-import { QueryReadType } from '@angular/core/src/render3/interfaces/query';
 
 
 
@@ -52,27 +51,37 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   setCriteria(type) {
+    console.log("THIS IS THE TYPE ", type)
     console.log("INPUT DATE 1 ", this.inputDateOne)
     console.log("INPUT DATE 2 ", this.inputDateTwo)
 
     switch (type) {
       case 'customDate':
+        if (this.inputDateOne && this.inputDateTwo) {
+          this.queryData(this.criteria)
+        }
+        console.log("BOTH DATES NOT ENTERED")
         this.criteria = 'Custom Date'
         break
       case '24Hours':
         this.criteria = 'Last 24 hours'
+        this.queryData(this.criteria)
         break
       case '48Hours':
         this.criteria = 'Last 48 hours'
+        this.queryData(this.criteria)
         break
       case '3Days':
         this.criteria = 'Last 3 days'
+        this.queryData(this.criteria)
         break
       case '7Days':
         this.criteria = 'Last 7 days'
+        this.queryData(this.criteria)
         break
       case '30Days':
         this.criteria = 'Last 30 days'
+        this.queryData(this.criteria)
         break
       default:
         console.log("NO CRITERIA SPECIFIED")
@@ -137,60 +146,99 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   populateTimePeriods(criteria) {
-    let timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+    this.totalTimes = []
+    if (criteria == 'Custom Date' && (!this.inputDateOne || !this.inputDateTwo)) {
+      console.log("THIS WAS CALLED INCORRECTLY ")
+      console.log("DATE 1 POPULATE TIME PERIODS ", this.inputDateOne)
+      console.log("DATE 2 POPULATE TIME PERIODS ", this.inputDateTwo)
+    }
+    let timePeriods: number[]
     // AM 
 
-    for (let i = 0; i < timePeriods.length; i++) {
-      for (let x = 0; x < 60; x++) {
+    let timePeriodsLength: number
+    let increments: number
+
+    switch (criteria) {
+      case 'Last 24 hours':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 12
+        increments = 1
+        break
+      case 'Last 48 hours':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 24
+        increments = 2
+        break
+      case 'Last 3 days':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 36
+        increments = 3
+        break
+      case 'Custom Date':
+        break
+      default:
+        timePeriodsLength = 12
+        increments = 1
+        break
+
+    }
+
+    console.log("TIME PERIODS LENGTH ", timePeriodsLength)
+    console.log("INCREMENTS ", increments)
+    for (let i = 0; i < timePeriodsLength; i++) {
+      for (let x = 0; x < 60; x += increments) {
         let time: any = (timePeriods[i] + x)
         time = time.toString()
         let period = timePeriods[i]
         if (period.toString().length === 3) {
-          time = `${time[0]}:${time[1]}${time[2]}AM`
+          time = `${time[0]}:${time[1]}${time[2]}`
         } else {
-          time = `${time[0]}${time[1]}:${time[2]}${time[3]}AM`
+          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
         }
         this.totalTimes.push(time)
       }
     }
-    for (let i = 0; i < timePeriods.length; i++) {
-      for (let x = 0; x < 60; x++) {
+    for (let i = 0; i < timePeriodsLength; i++) {
+      for (let x = 0; x < 60; x += increments) {
         let time: any = (timePeriods[i] + x)
         time = time.toString()
         let period = timePeriods[i]
         if (period.toString().length === 3) {
-          time = `${time[0]}:${time[1]}${time[2]}PM`
+          time = `${time[0]}:${time[1]}${time[2]}`
         } else {
-          time = `${time[0]}${time[1]}:${time[2]}${time[3]}PM`
+          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
         }
         this.totalTimes.push(time)
       }
     }
+
+
+    console.log("THIS IS TOTAL TIMES ", this.totalTimes)
 
     switch (criteria) {
 
       case 'Last 24 hours':
         let currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 216)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 192)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 312)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       case 'Last 48 hours':
         currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 48)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 0)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 288)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       case 'Last 3 days':
         currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 72)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 0)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 264)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       case 'Last 7 days':
@@ -220,13 +268,12 @@ export class IvrAgentAnalysisComponent implements OnInit {
         break
 
     }
-
-
-
   }
 
-  async queryData() {
-    this.populateTimePeriods(this.criteria)
+
+
+  async queryData(criteria) {
+    this.populateTimePeriods(criteria)
     let ivrData = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
@@ -253,9 +300,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   async ngOnInit() {
-
-
-    await this.queryData()
+    await this.queryData(this.criteria)
   }
 
   processChartData(agentName) {
@@ -269,10 +314,25 @@ export class IvrAgentAnalysisComponent implements OnInit {
     // let example = this.agents.filter(agent => agent.)
 
     let example = this.agents[agentName].callData
+    let dayDistribution: number;
+    switch (this.criteria) {
+      case 'Last 24 hours':
+        dayDistribution = 86400000
+        break
+      case 'Last 48 hours':
+        dayDistribution = 129600000
+        break
+      case 'Last 3 days':
+        dayDistribution = 259200000
+        break
+      default:
+        console.log("NO VALID DAY DISTRUBTION, criteria NOT FOUND")
+        break
+    }
 
     example.forEach((callData) => {
       if (callData && callData.start && callData.end) {
-        let unitOfTime = Math.floor(((new Date(callData.start).getTime() - this.currentStartDay) / 86400000) * 1440)
+        let unitOfTime = Math.floor(((new Date(callData.start).getTime() - this.currentStartDay) / dayDistribution) * 1440)
         let lengthOfCall = (new Date(callData.end).getTime() - new Date(callData.start).getTime()) / 1000
         let counter = unitOfTime
         for (let i = 0; i <= lengthOfCall; i += 60) {
