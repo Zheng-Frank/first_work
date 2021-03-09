@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, QueryList, ViewChildren, ElementRef } fro
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 import { Chart } from 'chart.js';
+import { QueryReadType } from '@angular/core/src/render3/interfaces/query';
 
 
 
@@ -29,9 +30,26 @@ export class IvrAgentAnalysisComponent implements OnInit {
   criteria = 'Last 24 hours'
   inputDateOne
   inputDateTwo
+  validDate = true
 
 
   constructor(private _api: ApiService) { }
+
+  changeDate() {
+    console.log("DATE CHANGING 1 ", this.inputDateOne)
+    console.log("DATE CHANGING 2 ", this.inputDateTwo)
+
+    let dateOne = new Date(this.inputDateOne)
+    let dateTwo = new Date(this.inputDateTwo)
+    console.log("DATE 1", dateOne)
+    console.log("DATE 2", dateTwo)
+
+
+    if (dateOne && dateTwo && (dateOne > dateTwo)) {
+      this.validDate = false
+    }
+
+  }
 
   setCriteria(type) {
     console.log("INPUT DATE 1 ", this.inputDateOne)
@@ -118,7 +136,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     // this.ngOnInit()
   }
 
-  async ngOnInit() {
+  populateTimePeriods(criteria) {
     let timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
     // AM 
 
@@ -148,19 +166,67 @@ export class IvrAgentAnalysisComponent implements OnInit {
         this.totalTimes.push(time)
       }
     }
-    let currentStartDay = new Date();
-    currentStartDay.setHours(0, 0, 0, 0);
-    this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 192)
 
-    console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
+    switch (criteria) {
 
-    this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 168)
+      case 'Last 24 hours':
+        let currentStartDay = new Date();
+        currentStartDay.setHours(0, 0, 0, 0);
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 216)
+        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 192)
+        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
+        break
+      case 'Last 48 hours':
+        currentStartDay = new Date();
+        currentStartDay.setHours(0, 0, 0, 0);
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 48)
+        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 0)
+        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
+        break
+      case 'Last 3 days':
+        currentStartDay = new Date();
+        currentStartDay.setHours(0, 0, 0, 0);
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 72)
+        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 0)
+        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
+        break
+      case 'Last 7 days':
+        currentStartDay = new Date();
+        currentStartDay.setHours(0, 0, 0, 0);
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 168)
+        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 0)
+        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
+        break
+      case 'Last 30 days':
+        currentStartDay = new Date();
+        currentStartDay.setHours(0, 0, 0, 0);
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 720)
+        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 0)
+        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
+        break
+      default:
+        console.log("NO CURRENT DATE DETECTED")
+        currentStartDay = new Date();
+        currentStartDay.setHours(0, 0, 0, 0);
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 192)
+        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 168)
+        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
+        break
+
+    }
 
 
-    console.log("CURRENT START OF THE DAY ", new Date(this.currentEndDay))
 
+  }
 
-
+  async queryData() {
+    this.populateTimePeriods(this.criteria)
     let ivrData = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
@@ -184,6 +250,12 @@ export class IvrAgentAnalysisComponent implements OnInit {
       .toPromise();
     this.rawIvrData = ivrData
     this.agents = this.processAgents(this.rawIvrData)
+  }
+
+  async ngOnInit() {
+
+
+    await this.queryData()
   }
 
   processChartData(agentName) {

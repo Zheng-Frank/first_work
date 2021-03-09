@@ -10,7 +10,14 @@
     </div>
   </div>
   <br />
-
+  <div
+    *ngIf="criteria == 'Custom Date' && !validDate"
+    class="alert alert-danger"
+    role="alert"
+  >
+    Invalid Timespan! Please make sure date 1 is less date 2 and no date is past
+    the current date
+  </div>
   <div class="row">
     <div class="col-sm-12">
       <span class="dropdown">
@@ -49,9 +56,13 @@
       </span>
       &nbsp;
       <span *ngIf="criteria == 'Custom Date'">
-        &nbsp; &nbsp; <input type="date" /> &nbsp; to &nbsp;
-        <input type="date" />
+        &nbsp; &nbsp;
+        <input (change)="changeDate()" [(ngModel)]="inputDateOne" type="date" />
+        &nbsp; to &nbsp;
+        <input (change)="changeDate()" [(ngModel)]="inputDateTwo" type="date" />
+        &nbsp;
       </span>
+      &nbsp;
       <span class="dropdown">
         <b>Sort By: &nbsp; </b>
         <button
