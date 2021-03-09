@@ -386,7 +386,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
       agent_mapped_data[agentName]['avgCallTime'] = sum / agent_mapped_data[agentName]['totalCalls'];
     }
 
-    // let sortedData = this.sort(agent_mapped_data,)
+    // let sortedData = this.sort(agent_mapped_data, this.sortBy, this.sorting)
     this.agentMappedData = agent_mapped_data
     return agent_mapped_data
 
@@ -395,7 +395,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   sort(data, sortBy, sortType) {
     // agentMappedData is the final data structure
     let agentArrayData = []
-    for (const agentName in this.agentMappedData) {
+    for (const agentName in data) {
       agentArrayData.push({
         agent: agentName,
         totalCallTime: this.agentMappedData[agentName]['totalCallTime'],
@@ -405,30 +405,23 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
     this.entriesLength = agentArrayData.length
 
-    switch (sortType) {
+    switch (sortBy) {
+      case 'Total Call Time':
+        sortType === 'Ascending' ? agentArrayData.sort((a, b) => b.totalCallTime - a.totalCallTime) : agentArrayData.sort((a, b) => a.totalCallTime - b.totalCallTime)
+        break
       case 'Total Calls':
-        this.sorting === 'Ascending' ? null : null
+        sortType === 'Ascending' ? agentArrayData.sort((a, b) => b.totalCalls - a.totalCalls) : agentArrayData.sort((a, b) => a.totalCalls - b.totalCalls)
         break
-      case 'Avg Calls':
-        this.sorting === 'Ascending' ? null : null
+      case 'Avg Call Time':
+        sortType === 'Ascending' ? agentArrayData.sort((a, b) => b.avgCallTime - a.avgCallTime) : agentArrayData.sort((a, b) => a.avgCallTime - b.avgCallTime)
         break
-      case 'Call Time':
-        this.sorting === 'Ascending' ? null : null
-        break
-      case 'Agent Name':
-        this.sorting === 'Ascending' ? null : null
+      case 'Sales Produced':
+        console.log("NOT YET IMPLEMENTED YET")
+        sortType === 'Ascending' ? null : null
       default:
     }
-    let arr4 = [...agentArrayData]
-    arr4.sort((a, b) => b.totalCalls - a.totalCalls)
-    let arr2 = [...agentArrayData]
-    agentArrayData.sort((a, b) => {
-      return b.totalCallTime - a.totalCallTime
-    })
 
-    arr2.sort((a, b) => {
-      return b.avgCallTime - a.avgCallTime
-    })
+    return agentArrayData
 
   }
 
