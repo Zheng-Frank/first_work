@@ -24,7 +24,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   totalTimes = []
   entriesLength
   agentMappedData = {};
-  sortBy = 'Total Calls'
+  sortBy = 'Total Call Time'
   sorting = 'Ascending'
   criteria = 'Last 24 hours'
   inputDateOne
@@ -48,6 +48,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
       this.validDate = false
     }
 
+  }
+
+  setSortBy(type) {
+    this.sortBy = type
   }
 
   setCriteria(type) {
@@ -382,13 +386,13 @@ export class IvrAgentAnalysisComponent implements OnInit {
       agent_mapped_data[agentName]['avgCallTime'] = sum / agent_mapped_data[agentName]['totalCalls'];
     }
 
-
+    // let sortedData = this.sort(agent_mapped_data,)
     this.agentMappedData = agent_mapped_data
     return agent_mapped_data
 
   }
 
-  sort() {
+  sort(data, sortBy, sortType) {
     // agentMappedData is the final data structure
     let agentArrayData = []
     for (const agentName in this.agentMappedData) {
@@ -401,7 +405,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
     this.entriesLength = agentArrayData.length
 
-    switch (this.sortBy) {
+    switch (sortType) {
       case 'Total Calls':
         this.sorting === 'Ascending' ? null : null
         break

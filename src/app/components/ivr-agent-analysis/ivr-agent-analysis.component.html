@@ -73,13 +73,20 @@
           aria-haspopup="true"
           aria-expanded="false"
         >
-          Total Calls &nbsp;
+          {{ sortBy }} &nbsp;
         </button>
 
         &nbsp; &nbsp;
         <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-          <a class="dropdown-item">Avg Call Time</a>
-          <a class="dropdown-item">Total Call Time</a>
+          <a (click)="setSortBy('Total Call Time')" class="dropdown-item"
+            >Total Call Time</a
+          >
+          <a (click)="setSortBy('Total Calls')" class="dropdown-item"
+            >Total Calls</a
+          >
+          <a (click)="setSortBy('Avg Call Time')" class="dropdown-item"
+            >Avg Call Time</a
+          >
         </span>
       </span>
       <span class="dropdown">
