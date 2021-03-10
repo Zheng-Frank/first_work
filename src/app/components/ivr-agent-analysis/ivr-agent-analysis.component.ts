@@ -437,12 +437,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
     console.log("QUERY DATA WITH THIS DAY DIFFERENCE ", Math.ceil((this.currentEndDay - this.currentStartDay) / 87200000))
     if (Math.abs(this.currentEndDay - this.currentStartDay) <= 259200000) {
       console.log("PROCESSING LINE CHART DATA, LESS THAN EQUAL TO 3 DAYS")
-
       console.log("LINE CHART THE MILLISECOND DIFFERENCE IS ", Math.abs(this.currentStartDay - this.currentEndDay))
       this.showLine = true
       this.showHistogram = false
       this.populateLineTimePeriods(criteria)
-
     } else if (Math.abs(this.currentEndDay - this.currentStartDay) >= 259200000) {
       console.log("PROCESSING BAR CHART DATA, GREATER THAN EQUAL TO 3 DAYS")
       console.log("BAR CHART MILLISECOND DIFFERENCE ", Math.abs(this.currentStartDay - this.currentEndDay))
@@ -450,6 +448,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
       this.showHistogram = true
       this.populateBarTimePeriods()
     } else {
+      this.showLine = false
+      this.showHistogram = false
       console.log("SOME DATE IS UNDEFINED!!!!")
       console.log("INPUT START DATE 1 ", new Date(this.currentStartDay))
       console.log("INPUT END DATE ", new Date(this.currentEndDay))
