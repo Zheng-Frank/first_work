@@ -112,6 +112,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
       this.validDate = false
     }
 
+    if (dateOne && dateTwo && (dateOne <= dateTwo)) {
+      this.validDate = true
+    }
+
     if (dateOne && dateTwo) {
       // console.log("QUERYING FOR THE DATA DATE 1 ", this.inputDateOne)
       // console.log("QUERYING FOR THE DATA DATE 2", this.inputDateTwo)
@@ -166,8 +170,24 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   }
 
-  processBarData(agent) {
+  processBarData(agentName) {
 
+    let dates = { dates: [], callData: [] }
+
+    for (let x = this.currentStartDay; x <= this.currentEndDay; x += 86200000) {
+      // for each d
+      let callData = this.agents[agentName].callData
+      let inTimeFrame = 0
+      callData.forEach(call => {
+        if (Math.abs(new Date(call.start).getTime() - x) <= 86200000) {
+          inTimeFrame += 1
+        }
+      })
+      dates['dates'].push(new Date(x).toDateString())
+      dates['callData'].push(inTimeFrame)
+
+    }
+    return dates
   }
 
   ngAfterViewInit() {
@@ -193,30 +213,16 @@ export class IvrAgentAnalysisComponent implements OnInit {
         if (this.showHistogram) {
           arr.forEach(el => {
             let agent = el.nativeElement.innerHTML
-            let data = this.processBarData(agent)
+            let dates = this.processBarData(agent)
+            console.log("CALL LENGTH ", dates['callData'])
+            console.log("LENGTHS ", dates['callData'].length, dates['dates'].length)
             new Chart(el.nativeElement, {
               type: 'bar',
               data: {
-                labels: ['BJP', 'INC', 'AAP', 'CPI', 'CPI-M', 'NCP'],
+                labels: dates['dates'],
                 datasets: [{
                   label: '# of Votes',
-                  data: [200, 50, 30, 15, 20, 34],
-                  backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)'
-                  ],
-                  borderColor: [
-                    'rgba(255,99,132,1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
-                  ],
+                  data: dates['callData'],
                   borderWidth: 1
                 }]
               },
@@ -244,7 +250,6 @@ export class IvrAgentAnalysisComponent implements OnInit {
                       max: 1,
                       min: 0,
                       spanGaps: true,
-
                       stepSize: 1
                     }
                   }]
@@ -519,10 +524,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
     // 
 
     // let example = this.agents.filter(agent => agent.)
-    console.log("THIS IS THE AGENT NAME ", agentName)
-    console.log("THIS IS THR AGENTS ", this.agents)
+    // console.log("THIS IS THE AGENT NAME ", agentName)
+    // console.log("THIS IS THR AGENTS ", this.agents)
     let example = this.agents[agentName].callData
-    console.log("THIS IS THE EXAMPLE ", example)
+    // console.log("THIS IS THE EXAMPLE ", example)
 
     let dayDistribution: number;
     switch (this.criteria) {
