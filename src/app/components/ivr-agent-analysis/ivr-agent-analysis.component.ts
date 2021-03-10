@@ -21,7 +21,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   currentEndDay;
   rawIvrData = null
   agents;
-  totalTimes = []
+  totalLineTimes = []
   entriesLength
   agentMappedData = {};
   sortBy = 'Total Call Time'
@@ -238,7 +238,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
             type: 'line',
             data: {
-              labels: this.totalTimes,
+              labels: this.totalLineTimes,
               datasets: [
                 {
                   label: 'Activity Over 24 Hours',
@@ -267,78 +267,14 @@ export class IvrAgentAnalysisComponent implements OnInit {
     this.queryData(this.criteria)
   }
 
-  populateTimePeriods(criteria) {
-    this.totalTimes = []
+  populateLineTimePeriods(criteria) {
+    this.totalLineTimes = []
     if (criteria == 'Custom Date' && (!this.inputDateOne || !this.inputDateTwo)) {
       console.log("THIS WAS CALLED BUT TWO DATES ARE NOT ENTERED YET ")
       console.log("DATE 1 POPULATE TIME PERIODS ", this.inputDateOne)
       console.log("DATE 2 POPULATE TIME PERIODS ", this.inputDateTwo)
     }
-    let timePeriods: number[]
-    // AM 
 
-    let timePeriodsLength: number
-    let increments: number
-
-    switch (criteria) {
-      case 'Last 24 hours':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 12
-        increments = 1
-        break
-      case 'Last 48 hours':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 24
-        increments = 2
-        break
-      case 'Last 3 days':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 36
-        increments = 3
-        break
-      case 'Custom Date':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 36
-        increments = 3
-        break
-      default:
-        timePeriodsLength = 12
-        increments = 1
-        break
-
-    }
-
-    console.log("TIME PERIODS LENGTH ", timePeriodsLength)
-    console.log("INCREMENTS ", increments)
-    for (let i = 0; i < timePeriodsLength; i++) {
-      for (let x = 0; x < 60; x += increments) {
-        let time: any = (timePeriods[i] + x)
-        time = time.toString()
-        let period = timePeriods[i]
-        if (period.toString().length === 3) {
-          time = `${time[0]}:${time[1]}${time[2]}`
-        } else {
-          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
-        }
-        this.totalTimes.push(time)
-      }
-    }
-    for (let i = 0; i < timePeriodsLength; i++) {
-      for (let x = 0; x < 60; x += increments) {
-        let time: any = (timePeriods[i] + x)
-        time = time.toString()
-        let period = timePeriods[i]
-        if (period.toString().length === 3) {
-          time = `${time[0]}:${time[1]}${time[2]}`
-        } else {
-          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
-        }
-        this.totalTimes.push(time)
-      }
-    }
-
-
-    console.log("THIS IS TOTAL TIMES ", this.totalTimes)
 
     switch (criteria) {
       case 'Custom Date':
@@ -401,19 +337,116 @@ export class IvrAgentAnalysisComponent implements OnInit {
         break
 
     }
+    let timePeriods: number[]
+    // AM 
+
+    let timePeriodsLength: number
+    let increments: number
+
+    switch (criteria) {
+      case 'Last 24 hours':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 12
+        increments = 1
+        break
+      case 'Last 48 hours':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 24
+        increments = 2
+        break
+      case 'Last 3 days':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 36
+        increments = 3
+        break
+      case 'Custom Date':
+        let dif = this.currentEndDay - this.currentStartDay
+        console.log("THIS IS THE DIF ", dif)
+        console.log("DAYS OF DIFFERENCE ", Math.floor(dif / 86200000) - 1)
+        if (dif >= 0 && dif <= 86200000) {
+          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+          timePeriodsLength = 12
+          increments = 1
+        } else if (dif >= 86200000 && dif <= 172400000) {
+          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+          timePeriodsLength = 24
+          increments = 2
+        } else {
+          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+          timePeriodsLength = 36
+          increments = 3
+        }
+        break
+      default:
+        timePeriodsLength = 12
+        increments = 1
+        break
+
+    }
+
+    console.log("TIME PERIODS LENGTH ", timePeriodsLength)
+    console.log("INCREMENTS ", increments)
+    for (let i = 0; i < timePeriodsLength; i++) {
+      for (let x = 0; x < 60; x += increments) {
+        let time: any = (timePeriods[i] + x)
+        time = time.toString()
+        let period = timePeriods[i]
+        if (period.toString().length === 3) {
+          time = `${time[0]}:${time[1]}${time[2]}`
+        } else {
+          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
+        }
+        this.totalLineTimes.push(time)
+      }
+    }
+    for (let i = 0; i < timePeriodsLength; i++) {
+      for (let x = 0; x < 60; x += increments) {
+        let time: any = (timePeriods[i] + x)
+        time = time.toString()
+        let period = timePeriods[i]
+        if (period.toString().length === 3) {
+          time = `${time[0]}:${time[1]}${time[2]}`
+        } else {
+          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
+        }
+        this.totalLineTimes.push(time)
+      }
+    }
+
+
+    console.log("THIS IS TOTAL TIMES ", this.totalLineTimes)
+
+
   }
 
+  populateBarTimePeriods() {
+    let days = (this.currentStartDay.getTime() - this.currentEndDay.getTime()) / 86200000
 
+
+  }
 
   async queryData(criteria) {
-    this.populateTimePeriods(criteria)
-    console.log("QUERYING FOR DATA WITH THIS CURRENT START DAY ", this.currentStartDay)
-    console.log("QUERYING FOR DATA WITH THIS CURRENT END DAY ", this.currentEndDay)
+    // if (this.currentStartDay.getTime() - this.currentEndDay.getTime() <= 259200000) {
+    //   console.log("PROCESSING LINE CHART DATA, LESS THAN EQUAL TO 3 DAYS")
+    //   this.showLine = true
+    //   this.showHistogram = false
+    //   this.populateLineTimePeriods(criteria)
+
+    // } else {
+    //   console.log("PROCESSING BAR CHART DATA, GREATER THAN EQUAL TO 3 DAYS")
+    //   this.showLine = false
+    //   this.showHistogram = true
+    //   this.populateBarTimePeriods()
+    // }
+    console.log("QUERYING FOR DATA WITH THIS CURRENT START DAY ", new Date(this.currentStartDay))
+    console.log("QUERYING FOR DATA WITH THIS CURRENT END DAY ", new Date(this.currentEndDay))
 
     console.log("QUERYING DATA")
 
     // if querying is <=3 days, showLine is true, else showHistogram is true
 
+
+    this.populateLineTimePeriods(criteria)
     let ivrData = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
@@ -468,7 +501,14 @@ export class IvrAgentAnalysisComponent implements OnInit {
         dayDistribution = 259200000
         break
       case 'Custom Date':
-        dayDistribution = 259200000
+        let time = this.currentStartDay - this.currentEndDay
+        if (time >= 0 && time <= 87200000) {
+          dayDistribution = 86400000
+        } else if (time >= 86400000 && time <= 172900001) {
+          dayDistribution = 172800000
+        } else {
+          dayDistribution = 259200000
+        }
         break
       default:
         console.log("NO VALID DAY DISTRUBTION, criteria NOT FOUND")
