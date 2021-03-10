@@ -1,0 +1,45 @@
+.app-scaled-table {
+    font-size: 90%;
+}
+.app-scaled-table th {
+    padding: 0;
+}
+
+.app-scaled-table td {
+    padding: 0;
+}
+h1::first-letter {
+    margin-top: 0;
+}
+h3::first-letter {
+    margin-top: 0;
+}
+
+.canceled {
+    text-decoration: line-through;
+}
+
+.subtotal {
+    font-weight: 900;
+    font-size: 113%;
+}
+
+.subtotal th {
+    font-size: 113%;
+}
+
+.my-text-b {
+    font-weight: 700;
+}
+
+.fee-schedules-heading {
+    display: inline-block;
+    font-weight: 700;
+    width: 8.5rem;
+    vertical-align: top;
+}
+
+.fee-schedules-content {
+    display: inline-block;
+    vertical-align: top;
+}
