@@ -137,12 +137,16 @@
     <div>
       Total Call Time: {{ secondsToHms(getData(item.agentName).totalCallTime) }}
     </div>
+    <!-- <div>
+      Total Meaningful Calls:
+      {{ secondsToHms(getData(item.agentName).totalCallTime) }}
+    </div> -->
 
     <!-- TODO: Redo the inner HTML thing -->
     <canvas *ngIf="showLine" width="800" height="100" #cmp>{{
       item.agentName
     }}</canvas>
-    <canvas *ngIf="showHistogram" width="800" height="100" #cmp>{{
+    <canvas *ngIf="showHistogram" width="800" height="300" #cmp>{{
       item.agentName
     }}</canvas>
     <hr />

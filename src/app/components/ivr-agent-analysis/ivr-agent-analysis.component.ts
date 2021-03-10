@@ -221,7 +221,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
               data: {
                 labels: dates['dates'],
                 datasets: [{
-                  label: '# of Votes',
+                  label: '# of Calls per Day',
                   data: dates['callData'],
                   borderWidth: 1
                 }]
