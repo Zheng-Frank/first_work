@@ -43,7 +43,6 @@ import { InvoiceDetailsComponent } from './components/invoices/invoice-details/i
 import { InvoiceEditorComponent } from './components/invoices/invoice-editor/invoice-editor.component';
 import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-monthly-details/invoice-monthly-details.component';
 import { InvoiceOptionEditorComponent } from './components/invoices/invoice-option-editor/invoice-option-editor.component';
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { CacheService } from './services/cache.service';
 import { PrunedPatchService } from './services/prunedPatch.service';
@@ -234,7 +233,6 @@ import { BannedCustomersComponent } from './components/restaurants/banned-custom
     InvoiceEditorComponent,
     InvoiceMonthlyDetailsComponent,
     InvoiceOptionEditorComponent,
-    InvoiceViewerComponent,
     InvoicesTableComponent,
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
