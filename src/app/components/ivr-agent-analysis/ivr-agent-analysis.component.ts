@@ -173,92 +173,108 @@ export class IvrAgentAnalysisComponent implements OnInit {
     this.components.changes.subscribe(
       () => {
 
+        if (this.showLine) {
+          console.log("IN SUBSCRIPTION SHOW LINE IS TRUE")
+        }
+
+        if (this.showHistogram) {
+          console.log("IN SUBSCRIPTION SHOW HISTOGRAM")
+        }
+
+        if (!this.showLine && !this.showHistogram) {
+          console.log("IN SUBSCRIPTION AND NOTHING IS TO BE RENDERED")
+        }
+
+
         let arr = (this.components.toArray())
         // If less than 7 days render line graph, elsewise render histogram 
-
-        // arr.forEach(el => {
-        //   let agent = el.nativeElement.innerHTML
-        //   let data = this.processBarData(agent)
-        //   new Chart(el.nativeElement, {
-        //     type: 'bar',
-        //     data: {
-        //       labels: ['BJP', 'INC', 'AAP', 'CPI', 'CPI-M', 'NCP'],
-        //       datasets: [{
-        //         label: '# of Votes',
-        //         data: [200, 50, 30, 15, 20, 34],
-        //         backgroundColor: [
-        //           'rgba(255, 99, 132, 0.2)',
-        //           'rgba(54, 162, 235, 0.2)',
-        //           'rgba(255, 206, 86, 0.2)',
-        //           'rgba(75, 192, 192, 0.2)',
-        //           'rgba(153, 102, 255, 0.2)',
-        //           'rgba(255, 159, 64, 0.2)'
-        //         ],
-        //         borderColor: [
-        //           'rgba(255,99,132,1)',
-        //           'rgba(54, 162, 235, 1)',
-        //           'rgba(255, 206, 86, 1)',
-        //           'rgba(75, 192, 192, 1)',
-        //           'rgba(153, 102, 255, 1)',
-        //           'rgba(255, 159, 64, 1)'
-        //         ],
-        //         borderWidth: 1
-        //       }]
-        //     },
-        //     options: {
-        //       scales: {
-        //         yAxes: [{
-        //           ticks: {
-        //             beginAtZero: true
-        //           }
-        //         }]
-        //       }
-        //     }
-        //   })
-        // })
-
-        arr.forEach(el => {
-          let agent = el.nativeElement.innerHTML
-          let data = this.processLineChartData(agent)
-          new Chart(el.nativeElement, {
-            options: {
-              scales: {
-                yAxes: [{
-                  ticks: {
-                    max: 1,
-                    min: 0,
-                    spanGaps: true,
-
-                    stepSize: 1
-                  }
+        if (this.showHistogram) {
+          arr.forEach(el => {
+            let agent = el.nativeElement.innerHTML
+            let data = this.processBarData(agent)
+            new Chart(el.nativeElement, {
+              type: 'bar',
+              data: {
+                labels: ['BJP', 'INC', 'AAP', 'CPI', 'CPI-M', 'NCP'],
+                datasets: [{
+                  label: '# of Votes',
+                  data: [200, 50, 30, 15, 20, 34],
+                  backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                  ],
+                  borderColor: [
+                    'rgba(255,99,132,1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                  ],
+                  borderWidth: 1
                 }]
-              }
-            },
-            showTooltips: true,
-
-            type: 'line',
-            data: {
-              labels: this.totalLineTimes,
-              datasets: [
-                {
-                  label: 'Activity Over 24 Hours',
-                  fill: true,
-                  lineTension: 0.1,
-                  backgroundColor: 'rgba(252, 3, 3,1.0)',
-                  borderCapStyle: 'butt',
-                  borderDash: [],
-                  borderDashOffset: 0.0,
-                  borderJoinStyle: 'miter',
-                  pointRadius: 1,
-                  stepSize: 1,
-                  pointHitRadius: 10,
-                  data: data,
-                  spanGaps: false,
+              },
+              options: {
+                scales: {
+                  yAxes: [{
+                    ticks: {
+                      beginAtZero: true
+                    }
+                  }]
                 }
-              ]
-            }
-          });
-        })
+              }
+            })
+          })
+        } else if (this.showLine) {
+          arr.forEach(el => {
+            let agent = el.nativeElement.innerHTML
+            let data = this.processLineChartData(agent)
+            new Chart(el.nativeElement, {
+              options: {
+                scales: {
+                  yAxes: [{
+                    ticks: {
+                      max: 1,
+                      min: 0,
+                      spanGaps: true,
+
+                      stepSize: 1
+                    }
+                  }]
+                }
+              },
+              showTooltips: true,
+
+              type: 'line',
+              data: {
+                labels: this.totalLineTimes,
+                datasets: [
+                  {
+                    label: 'Activity Over 24 Hours',
+                    fill: true,
+                    lineTension: 0.1,
+                    backgroundColor: 'rgba(252, 3, 3,1.0)',
+                    borderCapStyle: 'butt',
+                    borderDash: [],
+                    borderDashOffset: 0.0,
+                    borderJoinStyle: 'miter',
+                    pointRadius: 1,
+                    stepSize: 1,
+                    pointHitRadius: 10,
+                    data: data,
+                    spanGaps: false,
+                  }
+                ]
+              }
+            });
+          })
+        } else {
+          console.log("NEITHER HISTORY NOR LINE IS SET TO RENDER")
+        }
 
       }
     );
@@ -362,6 +378,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   populateBarTimePeriods() {
+
     let days = Math.ceil((this.currentStartDay - this.currentEndDay) / 86200000)
 
     console.log('IN POPULATE BAR TIME PERIODS WITH THESE NUMBER OF DAYS ', days)
@@ -408,9 +425,9 @@ export class IvrAgentAnalysisComponent implements OnInit {
       case 'Last 7 days':
         currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 168)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 0)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 168)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       case 'Last 30 days':
@@ -435,13 +452,13 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
 
     console.log("QUERY DATA WITH THIS DAY DIFFERENCE ", Math.ceil((this.currentEndDay - this.currentStartDay) / 87200000))
-    if (Math.abs(this.currentEndDay - this.currentStartDay) <= 259200000) {
+    if (Math.abs(this.currentEndDay - this.currentStartDay) <= 260000000) {
       console.log("PROCESSING LINE CHART DATA, LESS THAN EQUAL TO 3 DAYS")
       console.log("LINE CHART THE MILLISECOND DIFFERENCE IS ", Math.abs(this.currentStartDay - this.currentEndDay))
       this.showLine = true
       this.showHistogram = false
       this.populateLineTimePeriods(criteria)
-    } else if (Math.abs(this.currentEndDay - this.currentStartDay) >= 259200000) {
+    } else if (Math.abs(this.currentEndDay - this.currentStartDay) >= 260000000) {
       console.log("PROCESSING BAR CHART DATA, GREATER THAN EQUAL TO 3 DAYS")
       console.log("BAR CHART MILLISECOND DIFFERENCE ", Math.abs(this.currentStartDay - this.currentEndDay))
       this.showLine = false
@@ -516,7 +533,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
         let time = this.currentStartDay - this.currentEndDay
         if (time >= 0 && time <= 87200000) {
           dayDistribution = 86400000
-        } else if (time >= 86400000 && time <= 172900001) {
+        } else if (time >= 86400000 && time <= 173000000) {
           dayDistribution = 172800000
         } else {
           dayDistribution = 259200000
