@@ -120,27 +120,23 @@
 </div>
 
 <div class="container">
-  <div
-    class="row"
-    *ngFor="let item of agentMappedData | keyvalue"
-    class="card-body"
-  >
+  <div class="row" *ngFor="let item of agentMappedData" class="card-body">
     <hr />
     <div>
-      Agent Name: <b>{{ getAgent(item.key) }}</b>
+      Agent Name: <b>{{ getAgent(item.agentName) }}</b>
     </div>
-    <div>Total Calls: {{ getData(item.key).totalCalls }}</div>
-    <div>Avg Call Time: {{ secondsToHms(getData(item.key).avgCallTime) }}</div>
+    <div>Total Calls: {{ getData(item.agentName).totalCalls }}</div>
     <div>
-      Total Call Time: {{ secondsToHms(getData(item.key).totalCallTime) }}
+      Avg Call Time: {{ secondsToHms(getData(item.agentName).avgCallTime) }}
+    </div>
+    <div>
+      Total Call Time: {{ secondsToHms(getData(item.agentName).totalCallTime) }}
     </div>
 
     <canvas *ngIf="showLine" width="800" height="100" #cmp>{{
-      item.key
+      item.agentName
     }}</canvas>
-    <canvas *ngIf="showHistogram" width="800" height="100" #cmp
-      >{{ item.key }}hey</canvas
-    >
+    <canvas *ngIf="showHistogram" width="800" height="100" #cmp> </canvas>
     <hr />
   </div>
 </div>

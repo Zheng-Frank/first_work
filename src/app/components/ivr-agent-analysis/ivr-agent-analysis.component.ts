@@ -23,7 +23,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
   agents;
   totalLineTimes = []
   entriesLength
-  agentMappedData = {};
+  agentMappedData = [];
+  objAgentMappedData = {}
   sortBy = 'Total Call Time'
   sorting = 'Ascending'
   criteria = 'Last 24 hours'
@@ -232,6 +233,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
         } else if (this.showLine) {
           arr.forEach(el => {
             let agent = el.nativeElement.innerHTML
+            console.log("THIS IS AGENT IN PROCESSING ", agent)
             let data = this.processLineChartData(agent)
             new Chart(el.nativeElement, {
               options: {
@@ -516,8 +518,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
     // 
 
     // let example = this.agents.filter(agent => agent.)
-
+    console.log("THIS IS THE AGENT NAME ", agentName)
+    console.log("THIS IS THR AGENTS ", this.agents)
     let example = this.agents[agentName].callData
+    console.log("THIS IS THE EXAMPLE ", example)
+
     let dayDistribution: number;
     switch (this.criteria) {
       case 'Last 24 hours':
@@ -563,7 +568,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
 
     // Object representation
-
+    console.log("IN PROCESS AGENTS")
     this.agents = [...new Set(rawIvrData.map(obj => obj.Agent.Username))]
     // console.log("THESE ARE THE AGENTS ", this.agents)
     let agent_mapped_data = {}
@@ -596,9 +601,21 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
 
     // let sortedData = this.sort(agent_mapped_data, this.sortBy, this.sorting)
-    // TODO: Work with arrays, not objects
 
-    this.agentMappedData = agent_mapped_data
+    let arr_agent_mapped_data = []
+    for (const agentName in agent_mapped_data) {
+
+      arr_agent_mapped_data.push({
+        agentName: agentName,
+        totalCalls: agent_mapped_data[agentName]['totalCalls'],
+        totalCallTime: agent_mapped_data[agentName]['totalCallTime'],
+        avgCallTime: agent_mapped_data[agentName]['avgCallTime']
+      })
+    }
+    // TODO: Work with arrays, not objects
+    console.log("WE MADE IT THIS FAR ")
+    this.objAgentMappedData = agent_mapped_data
+    this.agentMappedData = arr_agent_mapped_data
     this.entriesLength = Object.keys(agent_mapped_data).length
     return agent_mapped_data
 
@@ -641,7 +658,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   getData(agentName) {
-    return this.agentMappedData[agentName]
+    return this.objAgentMappedData[agentName]
   }
 
   log(val) {
