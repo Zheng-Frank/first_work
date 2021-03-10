@@ -26,7 +26,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   agentMappedData = [];
   objAgentMappedData = {}
   sortBy = 'Total Call Time'
-  sorting = 'Ascending'
+  sorting = 'Descending'
   criteria = 'Last 24 hours'
   inputDateOne
   inputDateTwo
@@ -122,6 +122,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   setSortBy(type) {
     this.sortBy = type
+    this.sort(this.agentMappedData, this.sortBy, this.sorting)
   }
 
   setCriteria(type) {
@@ -615,24 +616,20 @@ export class IvrAgentAnalysisComponent implements OnInit {
     // TODO: Work with arrays, not objects
     console.log("WE MADE IT THIS FAR ")
     this.objAgentMappedData = agent_mapped_data
-    this.agentMappedData = arr_agent_mapped_data
+    this.agentMappedData = this.sort(arr_agent_mapped_data, this.sortBy, this.sorting)
     this.entriesLength = Object.keys(agent_mapped_data).length
     return agent_mapped_data
 
   }
 
-  sort(data, sortBy, sortType) {
+  setSorting(type) {
+    this.sorting = type
+    this.sort(this.agentMappedData, this.sortBy, this.sorting)
+  }
+
+  sort(agentArrayData, sortBy, sortType) {
     // agentMappedData is the final data structure
-    let agentArrayData = []
-    for (const agentName in data) {
-      agentArrayData.push({
-        agent: agentName,
-        totalCallTime: data[agentName]['totalCallTime'],
-        avgCallTime: data[agentName]['avgCallTime'],
-        totalCalls: data[agentName]['totalCalls']
-      })
-    }
-    this.entriesLength = agentArrayData.length
+
 
     switch (sortBy) {
       case 'Total Call Time':
