@@ -198,16 +198,28 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   updateTipSettings(type, key, value) {
+    if (value === '') {
+      this.tipSettings[type][key] = undefined;
+      return;
+    }
 
     if (key.indexOf('Percentage') >= 0) {
-      // percentage must be integer and in 0-100
-      value = Math.round(Math.min(100, Math.max(0, value)));
+      // percentage have two decimal digits and range in 0-100
+      value = Math.min(100, Math.max(0, value));
     }
     if (key.indexOf('Amount') >= 0) {
-      // amount have two decimals and in 0-1000
-      value = Number(Math.min(1000, Math.max(0, value)).toFixed(2));
+      // amount have two decimal digit and range in 0-1000
+      value = Math.min(1000, Math.max(0, value));
     }
     this.tipSettings[type][key] = value;
+  }
+
+  normalizeNumber(value, percent = false) {
+    if (typeof value !== 'number') {
+      return undefined;
+    }
+    value = Number(value.toFixed(2));
+    return percent ? value / 100 : value;
   }
 
   ok() {
@@ -231,10 +243,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       const setting = this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};
       const tip = this.tipSettings[type];
       const newTipSuggestion = {
-        amount: tip.defaultAmount, rate: tip.defaultPercentage ? tip.defaultPercentage / 100 : undefined
+        amount: this.normalizeNumber(tip.defaultAmount),
+        rate: this.normalizeNumber(tip.defaultPercentage, true)
       };
       const newTipMinimum = {
-        amount: tip.minimumAmount, rate: tip.minimumPercentage ? tip.minimumPercentage / 100 : undefined
+        amount: this.normalizeNumber(tip.minimumAmount),
+        rate: this.normalizeNumber(tip.minimumPercentage, true)
       };
 
       const { tipSuggestion, tipMinimum, tipHide, ...rest } = setting;

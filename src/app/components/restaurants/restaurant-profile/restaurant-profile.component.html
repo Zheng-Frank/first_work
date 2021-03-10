@@ -222,27 +222,27 @@
                     <tbody>
                       <tr>
                         <th class="pl-5">Default Percentage (%)</th>
-                        <td>{{tipSettings['Dine-in'].defaultPercentage}}</td>
-                        <td>{{tipSettings.Pickup.defaultPercentage}}</td>
-                        <td>{{tipSettings.Delivery.defaultPercentage}}</td>
+                        <td>{{tipSettings['Dine-in'].defaultPercentage | number: '1.0-2'}}</td>
+                        <td>{{tipSettings.Pickup.defaultPercentage | number: '1.0-2'}}</td>
+                        <td>{{tipSettings.Delivery.defaultPercentage | number: '1.0-2'}}</td>
                       </tr>
                       <tr>
                         <th class="pl-5">Minimum Percentage (%)</th>
-                        <td>{{tipSettings['Dine-in'].minimumPercentage}}</td>
-                        <td>{{tipSettings.Pickup.minimumPercentage}}</td>
-                        <td>{{tipSettings.Delivery.minimumPercentage}}</td>
+                        <td>{{tipSettings['Dine-in'].minimumPercentage | number: '1.0-2'}}</td>
+                        <td>{{tipSettings.Pickup.minimumPercentage | number: '1.0-2'}}</td>
+                        <td>{{tipSettings.Delivery.minimumPercentage | number: '1.0-2'}}</td>
                       </tr>
                       <tr>
                         <th class="pl-5">Default Amount ($)</th>
-                        <td>{{tipSettings['Dine-in'].defaultAmount}}</td>
-                        <td>{{tipSettings.Pickup.defaultAmount}}</td>
-                        <td>{{tipSettings.Delivery.defaultAmount}}</td>
+                        <td>{{tipSettings['Dine-in'].defaultAmount | number: '1.2-2'}}</td>
+                        <td>{{tipSettings.Pickup.defaultAmount | number: '1.2-2'}}</td>
+                        <td>{{tipSettings.Delivery.defaultAmount | number: '1.2-2'}}</td>
                       </tr>
                       <tr>
                         <th class="pl-5">Minimum Amount ($)</th>
-                        <td>{{tipSettings['Dine-in'].minimumAmount}}</td>
-                        <td>{{tipSettings.Pickup.minimumAmount}}</td>
-                        <td>{{tipSettings.Delivery.minimumAmount}}</td>
+                        <td>{{tipSettings['Dine-in'].minimumAmount | number: '1.2-2'}}</td>
+                        <td>{{tipSettings.Pickup.minimumAmount | number: '1.2-2'}}</td>
+                        <td>{{tipSettings.Delivery.minimumAmount | number: '1.2-2'}}</td>
                       </tr>
                       <tr>
                         <th class="pl-5">Show Tip</th>
@@ -610,19 +610,19 @@
                 <td>Default Percentage (%)</td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings['Dine-in'].defaultPercentage" pattern="\d+"
+                         [value]="tipSettings['Dine-in'].defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Dine-in', 'defaultPercentage', $event.target.value)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings.Pickup.defaultPercentage" pattern="\d+"
+                         [value]="tipSettings.Pickup.defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Pickup', 'defaultPercentage', $event.target.value)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings.Delivery.defaultPercentage" pattern="\d+"
+                         [value]="tipSettings.Delivery.defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Delivery', 'defaultPercentage', $event.target.value)"
                   >
                 </td>
@@ -631,19 +631,19 @@
                 <td>Minimum Percentage (%)</td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings['Dine-in'].minimumPercentage" pattern="\d+"
+                         [value]="tipSettings['Dine-in'].minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Dine-in', 'minimumPercentage', $event.target.value)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings.Pickup.minimumPercentage" pattern="\d+"
+                         [value]="tipSettings.Pickup.minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Pickup', 'minimumPercentage', $event.target.value)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings.Delivery.minimumPercentage" pattern="\d+"
+                         [value]="tipSettings.Delivery.minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Delivery', 'minimumPercentage', $event.target.value)"
                   >
                 </td>
@@ -652,19 +652,19 @@
                 <td>Default Amount ($)</td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
-                         [value]="tipSettings['Dine-in'].defaultAmount" pattern="\d+(\.\d{0,2})?"
+                         [value]="tipSettings['Dine-in'].defaultAmount | number: '1.2-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Dine-in', 'defaultAmount', $event.target.value)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
-                         [value]="tipSettings.Pickup.defaultAmount" pattern="\d+(\.\d{0,2})?"
+                         [value]="tipSettings.Pickup.defaultAmount | number: '1.2-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Pickup', 'defaultAmount', $event.target.value)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
-                         [value]="tipSettings.Delivery.defaultAmount" pattern="\d+(\.\d{0,2})?"
+                         [value]="tipSettings.Delivery.defaultAmount | number: '1.2-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Delivery', 'defaultAmount', $event.target.value)"
                   >
                 </td>
@@ -673,19 +673,19 @@
                 <td>Minimum Amount ($)</td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
-                         [value]="tipSettings['Dine-in'].minimumAmount" pattern="\d+(\.\d{0,2})?"
+                         [value]="tipSettings['Dine-in'].minimumAmount | number: '1.2-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Dine-in', 'minimumAmount', $event.target.value)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
-                         [value]="tipSettings.Pickup.minimumAmount" pattern="\d+(\.\d{0,2})?"
+                         [value]="tipSettings.Pickup.minimumAmount | number: '1.2-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Pickup', 'minimumAmount', $event.target.value)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
-                         [value]="tipSettings.Delivery.minimumAmount" pattern="\d+(\.\d{0,2})?"
+                         [value]="tipSettings.Delivery.minimumAmount | number: '1.2-2'" pattern="\d+(\.\d{0,2})?"
                          (change)="updateTipSettings('Delivery', 'minimumAmount', $event.target.value)"
                   >
                 </td>
