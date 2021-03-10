@@ -98,13 +98,13 @@ export class IvrAgentAnalysisComponent implements OnInit {
   constructor(private _api: ApiService) { }
 
   changeDate() {
-    console.log("DATE CHANGING 1 ", this.inputDateOne)
-    console.log("DATE CHANGING 2 ", this.inputDateTwo)
+    // console.log("DATE CHANGING 1 ", this.inputDateOne)
+    // console.log("DATE CHANGING 2 ", this.inputDateTwo)
 
     let dateOne = new Date(this.inputDateOne)
     let dateTwo = new Date(this.inputDateTwo)
-    console.log("DATE 1", dateOne)
-    console.log("DATE 2", dateTwo)
+    // console.log("DATE 1", dateOne)
+    // console.log("DATE 2", dateTwo)
 
 
     if (dateOne && dateTwo && (dateOne > dateTwo)) {
@@ -112,8 +112,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
 
     if (dateOne && dateTwo) {
-      console.log("QUERYING FOR THE DATA DATE 1 ", this.inputDateOne)
-      console.log("QUERYING FOR THE DATA DATE 2", this.inputDateTwo)
+      // console.log("QUERYING FOR THE DATA DATE 1 ", this.inputDateOne)
+      // console.log("QUERYING FOR THE DATA DATE 2", this.inputDateTwo)
       this.queryData(this.criteria)
     }
 
@@ -124,9 +124,9 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   setCriteria(type) {
-    console.log("THIS IS THE TYPE ", type)
-    console.log("INPUT DATE 1 ", this.inputDateOne)
-    console.log("INPUT DATE 2 ", this.inputDateTwo)
+    // console.log("THIS IS THE TYPE ", type)
+    // console.log("INPUT DATE 1 ", this.inputDateOne)
+    // console.log("INPUT DATE 2 ", this.inputDateTwo)
 
     switch (type) {
       case 'customDate':
@@ -270,10 +270,105 @@ export class IvrAgentAnalysisComponent implements OnInit {
   populateLineTimePeriods(criteria) {
     this.totalLineTimes = []
     if (criteria == 'Custom Date' && (!this.inputDateOne || !this.inputDateTwo)) {
-      console.log("THIS WAS CALLED BUT TWO DATES ARE NOT ENTERED YET ")
-      console.log("DATE 1 POPULATE TIME PERIODS ", this.inputDateOne)
-      console.log("DATE 2 POPULATE TIME PERIODS ", this.inputDateTwo)
+      // console.log("THIS WAS CALLED BUT TWO DATES ARE NOT ENTERED YET ")
+      // console.log("DATE 1 POPULATE TIME PERIODS ", this.inputDateOne)
+      // console.log("DATE 2 POPULATE TIME PERIODS ", this.inputDateTwo)
     }
+
+
+
+    let timePeriods: number[]
+    // AM 
+
+    let timePeriodsLength: number
+    let increments: number
+
+    switch (criteria) {
+      case 'Last 24 hours':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 12
+        increments = 1
+        break
+      case 'Last 48 hours':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 24
+        increments = 2
+        break
+      case 'Last 3 days':
+        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+        timePeriodsLength = 36
+        increments = 3
+        break
+      case 'Custom Date':
+        let dif = this.currentEndDay - this.currentStartDay
+
+        if (dif >= 0 && dif <= 86200000) {
+          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+          timePeriodsLength = 12
+          increments = 1
+        } else if (dif >= 86200000 && dif <= 172400000) {
+          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+          timePeriodsLength = 24
+          increments = 2
+        } else if (dif <= 258600000) {
+          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+          timePeriodsLength = 36
+          increments = 3
+        } else {
+          console.log("WE SHOULD NOT HAVE GOTTEN HERE")
+          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+          timePeriodsLength = 36
+          increments = 3
+        }
+        break
+      default:
+        timePeriodsLength = 12
+        increments = 1
+        break
+
+    }
+
+
+    for (let i = 0; i < timePeriodsLength; i++) {
+      for (let x = 0; x < 60; x += increments) {
+        let time: any = (timePeriods[i] + x)
+        time = time.toString()
+        let period = timePeriods[i]
+        if (period.toString().length === 3) {
+          time = `${time[0]}:${time[1]}${time[2]}`
+        } else {
+          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
+        }
+        this.totalLineTimes.push(time)
+      }
+    }
+    for (let i = 0; i < timePeriodsLength; i++) {
+      for (let x = 0; x < 60; x += increments) {
+        let time: any = (timePeriods[i] + x)
+        time = time.toString()
+        let period = timePeriods[i]
+        if (period.toString().length === 3) {
+          time = `${time[0]}:${time[1]}${time[2]}`
+        } else {
+          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
+        }
+        this.totalLineTimes.push(time)
+      }
+    }
+
+
+
+
+  }
+
+  populateBarTimePeriods() {
+    let days = Math.ceil((this.currentStartDay - this.currentEndDay) / 86200000)
+
+    console.log('IN POPULATE BAR TIME PERIODS WITH THESE NUMBER OF DAYS ', days)
+
+  }
+
+  async queryData(criteria) {
 
 
     switch (criteria) {
@@ -337,116 +432,34 @@ export class IvrAgentAnalysisComponent implements OnInit {
         break
 
     }
-    let timePeriods: number[]
-    // AM 
 
-    let timePeriodsLength: number
-    let increments: number
 
-    switch (criteria) {
-      case 'Last 24 hours':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 12
-        increments = 1
-        break
-      case 'Last 48 hours':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 24
-        increments = 2
-        break
-      case 'Last 3 days':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 36
-        increments = 3
-        break
-      case 'Custom Date':
-        let dif = this.currentEndDay - this.currentStartDay
-        console.log("THIS IS THE DIF ", dif)
-        console.log("DAYS OF DIFFERENCE ", Math.floor(dif / 86200000) - 1)
-        if (dif >= 0 && dif <= 86200000) {
-          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-          timePeriodsLength = 12
-          increments = 1
-        } else if (dif >= 86200000 && dif <= 172400000) {
-          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-          timePeriodsLength = 24
-          increments = 2
-        } else {
-          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-          timePeriodsLength = 36
-          increments = 3
-        }
-        break
-      default:
-        timePeriodsLength = 12
-        increments = 1
-        break
+    console.log("QUERY DATA WITH THIS DAY DIFFERENCE ", Math.ceil((this.currentEndDay - this.currentStartDay) / 87200000))
+    if (Math.abs(this.currentEndDay - this.currentStartDay) <= 259200000) {
+      console.log("PROCESSING LINE CHART DATA, LESS THAN EQUAL TO 3 DAYS")
 
-    }
+      console.log("LINE CHART THE MILLISECOND DIFFERENCE IS ", Math.abs(this.currentStartDay - this.currentEndDay))
+      this.showLine = true
+      this.showHistogram = false
+      this.populateLineTimePeriods(criteria)
 
-    console.log("TIME PERIODS LENGTH ", timePeriodsLength)
-    console.log("INCREMENTS ", increments)
-    for (let i = 0; i < timePeriodsLength; i++) {
-      for (let x = 0; x < 60; x += increments) {
-        let time: any = (timePeriods[i] + x)
-        time = time.toString()
-        let period = timePeriods[i]
-        if (period.toString().length === 3) {
-          time = `${time[0]}:${time[1]}${time[2]}`
-        } else {
-          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
-        }
-        this.totalLineTimes.push(time)
-      }
-    }
-    for (let i = 0; i < timePeriodsLength; i++) {
-      for (let x = 0; x < 60; x += increments) {
-        let time: any = (timePeriods[i] + x)
-        time = time.toString()
-        let period = timePeriods[i]
-        if (period.toString().length === 3) {
-          time = `${time[0]}:${time[1]}${time[2]}`
-        } else {
-          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
-        }
-        this.totalLineTimes.push(time)
-      }
+    } else if (Math.abs(this.currentEndDay - this.currentStartDay) >= 259200000) {
+      console.log("PROCESSING BAR CHART DATA, GREATER THAN EQUAL TO 3 DAYS")
+      console.log("BAR CHART MILLISECOND DIFFERENCE ", Math.abs(this.currentStartDay - this.currentEndDay))
+      this.showLine = false
+      this.showHistogram = true
+      this.populateBarTimePeriods()
+    } else {
+      console.log("SOME DATE IS UNDEFINED!!!!")
+      console.log("INPUT START DATE 1 ", new Date(this.currentStartDay))
+      console.log("INPUT END DATE ", new Date(this.currentEndDay))
     }
 
 
-    console.log("THIS IS TOTAL TIMES ", this.totalLineTimes)
 
 
-  }
 
-  populateBarTimePeriods() {
-    let days = (this.currentStartDay.getTime() - this.currentEndDay.getTime()) / 86200000
-
-
-  }
-
-  async queryData(criteria) {
-    // if (this.currentStartDay.getTime() - this.currentEndDay.getTime() <= 259200000) {
-    //   console.log("PROCESSING LINE CHART DATA, LESS THAN EQUAL TO 3 DAYS")
-    //   this.showLine = true
-    //   this.showHistogram = false
-    //   this.populateLineTimePeriods(criteria)
-
-    // } else {
-    //   console.log("PROCESSING BAR CHART DATA, GREATER THAN EQUAL TO 3 DAYS")
-    //   this.showLine = false
-    //   this.showHistogram = true
-    //   this.populateBarTimePeriods()
-    // }
-    console.log("QUERYING FOR DATA WITH THIS CURRENT START DAY ", new Date(this.currentStartDay))
-    console.log("QUERYING FOR DATA WITH THIS CURRENT END DAY ", new Date(this.currentEndDay))
-
-    console.log("QUERYING DATA")
-
-    // if querying is <=3 days, showLine is true, else showHistogram is true
-
-
-    this.populateLineTimePeriods(criteria)
+    // this.populateLineTimePeriods(criteria)
     let ivrData = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
@@ -494,7 +507,6 @@ export class IvrAgentAnalysisComponent implements OnInit {
         dayDistribution = 86400000
         break
       case 'Last 48 hours':
-        console.log("ENTERED 48 hours")
         dayDistribution = 172800000
         break
       case 'Last 3 days':
@@ -567,6 +579,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
 
     // let sortedData = this.sort(agent_mapped_data, this.sortBy, this.sorting)
+    // TODO: Work with arrays, not objects
+
     this.agentMappedData = agent_mapped_data
     this.entriesLength = Object.keys(agent_mapped_data).length
     return agent_mapped_data

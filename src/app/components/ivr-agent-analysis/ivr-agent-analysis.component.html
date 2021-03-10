@@ -135,7 +135,9 @@
       Total Call Time: {{ secondsToHms(getData(item.key).totalCallTime) }}
     </div>
 
-    <canvas width="800" height="100" #cmp>{{ item.key }}</canvas>
+    <canvas *ngIf="showLine" width="800" height="100" #cmp>{{
+      item.key
+    }}</canvas>
     <hr />
   </div>
 </div>
