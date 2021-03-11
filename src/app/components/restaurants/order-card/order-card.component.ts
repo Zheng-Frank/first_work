@@ -1,4 +1,5 @@
-import { moment } from 'moment-timezone';
+import * as moment from 'moment-timezone';
+
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
@@ -47,16 +48,19 @@ export class OrderCardComponent implements OnInit {
 "RT: [rt_id], Order# [XX] ([Mmm DD HH:MM AM/PM])"
    */
   copyToClipboard(order) {
-    let createdAt = moment.tz(order.createdAt,this.restaurant.googleAddress.timezone).format("MMM d h:mm a");  
-    let text = `RT: ${this.restaurant._id}, Order# ${order.id} (${createdAt})`;
-    console.log("text:"+text);
+    // console.log("order.createdAt:"+order.createdAt+", type of order.createdAt:"+typeof order.createdAt);
+    const cloned = order.createdAt.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone });
+    // console.log("cloned:"+cloned);
+    // let createdAt = moment(cloned).format("Mmm dd h:mm a");
+    let text = `RT: ${this.restaurant._id}, Order# ${order.orderNumber},TimeZone:${this.restaurant.googleAddress.timezone} (${cloned})`;
+    // console.log("text:"+text);
     document.addEventListener('copy', (e: ClipboardEvent) => {
       e.clipboardData.setData('text/plain', (text));
       e.preventDefault();
       document.removeEventListener('copy', null);
     });
     document.execCommand('copy');
-
+   this._global.publishAlert(AlertType.Success,'the data of order has copyed to your clipboard ~',1000);
   }
   
   changeToSelfDelivery() {

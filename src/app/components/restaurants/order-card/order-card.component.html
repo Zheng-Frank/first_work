@@ -4,7 +4,7 @@
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
   <div class="text-muted" style="position:absolute;font-size:120%">
     <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
-    <i class="fa fa-clipboard" (click)="copyToClipboard(order)"></i>
+    <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
   <div class="card-block">
     <h4 class="text-sm-center">
