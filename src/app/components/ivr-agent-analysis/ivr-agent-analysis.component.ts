@@ -503,7 +503,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
           'Agent.AgentInteractionDuration': 1,
           'Agent.AfterContactWorkDuration': 1
         },
-        limit: 100000,
+        limit: 25000,
       })
       .toPromise();
     console.log("THE IVR DATA ", ivrData)
