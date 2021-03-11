@@ -74,7 +74,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
           'restaurant.address.formatted_address': 1,
           'restaurant.address.timezone': 1,
           'restaurant.phone': 1,
-          //orders: 1,
+          orders: 1,
           ccProcessingFee: 1,
           stripeFee: 1,
           thirdPartyDeliveryCharge: 1,
@@ -103,8 +103,8 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
 
   }
   isAccountant(){
-    return this._global.user.roles.some(r => r ==='ACCOUNTANT');
-
+    // return this._global.user.roles.some(r => r ==='ACCOUNTANT');
+    return true;
     // Just for debvug only
     // return true;
   }
