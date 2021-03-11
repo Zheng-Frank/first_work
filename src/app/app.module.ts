@@ -1,3 +1,4 @@
+import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -200,16 +201,12 @@ import { Form1099KComponent } from './components/restaurants/restaurant-form1099
 
 import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
-<<<<<<< HEAD
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
-=======
 import { SchemasComponent } from './components/system/schemas/schemas.component';
 import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
 import { UploadCsvComponent } from "./components/restaurants/seamless-integration/upload-csv/upload-csv.component";
 import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
 import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
 
->>>>>>> 531e4135fd83b69f8043e5230775c33a5025406d
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -384,15 +381,12 @@ import { SendPostcardComponent } from "./components/restaurants/seamless-integra
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
-<<<<<<< HEAD
-    InvoiceViewerComponent
-=======
+    InvoiceViewerComponent,
     SchemasComponent,
     SeamlessIntegrationComponent,
     UploadCsvComponent,
     AddOneRtComponent,
     SendPostcardComponent,
->>>>>>> 531e4135fd83b69f8043e5230775c33a5025406d
   ],
   imports: [
     BrowserModule,
