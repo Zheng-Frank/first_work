@@ -154,6 +154,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           printers: 1,
           printerSN: 1,
           promotions: 1,
+          'qrSettings.NON_EXIST_FIELD': 1, // to return an empty body if qrSettings exists. we don't want details yet. maybe later we when we need to edit qrSettings
           rateSchedules: 1,
           requireBillingAddress: 1,
           requireZipcode: 1,

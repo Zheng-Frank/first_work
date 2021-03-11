@@ -9,7 +9,9 @@ import { HttpClientModule } from '@angular/common/http';
 import { RootComponent } from './components/root/root.component';
 import { HomeComponent } from './components/home/home.component';
 import { LogsDashboardComponent } from './components/logs/logs-dashboard/logs-dashboard.component';
-import { Bs4Component } from './components/bs4/bs4.component';
+import { Bs4Component } from './components/development/bs4/bs4.component';
+import { UIPreviewComponent } from './components/development/ui-preview/ui-preview/ui-preview.component';
+import { DocViewerComponent } from './components/development/ui-preview/doc-viewer/doc-viewer.component';
 import { HeaderComponent } from './components/header/header.component';
 
 import { UiModule } from '@qmenu/ui';
@@ -198,7 +200,16 @@ import { Form1099KComponent } from './components/restaurants/restaurant-form1099
 
 import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
+<<<<<<< HEAD
 import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
+=======
+import { SchemasComponent } from './components/system/schemas/schemas.component';
+import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
+import { UploadCsvComponent } from "./components/restaurants/seamless-integration/upload-csv/upload-csv.component";
+import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
+import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
+
+>>>>>>> 531e4135fd83b69f8043e5230775c33a5025406d
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -209,6 +220,8 @@ import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/inv
     MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
+    UIPreviewComponent,
+    DocViewerComponent,
     EventDashboardComponent,
     HeaderComponent,
     LoginComponent,
@@ -371,7 +384,15 @@ import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/inv
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
+<<<<<<< HEAD
     InvoiceViewerComponent
+=======
+    SchemasComponent,
+    SeamlessIntegrationComponent,
+    UploadCsvComponent,
+    AddOneRtComponent,
+    SendPostcardComponent,
+>>>>>>> 531e4135fd83b69f8043e5230775c33a5025406d
   ],
   imports: [
     BrowserModule,
