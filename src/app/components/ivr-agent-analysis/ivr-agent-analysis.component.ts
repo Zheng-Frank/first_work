@@ -486,7 +486,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
     // this.populateLineTimePeriods(criteria)
     let ivrData = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
+      .getBatch(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
         query: {
           "Channel": 'VOICE',
@@ -503,9 +503,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
           'Agent.AgentInteractionDuration': 1,
           'Agent.AfterContactWorkDuration': 1
         },
-        limit: 25000,
-      })
-      .toPromise();
+        limit: 125000,
+      }, 10000)
     console.log("THE IVR DATA ", ivrData)
     this.rawIvrData = ivrData
     this.agents = this.processAgents(this.rawIvrData)
