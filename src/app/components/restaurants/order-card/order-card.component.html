@@ -4,12 +4,13 @@
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
   <div class="text-muted" style="position:absolute;font-size:120%">
     <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
-
+    <i class="fa fa-clipboard" (click)="copyToClipboard(order)"></i>
   </div>
   <div class="card-block">
     <h4 class="text-sm-center">
       {{getCustomerName(order)}}
     </h4>
+    <h6 style="font-size: 1px !important;" class="text-center">{{order.id}}</h6>
     <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
     <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
     <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
