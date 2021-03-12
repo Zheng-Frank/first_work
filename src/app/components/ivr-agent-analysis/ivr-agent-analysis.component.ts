@@ -87,6 +87,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   }
 
+  graphViewing = 'Total Calls'
+
 
   getAgent(key) {
     if (key in this.agentMappingNames) {
@@ -94,6 +96,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
     } else {
       return key
     }
+  }
+
+  setGraphView(type) {
+    this.graphViewing = type
   }
 
   constructor(private _api: ApiService) { }
@@ -172,20 +178,26 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   processBarData(agentName) {
 
-    let dates = { dates: [], callData: [] }
+    let dates = { dates: [], totalCalls: [], avgCallTime: [], totalCallTime: [] }
 
     for (let x = this.currentStartDay; x <= this.currentEndDay; x += 86200000) {
       // for each d
       let callData = this.agents[agentName].callData
       let inTimeFrame = 0
+      let counter = 0
+      let totalCallTime = 0
       callData.forEach(call => {
-        if (Math.abs(new Date(call.start).getTime() - x) <= 86200000) {
+        if (Math.abs(new Date(call.start).getTime() - x) <= 55000000) {
+          totalCallTime += (new Date(call.end).getTime() - new Date(call.start).getTime()) / 1000
           inTimeFrame += 1
+          counter += 1
         }
       })
-      dates['dates'].push(new Date(x).toDateString())
-      dates['callData'].push(inTimeFrame)
 
+      dates['dates'].push(new Date(x).toDateString())
+      dates['totalCalls'].push(inTimeFrame)
+      totalCallTime ? dates['avgCallTime'].push(totalCallTime / counter) : dates['avgCallTime'].push(0)
+      totalCallTime ? dates['totalCallTime'].push(totalCallTime) : dates['totalCallTime'].push(0)
     }
     return dates
   }
@@ -214,15 +226,33 @@ export class IvrAgentAnalysisComponent implements OnInit {
           arr.forEach(el => {
             let agent = el.nativeElement.innerHTML
             let dates = this.processBarData(agent)
-            console.log("CALL LENGTH ", dates['callData'])
-            console.log("LENGTHS ", dates['callData'].length, dates['dates'].length)
+            console.log("DATA ", dates)
+            let data;
+            let label
+            switch (this.graphViewing) {
+              case 'Total Calls':
+                data = dates['totalCalls']
+                label = '# of Calls per Day'
+                break
+              case "Avg Call Time":
+                data = dates['avgCallTime']
+                label = 'Avg Call Time Per Day'
+                break
+              case 'Total Call Time':
+                data = dates['totalCallTime']
+                label = 'Total Call Time Per Day'
+                break
+              default:
+                console.log("NO VIEWING SELECTED! ")
+                break
+            }
             new Chart(el.nativeElement, {
               type: 'bar',
               data: {
                 labels: dates['dates'],
                 datasets: [{
-                  label: '# of Calls per Day',
-                  data: dates['callData'],
+                  label,
+                  data,
                   borderWidth: 1
                 }]
               },
