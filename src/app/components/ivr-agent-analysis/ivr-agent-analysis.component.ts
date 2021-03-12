@@ -100,6 +100,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   setGraphView(type) {
     this.graphViewing = type
+    this.queryData(this.criteria)
   }
 
   constructor(private _api: ApiService) { }
@@ -188,9 +189,9 @@ export class IvrAgentAnalysisComponent implements OnInit {
       let totalCallTime = 0
       callData.forEach(call => {
         if (Math.abs(new Date(call.start).getTime() - x) <= 55000000) {
-          totalCallTime += (new Date(call.end).getTime() - new Date(call.start).getTime()) / 1000
+          totalCallTime += (new Date(call.end).getTime() - new Date(call.start).getTime()) / 1000 / 60
           inTimeFrame += 1
-          counter += 1
+          counter += 1.5
         }
       })
 
@@ -236,11 +237,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
                 break
               case "Avg Call Time":
                 data = dates['avgCallTime']
-                label = 'Avg Call Time Per Day'
+                label = 'Avg Call Time Per Day in Minutes'
                 break
               case 'Total Call Time':
                 data = dates['totalCallTime']
-                label = 'Total Call Time Per Day'
+                label = 'Total Call Time Per Day in Minutes'
                 break
               default:
                 console.log("NO VIEWING SELECTED! ")
