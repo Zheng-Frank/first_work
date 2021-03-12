@@ -52,7 +52,8 @@ export class OrderCardComponent implements OnInit {
     const cloned = order.createdAt.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone });
     // console.log("cloned:"+cloned);
     // let createdAt = moment(cloned).format("Mmm dd h:mm a");
-    let text = `RT: ${this.restaurant._id}, Order# ${order.orderNumber},TimeZone:${this.restaurant.googleAddress.timezone} (${cloned})`;
+    let createdAt = cloned.split(',')[0];
+    let text = `RT: ${this.restaurant._id}, Order# ${order.orderNumber} (${createdAt})`;
     // console.log("text:"+text);
     document.addEventListener('copy', (e: ClipboardEvent) => {
       e.clipboardData.setData('text/plain', (text));
