@@ -30,7 +30,7 @@ export class LogEditorComponent implements OnInit {
   agreeToCorporate;
   qmenuExclusive;
   predefinedTasks = Task.predefinedTasks;
-
+  hoursOfOperation;
   @ViewChild('myRestaurantPicker') set picker(picker) {
     this.myRestaurantPicker = picker;
   }
