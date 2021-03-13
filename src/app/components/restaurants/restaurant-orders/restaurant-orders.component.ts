@@ -1,11 +1,10 @@
 import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
 import { Injectable, EventEmitter, NgZone } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Order, Customer } from '@qmenu/ui';
+import { Restaurant, Order, Customer,TimezoneHelper } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Observable, zip } from 'rxjs';
-import moment from 'moment-timezone'
 import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -13,7 +12,7 @@ import { AlertType } from '../../../classes/alert-type';
 import { OrderItem } from "@qmenu/ui";
 import { GlobalService } from 'src/app/services/global.service';
 import { Key } from 'protractor';
-import { TimezoneHelper } from 'src/app/classes/timezone-helper';
+
 
 declare var $: any;
 declare var io: any;
@@ -87,10 +86,10 @@ export class RestaurantOrdersComponent implements OnInit {
   //    console.log("time:"+TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone));
   //    return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone);
   // }
-  convertTimeAtTimezoneToUTC(input: string, zone: string) {
-    var m = moment.tz(input, zone).utc().format();
-    return m;
-  }
+  // convertTimeAtTimezoneToUTC(input: string, zone: string) {
+  //   var m = moment.tz(input, zone).utc().format();
+  //   return m;
+  // }
   /**
    *
    * this function is used to filter order by createdAt
@@ -111,11 +110,14 @@ export class RestaurantOrdersComponent implements OnInit {
     to = tostr.join('-');
     // const fromValue = new Date(from);
     // const toValue = new Date(to);
-    // const f = new Date(fromValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const t = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
-    const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
-   
+    // const utcf = new Date(fromValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    // const utct = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
+    // const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
+    // const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
+    const utcf= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from),this.restaurant.googleAddress.timezone);
+    const utct= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to),this.restaurant.googleAddress.timezone);
+    console.log("utcf:"+utcf);
+    console.log("utct:"+utct);
     if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
