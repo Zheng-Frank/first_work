@@ -39,11 +39,6 @@
     "jwt-decode": "^2.2.0",
     "lz-string": "^1.4.4",
     "mime-types": "^2.1.26",
-<<<<<<< HEAD
-=======
-    "moment": "^2.29.1",
->>>>>>> 7a829aa1bb7189b84d0c224b2f1670c1df0c8709
-    "moment-timezone": "^0.5.33",
     "ng-click-outside": "^3.3.0",
     "ng-pick-datetime": "^6.0.15",
     "ngx-mask": "^8.0.0",
