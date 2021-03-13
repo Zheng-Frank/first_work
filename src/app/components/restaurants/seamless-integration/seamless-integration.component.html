@@ -174,9 +174,7 @@
                 </div>
 
                 <h5 class="card-title">
-                  <a
-                    target="_blank"
-                    [href]="'https://qa-csr.qmenu.us/#/restaurants/' + data._id"
+                  <a target="_blank" [href]="'/#/restaurants/' + data._id"
                     >{{ data.name }}
                   </a>
                   <span *ngIf="getLanguage(data._id)">
@@ -251,7 +249,7 @@
               <br />
               <p class="card-subtitle">
                 <b>
-                  {{ getAnalytics(data._id) }}
+                  {{ getTimeComplete(data._id).status }}
                 </b>
               </p>
               <p class="card-subtitle">

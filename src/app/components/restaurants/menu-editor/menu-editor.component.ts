@@ -1,11 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Menu, Hour } from '@qmenu/ui';
-import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { Menu, Hour, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { TimezoneService } from '../../../services/timezone.service';
-import { environment } from "../../../../environments/environment";
 import { HttpClient } from '@angular/common/http';
 
 @Component({
@@ -22,11 +19,26 @@ export class MenuEditorComponent implements OnInit {
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
   @Input() enableDelete = true;
+  @Input() restaurant: Restaurant;
 
   clickedAddHour = false;
   clickedDelete = false;
 
   uploadImageError: string;
+
+  targets = [
+    {
+      value: 'ONLINE_ONLY',
+      text: 'Online only'
+    }, {
+      value: 'DINE_IN_ONLY',
+      text: 'Dine-in only'
+    }, {
+      value: 'ALL',
+      text: 'Both online and dine-in'
+    }];
+
+  selectedTarget = this.targets[0];
 
   constructor(private _api: ApiService, private _http: HttpClient, private _timezone: TimezoneService) { }
 
@@ -39,6 +51,7 @@ export class MenuEditorComponent implements OnInit {
 
   setMenu(menu: Menu) {
     this.menu = menu;
+    this.selectedTarget = this.targets.filter(t => t.value === menu['targetCustomer'])[0] || this.targets[0];
   }
 
   getHours() {
@@ -78,9 +91,14 @@ export class MenuEditorComponent implements OnInit {
   }
 
   ok() {
-    
-    if(this.menu && this.menu.name) {
+
+    if (this.menu && this.menu.name) {
       this.menu.name = this.menu.name.trim();
+    }
+
+    delete this.menu['targetCustomer'];
+    if (this.selectedTarget && this.selectedTarget.value !== 'ONLINE_ONLY') {
+      this.menu['targetCustomer'] = this.selectedTarget.value;
     }
 
     this.onDone.emit(this.menu);
