@@ -1,5 +1,3 @@
-import * as moment from 'moment-timezone';
-
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
@@ -8,7 +6,6 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from "../../../services/global.service";
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-
 declare var $: any;
 @Component({
   selector: 'app-order-card',
@@ -28,7 +25,8 @@ export class OrderCardComponent implements OnInit {
   @Output() onUndoReject = new EventEmitter();
   @Output() onBan = new EventEmitter();
   @Output() onChangeToSelfDelivery = new EventEmitter();
-
+  @Output() onChangeOrderTypes = new EventEmitter();
+  @Output() onOpenChangeOrderTypesModal = new EventEmitter();
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
 
@@ -64,10 +62,15 @@ export class OrderCardComponent implements OnInit {
    this._global.publishAlert(AlertType.Success,'the data of order has copyed to your clipboard ~',1000);
   }
   
-  changeToSelfDelivery() {
-    this.onChangeToSelfDelivery.emit(this.order);
+  // changeToSelfDelivery() {
+  //   this.onChangeToSelfDelivery.emit(this.order);
+  // }
+  /**
+   * Add "Change to pick-up" on CSR side for Postmates order
+   */
+  openChangeOrderTypesModal(){
+    this.onOpenChangeOrderTypesModal.emit(this.order);
   }
-
   getSubmittedTime(order: Order) {
     return new Date(order.createdAt);
   }

@@ -13,6 +13,7 @@ import { AlertType } from '../../../classes/alert-type';
 import { OrderItem } from "@qmenu/ui";
 import { GlobalService } from 'src/app/services/global.service';
 import { Key } from 'protractor';
+import { OrderCardComponent } from '../order-card/order-card.component';
 
 declare var $: any;
 declare var io: any;
@@ -29,7 +30,10 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('undoRejectModal') undoRejectModal: ModalComponent;
   @ViewChild('banModal') banModal: ModalComponent;
   @ViewChild('adjustModal') adjustModal: ModalComponent;
-
+  @ViewChild('changeOrderTypeModal') changeOrderTypeModal: ModalComponent;
+  @ViewChild('orderCard') orderCard: OrderCardComponent;
+  changeTypes=['Customer Pickup','Restaurant self-deliver'];
+  cardSpecialOrder;
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
 
   // customer:Customer
@@ -51,7 +55,13 @@ export class RestaurantOrdersComponent implements OnInit {
   type='Order Number';//  concrete search type
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
-
+  /**
+   * it is because that the changeordertypemodal has mass sort if it is in the card component.
+   */
+  handleOpenChangeOrderTypesModal(order){
+   this.cardSpecialOrder=order;
+   this.changeOrderTypeModal.show();
+  }
   ngOnInit() {
     this.populateOrders();
     this.onNewOrderReceived.subscribe(
@@ -240,7 +250,16 @@ search(event) {
     }
     this.populateOrders();
   }
-
+async handleOnChangeOrderTypes(order){
+  try {
+    await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
+      orderId: order._id
+    }).toPromise();
+  } catch (error) {
+    console.log("errors")
+  }
+  this.populateOrders();
+}
   handleOnDisplayCreditCard(order) {
     const explanations = {
       IN_PERSON: 'NO CREDIT CARD INFO WAS COLLECTED. THE CUSTOMER WILL SWIPE CARD IN PERSON.',
