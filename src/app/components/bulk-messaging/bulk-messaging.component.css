@@ -1,6 +1,5 @@
 .bulk-container {
-  height: 400px;
-  overflow-y: scroll;
+  height: 255px;
   overflow-x: hidden;
 }
 

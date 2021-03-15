@@ -409,41 +409,41 @@ export class IvrAgentAnalysisComponent implements OnInit {
       case 'Last 24 hours':
         currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 48)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 312)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       case 'Last 48 hours':
         currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 72)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 288)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       case 'Last 3 days':
         currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 96)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 264)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       case 'Last 7 days':
         currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 336)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 192)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 168)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       case 'Last 30 days':
         currentStartDay = new Date();
         currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 720)
+        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 744)
         console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 0)
+        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
         console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
         break
       default:
@@ -486,7 +486,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
     // this.populateLineTimePeriods(criteria)
     let ivrData = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
+      .getBatch(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
         query: {
           "Channel": 'VOICE',
@@ -503,9 +503,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
           'Agent.AgentInteractionDuration': 1,
           'Agent.AfterContactWorkDuration': 1
         },
-        limit: 10000,
-      })
-      .toPromise();
+        limit: 125000,
+      }, 10000)
     console.log("THE IVR DATA ", ivrData)
     this.rawIvrData = ivrData
     this.agents = this.processAgents(this.rawIvrData)

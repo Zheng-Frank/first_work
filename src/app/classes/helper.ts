@@ -34,6 +34,10 @@ export class Helper {
         if (typeof obj1 !== typeof obj2 || typeof obj1 !== 'object') {
             return false;
         }
+        // date compare
+        if (obj1 instanceof Date) {
+          return obj1.valueOf() === obj2.valueOf();
+        }
 
         const keys1 = Object.getOwnPropertyNames(obj1);
         const keys2 = Object.getOwnPropertyNames(obj2);

@@ -40,6 +40,7 @@
     "lz-string": "^1.4.4",
     "mime-types": "^2.1.26",
     "moment": "^2.29.1",
+    "moment-timezone": "^0.5.33",
     "ng-click-outside": "^3.3.0",
     "ng-pick-datetime": "^6.0.15",
     "ngx-mask": "^8.0.0",
