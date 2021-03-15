@@ -1,117 +1,14 @@
-<button
-  class="btn btn-secondary rowButton text-nowrap btn-sm mr-1"
-  data-toggle="modal"
-  data-target="#generateLeadsCSV"
->
-  Generate Leads CSV
+<button class="btn btn-primary" (click)="scanNew()">
+  Generate Leads CSV File
 </button>
 
-<div class="modal" tabindex="-1" role="dialog" id="generateLeadsCSV">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Generate Leads CSV</h5>
-        <button
-          type="button"
-          class="close"
-          data-dismiss="modal"
-          aria-label="Close"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-
-      <div class="modal-footer">
-        <div class="container">
-          <div class="row">
-            <div class="col-sm-4">
-              <input
-                class="hidden"
-                [disabled]="currentlyUploading"
-                type="file"
-                #fileInput
-                id="upload-file"
-                name="upload-file"
-                accept=".csv"
-                ngf-max-size="2MB"
-                (change)="addFileList($event.target.files)"
-              />
-            </div>
-            <div class="col-sm-4"></div>
-            <div class="col-sm-4">
-              <button [disabled]="currentlyUploading" (click)="reset()">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-        <br />
-        <div class="container">
-          <div class="row">
-            <div class="form-check">
-              <input
-                [disabled]="currentlyUploading"
-                type="checkbox"
-                class="form-check-input"
-                id="exampleCheck1"
-                [checked]="designatePostcard"
-                (click)="designatePostcardFlag()"
-              />
-              <label class="form-check-label" for="exampleCheck1"
-                >Send Postcard to Every Added Restaurant</label
-              >
-            </div>
-            <br />
-            <br />
-
-            <div class="col-sm-12 text-left">
-              Upload a CSV with at least 3 columns; “restaurant_name”,
-              “restaurant_address_or_zip”, “language”, respectively (column
-              names are flexible, order is not). Your CSV cannot have more than
-              100 rows. If language is not specified, the system will default to
-              English.
-            </div>
-          </div>
-          <br />
-          <br />
-
-          <div class="row">
-            <div *ngIf="currentlyUploading" class="col-sm-4">Loading...</div>
-            <div
-              *ngIf="currentlyUploading"
-              class="spinner-border text-center"
-              role="status"
-            >
-              <span class="sr-only">Loading...</span>
-            </div>
-
-            <div *ngIf="invalidFormat" class="text-center">
-              Invalid format! Please review CSV upload instructions, fix CSV,
-              and try again
-            </div>
-            <div *ngIf="showOutput && !invalidFormat">
-              <div class="alert alert-secondary text-center" role="alert">
-                Reload the page to see the updated list of restaurants!
-              </div>
-
-              <hr />
-            </div>
-          </div>
-          <br />
-          <br />
-          <button
-            (click)="addAttachment()"
-            [disabled]="currentlyUploading || !fileList"
-            class="row text-center btn btn-primary"
-          >
-            Submit
-          </button>
-          <br />
-          <br />
-
-          <br />
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<q-modal [title]="'Download New Leads'" #scanModal>
+  <q-form-builder
+    [object]="leadInEditing"
+    [fieldDescriptors]="formFieldDescriptors"
+    (submit)="scanSubmit($event)"
+    (remove)="formRemove($event)"
+    (cancel)="scanModal.hide()"
+  >
+  </q-form-builder>
+</q-modal>

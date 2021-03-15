@@ -223,6 +223,33 @@ export class SeamlessIntegrationComponent implements OnInit {
   }
 
   async ngOnInit() {
+
+
+    let restaurants = await this._api
+      .getBatch(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: {},
+        projection: { "rateSchedules.agent": 1 },
+        limit: 100000,
+      }, 500)
+
+    let arr = []
+    restaurants.forEach(res => {
+      let rateSchedules = res.rateSchedules
+      if (rateSchedules) {
+        rateSchedules.forEach(rate => {
+          arr.push(rate.agent)
+        })
+      }
+    })
+
+
+    let uniqueAgents = [...new Set(arr)]
+
+    console.log(uniqueAgents)
+
+
+
     await Notification.requestPermission();
     if (!this.polling) {
       setInterval(() => this.startPolling(), 300000)
@@ -250,6 +277,16 @@ export class SeamlessIntegrationComponent implements OnInit {
           limit: 100000,
         })
         .toPromise();
+
+      let arr = []
+      this.allRestaurants.forEach(res => {
+        arr.push(res.salesAgent)
+      })
+
+      let uniqueAgents = [...new Set(arr)]
+
+      console.log(uniqueAgents)
+
       this.allRestaurants.map((restaurant: any) => {
         restaurant.showAnalytics = false;
         restaurant.showSendHistory = false;
