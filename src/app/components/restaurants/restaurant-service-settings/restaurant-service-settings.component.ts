@@ -148,7 +148,6 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     if(JSON.stringify(newR.serviceSettings) === JSON.stringify(this.serviceSettingsInEditing)) {
       this._global.publishAlert(AlertType.Success, "Already up to date");
       this.editing = false;
-      return;
     }
 
     newR.serviceSettings = this.serviceSettingsInEditing;
