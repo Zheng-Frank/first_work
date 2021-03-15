@@ -8,6 +8,7 @@ import {TimezoneService} from '../../../services/timezone.service';
 import {environment} from '../../../../environments/environment';
 import {AlertType} from '../../../classes/alert-type';
 import {HttpClient} from '@angular/common/http';
+import {formatNumber} from '@angular/common';
 
 @Component({
   selector: 'app-restaurant-profile',
@@ -162,7 +163,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
     this.apt = this.restaurant.googleAddress ? this.restaurant.googleAddress.apt : '';
-    console.log('...toggle editing...')
     this.tipSettingsInit();
     if (this.comebackDate !== undefined) {
       this.comebackDate = this.comebackDate === null ? null : new Date(this.comebackDate) && new Date(this.comebackDate).toISOString().split('T')[0];
@@ -207,10 +207,15 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       }
       this.tipSettings[type].tipHide = tipHide;
     });
-    console.log(this.tipSettings);
   }
 
-  updateTipSettings(type, key, value) {
+  toggleTipHide(type, target) {
+    this.tipSettings[type]['tipHide'] = !target.checked;
+  }
+
+  updateTipSettings(type, key, target) {
+    let value = target.value;
+
     if (value === '') {
       this.tipSettings[type][key] = undefined;
       return;
@@ -219,10 +224,16 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     if (key.indexOf('Percentage') >= 0) {
       // percentage have two decimal digits and range in 0-100
       value = Math.min(100, Math.max(0, value));
+      target.value = formatNumber(value, 'en_US', '1.0-2');
     }
     if (key.indexOf('Amount') >= 0) {
       // amount have two decimal digit and range in 0-1000
       value = Math.min(1000, Math.max(0, value));
+      // we must visibly set input's value here
+      // because if user input overflow number multiple times,
+      // we save the same maximum value and to angular the value is not changed,
+      // so it won't change input's value, that'll cause input show overflow value
+      target.value = this.formatAmount(value);
     }
     this.tipSettings[type][key] = value;
   }
@@ -264,7 +275,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
         rate: this.normalizeNumber(tip.minimumPercentage, true)
       };
 
-      const { tipSuggestion, tipMinimum, tipHide, ...rest } = setting;
+      const {tipSuggestion, tipMinimum, tipHide, ...rest} = setting;
       return {...rest, tipSuggestion: newTipSuggestion, tipMinimum: newTipMinimum, tipHide: tip.tipHide};
     });
 

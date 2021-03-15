@@ -611,19 +611,19 @@
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
                          [value]="tipSettings['Dine-in'].defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Dine-in', 'defaultPercentage', $event.target.value)"
+                         (change)="updateTipSettings('Dine-in', 'defaultPercentage', $event.target)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
                          [value]="tipSettings.Pickup.defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Pickup', 'defaultPercentage', $event.target.value)"
+                         (change)="updateTipSettings('Pickup', 'defaultPercentage', $event.target)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
                          [value]="tipSettings.Delivery.defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Delivery', 'defaultPercentage', $event.target.value)"
+                         (change)="updateTipSettings('Delivery', 'defaultPercentage', $event.target)"
                   >
                 </td>
               </tr>
@@ -632,19 +632,19 @@
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
                          [value]="tipSettings['Dine-in'].minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Dine-in', 'minimumPercentage', $event.target.value)"
+                         (change)="updateTipSettings('Dine-in', 'minimumPercentage', $event.target)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
                          [value]="tipSettings.Pickup.minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Pickup', 'minimumPercentage', $event.target.value)"
+                         (change)="updateTipSettings('Pickup', 'minimumPercentage', $event.target)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="100" class="form-control"
                          [value]="tipSettings.Delivery.minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Delivery', 'minimumPercentage', $event.target.value)"
+                         (change)="updateTipSettings('Delivery', 'minimumPercentage', $event.target)"
                   >
                 </td>
               </tr>
@@ -653,19 +653,19 @@
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
                          [value]="formatAmount(tipSettings['Dine-in'].defaultAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Dine-in', 'defaultAmount', $event.target.value)"
+                         (change)="updateTipSettings('Dine-in', 'defaultAmount', $event.target)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
                          [value]="formatAmount(tipSettings.Pickup.defaultAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Pickup', 'defaultAmount', $event.target.value)"
+                         (change)="updateTipSettings('Pickup', 'defaultAmount', $event.target)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
                          [value]="formatAmount(tipSettings.Delivery.defaultAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Delivery', 'defaultAmount', $event.target.value)"
+                         (change)="updateTipSettings('Delivery', 'defaultAmount', $event.target)"
                   >
                 </td>
               </tr>
@@ -674,19 +674,19 @@
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
                          [value]="formatAmount(tipSettings['Dine-in'].minimumAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Dine-in', 'minimumAmount', $event.target.value)"
+                         (change)="updateTipSettings('Dine-in', 'minimumAmount', $event.target)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
                          [value]="formatAmount(tipSettings.Pickup.minimumAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Pickup', 'minimumAmount', $event.target.value)"
+                         (change)="updateTipSettings('Pickup', 'minimumAmount', $event.target)"
                   >
                 </td>
                 <td>
                   <input type="number" min="0" max="1000" class="form-control"
                          [value]="formatAmount(tipSettings.Delivery.minimumAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Delivery', 'minimumAmount', $event.target.value)"
+                         (change)="updateTipSettings('Delivery', 'minimumAmount', $event.target)"
                   >
                 </td>
               </tr>
@@ -695,21 +695,21 @@
                 <td>
                   <label class="switch">
                     <input type="checkbox" [checked]="!tipSettings['Dine-in'].tipHide"
-                           (change)="updateTipSettings('Dine-in', 'tipHide', !$event.target.checked)" >
+                           (change)="toggleTipHide('Dine-in', $event.target)">
                     <div class="slider round"></div>
                   </label>
                 </td>
                 <td>
                   <label class="switch">
                     <input type="checkbox" [checked]="!tipSettings.Pickup.tipHide"
-                           (change)="updateTipSettings('Pickup', 'tipHide', !$event.target.checked)" >
+                           (change)="toggleTipHide('Pickup', $event.target)">
                     <div class="slider round"></div>
                   </label>
                 </td>
                 <td>
                   <label class="switch">
                     <input type="checkbox" [checked]="!tipSettings.Delivery.tipHide"
-                           (change)="updateTipSettings('Delivery', 'tipHide', !$event.target.checked)" >
+                           (change)="toggleTipHide('Delivery', $event.target)">
                     <div class="slider round"></div>
                   </label>
                 </td>
