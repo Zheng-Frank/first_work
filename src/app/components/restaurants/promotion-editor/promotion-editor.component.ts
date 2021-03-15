@@ -51,9 +51,7 @@ export class PromotionEditorComponent implements DoCheck {
 
   freeItemName = '';
 
-  freeItemQty = 1;
   useFreeItemList = false;
-
 
   freeItemList = [];
   percentDiscountList = [];
@@ -89,6 +87,9 @@ export class PromotionEditorComponent implements DoCheck {
     }
     if ((this.promotion.withOrderFromList || []).length) {
       this.eligibility = 'Order of Select Item(s)';
+    }
+    if ((this.promotion.freeItemList || []).length) {
+      this.useFreeItemList = true;
     }
   }
 
@@ -240,7 +241,6 @@ export class PromotionEditorComponent implements DoCheck {
   }
 
   addEntryToList(listName) {
-    console.log(this.selected[listName])
     const newEntry: any = {};
 
     if (this.selected[listName]) {

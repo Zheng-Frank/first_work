@@ -22,7 +22,8 @@
 
   <div *qIf="promotionType === '$ Discount'">
     <label class="mt-1">Fixed Amount ($):</label>
-    <div *qIf="promotion.amount > promotion.orderMinimum && eligibility === 'Order Minimum ($)'" class="text-danger font-weight-bold"> Error: Promotion amount
+    <div *qIf="promotion.amount > promotion.orderMinimum && eligibility === 'Order Minimum ($)'"
+      class="text-danger font-weight-bold"> Error: Promotion amount
       cannot exceed minimum order amount</div>
     <div>
       <input type="number" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
@@ -62,29 +63,31 @@
       <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'percentDiscountList')"
         [(ngModel)]="selected.percentDiscountList.menu">
         <option value=""></option>
-        <option *ngFor="let menu of menus">{{menu.name}}</option>
+        <option [value]="menu.name" *ngFor="let menu of menus">{{menu.name}}</option>
       </select>
       <select class="form-control mr-2" (change)="onCategorySelected($event.target.value, 'percentDiscountList')"
         [(ngModel)]="selected.percentDiscountList.category">
         <option value=""></option>
-        <option *ngFor="let category of categories">{{category.name}}</option>
+        <option [value]="category.name" *ngFor="let category of categories">{{category.name}}</option>
       </select>
       <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'percentDiscountList')"
         [(ngModel)]="selected.percentDiscountList.item">
         <option value=""></option>
-        <option *ngFor="let item of items">{{item.name}}</option>
+        <option [value]="item.name" *ngFor="let item of items">{{item.name}}</option>
       </select>
       <div class="d-flex justify-content-end">
-        <button type="button" class="btn btn-link" (click)="addEntryToList('percentDiscountList')">Add</button>
+        <button type="button" class="btn btn-link" [disabled]="!selected.percentDiscountList.menu && !selected.percentDiscountList.category 
+        && !selected.percentDiscountList.item" (click)="addEntryToList('percentDiscountList')">Add</button>
       </div>
     </div>
   </div>
 
 
   <div *qIf="promotionType === 'Free Item'">
-    <label class="mt-1">Free Item</label> <span><input type="checkbox" [(ngModel)]="useFreeItemList" name="itemName">
+    <label class="mt-1">Free Item</label>
+    <div><input type="checkbox" [(ngModel)]="useFreeItemList" name="itemName">
       Choose from menu
-      <input type="number" [(ngModel)]="freeItemQty" min="1" max="10"> unit(s) of </span>
+    </div>
     <div *ngIf="useFreeItemList; else textFieldEntry">
       <div *ngFor="let menu of (promotion.freeItemList || []); let menuIndex = index">
         <div class="d-flex align-items-center">
@@ -103,17 +106,17 @@
         <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'freeItemList')"
           [(ngModel)]="selected.freeItemList.menu">
           <option value=""></option>
-          <option *ngFor="let menu of menus">{{menu.name}}</option>
+          <option [value]="menu.name" *ngFor="let menu of menus">{{menu.name}}</option>
         </select>
         <select class="form-control mr-2" (change)="onCategorySelected($event.target.value, 'freeItemList')"
           [(ngModel)]="selected.freeItemList.category">
           <option value=""></option>
-          <option *ngFor="let category of categories">{{category.name}}</option>
+          <option [value]="category.name" *ngFor="let category of categories">{{category.name}}</option>
         </select>
         <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'freeItemList')"
           [(ngModel)]="selected.freeItemList.item">
           <option value=""></option>
-          <option *ngFor="let item of items">{{item.name}}</option>
+          <option [value]="item.name" *ngFor="let item of items">{{item.name}}</option>
         </select>
         <div class="d-flex justify-content-end">
           <button type="button" class="btn btn-link" (click)="addEntryToList('freeItemList')"
@@ -122,7 +125,8 @@
         </div>
       </div>
       <div *ngIf="promotion.freeItemList.length === freeItemListMaxLength" class="text-danger font-weight-bold">
-        <small> Maximum number of items for customer to choose from is {{freeItemListMaxLength}}. Please delete an existing item
+        <small> Maximum number of items for customer to choose from is {{freeItemListMaxLength}}. Please delete an
+          existing item
           before adding a new one. </small>
       </div>
     </div>
@@ -206,7 +210,7 @@
       <input type="checkbox" [(ngModel)]="promotion.newCustomerOnly"> Only for new customers</label>
   </div>
 
-  <label class="mt-1">Excluded Platforms:</label>
+  <label class="mt-1">Excludegitd Platforms:</label>
   <div class="d-flex flex-row">
     <div *ngFor="let platform of ['APP', 'Web']" class="pl-4">
       <label class="mt-1">
