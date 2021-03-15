@@ -130,24 +130,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     } else if (this.restaurant.disabled && (this.restaurant['comebackDate'] === null || this.isDate(this.restaurant['comebackDate']))) {
       this.isTemporarilyDisabled = 'Yes';
     }
-    ['Pickup', 'Delivery', 'Dine-in'].forEach(type => {
-      const setting = this.restaurant.serviceSettings.find(x => x.name === type) || {
-        name: type,
-        paymentMethods: [],
-        tipSuggestion: {},
-        tipMinimum: {}
-      };
-      const {tipSuggestion, tipMinimum, tipHide = false} = setting;
-      if (tipSuggestion) {
-        this.tipSettings[type].defaultPercentage = tipSuggestion.rate ? tipSuggestion.rate * 100 : tipSuggestion.rate;
-        this.tipSettings[type].defaultAmount = tipSuggestion.amount;
-      }
-      if (tipMinimum) {
-        this.tipSettings[type].minimumPercentage = tipMinimum.rate ? tipMinimum.rate * 100 : tipMinimum.rate;
-        this.tipSettings[type].minimumAmount = tipMinimum.amount;
-      }
-      this.tipSettings[type].tipHide = tipHide;
-    });
+    this.tipSettingsInit();
   }
 
   isDate(dateToParse) {
@@ -179,7 +162,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
     this.apt = this.restaurant.googleAddress ? this.restaurant.googleAddress.apt : '';
-
+    console.log('...toggle editing...')
+    this.tipSettingsInit();
     if (this.comebackDate !== undefined) {
       this.comebackDate = this.comebackDate === null ? null : new Date(this.comebackDate) && new Date(this.comebackDate).toISOString().split('T')[0];
     }
@@ -195,6 +179,35 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   isEmailValid() {
     return !this.email || this.email.match(/\S+@\S+\.\S+/);
+  }
+
+  formatAmount(value) {
+    if (typeof value !== 'number') {
+      return '';
+    }
+    return value.toFixed(2);
+  }
+
+  tipSettingsInit() {
+    ['Pickup', 'Delivery', 'Dine-in'].forEach(type => {
+      const setting = this.restaurant.serviceSettings.find(x => x.name === type) || {
+        name: type,
+        paymentMethods: [],
+        tipSuggestion: {},
+        tipMinimum: {}
+      };
+      const {tipSuggestion, tipMinimum, tipHide = false} = setting;
+      if (tipSuggestion) {
+        this.tipSettings[type].defaultPercentage = tipSuggestion.rate ? tipSuggestion.rate * 100 : tipSuggestion.rate;
+        this.tipSettings[type].defaultAmount = tipSuggestion.amount;
+      }
+      if (tipMinimum) {
+        this.tipSettings[type].minimumPercentage = tipMinimum.rate ? tipMinimum.rate * 100 : tipMinimum.rate;
+        this.tipSettings[type].minimumAmount = tipMinimum.amount;
+      }
+      this.tipSettings[type].tipHide = tipHide;
+    });
+    console.log(this.tipSettings);
   }
 
   updateTipSettings(type, key, value) {
@@ -277,7 +290,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.images = this.images;
     delete oldObj['images'];
 
-    console.log(oldObj, newObj)
 
     this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
@@ -309,6 +321,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   cancel() {
     this.ifShowBasicInformation = true;
     this.editing = false;
+    this.tipSettingsInit();
   }
 
   deleteLogo(url) {
