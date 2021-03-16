@@ -1,36 +1,46 @@
 <div class="card">
   <h2 class="card-title m-3">
-   <!-- <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a>  -->
-   <h1 class="text-center">Unconfirmed Orders ({{rows.length}})</h1>
+    <!-- <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a>  -->
+    <h1 class="text-center">Unconfirmed Orders ({{ rows.length }})</h1>
   </h2>
   <div class="card-body">
     <table class="table">
       <tr>
         <th>Restaurant</th>
-        <th>Order Numbers</th>
-        <th>Scheduled Order</th>
+        <th>Phones</th>
+        <th>Order</th>
+        <th>Amount</th>
+        <th>Time (delay)</th>
+        <th>Payment</th>
       </tr>
       <tr *ngFor="let row of rows">
         <td>
-          <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+          <a routerLink="/restaurants/{{ row.restaurant._id }}">{{
+            row.restaurant.name
+          }}</a>
           <div class="text-muted">
-            <small>{{getDaysFromId(row.restaurant._id)}} days ago</small>
+            <small>{{ getDaysFromId(row.restaurant._id) }} days ago</small>
           </div>
           <div class="text-muted">
-            <small>{{row.restaurant.address | removeUsa}}</small>
+            <small>{{ row.restaurant.address | removeUsa }}</small>
           </div>
         </td>
+        <td>2nd column for phones</td>
         <td>
           <div *ngFor="let order of row.orders">
-            {{order.orderNumber}}
-            <small class="text-warning">{{order.createdAt | ago : now}}</small>
+            {{ order.orderNumber }}
+            <small class="text-warning">{{ order.createdAt | ago: now }}</small>
           </div>
         </td>
+        <td>4th column for amount</td>
         <td>
           <div *ngFor="let order of row.orders">
-            <small class="text-warning">{{order.timeToDeliver? (order.timeToDeliver| ago : now):''}}</small>
+            <small class="text-warning">{{
+              order.timeToDeliver ? (order.timeToDeliver | ago: now) : ""
+            }}</small>
           </div>
         </td>
+        <td>Final Column for payment</td>
       </tr>
     </table>
   </div>

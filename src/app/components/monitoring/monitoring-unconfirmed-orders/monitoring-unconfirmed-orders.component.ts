@@ -3,6 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
+import { Restaurant } from '@qmenu/ui'
 
 @Component({
   selector: 'app-monitoring-unconfirmed-orders',
@@ -19,6 +20,9 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   now = new Date();
   ngOnInit() {
+
+    console.log("TESTING FUNCTION")
+    console.log(Restaurant.isHourOpen)
     this.refreshOrders();
     // setInterval(() => { this.refreshOrders(); }, 180000);
     setInterval(() => { this.now = new Date(); }, 60000);
@@ -26,46 +30,49 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   async refreshOrders() {
     const minutesAgo = new Date();
-    minutesAgo.setMinutes(minutesAgo.getMinutes() - 15);
-
+    minutesAgo.setMinutes(minutesAgo.getMinutes() - 10);
+    console.log("MINUTES AGO", minutesAgo)
     // we DON'T need an accurate cut of day. Let's just pull the latest 3000
     const ordersWithSatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       query: {
         createdAt: {
           // TODO: less than 15 minutes ago (arbritrary number)
+          // TODO: replace slice with Mongo 4.4 version?
+          // TODO:
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 24)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .5)))
           },
         }
       },
-      projection: {
-        orderNumber: 1,
+      // projection: {
+      //   orderNumber: 1,
 
-        "restaurantObj.name": 1,
-        "restaurantObj._id": 1,
-        "statuses.status": 1,
-        "statuses.createdAt": 1,
-        statuses: {
-          $slice: -1
-        },
-        createdAt: 1,
-        timeToDeliver: 1
-      },
+      //   "restaurantObj.name": 1,
+      //   "restaurantObj._id": 1,
+      //   "statuses.status": 1,
+      //   "statuses.createdAt": 1,
+      //   statuses: {
+      //     $slice: -1
+      //   },
+      //   createdAt: 1,
+      //   timeToDeliver: 1
+      // },
       sort: {
         createdAt: -1
       },
       limit: 100000
     }).toPromise();
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
 
+    console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
+    // console.log("THESE ARE THE ORDER WITH STATUSES ", ordersWithSatuses)
 
     // TODO
-    const unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() > yesterday.valueOf() && new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
+    const unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
     //this.unconfirmed_orders_count=unconfirmedOrders.length;
 
+    console.log("THESE ARE THE UNCONFIRMED ORDERS ", unconfirmedOrders)
 
     // TODO
     // group by restaurants
@@ -76,11 +83,17 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     ), {});
 
 
+    console.log("RT ID DICT ", rtIdDict)
+
+
 
     let batchSize = 50;
     let restaurants = [];
     let ids = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
+
+    console.log("THESE ARE THE IDS ", ids)
     const batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
+
 
     for (let batch of batchedIds) {
       let result = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -96,6 +109,9 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       }, 1000);
       restaurants.push(...result);
     }
+
+
+    console.log("RESTAURANTS BATCH ", restaurants)
 
     // get if restaurant skipOrderConfirmation
 
@@ -114,6 +130,9 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
 
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
+
+
+    console.log("FINAL ROWS ", this.rows)
 
   }
 
