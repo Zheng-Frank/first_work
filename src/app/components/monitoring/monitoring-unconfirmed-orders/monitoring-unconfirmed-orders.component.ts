@@ -26,7 +26,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   async refreshOrders() {
     const minutesAgo = new Date();
-    minutesAgo.setMinutes(minutesAgo.getMinutes() - 300);
+    minutesAgo.setMinutes(minutesAgo.getMinutes() - 15);
 
     // we DON'T need an accurate cut of day. Let's just pull the latest 3000
     const ordersWithSatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -35,7 +35,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         createdAt: {
           // TODO: less than 15 minutes ago (arbritrary number)
           $gt: {
-            $date: (new Date(new Date().getTime() - 86400000))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 24)))
           },
         }
       },
