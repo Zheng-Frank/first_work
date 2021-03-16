@@ -11,7 +11,7 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
- 
+
   //unconfirmed_orders_count:number;
 
   rows = []; // {restaurant, orders}
@@ -31,8 +31,17 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     // we DON'T need an accurate cut of day. Let's just pull the latest 3000
     const ordersWithSatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
+      query: {
+        createdAt: {
+          // TODO: less than 15 minutes ago (arbritrary number)
+          $gt: {
+            $date: (new Date(new Date().getTime() - 86400000))
+          },
+        }
+      },
       projection: {
         orderNumber: 1,
+
         "restaurantObj.name": 1,
         "restaurantObj._id": 1,
         "statuses.status": 1,
@@ -46,15 +55,19 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 8000
+      limit: 100000
     }).toPromise();
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
+
+    // TODO
     const unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() > yesterday.valueOf() && new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
     //this.unconfirmed_orders_count=unconfirmedOrders.length;
 
+
+    // TODO
     // group by restaurants
     const rtIdDict = unconfirmedOrders.reduce((dict, order) => (
       dict[order.restaurantObj._id] = dict[order.restaurantObj._id] || { restaurant: order.restaurantObj, orders: [] },
@@ -65,8 +78,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
     let batchSize = 50;
-    let restaurants=[];
-    let ids=[...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
+    let restaurants = [];
+    let ids = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
     const batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
 
     for (let batch of batchedIds) {
