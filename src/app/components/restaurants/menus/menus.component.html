@@ -25,6 +25,8 @@
           <button class="btn btn-primary" (click)="populateProviders()" [qLoading]="apiRequesting"><i
               class="fas fa-sync-alt"></i> Populate Providers</button>
         </div>
+        <small>Providers for which we currently support menu scraping: Menufy, 
+            Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife</small>
         <select class="form-control mr-4" [(ngModel)]="providerUrl">
           <option></option>
           <option *ngFor="let provider of providers" [ngValue]="provider.url">{{provider.name}}</option>
