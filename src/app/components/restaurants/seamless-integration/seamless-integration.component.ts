@@ -225,29 +225,6 @@ export class SeamlessIntegrationComponent implements OnInit {
   async ngOnInit() {
 
 
-    let restaurants = await this._api
-      .getBatch(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
-        query: {},
-        projection: { "rateSchedules.agent": 1 },
-        limit: 100000,
-      }, 500)
-
-    let arr = []
-    restaurants.forEach(res => {
-      let rateSchedules = res.rateSchedules
-      if (rateSchedules) {
-        rateSchedules.forEach(rate => {
-          arr.push(rate.agent)
-        })
-      }
-    })
-
-
-    let uniqueAgents = [...new Set(arr)]
-
-    console.log(uniqueAgents)
-
 
 
     await Notification.requestPermission();

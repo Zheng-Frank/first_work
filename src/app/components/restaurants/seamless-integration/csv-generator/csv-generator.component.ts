@@ -476,6 +476,7 @@ export class CsvGeneratorComponent implements OnInit {
     for (let batch of batchedZipCodes) {
       try {
         const results = await this.processLeads(event, batch);
+        console.log("PROCESSED LEAD RESULTS! ", results)
         await new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve();
@@ -498,6 +499,7 @@ export class CsvGeneratorComponent implements OnInit {
     console.log("THIS IS THE QUERY ", query)
     try {
       const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-lead", query).toPromise();
+
       console.log("THIS IS THE RESULT ", result)
       return result;
     } catch (error) {
