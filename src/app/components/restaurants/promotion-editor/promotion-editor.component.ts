@@ -111,15 +111,6 @@ export class PromotionEditorComponent implements DoCheck {
   // }
 
   isPromotionValid() {
-    // To be valid, a promotion must:
-    // 1) Have something that the customer gets for meeting the criteria. This is represented by promotion amount, percentage, or freeItemName/freeItemList
-    // 2) Have criteria that the customer can meet. This is represented by the promotion minimum order amount, or the list of menus/items/categories that the customer can buy from.
-    // 3) Have a valid title. This can be entered by the user. Or, if suggestPromotionTitle can produce one automatically, we can use that title.
-    // 4) Must not violate any of these rules:
-    // - Percentage must be valid (0 < promotion.percentage <= 90), no fractional percents
-    // - Promotion amount cannot exceed minimum purchase amount
-
-    // Additional validation will be done in the cart component and/or the promotion class itself. The above tests are the only ones we can apply in the promotionEditor (I think?)
     if (!this.promotionType || !this.eligibility) {
       return false;
     }
@@ -319,14 +310,12 @@ export class PromotionEditorComponent implements DoCheck {
     if (this.promotionType === '$ Discount') {
       this.promotion.freeItemList = [];
       this.promotion.freeItemName = '';
-      this.promotion.freeItemQty = 0;
       this.promotion.percentage = 0;
       this.promotion.percentDiscountList = [];
     } else if (this.promotionType === '% Discount') {
       this.promotion.amount = 0;
       this.promotion.freeItemList = [];
       this.promotion.freeItemName = '';
-      this.promotion.freeItemQty = 0;
     } else if (this.promotionType === 'Free Item') {
       this.promotion.amount = 0;
       this.promotion.percentage = 0;
