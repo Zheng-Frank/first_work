@@ -21,6 +21,15 @@ export class OrderItemsComponent implements OnInit, OnChanges {
   ngOnInit() {}
   ngOnChanges(changes: SimpleChanges) {}
 
+
+  findFreePromoItem() {
+    const freePromoItem = this.order.orderItems.find(oi => oi.promo === this.order.promotion.name);
+    if (freePromoItem) {
+      return freePromoItem.miInstance.name;
+    }
+    return null;
+  }
+
   getSelectedMenuOptions(oi: OrderItem) {
     return []
       .concat(oi.miSelectedMenuOptions || [])

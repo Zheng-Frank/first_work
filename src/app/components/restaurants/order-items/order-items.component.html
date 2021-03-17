@@ -53,7 +53,13 @@
 
       <tr *ngIf="order.promotion">
         <td class="text-nowrap text-right" colspan="2">
-          <span class="box"><strong>{{order.promotion.name}}</strong></span>
+          <span *ngIf="findFreePromoItem(); else elsePromo">
+            <strong>Free Item: {{findFreePromoItem()}}</strong> <kbd *ngIf="order.promotion.code">{{order.promotion.code}}</kbd>
+          </span>
+          <ng-template #elsePromo>
+
+            <span ><strong>{{order.promotion.name}}</strong> <kbd *ngIf="order.promotion.code">{{order.promotion.code}}</kbd></span>
+          </ng-template>
         </td>
         <td class="text-right text-nowrap">-{{order.getDiscount() | money}}</td>
       </tr>
