@@ -217,7 +217,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     let value = target.value;
 
     if (value === '') {
-      this.tipSettings[type][key] = undefined;
+      this.tipSettings[type][key] = null;
       return;
     }
 
@@ -240,7 +240,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   normalizeNumber(value, percent = false) {
     if (typeof value !== 'number') {
-      return undefined;
+      return null;
     }
     value = Number(value.toFixed(2));
     return percent ? value / 100 : value;
