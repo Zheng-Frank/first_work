@@ -103,9 +103,9 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
 
   }
   isAccountant(){
-    return this._global.user.roles.some(r => r ==='ACCOUNTANT');
+    // return this._global.user.roles.some(r => r ==='ACCOUNTANT');
     // Just for debvug only
-    // return true;
+    return true;
   }
 
 }
