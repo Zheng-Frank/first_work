@@ -3,7 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { Restaurant } from '@qmenu/ui'
+import { Restaurant, Order } from '@qmenu/ui'
 
 @Component({
   selector: 'app-monitoring-unconfirmed-orders',
@@ -22,7 +22,6 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
   ngOnInit() {
 
     console.log("TESTING FUNCTION")
-    console.log(Restaurant.isHourOpen)
     this.refreshOrders();
     // setInterval(() => { this.refreshOrders(); }, 180000);
     setInterval(() => { this.now = new Date(); }, 60000);
@@ -33,7 +32,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     minutesAgo.setMinutes(minutesAgo.getMinutes() - 10);
     console.log("MINUTES AGO", minutesAgo)
     // we DON'T need an accurate cut of day. Let's just pull the latest 3000
-    const ordersWithSatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const ordersWithSatuses = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       query: {
         createdAt: {
@@ -41,34 +40,42 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           // TODO: replace slice with Mongo 4.4 version?
           // TODO:
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .5)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 5)))
           },
         }
       },
-      // projection: {
-      //   orderNumber: 1,
+      projection: {
+        orderNumber: 1,
 
-      //   "restaurantObj.name": 1,
-      //   "restaurantObj._id": 1,
-      //   "statuses.status": 1,
-      //   "statuses.createdAt": 1,
-      //   statuses: {
-      //     $slice: -1
-      //   },
-      //   createdAt: 1,
-      //   timeToDeliver: 1
-      // },
+        "restaurantObj.name": 1,
+        "restaurantObj._id": 1,
+        "statuses.status": 1,
+        "statuses.createdAt": 1,
+        "orderItems": 1,
+        type: 1,
+        paymentObj: 1,
+        statuses: {
+          $slice: -1
+        },
+        createdAt: 1,
+        timeToDeliver: 1
+      },
       sort: {
         createdAt: -1
       },
       limit: 100000
-    }).toPromise();
-
+    }, 1000)
 
     console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
+
+
+    ordersWithSatuses.forEach(order => {
+      console.log('This is the order total!!!', new Order(order).getTotal())
+    })
     // console.log("THESE ARE THE ORDER WITH STATUSES ", ordersWithSatuses)
 
     // TODO
+    // TODO: Find order cost. Look at order portal and produce cost
     const unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
     //this.unconfirmed_orders_count=unconfirmedOrders.length;
 
@@ -91,6 +98,32 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     let restaurants = [];
     let ids = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
 
+
+
+    // Make API calls for corresponding restaurants to get phone number & closing + open time
+
+
+    let allRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $in: ids } },
+      projection: {
+        channels: 1,
+        preferredLanguage: 1,
+        menus: 1,
+        pickupTimeEstimate: 1,
+        deliveryTimeEstimate: 1
+      },
+      sort: {
+        createdAt: -1
+      }
+    }, 20);
+
+
+    console.log("ALL RESTAUARANTS ", allRestaurants)
+
+
+
+
     console.log("THESE ARE THE IDS ", ids)
     const batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
 
@@ -107,11 +140,41 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           createdAt: -1
         }
       }, 1000);
+
       restaurants.push(...result);
     }
 
+    // let arr = []
+    // restaurants.forEach(res => {
+    //   arr.push(new Restaurant(res))
+    // })
+    // console.log("RESTAUARANT 1", restaurants)
+    // console.log("RESTAURANT INIT ", arr)
 
-    console.log("RESTAURANTS BATCH ", restaurants)
+    // arr.forEach(res => {
+    //   console.log("BOOL IS OPEN?? ", res.isHourOpen(new Date()))
+    // })
+
+    // arr.forEach(res => {
+    //   console.log("OPEN HOURS ON DATE ", res.getOpenHoursOnDate(new Date(), res.menus), res.name)
+    // })
+
+
+    // const demo = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'restaurant',
+    //   query: { name: 'Demo' },
+    //   sort: {
+    //     createdAt: -1
+    //   }
+    // }).toPromise();
+
+    // console.log("DEMO ", demo)
+
+    // let demo_1 = new Restaurant(demo)
+    // console.log("THIS IS DEMO 1 ", demo_1)
+    // console.log("DEMO HOURS ", demo_1.getOpenHoursOnDate(new Date(), demo_1.menus))
+
+    // console.log("RESTAURANTS BATCH ", restaurants)
 
     // get if restaurant skipOrderConfirmation
 
