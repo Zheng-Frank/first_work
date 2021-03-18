@@ -1,13 +1,37 @@
 <div *ngIf="orders">
-  <div class="form-group row">
-    <label class="col-2 text-center pl-5" style="line-height: 35px; vertical-align: center;min-width:182.6px;max-width:182.6px;"> Search order by:
+  <div class="row">
+    <label class="col-2 text-center pl-4"
+      style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
     </label>
-    <select [(ngModel)]="type" class="form-control mr-3 col-2"  style="min-width:180px;max-width:180px;">
+    <select [(ngModel)]="type" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
       <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
     </select>
     <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
       class="form-control col-7" placeholder="Search">
     <div *ngIf="searchText" class="text-muted float-left col-1">Found: {{orders.length}}</div>
+  </div>
+  <div class="form-group">
+    <button type="button" class="btn btn-link ml-3" (click)="showAdvancedSearch = !showAdvancedSearch">
+     {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
+    <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
+      <div class="row">
+        <div class="col col-sm-6">
+          <label>From:</label>
+          <input class="form-control" type="date" [(ngModel)]="fromDate">
+        </div>
+        <div class="col col-sm-6">
+          <label>To:</label>
+          <input class="form-control" type="date" [(ngModel)]="toDate">
+        </div>
+      </div>
+      <div class="row">
+        <div class="text-right mt-1 col-12">
+          <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByTime()">Cancel</button>
+          <button class="btn btn-primary" (click)="doSearchOrderByTime(fromDate,toDate)">Submit</button>
+        </div>
+      </div>
+      <!-- <q-hours-picker (cancel)="addingHours = false" (submit)="doSearchOrderByTime($event)"></q-hours-picker> -->
+    </div>
   </div>
 
   <div class="row ml-0 mr-0">
