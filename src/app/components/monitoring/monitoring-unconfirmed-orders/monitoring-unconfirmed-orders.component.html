@@ -25,22 +25,65 @@
             <small>{{ row.restaurant.address | removeUsa }}</small>
           </div>
         </td>
-        <td>2nd column for phones</td>
+        <td>
+          <div *ngFor="let channel of row.channels">
+            <span *ngIf="showChannel(channel)">
+              Phone: {{ channel.value }}
+            </span>
+          </div>
+        </td>
         <td>
           <div *ngFor="let order of row.orders">
-            {{ order.orderNumber }}
+            {{ order.order.orderNumber }}
             <small class="text-warning">{{ order.createdAt | ago: now }}</small>
+            <hr />
           </div>
         </td>
-        <td>4th column for amount</td>
         <td>
           <div *ngFor="let order of row.orders">
-            <small class="text-warning">{{
-              order.timeToDeliver ? (order.timeToDeliver | ago: now) : ""
-            }}</small>
+            <small class="text-warning">{{ order.total | currency }}</small>
+            <hr />
           </div>
         </td>
-        <td>Final Column for payment</td>
+        <!-- <td>
+          <div *ngFor="let order of row.orders">
+            <small class="text-warning"
+              >{{
+                order.order.timeToDeliver
+                  ? (order.order.timeToDeliver | ago: now)
+                  : ""
+              }}
+              <hr />
+            </small>
+          </div>
+        </td> -->
+        <td>
+          <div *ngFor="let order of row.orders">
+            <div
+              *ngFor="
+                let result of getOrderTimeForTimeZone(
+                  order.createdAt,
+                  row.timeZone
+                )
+              "
+            >
+              <div>{{ result }}</div>
+            </div>
+
+            <hr />
+          </div>
+        </td>
+        <td>
+          <div *ngFor="let order of row.orders">
+            {{ order.payment.method }} &nbsp;
+            {{
+              order.payment.paymentType.toLowerCase() === "cash"
+                ? null
+                : order.payment.paymentType
+            }}
+            <hr />
+          </div>
+        </td>
       </tr>
     </table>
   </div>

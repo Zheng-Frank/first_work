@@ -28,6 +28,12 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
   }
 
   async refreshOrders() {
+
+
+
+
+
+
     const minutesAgo = new Date();
     minutesAgo.setMinutes(minutesAgo.getMinutes() - 10);
     console.log("MINUTES AGO", minutesAgo)
@@ -40,38 +46,40 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           // TODO: replace slice with Mongo 4.4 version?
           // TODO:
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 5)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .5)))
           },
         }
       },
-      projection: {
-        orderNumber: 1,
+      // projection: {
+      //   _id: 1,
+      //   orderNumber: 1,
 
-        "restaurantObj.name": 1,
-        "restaurantObj._id": 1,
-        "statuses.status": 1,
-        "statuses.createdAt": 1,
-        "orderItems": 1,
-        type: 1,
-        paymentObj: 1,
-        statuses: {
-          $slice: -1
-        },
-        createdAt: 1,
-        timeToDeliver: 1
-      },
+      //   "restaurantObj.name": 1,
+      //   "restaurantObj._id": 1,
+      //   "statuses.status": 1,
+      //   "statuses.createdAt": 1,
+      //   "orderItems": 1,
+      //   type: 1,
+      //   "paymentObj.method": 1,
+      //   "paymentObj.paymentType": 1,
+      //   statuses: {
+      //     $slice: -1
+      //   },
+      //   createdAt: 1,
+      //   // timeToDeliver: 1
+      // },
       sort: {
         createdAt: -1
       },
       limit: 100000
-    }, 1000)
+    }, 250)
 
     console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
 
 
-    ordersWithSatuses.forEach(order => {
-      console.log('This is the order total!!!', new Order(order).getTotal())
-    })
+    // ordersWithSatuses.forEach(order => {
+    //   console.log('This is the order total!!!', new Order(order).getTotal())
+    // })
     // console.log("THESE ARE THE ORDER WITH STATUSES ", ordersWithSatuses)
 
     // TODO
@@ -81,11 +89,15 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     console.log("THESE ARE THE UNCONFIRMED ORDERS ", unconfirmedOrders)
 
+
+
+
+
     // TODO
     // group by restaurants
     const rtIdDict = unconfirmedOrders.reduce((dict, order) => (
       dict[order.restaurantObj._id] = dict[order.restaurantObj._id] || { restaurant: order.restaurantObj, orders: [] },
-      dict[order.restaurantObj._id].orders.push(order),
+      dict[order.restaurantObj._id].orders.push({ order, total: new Order(order).getTotal(), payment: order.paymentObj }),
       dict
     ), {});
 
@@ -111,7 +123,9 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         preferredLanguage: 1,
         menus: 1,
         pickupTimeEstimate: 1,
-        deliveryTimeEstimate: 1
+        deliveryTimeEstimate: 1,
+        _id: 1,
+        "googleAddress.timezone": 1,
       },
       sort: {
         createdAt: -1
@@ -120,6 +134,15 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
     console.log("ALL RESTAUARANTS ", allRestaurants)
+
+    const menus = await this._api.post(environment.appApiUrl + "gmb/generic", {
+      name: "get-open-hours",
+      payload: {
+        "restaurantIds": ["5b0aa4a3bab26f14006479f1", "58884aaf7945f91100bad519"]
+      }
+    }).toPromise();
+
+    console.log("THESE ARE THE MENUS ", menus)
 
 
 
@@ -192,11 +215,27 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
 
+
+    allRestaurants.forEach(res => (rtIdDict[res._id].channels = res.channels, rtIdDict[res._id].timezone = res.googleAddress.timezone))
+
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
 
 
     console.log("FINAL ROWS ", this.rows)
 
+  }
+
+  getOrderTimeForTimeZone(createdAt, timeZone) {
+    return ["Scheduled for 11:00AM", "Confirmed by 12:30PM"]
+  }
+
+  showChannel(channels) {
+
+    if (channels.type.toLowerCase() == 'email') {
+      return false
+    }
+
+    return (channels && channels.notifications && channels.notifications.includes('Business'))
   }
 
   getDaysFromId(mongoId) {
