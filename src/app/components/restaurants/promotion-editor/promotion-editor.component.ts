@@ -283,7 +283,7 @@ export class PromotionEditorComponent implements DoCheck {
 
     if (this.promotionType === '$ Discount') {
       if (this.promotion.amount && this.eligibility === select && (this.promotion.withOrderFromList || []).length) {
-        suggestedTitle = `$${this.promotion.amount} off with order of `;
+        suggestedTitle = `$${this.promotion.amount} off with order from `;
         if (this.promotion.withOrderFromList.length === 1) {
           suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
         } else {
@@ -312,7 +312,7 @@ export class PromotionEditorComponent implements DoCheck {
             }
           });
         }
-        suggestedTitle += ' with order of ';
+        suggestedTitle += ' with order from ';
         if (this.promotion.withOrderFromList.length === 1) {
           suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
         } else {
@@ -325,7 +325,7 @@ export class PromotionEditorComponent implements DoCheck {
           })
         }
       } else if (this.promotion.percentage && this.eligibility === select && (this.promotion.withOrderFromList || []).length) {
-        suggestedTitle = `${this.promotion.percentage}% off with order of `;
+        suggestedTitle = `${this.promotion.percentage}% off with order from `;
         if (this.promotion.withOrderFromList.length === 1) {
           suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
         } else {
@@ -368,7 +368,7 @@ export class PromotionEditorComponent implements DoCheck {
             }
           })
         }
-        suggestedTitle += ' with order of ';
+        suggestedTitle += ' with order from ';
         if (this.promotion.withOrderFromList.length === 1) {
           suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
         } else {
@@ -397,7 +397,7 @@ export class PromotionEditorComponent implements DoCheck {
       } else if (this.promotion.freeItemName && this.promotion.orderMinimum && this.eligibility === dollar && !this.useFreeItemList) {
         suggestedTitle = `Free ${this.promotion.freeItemName} with $${this.promotion.orderMinimum} min order`;
       } else if (this.promotion.freeItemName && (this.promotion.withOrderFromList || []).length && this.eligibility === select && !this.useFreeItemList) {
-        suggestedTitle = `Free ${this.promotion.freeItemName} with order of `;
+        suggestedTitle = `Free ${this.promotion.freeItemName} with order from `;
         if (this.promotion.withOrderFromList.length === 1) {
           suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
         } else {
@@ -418,12 +418,12 @@ export class PromotionEditorComponent implements DoCheck {
 
   promotionListEntryToString(entry) {
     if (!entry.mcs) {
-      return `items from menu: ${entry.name}`;
+      return entry.name.trim();
     } else {
       if (entry.mcs[0].mis) {
-        return entry.mcs[0].mis[0].name;
+        return `${entry.name.trim()}>${entry.mcs[0].name.trim()}>${entry.mcs[0].mis[0].name.trim()}`;
       } else {
-        return `items from category: ${entry.mcs[0].name}`;
+        return `${entry.name.trim()}>${entry.mcs[0].name.trim()}`;
       }
     }
   }
@@ -433,6 +433,9 @@ export class PromotionEditorComponent implements DoCheck {
   }
 
   removeUnwantedFields() {
+    if (this.promotion.name && this.promotion.name.length > 100) {
+      this.promotion.name = this.promotion.name.slice(0, 100) + '...';
+    }
     if (this.promotionType === '$ Discount') {
       this.promotion.freeItemList = [];
       this.promotion.freeItemName = '';
