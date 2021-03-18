@@ -57,9 +57,9 @@ export class PromotionViewerComponent implements OnInit {
     } else {
       list.forEach((entry, i) => {
         if (i === list.length - 1) {
-          listString += 'or ' + entry.mcs[0].mis[0].name.trim();;
+          listString += 'or ' + entry.mcs[0].mis[0].name.trim();
         } else {
-          listString += entry.mcs[0].mis[0].name.trim(); + ', ';
+          listString += entry.mcs[0].mis[0].name.trim() + ', ';
         }
       })
     }

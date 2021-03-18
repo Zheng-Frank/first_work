@@ -358,15 +358,9 @@ export class PromotionEditorComponent implements DoCheck {
       if (((this.promotion.freeItemList || []).length) && (this.promotion.withOrderFromList || []).length && this.eligibility === select) {
         suggestedTitle = 'Free ';
         if (this.promotion.freeItemList.length === 1) {
-          suggestedTitle += this.promotionListEntryToString(this.promotion.freeItemList[0]);
+          suggestedTitle += this.promotion.freeItemList[0].mcs[0].mis[0].name.trim();
         } else {
-          this.promotion.freeItemList.forEach((entry, i) => {
-            if (i === this.promotion.freeItemList.length - 1) {
-              suggestedTitle += 'or ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          })
+          suggestedTitle = 'Choose a free item';
         }
         suggestedTitle += ' with order from ';
         if (this.promotion.withOrderFromList.length === 1) {
@@ -383,15 +377,9 @@ export class PromotionEditorComponent implements DoCheck {
       } else if ((this.promotion.freeItemList || []).length && this.promotion.orderMinimum && this.eligibility === dollar) {
         suggestedTitle = 'Free ';
         if (this.promotion.freeItemList.length === 1) {
-          suggestedTitle += this.promotionListEntryToString(this.promotion.freeItemList[0]);
+          suggestedTitle += this.promotion.freeItemList[0].mcs[0].mis[0].name.trim();
         } else {
-          this.promotion.freeItemList.forEach((entry, i) => {
-            if (i === this.promotion.freeItemList.length - 1) {
-              suggestedTitle += 'or ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          })
+          suggestedTitle = 'Choose a free item';
         }
         suggestedTitle += ` with $${this.promotion.orderMinimum} min order`
       } else if (this.promotion.freeItemName && this.promotion.orderMinimum && this.eligibility === dollar && !this.useFreeItemList) {
