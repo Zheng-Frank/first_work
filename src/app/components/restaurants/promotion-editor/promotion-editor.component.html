@@ -32,7 +32,7 @@
 
   <div *qIf="promotionType === '% Discount'">
     <label class="mt-1">Percentage Discount(%):</label>
-    <div *qIf="promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0"
+    <div *qIf="promotion.percentage && (promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0)"
       class="text-danger font-weight-bold"> Error: Invalid
       percentage</div>
     <div>
