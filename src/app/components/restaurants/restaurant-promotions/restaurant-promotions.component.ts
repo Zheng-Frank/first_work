@@ -29,7 +29,6 @@ export class RestaurantPromotionsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
-    this.migrateExcludedMenusToIncludedMenus();
   }
 
   toggleEditing() {
@@ -142,17 +141,17 @@ export class RestaurantPromotionsComponent implements OnInit {
     }
   }
 
-  migrateExcludedMenusToIncludedMenus() {
-    this.restaurant.promotions.forEach((promotion, index) => {
-      // if (!promotion.withOrderFromList) {
-      const withOrderFromList = (this.restaurant.menus || []).filter((menu) => {
-        return promotion.excludedMenuIds.indexOf(menu.id) < 0;
-      }).map((entry) => new Object({ name: entry.name }));
-      console.log(withOrderFromList);
-      // }
+  /* migrate function is not currently implemented. Checkout functionality has been updated to work with both newer data structures, 
+  as well as the older excluded menus method. It should not be necessary to migrate excluded menus unless some other circumstance
+  dictates that it should be done. */
 
-    })
-  }
+  // migrateExcludedMenusToIncludedMenus() {
+  //   this.restaurant.promotions.forEach((promotion, index) => {
+  //     const withOrderFromList = (this.restaurant.menus || []).filter((menu) => {
+  //       return promotion.excludedMenuIds.indexOf(menu.id) < 0;
+  //     }).map((entry) => new Object({ name: entry.name }));
+  //   })
+  // }
 
 }
 
