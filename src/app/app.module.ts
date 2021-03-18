@@ -1,3 +1,4 @@
+import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -45,7 +46,6 @@ import { InvoiceDetailsComponent } from './components/invoices/invoice-details/i
 import { InvoiceEditorComponent } from './components/invoices/invoice-editor/invoice-editor.component';
 import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-monthly-details/invoice-monthly-details.component';
 import { InvoiceOptionEditorComponent } from './components/invoices/invoice-option-editor/invoice-option-editor.component';
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { CacheService } from './services/cache.service';
 import { PrunedPatchService } from './services/prunedPatch.service';
@@ -246,7 +246,6 @@ import { RestaurantQrSettingsComponent } from './components/restaurants/restaura
     InvoiceEditorComponent,
     InvoiceMonthlyDetailsComponent,
     InvoiceOptionEditorComponent,
-    InvoiceViewerComponent,
     InvoicesTableComponent,
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
@@ -378,6 +377,7 @@ import { RestaurantQrSettingsComponent } from './components/restaurants/restaura
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
+    InvoiceViewerComponent,
     SchemasComponent,
     SeamlessIntegrationComponent,
     UploadCsvComponent,
