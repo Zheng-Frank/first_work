@@ -1,0 +1,367 @@
+<div class="container">
+  <h2 class="text-center">New Self-Signups</h2>
+  <h6 class="text-center">{{ entriesLength }} Entries shown</h6>
+  <!--  -->
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4 text-center">
+        <button (click)="reload()" class="btn btn-link">
+          <i class="fas fa-sync-alt"></i>
+          Reload
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <span class="dropdown">
+          <b>Show: &nbsp; </b>
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="dropdownMenuButton"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            {{ currentCriteria }} &nbsp;
+          </button>
+
+          &nbsp; &nbsp;
+          <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'All' }"
+              (click)="renderRestaurants('All', this.currentLanguage)"
+              >All</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Completed' }"
+              (click)="renderRestaurants('Completed', this.currentLanguage)"
+              >Completed</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Progress' }"
+              (click)="renderRestaurants('Progress', this.currentLanguage)"
+              >Progress</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Unopened' }"
+              (click)="renderRestaurants('Unopened', this.currentLanguage)"
+              >Unopened</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
+              (click)="
+                renderRestaurants('Postcard Not Sent', this.currentLanguage)
+              "
+              >Postcard Not Sent</a
+            >
+          </span>
+        </span>
+        <span class="dropdown">
+          <b>Language: &nbsp; </b>
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="dropdownMenuButton1"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            {{ currentLanguage }} &nbsp;
+          </button>
+
+          &nbsp; &nbsp;
+          <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentLanguage === 'All' }"
+              (click)="renderRestaurants(currentCriteria, 'All')"
+              >All</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentLanguage === 'English' }"
+              (click)="renderRestaurants(currentCriteria, 'English')"
+              >English</a
+            >
+            <a
+              class="dropdown-item"
+              [ngClass]="{ active: currentLanguage === 'Chinese' }"
+              (click)="renderRestaurants(currentCriteria, 'Chinese')"
+              >Chinese</a
+            >
+          </span>
+        </span>
+      </div>
+
+      <div class="col-sm-6 text-center">
+        Postcard style:
+
+        <button
+          class="btn btn-default dropdown-toggle"
+          type="button"
+          id="dropdownMenu1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="true"
+        >
+          {{ style }}
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <li>
+            <button class="btn" (click)="selectStyle('English')">
+              English
+            </button>
+          </li>
+          <li>
+            <button class="btn" (click)="selectStyle('Chinese')">
+              Chinese
+            </button>
+          </li>
+        </ul>
+
+        <app-send-postcard
+          (finishedSendingPCs)="emptySendPostcards()"
+          [style]="style"
+          [postcards]="sendPostCards"
+        ></app-send-postcard>
+        <app-add-one-rt></app-add-one-rt>
+        <app-upload-csv></app-upload-csv>
+      </div>
+    </div>
+
+    <!-- <div class="col-1"></div> -->
+
+    <br />
+    <div>
+      Note: to send a postcard, check the boxes next to the restaurant(s) you
+      want to target, then click "Send postcard" button.
+    </div>
+    <div class="row">
+      <h4 class="col-md-4 text-left">Restaurant</h4>
+      <h4 class="col-md-6 offset-sm-2 text-right">
+        <div style="margin-right: 10px">RT Sign Up Info</div>
+      </h4>
+    </div>
+
+    <q-table
+      [rows]="currentRestaurants"
+      [tableColumnDescriptors]="mytable"
+      [compact]="true"
+      [pageSize]="pagination ? 20 : 100000"
+    >
+      <tr *tableRowTemplate="let data">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-4" class="card-body">
+              <div class="row">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [checked]="getPostCardsToFire(data._id)"
+                    id="exampleCheck1"
+                    (click)="patchPostCard($event.target.value, data._id)"
+                  />
+                </div>
+
+                <h5 class="card-title">
+                  <a target="_blank" [href]="'/#/restaurants/' + data._id"
+                    >{{ data.name }}
+                  </a>
+                  <span *ngIf="getLanguage(data._id)">
+                    - {{ getLanguage(data._id) }}
+                  </span>
+                </h5>
+              </div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                {{ data._id }}
+                <a
+                  target="_blank"
+                  *ngIf="data.selfSignup.code"
+                  [href]="getPreview(data.selfSignup.code)"
+                >
+                  (Preview Postcard)
+                </a>
+              </h6>
+              <p class="card-subtitle">{{ data[1] }}</p>
+              <p class="card-subtitle">
+                {{ data.googleAddress.formatted_address }}
+              </p>
+              <p class="card-subtitle">Owner: {{ getOwner(data._id) }}</p>
+              <!-- <div>
+              <a target="_blank" href='/#/logs' + data.id class="card-subtitle">
+                Show Logs
+              </a>
+            </div> -->
+              <a
+                (click)="toggleSendHistory(data._id)"
+                *ngIf="!getSendHistoryBoolean(data._id)"
+                class="card-subtitle"
+              >
+                {{
+                  getSendHistory(data._id).length > 0
+                    ? "Show Send History"
+                    : "Never Sent"
+                }}
+              </a>
+              <a
+                (click)="toggleSendHistory(data._id)"
+                *ngIf="getSendHistoryBoolean(data._id)"
+                class="card-subtitle"
+              >
+                Hide Send History
+              </a>
+              <br />
+              <a *ngIf="getSendHistoryBoolean(data._id)">
+                <table class="table">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Sent Data</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of getSendHistory(data._id)">
+                        <!-- <th scope="row">{{ item }}</th> -->
+                        <th scope="row">
+                          {{ item.sendDate }} {{ "   "
+                          }}<a target="_blank" href="{{ item.url }}"
+                            >View Postcard Sent</a
+                          >
+                        </th>
+                      </tr>
+                    </tbody>
+                  </table>
+                </table>
+              </a>
+            </div>
+
+            <div align="end" class="col-sm-4">
+              <br />
+              <p class="card-subtitle">
+                <b>
+                  {{ getTimeComplete(data._id).status }}
+                </b>
+              </p>
+              <p class="card-subtitle">
+                Promo: {{ data.selfSignup ? data.selfSignup.code : "N/A" }}
+              </p>
+              <a
+                (click)="toggleAnalytic(data._id)"
+                *ngIf="!getAnalyticBoolean(data._id)"
+                class="card-subtitle"
+              >
+                Show Analytics
+              </a>
+              <a
+                (click)="toggleAnalytic(data._id)"
+                *ngIf="getAnalyticBoolean(data._id)"
+                class="card-subtitle"
+              >
+                Hide Analytics
+              </a>
+              <br />
+              <br />
+
+              <div class="row">
+                <div class="col-sm-3"></div>
+
+                <div class="col-sm-9 text-right">
+                  <div
+                    *ngIf="getAnalyticBoolean(data._id)"
+                    class="panel panel-default"
+                  >
+                    <!-- Default panel contents -->
+
+                    <!-- Table -->
+                    <table class="table">
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Analytic</th>
+                            <th scope="col">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            *ngFor="
+                              let item of getAnalytic(data._id) | keyvalue
+                            "
+                          >
+                            <th scope="row">{{ item.key }}</th>
+                            <td>{{ item.value }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+      </tr>
+    </q-table>
+  </div>
+  <br />
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-2 offset-sm-8 text-right">
+        <!-- <nav aria-label="Page navigation example">
+          <ul class="pagination">
+            <li class="page-item">
+              <a class="page-link" (click)="setPreviousPagination()"
+                >Previous</a
+              >
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 1 }"
+              class="page-item active"
+            >
+              <a class="page-link" (click)="setPagination(1)">1</a>
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 2 }"
+              class="page-item"
+            >
+              <a class="page-link" (click)="setPagination(2)">2</a>
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 3 }"
+              class="page-item"
+            >
+              <a class="page-link" (click)="setPagination(3)">3</a>
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 4 }"
+              class="page-item"
+            >
+              <a class="page-link" (click)="setPagination(4)">4</a>
+            </li>
+            <li
+              [ngClass]="{ active: currentPagination === 5 }"
+              class="page-item"
+            >
+              <a class="page-link" (click)="setPagination(5)">5</a>
+            </li>
+
+            <li class="page-item">
+              <a class="page-link" (click)="setNextPagination()">Next</a>
+            </li>
+          </ul>
+        </nav> -->
+      </div>
+    </div>
+  </div>
+</div>

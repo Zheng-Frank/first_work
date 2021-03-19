@@ -1,0 +1,150 @@
+<div class="container">
+  <h2 class="text-center">Agent Call Stats Dashboard</h2>
+  <h6 class="text-center">{{ entriesLength }} Entries shown</h6>
+  <div class="row">
+    <div class="col text-center">
+      <button (click)="reload()" class="text-center btn btn-link">
+        <i class="fas fa-sync-alt"></i>
+        Reload
+      </button>
+    </div>
+  </div>
+  <br />
+  <div
+    *ngIf="criteria == 'Custom Date' && !validDate"
+    class="alert alert-danger"
+    role="alert"
+  >
+    Invalid Timespan! Please make sure date 1 is less date 2 and no date is past
+    the current date
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <span class="dropdown">
+        <b>View: &nbsp; </b>
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          {{ criteria }} &nbsp;
+        </button>
+        &nbsp;
+        <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <a (click)="setCriteria('24Hours')" class="dropdown-item"
+            >Last 24 Hours</a
+          >
+          <a (click)="setCriteria('48Hours')" class="dropdown-item"
+            >Last 48 Hours</a
+          >
+          <a (click)="setCriteria('3Days')" class="dropdown-item"
+            >Last 3 Days</a
+          >
+          <a (click)="setCriteria('7Days')" class="dropdown-item"
+            >Last 7 Days</a
+          >
+          <a (click)="setCriteria('30Days')" class="dropdown-item"
+            >Last 30 Days</a
+          >
+          <a (click)="setCriteria('customDate')" class="dropdown-item"
+            >Custom Date</a
+          >
+        </span>
+      </span>
+      &nbsp;
+      <span *ngIf="criteria == 'Custom Date'">
+        &nbsp; &nbsp;
+        <input (change)="changeDate()" [(ngModel)]="inputDateOne" type="date" />
+        &nbsp; to &nbsp;
+        <input (change)="changeDate()" [(ngModel)]="inputDateTwo" type="date" />
+        &nbsp;
+        <!-- <button class="btn btn-primary">Enter</button> -->
+      </span>
+      &nbsp;
+      <span class="dropdown">
+        <b>Sort By: &nbsp; </b>
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          {{ sortBy }} &nbsp;
+        </button>
+
+        &nbsp; &nbsp;
+        <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <a (click)="setSortBy('Total Call Time')" class="dropdown-item"
+            >Total Call Time</a
+          >
+
+          <a (click)="setSortBy('Total Calls')" class="dropdown-item"
+            >Total Calls</a
+          >
+
+          <a (click)="setSortBy('Avg Call Time')" class="dropdown-item"
+            >Avg Call Time</a
+          >
+        </span>
+      </span>
+      <span class="dropdown">
+        <b>Sorting: &nbsp; </b>
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          {{ sorting }} &nbsp;
+        </button>
+
+        &nbsp; &nbsp;
+        <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <a (click)="setSorting('Ascending')" class="dropdown-item"
+            >Ascending</a
+          >
+          <a (click)="setSorting('Descending')" class="dropdown-item"
+            >Descending</a
+          >
+        </span>
+      </span>
+      <!-- <span> <app-quick-date-picker></app-quick-date-picker> </span> -->
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row" *ngFor="let item of agentMappedData" class="card-body">
+    <hr />
+    <div>
+      Agent Name: <b>{{ getAgent(item.agentName) }}</b>
+    </div>
+    <div>Total Calls: {{ getData(item.agentName).totalCalls }}</div>
+    <div>
+      Avg Call Time: {{ secondsToHms(getData(item.agentName).avgCallTime) }}
+    </div>
+    <div>
+      Total Call Time: {{ secondsToHms(getData(item.agentName).totalCallTime) }}
+    </div>
+    <!-- <div>
+      Total Meaningful Calls:
+      {{ secondsToHms(getData(item.agentName).totalCallTime) }}
+    </div> -->
+
+    <!-- TODO: Redo the inner HTML thing -->
+    <canvas *ngIf="showLine" width="800" height="100" #cmp>{{
+      item.agentName
+    }}</canvas>
+    <canvas *ngIf="showHistogram" width="800" height="300" #cmp>{{
+      item.agentName
+    }}</canvas>
+    <hr />
+  </div>
+</div>

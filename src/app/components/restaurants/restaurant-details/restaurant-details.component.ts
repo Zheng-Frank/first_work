@@ -34,6 +34,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     rateSchedules: ['RATE_EDITOR', 'MARKETER'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    qrSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     promotions: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
@@ -42,7 +43,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
     restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],
-    restaurantChains: ['ADMIN', 'CSR']
+    restaurantChains: ['ADMIN', 'CSR'],
   }
 
   knownUsers = [];
@@ -55,6 +56,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
+      "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
@@ -126,6 +128,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           excludeAmex: 1,
           excludeDiscover: 1,
           feeSchedules: 1,
+          form1099ks: 1,
           gmbOrigin: 1,
           gmbOwnerHistory: 1,
           gmbSettings: 1,
@@ -152,6 +155,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           printers: 1,
           printerSN: 1,
           promotions: 1,
+          'qrSettings.viewOnly': 1,
           rateSchedules: 1,
           requireBillingAddress: 1,
           requireZipcode: 1,

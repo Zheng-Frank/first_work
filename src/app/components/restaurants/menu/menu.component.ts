@@ -36,6 +36,12 @@ export class MenuComponent implements OnInit {
   editingMis = false;
   mcOfSortingMis;
 
+  targetWording = {
+    'ONLINE_ONLY': 'Online only',// also a default when there is no target customer specified
+    'DINE_IN_ONLY': 'Dine-in only',
+    'ALL': 'Both online and dine-in',
+  };
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -229,9 +235,9 @@ export class MenuComponent implements OnInit {
   mcDelete(mc: Mc) {
     const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
     newMenus.forEach(eachMenu => {
-      if(this.menu.id == eachMenu.id){
-        eachMenu.mcs = eachMenu.mcs.filter(category=> category.id !== mc.id)       
-      }      
+      if (this.menu.id == eachMenu.id) {
+        eachMenu.mcs = eachMenu.mcs.filter(category => category.id !== mc.id)
+      }
     });
 
     this._api
@@ -399,9 +405,9 @@ export class MenuComponent implements OnInit {
   miDelete(mi: Mi) {
     const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
     newMenus.forEach(eachMenu => {
-      if(this.menu.id == eachMenu.id){
-        eachMenu.mcs.map(mc => mc.mis = mc.mis.filter(item => item.id !== mi.id))       
-      }      
+      if (this.menu.id == eachMenu.id) {
+        eachMenu.mcs.map(mc => mc.mis = mc.mis.filter(item => item.id !== mi.id))
+      }
     });
 
 

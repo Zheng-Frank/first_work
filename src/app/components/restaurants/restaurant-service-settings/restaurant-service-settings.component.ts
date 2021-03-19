@@ -280,7 +280,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
                 gatewayDetails: {
                   ...this.gateway
                 },
-                sandbox: true // TODO: remove in production
+                sandbox: false // TODO: remove in production
               }
             }).toPromise();
 
@@ -334,7 +334,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
                 gatewayDetails: {
                   ...this.gateway
                 },
-                sandbox: true // TODO: remove in production
+                sandbox: false // TODO: remove in production
               }
             }).toPromise();
 

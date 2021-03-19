@@ -16,6 +16,8 @@ import * as lzString from 'lz-string';
 export class ApiService {
 
   onApiError: EventEmitter<any> = new EventEmitter();
+  onApiRequesting: EventEmitter<any> = new EventEmitter();
+  onApiDone: EventEmitter<any> = new EventEmitter();
 
   urlsInRequesting = [];
   private autoAttachedHeaders = {
@@ -50,7 +52,7 @@ export class ApiService {
    */
   async getBatch(api, payload, batchSize) {
 
-    let batchPayload = {...payload};
+    let batchPayload = { ...payload };
     const payloadLimit = batchPayload.limit || Number.MAX_VALUE; //old limit
 
     const result = [];
@@ -113,6 +115,8 @@ export class ApiService {
     // we might need to think about same request being in queue already! Something wrong with the logic of our program. ignore for now
 
     this.urlsInRequesting.push(url);
+    this.onApiRequesting.emit(url);
+
     const headers = new HttpHeaders(this.autoAttachedHeaders);
     Object.keys(this.autoAttachedHeaders).map(key => headers.set(key, this.autoAttachedHeaders[key]));
     let observable: Observable<any>;
@@ -164,7 +168,12 @@ export class ApiService {
             error: error
           });
       },
-      () => { this.urlsInRequesting = this.urlsInRequesting.filter(u => u !== url); }
+      () => {
+        this.urlsInRequesting = this.urlsInRequesting.filter(u => u !== url);
+        if (this.urlsInRequesting.length === 0) {
+          this.onApiDone.emit()
+        }
+      }
     );
     return sharedObservable;
   }

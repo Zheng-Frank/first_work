@@ -1,3 +1,4 @@
+import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,9 @@ import { HttpClientModule } from '@angular/common/http';
 import { RootComponent } from './components/root/root.component';
 import { HomeComponent } from './components/home/home.component';
 import { LogsDashboardComponent } from './components/logs/logs-dashboard/logs-dashboard.component';
-import { Bs4Component } from './components/bs4/bs4.component';
+import { Bs4Component } from './components/development/bs4/bs4.component';
+import { UIPreviewComponent } from './components/development/ui-preview/ui-preview/ui-preview.component';
+import { DocViewerComponent } from './components/development/ui-preview/doc-viewer/doc-viewer.component';
 import { HeaderComponent } from './components/header/header.component';
 
 import { UiModule } from '@qmenu/ui';
@@ -43,7 +46,6 @@ import { InvoiceDetailsComponent } from './components/invoices/invoice-details/i
 import { InvoiceEditorComponent } from './components/invoices/invoice-editor/invoice-editor.component';
 import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-monthly-details/invoice-monthly-details.component';
 import { InvoiceOptionEditorComponent } from './components/invoices/invoice-option-editor/invoice-option-editor.component';
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { CacheService } from './services/cache.service';
 import { PrunedPatchService } from './services/prunedPatch.service';
@@ -51,7 +53,7 @@ import { TimezoneService } from './services/timezone.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
-import { RestaurantApiLogsComponent } from './components/restaurants/restaurant-api-logs/restaurant-api-logs.component'; 
+import { RestaurantApiLogsComponent } from './components/restaurants/restaurant-api-logs/restaurant-api-logs.component';
 import { OrderCardComponent } from './components/restaurants/order-card/order-card.component';
 import { RestaurantContactsComponent } from './components/restaurants/restaurant-contacts/restaurant-contacts.component';
 import { RestaurantRateSchedulesComponent } from './components/restaurants/restaurant-rate-schedules/restaurant-rate-schedules.component';
@@ -92,6 +94,7 @@ import { GmbCard2Component } from './components/gmbs2/gmb-card2/gmb-card2.compon
 import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor/gmb-account-editor.component';
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-list/gmb-underattack-list.component';
+import { GmbSuspendedListComponent } from './components/gmbs2/gmb-suspended-list/gmb-suspended-list.component';
 import { GmbLostListComponent } from './components/gmbs2/gmb-lost-list/gmb-lost-list.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
@@ -194,8 +197,18 @@ import { ChainComponent } from './components/chains/chain/chain.component';
 import { CloudPrintingSettingsComponent } from './components/restaurants/cloud-printing-settings/cloud-printing-settings.component';
 import { TemporarilyDisabledComponent } from './components/restaurants/temporarily-disabled/temporarily-disabled.component';
 import { RestaurantFaxSettingsComponent } from './components/restaurants/fax-settings/fax-settings.component';
+import { Form1099KComponent } from './components/restaurants/restaurant-form1099-k/restaurant-form1099-k.component';
+
 import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
+import { SchemasComponent } from './components/system/schemas/schemas.component';
+import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
+import { UploadCsvComponent } from "./components/restaurants/seamless-integration/upload-csv/upload-csv.component";
+import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
+import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
+import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
+import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
+
 @NgModule({
   declarations: [
     adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
@@ -206,6 +219,8 @@ import { BannedCustomersComponent } from './components/restaurants/banned-custom
     MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
+    UIPreviewComponent,
+    DocViewerComponent,
     EventDashboardComponent,
     HeaderComponent,
     LoginComponent,
@@ -231,7 +246,6 @@ import { BannedCustomersComponent } from './components/restaurants/banned-custom
     InvoiceEditorComponent,
     InvoiceMonthlyDetailsComponent,
     InvoiceOptionEditorComponent,
-    InvoiceViewerComponent,
     InvoicesTableComponent,
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
@@ -277,6 +291,7 @@ import { BannedCustomersComponent } from './components/restaurants/banned-custom
     GmbAccountEditorComponent,
     GmbRequestListComponent,
     GmbUnderattackListComponent,
+    GmbSuspendedListComponent,
     GmbLostListComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,
@@ -334,17 +349,11 @@ import { BannedCustomersComponent } from './components/restaurants/banned-custom
     GmbPinsComponent,
     GmbTasksComponent,
     ChangeOwnershipComponent,
-
     BulkMessagingComponent,
-
     RestaurantTasksComponent,
-
     RestaurantGmbPostComponent,
-
     RestaurantGmbPostsComponent,
-
     GmbCampaignComponent,
-
     BasicTplComponent,
     RestaurantWebTemplateComponent,
     InvoicesAnualComponent,
@@ -365,8 +374,17 @@ import { BannedCustomersComponent } from './components/restaurants/banned-custom
     CloudPrintingSettingsComponent,
     TemporarilyDisabledComponent,
     RestaurantFaxSettingsComponent,
+    Form1099KComponent,
     OtherModulesComponent,
-    BannedCustomersComponent
+    BannedCustomersComponent,
+    InvoiceViewerComponent,
+    SchemasComponent,
+    SeamlessIntegrationComponent,
+    UploadCsvComponent,
+    AddOneRtComponent,
+    SendPostcardComponent,
+    IvrAgentAnalysisComponent,
+    RestaurantQrSettingsComponent
   ],
   imports: [
     BrowserModule,

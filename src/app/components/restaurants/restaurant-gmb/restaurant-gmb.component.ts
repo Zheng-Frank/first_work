@@ -143,7 +143,7 @@ export class RestaurantGmbComponent implements OnInit {
       console.log(this.relevantGmbRequests);
       this.gmbRows = gmbBizList.map(gmbBiz => ({
         gmbBiz: gmbBiz,
-        accountLocationPairs: relevantGmbAccounts.reduce((list, acct) => (list.push(...acct.locations.filter(loc => gmbBiz.cid && loc.cid === gmbBiz.cid).map(loc => ({
+        accountLocationPairs: relevantGmbAccounts.reduce((list, acct) => (list.push(...(acct.locations||[]).filter(loc => gmbBiz.cid && loc.cid === gmbBiz.cid).map(loc => ({
           account: acct,
           location: loc,
           statusHistory: loc.statusHistory.slice(0).reverse()

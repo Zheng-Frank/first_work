@@ -4,7 +4,7 @@
     <h1 class="text-center">Fax Problems ({{rows.length}})</h1>
   </h2>
   <div class="card-body">
-    <button class="btn btn-primary" (click)="findPhaxioFailedNumbers()">Fax Problems ({{rows.length}})</button>
+    <button class="btn btn-primary" (click)="findPhaxioFailedNumbers()">Execute</button>
     <br/> <br/> <br/>
     <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
       <tr *tableRowTemplate="let row;" class="{{!row.succeededOnce ? 'text-danger' : ''}}">

@@ -1,0 +1,379 @@
+<div class="text-center container">
+    <h1>UI Components Preview</h1> 
+
+    
+    <app-doc-viewer 
+      [name]="'q-toggle'"
+      [description]="'Toggle'"
+      [inputs]="['disabled', 'ngModel']"
+      [outputs]="['ngModelChange']"
+      >
+      <q-toggle [(ngModel)]="toggle" (ngModelChange)="toggleChanged($event)" ></q-toggle>
+      <q-toggle [(ngModel)]="toggle" disabled></q-toggle>
+      
+      <div>toggle = {{toggle}}</div>
+    </app-doc-viewer> 
+
+    <app-doc-viewer 
+        [name]="'q-payment-means-editor'"
+        [description]="'Payment Means Editor'"
+        [inputs]="['paymentMeans']"
+        >
+        <div class="text-left">
+            <q-payment-means-editor [paymentMeans]="paymentMeans" [showDelete]="true"></q-payment-means-editor>
+        </div>
+    </app-doc-viewer>    
+    <app-doc-viewer 
+        [name]="'q-payment-means-viewer'"
+        [description]="'Payment Means Viewer'"
+        [inputs]="['paymentMeans']"
+        >
+        <div class="text-left">
+            <q-payment-means-viewer [paymentMeans]="paymentMeans"></q-payment-means-viewer>
+        </div>
+    </app-doc-viewer>  
+    <app-doc-viewer 
+        [name]="'q-restaurant-media-object'"
+        [description]="'Restaurant Media Object'"
+        [inputs]="['restaurants', 'showPhones']"
+        >
+        <div class="text-left">
+            <q-restaurant-media-object [restaurant]="restaurants[1]"></q-restaurant-media-object>
+        </div>
+    </app-doc-viewer>  
+
+    <app-doc-viewer 
+        [name]="'q-restaurant-picker'"
+        [description]="'Restaurant Picker'"
+        [inputs]="['restaurants']"
+        [outputs]="['done', 'remove', 'cancel']"
+        >
+        <button class="btn btn-primary" (click)="myRestaurantPicker.reset()">Reset</button>
+        <div class="text-left">
+            <q-restaurant-picker #myRestaurantPicker [restaurants]="restaurants"></q-restaurant-picker>
+        </div>
+    </app-doc-viewer>  
+
+    <app-doc-viewer 
+        [name]="'q-menu-item-editor'"
+        [description]="'Menu Item Editor'"
+        [inputs]="['mi', 'miNames', 'sizeNames', 'menuOptions', 'mcSelectedMenuOptionIds']"
+        [outputs]="['done', 'remove', 'cancel']"
+        >
+
+        <div class="text-left">
+            <q-menu-item-editor [mi]="newMi" [existingMis]="[mi]"></q-menu-item-editor>
+        </div>
+    </app-doc-viewer>  
+
+    <app-doc-viewer 
+        [name]="'q-menu-item'"
+        [description]="'Menu Item Viewer'"
+        [inputs]="['mi', 'menuOptions']"
+        >
+
+        <div class="text-left">
+            <q-menu-item [mi]="mi" ></q-menu-item>
+        </div>
+    </app-doc-viewer>  
+
+    <app-doc-viewer 
+        [name]="'q-hour-picker'"
+        [description]="'Hours Viewer (Grouped)'"
+        [inputs]="['hours', 'offsetToEST']"
+        >
+
+        <div class="text-left">
+            <q-hours-picker (submit)="hoursSubmit($event)">
+            </q-hours-picker>
+        </div>
+    </app-doc-viewer>  
+
+    <app-doc-viewer 
+        [name]="'q-hours-viewer'"
+        [description]="'Hours Viewer (Grouped)'"
+        [inputs]="['hours', 'offsetToEST']"
+        >
+
+        <div class="text-left">
+            <q-hours-viewer [hours]="hours" [offsetToEST]="0">
+            </q-hours-viewer>
+        </div>
+    </app-doc-viewer>  
+    <app-doc-viewer 
+        [name]="'q-switch'"
+        [description]="'Switch: either on or off, binding to boolean'"
+        [inputs]="['onText=On', 'offText=Off', 'disabled=false']"
+        >
+
+        <div class="text-left">
+            <q-switch [(ngModel)]="switchValue" [onText]="'Enabled'"  [offText]="'Disabled'">
+            </q-switch>
+            switchValue = {{switchValue}}
+        </div>
+    </app-doc-viewer>   
+    <app-doc-viewer 
+        [name]="'q-simple-radio'"
+        [description]="'Simple Radio Component: array of strings as input items and ngModel bind to selected'"
+        [inputs]="['values', 'disabled=false', 'equalWidth=true']"
+        >
+
+        <div class="text-left">
+            <q-simple-radio [(ngModel)]="simpleRadioValue" [equalWidth]="false" [values]="['Alex', 'Bob', 'Carol']" (ngModelChange)="simpleRadioChange($event)">
+            </q-simple-radio>
+            selected = {{simpleRadioValue}}
+
+            <q-simple-radio [(ngModel)]="simpleRadioValue" [borderless]="true" [equalWidth]="false" [values]="['Alex', 'Bob', 'Carol']" (ngModelChange)="simpleRadioChange($event)">
+            </q-simple-radio>
+            selected = {{simpleRadioValue}}
+        </div>
+    </app-doc-viewer>   
+
+    <app-doc-viewer 
+      [name]="'q-table-selector'"
+      [description]="'Table cells as selector'"
+      [inputs]="['items', 'columns', 'maxSelection=1', 'minSelection=1', 'equalWidth=true']"
+      >
+
+      <div class="text-left">
+          <q-table-selector [items]="items" [columns]="3" [equalWidth]="true" [maxSelection]="3">
+          </q-table-selector>
+      </div>
+    </app-doc-viewer>   
+
+    <app-doc-viewer 
+      [name]="'q-table'"
+      [description]="'Generic table with sorting'"
+      [inputs]="['rows', 'tableColumnDescriptors', 'simpleView']"
+      >
+      <div class="text-left">
+          <q-table [rows]="myRows" [tableColumnDescriptors]="myColumnDescriptors">
+            <tr *tableRowTemplate="let row;">
+                <td><input type="checkbox"></td>
+                <td>{{myRows.indexOf(row) + 1}}</td>
+                <td>{{row.firstName}}!</td>
+                <td>{{row.address.city}}!</td>
+                <td><button (click)="rowClick(row)">Click Me</button></td>
+            </tr>
+          </q-table>
+      </div>
+    </app-doc-viewer>   
+    <app-doc-viewer 
+        [name]="'q-menu-option-viewer'"
+        [description]="'menu-option-viewer'"
+        [inputs]="['menuOption']"
+        >
+        <q-menu-option-viewer [menuOption]="mockRestaurant.menuOptions[3]"></q-menu-option-viewer>
+    </app-doc-viewer>
+
+    <app-doc-viewer 
+        [name]="'q-menu-option-editor'"
+        [description]="'menu-option-editor'"
+        [inputs]="['menuOption']"
+        [outputs]="['cancel', 'remove', 'submit']"
+        >
+        <q-menu-option-editor [menuOption]="mockRestaurant.menuOptions[0]"></q-menu-option-editor>
+    </app-doc-viewer>
+   
+    <app-doc-viewer 
+      [name]="'q-size-select'"
+      [description]="'Size selector (for pizza)'"
+      [inputs]="['items', 'minSelection', 'maxSelection']"
+      [outputs]="['select']"
+      >
+      <q-size-select [items]="selectItems" [maxSelection]="1" [minSelection]="1" (select)="select($event)"></q-size-select>
+      </app-doc-viewer>
+
+    <app-doc-viewer 
+      [name]="'q-edit-label'"
+      [description]="'Edit Label'"
+      [inputs]="['type(tel, text, select, single-select)', 'value', 'emptyHint', 'otions(string array)']"
+      [outputs]="['change']"
+      >
+      <q-edit-label [value]="''" [type]="'tel'" (edit)="submitEditLabel($event)"></q-edit-label>
+      <q-edit-label [value]="'A'" [type]="'select'" [options]="['', 'A', 'B']" (edit)="submitEditLabel($event)"></q-edit-label>
+      <q-edit-label [value]="'A'" [type]="'single-select'" [options]="['A', 'B']" (edit)="submitEditLabel($event)"></q-edit-label>
+      <q-form-builder [object]="formObject"  (submit)="formSubmit($event)" ></q-form-builder>
+    </app-doc-viewer>
+  
+    <app-doc-viewer 
+      [name]="'q-form-builder'"
+      [description]="'Form Builder'"
+      >
+      <q-form-builder [showDelete]="true" [object]="formObject" [fieldDescriptors]="formFieldDescriptors" (remove)="formRemove($event)"  (submit)="formSubmit($event)">
+          SOME ARTIBTRARY CONTENTS GOES HERE
+      </q-form-builder>
+      {{formObject | json}}
+      </app-doc-viewer>
+    <app-doc-viewer 
+      [name]="'q-address-picker'"
+      [description]="'Pciking a google place'"
+      [inputs]="['disabled', 'ngModel']"
+      [outputs]="['ngModelChange']"
+      >
+      <div class="text-left">
+          <q-address-picker [address]="mySampleAddress"></q-address-picker>
+      </div>
+      </app-doc-viewer> 
+    
+
+    <app-doc-viewer 
+      [name]="'q-rating'"
+      [description]="'Star rating'"
+      [inputs]="['disabled', 'ngModel']"
+      [outputs]="['ngModelChange']"
+      >
+      <q-rating [(ngModel)]="rating" (ngModelChange)="ratingChanged($event)" ></q-rating>
+      <q-rating [(ngModel)]="rating" ></q-rating>
+      
+      <div>selected rating = {{rating}}</div>
+    </app-doc-viewer> 
+
+    <app-doc-viewer 
+      [name]="'q-quantity-selector'"
+      [description]="'Select 1, 2, ...'"
+      [inputs]="['quantity']"
+      [outputs]="['select']"
+      >
+      <q-quantity-selector [quantity]="1" (select)="select($event)"></q-quantity-selector>
+      <q-quantity-selector [quantity]="4" [minQuantity]="2" [maxQuantity]="5" (select)="select($event)"></q-quantity-selector>
+    </app-doc-viewer>
+
+    <app-doc-viewer 
+      [name]="'q-select'"
+      [description]="'Flat multi select'"
+      [inputs]="['items', 'minSelection', 'maxSelection', 'showCheckbox']"
+      [outputs]="['select']"
+      >
+      <q-select [items]="selectItems" [maxSelection]="2" (select)="select($event)"></q-select>
+    </app-doc-viewer>
+
+  
+    <app-doc-viewer 
+      [name]="'qMask (NOT GOOD YET)'"
+      [description]="'(NOTE: MUST USE WITH ngModel) A directive added to input tag to allow 10 digits US phone number in format of (444)444-4444'"
+      >
+      <input id="mask-input" type="text" qMask class="form-control" [(ngModel)]="varMask" placeholder="mask" style="display: inline-block; width: 200px;">
+      <br>Value: {{varMask}} 
+      </app-doc-viewer>
+
+      <app-doc-viewer 
+          [name]="'qPhone (NOT GOOD YET)'"
+          [description]="'(NOTE: MUST USE WITH ngModel) A directive added to input tag to allow 10 digits US phone number in format of (444)444-4444'"
+          >
+          <input id="phone-input" type="text" qPhone class="form-control" [(ngModel)]="varPhone" placeholder="phone#" style="display: inline-block; width: 200px;">
+          <br>Value: {{varPhone | phone}} 
+      </app-doc-viewer>  
+    <app-doc-viewer
+      [name]="'*qIf'"
+      [description]="'A section that can be smoothly collapsed or expanded, by binding a simple input value shown.'">
+      <button class="btn btn-primary" (click)="toggle = !toggle">Toggle</button> shown={{!!toggle}}
+      <div *qIf="toggle">
+              Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
+      </div>
+    </app-doc-viewer>
+  
+    <app-doc-viewer 
+        [name]="'qDebounce'"
+        [description]="'Debounce directive attached to input'"
+        [inputs]="['...']"
+        [outputs]="['...']"
+        >
+
+        <div class="text-left">
+            <input type="text" [qDebounce]="2000" (debounce)="debounce($event)">
+        </div>
+    </app-doc-viewer>  
+
+    <app-doc-viewer 
+      [name]="'[qLoading]'"
+      [description]="'A directive added to button tag to animate loading with font-awesome icons. Button will be disabled during loading'"
+      [inputs]="['qLoading']"
+      >
+      <button [qLoading]="buttonLoading" class="btn btn-primary" (click)="clickLoading()">Click Me</button>
+      <br>buttonLoading value = {{buttonLoading}} 
+      </app-doc-viewer>
+  
+
+  
+      <app-doc-viewer 
+          [name]="'q-banner'"
+          [description]="'A banner/hero is a section with a background image'"
+          [inputs]="['backgroundImageUrl', 'backgroundBlur(in pixels)', 'maskingColor(eg. rgba(0, 0, 0, 0.1))']"
+          >
+          <q-banner [backgroundImageUrl]="'http://irepo.primecp.com/2015/07/227528/Smoked-Salmon-Bites_Large600_ID-1080488.jpg?v=1080488'" [backgroundBlur]="5" [maskingColor]="'rgba(0, 0, 0, 0.1)'">
+              <h1 style="height: 160px;" class="text-light">Some Other Content</h1>
+          </q-banner>
+      </app-doc-viewer>
+  
+      <app-doc-viewer
+          [name]="'q-alert'"
+          [description]="'A lightweight popup with only one button OK to dismiss. Trigger by calling show() method'"
+          [inputs]="['title', 'clickAway']"
+          [methods]="['show()', 'hide()', 'toggle()', 'isShown()']"
+          >
+          <button class="btn btn-primary" (click)="myAlert.show()">Open</button>
+          <q-alert [title]="'My Modal Title'" [clickAway]="true" #myAlert>
+              <p class="text-danger">Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis
+                  in faucibus.</p>
+          </q-alert>
+      </app-doc-viewer>     
+      <app-doc-viewer
+          [name]="'q-confirm'"
+          [description]="'A confirmation popup with two buttons [Yes] and [No]. Trigger by calling show() method'"
+          [inputs]="['title']"
+          [outputs]="['yes', 'no']"
+          [methods]="['show()', 'hide()', 'toggle()', 'isShown()']"
+          >
+          <button class="btn btn-primary" (click)="myConfirm.show()">Open</button>
+          <q-confirm [title]="'My Confirm Title'" #myConfirm>
+              <p class="text-danger">Are you sure?</p>
+          </q-confirm>
+      </app-doc-viewer>
+      <app-doc-viewer
+          [name]="'q-modal'"
+          [description]="'A wrapper of bootstrap popup with default header. Trigger by calling show() method'"
+          [inputs]="['title', 'clickAway']"
+          [outputs]="['open', 'close']"
+          [methods]="['show()', 'hide()', 'toggle()', 'isShown()']"
+          >
+          <button class="btn btn-primary" (click)="myModal.show()">Open</button>
+          <q-modal [title]="'My Modal Title'" #myModal [clickAway]="true">
+              Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
+  
+              <button class="btn btn-warning" (click)="myModalOnModal.show()" >Modal on Modal</button>
+          </q-modal>
+          <q-modal [title]="'Modal on Modal'" #myModalOnModal>
+              This is also possible
+          </q-modal>
+      </app-doc-viewer>    
+
+  
+      <app-doc-viewer
+          [name]="'q-dropdown'"
+          [description]="'A customized dropdown having same look&feel of input form controls. Solving two problems: 1. Allowing a placeholder text; 2. Consistent rendering across browsers'"
+          [inputs]="['placeholder', 'selectedItem', 'items']"
+          [outputs]="['selectedItemChange']"
+          >
+
+          <q-dropdown [placeholder]="'select item...'" [items]="['first item', 'second item', 'third item', 'fourth item', 'fifth item']" [(selectedItem)]="dropdownSelectedItem" style="display: inline-block; width: 200px;"></q-dropdown>
+          <br>selected value={{dropdownSelectedItem}}
+      </app-doc-viewer>
+ 
+       <app-doc-viewer
+          [name]="'q-pager (broken)'"
+          [description]="'A pager'"
+          [inputs]="['pageSize', 'numberOfRows']"
+          [outputs]="['onPageChange']"
+          [fields]="['currentPageNumber (0 indexed)']"
+          >
+          <h4>Not many pages</h4>
+          <q-pager [numberOfRows]="200" (onPageChange)="pageChanged($event)" #myPager1></q-pager>
+  
+          <h4>Lots of pages</h4>
+          <q-pager [pageSize]="10" [numberOfRows]="2000" (onPageChange)="pageChanged($event)" #myPager2></q-pager>
+  
+      </app-doc-viewer> 
+  
+  </div>
+  

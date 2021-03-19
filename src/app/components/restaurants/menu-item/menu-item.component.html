@@ -36,24 +36,14 @@
           </div>
         </td> -->
 
-        <td valign="top" class="text-right">
-            <div *ngIf="mi.sizeOptions.length > 0 && mi.sizeOptions[0].price >= 0">
-              <p *ngFor="let p of mi.sizeOptions" class="text-right " style="white-space: nowrap">
-                <span class="text-primary">{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</span>
-                {{(p.price ? p.price : 0) | currency: 'USD' :'symbol'}}{{ mi.sizeOptions.length === 1 && getMaxCost() > p.price ? '+' : ''}}
-              </p>
-            </div>
-            <div *ngIf="mi.sizeOptions.length >= 1 && !mi.sizeOptions[0].price">
-              <p *ngFor="let p of mi.sizeOptions" class="text-right ">
-                <small>{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</small>
-                {{getMinCost() | currency: 'USD' :'symbol'}}{{ mi.sizeOptions.length === 1 && getMaxCost() > getMinCost() ? '+' : ''}}
-              </p>
-            </div>
-          </td>
-
-        <!-- <td>
-            <p *ngFor="let p of mi.sizeOptions" class="text-right text-muted"><small>{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</small> {{p.price | currency:'USD':'symbol'}}</p>
-        </td> -->
+        <td valign="top" class="text-right text-nowrap">
+          <!-- fixed $0 problem: sizeOption is $0 but options could be dictating min price -->
+          <div *ngFor="let p of mi.sizeOptions">
+            <span class="size text-primary">{{(mi.sizeOptions.length > 1 ? p.name : '') |size}}</span>
+             {{(p.price ? p.price : getMinCost()) | currency: 'USD' :'symbol'}}{{ mi.sizeOptions.length === 1 &&
+            getMaxCost() > p.price ? '+' : ''}}
+          </div>
+        </td>
       </tr>
     </table>
   </div>

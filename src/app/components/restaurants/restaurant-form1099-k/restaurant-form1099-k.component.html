@@ -1,0 +1,23 @@
+<div *ngIf="!restaurant">
+  No restaurant data.
+</div>
+
+<div *ngIf="restaurant">
+  <h2>View IRS Form 1099-K for {{restaurant.name}}</h2>
+  <p>Note: A Form 1099-K will be generated for a restaurant for each year that it is needed, in January of the following year. Qmenu must have collected at least $20,000 and processed at least 200 transactions for a restaurant in a given year for a Form 1099-K to be required for that year. <br><br> Please be patient. A restaurant may have thousands of transactions to retrieve and process, which can take some time. </p>
+  <ul class="container">
+    <ng-container *ngFor="let linkEntry of formLinks">
+      <li *ngIf="linkEntry[0]; else elseBlock">
+        <a [href]="sanitizeLink(linkEntry[0].href)" [download]="linkEntry[0].download">{{linkEntry[1]}} - Click to
+          download this year's form
+        </a>
+      </li>
+      <ng-template #elseBlock>
+        <li>
+          {{linkEntry[1]}} - No Form Required for this year
+        </li>
+      </ng-template>
+    </ng-container>
+  </ul>
+
+</div>

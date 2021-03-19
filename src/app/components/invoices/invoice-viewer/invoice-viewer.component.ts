@@ -1,3 +1,4 @@
+import { tap } from 'rxjs/operators';
 import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
 import { Invoice } from '../../../classes/invoice';
 import { FeeSchedule, ChargeBasis } from '@qmenu/ui';
@@ -15,8 +16,8 @@ interface keyValue {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InvoiceViewerComponent implements OnInit, OnChanges {
-  @Input() invoice: Invoice;
-
+  @Input()
+  invoice: Invoice;
   leftRows: keyValue[] = [];
   rightRows: keyValue[] = [];
 
@@ -24,7 +25,7 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
   orderPaymentMethods = new Set();
 
   couriers = new Set();
-
+ 
   constructor(private _ref: ChangeDetectorRef) { }
 
   ngOnInit() {
@@ -40,10 +41,13 @@ export class InvoiceViewerComponent implements OnInit, OnChanges {
     // fake date which is 2020-01-01 and having 
     return new Date(date).valueOf() !== new Date("2020-01-01").valueOf();
   }
-
+  /***
+   * the function is used of xxx
+   */
   computeData() {
     this.orderTypes = new Set();
     this.orderPaymentMethods = new Set();
+   
     this.invoice.orders.map(o => {
       this.orderTypes.add(o.type);
       this.orderPaymentMethods.add(o.paymentType); //only CASH or CREDITCARD
