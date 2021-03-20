@@ -1,4 +1,3 @@
-import * as moment from 'moment-timezone';
 
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
