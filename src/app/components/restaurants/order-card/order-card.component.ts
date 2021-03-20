@@ -53,15 +53,18 @@ export class OrderCardComponent implements OnInit {
     let createdAt = cloned.split(',')[0];
     let text = `RT: ${this.restaurant._id}, Order# ${order.orderNumber} (${createdAt})`;
     // console.log("text:"+text);
-    document.addEventListener('copy', (e: ClipboardEvent) => {
-      e.clipboardData.setData('text/plain', (text));
+    const handleCopy = (e: ClipboardEvent) => {
+      // clipboardData 可能是 null
+      e.clipboardData && e.clipboardData.setData('text/plain', text);
       e.preventDefault();
-      document.removeEventListener('copy', null);
-    });
+       // removeEventListener 要传入第二个参数
+    document.removeEventListener('copy', handleCopy);
+    };
+    document.addEventListener('copy', handleCopy);
     document.execCommand('copy');
-   this._global.publishAlert(AlertType.Success,'the data of order has copyed to your clipboard ~',1000);
+    this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
   }
-  
+
   changeToSelfDelivery() {
     this.onChangeToSelfDelivery.emit(this.order);
   }
