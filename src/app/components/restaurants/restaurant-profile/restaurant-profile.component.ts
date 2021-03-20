@@ -19,7 +19,6 @@ import { isDate } from '@angular/common/src/i18n/format_date';
 export class RestaurantProfileComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   @Input() editable;
-  salesAgent: string;
   uploadImageError: string;
   editing: boolean = false;
   address: Address;
@@ -192,13 +191,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     // update those two fields!
     newObj.images = this.images;
     delete oldObj['images'];
-    //update sale agent
-    newObj.rateSchedules=this.restaurant.rateSchedules;//to prevent the agent undefined situation.
 
-    newObj.rateSchedules.forEach(rate => {
-      rate.agent=this.salesAgent;
-    });
-    console.log('newObj:'+newObj);
     this._prunedPatch
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
