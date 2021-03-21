@@ -15,9 +15,9 @@
       </tr>
       <tr *ngFor="let row of rows">
         <td>
-          <a routerLink="/restaurants/{{ row.restaurant._id }}">{{
-            row.restaurant.name
-          }}</a>
+          <a routerLink="/restaurants/{{ row.restaurant._id }}"
+            >{{ row.restaurant.name }} ({{ row.timezone }})</a
+          >
           <div class="text-muted">
             <small>{{ getDaysFromId(row.restaurant._id) }} days ago</small>
           </div>
@@ -58,16 +58,17 @@
           </div>
         </td> -->
         <td>
-          <div *ngFor="let order of row.orders">
-            <div
-              *ngFor="
-                let result of getOrderTimeForTimeZone(
-                  order.createdAt,
-                  row.timeZone
-                )
-              "
-            >
-              <div>{{ result }}</div>
+          <div *ngFor="let orders of row.orders">
+            <div *ngFor="let properties of orders | keyvalue">
+              <div>
+                {{
+                  getTimes(
+                    properties.value.createdAt,
+                    row.timezone,
+                    properties.value.timeToDeliver
+                  )
+                }}
+              </div>
             </div>
 
             <hr />

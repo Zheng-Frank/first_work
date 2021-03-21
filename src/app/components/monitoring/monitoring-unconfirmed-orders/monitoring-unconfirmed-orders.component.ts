@@ -4,6 +4,7 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Restaurant, Order } from '@qmenu/ui'
+import { } from '@qmenu/ui'
 
 @Component({
   selector: 'app-monitoring-unconfirmed-orders',
@@ -15,16 +16,24 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   //unconfirmed_orders_count:number;
 
-  rows = []; // {restaurant, orders}
+  rows = []; // {rfestaurant, orders}
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   now = new Date();
+
+  log(item) {
+    console.log(item)
+  }
   ngOnInit() {
 
     console.log("TESTING FUNCTION")
     this.refreshOrders();
     // setInterval(() => { this.refreshOrders(); }, 180000);
     setInterval(() => { this.now = new Date(); }, 60000);
+  }
+
+  convertTZ(date, tzString) {
+    return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
   }
 
   async refreshOrders() {
@@ -41,6 +50,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     const ordersWithSatuses = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       query: {
+        // { _id: { $oid: '6053d1d56265d60008926948' } }
         createdAt: {
           // TODO: less than 15 minutes ago (arbritrary number)
           // TODO: replace slice with Mongo 4.4 version?
@@ -50,24 +60,25 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           },
         }
       },
-      // projection: {
-      //   _id: 1,
-      //   orderNumber: 1,
+      projection: {
+        _id: 1,
+        orderNumber: 1,
 
-      //   "restaurantObj.name": 1,
-      //   "restaurantObj._id": 1,
-      //   "statuses.status": 1,
-      //   "statuses.createdAt": 1,
-      //   "orderItems": 1,
-      //   type: 1,
-      //   "paymentObj.method": 1,
-      //   "paymentObj.paymentType": 1,
-      //   statuses: {
-      //     $slice: -1
-      //   },
-      //   createdAt: 1,
-      //   // timeToDeliver: 1
-      // },
+        "restaurantObj.name": 1,
+        "restaurantObj._id": 1,
+        "statuses.status": 1,
+        "statuses.createdAt": 1,
+        "orderItems": 1,
+        type: 1,
+        "paymentObj.method": 1,
+        "paymentObj.paymentType": 1,
+        timeToDeliver: 1,
+        statuses: {
+          $slice: -1
+        },
+        createdAt: 1,
+        // timeToDeliver: 1
+      },
       sort: {
         createdAt: -1
       },
@@ -75,6 +86,19 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     }, 250)
 
     console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
+
+    let scheduledOrders = 0
+    let nonscheduledOrders = 0
+    ordersWithSatuses.forEach(order => {
+      if (order.timeToDeliver) {
+        scheduledOrders += 1
+      } else {
+        nonscheduledOrders += 1
+      }
+    })
+
+    console.log("SCHEDULED ORDERS ", scheduledOrders)
+    console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
 
 
     // ordersWithSatuses.forEach(order => {
@@ -223,10 +247,50 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     console.log("FINAL ROWS ", this.rows)
 
+
+    // this.rows.forEach(row => {
+    //   let timezone = row.timezone
+    //   if (!timezone) {
+    //     console.log("CHECK NO TIMEZONE")
+    //   }
+
+    //   row.orders.forEach(order => {
+
+    //     // Two pathways, scheduled or nonScheduled order
+
+    //     console.log("ORDER ", order)
+    //     let orderTime = order.order.createdAt
+
+    //     console.log("ORDER TIME ", orderTime)
+    //     console.log("TIMEZONE ", timezone)
+    //     order.order.timeConverted = this.convertTZ(orderTime, timezone)
+    //     let expectedTime = new Date(order.order.timeConverted.getTime() + (10 * 60 * 1000))
+    //     // console.log("HERE IS THE CONVERTED TIME ", convertedTime)
+    //   })
+
+    // })
+
+  }
+
+  getTimes(createdAt, timezone, timeToDeliver) {
+
+
+
+    if (timeToDeliver) {
+      return "SCHEDULED ORDER"
+    } else {
+
+      let startTime = this.convertTZ(createdAt, timezone)
+      let expectedConfirmation = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
+
+      return `Ordered at ${startTime}, expected confirmation ${expectedConfirmation}`
+    }
+
   }
 
   getOrderTimeForTimeZone(createdAt, timeZone) {
-    return ["Scheduled for 11:00AM", "Confirmed by 12:30PM"]
+    let time = this.convertTZ(createdAt, timeZone)
+    return time
   }
 
   showChannel(channels) {
