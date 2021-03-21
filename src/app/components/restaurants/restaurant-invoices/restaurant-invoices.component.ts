@@ -40,7 +40,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
 
   async populateData(restaurantId) {
     const data = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
+      .getBatch(environment.qmenuApiUrl + "generic", {
         resource: "invoice",
         query: {
           "restaurant.id": restaurantId
@@ -85,7 +85,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
         sort: {
           toDate: -1
         }
-      }).toPromise();
+      },20);
     this.invoices = data.map(i => new Invoice(i));
   }
 
