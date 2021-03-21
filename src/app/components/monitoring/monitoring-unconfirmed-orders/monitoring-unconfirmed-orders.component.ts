@@ -272,18 +272,31 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   }
 
-  getTimes(createdAt, timezone, timeToDeliver) {
+  getTimes(properties, timezone) {
 
+    console.log("HERES ALL THE PROPERTIES ", properties)
 
+    let fields = properties.value
 
-    if (timeToDeliver) {
+    if (!fields) {
+      console.log("FIELDS ARE EMPTY")
+    }
+    if (fields.timeToDeliver) {
+
+      if (!fields.createdAt) {
+        return "MISSING DATE!"
+      }
       return "SCHEDULED ORDER"
     } else {
+      if (fields.createdAt) {
 
-      let startTime = this.convertTZ(createdAt, timezone)
-      let expectedConfirmation = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
+        let startTime = this.convertTZ(fields.createdAt, timezone)
+        let expectedConfirmation = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
+        return `Ordered at ${startTime}, expected confirmation ${expectedConfirmation}`
+      } else {
+        return "MISSING DATE!"
+      }
 
-      return `Ordered at ${startTime}, expected confirmation ${expectedConfirmation}`
     }
 
   }
