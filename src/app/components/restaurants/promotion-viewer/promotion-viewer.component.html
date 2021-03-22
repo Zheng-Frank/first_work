@@ -27,6 +27,8 @@
   <ng-template #viewerMode>
     <div *ngIf="promotion.percentage && !promotion.amount"><strong>Amount: </strong>{{promotion.percentage}}% Off</div>
     <div *ngIf="!promotion.percentage && promotion.amount"><strong>Amount: </strong>{{promotion.amount | currency:'USD':'symbol'}}</div>
+    <!-- in the rare case of a legacy style promo that has both a percentage and a dollar amount, we display (and use for discount purposes) the dollar amount -->
+    <div *ngIf="promotion.percentage && promotion.amount"><strong>Amount: </strong>{{promotion.amount | currency:'USD':'symbol'}}</div>
     <div *ngIf="(promotion.freeItemList || []).length && !promotion.percentage && !promotion.amount"><strong> Choose Free item from: </strong>{{freeItemListToString(promotion.freeItemList)}}</div>
     <div *ngIf="promotion.freeItemName"><strong>Free item:</strong> {{promotion.freeItemName}}</div>
     <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires:</strong> {{promotion.expiry | date : 'mediumDate':
