@@ -334,14 +334,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       let expectedDeliverTime = this.convertTZ(fields.timeToDeliver, timezone)
 
 
+      return [`Scheduled for ${expectedDeliverTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`]
 
-      return {
-        placedAt: `${fields.type} order placed at ${createdAt}`,
-        scheduledFor: `Scheduled for ${expectedDeliverTime}`,
-        confirmBy: `Confirm by ${new Date(confirmBy)}`
-      }
-
-      return `${fields.type} order placed at ${createdAt}. \n Scheduled for ${expectedDeliverTime}. \n Confirm by ${new Date(confirmBy)}`
     } else {
       if (fields.createdAt) {
 
@@ -349,14 +343,10 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         let expectedConfirmation: any = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
 
 
-        expectedConfirmation = new Date(expectedConfirmation)
+        expectedConfirmation = new Date(expectedConfirmation).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
 
-        return {
-          placedAt: `${fields.type} order at ${startTime}`,
-          confirmBy: `Confirm by ${expectedConfirmation}`
-        }
+        return [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}`]
 
-        // return `${fields.type} order at ${startTime}. \n Confirm by ${expectedConfirmation}`
       } else {
         return "MISSING DATE!"
       }
@@ -381,6 +371,10 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   getDaysFromId(mongoId) {
     return Math.floor((this.now.valueOf() - parseInt(mongoId.substring(0, 8), 16) * 1000) / (24 * 3600000));
+  }
+
+  capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
   }
 
 }
