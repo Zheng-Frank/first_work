@@ -302,14 +302,18 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
       let createdAt = this.convertTZ(fields.createdAt, timezone)
 
-      let confirmBy: any = 'UNDEFINED'
+      let confirmBy: any = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.pickupTimeEstimate)
 
       if (fields.type.toLowerCase() === 'delivery') {
         console.log("ORDER IS DELIVERY")
+
+        row.deliveryTimeEstimate = row.deliveryTimeEstimate ? row.deliveryTimeEstimate : 45
+
         confirmBy = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.deliveryTimeEstimate)
 
       } else if (fields.type.toLowerCase() === 'pickup') {
         console.log("ORDER IS PICK UP")
+        row.pickupTimeEstimate = row.pickupTimeEstimate ? row.pickupTimeEstimate : 15
 
         confirmBy = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.pickupTimeEstimate)
 
