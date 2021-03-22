@@ -8,7 +8,9 @@
   unnecessary data fields are purged.-->
   <div *ngIf="hideEditButton; else viewerMode">
     <div *ngIf="promotionType === '$ Discount'"><strong> Amount: </strong>{{promotion.amount | currency:'USD':'symbol'}} Off</div>
-    <div *ngIf="promotionType === '% Discount'"><strong>Amount: </strong>{{promotion.percentage}}% Off</div>
+    <div *ngIf="promotionType === '% Discount'"><strong>Amount: </strong>{{promotion.percentage}}% Off
+    <div *ngIf="(promotion.percentDiscountList || []).length"><strong>Discount applies to: </strong>{{itemListToString(promotion.percentDiscountList)}}</div>
+    </div>
     <div *ngIf="promotionType === 'Free Item'">
       <div *ngIf="!useFreeItemList" > <strong>Free item: </strong>{{promotion.freeItemName}} </div>
       <div *ngIf="useFreeItemList && (promotion.freeItemList || []).length"> <strong>Choose Free item from: </strong>{{freeItemListToString(promotion.freeItemList)}} </div>
@@ -25,7 +27,9 @@
   <!-- viewerMode is what displays promotions that are not open in the editor. As such promotionType and eligibility are not available to us to reference. 
   However, we don't need them since these promotions are not going to change and will not require a live update/preview.  -->
   <ng-template #viewerMode>
-    <div *ngIf="promotion.percentage && !promotion.amount"><strong>Amount: </strong>{{promotion.percentage}}% Off</div>
+    <div *ngIf="promotion.percentage && !promotion.amount"><strong>Amount: </strong>{{promotion.percentage}}% Off
+      <div *ngIf="(promotion.percentDiscountList || []).length"><strong>Discount applies to: </strong>{{itemListToString(promotion.percentDiscountList)}}</div>
+    </div>
     <div *ngIf="!promotion.percentage && promotion.amount"><strong>Amount: </strong>{{promotion.amount | currency:'USD':'symbol'}}</div>
     <!-- in the rare case of a legacy style promo that has both a percentage and a dollar amount, we display (and use for discount purposes) the dollar amount -->
     <div *ngIf="promotion.percentage && promotion.amount"><strong>Amount: </strong>{{promotion.amount | currency:'USD':'symbol'}}</div>

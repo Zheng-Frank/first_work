@@ -53,6 +53,7 @@ export class PromotionViewerComponent implements OnInit {
   freeItemListToString(list) {
     let listString = '';
     if (list.length === 1) {
+      console.log(list);
       return list[0].mcs[0].mis[0].name.trim();
     } else {
       list.forEach((entry, i) => {
