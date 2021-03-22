@@ -59,8 +59,9 @@
         </td> -->
         <td>
           <div *ngFor="let order of row.orders">
-            <div>
-              {{ getTimes(order, row) }}
+            <div *ngFor="let properties of getTimes(order, row) | keyvalue">
+              {{ properties.value }}
+              {{ log(properties) }}
             </div>
 
             <hr />

@@ -132,7 +132,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     let batchSize = 50;
     let restaurants = [];
-    let ids = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
+    let ids: any = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
 
 
 
@@ -159,14 +159,10 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     console.log("ALL RESTAUARANTS ", allRestaurants)
 
-    const menus = await this._api.post(environment.appApiUrl + "gmb/generic", {
-      name: "get-open-hours",
-      payload: {
-        "restaurantIds": ["5b0aa4a3bab26f14006479f1", "58884aaf7945f91100bad519"]
-      }
-    }).toPromise();
 
-    console.log("THESE ARE THE MENUS ", menus)
+
+
+    ids = ids.map(obj => obj.$oid)
 
 
 
@@ -251,6 +247,19 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     })
 
+    const menus = await this._api.post(environment.appApiUrl + "gmb/generic", {
+      name: "get-open-hours",
+      payload: {
+        "restaurantIds": ids
+      }
+    }).toPromise();
+
+    console.log("THESE ARE THE MENUS ", menus)
+
+    menus.forEach(menu => {
+      rtIdDict[menu.rtId].menus = menu
+    })
+
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
 
 
@@ -281,6 +290,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     // })
 
   }
+
 
   getTimes(order, row) {
 
@@ -325,7 +335,13 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
 
-      return `${fields.type} order placed at ${createdAt}. Scheduled for ${expectedDeliverTime}. Confirm by ${new Date(confirmBy)}`
+      return {
+        placedAt: `${fields.type} order placed at ${createdAt}`,
+        scheduledFor: `Scheduled for ${expectedDeliverTime}`,
+        confirmBy: `Confirm by ${new Date(confirmBy)}`
+      }
+
+      return `${fields.type} order placed at ${createdAt}. \n Scheduled for ${expectedDeliverTime}. \n Confirm by ${new Date(confirmBy)}`
     } else {
       if (fields.createdAt) {
 
@@ -334,7 +350,13 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
         expectedConfirmation = new Date(expectedConfirmation)
-        return `${fields.type} order at ${startTime}. Confirm by ${expectedConfirmation}`
+
+        return {
+          placedAt: `${fields.type} order at ${startTime}`,
+          confirmBy: `Confirm by ${expectedConfirmation}`
+        }
+
+        // return `${fields.type} order at ${startTime}. \n Confirm by ${expectedConfirmation}`
       } else {
         return "MISSING DATE!"
       }
