@@ -23,7 +23,7 @@ export class OrderItemsComponent implements OnInit, OnChanges {
 
 
   findFreePromoItem() {
-    const freePromoItem = this.order.orderItems.find(oi => oi.promo === this.order.promotion.name);
+    const freePromoItem = this.order.orderItems.find(oi => oi.promoId === this.order.promotion.name);
     if (freePromoItem) {
       return freePromoItem.miInstance.name;
     }

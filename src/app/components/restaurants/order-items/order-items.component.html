@@ -51,20 +51,20 @@
         <td class="text-right text-nowrap">{{n.quantity*n.getUnitCost() | money}}</td>
       </tr>
 
-      <tr *ngIf="order.promotion">
-        <td class="text-nowrap text-right" colspan="2">
-          <span *ngIf="findFreePromoItem(); else elsePromo">
+      <tr *ngIf="order.promotion" >
+        <td class="text-right" colspan="2">
+          <div *ngIf="findFreePromoItem(); else elsePromo" class="box d-inline">
             <strong>Free Item: {{findFreePromoItem()}}</strong> <kbd *ngIf="order.promotion.code">{{order.promotion.code}}</kbd>
-          </span>
+          </div>
           <ng-template #elsePromo>
 
-            <span ><strong>{{order.promotion.name}}</strong> <kbd *ngIf="order.promotion.code">{{order.promotion.code}}</kbd></span>
+            <div class="box d-inline"><strong>{{order.promotion.name}}</strong> <kbd *ngIf="order.promotion.code">{{order.promotion.code}}</kbd></div>
           </ng-template>
         </td>
         <td class="text-right text-nowrap">-{{order.getDiscount() | money}}</td>
       </tr>
 
-      <tr class="gray-border-top ">
+      <tr class="gray-border-top">
         <td class="text-sm-center" style="vertical-align: middle"
           attr.rowspan="{{3 + (order.fees || []).length + (alwaysDisplayDeliveryCharge || order.deliveryCharge ? 1: 0) + (alwaysDisplayTip || order.getTip() ? 1: 0) + (order.surchargeRate || order.surchargeAmount ? 1: 0) + (order.ccProcessingRate || order.ccProcessingFlatFee ? 1: 0)}}">
           <span class="box" *ngIf="order.specialInstructions"><strong>{{order.specialInstructions}}</strong></span></td>
