@@ -240,7 +240,16 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
 
 
-    allRestaurants.forEach(res => (rtIdDict[res._id].channels = res.channels, rtIdDict[res._id].timezone = res.googleAddress.timezone))
+    // allRestaurants.forEach(res => (rtIdDict[res._id].channels = res.channels, rtIdDict[res._id].timezone = res.googleAddress.timezone))
+
+
+    allRestaurants.forEach(res => {
+      rtIdDict[res._id].channels = res.channels
+      rtIdDict[res._id].timezone = res.googleAddress.timezone
+      rtIdDict[res._id].pickupTimeEstimate = res.pickupTimeEstimate
+      rtIdDict[res._id].deliveryTimeEstimate = res.deliveryTimeEstimate
+
+    })
 
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
 
@@ -255,6 +264,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     //   }
 
     //   row.orders.forEach(order => {
+
 
     //     // Two pathways, scheduled or nonScheduled order
 
@@ -272,27 +282,55 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   }
 
-  getTimes(properties, timezone) {
+  getTimes(order, row) {
 
-    console.log("HERES ALL THE PROPERTIES ", properties)
+    // console.log("HERES ALL THE PROPERTIES ", properties)
 
-    let fields = properties.value
+    let fields = order.order
+    let timezone = row.timezone
 
     if (!fields) {
       console.log("FIELDS ARE EMPTY")
     }
     if (fields.timeToDeliver) {
 
+
+
       if (!fields.createdAt) {
         return "MISSING DATE!"
       }
-      return "SCHEDULED ORDER"
+
+      let createdAt = this.convertTZ(fields.createdAt, timezone)
+
+      let confirmBy: any = 'UNDEFINED'
+
+      if (fields.type.toLowerCase() === 'delivery') {
+        console.log("ORDER IS DELIVERY")
+        confirmBy = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.deliveryTimeEstimate)
+
+      } else if (fields.type.toLowerCase() === 'pickup') {
+        console.log("ORDER IS PICK UP")
+
+        confirmBy = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.pickupTimeEstimate)
+
+      } else {
+        console.log("ORDER NOT REGISTED AS PICK UP DELIVERY OR PICKUP")
+      }
+
+      let expectedDeliverTime = this.convertTZ(fields.timeToDeliver, timezone)
+
+
+
+      return `${fields.type} order placed at ${createdAt}. Scheduled for ${expectedDeliverTime}. Confirm by ${new Date(confirmBy)}`
     } else {
       if (fields.createdAt) {
 
         let startTime = this.convertTZ(fields.createdAt, timezone)
-        let expectedConfirmation = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
-        return `Ordered at ${startTime}, expected confirmation ${expectedConfirmation}`
+        let expectedConfirmation: any = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
+
+
+        expectedConfirmation = new Date(expectedConfirmation)
+        return `${fields.type} order at ${startTime}. Confirm by ${expectedConfirmation}`
       } else {
         return "MISSING DATE!"
       }

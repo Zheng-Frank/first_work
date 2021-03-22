@@ -58,11 +58,9 @@
           </div>
         </td> -->
         <td>
-          <div *ngFor="let orders of row.orders">
-            <div *ngFor="let properties of orders | keyvalue">
-              <div>
-                {{ getTimes(properties, row.timezone) }}
-              </div>
+          <div *ngFor="let order of row.orders">
+            <div>
+              {{ getTimes(order, row) }}
             </div>
 
             <hr />
