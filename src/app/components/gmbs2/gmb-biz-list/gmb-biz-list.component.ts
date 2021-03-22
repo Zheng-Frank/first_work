@@ -83,7 +83,7 @@ export class GmbBizListComponent implements OnInit {
         "locations.statusHistory.time": 1,
         "locations.statusHistory.status": 1
       }
-    }, 60);
+    }, 30);
 
 
     const gmbBizList = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
