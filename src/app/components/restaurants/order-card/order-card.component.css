@@ -3,6 +3,7 @@
   height: 3rem;
   border-radius: 0.25rem;
 }
+
 .label {
   display: inline-block;
   width: 7rem;
@@ -247,4 +248,20 @@
 
 ::ng-deep .modal-content {
   padding-bottom: 0 !important;
+}
+
+.qr {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  font-size: 150%;
+  opacity: 0.75;
+}
+
+.order-number {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  font-size: 150%;
+  opacity: 0.75;
 }

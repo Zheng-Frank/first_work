@@ -1,0 +1,79 @@
+<button
+  class="btn btn-primary rowButton text-nowrap btn-sm mr-1"
+  [disabled]="postcards.length < 1 ? true : false"
+  (click)="firePostCards()"
+  data-toggle="modal"
+  data-target="#sendPostcard"
+>
+  Send Postcard
+</button>
+
+<div class="modal" tabindex="-1" role="dialog" id="sendPostcard">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Postcard Sending Results</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+          (click)="reset()"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-footer">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-4"></div>
+            <div class="col-sm-4"></div>
+          </div>
+        </div>
+        <br />
+        <div class="container">
+          <div class="row">
+            <div class="form-check">
+              <div class="row">
+                <div *ngIf="loading" class="col-sm-4 text-center">
+                  <div
+                    *ngIf="loading"
+                    class="spinner-border text-center"
+                    role="status"
+                  >
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                  Loading...
+                </div>
+
+                <div *ngIf="showLobOutput && !loading">
+                  <div class="alert alert-success text-center">
+                    We successfully sent postcards to these
+                    {{ successLobRestaurants.length }} restaurants:
+
+                    <div *ngFor="let item of successLobRestaurants">
+                      {{ item }} ,
+                    </div>
+                  </div>
+                  <hr />
+
+                  <div class="alert alert-danger text-center">
+                    We failed to send postcards to
+                    {{ failLobRestaurants.length }} restaurants
+                    <div *ngFor="let item of failLobRestaurants">
+                      {{ item }},
+                    </div>
+                  </div>
+
+                  <hr />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

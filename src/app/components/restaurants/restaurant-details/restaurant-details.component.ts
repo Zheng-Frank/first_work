@@ -35,6 +35,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     promotions: [],
+    qrSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     faxSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
@@ -42,7 +43,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
     restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],
-    restaurantChains: ['ADMIN', 'CSR']
+    restaurantChains: ['ADMIN', 'CSR'],
   }
 
   knownUsers = [];
@@ -154,6 +155,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           printers: 1,
           printerSN: 1,
           promotions: 1,
+          'qrSettings.viewOnly': 1,
           rateSchedules: 1,
           requireBillingAddress: 1,
           requireZipcode: 1,

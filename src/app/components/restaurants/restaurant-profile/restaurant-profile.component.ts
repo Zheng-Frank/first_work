@@ -18,12 +18,15 @@ import { isDate } from '@angular/common/src/i18n/format_date';
 })
 export class RestaurantProfileComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
-  @Input() editable ;
+  @Input() editable;
   uploadImageError: string;
   editing: boolean = false;
   address: Address;
   apt: string;
-
+  ifShowBasicInformation: boolean = true; //using stretching transformation at  the restaurant profile setting edit page
+  ifShowPreferences: boolean = false;
+  ifShowFee_MinimumSettings: boolean = false;
+  ifShowOtherPreferences: boolean = false;
   fields = [
     'name',
     'email',
@@ -48,7 +51,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'ccProcessingRate',
     'ccProcessingFlatFee',
     'deliveryBy',
-    'domain',    
+    'domain',
     'skipOrderConfirmation',
     'skipAutoInvoicing',
     'skipImageInjection',
@@ -60,7 +63,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'notes',
     'insistedPrintCCInfo',
     'comebackDate'
-
   ];
 
   uploadError: string;
@@ -98,9 +100,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
-    if(this.restaurant.disabled && this.restaurant['comebackDate'] === undefined) {
+    if (this.restaurant.disabled && this.restaurant['comebackDate'] === undefined) {
       this.isTemporarilyDisabled = 'No';
-    } else if(this.restaurant.disabled && (this.restaurant['comebackDate'] === null || this.isDate(this.restaurant['comebackDate']))) {
+    } else if (this.restaurant.disabled && (this.restaurant['comebackDate'] === null || this.isDate(this.restaurant['comebackDate']))) {
       this.isTemporarilyDisabled = 'Yes';
     }
   }
@@ -109,8 +111,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     return !isNaN(Date.parse(dateToParse));
   }
 
-  isDisabledEditable(){
-    return this._global.user.roles.some(r => r ==='ADMIN' || r === 'ACCOUNTANT' );
+  isDisabledEditable() {
+    return this._global.user.roles.some(r => r === 'ADMIN' || r === 'ACCOUNTANT');
   }
 
   ngOnChanges(params) {
@@ -134,12 +136,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
     this.apt = this.restaurant.googleAddress ? this.restaurant.googleAddress.apt : '';
-    
-    if(this.comebackDate !== undefined) {
+
+    if (this.comebackDate !== undefined) {
       this.comebackDate = this.comebackDate === null ? null : new Date(this.comebackDate) && new Date(this.comebackDate).toISOString().split('T')[0];
     }
 
-    if(this.comebackDate === undefined) {
+    if (this.comebackDate === undefined) {
       this.isTemporarilyDisabled = 'No';
     }
 
@@ -160,11 +162,11 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       newObj[field] = this[field];
     });
 
-    if(this.isTemporarilyDisabled === 'Yes') {
+    if (this.isTemporarilyDisabled === 'Yes') {
       newObj.comebackDate = newObj.comebackDate === null ? null : new Date(newObj.comebackDate);
     }
 
-    if(this.isTemporarilyDisabled === 'No') {
+    if (this.isTemporarilyDisabled === 'No') {
       delete newObj.comebackDate;
     }
 
@@ -181,7 +183,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       newObj.googleAddress.apt = this.apt;
     }
 
-    if(!this.disabled) {
+    if (!this.disabled) {
       delete newObj.comebackDate;
     }
 
@@ -218,6 +220,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   cancel() {
+    this.ifShowBasicInformation = true;
     this.editing = false;
   }
 
@@ -274,7 +277,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       this.comebackDate = null;
     }
 
-    if(this.isTemporarilyDisabled === 'Yes') {
+    if (this.isTemporarilyDisabled === 'Yes') {
       this.comebackDate = null;
     }
   }

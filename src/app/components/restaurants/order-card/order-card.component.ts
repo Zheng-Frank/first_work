@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
@@ -5,12 +6,15 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from "../../../services/global.service";
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+
 declare var $: any;
 @Component({
   selector: 'app-order-card',
   templateUrl: './order-card.component.html',
-  styleUrls: ['./order-card.component.css']
+  styleUrls: ['./order-card.component.css'],
+  providers: [DatePipe]
 })
+
 export class OrderCardComponent implements OnInit {
   @Input() order: Order;
   @Input() restaurant: Restaurant;
@@ -32,12 +36,32 @@ export class OrderCardComponent implements OnInit {
   phoneNumberToText;
   showTexting: boolean = false;
   displayingDeliveryDetails = false;
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private datePipe: DatePipe) {
   }
 
   ngOnInit() {
   }
-
+  /**
+   * When click on "copy" button, should put the following text in the user's clipboard:
+"RT: [rt_id], Order# [XX] ([Mmm DD HH:MM AM/PM])"
+   */
+  copyToClipboard(order) {
+    // console.log("order.createdAt:"+order.createdAt+", type of order.createdAt:"+typeof order.createdAt);
+    const cloned = order.createdAt.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone });
+    // console.log("cloned:"+cloned);
+    // let createdAt = moment(cloned).format("Mmm dd h:mm a");
+    let createdAt = cloned.split(',')[0];
+    let text = `RT: ${this.restaurant._id}, Order# ${order.orderNumber} (${createdAt})`;
+    // console.log("text:"+text);
+    document.addEventListener('copy', (e: ClipboardEvent) => {
+      e.clipboardData.setData('text/plain', (text));
+      e.preventDefault();
+      document.removeEventListener('copy', null);
+    });
+    document.execCommand('copy');
+   this._global.publishAlert(AlertType.Success,'the data of order has copyed to your clipboard ~',1000);
+  }
+  
   changeToSelfDelivery() {
     this.onChangeToSelfDelivery.emit(this.order);
   }
@@ -85,11 +109,33 @@ export class OrderCardComponent implements OnInit {
   canSendEmail(order: Order) {
     return this.restaurant && (this.restaurant.channels || []).some(c => c.type === 'Email' && (c.notifications || []).some(n => n === 'Order'));
   }
- 
+
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 3 days
     // if admin and not qmenu collect
     return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000)) || (this.isAdmin() && order.payment.method !== 'QMENU');
+  }
+
+  /**
+   * this function is used to judge canceled order who submit
+   */
+  whoCancelOrder(order: Order) {
+    const status = order.orderStatuses.filter(statuses => statuses.status == 'CANCELED');
+    if (status.length > 0) {
+      return status[0].updatedBy;
+    }
+  }
+  /**
+   *this function is used to get order canceled time (who canceled the order)
+   *
+   * @param {*} order
+   * @memberof OrderCardComponent
+   */
+  getOrderCanceledTime(order) {
+    const status = order.orderStatuses.filter(statuses => statuses.status == 'CANCELED');
+    if (status.length > 0) {
+      return status[0].createdAt;
+    }
   }
 
   canShowAdjust(order: Order) {
@@ -363,11 +409,11 @@ export class OrderCardComponent implements OnInit {
    * @param {*} order
    * @memberof OrderCardComponent
    */
-  ban(order:Order) {
-   // console.log("374行 order card ：ban:"+JSON.stringify(order.customer));
+  ban(order: Order) {
+    // console.log("374行 order card ：ban:"+JSON.stringify(order.customer));
     this.onBan.emit(order);
   }
- 
+
   getBannedReasons() {
     // if(this.order){
     //      if(this.order.customer){
@@ -387,16 +433,16 @@ export class OrderCardComponent implements OnInit {
    * @returns
    * @memberof OrderCardComponent
    */
-  isBanned(order:Order){
-  //  return order.customer.disabled;
-  //如果order.customer当前属性值为undefined ,则当前用户未被禁止
-  //（If customer 'property named bannedReasons is undefined,he is not banned!）
-   //console.log("order carn 409行 ："+JSON.stringify(order.customer));
-  if(order&&order.customer&&order.customer.bannedReasons&&order.customer.bannedReasons instanceof Array && order.customer.bannedReasons.length>0){
+  isBanned(order: Order) {
+    //  return order.customer.disabled;
+    //如果order.customer当前属性值为undefined ,则当前用户未被禁止
+    //（If customer 'property named bannedReasons is undefined,he is not banned!）
+    //console.log("order carn 409行 ："+JSON.stringify(order.customer));
+    if (order && order.customer && order.customer.bannedReasons && order.customer.bannedReasons instanceof Array && order.customer.bannedReasons.length > 0) {
       return true;
-   }else{
-     return false;
-   }
+    } else {
+      return false;
+    }
   }
   isCanceled(order: Order) {
     // status are not completed, not canceled, and time is not over 2 days
