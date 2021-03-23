@@ -54,16 +54,35 @@
           >
         </span>
       </span>
-      &nbsp;
-      <span *ngIf="criteria == 'Custom Date'">
+      &nbsp; &nbsp;
+      <span *ngIf="showHistogram" class="dropdown">
+        <b>Select Graph Viewing: &nbsp; </b>
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton1"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          {{ graphViewing }} &nbsp;
+        </button>
+
         &nbsp; &nbsp;
-        <input (change)="changeDate()" [(ngModel)]="inputDateOne" type="date" />
-        &nbsp; to &nbsp;
-        <input (change)="changeDate()" [(ngModel)]="inputDateTwo" type="date" />
-        &nbsp;
-        <!-- <button class="btn btn-primary">Enter</button> -->
+        <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <a (click)="setGraphView('Total Call Time')" class="dropdown-item"
+            >Total Call Time</a
+          >
+
+          <a (click)="setGraphView('Total Calls')" class="dropdown-item"
+            >Total Calls</a
+          >
+
+          <a (click)="setGraphView('Avg Call Time')" class="dropdown-item"
+            >Avg Call Time</a
+          >
+        </span>
       </span>
-      &nbsp;
       <span class="dropdown">
         <b>Sort By: &nbsp; </b>
         <button
@@ -117,6 +136,22 @@
       </span>
       <!-- <span> <app-quick-date-picker></app-quick-date-picker> </span> -->
     </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <span *ngIf="criteria == 'Custom Date'">
+      <br />
+
+      &nbsp; &nbsp;
+      <input (change)="changeDate()" [(ngModel)]="inputDateOne" type="date" />
+      &nbsp; to &nbsp;
+      <input (change)="changeDate()" [(ngModel)]="inputDateTwo" type="date" />
+      &nbsp;
+      <!-- <button class="btn btn-primary">Enter</button> -->
+    </span>
+    <br />
   </div>
 </div>
 
