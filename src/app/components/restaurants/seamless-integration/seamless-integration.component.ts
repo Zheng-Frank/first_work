@@ -223,6 +223,8 @@ export class SeamlessIntegrationComponent implements OnInit {
   }
 
   async ngOnInit() {
+
+
     await Notification.requestPermission();
     if (!this.polling) {
       setInterval(() => this.startPolling(), 300000)
@@ -250,6 +252,16 @@ export class SeamlessIntegrationComponent implements OnInit {
           limit: 100000,
         })
         .toPromise();
+
+      let arr = []
+      this.allRestaurants.forEach(res => {
+        arr.push(res.salesAgent)
+      })
+
+      let uniqueAgents = [...new Set(arr)]
+
+      console.log(uniqueAgents)
+
       this.allRestaurants.map((restaurant: any) => {
         restaurant.showAnalytics = false;
         restaurant.showSendHistory = false;

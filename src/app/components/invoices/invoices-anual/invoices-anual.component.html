@@ -297,5 +297,140 @@
     </div>
 
   </div>
-
+  <hr>
+  <span class="mt-5">
+    Transaction Breakdowns by payment type.
+    Please note that we are unable to include tips paid in cash that were not indicated by the customer through our
+    system.
+  </span>
+  <table class="table  mb-5">
+    <tbody>
+      <!-- subtotal, tips, delivery fee, tax, total -->
+      <tr>
+        <th></th>
+        <th>Subtotal</th>
+        <th>Tax</th>
+        <th>Tips</th>
+        <th>Delivery Fee</th>
+        <th class="text-right" style="padding-right:0 !important">Total</th>
+      </tr>
+      <tr *ngIf="Cash.total!=0">
+        <th style="padding-left:0 !important">
+          Cash
+        </th>
+        <td>{{Cash?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{Cash?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{Cash?.total  | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="swipeInPerson.total!=0">
+        <th style="padding-left:0 !important">
+          Swipe in person (CC)
+        </th>
+        <td>{{swipeInPerson?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{swipeInPerson?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{swipeInPerson?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="keyIn.total!=0">
+        <th style="padding-left:0 !important">
+          Key-in (CC)
+        </th>
+        <td>{{keyIn?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{keyIn?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{keyIn?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="restaurantStripe.total!=0">
+        <th style="padding-left:0 !important">
+          Restaurant Stripe (CC)
+        </th>
+        <td>{{restaurantStripe?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{restaurantStripe?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{restaurantStripe?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="qmenuCollected.total!=0">
+        <th style="padding-left:0 !important">
+          Qmenu Collect (CC)
+        </th>
+        <td>{{qmenuCollected?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{qmenuCollected?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{qmenuCollected?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th style="padding-left:0 !important">
+          Total
+        </th>
+        <td>{{total?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{total?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{total?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{total?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{total?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <hr>
+  <span>
+    Transaction Breakdown by service type.
+  </span>
+  <table class="table  mb-5">
+    <tbody>
+      <!-- subtotal, tips, delivery fee, tax, total -->
+      <tr>
+        <th></th>
+        <th>Subtotal</th>
+        <th>Tax</th>
+        <th>Tips</th>
+        <th>Delivery Fee</th>
+        <th class="text-right" style="padding-right:0 !important">Total</th>
+      </tr>
+      <tr *ngIf="deliveryServiceType.total!=0">
+        <th style="padding-left:0 !important;min-width:150.82px;">
+          Delivery
+        </th>
+        <td>{{deliveryServiceType?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{deliveryServiceType?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{deliveryServiceType?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{deliveryServiceType?.deliveryFee | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{deliveryServiceType?.total  | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="pickupServiceType.total!=0">
+        <th style="padding-left:0 !important">
+          Pickup
+        </th>
+        <td>{{pickupServiceType?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{pickupServiceType?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{pickupServiceType?.tip | currency:'USD':'symbol'}}</td>
+        <td class="line_m"></td>
+        <td class="text-right" style="padding-right:0 !important">{{pickupServiceType?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr *ngIf="dine_inServiceType.total!=0">
+        <th style="padding-left:0 !important">
+          Dine-in
+        </th>
+        <td>{{dine_inServiceType?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{dine_inServiceType?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{dine_inServiceType?.tip | currency:'USD':'symbol'}}</td>
+        <td class="line_m"></td>
+        <td class="text-right" style="padding-right:0 !important">{{dine_inServiceType?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+      <tr>
+        <th style="padding-left:0 !important">
+          Total
+        </th>
+        <td>{{total?.subtotal | currency:'USD':'symbol'}}</td>
+        <td>{{total?.tax | currency:'USD':'symbol'}}</td>
+        <td>{{total?.tip | currency:'USD':'symbol'}}</td>
+        <td>{{total?.deliveryCharge | currency:'USD':'symbol'}}</td>
+        <td class="text-right" style="padding-right:0 !important">{{total?.total | currency:'USD':'symbol'}}</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
