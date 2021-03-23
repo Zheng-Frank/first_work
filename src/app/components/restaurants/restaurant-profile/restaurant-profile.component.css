@@ -86,3 +86,6 @@ input:checked + .slider:before {
 .table.table-tip-setting {
   margin-bottom: 0;
 }
+.tip-explain {
+  color: #CC0000;
+}

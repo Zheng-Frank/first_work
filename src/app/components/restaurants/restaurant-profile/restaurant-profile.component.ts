@@ -56,7 +56,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'skipAutoInvoicing',
     'skipImageInjection',
     'hideOrderStatus',
-    'hideTipInput',
     'hidePrintingCCInfo',
     'skipShowTax',
     'menuHoursExtended',
@@ -198,11 +197,11 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       };
       const {tipSuggestion, tipMinimum, tipHide = false} = setting;
       if (tipSuggestion) {
-        this.tipSettings[type].defaultPercentage = tipSuggestion.rate ? tipSuggestion.rate * 100 : tipSuggestion.rate;
+        this.tipSettings[type].defaultPercentage = tipSuggestion.rate;
         this.tipSettings[type].defaultAmount = tipSuggestion.amount;
       }
       if (tipMinimum) {
-        this.tipSettings[type].minimumPercentage = tipMinimum.rate ? tipMinimum.rate * 100 : tipMinimum.rate;
+        this.tipSettings[type].minimumPercentage = tipMinimum.rate;
         this.tipSettings[type].minimumAmount = tipMinimum.amount;
       }
       this.tipSettings[type].tipHide = tipHide;
@@ -222,9 +221,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     }
 
     if (key.indexOf('Percentage') >= 0) {
-      // percentage have two decimal digits and range in 0-100
-      value = Math.min(100, Math.max(0, value));
-      target.value = formatNumber(value, 'en_US', '1.0-2');
+      // percentage have four decimal digits and range in 0-1
+      value = Math.min(1, Math.max(0, value));
+      target.value = formatNumber(value, 'en_US', '1.0-4');
     }
     if (key.indexOf('Amount') >= 0) {
       // amount have two decimal digit and range in 0-1000
@@ -242,8 +241,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     if (typeof value !== 'number') {
       return null;
     }
-    value = Number(value.toFixed(2));
-    return percent ? value / 100 : value;
+    return Number(value.toFixed(percent ? 4 : 2));
   }
 
   ok() {
