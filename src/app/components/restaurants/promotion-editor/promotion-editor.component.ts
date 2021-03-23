@@ -422,7 +422,7 @@ export class PromotionEditorComponent implements DoCheck {
 
   removeUnwantedFields() {
     if (this.promotion.name && this.promotion.name.length > 100) {
-      this.promotion.name = this.promotion.name.slice(0, 100) + '...';
+      this.promotion.name = this.promotion.name.slice(0,97) + '...';
     }
     if (this.promotionType === '$ Discount') {
       this.promotion.freeItemList = [];
