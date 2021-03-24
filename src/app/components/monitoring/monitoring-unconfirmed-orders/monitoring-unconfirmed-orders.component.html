@@ -28,7 +28,7 @@
         <td>
           <div *ngFor="let channel of row.channels">
             <span *ngIf="showChannel(channel)">
-              Phone: {{ channel.value }}
+              {{ channel.value | phone }}
             </span>
           </div>
         </td>

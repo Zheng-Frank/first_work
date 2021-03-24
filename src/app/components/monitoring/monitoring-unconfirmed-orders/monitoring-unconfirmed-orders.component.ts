@@ -55,23 +55,25 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           // TODO: less than 15 minutes ago (arbritrary number)
           // TODO: replace slice with Mongo 4.4 version?
           // TODO:
+          $lt: {
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
+          },
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .5)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 4)))
           },
         }
       },
       projection: {
         _id: 1,
-        orderNumber: 1,
-
-        "restaurantObj.name": 1,
-        "restaurantObj._id": 1,
-        "statuses.status": 1,
-        "statuses.createdAt": 1,
-        "orderItems": 1,
+        // orderNumber: 1,
+        // "restaurantObj.name": 1,
+        // "restaurantObj._id": 1,
+        // "statuses.status": 1,
+        // "statuses.createdAt": 1,
+        // "orderItems": 1,
         type: 1,
-        "paymentObj.method": 1,
-        "paymentObj.paymentType": 1,
+        // "paymentObj.method": 1,
+        // "paymentObj.paymentType": 1,
         timeToDeliver: 1,
         statuses: {
           $slice: -1
@@ -82,8 +84,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 100000
-    }, 250)
+    }, 1000)
 
     console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
 
@@ -101,6 +102,9 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
 
 
+
+    let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.restaurantObj._id))]
+    console.log(uniqueIds)
     // ordersWithSatuses.forEach(order => {
     //   console.log('This is the order total!!!', new Order(order).getTotal())
     // })
@@ -108,11 +112,25 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     // TODO
     // TODO: Find order cost. Look at order portal and produce cost
-    const unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
+    let unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
     //this.unconfirmed_orders_count=unconfirmedOrders.length;
 
+    // These are the unconfirmed orders for non scheduled
     console.log("THESE ARE THE UNCONFIRMED ORDERS ", unconfirmedOrders)
 
+
+    // For scheduled orders, these are the unconfirmed orders
+
+    // const unconfirmedScheduledOrders = ordersWithSatuses.filter(o => {
+    //   o.timeToDeliver
+    //   o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED'
+    // })
+
+
+    // const scheduledOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
+
+
+    // unconfirmedOrders = [...unconfirmedOrders, ...unconfirmedScheduledOrders]
 
 
 
@@ -145,7 +163,6 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       projection: {
         channels: 1,
         preferredLanguage: 1,
-        menus: 1,
         pickupTimeEstimate: 1,
         deliveryTimeEstimate: 1,
         _id: 1,
@@ -154,7 +171,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       }
-    }, 20);
+    }, 10000);
 
 
     console.log("ALL RESTAUARANTS ", allRestaurants)
@@ -247,48 +264,37 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     })
 
-    const menus = await this._api.post(environment.appApiUrl + "gmb/generic", {
-      name: "get-open-hours",
-      payload: {
-        "restaurantIds": ids
-      }
-    }).toPromise();
+    // const menus = await this._api.post(environment.appApiUrl + "gmb/generic", {
+    //   name: "get-open-hours",
+    //   payload: {
+    //     "restaurantIds": ids
+    //   }
+    // }).toPromise();
 
-    console.log("THESE ARE THE MENUS ", menus)
+    // console.log("THESE ARE THE MENUS ", menus)
 
-    menus.forEach(menu => {
-      rtIdDict[menu.rtId].menus = menu
-    })
+    // menus.forEach(menu => {
+    //   rtIdDict[menu.rtId].menus = menu
+    // })
 
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
 
 
-    console.log("FINAL ROWS ", this.rows)
-
+    // map in individual restaurant hours 
 
     // this.rows.forEach(row => {
+    //   let dayIndex = new Date().getDay()
     //   let timezone = row.timezone
-    //   if (!timezone) {
-    //     console.log("CHECK NO TIMEZONE")
-    //   }
-
+    //   let menuHours = row.menus.regularHours[dayIndex]
+    //   let openTime: any = menuHours.openTime
+    //   // let closeTime: any = menuHours.closeTime
     //   row.orders.forEach(order => {
-
-
-    //     // Two pathways, scheduled or nonScheduled order
-
-    //     console.log("ORDER ", order)
-    //     let orderTime = order.order.createdAt
-
-    //     console.log("ORDER TIME ", orderTime)
-    //     console.log("TIMEZONE ", timezone)
-    //     order.order.timeConverted = this.convertTZ(orderTime, timezone)
-    //     let expectedTime = new Date(order.order.timeConverted.getTime() + (10 * 60 * 1000))
-    //     // console.log("HERE IS THE CONVERTED TIME ", convertedTime)
+    //     if (this.convertTZ(new Date(order.createdAt), timezone).getTime() - new Date(openTime).getTime() >= (1000 * 60 * 5)) {
+    //       order = null
+    //     }
     //   })
-
     // })
-
+    console.log("FINAL ROWS ", this.rows)
   }
 
 
@@ -315,19 +321,20 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       let confirmBy: any = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.pickupTimeEstimate)
 
       if (fields.type.toLowerCase() === 'delivery') {
-        console.log("ORDER IS DELIVERY")
+        // console.log("ORDER IS DELIVERY")
 
         row.deliveryTimeEstimate = row.deliveryTimeEstimate ? row.deliveryTimeEstimate : 45
 
-        confirmBy = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.deliveryTimeEstimate)
+        confirmBy = new Date(createdAt.getTime()).setMinutes(new Date(fields.timeToDeliver).getMinutes() - row.deliveryTimeEstimate)
 
       } else if (fields.type.toLowerCase() === 'pickup') {
-        console.log("ORDER IS PICK UP")
+        // console.log("ORDER IS PICK UP")
         row.pickupTimeEstimate = row.pickupTimeEstimate ? row.pickupTimeEstimate : 15
 
-        confirmBy = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.pickupTimeEstimate)
+        confirmBy = new Date(createdAt.getTime()).setMinutes(new Date(fields.timeToDeliver).getMinutes() - row.pickupTimeEstimate)
 
       } else {
+        confirmBy = new Date(createdAt.getTime()).setMinutes(new Date(fields.timeToDeliver).getMinutes() - 45)
         console.log("ORDER NOT REGISTED AS PICK UP DELIVERY OR PICKUP")
       }
 
