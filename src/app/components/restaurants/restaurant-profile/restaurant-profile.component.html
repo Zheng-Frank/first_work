@@ -222,15 +222,15 @@
                     <tbody>
                       <tr>
                         <th class="pl-5">Default Percentage (%)</th>
-                        <td>{{tipSettings['Dine-in'].defaultPercentage | number: '1.0-2'}}</td>
-                        <td>{{tipSettings.Pickup.defaultPercentage | number: '1.0-2'}}</td>
-                        <td>{{tipSettings.Delivery.defaultPercentage | number: '1.0-2'}}</td>
+                        <td>{{tipSettings['Dine-in'].defaultPercentage | number: '1.0-4'}}</td>
+                        <td>{{tipSettings.Pickup.defaultPercentage | number: '1.0-4'}}</td>
+                        <td>{{tipSettings.Delivery.defaultPercentage | number: '1.0-4'}}</td>
                       </tr>
                       <tr>
                         <th class="pl-5">Minimum Percentage (%)</th>
-                        <td>{{tipSettings['Dine-in'].minimumPercentage | number: '1.0-2'}}</td>
-                        <td>{{tipSettings.Pickup.minimumPercentage | number: '1.0-2'}}</td>
-                        <td>{{tipSettings.Delivery.minimumPercentage | number: '1.0-2'}}</td>
+                        <td>{{tipSettings['Dine-in'].minimumPercentage | number: '1.0-4'}}</td>
+                        <td>{{tipSettings.Pickup.minimumPercentage | number: '1.0-4'}}</td>
+                        <td>{{tipSettings.Delivery.minimumPercentage | number: '1.0-4'}}</td>
                       </tr>
                       <tr>
                         <th class="pl-5">Default Amount ($)</th>
@@ -251,6 +251,13 @@
                         <td>{{!tipSettings.Delivery.tipHide}}</td>
                       </tr>
                     </tbody>
+                    <tfoot>
+                      <tr>
+                        <th class="pl-5 tip-explain" colspan="4">* If tip settings are not specified at restaurant
+                          level, system default tip will be 15% for pickup and dine-in, and 20% for delivery. Tips
+                          cannot exceed the maximum of $1000 or 100%.</th>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </td>
@@ -285,91 +292,81 @@
               <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
 								details...'}}
               </button>
-           </tr>
-          <ng-container *ngIf="showDetails">
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">Hide Order Status on Customer Side</div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.hideOrderStatus}}
-                  </div>
-                </div>
-              </th>
             </tr>
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">Skip Order Confirmation</div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.skipOrderConfirmation}}
+            <ng-container *ngIf="showDetails">
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Hide Order Status on Customer Side</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.hideOrderStatus}}
+                    </div>
                   </div>
-                </div>
-              </th>
-            </tr>
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">Skip Auto Invoicing</div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.skipAutoInvoicing}}
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Skip Order Confirmation</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.skipOrderConfirmation}}
+                    </div>
                   </div>
-                </div>
-              </th>
-            </tr>
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">Not Show Tax Option to Customer</div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.skipShowTax}}
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Skip Auto Invoicing</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.skipAutoInvoicing}}
+                    </div>
                   </div>
-                </div>
-              </th>
-            </tr>
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">Skip Image Inject</div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.skipImageInjection}}
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Not Show Tax Option to Customer</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.skipShowTax}}
+                    </div>
                   </div>
-                </div>
-              </th>
-            </tr>
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">Allow submitting order at close time</div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.menuHoursExtended}}
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Skip Image Inject</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.skipImageInjection}}
+                    </div>
                   </div>
-                </div>
-              </th>
-            </tr>
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">Hide printing CC</div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.hidePrintingCCInfo}}
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Allow submitting order at close time</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.menuHoursExtended}}
+                    </div>
                   </div>
-                </div>
-              </th>
-            </tr>
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">Hide Tip Input</div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.hideTipInput}}
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Hide printing CC</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.hidePrintingCCInfo}}
+                    </div>
                   </div>
-                </div>
-              </th>
-            </tr>
-      </ng-container>
-      </tbody>
-      </table>
+                </th>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
       </div>
       <!--editing view-->
       <div *qIf="editing">
@@ -419,7 +416,7 @@
               <input type="text" [(ngModel)]="salesAgent" class="form-control">
             </div>
           </div>
-          <div class="form-group row" *ngIf="isDisabledEditable()" >
+          <div class="form-group row" *ngIf="isDisabledEditable()">
             <label class="col-4 col-form-label pt-0 pl-5">Disabled</label>
             <div class="pl-1 col-7 pt-2">
               <div class="d-flex flex-column">
@@ -550,11 +547,13 @@
               <label class="col-4 col-form-label pt-0 pl-5">Surcharge</label>
               <div class="pl-1 col-7">
                 <label>text to show customer:</label>
-                <input type="text" [(ngModel)]="surchargeName" class="form-control mt-1" placeholder="text to show customer">
+                <input type="text" [(ngModel)]="surchargeName" class="form-control mt-1"
+                  placeholder="text to show customer">
                 <label>fixed amount</label>
                 <input type="number" [(ngModel)]="surchargeAmount" class="form-control" placeholder="surcharge amount">
                 <label>rate</label>
-                <input type="number" style="width: auto;" [(ngModel)]="surchargeRate" class="form-control" placeholder="rate">
+                <input type="number" style="width: auto;" [(ngModel)]="surchargeRate" class="form-control"
+                  placeholder="rate">
                 <small>* This is money charged to customer for every online order and the collected
                   money goes to restaurant.
                   <i class="fas fa-exclamation"></i> It may drive customers away.</small>
@@ -596,126 +595,126 @@
           </h4>
         </div>
         <ng-container *ngIf="isShowTipSettings">
-          <table class="table table-borderless table-sm">
-            <thead>
-              <tr>
-                <th></th>
-                <th class="text-center">DineIn</th>
-                <th class="text-center">Pickup</th>
-                <th class="text-center">Delivery</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Default Percentage (%)</td>
-                <td>
-                  <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings['Dine-in'].defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Dine-in', 'defaultPercentage', $event.target)"
-                  >
-                </td>
-                <td>
-                  <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings.Pickup.defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Pickup', 'defaultPercentage', $event.target)"
-                  >
-                </td>
-                <td>
-                  <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings.Delivery.defaultPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Delivery', 'defaultPercentage', $event.target)"
-                  >
-                </td>
-              </tr>
-              <tr>
-                <td>Minimum Percentage (%)</td>
-                <td>
-                  <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings['Dine-in'].minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Dine-in', 'minimumPercentage', $event.target)"
-                  >
-                </td>
-                <td>
-                  <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings.Pickup.minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Pickup', 'minimumPercentage', $event.target)"
-                  >
-                </td>
-                <td>
-                  <input type="number" min="0" max="100" class="form-control"
-                         [value]="tipSettings.Delivery.minimumPercentage | number: '1.0-2'" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Delivery', 'minimumPercentage', $event.target)"
-                  >
-                </td>
-              </tr>
-              <tr>
-                <td>Default Amount ($)</td>
-                <td>
-                  <input type="number" min="0" max="1000" class="form-control"
-                         [value]="formatAmount(tipSettings['Dine-in'].defaultAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Dine-in', 'defaultAmount', $event.target)"
-                  >
-                </td>
-                <td>
-                  <input type="number" min="0" max="1000" class="form-control"
-                         [value]="formatAmount(tipSettings.Pickup.defaultAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Pickup', 'defaultAmount', $event.target)"
-                  >
-                </td>
-                <td>
-                  <input type="number" min="0" max="1000" class="form-control"
-                         [value]="formatAmount(tipSettings.Delivery.defaultAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Delivery', 'defaultAmount', $event.target)"
-                  >
-                </td>
-              </tr>
-              <tr>
-                <td>Minimum Amount ($)</td>
-                <td>
-                  <input type="number" min="0" max="1000" class="form-control"
-                         [value]="formatAmount(tipSettings['Dine-in'].minimumAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Dine-in', 'minimumAmount', $event.target)"
-                  >
-                </td>
-                <td>
-                  <input type="number" min="0" max="1000" class="form-control"
-                         [value]="formatAmount(tipSettings.Pickup.minimumAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Pickup', 'minimumAmount', $event.target)"
-                  >
-                </td>
-                <td>
-                  <input type="number" min="0" max="1000" class="form-control"
-                         [value]="formatAmount(tipSettings.Delivery.minimumAmount)" pattern="\d+(\.\d{0,2})?"
-                         (change)="updateTipSettings('Delivery', 'minimumAmount', $event.target)"
-                  >
-                </td>
-              </tr>
-              <tr>
-                <td>Show Tip</td>
-                <td>
-                  <label class="switch">
-                    <input type="checkbox" [checked]="!tipSettings['Dine-in'].tipHide"
-                           (change)="toggleTipHide('Dine-in', $event.target)">
-                    <div class="slider round"></div>
-                  </label>
-                </td>
-                <td>
-                  <label class="switch">
-                    <input type="checkbox" [checked]="!tipSettings.Pickup.tipHide"
-                           (change)="toggleTipHide('Pickup', $event.target)">
-                    <div class="slider round"></div>
-                  </label>
-                </td>
-                <td>
-                  <label class="switch">
-                    <input type="checkbox" [checked]="!tipSettings.Delivery.tipHide"
-                           (change)="toggleTipHide('Delivery', $event.target)">
-                    <div class="slider round"></div>
-                  </label>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="row" style="margin-top: -1rem;">
+            <table class="table table-borderless table-sm table-tip-setting">
+              <thead>
+                <tr>
+                  <th style="width: 32.88%"></th>
+                  <th class="text-center">DineIn</th>
+                  <th class="text-center">Pickup</th>
+                  <th class="text-center">Delivery</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Default Percentage (%)</label></td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings['Dine-in'].defaultPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Dine-in', 'defaultPercentage', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings.Pickup.defaultPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Pickup', 'defaultPercentage', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings.Delivery.defaultPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Delivery', 'defaultPercentage', $event.target)">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Minimum Percentage (%)</label></td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings['Dine-in'].minimumPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Dine-in', 'minimumPercentage', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings.Pickup.minimumPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Pickup', 'minimumPercentage', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings.Delivery.minimumPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Delivery', 'minimumPercentage', $event.target)">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Default Amount ($)</label></td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings['Dine-in'].defaultAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Dine-in', 'defaultAmount', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings.Pickup.defaultAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Pickup', 'defaultAmount', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings.Delivery.defaultAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Delivery', 'defaultAmount', $event.target)">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Minimum Amount ($)</label></td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings['Dine-in'].minimumAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Dine-in', 'minimumAmount', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings.Pickup.minimumAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Pickup', 'minimumAmount', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings.Delivery.minimumAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Delivery', 'minimumAmount', $event.target)">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Show Tip</label></td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" [checked]="!tipSettings['Dine-in'].tipHide"
+                        (change)="toggleTipHide('Dine-in', $event.target)">
+                      <div class="slider round"></div>
+                    </label>
+                  </td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" [checked]="!tipSettings.Pickup.tipHide"
+                        (change)="toggleTipHide('Pickup', $event.target)">
+                      <div class="slider round"></div>
+                    </label>
+                  </td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" [checked]="!tipSettings.Delivery.tipHide"
+                        (change)="toggleTipHide('Delivery', $event.target)">
+                      <div class="slider round"></div>
+                    </label>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td class="pl-5 tip-explain" colspan="4">
+                    <label class="col-form-label">
+                      * If tip settings are not specified at restaurant level, system default tip will be 15% for pickup
+                      and dine-in, and 20% for delivery. Tips cannot exceed the maximum of $1000 or 100%.
+                    </label>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </ng-container>
         <!-- Other Preferences -->
         <div class="form-group row ml-2">
@@ -761,12 +760,6 @@
             <label class="col-4 col-form-label pt-0 pl-5">Hide printing CC</label>
             <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="hidePrintingCCInfo">
-            </div>
-          </div>
-          <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Hide Tip Input</label>
-            <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="hideTipInput">
             </div>
           </div>
         </ng-container>
