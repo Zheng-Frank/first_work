@@ -207,6 +207,7 @@ import { UploadCsvComponent } from "./components/restaurants/seamless-integratio
 import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
 import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
+import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
 
 @NgModule({
@@ -384,6 +385,7 @@ import { RestaurantQrSettingsComponent } from './components/restaurants/restaura
     AddOneRtComponent,
     SendPostcardComponent,
     IvrAgentAnalysisComponent,
+    CsvGeneratorComponent,
     RestaurantQrSettingsComponent
   ],
   imports: [

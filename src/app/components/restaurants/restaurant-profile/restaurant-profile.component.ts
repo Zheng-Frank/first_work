@@ -1,14 +1,14 @@
-import {Component, Input, OnChanges, OnInit} from '@angular/core';
-import {Address, Restaurant} from '@qmenu/ui';
-import {Helper} from '../../../classes/helper';
-import {ApiService} from '../../../services/api.service';
-import {GlobalService} from '../../../services/global.service';
-import {PrunedPatchService} from '../../../services/prunedPatch.service';
-import {TimezoneService} from '../../../services/timezone.service';
-import {environment} from '../../../../environments/environment';
-import {AlertType} from '../../../classes/alert-type';
-import {HttpClient} from '@angular/common/http';
-import {formatNumber} from '@angular/common';
+import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Address, Restaurant } from '@qmenu/ui';
+import { Helper } from '../../../classes/helper';
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
+import { PrunedPatchService } from '../../../services/prunedPatch.service';
+import { TimezoneService } from '../../../services/timezone.service';
+import { environment } from '../../../../environments/environment';
+import { AlertType } from '../../../classes/alert-type';
+import { HttpClient } from '@angular/common/http';
+import { formatNumber } from '@angular/common';
 
 @Component({
   selector: 'app-restaurant-profile',
@@ -108,12 +108,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   disabled = false;
   googleAddress: Address;
   preferredLanguage;
-
+  selfSignupRegistered;
   notification;
 
   preferredLanguages = [
-    {value: 'ENGLISH', text: 'English'},
-    {value: 'CHINESE', text: 'Chinese'}
+    { value: 'ENGLISH', text: 'English' },
+    { value: 'CHINESE', text: 'Chinese' }
   ];
 
   comebackDate = null;
@@ -159,6 +159,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   toggleEditing() {
     this.address = new Address(this.restaurant.googleAddress);
+    this.selfSignupRegistered = this.restaurant.selfSignup && this.restaurant.selfSignup.registered;
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
     this.apt = this.restaurant.googleAddress ? this.restaurant.googleAddress.apt : '';
@@ -195,7 +196,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
         tipSuggestion: {},
         tipMinimum: {}
       };
-      const {tipSuggestion, tipMinimum, tipHide = false} = setting;
+      const { tipSuggestion, tipMinimum, tipHide = false } = setting;
       if (tipSuggestion) {
         this.tipSettings[type].defaultPercentage = tipSuggestion.rate;
         this.tipSettings[type].defaultAmount = tipSuggestion.amount;
@@ -245,8 +246,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   ok() {
-    const oldObj = {_id: this.restaurant['_id']};
-    const newObj = {_id: this.restaurant['_id']} as any;
+    const oldObj = { _id: this.restaurant['_id'] } as any;
+    const newObj = { _id: this.restaurant['_id'] } as any;
     this.fields.map(field => {
       oldObj[field] = this.restaurant[field];
       newObj[field] = this[field];
@@ -262,7 +263,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // tip settings
     newObj.serviceSettings = ['Pickup', 'Delivery', 'Dine-in'].map(type => {
-      const setting = this.restaurant.serviceSettings && this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};
+      const setting = this.restaurant.serviceSettings && this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};      
       const tip = this.tipSettings[type];
       const newTipSuggestion = {
         amount: this.normalizeNumber(tip.defaultAmount),
@@ -273,8 +274,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
         rate: this.normalizeNumber(tip.minimumPercentage, true)
       };
 
-      const {tipSuggestion, tipMinimum, tipHide, ...rest} = setting;
-      return {...rest, tipSuggestion: newTipSuggestion, tipMinimum: newTipMinimum, tipHide: tip.tipHide};
+      const { tipSuggestion, tipMinimum, tipHide, ...rest } = setting;
+      return { ...rest, tipSuggestion: newTipSuggestion, tipMinimum: newTipMinimum, tipHide: tip.tipHide };
     });
 
     // make sure types are correct!
@@ -299,6 +300,11 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.images = this.images;
     delete oldObj['images'];
 
+    if (this.selfSignupRegistered != undefined) {
+      oldObj.selfSignup = {};
+      newObj.selfSignup = { registered: this.selfSignupRegistered }
+      // newObj.selfSignup.registered = this.selfSignupRegistered
+    }
 
     this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
@@ -316,6 +322,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
           // assign new values to restaurant
           this.fields.map(f => this.restaurant[f] = newObj[f]);
+          if (this.restaurant.selfSignup) {
+            this.restaurant.selfSignup.registered = this.selfSignupRegistered
+          };
 
           this.editing = false;
         },
