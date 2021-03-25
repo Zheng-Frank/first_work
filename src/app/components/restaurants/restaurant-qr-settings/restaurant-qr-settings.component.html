@@ -1,0 +1,25 @@
+<div class="card mb-2">
+  <h3 class="card-title text-center pt-4 pb-2"><i class="fa fa-qrcode"></i> QR Settings</h3>
+
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <div *ngIf="!editing">
+        <div class="text-danger" *ngIf="restaurant?.qrSettings?.viewOnly">
+          View Menu Only (CUSTOMER CAN ONLY VIEW MENUS BUT NOT PLACE ORDERS)
+        </div>
+        <div *ngIf="restaurant?.qrSettings && !restaurant?.qrSettings?.viewOnly">
+          Enabled
+        </div>
+      </div>
+      <div *qIf="editing">
+        <q-toggle [(ngModel)]="viewOnly" (change)="toggleViewOnly()"></q-toggle> View Only?
+      </div>
+      <div class="text-right" *ngIf="!editing">
+        <div>
+          <button (click)="toggleEditing()" class="btn btn-primary">Edit</button>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+</div>

@@ -1,7 +1,5 @@
 <div class="card mb-2">
-  <h3 class="card-title text-center pt-4 pb-2">
-    <i class="far fa-building"></i> Profile
-  </h3>
+  <h3 class="card-title text-center pt-4 pb-2"><i class="far fa-building"></i> Profile</h3>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div *qIf="!editing">
@@ -9,23 +7,14 @@
           <tbody>
             <!-- Basic Information -->
             <tr>
-              <th
-                colspan="2"
-                class="text-left"
-                style="font-weight: bond; font-size: 1.2rem"
-              >
-                Basic Information
-              </th>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Basic Information</th>
             </tr>
             <tr>
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Name</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.name }}({{
-                      getMongoDate(restaurant._id) | date: "shortDate"
-                    }})
-                  </div>
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.name}}({{getMongoDate(restaurant._id) | date: 'shortDate'}})</div>
                 </div>
               </th>
             </tr>
@@ -33,8 +22,7 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Address</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.googleAddress?.formatted_address }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">{{restaurant.googleAddress?.formatted_address}}
                   </div>
                 </div>
               </th>
@@ -43,9 +31,7 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Address Extra</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.googleAddress?.apt }}
-                  </div>
+                  <div class="col-7 pl-1" style="font-weight: 600;">{{restaurant.googleAddress?.apt}}</div>
                 </div>
               </th>
             </tr>
@@ -53,9 +39,7 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">ID</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant._id }}
-                  </div>
+                  <div class="col-7 pl-1" style="font-weight: 600;">{{restaurant._id}}</div>
                 </div>
               </th>
             </tr>
@@ -63,9 +47,7 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Alias</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.alias }}
-                  </div>
+                  <div class="col-7 pl-1" style="font-weight: 600;">{{restaurant.alias}}</div>
                 </div>
               </th>
             </tr>
@@ -73,12 +55,8 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Time Zone</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.googleAddress.timezone }}({{
-                      _timezone.getOffsetNumber(
-                        restaurant.googleAddress.timezone
-                      )
-                    }})
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.googleAddress.timezone}}({{_timezone.getOffsetNumber(restaurant.googleAddress.timezone)}})
                   </div>
                 </div>
               </th>
@@ -87,8 +65,8 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Tax Rate</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.taxRate | percentage }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.taxRate | percentage}}
                   </div>
                 </div>
               </th>
@@ -97,8 +75,8 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Sales Agent</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ (restaurant.rateSchedules || [])[0]?.agent || "N/A" }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{(restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}
                   </div>
                 </div>
               </th>
@@ -107,28 +85,22 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Disabled</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ !!restaurant.disabled }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{!!restaurant.disabled}}
                   </div>
                 </div>
               </th>
             </tr>
             <!--Preferences -->
             <tr>
-              <th
-                colspan="2"
-                class="text-left"
-                style="font-weight: bond; font-size: 1.2rem"
-              >
-                Preferences
-              </th>
+              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">Preferences</th>
             </tr>
             <tr>
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Time Estimate for Pickup</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.pickupTimeEstimate || "N/A" }} minutes
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.pickupTimeEstimate || 'N/A'}} minutes
                   </div>
                 </div>
               </th>
@@ -137,8 +109,8 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Time Estimate for Delivery</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.deliveryTimeEstimate || "N/A" }} minutes
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.deliveryTimeEstimate || 'N/A'}} minutes
                   </div>
                 </div>
               </th>
@@ -147,8 +119,8 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Preferred Language</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.preferredLanguage }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.preferredLanguage}}
                   </div>
                 </div>
               </th>
@@ -157,40 +129,25 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Website Broadcast</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.notification || "N/A" }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.notification || 'N/A'}}
                   </div>
                 </div>
               </th>
             </tr>
             <!-- Fee/Minimum Settings -->
             <tr>
-              <th
-                colspan="2"
-                class="text-left"
-                style="font-weight: bond; font-size: 1.2rem"
-              >
-                Fee/Minimum Settings
-              </th>
+              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">Fee/Minimum Settings</th>
             </tr>
             <ng-container *ngIf="!restaurant.feeSchedules">
               <tr>
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">Surcharge</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ restaurant.surchargeName || "surcharge" }}
-                      {{
-                        restaurant.surchargeRate
-                          ? (restaurant.surchargeRate * 100).toFixed(2) + "%"
-                          : ""
-                      }}
-                      {{ restaurant.surchargeRate ? "+" : ""
-                      }}{{
-                        restaurant.surchargeAmount
-                          ? "$" + restaurant.surchargeAmount.toFixed(2)
-                          : ""
-                      }}
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{restaurant.surchargeName || 'surcharge'}}
+                      {{restaurant.surchargeRate ? (restaurant.surchargeRate*100).toFixed(2)+'%' : ''}}
+                      {{restaurant.surchargeRate ? '+': '' }}{{restaurant.surchargeAmount ? '$'+restaurant.surchargeAmount.toFixed(2) : ''}}
                     </div>
                   </div>
                 </th>
@@ -199,8 +156,8 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">Surcharge Rate</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ restaurant.surchargeRate | percentage }}
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{restaurant.surchargeRate | percentage}}
                     </div>
                   </div>
                 </th>
@@ -209,8 +166,8 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">CC Processing Rate</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ restaurant.ccProcessingRate | percentage }}
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{restaurant.ccProcessingRate | percentage}}
                     </div>
                   </div>
                 </th>
@@ -219,11 +176,8 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">CC Processing Flat Fee</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{
-                        restaurant.ccProcessingFlatFee
-                          | currency: "USD":"symbol"
-                      }}
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{restaurant.ccProcessingFlatFee | currency:'USD':'symbol'}}
                     </div>
                   </div>
                 </th>
@@ -233,8 +187,8 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Pickup Minimum</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.pickupMinimum | money }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.pickupMinimum | money}}
                   </div>
                 </div>
               </th>
@@ -243,28 +197,81 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">CC Minimum Charge</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ restaurant.ccMinimumCharge | money }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.ccMinimumCharge | money}}
                   </div>
                 </div>
               </th>
             </tr>
+            <!-- Tip Settings -->
+            <tr>
+              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">Tip Settings</th>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <div class="row">
+                  <table class="table table-sm table-tip-setting">
+                    <thead>
+                      <tr>
+                        <th style="width: 32.88%"></th>
+                        <th>DineIn</th>
+                        <th>Pickup</th>
+                        <th>Delivery</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th class="pl-5">Default Percentage (%)</th>
+                        <td>{{tipSettings['Dine-in'].defaultPercentage | number: '1.0-4'}}</td>
+                        <td>{{tipSettings.Pickup.defaultPercentage | number: '1.0-4'}}</td>
+                        <td>{{tipSettings.Delivery.defaultPercentage | number: '1.0-4'}}</td>
+                      </tr>
+                      <tr>
+                        <th class="pl-5">Minimum Percentage (%)</th>
+                        <td>{{tipSettings['Dine-in'].minimumPercentage | number: '1.0-4'}}</td>
+                        <td>{{tipSettings.Pickup.minimumPercentage | number: '1.0-4'}}</td>
+                        <td>{{tipSettings.Delivery.minimumPercentage | number: '1.0-4'}}</td>
+                      </tr>
+                      <tr>
+                        <th class="pl-5">Default Amount ($)</th>
+                        <td>{{tipSettings['Dine-in'].defaultAmount | number: '1.2-2'}}</td>
+                        <td>{{tipSettings.Pickup.defaultAmount | number: '1.2-2'}}</td>
+                        <td>{{tipSettings.Delivery.defaultAmount | number: '1.2-2'}}</td>
+                      </tr>
+                      <tr>
+                        <th class="pl-5">Minimum Amount ($)</th>
+                        <td>{{tipSettings['Dine-in'].minimumAmount | number: '1.2-2'}}</td>
+                        <td>{{tipSettings.Pickup.minimumAmount | number: '1.2-2'}}</td>
+                        <td>{{tipSettings.Delivery.minimumAmount | number: '1.2-2'}}</td>
+                      </tr>
+                      <tr>
+                        <th class="pl-5">Show Tip</th>
+                        <td>{{!tipSettings['Dine-in'].tipHide}}</td>
+                        <td>{{!tipSettings.Pickup.tipHide}}</td>
+                        <td>{{!tipSettings.Delivery.tipHide}}</td>
+                      </tr>
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <th class="pl-5 tip-explain" colspan="4">* If tip settings are not specified at restaurant
+                          level, system default tip will be 15% for pickup and dine-in, and 20% for delivery. Tips
+                          cannot exceed the maximum of $1000 or 100%.</th>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </td>
+            </tr>
             <!-- Other Preferences -->
             <tr>
-              <th
-                colspan="2"
-                class="text-left"
-                style="font-weight: bond; font-size: 1.2rem"
-              >
-                Other Preferences
-              </th>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Other Preferences </th>
             </tr>
             <tr>
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Disable Scheduling</div>
-                  <div class="col-7 pl-1" style="font-weight: 600">
-                    {{ !!restaurant.disableScheduling }}
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{!!restaurant.disableScheduling}}
                   </div>
                 </div>
               </th>
@@ -283,11 +290,8 @@
               <th colspan="2">
                 <div class="row">
                   <div class="col-4 pl-5">Notes</div>
-                  <div
-                    class="col-7 pl-1"
-                    style="font-weight: 600; white-space: pre-wrap"
-                  >
-                    {{ restaurant.notes }}
+                  <div class="col-7 pl-1" style="font-weight: 600;white-space: pre-wrap">
+                    {{restaurant.notes}}
                   </div>
                 </div>
               </th>
@@ -295,20 +299,17 @@
               <td class="pl-1" style="white-space: pre-wrap">{{restaurant.notes}}</td> -->
             </tr>
             <tr>
-              <button class="btn btn-link" (click)="showDetails = !showDetails">
-                {{ showDetails ? "Hide details" : "More
-								details..." }}
+              <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
+								details...'}}
               </button>
             </tr>
             <ng-container *ngIf="showDetails">
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">
-                      Hide Order Status on Customer Side
-                    </div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ !!restaurant.hideOrderStatus }}
+                    <div class="col-4 pl-5">Hide Order Status on Customer Side</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.hideOrderStatus}}
                     </div>
                   </div>
                 </th>
@@ -317,8 +318,8 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">Skip Order Confirmation</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ !!restaurant.skipOrderConfirmation }}
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.skipOrderConfirmation}}
                     </div>
                   </div>
                 </th>
@@ -327,8 +328,8 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">Skip Auto Invoicing</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ !!restaurant.skipAutoInvoicing }}
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.skipAutoInvoicing}}
                     </div>
                   </div>
                 </th>
@@ -336,11 +337,9 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">
-                      Not Show Tax Option to Customer
-                    </div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ !!restaurant.skipShowTax }}
+                    <div class="col-4 pl-5">Not Show Tax Option to Customer</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.skipShowTax}}
                     </div>
                   </div>
                 </th>
@@ -349,8 +348,8 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">Skip Image Inject</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ !!restaurant.skipImageInjection }}
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.skipImageInjection}}
                     </div>
                   </div>
                 </th>
@@ -358,11 +357,9 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">
-                      Allow submitting order at close time
-                    </div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ !!restaurant.menuHoursExtended }}
+                    <div class="col-4 pl-5">Allow submitting order at close time</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.menuHoursExtended}}
                     </div>
                   </div>
                 </th>
@@ -371,18 +368,8 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">Hide printing CC</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ !!restaurant.hidePrintingCCInfo }}
-                    </div>
-                  </div>
-                </th>
-              </tr>
-              <tr>
-                <th colspan="2">
-                  <div class="row">
-                    <div class="col-4 pl-5">Hide Tip Input</div>
-                    <div class="col-7 pl-1" style="font-weight: 600">
-                      {{ !!restaurant.hideTipInput }}
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.hidePrintingCCInfo}}
                     </div>
                   </div>
                 </th>
@@ -391,17 +378,12 @@
           </tbody>
         </table>
       </div>
-
       <!--editing view-->
       <div *qIf="editing">
         <!-- Basic Information -->
         <div class="form-group row ml-2">
-          <h4>
-            Basic Information
-            <button
-              class="btn btn-link"
-              (click)="ifShowBasicInformation = !ifShowBasicInformation"
-            >
+          <h4>Basic Information
+            <button class="btn btn-link" (click)="ifShowBasicInformation=!ifShowBasicInformation">
               <i class="fa fa-angle-right" *ngIf="!ifShowBasicInformation"></i>
               <i class="fa fa-angle-down" *ngIf="ifShowBasicInformation"></i>
             </button>
@@ -411,97 +393,56 @@
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Name</label>
             <div class="pl-1 col-7">
-              <input type="text" [(ngModel)]="name" class="form-control" />
+              <input type="text" [(ngModel)]="name" class="form-control">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Address</label>
             <div class="pl-1 col-7">
-              <q-address-picker
-                [address]="address"
-                (pick)="selectAddress($event)"
-              ></q-address-picker>
+              <q-address-picker [address]="address" (pick)="selectAddress($event)"></q-address-picker>
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Address Extra</label>
             <div class="pl-1 col-7">
-              <input
-                type="text"
-                class="form-control"
-                placeholder="eg. Suite 300"
-                [(ngModel)]="apt"
-              />
+              <input type="text" class="form-control" placeholder="eg. Suite 300" [(ngModel)]="apt">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Tax Rate</label>
             <div class="pl-1 col-7">
-              <input type="number" [(ngModel)]="taxRate" class="form-control" />
+              <input type="number" [(ngModel)]="taxRate" class="form-control">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Domain</label>
             <div class="pl-1 col-7">
-              <input
-                type="text"
-                [(ngModel)]="domain"
-                class="form-control"
-                placeholder="domain name, eg. qmenutest.com"
-              />
+              <input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
             </div>
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Sales Agent</label>
             <div class="pl-1 col-7">
-              <input
-                type="text"
-                [(ngModel)]="salesAgent"
-                class="form-control"
-              />
+              <input type="text" [(ngModel)]="salesAgent" class="form-control">
             </div>
           </div>
           <div class="form-group row" *ngIf="isDisabledEditable()">
             <label class="col-4 col-form-label pt-0 pl-5">Disabled</label>
             <div class="pl-1 col-7 pt-2">
               <div class="d-flex flex-column">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="disabled"
-                  (ngModelChange)="disabledHandle()"
-                />
+                <input type="checkbox" [(ngModel)]="disabled" (ngModelChange)="disabledHandle()">
                 <div *ngIf="disabled" class="mt-3">
                   <div>
-                    <small class="font-weight-bold"
-                      >Disable it temporarily?</small
-                    >
-                    <q-simple-radio
-                      [(ngModel)]="isTemporarilyDisabled"
-                      [equalWidth]="true"
-                      [values]="['Yes', 'No']"
-                      (ngModelChange)="disabledHandle()"
-                    ></q-simple-radio>
+                    <small class="font-weight-bold">Disable it temporarily?</small>
+                    <q-simple-radio [(ngModel)]="isTemporarilyDisabled" [equalWidth]="true" [values]="['Yes', 'No']"
+                      (ngModelChange)="disabledHandle()"></q-simple-radio>
                     <div *ngIf="isTemporarilyDisabled === 'Yes'">
                       <small class="font-weight-bold">Comeback Date</small>
-                      <input
-                        type="date"
-                        class="form-control"
-                        [(ngModel)]="comebackDate"
-                        [min]="now"
-                      />
+                      <input type="date" class="form-control" [(ngModel)]="comebackDate" [min]="now">
                       <div class="d-flex justify-content-end">
-                        <small
-                          *ngIf="isComebackDateCorrectlySet"
-                          class="text-success mt-1"
-                          >Done</small
-                        >
-                        <button
-                          *ngIf="!isComebackDateCorrectlySet"
-                          class="btn btn-link m-0 p-0"
-                          (click)="setComebackDateAsUnknown()"
-                        >
-                          <small>Set as unknown date</small>
-                        </button>
+                        <small *ngIf="isComebackDateCorrectlySet" class="text-success mt-1">Done</small>
+                        <button *ngIf="!isComebackDateCorrectlySet" class="btn btn-link m-0 p-0"
+                          (click)="setComebackDateAsUnknown()"><small>Set as unknown date</small></button>
                       </div>
                     </div>
                   </div>
@@ -512,12 +453,8 @@
         </ng-container>
         <!--Preferences -->
         <div class="form-group row ml-2">
-          <h4>
-            Preferences
-            <button
-              class="btn btn-link"
-              (click)="ifShowPreferences = !ifShowPreferences"
-            >
+          <h4>Preferences
+            <button class="btn btn-link" (click)="ifShowPreferences=!ifShowPreferences">
               <i class="fa fa-angle-right" *ngIf="!ifShowPreferences"></i>
               <i class="fa fa-angle-down" *ngIf="ifShowPreferences"></i>
             </button>
@@ -525,91 +462,56 @@
         </div>
         <ng-container *ngIf="ifShowPreferences">
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Time Estimate for Pickup (mins)</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Time Estimate for Pickup (mins)</label>
             <div class="pl-1 col-7">
-              <input
-                type="number"
-                [(ngModel)]="pickupTimeEstimate"
-                class="form-control"
-              />
+              <input type="number" [(ngModel)]="pickupTimeEstimate" class="form-control">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Time Estimate for Delivery (mins)</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Time Estimate for Delivery (mins)</label>
             <div class="pl-1 col-7">
-              <input
-                type="number"
-                [(ngModel)]="deliveryTimeEstimate"
-                class="form-control"
-              />
+              <input type="number" [(ngModel)]="deliveryTimeEstimate" class="form-control">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Disable Ordering Ahead</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Disable Ordering Ahead</label>
             <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="disableScheduling" />
+              <input type="checkbox" [(ngModel)]="disableScheduling">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Order Call Language</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Order Call Language</label>
             <div class="pl-1 col-7">
               <select class="form-control" [(ngModel)]="preferredLanguage">
-                <option
-                  *ngFor="let language of preferredLanguages"
-                  [ngValue]="language"
-                >
+                <option *ngFor="let language of preferredLanguages" [ngValue]="language">
                   {{ language.text }}
                 </option>
               </select>
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Website Broadcast</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Website Broadcast</label>
             <div class="pl-1 col-7">
-              <input
-                type="text"
-                [(ngModel)]="notification"
-                class="form-control"
-                placeholder="important message showing on website"
-              />
+              <input type="text" [(ngModel)]="notification" class="form-control"
+                placeholder="important message showing on website">
             </div>
           </div>
 
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Logo</label>
             <div class="pl-1 col-7">
-              <hr />
-              <div
-                *ngIf="logo"
-                class="pr-1 pb-1"
-                style="display: inline-block; position: relative"
-              >
-                <img class="img-thumbnail app-thumbnail-h-6" src="{{ logo }}" />
-                <button
-                  (click)="deleteLogo(img)"
-                  class="btn btn-secondary close-button transparent"
-                >
+              <hr>
+              <div *ngIf="logo" class="pr-1 pb-1" style="display:inline-block; position:relative">
+                <img class="img-thumbnail app-thumbnail-h-6" src="{{logo}}">
+                <button (click)="deleteLogo(img)" class="btn btn-secondary close-button transparent">
                   <i class="fas fa-times"></i>
                 </button>
-                <button
-                  (click)="deleteLogo(img)"
-                  class="btn btn-link close-button text-danger"
-                >
+                <button (click)="deleteLogo(img)" class="btn btn-link close-button text-danger">
                   <i class="fas fa-times"></i>
                 </button>
               </div>
               <div *ngIf="uploadLogoError">
-                <span class="text-danger">{{ uploadLogoError }}</span>
+                <span class="text-danger">{{uploadLogoError}}</span>
               </div>
               <div class="app-limit-file">
                 <input type="file" (change)="onUploadLogo($event)" />
@@ -619,27 +521,17 @@
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Photos</label>
             <div class="pl-1 col-7">
-              <div
-                *ngFor="let img of images"
-                class="pr-1 pb-1"
-                style="display: inline-block; position: relative"
-              >
-                <img class="img-thumbnail app-thumbnail-h-6" src="{{ img }}" />
-                <button
-                  (click)="deleteImage(img)"
-                  class="btn btn-secondary close-button transparent"
-                >
+              <div *ngFor="let img of images" class="pr-1 pb-1" style="display:inline-block; position:relative">
+                <img class="img-thumbnail app-thumbnail-h-6" src="{{img}}">
+                <button (click)="deleteImage(img)" class="btn btn-secondary close-button transparent">
                   <i class="fas fa-times"></i>
                 </button>
-                <button
-                  (click)="deleteImage(img)"
-                  class="btn btn-link close-button text-danger"
-                >
+                <button (click)="deleteImage(img)" class="btn btn-link close-button text-danger">
                   <i class="fas fa-times"></i>
                 </button>
               </div>
               <div *ngIf="uploadImageError">
-                <span class="text-danger">{{ uploadImageError }}</span>
+                <span class="text-danger">{{uploadImageError}}</span>
               </div>
               <div class="app-limit-file">
                 <input type="file" (change)="onUploadImage($event)" />
@@ -652,16 +544,9 @@
         </ng-container>
         <!-- Fee/Minimum Settings -->
         <div class="form-group row ml-2">
-          <h4>
-            Fee/Minimum Settings
-            <button
-              class="btn btn-link"
-              (click)="ifShowFee_MinimumSettings = !ifShowFee_MinimumSettings"
-            >
-              <i
-                class="fa fa-angle-right"
-                *ngIf="!ifShowFee_MinimumSettings"
-              ></i>
+          <h4>Fee/Minimum Settings
+            <button class="btn btn-link" (click)="ifShowFee_MinimumSettings=!ifShowFee_MinimumSettings">
+              <i class="fa fa-angle-right" *ngIf="!ifShowFee_MinimumSettings"></i>
               <i class="fa fa-angle-down" *ngIf="ifShowFee_MinimumSettings"></i>
             </button>
           </h4>
@@ -672,93 +557,179 @@
               <label class="col-4 col-form-label pt-0 pl-5">Surcharge</label>
               <div class="pl-1 col-7">
                 <label>text to show customer:</label>
-                <input
-                  type="text"
-                  [(ngModel)]="surchargeName"
-                  class="form-control mt-1"
-                  placeholder="text to show customer"
-                />
+                <input type="text" [(ngModel)]="surchargeName" class="form-control mt-1"
+                  placeholder="text to show customer">
                 <label>fixed amount</label>
-                <input
-                  type="number"
-                  [(ngModel)]="surchargeAmount"
-                  class="form-control"
-                  placeholder="surcharge amount"
-                />
+                <input type="number" [(ngModel)]="surchargeAmount" class="form-control" placeholder="surcharge amount">
                 <label>rate</label>
-                <input
-                  type="number"
-                  style="width: auto"
-                  [(ngModel)]="surchargeRate"
-                  class="form-control"
-                  placeholder="rate"
-                />
-                <small
-                  >* This is money charged to customer for every online order
-                  and the collected money goes to restaurant.
-                  <i class="fas fa-exclamation"></i> It may drive customers
-                  away.</small
-                >
+                <input type="number" style="width: auto;" [(ngModel)]="surchargeRate" class="form-control"
+                  placeholder="rate">
+                <small>* This is money charged to customer for every online order and the collected
+                  money goes to restaurant.
+                  <i class="fas fa-exclamation"></i> It may drive customers away.</small>
               </div>
             </div>
             <div class="form-group row">
-              <label class="col-4 col-form-label pt-0 pl-5"
-                >CC Processing Rate</label
-              >
+              <label class="col-4 col-form-label pt-0 pl-5">CC Processing Rate</label>
               <div class="pl-1 col-7">
-                <input
-                  type="number"
-                  [(ngModel)]="ccProcessingRate"
-                  class="form-control"
-                  placeholder="rate"
-                />
+                <input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
               </div>
             </div>
             <div class="form-group row">
-              <label class="col-4 col-form-label pt-0 pl-5"
-                >CC Processing Flat Fee</label
-              >
+              <label class="col-4 col-form-label pt-0 pl-5">CC Processing Flat Fee</label>
               <div class="pl-1 col-7">
-                <input
-                  type="number"
-                  [(ngModel)]="ccProcessingFlatFee"
-                  class="form-control"
-                  placeholder="fee"
-                />
+                <input type="number" [(ngModel)]="ccProcessingFlatFee" class="form-control" placeholder="fee">
               </div>
             </div>
           </ng-container>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">Pickup Minimum</label>
             <div class="pl-1 col-7">
-              <input
-                type="number"
-                [(ngModel)]="pickupMinimum"
-                class="form-control"
-              />
+              <input type="number" [(ngModel)]="pickupMinimum" class="form-control">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >CC Minimum Charge</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">CC Minimum Charge</label>
             <div class="pl-1 col-7">
-              <input
-                type="number"
-                [(ngModel)]="ccMinimumCharge"
-                class="form-control"
-              />
+              <input type="number" [(ngModel)]="ccMinimumCharge" class="form-control">
             </div>
+          </div>
+        </ng-container>
+        <!-- Tip Settings -->
+        <div class="form-group row ml-2">
+          <h4>Tip Settings
+            <button class="btn btn-link" (click)="isShowTipSettings=!isShowTipSettings">
+              <i class="fa fa-angle-right" *ngIf="!isShowTipSettings"></i>
+              <i class="fa fa-angle-down" *ngIf="isShowTipSettings"></i>
+            </button>
+          </h4>
+        </div>
+        <ng-container *ngIf="isShowTipSettings">
+          <div class="row" style="margin-top: -1rem;">
+            <table class="table table-borderless table-sm table-tip-setting">
+              <thead>
+                <tr>
+                  <th style="width: 32.88%"></th>
+                  <th class="text-center">DineIn</th>
+                  <th class="text-center">Pickup</th>
+                  <th class="text-center">Delivery</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Default Percentage (%)</label></td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings['Dine-in'].defaultPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Dine-in', 'defaultPercentage', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings.Pickup.defaultPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Pickup', 'defaultPercentage', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings.Delivery.defaultPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Delivery', 'defaultPercentage', $event.target)">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Minimum Percentage (%)</label></td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings['Dine-in'].minimumPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Dine-in', 'minimumPercentage', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings.Pickup.minimumPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Pickup', 'minimumPercentage', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1" class="form-control" step="0.01"
+                      [value]="tipSettings.Delivery.minimumPercentage | number: '1.0-4'" pattern="(0|1)(\.\d{0,4})?"
+                      (change)="updateTipSettings('Delivery', 'minimumPercentage', $event.target)">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Default Amount ($)</label></td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings['Dine-in'].defaultAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Dine-in', 'defaultAmount', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings.Pickup.defaultAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Pickup', 'defaultAmount', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings.Delivery.defaultAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Delivery', 'defaultAmount', $event.target)">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Minimum Amount ($)</label></td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings['Dine-in'].minimumAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Dine-in', 'minimumAmount', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings.Pickup.minimumAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Pickup', 'minimumAmount', $event.target)">
+                  </td>
+                  <td>
+                    <input type="number" min="0" max="1000" class="form-control"
+                      [value]="formatAmount(tipSettings.Delivery.minimumAmount)" pattern="\d+(\.\d{0,2})?"
+                      (change)="updateTipSettings('Delivery', 'minimumAmount', $event.target)">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="pl-5"><label class="col-form-label">Show Tip</label></td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" [checked]="!tipSettings['Dine-in'].tipHide"
+                        (change)="toggleTipHide('Dine-in', $event.target)">
+                      <div class="slider round"></div>
+                    </label>
+                  </td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" [checked]="!tipSettings.Pickup.tipHide"
+                        (change)="toggleTipHide('Pickup', $event.target)">
+                      <div class="slider round"></div>
+                    </label>
+                  </td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" [checked]="!tipSettings.Delivery.tipHide"
+                        (change)="toggleTipHide('Delivery', $event.target)">
+                      <div class="slider round"></div>
+                    </label>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td class="pl-5 tip-explain" colspan="4">
+                    <label class="col-form-label">
+                      * If tip settings are not specified at restaurant level, system default tip will be 15% for pickup
+                      and dine-in, and 20% for delivery. Tips cannot exceed the maximum of $1000 or 100%.
+                    </label>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </ng-container>
         <!-- Other Preferences -->
         <div class="form-group row ml-2">
-          <h4>
-            Other Preferences
-            <button
-              class="btn btn-link"
-              (click)="ifShowOtherPreferences = !ifShowOtherPreferences"
-            >
+          <h4>Other Preferences
+            <button class="btn btn-link" (click)="ifShowOtherPreferences=!ifShowOtherPreferences">
               <i class="fa fa-angle-right" *ngIf="!ifShowOtherPreferences"></i>
               <i class="fa fa-angle-down" *ngIf="ifShowOtherPreferences"></i>
             </button>
@@ -774,57 +745,39 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Hide Order Status on Customer Side</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Hide Order Status on Customer Side</label>
             <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="hideOrderStatus" />
+              <input type="checkbox" [(ngModel)]="hideOrderStatus">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Skip Order Confirmation</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Skip Order Confirmation</label>
             <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="skipOrderConfirmation" />
+              <input type="checkbox" [(ngModel)]="skipOrderConfirmation">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Not Show Tax Option to Customer</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Not Show Tax Option to Customer</label>
             <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="skipShowTax" />
+              <input type="checkbox" [(ngModel)]="skipShowTax">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Skip Image Injection</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Skip Image Injection</label>
             <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="skipImageInjection" />
+              <input type="checkbox" [(ngModel)]="skipImageInjection">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Allow submitting order at close time</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Allow submitting order at close time</label>
             <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="menuHoursExtended" />
+              <input type="checkbox" [(ngModel)]="menuHoursExtended">
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"
-              >Hide printing CC</label
-            >
+            <label class="col-4 col-form-label pt-0 pl-5">Hide printing CC</label>
             <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="hidePrintingCCInfo" />
-            </div>
-          </div>
-          <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Hide Tip Input</label>
-            <div class="pl-1 col-7">
-              <input type="checkbox" [(ngModel)]="hideTipInput" />
+              <input type="checkbox" [(ngModel)]="hidePrintingCCInfo">
             </div>
           </div>
         </ng-container>
@@ -833,29 +786,17 @@
           <h4>Notes</h4>
         </div>
         <div class="row form-group">
-          <textarea
-            class="form-control col-12"
-            rows="5"
-            [(ngModel)]="notes"
-          ></textarea>
+          <textarea class="form-control col-12" rows="5" [(ngModel)]="notes"></textarea>
         </div>
-        <div class="form-group row text-right">
+        <div class="form-group row  text-right">
           <div class="col-12">
             <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-            <button
-              class="btn btn-primary ml-2"
-              [disabled]="!isEmailValid()"
-              (click)="ok()"
-            >
-              OK
-            </button>
+            <button class="btn btn-primary ml-2" [disabled]="!isEmailValid()" (click)="ok()">OK</button>
           </div>
         </div>
       </div>
       <div class="text-right" *ngIf="!editing && editable">
-        <button (click)="toggleEditing()" class="btn btn-primary" role="button">
-          Edit
-        </button>
+        <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
       </div>
     </li>
   </ul>

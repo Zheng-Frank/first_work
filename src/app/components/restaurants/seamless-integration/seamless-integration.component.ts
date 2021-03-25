@@ -223,10 +223,6 @@ export class SeamlessIntegrationComponent implements OnInit {
   }
 
   async ngOnInit() {
-
-
-
-
     await Notification.requestPermission();
     if (!this.polling) {
       setInterval(() => this.startPolling(), 300000)
