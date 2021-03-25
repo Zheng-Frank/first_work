@@ -23,7 +23,7 @@
 
   <div *qIf="promotionType === '$ Discount'">
     <label class="mt-1">Fixed Amount ($):</label>
-    <div *qIf="promotion.amount > promotion.orderMinimum && eligibility === 'Order Minimum ($)'"
+    <div *qIf="promotion.amount > promotion.orderMinimum"
       class="text-danger font-weight-bold"> Error: Promotion amount
       cannot exceed minimum order amount</div>
     <div>
@@ -40,7 +40,7 @@
       <input type="number" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
     </div>
 
-    <label class="mt-1">Applicable items:</label>
+    <label class="mt-1"> <u>Applicable items:</u></label>
     <div>
       Add entries to this list and discount will only be applied to items, menus, or categories in the list. Leave the
       list blank and discount will
@@ -90,7 +90,7 @@
       Choose from menu
     </div>
     <div *ngIf="useFreeItemList; else textFieldEntry">
-      <div *ngFor="let menu of (promotion.freeItemList || []); let menuIndex = index">
+      <!-- <div *ngFor="let menu of (promotion.freeItemList || []); let menuIndex = index">
         <div class="d-flex align-items-center">
           <div class="mr-2"><button type="button" class="btn btn-link m-0 p-0"
               (click)="deleteEntryFromList('freeItemList', menuIndex)"><i class="far fa-trash-alt"></i></button></div>
@@ -102,8 +102,8 @@
             </span>
           </span>
         </div>
-      </div>
-      <div class="d-flex">
+      </div> -->
+      <!-- <div class="d-flex">
         <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'freeItemList')"
           [(ngModel)]="selected.freeItemList.menu">
           <option value=""></option>
@@ -124,7 +124,10 @@
             [disabled]="!selected.freeItemList.menu || !selected.freeItemList.category || !selected.freeItemList.item || promotion.freeItemList.length === freeItemListMaxLength">
             Add</button>
         </div>
-      </div>
+      </div> -->
+      <app-menu-filters-editor [menus]="menus" [menuFilters]="promotion.freeItemList" [requireFullItem]="true" (update)="handleFilterEvent($event)"></app-menu-filters-editor>
+      <!-- <app-menu-filters-editor [menus]="menus" [menuFilters]="promotion.freeItemList" (update)="handleMenuFilterEvent($event)"></app-menu-filters-editor> -->
+      {{promotion.freeItemList | json}}
       <div *ngIf="promotion.freeItemList.length === freeItemListMaxLength" class="text-danger font-weight-bold">
         <small> Maximum number of items for customer to choose from is {{freeItemListMaxLength}}. Please delete an
           existing item
@@ -143,59 +146,14 @@
   <label class="mt-1"><u> Eligibility </u></label><br>
 
 
-  <q-simple-radio [(ngModel)]="eligibility" [equalWidth]="true"
-    [values]="['Order Minimum ($)', 'Order of Select Item(s)']">
-  </q-simple-radio>
-
-  <div *qIf="eligibility === 'Order Minimum ($)'">
+  <div >
     Customer is eligible for promotion if their order subtotal is at least this amount.
     <br>
     <label class="mt-1">Minimum Order ($)</label>
     <input type="number" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
   </div>
-  <div *qIf="eligibility === 'Order of Select Item(s)'">
-    Customer is eligible for promotion if they buy any item contained in this list, or in any menu or category contained
-    in this list.
-    <label class="mt-1"> From Selection: </label>
-    <div *ngFor="let menu of (promotion.withOrderFromList || []); let menuIndex = index">
-      <div class="d-flex align-items-center">
-        <div class="mr-2"><button type="button" class="btn btn-link m-0 p-0"
-            (click)="deleteEntryFromList('withOrderFromList', menuIndex)"><i class="far fa-trash-alt"></i></button>
-        </div>
-        <span>{{menu.name ? menu.name: 'All Menus'}}</span>
-        <span *ngFor="let category of menu.mcs">
-          <span> ➜ {{category.name? category.name: 'All Categories'}}</span>
-          <span *ngFor="let item of category.mis">
-            <span> ➜ {{item.name ? item.name: 'All Items'}}</span>
-          </span>
-        </span>
-      </div>
-    </div>
-    <div class="d-flex">
-      <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'withOrderFromList')"
-        [(ngModel)]="selected.withOrderFromList.menu">
-        <option value=""></option>
-        <option [value]="menu.name" *ngFor="let menu of menus">{{menu.name}}</option>
-      </select>
-      <select class="form-control mr-2" (change)="onCategorySelected($event.target.value, 'withOrderFromList')"
-        [(ngModel)]="selected.withOrderFromList.category">
-        <option value=""></option>
-        <option [value]="category.name" *ngFor="let category of categories">{{category.name}}</option>
-      </select>
-      <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'withOrderFromList')"
-        [(ngModel)]="selected.withOrderFromList.item">
-        <option value=""></option>
-        <option [value]="item.name" *ngFor="let item of items">{{item.name}}</option>
-      </select>
-      <div class="d-flex justify-content-end">
-        <button type="button" class="btn btn-link" (click)="addEntryToList('withOrderFromList')">Add</button>
-      </div>
-    </div>
-  </div>
+  
 
-  <div *qIf="eligibility !== 'Order Minimum ($)' && eligibility !== 'Order of Select Item(s)'">
-    <span class="text-danger font-weight-bold">You must select eligibility criteria</span>
-  </div>
 
   <label class="mt-1">Expiration Date:</label>
   <div>
@@ -247,7 +205,7 @@
 
   <hr>
   <h4>Preview</h4>
-  <app-promotion-viewer [promotion]="promotion" [offsetToEST]="offsetToEST" [hideEditButton]="true" [eligibility]="eligibility" [promotionType]="promotionType" [useFreeItemList]="useFreeItemList">
+  <app-promotion-viewer [promotion]="promotion" [offsetToEST]="offsetToEST" [hideEditButton]="true" [promotionType]="promotionType" [useFreeItemList]="useFreeItemList">
   </app-promotion-viewer>
   <!-- because of viewer having float left -->
   <div class="clearfix"></div>

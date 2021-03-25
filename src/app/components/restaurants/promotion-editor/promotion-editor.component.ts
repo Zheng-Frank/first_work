@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter, DoCheck } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { P } from '@angular/core/src/render3';
 import { Promotion, Menu } from '@qmenu/ui';
 
 @Component({
@@ -6,7 +7,7 @@ import { Promotion, Menu } from '@qmenu/ui';
   templateUrl: './promotion-editor.component.html',
   styleUrls: ['./promotion-editor.component.css']
 })
-export class PromotionEditorComponent implements DoCheck {
+export class PromotionEditorComponent implements OnChanges {
 
   @Input() promotion: Promotion;
   @Input() offsetToEST: number;
@@ -18,7 +19,6 @@ export class PromotionEditorComponent implements DoCheck {
   @Output() onDelete = new EventEmitter();
 
   promotionType = '$ Discount';
-  eligibility = 'Order Minimum ($)';
 
   fromSelectionToggle = false;
   expiry;
@@ -59,37 +59,32 @@ export class PromotionEditorComponent implements DoCheck {
 
   constructor() { }
 
-  ngDoCheck() {
-    if (this.promotion) {
-      if (!this.oldPromotionID && !this.promotion.id) {
-        // A newly created promotion has no id
-        this.oldPromotionID = 'New Promo';
-        this.onNewPromotionLoaded();
-      } else if (!this.oldPromotionID) {
-        this.oldPromotionID = this.promotion.id;
-        this.onNewPromotionLoaded();
-      } else if (this.oldPromotionID && this.promotion.id) {
-        if (this.oldPromotionID !== this.promotion.id) {
-          this.oldPromotionID = this.promotion.id;
-          this.onNewPromotionLoaded();
-        }
-      }
+  ngOnChanges(change) {
+    if (change.promotion && change.promotion.currentValue) {
+      this.openCorrectUIPane(change.promotion.currentValue);
     }
   }
 
-  onNewPromotionLoaded() {
-    this.promotionType = '$ Discount';
-    this.eligibility = 'Order Minimum ($)';
-    if (this.promotion.percentage && this.promotion.amount === 0) {
+  handleFilterEvent() {
+    console.log(this.promotion.freeItemList);
+
+  }
+
+  openCorrectUIPane(promotion) {
+    if (!promotion.id) {
+      this.promotionType = '$ Discount';
+      return;
+    }
+
+    if (promotion.amount) {
+      this.promotionType = '$ Discount';
+    } else if (promotion.percentage) {
       this.promotionType = '% Discount';
-    } else if (this.promotion.freeItemName || (this.promotion.freeItemList || []).length) {
+    } else {
       this.promotionType = 'Free Item';
-    }
-    if ((this.promotion.withOrderFromList || []).length) {
-      this.eligibility = 'Order of Select Item(s)';
-    }
-    if ((this.promotion.freeItemList || []).length) {
-      this.useFreeItemList = true;
+      if ((promotion.freeItemList || [] ).length) {
+        this.useFreeItemList = true;
+      }
     }
   }
 
@@ -111,14 +106,11 @@ export class PromotionEditorComponent implements DoCheck {
   // }
 
   isPromotionValid() {
-    if (!this.promotionType || !this.eligibility) {
+    if (!this.promotionType) {
       return false;
     }
 
-    if (!this.promotion.amount && !this.promotion.percentage && !(this.promotion.freeItemName || '').length && !(this.promotion.freeItemList || []).length) {
-      return false;
-    }
-    if (!this.promotion.orderMinimum && !(this.promotion.withOrderFromList || []).length) {
+    if (!this.promotion.amount && !this.promotion.percentage && !(this.promotion.freeItemList || []).length) {
       return false;
     }
 
@@ -257,7 +249,7 @@ export class PromotionEditorComponent implements DoCheck {
   }
 
   validatePromotionNumbers() {
-    if (this.promotionType === '$ Discount' && this.eligibility === 'Order Minimum ($)') {
+    if (this.promotionType === '$ Discount') {
       if (this.promotion.amount > this.promotion.orderMinimum) {
         return false;
       }
@@ -278,129 +270,8 @@ export class PromotionEditorComponent implements DoCheck {
     } else if (!this.validatePromotionNumbers()) {
       return null;
     }
-    const dollar = "Order Minimum ($)";
-    const select = "Order of Select Item(s)";
-
-    if (this.promotionType === '$ Discount') {
-      if (this.promotion.amount && this.eligibility === select && (this.promotion.withOrderFromList || []).length) {
-        suggestedTitle = `$${this.promotion.amount} off with order from `;
-        if (this.promotion.withOrderFromList.length === 1) {
-          suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
-        } else {
-          this.promotion.withOrderFromList.forEach((entry, i) => {
-            if (i === this.promotion.withOrderFromList.length - 1) {
-              suggestedTitle += 'or ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          })
-        }
-      } else if (this.promotion.amount && this.promotion.orderMinimum && this.eligibility === dollar) {
-        suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min order`
-      }
-    } else if (this.promotionType === '% Discount') {
-      if (this.promotion.percentage && this.eligibility === select && (this.promotion.withOrderFromList || []).length && (this.promotion.percentDiscountList || []).length) {
-        suggestedTitle = `${this.promotion.percentage}% off `;
-        if (this.promotion.percentDiscountList.length === 1) {
-          suggestedTitle += `${this.promotionListEntryToString(this.promotion.percentDiscountList[0])} `
-        } else {
-          this.promotion.percentDiscountList.forEach((entry, i) => {
-            if (i === this.promotion.percentDiscountList.length - 1) {
-              suggestedTitle += 'and ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          });
-        }
-        suggestedTitle += ' with order from ';
-        if (this.promotion.withOrderFromList.length === 1) {
-          suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
-        } else {
-          this.promotion.withOrderFromList.forEach((entry, i) => {
-            if (i === this.promotion.withOrderFromList.length - 1) {
-              suggestedTitle += 'or ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          })
-        }
-      } else if (this.promotion.percentage && this.eligibility === select && (this.promotion.withOrderFromList || []).length) {
-        suggestedTitle = `${this.promotion.percentage}% off with order from `;
-        if (this.promotion.withOrderFromList.length === 1) {
-          suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
-        } else {
-          this.promotion.withOrderFromList.forEach((entry, i) => {
-            if (i === this.promotion.withOrderFromList.length - 1) {
-              suggestedTitle += 'or ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          })
-        }
-      } else if (this.promotion.percentage && (this.promotion.percentDiscountList || []).length && this.eligibility === dollar && this.promotion.orderMinimum) {
-        suggestedTitle = `${this.promotion.percentage}% off `;
-        if (this.promotion.percentDiscountList.length === 1) {
-          suggestedTitle += `${this.promotionListEntryToString(this.promotion.percentDiscountList[0])} `
-        } else {
-          this.promotion.percentDiscountList.forEach((entry, i) => {
-            if (i === this.promotion.percentDiscountList.length - 1) {
-              suggestedTitle += 'and ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          });
-        }
-        suggestedTitle += ` with $${this.promotion.orderMinimum} min order`;
-      } else if (this.promotion.percentage && this.eligibility === dollar && this.promotion.orderMinimum) {
-        suggestedTitle = `${this.promotion.percentage}% off with $${this.promotion.orderMinimum} min order`;
-      }
-    } else if (this.promotionType === "Free Item") {
-      if (((this.promotion.freeItemList || []).length) && (this.promotion.withOrderFromList || []).length && this.eligibility === select) {
-        suggestedTitle = 'Free ';
-        if (this.promotion.freeItemList.length === 1) {
-          suggestedTitle += this.promotion.freeItemList[0].mcs[0].mis[0].name.trim();
-        } else {
-          suggestedTitle = 'Choose a free item';
-        }
-        suggestedTitle += ' with order from ';
-        if (this.promotion.withOrderFromList.length === 1) {
-          suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
-        } else {
-          this.promotion.withOrderFromList.forEach((entry, i) => {
-            if (i === this.promotion.withOrderFromList.length - 1) {
-              suggestedTitle += 'or ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          })
-        }
-      } else if ((this.promotion.freeItemList || []).length && this.promotion.orderMinimum && this.eligibility === dollar) {
-        suggestedTitle = 'Free ';
-        if (this.promotion.freeItemList.length === 1) {
-          suggestedTitle += this.promotion.freeItemList[0].mcs[0].mis[0].name.trim();
-        } else {
-          suggestedTitle = 'Choose a free item';
-        }
-        suggestedTitle += ` with $${this.promotion.orderMinimum} min order`
-      } else if (this.promotion.freeItemName && this.promotion.orderMinimum && this.eligibility === dollar && !this.useFreeItemList) {
-        suggestedTitle = `Free ${this.promotion.freeItemName} with $${this.promotion.orderMinimum} min order`;
-      } else if (this.promotion.freeItemName && (this.promotion.withOrderFromList || []).length && this.eligibility === select && !this.useFreeItemList) {
-        suggestedTitle = `Free ${this.promotion.freeItemName} with order from `;
-        if (this.promotion.withOrderFromList.length === 1) {
-          suggestedTitle += this.promotionListEntryToString(this.promotion.withOrderFromList[0]);
-        } else {
-          this.promotion.withOrderFromList.forEach((entry, i) => {
-            if (i === this.promotion.withOrderFromList.length - 1) {
-              suggestedTitle += 'or ' + this.promotionListEntryToString(entry);
-            } else {
-              suggestedTitle += this.promotionListEntryToString(entry) + ', ';
-            }
-          })
-        }
-      }
 
 
-    }
     return suggestedTitle;
   }
 
@@ -426,23 +297,15 @@ export class PromotionEditorComponent implements DoCheck {
     }
     if (this.promotionType === '$ Discount') {
       this.promotion.freeItemList = [];
-      this.promotion.freeItemName = '';
       this.promotion.percentage = 0;
       this.promotion.percentDiscountList = [];
     } else if (this.promotionType === '% Discount') {
       this.promotion.amount = 0;
       this.promotion.freeItemList = [];
-      this.promotion.freeItemName = '';
     } else if (this.promotionType === 'Free Item') {
       this.promotion.amount = 0;
       this.promotion.percentage = 0;
       this.promotion.percentDiscountList = [];
-    }
-
-    if (this.eligibility === 'Order Minimum ($)') {
-      this.promotion.withOrderFromList = [];
-    } else if (this.eligibility === 'Order of Select Item(s)') {
-      this.promotion.orderMinimum = 0;
     }
   }
 }
