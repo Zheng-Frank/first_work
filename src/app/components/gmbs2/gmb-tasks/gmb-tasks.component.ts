@@ -738,7 +738,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
         }).toPromise();
         allPublished.forEach(acct => (acct.locations || []).forEach(loc => { 
-            if (loc.status === "Published" && ['OWNER','CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid) }));
+            if (loc.status === "Published" && ["PRIMARY_OWNER", 'OWNER','CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid) }));
     }
 
     private async populateManualFixes() {
