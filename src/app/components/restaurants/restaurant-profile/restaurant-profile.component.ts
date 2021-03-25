@@ -263,7 +263,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // tip settings
     newObj.serviceSettings = ['Pickup', 'Delivery', 'Dine-in'].map(type => {
-      const setting = this.restaurant.serviceSettings.find(x => x.name === type) || { name: type };
+      const setting = this.restaurant.serviceSettings && this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};      
       const tip = this.tipSettings[type];
       const newTipSuggestion = {
         amount: this.normalizeNumber(tip.defaultAmount),
