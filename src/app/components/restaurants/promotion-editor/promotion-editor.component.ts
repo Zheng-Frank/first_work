@@ -19,43 +19,9 @@ export class PromotionEditorComponent implements OnChanges {
   @Output() onDelete = new EventEmitter();
 
   promotionType = '$ Discount';
-
-  fromSelectionToggle = false;
   expiry;
-
   freeItemListMaxLength = 3;
-  oldPromotionID = null;
-
-  selected: any = {
-    withOrderFromList: {
-      menu: '',
-      category: '',
-      item: ''
-    },
-    freeItemList: {
-      menu: '',
-      category: '',
-      item: ''
-    },
-    percentDiscountList: {
-      menu: '',
-      category: '',
-      item: ''
-    }
-
-  };
-
-  withOrderFromList = [];
-  categories = [];
-  items = [];
-
-  freeItemName = '';
-
   useFreeItemList = false;
-
-  freeItemList = [];
-  percentDiscountList = [];
-
 
   constructor() { }
 
@@ -65,8 +31,7 @@ export class PromotionEditorComponent implements OnChanges {
     }
   }
 
-  handleFilterEvent() {
-    console.log(this.promotion.freeItemList);
+  handleFilterEvent(event) {
 
   }
 
@@ -182,72 +147,6 @@ export class PromotionEditorComponent implements OnChanges {
     return !(this.promotion.excludedOrderTypes || []).some(t => t === orderType);
   }
 
-
-  onMenuSelected(menuName, subproperty) {
-    this.selected[subproperty].menu = menuName;
-
-    if (!this.selected[subproperty].menu) {
-      this.selected[subproperty].category = this.selected[subproperty].item = '';
-      this.categories = this.items = [];
-    }
-
-    const menu = this.menus.find(menu => String(menu.name).trim() === String(menuName).trim());
-
-    if (menu) {
-      this.categories = menu.mcs || [];
-      this.items = [];
-    }
-  }
-
-  onCategorySelected(categoryName, subproperty) {
-    this.selected[subproperty].category = categoryName;
-
-    if (!this.selected[subproperty].category) {
-      this.items = [];
-      this.selected[subproperty].category = this.selected[subproperty].item = '';
-    }
-
-    const menu = this.menus.find(menu => String(menu.name).trim() === String(this.selected[subproperty].menu).trim());
-    if (menu) {
-      const categories = menu.mcs.find(cat => cat.name === categoryName);
-      if (categories) {
-        const items = categories.mis;
-        if (items) {
-          this.items = items;
-        }
-      }
-    }
-  }
-
-  onItemSelected(itemName, subproperty) {
-    this.selected[subproperty].item = itemName;
-  }
-
-  addEntryToList(listName) {
-    const newEntry: any = {};
-
-    if (this.selected[listName]) {
-      newEntry.name = this.selected[listName].menu;
-      if (this.selected[listName].category) {
-        newEntry.mcs = [{ name: this.selected[listName].category }];
-        if (this.selected[listName].item) {
-          newEntry.mcs[0].mis = [{ name: this.selected[listName].item }]
-        }
-      }
-    }
-
-    if (this.selected[listName].menu) {
-      this.promotion[listName] = [...this.promotion[listName] || [], newEntry];
-    }
-    this.selected[listName] = {};
-  }
-
-  deleteEntryFromList(listName, index) {
-    if (this.promotion[listName] && this.promotion[listName][index]) {
-      this.promotion[listName].splice(index, 1);
-    }
-  }
-
   validatePromotionNumbers() {
     if (this.promotionType === '$ Discount') {
       if (this.promotion.amount > this.promotion.orderMinimum) {
@@ -271,20 +170,7 @@ export class PromotionEditorComponent implements OnChanges {
       return null;
     }
 
-
     return suggestedTitle;
-  }
-
-  promotionListEntryToString(entry) {
-    if (!entry.mcs) {
-      return entry.name.trim();
-    } else {
-      if (entry.mcs[0].mis) {
-        return `${entry.name.trim()}>${entry.mcs[0].name.trim()}>${entry.mcs[0].mis[0].name.trim()}`;
-      } else {
-        return `${entry.name.trim()}>${entry.mcs[0].name.trim()}`;
-      }
-    }
   }
 
   useSuggestedTitle() {

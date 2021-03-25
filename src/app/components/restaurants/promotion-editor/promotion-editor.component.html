@@ -3,7 +3,8 @@
   <div class="{{promotion.name ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.name" placeholder="eg. $5 off $50">
   </div>
-  <div *ngIf="promotion.name && promotion.name.length > 100" class="text-warning font-weight-bold">Note: Promotion Titles longer than 100 characters will be shortened when saved.</div>
+  <div *ngIf="promotion.name && promotion.name.length > 100" class="text-warning font-weight-bold">Note: Promotion
+    Titles longer than 100 characters will be shortened when saved.</div>
   <div *qIf="suggestPromotionTitle()">Suggested Title: <button type="button" class="btn btn-link"
       (click)="useSuggestedTitle()">{{suggestPromotionTitle()}}</button></div>
   <label class="mt-1">Code:</label>
@@ -11,9 +12,8 @@
     <input type="text" class="form-control" [(ngModel)]="promotion.code" placeholder="eg. spring5">
   </div>
   <br>
-  <label class="mt-1"><u>Promotion </u></label>
-  <p>Promotion type</p>
-
+  <label class="mt-1"><u>Promotion Type</u></label>
+  
   <q-simple-radio [(ngModel)]="promotionType" [equalWidth]="true" [values]="['$ Discount', '% Discount', 'Free Item']">
   </q-simple-radio>
 
@@ -23,8 +23,7 @@
 
   <div *qIf="promotionType === '$ Discount'">
     <label class="mt-1">Fixed Amount ($):</label>
-    <div *qIf="promotion.amount > promotion.orderMinimum"
-      class="text-danger font-weight-bold"> Error: Promotion amount
+    <div *qIf="promotion.amount > promotion.orderMinimum" class="text-danger font-weight-bold"> Error: Promotion amount
       cannot exceed minimum order amount</div>
     <div>
       <input type="number" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
@@ -33,53 +32,12 @@
 
   <div *qIf="promotionType === '% Discount'">
     <label class="mt-1">Percentage Discount(%):</label>
-    <div *qIf="promotion.percentage && (promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0)"
+    <div
+      *qIf="promotion.percentage && (promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0)"
       class="text-danger font-weight-bold"> Error: Invalid
       percentage</div>
     <div>
       <input type="number" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
-    </div>
-
-    <label class="mt-1"> <u>Applicable items:</u></label>
-    <div>
-      Add entries to this list and discount will only be applied to items, menus, or categories in the list. Leave the
-      list blank and discount will
-      be applied to entire order.
-    </div>
-    <div *ngFor="let menu of (promotion.percentDiscountList || []); let menuIndex = index">
-      <div class="d-flex align-items-center">
-        <div class="mr-2"><button type="button" class="btn btn-link m-0 p-0"
-            (click)="deleteEntryFromList('percentDiscountList', menuIndex)"><i class="far fa-trash-alt"></i></button>
-        </div>
-        <span>{{menu.name ? menu.name: 'All Menus'}}</span>
-        <span *ngFor="let category of menu.mcs">
-          <span> ➜ {{category.name? category.name: 'All Categories'}}</span>
-          <span *ngFor="let item of category.mis">
-            <span> ➜ {{item.name ? item.name: 'All Items'}}</span>
-          </span>
-        </span>
-      </div>
-    </div>
-    <div class="d-flex">
-      <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'percentDiscountList')"
-        [(ngModel)]="selected.percentDiscountList.menu">
-        <option value=""></option>
-        <option [value]="menu.name" *ngFor="let menu of menus">{{menu.name}}</option>
-      </select>
-      <select class="form-control mr-2" (change)="onCategorySelected($event.target.value, 'percentDiscountList')"
-        [(ngModel)]="selected.percentDiscountList.category">
-        <option value=""></option>
-        <option [value]="category.name" *ngFor="let category of categories">{{category.name}}</option>
-      </select>
-      <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'percentDiscountList')"
-        [(ngModel)]="selected.percentDiscountList.item">
-        <option value=""></option>
-        <option [value]="item.name" *ngFor="let item of items">{{item.name}}</option>
-      </select>
-      <div class="d-flex justify-content-end">
-        <button type="button" class="btn btn-link" [disabled]="!selected.percentDiscountList.menu && !selected.percentDiscountList.category 
-        && !selected.percentDiscountList.item" (click)="addEntryToList('percentDiscountList')">Add</button>
-      </div>
     </div>
   </div>
 
@@ -89,70 +47,39 @@
     <div><input type="checkbox" [(ngModel)]="useFreeItemList" name="itemName">
       Choose from menu
     </div>
-    <div *ngIf="useFreeItemList; else textFieldEntry">
-      <!-- <div *ngFor="let menu of (promotion.freeItemList || []); let menuIndex = index">
-        <div class="d-flex align-items-center">
-          <div class="mr-2"><button type="button" class="btn btn-link m-0 p-0"
-              (click)="deleteEntryFromList('freeItemList', menuIndex)"><i class="far fa-trash-alt"></i></button></div>
-          <span>{{menu.name ? menu.name: 'All Menus'}}</span>
-          <span *ngFor="let category of menu.mcs">
-            <span> ➜ {{category.name? category.name: 'All Categories'}}</span>
-            <span *ngFor="let item of category.mis">
-              <span> ➜ {{item.name ? item.name: 'All Items'}}</span>
-            </span>
-          </span>
-        </div>
-      </div> -->
-      <!-- <div class="d-flex">
-        <select class="form-control mr-2" (change)="onMenuSelected($event.target.value, 'freeItemList')"
-          [(ngModel)]="selected.freeItemList.menu">
-          <option value=""></option>
-          <option [value]="menu.name" *ngFor="let menu of menus">{{menu.name}}</option>
-        </select>
-        <select class="form-control mr-2" (change)="onCategorySelected($event.target.value, 'freeItemList')"
-          [(ngModel)]="selected.freeItemList.category">
-          <option value=""></option>
-          <option [value]="category.name" *ngFor="let category of categories">{{category.name}}</option>
-        </select>
-        <select class="form-control mr-2" (change)="onItemSelected($event.target.value, 'freeItemList')"
-          [(ngModel)]="selected.freeItemList.item">
-          <option value=""></option>
-          <option [value]="item.name" *ngFor="let item of items">{{item.name}}</option>
-        </select>
-        <div class="d-flex justify-content-end">
-          <button type="button" class="btn btn-link" (click)="addEntryToList('freeItemList')"
-            [disabled]="!selected.freeItemList.menu || !selected.freeItemList.category || !selected.freeItemList.item || promotion.freeItemList.length === freeItemListMaxLength">
-            Add</button>
-        </div>
-      </div> -->
-      <app-menu-filters-editor [menus]="menus" [menuFilters]="promotion.freeItemList" [requireFullItem]="true" (update)="handleFilterEvent($event)"></app-menu-filters-editor>
-      <!-- <app-menu-filters-editor [menus]="menus" [menuFilters]="promotion.freeItemList" (update)="handleMenuFilterEvent($event)"></app-menu-filters-editor> -->
-      {{promotion.freeItemList | json}}
+    <div *ngIf="useFreeItemList; else genericFreeItem">
+      <app-menu-filters-editor [menus]="menus" [menuFilters]="promotion.freeItemList" [requireFullItem]="true"
+        (update)="handleFilterEvent($event)"></app-menu-filters-editor>
       <div *ngIf="promotion.freeItemList.length === freeItemListMaxLength" class="text-danger font-weight-bold">
         <small> Maximum number of items for customer to choose from is {{freeItemListMaxLength}}. Please delete an
           existing item
           before adding a new one. </small>
       </div>
     </div>
-    <ng-template #textFieldEntry>
+    <ng-template #genericFreeItem>
       <div>
-        <input type="input" class="form-control" [(ngModel)]="promotion.freeItemName"
-          placeholder="Enter Item Name (e.g. 20 oz soda)">
+        <strong>Generic Free Item:</strong> Please enter a descriptive promotion title to let the customer know what the
+        free item is.
       </div>
     </ng-template>
 
   </div>
   <br>
-  <label class="mt-1"><u> Eligibility </u></label><br>
 
+  <label class="mt-1"> <u>Applicable items:</u></label>
+  <div>
+  Add entries to this list and discount will only be applied to menus, categories, and items on this list. Only items in this list will count toward the minimum order amount.
+  </div>
+  <app-menu-filters-editor [menus]="menus" [menuFilters]="promotion.applicableItems" [requireFullItem]="false"
+  (update)="handleFilterEvent($event)"></app-menu-filters-editor>
 
-  <div >
-    Customer is eligible for promotion if their order subtotal is at least this amount.
-    <br>
-    <label class="mt-1">Minimum Order ($)</label>
+  <div>
+   
+    <label class="mt-1"><u> Minimum Order ($) </u></label><br>
+  
     <input type="number" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
   </div>
-  
+
 
 
   <label class="mt-1">Expiration Date:</label>
@@ -205,7 +132,8 @@
 
   <hr>
   <h4>Preview</h4>
-  <app-promotion-viewer [promotion]="promotion" [offsetToEST]="offsetToEST" [hideEditButton]="true" [promotionType]="promotionType" [useFreeItemList]="useFreeItemList">
+  <app-promotion-viewer [promotion]="promotion" [offsetToEST]="offsetToEST" [hideEditButton]="true"
+    [promotionType]="promotionType" [useFreeItemList]="useFreeItemList">
   </app-promotion-viewer>
   <!-- because of viewer having float left -->
   <div class="clearfix"></div>
