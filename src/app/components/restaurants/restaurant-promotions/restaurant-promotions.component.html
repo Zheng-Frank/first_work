@@ -16,7 +16,7 @@
   </ul>
 </div>
 <q-modal #promotionModal>
-  <app-promotion-editor #promotionEditor [menus]="restaurant.menus" [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" (onDone)="onDone($event)"
+  <app-promotion-editor #promotionEditor [menus]="restaurant.menus" [promotion]="promotionInEditing" [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" (onDone)="onDone($event)"
     (onCancel)="onCancel($event)" (onDelete)="onDelete($event)"></app-promotion-editor>
 </q-modal>
 <!--displaying-->

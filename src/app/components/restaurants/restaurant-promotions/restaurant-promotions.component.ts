@@ -26,6 +26,8 @@ export class RestaurantPromotionsComponent implements OnInit {
 
   promotionsInEditing = [];
 
+  promotionInEditing;
+
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
@@ -65,13 +67,13 @@ export class RestaurantPromotionsComponent implements OnInit {
   editNew() {
     this.promotionModal.show();
     this.promotionModal.title = 'New Promotion';
-    this.promotionEditor.promotion = new Promotion();
+    this.promotionInEditing = new Promotion();
   }
 
   edit(promotion) {
     this.promotionModal.show();
     this.promotionModal.title = 'Edit Promotion';
-    this.promotionEditor.promotion = new Promotion(promotion);
+    this.promotionInEditing = new Promotion(promotion);
   }
 
   onCancel(promotion) {
