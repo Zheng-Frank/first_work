@@ -84,7 +84,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   disabled = false;
   googleAddress: Address;
   preferredLanguage;
-
+  selfSignupRegistered;
   notification;
 
   preferredLanguages = [
@@ -133,6 +133,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   toggleEditing() {
     this.address = new Address(this.restaurant.googleAddress);
+    this.selfSignupRegistered = this.restaurant.selfSignup && this.restaurant.selfSignup.registered;
     this.editing = !this.editing;
     this.fields.map(field => this[field] = this.restaurant[field]);
     this.apt = this.restaurant.googleAddress ? this.restaurant.googleAddress.apt : '';
@@ -155,7 +156,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   ok() {
-    const oldObj = { _id: this.restaurant['_id'] };
+    const oldObj = { _id: this.restaurant['_id'] } as any;
     const newObj = { _id: this.restaurant['_id'] } as any;
     this.fields.map(field => {
       oldObj[field] = this.restaurant[field];
@@ -192,6 +193,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     newObj.images = this.images;
     delete oldObj['images'];
 
+    if (this.selfSignupRegistered != undefined) {
+      oldObj.selfSignup = {};
+      newObj.selfSignup = { registered: this.selfSignupRegistered }
+      // newObj.selfSignup.registered = this.selfSignupRegistered
+    }
+
     this._prunedPatch
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
@@ -208,6 +215,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
           // assign new values to restaurant
           this.fields.map(f => this.restaurant[f] = newObj[f]);
+          if (this.restaurant.selfSignup) {
+            this.restaurant.selfSignup.registered = this.selfSignupRegistered
+          };
 
           this.editing = false;
         },
