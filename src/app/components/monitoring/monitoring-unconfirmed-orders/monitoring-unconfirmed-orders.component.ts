@@ -126,14 +126,23 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       if (!statusCondition) {
         return false
       }
-      if (o.type === 'pickup') {
+      if (o.type.toLowerCase() === 'pickup') {
+        let pickupTime = o.pickupTimeEstimate
 
-        return new Date(new Date().getTime() - (new Date(o.timeToDeliver).getTime() - new Date(o.pickUpTime).getTime())).getTime() > this.now.getTime()
-      } else if (o.type === 'delivery') {
-        return new Date(new Date().getTime() - (new Date(o.timeToDeliver).getTime() - new Date(o.deliveryTime).getTime())).getTime() > this.now.getTime()
+
+        return this.now.getTime() > new Date(o.timeToDeliver - (pickupTime * 60 * 1000)).getTime()
+        // return new Date(new Date().getTime() - (new Date(o.timeToDeliver).getTime() - new Date(o.pickUpTime).getTime())).getTime() > this.now.getTime()
+      } else if (o.type.toLowerCase() === 'delivery') {
+        let deliveryTime = o.deliveryTimeEstimate
+
+
+        return this.now.getTime() > new Date(o.timeToDeliver - (deliveryTime * 60 * 1000)).getTime()
+
       }
 
     })
+
+    // unconfirmedOrders = [...unconfirmedOrders, ...unconfirmedScheduledOrders]
 
 
     // const scheduledOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
