@@ -342,7 +342,15 @@ export class CsvGeneratorComponent implements OnInit {
         }
       );
   }
-  ngOnInit() {
+  async ngOnInit() {
+    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        "googleListing.cid": 1
+      },
+      limit: 10000
+    }).toPromise();
   }
 
   scanNew() {
@@ -477,6 +485,8 @@ export class CsvGeneratorComponent implements OnInit {
       try {
         const results = await this.processLeads(event, batch);
         console.log("PROCESSED LEAD RESULTS! ", results)
+
+
         await new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve();
@@ -501,6 +511,7 @@ export class CsvGeneratorComponent implements OnInit {
       const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-lead", query).toPromise();
 
       console.log("THIS IS THE RESULT ", result)
+      // this.objectsToCSV(result)
       return result;
     } catch (error) {
       console.log('11111111111111111111111111');
@@ -524,12 +535,20 @@ export class CsvGeneratorComponent implements OnInit {
           return this.scanbOneLead(query);
         });
 
+      console.log("MADE IT HERE")
       scanLeadResults = await Promise.all(scanLeadRequests);
+      console.log("HERE TWO!!")
       //merge the array of array to flatten it.
       scanLeadResults = [].concat.apply([], scanLeadResults).filter(each => each);
+
+      console.log("HERE 2.5")
       const restaurantCids = this.restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => r.googleListing.cid);
+
+      console.log("HERE 2.7")
       //filter out cid already in qMenu restaurants before updating or creating lead
       scanLeadResults = scanLeadResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
+
+      console.log("HERE 2.9")
 
       console.log('scanLeadResults=', scanLeadResults);
       //retrieve existing lead with the same cids
@@ -557,10 +576,14 @@ export class CsvGeneratorComponent implements OnInit {
       // }
       //crawl GMB info new leads
       const newLeadsGMBRequests = (scanLeadResults).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
+      console.log("HERE 3")
       let newLeadsCrawledGMBresults: any = await Promise.all(newLeadsGMBRequests);
+      console.log("HERE 4")
       let newLeadsResults = this.convertToLead(newLeadsCrawledGMBresults.filter(each => each));
 
       console.log("THESE ARE THE NEW LEAD RESULTS ", newLeadsResults)
+
+      this.objectsToCSV(newLeadsResults)
       for (let each of newLeadsResults) {
         console.log("THIS IS THE LEAD", each);
         await this.createNewLead(each);
@@ -644,8 +667,27 @@ export class CsvGeneratorComponent implements OnInit {
   }
 
   objectsToCSV(arr) {
+    let finalResult = []
+    console.log("RESTAURANT INFO ", arr);
+    let header = {
+      "Restaurant-Name": "Restaurant Name",
+      "Restaurant-Address": "Restaurant Address",
+      "Postcard-Style": "Postcard Style",
+
+    };
+
+    console.log("ARRAY IN OBJECTS TO CSV ", arr)
+
+    arr = arr.map(a => {
+      return {
+        name: a.name,
+        address: a.address.formatted_address,
+        style: "Chinese"
+      }
+    })
+
     const array = [Object.keys(arr[0])].concat(arr);
-    return array
+    let result = array
       .map((row) => {
         return Object.values(row)
           .map((value) => {
@@ -654,22 +696,9 @@ export class CsvGeneratorComponent implements OnInit {
           .toString();
       })
       .join("\n");
-  }
-
-  async downloadFile(restaurantInfo) {
-    console.log("RESTAURANT INFO ", restaurantInfo);
-    let header = {
-      "Restaurant-Name": "Restaurant Name",
-      "Restaurant-Address": "Restaurant Address",
-      "Postcard-Style": "Postcard Style",
-
-    };
-
-    restaurantInfo.unshift(header)
-    let data = this.objectsToCSV(restaurantInfo);
-    console.log(data);
-    var blob = new Blob([data], { type: "application/octet-stream" });
+    var blob = new Blob([result], { type: "application/octet-stream" });
     saveAs(blob, "leads.csv");
   }
+
 
 }
