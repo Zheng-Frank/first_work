@@ -85,20 +85,20 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       },
     }, 1000)
 
-    console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
+    // console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
 
-    let scheduledOrders = 0
-    let nonscheduledOrders = 0
-    ordersWithSatuses.forEach(order => {
-      if (order.timeToDeliver) {
-        scheduledOrders += 1
-      } else {
-        nonscheduledOrders += 1
-      }
-    })
+    // let scheduledOrders = 0
+    // let nonscheduledOrders = 0
+    // ordersWithSatuses.forEach(order => {
+    //   if (order.timeToDeliver) {
+    //     scheduledOrders += 1
+    //   } else {
+    //     nonscheduledOrders += 1
+    //   }
+    // })
 
-    console.log("SCHEDULED ORDERS ", scheduledOrders)
-    console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
+    // console.log("SCHEDULED ORDERS ", scheduledOrders)
+    // console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
 
 
 
