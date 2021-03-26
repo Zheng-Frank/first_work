@@ -511,7 +511,6 @@ export class CsvGeneratorComponent implements OnInit {
       const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-lead", query).toPromise();
 
       console.log("THIS IS THE RESULT ", result)
-      // this.objectsToCSV(result)
       return result;
     } catch (error) {
       console.log('11111111111111111111111111');
@@ -576,18 +575,18 @@ export class CsvGeneratorComponent implements OnInit {
       // }
       //crawl GMB info new leads
       const newLeadsGMBRequests = (scanLeadResults).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
-      console.log("HERE 3")
+      // console.log("HERE 3")
       let newLeadsCrawledGMBresults: any = await Promise.all(newLeadsGMBRequests);
-      console.log("HERE 4")
+      // console.log("HERE 4")
       let newLeadsResults = this.convertToLead(newLeadsCrawledGMBresults.filter(each => each));
 
-      console.log("THESE ARE THE NEW LEAD RESULTS ", newLeadsResults)
+      // console.log("THESE ARE THE NEW LEAD RESULTS ", newLeadsResults)
 
       this.objectsToCSV(newLeadsResults)
-      for (let each of newLeadsResults) {
-        console.log("THIS IS THE LEAD", each);
-        await this.createNewLead(each);
-      }
+      // for (let each of newLeadsResults) {
+      //   console.log("THIS IS THE LEAD", each);
+      //   await this.createNewLead(each);
+      // }
 
 
       //crawl GMB info existing leads
