@@ -13,7 +13,7 @@
   </div>
   <br>
   <label class="mt-1"><u>Promotion Type</u></label>
-  
+
   <q-simple-radio [(ngModel)]="promotionType" [equalWidth]="true" [values]="['$ Discount', '% Discount', 'Free Item']">
   </q-simple-radio>
 
@@ -48,8 +48,8 @@
       Choose from menu
     </div>
     <div *ngIf="useFreeItemList; else genericFreeItem">
-      <app-menu-filters-editor [menus]="menus" [menuFilters]="promotion.freeItemList" [requireFullItem]="true"
-        (update)="handleFilterEvent($event)"></app-menu-filters-editor>
+      <app-menu-filters-editor [menus]="menus" [requireFullItem]="true"
+        (update)="handleFreeItemEvent($event)"></app-menu-filters-editor>
       <div *ngIf="promotion.freeItemList.length === freeItemListMaxLength" class="text-danger font-weight-bold">
         <small> Maximum number of items for customer to choose from is {{freeItemListMaxLength}}. Please delete an
           existing item
@@ -70,8 +70,8 @@
   <div>
   Add entries to this list and discount will only be applied to menus, categories, and items on this list. Only items in this list will count toward the minimum order amount.
   </div>
-  <app-menu-filters-editor [menus]="menus" [menuFilters]="promotion.applicableItems" [requireFullItem]="false"
-  (update)="handleFilterEvent($event)"></app-menu-filters-editor>
+  <app-menu-filters-editor [menus]="menus" [requireFullItem]="false"
+  (update)="handleApplicableItemEvent($event)"></app-menu-filters-editor>
 
   <div>
    
@@ -114,15 +114,6 @@
         {{orderType}}</label>
     </div>
   </div>
-
-  <!-- <label class="mt-1">Excluded Menus:</label>
-  <div class="d-flex flex-row">
-    <div *ngFor="let menu of (menus || [])" class="pl-4">
-      <label class="mt-1">
-        <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="toggleMenu(menu)">
-        {{menu.name}}</label>
-    </div>
-  </div> -->
 
   <div class="mt-1 text-right">
     <button *ngIf="promotion.id" class="btn btn-link text-danger" (click)="remove()">Delete</button>

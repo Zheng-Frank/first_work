@@ -31,8 +31,12 @@ export class PromotionEditorComponent implements OnChanges {
     }
   }
 
-  handleFilterEvent(event) {
+  handleFreeItemEvent(event) {
+    this.promotion.freeItemList = event;
+  }
 
+  handleApplicableItemEvent(event) {
+    this.promotion.applicableItems = event;
   }
 
   openCorrectUIPane(promotion) {
@@ -109,7 +113,8 @@ export class PromotionEditorComponent implements OnChanges {
       // making it expire at next month
       //this.promotion.expiry.setMonth(this.promotion.expiry.getMonth() + 1);
     }
-    this.onDone.emit(this.promotion);
+    // this.onDone.emit(this.promotion);
+    console.log(this.promotion);
   }
 
   isMenuIncluded(menu) {
