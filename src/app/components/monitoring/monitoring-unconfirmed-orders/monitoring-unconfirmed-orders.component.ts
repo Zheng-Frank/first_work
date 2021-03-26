@@ -59,27 +59,26 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
           },
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 4)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 3)))
           },
         }
       },
       projection: {
         _id: 1,
-        // orderNumber: 1,
-        // "restaurantObj.name": 1,
-        // "restaurantObj._id": 1,
-        // "statuses.status": 1,
-        // "statuses.createdAt": 1,
-        // "orderItems": 1,
+        orderNumber: 1,
+        "restaurantObj.name": 1,
+        "restaurantObj._id": 1,
+        "statuses.status": 1,
+        "statuses.createdAt": 1,
+        "orderItems": 1,
         type: 1,
-        // "paymentObj.method": 1,
-        // "paymentObj.paymentType": 1,
+        "paymentObj.method": 1,
+        "paymentObj.paymentType": 1,
         timeToDeliver: 1,
         statuses: {
           $slice: -1
         },
         createdAt: 1,
-        // timeToDeliver: 1
       },
       sort: {
         createdAt: -1
@@ -121,10 +120,20 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     // For scheduled orders, these are the unconfirmed orders
 
-    // const unconfirmedScheduledOrders = ordersWithSatuses.filter(o => {
-    //   o.timeToDeliver
-    //   o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED'
-    // })
+    const unconfirmedScheduledOrders = ordersWithSatuses.filter(o => {
+      let statusCondition = o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED';
+
+      if (!statusCondition) {
+        return false
+      }
+      if (o.type === 'pickup') {
+
+        return new Date(new Date().getTime() - (new Date(o.timeToDeliver).getTime() - new Date(o.pickUpTime).getTime())).getTime() > this.now.getTime()
+      } else if (o.type === 'delivery') {
+        return new Date(new Date().getTime() - (new Date(o.timeToDeliver).getTime() - new Date(o.deliveryTime).getTime())).getTime() > this.now.getTime()
+      }
+
+    })
 
 
     // const scheduledOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
@@ -318,30 +327,45 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
       let createdAt = this.convertTZ(fields.createdAt, timezone)
 
-      let confirmBy: any = new Date(createdAt.getTime()).setMinutes(createdAt.getMinutes() + row.pickupTimeEstimate)
+      let confirmBy: any
 
       if (fields.type.toLowerCase() === 'delivery') {
         // console.log("ORDER IS DELIVERY")
 
         row.deliveryTimeEstimate = row.deliveryTimeEstimate ? row.deliveryTimeEstimate : 45
 
-        confirmBy = new Date(createdAt.getTime()).setMinutes(new Date(fields.timeToDeliver).getMinutes() - row.deliveryTimeEstimate)
+        confirmBy = new Date(new Date(fields.timeToDeliver).getTime() - (row.deliveryTimeEstimate * 60 * 1000))
 
       } else if (fields.type.toLowerCase() === 'pickup') {
         // console.log("ORDER IS PICK UP")
         row.pickupTimeEstimate = row.pickupTimeEstimate ? row.pickupTimeEstimate : 15
 
-        confirmBy = new Date(createdAt.getTime()).setMinutes(new Date(fields.timeToDeliver).getMinutes() - row.pickupTimeEstimate)
+        confirmBy = new Date(new Date(fields.timeToDeliver).getTime() - (row.pickupTimeEstimate * 60 * 1000))
+
 
       } else {
-        confirmBy = new Date(createdAt.getTime()).setMinutes(new Date(fields.timeToDeliver).getMinutes() - 45)
+        // Dine in order
+        confirmBy = new Date(new Date(fields.timeToDeliver).getTime() - (15 * 60 * 1000))
         console.log("ORDER NOT REGISTED AS PICK UP DELIVERY OR PICKUP")
       }
 
       let expectedDeliverTime = this.convertTZ(fields.timeToDeliver, timezone)
+      confirmBy = this.convertTZ(confirmBy, timezone)
+
+      let overnightOrder = false
+      if (new Date(fields.timeToDeliver).getTime() - new Date(fields.createdAt).getTime() > (8 * 60 * 60 * 1000)) {
+        overnightOrder = true
+      }
+
+      let lateTime = new Date(this.now.getTime() - new Date(fields.timeToDeliver).getTime()).getMinutes()
+
+      let scheduledString = `Scheduled for ${expectedDeliverTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
+      let placedAtString = `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
+
+      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (next day)` : `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes)`
 
 
-      return [`Scheduled for ${expectedDeliverTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`]
+      return [scheduledString, placedAtString, confirmByString]
 
     } else {
       if (fields.createdAt) {
@@ -349,10 +373,19 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         let startTime = this.convertTZ(fields.createdAt, timezone)
         let expectedConfirmation: any = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
 
+        let lateTime = new Date(this.now.getTime() - new Date(expectedConfirmation).getTime()).getMinutes()
+
+        if (lateTime < 0) {
+          console.log("NEGATIVE ORDER ", order)
+        }
 
         expectedConfirmation = new Date(expectedConfirmation).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
 
-        return [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}`]
+
+
+        console.log(lateTime)
+
+        return [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}. (Late by ${lateTime} minutes)`]
 
       } else {
         return "MISSING DATE!"
