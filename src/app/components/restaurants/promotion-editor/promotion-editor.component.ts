@@ -10,7 +10,6 @@ import { Promotion, Menu } from '@qmenu/ui';
 export class PromotionEditorComponent implements OnChanges {
 
   @Input() promotion: Promotion;
-  @Input() offsetToEST: number;
   @Input() isNew = false;
   @Input() menus = [];
 
@@ -75,23 +74,6 @@ export class PromotionEditorComponent implements OnChanges {
     }
   }
 
-  // getExpiry() {
-  //   if (this.promotion.expiry) {
-  //     return this.promotion.expiry['restaurant yyyy-mm-dd'](this.offsetToEST);
-  //   }
-  //   console.log('restaurant yyyy-mm-dd', new Date()['restaurant yyyy-mm-dd'](this.offsetToEST))
-  //   return new Date()['restaurant yyyy-mm-dd'](this.offsetToEST);
-  // }
-
-  // expiryChanged(event) {
-  //   if (event.target.value) {
-
-  //     // '2017-05-11'
-  //     this.promotion.expiry = Date['parseRestaurantDate'](event.target.value, this.offsetToEST);
-  //     console.log('this.promotion.expiry', this.promotion.expiry);
-  //   }
-  // }
-
   isPromotionValid() {
     if (!this.promotionType) {
       return false;
@@ -107,15 +89,6 @@ export class PromotionEditorComponent implements OnChanges {
 
     return this.promotion.name;
   }
-
-  remove() {
-    this.onDelete.emit(this.promotion);
-  }
-
-  cancel() {
-    this.onCancel.emit(this.promotion);
-  }
-
   done() {
     // let's make sure all data are clean
     this.promotion.amount = Math.abs(+this.promotion.amount || 0);

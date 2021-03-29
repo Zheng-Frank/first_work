@@ -14,7 +14,6 @@ export class PromotionViewerComponent implements OnInit, OnChanges {
   @Input() useFreeItemList: boolean;
   @Input() promotion: Promotion;
   @Input() menus = [];
-  @Input() offsetToEST: number;
   @Output() onEdit = new EventEmitter();
 
   excludedString;
