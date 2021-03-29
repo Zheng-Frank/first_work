@@ -5,7 +5,7 @@
   </div>
   <div *ngIf="promotion.name && promotion.name.length > 100" class="text-warning font-weight-bold">Note: Promotion
     Titles longer than 100 characters will be shortened when saved.</div>
-  <div *qIf="suggestPromotionTitle()">Suggested Title: <button type="button" class="btn btn-link"
+  <div *ngIf="suggestPromotionTitle()">Suggested Title: <button type="button" class="btn btn-link"
       (click)="useSuggestedTitle()">{{suggestPromotionTitle()}}</button></div>
   <label class="mt-1">Code:</label>
   <div class="{{promotion.code ? '' : 'has-danger'}}">
