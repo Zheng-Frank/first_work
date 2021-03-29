@@ -6,7 +6,7 @@
 
       <div class="row">
         <div *ngFor="let promotion of restaurant.promotions || []" class="col-md-6 col-lg-6">
-          <app-promotion-viewer [promotion]="promotion" [menus]="restaurant.menus" [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" (onEdit)="edit($event)">
+          <app-promotion-viewer [promotion]="promotion" [menus]="restaurant.menus" (onEdit)="edit($event)">
           </app-promotion-viewer>
         </div>
       </div>
