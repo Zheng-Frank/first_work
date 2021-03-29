@@ -31,6 +31,24 @@ export class PromotionEditorComponent implements OnChanges {
     }
   }
 
+  flattenList(list) {
+    const result = [];
+    (list || []).map(menu => {
+      if (menu.mcs && menu.mcs.length > 0) {
+        menu.mcs.map(mc => {
+          if (mc.mis && mc.mis.length > 0) {
+            mc.mis.map(mi => result.push({ menu, mc, mi }));
+          } else {
+            result.push({ menu, mc });
+          }
+        });
+      } else {
+        result.push({ menu });
+      }
+    });
+    return result;
+  }
+
   handleFreeItemEvent(event) {
     this.promotion.freeItemList = event;
   }
@@ -57,13 +75,13 @@ export class PromotionEditorComponent implements OnChanges {
     }
   }
 
-  getExpiry() {
-    if (this.promotion.expiry) {
-      return this.promotion.expiry['restaurant yyyy-mm-dd'](this.offsetToEST);
-    }
-    console.log('restaurant yyyy-mm-dd', new Date()['restaurant yyyy-mm-dd'](this.offsetToEST))
-    return new Date()['restaurant yyyy-mm-dd'](this.offsetToEST);
-  }
+  // getExpiry() {
+  //   if (this.promotion.expiry) {
+  //     return this.promotion.expiry['restaurant yyyy-mm-dd'](this.offsetToEST);
+  //   }
+  //   console.log('restaurant yyyy-mm-dd', new Date()['restaurant yyyy-mm-dd'](this.offsetToEST))
+  //   return new Date()['restaurant yyyy-mm-dd'](this.offsetToEST);
+  // }
 
   // expiryChanged(event) {
   //   if (event.target.value) {
@@ -113,8 +131,7 @@ export class PromotionEditorComponent implements OnChanges {
       // making it expire at next month
       //this.promotion.expiry.setMonth(this.promotion.expiry.getMonth() + 1);
     }
-    // this.onDone.emit(this.promotion);
-    console.log(this.promotion);
+    this.onDone.emit(this.promotion);
   }
 
   isMenuIncluded(menu) {
@@ -189,14 +206,12 @@ export class PromotionEditorComponent implements OnChanges {
     if (this.promotionType === '$ Discount') {
       this.promotion.freeItemList = [];
       this.promotion.percentage = 0;
-      this.promotion.percentDiscountList = [];
     } else if (this.promotionType === '% Discount') {
       this.promotion.amount = 0;
       this.promotion.freeItemList = [];
     } else if (this.promotionType === 'Free Item') {
       this.promotion.amount = 0;
       this.promotion.percentage = 0;
-      this.promotion.percentDiscountList = [];
     }
   }
 }
