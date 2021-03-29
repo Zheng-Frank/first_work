@@ -68,7 +68,7 @@ export class PromotionEditorComponent implements OnChanges {
       this.promotionType = '% Discount';
     } else {
       this.promotionType = 'Free Item';
-      if ((promotion.freeItemList || [] ).length) {
+      if ((promotion.freeItemList || []).length) {
         this.useFreeItemList = true;
       }
     }
@@ -97,7 +97,7 @@ export class PromotionEditorComponent implements OnChanges {
   cancel() {
     this.onCancel.emit(this.promotion);
   }
-  
+
   done() {
     // let's make sure all data are clean
     this.promotion.amount = Math.abs(+this.promotion.amount || 0);
@@ -152,6 +152,9 @@ export class PromotionEditorComponent implements OnChanges {
   }
 
   validatePromotionNumbers() {
+    if (!this.promotion.orderMinimum) {
+      return false;
+    }
     if (this.promotionType === '$ Discount') {
       if (this.promotion.amount > this.promotion.orderMinimum) {
         return false;
@@ -174,6 +177,22 @@ export class PromotionEditorComponent implements OnChanges {
       return null;
     }
 
+    if ((this.promotion.applicableItems || []).length) {
+      return null;
+    } else { // no applicable items list
+      if (this.promotion.amount) {
+        suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} minimum purchase`;
+      } else if (this.promotion.percentage) {
+        suggestedTitle = `${this.promotion.percentage}% off with $${this.promotion.orderMinimum} minimum purchase`;
+      } else if ((this.flattenList(this.promotion.freeItemList) || []).length === 1) {
+        const flattenedList = this.flattenList(this.promotion.freeItemList);
+        console.log(flattenedList);
+        suggestedTitle = `Free ${flattenedList[0].mi.name} with $${this.promotion.orderMinimum} minimum purchase`;
+      } else if ((this.flattenList(this.promotion.freeItemList) || []).length > 1) {
+        suggestedTitle = `Choice of free item with $${this.promotion.orderMinimum} minimum purchase`;
+      }
+    }
+
     return suggestedTitle;
   }
 
@@ -183,7 +202,7 @@ export class PromotionEditorComponent implements OnChanges {
 
   removeUnwantedFields() {
     if (this.promotion.name && this.promotion.name.length > 100) {
-      this.promotion.name = this.promotion.name.slice(0,97) + '...';
+      this.promotion.name = this.promotion.name.slice(0, 97) + '...';
     }
     if (this.promotionType === '$ Discount') {
       this.promotion.freeItemList.length = 0;
