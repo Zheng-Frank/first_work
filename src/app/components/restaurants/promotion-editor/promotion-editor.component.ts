@@ -89,6 +89,15 @@ export class PromotionEditorComponent implements OnChanges {
 
     return this.promotion.name;
   }
+
+  remove() {
+    this.onDelete.emit(this.promotion);
+  }
+
+  cancel() {
+    this.onCancel.emit(this.promotion);
+  }
+  
   done() {
     // let's make sure all data are clean
     this.promotion.amount = Math.abs(+this.promotion.amount || 0);
@@ -177,11 +186,11 @@ export class PromotionEditorComponent implements OnChanges {
       this.promotion.name = this.promotion.name.slice(0,97) + '...';
     }
     if (this.promotionType === '$ Discount') {
-      this.promotion.freeItemList = [];
+      this.promotion.freeItemList.length = 0;
       this.promotion.percentage = 0;
     } else if (this.promotionType === '% Discount') {
       this.promotion.amount = 0;
-      this.promotion.freeItemList = [];
+      this.promotion.freeItemList.length = 0;
     } else if (this.promotionType === 'Free Item') {
       this.promotion.amount = 0;
       this.promotion.percentage = 0;
