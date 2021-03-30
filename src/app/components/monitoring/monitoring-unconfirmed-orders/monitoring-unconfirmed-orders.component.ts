@@ -103,7 +103,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
 
-    let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.timeToDeliver ? o.restaurantObj._id : null))]
+    let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.timeToDeliver ? o.restaurantObj._id : null))].map(id => ({ $oid: id })).filter(id => id.$oid != undefined || id.$oid != null)
 
     console.log("UNIQUE IDS ", uniqueIds)
 
@@ -113,8 +113,10 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       resource: 'restaurant',
       query: { _id: { $in: uniqueIds } },
       projection: {
-        'googleAddress.formatted_address': 1,
-        skipOrderConfirmation: 1
+
+        _id: 1,
+        pickupTimeEstimate: 1,
+        deliveryTimeEstimate: 1,
       },
       sort: {
         createdAt: -1
@@ -148,7 +150,13 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         return false
       }
       if (o.type.toLowerCase() === 'pickup') {
-        let pickupTime = o.pickupTimeEstimate ? o.pickupTimeEstimate : 15
+        let pickupTime = restaurantPickupTimes.reduce((acc, cur) => {
+          if (cur._id === o.restaurantObj._id) {
+            console.log("FOUND PICK UP TIME", cur.pickupTimeEstimate)
+            return cur.pickupTimeEstimate
+          }
+        })
+        pickupTime = pickupTime ? pickupTime : 15
 
 
         let latePickupTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (pickupTime * 60 * 1000)).getTime()
@@ -157,7 +165,14 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         return this.now.getTime() > latePickupTime
 
       } else if (o.type.toLowerCase() === 'delivery') {
-        let deliveryTime = o.pickupTimeEstimate ? o.pickupTimeEstimate : 45
+
+        let deliveryTime = restaurantPickupTimes.reduce((acc, cur) => {
+          if (cur._id === o.restaurantObj._id) {
+            console.log("FOUND DELIVERY TIME ", cur.deliveryTimeEstimate)
+            return cur.deliveryTimeEstimate
+          }
+        })
+        deliveryTime = deliveryTime ? deliveryTime : 45
 
         let lateDeliveryTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (deliveryTime * 60 * 1000)).getTime()
 
@@ -201,6 +216,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     let ids: any = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
 
 
+    console.log("THESE ARE THE IDS ", ids)
 
     // Make API calls for corresponding restaurants to get phone number & closing + open time
 
@@ -232,8 +248,9 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
 
-    console.log("THESE ARE THE IDS ", ids)
     const batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
+
+
 
 
     for (let batch of batchedIds) {
