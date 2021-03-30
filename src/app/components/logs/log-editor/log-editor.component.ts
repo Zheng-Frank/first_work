@@ -173,7 +173,6 @@ export class LogEditorComponent implements OnInit {
       if (this.hasAdjustment) {
         this.log.resolved = false;
       }
-      this.log.type=this.hoursOfOperation
       console.log('log: this.log', this.log);
       this.success.emit({
         formEvent: event,
