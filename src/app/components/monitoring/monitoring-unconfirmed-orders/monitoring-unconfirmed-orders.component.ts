@@ -154,7 +154,13 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         restaurantPickupTimes.forEach(res => {
           if (res._id === o.restaurantObj._id) {
             console.log("MATCHING ID PICK ", res.pickupTimeEstimate, o.restaurantObj)
-            pickupTime = res.pickupTimeEstimate
+
+            if (res.pickupTimeEstimate < 10 || res.pickupTimeEstimate > 35) {
+              pickupTime = 15
+            } else {
+              pickupTime = res.pickupTimeEstimate
+
+            }
           }
         })
 
@@ -172,7 +178,13 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         restaurantPickupTimes.forEach(res => {
           if (res._id === o.restaurantObj._id) {
             console.log("MATCHING ID DELIVERY ID ", res.deliveryTimeEstimate)
-            deliveryTime = res.deliveryTimeEstimate
+
+            if (res.deliveryTimeEstimate < 15 || res.deliveryTimeEstimate >= 75) {
+              deliveryTime = 45
+            } else {
+              deliveryTime = res.deliveryTimeEstimate
+
+            }
           }
         })
         deliveryTime = deliveryTime ? deliveryTime : 45
