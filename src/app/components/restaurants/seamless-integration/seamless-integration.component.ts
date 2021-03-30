@@ -223,8 +223,6 @@ export class SeamlessIntegrationComponent implements OnInit {
   }
 
   async ngOnInit() {
-
-
     await Notification.requestPermission();
     if (!this.polling) {
       setInterval(() => this.startPolling(), 300000)
@@ -248,7 +246,10 @@ export class SeamlessIntegrationComponent implements OnInit {
       this.allRestaurants = await this._api
         .get(environment.qmenuApiUrl + "generic", {
           resource: "restaurant",
-          query: { selfSignup: { $exists: true } },
+          query: {
+            selfSignup: { $exists: true },
+            "selfSignup.registered": { $in: [null, false] }
+          },
           limit: 100000,
         })
         .toPromise();

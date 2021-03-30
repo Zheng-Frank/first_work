@@ -152,7 +152,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       if (this.gmbRows) {
         this.gmbOwner = this.gmbRows[0].accountLocationPairs.filter(al => {
-          const result = al.account.locations.filter(loc => loc.status === 'Published' && (loc.role === 'OWNER' || loc.role === 'CO_OWNER'));
+          const result = al.account.locations.filter(loc => loc.status === 'Published' && (loc.role=== 'PRIMARY_OWNER' || loc.role === 'OWNER' || loc.role === 'CO_OWNER'));
           return result.length > 0;
         });
       }
@@ -331,7 +331,7 @@ export class RestaurantGmbComponent implements OnInit {
   }
 
   isPublished(row) {
-    return row.accountLocationPairs.some(al => al.location.status === 'Published' && ['OWNER', 'CO_OWNER', 'MANAGER'].find(r => r === al.location.role));
+    return row.accountLocationPairs.some(al => al.location.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].find(r => r === al.location.role));
   }
 
   hasMainGmb() {
