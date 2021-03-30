@@ -32,18 +32,17 @@ export class PromotionViewerComponent implements OnInit, OnChanges {
     }
   }
 
-  itemListToString(list) {
-    let listString = '';
-    return listString;
-  }
-
-  freeItemListToString(list) {
-    let listString = '';
-    return listString;
-  }
-
-
-  promotionListEntryToString(entry) {
+  renderItemFromFlatList(freeItem) {
+    if (freeItem.mc) {
+      if (freeItem.mi) {
+        // menu, mc, and mi defined
+        return `${freeItem.menu.name}>${freeItem.mc.name}>${freeItem.mi.name}`;
+      }
+      // menu and mc defined
+      return `${freeItem.menu.name}>${freeItem.mc.name}`;
+    }
+    //only menu is defined
+    return `${freeItem.menu.name}`;
   }
 
   edit() {

@@ -2,21 +2,18 @@
   <h4>{{promotion.name}}</h4>
   <hr>
   <div><strong>Code: </strong>{{promotion.code}}</div>
-  <!-- When a promotion is open in the editor, we can pass editor parameters promotionType, eligiblity, and useFreeItemList as inputs to our viewer component. 
-  This allows for the promotion preview at the bottom of the editor to be updated live as the user changes the promotion. Live updating the preview would not be possible without 
-  these paremeters, as the promotion data structure is intentionally left somewhat fluid as the user edits it, up until they click Done, at which point 
-  unnecessary data fields are purged.-->
+
   <div *ngIf="hideEditButton; else viewerMode">
     <div *ngIf="promotionType === '$ Discount'"><strong> Amount: </strong>{{promotion.amount | currency:'USD':'symbol'}}
       Off</div>
     <div *ngIf="promotionType === '% Discount'"><strong>Amount: </strong>{{promotion.percentage}}% Off</div>
     <div *ngIf="(promotion.applicableItems || []).length"><strong>Applicable Items: </strong>
-      <app-menu-filters-editor [viewOnly]="true" [menuFilters]="promotion.applicableItems"> </app-menu-filters-editor>
+      <div *ngFor="let applicableItem of promotion.applicableItems"> {{renderItemFromFlatList(applicableItem)}}</div>
     </div>
     <div *ngIf="promotionType === 'Free Item'">
       <div *ngIf="!useFreeItemList"> <strong>Generic free item </strong></div>
       <div *ngIf="useFreeItemList && (promotion.freeItemList || []).length"> <strong>Choose Free item from: </strong>
-        <app-menu-filters-editor [viewOnly]="true" [menuFilters]="promotion.freeItemList"> </app-menu-filters-editor>
+        <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi.name}} </div>
       </div>
     </div>
     <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires: </strong>{{promotion.expiry | date :
@@ -25,13 +22,11 @@
     <div><strong>Order Minimum: </strong>{{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
   </div>
 
-  <!-- viewerMode is what displays promotions that are not open in the editor. As such promotionType and eligibility are not available to us to reference. 
-  However, we don't need them since these promotions are not going to change and will not require a live update/preview.  -->
   <ng-template #viewerMode>
     <div *ngIf="promotion.percentage && !promotion.amount"><strong>Amount: </strong>{{promotion.percentage}}% Off
     </div>
-    <div *ngIf="(promotion.applicableItems || []).length"><strong>Discount applies to: </strong>
-      <app-menu-filters-editor [viewOnly]="true" [menuFilters]="promotion.applicableItems"> </app-menu-filters-editor>
+    <div *ngIf="(promotion.applicableItems || []).length"><strong>Applicable Items: </strong>
+      <div *ngFor="let applicableItem of promotion.applicableItems"> {{renderItemFromFlatList(applicableItem)}}</div>
     </div>
     <div *ngIf="!promotion.percentage && promotion.amount"><strong>Amount: </strong>{{promotion.amount |
       currency:'USD':'symbol'}}</div>
@@ -40,7 +35,7 @@
       currency:'USD':'symbol'}}</div>
     <div *ngIf="(promotion.freeItemList || []).length && !promotion.percentage && !promotion.amount"><strong> Choose
         Free item from: </strong>
-      <app-menu-filters-editor [viewOnly]="true" [menuFilters]="promotion.freeItemList"> </app-menu-filters-editor>
+      <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi.name}} </div>
     </div>
     <div *ngIf="promotion.freeItemName"><strong>Generic free item</strong></div>
     <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires:</strong> {{promotion.expiry | date :
