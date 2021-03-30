@@ -34,6 +34,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     rateSchedules: ['RATE_EDITOR', 'MARKETER'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    qrSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     promotions: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
@@ -42,7 +43,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
     restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],
-    restaurantChains: ['ADMIN', 'CSR']
+    restaurantChains: ['ADMIN', 'CSR'],
   }
 
   knownUsers = [];
@@ -154,7 +155,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           printers: 1,
           printerSN: 1,
           promotions: 1,
-          'qrSettings.NON_EXIST_FIELD': 1, // to return an empty body if qrSettings exists. we don't want details yet. maybe later we when we need to edit qrSettings
+          'qrSettings.viewOnly': 1,
           rateSchedules: 1,
           requireBillingAddress: 1,
           requireZipcode: 1,
@@ -164,6 +165,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           serviceSettings: 1,
           skipImageInjection: 1,
           skipOrderConfirmation: 1,
+          "selfSignup.registered": 1,
           skipAutoInvoicing: 1,
           skipShowTax: 1,
           menuHoursExtended: 1,

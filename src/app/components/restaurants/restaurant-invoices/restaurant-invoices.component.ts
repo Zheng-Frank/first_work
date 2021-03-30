@@ -40,7 +40,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
 
   async populateData(restaurantId) {
     const data = await this._api
-      .get(environment.qmenuApiUrl + "generic", {
+      .getBatch(environment.qmenuApiUrl + "generic", {
         resource: "invoice",
         query: {
           "restaurant.id": restaurantId
@@ -55,7 +55,7 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
           status: 1,
           restaurantCcCollected: 1,
           qMenuCcCollected: 1,
-          feesForQmenu:1,
+          feesForQmenu: 1,
           cashCollected: 1,
           "restaurant.id": 1,
           isCanceled: 1,
@@ -81,11 +81,10 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
           thirdPartyDeliveryTip: 1,
 
         },
-        limit: 400,
         sort: {
           toDate: -1
         }
-      }).toPromise();
+      }, 200);
     this.invoices = data.map(i => new Invoice(i));
   }
 
@@ -102,9 +101,8 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
     this.showInvoiceCreation = false;
 
   }
-  isAccountant(){
-    return this._global.user.roles.some(r => r ==='ACCOUNTANT');
-
+  isAccountant() {
+    return this._global.user.roles.some(r => r === 'ACCOUNTANT');
     // Just for debvug only
     // return true;
   }

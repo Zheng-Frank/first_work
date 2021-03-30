@@ -34,58 +34,59 @@ export class IvrAgentAnalysisComponent implements OnInit {
   showHistogram = false
   showLine = true
   agentMappingNames = {
-    alanxue: 'Xue, Alan',
-    "alice.xie": "Xie, Alice",
-    "amy.yang": "Yang, Amy",
-    "annie.cheng": "Cheng, Annie",
-    "anny.fang": "Fang, Anny",
-    "bikram.rai.csr": "Rai, Bikram",
-    "bikram.rai.gmb": "Rai, Bikram",
-    "carrie.li": "Li, Carrie",
-    "cathy.fu": "fu, cathy",
-    "chris.xu": "Xu, Chris",
-    "cici.yang": "Yang, Cici",
-    "decenith": "qmenu, decenith",
-    "demi.he": "He, Demi",
-    "dixon.adair": "Adair, Dixon",
-    "dyney.yang": "Yang, Dyney",
-    "emily.hu": "Hu, Emily",
-    "felix.ou": "Ou, Felix",
-    "garysui": "Sui, Gary",
+    alanxue: 'alan',
+    "alice.xie": "alice",
+    "amy.yang": "amy",
+    "annie.cheng": "annie",
+    "anny.fang": "anny",
+    "bikram.rai.csr": "bikram",
+    "bikram.rai.gmb": "bikram",
+    "carrie.li": "carrie",
+    "cathy.fu": "cathy",
+    "chris.xu": "chris",
+    "cici.yang": "cici",
+    "decenith": "decenith",
+    "demi.he": "demi",
+    "dixon.adair": "dixon.adair",
+    "dyney.yang": "dyney",
+    "emily.hu": "emily",
+    "felix.ou": "felix",
+    "garysui": "gary",
     "gmb.test": "test, gmb",
-    "hayley.xiong": "Xiong, Hayley",
-    "iggy.susara": "Susara, Iggy",
-    "ivy.li": "Li, Ivy",
-    "jay": "esplana, jay",
-    "jennica.cuevas": "Cuevas, Jennica",
-    "jhon.medick": "medick, jhon",
-    "jhunno.flores": "Flores, Jhunno",
-    "joanan.yuan": "Yuan, Joanan",
-    "judy.song": "Song, Judy",
-    "julia.xiong": "Xiong, Julia",
-    "june.borah.csr": "Borah, June",
-    "june.borah.gmb": "Borah, June",
-    "kk.chen": "Chen, KK",
-    "lina.yang": "yang, lina",
-    "lucy.yuan": "Yuan, Lucy",
-    "mary.zhang": "Zhang, Mary",
-    "max.yi": "yi, max",
-    "may.lin": "Lin, May",
-    "merry.empic": "Empic, Merry",
-    "mia.yang": "Yang, Mia",
-    "nicole.hu": "Hu, Nicole",
+    "hayley.xiong": "hayley",
+    "iggy.susara": "iggy.susara",
+    "ivy.li": "ivy",
+    "jay": "jay.esplana",
+    "jennica.cuevas": "jennica.cuevas",
+    "jhon.medick": "jhon.medick",
+    "jhunno.flores": "jhunno.flores",
+    "joanan.yuan": "joanan",
+    "judy.song": "judy",
+    "julia.xiong": "julia",
+    "june.borah.csr": "june",
+    "june.borah.gmb": "june",
+    "kk.chen": "kk",
+    "lina.yang": "lina",
+    "lucy.yuan": "lucy",
+    "mary.zhang": "mary",
+    "max.yi": "max",
+    "may.lin": "may",
+    "merry.empic": "merry.empic",
+    "mia.yang": "mia",
+    "nicole.hu": "nicole",
     "outbound": "Only, Outbound",
-    "piapi": "qmenu, piapi",
-    "sacha.luo": "Luo, Sacha",
-    "sajal.khati": "Khati, Sajal",
-    "sandy.he": "He, Sandy",
+    "piapi": "piapi",
+    "sacha.luo": "sacha",
+    "sajal.khati": "sajal",
+    "sandy.he": "sandy",
     "sean": "Lyu, Sean",
-    "sherry.zhao": "Zhao, Sherry",
-    "sunny.fu": "fu, sunny",
-    "vivi.hu": "Hu, Vivi",
+    "sherry.zhao": "sherry.zhao",
+    "sunny.fu": "sunny",
+    "vivi.hu": "vivi",
     "yinghong.mo": "Mo, Yinghong"
 
   }
+  graphViewing = 'Total Calls'
 
 
   getAgent(key) {
@@ -94,6 +95,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
     } else {
       return key
     }
+  }
+  setGraphView(type) {
+    this.graphViewing = type
+    this.queryData(this.criteria)
   }
 
   constructor(private _api: ApiService) { }
@@ -172,20 +177,26 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   processBarData(agentName) {
 
-    let dates = { dates: [], callData: [] }
+    let dates = { dates: [], totalCalls: [], avgCallTime: [], totalCallTime: [] }
 
     for (let x = this.currentStartDay; x <= this.currentEndDay; x += 86200000) {
       // for each d
       let callData = this.agents[agentName].callData
       let inTimeFrame = 0
+      let counter = 0
+      let totalCallTime = 0
       callData.forEach(call => {
-        if (Math.abs(new Date(call.start).getTime() - x) <= 86200000) {
+        if (Math.abs(new Date(call.start).getTime() - x) <= 55000000) {
+          totalCallTime += (new Date(call.end).getTime() - new Date(call.start).getTime()) / 1000 / 60
           inTimeFrame += 1
+          counter += 1.5
         }
       })
-      dates['dates'].push(new Date(x).toDateString())
-      dates['callData'].push(inTimeFrame)
 
+      dates['dates'].push(new Date(x).toDateString())
+      dates['totalCalls'].push(inTimeFrame)
+      totalCallTime ? dates['avgCallTime'].push(totalCallTime / counter) : dates['avgCallTime'].push(0)
+      totalCallTime ? dates['totalCallTime'].push(totalCallTime) : dates['totalCallTime'].push(0)
     }
     return dates
   }
@@ -214,15 +225,33 @@ export class IvrAgentAnalysisComponent implements OnInit {
           arr.forEach(el => {
             let agent = el.nativeElement.innerHTML
             let dates = this.processBarData(agent)
-            console.log("CALL LENGTH ", dates['callData'])
-            console.log("LENGTHS ", dates['callData'].length, dates['dates'].length)
+            console.log("DATA ", dates)
+            let data;
+            let label
+            switch (this.graphViewing) {
+              case 'Total Calls':
+                data = dates['totalCalls']
+                label = '# of Calls per Day'
+                break
+              case "Avg Call Time":
+                data = dates['avgCallTime']
+                label = 'Avg Call Time Per Day in Minutes'
+                break
+              case 'Total Call Time':
+                data = dates['totalCallTime']
+                label = 'Total Call Time Per Day in Minutes'
+                break
+              default:
+                console.log("NO VIEWING SELECTED! ")
+                break
+            }
             new Chart(el.nativeElement, {
               type: 'bar',
               data: {
                 labels: dates['dates'],
                 datasets: [{
-                  label: '# of Calls per Day',
-                  data: dates['callData'],
+                  label,
+                  data,
                   borderWidth: 1
                 }]
               },
@@ -503,7 +532,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
           'Agent.AgentInteractionDuration': 1,
           'Agent.AfterContactWorkDuration': 1
         },
-        limit: 125000,
+        limit: 50000,
       }, 10000)
     console.log("THE IVR DATA ", ivrData)
     this.rawIvrData = ivrData
@@ -678,9 +707,3 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
 }
-
-
- // Start at 12:00AM of the day of the current Day
-  // End At 11:59PM and at the end of the current Day
-  // Segment the time between into 1440 evenly spaced out points
-  // Find where the current call fits into that 1440 space distribution, and loop through and fill in those values as 1, at the rest as Number.NaN

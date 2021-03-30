@@ -246,10 +246,23 @@ export class SeamlessIntegrationComponent implements OnInit {
       this.allRestaurants = await this._api
         .get(environment.qmenuApiUrl + "generic", {
           resource: "restaurant",
-          query: { selfSignup: { $exists: true } },
+          query: {
+            selfSignup: { $exists: true },
+            "selfSignup.registered": { $in: [null, false] }
+          },
           limit: 100000,
         })
         .toPromise();
+
+      let arr = []
+      this.allRestaurants.forEach(res => {
+        arr.push(res.salesAgent)
+      })
+
+      let uniqueAgents = [...new Set(arr)]
+
+      console.log(uniqueAgents)
+
       this.allRestaurants.map((restaurant: any) => {
         restaurant.showAnalytics = false;
         restaurant.showSendHistory = false;

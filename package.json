@@ -1,11 +1,11 @@
 {
   "name": "admin",
-  "version": "1.8.2",
+  "version": "1.8.7",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build-qa": "node --max_old_space_size=8192 node_modules/@angular/cli/bin/ng build --prod --configuration=qa",
     "deploy-qa": "node --max_old_space_size=8192 node_modules/@angular/cli/bin/ng build --prod --configuration=qa && aws s3 sync dist/admin s3://qmenu-domains/qa-csr.qmenu.us && aws cloudfront create-invalidation --distribution-id E145Y3EKTAQBTJ --paths \"/index.html\"",
     "deploy-prod": "node --max_old_space_size=8192 node_modules/@angular/cli/bin/ng build --prod --configuration=production && aws s3 sync dist/admin s3://qmenu-domains/csr.qmenu.us && aws cloudfront create-invalidation --distribution-id EONS08EC2015T --paths \"/index.html\"",
     "test": "ng test",
@@ -39,8 +39,6 @@
     "jwt-decode": "^2.2.0",
     "lz-string": "^1.4.4",
     "mime-types": "^2.1.26",
-    "moment": "^2.29.1",
-    "moment-timezone": "^0.5.33",
     "ng-click-outside": "^3.3.0",
     "ng-pick-datetime": "^6.0.15",
     "ngx-mask": "^8.0.0",

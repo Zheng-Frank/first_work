@@ -290,6 +290,7 @@ export class GmbBizListComponent implements OnInit {
     }
 
     switch (this.gmbRole) {
+      case 'PRIMARY_OWNER':
       case 'OWNER':
       case 'CO_OWNER':
       case 'MANAGER':
@@ -297,7 +298,7 @@ export class GmbBizListComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.location.role === this.gmbRole));
         break;
       case 'others':
-        const knownRoles = ['OWNER', 'CO_OWNER', 'MANAGER', 'COMMUNITY_MANAGER'];
+        const knownRoles = ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER', 'COMMUNITY_MANAGER'];
         this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => knownRoles.indexOf(al.location.status) < 0));
         break;
       default:

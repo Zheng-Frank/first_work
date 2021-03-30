@@ -80,13 +80,15 @@ background-image: linear-gradient(to right,#cd2730,#fa4b00,#cd2730);' href="http
   }
 
   copyToClipcboard(text) {
-    document.addEventListener('copy', (e: ClipboardEvent) => {
-      e.clipboardData.setData('text/plain', (text));
+    const handleCopy = (e: ClipboardEvent) => {
+      // clipboardData 可能是 null
+      e.clipboardData && e.clipboardData.setData('text/plain', text);
       e.preventDefault();
-      document.removeEventListener('copy', null);
-    });
+      // removeEventListener 要传入第二个参数
+      document.removeEventListener('copy', handleCopy);
+    };
+    document.addEventListener('copy', handleCopy);
     document.execCommand('copy');
-
     this.isCopiedToClipboard = true;
 
     setTimeout(() => {

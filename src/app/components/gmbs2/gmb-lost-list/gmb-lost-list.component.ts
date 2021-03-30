@@ -142,7 +142,7 @@ export class GmbLostListComponent implements OnInit {
     // Filter out false gmb-lost events
     const ownGMBSet = new Set();
     gmbAccounts.map(account => (account.locations || []).map(loc => {
-      if (loc.cid && loc.status === "Published" && ["OWNER", "CO_OWNER", "MANAGER"].indexOf(loc.role) >= 0) {
+      if (loc.cid && loc.status === "Published" && ["PRIMARY_OWNER", "OWNER", "CO_OWNER", "MANAGER"].indexOf(loc.role) >= 0) {
         ownGMBSet.add(loc.cid);
       }
     }));

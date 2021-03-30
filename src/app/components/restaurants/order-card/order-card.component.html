@@ -2,11 +2,17 @@
            {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}} 
           {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}} 
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
-  <div class="text-muted" style="position:absolute;font-size:120%">
+  <div class="order-number">
     <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
+  <div *ngIf="order.dineInSessionObj" class="qr">
+    <span class="">
+      <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
+    </span>
+  </div>
   <div class="card-block">
+
     <h4 class="text-sm-center">
       {{getCustomerName(order)}}
     </h4>
@@ -39,7 +45,8 @@
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
       <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
-      <span *ngIf="order.paymentObj.stripeObject && order.paymentObj.stripeObject.spreedlyGatewayToken"> (SPRE)</span>
+      <span *ngIf="order?.paymentObj?.stripeObject?.spreedlyGatewayToken"> (SPRE)</span>
+      <span *ngIf="order?.paymentObj?.paypalClientId"> (PAYPAL)</span>
     </div>
     <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
       <strong>{{order.restaurantNotice}}</strong>
@@ -88,7 +95,8 @@
             <span class="label">Postmates ID </span><span class="value">{{order.delivery?.id}}</span>
           </div>
           <div class="text-center"><button class="btn btn-link"
-              (click)="displayingDeliveryDetails = !displayingDeliveryDetails">{{displayingDeliveryDetails ? 'less...' : 'more...'}}</button>
+              (click)="displayingDeliveryDetails = !displayingDeliveryDetails">{{displayingDeliveryDetails ? 'less...' :
+              'more...'}}</button>
           </div>
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of getUpdatedStatuses()">
