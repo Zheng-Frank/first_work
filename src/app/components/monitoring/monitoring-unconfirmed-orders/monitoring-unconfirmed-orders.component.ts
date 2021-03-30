@@ -331,7 +331,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       let scheduledString = `Scheduled for ${expectedDeliverTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
       let placedAtString = `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
 
-      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (order placed yesterday)` : `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes)`
+      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes) (order placed yesterday)` : `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes)`
 
 
       return [scheduledString, placedAtString, confirmByString]
