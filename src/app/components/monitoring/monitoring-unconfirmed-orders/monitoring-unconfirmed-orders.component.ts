@@ -59,7 +59,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
           },
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 3)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 6)))
           },
         }
       },
@@ -75,6 +75,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         "paymentObj.method": 1,
         "paymentObj.paymentType": 1,
         timeToDeliver: 1,
+        timeToDeliverEstimate: 1,
         statuses: {
           $slice: -1
         },
@@ -85,25 +86,44 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       },
     }, 1000)
 
-    // console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
+    console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
 
-    // let scheduledOrders = 0
-    // let nonscheduledOrders = 0
-    // ordersWithSatuses.forEach(order => {
-    //   if (order.timeToDeliver) {
-    //     scheduledOrders += 1
-    //   } else {
-    //     nonscheduledOrders += 1
-    //   }
-    // })
+    let scheduledOrders = 0
+    let nonscheduledOrders = 0
+    ordersWithSatuses.forEach(order => {
+      if (order.timeToDeliver) {
+        scheduledOrders += 1
+      } else {
+        nonscheduledOrders += 1
+      }
+    })
 
-    // console.log("SCHEDULED ORDERS ", scheduledOrders)
-    // console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
+    console.log("SCHEDULED ORDERS ", scheduledOrders)
+    console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
 
 
 
-    let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.restaurantObj._id))]
-    console.log(uniqueIds)
+    let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.timeToDeliver ? o.restaurantObj._id : null))]
+
+    console.log("UNIQUE IDS ", uniqueIds)
+
+
+
+    let restaurantPickupTimes = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $in: uniqueIds } },
+      projection: {
+        'googleAddress.formatted_address': 1,
+        skipOrderConfirmation: 1
+      },
+      sort: {
+        createdAt: -1
+      }
+    }).toPromise();
+
+
+    console.log("ALL RESTAURANT PICKUP DELIVERY TIMES ", restaurantPickupTimes)
+    // console.log(uniqueIds)
     // ordersWithSatuses.forEach(order => {
     //   console.log('This is the order total!!!', new Order(order).getTotal())
     // })
@@ -111,38 +131,48 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     // TODO
     // TODO: Find order cost. Look at order portal and produce cost
-    let unconfirmedOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
+    let unconfirmedOrdersNonScheduled = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
     //this.unconfirmed_orders_count=unconfirmedOrders.length;
 
     // These are the unconfirmed orders for non scheduled
-    console.log("THESE ARE THE UNCONFIRMED ORDERS ", unconfirmedOrders)
+    console.log("THESE ARE THE UNCONFIRMED ORDERS NON SCHEDULED ORDERS ", unconfirmedOrdersNonScheduled)
 
 
     // For scheduled orders, these are the unconfirmed orders
 
     const unconfirmedScheduledOrders = ordersWithSatuses.filter(o => {
-      let statusCondition = o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED';
+      let statusCondition = o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED' && o.timeToDeliverEstimate;
+
 
       if (!statusCondition) {
         return false
       }
       if (o.type.toLowerCase() === 'pickup') {
-        let pickupTime = o.pickupTimeEstimate
+        let pickupTime = o.pickupTimeEstimate ? o.pickupTimeEstimate : 15
 
 
-        return this.now.getTime() > new Date(o.timeToDeliver - (pickupTime * 60 * 1000)).getTime()
-        // return new Date(new Date().getTime() - (new Date(o.timeToDeliver).getTime() - new Date(o.pickUpTime).getTime())).getTime() > this.now.getTime()
+        let latePickupTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (pickupTime * 60 * 1000)).getTime()
+
+        console.log("LATE PICK UP TIME ", latePickupTime)
+        return this.now.getTime() > latePickupTime
+
       } else if (o.type.toLowerCase() === 'delivery') {
-        let deliveryTime = o.deliveryTimeEstimate
+        let deliveryTime = o.pickupTimeEstimate ? o.pickupTimeEstimate : 45
 
+        let lateDeliveryTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (deliveryTime * 60 * 1000)).getTime()
 
-        return this.now.getTime() > new Date(o.timeToDeliver - (deliveryTime * 60 * 1000)).getTime()
+        console.log("LATE DELIVERY TIME ", lateDeliveryTime)
+        return this.now.getTime() > new Date(new Date().getTime() - o.timeToDeliverEstimate - (deliveryTime * 60 * 1000)).getTime()
 
       }
 
     })
 
-    // unconfirmedOrders = [...unconfirmedOrders, ...unconfirmedScheduledOrders]
+    console.log("UNCONFIRMED SCHEDULED ORDERS ", unconfirmedScheduledOrders)
+
+    let unconfirmedOrders = [...unconfirmedOrdersNonScheduled, ...unconfirmedScheduledOrders]
+
+    // let unconfirmedOrders = [...unconfirmedOrdersNonScheduled]
 
 
     // const scheduledOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
@@ -222,51 +252,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       restaurants.push(...result);
     }
 
-    // let arr = []
-    // restaurants.forEach(res => {
-    //   arr.push(new Restaurant(res))
-    // })
-    // console.log("RESTAUARANT 1", restaurants)
-    // console.log("RESTAURANT INIT ", arr)
 
-    // arr.forEach(res => {
-    //   console.log("BOOL IS OPEN?? ", res.isHourOpen(new Date()))
-    // })
-
-    // arr.forEach(res => {
-    //   console.log("OPEN HOURS ON DATE ", res.getOpenHoursOnDate(new Date(), res.menus), res.name)
-    // })
-
-
-    // const demo = await this._api.get(environment.qmenuApiUrl + 'generic', {
-    //   resource: 'restaurant',
-    //   query: { name: 'Demo' },
-    //   sort: {
-    //     createdAt: -1
-    //   }
-    // }).toPromise();
-
-    // console.log("DEMO ", demo)
-
-    // let demo_1 = new Restaurant(demo)
-    // console.log("THIS IS DEMO 1 ", demo_1)
-    // console.log("DEMO HOURS ", demo_1.getOpenHoursOnDate(new Date(), demo_1.menus))
-
-    // console.log("RESTAURANTS BATCH ", restaurants)
-
-    // get if restaurant skipOrderConfirmation
-
-    // const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-    //   resource: 'restaurant',
-    //   query: { _id: { $in: [...Object.keys(rtIdDict).map(id => ({ $oid: id }))] } },
-    //   projection: {
-    //     'googleAddress.formatted_address': 1,
-    //     skipOrderConfirmation: 1
-    //   },
-    //   sort: {
-    //     createdAt: -1
-    //   }
-    // }, 1000)
 
     restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
 
@@ -282,36 +268,10 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     })
 
-    // const menus = await this._api.post(environment.appApiUrl + "gmb/generic", {
-    //   name: "get-open-hours",
-    //   payload: {
-    //     "restaurantIds": ids
-    //   }
-    // }).toPromise();
-
-    // console.log("THESE ARE THE MENUS ", menus)
-
-    // menus.forEach(menu => {
-    //   rtIdDict[menu.rtId].menus = menu
-    // })
 
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
 
 
-    // map in individual restaurant hours 
-
-    // this.rows.forEach(row => {
-    //   let dayIndex = new Date().getDay()
-    //   let timezone = row.timezone
-    //   let menuHours = row.menus.regularHours[dayIndex]
-    //   let openTime: any = menuHours.openTime
-    //   // let closeTime: any = menuHours.closeTime
-    //   row.orders.forEach(order => {
-    //     if (this.convertTZ(new Date(order.createdAt), timezone).getTime() - new Date(openTime).getTime() >= (1000 * 60 * 5)) {
-    //       order = null
-    //     }
-    //   })
-    // })
     console.log("FINAL ROWS ", this.rows)
   }
 
