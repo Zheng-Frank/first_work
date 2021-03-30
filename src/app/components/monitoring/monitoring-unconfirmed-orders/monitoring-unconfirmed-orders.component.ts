@@ -88,18 +88,18 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
 
-    let scheduledOrders = 0
-    let nonscheduledOrders = 0
-    ordersWithSatuses.forEach(order => {
-      if (order.timeToDeliver) {
-        scheduledOrders += 1
-      } else {
-        nonscheduledOrders += 1
-      }
-    })
+    // let scheduledOrders = 0
+    // let nonscheduledOrders = 0
+    // ordersWithSatuses.forEach(order => {
+    //   if (order.timeToDeliver) {
+    //     scheduledOrders += 1
+    //   } else {
+    //     nonscheduledOrders += 1
+    //   }
+    // })
 
-    console.log("SCHEDULED ORDERS ", scheduledOrders)
-    console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
+    // console.log("SCHEDULED ORDERS ", scheduledOrders)
+    // console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
 
 
 
@@ -331,7 +331,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       let scheduledString = `Scheduled for ${expectedDeliverTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
       let placedAtString = `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
 
-      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (next day)` : `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes)`
+      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (order placed yesterday)` : `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes)`
 
 
       return [scheduledString, placedAtString, confirmByString]
