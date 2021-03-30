@@ -22,11 +22,14 @@ export class PromotionEditorComponent implements OnChanges {
   freeItemListMaxLength = 3;
   useFreeItemList = false;
 
+  freeItemList = [];
+  applicableItems = [];
+
   constructor() { }
 
   ngOnChanges(change) {
     if (change.promotion && change.promotion.currentValue) {
-      this.openCorrectUIPane(change.promotion.currentValue);
+      this.openPromotionInEditor(change.promotion.currentValue);
     }
   }
 
@@ -48,20 +51,44 @@ export class PromotionEditorComponent implements OnChanges {
     return result;
   }
 
-  handleFreeItemEvent(event) {
-    this.promotion.freeItemList = event;
+  unflattenList(list) {
+    const result = [];
+    (list || []).map(flatItem => {
+      const { menu, mc, mi } = flatItem;
+      let [matchedMenu] = result.filter(m => m.name === menu.name);
+      if (!matchedMenu) {
+        matchedMenu = JSON.parse(JSON.stringify(menu));
+        result.push(matchedMenu);
+      }
+      if (mc) {
+        matchedMenu.mcs = matchedMenu.mcs || [];
+        let [matchedMc] = matchedMenu.mcs.filter(m => m.name === mc.name);
+        if (!matchedMc) {
+          matchedMc = JSON.parse(JSON.stringify(mc));
+          matchedMenu.mcs.push(matchedMc);
+        }
+        if (mi) {
+          matchedMc.mis = matchedMc.mis || [];
+          let [matchedMi] = matchedMc.mis.filter(m => m.name === mi.name);
+          if (!matchedMi) {
+            matchedMi = JSON.parse(JSON.stringify(mi));
+            matchedMc.mis.push(matchedMi);
+          }
+        }
+      }
+    });
+    return result;
   }
 
-  handleApplicableItemEvent(event) {
-    this.promotion.applicableItems = event;
-  }
-
-  openCorrectUIPane(promotion) {
+  openPromotionInEditor(promotion) {
+    // First, detect if we have a brand new promo (one with no id), and if so, reset editor settings back to defaults.
     if (!promotion.id) {
       this.promotionType = '$ Discount';
+      this.freeItemList = [];
+      this.applicableItems = [];
       return;
     }
-
+    // Otherwise, we set editor parameters based on promotion data so the correct UI panes are open when the promo loads.
     if (promotion.amount) {
       this.promotionType = '$ Discount';
     } else if (promotion.percentage) {
@@ -72,6 +99,9 @@ export class PromotionEditorComponent implements OnChanges {
         this.useFreeItemList = true;
       }
     }
+    // Finally, "unflatten" the promotion lists and assign them to our locally bound variables. 
+    this.freeItemList = this.unflattenList(promotion.freeItemList);
+    this.applicableItems = this.unflattenList(promotion.applicableItems);
   }
 
   isPromotionValid() {
@@ -79,7 +109,7 @@ export class PromotionEditorComponent implements OnChanges {
       return false;
     }
 
-    if (!this.promotion.amount && !this.promotion.percentage && !(this.promotion.freeItemList || []).length) {
+    if (!this.promotion.orderMinimum) {
       return false;
     }
 
@@ -103,7 +133,13 @@ export class PromotionEditorComponent implements OnChanges {
     this.promotion.amount = Math.abs(+this.promotion.amount || 0);
     this.promotion.percentage = Math.abs(+this.promotion.percentage || 0);
     this.promotion.orderMinimum = Math.abs(+this.promotion.orderMinimum || 0);
+    if (this.promotion.name && this.promotion.name.length > 100) {
+      this.promotion.name = this.promotion.name.slice(0, 97) + '...';
+    }
     this.removeUnwantedFields();
+    this.promotion.freeItemList = this.flattenList(this.freeItemList) || [];
+    this.promotion.applicableItems = this.flattenList(this.applicableItems) || [];
+
     if (!this.promotion.expiry) {
       if (typeof this.promotion.expiry === 'string') {
         this.promotion.expiry = new Date(this.promotion.expiry);
@@ -170,29 +206,83 @@ export class PromotionEditorComponent implements OnChanges {
   }
 
   suggestPromotionTitle() {
-    let suggestedTitle;
+    let suggestedTitle = '';
     if (this.promotion.name) {
       return null;
     } else if (!this.validatePromotionNumbers()) {
       return null;
     }
 
-    if ((this.promotion.applicableItems || []).length) {
-      return null;
+    if ((this.applicableItems || []).length) {
+      const applicableItems = this.flattenList(this.applicableItems);
+      if (this.promotion.amount && this.promotionType === '$ Discount') {
+        suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min. purchase of`;
+      } else if (this.promotion.percentage && this.promotionType === '% Discount') {
+        suggestedTitle = `${this.promotion.percentage}% off with $${this.promotion.orderMinimum} min. purchase of`;
+      } else if ((this.flattenList(this.freeItemList) || []).length === 1 && this.promotionType === 'Free Item') {
+        const flattenedList = this.flattenList(this.freeItemList);
+        suggestedTitle = `Free ${flattenedList[0].mi.name} with $${this.promotion.orderMinimum} min. purchase of`;
+      } else if ((this.flattenList(this.freeItemList) || []).length > 1 && this.promotionType === 'Free Item') {
+        suggestedTitle = `Choice of free item with $${this.promotion.orderMinimum} min. purchase of`;
+      }
+      if (applicableItems.length === 1) {
+        applicableItems.forEach(item => {
+          if (item.mc) {
+            if (item.mi) {
+              suggestedTitle += ` ${item.mi.name}`
+              return;
+            }
+            suggestedTitle += ` items from ${item.mc.name}`
+            return;
+          }
+          suggestedTitle += ` items from ${item.menu.name}`
+          return;
+        });
+      } else {
+        applicableItems.forEach((item, i) => {
+          // The last entry in the list gets special treatment.
+          if (i === applicableItems.length - 1) {
+            if (item.mc) {
+              if (item.mi) {
+                suggestedTitle += ` & ${item.mi.name}`
+                return;
+              }
+              suggestedTitle += ` & items from ${item.mc.name}`
+              return;
+            }
+            suggestedTitle += ` & items from ${item.menu.name}`
+            return;
+          } else {
+            if (item.mc) {
+              if (item.mi) {
+                suggestedTitle += ` ${item.mi.name},`
+                return;
+              }
+              suggestedTitle += ` items from ${item.mc.name},`
+              return;
+            }
+            suggestedTitle += ` items from ${item.menu.name},`
+            return;
+          }
+        });
+      }
     } else { // no applicable items list
-      if (this.promotion.amount) {
-        suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} minimum purchase`;
-      } else if (this.promotion.percentage) {
-        suggestedTitle = `${this.promotion.percentage}% off with $${this.promotion.orderMinimum} minimum purchase`;
-      } else if ((this.flattenList(this.promotion.freeItemList) || []).length === 1) {
-        const flattenedList = this.flattenList(this.promotion.freeItemList);
-        console.log(flattenedList);
-        suggestedTitle = `Free ${flattenedList[0].mi.name} with $${this.promotion.orderMinimum} minimum purchase`;
-      } else if ((this.flattenList(this.promotion.freeItemList) || []).length > 1) {
-        suggestedTitle = `Choice of free item with $${this.promotion.orderMinimum} minimum purchase`;
+      if (this.promotion.amount && this.promotionType === '$ Discount') {
+        suggestedTitle = `$${this.promotion.amount} off with $${this.promotion.orderMinimum} min. purchase`;
+      } else if (this.promotion.percentage && this.promotionType === '% Discount') {
+        suggestedTitle = `${this.promotion.percentage}% off with $${this.promotion.orderMinimum} min. purchase`;
+      } else if ((this.flattenList(this.freeItemList) || []).length === 1 && this.promotionType === 'Free Item') {
+        const flattenedList = this.flattenList(this.freeItemList);
+        suggestedTitle = `Free ${flattenedList[0].mi.name} with $${this.promotion.orderMinimum} min. purchase`;
+      } else if ((this.flattenList(this.freeItemList) || []).length > 1 && this.promotionType === 'Free Item') {
+        suggestedTitle = `Choice of free item with $${this.promotion.orderMinimum} min. purchase`;
       }
     }
-
+    /* We don't want really long promotion titles, so if our algorithmically-suggested title is too long, 
+    we're going to return null, which makes the user come up with their own title. */
+    if (suggestedTitle.length > 80) {
+      return null
+    }
     return suggestedTitle;
   }
 
@@ -201,9 +291,6 @@ export class PromotionEditorComponent implements OnChanges {
   }
 
   removeUnwantedFields() {
-    if (this.promotion.name && this.promotion.name.length > 100) {
-      this.promotion.name = this.promotion.name.slice(0, 97) + '...';
-    }
     if (this.promotionType === '$ Discount') {
       this.promotion.freeItemList.length = 0;
       this.promotion.percentage = 0;

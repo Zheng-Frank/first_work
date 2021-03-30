@@ -49,7 +49,7 @@
     </div>
     <div *ngIf="useFreeItemList; else genericFreeItem">
       Use dropdown menus to add free item options to this list. Customer gets to add <strong>one of</strong> these items to their order for free. 
-      <app-menu-filters-editor [menus]="menus" [requireFullItem]="true" [menuFilters]="promotion.freeItemList"
+      <app-menu-filters-editor [menus]="menus" [requireFullItem]="true" [menuFilters]="freeItemList"
         ></app-menu-filters-editor>
       <div *ngIf="promotion.freeItemList.length === freeItemListMaxLength" class="text-danger font-weight-bold">
         <small> Maximum number of items for customer to choose from is {{freeItemListMaxLength}}. Please delete an
@@ -69,10 +69,12 @@
 
   <label class="mt-1"> <u>Applicable items:</u></label>
   <div>
-  Add entries to this list and discount will only be applied to menus, categories, and items on this list. Only items in this list will count toward the minimum order amount. By default, discount will apply to entire order.
+ By default, discount will apply to entire order. 
+ If you want the discount to only apply to certain menus, categories, or items, you can add them to this list. 
+ Only items in the list will count toward the minimum order amount.
   </div>
   <app-menu-filters-editor [menus]="menus" [requireFullItem]="false"
-  [menuFilters]="promotion.applicableItems"></app-menu-filters-editor>
+  [menuFilters]="applicableItems"></app-menu-filters-editor>
 
   <div>
    
