@@ -40,6 +40,8 @@ export class MenusComponent implements OnInit {
   copyMenu = false;
   copyMenuToRestaurantId;
 
+  showPromotions = false;
+
   constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
@@ -303,6 +305,9 @@ export class MenusComponent implements OnInit {
   }
 
   getActiveId() {
+    if (this.showPromotions) {
+      return 'promotions';
+    }
     if (this.activeId) {
       return this.activeId;
     }
@@ -313,6 +318,7 @@ export class MenusComponent implements OnInit {
   }
 
   setActiveId(id) {
+    this.showPromotions = false;
     this.activeId = id;
     // let's do s smooth scroll to make it to center???
   }
@@ -524,4 +530,8 @@ export class MenusComponent implements OnInit {
 
   }
 
+  showPromotionsComponent() {
+    this.showPromotions = true;
+    this.activeId = undefined;
+  }
 }
