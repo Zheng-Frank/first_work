@@ -103,17 +103,16 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
 
-    let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.timeToDeliver ? o.restaurantObj._id : null))].map(id => ({ $oid: id })).filter(id => id.$oid != undefined || id.$oid != null)
-
+    let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.timeToDeliver ? o.restaurantObj._id : null).map(id => ({ $oid: id })).filter(id => id.$oid != undefined || id.$oid != null)
+    )]
     console.log("UNIQUE IDS ", uniqueIds)
 
 
 
-    let restaurantPickupTimes = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let restaurantPickupTimes = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: { _id: { $in: uniqueIds } },
       projection: {
-
         _id: 1,
         pickupTimeEstimate: 1,
         deliveryTimeEstimate: 1,
@@ -121,7 +120,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       }
-    }).toPromise();
+    }, 1000)
 
 
     console.log("ALL RESTAURANT PICKUP DELIVERY TIMES ", restaurantPickupTimes)
@@ -150,12 +149,15 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         return false
       }
       if (o.type.toLowerCase() === 'pickup') {
-        let pickupTime = restaurantPickupTimes.reduce((acc, cur) => {
-          if (cur._id === o.restaurantObj._id) {
-            console.log("FOUND PICK UP TIME", cur.pickupTimeEstimate)
-            return cur.pickupTimeEstimate
+
+        let pickupTime;
+        restaurantPickupTimes.forEach(res => {
+          if (res._id === o.restaurantObj._id) {
+            console.log("MATCHING ID PICK ", res.pickupTimeEstimate, o.restaurantObj)
+            pickupTime = res.pickupTimeEstimate
           }
         })
+
         pickupTime = pickupTime ? pickupTime : 15
 
 
@@ -166,10 +168,11 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
       } else if (o.type.toLowerCase() === 'delivery') {
 
-        let deliveryTime = restaurantPickupTimes.reduce((acc, cur) => {
-          if (cur._id === o.restaurantObj._id) {
-            console.log("FOUND DELIVERY TIME ", cur.deliveryTimeEstimate)
-            return cur.deliveryTimeEstimate
+        let deliveryTime
+        restaurantPickupTimes.forEach(res => {
+          if (res._id === o.restaurantObj._id) {
+            console.log("MATCHING ID DELIVERY ID ", res.deliveryTimeEstimate)
+            deliveryTime = res.deliveryTimeEstimate
           }
         })
         deliveryTime = deliveryTime ? deliveryTime : 45
