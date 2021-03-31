@@ -23,6 +23,7 @@ export class MenuEditorComponent implements OnInit {
 
   clickedAddHour = false;
   clickedDelete = false;
+  selectedOption = 'New Menu';
 
   uploadImageError: string;
 
@@ -80,6 +81,10 @@ export class MenuEditorComponent implements OnInit {
     });
 
     this.clickedAddHour = false;
+  }
+
+  logSomeStuff() {
+    console.log(this.selectedOption);
   }
 
   selectSwitchValue(value) {
