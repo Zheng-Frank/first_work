@@ -227,5 +227,8 @@ export class LogEditorComponent implements OnInit {
   toggleGMBCalls() {
     this.log.type === 'gmb-call' ? this.log.type = undefined : this.log.type = 'gmb-call';
   }
+  toggleHoursOfOperation(){
+    this.log.type === 'hours-of-operation' ? this.log.type = undefined : this.log.type = 'hours-of-operation';
+  }
 
 }

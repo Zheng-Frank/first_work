@@ -120,6 +120,13 @@
       <label class="form-check-label" for="id-gmb-calls"> GMB Calls</label>
     </div>
   </div>
+  <div class="mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-hours-of-operation" 
+      [checked]="log.type === 'hours-of-operation'" (change)='toggleHoursOfOperation()'>
+      <label class="form-check-label" for="id-hours-of-operation">Hours Of Operation</label>
+    </div>
+  </div>
   <div class="card border-info p-3 mb-2" *qIf="hasGMBCall">
 
     <div class="form-group mb-2">
