@@ -59,7 +59,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
           },
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 6)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 5)))
           },
         }
       },
@@ -84,7 +84,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-    }, 1000)
+    }, 500)
 
     console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
 
@@ -132,7 +132,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     // TODO
     // TODO: Find order cost. Look at order portal and produce cost
-    let unconfirmedOrdersNonScheduled = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
+    let unconfirmedOrdersNonScheduled = ordersWithSatuses.filter(o => o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED' && !o.timeToDeliver);
     //this.unconfirmed_orders_count=unconfirmedOrders.length;
 
     // These are the unconfirmed orders for non scheduled
@@ -142,7 +142,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     // For scheduled orders, these are the unconfirmed orders
 
     const unconfirmedScheduledOrders = ordersWithSatuses.filter(o => {
-      let statusCondition = o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED' && o.timeToDeliverEstimate;
+      let statusCondition = o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED' && o.timeToDeliver;
 
 
       if (!statusCondition) {
@@ -154,7 +154,6 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         restaurantPickupTimes.forEach(res => {
           if (res._id === o.restaurantObj._id) {
             console.log("MATCHING ID PICK ", res.pickupTimeEstimate, o.restaurantObj)
-
             if (res.pickupTimeEstimate < 10 || res.pickupTimeEstimate > 35) {
               pickupTime = 15
             } else {
@@ -192,7 +191,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         let lateDeliveryTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (deliveryTime * 60 * 1000)).getTime()
 
         console.log("LATE DELIVERY TIME ", lateDeliveryTime)
-        return this.now.getTime() > new Date(new Date().getTime() - o.timeToDeliverEstimate - (deliveryTime * 60 * 1000)).getTime()
+        return this.now.getTime() > lateDeliveryTime
 
       }
 
@@ -384,7 +383,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
 
-        console.log(lateTime)
+        // console.log(lateTime)
 
         return [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}. (Late by ${lateTime} minutes)`]
 
