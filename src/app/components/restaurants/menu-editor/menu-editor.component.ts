@@ -4,6 +4,7 @@ import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { TimezoneService } from '../../../services/timezone.service';
 import { HttpClient } from '@angular/common/http';
+import { useAnimation } from '@angular/animations';
 
 @Component({
   selector: 'app-menu-editor',
@@ -23,7 +24,7 @@ export class MenuEditorComponent implements OnInit {
 
   clickedAddHour = false;
   clickedDelete = false;
-  selectedOption = 'New Menu';
+  selectedOption;
 
   uploadImageError: string;
 
@@ -44,10 +45,28 @@ export class MenuEditorComponent implements OnInit {
   constructor(private _api: ApiService, private _http: HttpClient, private _timezone: TimezoneService) { }
 
   ngOnInit() {
+    this.selectedOption = 'New Menu';
   }
 
   isValid() {
     return this.menu && this.menu.name;
+  }
+
+  createArrayOfMenuNames() {
+    return this.restaurant.menus.map(menu => menu.name)
+  }
+
+  radioSelect(event) {
+    if (event === 'New Menu') {
+      this.setMenu(new Menu());
+    }
+  }
+
+  selectMenuTemplate(selectedMenu) {
+    const menuTemplate = new Menu(this.restaurant.menus.find(menu => menu.name === selectedMenu));
+    menuTemplate.name += ' - Copy';
+    delete menuTemplate.id; // delete the menu's id, or else we will just end up editing the existing menu
+    this.setMenu(menuTemplate);
   }
 
   setMenu(menu: Menu) {
@@ -81,10 +100,6 @@ export class MenuEditorComponent implements OnInit {
     });
 
     this.clickedAddHour = false;
-  }
-
-  logSomeStuff() {
-    console.log(this.selectedOption);
   }
 
   selectSwitchValue(value) {

@@ -5,11 +5,20 @@
   </div>
 
   <div>
-    <div *ngFor="let option of ['New Menu', 'Copy from existing Menu']; let i = index" class="d-inline-block pr-2">
-      <input type="radio" name="option" id="option-{{i}}" [value]="option" [(ngModel)]="selectedOption">
-      <label for="option-{{i}}">{{option}}</label>
+    <label>Choose New Or Existing Menu:</label>
+    <div>
+      <div *ngFor="let option of ['New Menu', 'Copy from existing Menu']; let i = index" class="d-inline-block pr-2">
+        <input type="radio" name="option" id="option-{{i}}" [value]="option" [(ngModel)]="selectedOption" (change)="radioSelect(option)">
+        <label for="option-{{i}}">{{option}}</label>
+      </div>
     </div>
-    <div *ngIf="selectedOption === 'Copy from existing Menu'">Dropdown of existing menus here</div>
+
+    <div *ngIf="selectedOption === 'Copy from existing Menu'">
+      <label>Choose Menu:</label>
+      <q-dropdown [items]="createArrayOfMenuNames()" 
+      [placeholder]="'Select a menu...'" 
+      (selectedItemChange)="selectMenuTemplate($event)"> </q-dropdown>
+    </div>
   </div>
 
 
