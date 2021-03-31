@@ -34,12 +34,11 @@ export class SchemasComponent implements OnInit {
         // clipboardData 可能是 null
         e.clipboardData && e.clipboardData.setData('text/plain', text);
         e.preventDefault();
-         // removeEventListener 要传入第二个参数
-      document.removeEventListener('copy', handleCopy);
+        // removeEventListener 要传入第二个参数
+        document.removeEventListener('copy', handleCopy);
       };
       document.addEventListener('copy', handleCopy);
       document.execCommand('copy');
-
       this.isCopiedToClipboard = true;
 
       setTimeout(() => {

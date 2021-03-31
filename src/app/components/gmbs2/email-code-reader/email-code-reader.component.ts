@@ -84,8 +84,8 @@ background-image: linear-gradient(to right,#cd2730,#fa4b00,#cd2730);' href="http
       // clipboardData 可能是 null
       e.clipboardData && e.clipboardData.setData('text/plain', text);
       e.preventDefault();
-       // removeEventListener 要传入第二个参数
-    document.removeEventListener('copy', handleCopy);
+      // removeEventListener 要传入第二个参数
+      document.removeEventListener('copy', handleCopy);
     };
     document.addEventListener('copy', handleCopy);
     document.execCommand('copy');

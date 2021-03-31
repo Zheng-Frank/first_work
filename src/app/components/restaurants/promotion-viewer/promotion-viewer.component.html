@@ -1,21 +1,63 @@
 <div class="promo" *ngIf="promotion">
   <h4>{{promotion.name}}</h4>
   <hr>
-  <div>Code: {{promotion.code}}</div>
-  <div *ngIf="promotion.percentage && !promotion.amount">Amount: {{promotion.percentage}}% Off</div>
-  <div *ngIf="!promotion.percentage && promotion.amount">Amount: {{promotion.amount | currency:'USD':'symbol'}}</div>
-  <div *ngIf="promotion.percentage && promotion.amount">Amount: {{promotion.percentage}}% +
-    {{promotion.amount | currency:'USD':'symbol'}}</div>
-  <div *ngIf="!promotion.percentage && !promotion.amount">Amount: $0.00</div>
-  <div [ngClass]="{'text-danger': promotion.expiry < today}">Epxires: {{promotion.expiry | yMMMd: offsetToEST}}</div>
-  <div>Order Minimum: {{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
+  <div><strong>Code: </strong>{{promotion.code}}</div>
+
+  <div *ngIf="hideEditButton; else viewerMode">
+    <div *ngIf="promotionType === '$ Discount'"><strong> Amount: </strong>{{promotion.amount | currency:'USD':'symbol'}}
+      Off</div>
+    <div *ngIf="promotionType === '% Discount'"><strong>Amount: </strong>{{promotion.percentage}}% Off</div>
+    <div *ngIf="(promotion.applicableItems || []).length"><strong>Applicable Items: </strong>
+      <div *ngFor="let applicableItem of promotion.applicableItems"> {{renderItemFromFlatList(applicableItem)}}</div>
+    </div>
+    <div *ngIf="promotionType === 'Free Item'">
+      <div *ngIf="!useFreeItemList"> <strong>Generic free item </strong></div>
+      <div *ngIf="useFreeItemList && (promotion.freeItemList || []).length"> <strong>Choose Free item from: </strong>
+        <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi.name}} </div>
+      </div>
+    </div>
+    <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires: </strong>{{promotion.expiry | date :
+      'mediumDate':
+      'America / New York'}}</div>
+    <div><strong>Order Minimum: </strong>{{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
+  </div>
+
+  <ng-template #viewerMode>
+    <div *ngIf="promotion.percentage && !promotion.amount"><strong>Amount: </strong>{{promotion.percentage}}% Off
+    </div>
+    <div *ngIf="(promotion.applicableItems || []).length"><strong>Applicable Items: </strong>
+      <div *ngFor="let applicableItem of promotion.applicableItems"> {{renderItemFromFlatList(applicableItem)}}</div>
+    </div>
+    <div *ngIf="!promotion.percentage && promotion.amount"><strong>Amount: </strong>{{promotion.amount |
+      currency:'USD':'symbol'}}</div>
+    <!-- in the rare case of a legacy style promo that has both a percentage and a dollar amount, we display (and use for discount purposes) the dollar amount -->
+    <div *ngIf="promotion.percentage && promotion.amount"><strong>Amount: </strong>{{promotion.amount |
+      currency:'USD':'symbol'}}</div>
+    <div *ngIf="(promotion.freeItemList || []).length && !promotion.percentage && !promotion.amount"><strong> Choose
+        Free item from: </strong>
+      <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi.name}} </div>
+    </div>
+    <div *ngIf="promotion.freeItemName"><strong>Generic free item</strong></div>
+    <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires:</strong> {{promotion.expiry | date :
+      'mediumDate':
+      'America / New York'}}</div>
+    <div><strong>Order Minimum: </strong>{{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
+  </ng-template>
+
+
+
+
+
   <small>
     <div *ngIf="promotion.public">
-      <i class="fas fa-unlock"></i> Publicly displayed</div>
+      <i class="fas fa-unlock"></i> Publicly displayed
+    </div>
     <div *ngIf="!promotion.public">
-      <i class="fas fa-lock"></i> Not displayed on webpage</div>
+      <i class="fas fa-lock"></i> Not displayed on webpage
+    </div>
     <div *ngIf="promotion.newCustomerOnly">
-      <i class="fas fa-user-plus"></i> New customer only</div>
+      <i class="fas fa-user-plus"></i> New customer only
+    </div>
     <div *ngIf="excludedString">
       Not Applicable: {{excludedString}}
     </div>

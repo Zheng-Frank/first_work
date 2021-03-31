@@ -3,25 +3,87 @@
   <div class="{{promotion.name ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.name" placeholder="eg. $5 off $50">
   </div>
+  <div *ngIf="promotion.name && promotion.name.length > 100" class="text-warning font-weight-bold">Note: Promotion
+    Titles longer than 100 characters will be shortened when saved.</div>
+  <div *ngIf="suggestPromotionTitle()">Suggested Title: <button type="button" class="btn btn-link"
+      (click)="useSuggestedTitle()">{{suggestPromotionTitle()}}</button></div>
   <label class="mt-1">Code:</label>
   <div class="{{promotion.code ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.code" placeholder="eg. spring5">
   </div>
+  <br>
+  <label class="mt-1"><u>Promotion Type</u></label>
 
-  <label class="mt-1">Fixed Amount($):</label>
-  <div>
-    <input type="tel" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
+  <q-simple-radio [(ngModel)]="promotionType" [equalWidth]="true" [values]="['$ Discount', '% Discount', 'Free Item']">
+  </q-simple-radio>
+
+  <div *qIf="promotionType !== '$ Discount' && promotionType !== '% Discount' && promotionType !== 'Free Item'">
+    <span class="text-danger font-weight-bold">You must select a promotion type</span>
   </div>
 
-  <label class="mt-1">Percentage(%):</label>
-  <div>
-    <input type="tel" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
+  <div *qIf="promotionType === '$ Discount'">
+    <label class="mt-1">Fixed Amount ($):</label>
+    <div *qIf="promotion.amount > promotion.orderMinimum" class="text-danger font-weight-bold"> Error: Promotion amount
+      cannot exceed minimum order amount</div>
+    <div>
+      <input type="number" class="form-control" [(ngModel)]="promotion.amount" placeholder="eg. 2">
+    </div>
   </div>
 
-  <label class="mt-1">Order Minimum ($):</label>
-  <div>
-    <input type="tel" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
+  <div *qIf="promotionType === '% Discount'">
+    <label class="mt-1">Percentage Discount(%):</label>
+    <div
+      *qIf="promotion.percentage && (promotion.percentage > 90 || 0 > promotion.percentage || promotion.percentage % 1 !== 0)"
+      class="text-danger font-weight-bold"> Error: Invalid
+      percentage</div>
+    <div>
+      <input type="number" class="form-control" [(ngModel)]="promotion.percentage" placeholder="eg. 10">
+    </div>
   </div>
+
+
+  <div *qIf="promotionType === 'Free Item'">
+    <label class="mt-1">Free Item</label>
+    <div><input type="checkbox" [(ngModel)]="useFreeItemList" name="itemName">
+      Choose from menu
+    </div>
+    <div *ngIf="useFreeItemList; else genericFreeItem">
+      Use dropdown menus to add free item options to this list. Customer gets to add <strong>one of</strong> these items to their order for free. 
+      <app-menu-filters-editor [menus]="menus" [requireFullItem]="true" [menuFilters]="freeItemList"
+        ></app-menu-filters-editor>
+      <div *ngIf="promotion.freeItemList.length === freeItemListMaxLength" class="text-danger font-weight-bold">
+        <small> Maximum number of items for customer to choose from is {{freeItemListMaxLength}}. Please delete an
+          existing item
+          before adding a new one. </small>
+      </div>
+    </div>
+    <ng-template #genericFreeItem>
+      <div>
+        <strong>Generic Free Item:</strong> Please enter a descriptive promotion title to let the customer know what the
+        free item is.
+      </div>
+    </ng-template>
+
+  </div>
+  <br>
+
+  <label class="mt-1"> <u>Applicable items:</u></label>
+  <div>
+ By default, discount will apply to entire order. 
+ If you want the discount to only apply to certain menus, categories, or items, you can add them to this list. 
+ Only items in the list will count toward the minimum order amount.
+  </div>
+  <app-menu-filters-editor [menus]="menus" [requireFullItem]="false"
+  [menuFilters]="applicableItems"></app-menu-filters-editor>
+
+  <div>
+   
+    <label class="mt-1"><u> Minimum Order ($) </u></label><br>
+  
+    <input type="number" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
+  </div>
+
+
 
   <label class="mt-1">Expiration Date:</label>
   <div>
@@ -38,24 +100,22 @@
   </div>
 
   <label class="mt-1">Excluded Platforms:</label>
-  <div *ngFor="let platform of ['APP', 'Web']" class="pl-4">
-    <label class="mt-1">
-      <input type="checkbox" [checked]="!isPlatformIncluded(platform)" (change)="togglePlatform(platform)">
-      {{platform}}</label>
+  <div class="d-flex flex-row">
+    <div *ngFor="let platform of ['APP', 'Web']" class="pl-4">
+      <label class="mt-1">
+        <input type="checkbox" [checked]="!isPlatformIncluded(platform)" (change)="togglePlatform(platform)">
+        {{platform}}</label>
+    </div>
   </div>
+
 
   <label class="mt-1">Excluded Order Types:</label>
-  <div *ngFor="let orderType of ['Pickup', 'Delivery', 'Dine-in']" class="pl-4">
-    <label class="mt-1">
-      <input type="checkbox" [checked]="!isOrderTypeIncluded(orderType)" (change)="toggleOrderType(orderType)">
-      {{orderType}}</label>
-  </div>
-
-  <label class="mt-1">Excluded Menus:</label>
-  <div *ngFor="let menu of (menus || [])" class="pl-4">
-    <label class="mt-1">
-      <input type="checkbox" [checked]="!isMenuIncluded(menu)" (change)="toggleMenu(menu)">
-      {{menu.name}}</label>
+  <div class="d-flex flex-row">
+    <div *ngFor="let orderType of ['Pickup', 'Delivery', 'Dine-in']" class="pl-4">
+      <label class="mt-1">
+        <input type="checkbox" [checked]="!isOrderTypeIncluded(orderType)" (change)="toggleOrderType(orderType)">
+        {{orderType}}</label>
+    </div>
   </div>
 
   <div class="mt-1 text-right">
@@ -66,7 +126,8 @@
 
   <hr>
   <h4>Preview</h4>
-  <app-promotion-viewer [promotion]="promotion" [offsetToEST]="offsetToEST" [hideEditButton]="true">
+  <app-promotion-viewer [promotion]="promotion" [hideEditButton]="true"
+    [promotionType]="promotionType" [useFreeItemList]="useFreeItemList">
   </app-promotion-viewer>
   <!-- because of viewer having float left -->
   <div class="clearfix"></div>

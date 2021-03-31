@@ -1,4 +1,5 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { isType } from '@angular/core/src/type';
 import { Promotion } from '@qmenu/ui';
 
 @Component({
@@ -6,12 +7,13 @@ import { Promotion } from '@qmenu/ui';
   templateUrl: './promotion-viewer.component.html',
   styleUrls: ['./promotion-viewer.component.css']
 })
-export class PromotionViewerComponent implements OnInit {
+export class PromotionViewerComponent implements OnInit, OnChanges {
   today = new Date();
   @Input() hideEditButton = false;
+  @Input() promotionType: string;
+  @Input() useFreeItemList: boolean;
   @Input() promotion: Promotion;
   @Input() menus = [];
-  @Input() offsetToEST: number;
   @Output() onEdit = new EventEmitter();
 
   excludedString;
@@ -28,6 +30,19 @@ export class PromotionViewerComponent implements OnInit {
       const excludedPlatforms = this.promotion.excludedPlatforms || [];
       this.excludedString = [...excludedMenuNames, ...excludedOrderTypes, ...excludedPlatforms].join(', ');
     }
+  }
+
+  renderItemFromFlatList(freeItem) {
+    if (freeItem.mc) {
+      if (freeItem.mi) {
+        // menu, mc, and mi defined
+        return `${freeItem.menu.name}>${freeItem.mc.name}>${freeItem.mi.name}`;
+      }
+      // menu and mc defined
+      return `${freeItem.menu.name}>${freeItem.mc.name}`;
+    }
+    //only menu is defined
+    return `${freeItem.menu.name}`;
   }
 
   edit() {

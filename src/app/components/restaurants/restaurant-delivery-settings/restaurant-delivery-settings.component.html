@@ -1,7 +1,8 @@
 <div class="card-group">
   <div class="card mb-2">
     <h3 class="card-title text-center pt-4 pb-2">
-      <i class="far fa fa-car"></i> Delivery Settings</h3>
+      <i class="far fa fa-car"></i> Delivery Settings
+    </h3>
     <ul class="list-group list-group-flush">
 
       <li class="list-group-item">
@@ -64,8 +65,8 @@
                 <th class="text-left">Delivery Open Hours:</th>
                 <td>
                   <div class="text-left">
-                    <q-hours-viewer [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)"
-                      [hours]="restaurant.deliveryHours ? restaurant.deliveryHours : []"></q-hours-viewer>
+                    <lib-hours-viewer [timezone]="restaurant.googleAddress.timezone"
+                      [hours]="restaurant.deliveryHours || []"></lib-hours-viewer>
                   </div>
                 </td>
               </tr>
