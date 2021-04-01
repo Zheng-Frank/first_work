@@ -1,25 +1,21 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnChanges } from '@angular/core';
 import { Restaurant, Hour } from '@qmenu/ui';
-import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { TimezoneService } from "../../../services/timezone.service";
 import { AlertType } from "../../../classes/alert-type";
-import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Helper } from '../../../classes/helper';
-import { from } from 'rxjs';
 
 @Component({
   selector: 'app-restaurant-closed-hours',
   templateUrl: './restaurant-closed-hours.component.html',
   styleUrls: ['./restaurant-closed-hours.component.css']
 })
-export class RestaurantClosedHoursComponent implements OnInit {
+export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
 
   @Input() restaurant: Restaurant;
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
-    // this.initHourInEditing();
+  constructor(private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
   }
 
   hourInEditing;
@@ -28,14 +24,17 @@ export class RestaurantClosedHoursComponent implements OnInit {
   ngOnInit() {
   }
 
+  ngOnChanges() {
+    if (this.restaurant) {
+      this.initHourInEditing();
+    }
+  }
+
   initHourInEditing() {
     const d1 = new Date();
     d1.setHours(d1.getHours() + (new Date(new Date().toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone })).valueOf()
       - new Date(new Date().toLocaleString('en-US')).valueOf()) / 3600000);
     d1.setHours(0, 0, 0, 0);
-    this.hourInEditing.fromTime = d1;
-    this.hourInEditing.toTime = new Date(d1.valueOf());
-
     this.hourInEditing = new Hour({
       fromTime: d1,
       toTime: new Date(d1.valueOf()),

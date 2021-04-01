@@ -1,4 +1,4 @@
-<div class="card mb-2">
+<div class="card mb-2" *ngIf="restaurant">
   <h3 class="card-title text-center pt-4 pb-2"><i class="fa fa-calendar-times-o"></i> Closed Time</h3>
   <div class="text-muted text-center text-xs-center"><small>Define time slots when the restaurant is closed.</small>
   </div>
@@ -8,9 +8,9 @@
         <tr *ngFor="let hour of (restaurant.closedHours || [])">
           <td>
             <div class="text-nowrap"><strong>
-                {{hour.fromTime | adjustedDate : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
+                {{hour.fromTime | dateTz : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
                 -
-                {{hour.toTime | adjustedDate : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
+                {{hour.toTime | dateTz : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
               </strong></div>
             <div *ngIf="hour.comment">{{hour.comment}}</div>
           </td>
@@ -23,11 +23,11 @@
           <h5 class="text-xs-center">Add New Closed Time</h5>
           <app-hour-picker-simple [hour]="hourInEditing"></app-hour-picker-simple>
           <div>
-            <label class="m-t-1">Extra Comments:</label>
+            <label class="mt-1">Extra Comments:</label>
             <input [(ngModel)]="hourInEditing.comment" type="text" class="form-control" placeholder="such as holidy"
               autofocus>
             <div *ngIf="getError()" class="text-danger"><small>{{getError()}}</small></div>
-            <div class="m-t-1"><button class="btn btn-block btn-primary" (click)="addClosedHour()"
+            <div class="mt-1"><button class="btn btn-block btn-primary" (click)="addClosedHour()"
                 [disabled]="getError()">Add</button></div>
           </div>
 
