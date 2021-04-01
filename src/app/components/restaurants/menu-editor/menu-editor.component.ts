@@ -47,7 +47,8 @@ export class MenuEditorComponent implements OnInit {
   }
 
   isValid() {
-    return this.menu && this.menu.name;
+    // menu must exist, name must exist, and the name must not be exactly the same as any existing menu name
+    return this.menu && this.menu.name && this.createArrayOfMenuNames().indexOf(this.menu.name) < 0;
   }
 
   createArrayOfMenuNames() {
@@ -64,6 +65,12 @@ export class MenuEditorComponent implements OnInit {
     const menuCopy = new Menu(this.restaurant.menus.find(menu => menu.name === selectedMenuName));
     menuCopy.name += ' - Copy';
     delete menuCopy.id; // delete the copy's id, or else we will just end up editing the existing menu
+    menuCopy.mcs.map(mc => {
+      mc.id += '0'
+      mc.mis.map(mi => {
+        mi.id += '0'; // append a 0 to all Mc and Mi id's to keep them unique
+      })
+    })
     this.setMenu(menuCopy);
   }
 
