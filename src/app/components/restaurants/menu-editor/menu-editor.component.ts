@@ -24,7 +24,7 @@ export class MenuEditorComponent implements OnInit {
 
   clickedAddHour = false;
   clickedDelete = false;
-  selectedOption;
+  selectedOption = 'New Menu';
 
   uploadImageError: string;
 
@@ -45,7 +45,6 @@ export class MenuEditorComponent implements OnInit {
   constructor(private _api: ApiService, private _http: HttpClient, private _timezone: TimezoneService) { }
 
   ngOnInit() {
-    this.selectedOption = 'New Menu';
   }
 
   isValid() {
@@ -62,15 +61,19 @@ export class MenuEditorComponent implements OnInit {
     }
   }
 
-  selectMenuTemplate(selectedMenu) {
-    const menuTemplate = new Menu(this.restaurant.menus.find(menu => menu.name === selectedMenu));
-    menuTemplate.name += ' - Copy';
-    delete menuTemplate.id; // delete the menu's id, or else we will just end up editing the existing menu
-    this.setMenu(menuTemplate);
+  copyMenu(selectedMenuName) {
+    const menuCopy = new Menu(this.restaurant.menus.find(menu => menu.name === selectedMenuName));
+    menuCopy.name += ' - Copy';
+    delete menuCopy.id; // delete the copy's id, or else we will just end up editing the existing menu
+    this.setMenu(menuCopy);
   }
 
   setMenu(menu: Menu) {
     this.menu = menu;
+    if (menu === new Menu()) {
+      // if the passed-in menu is a blank menu, then we should reset our editing modal
+      this.selectedOption = 'New Menu';
+    }
     this.selectedTarget = this.targets.filter(t => t.value === menu['targetCustomer'])[0] || this.targets[0];
   }
 

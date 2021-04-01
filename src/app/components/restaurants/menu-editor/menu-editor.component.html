@@ -4,7 +4,7 @@
       [values]="['Enabled', 'Disabled']"></app-switch>
   </div>
 
-  <div>
+  <div *ngIf="!menu.id">
     <label>Choose New Or Existing Menu:</label>
     <div>
       <div *ngFor="let option of ['New Menu', 'Copy from existing Menu']; let i = index" class="d-inline-block pr-2">
@@ -17,7 +17,7 @@
       <label>Choose Menu:</label>
       <q-dropdown [items]="createArrayOfMenuNames()" 
       [placeholder]="'Select a menu...'" 
-      (selectedItemChange)="selectMenuTemplate($event)"> </q-dropdown>
+      (selectedItemChange)="copyMenu($event)"> </q-dropdown>
     </div>
   </div>
 
