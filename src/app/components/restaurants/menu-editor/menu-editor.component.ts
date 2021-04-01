@@ -72,13 +72,6 @@ export class MenuEditorComponent implements OnInit {
     });
     // sort!
     this.menu.hours.sort((a, b) => a.fromTime.valueOf() - b.fromTime.valueOf());
-
-    // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
-    hours.map(h => {
-      h.fromTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.fromTime, this.timezone);
-      h.toTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.toTime, this.timezone);
-    });
-
     this.clickedAddHour = false;
   }
 
