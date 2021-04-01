@@ -59,7 +59,7 @@ export class MenuEditorComponent implements OnInit {
   }
 
   getStringOfDays(hours: Hour[]) {
-    return hours.map(d => d.toDayString(this.offsetToEST || 0)).join(', ');
+    return hours.map(d => d.toDayString(this.restaurant.googleAddress.timezone)).join(', ');
   }
 
   doneAddingHour(hours: Hour[]) {
