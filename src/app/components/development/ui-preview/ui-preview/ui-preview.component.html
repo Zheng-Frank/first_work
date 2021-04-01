@@ -84,20 +84,20 @@
         >
 
         <div class="text-left">
-            <q-hours-picker (submit)="hoursSubmit($event)">
-            </q-hours-picker>
+            <lib-hours-picker (submit)="hoursSubmit($event)">
+            </lib-hours-picker>
         </div>
     </app-doc-viewer>  
 
     <app-doc-viewer 
-        [name]="'q-hours-viewer'"
+        [name]="'lib-hours-viewer'"
         [description]="'Hours Viewer (Grouped)'"
-        [inputs]="['hours', 'offsetToEST']"
+        [inputs]="['hours', 'timezone']"
         >
 
         <div class="text-left">
-            <q-hours-viewer [hours]="hours" [offsetToEST]="0">
-            </q-hours-viewer>
+            <lib-hours-viewer [hours]="hours" [timezone]="'America/Chicago'">
+            </lib-hours-viewer>
         </div>
     </app-doc-viewer>  
     <app-doc-viewer 
