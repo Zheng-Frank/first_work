@@ -4,7 +4,6 @@ import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { TimezoneService } from '../../../services/timezone.service';
 import { HttpClient } from '@angular/common/http';
-import { useAnimation } from '@angular/animations';
 
 @Component({
   selector: 'app-menu-editor',
