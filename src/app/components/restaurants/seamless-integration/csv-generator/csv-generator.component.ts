@@ -681,7 +681,7 @@ export class CsvGeneratorComponent implements OnInit {
       return {
         name: a.name,
         address: a.address.formatted_address,
-        style: "Chinese"
+        style: ""
       }
     })
 
