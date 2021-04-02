@@ -59,7 +59,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
           },
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 5)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 4)))
           },
         }
       },
@@ -104,7 +104,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
     let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.timeToDeliver ? o.restaurantObj._id : null).map(id => ({ $oid: id })).filter(id => id.$oid != undefined || id.$oid != null)
-    )]
+    )].slice(0, 70)
     console.log("UNIQUE IDS ", uniqueIds)
 
 
@@ -119,8 +119,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       },
       sort: {
         createdAt: -1
-      }
-    }, 1000)
+      },
+    }, 50)
 
 
     console.log("ALL RESTAURANT PICKUP DELIVERY TIMES ", restaurantPickupTimes)
@@ -163,6 +163,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           }
         })
 
+        console.log("PICK UP TIMES ", pickupTime)
+
         pickupTime = pickupTime ? pickupTime : 15
 
 
@@ -186,6 +188,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             }
           }
         })
+
+        console.log("DELIVERY TIMES ", deliveryTime)
         deliveryTime = deliveryTime ? deliveryTime : 45
 
         let lateDeliveryTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (deliveryTime * 60 * 1000)).getTime()
