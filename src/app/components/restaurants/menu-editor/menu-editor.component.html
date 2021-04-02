@@ -3,16 +3,33 @@
     <app-switch (onSelectValue)="selectSwitchValue($event)" [selectedValue]="menu.disabled ? 'Disabled' : 'Enabled'"
       [values]="['Enabled', 'Disabled']"></app-switch>
   </div>
-  <div class="form-group">
-    <label>Menu visibility (target customer):</label>
+
+  <div *ngIf="!menu.id">
+    <label>Choose New Or Existing Menu:</label>
     <div>
-      <div *ngFor="let target of targets; let i = index" class="d-inline-block pr-2">
-        <input type="radio" name="target" id="target-{{i}}" [value]="target" [(ngModel)]="selectedTarget">
-        <label for="target-{{i}}">{{target.text}}</label>
+      <div *ngFor="let option of ['New Menu', 'Copy from existing Menu']; let i = index" class="d-inline-block pr-2">
+        <input type="radio" name="option" id="option-{{i}}" [value]="option" [(ngModel)]="selectedOption" (change)="radioSelect(option)">
+        <label for="option-{{i}}">{{option}}</label>
       </div>
-      <div class="text-danger" *ngIf="!restaurant?.qrSettings && selectedTarget?.value !== 'ONLINE_ONLY' ">WARNING: The
-        restaurant has no QR Dine-in Settings yet. "Online only" is recommended.</div>
     </div>
+
+    <div *ngIf="selectedOption === 'Copy from existing Menu'">
+      <label>Choose Menu:</label>
+      <q-dropdown [items]="createArrayOfMenuNames()" 
+      [placeholder]="'Select a menu...'" 
+      (selectedItemChange)="copyMenu($event)"> </q-dropdown>
+    </div>
+  </div>
+
+
+  <label>Menu visibility (target customer):</label>
+  <div>
+    <div *ngFor="let target of targets; let i = index" class="d-inline-block pr-2">
+      <input type="radio" name="target" id="target-{{i}}" [value]="target" [(ngModel)]="selectedTarget">
+      <label for="target-{{i}}">{{target.text}}</label>
+    </div>
+    <div class="text-danger" *ngIf="!restaurant?.qrSettings && selectedTarget?.value !== 'ONLINE_ONLY' ">WARNING: The
+      restaurant has no QR Dine-in Settings yet. "Online only" is recommended.</div>
   </div>
   <div class="form-group {{!menu.name ? 'has-danger' : ''}}">
     <label>Menu Name:</label>
