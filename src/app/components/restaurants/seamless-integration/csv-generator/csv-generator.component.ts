@@ -534,20 +534,15 @@ export class CsvGeneratorComponent implements OnInit {
           return this.scanbOneLead(query);
         });
 
-      console.log("MADE IT HERE")
       scanLeadResults = await Promise.all(scanLeadRequests);
-      console.log("HERE TWO!!")
       //merge the array of array to flatten it.
       scanLeadResults = [].concat.apply([], scanLeadResults).filter(each => each);
 
-      console.log("HERE 2.5")
       const restaurantCids = this.restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => r.googleListing.cid);
 
-      console.log("HERE 2.7")
       //filter out cid already in qMenu restaurants before updating or creating lead
       scanLeadResults = scanLeadResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
 
-      console.log("HERE 2.9")
 
       console.log('scanLeadResults=', scanLeadResults);
       //retrieve existing lead with the same cids
@@ -650,20 +645,7 @@ export class CsvGeneratorComponent implements OnInit {
 
   }
 
-  async createNewLead(lead) {
-    try {
-      const result = await this._api.post(environment.qmenuApiUrl + "generic?resource=lead", [lead]).toPromise();
-      console.log("RESULTING LEAD")
-      return result;
-    } catch (error) {
-      console.log(error);
-      console.log("creating lead failed for  " + lead);
-      // this._global.publishAlert(
-      //   AlertType.Danger, "Failed to create lead " + lead
-      // );
-    }
 
-  }
 
   objectsToCSV(arr) {
     let finalResult = []
