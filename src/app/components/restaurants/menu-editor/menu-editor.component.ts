@@ -46,9 +46,12 @@ export class MenuEditorComponent implements OnInit {
   ngOnInit() {
   }
 
-  isValid() {
-    // menu must exist, name must exist, and the name must not be exactly the same as any existing menu name  
-    return this.menu && this.menu.name && this.createArrayOfMenuNames().indexOf(this.menu.name) < 0;
+  isValid() { 
+    if (!this.menu || !this.restaurant.menus) {
+      return false;
+    }
+    const nonselfMenus = this.restaurant.menus.filter(each => each.id !== this.menu.id);
+    return this.menu.name && !nonselfMenus.some(each => each.name === this.menu.name)
   }
 
   createArrayOfMenuNames() {
