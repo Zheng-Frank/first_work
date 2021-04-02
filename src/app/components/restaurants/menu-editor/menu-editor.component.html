@@ -28,8 +28,6 @@
       <input type="radio" name="target" id="target-{{i}}" [value]="target" [(ngModel)]="selectedTarget">
       <label for="target-{{i}}">{{target.text}}</label>
     </div>
-    <div class="text-danger" *ngIf="!restaurant?.qrSettings && selectedTarget?.value !== 'ONLINE_ONLY' ">WARNING: The
-      restaurant has no QR Dine-in Settings yet. "Online only" is recommended.</div>
   </div>
   <div class="form-group {{!menu.name ? 'has-danger' : ''}}">
     <label>Menu Name:</label>

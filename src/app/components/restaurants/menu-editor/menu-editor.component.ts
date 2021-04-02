@@ -47,7 +47,7 @@ export class MenuEditorComponent implements OnInit {
   }
 
   isValid() {
-    // menu must exist, name must exist, and the name must not be exactly the same as any existing menu name
+    // menu must exist, name must exist, and the name must not be exactly the same as any existing menu name  
     return this.menu && this.menu.name && this.createArrayOfMenuNames().indexOf(this.menu.name) < 0;
   }
 

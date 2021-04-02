@@ -85,7 +85,7 @@
       <ul class="nav nav-tabs app-tab" role="tablist">
         <li *ngFor="let menu of getMenus()" class="nav-item">
           <a (click)=setActiveId(menu.id) class="nav-link {{getActiveId() == menu.id ? 'active' : 'text-primary'}}"
-            data-toggle="tab" role="button">{{menu.name}}</a>
+            data-toggle="tab" role="button">{{menu.name}} {{menu.targetCustomer ? "("+menu.targetCustomer+")" : ''}}</a>
         </li>
         <li class="nav-item" *ngIf="getMenus().length > 0">
           <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()"
