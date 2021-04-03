@@ -26,6 +26,8 @@ export class RestaurantPromotionsComponent implements OnInit {
 
   promotionsInEditing = [];
 
+  promotionInEditing;
+
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
@@ -65,13 +67,13 @@ export class RestaurantPromotionsComponent implements OnInit {
   editNew() {
     this.promotionModal.show();
     this.promotionModal.title = 'New Promotion';
-    this.promotionEditor.promotion = new Promotion();
+    this.promotionInEditing = new Promotion();
   }
 
   edit(promotion) {
     this.promotionModal.show();
     this.promotionModal.title = 'Edit Promotion';
-    this.promotionEditor.promotion = new Promotion(promotion);
+    this.promotionInEditing = new Promotion(promotion);
   }
 
   onCancel(promotion) {
@@ -89,8 +91,8 @@ export class RestaurantPromotionsComponent implements OnInit {
     const newPromotions = (this.restaurant.promotions || []).slice(0);
     if (promotion.id) {
       // find the replace the promotion
-      for(let i = 0; i < newPromotions.length; i++) {
-        if(newPromotions[i].id === promotion.id) {
+      for (let i = 0; i < newPromotions.length; i++) {
+        if (newPromotions[i].id === promotion.id) {
           newPromotions[i] = promotion;
         }
       }
@@ -140,6 +142,18 @@ export class RestaurantPromotionsComponent implements OnInit {
         );
     }
   }
+
+  /* migrate function is not currently implemented. Checkout functionality has been updated to work with both newer data structures, 
+  as well as the older excluded menus method. It should not be necessary to migrate excluded menus unless some other circumstance
+  dictates that it should be done. */
+
+  // migrateExcludedMenusToIncludedMenus() {
+  //   this.restaurant.promotions.forEach((promotion, index) => {
+  //     const withOrderFromList = (this.restaurant.menus || []).filter((menu) => {
+  //       return promotion.excludedMenuIds.indexOf(menu.id) < 0;
+  //     }).map((entry) => new Object({ name: entry.name }));
+  //   })
+  // }
 
 }
 

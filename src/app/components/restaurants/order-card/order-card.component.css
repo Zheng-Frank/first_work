@@ -251,3 +251,18 @@
   margin-top: 100px !important;
 }
 
+.qr {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  font-size: 150%;
+  opacity: 0.75;
+}
+
+.order-number {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  font-size: 150%;
+  opacity: 0.75;
+}

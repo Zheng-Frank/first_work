@@ -3,14 +3,30 @@
     <app-switch (onSelectValue)="selectSwitchValue($event)" [selectedValue]="menu.disabled ? 'Disabled' : 'Enabled'"
       [values]="['Enabled', 'Disabled']"></app-switch>
   </div>
-  <div class="form-group">
-    <label>Menu visibility (target customer):</label>
+
+  <div *ngIf="!menu.id">
+    <label>Choose New Or Existing Menu:</label>
     <div>
-      <div *ngFor="let target of targets; let i = index" class="d-inline-block pr-2">
-        <input type="radio" name="target" id="target-{{i}}" [value]="target" [(ngModel)]="selectedTarget">
-        <label for="target-{{i}}">{{target.text}}</label>
+      <div *ngFor="let option of ['New Menu', 'Copy from existing Menu']; let i = index" class="d-inline-block pr-2">
+        <input type="radio" name="option" id="option-{{i}}" [value]="option" [(ngModel)]="selectedOption" (change)="radioSelect(option)">
+        <label for="option-{{i}}">{{option}}</label>
       </div>
-      <div class="text-danger" *ngIf="!restaurant?.qrSettings && selectedTarget?.value !== 'ONLINE_ONLY' ">WARNING: The restaurant has no QR Dine-in Settings yet. "Online only" is recommended.</div>
+    </div>
+
+    <div *ngIf="selectedOption === 'Copy from existing Menu'">
+      <label>Choose Menu:</label>
+      <q-dropdown [items]="createArrayOfMenuNames()" 
+      [placeholder]="'Select a menu...'" 
+      (selectedItemChange)="copyMenu($event)"> </q-dropdown>
+    </div>
+  </div>
+
+
+  <label>Menu visibility (target customer):</label>
+  <div>
+    <div *ngFor="let target of targets; let i = index" class="d-inline-block pr-2">
+      <input type="radio" name="target" id="target-{{i}}" [value]="target" [(ngModel)]="selectedTarget">
+      <label for="target-{{i}}">{{target.text}}</label>
     </div>
   </div>
   <div class="form-group {{!menu.name ? 'has-danger' : ''}}">
@@ -28,8 +44,14 @@
   <div class="text-muted" *ngIf="menu.hours && menu.hours.length > 0"><small>Hours are not grouped here but they will be
       in user view</small></div>
   <div *ngFor="let hour of getHours()">
-    <div class="pull-xs-left">{{hour.toDayString(offsetToEST)}} {{hour.fromTime | shortTime : offsetToEST}} -
-     {{hour.toTime | shortTime : offsetToEST}}</div>
+    <div class="pull-xs-left">
+      <span *ngIf="hour.occurence === 'WEEKLY'">{{hour.fromTime | dateTz: 'EEEE' :
+        restaurant?.googleAddress?.timezone}}</span>
+      <span *ngIf="hour.occurence !== 'WEEKLY'">{{hour.fromTime | dateTz: 'shortDate' :
+        restaurant?.googleAddress?.timezone}}</span>
+      {{hour.fromTime | dateTz : 'shortTime' : restaurant?.googleAddress?.timezone}} -
+      {{hour.toTime | dateTz : 'shortTime' : restaurant?.googleAddress?.timezone}}
+    </div>
     <div class="pull-xs-right"><button type="button" class="btn btn-link text-danger pt-0 pb-0"
         (click)="deleteHour(hour)">X</button></div>
     <div class="clearfix"></div>
@@ -40,8 +62,9 @@
 
   <div class="clearfix"></div>
   <div *qIf="clickedAddHour" style="font-size: smaller">
-    <div class="card card-block">
-      <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"></q-hours-picker>
+    <div class="card card-block p-2">
+      <lib-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"
+        [timezone]="restaurant?.googleAddress?.timezone"></lib-hours-picker>
     </div>
   </div>
 
