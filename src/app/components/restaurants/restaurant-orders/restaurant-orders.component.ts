@@ -377,16 +377,16 @@ export class RestaurantOrdersComponent implements OnInit {
     }
     this.populateOrders();
   }
-async handleOnChangeOrderTypes(order){
-  try {
-    await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
-      orderId: order._id
-    }).toPromise();
-  } catch (error) {
-    console.log("errors")
+  async handleOnChangeOrderTypes(order){
+    try {
+      await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
+        orderId: order._id
+      }).toPromise();
+    } catch (error) {
+      console.log("errors")
+    }
+    this.populateOrders();
   }
-  this.populateOrders();
-}
   handleOnDisplayCreditCard(order) {
     const explanations = {
       IN_PERSON: 'NO CREDIT CARD INFO WAS COLLECTED. THE CUSTOMER WILL SWIPE CARD IN PERSON.',
