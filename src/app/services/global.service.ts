@@ -20,7 +20,31 @@ export class GlobalService {
   private _token;
   private _user;
   private _menus = [];
-
+  private _superset= [
+    //customer document full object model 
+    {
+      dbName: 'customer',
+      lastestSchema: {},
+      fullSchema: {}
+    },
+    //order document full object model 
+    {
+      dbName: 'order',
+      lastestSchema: {},
+      fullSchema: {}
+    },
+    //restaurant document full object model 
+    {
+      dbName: 'restaurant',
+      lastestSchema: {},
+      fullSchema: {}
+    }
+  ];
+;
+  // this superset is the model of every mongodb document in a super status 
+  get superset(){
+    return this._superset;
+  }
   get token() {
     return this._token;
   }
