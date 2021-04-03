@@ -4,19 +4,25 @@
   </div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
+        <label class="checkbox-inline" *ngIf="getExpiredClosedHours().length > 0"><input type="checkbox"
+          [(ngModel)]="showExpired"> Show expired
+        ({{getExpiredClosedHours().length}})</label>
       <table class="app-table w-100">
-        <tr *ngFor="let hour of (restaurant.closedHours || [])">
-          <td>
-            <div class="text-nowrap"><strong>
-                {{hour.fromTime | dateTz : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
-                -
-                {{hour.toTime | dateTz : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
-              </strong></div>
-            <div *ngIf="hour.comment">{{hour.comment}}</div>
-          </td>
-          <td scope="row" *ngIf="editing" class="text-xs-right" (click)="remove(hour)"><i
-              class="text-danger fa fa-remove" role="button"> Delete</i></td>
-        </tr>
+        <ng-container *ngFor="let hour of (restaurant.closedHours || [])">
+          <tr  *ngIf="showExpired || !isClosedHoursExpired(hour)"
+          class="{{isClosedHoursExpired(hour) ? 'expired' : '' }} ">
+            <td>
+              <div class="text-nowrap"><strong>
+                  {{hour.fromTime | dateTz : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
+                  -
+                  {{hour.toTime | dateTz : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
+                </strong></div>
+              <div *ngIf="hour.comment">{{hour.comment}}</div>
+            </td>
+            <td scope="row" *ngIf="editing" class="text-xs-right" (click)="remove(hour)"><i
+                class="text-danger fa fa-remove" role="button"> Delete</i></td>
+          </tr>
+        </ng-container>
       </table>
       <div *qIf="editing">
         <div class="jumbotron app-jumbo">
