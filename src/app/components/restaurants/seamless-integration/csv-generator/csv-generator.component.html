@@ -1,0 +1,13 @@
+<button class="btn btn-primary" (click)="scanNew()">
+  Generate Leads CSV File
+</button>
+
+<q-modal [title]="'Download New Leads'" #scanModal>
+  <q-form-builder
+    [object]="leadInEditing"
+    [fieldDescriptors]="formFieldDescriptors"
+    (submit)="scanSubmit($event)"
+    (cancel)="scanModal.hide()"
+  >
+  </q-form-builder>
+</q-modal>

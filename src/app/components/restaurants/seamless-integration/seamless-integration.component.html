@@ -99,6 +99,8 @@
             >
           </span>
         </span>
+        &nbsp;
+        <!-- <app-csv-generator></app-csv-generator> -->
       </div>
 
       <div class="col-sm-6 text-center">
@@ -127,7 +129,6 @@
             </button>
           </li>
         </ul>
-
         <app-send-postcard
           (finishedSendingPCs)="emptySendPostcards()"
           [style]="style"
@@ -174,9 +175,7 @@
                 </div>
 
                 <h5 class="card-title">
-                  <a
-                    target="_blank"
-                    [href]="'https://qa-csr.qmenu.us/#/restaurants/' + data._id"
+                  <a target="_blank" [href]="'/#/restaurants/' + data._id"
                     >{{ data.name }}
                   </a>
                   <span *ngIf="getLanguage(data._id)">

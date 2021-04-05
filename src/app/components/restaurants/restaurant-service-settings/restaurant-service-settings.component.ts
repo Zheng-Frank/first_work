@@ -1,10 +1,10 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { ApiService } from "../../../services/api.service";
-import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { environment } from "../../../../environments/environment";
-import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
-import { Restaurant } from '@qmenu/ui';
+import {Component, Input, OnInit} from '@angular/core';
+import {ApiService} from '../../../services/api.service';
+import {PrunedPatchService} from '../../../services/prunedPatch.service';
+import {environment} from '../../../../environments/environment';
+import {GlobalService} from '../../../services/global.service';
+import {AlertType} from '../../../classes/alert-type';
+import {Restaurant} from '@qmenu/ui';
 
 @Component({
   selector: 'app-restaurant-service-settings',
@@ -22,8 +22,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     'IN_PERSON': 'Credit card: swipe in-person',
     'QMENU': 'Credit card: let qMenu collect on behalf of restaurant',
     'KEY_IN': 'Credit card: send numbers to restaurant for key-in',
-    'STRIPE': 'Credit card: deposit to restaurant\'s Stripe account directly',
-    'SPREEDLY': 'Spreedly (configure settings below)'
+    'STRIPE': 'Credit card: deposit to restaurant\'s account directly (configure below)'
   };
 
   serviceSettingsInEditing = [];
@@ -38,8 +37,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   stripeSecretKey;
 
   supportedGateways = [];
-  gateway: any = {};
-  gatewayType;
+  gatewayInEditing: any = {};
+  ccProcessorSelected = '';
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPacth: PrunedPatchService) {
   }
@@ -61,12 +60,14 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.ccProcessorSelected = this.getCcProcessor();
+    this.gatewayInEditing = JSON.parse(JSON.stringify(this.restaurant && this.restaurant['ccHandler'] || {}));
     this.populate();
   }
 
   ngOnChanges() {
-    this.gateway = this.restaurant && this.restaurant['ccHandler'] || {};
-    this.gatewayType = (this.restaurant && this.restaurant['ccHandler'] || {}).gateway_type;
+    // this.gateway = this.restaurant && this.restaurant['ccHandler'] || {};
+    // this.gatewayType = (this.restaurant && this.restaurant['ccHandler'] || {}).gateway_type;
   }
 
   async populate() {
@@ -128,7 +129,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     } else {
       service.paymentMethods.push(paymentMethod);
       // also remove mutually exclusive payment types!
-      const mutexTypes = ['QMENU', 'KEY_IN', 'STRIPE', 'IN_PERSON', 'SPREEDLY'];
+      const mutexTypes = ['QMENU', 'KEY_IN', 'STRIPE', 'IN_PERSON'];
       if (mutexTypes.indexOf(paymentMethod) >= 0) {
         mutexTypes.filter(mt => mt !== paymentMethod).map(type => {
           if (service.paymentMethods.indexOf(type) >= 0) {
@@ -154,8 +155,14 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     newR.stripePublishableKey = (this.stripePublishableKey || '').trim();
     newR.stripeSecretKey = (this.stripeSecretKey || '').trim();
 
+    if (JSON.stringify(oldR) === JSON.stringify(newR)) {
+      this._global.publishAlert(AlertType.Success, 'Already up to date');
+      this.editing = false;
+      return;
+    }
+
     this._prunedPacth
-      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
         {
           old: oldR,
           new: newR
@@ -165,7 +172,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
           // let's update original, assuming everything successful
           this._global.publishAlert(
             AlertType.Success,
-            "Updated successfully"
+            'Updated successfully'
           );
 
           this.restaurant.serviceSettings = this.serviceSettingsInEditing;
@@ -182,7 +189,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
           this.serviceSettingsInEditing = [];
         },
         error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          this._global.publishAlert(AlertType.Danger, 'Error updating to DB');
+          this.editing = false;
         }
       );
 
@@ -208,18 +216,18 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     this.taxBeforePromotion = !this.taxBeforePromotion;
   }
 
-  shouldShowStripeInput() {
+  shouldShowCCProcessorForm() {
     return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'STRIPE'));
   }
 
-  shouldShowSpreedlyInput() {
-    return this.serviceSettingsInEditing.some(service => (service.paymentMethods || []).some(pt => pt === 'SPREEDLY'));
+  getCcProcessor() {
+    return this.restaurant['ccHandler'] && this.restaurant['ccHandler'].type ? 'SPREEDLY' : 'STRIPE';
   }
 
   changeGateway(gatewayType) {
-    this.gateway = {};
-    this.gateway.gateway_type = gatewayType;
-    this.gateway.credentials = this.getCredentialFields(gatewayType);
+    this.gatewayInEditing = {};
+    this.gatewayInEditing.gateway_type = gatewayType;
+    this.gatewayInEditing.credentials = this.getCredentialFields(gatewayType);
   }
 
   getCredentialFields(gatewayType) {
@@ -231,16 +239,16 @@ export class RestaurantServiceSettingsComponent implements OnInit {
         if (authMode.credentials && authMode.credentials.length > 0) {
           return authMode.credentials;
         } else {
-          this._global.publishAlert(AlertType.Success, "No Spreedly credentials found!");
+          this._global.publishAlert(AlertType.Success, 'No Spreedly credentials found!');
           return;
         }
 
       } else {
-        this._global.publishAlert(AlertType.Success, "No Spreedly authomde found!");
+        this._global.publishAlert(AlertType.Success, 'No Spreedly authomde found!');
         return;
       }
     } else {
-      this._global.publishAlert(AlertType.Success, "Spreedly gateway type not found!");
+      this._global.publishAlert(AlertType.Success, 'Spreedly gateway type not found!');
       return;
     }
   }
@@ -253,73 +261,89 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     const hasGatewayType = !!gateway.gateway_type;
     const hasCredentials = !!gateway.credentials;
     const hasValidCredentials = gateway.credentials.every(credential => !!gateway[credential.name]);
-    const isValidGateway = hasGatewayType && hasCredentials && hasValidCredentials;
-
-    return isValidGateway;
+    return hasGatewayType && hasCredentials && hasValidCredentials;
   }
 
   async createGateway() {
 
-    const ccHandler = this.restaurant['ccHandler'] || {};
-    let overwriteGateway = false;
-
     try {
-      if (this.isValidGateway(this.gateway)) {
-        if (ccHandler && ccHandler.gateway_token) {
-          if (confirm('There is a gateway asigned for this restaurant already. Do you want to overwrite it?')) {
-            overwriteGateway = true
-          }
-        } else {
-          overwriteGateway = false;
-        }
+      const oldCcHandler = JSON.parse(JSON.stringify(this.restaurant && this.restaurant['ccHandler'] || {} ));
 
-        const gatewayResponse = await this._api.post(environment.appApiUrl + 'lambdas/spreedly', {
-          name: "create-gateway",
-          payload: {
-            gatewayDetails: {
-              ...this.gateway
-            },
-            sandbox: true // TODO: remove in production
-          }
-        }).toPromise();
+      if (this.isValidGateway(this.gatewayInEditing)) {
+        if (oldCcHandler && oldCcHandler.gateway_token) {
+          if (confirm('There is a gateway assigned for this restaurant already. Do you want to overwrite it?')) {
+            // --- overwrite
+            const gatewayResponse = await this._api.post(environment.appApiUrl + 'lambdas/spreedly', {
+              name: 'create-gateway',
+              payload: {
+                gatewayDetails: {
+                  ...this.gatewayInEditing
+                },
+                sandbox: false // TODO: remove in production
+              }
+            }).toPromise();
 
-        const { status, data: { gateway: { token } } } = gatewayResponse;
+            const { status, data: { gateway: { token } } } = gatewayResponse;
 
-        if (status === 201) {
-          const oldCcHandler = JSON.parse(JSON.stringify(ccHandler));
-          let newCcHandler = JSON.parse(JSON.stringify(ccHandler));
+            if (status === 201) {
+              // status OK
+              const newCcHandler = {
+                type: 'SPREEDLY',
+                ...this.gatewayInEditing,
+                gateway_token: token
+              };
 
-          newCcHandler = {
-            type: 'SPREEDLY',
-            ...this.gateway,
-            gateway_token: token
-          };
+              // patch DB
+              try {
+                await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+                  {
+                    old: {
+                      _id: { $oid: this.restaurant._id },
+                      ccHandler: oldCcHandler
+                    },
+                    new: {
+                      _id: { $oid: this.restaurant._id },
+                      ccHandler: newCcHandler
+                    },
+                  }
+                ]).toPromise();
 
-          if (overwriteGateway) {
-            oldCcHandler.gateway_type = ccHandler.gateway_type;
-
-            try {
-              await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
-                {
-                  old: {
-                    _id: { $oid: this.restaurant._id },
-                    ccHandler: oldCcHandler
-                  },
-                  new: {
-                    _id: { $oid: this.restaurant._id },
-                    ccHandler: newCcHandler
-                  },
-                }
-              ]).toPromise();
-
-              this._global.publishAlert(AlertType.Success, "Gateway overwriten successfuly");
-            } catch (error) {
-              console.error(error);
-              this._global.publishAlert(AlertType.Danger, "Error while setting up spreedly gateway");
+                this._global.publishAlert(AlertType.Success, 'Gateway overwriten successfuly');
+              } catch (error) {
+                console.error(error);
+                this._global.publishAlert(AlertType.Danger, 'Error while setting up spreedly gateway');
+              }
+            } else {
+              // spreedly api request status is not OK
+              this._global.publishAlert(AlertType.Danger, 'Error while requesting creation of spreedly gateway');
+              console.error(gatewayResponse);
             }
           } else {
-            try {
-              await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+            // --- cancel
+            return;
+          }
+        } else {
+          // --- create new
+          try {
+            const gatewayResponse = await this._api.post(environment.appApiUrl + 'lambdas/spreedly', {
+              name: 'create-gateway',
+              payload: {
+                gatewayDetails: {
+                  ...this.gatewayInEditing
+                },
+                sandbox: false // TODO: remove in production
+              }
+            }).toPromise();
+
+            const { status, data: { gateway: { token } } } = gatewayResponse;
+            if (status === 201) {
+              const newCcHandler = {
+                type: 'SPREEDLY',
+                ...this.gatewayInEditing,
+                gateway_token: token
+              };
+
+              await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
                 {
                   old: {
                     _id: { $oid: this.restaurant._id },
@@ -332,26 +356,22 @@ export class RestaurantServiceSettingsComponent implements OnInit {
                 }
               ]).toPromise();
 
-              this._global.publishAlert(AlertType.Success, "Gateway created successfuly");
-            } catch (error) {
-              console.error(error);
-              this._global.publishAlert(AlertType.Danger, "Error while creating gateway");
+              this._global.publishAlert(AlertType.Success, 'Gateway created successfully');
+            } else {
+              this._global.publishAlert(AlertType.Danger, 'Error while requesting creation of spreedly gateway');
+              console.error(gatewayResponse);
             }
+          } catch (error) {
+            console.error(error);
+            this._global.publishAlert(AlertType.Danger, 'Error while setting up spreedly gateway');
           }
-
-
-        } else {
-          this._global.publishAlert(AlertType.Danger, "Error while setting up spreedly gateway");
-          console.error(gatewayResponse);
         }
-
       } else {
-        this._global.publishAlert(AlertType.Danger, "Error gateway info is malformed");
-        console.error(this.gateway);
+        this._global.publishAlert(AlertType.Danger, 'Error gateway info is malformed');
+        console.error(this.gatewayInEditing);
       }
-
     } catch (error) {
-      this._global.publishAlert(AlertType.Danger, "Error creating gateway");
+      this._global.publishAlert(AlertType.Danger, 'Error creating gateway');
       console.error(error);
     }
   }

@@ -55,7 +55,77 @@ export class InvoicesAnualComponent implements OnInit {
     fromDate: null,
     toDate: null
   }];
-
+  // Transaction breakdowns,a table to show order bill more briefly
+  Cash = { // 支付方式(payment way)
+    tip: 0,
+    tax: 0,
+    subtotal: 0, //食物花的钱
+    total: 0,
+    deliveryCharge: 0
+  };
+  swipeInPerson = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0,
+    deliveryCharge: 0
+  };
+  keyIn = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0,
+    deliveryCharge: 0
+  };
+  restaurantStripe = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0,
+    deliveryCharge: 0
+  };
+  qmenuCollected = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0,
+    deliveryCharge: 0
+  };
+  total = {
+    tip: 0,
+    tax: 0,
+    subtotal: 0,
+    total: 0,
+    deliveryCharge: 0
+  };
+  //Transaction breakdown by serviceType
+  deliveryServiceType = {
+    subtotal: 0,
+    tax: 0,
+    tip: 0,
+    deliveryFee: 0,
+    total: 0
+  }
+  pickupServiceType = {
+    subtotal: 0,
+    tax: 0,
+    tip: 0,
+    deliveryFee: 0,
+    total: 0
+  }
+  dine_inServiceType = {
+    subtotal: 0,
+    tax: 0,
+    tip: 0,
+    total: 0
+  }
+  totalOfServiceType = {
+    subtotal: 0,
+    tax: 0,
+    tip: 0,
+    deliveryFee: 0,
+    total: 0
+  }
   constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
 
   async ngOnInit() {
@@ -80,7 +150,7 @@ export class InvoicesAnualComponent implements OnInit {
 
     // Unique years
     const years = [...new Set(this.invoices.map(invoice => invoice.fromDate.getFullYear()))];
-
+    // console.log("Unique years"+years);
     // Start filling in the statements object
     this.statements = years.map(year => {
       return {
@@ -114,8 +184,85 @@ export class InvoicesAnualComponent implements OnInit {
         toDate: null
       };
     });
-
-
+    // console.log("this.invoices:"+JSON.stringify(this.invoices));
+    let anual_invoices=this.invoices.filter(i => i.fromDate.getFullYear() == this.statements[0].year && !i.isCanceled);
+    // console.log("anual_invoices:"+JSON.stringify(anual_invoices));
+    anual_invoices.forEach(invoice => {
+      let valid_order = invoice.orders.filter(o => !o.canceled);
+      valid_order.forEach(io => {
+        // console.log("io" + JSON.stringify(io));
+        if (io.paymentType == "CASH") {
+          // console.log("io.paymentType == CASH: " + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+          this.Cash.tip += (io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+          this.Cash.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+          this.Cash.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+          this.Cash.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+          this.Cash.deliveryCharge += (io.deliveryCharge == null || io.deliveryCharge == undefined ? 0 : io.deliveryCharge);
+          // console.log("io.paymentType == CASH: "+this.Cash.tax);
+        } else if (io.paymentType == 'CREDITCARD') {
+          if (io.creditCardProcessingMethod == 'IN_PERSON') {//SWIPE
+            // console.log("io.creditCardProcessingMethod==SWIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+            this.swipeInPerson.tip += (io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+            this.swipeInPerson.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+            this.swipeInPerson.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+            this.swipeInPerson.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+            this.swipeInPerson.deliveryCharge += (io.deliveryCharge == null || io.deliveryCharge == undefined ? 0 : io.deliveryCharge);
+            // console.log("io.paymentType == IN_PERSON: "+this.swipeInPerson.tax);
+          }
+          if (io.creditCardProcessingMethod == 'KEY_IN') {
+            // console.log("io.creditCardProcessingMethod==KEY_IN:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+            this.keyIn.tip += (io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+            this.keyIn.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+            this.keyIn.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+            this.keyIn.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+            this.keyIn.deliveryCharge += (io.deliveryCharge == null || io.deliveryCharge == undefined ? 0 : io.deliveryCharge);
+            // console.log("io.paymentType == KEY_IN: "+this.keyIn.tax);
+          }
+          if (io.creditCardProcessingMethod == "QMENU") {
+            // console.log("io.creditCardProcessingMethod == 'QMENU':" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+            this.qmenuCollected.tip += (io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+            this.qmenuCollected.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+            this.qmenuCollected.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+            this.qmenuCollected.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+            this.qmenuCollected.deliveryCharge += (io.deliveryCharge == null || io.deliveryCharge == undefined ? 0 : io.deliveryCharge);
+            // console.log("io.paymentType == QMENU: "+this.qmenuCollected.tax);
+          }
+          if (io.creditCardProcessingMethod == "STRIPE") {
+            // console.log("io.creditCardProcessingMethod == STRIPE:" + ",io.tip:" + io.tip + ",io.tax:" + io.tax + ",io.subtotal:" + io.subtotal + ",io.total:" + io.total);
+            this.restaurantStripe.tip += (io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+            this.restaurantStripe.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+            this.restaurantStripe.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+            this.restaurantStripe.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+            this.restaurantStripe.deliveryCharge += (io.deliveryCharge == null || io.deliveryCharge == undefined ? 0 : io.deliveryCharge);
+            // console.log("io.paymentType == STRIPE: "+this.restaurantStripe.tax);
+          }
+        }
+        //count the money of order service type 
+        if (io.type == 'DELIVERY') {
+          this.deliveryServiceType.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+          this.deliveryServiceType.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+          this.deliveryServiceType.tip += (io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+          this.deliveryServiceType.deliveryFee += (io.deliveryCharge == null || io.deliveryCharge == undefined ? 0 : io.deliveryCharge);
+          this.deliveryServiceType.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+        } else if (io.type == 'PICKUP') {
+          this.pickupServiceType.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+          this.pickupServiceType.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+          this.pickupServiceType.tip += (io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+          this.pickupServiceType.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+        } else if (io.type == 'DINE-IN') {
+          this.dine_inServiceType.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
+          this.dine_inServiceType.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
+          this.dine_inServiceType.tip += (io.tip == null || io.tip == undefined ? 0 : Math.round(io.tip * 100) / 100);
+          this.dine_inServiceType.total += (io.total == null || io.total == undefined ? 0 : Math.round(io.total * 100) / 100);
+        }
+      });
+      this.total.tip += invoice.tip;
+      this.total.tax += invoice.tax;
+      this.total.subtotal += invoice.subtotal;
+      this.total.total += invoice.total;
+    });
+    this.total.deliveryCharge = this.Cash.deliveryCharge + this.qmenuCollected.deliveryCharge + this.restaurantStripe.deliveryCharge
+      + this.swipeInPerson.deliveryCharge + this.keyIn.deliveryCharge;
     // Compute
     this.statements.map((statementAcc, index) => {
       // --- Assume all invoices during the year have the same restaurant, picks first invoice's rt info

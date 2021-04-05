@@ -1,3 +1,4 @@
+import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -45,7 +46,6 @@ import { InvoiceDetailsComponent } from './components/invoices/invoice-details/i
 import { InvoiceEditorComponent } from './components/invoices/invoice-editor/invoice-editor.component';
 import { InvoiceMonthlyDetailsComponent } from './components/invoices/invoice-monthly-details/invoice-monthly-details.component';
 import { InvoiceOptionEditorComponent } from './components/invoices/invoice-option-editor/invoice-option-editor.component';
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { CacheService } from './services/cache.service';
 import { PrunedPatchService } from './services/prunedPatch.service';
@@ -207,6 +207,8 @@ import { UploadCsvComponent } from "./components/restaurants/seamless-integratio
 import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
 import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
+import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
+import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
 
 @NgModule({
   declarations: [
@@ -245,7 +247,6 @@ import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-a
     InvoiceEditorComponent,
     InvoiceMonthlyDetailsComponent,
     InvoiceOptionEditorComponent,
-    InvoiceViewerComponent,
     InvoicesTableComponent,
     RestaurantDetailsComponent,
     RestaurantInvoicesComponent,
@@ -349,17 +350,11 @@ import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-a
     GmbPinsComponent,
     GmbTasksComponent,
     ChangeOwnershipComponent,
-
     BulkMessagingComponent,
-
     RestaurantTasksComponent,
-
     RestaurantGmbPostComponent,
-
     RestaurantGmbPostsComponent,
-
     GmbCampaignComponent,
-
     BasicTplComponent,
     RestaurantWebTemplateComponent,
     InvoicesAnualComponent,
@@ -383,12 +378,15 @@ import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-a
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
+    InvoiceViewerComponent,
     SchemasComponent,
     SeamlessIntegrationComponent,
     UploadCsvComponent,
     AddOneRtComponent,
     SendPostcardComponent,
     IvrAgentAnalysisComponent,
+    CsvGeneratorComponent,
+    RestaurantQrSettingsComponent
   ],
   imports: [
     BrowserModule,
@@ -401,7 +399,7 @@ import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-a
     UiModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
-    NgxGraphModule
+    NgxGraphModule,
   ],
   providers: [
     GlobalService,

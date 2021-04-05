@@ -16,7 +16,7 @@
       <small>
         <div *ngIf="menu.description" class="card-subtitle">{{menu.description}}</div>
         <div class="text-center">
-          <q-hours-viewer [offsetToEST]="offsetToEST" [hours]="menu.hours ? menu.hours : []"></q-hours-viewer>
+          <lib-hours-viewer [timezone]="restaurant?.googleAddress.timezone" [hours]="menu.hours || []"></lib-hours-viewer>
         </div>
       </small>
     </div>

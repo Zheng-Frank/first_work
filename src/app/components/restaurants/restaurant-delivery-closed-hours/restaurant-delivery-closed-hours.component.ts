@@ -27,14 +27,15 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
   }
 
   initHourInEditing() {
-    this.hourInEditing = new Hour();
-    this.hourInEditing.occurence = 'ONE-TIME';
     const d1 = new Date();
-    d1.setHours(d1.getHours() + (new Date(new Date().toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone })).valueOf() 
+    d1.setHours(d1.getHours() + (new Date(new Date().toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone })).valueOf()
       - new Date(new Date().toLocaleString('en-US')).valueOf()) / 3600000);
     d1.setHours(0, 0, 0, 0);
-    this.hourInEditing.fromTime = d1;
-    this.hourInEditing.toTime = new Date(d1.valueOf());
+    this.hourInEditing = new Hour({
+      occurence: 'ONE-TIME',
+      fromTime: d1,
+      toTime: new Date(d1.valueOf())
+    });
   }
 
   toggleEditing() {
@@ -57,7 +58,7 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
 
   }
 
-  patch(newDeliveryClosedHours, oldDeliveryClosedHours, ) {
+  patch(newDeliveryClosedHours, oldDeliveryClosedHours,) {
     if (Helper.areObjectsEqual(newDeliveryClosedHours, oldDeliveryClosedHours)) {
       this._global.publishAlert(
         AlertType.Info,

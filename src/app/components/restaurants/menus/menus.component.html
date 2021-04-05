@@ -12,7 +12,7 @@
       <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
       <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices (整体提价)</button>
       <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
-        (调整菜单次序)</button>   
+        (调整菜单次序)</button>
     </ng-container>
     <ng-container *ngIf="getMenus().length === 0">
       <button class="btn btn-primary" (click)="createTestMenu()">Create Test Menu (添加测试菜单)</button>
@@ -25,6 +25,8 @@
           <button class="btn btn-primary" (click)="populateProviders()" [qLoading]="apiRequesting"><i
               class="fas fa-sync-alt"></i> Populate Providers</button>
         </div>
+        <small class="text-left">Providers for which we currently support menu scraping: Menufy, 
+            Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife</small>
         <select class="form-control mr-4" [(ngModel)]="providerUrl">
           <option></option>
           <option *ngFor="let provider of providers" [ngValue]="provider.url">{{provider.name}}</option>
@@ -83,12 +85,17 @@
       <ul class="nav nav-tabs app-tab" role="tablist">
         <li *ngFor="let menu of getMenus()" class="nav-item">
           <a (click)=setActiveId(menu.id) class="nav-link {{getActiveId() == menu.id ? 'active' : 'text-primary'}}"
-            data-toggle="tab" role="button">{{menu.name}}</a>
+            data-toggle="tab" role="button">{{menu.name}} {{menu.targetCustomer ? "("+menu.targetCustomer+")" : ''}}</a>
         </li>
         <li class="nav-item" *ngIf="getMenus().length > 0">
           <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()"
             role="button">
             <span class="far fa-plus-square"></span> Add New Menu</a>
+        </li>
+        <li>
+          <a (click)=showPromotionsComponent() class="nav-link {{showPromotions == true ? 'active' : 'text-primary'}}"
+            role="button"> Coupons / Promotions</a>
+
         </li>
       </ul>
     </div>
@@ -97,8 +104,9 @@
   <div class="tab-content">
     <div *ngFor="let menu of getMenus()" class="tab-pane  {{getActiveId() == menu.id ? 'active' : ''}} pt-1"
       role="tabpanel">
-      <app-menu [restaurant]="restaurant" [menu]="menu" [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" 
-        (onEdit)="edit($event)" (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
+      <app-menu [restaurant]="restaurant" [menu]="menu"
+        [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" (onEdit)="edit($event)"
+        (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
     </div>
     <div class="tab-pane  {{!getActiveId() ? 'active' : ''}} pt-1" role="tabpanel">
       <div *ngIf="getMenus().length === 0" class="text-center mb-1">
@@ -114,11 +122,17 @@
     </button>
     <h4 class="text-center">{{menuEditor.menu?.id ? 'Edit Menu' : 'Create New Menu'}}</h4>
     <hr>
+
     <app-menu-editor #menuEditor [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" [timezone]="restaurant.googleAddress.timezone" [restaurant]="restaurant"
       (onDone)="onDoneEditing($event)" (onDelete)="onDelete($event)"></app-menu-editor>
+
   </q-modal>
 
   <div class="app-plus">
     <button (click)="clickNew()" class="btn btn-link text-success far fa-plus-circle"></button>
   </div>
 </div>
+
+<ng-container *ngIf="showPromotions">
+  <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
+</ng-container>

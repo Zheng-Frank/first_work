@@ -110,7 +110,7 @@ export class GmbUnderattackListComponent implements OnInit {
     const myEmailSet = new Set(gmbAccounts.map(a => a.email));
     const myCidSet = new Set();
     gmbAccounts.map(account => (account.locations || []).map(loc => {
-      if (loc.cid && loc.status === "Published" && ["OWNER", "CO_OWNER", "MANAGER"].indexOf(loc.role) >= 0) {
+      if (loc.cid && loc.status === "Published" && ["PRIMARY_OWNER", "OWNER", "CO_OWNER", "MANAGER"].indexOf(loc.role) >= 0) {
         myCidSet.add(loc.cid);
       }
     }));
