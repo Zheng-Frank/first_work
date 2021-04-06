@@ -71,8 +71,8 @@ export class OrderCardComponent implements OnInit {
   /**
    * Add "Change to pick-up" on CSR side for Postmates order
    */
-  openChangeOrderTypesModal(){
-    this.onOpenChangeOrderTypesModal.emit(this.order);
+  openChangeOrderTypesModal(order){
+    this.onOpenChangeOrderTypesModal.emit(order);
   }
   getSubmittedTime(order: Order) {
     return new Date(order.createdAt);

@@ -184,7 +184,7 @@
           role="button" class="text-primary text-nowrap card-link" (click)="changeToSelfDelivery()">
           <i class="fa fa-car"></i> Change to Self-delivery</a> -->
         <a *ngIf="order.courierId && order.delivery && (order.delivery.status === 'pending' || order.delivery.status === 'canceled')"
-          role="button" class="text-primary text-nowrap card-link" (click)="openChangeOrderTypesModal()">
+          role="button" class="text-primary text-nowrap card-link" (click)="openChangeOrderTypesModal(order)">
           <i class="fa fa-reply"></i> Change order type</a>
 
       </div>

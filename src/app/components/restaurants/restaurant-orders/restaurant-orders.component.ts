@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
 import { Injectable, EventEmitter, NgZone } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Order, Customer,TimezoneHelper } from '@qmenu/ui';
+import { Restaurant, Order, Customer, TimezoneHelper } from '@qmenu/ui';
 import { Invoice } from '../../../classes/invoice';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Observable, zip } from 'rxjs';
@@ -32,7 +32,6 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('adjustModal') adjustModal: ModalComponent;
   @ViewChild('changeOrderTypeModal') changeOrderTypeModal: ModalComponent;
   @ViewChild('orderCard') orderCard: OrderCardComponent;
-  changeTypes=['Customer Pickup','Restaurant self-deliver'];
   cardSpecialOrder;
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
 
@@ -61,9 +60,9 @@ export class RestaurantOrdersComponent implements OnInit {
   /**
    * it is because that the changeordertypemodal has mass sort if it is in the card component.
    */
-  handleOpenChangeOrderTypesModal(order){
-   this.cardSpecialOrder=order;
-   this.changeOrderTypeModal.show();
+  handleOpenChangeOrderTypesModal(order) {
+    this.cardSpecialOrder = order;
+    this.changeOrderTypeModal.show();
   }
   ngOnInit() {
     this.populateOrders();
@@ -124,10 +123,10 @@ export class RestaurantOrdersComponent implements OnInit {
     // const utct = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
     // const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
     // const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
-    const utcf= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from),this.restaurant.googleAddress.timezone);
-    const utct= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to),this.restaurant.googleAddress.timezone);
-    console.log("utcf:"+utcf);
-    console.log("utct:"+utct);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), this.restaurant.googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), this.restaurant.googleAddress.timezone);
+    console.log("utcf:" + utcf);
+    console.log("utct:" + utct);
     if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
@@ -191,7 +190,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      // console.log("238行：订单："+JSON.stringify(o));
       return new Order(order);
     });
   }
@@ -382,15 +380,26 @@ export class RestaurantOrdersComponent implements OnInit {
 
      change-to-pickup
    */
-  async handleOnChangeOrderTypes(order){
+  async handleOnChangeOrderTypes() {
+    console.log(JSON.stringify(this.cardSpecialOrder ));
+    if (this.type == 'Restaurant self-deliver') {
       try {
         await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
-          orderId: order._id
+          orderId: this.cardSpecialOrder._id
         }).toPromise();
       } catch (error) {
-        console.log("errors")
+        console.log("errors:"+JSON.stringify(error));
       }
-    
+    } else {
+      try {
+        await this._api.post(environment.appApiUrl + 'biz/orders/change-to-pickup', {
+          orderId: this.cardSpecialOrder ._id
+        }).toPromise();
+      } catch (error) {
+        console.log("errors:"+JSON.stringify(error));
+      }
+    }
+    this.changeOrderTypeModal.hide();
     this.populateOrders();
   }
   handleOnDisplayCreditCard(order) {
