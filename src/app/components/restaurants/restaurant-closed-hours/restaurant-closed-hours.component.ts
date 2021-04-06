@@ -17,7 +17,8 @@ export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   constructor(private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
   }
-
+  now = new Date(); // to tell if a closed time is expired
+  showExpired = false;
   hourInEditing;
   editing: boolean = false;
 
@@ -28,6 +29,14 @@ export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
     if (this.restaurant) {
       this.initHourInEditing();
     }
+  }
+
+  isClosedHoursExpired(closedHour) {
+    return closedHour.toTime && this.now > closedHour.toTime;
+  }
+
+  getExpiredClosedHours() {
+    return this.restaurant.closedHours.filter(ch => this.isClosedHoursExpired(ch));
   }
 
   initHourInEditing() {

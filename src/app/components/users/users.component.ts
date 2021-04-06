@@ -16,7 +16,7 @@ export class UsersComponent implements OnInit {
   @ViewChild('editingModal') editingModal: ModalComponent;
   users: User[] = [];
   roleUsers = [];
-
+  showDisabled = false;
   userInEditing = new User();
   // for editing
   formFieldDescriptors = [];
@@ -68,7 +68,9 @@ export class UsersComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, 'Error pulling users from API');
       });
   }
-
+  getDisabledUsers(){
+    return this.users.filter(user=>user.disabled);
+  }
   toggleDeleting() {
     this.deleting = !this.deleting;
   }
