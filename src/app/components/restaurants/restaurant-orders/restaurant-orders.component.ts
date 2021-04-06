@@ -377,14 +377,20 @@ export class RestaurantOrdersComponent implements OnInit {
     }
     this.populateOrders();
   }
+  /**
+   * change-to-self-delivery
+
+     change-to-pickup
+   */
   async handleOnChangeOrderTypes(order){
-    try {
-      await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
-        orderId: order._id
-      }).toPromise();
-    } catch (error) {
-      console.log("errors")
-    }
+      try {
+        await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
+          orderId: order._id
+        }).toPromise();
+      } catch (error) {
+        console.log("errors")
+      }
+    
     this.populateOrders();
   }
   handleOnDisplayCreditCard(order) {
