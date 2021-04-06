@@ -39,10 +39,10 @@
     </div>
     <div class="container" style="width:60%">
       <pre class="jumbotron" *ngIf="!isShowLastModel">
-          {{currentSchema?.fullSchema|json}}
+{{currentSchema?.fullSchema|json}}
       </pre>
       <pre class="jumbotron" *ngIf="isShowLastModel">
-          {{currentSchema?.lastestSchema|json}}
+{{currentSchema?.lastestSchema|json}}
       </pre>
     </div>
   </div>

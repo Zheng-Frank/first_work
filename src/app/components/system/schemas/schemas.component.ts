@@ -40,6 +40,7 @@ export class SchemasComponent implements OnInit {
         console.log(currentSchema.dbName);
         const full = await this._api.get(`${environment.qmenuApiUrl}generic`, {
           resource: currentSchema.dbName,
+          sort: { updatedAt: -1 },
           limit: 10
         }).toPromise();
         console.log(JSON.stringify(full));
