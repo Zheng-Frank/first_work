@@ -220,10 +220,22 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   toggleFirstNotifications() {
+    console.log("this.firstNotifications:"+this.firstNotifications);
+    console.log("this.secondNotifications:"+this.secondNotifications);
+    if(!this.firstNotifications&&!this.secondNotifications){
+      this._global.publishAlert(AlertType.Danger, `Please turn on at least one notification.`);
+      return;
+    }
     this.firstNotifications = !this.firstNotifications;
   }
 
   toggleSecondNotifications() {
+    console.log("this.firstNotifications:"+this.firstNotifications);
+    console.log("this.secondNotifications:"+this.secondNotifications);
+    if(!this.firstNotifications&&!this.secondNotifications){
+      this._global.publishAlert(AlertType.Danger, `Please turn on at least one notification.`);
+      return;
+     }
     this.secondNotifications = !this.secondNotifications;
   }
 
