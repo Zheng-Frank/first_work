@@ -275,29 +275,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
     this.selectRestaurant = this.selectRestaurant === restaurant ? undefined : restaurant;
   }
 
-
-  /* 
-  log entry data structure: 
-  {
-      - id: ...,
-      - restaurantId: 
-      - errorType:
-      - log: 
-      - username:
-      - createdAt
-     } */
   async addLog(r: any) {
-    if (this.detailedError === 'ALL' && !r.content) {
-      console.error("Error: Logs must be assigned to a specific Detailed Error. 'ALL' is not allowed. Error: Log cannot be blank.");
-      this._global.publishAlert(AlertType.Danger, "Error: Logs must be assigned to a specific Detailed Error. 'ALL' is not allowed. Error: Log cannot be blank.");
-      return;
-    }
-    if (this.detailedError === 'ALL') {
-      console.error("Error: Logs must be assigned to a specific Detailed Error. 'ALL' is not allowed.");
-      this._global.publishAlert(AlertType.Danger, "Error: Logs must be assigned to a specific Detailed Error. 'ALL' is not allowed.");
-      return;
-    }
-
     if (r.content) {
       try {
         const newLog = {
