@@ -47,7 +47,23 @@
             <br>
             <small>{{rt.googleAddress?.formatted_address}}</small>
         </td>
+        <td id="limitedWidth">
+            <ul>
+                <li *ngFor="let log of listOfMatchingLogEntries(rt._id)">
+                    <strong>{{log.username}}:</strong> {{log.log}} <i>({{log.createdAt | date : 'shortDate'}})</i>
+                </li>
+            </ul>
+            <table>
+                <tr>
+                    <td><input type="text" class="form-control" placeholder="Add a new log ..." [(ngModel)]="rt.content"
+                            (keydown.enter)="addLog(rt)"></td>
+                    <td><button type="button" class="btn btn-outline-success btn-sm"
+                            (click)="addLog(rt)">Submit</button>
+                    </td>
+                </tr>
+            </table>
 
+        </td>
         <td style="width: 100px;">{{rt.timezoneOffset}} </td>
 
         <td>{{rt.score}}</td>

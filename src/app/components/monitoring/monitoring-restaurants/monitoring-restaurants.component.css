@@ -1,3 +1,8 @@
 .app-strike{
     text-decoration: line-through;
 }
+
+#limitedWidth 
+{
+    width: 30%
+}
