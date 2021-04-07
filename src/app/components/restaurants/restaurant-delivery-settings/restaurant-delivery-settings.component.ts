@@ -119,6 +119,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.selectedCourier = this.restaurant.courier ? this.couriers.filter(c => c._id === this.restaurant.courier._id)[0] : this.couriers[0];
   }
   update() {
+    if(!this.firstNotifications&&!this.secondNotifications){
+      return this._global.publishAlert(AlertType.Danger, `Can't update delivery settings.Please turn on at least one notification.`);
+    }
 
     const oldR: any = { _id: this.restaurant.id };
     const newR: any = { _id: this.restaurant.id };
@@ -220,22 +223,10 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   toggleFirstNotifications() {
-    console.log("this.firstNotifications:"+this.firstNotifications);
-    console.log("this.secondNotifications:"+this.secondNotifications);
-    if(!this.firstNotifications&&!this.secondNotifications){
-      this._global.publishAlert(AlertType.Danger, `Please turn on at least one notification.`);
-      return;
-    }
     this.firstNotifications = !this.firstNotifications;
   }
 
   toggleSecondNotifications() {
-    console.log("this.firstNotifications:"+this.firstNotifications);
-    console.log("this.secondNotifications:"+this.secondNotifications);
-    if(!this.firstNotifications&&!this.secondNotifications){
-      this._global.publishAlert(AlertType.Danger, `Please turn on at least one notification.`);
-      return;
-     }
     this.secondNotifications = !this.secondNotifications;
   }
 
