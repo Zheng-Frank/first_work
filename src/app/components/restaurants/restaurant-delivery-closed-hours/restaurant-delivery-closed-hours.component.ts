@@ -32,7 +32,7 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
   }
 
   getDeliveryExpiredClosedHours() {
-    return this.restaurant.closedHours.filter(ch => this.isDeliveryClosedHoursExpired(ch));
+    return this.restaurant.deliveryClosedHours.filter(ch => this.isDeliveryClosedHoursExpired(ch));
   }
 
   initHourInEditing() {
