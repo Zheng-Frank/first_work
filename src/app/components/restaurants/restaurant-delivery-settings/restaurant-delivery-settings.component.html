@@ -212,7 +212,7 @@
                   </div>
 
                   <div *qIf="clickedAddHour" class="alert alert-secondary mt-2" style="font-size: smaller">
-                    <lib-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)">
+                    <lib-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)" [timezone]="restaurant.googleAddress.timezone">
                     </lib-hours-picker>
                   </div>
                 </td>

@@ -80,11 +80,11 @@
     <app-doc-viewer 
         [name]="'q-hour-picker'"
         [description]="'Hours Viewer (Grouped)'"
-        [inputs]="['hours', 'offsetToEST']"
+        [inputs]="['hours', 'timezone']"
         >
 
         <div class="text-left">
-            <lib-hours-picker (submit)="hoursSubmit($event)">
+            <lib-hours-picker (submit)="hoursSubmit($event)" [timezone]="'America/Chicago'">
             </lib-hours-picker>
         </div>
     </app-doc-viewer>  
