@@ -142,7 +142,7 @@
         </div>
       </div>
       <div *ngIf="activeTab === 'Logs'">
-        <app-restaurant-logs [restaurant]="restaurant"></app-restaurant-logs>
+        <app-restaurant-logs [restaurant]="restaurant" (reload)="reload($event)"></app-restaurant-logs>
       </div>
       <div *ngIf="activeTab === 'Tasks'">
         <app-restaurant-tasks [restaurant]="restaurant"></app-restaurant-tasks>
