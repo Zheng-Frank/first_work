@@ -57,6 +57,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'skipImageInjection',
     'hideOrderStatus',
     'hidePrintingCCInfo',
+    'hideOrderReadyEstimate',
     'skipShowTax',
     'menuHoursExtended',
     'notes',
