@@ -188,8 +188,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           useNewSettings: 1,
           ccHandler: 1,
           comebackDate: 1,
-          ccMinimumCharge: 1
-
+          ccMinimumCharge: 1,
+          hideOrderReadyEstimate: 1,
         },
         limit: 1
       })
