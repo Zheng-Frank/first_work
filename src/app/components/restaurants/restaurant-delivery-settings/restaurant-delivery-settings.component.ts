@@ -250,6 +250,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   doneAddingHour(hours: Hour[]) {
+    
     hours.forEach(h => {
       // only add non-duplicated ones
       if ((this.deliveryHours || []).filter(hh => h.equals(hh)).length === 0) {
@@ -258,13 +259,6 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     });
     // sort!
     this.deliveryHours.sort((a, b) => a.fromTime.valueOf() - b.fromTime.valueOf());
-
-    // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
-    hours.map(h => {
-      h.fromTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.fromTime, this.restaurant.googleAddress.timezone);
-      h.toTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.toTime, this.restaurant.googleAddress.timezone);
-    });
-
     this.clickedAddHour = false;
   }
 

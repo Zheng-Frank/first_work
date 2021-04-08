@@ -116,6 +116,7 @@
                 </div>
               </div>
             </div>
+
             <div *ngSwitchCase="'SPREEDLY'">
               <h5>Spreedly Gateway Setup</h5>
 
@@ -124,19 +125,19 @@
                   <label>Gateway</label>
                 </div>
                 <div class="col-sm-10">
-                  <select class="form-control" [(ngModel)]="gatewayType" (change)="changeGateway($event.target.value)">
+                  <select class="form-control" [(ngModel)]="gatewayInEditing.gateway_type" (change)="changeGateway($event.target.value)">
                     <option *ngFor="let gateway of supportedGateways" [value]="gateway.gateway_type">{{gateway.name}}
                     </option>
                   </select>
                 </div>
               </div>
 
-              <div class="row d-flex align-items-center mb-3" *ngFor="let credential of gateway.credentials">
+              <div class="row d-flex align-items-center mb-3" *ngFor="let credential of gatewayInEditing.credentials">
                 <div class="col-sm-2">
                   <label>{{credential.label}}</label>
                 </div>
                 <div class="col-sm-10">
-                  <input type="text" class="form-control" [(ngModel)]="gateway[credential.name]">
+                  <input type="text" class="form-control" [(ngModel)]="gatewayInEditing[credential.name]">
                 </div>
               </div>
 
@@ -144,6 +145,7 @@
                 <button class="btn btn-sm btn-primary" (click)="createGateway()">Create Gateway</button>
               </div>
             </div>
+
           </div>
         </div>
 

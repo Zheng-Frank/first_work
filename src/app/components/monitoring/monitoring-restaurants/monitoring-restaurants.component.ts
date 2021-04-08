@@ -3,6 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { TimezoneService } from 'src/app/services/timezone.service';
+import { AlertType } from '../../../classes/alert-type';
 
 @Component({
   selector: 'app-monitoring-restaurants',
@@ -12,7 +13,8 @@ import { TimezoneService } from 'src/app/services/timezone.service';
 export class MonitoringRestaurantsComponent implements OnInit {
 
   selectRestaurant;
-
+  diagnosticLogs = {};
+  logContent;
   restaurants = [];
   filteredRestaurants = [];
 
@@ -53,6 +55,9 @@ export class MonitoringRestaurantsComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: "Logs",
+    },
+    {
       label: "Time zone",
       paths: ['timezoneOffset'],
       sort: (a, b) => (a || 0) - (b || 0)
@@ -79,15 +84,15 @@ export class MonitoringRestaurantsComponent implements OnInit {
     this.populate();
   }
 
-  range (start, end) {
-    return Array.from({length: (end - start)}, (v, k) => k + start).map(n => {
-      if(n <= 0) {
+  range(start, end) {
+    return Array.from({ length: (end - start) }, (v, k) => k + start).map(n => {
+      if (n <= 0) {
         return `${n}`;
       } else {
         return `+${n}`;
       }
     });
-  } 
+  }
 
   async populate() {
 
@@ -124,11 +129,14 @@ export class MonitoringRestaurantsComponent implements OnInit {
         "web.ignoreGmbOwnershipRequest": 1,
         "web.agreeToCorporate": 1,
         diagnostics: { $slice: 1 },
-        "diagnostics.time": 1,
-        "diagnostics.result": 1,
+        // As of Mongo 4.4, querying for a property and one of its sub-properties causes a collision error. 
+        // "diagnostics.time": 1,
+        // "diagnostics.result": 1,
         score: 1
       }
     }, 4000);
+
+    this.refreshLogs();
 
     // inject: problems total, isGmbPublished
     this.restaurants.map(rt => {
@@ -265,6 +273,60 @@ export class MonitoringRestaurantsComponent implements OnInit {
 
   showError(restaurant) {
     this.selectRestaurant = this.selectRestaurant === restaurant ? undefined : restaurant;
+  }
+
+  async addLog(r: any) {
+    if (r.content) {
+      try {
+        const newLog = {
+          restaurantId: r._id,
+          errorType: this.detailedError,
+          log: r.content,
+          username: this._global.user.username,
+          createdAt: new Date()
+        };
+
+        await this._api.post(environment.qmenuApiUrl + 'generic?resource=diagnostics-log', [newLog]).toPromise();
+        this._global.publishAlert(AlertType.Success, `Log added successfully`);
+        this.refreshLogs();
+      } catch (error) {
+        console.error('error while adding comment.', error);
+        this._global.publishAlert(AlertType.Danger, `Error while adding comment.`);
+      }
+      r.content = "";
+    } else {
+      console.error("Error: Log cannot be blank");
+      this._global.publishAlert(AlertType.Danger, `Error: Log cannot be blank.`);
+    }
+  }
+
+  async refreshLogs() {
+    const diagnosticLogs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'diagnostics-log',
+      query: {},
+      projection: {},
+      limit: 5000
+    }).toPromise();
+
+    this.diagnosticLogs = {};
+
+    diagnosticLogs.forEach(log => {
+      if (!this.diagnosticLogs[log.restaurantId]) {
+        this.diagnosticLogs[log.restaurantId] = [log];
+      } else {
+        this.diagnosticLogs[log.restaurantId].push(log);
+      }
+    });
+
+  }
+
+  listOfMatchingLogEntries(restaurantId) {
+    if (this.diagnosticLogs[restaurantId]) {
+      if (this.detailedError === 'ALL') {
+        return this.diagnosticLogs[restaurantId];
+      }
+      return this.diagnosticLogs[restaurantId].filter(log => log.errorType === this.detailedError);
+    }
   }
 
 }

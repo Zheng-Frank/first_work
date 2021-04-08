@@ -40,6 +40,8 @@ export class MenusComponent implements OnInit {
   copyMenu = false;
   copyMenuToRestaurantId;
 
+  showPromotions = false;
+
   constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) { }
 
   ngOnInit() {
@@ -303,6 +305,9 @@ export class MenusComponent implements OnInit {
   }
 
   getActiveId() {
+    if (this.showPromotions) {
+      return 'promotions';
+    }
     if (this.activeId) {
       return this.activeId;
     }
@@ -313,6 +318,7 @@ export class MenusComponent implements OnInit {
   }
 
   setActiveId(id) {
+    this.showPromotions = false;
     this.activeId = id;
     // let's do s smooth scroll to make it to center???
   }
@@ -347,8 +353,6 @@ export class MenusComponent implements OnInit {
       menu.id = menu.id || new Date().valueOf() + '';
       newMenus.push(menu);
     }
-
-
     // patch?
     this.patchDiff(newMenus);
 
@@ -389,9 +393,20 @@ export class MenusComponent implements OnInit {
       const myOldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
       const myNewMenus = JSON.parse(JSON.stringify(newMenus));
 
-      // we'd like to remove mcs first!
+      if (myNewMenus.length !== myOldMenus.length) {
+        /* Different lengths means a new menu has been added. We don't want to delete any categories on the new menu, 
+        because it could be a copy of an existing one. The new menu will always be in the last index position of myNewMenus*/
+        const newMenu = myNewMenus[myNewMenus.length - 1];
+        myNewMenus.map(m => {
+          if (m.id !== newMenu.id) {
+            delete m.mcs
+          }
+        });
+      } else {
+        // patch operation only cares about changes, so we delete unchanged menu categories. 
+        myNewMenus.map(m => delete m.mcs);
+      }
       myOldMenus.map(m => delete m.mcs);
-      myNewMenus.map(m => delete m.mcs);
 
       this._api
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
@@ -524,4 +539,8 @@ export class MenusComponent implements OnInit {
 
   }
 
+  showPromotionsComponent() {
+    this.showPromotions = true;
+    this.activeId = undefined;
+  }
 }

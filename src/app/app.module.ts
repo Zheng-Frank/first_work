@@ -399,7 +399,7 @@ import { RestaurantQrSettingsComponent } from './components/restaurants/restaura
     UiModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
-    NgxGraphModule
+    NgxGraphModule,
   ],
   providers: [
     GlobalService,
