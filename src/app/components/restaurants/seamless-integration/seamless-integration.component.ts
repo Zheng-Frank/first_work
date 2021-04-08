@@ -176,6 +176,10 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
+  screenSizeMedium() {
+    if (window.screen.Length <= 702px)
+  }
+
   getAnalyticBoolean(id) {
     for (let i = 0; i < this.currentRestaurants.length; i++) {
       if (this.currentRestaurants[i]._id === id) {
