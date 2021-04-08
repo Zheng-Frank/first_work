@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, HostListener, OnInit } from "@angular/core";
 import { ViewChild, ElementRef } from "@angular/core";
 import { environment } from "src/environments/environment";
 import { ApiService } from "src/app/services/api.service";
@@ -33,6 +33,9 @@ export class SeamlessIntegrationComponent implements OnInit {
   polling = false
   pollingCompletedRestaurantsLength;
   pollingBegan = false
+
+
+  public innerWidth: any;
 
   readonly VAPID_PUBLIC_KEY =
     "BFzW7k_ZOAYwQQR0VSwJ3_Z4G1IINc8m-WT1casJqrntlfB9yKy5HJ3WH7OPdRIg3tpzszF9udJKkDjua4NaMhQ";
@@ -176,8 +179,9 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
-  screenSizeMedium() {
-    if (window.screen.Length <= 702px)
+  screenSizeLarge() {
+    console.log("THIS IS THE INNER WIDTH ", this.innerWidth)
+    return this.innerWidth >= 1200
   }
 
   getAnalyticBoolean(id) {
@@ -226,7 +230,14 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event) {
+    this.innerWidth = window.innerWidth;
+  }
+
   async ngOnInit() {
+    this.innerWidth = window.innerWidth;
+    console.log("INNER WIDTH ", this.innerWidth)
     await Notification.requestPermission();
     if (!this.polling) {
       setInterval(() => this.startPolling(), 300000)
