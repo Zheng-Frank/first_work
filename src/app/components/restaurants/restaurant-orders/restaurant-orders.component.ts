@@ -79,26 +79,7 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-  // GetTimeFromTimeZone(searchdate,timeZone) {
-  //   var lDate = new Date(searchdate);
-  //   var localTime = lDate.getTime();
-  //   var localOffset = lDate.getTimezoneOffset() * 60000; //本地和0时区的偏移
-  //   var utc = localTime + localOffset; //得到0时区时间
-  //   var placeTime = utc + (3600000 * TimeZone.getTimeZone("EST")); //当地时间
-  //   var pdate = new Date(placeTime);
-
-  //   return pdate.toLocaleString();
-  // }
-  // getTransformedDate (dateString,timezone){
-  //   const [year, month, date] = dateString.split('-');
-  //   //  let time=TimezoneHelper.transformToTimezoneDate(new Date(dateString), 'America/New_York');
-  //    console.log("time:"+TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone));
-  //    return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone);
-  // }
-  // convertTimeAtTimezoneToUTC(input: string, zone: string) {
-  //   var m = moment.tz(input, zone).utc().format();
-  //   return m;
-  // }
+  
   /**
    *
    * this function is used to filter order by createdAt
@@ -117,16 +98,8 @@ export class RestaurantOrdersComponent implements OnInit {
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
-    // const fromValue = new Date(from);
-    // const toValue = new Date(to);
-    // const utcf = new Date(fromValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const utct = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
-    // const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
     const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), this.restaurant.googleAddress.timezone);
     const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), this.restaurant.googleAddress.timezone);
-    console.log("utcf:" + utcf);
-    console.log("utct:" + utct);
     if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
@@ -330,7 +303,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      // console.log("238行：订单："+JSON.stringify(o));
       return new Order(order);
     });
 
@@ -365,16 +337,6 @@ export class RestaurantOrdersComponent implements OnInit {
     );
   }
 
-  async handleOnChangeToSelfDelivery(order) {
-    try {
-      await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
-        orderId: order._id
-      }).toPromise();
-    } catch (error) {
-      console.log("errors")
-    }
-    this.populateOrders();
-  }
   /**
    * change-to-self-delivery
 

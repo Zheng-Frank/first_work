@@ -46,13 +46,10 @@ export class OrderCardComponent implements OnInit {
 "RT: [rt_id], Order# [XX] ([Mmm DD HH:MM AM/PM])"
    */
   copyToClipboard(order) {
-    // console.log("order.createdAt:"+order.createdAt+", type of order.createdAt:"+typeof order.createdAt);
     const cloned = order.createdAt.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone });
-    // console.log("cloned:"+cloned);
     // let createdAt = moment(cloned).format("Mmm dd h:mm a");
     let createdAt = cloned.split(',')[0];
     let text = `RT: ${this.restaurant._id}, Order# ${order.orderNumber} (${createdAt})`;
-    // console.log("text:"+text);
     const handleCopy = (e: ClipboardEvent) => {
       // clipboardData 可能是 null
       e.clipboardData && e.clipboardData.setData('text/plain', text);
@@ -64,10 +61,7 @@ export class OrderCardComponent implements OnInit {
     document.execCommand('copy');
     this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
   }
-  
-  // changeToSelfDelivery() {
-  //   this.onChangeToSelfDelivery.emit(this.order);
-  // }
+ 
   /**
    * Add "Change to pick-up" on CSR side for Postmates order
    */
