@@ -13,7 +13,7 @@
   </div>
 </div>
 
-<q-form-builder [object]="log" [showDelete]="log.time" [fieldDescriptors]="logFieldDescriptors"
+<q-form-builder [object]="log" [showDelete]="log.time && isAdmin()" [fieldDescriptors]="logFieldDescriptors"
   (submit)="submit($event)" (cancel)="clickCancel()" (remove)="clickRemove($event)">
 
   <div class="mb-3">
