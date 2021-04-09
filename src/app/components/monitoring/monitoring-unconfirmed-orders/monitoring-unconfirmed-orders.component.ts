@@ -266,26 +266,42 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
 
-    const batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
+    let batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
+
+    batchedIds = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
 
 
 
 
-    for (let batch of batchedIds) {
-      let result = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: { _id: { $in: batch } },
-        projection: {
-          'googleAddress.formatted_address': 1,
-          skipOrderConfirmation: 1
-        },
-        sort: {
-          createdAt: -1
-        }
-      }, 1000);
+    // let result = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'restaurant',
+    //   query: { _id: { $in: ['5a0afb83de3ec81200489164', '5a202e4fcb7edf14001930e3', '5bbb2ed8a79d1c1400caa019'] } },
+    //   projection: {
+    //     'googleAddress.formatted_address': 1,
+    //     skipOrderConfirmation: 1
+    //   },
+    //   sort: {
+    //     createdAt: -1
+    //   }
+    // }).toPromise();
 
-      restaurants.push(...result);
-    }
+    // console.log("RESULTING ID ", result)
+
+
+    console.log("BATCHED IDS ", batchedIds)
+
+    let result = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $in: batchedIds } },
+      projection: {
+        skipOrderConfirmation: 1
+      },
+      limit: 10000
+    }).toPromise();
+
+    restaurants.push(...result);
+
+    console.log("SKIP ORDER ", restaurants)
 
 
 
@@ -302,6 +318,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       rtIdDict[res._id].deliveryTimeEstimate = res.deliveryTimeEstimate
 
     })
+
+    console.log("RT ID DICT ", rtIdDict)
 
 
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
