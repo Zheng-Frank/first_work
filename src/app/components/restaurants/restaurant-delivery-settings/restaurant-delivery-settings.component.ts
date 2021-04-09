@@ -118,6 +118,43 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.deliveryEndMinutesBeforeClosing = this.restaurant.deliveryEndMinutesBeforeClosing;
     this.selectedCourier = this.restaurant.courier ? this.couriers.filter(c => c._id === this.restaurant.courier._id)[0] : this.couriers[0];
   }
+
+  deliveryAndNotQMenuCollect(c) {
+    // this.restaurant.courier.name.toLowerCase() === 'postmates'
+
+
+    // If we return true, the option is disabled. If we return false, the option is enabled
+
+    // For the delivery setting: if the payment method is not 1 item which is equal to QMENU, then only self delivery is allowed
+
+    // Isolate the delivery setting
+
+
+
+    if (c === 'Self delivery') {
+      return false
+    }
+    let deliverySetting;
+
+    this.restaurant.serviceSettings.forEach(s => {
+      if (s.name.toLowerCase() === 'delivery') {
+        deliverySetting = s.paymentMethods
+      }
+    })
+    if (!deliverySetting) {
+      console.log("NO DELIVERY SETTING")
+      return false
+    }
+    if (deliverySetting.length !== 1 || deliverySetting[0] !== 'QMENU') {
+      console.log("ENTERED LENGTH CONDITION")
+      return true
+    }
+
+    // THERE IS ONLY 1 DELIVERY SETTING AND ITS QMENU. THEREFORE EVERYTHING IS ALLOWED
+    return false
+  }
+
+
   update() {
 
     const oldR: any = { _id: this.restaurant.id };
