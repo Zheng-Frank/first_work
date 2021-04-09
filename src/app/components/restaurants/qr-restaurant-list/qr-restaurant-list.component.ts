@@ -23,7 +23,7 @@ export class QrRestaurantListComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: "fee Schedule"
+      label: "Fee Schedules"
     }
     
   ];
