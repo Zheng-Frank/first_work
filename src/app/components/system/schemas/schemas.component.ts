@@ -48,7 +48,7 @@ export class SchemasComponent implements OnInit {
   }
 
   schemas = [
-    //customer document full object model 
+    //customer document full object model
     {
       dbName: 'customer',
       lastestSchema: {},
@@ -146,7 +146,7 @@ export class SchemasComponent implements OnInit {
         "ccOptInTime": ""
       }
     },
-    //order document full object model 
+    //order document full object model
     {
       dbName: 'order',
       lastestSchema: {},
@@ -1009,7 +1009,7 @@ export class SchemasComponent implements OnInit {
         "restaurantNotie": ""
       }
     },
-    //restaurant document full object model 
+    //restaurant document full object model
     {
       dbName: 'restaurant',
       lastestSchema: {},
@@ -1449,7 +1449,6 @@ export class SchemasComponent implements OnInit {
           "taskId": "",
           "taskAssignee": ""
         },
-        "offsetToEST": "",
         "previousRestaurantId": "",
         "taxOnDelivery": "",
         "domain": "",

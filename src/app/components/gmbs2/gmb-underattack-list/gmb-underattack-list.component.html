@@ -36,20 +36,20 @@
             <small>{{r.address}}</small>
           </div>
         </td>
-        <td>{{_timezone.getOffsetNumber(r.timezone)}}</td>
+        <td>{{r.timezone | timezoneOffset}}</td>
         <td><app-gmb-account-hotlink [email]="r.gmbAccountEmail" [appealId]="r.appealId"></app-gmb-account-hotlink></td>
         <td>
           <div *ngFor="let req of createAngularIndentifiableArray(r.requestInfos)">{{req.date | ago : now}} | {{req.email}} | {{req.requester}}</div>
-        </td>  
+        </td>
         <td>{{r.score | number : '1.0-0'}}</td>
         <td id="limitedWidth">
           <div *ngFor="let log of createAngularIndentifiableArray(r.logs)">
             &#8226; {{log.user}} on {{log.date | adjustedDate : 'M/dd' : r.timezone}}: {{log.content}}
           </div>
           <table><tr>
-              <td><input type="text" class="form-control" placeholder="Add a new log ..." [(ngModel)]="r.content" 
+              <td><input type="text" class="form-control" placeholder="Add a new log ..." [(ngModel)]="r.content"
                 (keydown.enter)="addLog(r)"></td>
-              <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addLog(r)">Submit</button></td>         
+              <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addLog(r)">Submit</button></td>
           </tr></table>
         </td>
         <td>

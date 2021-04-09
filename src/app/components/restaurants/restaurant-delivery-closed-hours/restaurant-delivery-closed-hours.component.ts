@@ -3,9 +3,7 @@ import { Restaurant, Hour } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { TimezoneService } from "../../../services/timezone.service";
 import { AlertType } from "../../../classes/alert-type";
-import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Helper } from '../../../classes/helper';
 
 @Component({
@@ -16,14 +14,23 @@ import { Helper } from '../../../classes/helper';
 export class RestaurantDeliveryClosedHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
-  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService) {
     // this.initHourInEditing();
   }
-
+  showExpired = false;
+  now = new Date(); // to tell if a delivery hours is expired
   hourInEditing;
   editing: boolean = false;
 
   ngOnInit() {
+  }
+
+  isDeliveryClosedHoursExpired(closedHour) {
+    return closedHour.toTime && this.now > closedHour.toTime;
+  }
+
+  getDeliveryExpiredClosedHours() {
+    return this.restaurant.deliveryClosedHours.filter(ch => this.isDeliveryClosedHoursExpired(ch));
   }
 
   initHourInEditing() {
@@ -46,10 +53,6 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
   addClosedHour() {
     let newDeliveryClosedHours = JSON.parse(JSON.stringify(this.restaurant.deliveryClosedHours || []))
     const hourClone = new Hour(this.hourInEditing);
-
-    // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
-    hourClone.fromTime = this._timezone.transformToTargetTime(hourClone.fromTime, this.restaurant.googleAddress.timezone);
-    hourClone.toTime = this._timezone.transformToTargetTime(hourClone.toTime, this.restaurant.googleAddress.timezone);
 
     newDeliveryClosedHours.push(hourClone);
     this.toggleEditing();

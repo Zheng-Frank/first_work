@@ -1,9 +1,8 @@
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
-import { Restaurant, Hour } from '@qmenu/ui';
+import {Restaurant, Hour, TimezoneHelper} from '@qmenu/ui';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { TimezoneService } from "../../../services/timezone.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Helper } from '../../../classes/helper';
 
@@ -15,7 +14,7 @@ import { Helper } from '../../../classes/helper';
 export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
 
   @Input() restaurant: Restaurant;
-  constructor(private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
+  constructor(private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
   }
   now = new Date(); // to tell if a closed time is expired
   showExpired = false;
@@ -41,8 +40,6 @@ export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
 
   initHourInEditing() {
     const d1 = new Date();
-    d1.setHours(d1.getHours() + (new Date(new Date().toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone })).valueOf()
-      - new Date(new Date().toLocaleString('en-US')).valueOf()) / 3600000);
     d1.setHours(0, 0, 0, 0);
     this.hourInEditing = new Hour({
       fromTime: d1,
@@ -56,13 +53,17 @@ export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
     this.initHourInEditing();
   }
 
+  transformHour(datetime: Date) {
+    let timePart = datetime.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      datePart = datetime.toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    return TimezoneHelper.parse(`${datePart} ${timePart}`, this.restaurant.googleAddress.timezone);
+  }
+
   addClosedHour() {
-    let newClosedHours = JSON.parse(JSON.stringify(this.restaurant.closedHours || []))
+    let newClosedHours = JSON.parse(JSON.stringify(this.restaurant.closedHours || []));
     const hourClone = new Hour(this.hourInEditing);
-
-    hourClone.fromTime = this._timezone.transformToTargetTime(hourClone.fromTime, this.restaurant.googleAddress.timezone);
-    hourClone.toTime = this._timezone.transformToTargetTime(hourClone.toTime, this.restaurant.googleAddress.timezone);
-
+    hourClone.fromTime = this.transformHour(hourClone.fromTime);
+    hourClone.toTime = this.transformHour(hourClone.toTime);
     newClosedHours.push(hourClone);
     this.toggleEditing();
 

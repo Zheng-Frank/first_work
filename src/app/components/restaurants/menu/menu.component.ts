@@ -20,7 +20,6 @@ export class MenuComponent implements OnInit {
   @Output() onEdit = new EventEmitter();
   @Output() onVisitMenuOptions = new EventEmitter();
   @Input() menu: Menu;
-  @Input() offsetToEST = 0;
   @Input() restaurant: Restaurant;
 
   @ViewChild('mcModal') mcModal: ModalComponent;

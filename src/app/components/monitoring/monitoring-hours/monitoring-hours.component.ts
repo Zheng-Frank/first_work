@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { TimezoneService } from "../../../services/timezone.service"
 import { Hour } from '@qmenu/ui';
 @Component({
   selector: 'app-monitoring-hours',
@@ -11,7 +10,7 @@ import { Hour } from '@qmenu/ui';
 })
 export class MonitoringHoursComponent implements OnInit {
   rows = [];
-  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   now = new Date();
   ngOnInit() {
