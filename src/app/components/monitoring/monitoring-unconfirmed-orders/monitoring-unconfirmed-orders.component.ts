@@ -257,7 +257,6 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
     console.log("ALL RESTAUARANTS ", allRestaurants)
-<<<<<<< HEAD
 
 
 
@@ -305,39 +304,6 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     console.log("SKIP ORDER ", restaurants)
 
 
-=======
-
-
-
-
-    ids = ids.map(obj => obj.$oid)
-
-
-
-
-    const batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
-
-
-
-
-    for (let batch of batchedIds) {
-      let result = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: { _id: { $in: batch } },
-        projection: {
-          'googleAddress.formatted_address': 1,
-          skipOrderConfirmation: 1
-        },
-        sort: {
-          createdAt: -1
-        }
-      }, 1000);
-
-      restaurants.push(...result);
-    }
-
-
->>>>>>> 3e1273856cc3e35956050540520822478c91f38d
 
     restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
 
@@ -353,11 +319,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     })
 
-<<<<<<< HEAD
     console.log("RT ID DICT ", rtIdDict)
 
-=======
->>>>>>> 3e1273856cc3e35956050540520822478c91f38d
 
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
 
