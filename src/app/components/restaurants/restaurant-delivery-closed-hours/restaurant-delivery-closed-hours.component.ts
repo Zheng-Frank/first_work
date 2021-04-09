@@ -17,11 +17,20 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
     // this.initHourInEditing();
   }
-
+  showExpired = false;
+  now = new Date(); // to tell if a delivery hours is expired
   hourInEditing;
   editing: boolean = false;
 
   ngOnInit() {
+  }
+
+  isDeliveryClosedHoursExpired(closedHour) {
+    return closedHour.toTime && this.now > closedHour.toTime;
+  }
+
+  getDeliveryExpiredClosedHours() {
+    return this.restaurant.deliveryClosedHours.filter(ch => this.isDeliveryClosedHoursExpired(ch));
   }
 
   initHourInEditing() {
