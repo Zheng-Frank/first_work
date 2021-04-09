@@ -21,7 +21,7 @@
         <small>{{r.address}}</small>
       </div>
     </td>
-    <td>{{r.createdAt | yMMMd}}</td>
+    <td>{{r.createdAt | dateTz: 'MMM d, yyyy': r.timezone}}</td>
   </tr>
 </q-table>
   <!-- </div>

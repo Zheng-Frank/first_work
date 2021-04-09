@@ -13,7 +13,7 @@ export class InvalidListComponent implements OnInit {
   filteredRows = [];
 
   numberOfRestaurant = 0;
-  
+
   pagination: boolean = true;
 
   now = new Date();
@@ -44,7 +44,7 @@ export class InvalidListComponent implements OnInit {
   async refresh() {
     this.apiLoading = false;
 
-    // Getting data from tables 
+    // Getting data from tables
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
@@ -53,6 +53,7 @@ export class InvalidListComponent implements OnInit {
       projection: {
         _id: 1,
         "googleAddress.formatted_address": 1,
+        "googleAddress.timezone": 1,
         name: 1,
         createdAt: 1,
         "rateSchedules.agent" : 1,
@@ -69,6 +70,7 @@ export class InvalidListComponent implements OnInit {
         id: restaurant._id,
         name: restaurant.name,
         address: restaurant.googleAddress.formatted_address,
+        timezone: restaurant.googleAddress.timezone,
         createdAt: new Date(restaurant.createdAt)
       });
     });

@@ -7,7 +7,6 @@ import { Helper } from '../../../classes/helper';
 
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 
@@ -42,7 +41,7 @@ export class MenusComponent implements OnInit {
 
   showPromotions = false;
 
-  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
   }
@@ -394,7 +393,7 @@ export class MenusComponent implements OnInit {
       const myNewMenus = JSON.parse(JSON.stringify(newMenus));
 
       if (myNewMenus.length !== myOldMenus.length) {
-        /* Different lengths means a new menu has been added. We don't want to delete any categories on the new menu, 
+        /* Different lengths means a new menu has been added. We don't want to delete any categories on the new menu,
         because it could be a copy of an existing one. The new menu will always be in the last index position of myNewMenus*/
         const newMenu = myNewMenus[myNewMenus.length - 1];
         myNewMenus.map(m => {
@@ -403,7 +402,7 @@ export class MenusComponent implements OnInit {
           }
         });
       } else {
-        // patch operation only cares about changes, so we delete unchanged menu categories. 
+        // patch operation only cares about changes, so we delete unchanged menu categories.
         myNewMenus.map(m => delete m.mcs);
       }
       myOldMenus.map(m => delete m.mcs);

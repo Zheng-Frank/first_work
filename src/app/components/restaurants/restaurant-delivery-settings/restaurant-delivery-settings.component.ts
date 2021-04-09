@@ -1,10 +1,9 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Restaurant, Hour } from '@qmenu/ui';
+import {Restaurant, Hour, TimezoneHelper} from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { TimezoneService } from "../../../services/timezone.service";
 import { AlertType } from "../../../classes/alert-type";
 
 @Component({
@@ -55,7 +54,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.checkingPostmatesAvailability = false;
   }
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
     // populate couriers
     this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "courier",
@@ -67,13 +66,14 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   ngOnInit() {
-    const t = Date['parseRestaurantDate']('2000-01-01', this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone));
+    const t = TimezoneHelper.parse('2000-01-01', this.restaurant.googleAddress.timezone);
     // t.setMinutes(t.getMinutes() + 60); // let's start with restaurant's 1AM
     const interval = 30;
     for (let i = 0; i < 24 * 60 / interval; i++) {
-      let h = t.getHours();
-      let m = t.getMinutes();
-      this.deliveryFromTimes.push({ value: new Date(t.getTime()), text: t['restaurant hh:MM a'](this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone)) });
+      this.deliveryFromTimes.push({
+        value: new Date(t.getTime()),
+        text: t.toLocaleString('en-US', {hour: '2-digit', minute: '2-digit', timeZone: this.restaurant.googleAddress.timezone})
+      });
       t.setMinutes(t.getMinutes() + interval);
     }
 
@@ -151,7 +151,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     newR.taxOnDelivery = this.taxOnDelivery;
     newR.muteFirstNotifications = !this.firstNotifications;
     newR.muteSecondNotifications = !this.secondNotifications;
-    
+
     if (this.selectedCourier._id) {
       newR.courier = this.selectedCourier;
     }
@@ -227,19 +227,6 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.secondNotifications = !this.secondNotifications;
   }
 
-  getDeliveryFromString() {
-    if (this.restaurant.deliveryFromTime) {
-      const colonedStartTime = new Date(this.restaurant.deliveryFromTime.getTime());
-      colonedStartTime.setHours(colonedStartTime.getHours() + this._timezone.getOffsetToEST(this.restaurant.googleAddress.timezone));
-      for (const t of this.deliveryFromTimes) {
-        if (t.value.valueOf() === colonedStartTime.valueOf()) {
-          return t.text;
-        }
-      }
-    }
-    return 'At opening';
-  }
-
   getDeliveryEndString() {
     for (const c of this.deliveryEndTimes) {
       if (c.value === this.restaurant.deliveryEndMinutesBeforeClosing || 0) {
@@ -250,7 +237,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   }
 
   doneAddingHour(hours: Hour[]) {
-    
+
     hours.forEach(h => {
       // only add non-duplicated ones
       if ((this.deliveryHours || []).filter(hh => h.equals(hh)).length === 0) {

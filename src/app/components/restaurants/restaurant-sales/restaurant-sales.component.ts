@@ -4,10 +4,8 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { AlertType } from "../../../classes/alert-type";
 import { ModalComponent, FormBuilderComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { FormSubmit } from '@qmenu/ui/classes';
-import { TimezoneHelper } from 'src/app/classes/timezone-helper';
 
 @Component({
   selector: 'app-restaurant-sales',

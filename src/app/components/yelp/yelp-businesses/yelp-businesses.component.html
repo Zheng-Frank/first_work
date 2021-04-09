@@ -14,7 +14,7 @@
       </select>
     </div>
   </div>
-  <!-- 
+  <!--
   <div class="col-md-10 d-flex align-items-center justify-content-end">
     <button class="btn btn-link" (click)="populate()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i> Reload All</button>
   </div>
@@ -36,7 +36,7 @@
       <div class="h-100 d-flex flex-column justify-content-center">
         <a href="{{ rt.url }}" target="_blank">{{ rt.yelpName }}</a>
         <div class="text-muted">
-          
+
           <!-- <div>Yelp Id : {{ rt.yid }}</div> -->
           <small *ngIf="rt.yid">YID: {{ rt.yid }}</small>
           <div *ngIf="!rt.url">
@@ -58,7 +58,7 @@
 
     <!-- time zone -->
     <td>
-      {{_timezone.getOffsetNumber(rt.timezone)}}
+      {{rt.timezone | timezoneOffset}}
     </td>
 
     <!-- score -->
