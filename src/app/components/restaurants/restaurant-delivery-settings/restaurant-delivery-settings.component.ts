@@ -156,6 +156,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
 
   update() {
+    if(!this.firstNotifications&&!this.secondNotifications){
+      return this._global.publishAlert(AlertType.Danger, `Can't update delivery settings.Please turn on at least one notification.`);
+    }
 
     const oldR: any = { _id: this.restaurant.id };
     const newR: any = { _id: this.restaurant.id };
