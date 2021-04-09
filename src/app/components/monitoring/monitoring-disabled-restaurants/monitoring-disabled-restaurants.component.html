@@ -26,7 +26,7 @@
           {{(r.rateSchedules || [])[0]?.agent || 'N/A'}}
         </td>
         <td>
-          {{getTime(r.createdAt) | yMMMd }}
+          {{getTime(r.createdAt) | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}
 
         </td>
       </tr>

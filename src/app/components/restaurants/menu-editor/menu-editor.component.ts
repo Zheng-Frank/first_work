@@ -1,8 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Menu, Hour, Restaurant } from '@qmenu/ui';
+import {Menu, Hour, Restaurant} from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
@@ -13,7 +12,6 @@ import { HttpClient } from '@angular/common/http';
 export class MenuEditorComponent implements OnInit {
 
   menu: Menu;
-  @Input() offsetToEST = 0;
   @Input() timezone = 'America/New_York';
   @Output() onDelete = new EventEmitter();
   @Output() onDone = new EventEmitter();
@@ -41,12 +39,12 @@ export class MenuEditorComponent implements OnInit {
 
   selectedTarget = this.targets[0];
 
-  constructor(private _api: ApiService, private _http: HttpClient, private _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _http: HttpClient) { }
 
   ngOnInit() {
   }
 
-  isValid() { 
+  isValid() {
     if (!this.menu || !this.restaurant.menus) {
       return false;
     }

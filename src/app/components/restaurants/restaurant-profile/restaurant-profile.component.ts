@@ -4,7 +4,6 @@ import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { PrunedPatchService } from '../../../services/prunedPatch.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { environment } from '../../../../environments/environment';
 import { AlertType } from '../../../classes/alert-type';
 import { HttpClient } from '@angular/common/http';
@@ -57,6 +56,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'skipImageInjection',
     'hideOrderStatus',
     'hidePrintingCCInfo',
+    'hideOrderReadyEstimate',
     'skipShowTax',
     'menuHoursExtended',
     'notes',
@@ -121,7 +121,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   isTemporarilyDisabled;
   now = new Date().toISOString().split('T')[0];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) {
   }
 
   ngOnInit() {
@@ -263,7 +263,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // tip settings
     newObj.serviceSettings = ['Pickup', 'Delivery', 'Dine-in'].map(type => {
-      const setting = this.restaurant.serviceSettings && this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};      
+      const setting = this.restaurant.serviceSettings && this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};
       const tip = this.tipSettings[type];
       const newTipSuggestion = {
         amount: this.normalizeNumber(tip.defaultAmount),

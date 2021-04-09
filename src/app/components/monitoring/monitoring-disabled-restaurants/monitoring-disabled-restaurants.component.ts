@@ -35,7 +35,8 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
             projection: {
                 name: 1,
                 _id: 1,
-                'googleAddress.formatted': 1,
+                'googleAddress.formatted_address': 1,
+                'googleAddress.timezone': 1,
                 'rateSchedules':1,
                 createdAt: 1,
                 updatedAt: 1

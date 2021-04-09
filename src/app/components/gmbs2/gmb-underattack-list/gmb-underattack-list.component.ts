@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { AlertType } from '../../../classes/alert-type';
 
 @Component({
@@ -52,7 +51,7 @@ export class GmbUnderattackListComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService) {
     this.refresh();
     // this.test();
   }
@@ -133,7 +132,7 @@ export class GmbUnderattackListComponent implements OnInit {
       }
     }, 6000);
 
-    // Filtered out requests we have pin 
+    // Filtered out requests we have pin
     const safePlaceIdSet =
       new Set(tasks.filter(task => (!task.request.statusHistory || !task.request.statusHistory[0] ||
         !task.request.statusHistory[0].isError) &&
@@ -201,7 +200,7 @@ export class GmbUnderattackListComponent implements OnInit {
       }
     }, 6000);
 
-    // Attach restaurt's information to the requests 
+    // Attach restaurt's information to the requests
     dict.map(entry => {
       entry['appealId'] = (((gmbAccounts.find( it => it.email = entry.gmbAccountEmail ) ||{}).locations || []).find( it => it.place_id === entry.place_id) ||{}).appealId;
       const restaurant = restaurants.find(r => r.googleListing.place_id === entry.place_id);
@@ -227,7 +226,7 @@ export class GmbUnderattackListComponent implements OnInit {
     }
       if (this.bmRequest && this.bmRequest != 'All') {
       let hoursAgo = 60 * 60 * 1000 * this.bmRequest;
-      this.filteredRows = this.filteredRows.filter(row => row.requestInfos && 
+      this.filteredRows = this.filteredRows.filter(row => row.requestInfos &&
         row.requestInfos.some(each => each.email.indexOf("beyondmenu.com") >= 0 &&  (new Date().valueOf() - new Date(each.date).valueOf()) > hoursAgo ));
     }
     // Update number of restaurant shown

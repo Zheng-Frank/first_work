@@ -202,7 +202,7 @@ export class DbScriptsComponent implements OnInit {
 
   async calculateCommissions() {
     // get all non-canceled, payment completed invoices so far
-    const invoices = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+    const invoicesRaw = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "invoice",
       query: {},
       projection: {
@@ -213,18 +213,15 @@ export class DbScriptsComponent implements OnInit {
         total: 1
       }
     }, 20000);
+    // remove bad ones
+    const invoices = invoicesRaw.filter(i => i.total < 100000);
+
+    // all 
     const allCommissions = invoices.reduce((sum, invoice) => {
       if (!invoice.isCanceled) {
         return sum + (invoice.commission || 0);
       }
 
-      return sum;
-    }, 0);
-    const year = new Date().getFullYear() - 0;
-    const yearCommission = invoices.reduce((sum, invoice) => {
-      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
-        return sum + (invoice.commission || 0);
-      }
       return sum;
     }, 0);
     const allTotal = invoices.reduce((sum, invoice) => {
@@ -234,16 +231,49 @@ export class DbScriptsComponent implements OnInit {
 
       return sum;
     }, 0);
+
+    // year so far
+    const year = new Date().getFullYear() - 0;
+
+    const yearCommission = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
+        return sum + (invoice.commission || 0);
+      }
+      return sum;
+    }, 0);
+
     const yearTotal = invoices.reduce((sum, invoice) => {
       if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
         return sum + (invoice.total || 0);
       }
       return sum;
     }, 0);
-    console.log(`Life Comissions: ${allCommissions}`);
-    console.log(`Year Comissions: ${yearCommission}`);
+
+    // year rolling
+
+    const lastYear = new Date();
+    lastYear.setDate(lastYear.getDate() - 366);
+
+    const yearOverYearCommission = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).valueOf() > lastYear.valueOf()) {
+        return sum + (invoice.commission || 0);
+      }
+      return sum;
+    }, 0);
+
+    const yearOverYearTotal = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).valueOf() > lastYear.valueOf()) {
+        return sum + (invoice.total || 0);
+      }
+      return sum;
+    }, 0);
+
     console.log(`Life Total: ${allTotal}`);
+    console.log(`Life Comissions: ${allCommissions}`);
     console.log(`Year Total: ${yearTotal}`);
+    console.log(`Year Comissions: ${yearCommission}`);
+    console.log(`YoY Total: ${yearOverYearTotal}`);
+    console.log(`YoY Comissions: ${yearOverYearCommission}`);
   }
 
   async fixSalesBaseAndBonus() {
