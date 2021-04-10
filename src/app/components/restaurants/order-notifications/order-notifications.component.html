@@ -1,0 +1,80 @@
+<div class="card mb-2" *ngIf="restaurant">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="fas fa-bell"></i>&nbsp;Order Notifications
+  </h3>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <table class="table table-borderless table-sm">
+        <thead>
+          <tr *ngIf="orderNotifications">
+            <th scope="col">Channel</th>
+            <th scope="col" class="text-nowrap">Order Types</th>
+            <th scope="col">Template</th>
+            <th scope="col">Menus</th>
+            <th scope="col">Timing</th>
+            <th scope="col">Copies</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody class="my-text-small">
+          <tr *ngFor="let n of orderNotifications || []">
+            <td class="text-nowrap">
+              <i class="fas {{faClassMap[n.channel.type]}}"></i>
+              <span *ngIf="['SMS', 'Voice', 'Fax'].indexOf(n.channel.type) >= 0">
+                {{n.channel.value | tel}}
+              </span>
+              <span *ngIf="['SMS', 'Voice', 'Fax'].indexOf(n.channel.type) < 0">
+                {{n.channel.value}}
+              </span>
+            </td>
+            <td>
+              <!-- <span *ngIf="!n.orderTypes || n.orderTypes.length === 0">
+                ALL
+              </span> -->
+              <span *ngFor="let t of (n.orderTypes || [])">
+                {{t}}&nbsp;
+              </span>
+            </td>
+            <td>
+              {{n.templateName}}
+            </td>
+            <td>
+              <div *ngFor="let menu of (n.menus || [])">
+                {{menu.name}}
+              </div>
+            </td>
+            <td>
+              <div *ngIf="n.timing?.inOpenHours">Wait open</div>
+              <div *ngIf="n.timing?.delaySeconds">Delay {{n.timing.delaySeconds/60}} mins</div>
+            </td>
+            <td>
+              {{n.copies ? n.copies + 'X' : ''}}
+            </td>
+            <td>
+              <button class="btn btn-link p-0" (click)="editNotification(notification)">Edit</button>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="7">
+              <button class="btn btn-link px-0" (click)="editNotification()">+ Add A Notification</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </li>
+  </ul>
+</div>
+
+
+<q-form-builder [object]="notificationInEditing" [showDelete]="notificationInEditing.id"
+  [fieldDescriptors]="notificationFieldDescriptors" (submit)="submit($event)" (cancel)="cancel($event)"
+  (remove)="remove($event)">
+
+  <div class="form-group">
+    <label>Channel:</label>
+    <select class="form-control mr-4" [(ngModel)]="selectedChannel">
+      <option *ngFor="let c of channelOptions" [ngValue]="c">{{c.text}}</option>
+    </select>
+  </div>
+
+</q-form-builder>

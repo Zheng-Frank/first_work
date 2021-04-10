@@ -44,6 +44,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
     restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],
     restaurantChains: ['ADMIN', 'CSR'],
+    orderNotifications: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER']
   };
 
   projections = {
@@ -183,7 +184,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   async reload(callback: (rt: Restaurant) => any) {
-    const query = {_id: { $oid: this.id }};
+    const query = { _id: { $oid: this.id } };
     this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: query,
@@ -210,7 +211,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.readonly = true;
     if (this.id) {
       this.apiRequesting = true;
-      const query = {_id: { $oid: this.id }};
+      const query = { _id: { $oid: this.id } };
 
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
@@ -222,19 +223,19 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           this.apiRequesting = false;
           const rt = results[0];
 
-        (rt.gmbOwnerHistory || []).reverse();
+          (rt.gmbOwnerHistory || []).reverse();
 
-        (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
-        this.restaurant = rt ? new Restaurant(rt) : undefined;
-        if (!this.restaurant) {
-          return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
-        }
+          (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
+          this.restaurant = rt ? new Restaurant(rt) : undefined;
+          if (!this.restaurant) {
+            return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
+          }
 
-        const canEdit = this._global.user.roles.some(r =>
-          ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
-          (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
-          (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
-        this.readonly = !canEdit;
+          const canEdit = this._global.user.roles.some(r =>
+            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
+            (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
+            (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
+          this.readonly = !canEdit;
         },
         error => {
           this.apiRequesting = false;
