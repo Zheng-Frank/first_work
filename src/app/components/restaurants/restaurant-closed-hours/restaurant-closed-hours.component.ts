@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
-import {Restaurant, Hour, TimezoneHelper} from '@qmenu/ui';
+import { Restaurant, Hour, TimezoneHelper } from '@qmenu/ui';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
@@ -53,22 +53,15 @@ export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
     this.initHourInEditing();
   }
 
-  transformHour(datetime: Date) {
-    let timePart = datetime.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      datePart = datetime.toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    return TimezoneHelper.parse(`${datePart} ${timePart}`, this.restaurant.googleAddress.timezone);
-  }
-
   addClosedHour() {
     let newClosedHours = JSON.parse(JSON.stringify(this.restaurant.closedHours || []));
     const hourClone = new Hour(this.hourInEditing);
-    hourClone.fromTime = this.transformHour(hourClone.fromTime);
-    hourClone.toTime = this.transformHour(hourClone.toTime);
+    // the hour picker gives BROWSER's time. we need to convert to restaurant's timezone
+    hourClone.fromTime = TimezoneHelper.getTimezoneDateFromBrowserDate(hourClone.fromTime, this.restaurant.googleAddress.timezone);
+    hourClone.toTime = TimezoneHelper.getTimezoneDateFromBrowserDate(hourClone.toTime, this.restaurant.googleAddress.timezone);
     newClosedHours.push(hourClone);
     this.toggleEditing();
-
     this.patch(newClosedHours, this.restaurant.closedHours);
-
   }
 
   patch(newClosedHours, oldClosedHours,) {
