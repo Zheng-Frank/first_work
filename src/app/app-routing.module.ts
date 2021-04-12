@@ -66,7 +66,7 @@ import { TemporarilyDisabledComponent } from './components/restaurants/temporari
 import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/monitoring-unconfirmed-orders/monitoring-unconfirmed-orders.component';
 import { IvrAgentAnalysisComponent } from "./components/ivr-agent-analysis/ivr-agent-analysis.component";
 import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
-import { MessagingDashboardComponent } from './components/messaging-dashboard/messaging-dashboard.component';
+import { NotificationDashboardComponent } from './components/notification-dashboard/notification-dashboard.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -98,8 +98,8 @@ const routes: Routes = [
   { path: 'yelp-businesses', component: YelpBusinessesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmbs', component: Gmb2DashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
-    
-  { path: 'messaging', component: MessagingDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+
+  { path: 'messaging', component: NotificationDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'couriers', component: CourierDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'chains', component: ChainsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'monitoring', component: MonitoringDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },

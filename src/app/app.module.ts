@@ -209,7 +209,8 @@ import { SendPostcardComponent } from "./components/restaurants/seamless-integra
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
 import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
-import { MessagingDashboardComponent } from './components/messaging-dashboard/messaging-dashboard.component';
+import { NotificationDashboardComponent } from './components/notification-dashboard/notification-dashboard.component';
+
 
 @NgModule({
   declarations: [
@@ -388,7 +389,7 @@ import { MessagingDashboardComponent } from './components/messaging-dashboard/me
     IvrAgentAnalysisComponent,
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
-    MessagingDashboardComponent
+    NotificationDashboardComponent
   ],
   imports: [
     BrowserModule,
