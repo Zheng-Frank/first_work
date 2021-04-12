@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Restaurant, Hour } from '@qmenu/ui';
+import { Restaurant, Hour, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -17,11 +17,20 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
     // this.initHourInEditing();
   }
-
+  showExpired = false;
+  now = new Date(); // to tell if a delivery hours is expired
   hourInEditing;
   editing: boolean = false;
 
   ngOnInit() {
+  }
+
+  isDeliveryClosedHoursExpired(closedHour) {
+    return closedHour.toTime && this.now > closedHour.toTime;
+  }
+
+  getDeliveryExpiredClosedHours() {
+    return this.restaurant.deliveryClosedHours.filter(ch => this.isDeliveryClosedHoursExpired(ch));
   }
 
   initHourInEditing() {
@@ -44,10 +53,11 @@ export class RestaurantDeliveryClosedHoursComponent implements OnInit {
   addClosedHour() {
     let newDeliveryClosedHours = JSON.parse(JSON.stringify(this.restaurant.deliveryClosedHours || []))
     const hourClone = new Hour(this.hourInEditing);
-
+    // the hour picker gives BROWSER's time. we need to convert to restaurant's timezone
+    hourClone.fromTime = TimezoneHelper.getTimezoneDateFromBrowserDate(hourClone.fromTime, this.restaurant.googleAddress.timezone);
+    hourClone.toTime = TimezoneHelper.getTimezoneDateFromBrowserDate(hourClone.toTime, this.restaurant.googleAddress.timezone);
     newDeliveryClosedHours.push(hourClone);
     this.toggleEditing();
-
     this.patch(newDeliveryClosedHours, this.restaurant.deliveryClosedHours);
 
   }
