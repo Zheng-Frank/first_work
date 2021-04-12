@@ -17,6 +17,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
   //unconfirmed_orders_count:number;
 
   rows = []; // {rfestaurant, orders}
+  currentCriteria = 'All'
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   now = new Date();
@@ -33,8 +34,15 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
   }
 
   convertTZ(date, tzString) {
-    return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
+    return new Date(date)
+    // return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
   }
+
+  // renderRestaurants(type) {
+  //   this.currentCriteria = type
+
+  //   this.rows = this.rows.sort()
+  // }
 
   async refreshOrders() {
 
@@ -76,9 +84,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         "paymentObj.paymentType": 1,
         timeToDeliver: 1,
         timeToDeliverEstimate: 1,
-        statuses: {
-          $slice: -1
-        },
+        statuses: { $slice: -1 },
         createdAt: 1,
       },
       sort: {
@@ -153,7 +159,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         let pickupTime;
         restaurantPickupTimes.forEach(res => {
           if (res._id === o.restaurantObj._id) {
-            console.log("MATCHING ID PICK ", res.pickupTimeEstimate, o.restaurantObj)
+            // console.log("MATCHING ID PICK ", res.pickupTimeEstimate, o.restaurantObj)
             if (res.pickupTimeEstimate < 10 || res.pickupTimeEstimate > 35) {
               pickupTime = 15
             } else {
@@ -163,7 +169,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           }
         })
 
-        console.log("PICK UP TIMES ", pickupTime)
+        // console.log("PICK UP TIMES ", pickupTime)
 
         pickupTime = pickupTime ? pickupTime : 15
 
@@ -178,7 +184,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         let deliveryTime
         restaurantPickupTimes.forEach(res => {
           if (res._id === o.restaurantObj._id) {
-            console.log("MATCHING ID DELIVERY ID ", res.deliveryTimeEstimate)
+            // console.log("MATCHING ID DELIVERY ID ", res.deliveryTimeEstimate)
 
             if (res.deliveryTimeEstimate < 15 || res.deliveryTimeEstimate >= 75) {
               deliveryTime = 45
@@ -189,12 +195,11 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           }
         })
 
-        console.log("DELIVERY TIMES ", deliveryTime)
+        // console.log("DELIVERY TIMES ", deliveryTime)
         deliveryTime = deliveryTime ? deliveryTime : 45
 
         let lateDeliveryTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (deliveryTime * 60 * 1000)).getTime()
 
-        console.log("LATE DELIVERY TIME ", lateDeliveryTime)
         return this.now.getTime() > lateDeliveryTime
 
       }
@@ -253,7 +258,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       }
-    }, 10000);
+    }, 100);
 
 
     console.log("ALL RESTAUARANTS ", allRestaurants)
@@ -348,6 +353,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       }
 
       let createdAt = this.convertTZ(fields.createdAt, timezone)
+
+      console.log("CREATED AT TIMING ", createdAt, fields.createdAt, timezone)
 
       let confirmBy: any
 

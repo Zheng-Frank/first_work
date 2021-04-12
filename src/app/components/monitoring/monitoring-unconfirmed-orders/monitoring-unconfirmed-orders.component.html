@@ -3,7 +3,29 @@
     <!-- <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a>  -->
     <h1 class="text-center">Unconfirmed Orders ({{ rows.length }})</h1>
   </h2>
+
   <div class="card-body">
+    <span class='col-sm-6' class="dropdown">
+      <b>Sort By: &nbsp; </b>
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        {{ currentCriteria }} &nbsp;
+      </button>
+
+      &nbsp; &nbsp;
+      <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'All' }"
+          (click)="renderRestaurants('All')">Amount</a>
+        <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Completed' }"
+          (click)="renderRestaurants('Completed')">Delay</a>
+        <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Progress' }"
+          (click)="renderRestaurants('Progress')">Payment Type</a>
+
+
+      </span>
+    </span>
+    <br />
+    <br />
     <table class="table">
       <tr>
         <th>Restaurant</th>
@@ -15,9 +37,7 @@
       </tr>
       <tr *ngFor="let row of rows">
         <td>
-          <a routerLink="/restaurants/{{ row.restaurant._id }}"
-            >{{ row.restaurant.name }} ({{ row.timezone }})</a
-          >
+          <a routerLink="/restaurants/{{ row.restaurant._id }}">{{ row.restaurant.name }} ({{ row.timezone }})</a>
           <div class="text-muted">
             <small>{{ getDaysFromId(row.restaurant._id) }} days ago</small>
           </div>
@@ -70,9 +90,9 @@
           <div *ngFor="let order of row.orders">
             {{ order.payment.method }} &nbsp;
             {{
-              order.payment.paymentType.toLowerCase() === "cash"
-                ? null
-                : order.payment.paymentType
+            order.payment.paymentType.toLowerCase() === "cash"
+            ? null
+            : order.payment.paymentType
             }}
             <hr />
           </div>
