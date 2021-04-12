@@ -1,33 +1,29 @@
 <div *ngIf="notification">
-  <label>Notification Entity</label>
-  <select class="form-control" [(ngModel)]="notification.sentTo">
-    <option>Customer</option>
-    <option>Restaurant</option>
-  </select>
-
-  <label>Notification Type</label>
-  <select  class="form-control" [(ngModel)]="notification.type">
-    <option>SMS</option>
-    <option>Email</option>
-    <option>Fax</option>
-  </select>
-
   <div>
+    <label>Notification Entity</label>
+    <select class="form-control" [(ngModel)]="notification.sentTo">
+      <option>Customer</option>
+      <option>Restaurant</option>
+    </select>
+
+    <label>Notification Type</label>
+    <select class="form-control" [(ngModel)]="notification.type">
+      <option>SMS</option>
+      <option>Email</option>
+      <option>Fax</option>
+    </select>
+
     <label>Title</label> <br>
-    <input type="text" class="container-fluid" [(ngModel)]="notification.title">
-  </div>
+    <input type="text" class="form-control" [(ngModel)]="notification.title">
 
-  <div>
     <label>Description</label> <br>
-    <input type="text" class="container-fluid" [(ngModel)]="notification.description">
-  </div>
+    <input type="text" class="form-control" [(ngModel)]="notification.description">
 
-  <div>
     <label>Message Text</label> <br>
-    <textarea rows="5" cols="40" [(ngModel)]="notification.messageText"> </textarea>
+    <textarea class="form-control" [(ngModel)]="notification.messageText"> </textarea>
   </div>
-
-
+<div class="mt-2">
   <button class="btn btn-secondary" (click)="cancelEditing()">Cancel</button>
   <button class="btn btn-primary" (click)="saveNotification()">Save</button>
+</div>
 </div>
