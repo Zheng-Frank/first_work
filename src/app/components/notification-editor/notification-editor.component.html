@@ -1,0 +1,33 @@
+<div *ngIf="notification">
+  <label>Notification Entity</label>
+  <select class="form-control" [(ngModel)]="notification.sentTo">
+    <option>Customer</option>
+    <option>Restaurant</option>
+  </select>
+
+  <label>Notification Type</label>
+  <select  class="form-control" [(ngModel)]="notification.type">
+    <option>SMS</option>
+    <option>Email</option>
+    <option>Fax</option>
+  </select>
+
+  <div>
+    <label>Title</label> <br>
+    <input type="text" class="container-fluid" [(ngModel)]="notification.title">
+  </div>
+
+  <div>
+    <label>Description</label> <br>
+    <input type="text" class="container-fluid" [(ngModel)]="notification.description">
+  </div>
+
+  <div>
+    <label>Message Text</label> <br>
+    <textarea rows="5" cols="40" [(ngModel)]="notification.messageText"> </textarea>
+  </div>
+
+
+  <button class="btn btn-secondary" (click)="cancelEditing()">Cancel</button>
+  <button class="btn btn-primary" (click)="saveNotification()">Save</button>
+</div>

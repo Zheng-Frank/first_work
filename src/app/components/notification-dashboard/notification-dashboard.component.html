@@ -1,7 +1,7 @@
 <h1>Notification Management Dashboard</h1>
 
 <hr>
-
+<!--
 <h6> General Settings</h6>
 <div class="row">
     <span style="min-width:300px;max-width:300px;" class="pl-2 ml-4 mr-5 pr-5">
@@ -29,34 +29,50 @@
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let mode of ['SMS', 'Email', 'Fax']">
+        <tr *ngFor="let method of methods">
             <td>
-                {{mode}}
+                {{method}}
             </td>
             <td>
-                <!-- From column -->
+                From column
             </td>
             <td>
-                <!-- To column -->
+                To column
             </td>
         </tr>
     </tbody>
 </table>
-
-<hr>
+-->
 
 <h6> Customer Notifications</h6>
 <span> Merge fields: {{listMergeFields()}}</span>
 <div class="d-flex flex-row">
     <div *ngFor="let n of notifications" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
         <div class="card-body">
-            <h4 class="card-title">{{n.title}}</h4>
+            <div class="row">
+                <h4 class="card-title">{{n.title}}</h4>
+                <select style="min-width:100px;max-width:100px;" class="form-control ml-3" [(ngModel)]="n.type">
+                    <ng-container *ngFor="let method of methods">
+                        <option>{{method}}</option>
+                    </ng-container>
+                </select>
+            </div>
+            <hr>
             <p class="card-text">
-                <small>{{n.description}}</small> <br>
-                {{n.text}}
+                <small>{{n.description}}</small>
             </p>
-            <button class="btn btn-primary" (click)="editCard(n)">Edit</button>
+            <hr>
+            <p style="overflow:auto">
+                {{n.messageText}}
+            </p>
             <button class="btn btn-primary" (click)="sendMessage(n)">Send</button>
+            <button class="btn btn-primary" (click)="editNotification(n)">Edit</button> <br>
+            <small>Notification ID: {{n.id}} </small>
+            
         </div>
     </div>
 </div>
+
+<q-modal #notificationModal>
+    <app-notification-editor #notificationEditor [notification]="notificationInEditor" (onCancel)="onCancel()" (onDone)="onDone($event)"></app-notification-editor>
+  </q-modal>
