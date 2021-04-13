@@ -6,13 +6,12 @@
     <li class="list-group-item">
       <table class="table table-borderless table-sm">
         <thead>
-          <tr *ngIf="orderNotifications">
-            <th scope="col">Channel</th>
-            <th scope="col" class="text-nowrap">Order Types</th>
-            <th scope="col">Template</th>
-            <th scope="col">Menus</th>
-            <th scope="col">Timing</th>
-            <th scope="col">Copies</th>
+          <tr *ngIf="orderNotifications.length > 0">
+            <th scope="col">Target Channel</th>
+            <th scope="col" class="text-nowrap" *ngIf="havingOrderTypes()">Order Types</th>
+            <th scope="col" *ngIf="havingTemplateName()">Template</th>
+            <th scope="col" *ngIf="havingMenuFilters()">Menu Filters</th>
+            <th scope="col" *ngIf="havingCopies()">Copies</th>
             <th scope="col"></th>
           </tr>
         </thead>
@@ -20,14 +19,20 @@
           <tr *ngFor="let n of orderNotifications || []">
             <td class="text-nowrap">
               <i class="fas {{faClassMap[n.channel.type]}}"></i>
-              <span *ngIf="['SMS', 'Voice', 'Fax'].indexOf(n.channel.type) >= 0">
+              <span *ngIf="['SMS', 'Phone', 'Fax'].indexOf(n.channel.type) >= 0">
                 {{n.channel.value | tel}}
               </span>
-              <span *ngIf="['SMS', 'Voice', 'Fax'].indexOf(n.channel.type) < 0">
+              <span *ngIf="n.channel.type === 'Email'">
                 {{n.channel.value}}
               </span>
+              <span *ngIf="['phoenix', 'longhorn', 'fei-e'].indexOf(n.channel.type) >= 0">
+                {{n.channel.type}}: {{n.channel.value}}
+                <div>
+                  {{n.channel.guid}}
+                </div>
+              </span>
             </td>
-            <td>
+            <td *ngIf="havingOrderTypes()">
               <!-- <span *ngIf="!n.orderTypes || n.orderTypes.length === 0">
                 ALL
               </span> -->
@@ -35,28 +40,24 @@
                 {{t}}&nbsp;
               </span>
             </td>
-            <td>
+            <td *ngIf="havingTemplateName()">
               {{n.templateName}}
             </td>
-            <td>
-              <div *ngFor="let menu of (n.menus || [])">
+            <td *ngIf="havingMenuFilters()">
+              <div *ngFor="let menu of (n.menuFilters || [])">
                 {{menu.name}}
               </div>
             </td>
-            <td>
-              <div *ngIf="n.timing?.inOpenHours">Wait open</div>
-              <div *ngIf="n.timing?.delaySeconds">Delay {{n.timing.delaySeconds/60}} mins</div>
-            </td>
-            <td>
+            <td *ngIf="havingCopies()">
               {{n.copies ? n.copies + 'X' : ''}}
             </td>
             <td>
-              <button class="btn btn-link p-0" (click)="editNotification(notification)">Edit</button>
+              <button class="btn btn-link p-0" (click)="editNotification(n)">Edit</button>
             </td>
           </tr>
           <tr>
-            <td colspan="7">
-              <button class="btn btn-link px-0" (click)="editNotification()">+ Add A Notification</button>
+            <td colspan="3">
+              <button class="btn btn-link px-0" (click)="editNotification()">+ Add Notification</button>
             </td>
           </tr>
         </tbody>
@@ -65,16 +66,18 @@
   </ul>
 </div>
 
+<q-modal #modalNotification>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">{{removable ? 'Edit Notification' : 'Define New Notification'}}</h4>
+  <q-form-builder [object]="notificationInEditing" [showDelete]="removable" (change)="updateFormEditor()"
+    [fieldDescriptors]="notificationFieldDescriptors" (submit)="submit($event)" (cancel)="cancel($event)"
+    (remove)="remove($event)">
 
-<q-form-builder [object]="notificationInEditing" [showDelete]="notificationInEditing.id"
-  [fieldDescriptors]="notificationFieldDescriptors" (submit)="submit($event)" (cancel)="cancel($event)"
-  (remove)="remove($event)">
-
-  <div class="form-group">
-    <label>Channel:</label>
-    <select class="form-control mr-4" [(ngModel)]="selectedChannel">
-      <option *ngFor="let c of channelOptions" [ngValue]="c">{{c.text}}</option>
-    </select>
-  </div>
-
-</q-form-builder>
+    <div class="form-group pb-3" *ngIf="notificationInEditing.channel?.type === 'phoenix'">
+      <label>(optional) Add Applicable Menus</label>
+      <app-menu-filters-editor [menus]="restaurant.menus" [menuFilters]="menuFilters"></app-menu-filters-editor>
+    </div>
+  </q-form-builder>
+</q-modal>

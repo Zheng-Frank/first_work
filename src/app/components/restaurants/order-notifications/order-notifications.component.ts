@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
+import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
 
@@ -9,99 +10,160 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./order-notifications.component.css']
 })
 export class OrderNotificationsComponent implements OnInit, OnChanges {
+  @ViewChild('modalNotification') modalNotification: ModalComponent;
   @Input() restaurant: Restaurant;
 
-  orderNotifications = [
-    {
-      channel: {
-        type: 'SMS',
-        value: '4075807504'
-      },
-    },
-    {
-      channel: {
-        type: 'Fax',
-        value: '4075807504'
-      },
-      orderTypes: [],
-    },
-    {
-      channel: {
-        type: 'Voice',
-        value: '4075807504'
-      },
-      orderTypes: ['DELIVERY', 'PICKUP'],
-      timing: {
-        delaySeconds: 120 // 2 minutes after received order
-      }
-    },
-    {
-      channel: {
-        type: 'Email',
-        value: 'garysui@gmail.com'
-      },
-      orderTypes: ['DINE-IN']
-    },
-    {
-      channel: {
-        type: 'Printer',
-        value: 'Id -> Fei-E',
-
-      },
-      timing: {
-        inOpenHours: true
-      }
-    },
-    {
-      channel: {
-        type: 'Printer',
-        value: 'Phoenix -> Receipt2'
-      },
-      templateName: 'Chef',
-      menus: [{
-        name: 'Sushi'
-      }],
-      copies: 2
-    },
+  orderNotifications: any = [
+    // {
+    //   channel: {
+    //     type: 'SMS',
+    //     value: '4075807504'
+    //   },
+    // },
+    // {
+    //   channel: {
+    //     type: 'Fax',
+    //     value: '4075807504'
+    //   },
+    //   orderTypes: [],
+    // },
+    // {
+    //   channel: {
+    //     type: 'Phone',
+    //     value: '4075807504'
+    //   },
+    //   orderTypes: ['DELIVERY', 'PICKUP'],
+    // },
+    // {
+    //   channel: {
+    //     type: 'Email',
+    //     value: 'garysui@gmail.com'
+    //   },
+    //   orderTypes: ['DINE-IN']
+    // },
+    // {
+    //   channel: {
+    //     type: 'phoenix',  // type of printClient
+    //     value: 'receipt 2', // printer name
+    //     printClientId: '5ab6',
+    //     guid: '123455',
+    //   },
+    // },
+    // {
+    //   channel: {
+    //     type: 'longhorn',  // type of printClient
+    //     value: 'receipt', // printer name
+    //   },
+    // },
+    // {
+    //   channel: {
+    //     type: 'fei-e',  // type of printClient
+    //     value: 'somesn', // sn
+    //     printClientId: '5ab6',
+    //     host: 'EU',
+    //     key: "somekey",
+    //   },
+    //   templateName: 'Chef',
+    //   menuFilters: [{
+    //     name: 'Sushi'
+    //   }],
+    //   copies: 2
+    // },
   ];
 
   faClassMap = {
     SMS: 'fa-comments',
     Fax: 'fa-fax',
-    Voice: 'fa-phone-volume',
+    Phone: 'fa-phone-volume',
     Email: 'fa-envelope',
-    Printer: 'fa-print'
+    'fei-e': 'fa-print',
+    'longhorn': 'fa-print',
+    'phoenix': 'fa-print',
   }
 
-  notificationInEditing = {};
+  notificationInEditing = {} as any;
 
-  channelOptions = [];
-  selectedChannel;
-  orderTypesOptions = [
-    { object: "PICKUP", text: "PICKUP", selected: false },
-    { object: "DELIVERY", text: "DELIVERY", selected: false },
-    { object: "DINE-INE", text: "DINE-IN", selected: false },
-  ];
-  notificationFieldDescriptors = [{
-    field: "phone", //
-    label: "Phone Number",
+  channelDescriptor = {
+    field: "channel", //
+    label: "Channel",
     required: true,
-    inputType: "single-select",
+    inputType: "select",
     items: []
-  },
-  {
-    field: "lineStatus", //
-    label: "Line Status",
-    required: true,
+  };
+
+  orderTypesDescriptor = {
+    field: "orderTypes", //
+    label: "Order Types (default for ALL)",
+    required: false,
+    inputType: "multi-select",
+    items: [
+      { object: "PICKUP", text: "PICKUP", selected: false },
+      { object: "DELIVERY", text: "DELIVERY", selected: false },
+      { object: "DINE-INE", text: "DINE-IN", selected: false },
+    ]
+  };
+
+  templateNameDescriptor = {
+    field: "templateName", //
+    label: "Template",
+    required: false,
     inputType: "single-select",
     items: [
-      { object: "busy", text: "Busy", selected: false },
-      { object: "connected", text: "Connected", selected: false },
-      { object: "voicemail", text: "Voicemail", selected: false },
-      { object: "badNumber", text: "Bad Number", selected: false }
+      { object: "default", text: "default", selected: true },
+      { object: "Chef", text: "Chef", selected: false },
     ]
-  }
+  };
+
+  formatDescriptor = {
+    field: "format", //
+    label: "Format",
+    required: false,
+    inputType: "single-select",
+    items: [
+      { object: "png", text: "png", selected: true },
+      { object: "esc", text: "esc", selected: false },
+      { object: "pdf", text: "pdf", selected: false },
+      { object: "png2esc", text: "png2esc", selected: false },
+    ]
+  };
+
+  copiesDescriptor = {
+    field: "copies", //
+    label: "Copies",
+    required: false,
+    inputType: "single-select",
+    items: [
+      { object: 1, text: "1", selected: true },
+      { object: 2, text: "2", selected: false },
+      { object: 3, text: "3", selected: false },
+      { object: 4, text: "4", selected: false },
+    ]
+  };
+
+  customizedRenderingStylesDescriptor = {
+    field: "customizedRenderingStyles", //
+    label: "Customized Rendering Styles",
+    required: false,
+    inputType: "textarea",
+  };
+
+  notificationFieldDescriptors: any = [
+    this.channelDescriptor,
   ];
+
+  validFieldDescriptorMap = {
+    SMS: [this.channelDescriptor, this.orderTypesDescriptor],
+    Fax: [this.channelDescriptor, this.orderTypesDescriptor, this.customizedRenderingStylesDescriptor],
+    Phone: [this.channelDescriptor, this.orderTypesDescriptor],
+    Email: [this.channelDescriptor, this.orderTypesDescriptor],
+    'fei-e': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
+    'longhorn': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
+    'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor],
+  }
+
+  menuFilters = [];
+  removable = false;
+  originalNotification;
   constructor(private _api: ApiService) { }
 
   ngOnInit() {
@@ -110,10 +172,28 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
   }
 
+  havingOrderTypes() {
+    return this.orderNotifications.some(n => n.orderTypes && n.orderTypes.length > 0 && n.orderTypes.length < 3);
+  }
+
+  havingTemplateName() {
+    return this.orderNotifications.some(n => n.templateName);
+  }
+
+  havingMenuFilters() {
+    return this.orderNotifications.some(n => n.menuFilters && n.menuFilters.length > 0);
+  }
+
+  havingCopies() {
+    return this.orderNotifications.some(n => n.copies > 1);
+  }
+
   async editNotification(n?) {
+    this.modalNotification.show();
     // get channels from channels
+    this.channelDescriptor.items.length = 0;
     (this.restaurant.channels || []).map(c => {
-      this.channelOptions.push({
+      this.channelDescriptor.items.push({
         object: { type: c.type, value: c.value },
         text: `${c.type}: ${c.value}`
       });
@@ -125,24 +205,72 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     printClients.map(pc => {
       const isTypeUnique = printClients.filter(p => p.type === pc.type).length === 1;
       pc.printers.map(printer => {
-        this.channelOptions.push({
-          object: { type: 'Printer', value: printer.name, printClientId: pc._id },
-          text: `Printer: ${pc.type}${isTypeUnique ? '' : ' -> ' + (pc.guid || pc._id)} -> ${printer.name}`
+        this.channelDescriptor.items.push({
+          object: { type: pc.type, value: printer.name, printClientId: pc._id, guid: pc.guid },
+          text: `Printer: ${pc.type}${isTypeUnique ? '' : ' → ' + (pc.guid || pc._id)} → ${printer.name}`
         });
       })
     });
+
+    // make clone of select n for editing!
+    this.notificationInEditing = {};
+    this.originalNotification = undefined;
+    if (n) {
+      this.originalNotification = n;
+      this.notificationInEditing = JSON.parse(JSON.stringify(n));
+      // we need to make sure "Object" values are selected by default:
+      // 1. channel
+      const [matchedItem] = this.channelDescriptor.items.filter(c => JSON.stringify(c.object) === JSON.stringify(n.channel));
+      this.channelDescriptor.items.map(i => i.selected === matchedItem);
+      this.notificationInEditing.channel = matchedItem && matchedItem.object;
+
+      // 2. menuFilters
+      this.menuFilters = n.menuFilters || [];
+
+    }
+    // re-org UI
+    this.updateFormEditor();
+    this.removable = !!n;
+  }
+
+  updateFormEditor() {
+    // always having channel and order types otions
+    if (this.notificationInEditing.channel) {
+      this.notificationFieldDescriptors = [...this.validFieldDescriptorMap[this.notificationInEditing.channel.type]];
+    }
+    // let's also remove irrelevant fields
+    const uselessFields = Object.keys(this.notificationInEditing).filter(k => !this.notificationFieldDescriptors.map(fd => fd.field).some(f => f === k));
+    console.log(uselessFields);
+    uselessFields.map(f => delete this.notificationInEditing[f]);
   }
 
   submit(event) {
-
+    const cloned = JSON.parse(JSON.stringify(this.notificationInEditing));
+    const index = this.orderNotifications.indexOf(this.originalNotification);
+    if (index >= 0) {
+      this.orderNotifications[index] = cloned;
+    } else {
+      this.orderNotifications.push(cloned);
+    }
+    // reset defaults
+    if (!cloned.orderTypes || cloned.orderTypes.length === 0 || cloned.orderTypes.length === this.orderTypesDescriptor.items.length) {
+      delete cloned.orderTypes;
+    }
+    if (cloned.channel.type === 'phoenix' && this.menuFilters.length > 0) {
+      cloned.menuFilters = JSON.parse(JSON.stringify(this.menuFilters));
+    }
+    event.acknowledge(null);
+    this.modalNotification.hide();
   }
 
-  cancel(evemt) {
-
+  cancel() {
+    this.modalNotification.hide();
   }
 
   remove(event) {
-
+    this.orderNotifications = this.orderNotifications.filter(n => n !== this.originalNotification);
+    event.acknowledge(null);    
+    this.modalNotification.hide();
   }
 
   async retrievePrintClients() {
