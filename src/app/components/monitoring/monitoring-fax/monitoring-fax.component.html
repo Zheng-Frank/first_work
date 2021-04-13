@@ -4,9 +4,15 @@
     <h1 class="text-center">Fax Problems ({{rows.length}})</h1>
   </h2>
   <div class="card-body">
-    <button class="btn btn-primary" (click)="findPhaxioFailedNumbers()">Execute</button>
+    <div class="form-inline">
+        <button class="btn btn-primary" (click)="findPhaxioFailedNumbers()">Execute</button>
+        <label class="text-center ml-4">Show</label>
+        <select [(ngModel)]="type" class="form-control ml-1" style="min-width:200px;max-width:200px;" (change)="filterFaxProblemByType()">
+          <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
+        </select>
+    </div>
     <br/> <br/> <br/>
-    <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+    <q-table [rows]="filterRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
       <tr *tableRowTemplate="let row;" class="{{!row.succeededOnce ? 'text-danger' : ''}}">
         <td>
           <a target="_blank" href="#/restaurants/{{row.restaurant?._id}}">{{row.restaurant?.name}}</a>

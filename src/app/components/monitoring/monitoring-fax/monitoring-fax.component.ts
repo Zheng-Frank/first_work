@@ -10,6 +10,7 @@ import { GlobalService } from "../../../services/global.service";
 export class MonitoringFaxComponent implements OnInit {
 
   rows = [];
+  filterRows = []; //the filter rows used to show three types of fax problem.
   myColumnDescriptors = [
     {
       label: "Restaurant"
@@ -27,13 +28,39 @@ export class MonitoringFaxComponent implements OnInit {
       label: "Succeeded Once"
     }
   ];
-
+  filterTypes = ['All', 'Send invoice only fax', 'Send order only fax'];
+  type = 'All';//  concrete filter type
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.findPhaxioFailedNumbers();
   }
-
+  //when the select change we can show three different type of fax problems 
+  filterFaxProblemByType(){
+    if(this.type === 'All'){
+      this.filterRows = this.rows;
+    }else if(this.type === 'Send invoice only fax' ){
+      this.filterRows = this.rows.filter(r=>{
+        let flag = false;
+        r.restaurant.channels.forEach(c => {
+        if( c.type === 'Fax' && c.notifications.length === 1 && c.notifications[0] === 'Order'){ 
+          //if the notification is order ,we can confirm it is the corresponding one.
+          flag = true;
+        }
+      })
+        return flag;
+    });
+    }else if(this.type === 'Send order only fax'){
+      this.filterRows = this.rows.filter(r=>{
+        let flag = false;
+        r.restaurant.channels.forEach(c => {
+        if( c.type === 'Fax' && c.notifications.length === 1 && c.notifications[0] === 'Invoice'){
+          flag = true;
+        }
+        return flag;
+      })});
+    }
+  }
   async findPhaxioFailedNumbers() {
     const failedFaxEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'event',
@@ -121,7 +148,7 @@ export class MonitoringFaxComponent implements OnInit {
 
     // sort?
     this.rows.sort((r1, r2) => this.getErrorsCount(r2) - this.getErrorsCount(r1));
-
+    this.filterRows = this.rows;
   }
 
   getErrorsCount(row) {
