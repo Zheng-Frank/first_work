@@ -123,7 +123,7 @@ export class OrderCardComponent implements OnInit {
    * this function is used to judge canceled order who submit
    */
   whoCancelOrder(order: Order) {
-    const status = order.orderStatuses.filter(statuses => statuses.status == 'CANCELED');
+    const status = order.statuses.filter(statuses => statuses.status == 'CANCELED');
     if (status.length > 0) {
       return status[0].updatedBy;
     }
@@ -135,7 +135,7 @@ export class OrderCardComponent implements OnInit {
    * @memberof OrderCardComponent
    */
   getOrderCanceledTime(order) {
-    const status = order.orderStatuses.filter(statuses => statuses.status == 'CANCELED');
+    const status = order.statuses.filter(statuses => statuses.status == 'CANCELED');
     if (status.length > 0) {
       return status[0].createdAt;
     }
