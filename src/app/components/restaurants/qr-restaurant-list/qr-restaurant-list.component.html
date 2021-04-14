@@ -18,13 +18,19 @@
     <tr *tableRowTemplate="let restaurant;">
       <td>{{qrRestaurantListRows.indexOf(restaurant) + 1}}</td>
       <td>
-        <a href="#/restaurants/{{restaurant.restaurantId}}" target="_blank">{{restaurant.name}}</a>
+        <a href="#/restaurants/{{restaurant._id}}" target="_blank">{{restaurant.name}}</a>
         <br>
         {{restaurant.googleAddress?.formatted_address}}
       </td>
       <td>
+          {{restaurant.qrOrderNumber}}
+      </td>
+      <td>
         <div *ngIf="restaurant.feeSchedules">
           <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
+        </div>
+        <div *ngIf="!restaurant.feeSchedules">
+            <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
         </div>
       </td>
     </tr>
