@@ -65,7 +65,6 @@ export class Form1099KComponent implements OnInit {
 
     this.orders = orders.map(order => {
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       return new Order(order);
     });
@@ -78,7 +77,7 @@ export class Form1099KComponent implements OnInit {
     };
 
     for (const order of this.orders) {
-      if (order.orderStatuses[order.orderStatuses.length - 1].status !== "CANCELED") {
+      if (order.statuses[order.statuses.length - 1].status !== "CANCELED") {
         const total = order.getTotal();
         const roundedTotal = this.round(total);
         restaurantTotals.sumOfTransactions += roundedTotal;
@@ -116,7 +115,7 @@ export class Form1099KComponent implements OnInit {
       };
 
       for (const order of this.orders) {
-        if (order.orderStatuses[order.orderStatuses.length - 1].status !== "CANCELED") {
+        if (order.statuses[order.statuses.length - 1].status !== "CANCELED") {
           const total = this.round(order.getTotal());
           form1099KData.monthlyTotals[new Date(order.createdAt).getMonth()] += total;
         }
