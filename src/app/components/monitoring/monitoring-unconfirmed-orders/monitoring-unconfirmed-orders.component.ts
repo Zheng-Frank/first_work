@@ -16,18 +16,50 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   //unconfirmed_orders_count:number;
 
+  // Rows that are displayed 
   rows = []; // {rfestaurant, orders}
+
+
+  // Rows that only contain qMenu Collect payments 
+  qmenuRows = []
+
+
+  //  All rows 
+
+  allRows = []
   currentCriteria = 'All'
+
+
+  descending = true
+
+
+
+
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
+
+  handleArrow() {
+    this.descending = !this.descending
+
+    if (this.descending) {
+      this.rows = this.rows.sort((a, b) => a.totalSum - b.totalSum)
+    } else {
+      this.rows = this.rows.sort((a, b) => b.totalSum - a.totalSum)
+    }
+
+  }
 
   now = new Date();
 
   log(item) {
     console.log(item)
   }
-  ngOnInit() {
+  async ngOnInit() {
 
     console.log("TESTING FUNCTION")
+
+
+
     this.refreshOrders();
     // setInterval(() => { this.refreshOrders(); }, 180000);
     setInterval(() => { this.now = new Date(); }, 60000);
@@ -38,17 +70,44 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     // return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
   }
 
-  // renderRestaurants(type) {
-  //   this.currentCriteria = type
 
-  //   this.rows = this.rows.sort()
-  // }
+  parseMillisecondsIntoReadableTime(milliseconds) {
+    //Get hours from milliseconds
+    var hours = milliseconds / (1000 * 60 * 60);
+    var absoluteHours = Math.floor(hours);
+    var h = absoluteHours > 9 ? absoluteHours : '0' + absoluteHours;
+
+    //Get remainder from hours and convert to minutes
+    var minutes = (hours - absoluteHours) * 60;
+    var absoluteMinutes = Math.floor(minutes);
+    var m = absoluteMinutes > 9 ? absoluteMinutes : '0' + absoluteMinutes;
+
+    //Get remainder from minutes and convert to seconds
+    var seconds = (minutes - absoluteMinutes) * 60;
+    var absoluteSeconds = Math.floor(seconds);
+    var s = absoluteSeconds > 9 ? absoluteSeconds : '0' + absoluteSeconds;
+
+
+    return h + ':' + m + ':' + s;
+  }
+
+
+  renderRestaurants(type) {
+    this.currentCriteria = type
+    if (type === 'All') {
+      this.rows = this.allRows
+
+    } else if (type === 'QMENU COLLECT') {
+      this.rows = this.qmenuRows
+    } else {
+      this.rows = this.allRows
+      console.log("NO TYPE")
+    }
+    // this.rows = this.rows.sort((a, b) => a.totalAmount - b.totalAmount)
+    // console.log("NEW ROWS ", this.rows)
+  }
 
   async refreshOrders() {
-
-
-
-
 
 
     const minutesAgo = new Date();
@@ -67,7 +126,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
           },
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 4)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 16)))
           },
         }
       },
@@ -329,6 +388,32 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
     this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
 
+    this.allRows = this.rows
+
+    let totalSumRows = this.allRows.map(row => {
+      let orders = row.orders
+      console.log("ORDERS ", orders)
+      let sum = 0
+      for (let i = 0; i < orders.length; i++) {
+        if (orders[i].total) {
+          sum += orders[i].total
+        }
+      }
+      row.totalSum = sum
+      return row
+    })
+
+    console.log("TOTAL SUM ROWS ", totalSumRows)
+
+
+    this.qmenuRows = this.rows.filter(row => {
+      let orders = row.orders
+      if (orders) {
+        return orders.some(order => order.payment.method === 'QMENU')
+      } else {
+        return false
+      }
+    })
 
     console.log("FINAL ROWS ", this.rows)
   }
@@ -348,9 +433,9 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
 
-      if (!fields.createdAt) {
-        return "MISSING DATE!"
-      }
+      // if (!fields.createdAt) {
+      //   return "MISSING DATE!"
+      // }
 
       let createdAt = this.convertTZ(fields.createdAt, timezone)
 
@@ -386,15 +471,30 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         overnightOrder = true
       }
 
-      let lateTime = new Date(this.now.getTime() - new Date(fields.timeToDeliver).getTime()).getMinutes()
+      let lateTime = this.parseMillisecondsIntoReadableTime(new Date(this.now.getTime() - new Date(confirmBy).getTime()).getTime())
+
+      let oneHourOverdue = false
+      if (new Date(this.now.getTime() - new Date(confirmBy).getTime()).getTime() > 60 * 60 * 1000) {
+        oneHourOverdue = true
+      }
 
       let scheduledString = `Scheduled for ${expectedDeliverTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
       let placedAtString = `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
 
-      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes) (order placed yesterday)` : `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes)`
+      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes) (order placed yesterday)` : `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime})`
 
+      if (oneHourOverdue) {
+        return {
+          texts: [scheduledString, placedAtString, confirmByString],
+          overdue: true
+        }
+      } else {
+        return {
+          texts: [scheduledString, placedAtString, confirmByString],
+          overdue: false
+        }
+      }
 
-      return [scheduledString, placedAtString, confirmByString]
 
     } else {
       if (fields.createdAt) {
@@ -402,10 +502,12 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         let startTime = this.convertTZ(fields.createdAt, timezone)
         let expectedConfirmation: any = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
 
-        let lateTime = new Date(this.now.getTime() - new Date(expectedConfirmation).getTime()).getMinutes()
+        let lateTime = this.parseMillisecondsIntoReadableTime(new Date(this.now.getTime() - new Date(expectedConfirmation).getTime()).getTime())
 
-        if (lateTime < 0) {
-          console.log("NEGATIVE ORDER ", order)
+
+        let oneHourOverdue = false
+        if (new Date(this.now.getTime() - new Date(expectedConfirmation).getTime()).getTime() > 60 * 60 * 1000) {
+          oneHourOverdue = true
         }
 
         expectedConfirmation = new Date(expectedConfirmation).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
@@ -414,10 +516,12 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
         // console.log(lateTime)
 
-        return [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}. (Late by ${lateTime} minutes)`]
+        return {
+          texts: [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}. (Late by ${lateTime})`],
+          overdue: oneHourOverdue
+        }
 
-      } else {
-        return "MISSING DATE!"
+
       }
 
     }

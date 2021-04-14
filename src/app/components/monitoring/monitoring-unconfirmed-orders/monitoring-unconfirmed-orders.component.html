@@ -5,8 +5,8 @@
   </h2>
 
   <div class="card-body">
-    <!-- <span class='col-sm-6' class="dropdown">
-      <b>Sort By: &nbsp; </b>
+    <span class='col-sm-6' class="dropdown">
+      <b>Filter By: &nbsp; </b>
       <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
         aria-haspopup="true" aria-expanded="false">
         {{ currentCriteria }} &nbsp;
@@ -15,15 +15,11 @@
       &nbsp; &nbsp;
       <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
         <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'All' }"
-          (click)="renderRestaurants('All')">Amount</a>
-        <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Completed' }"
-          (click)="renderRestaurants('Completed')">Delay</a>
+          (click)="renderRestaurants('All')">All</a>
         <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Progress' }"
-          (click)="renderRestaurants('Progress')">Payment Type</a>
-
-
+          (click)="renderRestaurants('QMENU COLLECT')">QMENU COLLECT</a>
       </span>
-    </span> -->
+    </span>
     <br />
     <br />
     <table class="table">
@@ -31,7 +27,8 @@
         <th>Restaurant</th>
         <th>Phones</th>
         <th>Order</th>
-        <th>Amount</th>
+        <th>Amount <i class="fas" [ngClass]="{ 'fa-arrow-up': !!descending,  'fa-arrow-down': !descending}"
+            (click)='handleArrow()'> </i></th>
         <th>Time (delay)</th>
         <th>Payment</th>
       </tr>
@@ -79,7 +76,8 @@
         </td> -->
         <td>
           <div *ngFor="let order of row.orders">
-            <div *ngFor="let times of getTimes(order, row)">
+            <div [ngClass]="{ 'text-danger': getTimes(order, row).overdue}"
+              *ngFor="let times of getTimes(order, row).texts">
               {{ times }}
             </div>
 
