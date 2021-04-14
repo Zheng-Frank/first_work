@@ -50,18 +50,9 @@ export class QrRestaurantListComponent implements OnInit {
     for (let i = 0; i < this.qrRestaurantListRows.length; i++) {
       let restaurant = this.qrRestaurantListRows[i];
       const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
+        resource: "dine-in-session",
         query: {
-          $and: [ //we should use $and to ensure the order belongs to the restaurant.
-            {
-              restaurant: {
-                $oid: restaurant._id,
-              }
-            },
-            {  //qr setting has it code value but it is the table number
-              dineInSessionObj: { $exists: true } //this property is used to remark whether the order is qr dine-in
-            }
-          ]
+          "orderObj.restaurantObj._id":restaurant._id
         },
         projection: {
           logs: 0,
