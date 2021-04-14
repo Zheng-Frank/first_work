@@ -70,26 +70,22 @@ export class NotificationDashboardComponent implements OnInit {
   }
 
   async patchDiff(newTemplates) {
-    console.log(this.system.templates);
-    console.log(newTemplates);
     if (Helper.areObjectsEqual(this.system.templates, newTemplates)) {
       this._global.publishAlert(
         AlertType.Info,
         "Not changed"
       );
     } else {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [{
+      await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=system", [{
         old: {
           _id: this.system._id,
-          templates: this.system.templates
         }, new: {
           _id: this.system._id,
-          templates: newTemplates
+         templates: newTemplates
         }
       }])
         .subscribe(
           result => {
-            // let's update original, assuming everything successful
             this.system.templates = newTemplates;
             this._global.publishAlert(
               AlertType.Success,
