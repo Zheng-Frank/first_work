@@ -16,134 +16,90 @@ import { Helper } from '../../classes/helper';
 })
 export class NotificationDashboardComponent implements OnInit {
   notificationInEditor;
-  provider;
-  methods = ['SMS', 'Email', 'Fax'];
-  notifications = [
-    {
-      id: '12345',
-      sentTo: 'Customer',
-      title: "Order Confirmed",
-      messageText: "{{customer.firstName}}, your order {{order.orderNumber}} from {{restaurant.name}} has been confirmed and will be ready around {{order.timeEstimate}}.",
-      description: "Message sent to customer when order confirmed by restaurant",
-      type: "SMS"
-    },
-    // {
-    //   title: "Order Canceled",
-    //   text: "{{customer.firstName}}, your order {{order.orderNumber}} from {{restaurant.name}} has been canceled. If your card was already charged, you will be issued a refund in 3 to 5 days.",
-    //   description: "Message sent to customer when order canceled by restaurant",
-    //   method: "SMS"
-    // }
-  ];
+  system;
+
+  templateDescriptions = {
+    "order-confirmed": "The notification sent to a customer when their order is confirmed by the restaurant",
+    "order-canceled": "The notification sent to a customer when their order is canceled by the restaurant",
+    "delivery-estimate": "The notification sent to a customer when their order has an estimated delivery time"
+  }
 
   @ViewChild('notificationModal') notificationModal: ModalComponent;
   @ViewChild('notificationEditor') notificationEditor: NotificationEditorComponent;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.populate();
   }
 
-  selectProvider() {
-    console.log(this.provider);
+  async populate() {
+    const system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0];
+    this.system = system;
   }
 
-  listMergeFields() {
+  listMergeFields() { // re-write!
     return '{{customer.firstName}}, {{customer.lastName}}, {{order.orderNumber}}, {{order.timeEstimate}}, {{restaurant.name}}'
   }
 
-  replaceMergeFields(string) {
-
-  }
-
-  editNotification(n) {
+  editNotification(s) {
     this.notificationModal.show();
     this.notificationModal.title = 'Edit Notification';
-   /*
-   good reason to make Notifications a class - we could use the new keyword here to make a copy of our notification to open
-   in the editor, instead of this parse/stringify workaround
-   */
-    this.notificationInEditor = JSON.parse(JSON.stringify(n)); 
+    // temporarily add a description to the object when we open it in the editor. This description will be deleted before saving to the db again. 
+    this.notificationInEditor = JSON.parse(JSON.stringify(s));
+    this.notificationInEditor.description = this.templateDescriptions[s.name];
   }
 
   onCancel() {
     this.notificationModal.hide();
   }
 
-  onDone(notification) {
-    console.log(notification);
-    const newNotifications = (this.notifications || []).slice(0);
-    if (notification.id) {
-      newNotifications.forEach((n, i) => {
-        if (n.id === notification.id) {
-          newNotifications[i] = notification;
-        }
-      });
-    } else {
-      // handle new notification in here
+  onDone(template) {
+    if (template.description) {
+      delete template.description;
     }
-    this.patchDiff(newNotifications);
+    const newTemplates = (this.system.templates || []).slice(0);
+    newTemplates.forEach((n, i) => {
+      if (n.name === template.name) {
+        newTemplates[i] = template;
+      }
+    });
+
+    this.patchDiff(newTemplates);
     this.notificationModal.hide();
   }
 
-  // onDone(promotion) {
-  //   // shadow clone
-  //   const newPromotions = (this.restaurant.promotions || []).slice(0);
-  //   if (promotion.id) {
-  //     // find the replace the promotion
-  //     for (let i = 0; i < newPromotions.length; i++) {
-  //       if (newPromotions[i].id === promotion.id) {
-  //         newPromotions[i] = promotion;
-  //       }
-  //     }
-  //   } else {
-  //     promotion.id = new Date().valueOf().toString();
-  //     if (typeof promotion.expiry === 'string') {
-  //       promotion.expiry = new Date(promotion.expiry);
-  //       // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
-  //       promotion.expiry.setMinutes(promotion.expiry.getMinutes() + new Date().getTimezoneOffset());
-  //     }
-  //     newPromotions.push(promotion);
-  //   }
-  //   this.patchDiff(newPromotions);
-  //   this.promotionModal.hide();
-  // }
-
-  patchDiff(newNotifications) {
-    if (Helper.areObjectsEqual(this.notifications, newNotifications)) {
+  async patchDiff(newTemplates) {
+    console.log(this.system.templates);
+    console.log(newTemplates);
+    if (Helper.areObjectsEqual(this.system.templates, newTemplates)) {
       this._global.publishAlert(
         AlertType.Info,
         "Not changed"
       );
     } else {
-      // api update here...
-      // this._prunedPatch
-      //   .patch(environment.qmenuApiUrl + "generic?resource=system", [{
-      //     // old: {
-      //     //   _id: this.restaurant['_id'],
-      //     //   promotions: this.restaurant.promotions
-      //     // }, new: {
-      //     //   _id: this.restaurant['_id'],
-      //     //   promotions: newPromotions
-      //     // }
-      //   }])
-      //   .subscribe(
-      //     result => {
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [{
+        old: {
+          _id: this.system._id,
+          templates: this.system.templates
+        }, new: {
+          _id: this.system._id,
+          templates: newTemplates
+        }
+      }])
+        .subscribe(
+          result => {
             // let's update original, assuming everything successful
-            this.notifications = newNotifications;
+            this.system.templates = newTemplates;
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"
             );
-          // },
-          // error => {
-          //   this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-          // }
-        // );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
+        );
     }
-    console.log(newNotifications);
-  }
-
-  sendMessage() {
-    console.log('you are going to send a message');
   }
 }

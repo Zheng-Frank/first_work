@@ -14,13 +14,13 @@
     </select>
 
     <label>Title</label> <br>
-    <input type="text" class="form-control" [(ngModel)]="notification.title">
+    <input type="text" class="form-control" [disabled]="true" [(ngModel)]="notification.name">
 
     <label>Description</label> <br>
-    <input type="text" class="form-control" [(ngModel)]="notification.description">
+    <input type="text" class="form-control" [disabled]="true" [(ngModel)]="notification.description">
 
     <label>Message Text</label> <br>
-    <textarea class="form-control" [(ngModel)]="notification.messageText"> </textarea>
+    <textarea class="form-control" [(ngModel)]="notification.content"> </textarea>
   </div>
 <div class="mt-2">
   <button class="btn btn-secondary" (click)="cancelEditing()">Cancel</button>

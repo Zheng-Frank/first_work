@@ -18,7 +18,7 @@ export class NotificationEditorComponent implements OnInit {
   }
 
   saveNotification() {
-    console.log(this.notification);
+    // ensure that type is always set to SMS. 
     this.onDone.emit(this.notification);
   }
 
