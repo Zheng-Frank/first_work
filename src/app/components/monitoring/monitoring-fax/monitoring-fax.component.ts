@@ -40,9 +40,9 @@ export class MonitoringFaxComponent implements OnInit {
     if (this.type === 'All') {
       this.filterRows = this.rows;
     } else if (this.type === 'Send invoice only fax') {
-      this.filterRows = this.rows.filter(r => r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length === 0);
+      this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels && r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length === 0);
     } else if (this.type === 'Send order only fax') {
-      this.filterRows = this.rows.filter(r => r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length === 0);
+      this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels && r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length === 0);
     }
   }
   async findPhaxioFailedNumbers() {
