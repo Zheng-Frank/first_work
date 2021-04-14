@@ -28,7 +28,7 @@ export class MonitoringFaxComponent implements OnInit {
       label: "Succeeded Once"
     }
   ];
-  filterTypes = ['All', 'Send invoice only order', 'Send order only fax'];
+  filterTypes = ['All', 'Send invoice only fax', 'Send order only fax'];
   type = 'All';//  concrete filter type
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -36,29 +36,13 @@ export class MonitoringFaxComponent implements OnInit {
     this.findPhaxioFailedNumbers();
   }
   //when the select change we can show three different type of fax problems 
-  filterFaxProblemByType(){
-    if(this.type === 'All'){
+  filterFaxProblemByType() {
+    if (this.type === 'All') {
       this.filterRows = this.rows;
-    }else if(this.type === 'Send invoice only order' ){
-      this.filterRows = this.rows.filter(r=>{
-        let flag = false;
-        r.restaurant.channels.forEach(c => {
-        if( c.type === 'Fax' && c.notifications.length === 1 && c.notifications[0] === 'Order'){ 
-          //if the notification is order ,we can confirm it is the corresponding one.
-          flag = true;
-        }
-      })
-        return flag;
-    });
-    }else if(this.type === 'Send order only fax'){
-      this.filterRows = this.rows.filter(r=>{
-        let flag = false;
-        r.restaurant.channels.forEach(c => {
-        if( c.type === 'Fax' && c.notifications.length === 1 && c.notifications[0] === 'Invoice'){
-          flag = true;
-        }
-        return flag;
-      })});
+    } else if (this.type === 'Send invoice only fax') {
+      this.filterRows = this.rows.filter(r => r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length === 0);
+    } else if (this.type === 'Send order only fax') {
+      this.filterRows = this.rows.filter(r => r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length === 0);
     }
   }
   async findPhaxioFailedNumbers() {
