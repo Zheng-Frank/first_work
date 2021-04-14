@@ -36,7 +36,7 @@ export class QrRestaurantListComponent implements OnInit {
   ngOnInit() {
     this.populateQrRestaurant();
   }
-
+   
   async populateQrRestaurant() {
     this.qrRestaurantListRows = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
