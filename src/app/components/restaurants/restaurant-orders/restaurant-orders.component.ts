@@ -150,7 +150,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
@@ -171,10 +170,10 @@ export class RestaurantOrdersComponent implements OnInit {
     if (this.orders) {
       this.orders.forEach(o => {
         if (o.id === orderStatus.order) {
-          if (!o.orderStatuses) {
-            o.orderStatuses = [];
+          if (!o.statuses) {
+            o.statuses = [];
           }
-          o.orderStatuses.push(orderStatus);
+          o.statuses.push(orderStatus);
         }
       });
     }
@@ -291,7 +290,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
@@ -324,7 +322,7 @@ export class RestaurantOrdersComponent implements OnInit {
       value: os
     }).subscribe(
       result => {
-        data.order.orderStatuses.push(os);
+        data.order.statuses.push(os);
       },
       error => {
         alert('Update order status failed');
@@ -580,7 +578,7 @@ export class RestaurantOrdersComponent implements OnInit {
         orderId: event.order.id,
         comments: event.comments
       }).toPromise();
-      (order.orderStatuses || []).push({
+      (order.statuses || []).push({
         status: 'CANCELED',
         comments: event.comments,
         createdAt: new Date()
