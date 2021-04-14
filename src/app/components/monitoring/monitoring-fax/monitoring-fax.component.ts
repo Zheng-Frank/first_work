@@ -28,7 +28,7 @@ export class MonitoringFaxComponent implements OnInit {
       label: "Succeeded Once"
     }
   ];
-  filterTypes = ['All', 'Send invoice only fax', 'Send order only fax'];
+  filterTypes = ['All', 'Send invoice only order', 'Send order only fax'];
   type = 'All';//  concrete filter type
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -39,7 +39,7 @@ export class MonitoringFaxComponent implements OnInit {
   filterFaxProblemByType(){
     if(this.type === 'All'){
       this.filterRows = this.rows;
-    }else if(this.type === 'Send invoice only fax' ){
+    }else if(this.type === 'Send invoice only order' ){
       this.filterRows = this.rows.filter(r=>{
         let flag = false;
         r.restaurant.channels.forEach(c => {
