@@ -56,6 +56,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'skipImageInjection',
     'hideOrderStatus',
     'hidePrintingCCInfo',
+    'disableOrderCancelation', //add a new prperty and it will control whether the restaurant can cancel order.
     'hideOrderReadyEstimate',
     'skipShowTax',
     'menuHoursExtended',
