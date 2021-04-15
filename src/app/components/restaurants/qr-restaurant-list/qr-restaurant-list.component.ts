@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { ApiService } from 'src/app/services/api.service';
@@ -47,22 +48,25 @@ export class QrRestaurantListComponent implements OnInit {
       sort: { updatedAt: -1 }
     }, 100000); //the second param is running time 
     this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "dine-in-session",
+      query: {
+        "orderObj.restaurantObj._id":{
+          $exists:true
+        }
+      },
+      projection: {
+        "orderObj": 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 10000
+    }).toPromise();
     for (let i = 0; i < this.qrRestaurantListRows.length; i++) {
       let restaurant = this.qrRestaurantListRows[i];
-      const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "dine-in-session",
-        query: {
-          "orderObj.restaurantObj._id":restaurant._id
-        },
-        projection: {
-          logs: 0,
-        },
-        sort: {
-          createdAt: -1
-        },
-        limit: 10000
-      }).toPromise();
-      this.qrRestaurantListRows[i].qrOrderNumber = orders.length;
+      let tempOrders = orders.filter(o=> o.orderObj.restaurantObj._id === restaurant._id);
+      this.qrRestaurantListRows[i].qrOrderNumber = tempOrders.length;
     }
 
 
