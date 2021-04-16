@@ -1,7 +1,6 @@
-import { tap } from 'rxjs/operators';
 import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
 import { Invoice } from '../../../classes/invoice';
-import { FeeSchedule, ChargeBasis } from '@qmenu/ui';
+import { FeeSchedule } from '@qmenu/ui';
 
 interface keyValue {
   key: string,

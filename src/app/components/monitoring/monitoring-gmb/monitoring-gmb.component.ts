@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { Helper } from 'src/app/classes/helper';
 @Component({
   selector: 'app-monitoring-gmb',
   templateUrl: './monitoring-gmb.component.html',

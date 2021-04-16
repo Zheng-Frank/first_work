@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
-import { RestaurantMenuShufflerComponent } from '../restaurant-menu-shuffler/restaurant-menu-shuffler.component';
 
 @Component({
   selector: 'app-invalid-list',
@@ -56,7 +55,6 @@ export class InvalidListComponent implements OnInit {
         "googleAddress.timezone": 1,
         name: 1,
         createdAt: 1,
-        "rateSchedules.agent" : 1,
         "rateSchedules": { $slice: -1 },
         disabled: 1
       }

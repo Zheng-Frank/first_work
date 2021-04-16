@@ -1,6 +1,6 @@
 import { environment } from './../../../../environments/environment';
 import { ApiService } from 'src/app/services/api.service';
-import { Component, OnInit, NgZone, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 @Component({

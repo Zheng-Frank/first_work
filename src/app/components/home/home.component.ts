@@ -2,8 +2,6 @@ import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
-import { AlertType } from "../../classes/alert-type";
-import { CacheService } from "../../services/cache.service";
 import { Router } from '@angular/router';
 @Component({
   selector: 'app-home',

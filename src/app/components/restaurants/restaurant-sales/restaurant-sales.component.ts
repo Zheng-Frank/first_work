@@ -4,7 +4,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { ModalComponent, FormBuilderComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { FormSubmit } from '@qmenu/ui/classes';
 
 @Component({

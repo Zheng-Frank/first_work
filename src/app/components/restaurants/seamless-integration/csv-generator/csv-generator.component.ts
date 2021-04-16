@@ -9,7 +9,6 @@ import { environment } from 'src/environments/environment';
 import { ApiService } from "../../../../services/api.service";
 import { Address } from '@qmenu/ui';
 import { Helper } from "../../../../classes/helper";
-import { User } from "../../../../classes/user";
 import { saveAs } from "file-saver/FileSaver";
 
 

@@ -1,10 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { environment } from '../../environments/environment';
-import { GmbBiz } from '../classes/gmb/gmb-biz';
-import { GmbAccount } from '../classes/gmb/gmb-account';
-import { zip, of } from 'rxjs';
-
 @Injectable({
   providedIn: 'root'
 })

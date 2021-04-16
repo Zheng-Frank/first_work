@@ -1,17 +1,11 @@
-import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
-import { Injectable, EventEmitter, NgZone } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Order, Customer,TimezoneHelper } from '@qmenu/ui';
-import { Invoice } from '../../../classes/invoice';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
+import { EventEmitter, NgZone } from '@angular/core';
+import { Restaurant, Order,TimezoneHelper } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Observable, zip } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { OrderItem } from "@qmenu/ui";
 import { GlobalService } from 'src/app/services/global.service';
-import { Key } from 'protractor';
 
 
 declare var $: any;
