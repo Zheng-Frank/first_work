@@ -1,16 +1,9 @@
 <div *ngIf="notification">
   <div>
     <label>Notification Entity</label>
-    <select class="form-control" [(ngModel)]="notification.sentTo">
+    <select class="form-control" [disabled]="true" [(ngModel)]="notification.sentTo">
       <option>Customer</option>
       <option>Restaurant</option>
-    </select>
-
-    <label>Notification Type</label>
-    <select class="form-control" [(ngModel)]="notification.type">
-      <option>SMS</option>
-      <option>Email</option>
-      <option>Fax</option>
     </select>
 
     <label>Title</label> <br>

@@ -44,9 +44,10 @@
 -->
 
 <h6> Customer Notifications</h6>
-<span> Merge fields: _customerFirstName_, _customerLastName_, _restaurantName_, _orderNumber_, _orderTimeEstimate_, _orderDeliveryEstimate_
+<span> Merge fields: _customerFirstName_, _customerLastName_, _restaurantName_, _orderNumber_, _orderTimeEstimate_,
+    _orderDeliveryEstimate_, _orderDetailsURL_, _newLine_
 </span>
-<div class="d-flex flex-row" *ngIf="system">
+<div class="d-flex flex-row flex-wrap" *ngIf="system">
     <div *ngFor="let t of system.templates; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
         <div class="card-body">
             <h4 class="card-title ml-2">{{t.name}}</h4>
@@ -54,13 +55,13 @@
             </div>
             <hr>
             <p class="card-text">
-                <small>{{templateDescriptions[t.name]}}</small>
+                <small>{{templateDetails[t.name].description}}</small>
             </p>
             <hr>
             <p style="overflow:auto">
                 {{t.content}}
             </p>
-            <!-- <button class="btn btn-primary" (click)="sendMessage(n)">Send</button> -->
+            <button class="btn btn-primary" (click)="openPhoneNumberInput(t)">Send</button>
             <button class="btn btn-primary" (click)="editNotification(t)">Edit</button> <br>
             <!-- <small>Notification ID: {{n.id}} </small> -->
 
@@ -69,5 +70,15 @@
 </div>
 
 <q-modal #notificationModal>
-    <app-notification-editor #notificationEditor [notification]="notificationInEditor" (onCancel)="onCancel()" (onDone)="onDone($event)"></app-notification-editor>
-  </q-modal>
+    <app-notification-editor #notificationEditor [notification]="notificationInEditor" (onCancel)="onCancel()"
+        (onDone)="onDone($event)"></app-notification-editor>
+</q-modal>
+
+<q-modal #phoneNumberModal>
+    Enter the telephone number this SMS should be sent to: <br>
+    <small> (10 digits, no spaces)</small> <br>
+    <input type="tel" [(ngModel)]="smsNumber">
+    <br>
+    <button class="btn btn-primary" (click)="sendMessage()">Send</button>
+    <button class="btn btn-secondary" (click)="cancelSend()">Cancel</button>
+</q-modal>
