@@ -50,7 +50,9 @@ export class RestaurantStatsComponent implements OnInit {
       resource: "order",
       query: query,
       projection: {//返回除logs以外的所有行
-        logs: 0,
+        customerPreviousOrderStatus:1,
+        customerObj:1,
+        createdAt:1
       },
       sort: {
         createdAt: -1
@@ -78,6 +80,8 @@ export class RestaurantStatsComponent implements OnInit {
     let lastMonthOrders = orders.filter(o => new Date(o.createdAt).valueOf() > (new Date().valueOf() - 30 * 24 * 3600000));
     if (lastMonthOrders.length > 0) {
       this.statistics['New customer orders (as % of orders placed in last 30 days)'] = Number((newCusutomerLastMonthOrders.length / lastMonthOrders.length).toFixed(4)) * 100 + "%";
+    }else{
+      this.statistics['New customer orders (as % of orders placed in last 30 days)'] = "0%";
     }
     //for example by demo:
     //it has 303 orders in total,and has 11 unique customers book the food in demo,repeat orders is 298 
