@@ -1,5 +1,3 @@
-import { Hour } from '@qmenu/ui';
-import { environment } from 'src/environments/environment';
 import { ApiService } from 'src/app/services/api.service';
 import { Component, OnInit } from '@angular/core';
 

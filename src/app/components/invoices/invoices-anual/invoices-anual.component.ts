@@ -1,9 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Invoice } from 'src/app/classes/invoice';
-import {Order, TimezoneHelper} from '@qmenu/ui';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
-import { mergeMap, observeOn } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { Channel } from 'src/app/classes/channel';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertType } from 'src/app/classes/alert-type';

@@ -1,5 +1,4 @@
-import { Component, OnInit, ViewChild, Input } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, Input } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { PDFDocument } from 'pdf-lib';
 

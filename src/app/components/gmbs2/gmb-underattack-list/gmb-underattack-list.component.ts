@@ -126,9 +126,7 @@ export class GmbUnderattackListComponent implements OnInit {
         _id: 0,
         "relatedMap.place_id": 1,
         "request.statusHistory": { $slice: 1 },
-        "request.statusHistory.isError": 1,
         "request.pinHistory": { $slice: 1 },
-        "request.pinHistory.pin": 1
       }
     }, 6000);
 

@@ -70,13 +70,6 @@ export class MonitoringGmbOpenComponent implements OnInit {
         "request.pinHistory": { $slice: 1 },
         "request.voHistory": { $slice: 1 },
         "request.verificationHistory": { $slice: 1 },
-        "request.statusHistory.time": 1,
-        "request.statusHistory.status": 1,
-        "request.pinHistory.pin": 1,
-        "request.voHistory.time": 1,
-        "request.voHistory.options": 1,
-        "request.verificationHistory.time": 1,
-        "request.verificationHistory.verifications": 1,
       },
       limit: 100000
     }).toPromise();

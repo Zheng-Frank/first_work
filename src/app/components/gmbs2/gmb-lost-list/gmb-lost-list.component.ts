@@ -111,7 +111,6 @@ export class GmbLostListComponent implements OnInit {
         "googleListing.cid": 1,
         "googleAddress.formatted_address": 1,
         "googleAddress.timezone": 1,
-        "gmbOwnerHistory.gmbOwner": 1,
         "gmbOwnerHistory": { $slice: 1 },
         name: 1,
         score: 1,
@@ -132,7 +131,6 @@ export class GmbLostListComponent implements OnInit {
         "request.email": 1,
         "request.appealId": 1,
         "request.statusHistory": { $slice: 1 },
-        "request.statusHistory.status": 1
       }
     }, 6000);
 

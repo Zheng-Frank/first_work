@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
+import { Order, Restaurant } from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from "../../../services/global.service";

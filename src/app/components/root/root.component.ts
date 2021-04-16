@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { GlobalService } from '../../services/global.service';
 import { ApiService } from '../../services/api.service';

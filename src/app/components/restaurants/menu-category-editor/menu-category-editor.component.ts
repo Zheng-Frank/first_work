@@ -1,11 +1,8 @@
-import { Component, ViewChild, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-import { Mc, Item, Mi, MenuOption } from '@qmenu/ui';
-import { OptionsEditorComponent } from '../options-editor/options-editor.component';
-import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Router, NavigationStart } from '@angular/router';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { Mc, MenuOption } from '@qmenu/ui';
+import { Router } from '@angular/router';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
-import { environment } from "../../../../environments/environment";
 import { HttpClient } from '@angular/common/http';
 
 declare var $: any;

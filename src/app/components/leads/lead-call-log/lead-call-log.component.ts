@@ -1,5 +1,4 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Lead } from '../../../classes/lead';
 import { CallLog } from '../../../classes/call-log';
 
 @Component({
