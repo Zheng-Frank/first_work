@@ -1,0 +1,12 @@
+<table class="table  mb-5">
+  <tbody>
+    <tr>
+      <th>Statistic</th>
+      <th>Value</th>
+    </tr>
+    <tr *ngFor="let data of statistics | keyvalue">
+      <td>{{data.key}}</td>
+      <td>{{data.value}}</td>
+    </tr>
+  </tbody>
+</table>
