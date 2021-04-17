@@ -86,7 +86,7 @@ export class RestaurantLogsComponent implements OnInit {
       this.restaurant = rt;
       if (this.logInEditingOriginal && this.restaurant &&
         this.restaurant.logs && this.restaurant.logs.some(l => this.equal(l, this.logInEditingOriginal))) {
-        const newLogs = this.restaurant.logs.filter(log => this.equal(log, this.logInEditingOriginal));
+        const newLogs = this.restaurant.logs.filter(log => !this.equal(log, this.logInEditingOriginal));
         const updatedRestaurant = JSON.parse(JSON.stringify(this.restaurant));
         updatedRestaurant.logs = newLogs;
         this.patch(this.restaurant, updatedRestaurant, event.formEvent.acknowledge);
