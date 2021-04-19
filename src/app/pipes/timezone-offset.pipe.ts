@@ -1,5 +1,5 @@
-import {Pipe, PipeTransform} from '@angular/core';
-import {Helper} from '../classes/helper';
+import { Pipe, PipeTransform } from '@angular/core';
+import { Helper } from '../classes/helper';
 
 @Pipe({
   name: 'timezoneOffset'

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { GlobalService } from "../../../services/global.service";
 

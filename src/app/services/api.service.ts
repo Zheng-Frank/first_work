@@ -10,7 +10,7 @@ import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
-import { map, filter, tap, share } from 'rxjs/operators';
+import { share } from 'rxjs/operators';
 import * as lzString from 'lz-string';
 @Injectable()
 export class ApiService {

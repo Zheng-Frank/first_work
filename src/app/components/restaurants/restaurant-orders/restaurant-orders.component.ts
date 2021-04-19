@@ -1,17 +1,11 @@
-import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
-import { Injectable, EventEmitter, NgZone } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Order, Customer,TimezoneHelper } from '@qmenu/ui';
-import { Invoice } from '../../../classes/invoice';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
+import { EventEmitter, NgZone } from '@angular/core';
+import { Restaurant, Order,TimezoneHelper } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Observable, zip } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { OrderItem } from "@qmenu/ui";
 import { GlobalService } from 'src/app/services/global.service';
-import { Key } from 'protractor';
 
 
 declare var $: any;
@@ -150,7 +144,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
@@ -171,10 +164,10 @@ export class RestaurantOrdersComponent implements OnInit {
     if (this.orders) {
       this.orders.forEach(o => {
         if (o.id === orderStatus.order) {
-          if (!o.orderStatuses) {
-            o.orderStatuses = [];
+          if (!o.statuses) {
+            o.statuses = [];
           }
-          o.orderStatuses.push(orderStatus);
+          o.statuses.push(orderStatus);
         }
       });
     }
@@ -291,7 +284,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
@@ -324,7 +316,7 @@ export class RestaurantOrdersComponent implements OnInit {
       value: os
     }).subscribe(
       result => {
-        data.order.orderStatuses.push(os);
+        data.order.statuses.push(os);
       },
       error => {
         alert('Update order status failed');
@@ -580,7 +572,7 @@ export class RestaurantOrdersComponent implements OnInit {
         orderId: event.order.id,
         comments: event.comments
       }).toPromise();
-      (order.orderStatuses || []).push({
+      (order.statuses || []).push({
         status: 'CANCELED',
         comments: event.comments,
         createdAt: new Date()
