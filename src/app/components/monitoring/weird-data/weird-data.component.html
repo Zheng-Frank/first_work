@@ -1,0 +1,212 @@
+  <div class="card">
+    <h2 class="card-title m-3">
+      <h1 class="text-center">Weird Data</h1>
+    </h2>
+    <div class="card-body">
+      <!--start pickupTimeEstimate weird data  -->
+      <h2>PickupTimeEstimate weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>pickupTimeEstimate</th>
+          </tr>
+          <!-- target="_blank" -->
+          <tr *ngFor="let data of  pickupTimeEstimateExtrmeList">
+            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.pickupTimeEstimate?data.pickupTimeEstimate:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end pickupTimeEstimate weird data  -->
+      <!--start deliveryTimeEstimate weird data  -->
+      <h2>DeliveryTimeEstimate weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>deliveryTimeEstimate</th>
+          </tr>
+          <tr *ngFor="let data of  deliveryTimeEstimateExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.deliveryTimeEstimate?data.deliveryTimeEstimate:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end deliveryTimeEstimate weird data  -->
+      <!--start taxRate weird data  -->
+      <h2>TaxRate weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>taxRate</th>
+          </tr>
+          <tr *ngFor="let data of  taxRateExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.taxRate?data.taxRate:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end taxRate weird data  -->
+      <!--start ccMinimumCharge weird data  -->
+      <h2>CCMinimumCharge weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>ccMinimumCharge</th>
+          </tr>
+          <tr *ngFor="let data of  ccMinimumChargeExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.ccMinimumCharge?data.ccMinimumCharge:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end ccMinimumCharge weird data  -->
+      <!--start pickupMinimum weird data  -->
+      <h2>PickupMinimum weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>pickupMinimum</th>
+          </tr>
+          <tr *ngFor="let data of  pickupMinimumExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.pickupMinimum?data.pickupMinimum:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end pickupMinimum weird data  -->
+      <!--start deliveryMinimum weird data  -->
+      <h2>DeliveryMinimum weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>deliveryMinimum</th>
+          </tr>
+          <tr *ngFor="let data of  deliveryMinimumExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.deliveryMinimum?data.deliveryMinimum:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end deliveryMinimum weird data  -->
+      <!--start deliveryMaxDistance weird data  -->
+      <h2>DeliveryMaxDistance weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>deliveryMaxDistance</th>
+          </tr>
+          <tr *ngFor="let data of  deliveryMaxDistanceExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.deliveryMaxDistance?data.deliveryMaxDistance:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end deliveryMaxDistance weird data  -->
+      <!--start ccProcessingFlatFee weird data  -->
+      <h2>CCProcessingFlatFee weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>ccProcessingFlatFee</th>
+          </tr>
+          <tr *ngFor="let data of  ccProcessingFlatFeeExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.ccProcessingFlatFee?data.ccProcessingFlatFee:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end ccProcessingFlatFee weird data  -->
+      <!--start ccProcessingRate weird data  -->
+      <h2>CCProcessingRate weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>ccProcessingRate</th>
+          </tr>
+          <tr *ngFor="let data of ccProcessingRateExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.ccProcessingRate?data.ccProcessingRate:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end ccProcessingRate weird data  -->
+      <!--start surchargeAmount weird data  -->
+      <h2>SurchargeAmount weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>surchargeAmount</th>
+          </tr>
+          <tr *ngFor="let data of surchargeAmountExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.surchargeAmount?data.surchargeAmount:0}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end surchargeAmount weird data  -->
+      <!--start notification myLength weird data  -->
+      <h2>Notification weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>notification length</th>
+          </tr>
+          <tr *ngFor="let data of notificationExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.notification.length}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end notification myLength weird data  -->
+      <!--start RT name length weird data  -->
+      <h2>RT name length weird data </h2>
+      <table class="table  mb-5">
+        <tbody>
+          <tr>
+            <th>name</th>
+            <th>disabled</th>
+            <th>name length</th>
+          </tr>
+          <tr *ngFor="let data of RTNameLengthExtrmeList">
+            <td><a href="javascript:void(0)" (click)="selectRestaurant(data)">{{data.name}}</a></td>
+            <td>{{data.disabled === true  ? true:false}}</td>
+            <td>{{data.name.length}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!--end RT name length weird data  -->
+    </div>
+  </div>

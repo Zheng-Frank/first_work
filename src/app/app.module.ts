@@ -209,6 +209,7 @@ import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-a
 import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
 import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
+import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 
 @NgModule({
   declarations: [
@@ -386,7 +387,8 @@ import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
     SendPostcardComponent,
     IvrAgentAnalysisComponent,
     CsvGeneratorComponent,
-    RestaurantQrSettingsComponent
+    RestaurantQrSettingsComponent,
+    WeirdDataComponent
   ],
   imports: [
     BrowserModule,
