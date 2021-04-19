@@ -20,44 +20,57 @@ export class NotificationDashboardComponent implements OnInit {
   system;
   smsNumber;
 
-  sequence = ['SUBMITTED', 'CONFIRMED', 'WIP', 'READY', 'DELIVERING', 'DELIVERED', 'COMPLETED', 'CANCELED'];
-
-  templateDetails = {
+  customerTemplateDetails = {
     "SUBMITTED": {
       description: "The notification sent to a customer when they place an order.",
-      sentTo: "Customer"
+      sentTo: "customer"
     },
     "CONFIRMED": {
       description: "The notification sent to a customer when the restaurant confirms their order.",
-      sentTo: "Customer"
+      sentTo: "customer"
     },
     "WIP": {
       description: "The notification sent to a customer when their order is being prepared.",
-      sentTo: "Customer"
+      sentTo: "customer"
     },
     "READY": {
       description: "The notification sent to a customer when their food has been prepared.",
-      sentTo: "Customer"
+      sentTo: "customer"
     },
     "DELIVERING": {
       description: "The notification sent to a customer when their delivery driver is on the way with their food.",
-      sentTo: "Customer"
+      sentTo: "customer"
     },
     "DELIVERED": {
       description: "The notification sent to a customer when the delivery driver arrives",
-      sentTo: "Customer"
+      sentTo: "customer"
     },
     "COMPLETED": {
       description: "The notification sent to a customer when the restaurant marks their order as complete.",
-      sentTo: "Customer"
+      sentTo: "customer"
     },
     "CANCELED": {
       description: "The notification sent to a customer when the restaurant cancels their order.",
-      sentTo: "Customer"
+      sentTo: "customer"
+    }
+  }
+
+  restaurantTemplateDetails = {
+    "SUBMITTED": {
+      description: "The notification sent to a restaurant when a customer submits an order.",
+      sentTo: "restaurant"
+    },
+    "DELIVERED": {
+      description: "The notification sent to a restaurant when the courier marks delivery complete",
+      sentTo: "restaurant"
+    },
+    "CANCELED": {
+      description: "The notification sent to a restaurant when a customer cancels an order.",
+      sentTo: "restaurant"
     }
 
-
   }
+
 
   @ViewChild('notificationModal') notificationModal: ModalComponent;
   @ViewChild('phoneNumberModal') phoneNumberModal: ModalComponent;
@@ -74,13 +87,13 @@ export class NotificationDashboardComponent implements OnInit {
     this.system = system;
   }
 
-  editNotification(s) {
+  editNotification(s, target) {
     this.notificationModal.show();
     this.notificationModal.title = 'Edit Notification';
     // temporarily add a description to the object when we open it in the editor. This description will be deleted before saving to the db again. 
     this.notificationInEditor = JSON.parse(JSON.stringify(s));
-    this.notificationInEditor.description = this.templateDetails[s.name].description;
-    this.notificationInEditor.sentTo = this.templateDetails[s.name].sentTo;
+    this.notificationInEditor.description = this[target][s.name].description;
+    this.notificationInEditor.sentTo = this[target][s.name].sentTo;
   }
 
   onCancel() {
@@ -89,36 +102,38 @@ export class NotificationDashboardComponent implements OnInit {
 
   onDone(template) {
     delete template.description;
+    const target = template.sentTo + 'Templates';
     delete template.sentTo;
-    const newTemplates = (this.system.templates || []).slice(0);
+    const newTemplates = (this.system[target] || []).slice(0);
     newTemplates.forEach((n, i) => {
       if (n.name === template.name) {
         newTemplates[i] = template;
       }
     });
 
-    this.patchDiff(newTemplates);
+    this.patchDiff(newTemplates, target);
     this.notificationModal.hide();
   }
 
-  async patchDiff(newTemplates) {
-    if (Helper.areObjectsEqual(this.system.templates, newTemplates)) {
+  async patchDiff(newTemplates, target) {
+    if (Helper.areObjectsEqual(this.system[target], newTemplates)) {
       this._global.publishAlert(
         AlertType.Info,
         "Not changed"
       );
     } else {
+      const patchObj = {
+        _id: this.system._id
+      };
+      patchObj[target] = newTemplates;
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=system", [{
         old: {
           _id: this.system._id,
-        }, new: {
-          _id: this.system._id,
-          templates: newTemplates
-        }
+        }, new: patchObj
       }])
         .subscribe(
           result => {
-            this.system.templates = newTemplates;
+            this.system[target] = newTemplates;
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"
@@ -138,8 +153,6 @@ export class NotificationDashboardComponent implements OnInit {
   }
 
   async sendMessage() {
-    console.log(this.testMessageTemplate)
-    console.log(this.smsNumber)
     await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
       "name": "send-sms",
       "params": {
@@ -150,12 +163,10 @@ export class NotificationDashboardComponent implements OnInit {
       }
     }]).toPromise();
 
-    this.testMessageTemplate = null;
-    this.smsNumber = null;
-    this.phoneNumberModal.hide();
+    this.closePhoneNumberInput();
   }
 
-  cancelSend() {
+  closePhoneNumberInput() {
     this.testMessageTemplate = null;
     this.smsNumber = null;
     this.phoneNumberModal.hide();
@@ -199,23 +210,25 @@ export class NotificationDashboardComponent implements OnInit {
           "createdAt": "2021-04-14T16:32:31.661Z"
         }
       ],
-      "timeToDeliverEstimate": "2021-04-14T16:52:31.661Z",     
-       "timeToDeliver": null
+      "timeToDeliverEstimate": "2021-04-14T16:52:31.661Z",
+      "timeToDeliver": null
     };
     let mergedMessage = template;
     mergedMessage = mergedMessage.replace(/_customerFirstName_/g, sampleOrderData.customerObj.firstName);
     mergedMessage = mergedMessage.replace(/_customerLastName_/g, sampleOrderData.customerObj.lastName);
     mergedMessage = mergedMessage.replace(/_orderNumber_/g, sampleOrderData.orderNumber);
     mergedMessage = mergedMessage.replace(/_restaurantName_/g, sampleOrderData.restaurantObj.name);
-    mergedMessage = mergedMessage.replace(/_orderDetailsURL_/g, 'http://fakeUrl.com/your_order');
+    mergedMessage = mergedMessage.replace(/_orderDetailsURL_/g, 'https://qa-customer.herokuapp.com/index.html#/order/' + sampleOrderData._id);
     mergedMessage = mergedMessage.replace(/_newLine_/g, '\n');
 
-    let time = sampleOrderData.timeToDeliver || sampleOrderData.timeToDeliverEstimate;
-    mergedMessage = mergedMessage.replace(/_orderTimeEstimate_/g, time);
-  
-  
+    const orderReadyEST = `Order ready est: ${new Date(sampleOrderData.timeToDeliverEstimate).toLocaleTimeString('en-US', {
+      timeZone: "America/New_York", hour: '2-digit', minute: '2-digit'
+    })}`;
+
+    mergedMessage = mergedMessage.replace(/_orderTimeEstimate_/g, orderReadyEST);
+
     // if mergedMessage.length > 160 
     return mergedMessage;
-  
+
   }
 }

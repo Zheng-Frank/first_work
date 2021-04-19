@@ -7,8 +7,8 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 })
 export class NotificationEditorComponent implements OnInit {
 
-  @Input() notification; 
-  
+  @Input() notification;
+
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
 
@@ -18,7 +18,6 @@ export class NotificationEditorComponent implements OnInit {
   }
 
   saveNotification() {
-    // ensure that type is always set to SMS. 
     this.onDone.emit(this.notification);
   }
 
