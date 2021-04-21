@@ -14,6 +14,18 @@
       </select>
     </div>
   </div>
+  <div class="col-md-2 d-flex align-items-center" >
+    <div class="clearfix my-2 float-left form-inline">
+      <label class="mr-2"> Q / Y website:</label>
+      <select class="form-control mr-2 mb-1" [(ngModel)]="Q_Y_WebsiteStatus" (change)="filter()">
+        <option>All</option>
+        <option>Q=Y</option>
+        <option>Q!=Y</option>
+      </select>
+    </div>
+  </div>
+  <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
+  class="form-control col-md-5" placeholder="Search By ID">
   <!--
   <div class="col-md-10 d-flex align-items-center justify-content-end">
     <button class="btn btn-link" (click)="populate()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i> Reload All</button>
