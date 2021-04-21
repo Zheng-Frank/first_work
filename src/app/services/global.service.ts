@@ -8,7 +8,6 @@ import { ModalType } from "../classes/modal-type";
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { CacheService } from "./cache.service";
 import { environment } from "../../environments/environment";
-import { Restaurant } from "@qmenu/ui";
 declare var store: any;
 
 @Injectable()

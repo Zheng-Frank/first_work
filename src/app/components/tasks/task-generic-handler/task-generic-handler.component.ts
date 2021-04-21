@@ -8,7 +8,6 @@ import { Log } from '../../../classes/log';
 import { of, Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { AlertType } from '../../../classes/alert-type';
-import { User } from '../../../classes/user';
 
 @Component({
   selector: 'app-task-generic-handler',

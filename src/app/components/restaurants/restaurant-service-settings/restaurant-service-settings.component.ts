@@ -1,10 +1,10 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {ApiService} from '../../../services/api.service';
-import {PrunedPatchService} from '../../../services/prunedPatch.service';
-import {environment} from '../../../../environments/environment';
-import {GlobalService} from '../../../services/global.service';
-import {AlertType} from '../../../classes/alert-type';
-import {Restaurant} from '@qmenu/ui';
+import { Component, Input, OnInit } from '@angular/core';
+import { ApiService } from '../../../services/api.service';
+import { PrunedPatchService } from '../../../services/prunedPatch.service';
+import { environment } from '../../../../environments/environment';
+import { GlobalService } from '../../../services/global.service';
+import { AlertType } from '../../../classes/alert-type';
+import { Restaurant } from '@qmenu/ui';
 
 @Component({
   selector: 'app-restaurant-service-settings',
@@ -95,6 +95,31 @@ export class RestaurantServiceSettingsComponent implements OnInit {
       // turn on: retrieve
       service.paymentMethods = service.paymentMethodsBackup || [];
       service.paymentMethodsBackup = undefined;
+    }
+  }
+
+  isCourierNotSelfDelivery(service, method) {
+
+    // Overall: For delivery settings, if courier is not Self delivery, the only available delivery setting is qMenu collections
+
+    // if we return true, the option is disabled, if we return fale the option is enabled
+
+    if (!service || !this.restaurant || !this.restaurant.courier || !service.name || !method) {
+      console.log("MISSING ATTRIBUTES ", service)
+      return false
+    }
+    if (service.name !== 'Delivery') {
+      return false
+    }
+    if (this.restaurant.courier === 'Self delivery') {
+      // All options are available for self delivery courier
+      return false
+    }
+    // if the method is not QMENU, it's disabled. Only QMENU payments for courier option
+    if (method === 'QMENU') {
+      return false
+    } else {
+      return true
     }
   }
 
@@ -267,7 +292,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   async createGateway() {
 
     try {
-      const oldCcHandler = JSON.parse(JSON.stringify(this.restaurant && this.restaurant['ccHandler'] || {} ));
+      const oldCcHandler = JSON.parse(JSON.stringify(this.restaurant && this.restaurant['ccHandler'] || {}));
 
       if (this.isValidGateway(this.gatewayInEditing)) {
         if (oldCcHandler && oldCcHandler.gateway_token) {

@@ -1,5 +1,5 @@
 /* ElementRef must be present for ngOnChanges to work! */
-import { Component, OnInit, Input, OnChanges, ElementRef} from '@angular/core';
+import { Component, OnInit, Input, OnChanges } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import {Item} from '@qmenu/ui';
 

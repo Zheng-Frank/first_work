@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { TimezoneService } from 'src/app/services/timezone.service';
 import { AlertType } from '../../../classes/alert-type';
+import { Helper } from '../../../classes/helper';
 
 @Component({
   selector: 'app-monitoring-restaurants',
@@ -77,7 +77,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
   ];
 
 
-  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   async ngOnInit() {
@@ -129,9 +129,6 @@ export class MonitoringRestaurantsComponent implements OnInit {
         "web.ignoreGmbOwnershipRequest": 1,
         "web.agreeToCorporate": 1,
         diagnostics: { $slice: 1 },
-        // As of Mongo 4.4, querying for a property and one of its sub-properties causes a collision error. 
-        // "diagnostics.time": 1,
-        // "diagnostics.result": 1,
         score: 1
       }
     }, 4000);
@@ -143,7 +140,7 @@ export class MonitoringRestaurantsComponent implements OnInit {
       // sum all errors in each item
       rt.errors = (((rt.diagnostics || [])[0] || {}).result || []).reduce((sum, item) => sum + (item.errors || []).length, 0);
       rt.gmbPublished = rt.googleListing && rt.googleListing.cid && publishedCids.has(rt.googleListing.cid);
-      rt.timezoneOffset = this._timezone.getOffsetNumber((rt.googleAddress || {}).timezone)
+      rt.timezoneOffset = Helper.getOffsetNumToEST((rt.googleAddress || {}).timezone)
     });
 
     // populate errorItems:

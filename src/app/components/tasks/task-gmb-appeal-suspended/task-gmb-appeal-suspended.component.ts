@@ -8,7 +8,6 @@ import { AlertType } from '../../../classes/alert-type';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { Restaurant } from '@qmenu/ui';
 import { Log } from '../../../classes/log';
-import { TaskService } from 'src/app/services/task.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 
 @Component({

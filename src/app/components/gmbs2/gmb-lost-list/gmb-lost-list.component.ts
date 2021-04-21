@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { AlertType } from '../../../classes/alert-type';
 
 @Component({
@@ -15,7 +14,7 @@ export class GmbLostListComponent implements OnInit {
 
   rows = [];
   filteredRows = [];
-  
+
   pagination: boolean = true;
   statusOptions;
   selectedStatus = "All";
@@ -60,7 +59,7 @@ export class GmbLostListComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService) {
     this.refresh();
     // this.test();
   }
@@ -74,7 +73,7 @@ export class GmbLostListComponent implements OnInit {
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
 
-    // Getting data from tables 
+    // Getting data from tables
     const events = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'event',
       query: {
@@ -112,7 +111,6 @@ export class GmbLostListComponent implements OnInit {
         "googleListing.cid": 1,
         "googleAddress.formatted_address": 1,
         "googleAddress.timezone": 1,
-        "gmbOwnerHistory.gmbOwner": 1,
         "gmbOwnerHistory": { $slice: 1 },
         name: 1,
         score: 1,
@@ -133,7 +131,6 @@ export class GmbLostListComponent implements OnInit {
         "request.email": 1,
         "request.appealId": 1,
         "request.statusHistory": { $slice: 1 },
-        "request.statusHistory.status": 1
       }
     }, 6000);
 
@@ -247,7 +244,7 @@ export class GmbLostListComponent implements OnInit {
     const newEvents = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "event",
       query: { _id: { $oid: eventId } },
-      projection: { 
+      projection: {
         "comments.user": 1,
         "comments.date": 1,
         "comments.content": 1
@@ -258,13 +255,13 @@ export class GmbLostListComponent implements OnInit {
     const index = this.rows.findIndex(row => row.eventId == eventId);
     if (index >= 0) {
       const newRow = this.rows[index];
-      newRow['comments'] = newEvent['comments']; 
+      newRow['comments'] = newEvent['comments'];
       this.rows[index] = newRow;
     }
     const index2 = this.filteredRows.findIndex(row => row.eventId == eventId);
     if (index2 >= 0) {
       const newRow = this.filteredRows[index2];
-      newRow['comments'] = newEvent['comments']; 
+      newRow['comments'] = newEvent['comments'];
       this.filteredRows[index2] = newRow;
     }
   }

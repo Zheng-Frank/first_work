@@ -5,7 +5,6 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { Log } from 'src/app/classes/log';
 
 @Component({
   selector: 'app-invoice-editor',

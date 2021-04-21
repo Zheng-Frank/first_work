@@ -1,13 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { GmbRequest } from '../../../classes/gmb/gmb-request';
-import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
-import { GmbAccount } from '../../../classes/gmb/gmb-account';
 import { GlobalService } from '../../../services/global.service';
-import { AlertType } from '../../../classes/alert-type';
-import { zip } from 'rxjs';
-import { Task } from '../../../classes/tasks/task';
 
 @Component({
   selector: 'app-gmb-request-list',

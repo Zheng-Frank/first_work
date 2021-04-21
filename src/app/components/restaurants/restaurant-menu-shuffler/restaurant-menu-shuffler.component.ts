@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { Restaurant, Menu } from '@qmenu/ui';
+import { Restaurant } from '@qmenu/ui';
 
 @Component({
   selector: 'app-restaurant-menu-shuffler',
