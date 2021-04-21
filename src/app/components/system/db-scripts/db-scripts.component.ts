@@ -22,6 +22,17 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async findRTsWithoutPromotions() {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        "promotions": 1,
+        name: 1
+      },
+    }, 3000);
+    console.log(restaurants.filter(r => !r.promotions || !r.promotions.length).map(r => r.name));
+  }
+
   async fixBadMenuHours() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -216,7 +227,7 @@ export class DbScriptsComponent implements OnInit {
     // remove bad ones
     const invoices = invoicesRaw.filter(i => i.total < 100000);
 
-    // all 
+    // all
     const allCommissions = invoices.reduce((sum, invoice) => {
       if (!invoice.isCanceled) {
         return sum + (invoice.commission || 0);
@@ -1829,7 +1840,7 @@ export class DbScriptsComponent implements OnInit {
     // 2. test if thanksgiving is already closed. if no:
     // 3. schedule a text (every 2 seconds apart??)
     // 4. make a table to capture result?
-    // 
+    //
 
     alert('DO NOT USE')
     // const restaurants: Restaurant[] = (await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -1855,7 +1866,7 @@ export class DbScriptsComponent implements OnInit {
 
     // console.log('not already closed: ', notAlreadyClosed.length);
 
-    // // inject an closedHour: 
+    // // inject an closedHour:
     // const closedHour = new Hour({
     //   occurence: 'ONE-TIME',
     //   fromTime: new Date('Nov 22 2018 5:00:00 GMT-0500'),
@@ -2107,7 +2118,7 @@ export class DbScriptsComponent implements OnInit {
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions && Array.isArray(mi.sizeOptions))));
           // fix size options
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so && so.name))));
-          // fix menu 
+          // fix menu
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions.length > 0)));
           return clone.menus;
         }
@@ -3095,7 +3106,7 @@ export class DbScriptsComponent implements OnInit {
           let toTime = new Date(r.closedHours[i].toTime);
           let now = new Date();
           let Difference_In_Time = now.getTime() - toTime.getTime();
-          // To calculate the no. of days between two dates 
+          // To calculate the no. of days between two dates
           let Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
           if (Difference_In_Days > 1) {
             r.closedHours.splice(i, 1);
