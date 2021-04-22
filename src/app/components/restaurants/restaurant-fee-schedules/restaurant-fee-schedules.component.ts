@@ -1,12 +1,11 @@
 import { Component, OnInit, Input, ViewChild, SimpleChanges, OnChanges } from '@angular/core';
-import { Restaurant, FeeSchedule, ChargeBasis } from '@qmenu/ui';
+import { Restaurant, FeeSchedule, ChargeBasis, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { OrderType } from 'src/app/classes/order-type';
 import { ModalComponent, FormBuilderComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { FormSubmit } from '@qmenu/ui/classes';
-import { TimezoneHelper } from 'src/app/classes/timezone-helper';
 import { OrderPaymentMethod } from 'src/app/classes/order-payment-method';
 import { CurrencyPipe } from '@angular/common';
 import { environment } from 'src/environments/environment';
@@ -269,10 +268,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // the following will condition the editor
     // when in editing, we need "2020-08-19" type of format, usibng fr-CA to do so
     if (this.feeScheduleInEditing.fromTime) {
-      this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York' });
+      this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleDateString('en-CA', {  timeZone: this.restaurant.googleAddress.timezone });
     }
     if (this.feeScheduleInEditing.toTime) {
-      this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York' });
+      this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleDateString('en-CA', {  timeZone:  this.restaurant.googleAddress.timezone });
     }
 
     this.updateFormBuilder();
@@ -293,7 +292,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // turn 2020-09-01 to timezone form
     const getTransformedDate = (dateString) => {
       // const [year, month, date] = dateString.split('-');
-      return TimezoneHelper.transformToTimezoneDate(new Date(dateString), 'America/New_York');
+      return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone );
     }
     // console.log("this.feeScheduleInEditing.fromTime:"+this.feeScheduleInEditing.fromTime);
     // console.log("this.feeScheduleInEditing.toTime:"+this.feeScheduleInEditing.toTime);

@@ -1,17 +1,11 @@
-import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
-import { Injectable, EventEmitter, NgZone } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Order, Customer,TimezoneHelper } from '@qmenu/ui';
-import { Invoice } from '../../../classes/invoice';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
+import { EventEmitter, NgZone } from '@angular/core';
+import { Restaurant, Order,TimezoneHelper } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Observable, zip } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { OrderItem } from "@qmenu/ui";
 import { GlobalService } from 'src/app/services/global.service';
-import { Key } from 'protractor';
 
 
 declare var $: any;
@@ -70,26 +64,7 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-  // GetTimeFromTimeZone(searchdate,timeZone) {
-  //   var lDate = new Date(searchdate);
-  //   var localTime = lDate.getTime();
-  //   var localOffset = lDate.getTimezoneOffset() * 60000; //本地和0时区的偏移
-  //   var utc = localTime + localOffset; //得到0时区时间
-  //   var placeTime = utc + (3600000 * TimeZone.getTimeZone("EST")); //当地时间
-  //   var pdate = new Date(placeTime);
 
-  //   return pdate.toLocaleString();
-  // }
-  // getTransformedDate (dateString,timezone){
-  //   const [year, month, date] = dateString.split('-');
-  //   //  let time=TimezoneHelper.transformToTimezoneDate(new Date(dateString), 'America/New_York');
-  //    console.log("time:"+TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone));
-  //    return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone);
-  // }
-  // convertTimeAtTimezoneToUTC(input: string, zone: string) {
-  //   var m = moment.tz(input, zone).utc().format();
-  //   return m;
-  // }
   /**
    *
    * this function is used to filter order by createdAt
@@ -108,12 +83,6 @@ export class RestaurantOrdersComponent implements OnInit {
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
-    // const fromValue = new Date(from);
-    // const toValue = new Date(to);
-    // const utcf = new Date(fromValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const utct = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
-    // const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
     const utcf= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from),this.restaurant.googleAddress.timezone);
     const utct= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to),this.restaurant.googleAddress.timezone);
     console.log("utcf:"+utcf);
@@ -175,7 +144,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
@@ -196,10 +164,10 @@ export class RestaurantOrdersComponent implements OnInit {
     if (this.orders) {
       this.orders.forEach(o => {
         if (o.id === orderStatus.order) {
-          if (!o.orderStatuses) {
-            o.orderStatuses = [];
+          if (!o.statuses) {
+            o.statuses = [];
           }
-          o.orderStatuses.push(orderStatus);
+          o.statuses.push(orderStatus);
         }
       });
     }
@@ -261,7 +229,7 @@ export class RestaurantOrdersComponent implements OnInit {
         query['customerObj.phone'] = {
           $regex: queryStr
         }
-      } else { //the situation of the phone number don't have '-'  
+      } else { //the situation of the phone number don't have '-'
         query['customerObj.phone'] = {
           $regex: this.searchText
         }
@@ -284,10 +252,10 @@ export class RestaurantOrdersComponent implements OnInit {
     // get blocked customers and assign back to each order blacklist reasons
     /**
      * orders.filter(function(){
-     *   
+     *
      *  return true;
      * })
-     * 
+     *
      */
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
@@ -316,7 +284,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
@@ -349,7 +316,7 @@ export class RestaurantOrdersComponent implements OnInit {
       value: os
     }).subscribe(
       result => {
-        data.order.orderStatuses.push(os);
+        data.order.statuses.push(os);
       },
       error => {
         alert('Update order status failed');
@@ -581,7 +548,7 @@ export class RestaurantOrdersComponent implements OnInit {
           field: "reasons",
           value: [...new Set([...item.reasons, ...reasons])]
         }).toPromise();
-        //      ${environment.qmenuApiUrl}generic 
+        //      ${environment.qmenuApiUrl}generic
         await this._api.patch(`${environment.appApiUrl}app`, {
           resource: 'blacklist',
           query: {
@@ -593,7 +560,7 @@ export class RestaurantOrdersComponent implements OnInit {
         }).toPromise();
       }
     }
-    //this.okBanOld(reasons);//okBanOldCustomer() 
+    //this.okBanOld(reasons);//okBanOldCustomer()
     this.banModal.hide();// 隐藏模块（hide the dialog）
     this.populateOrders(); //刷新订单界面(refresh order bound)
   }
@@ -605,7 +572,7 @@ export class RestaurantOrdersComponent implements OnInit {
         orderId: event.order.id,
         comments: event.comments
       }).toPromise();
-      (order.orderStatuses || []).push({
+      (order.statuses || []).push({
         status: 'CANCELED',
         comments: event.comments,
         createdAt: new Date()

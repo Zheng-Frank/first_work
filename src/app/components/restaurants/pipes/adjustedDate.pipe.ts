@@ -1,17 +1,15 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import {Helper} from '../../../classes/helper';
 
 @Pipe({
   name: 'adjustedDate'
 })
-export class adjustedDatePipe extends DatePipe implements PipeTransform {
+export class AdjustedDatePipe extends DatePipe implements PipeTransform {
 
   transform(value: any, format?: string, timezone?: string): any {
     if (value) {
-      value = new Date(value);
-      const cloned = new Date(value.toLocaleString('en-US', { timeZone: timezone }));
-      // console.log("cloned:"+cloned);
-      return super.transform(cloned, format);
+      return super.transform(Helper.adjustDate(new Date(value), timezone), format);
     }
     return null;
   }

@@ -1,5 +1,8 @@
 <h1 class="text-center">Users</h1>
 <div class="text-right pb-2">
+  <label class="checkbox-inline" *ngIf="getDisabledUsers().length > 0"><input type="checkbox"
+      [(ngModel)]="showDisabled"> Show disabled
+    ({{getDisabledUsers().length}})</label>
   <button class="btn btn-primary" (click)="edit(null)">+ Add New User</button>
 </div>
 <div class="table-responsive">
@@ -13,20 +16,22 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let user of users" class="{{user.disabled ? 'disabled' : ''}}">
-        <th scope="row">{{user.username}}
-          <div  class="text-tiny">{{(user.languages || []).join(' ')}}</div>
-        </th>
-        <td>{{(user.roles || []).join(', ')}}
-          <div class="text-tiny text-muted">
-            {{user.lastLog}}
-          </div>
-        </td>
-        <td>{{user.manager}}</td>
-        <td class="text-right">
-          <button class="btn btn-link pr-0" (click)="edit(user)">Edit</button>
-        </td>
-      </tr>
+      <ng-container *ngFor="let user of users">
+        <tr  *ngIf="showDisabled || !user.disabled" class="{{user.disabled ? 'disabled' : ''}}">
+          <th scope="row">{{user.username}}
+            <div  class="text-tiny">{{(user.languages || []).join(' ')}}</div>
+          </th>
+          <td>{{(user.roles || []).join(', ')}}
+            <div class="text-tiny text-muted">
+              {{user.lastLog}}
+            </div>
+          </td>
+          <td>{{user.manager}}</td>
+          <td class="text-right">
+            <button class="btn btn-link pr-0" (click)="edit(user)">Edit</button>
+          </td>
+        </tr>
+    </ng-container>
     </tbody>
   </table>
 </div>

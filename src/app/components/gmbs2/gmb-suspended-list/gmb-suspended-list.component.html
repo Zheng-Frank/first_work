@@ -31,7 +31,7 @@
     <td *ngIf="!r.id">
       no match
     </td>
-    <td class="timezoneOffset">{{_timezone.getOffsetNumber(r.timezone) | number : '1.0-0'}}</td>
+    <td class="timezoneOffset">{{r.timezone | timezoneOffset | number : '1.0-0'}}</td>
     <td>
       <app-gmb-account-hotlink [email]="r.email" [appealId]="r.appealId"></app-gmb-account-hotlink>
     </td>

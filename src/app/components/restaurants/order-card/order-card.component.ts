@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
+import { Order, Restaurant } from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from "../../../services/global.service";
@@ -123,7 +123,7 @@ export class OrderCardComponent implements OnInit {
    * this function is used to judge canceled order who submit
    */
   whoCancelOrder(order: Order) {
-    const status = order.orderStatuses.filter(statuses => statuses.status == 'CANCELED');
+    const status = order.statuses.filter(statuses => statuses.status == 'CANCELED');
     if (status.length > 0) {
       return status[0].updatedBy;
     }
@@ -135,7 +135,7 @@ export class OrderCardComponent implements OnInit {
    * @memberof OrderCardComponent
    */
   getOrderCanceledTime(order) {
-    const status = order.orderStatuses.filter(statuses => statuses.status == 'CANCELED');
+    const status = order.statuses.filter(statuses => statuses.status == 'CANCELED');
     if (status.length > 0) {
       return status[0].createdAt;
     }

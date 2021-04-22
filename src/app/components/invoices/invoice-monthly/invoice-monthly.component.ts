@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { environment } from "../../../../environments/environment";
 import { Invoice } from 'src/app/classes/invoice';
 
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertType } from 'src/app/classes/alert-type';
+import {Helper} from '../../../classes/helper';
 @Component({
   selector: 'app-invoice-monthly',
   templateUrl: './invoice-monthly.component.html',
@@ -38,7 +38,7 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   skipAutoInvoicingRestaurants = [];
   restaurantIdMap = {};
-  constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _currencyPipe: CurrencyPipe, private _datePipe: DatePipe) {
     // we start from now and back unti 10/1/2016
     let d = new Date(2016, 9, 1);
     while (d < new Date()) {
@@ -95,7 +95,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         name: 1,
         disabled: 1,
         rateSchedules: 1
-      }     
+      }
     }, 200000);
     restaurants.map(rt => rt.agent = (rt.rateSchedules || []).map(rs => rs.agent).slice(-1)[0]);
     this.restaurantIdMap = restaurants.reduce((map, rt) => (map[rt._id] = rt, map), {});
@@ -562,9 +562,8 @@ export class InvoiceMonthlyComponent implements OnInit {
 
     // let's put a localTimeString to it
     this.overdueRows.map(row => {
-      const time = new Date();
-      time.setHours(time.getHours() + this._timezone.getOffsetToEST((row.restaurant.address || {}).timezone));
-      row.localTimeString = time.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' });
+      const time = Helper.adjustDate(new Date(), (row.restaurant.address || {}).timezone);
+      row.localTimeString = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     });
     // now populate overdueAgents unique agents
     this.overdueAgents = [... this.overdueRows.reduce((myset, row) => (myset.add(this.getRowAgent(row)), myset), new Set())].filter(agent => agent).sort();

@@ -56,7 +56,7 @@
                 <div class="row">
                   <div class="col-4 pl-5">Time Zone</div>
                   <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{restaurant.googleAddress.timezone}}({{_timezone.getOffsetNumber(restaurant.googleAddress.timezone)}})
+                    {{restaurant.googleAddress.timezone}}({{restaurant.googleAddress.timezone | timezoneOffset}})
                   </div>
                 </div>
               </th>
@@ -370,6 +370,26 @@
                     <div class="col-4 pl-5">Hide printing CC</div>
                     <div class="col-7 pl-1" style="font-weight: 600;">
                       {{!!restaurant.hidePrintingCCInfo}}
+                    </div>
+                  </div>
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Prevent RT from canceling orders </div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.disableOrderCancelation}}
+                    </div>
+                  </div>
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">Show order ready estimate</div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!restaurant.hideOrderReadyEstimate}}
                     </div>
                   </div>
                 </th>
@@ -784,6 +804,18 @@
             <label class="col-4 col-form-label pt-0 pl-5">Hide printing CC</label>
             <div class="pl-1 col-7">
               <input type="checkbox" [(ngModel)]="hidePrintingCCInfo">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-4 col-form-label pt-0 pl-5">Prevent RT from canceling orders</label>
+            <div class="pl-1 col-7">
+              <input type="checkbox" [(ngModel)]="disableOrderCancelation">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-4 col-form-label pt-0 pl-5">Show order ready estimate</label>
+            <div class="pl-1 col-7">
+              <input type="checkbox" [checked]="!hideOrderReadyEstimate" (change)="hideOrderReadyEstimate=!$event.target.checked">
             </div>
           </div>
         </ng-container>

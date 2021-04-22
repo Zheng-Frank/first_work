@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Menu, Hour, Mc, Mi, Item, Restaurant } from '@qmenu/ui';
+import { Menu, Mc, Mi, Item, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { MenuCategoryEditorComponent } from '../menu-category-editor/menu-category-editor.component';
@@ -20,7 +20,6 @@ export class MenuComponent implements OnInit {
   @Output() onEdit = new EventEmitter();
   @Output() onVisitMenuOptions = new EventEmitter();
   @Input() menu: Menu;
-  @Input() offsetToEST = 0;
   @Input() restaurant: Restaurant;
 
   @ViewChild('mcModal') mcModal: ModalComponent;
