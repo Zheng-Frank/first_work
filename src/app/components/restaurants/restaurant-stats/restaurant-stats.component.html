@@ -5,8 +5,12 @@
       <th>Value</th>
     </tr>
     <tr *ngFor="let data of statistics | keyvalue">
-      <td>{{data.key}}</td>
-      <td>{{data.value}}</td>
+      <td>{{data.value.label}}</td>
+      <td>{{data.value.value}}</td>
     </tr>
   </tbody>
 </table>
+<pre>
+  {{statistics|json}}
+</pre>
+
