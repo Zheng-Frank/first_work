@@ -13,14 +13,6 @@ import { Restaurant } from '@qmenu/ui';
 export class RestaurantStatsComponent implements OnInit {
 
   @Input() restaurant: any;
-  // statistics = {
-  //   "Total lifetime orders": 0,
-  //   "Average daily orders (since the restaurant has been created)": 0,
-  //   "Total unique customers": 0,
-  //   "New customer orders (as % of orders placed in last 30 days)": "",
-  //   "Total orders from repeat customers": 0,
-  //   "Total orders from new customers": 0
-  // }
   statistics = {
     totalLifetimeOrders:{value:0,label:'Total lifetime orders'},
     averageDailyOrders:{value:0,label:'Average daily orders (since the restaurant has been created)'},
