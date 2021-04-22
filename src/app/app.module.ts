@@ -389,7 +389,7 @@ import { RestaurantStatsComponent } from './components/restaurants/restaurant-st
     IvrAgentAnalysisComponent,
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
-    RestaurantStatsComponent
+    RestaurantStatsComponent,
     QrRestaurantListComponent
   ],
   imports: [
