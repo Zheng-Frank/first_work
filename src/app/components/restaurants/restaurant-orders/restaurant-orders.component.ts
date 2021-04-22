@@ -23,9 +23,9 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('undoRejectModal') undoRejectModal: ModalComponent;
   @ViewChild('banModal') banModal: ModalComponent;
   @ViewChild('adjustModal') adjustModal: ModalComponent;
-
+  @ViewChild('previousCanceledOrderModal') previousCanceledOrderModal:ModalComponent; // this modal is in order to show customer previous canceled order detail
+  previousCanceledOrder:any; // previous canceled order object of one customer
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
-
   // customer:Customer
   @Input() restaurant: Restaurant;
   searchText: string;
@@ -234,7 +234,6 @@ export class RestaurantOrdersComponent implements OnInit {
           $regex: this.searchText
         }
       }
-
     }
     // console.log(JSON.stringify(query))
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -293,6 +292,58 @@ export class RestaurantOrdersComponent implements OnInit {
       return new Order(order);
     });
 
+  }
+   //this order may be don't exist in this 50 orders,we should find it in our database.
+  async handleOnOpenPreviousCanceledOrderModal(order_id){
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        _id:{
+          $oid:order_id
+        }
+      },
+      projection: {//返回除logs以外的所有行
+        logs: 0,
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 1
+    }).toPromise();
+    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+    const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "blacklist",
+      query: {
+        "value": { $in: customerIds },
+        disabled: { $ne: true }
+      },
+      projection: {
+        disabled: 1,
+        reasons: 1, //
+        // reasons: {$slice: -10}, 数组里面前两个
+        value: 1,
+        orders: 1
+      },
+      limit: 100000,
+      sort: {
+        createAt: 1
+      }
+    }).toPromise();
+
+    const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
+    // assemble back to order:
+    this.previousCanceledOrder = orders.map(order => {
+      order.orderNumber = order.orderNumber;
+      order.customer = order.customerObj;
+      order.payment = order.paymentObj;
+      order.id = order._id;
+      order.customerNotice = order.customerNotice || '';
+      order.restaurantNotie = order.restaurantNotie || '';
+      // making it back-compatible to display bannedReasons
+      order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
+      return new Order(order);
+    })[0];
+    this.previousCanceledOrderModal.show();
   }
 
   async handleOnSetNewStatus(data) {

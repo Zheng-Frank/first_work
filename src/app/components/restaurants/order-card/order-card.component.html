@@ -115,7 +115,7 @@
       <div class="text-sm-center"
         *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
         Note: Customer's
-        <a routerLink="/order/{{order.customerPreviousOrderStatus.order}}">previous order</a> was canceled. Reason:
+        <a href="javascript:void(0)" (click)="openPreviousCanceledOrderModal(order.customerPreviousOrderStatus.order)">previous order</a> was canceled. Reason:
         <span class="text-danger">{{order.customerPreviousOrderStatus.comments}}</span>
       </div>
     </small>
