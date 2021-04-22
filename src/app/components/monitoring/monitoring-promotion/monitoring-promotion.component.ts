@@ -18,10 +18,10 @@ export class MonitoringPromotionComponent implements OnInit {
   rts: Restaurant[] = [];
 
   ngOnInit() {
-    this.findRTsWithoutPromotions();
+    this.query();
   }
 
-  async findRTsWithoutPromotions() {
+  async query() {
     this.rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {

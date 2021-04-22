@@ -3,11 +3,15 @@
     <h1 class="text-center">Restaurants without promotion ({{rts.length}})</h1>
   </h2>
   <div class="card-body">
-    <button class="btn btn-primary">Refresh</button>
-    <ul class="rt-list">
-      <li *ngFor="let rt of rts">
-        <a href="/#/restaurants/{{rt._id}}">{{rt.name}}</a>
-      </li>
-    </ul>
+    <button class="btn btn-primary" (click)="query()">Refresh</button>
+
+    <table class="table rt-list">
+      <thead><tr><th>Restaurant</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let rt of rts">
+          <td><a href="/#/restaurants/{{rt._id}}">{{rt.name}}</a></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
