@@ -208,6 +208,7 @@ import { SendPostcardComponent } from "./components/restaurants/seamless-integra
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
 import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
+import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
 import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
 
@@ -389,6 +390,7 @@ import { RestaurantStatsComponent } from './components/restaurants/restaurant-st
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
     RestaurantStatsComponent
+    QrRestaurantListComponent
   ],
   imports: [
     BrowserModule,
