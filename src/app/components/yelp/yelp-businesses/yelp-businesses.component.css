@@ -1,3 +1,7 @@
+.limit-width-height{
+  min-width:200px;
+  max-width:200px;
+}
 .table-row-bg {
   background-color: #f7f7f7;
 }
