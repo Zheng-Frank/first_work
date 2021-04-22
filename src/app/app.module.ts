@@ -210,6 +210,8 @@ import { CsvGeneratorComponent } from './components/restaurants/seamless-integra
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
 import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
+import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
+import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 
 @NgModule({
   declarations: [
@@ -389,6 +391,8 @@ import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
     IvrAgentAnalysisComponent,
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
+    RestaurantStatsComponent,
+    WeirdDataComponent,
     QrRestaurantListComponent
   ],
   imports: [
