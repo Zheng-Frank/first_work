@@ -43,8 +43,10 @@
       <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</span>
       |
       <strong>{{order.type}}</strong> |
-      <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong> 
-      <strong *ngIf="order.payment.paymentType === 'CREDITCARD'"> | {{order.payment.method}}</strong>
+      <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong> 
+      <span *ngIf="order.payment.paymentType === 'CREDITCARD'"> | </span>
+      <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method != 'STRIPE'">{{order.payment.method}}</strong>
+      <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'STRIPE'">RESTAURANT</strong>
       <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
       <span *ngIf="order?.paymentObj?.stripeObject?.spreedlyGatewayToken"> (SPRE)</span>
       <span *ngIf="order?.paymentObj?.paypalClientId"> (PAYPAL)</span>
