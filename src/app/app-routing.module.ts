@@ -95,7 +95,7 @@ const routes: Routes = [
   { path: 'ivr/agent', component: IvrAgentComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
   { path: 'onboarding', component: MonitoringOnboardingComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
   { path: 'yelp', component: YelpDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
-  { path: 'yelp-businesses', component: YelpBusinessesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB','CSR'] } },
+  { path: 'yelp-businesses', component: YelpBusinessesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmbs', component: Gmb2DashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'couriers', component: CourierDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },

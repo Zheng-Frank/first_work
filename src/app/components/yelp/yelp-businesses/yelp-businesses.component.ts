@@ -20,8 +20,8 @@ export class YelpBusinessesComponent implements OnInit {
   refreshing = false;
   username = '';
   restaurantStatus = "All";
-  Q_Y_WebsiteStatus = "All"; //Add filter to Yelp Biz page to filter for "Q / Y website" condition，it is the sign.
-  searchText; //restaurant id 
+  Q_Y_WebsiteStatus = "All"; // Add filter to Yelp Biz page to filter for "Q / Y website" condition，it is the sign.
+  searchText; // restaurant id 
   pagination = false;
 
   myColumnDescriptors = [
@@ -154,7 +154,7 @@ export class YelpBusinessesComponent implements OnInit {
         this.filteredRows = this.flatRows;
         break;
     }
-    //filter r for "Q / Y website" condition
+    // filter r for "Q / Y website" condition
     switch (this.Q_Y_WebsiteStatus) {
       case 'Q=Y':
         this.filteredRows = this.filteredRows.filter(r =>  r.qmenuWebsite === r.website);
@@ -172,11 +172,11 @@ export class YelpBusinessesComponent implements OnInit {
     this.refreshing = false;
 
   }
-   //search restaurant with id
+   // search restaurant with id
   search(){
     if(this.searchText != ""){
       this.filteredRows = this.flatRows.filter(r=>r._id === this.searchText);
-    }else{ //if there are not any searchText in the input ,should show the filter content with the other selects
+    }else{ // if there are not any searchText in the input ,should show the filter content with the other selects
       this.filter();
     }
   }
