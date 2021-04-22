@@ -155,7 +155,9 @@ export class SchemasComponent implements OnInit {
       for (let i in json) {
         if (json[i] && (typeof (json[i]) == "string" || typeof (json[i]) == "number" || typeof (json[i]) == "boolean" || json[i] == null)) {
           json[i] = "";
-          model[key][i] = json[i];
+          if (key != "" && i != "") {
+            model[key][i] = json[i];
+          }
           // console.log('i:'+i);
           // console.log(JSON.stringify(model[key]));
         }
