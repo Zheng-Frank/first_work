@@ -1,5 +1,4 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
-import { Hour } from '@qmenu/ui';
 
 @Component({
   selector: 'app-hour-picker-simple',

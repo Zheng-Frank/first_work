@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
@@ -54,14 +54,10 @@ export class GmbBizListComponent implements OnInit {
         score: 1,
         "deliverySettings": { $slice: -1 },
         "rateSchedules": { $slice: -1 },
-        "rateSchedules.agent": 1,
         "serviceSettings.name": 1,
         "serviceSettings.paymentMethods": 1,
-        "deliverySettings.charge": 1,
         "menus.hours": 1,
         "menus.disabled": 1,
-        "rateSchedules.rate": 1,
-        "rateSchedules.fixed": 1,
         "web.qmenuWebsite": 1,
         "web.bizManagedWebsite": 1,
         "web.useBizWebsite": 1,
@@ -80,8 +76,6 @@ export class GmbBizListComponent implements OnInit {
         "locations.address": 1,
         "locations.status": 1,
         "locations.role": 1,
-        "locations.statusHistory.time": 1,
-        "locations.statusHistory.status": 1
       }
     }, 30);
 

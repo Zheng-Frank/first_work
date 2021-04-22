@@ -5,7 +5,6 @@ import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Courier } from 'src/app/classes/courier';
 import { CourierPricing } from 'src/app/classes/courier-pricing';
-import { CourierPricingItem } from 'src/app/classes/courier-pricing-item';
 
 @Component({
   selector: 'app-courier-dashboard',

@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, NgZone, ViewChild } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { CreditCard, Address } from '@qmenu/ui';
+import { CreditCard } from '@qmenu/ui';
 declare var FattJs: any;
 
 @Component({

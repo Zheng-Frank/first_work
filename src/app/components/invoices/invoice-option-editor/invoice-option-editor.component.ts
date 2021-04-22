@@ -1,8 +1,6 @@
 import { Component, OnInit, Input, Output, ViewChild, EventEmitter } from '@angular/core';
-import { Validators, FormGroup, FormControl } from '@angular/forms';
 import { RadioGroupComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Restaurant,Order,Payment } from '@qmenu/ui';
-import { Invoice } from '../../../classes/invoice';
 
 @Component({
   selector: 'app-invoice-option-editor',

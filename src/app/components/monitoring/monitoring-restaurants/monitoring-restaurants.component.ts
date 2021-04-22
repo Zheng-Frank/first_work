@@ -129,9 +129,6 @@ export class MonitoringRestaurantsComponent implements OnInit {
         "web.ignoreGmbOwnershipRequest": 1,
         "web.agreeToCorporate": 1,
         diagnostics: { $slice: 1 },
-        // As of Mongo 4.4, querying for a property and one of its sub-properties causes a collision error.
-        // "diagnostics.time": 1,
-        // "diagnostics.result": 1,
         score: 1
       }
     }, 4000);

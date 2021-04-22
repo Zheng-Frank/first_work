@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import {Menu, Hour, Restaurant} from '@qmenu/ui';
+import { Menu, Hour, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { HttpClient } from '@angular/common/http';

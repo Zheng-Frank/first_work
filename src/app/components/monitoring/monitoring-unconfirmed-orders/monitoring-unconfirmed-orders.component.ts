@@ -1,9 +1,8 @@
-import { Component, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
-import { Restaurant, Order } from '@qmenu/ui'
+import { Order } from '@qmenu/ui'
 import { } from '@qmenu/ui'
 
 @Component({
@@ -135,8 +134,6 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         orderNumber: 1,
         "restaurantObj.name": 1,
         "restaurantObj._id": 1,
-        "statuses.status": 1,
-        "statuses.createdAt": 1,
         "orderItems": 1,
         type: 1,
         "paymentObj.method": 1,

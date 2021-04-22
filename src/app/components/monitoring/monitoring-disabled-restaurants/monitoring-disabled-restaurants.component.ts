@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
 
 @Component({
     selector: 'app-monitoring-disabled-restaurants',
