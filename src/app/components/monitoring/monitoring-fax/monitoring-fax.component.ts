@@ -2,6 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+enum FaxProblemFilterTypes{
+  ALL = 'All',
+  SEND_INVOICE_ONLY_FAX = 'Send invoice only fax',
+  SEND_ORDER_ONLY_FAX = 'Send order only fax'
+}
 @Component({
   selector: 'app-monitoring-fax',
   templateUrl: './monitoring-fax.component.html',
@@ -28,8 +33,8 @@ export class MonitoringFaxComponent implements OnInit {
       label: "Succeeded Once"
     }
   ];
-  filterTypes = ['All', 'Send invoice only fax', 'Send order only fax'];
-  type = 'All';//  concrete filter type
+  filterTypes = [FaxProblemFilterTypes.ALL, FaxProblemFilterTypes.SEND_INVOICE_ONLY_FAX, FaxProblemFilterTypes.SEND_ORDER_ONLY_FAX];
+  type = FaxProblemFilterTypes.ALL;//  concrete filter type
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -37,11 +42,11 @@ export class MonitoringFaxComponent implements OnInit {
   }
   //when the select change we can show three different type of fax problems 
   filterFaxProblemByType() {
-    if (this.type === 'All') {
+    if (this.type === FaxProblemFilterTypes.ALL) {
       this.filterRows = this.rows;
-    } else if (this.type === 'Send invoice only fax') {
+    } else if (this.type === FaxProblemFilterTypes.SEND_INVOICE_ONLY_FAX) {
       this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels && r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length === 0);
-    } else if (this.type === 'Send order only fax') {
+    } else if (this.type === FaxProblemFilterTypes.SEND_ORDER_ONLY_FAX) {
       this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels && r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length === 0);
     }
   }
