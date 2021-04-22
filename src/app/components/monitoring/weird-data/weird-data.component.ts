@@ -10,25 +10,25 @@ import { Router } from '@angular/router';
 })
 export class WeirdDataComponent implements OnInit {
 
-  pickupTimeEstimateExtrmeList: any;
-  deliveryTimeEstimateExtrmeList: any;
-  taxRateExtrmeList: any;
-  ccMinimumChargeExtrmeList: any;
-  pickupMinimumExtrmeList: any;
-  deliveryMinimumExtrmeList: any;
-  deliveryMaxDistanceExtrmeList: any;
-  ccProcessingFlatFeeExtrmeList: any;
-  ccProcessingRateExtrmeList: any;
-  surchargeAmountExtrmeList: any;
+  pickupTimeEstimateExtremeList: any;
+  deliveryTimeEstimateExtremeList: any;
+  taxRateExtremeList: any;
+  ccMinimumChargeExtremeList: any;
+  pickupMinimumExtremeList: any;
+  deliveryMinimumExtremeList: any;
+  deliveryMaxDistanceExtremeList: any;
+  ccProcessingFlatFeeExtremeList: any;
+  ccProcessingRateExtremeList: any;
+  surchargeAmountExtremeList: any;
 
   constructor(private _api: ApiService, private _router: Router) { }
 
   ngOnInit() {
-    this.populateExtrmeData();
+    this.populateExtremeData();
   }
-  //note:some restaurant has some extrme problem data,we should could the data and fix it
-  async populateExtrmeData() {
-    this.pickupTimeEstimateExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+  //note:some restaurant has some Extreme problem data,we should could the data and fix it
+  async populateExtremeData() {
+    this.pickupTimeEstimateExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -38,7 +38,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.deliveryTimeEstimateExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.deliveryTimeEstimateExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -48,7 +48,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.taxRateExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.taxRateExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -58,7 +58,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.ccMinimumChargeExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.ccMinimumChargeExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -68,7 +68,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.pickupMinimumExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.pickupMinimumExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -78,7 +78,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.deliveryMinimumExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.deliveryMinimumExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -88,7 +88,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.deliveryMaxDistanceExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.deliveryMaxDistanceExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -98,7 +98,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.ccProcessingFlatFeeExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.ccProcessingFlatFeeExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -108,7 +108,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.ccProcessingRateExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.ccProcessingRateExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
@@ -118,7 +118,7 @@ export class WeirdDataComponent implements OnInit {
       limit: 20
     }).toPromise();
 
-    this.surchargeAmountExtrmeList = await this._api.get(environment.qmenuApiUrl + "generic", {
+    this.surchargeAmountExtremeList = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query:{
         disabled:{$ne:true}
