@@ -22,17 +22,6 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
-  async findRTsWithoutPromotions() {
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      projection: {
-        "promotions": 1,
-        name: 1
-      },
-    }, 3000);
-    console.log(restaurants.filter(r => !r.promotions || !r.promotions.length).map(r => r.name));
-  }
-
   async fixBadMenuHours() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
