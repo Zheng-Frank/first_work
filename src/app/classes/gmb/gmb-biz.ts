@@ -1,5 +1,3 @@
-import { GmbOwnership } from "./gmb-ownership";
-
 /**
  * A business at google
  */

@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Order } from '@qmenu/ui';
+import { Order, OrderStatus } from '@qmenu/ui';
 const STATUS_SEQUENCE = [
   'SUBMITTED',
   'CONFIRMED',
@@ -23,9 +23,9 @@ export class OrderActionBarComponent {
   }
 
   getStatusArray(): any[] {
-    const oses = this.order["statuses"] || [];
+    const oses = this.order.statuses || [];
     oses.sort((o1, o2) => new Date(o1.createdAt || 0).valueOf() - new Date(o2.createdAt || 0).valueOf());
-    const lastStatusIndex = STATUS_SEQUENCE.indexOf((oses[oses.length - 1] || {}).status);
+    const lastStatusIndex = STATUS_SEQUENCE.indexOf((oses[oses.length - 1] || {} as OrderStatus).status);
 
     let statusArray: any[] = [];
     statusArray.push({

@@ -21,7 +21,7 @@
       </div>
     </td>
     <td class="align-middle">
-      <div *ngIf="rt.comebackDate !== null">-{{rt.comebackDate | yMMMd}}</div>
+      <div *ngIf="rt.comebackDate !== null">-{{rt.comebackDate | dateTz: 'MMM d, yyyy' : rt.googleAddress?.timezone}}</div>
       <div *ngIf="rt.comebackDate === null">Unknown</div>
     </td>
   </tr>

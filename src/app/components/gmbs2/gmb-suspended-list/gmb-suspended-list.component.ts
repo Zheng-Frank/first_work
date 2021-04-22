@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { AlertType } from '../../../classes/alert-type';
 
 @Component({
@@ -54,7 +53,7 @@ export class GmbSuspendedListComponent implements OnInit {
         }
     ];
 
-    constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) {
+    constructor(private _api: ApiService, private _global: GlobalService) {
         this.refresh();
         // this.test();
     }

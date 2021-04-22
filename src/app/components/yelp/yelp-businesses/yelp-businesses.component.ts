@@ -4,7 +4,6 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { environment } from 'src/environments/environment';
 import { AlertType } from 'src/app/classes/alert-type';
-import { TimezoneService } from '../../../services/timezone.service';
 
 @Component({
   selector: 'app-yelp-businesses',
@@ -60,7 +59,7 @@ export class YelpBusinessesComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.populate();
     this.username = this._global.user.username;
 

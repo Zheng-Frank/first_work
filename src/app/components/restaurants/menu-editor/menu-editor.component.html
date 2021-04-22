@@ -15,8 +15,8 @@
 
     <div *ngIf="selectedOption === 'Copy from existing Menu'">
       <label>Choose Menu:</label>
-      <q-dropdown [items]="createArrayOfMenuNames()" 
-      [placeholder]="'Select a menu...'" 
+      <q-dropdown [items]="createArrayOfMenuNames()"
+      [placeholder]="'Select a menu...'"
       (selectedItemChange)="copyMenu($event)"> </q-dropdown>
     </div>
   </div>
@@ -49,8 +49,7 @@
         restaurant?.googleAddress?.timezone}}</span>
       <span *ngIf="hour.occurence !== 'WEEKLY'">{{hour.fromTime | dateTz: 'shortDate' :
         restaurant?.googleAddress?.timezone}}</span>
-      {{hour.fromTime | dateTz : 'shortTime' : restaurant?.googleAddress?.timezone}} -
-      {{hour.toTime | dateTz : 'shortTime' : restaurant?.googleAddress?.timezone}}
+      {{hour.toHourString(restaurant?.googleAddress?.timezone)}}
     </div>
     <div class="pull-xs-right"><button type="button" class="btn btn-link text-danger pt-0 pb-0"
         (click)="deleteHour(hour)">X</button></div>

@@ -1,11 +1,10 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment'
 import { GlobalService } from '../../../services/global.service';
 import { Helper } from 'src/app/classes/helper';
 import { AlertType } from 'src/app/classes/alert-type';
 import { CacheService } from 'src/app/services/cache.service';
-import { OWL_DATETIME_VALIDATORS } from 'ng-pick-datetime/date-time/date-time-picker-input.directive';
 @Component({
   selector: 'app-email-code-reader',
   templateUrl: './email-code-reader.component.html',

@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
 
 @Component({
     selector: 'app-monitoring-disabled-restaurants',
@@ -35,7 +34,8 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
             projection: {
                 name: 1,
                 _id: 1,
-                'googleAddress.formatted': 1,
+                'googleAddress.formatted_address': 1,
+                'googleAddress.timezone': 1,
                 'rateSchedules':1,
                 createdAt: 1,
                 updatedAt: 1

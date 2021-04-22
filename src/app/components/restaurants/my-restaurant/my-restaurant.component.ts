@@ -4,7 +4,6 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";;
 import { Invoice } from 'src/app/classes/invoice';
-import { RouterLinkWithHref } from '@angular/router';
 
 @Component({
   selector: 'app-my-restaurant',

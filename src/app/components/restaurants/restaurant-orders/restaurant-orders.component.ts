@@ -1,17 +1,11 @@
-import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
-import { Injectable, EventEmitter, NgZone } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Order, Customer, TimezoneHelper } from '@qmenu/ui';
-import { Invoice } from '../../../classes/invoice';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
+import { EventEmitter, NgZone } from '@angular/core';
+import { Restaurant, Order,TimezoneHelper } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Observable, zip } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { OrderItem } from "@qmenu/ui";
 import { GlobalService } from 'src/app/services/global.service';
-import { Key } from 'protractor';
 import { OrderCardComponent } from '../order-card/order-card.component';
 
 
@@ -79,7 +73,6 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-  
   /**
    *
    * this function is used to filter order by createdAt
@@ -157,7 +150,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
@@ -177,10 +169,10 @@ export class RestaurantOrdersComponent implements OnInit {
     if (this.orders) {
       this.orders.forEach(o => {
         if (o.id === orderStatus.order) {
-          if (!o.orderStatuses) {
-            o.orderStatuses = [];
+          if (!o.statuses) {
+            o.statuses = [];
           }
-          o.orderStatuses.push(orderStatus);
+          o.statuses.push(orderStatus);
         }
       });
     }
@@ -242,7 +234,7 @@ export class RestaurantOrdersComponent implements OnInit {
         query['customerObj.phone'] = {
           $regex: queryStr
         }
-      } else { //the situation of the phone number don't have '-'  
+      } else { //the situation of the phone number don't have '-'
         query['customerObj.phone'] = {
           $regex: this.searchText
         }
@@ -265,10 +257,10 @@ export class RestaurantOrdersComponent implements OnInit {
     // get blocked customers and assign back to each order blacklist reasons
     /**
      * orders.filter(function(){
-     *   
+     *
      *  return true;
      * })
-     * 
+     *
      */
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
@@ -297,7 +289,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
@@ -329,7 +320,7 @@ export class RestaurantOrdersComponent implements OnInit {
       value: os
     }).subscribe(
       result => {
-        data.order.orderStatuses.push(os);
+        data.order.statuses.push(os);
       },
       error => {
         alert('Update order status failed');
@@ -576,7 +567,7 @@ export class RestaurantOrdersComponent implements OnInit {
           field: "reasons",
           value: [...new Set([...item.reasons, ...reasons])]
         }).toPromise();
-        //      ${environment.qmenuApiUrl}generic 
+        //      ${environment.qmenuApiUrl}generic
         await this._api.patch(`${environment.appApiUrl}app`, {
           resource: 'blacklist',
           query: {
@@ -588,7 +579,7 @@ export class RestaurantOrdersComponent implements OnInit {
         }).toPromise();
       }
     }
-    //this.okBanOld(reasons);//okBanOldCustomer() 
+    //this.okBanOld(reasons);//okBanOldCustomer()
     this.banModal.hide();// 隐藏模块（hide the dialog）
     this.populateOrders(); //刷新订单界面(refresh order bound)
   }
@@ -600,7 +591,7 @@ export class RestaurantOrdersComponent implements OnInit {
         orderId: event.order.id,
         comments: event.comments
       }).toPromise();
-      (order.orderStatuses || []).push({
+      (order.statuses || []).push({
         status: 'CANCELED',
         comments: event.comments,
         createdAt: new Date()

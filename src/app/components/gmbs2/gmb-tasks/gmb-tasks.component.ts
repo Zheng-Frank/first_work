@@ -41,14 +41,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "request.appealId": 1,
                 "request.refreshedAt": 1,
                 "request.ownerDeclined": 1,
-                "request.statusHistory.status": 1,
-                "request.statusHistory.isError": 1,
                 "request.statusHistory": { $slice: 1 },
                 "request.verificationHistory": { $slice: 1 },
                 "request.voHistory": { $slice: 2 },
-                "request.voHistory.time": 1,
-                "request.voHistory.options.verificationMethod": 1,
-                "request.voHistory.options.emailData.domainName": 1,
                 "notification_status": 1,
             }
         }, 1000);

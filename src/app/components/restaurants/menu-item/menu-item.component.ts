@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Mc, Mi, MenuOption, Menu, Restaurant} from '@qmenu/ui';
+import { Mi, MenuOption, Menu, Restaurant} from '@qmenu/ui';
 
 @Component({
   selector: 'app-menu-item',
