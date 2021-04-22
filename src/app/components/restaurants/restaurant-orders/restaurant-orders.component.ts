@@ -343,8 +343,7 @@ export class RestaurantOrdersComponent implements OnInit {
      change-to-pickup
    */
   async handleOnChangeOrderTypes() {
-    console.log(JSON.stringify(this.cardSpecialOrder ));
-    if (this.type == 'Restaurant self-deliver') {
+    if (this.type === 'Restaurant self-deliver') {
       try {
         await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
           orderId: this.cardSpecialOrder._id
@@ -352,7 +351,7 @@ export class RestaurantOrdersComponent implements OnInit {
       } catch (error) {
         console.log("errors:"+JSON.stringify(error));
       }
-    } else {
+    } else if(this.type === 'Customer Pickup') {
       try {
         await this._api.post(environment.appApiUrl + 'biz/orders/change-to-pickup', {
           orderId: this.cardSpecialOrder ._id
