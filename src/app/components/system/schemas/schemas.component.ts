@@ -1,3 +1,4 @@
+import { AlertType } from './../../../classes/alert-type';
 import { environment } from './../../../../environments/environment';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
@@ -12,41 +13,34 @@ export class SchemasComponent implements OnInit {
   currentSchema: any;
   currentDbName: string;
   isCopiedToClipboard = false;
-  isShowLastModel = false;// show lastest json model schemas.
   schemas;
-  dbNames = ['customer', 'order', 'restaurant'];
+  dbNames = [];
+  dataCount = 100;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.isCopiedToClipboard = false;
     this.schemas = this._global.superset; //we can use the superset to see the profile of a mongodb document
+    this.dbNames = this._global.superset.map(s=>s.dbName);
   }
   //update a schema when it is selected by dbName
   async updateSelectedSchema(currentSchema) {
     if (!currentSchema) {
       return alert('please select a json schema before!');
     } else {
-      if (this.isShowLastModel) {
-        console.log(currentSchema.dbName);
-        const last = await this._api.get(`${environment.qmenuApiUrl}generic`, {
-          resource: currentSchema.dbName,
-          sort: { updatedAt: -1 },
-          limit: 1
-        }).toPromise();
-        console.log(JSON.stringify(last));
-        this.currentSchema.lastestSchema = this.unionJson(last);
-        this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['lastestSchema'] = this.currentSchema.lastestSchema;
-      } else {
-        console.log(currentSchema.dbName);
+      try{
         const full = await this._api.get(`${environment.qmenuApiUrl}generic`, {
           resource: currentSchema.dbName,
           sort: { updatedAt: -1 },
-          limit: 10
+          limit: this.dataCount
         }).toPromise();
-        console.log(JSON.stringify(full));
         this.currentSchema.fullSchema = this.unionJson(full);
         this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['fullSchema'] = this.currentSchema.fullSchema;
+        this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['example'] =  full[0] || 0;
+      }catch(e){
+        this._global.publishAlert(AlertType.Danger,JSON.stringify(e));
       }
+      
     }
   }
   changeCollectionView() {
@@ -64,12 +58,7 @@ export class SchemasComponent implements OnInit {
     if (!currentSchema) {
       return alert('please select a json schema before!');
     } else {
-      let text = '';
-      if (this.isShowLastModel) {
-        text = JSON.stringify(currentSchema.lastestSchema);
-      } else {
-        text = JSON.stringify(currentSchema.fullSchema);
-      }
+      let text = JSON.stringify(currentSchema.fullSchema);
       const handleCopy = (e: ClipboardEvent) => {
         // clipboardData 可能是 null
         e.clipboardData && e.clipboardData.setData('text/plain', text);
@@ -149,17 +138,18 @@ export class SchemasComponent implements OnInit {
 
   loadTreeJson(json, key, model) {
     if (typeof (json) == 'object') {
-      if (model[key] == undefined) {
-        model[key] = json;
+      if (model&&model[key] == undefined) {
+          model[key] = json;
       }
       for (let i in json) {
         if (json[i] && (typeof (json[i]) == "string" || typeof (json[i]) == "number" || typeof (json[i]) == "boolean" || json[i] == null)) {
           json[i] = "";
-          if (key != "" && i != "") {
+          if (model[key]) {
+            // console.log('i:' + i);
+            // console.log(JSON.stringify(model[key]));
             model[key][i] = json[i];
           }
-          // console.log('i:'+i);
-          // console.log(JSON.stringify(model[key]));
+
         }
         if (this.isArray(json) && typeof (json[i]) != 'object') {
 
@@ -168,7 +158,9 @@ export class SchemasComponent implements OnInit {
             model[key][i] = json[i]; //0,1,2 arr["image"][0]=""; 
           }
         } else {
-          this.loadTreeJson(json[i], i, model[key]); //递归找到最深处 model[key] 很大概率是一个数组  object 0 "image" ... key
+          if(model[key]){
+            this.loadTreeJson(json[i], i, model[key]); //递归找到最深处 model[key] 很大概率是一个数组  object 0 "image" ... key
+          }
         }
       }
     }
