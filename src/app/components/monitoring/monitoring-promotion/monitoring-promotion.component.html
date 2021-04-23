@@ -6,10 +6,11 @@
     <button class="btn btn-primary" (click)="query()">Refresh</button>
 
     <table class="table rt-list">
-      <thead><tr><th>Restaurant</th></tr></thead>
+      <thead><tr><th>Restaurant</th><th>Gmb Owner</th></tr></thead>
       <tbody>
         <tr *ngFor="let rt of rts">
           <td><a target="_blank" href="/#/restaurants/{{rt._id}}">{{rt.name}}</a></td>
+          <td>{{rt.googleListing?.gmbOwner}}</td>
         </tr>
       </tbody>
     </table>

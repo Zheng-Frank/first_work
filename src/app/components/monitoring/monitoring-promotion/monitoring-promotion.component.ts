@@ -28,7 +28,7 @@ export class MonitoringPromotionComponent implements OnInit {
         'promotions.1': {$exists: false},
         disabled: false
       },
-      projection: {promotions: 1, name: 1, _id: 1},
+      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1},
     }, 3000);
   }
 
