@@ -1,5 +1,4 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { isType } from '@angular/core/src/type';
 import { Promotion } from '@qmenu/ui';
 
 @Component({

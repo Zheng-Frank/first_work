@@ -4,11 +4,7 @@ import { User } from '../../../classes/user';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Action } from '../../../classes/tasks/action';
 import { ApiService } from '../../../services/api.service';
-import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
-import { AlertType } from '../../../classes/alert-type';
-
-
 
 @Component({
   selector: 'app-task-action-bar',

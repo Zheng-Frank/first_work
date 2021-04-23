@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Order, Payment, CreditCard, Customer, Restaurant } from '@qmenu/ui';
+import { Order, Restaurant } from '@qmenu/ui';
 import { ConfirmComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from "../../../services/global.service";
@@ -26,6 +26,7 @@ export class OrderCardComponent implements OnInit {
   @Output() onUndoReject = new EventEmitter();
   @Output() onBan = new EventEmitter();
   @Output() onChangeToSelfDelivery = new EventEmitter();
+  @Output() onOpenPreviousCanceledOrderModal = new EventEmitter();
 
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
@@ -40,6 +41,9 @@ export class OrderCardComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+  openPreviousCanceledOrderModal(order_id){
+    this.onOpenPreviousCanceledOrderModal.emit(order_id);
   }
   /**
    * When click on "copy" button, should put the following text in the user's clipboard:

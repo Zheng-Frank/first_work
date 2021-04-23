@@ -5,7 +5,6 @@ import { environment } from 'src/environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Helper } from '../../../classes/helper';
-import { componentRefresh } from '@angular/core/src/render3/instructions';
 import { HttpClient } from '@angular/common/http';
 
 @Component({

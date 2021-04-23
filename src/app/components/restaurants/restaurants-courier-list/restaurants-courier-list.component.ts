@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, ViewChild } from '@angular/core';
 import { GlobalService } from "../../../services/global.service";
 import { User } from '../../../classes/user';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";

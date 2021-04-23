@@ -3,7 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { zip, Observable } from "rxjs";
+import { zip } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import * as FileSaver from 'file-saver';
 

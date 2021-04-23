@@ -1,14 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Invoice } from '../../../classes/invoice';
 import { ApiService } from "../../../services/api.service";
-import { Restaurant, Order, Payment, Address } from '@qmenu/ui';
-import { InvoiceEditorComponent } from '../invoice-editor/invoice-editor.component';
+import { Address } from '@qmenu/ui';
 import { InvoiceOptionEditorComponent } from '../invoice-option-editor/invoice-option-editor.component';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { GlobalService } from '../../../services/global.service';
 import { zip } from "rxjs";
-import { mergeMap } from "rxjs/operators";
 import { environment } from "../../../../environments/environment";
 import { AlertType } from "../../../classes/alert-type";
 import { CacheService } from '../../../services/cache.service';
