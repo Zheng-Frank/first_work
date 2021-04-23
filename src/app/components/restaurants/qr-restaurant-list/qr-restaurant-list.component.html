@@ -1,4 +1,4 @@
-<h3>List of Restaurants with QR Dine-In</h3>
+<h3>List of Restaurants with QR Dine-In ({{qrFilterRestaurantListRows?.length || 0}})</h3>
 
 <div class="pb-2 text-right">
   <div class="float-right form-inline mt-2 ml-2">
@@ -23,11 +23,16 @@
   <q-table [rows]="qrFilterRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
     [pageSize]="pagination ? 100 : 100000">
     <tr *tableRowTemplate="let restaurant;">
-      <td>{{qrRestaurantListRows.indexOf(restaurant) + 1}}</td>
+      <td>{{qrFilterRestaurantListRows.indexOf(restaurant) + 1}}</td>
       <td>
         <a href="#/restaurants/{{restaurant._id}}" target="_blank">{{restaurant.name}}</a>
         <br>
         {{restaurant.googleAddress?.formatted_address}}
+        <br>
+        <div *ngFor="let menu of qrFilterRestaurantListRows.menu">
+          {{menu.name}} ({{menu.menuTarget || None}})
+        </div>
+       
       </td>
       <td>
           {{restaurant.qrOrderNumber}}

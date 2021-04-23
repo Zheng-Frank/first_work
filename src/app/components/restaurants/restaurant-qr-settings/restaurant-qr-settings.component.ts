@@ -31,4 +31,5 @@ export class RestaurantQrSettingsComponent {
     this.restaurant['qrSettings'].viewOnly = this.viewOnly;
     this.editing = false;
   }
+  
 }

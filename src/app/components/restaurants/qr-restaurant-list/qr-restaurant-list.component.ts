@@ -34,6 +34,17 @@ export class QrRestaurantListComponent implements OnInit {
     }
 
   ];
+  targets = [
+    {
+      value: 'ONLINE_ONLY',
+      text: 'Online only'
+    }, {
+      value: 'DINE_IN_ONLY',
+      text: 'Dine-in only'
+    }, {
+      value: 'ALL',
+      text: 'Both online and dine-in'
+    }];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -89,6 +100,9 @@ export class QrRestaurantListComponent implements OnInit {
       let restaurant = this.qrRestaurantListRows[i];
       let tempOrders = orders.filter(o => o.orderObj.restaurantObj._id === restaurant._id);
       this.qrRestaurantListRows[i].qrOrderNumber = tempOrders.length;
+      if(this.qrRestaurantListRows[i].targetCustomer){
+        this.qrRestaurantListRows[i].menus.menuTarget = this.targets[this.qrRestaurantListRows[i].targetCustomer];
+      }
     }
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
 

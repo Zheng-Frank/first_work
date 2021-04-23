@@ -5,21 +5,21 @@
     <li class="list-group-item">
       <div *ngIf="!editing">
         <div *ngIf="restaurant?.qrSettings?.viewOnly">
-          <div class="text-danger" >
-            View Menu Only (CUSTOMER CAN ONLY VIEW MENUS BUT NOT PLACE ORDERS)
-          </div>
-          <br>
-          <span>Enabled : false</span>
+          Enabled: false<br>
+          View Menu Only: true<br>
+          <small class="text-danger" >Customer can only view menus but not place orders if this setting is on</small><br>
         </div>
         <div *ngIf="restaurant?.qrSettings && !restaurant?.qrSettings?.viewOnly">
-          Enabled : true
+          Enabled: true<br>
+          View Menu Only: false
         </div>
       </div>
       <div *qIf="editing">
-        <q-toggle [(ngModel)]="viewOnly" (change)="toggleViewOnly()"></q-toggle> View Only?
+        <q-toggle [(ngModel)]="viewOnly" ></q-toggle> View Only?
         <div class="form-group row text-right">
           <div class="col-12">
             <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+            <button class="btn btn-primary" (click)="toggleViewOnly()">OK</button>
           </div>
         </div>
       </div>
