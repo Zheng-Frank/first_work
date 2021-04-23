@@ -236,6 +236,23 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.innerWidth = window.innerWidth;
   }
 
+  toggleLogHistory(id) {
+    for (let i = 0; i < this.currentRestaurants.length; i++) {
+      if (this.currentRestaurants[i]._id === id) {
+        this.currentRestaurants[i].showLogHistory = !this.currentRestaurants[i]
+          .showLogHistory;
+      }
+    }
+  }
+
+  showLogHistory(id) {
+    for (let i = 0; i < this.currentRestaurants.length; i++) {
+      if (this.currentRestaurants[i]._id === id) {
+        return this.currentRestaurants[i].showLogHistory;
+      }
+    }
+  }
+
   async ngOnInit() {
     this.innerWidth = window.innerWidth;
     console.log("INNER WIDTH ", this.innerWidth)
