@@ -52,7 +52,7 @@ export class QrRestaurantListComponent implements OnInit {
     d) amount/percent is NOT 0.
    */
   filterQrFullyConfigured() {
-    if (this.filterQrFullyConfigured) {
+    if (this.qrFullyConfigured) {
       this.qrFilterRestaurantListRows = this.qrRestaurantListRows
         .filter(qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
           && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0);
