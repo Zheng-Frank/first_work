@@ -71,6 +71,25 @@ export class NotificationDashboardComponent implements OnInit {
 
   }
 
+  miscTemplateDetails = {
+    "adjust-order-refund": {
+      description: "The notification sent to a customer when an adjustment to their order results in money returning to the customer",
+      sentTo: "customer"
+    }, 
+    "adjust-order-charge": {
+      description: "The notification sent to a customer when an adjustment to their order results in additional charges to the customer",
+      sentTo: "customer"
+    },
+    "change-to-pickup": {
+      description: "The notification sent to a customer when their order is changed from delivery to pickup",
+      sentTo: "customer"
+    }, 
+    "check-order-delivery-status": {
+      description: "A delivery order status update for customers",
+      sentTo: "customer"
+    }, 
+  }
+
 
   @ViewChild('notificationModal') notificationModal: ModalComponent;
   @ViewChild('phoneNumberModal') phoneNumberModal: ModalComponent;
@@ -218,7 +237,7 @@ export class NotificationDashboardComponent implements OnInit {
     mergedMessage = mergedMessage.replace(/_customerLastName_/g, sampleOrderData.customerObj.lastName);
     mergedMessage = mergedMessage.replace(/_orderNumber_/g, sampleOrderData.orderNumber);
     mergedMessage = mergedMessage.replace(/_restaurantName_/g, sampleOrderData.restaurantObj.name);
-    mergedMessage = mergedMessage.replace(/_orderDetailsURL_/g, 'https://qa-customer.herokuapp.com/index.html#/order/' + sampleOrderData._id);
+    mergedMessage = mergedMessage.replace(/_orderDetailsURL_/g, "https://qmenu.biz/sc6l8");
     mergedMessage = mergedMessage.replace(/_newLine_/g, '\n');
 
     const orderReadyEST = `Order ready est: ${new Date(sampleOrderData.timeToDeliverEstimate).toLocaleTimeString('en-US', {

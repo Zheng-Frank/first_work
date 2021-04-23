@@ -95,6 +95,33 @@
     </div>
 </div>
 
+<hr>
+
+<h6> Miscellaneous Notifications</h6>
+<span> Merge fields: _customerFirstName_, _customerLastName_, _restaurantName_, _orderNumber_, _orderTimeEstimate_,
+ _orderDetailsURL_, _newLine_
+</span>
+<div class="d-flex flex-row flex-wrap" *ngIf="system">
+    <div *ngFor="let t of system.miscTemplates; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
+        <div class="card-body">
+            <h4 class="card-title ml-2">{{t.name}}</h4>
+            <div class="row ml-2">
+            </div>
+            <hr>
+            <p class="card-text">
+                <small>{{miscTemplateDetails[t.name].description}}</small>
+            </p>
+            <hr>
+            <p style="overflow:auto">
+                {{t.content}}
+            </p>
+            <button class="btn btn-primary" (click)="openPhoneNumberInput(t)">Send</button>
+            <button class="btn btn-primary" (click)="editNotification(t, 'miscTemplateDetails')">Edit</button> <br>
+            <small>Current estimated template length: {{replaceMergeFields(t.content).length}}</small>
+        </div>
+    </div>
+</div>
+
 <q-modal #notificationModal>
     <app-notification-editor #notificationEditor [notification]="notificationInEditor" (onCancel)="onCancel()"
         (onDone)="onDone($event)"></app-notification-editor>
