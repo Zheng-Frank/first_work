@@ -145,6 +145,10 @@
               <a (click)="toggleSendHistory(data._id)" *ngIf="getSendHistoryBoolean(data._id)" class="card-subtitle">
                 Hide Send History
               </a>
+              <div>
+                <a class='card-subtitle'>Show Logs</a>
+
+              </div>
               <br />
               <a *ngIf="getSendHistoryBoolean(data._id)">
                 <table class="table">

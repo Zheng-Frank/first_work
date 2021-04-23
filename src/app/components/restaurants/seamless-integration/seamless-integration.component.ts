@@ -35,6 +35,7 @@ export class SeamlessIntegrationComponent implements OnInit {
   pollingBegan = false
 
 
+
   public innerWidth: any;
 
   readonly VAPID_PUBLIC_KEY =
@@ -269,6 +270,7 @@ export class SeamlessIntegrationComponent implements OnInit {
         })
         .toPromise();
 
+      console.log("ALL RESTAURANTS ", this.allRestaurants)
       //         const logs = await this._api.get(environment.qmenuApiUrl + 'generic', {
       //           resource: 'restaurant',
       //       query: { _id: { $in: uniqueIds } },
@@ -305,6 +307,7 @@ export class SeamlessIntegrationComponent implements OnInit {
       this.entriesLength = this.currentRestaurants.length;
       this.currentRestaurants.map((restaurant) => {
         restaurant.showAnalytics = false;
+        restaurant.showLogs = false
         return restaurant;
       });
       // // console.log("CURRENT RESTAURANTS", this.currentRestaurants);
