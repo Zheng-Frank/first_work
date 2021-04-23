@@ -73,21 +73,37 @@ export class NotificationDashboardComponent implements OnInit {
 
   miscTemplateDetails = {
     "adjust-order-refund": {
-      description: "The notification sent to a customer when an adjustment to their order results in money returning to the customer",
+      description: "The notification sent to a customer when an adjustment to their order results in money refunded to the customer",
       sentTo: "customer"
-    }, 
+    },
     "adjust-order-charge": {
       description: "The notification sent to a customer when an adjustment to their order results in additional charges to the customer",
       sentTo: "customer"
     },
-    "change-to-pickup": {
-      description: "The notification sent to a customer when their order is changed from delivery to pickup",
+    "change-to-pickup-refund": {
+      description: "The notification sent to a customer when their order is changed from delivery to pickup, and the customer is refunded money as a result",
       sentTo: "customer"
-    }, 
+    },
+    "change-to-pickup-charge": {
+      description: "The notification sent to a customer when their order is changed from delivery to pickup, and the customer is charged additional money as a result",
+      sentTo: "customer"
+    },
     "check-order-delivery-status": {
       description: "A delivery order status update for customers",
       sentTo: "customer"
-    }, 
+    },
+    "sesame-verify-success": {
+      description: "A message sent to RT owners when they successfully verify with Sesame",
+      sentTo: "restaurant"
+    },
+    "sesame-verify-failure": {
+      description: "A message sent to RT owners when they enter an incorrect Sesame verificiation code",
+      sentTo: "restaurant"
+    },
+    "qmenu-login-code": {
+      description: "The message containing a 3-digit code sent to users so they can login to qMenu ordering app.",
+      sentTo: "customer"
+    }
   }
 
 
@@ -105,14 +121,18 @@ export class NotificationDashboardComponent implements OnInit {
     const system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0];
     this.system = system;
   }
-
+  
   editNotification(s, target) {
     this.notificationModal.show();
     this.notificationModal.title = 'Edit Notification';
     // temporarily add a description to the object when we open it in the editor. This description will be deleted before saving to the db again. 
     this.notificationInEditor = JSON.parse(JSON.stringify(s));
     this.notificationInEditor.description = this[target][s.name].description;
-    this.notificationInEditor.sentTo = this[target][s.name].sentTo;
+    if (target === 'miscTemplateDetails') {
+      this.notificationInEditor.sentTo = 'misc';
+    } else {
+      this.notificationInEditor.sentTo = this[target][s.name].sentTo;
+    }
   }
 
   onCancel() {
