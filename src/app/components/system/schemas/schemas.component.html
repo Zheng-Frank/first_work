@@ -12,10 +12,10 @@
         <option *ngFor="let dbName of dbNames" [value]="dbName">{{dbName}}</option>
       </select>
       <label class="ml-2">Select a data count:</label>
-      <select class="form-control col-2 ml-2"  [(ngModel)]="dataCount">
-          <option  [value]="10">100</option>
-          <option  [value]="10">1000</option>
-          <option  [value]="10">10000</option>
+      <select class="form-control col-2 ml-2" [(ngModel)]="dataCount">
+        <option [value]="10">100</option>
+        <option [value]="10">1000</option>
+        <option [value]="10">10000</option>
       </select>
       <!-- the button is used to update one superset of the supersets when a option is selected-->
       <button class="btn btn-primary col-2 ml-3" (click)="updateSelectedSchema(currentSchema,isShowLastModel)">
@@ -25,15 +25,16 @@
           *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i><i *ngIf="isCopiedToClipboard"
           class="fas fa-check"></i> {{isCopiedToClipboard ? 'Copied!' : 'Copy to Clipboard'}}</button>
       <a href="http://json.94275.cn/" target="_blank" class="btn btn-link">Go to json online</a>
-   
+
     </div>
     <div class="container" style="width:60%">
-      <pre class="jumbotron" *ngIf="!isShowLastModel">
-{{currentSchema?.fullSchema|json}}
+      <pre class="jumbotron" *ngIf="isShowExample">
+{{currentSchema?.example | json}}
       </pre>
-      <pre class="jumbotron" *ngIf="isShowLastModel">
-{{currentSchema?.lastestSchema|json}}
+      <pre class="jumbotron">
+{{currentSchema?.fullSchema | json}}
       </pre>
+
     </div>
   </div>
 </div>
