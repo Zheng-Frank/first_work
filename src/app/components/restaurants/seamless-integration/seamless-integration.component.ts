@@ -269,14 +269,16 @@ export class SeamlessIntegrationComponent implements OnInit {
         })
         .toPromise();
 
-      let arr = []
-      this.allRestaurants.forEach(res => {
-        arr.push(res.salesAgent)
-      })
+      //         const logs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      //           resource: 'restaurant',
+      //       query: { _id: { $in: uniqueIds } },
+      //           projection: {
+      //             logs: { $slice: -5 },
+      //           },
+      //         }).toPromise();
 
-      let uniqueAgents = [...new Set(arr)]
 
-      console.log(uniqueAgents)
+      // console.log(logs)
 
       this.allRestaurants.map((restaurant: any) => {
         restaurant.showAnalytics = false;
