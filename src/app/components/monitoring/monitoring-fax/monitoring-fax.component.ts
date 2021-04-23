@@ -48,12 +48,10 @@ export class MonitoringFaxComponent implements OnInit {
       this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels 
         && r.restaurant.channels.filter(c => c.type === 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length > 0
         && r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length === 0);
-      console.log(JSON.stringify(this.filterRows));
     } else if (this.type === FaxProblemFilterTypes.SEND_ORDER_ONLY_FAX) {
       this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels
         && r.restaurant.channels.filter(c => c.type === 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length > 0
         && r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length === 0);
-      console.log(JSON.stringify(this.filterRows));
     }
   }
   async findPhaxioFailedNumbers() {
