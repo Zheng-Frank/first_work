@@ -1,9 +1,16 @@
 <h3>List of Restaurants with QR Dine-In</h3>
+
 <div class="pb-2 text-right">
   <div class="float-right form-inline mt-2 ml-2">
     <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
-    <label class="form-check-label mr-5" for="paginationCheck">
+    <label class="form-check-label mr-2" for="paginationCheck">
       Pagination
+    </label>
+  </div>
+  <div class="float-right form-inline mt-2 ml-2">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="qrFullyConfigured" (change)="filterQrFullyConfigured()" id="qrFullyConfiguredCheck">
+    <label class="form-check-label mr-2" for="qrFullyConfiguredCheck">
+      QR fully configured
     </label>
   </div>
   <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
@@ -13,7 +20,7 @@
   <div *ngIf="!qrRestaurantListRows || qrRestaurantListRows.length === 0">
     Qr Restaurant list is empty.
   </div>
-  <q-table [rows]="qrRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+  <q-table [rows]="qrFilterRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
     [pageSize]="pagination ? 100 : 100000">
     <tr *tableRowTemplate="let restaurant;">
       <td>{{qrRestaurantListRows.indexOf(restaurant) + 1}}</td>
