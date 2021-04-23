@@ -1,9 +1,10 @@
+import { map } from 'rxjs/operators';
 import { AlertType } from './../../../classes/alert-type';
 import { environment } from './../../../../environments/environment';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
-import { Component, OnInit } from '@angular/core';
-
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 @Component({
   selector: 'app-schemas',
   templateUrl: './schemas.component.html',
@@ -16,31 +17,43 @@ export class SchemasComponent implements OnInit {
   schemas;
   dbNames = [];
   dataCount = 100;
+  full = [];
+  @ViewChild('showAPIExampleModal') showAPIExampleModal: ModalComponent;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.isCopiedToClipboard = false;
     this.schemas = this._global.superset; //we can use the superset to see the profile of a mongodb document
-    this.dbNames = this._global.superset.map(s=>s.dbName);
+    this.dbNames = this._global.superset.map(s => s.dbName);
+  }
+  // open a modal to show an API example
+  openShowAPIExampleModal() {
+    this.showAPIExampleModal.show();
   }
   //update a schema when it is selected by dbName
   async updateSelectedSchema(currentSchema) {
     if (!currentSchema) {
       return alert('please select a json schema before!');
     } else {
-      try{
+      try {
         const full = await this._api.get(`${environment.qmenuApiUrl}generic`, {
           resource: currentSchema.dbName,
           sort: { updatedAt: -1 },
           limit: this.dataCount
         }).toPromise();
+        this.full = full.map(f=>f);
+        this.currentSchema.example = this.full[0] || 0;
+        console.log(JSON.stringify(this.currentSchema.example));
         this.currentSchema.fullSchema = this.unionJson(full);
-        this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['fullSchema'] = this.currentSchema.fullSchema;
-        this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['example'] =  full[0] || 0;
-      }catch(e){
-        this._global.publishAlert(AlertType.Danger,JSON.stringify(e));
+        console.log(JSON.stringify(this.currentSchema.example));
+        this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['fullSchema'] = this.currentSchema.fullSchema || {};
+        this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['example'] = this.currentSchema.example || {};
+        console.log(JSON.stringify(this.currentSchema.example));
+        console.log(JSON.stringify(this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['example']));
+      } catch (e) {
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(e));
       }
-      
+
     }
   }
   changeCollectionView() {
@@ -138,8 +151,8 @@ export class SchemasComponent implements OnInit {
 
   loadTreeJson(json, key, model) {
     if (typeof (json) == 'object') {
-      if (model&&model[key] == undefined) {
-          model[key] = json;
+      if (model && model[key] == undefined) {
+        model[key] = json;
       }
       for (let i in json) {
         if (json[i] && (typeof (json[i]) == "string" || typeof (json[i]) == "number" || typeof (json[i]) == "boolean" || json[i] == null)) {
@@ -158,7 +171,7 @@ export class SchemasComponent implements OnInit {
             model[key][i] = json[i]; //0,1,2 arr["image"][0]=""; 
           }
         } else {
-          if(model[key]){
+          if (model[key]) {
             this.loadTreeJson(json[i], i, model[key]); //递归找到最深处 model[key] 很大概率是一个数组  object 0 "image" ... key
           }
         }
