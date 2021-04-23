@@ -17,7 +17,7 @@ export class SchemasComponent implements OnInit {
   schemas;
   dbNames = [];
   dataCount = 100;
-  full = [];
+  // full = [];
   @ViewChild('showAPIExampleModal') showAPIExampleModal: ModalComponent;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -35,21 +35,39 @@ export class SchemasComponent implements OnInit {
     if (!currentSchema) {
       return alert('please select a json schema before!');
     } else {
+      // try {
+      //   const full = await this._api.get(`${environment.qmenuApiUrl}generic`, {
+      //     resource: currentSchema.dbName,
+      //     sort: { updatedAt: -1 },
+      //     limit: this.dataCount
+      //   }).toPromise();
+      //   this.full = full.map(f=>f);
+      //   this.currentSchema.example = this.full[0] || {};
+      //   console.log(JSON.stringify(this.currentSchema.example));
+      //   this.currentSchema.fullSchema = this.unionJson(full);
+      //   console.log(JSON.stringify(this.currentSchema.example));
+      //   this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['fullSchema'] = this.currentSchema.fullSchema || {};
+      //   this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['example'] = this.currentSchema.example || {};
+      //   console.log(JSON.stringify(this.currentSchema.example));
+      //   console.log(JSON.stringify(this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['example']));
+      // } catch (e) {
+      //   this._global.publishAlert(AlertType.Danger, JSON.stringify(e));
+      // }
       try {
         const full = await this._api.get(`${environment.qmenuApiUrl}generic`, {
           resource: currentSchema.dbName,
           sort: { updatedAt: -1 },
           limit: this.dataCount
         }).toPromise();
-        this.full = full.map(f=>f);
-        this.currentSchema.example = this.full[0] || 0;
-        console.log(JSON.stringify(this.currentSchema.example));
+        const temp = await this._api.get(`${environment.qmenuApiUrl}generic`, {
+          resource: currentSchema.dbName,
+          sort: { updatedAt: -1 },
+          limit: this.dataCount
+        }).toPromise();
+        this.currentSchema.example = temp[0] || {};
         this.currentSchema.fullSchema = this.unionJson(full);
-        console.log(JSON.stringify(this.currentSchema.example));
         this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['fullSchema'] = this.currentSchema.fullSchema || {};
         this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['example'] = this.currentSchema.example || {};
-        console.log(JSON.stringify(this.currentSchema.example));
-        console.log(JSON.stringify(this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['example']));
       } catch (e) {
         this._global.publishAlert(AlertType.Danger, JSON.stringify(e));
       }
