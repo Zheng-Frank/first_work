@@ -62,7 +62,7 @@ export class SchemasComponent implements OnInit {
         const temp = await this._api.get(`${environment.qmenuApiUrl}generic`, {
           resource: currentSchema.dbName,
           sort: { updatedAt: -1 },
-          limit: this.dataCount
+          limit: 1
         }).toPromise();
         this.currentSchema.example = temp[0] || {};
         this.currentSchema.fullSchema = this.unionJson(full);
