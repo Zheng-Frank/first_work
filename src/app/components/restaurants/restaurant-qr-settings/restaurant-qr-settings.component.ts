@@ -20,7 +20,9 @@ export class RestaurantQrSettingsComponent {
     this.editing = !this.editing;
     this.viewOnly = this.restaurant['qrSettings'].viewOnly;
   }
-
+  cancel(){
+    this.editing = !this.editing;
+  }
   async toggleViewOnly() {
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
       old: { _id: this.restaurant._id, qrSettings: {} },
