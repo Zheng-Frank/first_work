@@ -5,6 +5,10 @@ import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+enum CopyType{
+  SCHEMA_COPY = 0,
+  EXAMPLE_COPY = 1
+}
 @Component({
   selector: 'app-schemas',
   templateUrl: './schemas.component.html',
@@ -85,11 +89,16 @@ export class SchemasComponent implements OnInit {
   /**
    * this function is used to prepare to go to json online website to view its format structure
    */
-  copyToClipcboard(currentSchema) {
+  copyToClipcboard(currentSchema,copyType) {
     if (!currentSchema) {
       return alert('please select a json schema before!');
     } else {
-      let text = JSON.stringify(currentSchema.fullSchema);
+      let text = "";
+      if(copyType === CopyType.SCHEMA_COPY){
+        text = JSON.stringify(currentSchema.fullSchema);
+      }else if(copyType === CopyType.EXAMPLE_COPY){
+        text = JSON.stringify(currentSchema.example);
+      }
       const handleCopy = (e: ClipboardEvent) => {
         // clipboardData 可能是 null
         e.clipboardData && e.clipboardData.setData('text/plain', text);

@@ -4,35 +4,31 @@
   </h2>
   <div class="card-body">
     <!-- d-flex justify-content-center is used to make the html content align center. -->
-    <div class="form-inline form-group d-flex justify-content-center">
+    <div class="form-inline form-group d-flex">
       <!-- form-group class name used to margin some distance of its bottom -->
       <!-- Select a collection to view its all json structure. -->
       <label class="ml-2">Select a JSON schema:</label>
-      <select class="form-control col-2 ml-2" [(ngModel)]="currentDbName" (change)="changeCollectionView()">
+      <select class="form-control ml-2" [(ngModel)]="currentDbName" (change)="changeCollectionView()">
         <option *ngFor="let dbName of dbNames" [value]="dbName">{{dbName}}</option>
       </select>
       <label class="ml-2">Select a data count:</label>
-      <select class="form-control col-2 ml-2" [(ngModel)]="dataCount">
+      <select class="form-control col-1 ml-2" [(ngModel)]="dataCount">
         <option [value]="10">100</option>
         <option [value]="10">1000</option>
         <option [value]="10">10000</option>
       </select>
       <!-- the button is used to update one superset of the supersets when a option is selected-->
-      <button class="btn btn-primary col-2 ml-3" (click)="updateSelectedSchema(currentSchema,isShowLastModel)">
+      <button class="btn btn-primary ml-2" (click)="updateSelectedSchema(currentSchema,isShowLastModel)">
         <i class="fas fa-sync-alt"></i>updateSchema</button>
 
-      <button class="btn btn-primary col-2 ml-3" (click)="copyToClipcboard(currentSchema)"><i
+      <button class="btn btn-primary ml-2" (click)="copyToClipcboard(currentSchema,0)"><i
           *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i><i *ngIf="isCopiedToClipboard"
           class="fas fa-check"></i> {{isCopiedToClipboard ? 'Copied!' : 'Copy to Clipboard'}}</button>
       <a href="http://json.94275.cn/" target="_blank" class="btn btn-link">Go to json online</a>
-
-    </div>
-    <div class="container" style="width:60%">
-      <div class="text-right">
-        <button class="btn btn-primary col-2 ml-3" (click)="openShowAPIExampleModal()">
+      <button class="btn btn-primary ml-2" (click)="openShowAPIExampleModal()">
           Show API example</button>
-      </div>
-
+    </div>
+    <div class="container container-width">
       <div>
         <p class="text-danger">Full schema:</p>
         <pre class="jumbotron">
@@ -48,6 +44,11 @@
     </button>
     <h4 class="text-center">API Example</h4>
     <hr>
+    <button class="btn btn-primary ml-2" (click)="copyToClipcboard(currentSchema,1)"><i
+      *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i><i *ngIf="isCopiedToClipboard"
+      class="fas fa-check"></i> {{isCopiedToClipboard ? 'Copied!' : 'Copy to Clipboard'}}</button>
+      <a href="http://json.94275.cn/" target="_blank" class="btn btn-link">Go to json online</a>
+      <br><br>
     <pre class="jumbotron">
 {{currentSchema?.example | json}}
     </pre>
