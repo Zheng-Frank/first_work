@@ -5,9 +5,9 @@
     <li class="list-group-item">
       <div *ngIf="!editing">
         <div *ngIf="restaurant?.qrSettings?.viewOnly">
-          Enabled: false<br>
-          View Menu Only: true<br>
-          <small class="text-danger" >Customer can only view menus but not place orders if this setting is on</small><br>
+          <span>Enabled: false</span><br>
+          <span>View Menu Only: true</span><br>
+          <small class="text-danger view-only-tip" >Customer can only view menus but not place orders if this setting is on</small>
         </div>
         <div *ngIf="restaurant?.qrSettings && !restaurant?.qrSettings?.viewOnly">
           Enabled: true<br>
