@@ -21,7 +21,7 @@
         <option>Q!=Y</option>
       </select>
     </div>
-    <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
+    <input [qDebounce]="2000" (debounce)="search()" type="text" [(ngModel)]="searchText"
         class="form-control col-md-5 ml-4" placeholder="Search By ID">
   </div>
   <!--
