@@ -100,8 +100,13 @@ export class QrRestaurantListComponent implements OnInit {
       let restaurant = this.qrRestaurantListRows[i];
       let tempOrders = orders.filter(o => o.orderObj.restaurantObj._id === restaurant._id);
       this.qrRestaurantListRows[i].qrOrderNumber = tempOrders.length;
-      if(this.qrRestaurantListRows[i].targetCustomer){
-        this.qrRestaurantListRows[i].menus.menuTarget = this.targets[this.qrRestaurantListRows[i].targetCustomer];
+      if(this.qrRestaurantListRows[i].menus){
+        this.qrRestaurantListRows[i].menus = this.qrRestaurantListRows[i].menus.map(m => {
+          if (m.targetCustomer) {
+            m.menuTarget = this.targets.filter(t => t.value === m.targetCustomer)[0].text;
+          }
+          return m;
+        });
       }
     }
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;

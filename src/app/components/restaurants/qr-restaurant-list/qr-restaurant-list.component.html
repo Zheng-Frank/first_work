@@ -8,7 +8,8 @@
     </label>
   </div>
   <div class="float-right form-inline mt-2 ml-2">
-    <input class="form-check-input" type="checkbox" [(ngModel)]="qrFullyConfigured" (change)="filterQrFullyConfigured()" id="qrFullyConfiguredCheck">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="qrFullyConfigured" (change)="filterQrFullyConfigured()"
+      id="qrFullyConfiguredCheck">
     <label class="form-check-label mr-2" for="qrFullyConfiguredCheck">
       QR fully configured
     </label>
@@ -29,20 +30,20 @@
         <br>
         {{restaurant.googleAddress?.formatted_address}}
         <br>
-        <div *ngFor="let menu of qrFilterRestaurantListRows.menu">
-          {{menu.name}} ({{menu.menuTarget || None}})
+        <br>
+        <div *ngFor="let menu of restaurant.menus">
+          {{menu.name}} ({{menu.menuTarget || 'None'}})
         </div>
-       
       </td>
       <td>
-          {{restaurant.qrOrderNumber}}
+        {{restaurant.qrOrderNumber}}
       </td>
       <td>
         <div *ngIf="restaurant.feeSchedules">
           <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
         </div>
         <div *ngIf="!restaurant.feeSchedules">
-            <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
+          <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
         </div>
       </td>
     </tr>
