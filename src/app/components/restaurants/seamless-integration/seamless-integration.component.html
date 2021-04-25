@@ -173,12 +173,16 @@
                   </table>
                 </table>
               </a>
-              <div class='row' *ngIf='showLogHistory(data._id)'>
-                <div class='col-sm-3'> Log history {{getLogHistory(data._id) | json }}</div>
-                <div class='col-sm-3'>Time</div>
-                <div class='col-sm-3'>Problem</div>
-                <div class='col-sm-3'>Response</div>
+              <div *ngIf='showLogHistory(data._id)'>
+                <div class='row' *ngFor='let item of getLogHistory(data._id) | keyvalue'>
+                  <div class='col-sm-3'> {{ item.value.problem }} </div>
+                  <div class='col-sm-3'> {{ item.value.time }} </div>
+                  <div class='col-sm-3'>{{ item.value.username }} </div>
+                  <div class='col-sm-3'> {{ item.value.response }} </div>
+                </div>
+                <hr />
               </div>
+
             </div>
 
             <div align="end" class="col-sm-4">

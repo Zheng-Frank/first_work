@@ -257,6 +257,7 @@ export class SeamlessIntegrationComponent implements OnInit {
     for (let i = 0; i < this.currentRestaurants.length; i++) {
       if (this.currentRestaurants[i]._id === id) {
         if (this.currentRestaurants[i].logs) {
+          console.log("CURRENT RESTAURANTS ", this.currentRestaurants[i])
           return this.currentRestaurants[i].logs
         } else {
 
