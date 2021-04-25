@@ -44,10 +44,14 @@ export class QrRestaurantListComponent implements OnInit {
       query: { qrSettings: { $exists: true } },
       projection: {
         _id: 1,
-        name: 1
+        name: 1,
+        googleAddress: 1,
+        qrOrderNumber: 1,
+        feeSchedules: 1,
+        rateSchedules: 1
       },
       sort: { updatedAt: -1 }
-    }, 5000); //the second param is running time 
+    }, 5000);
     this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "dine-in-session",
