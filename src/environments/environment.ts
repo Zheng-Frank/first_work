@@ -24,4 +24,8 @@ export const environment = {
   shortUrlBase: "https://2vevc851r7.execute-api.us-east-1.amazonaws.com/dev/",
 
 
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 1d9424e098ce9b923e87224e39436fe7767d88b8
