@@ -49,6 +49,7 @@ export class RestaurantOrdersComponent implements OnInit {
   showAdvancedSearch: boolean = false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
   toDate;
+  changeOrderType = 'Restaurant self-deliver';
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
   /**
@@ -334,7 +335,7 @@ export class RestaurantOrdersComponent implements OnInit {
      change-to-pickup
    */
   async handleOnChangeOrderTypes() {
-    if (this.type === 'Restaurant self-deliver') {
+    if (this.changeOrderType === 'Restaurant self-deliver') {
       try {
         await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
           orderId: this.cardSpecialOrder._id
@@ -342,7 +343,7 @@ export class RestaurantOrdersComponent implements OnInit {
       } catch (error) {
         console.log("errors:"+JSON.stringify(error));
       }
-    } else if(this.type === 'Customer Pickup') {
+    } else if(this.changeOrderType === 'Customer Pickup') {
       try {
         await this._api.post(environment.appApiUrl + 'biz/orders/change-to-pickup', {
           orderId: this.cardSpecialOrder ._id
