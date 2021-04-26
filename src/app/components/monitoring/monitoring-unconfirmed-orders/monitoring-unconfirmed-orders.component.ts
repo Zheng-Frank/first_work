@@ -54,9 +54,13 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
   log(item) {
     console.log(item)
   }
+
+
+
+
   async ngOnInit() {
 
-    console.log("TESTING FUNCTION")
+
 
 
 
