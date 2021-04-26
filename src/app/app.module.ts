@@ -147,7 +147,7 @@ import { MonitoringDomainComponent } from './components/monitoring/monitoring-do
 import { MonitoringPrintersComponent } from './components/monitoring/monitoring-printers/monitoring-printers.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 import { MonitoringRestaurantsComponent } from './components/monitoring/monitoring-restaurants/monitoring-restaurants.component';
-
+import { MonitoringPromotionComponent } from './components/monitoring/monitoring-promotion/monitoring-promotion.component';
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
@@ -212,6 +212,7 @@ import { QrRestaurantListComponent } from './components/restaurants/qr-restauran
 import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
+import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
 
 @NgModule({
   declarations: [
@@ -344,6 +345,7 @@ import { WeirdDataComponent } from './components/monitoring/weird-data/weird-dat
     MonitoringPrintersComponent,
     MonitoringHoursComponent,
     MonitoringRestaurantsComponent,
+    MonitoringPromotionComponent,
     AwsMigrationComponent,
     WorkflowDashboardComponent,
     SopDashboardComponent,
@@ -392,7 +394,8 @@ import { WeirdDataComponent } from './components/monitoring/weird-data/weird-dat
     RestaurantQrSettingsComponent,
     RestaurantStatsComponent,
     WeirdDataComponent,
-    QrRestaurantListComponent
+    QrRestaurantListComponent,
+    RestaurantTranslationsComponent
   ],
   imports: [
     BrowserModule,
