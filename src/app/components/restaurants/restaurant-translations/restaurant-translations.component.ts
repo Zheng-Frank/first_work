@@ -55,7 +55,7 @@ export class RestaurantTranslationsComponent implements OnInit {
     return items;
   }
 
-  private get nonEnglishLanguages() {
+  get nonEnglishLanguages() {
     return Object.keys(this.LANGUAGES).filter(k => k !== 'EN');
   }
 
