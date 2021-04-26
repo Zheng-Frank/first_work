@@ -24,9 +24,9 @@ export class OrderCardComponent implements OnInit {
   @Output() onReject = new EventEmitter();
   @Output() onUndoReject = new EventEmitter();
   @Output() onBan = new EventEmitter();
-  @Output() onChangeToSelfDelivery = new EventEmitter();
-  @Output() onChangeOrderTypes = new EventEmitter();
   @Output() onOpenChangeOrderTypesModal = new EventEmitter();
+  @Output() onOpenPreviousCanceledOrderModal = new EventEmitter();
+
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
 
@@ -40,6 +40,9 @@ export class OrderCardComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+  openPreviousCanceledOrderModal(order_id){
+    this.onOpenPreviousCanceledOrderModal.emit(order_id);
   }
   /**
    * When click on "copy" button, should put the following text in the user's clipboard:
