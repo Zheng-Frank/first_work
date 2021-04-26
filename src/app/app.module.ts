@@ -147,7 +147,7 @@ import { MonitoringDomainComponent } from './components/monitoring/monitoring-do
 import { MonitoringPrintersComponent } from './components/monitoring/monitoring-printers/monitoring-printers.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 import { MonitoringRestaurantsComponent } from './components/monitoring/monitoring-restaurants/monitoring-restaurants.component';
-
+import { MonitoringPromotionComponent } from './components/monitoring/monitoring-promotion/monitoring-promotion.component';
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
@@ -345,6 +345,7 @@ import { RestaurantTranslationsComponent } from './components/restaurants/restau
     MonitoringPrintersComponent,
     MonitoringHoursComponent,
     MonitoringRestaurantsComponent,
+    MonitoringPromotionComponent,
     AwsMigrationComponent,
     WorkflowDashboardComponent,
     SopDashboardComponent,
