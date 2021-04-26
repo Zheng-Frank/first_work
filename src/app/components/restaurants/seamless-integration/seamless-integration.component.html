@@ -174,7 +174,10 @@
                 </table>
               </a>
               <div *ngIf='showLogHistory(data._id)'>
+                <h5>Log History</h5>
+                <hr />
                 <div class='row' *ngFor='let item of getLogHistory(data._id) | keyvalue'>
+                  <hr />
                   <div class='col-sm-3'> {{ item.value.problem }} </div>
                   <div class='col-sm-3'> {{ item.value.time }} </div>
                   <div class='col-sm-3'>{{ item.value.username }} </div>
