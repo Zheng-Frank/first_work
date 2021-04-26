@@ -3,7 +3,11 @@ import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { ApiService } from 'src/app/services/api.service';
 import { Component, OnInit } from '@angular/core';
-
+enum QRConfiguredTypes{
+  ALL = 'All',
+  CORRECT_CONFIGURATION = 'Correct configuration',
+  WRONG_CONFIGURATION = 'Wrong configuration'
+}
 @Component({
   selector: 'app-qr-restaurant-list',
   templateUrl: './qr-restaurant-list.component.html',
@@ -15,6 +19,8 @@ export class QrRestaurantListComponent implements OnInit {
   qrFilterRestaurantListRows;
   pagination = true;
   qrFullyConfigured = false;
+  filterTypes = [QRConfiguredTypes.ALL,QRConfiguredTypes.CORRECT_CONFIGURATION,QRConfiguredTypes.WRONG_CONFIGURATION];
+  filterType = QRConfiguredTypes.ALL;
   knownUsers = [];
   restaurantsColumnDescriptors = [
     {
@@ -63,13 +69,18 @@ export class QrRestaurantListComponent implements OnInit {
     d) amount/percent is NOT 0.
    */
   filterQrFullyConfigured() {
-    if (this.qrFullyConfigured) {
+    if (this.filterType === QRConfiguredTypes.ALL) {
+      this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
+    } else if(this.filterType === QRConfiguredTypes.CORRECT_CONFIGURATION){
       this.qrFilterRestaurantListRows = this.qrRestaurantListRows
         .filter(qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
           && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0);
-    } else {
-      this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
-    }
+    }else if(this.filterType === QRConfiguredTypes.WRONG_CONFIGURATION){
+      let temp = this.qrRestaurantListRows
+      .filter((qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
+        && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0));
+      this.qrFilterRestaurantListRows = this.qrRestaurantListRows.filter(qrList =>!temp.includes(qrList));
+      }
   }
   async populateQrRestaurant() {
     this.qrRestaurantListRows = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -81,7 +92,8 @@ export class QrRestaurantListComponent implements OnInit {
         googleAddress: 1,
         qrOrderNumber: 1,
         feeSchedules: 1,
-        rateSchedules: 1
+        rateSchedules: 1,
+        menus: 1
       },
       sort: { updatedAt: -1 }
     }, 5000);
