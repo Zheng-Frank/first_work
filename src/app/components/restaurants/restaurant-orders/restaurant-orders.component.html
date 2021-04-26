@@ -39,7 +39,8 @@
       <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
         (onReject)="handleOnReject($event)" (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
         (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
-        (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)">
+        (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+        (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)">
       </app-order-card>
     </div>
   </div>
@@ -67,13 +68,7 @@
       </div>
 
   </q-modal>
-
-        (onChangeToSelfDelivery)="handleOnChangeToSelfDelivery($event)" 
-        (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)">
-
-      </app-order-card>
-    </div>
-  </div>
+    
   <!-- start previous canceled order q-modal -->
   <q-modal #previousCanceledOrderModal>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
