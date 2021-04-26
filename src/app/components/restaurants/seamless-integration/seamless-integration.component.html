@@ -146,9 +146,9 @@
                 Hide Send History
               </a>
               <div>
-                <a (click)='toggleLogHistory(data._id)' *ngIf='showLogHistory(data._id)' class='card-subtitle'>Show
+                <a (click)='toggleLogHistory(data._id)' *ngIf='!showLogHistory(data._id)' class='card-subtitle'>Show
                   Logs</a>
-                <a (click)='toggleLogHistory(data._id)' *ngIf='!showLogHistory(data._id)' class='card-subtitle'>Hide
+                <a (click)='toggleLogHistory(data._id)' *ngIf='showLogHistory(data._id)' class='card-subtitle'>Hide
                   Logs</a>
 
               </div>
@@ -173,6 +173,19 @@
                   </table>
                 </table>
               </a>
+              <div *ngIf='showLogHistory(data._id)'>
+                <h5>Log History</h5>
+                <hr />
+                <div class='row' *ngFor='let item of getLogHistory(data._id) | keyvalue'>
+                  <hr />
+                  <div class='col-sm-3'> {{ item.value.problem }} </div>
+                  <div class='col-sm-3'> {{ item.value.time }} </div>
+                  <div class='col-sm-3'>{{ item.value.username }} </div>
+                  <div class='col-sm-3'> {{ item.value.response }} </div>
+                </div>
+                <hr />
+              </div>
+
             </div>
 
             <div align="end" class="col-sm-4">
@@ -223,6 +236,7 @@
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>

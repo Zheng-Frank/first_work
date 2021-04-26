@@ -253,6 +253,20 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
+  getLogHistory(id) {
+    for (let i = 0; i < this.currentRestaurants.length; i++) {
+      if (this.currentRestaurants[i]._id === id) {
+        if (this.currentRestaurants[i].logs) {
+          console.log("CURRENT RESTAURANTS ", this.currentRestaurants[i])
+          return this.currentRestaurants[i].logs
+        } else {
+
+        }
+        // return this.currentRestaurants[i].logs;
+      }
+    }
+  }
+
   async ngOnInit() {
     this.innerWidth = window.innerWidth;
     console.log("INNER WIDTH ", this.innerWidth)
@@ -300,8 +314,10 @@ export class SeamlessIntegrationComponent implements OnInit {
       // console.log(logs)
 
       this.allRestaurants.map((restaurant: any) => {
+        console.log("RESTAURANT DATA ", restaurant)
         restaurant.showAnalytics = false;
         restaurant.showSendHistory = false;
+        // restaurant.logs = restaurant.logs
         restaurant.currentDate = this.getTimeComplete(restaurant._id).time;
         return restaurant;
       });
