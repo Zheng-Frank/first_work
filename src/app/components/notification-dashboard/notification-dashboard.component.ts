@@ -19,90 +19,87 @@ export class NotificationDashboardComponent implements OnInit {
   testMessageTemplate;
   system;
   smsNumber;
+  customer = [];
+  restaurant = [];
+  misc = [];
 
-  customerTemplateDetails = {
-    "SUBMITTED": {
-      description: "The notification sent to a customer when they place an order.",
-      sentTo: "customer"
-    },
-    "CONFIRMED": {
-      description: "The notification sent to a customer when the restaurant confirms their order.",
-      sentTo: "customer"
-    },
-    "WIP": {
-      description: "The notification sent to a customer when their order is being prepared.",
-      sentTo: "customer"
-    },
-    "READY": {
-      description: "The notification sent to a customer when their food has been prepared.",
-      sentTo: "customer"
-    },
-    "DELIVERING": {
-      description: "The notification sent to a customer when their delivery driver is on the way with their food.",
-      sentTo: "customer"
-    },
-    "DELIVERED": {
-      description: "The notification sent to a customer when the delivery driver arrives",
-      sentTo: "customer"
-    },
-    "COMPLETED": {
-      description: "The notification sent to a customer when the restaurant marks their order as complete.",
-      sentTo: "customer"
-    },
-    "CANCELED": {
-      description: "The notification sent to a customer when the restaurant cancels their order.",
-      sentTo: "customer"
-    }
-  }
 
-  restaurantTemplateDetails = {
-    "SUBMITTED": {
-      description: "The notification sent to a restaurant when a customer submits an order.",
-      sentTo: "restaurant"
+  templateDetails = {
+    "New Order Placed": {
+      description: "Notification sent to customer their order has been placed.",
+      category: "customer"
     },
-    "DELIVERED": {
-      description: "The notification sent to a restaurant when the courier marks delivery complete",
-      sentTo: "restaurant"
+    "Confirmed": {
+      description: "Notification sent to customer when the RT has confirmed their order.",
+      category: "customer"
     },
-    "CANCELED": {
-      description: "The notification sent to a restaurant when a customer cancels an order.",
-      sentTo: "restaurant"
-    }
-
-  }
-
-  miscTemplateDetails = {
-    "adjust-order-refund": {
-      description: "The notification sent to a customer when an adjustment to their order results in money refunded to the customer",
-      sentTo: "customer"
+    "In Progress": {
+      description: "Notification sent to customer when their order is being prepared.",
+      category: "customer"
     },
-    "adjust-order-charge": {
-      description: "The notification sent to a customer when an adjustment to their order results in additional charges to the customer",
-      sentTo: "customer"
+    "Ready": {
+      description: "Notification sent to customer when their pickup order is ready.",
+      category: "customer"
     },
-    "change-to-pickup-refund": {
-      description: "The notification sent to a customer when their order is changed from delivery to pickup, and the customer is refunded money as a result",
-      sentTo: "customer"
+    "Delivering": {
+      description: "Notification sent to customer when their delivery is on the way.",
+      category: "customer"
     },
-    "change-to-pickup-charge": {
-      description: "The notification sent to a customer when their order is changed from delivery to pickup, and the customer is charged additional money as a result",
-      sentTo: "customer"
+    "Delivered": {
+      description: "Notification sent to customer when their delivery has been marked complete.",
+      category: "customer"
     },
-    "check-order-delivery-status": {
-      description: "A delivery order status update for customers",
-      sentTo: "customer"
+    "Completed": {
+      description: "Notification sent to customer when their order has been marked complete.",
+      category: "customer"
     },
-    "sesame-verify-success": {
-      description: "A message sent to RT owners when they successfully verify with Sesame",
-      sentTo: "restaurant"
+    "Restaurant Canceled": {
+      description: "Notification sent to customer when their order was canceled by the restaurant.",
+      category: "customer"
     },
-    "sesame-verify-failure": {
-      description: "A message sent to RT owners when they enter an incorrect Sesame verificiation code",
-      sentTo: "restaurant"
+    "New Order Received": {
+      description: "Notification sent to RT owner when a new order is received.",
+      category: "restaurant"
     },
-    "qmenu-login-code": {
-      description: "The message containing a 3-digit code sent to users so they can login to qMenu ordering app.",
-      sentTo: "customer"
+    "Delivery Complete": {
+      description: "Notification sent to RT owner when 3rd-party courier completes their delivery.",
+      category: "restaurant"
+    },
+    "Customer Canceled": {
+      description: "Notification sent to RT owner when customer cancels an order.",
+      category: "restaurant"
+    },
+    "Adjust Order - refund": {
+      description: "Notification sent to customer when an adjustment to their order results in money being refunded.",
+      category: "misc"
+    },
+    "Adjust Order - charge": {
+      description: "Notification sent to customer when an adjustment to their order results in additional charges to the customer.",
+      category: "misc"
+    },
+    "Change to pickup - charge": {
+      description: "Notification sent to customer when changing to a pickup order results in additional charges to the customer.",
+      category: "misc"
+    },
+    "Change to pickup - refund": {
+      description: "Notification sent to customer when changing to a pickup order results in money being refunded.",
+      category: "misc"
+    },
+    "Order delivery status": {
+      description: "An update telling a customer the current status of their delivery order.",
+      category: "misc"
+    },
+    "Sesame Success": {
+      description: "Message sent when RT owner succesfully verifies using Sesame.",
+      category: "misc"
+    },
+    "Sesame Failure": {
+      description: "Message sent when RT owner enters invalid Sesame code.",
+      category: "misc"
+    },
+    "qMenu Login Code": {
+      description: "The message containing a 3-digit code sent to users so they can login to qMenu.",
+      category: "misc"
     }
   }
 
@@ -120,59 +117,65 @@ export class NotificationDashboardComponent implements OnInit {
   async populate() {
     const system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0];
     this.system = system;
+    this.categorizeTemplates();
   }
-  
-  editNotification(s, target) {
+
+  categorizeTemplates() {
+    this.restaurant = [];
+    this.customer = [];
+    this.misc = [];
+    this.system.templates.forEach(t => {
+      const target = this.templateDetails[t.name].category;
+      console.log(target);
+      this[target].push(t);
+    });
+  }
+
+  editNotification(s) {
     this.notificationModal.show();
     this.notificationModal.title = 'Edit Notification';
     // temporarily add a description to the object when we open it in the editor. This description will be deleted before saving to the db again. 
     this.notificationInEditor = JSON.parse(JSON.stringify(s));
-    this.notificationInEditor.description = this[target][s.name].description;
-    if (target === 'miscTemplateDetails') {
-      this.notificationInEditor.sentTo = 'misc';
-    } else {
-      this.notificationInEditor.sentTo = this[target][s.name].sentTo;
-    }
+    this.notificationInEditor.description = this.templateDetails[s.name].description;
   }
 
   onCancel() {
     this.notificationModal.hide();
   }
 
-  onDone(template) {
+  onDone(template) { // rewrite!
     delete template.description;
-    const target = template.sentTo + 'Templates';
-    delete template.sentTo;
-    const newTemplates = (this.system[target] || []).slice(0);
+    const newTemplates = (this.system.templates || []).slice(0);
     newTemplates.forEach((n, i) => {
       if (n.name === template.name) {
         newTemplates[i] = template;
       }
     });
 
-    this.patchDiff(newTemplates, target);
+    this.patchDiff(newTemplates);
     this.notificationModal.hide();
   }
 
-  async patchDiff(newTemplates, target) {
-    if (Helper.areObjectsEqual(this.system[target], newTemplates)) {
+  async patchDiff(newTemplates) {
+    if (Helper.areObjectsEqual(this.system.templates, newTemplates)) {
       this._global.publishAlert(
         AlertType.Info,
         "Not changed"
       );
     } else {
-      const patchObj = {
-        _id: this.system._id
-      };
-      patchObj[target] = newTemplates;
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=system", [{
         old: {
           _id: this.system._id,
-        }, new: patchObj
+        },
+        new: {
+          _id: this.system._id,
+          templates: newTemplates
+        }
       }])
         .subscribe(
           result => {
-            this.system[target] = newTemplates;
+            this.system.templates = newTemplates;
+            this.categorizeTemplates();
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"
@@ -260,14 +263,15 @@ export class NotificationDashboardComponent implements OnInit {
     mergedMessage = mergedMessage.replace(/_orderDetailsURL_/g, "https://qmenu.biz/sc6l8");
     mergedMessage = mergedMessage.replace(/_newLine_/g, '\n');
 
-    const orderReadyEST = `Order ready est: ${new Date(sampleOrderData.timeToDeliverEstimate).toLocaleTimeString('en-US', {
+    const orderReadyEST = `${new Date(sampleOrderData.timeToDeliverEstimate).toLocaleTimeString('en-US', {
       timeZone: "America/New_York", hour: '2-digit', minute: '2-digit'
     })}`;
 
     mergedMessage = mergedMessage.replace(/_orderTimeEstimate_/g, orderReadyEST);
 
-    // if mergedMessage.length > 160 
     return mergedMessage;
 
   }
 }
+
+

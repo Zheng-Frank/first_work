@@ -48,21 +48,21 @@
  _orderDetailsURL_, _newLine_
 </span>
 <div class="d-flex flex-row flex-wrap" *ngIf="system">
-    <div *ngFor="let t of system.customerTemplates; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
+    <div *ngFor="let t of customer; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
         <div class="card-body">
             <h4 class="card-title ml-2">{{t.name}}</h4>
             <div class="row ml-2">
             </div>
             <hr>
             <p class="card-text">
-                <small>{{customerTemplateDetails[t.name].description}}</small>
+                <small>{{templateDetails[t.name].description}}</small>
             </p>
             <hr>
             <p style="overflow:auto">
                 {{t.content}}
             </p>
             <button class="btn btn-primary" (click)="openPhoneNumberInput(t)">Send</button>
-            <button class="btn btn-primary" (click)="editNotification(t, 'customerTemplateDetails')">Edit</button> <br>
+            <button class="btn btn-primary" (click)="editNotification(t)">Edit</button> <br>
             <small>Current estimated template length: {{replaceMergeFields(t.content).length}}</small>
         </div>
     </div>
@@ -75,21 +75,21 @@
  _orderDetailsURL_, _newLine_
 </span>
 <div class="d-flex flex-row flex-wrap" *ngIf="system">
-    <div *ngFor="let t of system.restaurantTemplates; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
+    <div *ngFor="let t of restaurant; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
         <div class="card-body">
             <h4 class="card-title ml-2">{{t.name}}</h4>
             <div class="row ml-2">
             </div>
             <hr>
             <p class="card-text">
-                <small>{{restaurantTemplateDetails[t.name].description}}</small>
+                <small>{{templateDetails[t.name].description}}</small>
             </p>
             <hr>
             <p style="overflow:auto">
                 {{t.content}}
             </p>
             <button class="btn btn-primary" (click)="openPhoneNumberInput(t)">Send</button>
-            <button class="btn btn-primary" (click)="editNotification(t, 'restaurantTemplateDetails')">Edit</button> <br>
+            <button class="btn btn-primary" (click)="editNotification(t)">Edit</button> <br>
             <small>Current estimated template length: {{replaceMergeFields(t.content).length}}</small>
         </div>
     </div>
@@ -102,21 +102,21 @@
  _orderDetailsURL_, _newLine_
 </span>
 <div class="d-flex flex-row flex-wrap" *ngIf="system">
-    <div *ngFor="let t of system.miscTemplates; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
+    <div *ngFor="let t of misc; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
         <div class="card-body">
             <h4 class="card-title ml-2">{{t.name}}</h4>
             <div class="row ml-2">
             </div>
             <hr>
             <p class="card-text">
-                <small>{{miscTemplateDetails[t.name].description}}</small>
+                <small>{{templateDetails[t.name].description}}</small>
             </p>
             <hr>
             <p style="overflow:auto">
                 {{t.content}}
             </p>
             <button class="btn btn-primary" (click)="openPhoneNumberInput(t)">Send</button>
-            <button class="btn btn-primary" (click)="editNotification(t, 'miscTemplateDetails')">Edit</button> <br>
+            <button class="btn btn-primary" (click)="editNotification(t)">Edit</button> <br>
             <small>Current estimated template length: {{replaceMergeFields(t.content).length}}</small>
         </div>
     </div>
