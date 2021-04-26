@@ -53,7 +53,7 @@ export class QrRestaurantListComponent implements OnInit {
       sort: { updatedAt: -1 }
     }, 5000);
     this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "dine-in-session",
       query: {
         "orderObj.restaurantObj._id":{
@@ -61,13 +61,13 @@ export class QrRestaurantListComponent implements OnInit {
         }
       },
       projection: {
-        "orderObj": 1
+        "orderObj.restaurantObj._id": 1
       },
       sort: {
         createdAt: -1
       },
-      limit: 10000
-    }).toPromise();
+      limit: 20000
+    }, 5000);
     for (let i = 0; i < this.qrRestaurantListRows.length; i++) {
       let restaurant = this.qrRestaurantListRows[i];
       let tempOrders = orders.filter(o=> o.orderObj.restaurantObj._id === restaurant._id);
