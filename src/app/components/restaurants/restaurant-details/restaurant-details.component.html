@@ -70,6 +70,10 @@
         <app-menu-options [restaurant]="restaurant"></app-menu-options>
       </div>
 
+      <div *ngIf="activeTab === 'Translations'">
+        <app-restaurant-translations [restaurant]="restaurant"></app-restaurant-translations>
+      </div>
+
       <div *ngIf="activeTab === 'Invoices'">
         <app-restaurant-invoices [restaurant]="restaurant"></app-restaurant-invoices>
       </div>

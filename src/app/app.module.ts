@@ -212,6 +212,7 @@ import { QrRestaurantListComponent } from './components/restaurants/qr-restauran
 import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
+import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
 
 @NgModule({
   declarations: [
@@ -392,7 +393,8 @@ import { WeirdDataComponent } from './components/monitoring/weird-data/weird-dat
     RestaurantQrSettingsComponent,
     RestaurantStatsComponent,
     WeirdDataComponent,
-    QrRestaurantListComponent
+    QrRestaurantListComponent,
+    RestaurantTranslationsComponent
   ],
   imports: [
     BrowserModule,
