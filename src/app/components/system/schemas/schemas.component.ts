@@ -58,16 +58,16 @@ export class SchemasComponent implements OnInit {
       //   this._global.publishAlert(AlertType.Danger, JSON.stringify(e));
       // }
       try {
-        const full = await this._api.get(`${environment.qmenuApiUrl}generic`, {
+        const full = await this._api.getBatch(`${environment.qmenuApiUrl}generic`, {
           resource: currentSchema.dbName,
           sort: { updatedAt: -1 },
           limit: this.dataCount
-        }).toPromise();
-        const temp = await this._api.get(`${environment.qmenuApiUrl}generic`, {
+        },this.dataCount/2);
+        const temp = await this._api.getBatch(`${environment.qmenuApiUrl}generic`, {
           resource: currentSchema.dbName,
           sort: { updatedAt: -1 },
           limit: 1
-        }).toPromise();
+        },1);
         this.currentSchema.example = temp[0] || {};
         this.currentSchema.fullSchema = this.unionJson(full);
         this._global.superset.filter(s => s.dbName == currentSchema.dbName)[0]['fullSchema'] = this.currentSchema.fullSchema || {};
