@@ -1,9 +1,7 @@
-import { filter } from 'rxjs/operators';
 import { ApiService } from './../../../services/api.service';
 import { environment } from './../../../../environments/environment';
 import { Input } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
 
 @Component({
   selector: 'app-restaurant-stats',
