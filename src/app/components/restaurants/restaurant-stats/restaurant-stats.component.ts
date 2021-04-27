@@ -70,7 +70,7 @@ export class RestaurantStatsComponent implements OnInit {
       if (uniqueOrders.indexOf(customer) === -1) {
         uniqueOrders.push(customer);
       } else {
-        if (repeatOrders.indexOf(customer._id) === -1) { // if the unique orders array has this phone it must be repeat in total orders
+        if (repeatOrders.indexOf(customer) === -1) { // if the unique orders array has this phone it must be repeat in total orders
           repeatOrders.push(customer);
         }
       }
