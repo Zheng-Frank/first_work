@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, HostListener, OnInit } from "@angular/core";
 import { ViewChild, ElementRef } from "@angular/core";
 import { environment } from "src/environments/environment";
 import { ApiService } from "src/app/services/api.service";
@@ -33,6 +33,10 @@ export class SeamlessIntegrationComponent implements OnInit {
   polling = false
   pollingCompletedRestaurantsLength;
   pollingBegan = false
+
+
+
+  public innerWidth: any;
 
   readonly VAPID_PUBLIC_KEY =
     "BFzW7k_ZOAYwQQR0VSwJ3_Z4G1IINc8m-WT1casJqrntlfB9yKy5HJ3WH7OPdRIg3tpzszF9udJKkDjua4NaMhQ";
@@ -176,6 +180,11 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
+  screenSizeLarge() {
+    console.log("THIS IS THE INNER WIDTH ", this.innerWidth)
+    return this.innerWidth >= 1200
+  }
+
   getAnalyticBoolean(id) {
     for (let i = 0; i < this.currentRestaurants.length; i++) {
       if (this.currentRestaurants[i]._id === id) {
@@ -222,7 +231,45 @@ export class SeamlessIntegrationComponent implements OnInit {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event) {
+    this.innerWidth = window.innerWidth;
+  }
+
+  toggleLogHistory(id) {
+    for (let i = 0; i < this.currentRestaurants.length; i++) {
+      if (this.currentRestaurants[i]._id === id) {
+        this.currentRestaurants[i].showLogHistory = !this.currentRestaurants[i]
+          .showLogHistory;
+      }
+    }
+  }
+
+  showLogHistory(id) {
+    for (let i = 0; i < this.currentRestaurants.length; i++) {
+      if (this.currentRestaurants[i]._id === id) {
+        return this.currentRestaurants[i].showLogHistory;
+      }
+    }
+  }
+
+  getLogHistory(id) {
+    for (let i = 0; i < this.currentRestaurants.length; i++) {
+      if (this.currentRestaurants[i]._id === id) {
+        if (this.currentRestaurants[i].logs) {
+          console.log("CURRENT RESTAURANTS ", this.currentRestaurants[i])
+          return this.currentRestaurants[i].logs
+        } else {
+
+        }
+        // return this.currentRestaurants[i].logs;
+      }
+    }
+  }
+
   async ngOnInit() {
+    this.innerWidth = window.innerWidth;
+    console.log("INNER WIDTH ", this.innerWidth)
     await Notification.requestPermission();
     if (!this.polling) {
       setInterval(() => this.startPolling(), 300000)
@@ -254,18 +301,23 @@ export class SeamlessIntegrationComponent implements OnInit {
         })
         .toPromise();
 
-      let arr = []
-      this.allRestaurants.forEach(res => {
-        arr.push(res.salesAgent)
-      })
+      console.log("ALL RESTAURANTS ", this.allRestaurants)
+      //         const logs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      //           resource: 'restaurant',
+      //       query: { _id: { $in: uniqueIds } },
+      //           projection: {
+      //             logs: { $slice: -5 },
+      //           },
+      //         }).toPromise();
 
-      let uniqueAgents = [...new Set(arr)]
 
-      console.log(uniqueAgents)
+      // console.log(logs)
 
       this.allRestaurants.map((restaurant: any) => {
+        console.log("RESTAURANT DATA ", restaurant)
         restaurant.showAnalytics = false;
         restaurant.showSendHistory = false;
+        // restaurant.logs = restaurant.logs
         restaurant.currentDate = this.getTimeComplete(restaurant._id).time;
         return restaurant;
       });
@@ -288,6 +340,7 @@ export class SeamlessIntegrationComponent implements OnInit {
       this.entriesLength = this.currentRestaurants.length;
       this.currentRestaurants.map((restaurant) => {
         restaurant.showAnalytics = false;
+        restaurant.showLogs = false
         return restaurant;
       });
       // // console.log("CURRENT RESTAURANTS", this.currentRestaurants);

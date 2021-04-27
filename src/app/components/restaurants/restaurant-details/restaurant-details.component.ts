@@ -151,6 +151,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+      "Translations": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
@@ -161,6 +162,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
       "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "API Logs": ['ADMIN'],
+      "Stats":['ADMIN','CSR']
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));

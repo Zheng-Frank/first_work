@@ -126,6 +126,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
+    this.selfSignupRegistered = this.restaurant.selfSignup && this.restaurant.selfSignup.registered;
+
     if (this.restaurant.disabled && this.restaurant['comebackDate'] === undefined) {
       this.isTemporarilyDisabled = 'No';
     } else if (this.restaurant.disabled && (this.restaurant['comebackDate'] === null || this.isDate(this.restaurant['comebackDate']))) {
@@ -264,7 +266,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // tip settings
     newObj.serviceSettings = ['Pickup', 'Delivery', 'Dine-in'].map(type => {
-      const setting = this.restaurant.serviceSettings && this.restaurant.serviceSettings.find(x => x.name === type) || {name: type};
+      const setting = this.restaurant.serviceSettings && this.restaurant.serviceSettings.find(x => x.name === type) || { name: type };
       const tip = this.tipSettings[type];
       const newTipSuggestion = {
         amount: this.normalizeNumber(tip.defaultAmount),
