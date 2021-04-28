@@ -111,7 +111,87 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   preferredLanguage;
   selfSignupRegistered;
   notification;
-
+  showExplanationsIcon = true; //  a flag to decide whether show English/Chinese translations icon and the icon will toggle show explanations when focus in it.
+  showExplanations = false;
+  translating = '';
+  Explanations = {
+    ChineseExplanations:{
+      "Name":"餐馆的名字",
+      "Address":"餐厅地址（现在必须从经过Google验证的地址列表中选择）",
+      "AddressExtra":"可以在此处记录主“地址”字段未捕获的任何额外地址信息，如公寓或套房号码",
+      "ID":"餐馆的身份标识",
+      "Alias":"",
+      "TimeZone":"你必须记得查看餐厅的时区并正确设置！直接在Google上搜索 “[city], [state] time zone” 或 “[zip code] time zone”。",
+      "TaxRate":"餐厅的当地税率。 如果餐厅不知道他们的税率，您可以在谷歌上查找它们。",
+      "SalesAgent":"",
+      "Disabled":"",
+      "TimeEstimateforPickup":"准备拿餐订单时间估算（分钟）",
+      "TimeEstimateforDelivery":"准备外送订单时间估算（分钟）",
+      "PreferredLanguage":"",
+      "WebsiteBroadcast":"此广播将显示在餐厅的订购网站上。 如果餐厅要求您向将出现在网站上的客户添加消息，则应在此处添加该内容。 例如，在下图中，餐馆想要警告顾客他们必须出示与他们打算用来购买食物的信用卡相匹配的有效ID。",
+      "Surcharge":"",
+      "SurchargeRate":"在线订购的额外费用。 鼓励餐厅尽可能不收取此类费用，因为它可能会阻止客户。 （向客户展示的文字：通常类似“在线订单费”）",
+      "CCProcessingRate":"一些餐馆收取信用卡金额的一定百分比作为处理付款的费用。",
+      "CCProcessingFlatFee":"部分餐厅收取固定费用以处理信用卡交易，如1美元。 鼓励餐厅尽可能不收取此类费用，因为它可能会阻止客户。",
+      "PickupMinimum":"取件订单的最低订单金额",
+      "CCMinimumCharge":"",
+      "DefaultPercentage":"",
+      "MinimumPercentage":"",
+      "DefaultAmount":"",
+      "MinimumAmount":"",
+      "ShowTip":"",
+      "DisableScheduling":"如果选中此复选框，则会阻止客户在餐厅当前未打开时从餐厅下订单。 由于客户经常仍然错误地为未来日期下订单（认为他们正在下当天订单），我们已将此作为所有餐厅的默认系统行为。",
+      "RegisterSelfSignup":"",
+      "Notes":"有关餐厅的任何额外的非结构化数据，没有其他现有专用字段输入信息。",
+      "HideOrderStatusonCustomerSide":"",
+      "SkipOrderConfirmation":"如果选择此选项，此餐厅的未确认订单将不会出现在Qmenu CSR Portal主页上的“未确认订单”列表中（换句话说，餐厅不希望确认他们获得的每个订单，也不会 希望收到我们的提醒。）",
+      "SkipAutoInvoicing":"",
+      "NotShowTaxOptiontoCustomer":"",
+      "SkipImageInject":"",
+      "Allowsubmittingorderatclosetime":"",
+      "HideprintingCC":"",
+      "PreventRTfromcancelingorders":"",
+      "Showorderreadyestimate":""
+    },
+    EnglishExplanations:{
+      "Name":"Name of restaurant",
+      "Address":"Address of restaurant (this must now be selected from a list of Google-validated addresses).",
+      "AddressExtra":"Any extra address information, like apartment or suite number, that isn’t captured by the main “Address” field can be recorded here ",
+      "ID":"ID of restaurant",
+      "Alias":"",
+      "TimeZone":"You must remember to look up the time zone of the restaurant and set it properly! Simply search for “[city], [state] time zone” or “[zip code] time zone” on Google. ",
+      "TaxRate":"The restaurant’s local tax rate. If the restaurant doesn’t know their tax rate, you can look it up on Google for them.",
+      "SalesAgent":"",
+      "Disabled":"",
+      "TimeEstimateforPickup":"Time Estimate for Pickup (mins)",
+      "TimeEstimateforDelivery":"Time Estimate for Delivery (mins):",
+      "PreferredLanguage":"",
+      "WebsiteBroadcast":"This broadcast will be displayed on the restaurant’s ordering site. If the restaurant asks you to add a message to customers that will appear on the website, this is where you should add that content. For example, in the image below, the restaurant wants to warn customers that they must present a valid ID matching the credit card they intend to use to purchase the food.",
+      "Surcharge":" Extra fee for ordering online. Encourage the restaurant not to charge such a fee if possible as it may deter customers. (Text to show customer: what to show customers to explain this fee, usually something like “Service Fee”).",
+      "SurchargeRate":"",
+      "CCProcessingRate":"Some restaurants charge a percentage of the credit card amount as a fee to process the payment.",
+      "CCProcessingFlatFee":"Some restaurants charge a flat fee for processing credit card transactions, like $1. Encourage the restaurant not to charge such a fee if possible as it may deter customers.",
+      "PickupMinimum":"Minimum order amount for pickup orders ",
+      "CCMinimumCharge":"",
+      "DefaultPercentage":"",
+      "MinimumPercentage":"",
+      "DefaultAmount":"",
+      "MinimumAmount":"",
+      "ShowTip":"",
+      "DisableScheduling":"If this box is checked, it prevents customers from placing future orders from the restaurant if the restaurant is not currently open. Due to the fact that customers were often still mistakenly placing orders for future dates (thinking that they were placing current-day orders), we have made this the default system behavior for all restaurants.",
+      "RegisterSelf-Signup":"",
+      "Notes":"Any extra unstructured data about the restaurant for which there is not another existing dedicated field to enter the information into.",
+      "HideOrderStatusonCustomerSide":"",
+      "SkipOrderConfirmation":"If this option is selected, unconfirmed orders for this restaurant will not appear in the “Unconfirmed Orders” list on the Qmenu CSR Portal home page (in other words, the restaurant doesn’t want to have to confirm each order they get and does not want to receive reminders from us to do so).",
+      "SkipAutoInvoicing":"",
+      "NotShowTaxOptiontoCustomer":"",
+      "SkipImageInject":"",
+      "Allowsubmittingorderatclosetime":"",
+      "HideprintingCC":"",
+      "PreventRTfromcancelingorders":"",
+      "Showorderreadyestimate":""
+    }
+  }
   preferredLanguages = [
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
@@ -134,6 +214,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       this.isTemporarilyDisabled = 'Yes';
     }
     this.tipSettingsInit();
+  }
+  // Show the corresponding translation of restaurant profile field.
+  showCorrespondingTranslation(field){
+    this.translating = field;
+    console.log(field);
+    this.showExplanations = true;
   }
 
   isDate(dateToParse) {
