@@ -43,7 +43,7 @@ export class MonitoringPromotionComponent implements OnInit {
     this.rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        'promotions.1': {$exists: false},
+        'promotions.0': {$exists: false},
         disabled: false
       },
       projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1},
