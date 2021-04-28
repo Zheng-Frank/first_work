@@ -183,7 +183,7 @@
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('TimeEstimateforPickup')"
                       (mouseout)="showExplanations = false">
-                      <div *ngIf="showExplanations && translating === 'TimeEstimateforPickup'" class="left talk radius">
+                      <div *ngIf="showExplanations && translating === 'TimeEstimateforPickup'"  class="left talk radius">
                         <p>Time Estimate for Pickup:{{Explanations.EnglishExplanations.TimeEstimateforPickup}}</p>
                         -------------<br>
                         <p>预估取餐时间:{{Explanations.ChineseExplanations.TimeEstimateforPickup}}</p>

@@ -218,7 +218,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   // Show the corresponding translation of restaurant profile field.
   showCorrespondingTranslation(field){
     this.translating = field;
-    console.log(field);
     this.showExplanations = true;
   }
 
