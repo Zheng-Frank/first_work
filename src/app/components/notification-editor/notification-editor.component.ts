@@ -37,7 +37,7 @@ export class NotificationEditorComponent implements OnInit {
     "Delivering": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
     "Delivered": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
     "Completed": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "Restaurant Canceled - refund": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_adjustmentAmount_"],
+    "Restaurant Canceled - refund": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_adjustmentAmount_", "_refundTimeFrame_"],
     "Restaurant Canceled - no charge": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
     "New Order Received": ["_newLine_", "_customerFirstName_", "_customerLastName", "_restaurantName_", "_orderNumber_"],
     "Delivery Complete": ["_newLine_", "_customerFirstName_", "_customerLastName", "_restaurantName_", "_orderNumber_"],
@@ -46,7 +46,7 @@ export class NotificationEditorComponent implements OnInit {
     "Adjust Order - charge": ["_newLine_", "_adjustmentAmount_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
     "Change to pickup - refund": ["_newLine_", "_adjustmentAmount_", "_refundTimeFrame_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
     "Change to pickup - charge": ["_newLine_", "_adjustmentAmount_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
-    "Order delivery status": ["_newLine_"],
+    "Order delivery status": ["_newLine_", "_orderNumber_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderDetailsURL_"],
     "Sesame Success": ["_newLine_"],
     "Sesame Failure": ["_newLine_"],
     "qMenu Login Code": ["_newLine_", "_loginCode_"]
