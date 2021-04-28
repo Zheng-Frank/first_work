@@ -19,7 +19,7 @@ export class BroadcastingEditorComponent implements OnInit {
     restaurantListId: ''
   };
 
-  selectedPreviousBroadcast;
+  selectedBroadcast;
   broadcasts;
 
   previewBroadcast = { ...this.broadcast };
@@ -50,7 +50,7 @@ export class BroadcastingEditorComponent implements OnInit {
   }
 
   canPublishBroadcast() {
-    return !!this.selectedPreviousBroadcast && !! this.broadcast.restaurantListId;
+    return !!this.selectedBroadcast && !! this.broadcast.restaurantListId;
   }
 
   canAddBroadcast() {
@@ -86,15 +86,12 @@ export class BroadcastingEditorComponent implements OnInit {
       const allRestaurantRequests = rtIdsList.map(id => this.getRestaurant(id));
       const restaurants = await Promise.all(allRestaurantRequests);
       const broadcastsStripped = this.broadcasts.map(b => b._id);
-      let newIds = [];
       let allPatchResquests = [];
 
       for (const restaurant of restaurants) {
         const [_restaurant] = restaurant;
-        if(_restaurant) {
-          newIds = broadcastsStripped.filter(x => !(_restaurant.broadcasts || []).map(b => b._id).includes(x)).concat((_restaurant.broadcasts || []).map(b => b._id).filter(x => !broadcastsStripped.includes(x)));
-          const _newIds = newIds.map(n => { return { _id: n } });
-          const patchedBroadcasts = [...(_restaurant.broadcasts || []), ..._newIds];
+        if (_restaurant) {
+          const patchedBroadcasts = [...(_restaurant.broadcasts || []), { _id: this.selectedBroadcast }];
           allPatchResquests.push(await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{ old: { _id: _restaurant._id }, new: { _id: _restaurant._id, broadcasts: patchedBroadcasts } }]).toPromise());
         }
       }
