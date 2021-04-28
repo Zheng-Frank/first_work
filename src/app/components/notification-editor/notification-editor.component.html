@@ -1,9 +1,10 @@
 <div *ngIf="notification">
   <div>
-    <label>Notification Entity</label>
-    <select class="form-control" [disabled]="true" [(ngModel)]="notification.sentTo">
+    <label>Notification Category</label>
+    <select class="form-control" [disabled]="true" [(ngModel)]="notification.category">
       <option>customer</option>
       <option>restaurant</option>
+      <option>misc</option>
     </select>
 
     <label>Title</label> <br>

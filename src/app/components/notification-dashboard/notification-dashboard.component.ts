@@ -53,8 +53,12 @@ export class NotificationDashboardComponent implements OnInit {
       description: "Notification sent to customer when their order has been marked complete.",
       category: "customer"
     },
-    "Restaurant Canceled": {
-      description: "Notification sent to customer when their order was canceled by the restaurant.",
+    "Restaurant Canceled - refund": {
+      description: "Notification sent to customer when their order was canceled by the restaurant and they are due a refund.",
+      category: "customer"
+    },
+    "Restaurant Canceled - no charge": {
+      description: "Notification sent to customer when their order was canceled by the restaurant and their card was not charged",
       category: "customer"
     },
     "New Order Received": {
@@ -126,7 +130,6 @@ export class NotificationDashboardComponent implements OnInit {
     this.misc = [];
     this.system.templates.forEach(t => {
       const target = this.templateDetails[t.name].category;
-      console.log(target);
       this[target].push(t);
     });
   }
@@ -137,14 +140,16 @@ export class NotificationDashboardComponent implements OnInit {
     // temporarily add a description to the object when we open it in the editor. This description will be deleted before saving to the db again. 
     this.notificationInEditor = JSON.parse(JSON.stringify(s));
     this.notificationInEditor.description = this.templateDetails[s.name].description;
+    this.notificationInEditor.category = this.templateDetails[s.name].category;
   }
 
   onCancel() {
     this.notificationModal.hide();
   }
 
-  onDone(template) { // rewrite!
+  onDone(template) {
     delete template.description;
+    delete template.category;
     const newTemplates = (this.system.templates || []).slice(0);
     newTemplates.forEach((n, i) => {
       if (n.name === template.name) {
@@ -267,7 +272,18 @@ export class NotificationDashboardComponent implements OnInit {
       timeZone: "America/New_York", hour: '2-digit', minute: '2-digit'
     })}`;
 
+    const adjustmentAmount = 19.44;
+    const isStripe = false;
+
     mergedMessage = mergedMessage.replace(/_orderTimeEstimate_/g, orderReadyEST);
+    mergedMessage = mergedMessage.replace(/_adjustmentAmount_/g, adjustmentAmount);
+
+    if (isStripe) {
+      mergedMessage = mergedMessage.replace(/_refundTimeFrame_/g, "5 - 10 business days due to Stripe Inc's refund policy. We use Stripe Inc. for secure and PCI compliant credit card processing. See more details at https://stripe.com/docs/refunds.")
+    } else {
+
+      mergedMessage = mergedMessage.replace(/_refundTimeFrame_/g, "5 - 10 business days.")
+    }
 
     return mergedMessage;
 
