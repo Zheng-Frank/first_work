@@ -272,18 +272,31 @@ export class NotificationDashboardComponent implements OnInit {
       timeZone: "America/New_York", hour: '2-digit', minute: '2-digit'
     })}`;
 
+    const paymentObj = {
+      method: 'STRIPE',
+
+    };
+    const loginCode = 123;
+    const cancelComments = 'Sample cancel comment.';
     const adjustmentAmount = 19.44;
-    const isStripe = false;
 
     mergedMessage = mergedMessage.replace(/_orderTimeEstimate_/g, orderReadyEST);
     mergedMessage = mergedMessage.replace(/_adjustmentAmount_/g, adjustmentAmount);
 
-    if (isStripe) {
-      mergedMessage = mergedMessage.replace(/_refundTimeFrame_/g, "5 - 10 business days due to Stripe Inc's refund policy. We use Stripe Inc. for secure and PCI compliant credit card processing. See more details at https://stripe.com/docs/refunds.")
-    } else {
-
-      mergedMessage = mergedMessage.replace(/_refundTimeFrame_/g, "5 - 10 business days.")
+    if (paymentObj.method === 'QMENU' || paymentObj.method === 'STRIPE') {
+      if (paymentObj.method === 'QMENU') {
+        mergedMessage = mergedMessage.replace(/_refundTimeFrame_/g, "3 - 10 business days");
+      } else {
+        mergedMessage = mergedMessage.replace(/_refundTimeFrame_/g, "5-10 business days according to Stripe Inc\'s refund policy. We use Stripe Inc. for secure and PCI compliant credit card processing. See more details at https://stripe.com/docs/refunds");
+      }
     }
+    if (paymentObj.method === 'KEY_IN') {
+      mergedMessage.replace(/_refundTimeFrame_/g, "5 - 10 business days")
+    }
+    mergedMessage = mergedMessage.replace(/_loginCode_/g, loginCode);
+    mergedMessage = mergedMessage.replace(/_cancelComments_/g, cancelComments);
+
+    return mergedMessage;
 
     return mergedMessage;
 
