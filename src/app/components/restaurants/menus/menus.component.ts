@@ -25,6 +25,7 @@ export class MenusComponent implements OnInit {
   @Output() menusChanged = new EventEmitter();
 
   importMenu = false;
+  importCoupon = false;
   apiRequesting = false;
   providerUrl;
   providers = [];
