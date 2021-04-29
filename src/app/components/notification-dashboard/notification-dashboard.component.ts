@@ -297,9 +297,6 @@ export class NotificationDashboardComponent implements OnInit {
     mergedMessage = mergedMessage.replace(/_cancelComments_/g, cancelComments);
 
     return mergedMessage;
-
-    return mergedMessage;
-
   }
 }
 
