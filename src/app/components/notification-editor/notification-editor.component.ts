@@ -24,7 +24,6 @@ export class NotificationEditorComponent implements OnInit {
     "_orderDetailsURL_",
     "_cancelComments_",
     "_adjustmentAmount_",
-    "_customerLastName",
     "_refundTimeFrame_",
     "_loginCode_"
   ];
@@ -39,8 +38,8 @@ export class NotificationEditorComponent implements OnInit {
     "Completed": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
     "Restaurant Canceled - refund": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_adjustmentAmount_", "_refundTimeFrame_"],
     "Restaurant Canceled - no charge": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
-    "New Order Received": ["_newLine_", "_customerFirstName_", "_customerLastName", "_restaurantName_", "_orderNumber_"],
-    "Delivery Complete": ["_newLine_", "_customerFirstName_", "_customerLastName", "_restaurantName_", "_orderNumber_"],
+    "New Order Received": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_"],
+    "Delivery Complete": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_"],
     "Customer Canceled": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
     "Adjust Order - refund": ["_newLine_", "_adjustmentAmount_", "_refundTimeFrame_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
     "Adjust Order - charge": ["_newLine_", "_adjustmentAmount_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
@@ -53,15 +52,6 @@ export class NotificationEditorComponent implements OnInit {
   }
 
   ngOnInit() {
-    const allMergeFields = [];
-    for (const key in this.allowableMergeFields) {
-      this.allowableMergeFields[key].forEach(field => {
-        if (!allMergeFields.includes(field)) {
-          allMergeFields.push(field);
-        }
-      })
-    }
-    console.log(allMergeFields);
   }
 
   verifyMergeFields() {
@@ -73,7 +63,7 @@ export class NotificationEditorComponent implements OnInit {
       }
     });
     if (illegalFields.length) {
-      return illegalFields.join(' ');
+      return illegalFields.join(', ');
     }
     return "";
   }
