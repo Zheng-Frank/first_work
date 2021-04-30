@@ -166,7 +166,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Alias":"",
       "TimeZone":"You must remember to look up the time zone of the restaurant and set it properly! Simply search for “[city], [state] time zone” or “[zip code] time zone” on Google. ",
       "TaxRate":"The restaurant’s local tax rate. If the restaurant doesn’t know their tax rate, you can look it up on Google for them.",
-      "SalesAgent":"Extra fee for ordering online. Encourage the restaurant not to charge such a fee if possible as it may deter customers. (Text to show customer: what to show customers to explain this fee, usually something like “Service Fee”) ",
+      "SalesAgent":"",
       "Disabled":"Checkbox to disable the restaurant (for instance, if the restaurant goes out of business or stops doing business with qMenu, checking this box will disable any future orders from being placed by customers for the restaurant). When a restaurant is disabled, this will also tell our system to not generate GMB transfer tasks even when the ownership is attacked, since it’s not worth our GMB team’s efforts to maintain a GMB listing of a restaurant that won’t work with us anymore anyway.",
       "TimeEstimateforPickup":"Time Estimate for Pickup (mins)",
       "TimeEstimateforDelivery":"Time Estimate for Delivery (mins):",

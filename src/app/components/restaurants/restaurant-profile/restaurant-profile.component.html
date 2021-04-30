@@ -777,7 +777,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Name
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Name')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'Name'" class="left talk radius">
+                <div  *ngIf="showExplanations && translating === 'Name' " class="left edit-talk radius">
                   <p>Name:{{Explanations.EnglishExplanations.Name}}</p>
                   -------------<br>
                   <p>名字:{{Explanations.ChineseExplanations.Name}}</p>
@@ -792,7 +792,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Address
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Address')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'Address' " class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'Address' " class="left edit-talk radius">
                   <p>Address:{{Explanations.EnglishExplanations.Address}}</p>
                   -------------<br>
                   <p>地址:{{Explanations.ChineseExplanations.Address}}</p>
@@ -807,7 +807,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Address Extra
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('AddressExtra')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'AddressExtra'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'AddressExtra'" class="left edit-talk radius">
                   <p>Address Extra:{{Explanations.EnglishExplanations.AddressExtra}}</p>
                   -------------<br>
                   <p>地址额外信息:{{Explanations.ChineseExplanations.AddressExtra}}</p>
@@ -822,7 +822,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Tax Rate
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('TaxRate')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'TaxRate'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'TaxRate'" class="left edit-talk radius">
                   <p>Tax Rate:{{Explanations.EnglishExplanations.TaxRate}}</p>
                   -------------<br>
                   <p>税率:{{Explanations.ChineseExplanations.TaxRate}}</p>
@@ -837,7 +837,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Domain
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Domain')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'Domain'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'Domain'" class="left edit-talk radius">
                   <p>Domain:{{Explanations.EnglishExplanations.Domain}}</p>
                   -------------<br>
                   <p>网站域名:{{Explanations.ChineseExplanations.Domain}}</p>
@@ -852,7 +852,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Sales Agent
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('SalesAgent')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'SalesAgent'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'SalesAgent'" class="left edit-talk radius">
                   <p>Sales Agent:{{Explanations.EnglishExplanations.SalesAgent}}</p>
                   -------------<br>
                   <p>销售人员:{{Explanations.ChineseExplanations.SalesAgent}}</p>
@@ -867,7 +867,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Disabled
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Disabled')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'Disabled'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'Disabled'" class="left edit-talk radius">
                   <p>Disabled:{{Explanations.EnglishExplanations.Disabled}}</p>
                   -------------<br>
                   <p>复选框禁用餐厅:{{Explanations.ChineseExplanations.Disabled}}</p>
@@ -912,7 +912,7 @@
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('TimeEstimateforPickup')"
                 (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'TimeEstimateforPickup'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'TimeEstimateforPickup'" class="left edit-talk radius">
                   <p>Time Estimate for Pickup:{{Explanations.EnglishExplanations.TimeEstimateforPickup}}</p>
                   -------------<br>
                   <p>预估取餐时间:{{Explanations.ChineseExplanations.TimeEstimateforPickup}}</p>
@@ -928,7 +928,7 @@
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('TimeEstimateforDelivery')"
                 (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'TimeEstimateforDelivery'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'TimeEstimateforDelivery'" class="left edit-talk radius">
                   <p>Time Estimate for Delivery:{{Explanations.EnglishExplanations.TimeEstimateforDelivery}}</p>
                   -------------<br>
                   <p>预估派送时间:{{Explanations.ChineseExplanations.TimeEstimateforDelivery}}</p>
@@ -944,7 +944,7 @@
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('DisableOrderingAhead')"
                 (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'DisableOrderingAhead'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'DisableOrderingAhead'" class="left edit-talk radius">
                   <p>Disable Ordering Ahead:{{Explanations.EnglishExplanations.DisableOrderingAhead}}</p>
                   -------------<br>
                   <p>禁用提前订购:{{Explanations.ChineseExplanations.DisableOrderingAhead}}</p>
@@ -959,7 +959,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Order Call Language
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('OrderCallLanguage')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'OrderCallLanguage'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'OrderCallLanguage'" class="left edit-talk radius">
                   <p>Order Call Language:{{Explanations.EnglishExplanations.OrderCallLanguage}}</p>
                   -------------<br>
                   <p>用于机器人调用的语言:{{Explanations.ChineseExplanations.OrderCallLanguage}}</p>
@@ -978,7 +978,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Website Broadcast
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('WebsiteBroadcast')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'WebsiteBroadcast'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'WebsiteBroadcast'" class="left edit-talk radius">
                   <p>Website Broadcast:{{Explanations.EnglishExplanations.WebsiteBroadcast}}</p>
                   -------------<br>
                   <p>网站广播:{{Explanations.ChineseExplanations.WebsiteBroadcast}}</p>
@@ -995,7 +995,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Logo
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Logo')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'Logo'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'Logo'" class="left edit-talk radius">
                   <p>Logo:{{Explanations.EnglishExplanations.Logo}}</p>
                   -------------<br>
                   <p>网站标志:{{Explanations.ChineseExplanations.Logo}}</p>
@@ -1025,7 +1025,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Photos
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Photos')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'Photos'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'Photos'" class="left edit-talk radius">
                   <p>Photos:{{Explanations.EnglishExplanations.Photos}}</p>
                   -------------<br>
                   <p>图片:{{Explanations.ChineseExplanations.Photos}}</p>
@@ -1069,7 +1069,7 @@
               <label class="col-4 col-form-label pt-0 pl-5">Surcharge
                 <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                   (mouseover)="showCorrespondingTranslation('Surcharge')" (mouseout)="showExplanations = false">
-                  <div *ngIf="showExplanations && translating === 'Surcharge'" class="left talk radius">
+                  <div *ngIf="showExplanations && translating === 'Surcharge'" class="left edit-talk radius">
                     <p>Surcharge:{{Explanations.EnglishExplanations.Surcharge}}</p>
                     -------------<br>
                     <p>网络点餐服务费:{{Explanations.ChineseExplanations.Surcharge}}</p>
@@ -1094,7 +1094,7 @@
               <label class="col-4 col-form-label pt-0 pl-5">CC Processing Rate
                 <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                   (mouseover)="showCorrespondingTranslation('CCProcessingRate')" (mouseout)="showExplanations = false">
-                  <div *ngIf="showExplanations && translating === 'CCProcessingRate'" class="left talk radius">
+                  <div *ngIf="showExplanations && translating === 'CCProcessingRate'" class="left edit-talk radius">
                     <p>CC Processing Rate:{{Explanations.EnglishExplanations.CCProcessingRate}}</p>
                     -------------<br>
                     <p>信用卡付款百分比服务费:{{Explanations.ChineseExplanations.CCProcessingRate}}</p>
@@ -1110,7 +1110,7 @@
                 <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                   (mouseover)="showCorrespondingTranslation('CCProcessingFlatFee')"
                   (mouseout)="showExplanations = false">
-                  <div *ngIf="showExplanations && translating === 'CCProcessingFlatFee'" class="left talk radius">
+                  <div *ngIf="showExplanations && translating === 'CCProcessingFlatFee'" class="left edit-talk radius">
                     <p>CC Processing Flat Fee:{{Explanations.EnglishExplanations.CCProcessingFlatFee}}</p>
                     -------------<br>
                     <p>信用卡付款固定服务费:{{Explanations.ChineseExplanations.CCProcessingFlatFee}}</p>
@@ -1126,7 +1126,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Pickup Minimum
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('PickupMinimum')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'PickupMinimum'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'PickupMinimum'" class="left edit-talk radius">
                   <p>Pickup Minimum:{{Explanations.EnglishExplanations.PickupMinimum}}</p>
                   -------------<br>
                   <p>最小配送费:{{Explanations.ChineseExplanations.PickupMinimum}}</p>
@@ -1141,7 +1141,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">CC Minimum Charge
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('CCMinimumCharge')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'CCMinimumCharge'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'CCMinimumCharge'" class="left edit-talk radius">
                   <p>CC Minimum Charge:{{Explanations.EnglishExplanations.CCMinimumCharge}}</p>
                   -------------<br>
                   <p>最小信用卡处理费:{{Explanations.ChineseExplanations.CCMinimumCharge}}</p>
@@ -1181,7 +1181,7 @@
                         (mouseover)="showCorrespondingTranslation('DefaultPercentage')"
                         (mouseout)="showExplanations = false">
                         <div *ngIf="showExplanations && translating === 'DefaultPercentage'"
-                          class="left tip-talk radius">
+                          class="left tip-edit-talk radius">
                           <p>Default Percentage (%):{{Explanations.EnglishExplanations.DefaultPercentage}}</p>
                           -------------<br>
                           <p>默认百分比(%):{{Explanations.ChineseExplanations.DefaultPercentage}}</p>
@@ -1212,7 +1212,7 @@
                         (mouseover)="showCorrespondingTranslation('MinimumPercentage')"
                         (mouseout)="showExplanations = false">
                         <div *ngIf="showExplanations && translating === 'MinimumPercentage'"
-                          class="left tip-talk radius">
+                          class="left tip-edit-talk radius">
                           <p>Minimum Percentage (%):{{Explanations.EnglishExplanations.MinimumPercentage}}</p>
                           -------------<br>
                           <p>最小百分比(%):{{Explanations.ChineseExplanations.MinimumPercentage}}</p>
@@ -1242,7 +1242,7 @@
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('DefaultAmount')"
                         (mouseout)="showExplanations = false">
-                        <div *ngIf="showExplanations && translating === 'DefaultAmount'" class="left tip-talk radius">
+                        <div *ngIf="showExplanations && translating === 'DefaultAmount'" class="left tip-edit-talk radius">
                           <p>Default Amount ($):{{Explanations.EnglishExplanations.DefaultAmount}}</p>
                           -------------<br>
                           <p>默认金额:{{Explanations.ChineseExplanations.DefaultAmount}}</p>
@@ -1272,7 +1272,7 @@
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('MinimumAmount')"
                         (mouseout)="showExplanations = false">
-                        <div *ngIf="showExplanations && translating === 'MinimumAmount'" class="left tip-talk radius">
+                        <div *ngIf="showExplanations && translating === 'MinimumAmount'" class="left tip-edit-talk radius">
                           <p>Minimum Amount ($):{{Explanations.EnglishExplanations.MinimumAmount}}</p>
                           -------------<br>
                           <p>最小金额:{{Explanations.ChineseExplanations.MinimumAmount}}</p>
@@ -1301,7 +1301,7 @@
                     <label class="col-form-label">Show Tip
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('ShowTip')" (mouseout)="showExplanations = false">
-                        <div *ngIf="showExplanations && translating === 'ShowTip'" class="left tip-talk radius">
+                        <div *ngIf="showExplanations && translating === 'ShowTip'" class="left tip-edit-talk radius">
                           <p>Show Tip:{{Explanations.EnglishExplanations.ShowTip}}</p>
                           -------------<br>
                           <p>展示小费:{{Explanations.ChineseExplanations.ShowTip}}</p>
@@ -1359,7 +1359,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Register Self Signup
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('RegisterSelfSignup')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'RegisterSelfSignup'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'RegisterSelfSignup'" class="left edit-talk radius">
                   <p>Register Self Signup:{{Explanations.EnglishExplanations.RegisterSelfSignup}}</p>
                   -------------<br>
                   <p>自己注册:{{Explanations.ChineseExplanations.RegisterSelfSignup}}</p>
@@ -1376,7 +1376,7 @@
                 (mouseover)="showCorrespondingTranslation('HideOrderStatusonCustomerSide')"
                 (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'HideOrderStatusonCustomerSide'"
-                  class="left talk radius">
+                  class="left edit-talk radius">
                   <p>Hide Order Status on Customer
                     Side:{{Explanations.EnglishExplanations.HideOrderStatusonCustomerSide}}</p>
                   -------------<br>
@@ -1393,7 +1393,7 @@
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('SkipOrderConfirmation')"
                 (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'SkipOrderConfirmation'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'SkipOrderConfirmation'" class="left edit-talk radius">
                   <p>Skip Order Confirmation:{{Explanations.EnglishExplanations.SkipOrderConfirmation}}</p>
                   -------------<br>
                   <p>跳过订单确认:{{Explanations.ChineseExplanations.SkipOrderConfirmation}}</p>
@@ -1408,7 +1408,7 @@
             <label class="col-4 col-form-label pt-0 pl-5"> Skip Auto Invoicing
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('SkipAutoInvoicing')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'SkipAutoInvoicing'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'SkipAutoInvoicing'" class="left edit-talk radius">
                   <p>Skip Auto Invoicing:{{Explanations.EnglishExplanations.SkipAutoInvoicing}}</p>
                   -------------<br>
                   <p>跳过自动分润:{{Explanations.ChineseExplanations.SkipAutoInvoicing}}</p>
@@ -1424,7 +1424,7 @@
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('NotShowTaxOptiontoCustomer')"
                 (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'NotShowTaxOptiontoCustomer'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'NotShowTaxOptiontoCustomer'" class="left edit-talk radius">
                   <p>Not Show Tax Option to Customer:{{Explanations.EnglishExplanations.NotShowTaxOptiontoCustomer}}</p>
                   -------------<br>
                   <p>不向客户展示税率选项:{{Explanations.ChineseExplanations.NotShowTaxOptiontoCustomer}}</p>
@@ -1439,7 +1439,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Skip Image Injection
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('SkipImageInject')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'SkipImageInject'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'SkipImageInject'" class="left edit-talk radius">
                   <p>Skip Image Injection:{{Explanations.EnglishExplanations.SkipImageInject}}</p>
                   -------------<br>
                   <p>跳过图片注入:{{Explanations.ChineseExplanations.SkipImageInject}}</p>
@@ -1456,7 +1456,7 @@
                 (mouseover)="showCorrespondingTranslation('Allowsubmittingorderatclosetime')"
                 (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'Allowsubmittingorderatclosetime'"
-                  class="left talk radius">
+                  class="left edit-talk radius">
                   <p>Allow submitting order at close
                     time:{{Explanations.EnglishExplanations.Allowsubmittingorderatclosetime}}</p>
                   -------------<br>
@@ -1472,7 +1472,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Hide printing CC
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('HideprintingCC')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'HideprintingCC'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'HideprintingCC'" class="left edit-talk radius">
                   <p>Hide printing CC:{{Explanations.EnglishExplanations.HideprintingCC}}</p>
                   -------------<br>
                   <p>隐藏打印的信用卡:{{Explanations.ChineseExplanations.HideprintingCC}}</p>
@@ -1489,7 +1489,7 @@
                 (mouseover)="showCorrespondingTranslation('PreventRTfromcancelingorders')"
                 (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'PreventRTfromcancelingorders'"
-                  class="left talk radius">
+                  class="left edit-talk radius">
                   <p>Prevent RT from canceling
                     orders:{{Explanations.EnglishExplanations.PreventRTfromcancelingorders}}</p>
                   -------------<br>
@@ -1506,7 +1506,7 @@
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Showorderreadyestimate')"
                 (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'Showorderreadyestimate'" class="left talk radius">
+                <div *ngIf="showExplanations && translating === 'Showorderreadyestimate'" class="left edit-talk radius">
                   <p>Show order ready estimate:{{Explanations.EnglishExplanations.Showorderreadyestimate}}</p>
                   -------------<br>
                   <p>显示订单就绪估计:{{Explanations.ChineseExplanations.Showorderreadyestimate}}</p>
@@ -1522,10 +1522,10 @@
         <!--Notes  -->
         <div class="form-group row ml-2">
           <h4>Notes
-            <label class="col-4 col-form-label pt-0 pl-5">
+            <label class="col-4 col-form-label pt-0">
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                (mouseover)="showCorrespondingTranslation('Notes')" (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'Notes'" class="left talk radius">
+                (mouseover)="showCorrespondingTranslation('Notes')" (mouseout)="showExplanations = false" style="font-size:15px;">
+                <div  *ngIf="showExplanations && translating === 'Notes'" class="left edit-talk radius">
                   <p>Notes:{{Explanations.EnglishExplanations.Notes}}</p>
                   -------------<br>
                   <p>注意事项:{{Explanations.ChineseExplanations.Notes}}</p>
