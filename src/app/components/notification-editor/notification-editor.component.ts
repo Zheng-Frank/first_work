@@ -12,7 +12,7 @@ export class NotificationEditorComponent implements OnInit {
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
 
-  constructor() {}
+  constructor() { }
 
   allMergeFields = [
     "_newLine_",
@@ -56,10 +56,21 @@ export class NotificationEditorComponent implements OnInit {
 
   verifyMergeFields() {
     const illegalFields = [];
-    const allowableFields = this.allowableMergeFields[this.notification.name];
-    this.allMergeFields.forEach(field => {
-      if (this.notification.content.includes(field) && !allowableFields.includes(field)) {
-        illegalFields.push(field);
+    const delineaterIndices = [];
+    const mergeVariablesInThisTemplate = [];
+
+    for (let i = 0; i < this.notification.content.length; i += 1) {
+      if (this.notification.content[i] === '_') {
+        delineaterIndices.push(i);
+      }
+    }
+
+    for (let j = 0; j < delineaterIndices.length; j += 2) {
+      mergeVariablesInThisTemplate.push(this.notification.content.slice(delineaterIndices[j], delineaterIndices[j + 1] + 1))
+    }
+    mergeVariablesInThisTemplate.forEach(mv => {
+      if (!this.allowableMergeFields[this.notification.name].includes(mv)) {
+        illegalFields.push(mv);
       }
     });
     if (illegalFields.length) {
