@@ -202,7 +202,10 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
         this.invoiceChannels = (restaurants[0].channels || []).filter(c => c.notifications && c.notifications.indexOf('Invoice') >= 0);
 
-        this.myInvoiceViewer.refresh();
+        if (this.myInvoiceViewer) {
+          this.myInvoiceViewer.refresh();
+        }
+
 
       }, error => {
         this._global.publishAlert(

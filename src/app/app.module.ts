@@ -1,4 +1,3 @@
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -384,7 +383,6 @@ import { RestaurantInvoiceAdjustmentComponent } from './components/restaurants/r
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
-    InvoiceViewerComponent,
     SchemasComponent,
     SeamlessIntegrationComponent,
     UploadCsvComponent,
