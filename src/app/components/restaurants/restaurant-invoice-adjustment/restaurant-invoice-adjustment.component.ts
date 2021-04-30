@@ -1,3 +1,4 @@
+import { PDFDocument } from 'pdf-lib';
 import { Helper } from 'src/app/classes/helper';
 import { GlobalService } from 'src/app/services/global.service';
 import { Order, Restaurant } from '@qmenu/ui';
@@ -56,7 +57,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   // the function is used to calculate invoice adjustment and give percentage field a limit between 0 and 100%
   calcAdjustmentAmount() {
     if (this.percentage) {
-      if (this.percentageAdjustmentAmount < 0 && Math.abs(this.percentageAdjustmentAmount)>100) {
+      if (this.percentageAdjustmentAmount < 0 && Math.abs(this.percentageAdjustmentAmount) > 100) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
         this.percentageAdjustmentAmount = -100;
       } else if (this.percentageAdjustmentAmount > 100) {
@@ -67,15 +68,15 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
         // 19.5*27.5/100=5.3625*100=536.25 =>round =>536 =>5.36
         this.log.adjustmentAmount = Math.round((this.order.getSubtotal() * this.percentageAdjustmentAmount / 100) * 100) / 100;
       } else {
-        this._global.publishAlert(AlertType.Danger, 'Please input a valid percentage number!');
+        this._global.publishAlert(AlertType.Danger, 'Please input a valid percentage number !');
       }
 
     } else {
-      if (this.adjustmentAmount < 0) {
-        this._global.publishAlert(AlertType.Danger, 'the adjustment amount can not be a negative number and it change to 0 automatically!');
-        this.adjustmentAmount = 0;
+      if (this.adjustmentAmount < 0 && Math.abs(this.adjustmentAmount)) {
+        this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
+        this.adjustmentAmount = -this.order.getSubtotal();
       } else if (this.adjustmentAmount > this.order.getSubtotal()) {
-        this._global.publishAlert(AlertType.Danger, 'the adjustment amount can not be more than the order subtotal and it change to order subtotal automatically!');
+        this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
         this.adjustmentAmount = this.order.getSubtotal();
       }
       if (this.isNumberValid(this.adjustmentAmount)) {
@@ -94,12 +95,20 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       let dateStr = date[0] + " " + date[1] + " " + date[2] + " " + date[3] + " " + date[4];
       if (this.percentage) {
         this.adjustmentReason.nativeElement.focus = true;
-        this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        if (this.percentageAdjustmentAmount < 0) {
+          this.log.adjustmentReason = "Debit $" + -this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        } else {
+          this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        }
         this.log.response = this.log.adjustmentReason; // make the log can be editable and storable
         this.log.problem = this.log.adjustmentReason;
       } else {
         this.adjustmentReason.nativeElement.focus = true;
-        this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        if (this.adjustmentAmount < 0) {
+          this.log.adjustmentReason = "Debit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        } else {
+          this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        }
         this.log.response = this.log.adjustmentReason;
         this.log.problem = this.log.adjustmentReason;
       }
@@ -113,13 +122,13 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   }
 
   submitAdjustInvoice() {
-    if(this.percentageAdjustmentAmount === 0 && this.percentage ){
+    if (this.percentageAdjustmentAmount === 0 && this.percentage) {
       this._global.publishAlert(AlertType.Danger, 'Please input a valid percentage number (the percentage number can not be zero) !');
-      return ;
+      return;
     }
-    if(this.adjustmentAmount === 0 && !this.percentage){
+    if (this.adjustmentAmount === 0 && !this.percentage) {
       this._global.publishAlert(AlertType.Danger, 'Please input a valid adjustment amount (the adjustment amount can not be zero) !');
-      return ;
+      return;
     }
     this.onAdjustInvoice.emit({
       restaurant: this.restaurant,
