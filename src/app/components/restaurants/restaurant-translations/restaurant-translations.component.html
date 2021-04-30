@@ -1,0 +1,21 @@
+<div class="text-right">
+  <button class="btn btn-primary" (click)="autoTranslate()">Auto Translate</button>
+</div>
+<table class="table table-sm mt-3" style="table-layout: fixed;">
+  <thead>
+    <tr>
+      <th class="text-center">English</th>
+      <th class="text-center" *ngFor="let lang of nonEnglishLanguages">{{LANGUAGES[lang]}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let item of translationItems">
+      <td class="text-right">{{item.EN}}</td>
+      <td *ngFor="let lang of nonEnglishLanguages">
+        <input type="text" [(ngModel)]="item[lang]" class="form-control" *ngIf="item.EN.length < 100" (change)="save()">
+        <textarea [(ngModel)]="item[lang]" class="form-control" rows="4" *ngIf="item.EN.length >= 100"
+          (change)="save()"></textarea>
+      </td>
+    </tr>
+  </tbody>
+</table>
