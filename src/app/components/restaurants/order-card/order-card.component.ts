@@ -21,6 +21,7 @@ export class OrderCardComponent implements OnInit {
 
   @Output() onSetNewStatus = new EventEmitter();
   @Output() onAdjust = new EventEmitter();
+  @Output() onAdjustInvoice = new EventEmitter();
   @Output() onDisplayCreditCard = new EventEmitter();
   @Output() onReject = new EventEmitter();
   @Output() onUndoReject = new EventEmitter();
@@ -397,6 +398,10 @@ export class OrderCardComponent implements OnInit {
 
   adjust() {
     this.onAdjust.emit(this.order);
+  }
+
+  adjustInvoice(){
+    this.onAdjustInvoice.emit(this.order);
   }
 
   showCreditCard() {

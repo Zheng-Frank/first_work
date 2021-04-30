@@ -1,6 +1,8 @@
+import { Helper } from 'src/app/classes/helper';
+import { Log } from 'src/app/classes/log';
 import { Component, OnInit, ViewChild, Input } from '@angular/core';
 import { EventEmitter, NgZone } from '@angular/core';
-import { Restaurant, Order,TimezoneHelper } from '@qmenu/ui';
+import { Restaurant, Order, TimezoneHelper } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -23,8 +25,11 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('undoRejectModal') undoRejectModal: ModalComponent;
   @ViewChild('banModal') banModal: ModalComponent;
   @ViewChild('adjustModal') adjustModal: ModalComponent;
-  @ViewChild('previousCanceledOrderModal') previousCanceledOrderModal:ModalComponent; // this modal is in order to show customer previous canceled order detail
-  previousCanceledOrder:any; // previous canceled order object of one customer
+  @ViewChild('adjustInvoiceModal') adjustInvoiceModal: ModalComponent;
+  @ViewChild('adjustInvoiceComponment') adjustInvoiceComponment: ModalComponent;
+  @ViewChild('previousCanceledOrderModal') previousCanceledOrderModal: ModalComponent; // this modal is in order to show customer previous canceled order detail
+
+  previousCanceledOrder: any; // previous canceled order object of one customer
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
   // customer:Customer
   @Input() restaurant: Restaurant;
@@ -35,7 +40,7 @@ export class RestaurantOrdersComponent implements OnInit {
   showSummary = false;
   payment = {};
   // orderForModal: Order = null;
-  orderForModal: any = null;
+  orderForModal = new Order();
   now: Date = new Date();
   orderEvent: any;
   cancelError = '';
@@ -46,6 +51,8 @@ export class RestaurantOrdersComponent implements OnInit {
   showAdvancedSearch: boolean = false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
   toDate;
+  logInEditing = new Log(); // invoice ajustment modal need this field
+  adjustInvoiceRestaurantList = []; // all the restaurant need adjust invoice
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
 
@@ -83,10 +90,10 @@ export class RestaurantOrdersComponent implements OnInit {
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
-    const utcf= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from),this.restaurant.googleAddress.timezone);
-    const utct= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to),this.restaurant.googleAddress.timezone);
-    console.log("utcf:"+utcf);
-    console.log("utct:"+utct);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), this.restaurant.googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), this.restaurant.googleAddress.timezone);
+    console.log("utcf:" + utcf);
+    console.log("utct:" + utct);
     if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
@@ -293,13 +300,13 @@ export class RestaurantOrdersComponent implements OnInit {
     });
 
   }
-   //this order may be don't exist in this 50 orders,we should find it in our database.
-  async handleOnOpenPreviousCanceledOrderModal(order_id){
+  //this order may be don't exist in this 50 orders,we should find it in our database.
+  async handleOnOpenPreviousCanceledOrderModal(order_id) {
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: {
-        _id:{
-          $oid:order_id
+        _id: {
+          $oid: order_id
         }
       },
       projection: {//返回除logs以外的所有行
@@ -441,6 +448,91 @@ export class RestaurantOrdersComponent implements OnInit {
     this.orderForModal = order;
     this.adjustModal.show();
     setTimeout(() => $('#adjustment').focus(), 1000);
+  }
+  // open adjust invoice modal,let the sub componment get focus and set a initial reason.
+  handleOnAdjustInvoice(order) {
+    this.orderForModal = order;
+    this.logInEditing = new Log();
+    // prevent the undefined condition due to *ngIf
+    if(this.adjustInvoiceComponment.percentageInput){
+      this.adjustInvoiceComponment.percentageInput.nativeElement.value = 0;
+    }
+    if(this.adjustInvoiceComponment.numberInput){
+      this.adjustInvoiceComponment.numberInput.nativeElement.value = 0;
+    }
+    this.adjustInvoiceComponment.adjustmentReason.nativeElement.focus = true;
+    let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
+    let dateStr = date[0] + " " + date[1] + " " + date[2] + " " + date[3] + " " + date[4];
+    this.logInEditing.adjustmentReason = "Credit 0 to restaurant 0% of refund subtotal $" + order.getSubtotal() + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.";
+    this.adjustInvoiceModal.show();
+  }
+
+  // submit the result to api to create a new log
+  doAdjustInvoice(data){
+    this.onSuccessCreationLog(data);
+  }
+  // hide adjustment q-modal
+  cancelAdjustInvoice(){
+    // this.orderForModal = undefined;
+    // this.logInEditing = undefined;
+    this.adjustInvoiceModal.hide();
+  }
+
+  async onSuccessCreationLog(data) {
+
+    if (!data.log.time) {
+      data.log.time = new Date();
+    }
+    if (!data.log.username) {
+      data.log.username = this._global.user.username;
+    }
+    const log = JSON.parse(JSON.stringify(data.log)); // make it same as what' in logs array
+
+    // need to get full logs!
+    const rtWithFullLogs = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        _id: { $oid: data.restaurant._id }
+      },
+      projection: {
+        logs: 1
+      },
+      limit: 1
+    }).toPromise();
+
+    const logs = rtWithFullLogs[0].logs || [];
+
+    // check if the original exists, by testing time
+    const myIndex = logs.findIndex(e => new Date(e.time).valueOf() === new Date(log.time).valueOf());
+    if (myIndex >= 0) {
+      logs[myIndex] = log;
+    } else {
+      logs.push(log);
+    }
+
+    this.patch({ _id: data.restaurant._id }, { _id: data.restaurant._id, logs: logs });
+
+  }
+  patch(oldRestaurant, updatedRestaurant) {
+    this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
+      result => {
+        // let's update original, assuming everything successful
+        this.adjustInvoiceRestaurantList.map(r => {
+          if (r._id === oldRestaurant._id) {
+            r.logs = updatedRestaurant.logs;
+            console.log('update logs', r);
+          }
+        });
+        this._global.publishAlert(
+          AlertType.Success,
+          'Successfully created new log.'
+        );
+        this.cancelAdjustInvoice();
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error adding a log");
+      }
+    );
   }
 
   handleOnReject(order) {
