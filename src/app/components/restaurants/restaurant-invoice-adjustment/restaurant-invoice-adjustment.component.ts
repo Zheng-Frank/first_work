@@ -96,7 +96,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       if (this.percentage) {
         this.adjustmentReason.nativeElement.focus = true;
         if (this.percentageAdjustmentAmount < 0) {
-          this.log.adjustmentReason = "Debit $" + -this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.log.adjustmentReason = "Debit $" + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         } else {
           this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         }
