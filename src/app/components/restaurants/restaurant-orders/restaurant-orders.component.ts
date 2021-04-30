@@ -463,7 +463,7 @@ export class RestaurantOrdersComponent implements OnInit {
     this.adjustInvoiceComponment.adjustmentReason.nativeElement.focus = true;
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date[0] + " " + date[1] + " " + date[2] + " " + date[3] + " " + date[4];
-    this.logInEditing.adjustmentReason = "Credit 0 to restaurant 0% of refund subtotal $" + order.getSubtotal() + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.";
+    this.logInEditing.adjustmentReason = "Credit $0 to restaurant 0% of refund subtotal $" + order.getSubtotal() + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.";
     this.adjustInvoiceModal.show();
   }
 

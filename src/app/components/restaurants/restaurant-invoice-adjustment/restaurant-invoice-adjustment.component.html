@@ -14,7 +14,7 @@
       <p>
         <span style="font-size:0.7rem">
           Ajustment for
-          Order#{{order.orderNumber}}({{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}},{{order.getSubtotal() || 0 | money}})
+          Order #{{order.orderNumber}} ({{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}, {{order.getSubtotal() || 0 | money}})
         </span>
         <br>
         <small class="text-danger">NOTE: Input a negative number if it is a debit (money deducted from

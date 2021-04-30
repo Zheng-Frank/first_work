@@ -56,11 +56,11 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   // the function is used to calculate invoice adjustment and give percentage field a limit between 0 and 100%
   calcAdjustmentAmount() {
     if (this.percentage) {
-      if (this.percentageAdjustmentAmount < 0) {
-        this._global.publishAlert(AlertType.Danger, 'the percentage number can not be a negative number and it change to 0 automatically!');
-        this.percentageAdjustmentAmount = 0;
+      if (this.percentageAdjustmentAmount < 0 && Math.abs(this.percentageAdjustmentAmount)>100) {
+        this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
+        this.percentageAdjustmentAmount = -100;
       } else if (this.percentageAdjustmentAmount > 100) {
-        this._global.publishAlert(AlertType.Danger, 'the percentage number is more than 100 and it change to 100 automatically!');
+        this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
         this.percentageAdjustmentAmount = 100;
       }
       if (this.isNumberValid(this.percentageAdjustmentAmount)) {
@@ -94,10 +94,14 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       let dateStr = date[0] + " " + date[1] + " " + date[2] + " " + date[3] + " " + date[4];
       if (this.percentage) {
         this.adjustmentReason.nativeElement.focus = true;
-        this.log.adjustmentReason = "Credit " + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        this.log.response = this.log.adjustmentReason; // make the log can be editable and storable
+        this.log.problem = this.log.adjustmentReason;
       } else {
         this.adjustmentReason.nativeElement.focus = true;
-        this.log.adjustmentReason = "Credit " + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        this.log.response = this.log.adjustmentReason;
+        this.log.problem = this.log.adjustmentReason;
       }
     } catch (err) {
       console.log(err);
