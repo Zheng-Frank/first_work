@@ -1,99 +1,13 @@
-Logs
-
-
-
-
-<q-modal [title]="leadInEditing.name" #callModal>
-
+<div class="float-right">
   <div class="pb-2">
-    <button class="btn btn-primary" (click)="toggleNewCallLog()">
-      <i class="fas fa-phone"></i> Add New Log</button>
+    <button class="btn btn-primary" (click)="createNew()">
+      <i class="fas fa-plus"></i> Add New Log</button>
   </div>
+</div>
 
-  <div class="card" *qIf="editingNewCallLog">
-    <div class="card-body">
-      <h5 class="card-title">New Call Log</h5>
-      <app-call-logger [lead]="selectedLead" [callLog]="newCallLog" (cancel)="editingNewCallLog = false"
-        (submit)="sumbitCallLog($event)"></app-call-logger>
-    </div>
-  </div>
 
-  <div class="table-responsive text-left" *ngIf="selectedLead.callLogs && selectedLead.callLogs.length > 0">
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th class="border-0">Result</th>
-          <th class="border-0">Date</th>
-          <th class="border-0">Number</th>
-          <th class="border-0 text-center">Line</th>
-          <th class="border-0">Callees</th>
 
-          <th class="border-0">Comments</th>
-        </tr>
-      </thead>
-      <tbody>
-        <ng-container *ngFor="let log of selectedLead.getDescSortedCallLogs()">
-          <tr (click)="selectCallLog(log)">
-            <td>
-              <span *ngIf="log.salesOutcome==='rejected'" class="text-danger">■</span>
-              <span *ngIf="log.salesOutcome==='interested'" class="text-warning">■</span>
-              <span *ngIf="log.salesOutcome==='success' || log.salesOutcome==='qmenuCustomer'"
-                class="text-success">■</span>
-              <span *ngIf="log.askedMoreInfo" class="text-info">
-                <i class="fas fa-info-circle"></i>
-              </span>
-              <span *ngIf="log.callbackTime" class="text-info">
-                <i class="fas fa-history"></i>
-              </span>
-            </td>
-            <td>
-              <small>{{log.time | date:'short'}}</small>
-            </td>
-            <td>*{{(log.phone || '').substring(6)}}</td>
-            <td *ngIf="log.lineStatus === 'connected'" class="text-center">
-              <i class="fas fa-check text-success"></i>
-            </td>
-            <td *ngIf="log.lineStatus === 'busy'" class="text-center">
-              <i class="fas fa-exclamation text-warning"></i>
-            </td>
-            <td *ngIf="log.lineStatus === 'voicemail'" class="text-center">
-              <i class="fas fa-cloud-upload-alt"></i>
-            </td>
-            <td>{{log.callees}}</td>
-
-            <td>
-              <app-lead-call-log [callLog]="log"></app-lead-call-log>
-            </td>
-          </tr>
-          <tr *ngIf="log.hasSameTimeAs(selectedCallLog)">
-            <td colspan="6">
-              <div class="card card-body">
-                <h5 class="card-title">Edit Call Log</h5>
-                <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog"
-                  (cancel)="selectedCallLog = null" (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)">
-                </app-call-logger>
-
-              </div>
-            </td>
-          </tr>
-        </ng-container>
-      </tbody>
-    </table>
-    <hr>
-    <span class="legend text-danger">■=Rejected</span>
-    <span class="legend text-warning">■=Interested</span>
-    <span class="legend text-success">■=Success</span>
-    <span class="legend text-info">
-      <i class="fas fa-info-circle"></i>=Asked More Info </span>
-    <br>
-    <span class="legend text-warning">
-      <i class="fas fa-exclamation"></i>=Busy</span>
-    <span class="legend">
-      <i class="fas fa-cloud-upload-alt"></i>=Voicemail</span>
-    <span class="legend text-success">
-      <i class="fas fa-check"></i>=Connected</span>
-    <span class="text-info">
-      <i class="fas fa-history"></i> Callback</span>
-  </div>
-
+<q-modal #logEditingModal>
+  <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
+    (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
 </q-modal>
