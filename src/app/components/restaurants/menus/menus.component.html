@@ -20,6 +20,7 @@
     </ng-container>
 
 
+    <app-coupon-import [visible]="importCoupon" (close)="importCoupon = false"></app-coupon-import>
 
     <div class="alert alert-secondary" *ngIf="importMenu">
       <div class="card card-body">

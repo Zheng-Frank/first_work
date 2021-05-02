@@ -13,34 +13,32 @@
 
     <div class="py-2">
       <button class="btn btn-default text-right" (click)="close.emit()">Cancel</button>
-
-      <button class="btn btn-primary" (click)="crawl()"><i class="fas fa-bolt"></i> Crawl Async</button>
-      <button class="btn btn-primary" (click)="crawl(true)"><i class="fas fa-hourglass-half"></i> Crawl
-        Sync</button>
+      <button class="btn btn-primary" (click)="crawl(true)">
+        <i class="fas fa-hourglass-half"></i> Crawl Sync
+      </button>
     </div>
   </div>
   <div class="card card-body mt-4">
     <h3 class="text-center">or From a URL</h3>
     <input [(ngModel)]="providerUrl" placeholder="crawl url">
     <div class="py-2">
-      <button class="btn btn-default text-right" (click)="importMenu = false">Cancel</button>
-
-      <button class="btn btn-primary" (click)="crawl()"><i class="fas fa-bolt"></i> Crawl Async</button>
-      <button class="btn btn-primary" (click)="crawl(true)" [qLoading]="apiRequesting"><i
-        class="fas fa-hourglass-half"></i> Crawl Sync</button>
+      <button class="btn btn-default text-right" (click)="close.emit()">Cancel</button>
+      <button class="btn btn-primary" (click)="crawl(true)" [qLoading]="loading">
+        <i class="fas fa-hourglass-half"></i> Crawl Sync
+      </button>
     </div>
   </div>
 </div>
-<q-modal title="Coupon Import">
-  <div>
+<q-modal title="Coupon Import" class="import-modal" #importModal (close)="doImport()">
+  <div class="import-tip">
     The following coupon information has been scraped from xxx. Please review  the information below and make edits as desired before importing.
   </div>
-  <div>
-    <div><label><input type="checkbox"/>Import All</label></div>
-    <ul>
+  <div class="import-data">
+    <div class="check-all"><label class="custom-checkbox"><input type="checkbox"/>Import All</label></div>
+    <ul class="crawled-coupons">
       <li *ngFor="let coupon of coupons">
-        <label><input type="checkbox" /></label>
-        <div>
+        <label class="custom-checkbox"><input type="checkbox" /></label>
+        <div class="coupon-info">
           <div>{{coupon.name}}</div>
           <div></div>
         </div>
