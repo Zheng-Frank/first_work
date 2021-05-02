@@ -233,7 +233,7 @@
               <div *ngIf='showLogHistory(data._id)'>
                 <h5>Log History</h5>
 
-
+                <br />
                 <div class='row' *ngFor='let item of getLogHistory(data._id) | keyvalue'>
 
                   <div class='col-sm-3'> {{ item.value.problem }} </div>
