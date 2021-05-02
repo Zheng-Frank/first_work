@@ -231,7 +231,7 @@
               <h5>Log History</h5>
 
               <hr />
-              <app-add-new-log></app-add-new-log>
+              <app-add-new-log [id]='data._id'> {{ data._id }}</app-add-new-log>
               <br />
 
               <div class='row' *ngFor='let item of getLogHistory(data._id) | keyvalue'>

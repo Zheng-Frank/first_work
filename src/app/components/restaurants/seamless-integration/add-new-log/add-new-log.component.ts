@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Log } from "../../../../classes/log";
 import { ApiService } from "../../../../services/api.service";
@@ -12,6 +12,7 @@ import { Restaurant } from '@qmenu/ui';
   styleUrls: ['./add-new-log.component.css']
 })
 export class AddNewLogComponent implements OnInit {
+  @Input() id: string;
 
   editingNewCallLog = false
   restaurant = undefined;
@@ -40,17 +41,31 @@ export class AddNewLogComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+    console.log("THIS IS THE INPUT VALUE ", this.id)
   }
-  createNew() {
 
+
+
+  async createNew() {
+    console.log("THIS IS THE ID ", this.id)
+    let res = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: { _id: { $oid: this.id } },
+
+        limit: 1000,
+      })
+      .toPromise();
+    console.log("THIS IS THE RES ", res)
     this.logInEditing = new Log();
     this.logInEditingOriginal = undefined;
-    this.restaurant = null;
+    this.restaurant = new Restaurant(res);
+    console.log("THIS RESTAURANT ", this.restaurant)
     this.logEditingModal.title = "Add New Log";
     this.logEditingModal.show();
   }
   async onSuccessCreation(data) {
-
+    console.log("ON SUCCESS CREATION DATA", data.restaurant['0'])
     if (!data.log.time) {
       data.log.time = new Date();
     }
@@ -60,10 +75,11 @@ export class AddNewLogComponent implements OnInit {
     const log = JSON.parse(JSON.stringify(data.log)); // make it same as what' in logs array
 
     // need to get full logs!
+    console.log("ID RES ", data.restaurant._id)
     const rtWithFullLogs = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
-        _id: { $oid: data.restaurant._id }
+        _id: { $oid: this.id }
       },
       projection: {
         logs: 1
@@ -71,26 +87,44 @@ export class AddNewLogComponent implements OnInit {
       limit: 1
     }).toPromise();
 
+    console.log("RT WITH FULL LOGS ", rtWithFullLogs)
     const logs = rtWithFullLogs[0].logs || [];
-
+    console.log("LOGS ", logs)
     // check if the original exists, by testing time
     const myIndex = logs.findIndex(e => new Date(e.time).valueOf() === new Date(log.time).valueOf());
     if (myIndex >= 0) {
       logs[myIndex] = log;
     } else {
+      console.log("WE PUSHED THE LOGS ", logs)
       logs.push(log);
     }
 
-    this.patch({ _id: data.restaurant._id }, { _id: data.restaurant._id, logs: logs }, data.formEvent.acknowledge);
+    this.patch({ _id: data.restaurant[0]._id }, { _id: data.restaurant[0]._id, logs: logs }, data.formEvent.acknowledge);
 
   }
 
-  patch(oldRestaurant, updatedRestaurant, acknowledge) {
+  async patch(oldRestaurant, updatedRestaurant, acknowledge) {
+    console.log("OLD RESTAUARANT ", oldRestaurant)
+    console.log("UPDATED RESTAUANT ", updatedRestaurant)
+    console.log("ENTERED PATCH ")
+    let res = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "restaurant",
+        query: { _id: { $oid: this.id } },
+
+        limit: 1000,
+      })
+      .toPromise();
+    console.log("THIS IS THE RES ", res)
+    this.restaurantList[0] = new Restaurant(res)
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
       result => {
+        console.log("ENTERED SUBSCRIPTION ")
         // let's update original, assuming everything successful
         this.restaurantList.map(r => {
-          if (r._id === oldRestaurant._id) {
+          console.log("RESTAURANT LIST MAPPING ", r)
+          if (r[0]._id === oldRestaurant._id) {
+            console.log("FOUND A MATCH")
             r.logs = updatedRestaurant.logs;
             console.log('update logs', r);
           }
