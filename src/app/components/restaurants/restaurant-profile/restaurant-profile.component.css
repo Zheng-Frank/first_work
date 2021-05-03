@@ -2,24 +2,128 @@
     font-weight: normal !important;
 } */
 
+.talk{
+  position: absolute;
+  top:-15px;
+  left: 100%;
+  border:1px;
+  min-height:45px;
+  background-color:#d8d4d4;	
+  width:250px;
+  background-image:-moz-linear-gradient(hsla(0,0%,100%, 0.6), hsla(0, 0%, 100%, 0)  30px);
+  background-image:-webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
+  word-wrap: break-word;
+  z-index: 200;
+  -moz-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  -webkit-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  box-shadow:1px 1px 2x hsla(0, 0%, 0%, 0.3);
+}
+.edit-talk{
+  position: absolute;
+  top:-15px;
+  left: 100%;
+  border:1px;
+  min-height:45px;
+  background-color:#d8d4d4;	
+  width:250px;
+  background-image:-moz-linear-gradient(hsla(0,0%,100%, 0.6), hsla(0, 0%, 100%, 0)  30px);
+  background-image:-webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
+  word-wrap: break-word;
+  z-index: 200;
+  -moz-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  -webkit-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  box-shadow:1px 1px 2x hsla(0, 0%, 0%, 0.3);
+  font-size: 10px;
+}
+.tip-talk{
+  position: absolute;
+  right: 33%;
+  margin-top: -25px;
+  border:1px;
+  min-height:45px;
+  background-color:#d8d4d4;	
+  width:250px;
+  background-image:-moz-linear-gradient(hsla(0,0%,100%, 0.6), hsla(0, 0%, 100%, 0)  30px);
+  background-image:-webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
+  word-wrap: break-word;
+  z-index: 200;
+  -moz-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  -webkit-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  box-shadow:1px 1px 2x hsla(0, 0%, 0%, 0.3);
+}
+
+.tip-edit-talk{
+  position: absolute;
+  right: 33%;
+  margin-top: -25px;
+  border:1px;
+  min-height:45px;
+  background-color:#d8d4d4;	
+  width:250px;
+  background-image:-moz-linear-gradient(hsla(0,0%,100%, 0.6), hsla(0, 0%, 100%, 0)  30px);
+  background-image:-webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
+  word-wrap: break-word;
+  z-index: 200;
+  -moz-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  -webkit-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  box-shadow:1px 1px 2x hsla(0, 0%, 0%, 0.3);
+  font-size: 10px;
+}
+
+.talk p{
+  padding:8px 8px 0px 8px;
+}
+.tip-talk p{
+  padding:8px 8px 0px 8px;
+}
+.edit-talk p{
+  padding:8px 8px 0px 8px;
+}
+.tip-edit-talk p{
+  padding:8px 8px 0px 8px;
+}
+
+.radius{
+  -webkit-border-radius:10px;
+  -moz-border-radius:10px;
+  border-radius:10px;
+}
+
+.left:before{
+  position:absolute;
+  content:"\00a0";
+  width:0px;
+  height:0px;
+  border-width:8px 18px 8px 0;
+  border-style:solid;
+  border-color:transparent #d8d4d4 transparent transparent;
+  top:15px;
+  left:-18px;
+}
+
+.left{
+  margin-right:20px;
+  float:right;	
+}
+
 .font-small {
-    font-size: small;
+  font-size: small;
 }
 
 .app-thumbnail-h-6 {
-    width: auto;
-    min-width: 6rem;
-    height: 6rem;
+  width: auto;
+  min-width: 6rem;
+  height: 6rem;
 }
 
 .close-button {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
 }
 
 .transparent {
-    opacity: 0.7;
+  opacity: 0.7;
 }
 
 /* The switch - the box around the slider */
@@ -33,7 +137,9 @@
 }
 
 /* Hide default HTML checkbox */
-.switch input {display:none;}
+.switch input {
+  display: none;
+}
 
 /* The slider */
 .slider {
@@ -60,15 +166,15 @@
   transition: .4s;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #2196F3;
 }
 
-input:focus + .slider {
+input:focus+.slider {
   box-shadow: 0 0 1px #2196F3;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   -webkit-transform: translateX(26px);
   -ms-transform: translateX(26px);
   transform: translateX(26px);
@@ -86,6 +192,7 @@ input:checked + .slider:before {
 .table.table-tip-setting {
   margin-bottom: 0;
 }
+
 .tip-explain {
   color: #CC0000;
 }
