@@ -266,7 +266,6 @@ export class NotificationDashboardComponent implements OnInit {
     mergedMessage = mergedMessage.replace(/_orderNumber_/g, sampleOrderData.orderNumber);
     mergedMessage = mergedMessage.replace(/_restaurantName_/g, sampleOrderData.restaurantObj.name);
     mergedMessage = mergedMessage.replace(/_orderDetailsURL_/g, "https://qmenu.biz/sc6l8");
-    mergedMessage = mergedMessage.replace(/_newLine_/g, '\n');
 
     const orderReadyEST = `${new Date(sampleOrderData.timeToDeliverEstimate).toLocaleTimeString('en-US', {
       timeZone: "America/New_York", hour: '2-digit', minute: '2-digit'
@@ -290,7 +289,7 @@ export class NotificationDashboardComponent implements OnInit {
         mergedMessage = mergedMessage.replace(/_refundTimeFrame_/g, "5-10 business days according to Stripe Inc\'s refund policy. We use Stripe Inc. for secure and PCI compliant credit card processing. See more details at https://stripe.com/docs/refunds");
       }
     }
-    if (paymentObj.method === 'KEY_IN') {
+    if (paymentObj.method === 'KEY_IN' || paymentObj.method === 'CASH') {
       mergedMessage.replace(/_refundTimeFrame_/g, "5 - 10 business days")
     }
     mergedMessage = mergedMessage.replace(/_loginCode_/g, loginCode);

@@ -15,7 +15,6 @@ export class NotificationEditorComponent implements OnInit {
   constructor() { }
 
   allMergeFields = [
-    "_newLine_",
     "_customerFirstName_",
     "_customerLastName_",
     "_restaurantName_",
@@ -29,26 +28,26 @@ export class NotificationEditorComponent implements OnInit {
   ];
 
   allowableMergeFields = {
-    "New Order Placed": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "Confirmed": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "In Progress": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "Ready": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "Delivering": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "Delivered": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "Completed": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "Canceled - refund": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_adjustmentAmount_", "_refundTimeFrame_"],
-    "Canceled - no charge": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_refundTimeFrame_"],
-    "New Order Received": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_"],
-    "Delivery Complete": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_"],
-    "Customer Canceled": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
-    "Adjust Order - refund": ["_newLine_", "_adjustmentAmount_", "_refundTimeFrame_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
-    "Adjust Order - charge": ["_newLine_", "_adjustmentAmount_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
-    "Change to pickup - refund": ["_newLine_", "_adjustmentAmount_", "_refundTimeFrame_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
-    "Change to pickup - charge": ["_newLine_", "_adjustmentAmount_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
-    "Order delivery status": ["_newLine_", "_orderNumber_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderDetailsURL_"],
-    "Sesame Success": ["_newLine_"],
-    "Sesame Failure": ["_newLine_"],
-    "qMenu Login Code": ["_newLine_", "_loginCode_"]
+    "New Order Placed": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
+    "Confirmed": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
+    "In Progress": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
+    "Ready": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
+    "Delivering": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
+    "Delivered": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
+    "Completed": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
+    "Canceled - refund": ["_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_adjustmentAmount_", "_refundTimeFrame_"],
+    "Canceled - no charge": ["_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_refundTimeFrame_"],
+    "New Order Received": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_"],
+    "Delivery Complete": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_"],
+    "Customer Canceled": ["_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
+    "Adjust Order - refund": ["_adjustmentAmount_", "_refundTimeFrame_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
+    "Adjust Order - charge": ["_adjustmentAmount_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
+    "Change to pickup - refund": ["_adjustmentAmount_", "_refundTimeFrame_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
+    "Change to pickup - charge": ["_adjustmentAmount_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
+    "Order delivery status": ["_orderNumber_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderDetailsURL_"],
+    "Sesame Success": [],
+    "Sesame Failure": [],
+    "qMenu Login Code": ["_loginCode_"]
   }
 
   ngOnInit() {
