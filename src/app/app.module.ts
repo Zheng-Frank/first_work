@@ -207,8 +207,9 @@ import { SendPostcardComponent } from "./components/restaurants/seamless-integra
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
 import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
+import { TimezoneOffsetPipe } from './pipes/timezone-offset.pipe';
+import { AddNewLogComponent } from './components/restaurants/seamless-integration/add-new-log/add-new-log.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
-import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
@@ -393,7 +394,8 @@ import { RestaurantTranslationsComponent } from './components/restaurants/restau
     RestaurantStatsComponent,
     WeirdDataComponent,
     QrRestaurantListComponent,
-    RestaurantTranslationsComponent
+    RestaurantTranslationsComponent,
+    AddNewLogComponent
   ],
   imports: [
     BrowserModule,
