@@ -7,8 +7,8 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
-import { mergeMap, observeOn } from 'rxjs/operators';
-import { FeeSchedule, Restaurant } from '@qmenu/ui';
+import { mergeMap } from 'rxjs/operators';
+import { Restaurant } from '@qmenu/ui';
 import { Log } from "../../../classes/log";
 import { PaymentMeans } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -202,7 +202,10 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
         this.invoiceChannels = (restaurants[0].channels || []).filter(c => c.notifications && c.notifications.indexOf('Invoice') >= 0);
 
-        this.myInvoiceViewer.refresh();
+        if (this.myInvoiceViewer) {
+          this.myInvoiceViewer.refresh();
+        }
+
 
       }, error => {
         this._global.publishAlert(

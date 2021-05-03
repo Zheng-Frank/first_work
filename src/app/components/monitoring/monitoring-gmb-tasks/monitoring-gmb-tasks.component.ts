@@ -4,7 +4,6 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from 'src/app/classes/alert-type';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { ThrowStmt } from '@angular/compiler';
 @Component({
   selector: 'app-monitoring-gmb-tasks',
   templateUrl: './monitoring-gmb-tasks.component.html',
@@ -33,7 +32,7 @@ export class MonitoringGmbTasksComponent implements OnInit {
         name: "GMB Request",
         result: null
       },
-      projection: { _id: 1, "request.locationName": 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, "request.statusHistory.status": 1, "request.statusHistory.isError": 1, canceledReason: 1 }
+      projection: { _id: 1, "request.locationName": 1, "request.email": 1, "request.appealId": 1, "request.statusHistory": { $slice: 1 }, canceledReason: 1 }
 
     }, 10000);
 

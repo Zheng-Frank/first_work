@@ -1,11 +1,11 @@
+import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
+import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
 import { SchemasComponent } from './components/system/schemas/schemas.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
-import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 import { MonitoringEmailComponent } from './components/monitoring/monitoring-email/monitoring-email.component';
-import { MonitoringDomainComponent } from './components/monitoring/monitoring-domain/monitoring-domain.component';
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
@@ -67,6 +67,7 @@ import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/mo
 import { IvrAgentAnalysisComponent } from "./components/ivr-agent-analysis/ivr-agent-analysis.component";
 import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
 import { NotificationDashboardComponent } from './components/notification-dashboard/notification-dashboard.component';
+import {MonitoringPromotionComponent} from './components/monitoring/monitoring-promotion/monitoring-promotion.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -91,6 +92,7 @@ const routes: Routes = [
   { path: 'restaurants/:id/menus', component: MenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
   { path: 'restaurants/:id/menu-options', component: MenuOptionsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
   { path: 'restaurants/:id/invoices', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
+  { path: 'qr-restaurant-list', component:  QrRestaurantListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'ivr/dashboard', component: IvrDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'ivr/agent', component: IvrAgentComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
   { path: 'onboarding', component: MonitoringOnboardingComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
@@ -130,9 +132,11 @@ const routes: Routes = [
   { path: 'monitoring-hours', component: MonitoringHoursComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'disabled-restaurants', component: MonitoringDisabledRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'manage-images', component: ImageManagerComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'restaurants-promotion', component: MonitoringPromotionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'banned-customers', component: BannedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
   { path: 'schemas', component: SchemasComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
   { path: "seamless-integration", component: SeamlessIntegrationComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "SIGNUP_AGENT"] }, }, { path: "ivr-agent-analysis", component: IvrAgentAnalysisComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "SIGNUP_AGENT"] }, },
+  { path: 'weird-data', component: WeirdDataComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
 ];
 

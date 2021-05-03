@@ -14,106 +14,55 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-sm-6">
+      <div class="col-xl-6 col-lg-12">
         <span class="dropdown">
           <b>Show: &nbsp; </b>
-          <button
-            class="btn btn-secondary dropdown-toggle"
-            type="button"
-            id="dropdownMenuButton"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
             {{ currentCriteria }} &nbsp;
           </button>
 
           &nbsp; &nbsp;
           <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'All' }"
-              (click)="renderRestaurants('All', this.currentLanguage)"
-              >All</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'Completed' }"
-              (click)="renderRestaurants('Completed', this.currentLanguage)"
-              >Completed</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'Progress' }"
-              (click)="renderRestaurants('Progress', this.currentLanguage)"
-              >Progress</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'Unopened' }"
-              (click)="renderRestaurants('Unopened', this.currentLanguage)"
-              >Unopened</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }"
-              (click)="
+            <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'All' }"
+              (click)="renderRestaurants('All', this.currentLanguage)">All</a>
+            <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Completed' }"
+              (click)="renderRestaurants('Completed', this.currentLanguage)">Completed</a>
+            <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Progress' }"
+              (click)="renderRestaurants('Progress', this.currentLanguage)">Progress</a>
+            <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Unopened' }"
+              (click)="renderRestaurants('Unopened', this.currentLanguage)">Unopened</a>
+            <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Postcard Not Sent' }" (click)="
                 renderRestaurants('Postcard Not Sent', this.currentLanguage)
-              "
-              >Postcard Not Sent</a
-            >
+              ">Postcard Not Sent</a>
           </span>
         </span>
         <span class="dropdown">
           <b>Language: &nbsp; </b>
-          <button
-            class="btn btn-secondary dropdown-toggle"
-            type="button"
-            id="dropdownMenuButton1"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             {{ currentLanguage }} &nbsp;
           </button>
 
           &nbsp; &nbsp;
           <span class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentLanguage === 'All' }"
-              (click)="renderRestaurants(currentCriteria, 'All')"
-              >All</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentLanguage === 'English' }"
-              (click)="renderRestaurants(currentCriteria, 'English')"
-              >English</a
-            >
-            <a
-              class="dropdown-item"
-              [ngClass]="{ active: currentLanguage === 'Chinese' }"
-              (click)="renderRestaurants(currentCriteria, 'Chinese')"
-              >Chinese</a
-            >
+            <a class="dropdown-item" [ngClass]="{ active: currentLanguage === 'All' }"
+              (click)="renderRestaurants(currentCriteria, 'All')">All</a>
+            <a class="dropdown-item" [ngClass]="{ active: currentLanguage === 'English' }"
+              (click)="renderRestaurants(currentCriteria, 'English')">English</a>
+            <a class="dropdown-item" [ngClass]="{ active: currentLanguage === 'Chinese' }"
+              (click)="renderRestaurants(currentCriteria, 'Chinese')">Chinese</a>
           </span>
         </span>
         &nbsp;
         <app-csv-generator></app-csv-generator>
       </div>
 
-      <div class="col-sm-6 text-center">
-        Postcard style:
+      <div class="col-xl-6 col-lg-12" [ngClass]="{ 'text-right': screenSizeLarge()}">
+        Postcard Style:
 
-        <button
-          class="btn btn-default dropdown-toggle"
-          type="button"
-          id="dropdownMenu1"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="true"
-        >
+        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown"
+          aria-haspopup="true" aria-expanded="true">
           {{ style }}
           <span class="caret"></span>
         </button>
@@ -129,11 +78,8 @@
             </button>
           </li>
         </ul>
-        <app-send-postcard
-          (finishedSendingPCs)="emptySendPostcards()"
-          [style]="style"
-          [postcards]="sendPostCards"
-        ></app-send-postcard>
+        <app-send-postcard (finishedSendingPCs)="emptySendPostcards()" [style]="style" [postcards]="sendPostCards">
+        </app-send-postcard>
         <app-add-one-rt></app-add-one-rt>
         <app-upload-csv></app-upload-csv>
       </div>
@@ -153,30 +99,20 @@
       </h4>
     </div>
 
-    <q-table
-      [rows]="currentRestaurants"
-      [tableColumnDescriptors]="mytable"
-      [compact]="true"
-      [pageSize]="pagination ? 20 : 100000"
-    >
+    <q-table [rows]="currentRestaurants" [tableColumnDescriptors]="mytable" [compact]="true"
+      [pageSize]="pagination ? 20 : 100000">
       <tr *tableRowTemplate="let data">
         <div class="container">
           <div class="row">
             <div class="col-sm-4" class="card-body">
               <div class="row">
                 <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    [checked]="getPostCardsToFire(data._id)"
-                    id="exampleCheck1"
-                    (click)="patchPostCard($event.target.value, data._id)"
-                  />
+                  <input type="checkbox" class="form-check-input" [checked]="getPostCardsToFire(data._id)"
+                    id="exampleCheck1" (click)="patchPostCard($event.target.value, data._id)" />
                 </div>
 
                 <h5 class="card-title">
-                  <a target="_blank" [href]="'/#/restaurants/' + data._id"
-                    >{{ data.name }}
+                  <a target="_blank" [href]="'/#/restaurants/' + data._id">{{ data.name }}
                   </a>
                   <span *ngIf="getLanguage(data._id)">
                     - {{ getLanguage(data._id) }}
@@ -185,11 +121,7 @@
               </div>
               <h6 class="card-subtitle mb-2 text-muted">
                 {{ data._id }}
-                <a
-                  target="_blank"
-                  *ngIf="data.selfSignup.code"
-                  [href]="getPreview(data.selfSignup.code)"
-                >
+                <a target="_blank" *ngIf="data.selfSignup.code" [href]="getPreview(data.selfSignup.code)">
                   (Preview Postcard)
                 </a>
               </h6>
@@ -203,24 +135,23 @@
                 Show Logs
               </a>
             </div> -->
-              <a
-                (click)="toggleSendHistory(data._id)"
-                *ngIf="!getSendHistoryBoolean(data._id)"
-                class="card-subtitle"
-              >
+              <a (click)="toggleSendHistory(data._id)" *ngIf="!getSendHistoryBoolean(data._id)" class="card-subtitle">
                 {{
-                  getSendHistory(data._id).length > 0
-                    ? "Show Send History"
-                    : "Never Sent"
+                getSendHistory(data._id).length > 0
+                ? "Show Send History"
+                : "Never Sent"
                 }}
               </a>
-              <a
-                (click)="toggleSendHistory(data._id)"
-                *ngIf="getSendHistoryBoolean(data._id)"
-                class="card-subtitle"
-              >
+              <a (click)="toggleSendHistory(data._id)" *ngIf="getSendHistoryBoolean(data._id)" class="card-subtitle">
                 Hide Send History
               </a>
+              <div>
+                <a (click)='toggleLogHistory(data._id)' *ngIf='!showLogHistory(data._id)' class='card-subtitle'>Show
+                  Logs</a>
+                <a (click)='toggleLogHistory(data._id)' *ngIf='showLogHistory(data._id)' class='card-subtitle'>Hide
+                  Logs</a>
+
+              </div>
               <br />
               <a *ngIf="getSendHistoryBoolean(data._id)">
                 <table class="table">
@@ -234,16 +165,27 @@
                       <tr *ngFor="let item of getSendHistory(data._id)">
                         <!-- <th scope="row">{{ item }}</th> -->
                         <th scope="row">
-                          {{ item.sendDate }} {{ "   "
-                          }}<a target="_blank" href="{{ item.url }}"
-                            >View Postcard Sent</a
-                          >
+                          {{ item.sendDate }} {{ " "
+                          }}<a target="_blank" href="{{ item.url }}">View Postcard Sent</a>
                         </th>
                       </tr>
                     </tbody>
                   </table>
                 </table>
               </a>
+              <div *ngIf='showLogHistory(data._id)'>
+                <h5>Log History</h5>
+                <hr />
+                <div class='row' *ngFor='let item of getLogHistory(data._id) | keyvalue'>
+                  <hr />
+                  <div class='col-sm-3'> {{ item.value.problem }} </div>
+                  <div class='col-sm-3'> {{ item.value.time }} </div>
+                  <div class='col-sm-3'>{{ item.value.username }} </div>
+                  <div class='col-sm-3'> {{ item.value.response }} </div>
+                </div>
+                <hr />
+              </div>
+
             </div>
 
             <div align="end" class="col-sm-4">
@@ -256,18 +198,10 @@
               <p class="card-subtitle">
                 Promo: {{ data.selfSignup ? data.selfSignup.code : "N/A" }}
               </p>
-              <a
-                (click)="toggleAnalytic(data._id)"
-                *ngIf="!getAnalyticBoolean(data._id)"
-                class="card-subtitle"
-              >
+              <a (click)="toggleAnalytic(data._id)" *ngIf="!getAnalyticBoolean(data._id)" class="card-subtitle">
                 Show Analytics
               </a>
-              <a
-                (click)="toggleAnalytic(data._id)"
-                *ngIf="getAnalyticBoolean(data._id)"
-                class="card-subtitle"
-              >
+              <a (click)="toggleAnalytic(data._id)" *ngIf="getAnalyticBoolean(data._id)" class="card-subtitle">
                 Hide Analytics
               </a>
               <br />
@@ -277,10 +211,7 @@
                 <div class="col-sm-3"></div>
 
                 <div class="col-sm-9 text-right">
-                  <div
-                    *ngIf="getAnalyticBoolean(data._id)"
-                    class="panel panel-default"
-                  >
+                  <div *ngIf="getAnalyticBoolean(data._id)" class="panel panel-default">
                     <!-- Default panel contents -->
 
                     <!-- Table -->
@@ -293,11 +224,9 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <tr
-                            *ngFor="
+                          <tr *ngFor="
                               let item of getAnalytic(data._id) | keyvalue
-                            "
-                          >
+                            ">
                             <th scope="row">{{ item.key }}</th>
                             <td>{{ item.value }}</td>
                           </tr>
@@ -307,6 +236,7 @@
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>

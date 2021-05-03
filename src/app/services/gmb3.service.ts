@@ -5,7 +5,6 @@ import { TaskService } from './task.service';
 import { GlobalService } from './global.service';
 import { AlertType } from '../classes/alert-type';
 import { GmbBiz } from '../classes/gmb/gmb-biz';
-import { Task } from '../classes/tasks/task';
 import { Restaurant } from '@qmenu/ui';
 @Injectable({
   providedIn: 'root'

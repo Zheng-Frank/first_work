@@ -16,7 +16,7 @@
     <h4 class="text-sm-center">
       {{getCustomerName(order)}}
     </h4>
-    <h6 style="font-size: 1px !important;" class="text-center">{{order.id}}</h6>
+    <h6 style="font-size: 5% !important;" class="text-center">{{order.id}}</h6>
     <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
     <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
     <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
@@ -43,7 +43,10 @@
       <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</span>
       |
       <strong>{{order.type}}</strong> |
-      <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CREDIT CARD' : 'CASH'}}</strong>
+      <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong> 
+      <span *ngIf="order.payment.paymentType === 'CREDITCARD'"> | </span>
+      <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method != 'STRIPE'">{{order.payment.method}}</strong>
+      <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'STRIPE'">RESTAURANT</strong>
       <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
       <span *ngIf="order?.paymentObj?.stripeObject?.spreedlyGatewayToken"> (SPRE)</span>
       <span *ngIf="order?.paymentObj?.paypalClientId"> (PAYPAL)</span>
@@ -112,7 +115,7 @@
       <div class="text-sm-center"
         *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
         Note: Customer's
-        <a routerLink="/order/{{order.customerPreviousOrderStatus.order}}">previous order</a> was canceled. Reason:
+        <a href="javascript:void(0)" (click)="openPreviousCanceledOrderModal(order.customerPreviousOrderStatus.order)">previous order</a> was canceled. Reason:
         <span class="text-danger">{{order.customerPreviousOrderStatus.comments}}</span>
       </div>
     </small>
@@ -125,26 +128,6 @@
       <app-order-items [order]="order"></app-order-items>
 
       <div *ngIf="order.statusEqual('CANCELED')" class="alert alert-danger" role="alert">
-        <!-- 
-          <pre>
-              {{order|json}}
-        </pre>
-       "orderStatuses":[
-            {
-            "status":"SUBMITTED",
-            "updatedBy":"BY_CUSTOMER",
-            "createdAt":"2020-11-16T21:24:49.079Z"
-            },
-            {
-            "order":"5fb2ee21a6289c0008b89ac8",
-            "status":"CANCELED",
-            "createdAt":"2020-11-16T21:33:49.907Z",
-            "comments":"testing",
-            "updatedBy":"BY_CSR",
-           // "name":
-            }
-        ]
-      -->
         Order was canceled :(<div>{{order.getCurrentStatusComments()}}</div>
         <hr class="text-danger">
         <span>

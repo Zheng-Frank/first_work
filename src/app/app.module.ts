@@ -1,4 +1,3 @@
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -49,7 +48,6 @@ import { InvoiceOptionEditorComponent } from './components/invoices/invoice-opti
 import { InvoicesTableComponent } from './components/invoices/invoices-table/invoices-table.component';
 import { CacheService } from './services/cache.service';
 import { PrunedPatchService } from './services/prunedPatch.service';
-import { TimezoneService } from './services/timezone.service';
 import { RestaurantDetailsComponent } from './components/restaurants/restaurant-details/restaurant-details.component';
 import { RestaurantInvoicesComponent } from './components/restaurants/restaurant-invoices/restaurant-invoices.component';
 import { RestaurantOrdersComponent } from './components/restaurants/restaurant-orders/restaurant-orders.component';
@@ -120,7 +118,7 @@ import { OrderRejectBarComponent } from './components/restaurants/order-reject-b
 import { RestaurantDeliverySettingsComponent } from './components/restaurants/restaurant-delivery-settings/restaurant-delivery-settings.component';
 import { RestaurantWebSettingsComponent } from './components/restaurants/restaurant-web-settings/restaurant-web-settings.component';
 import { BanCustomerComponent } from './components/restaurants/ban-customer/ban-customer.component';
-import { adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe } from './components/restaurants/pipes';
+import { AdjustedDatePipe, moneyPipe, percentagePipe, sizePipe, telPipe } from './components/restaurants/pipes';
 import { RestaurantDeliveryClosedHoursComponent } from './components/restaurants/restaurant-delivery-closed-hours/restaurant-delivery-closed-hours.component';
 import { RestaurantClosedHoursComponent } from './components/restaurants/restaurant-closed-hours/restaurant-closed-hours.component';
 import { StripeComponent } from './components/invoices/stripe/stripe.component';
@@ -148,7 +146,7 @@ import { MonitoringDomainComponent } from './components/monitoring/monitoring-do
 import { MonitoringPrintersComponent } from './components/monitoring/monitoring-printers/monitoring-printers.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 import { MonitoringRestaurantsComponent } from './components/monitoring/monitoring-restaurants/monitoring-restaurants.component';
-
+import { MonitoringPromotionComponent } from './components/monitoring/monitoring-promotion/monitoring-promotion.component';
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
@@ -190,7 +188,7 @@ import { SanitizeDomPipe } from './pipes/sanitize-dom.pipe';
 import { PostmatesListComponent } from './components/restaurants/postmates-list/postmates-list.component';
 import { InvalidListComponent } from './components/restaurants/invalid-list/invalid-list.component';
 import { RestaurantsCourierListComponent } from './components/restaurants/restaurants-courier-list/restaurants-courier-list.component';
-import { from } from 'rxjs';
+
 import { RestarantChainsComponent } from './components/restaurants/restarant-chains/restarant-chains.component';
 import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
 import { ChainComponent } from './components/chains/chain/chain.component';
@@ -212,10 +210,15 @@ import { RestaurantQrSettingsComponent } from './components/restaurants/restaura
 import { NotificationDashboardComponent } from './components/notification-dashboard/notification-dashboard.component';
 import { NotificationEditorComponent } from './components/notification-editor/notification-editor.component';
 
+import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
+import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
+import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
+import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
+import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
 
 @NgModule({
   declarations: [
-    adjustedDatePipe, appDatePipe, EEEPipe, EEEEPipe, MMMdPipe, moneyPipe, percentagePipe, shortTimePipe, sizePipe, telPipe, yMMMdPipe,
+    AdjustedDatePipe, moneyPipe, percentagePipe, sizePipe, telPipe, TimezoneOffsetPipe,
     RootComponent,
     HomeComponent,
     MonitoringScriptComponent,
@@ -344,6 +347,7 @@ import { NotificationEditorComponent } from './components/notification-editor/no
     MonitoringPrintersComponent,
     MonitoringHoursComponent,
     MonitoringRestaurantsComponent,
+    MonitoringPromotionComponent,
     AwsMigrationComponent,
     WorkflowDashboardComponent,
     SopDashboardComponent,
@@ -381,7 +385,6 @@ import { NotificationEditorComponent } from './components/notification-editor/no
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
-    InvoiceViewerComponent,
     SchemasComponent,
     SeamlessIntegrationComponent,
     UploadCsvComponent,
@@ -391,7 +394,11 @@ import { NotificationEditorComponent } from './components/notification-editor/no
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
     NotificationDashboardComponent,
-    NotificationEditorComponent
+    NotificationEditorComponent,
+    RestaurantStatsComponent,
+    WeirdDataComponent,
+    QrRestaurantListComponent,
+    RestaurantTranslationsComponent
   ],
   imports: [
     BrowserModule,
@@ -414,7 +421,6 @@ import { NotificationEditorComponent } from './components/notification-editor/no
     TaskService,
     CacheService,
     PrunedPatchService,
-    TimezoneService,
     CrawlTemplateService,
     AmazonConnectService
   ],

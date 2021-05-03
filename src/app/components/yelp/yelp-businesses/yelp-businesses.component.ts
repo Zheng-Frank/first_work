@@ -4,7 +4,6 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { environment } from 'src/environments/environment';
 import { AlertType } from 'src/app/classes/alert-type';
-import { TimezoneService } from '../../../services/timezone.service';
 
 @Component({
   selector: 'app-yelp-businesses',
@@ -21,6 +20,8 @@ export class YelpBusinessesComponent implements OnInit {
   refreshing = false;
   username = '';
   restaurantStatus = "All";
+  Q_Y_WebsiteStatus = "All"; // Add filter to Yelp Biz page to filter for "Q / Y website" condition，it is the sign.
+  searchText; // restaurant id 
   pagination = false;
 
   myColumnDescriptors = [
@@ -60,7 +61,7 @@ export class YelpBusinessesComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service, public _timezone: TimezoneService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.populate();
     this.username = this._global.user.username;
 
@@ -127,7 +128,6 @@ export class YelpBusinessesComponent implements OnInit {
 
   async filter() {
     this.refreshing = false;
-
     switch (this.restaurantStatus) {
       case 'Claimable':
       case 'Reclaimable':
@@ -154,9 +154,31 @@ export class YelpBusinessesComponent implements OnInit {
         this.filteredRows = this.flatRows;
         break;
     }
+    // filter r for "Q / Y website" condition
+    switch (this.Q_Y_WebsiteStatus) {
+      case 'Q=Y':
+        this.filteredRows = this.filteredRows.filter(r =>  r.qmenuWebsite === r.website);
+        break;
 
+      case 'Q!=Y':
+        this.filteredRows = this.filteredRows.filter(r =>  r.qmenuWebsite != r.website);
+        break;
+
+      default:
+        this.filteredRows = this.filteredRows;
+        break;
+    }
+    
     this.refreshing = false;
 
+  }
+   // search restaurant with id
+  search(){
+    if(this.searchText != ""){
+      this.filteredRows = this.flatRows.filter(r=>r._id === this.searchText);
+    }else{ // if there are not any searchText in the input ,should show the filter content with the other selects
+      this.filter();
+    }
   }
 
   async populate() {

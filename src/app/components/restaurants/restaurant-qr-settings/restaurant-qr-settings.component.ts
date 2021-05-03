@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';

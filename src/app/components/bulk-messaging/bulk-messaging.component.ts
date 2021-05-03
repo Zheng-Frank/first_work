@@ -1,11 +1,7 @@
 import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
-import { AlertType } from "../../classes/alert-type";
 import { environment } from "../../../environments/environment";
-
-import { of } from 'rxjs';
-import { ifStmt } from '@angular/compiler/src/output/output_ast';
 
 @Component({
   selector: 'app-bulk-messaging',

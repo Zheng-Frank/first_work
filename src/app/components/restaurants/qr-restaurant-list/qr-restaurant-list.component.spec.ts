@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { InvoiceViewerComponent } from './invoice-viewer.component';
+import { QrRestaurantListComponent } from './qr-restaurant-list.component';
 
-describe('InvoiceViewerComponent', () => {
-  let component: InvoiceViewerComponent;
-  let fixture: ComponentFixture<InvoiceViewerComponent>;
+describe('QrRestaurantListComponent', () => {
+  let component: QrRestaurantListComponent;
+  let fixture: ComponentFixture<QrRestaurantListComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ InvoiceViewerComponent ]
+      declarations: [ QrRestaurantListComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(InvoiceViewerComponent);
+    fixture = TestBed.createComponent(QrRestaurantListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -25,7 +25,7 @@
           <button class="btn btn-primary" (click)="populateProviders()" [qLoading]="apiRequesting"><i
               class="fas fa-sync-alt"></i> Populate Providers</button>
         </div>
-        <small class="text-left">Providers for which we currently support menu scraping: Menufy, 
+        <small class="text-left">Providers for which we currently support menu scraping: Menufy,
             Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife</small>
         <select class="form-control mr-4" [(ngModel)]="providerUrl">
           <option></option>
@@ -94,7 +94,7 @@
         </li>
         <li>
           <a (click)=showPromotionsComponent() class="nav-link {{showPromotions == true ? 'active' : 'text-primary'}}"
-            role="button"> Coupons / Promotions</a>
+            role="button"> Coupons / Promotions ({{restaurant?.promotions?.length}})</a>
 
         </li>
       </ul>
@@ -104,8 +104,7 @@
   <div class="tab-content">
     <div *ngFor="let menu of getMenus()" class="tab-pane  {{getActiveId() == menu.id ? 'active' : ''}} pt-1"
       role="tabpanel">
-      <app-menu [restaurant]="restaurant" [menu]="menu"
-        [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" (onEdit)="edit($event)"
+      <app-menu [restaurant]="restaurant" [menu]="menu" (onEdit)="edit($event)"
         (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
     </div>
     <div class="tab-pane  {{!getActiveId() ? 'active' : ''}} pt-1" role="tabpanel">
@@ -123,7 +122,7 @@
     <h4 class="text-center">{{menuEditor.menu?.id ? 'Edit Menu' : 'Create New Menu'}}</h4>
     <hr>
 
-    <app-menu-editor #menuEditor [offsetToEST]="_timezone.getOffsetToEST(restaurant.googleAddress.timezone)" [timezone]="restaurant.googleAddress.timezone" [restaurant]="restaurant"
+    <app-menu-editor #menuEditor [timezone]="restaurant.googleAddress.timezone" [restaurant]="restaurant"
       (onDone)="onDoneEditing($event)" (onDelete)="onDelete($event)"></app-menu-editor>
 
   </q-modal>

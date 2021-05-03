@@ -1,15 +1,13 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Invoice } from 'src/app/classes/invoice';
-import { Order } from '@qmenu/ui';
-import { state } from '@angular/animations';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
-import { mergeMap, observeOn } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { Channel } from 'src/app/classes/channel';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertType } from 'src/app/classes/alert-type';
 import { GlobalService } from 'src/app/services/global.service';
-import { TimezoneService } from 'src/app/services/timezone.service';
+import {Helper} from '../../../classes/helper';
 
 @Component({
   selector: 'app-invoices-anual',
@@ -126,7 +124,7 @@ export class InvoicesAnualComponent implements OnInit {
     deliveryFee: 0,
     total: 0
   }
-  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private currencyPipe: CurrencyPipe, private datePipe: DatePipe) { }
 
   async ngOnInit() {
 
@@ -237,7 +235,7 @@ export class InvoicesAnualComponent implements OnInit {
             // console.log("io.paymentType == STRIPE: "+this.restaurantStripe.tax);
           }
         }
-        //count the money of order service type 
+        //count the money of order service type
         if (io.type == 'DELIVERY') {
           this.deliveryServiceType.subtotal += (io.subtotal == null || io.subtotal == undefined ? 0 : io.subtotal);
           this.deliveryServiceType.tax += (io.tax == null || io.tax == undefined ? 0 : Math.round(io.tax * 100) / 100);
@@ -307,9 +305,7 @@ export class InvoicesAnualComponent implements OnInit {
   }
 
   getRestaurantTime(time, invoice): Date {
-    const t = new Date(time);
-    t.setHours(t.getHours() + this._timezone.getOffsetToEST(invoice.restaurant.address.timezone || 0));
-    return t;
+    return Helper.adjustDate(new Date(time), invoice.restaurant.address.timezone);
   }
 
   downloadPdf() {
@@ -350,7 +346,7 @@ export class InvoicesAnualComponent implements OnInit {
           message += '\nFrom ' + this.datePipe.transform(statement.fromDate, 'shortDate') + ' to ' + this.datePipe.transform(statement.toDate, 'shortDate') + '. ';
           // USE USD instead of $ because $ causes trouble for text :(
           message += '\n' + (statement.balance > 0 ? 'Balance' : 'Credit') + ' ' + this.currencyPipe.transform(Math.abs(statement.balance), 'USD');
-          message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage     
+          message += `\n${environment.shortUrlBase}${shortUrlObj.code} .`; // add training space to make it clickable in imessage
           message += '\nThank you for your business!\nDO NOT REPLY THIS MESSAGE'
 
           // we need to append '-' to end of $xxx.xx because of imessage bug

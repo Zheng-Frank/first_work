@@ -1,10 +1,10 @@
 <h1 class="text-center">Restaurants ({{ filteredRows.length }})</h1>
 
 <div class="row d-flex align-items-center">
-  <div class="col-md-2 d-flex align-items-center">
-    <div class="clearfix my-2 float-left form-inline">
+  <div class="col-md-7 d-flex align-items-center">
+    <div class="clearfix my-2 float-left form-inline limit-width-height">
       <label class="mr-2"> Status:</label>
-      <select class="form-control mr-2 mb-1" [(ngModel)]="restaurantStatus" (change)="filter()">
+      <select class="form-control mb-1" [(ngModel)]="restaurantStatus" (change)="filter()">
         <option>All</option>
         <option>Published</option>
         <option>Unmatched</option>
@@ -13,8 +13,18 @@
         <option>Unknown</option>
       </select>
     </div>
+    <div class="clearfix my-2 float-left form-inline ml-3 limit-width-height">
+      <label class="mr-2"> Q / Y website:</label>
+      <select class="form-control mb-1" [(ngModel)]="Q_Y_WebsiteStatus" (change)="filter()">
+        <option>All</option>
+        <option>Q=Y</option>
+        <option>Q!=Y</option>
+      </select>
+    </div>
+    <input [qDebounce]="2000" (debounce)="search()" type="text" [(ngModel)]="searchText"
+        class="form-control col-md-5 ml-4" placeholder="Search By ID">
   </div>
-  <!-- 
+  <!--
   <div class="col-md-10 d-flex align-items-center justify-content-end">
     <button class="btn btn-link" (click)="populate()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i> Reload All</button>
   </div>
@@ -36,7 +46,7 @@
       <div class="h-100 d-flex flex-column justify-content-center">
         <a href="{{ rt.url }}" target="_blank">{{ rt.yelpName }}</a>
         <div class="text-muted">
-          
+
           <!-- <div>Yelp Id : {{ rt.yid }}</div> -->
           <small *ngIf="rt.yid">YID: {{ rt.yid }}</small>
           <div *ngIf="!rt.url">
@@ -58,7 +68,7 @@
 
     <!-- time zone -->
     <td>
-      {{_timezone.getOffsetNumber(rt.timezone)}}
+      {{rt.timezone | timezoneOffset}}
     </td>
 
     <!-- score -->

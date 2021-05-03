@@ -38,7 +38,6 @@ export class MonitoringOnboardingComponent implements OnInit {
         "menus.disabled": 1,
         "googleListing.cid": 1,
         createdAt: 1,
-        "rateSchedules.agent": 1,
         "rateSchedules": { $slice: -1 },
         logs: { $slice: -2 },
       }
