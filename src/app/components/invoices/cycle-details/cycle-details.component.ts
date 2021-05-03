@@ -225,6 +225,7 @@ export class CycleDetailsComponent implements OnInit {
     } else {
       this._global.publishAlert(AlertType.Danger, 'No dangling restaurants found');
     }
+    this.loadCycle();
   }
 
   async populatePaymentMeansAndDisabled() {

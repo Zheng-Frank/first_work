@@ -271,9 +271,9 @@ export class SeamlessIntegrationComponent implements OnInit {
     this.innerWidth = window.innerWidth;
     console.log("INNER WIDTH ", this.innerWidth)
     await Notification.requestPermission();
-    if (!this.polling) {
-      setInterval(() => this.startPolling(), 300000)
-    }
+    // if (!this.polling) {
+    //   setInterval(() => this.startPolling(), 300000)
+    // }
 
     try {
       this.seamlessEvents = await this._api

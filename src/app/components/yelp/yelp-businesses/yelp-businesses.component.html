@@ -71,12 +71,20 @@
       {{rt.timezone | timezoneOffset}}
     </td>
 
-    <!-- score -->
+    <!-- rating -->
     <td >
       <div class="h-100 d-flex flex-column justify-content-center">
         {{ rt.rating }}
       </div>
     </td>
+
+    <!-- score -->
+    <td >
+      <div class="h-100 d-flex flex-column justify-content-center">
+        {{ rt.score || 0 }}
+      </div>
+    </td>
+
 
     <!-- account -->
     <td >

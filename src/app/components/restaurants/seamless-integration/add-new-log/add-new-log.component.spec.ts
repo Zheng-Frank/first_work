@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { InvoiceViewerComponent } from './invoice-viewer.component';
+import { AddNewLogComponent } from './add-new-log.component';
 
-describe('InvoiceViewerComponent', () => {
-  let component: InvoiceViewerComponent;
-  let fixture: ComponentFixture<InvoiceViewerComponent>;
+describe('AddNewLogComponent', () => {
+  let component: AddNewLogComponent;
+  let fixture: ComponentFixture<AddNewLogComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ InvoiceViewerComponent ]
+      declarations: [ AddNewLogComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(InvoiceViewerComponent);
+    fixture = TestBed.createComponent(AddNewLogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

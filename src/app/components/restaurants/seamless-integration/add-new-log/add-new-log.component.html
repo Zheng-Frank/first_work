@@ -1,0 +1,13 @@
+<div class="float-right">
+  <div class="pb-2">
+    <button class="btn btn-primary btn-sm" (click)="createNew()">
+      <i class="fas fa-plus"></i> Add New Log</button>
+  </div>
+</div>
+
+
+
+<q-modal #logEditingModal>
+  <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="restaurantList" [log]="logInEditing"
+    (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()" (remove)="remove($event)"></app-log-editor>
+</q-modal>
