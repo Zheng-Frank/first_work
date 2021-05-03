@@ -53,12 +53,12 @@ export class NotificationDashboardComponent implements OnInit {
       description: "Notification sent to customer when their order has been marked complete.",
       category: "customer"
     },
-    "Restaurant Canceled - refund": {
-      description: "Notification sent to customer when their order was canceled by the restaurant and they are due a refund.",
+    "Canceled - refund": {
+      description: "Notification sent to customer when their order was canceled and they are due a refund.",
       category: "customer"
     },
-    "Restaurant Canceled - no charge": {
-      description: "Notification sent to customer when their order was canceled by the restaurant and their card was not charged",
+    "Canceled - no charge": {
+      description: "Notification sent to customer when their order was canceled and their card was not charged",
       category: "customer"
     },
     "New Order Received": {

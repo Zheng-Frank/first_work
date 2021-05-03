@@ -36,8 +36,8 @@ export class NotificationEditorComponent implements OnInit {
     "Delivering": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
     "Delivered": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
     "Completed": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderTimeEstimate_", "_orderDetailsURL_"],
-    "Restaurant Canceled - refund": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_adjustmentAmount_", "_refundTimeFrame_"],
-    "Restaurant Canceled - no charge": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
+    "Canceled - refund": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_", "_adjustmentAmount_", "_refundTimeFrame_"],
+    "Canceled - no charge": ["_newLine_", "_cancelComments_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
     "New Order Received": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_"],
     "Delivery Complete": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_"],
     "Customer Canceled": ["_newLine_", "_customerFirstName_", "_customerLastName_", "_restaurantName_", "_orderNumber_", "_orderDetailsURL_"],
@@ -55,9 +55,10 @@ export class NotificationEditorComponent implements OnInit {
   }
 
   verifyMergeFields() {
-    const illegalFields = [];
+    // verifyMergeFields is somewhat naive, in that it doesn't work properly if the input string has an odd number of underscore characters
     const delineaterIndices = [];
     const mergeVariablesInThisTemplate = [];
+    const illegalFields = [];
 
     for (let i = 0; i < this.notification.content.length; i += 1) {
       if (this.notification.content[i] === '_') {
@@ -68,6 +69,7 @@ export class NotificationEditorComponent implements OnInit {
     for (let j = 0; j < delineaterIndices.length; j += 2) {
       mergeVariablesInThisTemplate.push(this.notification.content.slice(delineaterIndices[j], delineaterIndices[j + 1] + 1))
     }
+
     mergeVariablesInThisTemplate.forEach(mv => {
       if (!this.allowableMergeFields[this.notification.name].includes(mv)) {
         illegalFields.push(mv);
