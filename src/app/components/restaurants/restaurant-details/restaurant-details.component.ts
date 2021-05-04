@@ -1,10 +1,11 @@
-import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Address } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 
 declare var $: any;
 
@@ -14,6 +15,7 @@ declare var $: any;
   styleUrls: ['./restaurant-details.component.css']
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
+  @ViewChild('restaurantProfile')restaurantProfile:RestaurantProfileComponent;
   restaurant: Restaurant;
   displayTextReply = false;
   displayGooglePIN = false;
@@ -142,6 +144,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     hideOrderReadyEstimate: 1,
   };
 
+  showExplanations = true; // a flag to decide whether show English/Chinese translations.
 
   knownUsers = [];
 
@@ -209,6 +212,14 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
+  // if the switch is open,we show i button and show Chinese and English explanations
+  toggleShowExplanations(){
+    if(this.showExplanations){
+      this.restaurantProfile.showExplanationsIcon = true;
+    }else{
+      this.restaurantProfile.showExplanationsIcon = false;
+    }
+  }
 
   async loadDetails() {
     this.readonly = true;

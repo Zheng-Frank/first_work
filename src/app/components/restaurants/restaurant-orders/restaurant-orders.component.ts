@@ -8,6 +8,7 @@ import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { GlobalService } from 'src/app/services/global.service';
+import { OrderCardComponent } from '../order-card/order-card.component';
 
 
 declare var $: any;
@@ -30,6 +31,9 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('previousCanceledOrderModal') previousCanceledOrderModal: ModalComponent; // this modal is in order to show customer previous canceled order detail
 
   previousCanceledOrder: any; // previous canceled order object of one customer
+  @ViewChild('changeOrderTypeModal') changeOrderTypeModal: ModalComponent;
+  @ViewChild('orderCard') orderCard: OrderCardComponent;
+  cardSpecialOrder;
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
   // customer:Customer
   @Input() restaurant: Restaurant;
@@ -53,9 +57,16 @@ export class RestaurantOrdersComponent implements OnInit {
   toDate;
   logInEditing = new Log(); // invoice ajustment modal need this field
   adjustInvoiceRestaurantList = []; // all the restaurant need adjust invoice
+  changeOrderType = 'Restaurant self-deliver';
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
-
+  /**
+   * it is because that the changeordertypemodal has mass sort if it is in the card component.
+   */
+  handleOpenChangeOrderTypesModal(order) {
+    this.cardSpecialOrder = order;
+    this.changeOrderTypeModal.show();
+  }
   ngOnInit() {
     this.populateOrders();
     this.onNewOrderReceived.subscribe(
@@ -71,7 +82,6 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-
   /**
    *
    * this function is used to filter order by createdAt
@@ -155,7 +165,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      // console.log("238行：订单："+JSON.stringify(o));
       return new Order(order);
     });
   }
@@ -294,7 +303,6 @@ export class RestaurantOrdersComponent implements OnInit {
       order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      // console.log("238行：订单："+JSON.stringify(o));
       return new Order(order);
     });
 
@@ -381,17 +389,32 @@ export class RestaurantOrdersComponent implements OnInit {
     );
   }
 
-  async handleOnChangeToSelfDelivery(order) {
-    try {
-      await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
-        orderId: order._id
-      }).toPromise();
-    } catch (error) {
-      console.log("errors")
+  /**
+   * change-to-self-delivery
+
+     change-to-pickup
+   */
+  async handleOnChangeOrderTypes() {
+    if (this.changeOrderType === 'Restaurant self-deliver') {
+      try {
+        await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
+          orderId: this.cardSpecialOrder._id
+        }).toPromise();
+      } catch (error) {
+        console.log("errors:"+JSON.stringify(error));
+      }
+    } else if(this.changeOrderType === 'Customer Pickup') {
+      try {
+        await this._api.post(environment.appApiUrl + 'biz/orders/change-to-pickup', {
+          orderId: this.cardSpecialOrder ._id
+        }).toPromise();
+      } catch (error) {
+        console.log("errors:"+JSON.stringify(error));
+      }
     }
+    this.changeOrderTypeModal.hide();
     this.populateOrders();
   }
-
   handleOnDisplayCreditCard(order) {
     const explanations = {
       IN_PERSON: 'NO CREDIT CARD INFO WAS COLLECTED. THE CUSTOMER WILL SWIPE CARD IN PERSON.',
