@@ -7,12 +7,12 @@
           <tbody>
             <!-- Basic Information -->
             <tr>
-              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Basic Information</th>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">{{changeLanguageFlag === 'English' ? 'Basic Information' : '基本信息' }}</th>
             </tr>
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Name
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Name' : '名字' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('Name')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'Name'" class="left talk radius">
@@ -30,7 +30,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Address
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Address' : '地址' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('Address')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'Address' " class="left talk radius">
@@ -48,7 +48,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Address Extra
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Address Extra' : '地址额外信息' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('AddressExtra')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'AddressExtra'" class="left talk radius">
@@ -65,7 +65,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">ID
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'ID' : '身份标识' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('ID')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'ID'" class="left talk radius">
@@ -82,7 +82,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Alias
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Alias' : '别名' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('Alias')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'Alias'" class="left talk radius">
@@ -99,7 +99,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Time Zone
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Time Zone' : '时区' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('TimeZone')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'TimeZone'" class="left talk radius">
@@ -118,7 +118,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Tax Rate
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Tax Rate' : '税率' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('TaxRate')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'TaxRate'" class="left talk radius">
@@ -137,7 +137,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Sales Agent
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Sales Agent' : '销售人员' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('SalesAgent')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'SalesAgent'" class="left talk radius">
@@ -156,7 +156,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Disabled
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Disabled' : '终止合作' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('Disabled')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'Disabled'" class="left talk radius">
@@ -174,12 +174,12 @@
             </tr>
             <!--Preferences -->
             <tr>
-              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">Preferences</th>
+              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">{{changeLanguageFlag === 'English' ? 'Preferences' : '参数选择' }}</th>
             </tr>
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Time Estimate for Pickup
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Time Estimate for Pickup' : '预估取餐时间' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('TimeEstimateforPickup')"
                       (mouseout)="showExplanations = false">
@@ -199,7 +199,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Time Estimate for Delivery
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Time Estimate for Delivery' : '预估派送时间' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('TimeEstimateforDelivery')"
                       (mouseout)="showExplanations = false">
@@ -220,7 +220,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Preferred Language
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Preferred Language' : '用于机器人调用的语言' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('PreferredLanguage')"
                       (mouseout)="showExplanations = false">
@@ -240,7 +240,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Website Broadcast
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Website Broadcast' : '网站广播' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('WebsiteBroadcast')"
                       (mouseout)="showExplanations = false">
@@ -259,13 +259,13 @@
             </tr>
             <!-- Fee/Minimum Settings -->
             <tr>
-              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">Fee/Minimum Settings</th>
+              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">{{changeLanguageFlag === 'English' ? 'Fee/Minimum Settings' : '费用/最小值设置' }}</th>
             </tr>
             <ng-container *ngIf="!restaurant.feeSchedules">
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Surcharge
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Surcharge' : '网络点餐服务费' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('Surcharge')" (mouseout)="showExplanations = false">
                         <div *ngIf="showExplanations && translating === 'Surcharge'" class="left talk radius">
@@ -287,7 +287,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Surcharge Rate
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Surcharge Rate' : '附加费率' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('SurchargeRate')"
                         (mouseout)="showExplanations = false">
@@ -307,7 +307,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">CC Processing Rate
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'CC Processing Rate' : '信用卡付款百分比服务费' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('CCProcessingRate')"
                         (mouseout)="showExplanations = false">
@@ -327,7 +327,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">CC Processing Flat Fee
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'CC Processing Flat Fee' : '信用卡付款固定服务费' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('CCProcessingFlatFee')"
                         (mouseout)="showExplanations = false">
@@ -348,7 +348,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Pickup Minimum
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Pickup Minimum' : '最小配送费' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('PickupMinimum')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'PickupMinimum'" class="left talk radius">
@@ -367,7 +367,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">CC Minimum Charge
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'CC Minimum Charge' : '最小信用卡处理费' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('CCMinimumCharge')"
                       (mouseout)="showExplanations = false">
@@ -386,7 +386,7 @@
             </tr>
             <!-- Tip Settings -->
             <tr>
-              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">Tip Settings</th>
+              <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">{{changeLanguageFlag === 'English' ? 'Tip Settings' : '小费设置' }}</th>
             </tr>
             <tr>
               <td colspan="2">
@@ -402,7 +402,7 @@
                     </thead>
                     <tbody>
                       <tr>
-                        <th class="pl-5">Default Percentage (%)
+                        <th class="pl-5">{{changeLanguageFlag === 'English' ? 'Default Percentage (%)' : '默认百分比(%)' }}
                           <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                             (mouseover)="showCorrespondingTranslation('DefaultPercentage')"
                             (mouseout)="showExplanations = false">
@@ -419,7 +419,7 @@
                         <td>{{tipSettings.Delivery.defaultPercentage | number: '1.0-4'}}</td>
                       </tr>
                       <tr>
-                        <th class="pl-5">Minimum Percentage (%)
+                        <th class="pl-5">{{changeLanguageFlag === 'English' ? 'Minimum Percentage (%)' : '最小百分比(%)' }}
                           <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                             (mouseover)="showCorrespondingTranslation('MinimumPercentage')"
                             (mouseout)="showExplanations = false">
@@ -436,7 +436,7 @@
                         <td>{{tipSettings.Delivery.minimumPercentage | number: '1.0-4'}}</td>
                       </tr>
                       <tr>
-                        <th class="pl-5">Default Amount ($)
+                        <th class="pl-5">{{changeLanguageFlag === 'English' ? 'Default Amount ($)' : '默认金额 ($)' }}
                           <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                             (mouseover)="showCorrespondingTranslation('DefaultAmount')"
                             (mouseout)="showExplanations = false">
@@ -444,7 +444,7 @@
                               class="left tip-talk radius">
                               <p>Default Amount ($):{{Explanations.EnglishExplanations.DefaultAmount}}</p>
                               -------------<br>
-                              <p>默认金额:{{Explanations.ChineseExplanations.DefaultAmount}}</p>
+                              <p>默认金额($):{{Explanations.ChineseExplanations.DefaultAmount}}</p>
                             </div>
                           </i>
                         </th>
@@ -453,7 +453,7 @@
                         <td>{{tipSettings.Delivery.defaultAmount | number: '1.2-2'}}</td>
                       </tr>
                       <tr>
-                        <th class="pl-5">Minimum Amount ($)
+                        <th class="pl-5">{{changeLanguageFlag === 'English' ? 'Minimum Amount ($)' : '最小金额 ($)' }}
                           <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                             (mouseover)="showCorrespondingTranslation('MinimumAmount')"
                             (mouseout)="showExplanations = false">
@@ -470,7 +470,7 @@
                         <td>{{tipSettings.Delivery.minimumAmount | number: '1.2-2'}}</td>
                       </tr>
                       <tr>
-                        <th class="pl-5">Show Tip
+                        <th class="pl-5">{{changeLanguageFlag === 'English' ? 'Show Tip' : '展示小费' }}
                           <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                             (mouseover)="showCorrespondingTranslation('ShowTip')" (mouseout)="showExplanations = false">
                             <div *ngIf="showExplanations && translating === 'ShowTip'" class="left tip-talk radius">
@@ -498,12 +498,12 @@
             </tr>
             <!-- Other Preferences -->
             <tr>
-              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">Other Preferences </th>
+              <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">{{changeLanguageFlag === 'English' ? 'Other Preferences ' : '其他参数选择' }}</th>
             </tr>
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Disable Scheduling
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Disable Scheduling' : '休息时间' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('DisableScheduling')"
                       (mouseout)="showExplanations = false">
@@ -523,7 +523,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Register Self-Signup
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Register Self-Signup' : '自己注册' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('RegisterSelfSignup')"
                       (mouseout)="showExplanations = false">
@@ -543,7 +543,7 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">Notes
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Notes' : '注意事项' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('Notes')" (mouseout)="showExplanations = false">
                       <div *ngIf="showExplanations && translating === 'Notes'" class="left talk radius">
@@ -570,7 +570,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Hide Order Status on Customer Side
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Hide Order Status on Customer Side' : '在客户端隐藏订单状态' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('HideOrderStatusonCustomerSide')"
                         (mouseout)="showExplanations = false">
@@ -592,7 +592,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Skip Order Confirmation
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Skip Order Confirmation' : '跳过订单确认' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('SkipOrderConfirmation')"
                         (mouseout)="showExplanations = false">
@@ -613,7 +613,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Skip Auto Invoicing
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Skip Auto Invoicing' : '跳过自动分润' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('SkipAutoInvoicing')"
                         (mouseout)="showExplanations = false">
@@ -633,7 +633,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Not Show Tax Option to Customer
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Not Show Tax Option to Customer' : '不向客户展示税率选项' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('NotShowTaxOptiontoCustomer')"
                         (mouseout)="showExplanations = false">
@@ -655,7 +655,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Skip Image Inject
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Skip Image Inject' : '跳过图片注入' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('SkipImageInject')"
                         (mouseout)="showExplanations = false">
@@ -675,7 +675,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Allow submitting order at close time
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Allow submitting order at close time' : '允许在关闭时间提交订单' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('Allowsubmittingorderatclosetime')"
                         (mouseout)="showExplanations = false">
@@ -697,7 +697,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Hide printing CC
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Hide printing CC' : '隐藏打印的信用卡' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('HideprintingCC')"
                         (mouseout)="showExplanations = false">
@@ -717,7 +717,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Prevent RT from canceling orders
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Prevent RT from canceling orders' : '阻止餐馆取消订单' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('PreventRTfromcancelingorders')"
                         (mouseout)="showExplanations = false">
@@ -739,7 +739,7 @@
               <tr>
                 <th colspan="2">
                   <div class="row">
-                    <div class="col-4 pl-5">Show order ready estimate
+                    <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Show order ready estimate' : '显示订单就绪估计' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('Showorderreadyestimate')"
                         (mouseout)="showExplanations = false">
@@ -765,7 +765,7 @@
       <div *qIf="editing">
         <!-- Basic Information -->
         <div class="form-group row ml-2">
-          <h4>Basic Information
+          <h4>{{changeLanguageFlag === 'English' ? 'Basic Information' : '基本信息' }}
             <button class="btn btn-link" (click)="ifShowBasicInformation=!ifShowBasicInformation">
               <i class="fa fa-angle-right" *ngIf="!ifShowBasicInformation"></i>
               <i class="fa fa-angle-down" *ngIf="ifShowBasicInformation"></i>
@@ -774,7 +774,7 @@
         </div>
         <ng-container *ngIf="ifShowBasicInformation">
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Name
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Name' : '名字' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Name')" (mouseout)="showExplanations = false">
                 <div  *ngIf="showExplanations && translating === 'Name' " class="left edit-talk radius">
@@ -789,7 +789,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Address
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Address' : '地址' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Address')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'Address' " class="left edit-talk radius">
@@ -804,7 +804,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Address Extra
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Address Extra' : '地址额外信息' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('AddressExtra')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'AddressExtra'" class="left edit-talk radius">
@@ -819,7 +819,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Tax Rate
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Tax Rate' : '税率' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('TaxRate')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'TaxRate'" class="left edit-talk radius">
@@ -834,7 +834,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Domain
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Domain' : '网站域名' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Domain')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'Domain'" class="left edit-talk radius">
@@ -849,7 +849,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Sales Agent
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Sales Agent' : '销售人员' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('SalesAgent')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'SalesAgent'" class="left edit-talk radius">
@@ -864,7 +864,7 @@
             </div>
           </div>
           <div class="form-group row" *ngIf="isDisabledEditable()">
-            <label class="col-4 col-form-label pt-0 pl-5">Disabled
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Disabled' : '终止合作' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Disabled')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'Disabled'" class="left edit-talk radius">
@@ -899,7 +899,7 @@
         </ng-container>
         <!--Preferences -->
         <div class="form-group row ml-2">
-          <h4>Preferences
+          <h4>{{changeLanguageFlag === 'English' ? 'Preferences' : '参数选择' }}
             <button class="btn btn-link" (click)="ifShowPreferences=!ifShowPreferences">
               <i class="fa fa-angle-right" *ngIf="!ifShowPreferences"></i>
               <i class="fa fa-angle-down" *ngIf="ifShowPreferences"></i>
@@ -908,7 +908,7 @@
         </div>
         <ng-container *ngIf="ifShowPreferences">
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Time Estimate for Pickup (mins)
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Time Estimate for Pickup (mins)' : '预估取餐时间' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('TimeEstimateforPickup')"
                 (mouseout)="showExplanations = false">
@@ -924,7 +924,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Time Estimate for Delivery (mins)
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Time Estimate for Delivery (mins)' : '预估派送时间' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('TimeEstimateforDelivery')"
                 (mouseout)="showExplanations = false">
@@ -940,7 +940,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Disable Ordering Ahead
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Disable Ordering Ahead' : '禁用提前订购' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('DisableOrderingAhead')"
                 (mouseout)="showExplanations = false">
@@ -956,7 +956,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Order Call Language
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Order Call Language' : '用于机器人调用的语言' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('OrderCallLanguage')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'OrderCallLanguage'" class="left edit-talk radius">
@@ -975,7 +975,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Website Broadcast
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Website Broadcast' : '网站广播' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('WebsiteBroadcast')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'WebsiteBroadcast'" class="left edit-talk radius">
@@ -992,7 +992,7 @@
           </div>
 
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Logo
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Logo' : '网站标志' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Logo')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'Logo'" class="left edit-talk radius">
@@ -1022,7 +1022,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Photos
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Photos' : '图片' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Photos')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'Photos'" class="left edit-talk radius">
@@ -1056,7 +1056,7 @@
         </ng-container>
         <!-- Fee/Minimum Settings -->
         <div class="form-group row ml-2">
-          <h4>Fee/Minimum Settings
+          <h4>{{changeLanguageFlag === 'English' ? 'Fee/Minimum Settings' : '费用/最小值设置' }}
             <button class="btn btn-link" (click)="ifShowFee_MinimumSettings=!ifShowFee_MinimumSettings">
               <i class="fa fa-angle-right" *ngIf="!ifShowFee_MinimumSettings"></i>
               <i class="fa fa-angle-down" *ngIf="ifShowFee_MinimumSettings"></i>
@@ -1066,7 +1066,7 @@
         <ng-container *ngIf="ifShowFee_MinimumSettings">
           <ng-container *ngIf="!restaurant.feeSchedules">
             <div class="row">
-              <label class="col-4 col-form-label pt-0 pl-5">Surcharge
+              <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Surcharge' : '网络点餐服务费' }}
                 <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                   (mouseover)="showCorrespondingTranslation('Surcharge')" (mouseout)="showExplanations = false">
                   <div *ngIf="showExplanations && translating === 'Surcharge'" class="left edit-talk radius">
@@ -1091,7 +1091,7 @@
               </div>
             </div>
             <div class="form-group row">
-              <label class="col-4 col-form-label pt-0 pl-5">CC Processing Rate
+              <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'CC Processing Rate' : '信用卡付款百分比服务费' }}
                 <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                   (mouseover)="showCorrespondingTranslation('CCProcessingRate')" (mouseout)="showExplanations = false">
                   <div *ngIf="showExplanations && translating === 'CCProcessingRate'" class="left edit-talk radius">
@@ -1106,7 +1106,7 @@
               </div>
             </div>
             <div class="form-group row">
-              <label class="col-4 col-form-label pt-0 pl-5">CC Processing Flat Fee
+              <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'CC Processing Flat Fee' : '信用卡付款固定服务费' }}
                 <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                   (mouseover)="showCorrespondingTranslation('CCProcessingFlatFee')"
                   (mouseout)="showExplanations = false">
@@ -1123,7 +1123,7 @@
             </div>
           </ng-container>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Pickup Minimum
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Pickup Minimum' : '最小配送费' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('PickupMinimum')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'PickupMinimum'" class="left edit-talk radius">
@@ -1138,7 +1138,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">CC Minimum Charge
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'CC Minimum Charge' : '最小信用卡处理费' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('CCMinimumCharge')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'CCMinimumCharge'" class="left edit-talk radius">
@@ -1155,7 +1155,7 @@
         </ng-container>
         <!-- Tip Settings -->
         <div class="form-group row ml-2">
-          <h4>Tip Settings
+          <h4>{{changeLanguageFlag === 'English' ? 'Tip Settings' : '小费设置' }}
             <button class="btn btn-link" (click)="isShowTipSettings=!isShowTipSettings">
               <i class="fa fa-angle-right" *ngIf="!isShowTipSettings"></i>
               <i class="fa fa-angle-down" *ngIf="isShowTipSettings"></i>
@@ -1176,7 +1176,7 @@
               <tbody>
                 <tr>
                   <td class="pl-5">
-                    <label class="col-form-label">Default Percentage (%)
+                    <label class="col-form-label">{{changeLanguageFlag === 'English' ? 'Default Percentage (%)' : '默认百分比(%)' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('DefaultPercentage')"
                         (mouseout)="showExplanations = false">
@@ -1207,7 +1207,7 @@
                 </tr>
                 <tr>
                   <td class="pl-5">
-                    <label class="col-form-label">Minimum Percentage (%)
+                    <label class="col-form-label">{{changeLanguageFlag === 'English' ? 'Minimum Percentage (%)' : '最小百分比(%)' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('MinimumPercentage')"
                         (mouseout)="showExplanations = false">
@@ -1238,7 +1238,7 @@
                 </tr>
                 <tr>
                   <td class="pl-5">
-                    <label class="col-form-label">Default Amount ($)
+                    <label class="col-form-label">{{changeLanguageFlag === 'English' ? 'Default Amount ($)' : '默认金额 ($)' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('DefaultAmount')"
                         (mouseout)="showExplanations = false">
@@ -1268,7 +1268,7 @@
                 </tr>
                 <tr>
                   <td class="pl-5">
-                    <label class="col-form-label">Minimum Amount ($)
+                    <label class="col-form-label">{{changeLanguageFlag === 'English' ? 'Minimum Amount ($)' : '最小金额 ($)' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('MinimumAmount')"
                         (mouseout)="showExplanations = false">
@@ -1298,7 +1298,7 @@
                 </tr>
                 <tr>
                   <td class="pl-5">
-                    <label class="col-form-label">Show Tip
+                    <label class="col-form-label">{{changeLanguageFlag === 'English' ? 'Show Tip' : '展示小费' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('ShowTip')" (mouseout)="showExplanations = false">
                         <div *ngIf="showExplanations && translating === 'ShowTip'" class="left tip-edit-talk radius">
@@ -1347,7 +1347,7 @@
         </ng-container>
         <!-- Other Preferences -->
         <div class="form-group row ml-2">
-          <h4>Other Preferences
+          <h4>{{changeLanguageFlag === 'English' ? 'Other Preferences ' : '其他参数选择' }}
             <button class="btn btn-link" (click)="ifShowOtherPreferences=!ifShowOtherPreferences">
               <i class="fa fa-angle-right" *ngIf="!ifShowOtherPreferences"></i>
               <i class="fa fa-angle-down" *ngIf="ifShowOtherPreferences"></i>
@@ -1356,7 +1356,7 @@
         </div>
         <ng-container *ngIf="ifShowOtherPreferences">
           <div class="form-group row" *ngIf="restaurant.selfSignup">
-            <label class="col-4 col-form-label pt-0 pl-5">Register Self Signup
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Register Self-Signup' : '自己注册' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('RegisterSelfSignup')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'RegisterSelfSignup'" class="left edit-talk radius">
@@ -1371,7 +1371,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Hide Order Status on Customer Side
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Hide Order Status on Customer Side' : '在客户端隐藏订单状态' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('HideOrderStatusonCustomerSide')"
                 (mouseout)="showExplanations = false">
@@ -1389,7 +1389,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Skip Order Confirmation
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Skip Order Confirmation' : '跳过订单确认' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('SkipOrderConfirmation')"
                 (mouseout)="showExplanations = false">
@@ -1405,7 +1405,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5"> Skip Auto Invoicing
+            <label class="col-4 col-form-label pt-0 pl-5"> {{changeLanguageFlag === 'English' ? 'Skip Auto Invoicing' : '跳过自动分润' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('SkipAutoInvoicing')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'SkipAutoInvoicing'" class="left edit-talk radius">
@@ -1420,7 +1420,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Not Show Tax Option to Customer
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Not Show Tax Option to Customer' : '不向客户展示税率选项' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('NotShowTaxOptiontoCustomer')"
                 (mouseout)="showExplanations = false">
@@ -1436,7 +1436,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Skip Image Injection
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Skip Image Inject' : '跳过图片注入' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('SkipImageInject')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'SkipImageInject'" class="left edit-talk radius">
@@ -1451,7 +1451,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Allow submitting order at close time
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Allow submitting order at close time' : '允许在关闭时间提交订单' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Allowsubmittingorderatclosetime')"
                 (mouseout)="showExplanations = false">
@@ -1469,7 +1469,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Hide printing CC
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Hide printing CC' : '隐藏打印的信用卡' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('HideprintingCC')" (mouseout)="showExplanations = false">
                 <div *ngIf="showExplanations && translating === 'HideprintingCC'" class="left edit-talk radius">
@@ -1484,7 +1484,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Prevent RT from canceling orders
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Prevent RT from canceling orders' : '阻止餐馆取消订单' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('PreventRTfromcancelingorders')"
                 (mouseout)="showExplanations = false">
@@ -1502,7 +1502,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">Show order ready estimate
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Show order ready estimate' : '显示订单就绪估计' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Showorderreadyestimate')"
                 (mouseout)="showExplanations = false">
@@ -1521,7 +1521,7 @@
         </ng-container>
         <!--Notes  -->
         <div class="form-group row ml-2">
-          <h4>Notes
+          <h4>{{changeLanguageFlag === 'English' ? 'Notes' : '注意事项' }}
             <label class="col-4 col-form-label pt-0">
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Notes')" (mouseout)="showExplanations = false" style="font-size:15px;">

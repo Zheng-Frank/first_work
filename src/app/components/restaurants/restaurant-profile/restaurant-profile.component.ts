@@ -8,6 +8,7 @@ import { environment } from '../../../../environments/environment';
 import { AlertType } from '../../../classes/alert-type';
 import { HttpClient } from '@angular/common/http';
 import { formatNumber } from '@angular/common';
+import { LanguageType } from 'src/app/classes/language-type';
 
 @Component({
   selector: 'app-restaurant-profile',
@@ -111,7 +112,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   preferredLanguage;
   selfSignupRegistered;
   notification;
-  showExplanationsIcon = true; //  a flag to decide whether show English/Chinese translations icon and the icon will toggle show explanations when focus in it.
+  showExplanationsIcon = false; //  a flag to decide whether show English/Chinese translations icon and the icon will toggle show explanations when focus in it.
   showExplanations = false;
   translating = '';
   Explanations = {
@@ -203,6 +204,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     }
   }
+
+  changeLanguageFlag = LanguageType.ENGLISH;
   preferredLanguages = [
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
