@@ -40,14 +40,18 @@ export class MonitoringPromotionComponent implements OnInit {
   }
 
   async query() {
-    this.rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        'promotions.0': {$exists: false},
         $or: [{disabled: false}, {disabled: {$exists: false}}]
       },
-      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1},
+      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, 'promotions.expiry': 1},
     }, 3000);
+
+    this.rts = rts.filter(rt => {
+      return !rt.promotions || !rt.promotions.length
+        || (rt.promotions.every(p => p.expiry && new Date(p.expiry).valueOf() < Date.now()));
+    });
 
     const gmbOwnerCountMap = {};
 
