@@ -23,7 +23,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   @Output() onAdjustInvoice = new EventEmitter();
   @Output() onCancel = new EventEmitter(); // hide the q-modal
   @Output() success = new EventEmitter<any>();
-  percentage: false;
+  percentage = true;
   percentageAdjustmentAmount = 0;
   adjustmentAmount = 0; // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
   constructor(private _global: GlobalService) { }
@@ -50,53 +50,58 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
     if (x === 0) { // integer
       return true;
     } else {
-      return y > 2 ? false : true;
+      return y <= 2;
     }
 
   }
+
   // the function is used to calculate invoice adjustment and give percentage field a limit between 0 and 100%
   calcAdjustmentAmount() {
     if (this.percentage) {
-      if (this.percentageAdjustmentAmount < 0 && Math.abs(this.percentageAdjustmentAmount) > 100) {
+      if (Math.abs(this.percentageAdjustmentAmount) > 100) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
-        this.percentageAdjustmentAmount = -100;
-      } else if (this.percentageAdjustmentAmount > 100) {
-        this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
-        this.percentageAdjustmentAmount = 100;
+        this.percentageAdjustmentAmount = this.percentageAdjustmentAmount < 0 ? -100 : 100;
       }
       if (this.isNumberValid(this.percentageAdjustmentAmount)) {
         // 19.5*27.5/100=5.3625*100=536.25 =>round =>536 =>5.36
         this.log.adjustmentAmount = Math.round((this.order.getSubtotal() * this.percentageAdjustmentAmount / 100) * 100) / 100;
+        this.changeReasonText();
       } else {
         this._global.publishAlert(AlertType.Danger, 'Please input a valid percentage number !');
       }
 
     } else {
-      if (this.adjustmentAmount < 0 && Math.abs(this.adjustmentAmount)) {
+      if (Math.abs(this.adjustmentAmount) > this.order.getSubtotal()) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
-        this.adjustmentAmount = -this.order.getSubtotal();
-      } else if (this.adjustmentAmount > this.order.getSubtotal()) {
-        this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
-        this.adjustmentAmount = this.order.getSubtotal();
+        this.adjustmentAmount = this.adjustmentAmount < 0 ? -this.order.getSubtotal() : this.order.getSubtotal();
       }
       if (this.isNumberValid(this.adjustmentAmount)) {
         this.log.adjustmentAmount = this.adjustmentAmount;
+        this.changeReasonText();
       } else {
         this._global.publishAlert(AlertType.Danger, 'Please input a valid adjustment amount !');
       }
-
     }
-
+  }
+  // we should change input value by default when q-toggle was toggled.
+  changeDefaultValue() {
+    if (this.percentage) {
+      this.percentageAdjustmentAmount = 0;
+      this.percentageInput.nativeElement.value = this.percentageAdjustmentAmount;
+    } else {
+      this.adjustmentAmount = 0;
+      this.numberInput.nativeElement.value = this.adjustmentAmount;
+    }
   }
   // change textarea showed text and actual adjustment reason.
   changeReasonText() {
     try {
       let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
-      let dateStr = date[0] + " " + date[1] + " " + date[2] + " " + date[3] + " " + date[4];
+      let dateStr = date.slice(0, 4).join(' ');
       if (this.percentage) {
         this.adjustmentReason.nativeElement.focus = true;
         if (this.percentageAdjustmentAmount < 0) {
-          this.log.adjustmentReason = "Debit $" + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.log.adjustmentReason = "Debit $" + (-this.log.adjustmentAmount) + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         } else {
           this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         }
@@ -105,7 +110,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       } else {
         this.adjustmentReason.nativeElement.focus = true;
         if (this.adjustmentAmount < 0) {
-          this.log.adjustmentReason = "Debit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.log.adjustmentReason = "Debit $" + (-this.log.adjustmentAmount) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         } else {
           this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         }
@@ -115,13 +120,31 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
     } catch (err) {
       console.log(err);
     }
+  }
+
+  ensureAdjustmentAmount() {
+    // prevent somebody input value at random , ensure adjsutment is correct 
+    try {
+      if (this.percentage) {
+        this.percentageInput.nativeElement.value = this.percentageAdjustmentAmount;
+      } else {
+        this.numberInput.nativeElement.value = this.adjustmentAmount;
+      }
+    } catch (err) {
+      this._global.publishAlert(AlertType.Danger, 'Please input a valid number ! ' + err);
+    }
 
   }
+
   isStripeDispute() {
     return !(this.order.payment.method === 'CASH' || this.order.payment.method === 'KEY_IN' || this.order.payment.method === 'IN_PERSON');
   }
 
   submitAdjustInvoice() {
+    if (!this.log.adjustmentAmount) {
+      this._global.publishAlert(AlertType.Danger, 'The log.adjustmentAmount can not be null !');
+      return;
+    }
     if (this.percentageAdjustmentAmount === 0 && this.percentage) {
       this._global.publishAlert(AlertType.Danger, 'Please input a valid percentage number (the percentage number can not be zero) !');
       return;

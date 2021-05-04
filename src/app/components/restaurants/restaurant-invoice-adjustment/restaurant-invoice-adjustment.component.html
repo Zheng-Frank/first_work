@@ -24,15 +24,15 @@
         <div class="col-4">
           <div class="row q-toggle-container">
             <span class="mr-1">Percentage</span>
-            <q-toggle [(ngModel)]="percentage"></q-toggle>
+            <q-toggle [(ngModel)]="percentage" (change)="changeDefaultValue()"></q-toggle>
           </div>
         </div>
         <div class="col-8">
-          <input *ngIf="!percentage" class="form-control" type="number" id="id-amount" [(ngModel)]="adjustmentAmount"
-            (change)="calcAdjustmentAmount()" #percentageInput (focusout)="changeReasonText()">
+          <input *ngIf="!percentage" class="form-control" type="number" [(ngModel)]="adjustmentAmount"
+            (ngModelChange)="calcAdjustmentAmount()" #numberInput (focusout)="ensureAdjustmentAmount()" >
           <div *ngIf="percentage" class="row">
-            <input class="form-control col-7" #numberInput  type="number" id="id-amount" [(ngModel)]="percentageAdjustmentAmount"
-              (change)="calcAdjustmentAmount()" (focusout)="changeReasonText()">
+            <input class="form-control col-7"   type="number"  [(ngModel)]="percentageAdjustmentAmount"
+             (ngModelChange)="calcAdjustmentAmount()" #percentageInput (focusout)="ensureAdjustmentAmount()" >
             <span class="col-5 vertical-to-input">%
               ={{order.getSubtotal() * percentageAdjustmentAmount /100 | money }}</span>
           </div>
@@ -43,11 +43,9 @@
     <div class="mb-3">
       <label for="id-reason">Reason (a clear description)
       </label>
-      <textarea #adjustmentReason *ngIf="!percentage" rows='7' type="text" class="form-control" id="id-reason"
-        [(ngModel)]="log.adjustmentReason">
-      </textarea>
-      <textarea #adjustmentReason *ngIf="percentage" rows='7' type="text" class="form-control" id="id-reason"
-        [(ngModel)]="log.adjustmentReason">
+      <!-- textarea -->
+      <textarea #adjustmentReason  rows='7' type="text" class="form-control" id="id-reason"
+        [(ngModel)]="log.adjustmentReason" >
       </textarea>
     </div>
     <div *ngIf="isStripeDispute()" class="mb-3">

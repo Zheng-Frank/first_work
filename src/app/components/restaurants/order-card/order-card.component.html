@@ -159,8 +159,6 @@
         <a *ngIf="isViewable(order)" target="_blank" class="text-primary text-nowrap card-link"
           href="{{getOrderLink()}}">
           <i class="fa fa-eye"></i> View Order</a>
-        <a role="button" class="text-primary text-nowrap card-link" (click)="adjustInvoice()" >
-            <i class="fas fa-file-invoice-dollar"></i> Invoice Adjust</a>  
         <a role="button" class="text-primary text-nowrap card-link" (click)="sendEmail()" *ngIf="canSendEmail()">
           <i class="fa fa-envelope"></i> Send Email</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="setTexting()">
@@ -168,7 +166,8 @@
         <a *ngIf="order.courierId && order.delivery && (order.delivery.status === 'pending' || order.delivery.status === 'canceled')"
           role="button" class="text-primary text-nowrap card-link" (click)="changeToSelfDelivery()">
           <i class="fa fa-car"></i> Change to Self-delivery</a>
-
+        <a role="button" class="text-primary text-nowrap card-link" (click)="adjustInvoice()" >
+          <i class="fas fa-file-invoice-dollar"></i> Invoice Adjust</a>  
 
       </div>
 

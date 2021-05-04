@@ -92,8 +92,7 @@ export class RestaurantOrdersComponent implements OnInit {
     to = tostr.join('-');
     const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), this.restaurant.googleAddress.timezone);
     const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), this.restaurant.googleAddress.timezone);
-    console.log("utcf:" + utcf);
-    console.log("utct:" + utct);
+
     if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
@@ -453,6 +452,9 @@ export class RestaurantOrdersComponent implements OnInit {
   handleOnAdjustInvoice(order) {
     this.orderForModal = order;
     this.logInEditing = new Log();
+    this.adjustInvoiceComponment.percentage = true;
+    this.adjustInvoiceComponment.percentageAdjustmentAmount = 0;
+    this.adjustInvoiceComponment.adjustmentAmount = 0;
     // prevent the undefined condition due to *ngIf
     if(this.adjustInvoiceComponment.percentageInput){
       this.adjustInvoiceComponment.percentageInput.nativeElement.value = 0;
@@ -462,7 +464,7 @@ export class RestaurantOrdersComponent implements OnInit {
     }
     this.adjustInvoiceComponment.adjustmentReason.nativeElement.focus = true;
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
-    let dateStr = date[0] + " " + date[1] + " " + date[2] + " " + date[3] + " " + date[4];
+    let dateStr = date.slice(0, 4).join(' ');
     this.logInEditing.adjustmentReason = "Credit $0 to restaurant 0% of refund subtotal $" + order.getSubtotal() + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.";
     this.adjustInvoiceModal.show();
   }
@@ -473,8 +475,6 @@ export class RestaurantOrdersComponent implements OnInit {
   }
   // hide adjustment q-modal
   cancelAdjustInvoice(){
-    // this.orderForModal = undefined;
-    // this.logInEditing = undefined;
     this.adjustInvoiceModal.hide();
   }
 
@@ -489,7 +489,7 @@ export class RestaurantOrdersComponent implements OnInit {
     const log = JSON.parse(JSON.stringify(data.log)); // make it same as what' in logs array
 
     // need to get full logs!
-    const rtWithFullLogs = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const rtWithFullLogs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         _id: { $oid: data.restaurant._id }
@@ -498,7 +498,7 @@ export class RestaurantOrdersComponent implements OnInit {
         logs: 1
       },
       limit: 1
-    }).toPromise();
+    },1);
 
     const logs = rtWithFullLogs[0].logs || [];
 
@@ -510,17 +510,16 @@ export class RestaurantOrdersComponent implements OnInit {
       logs.push(log);
     }
 
-    this.patch({ _id: data.restaurant._id }, { _id: data.restaurant._id, logs: logs });
+    this.patchLog({ _id: data.restaurant._id }, { _id: data.restaurant._id, logs: logs });
 
   }
-  patch(oldRestaurant, updatedRestaurant) {
+  patchLog(oldRestaurant, updatedRestaurant) {
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
       result => {
         // let's update original, assuming everything successful
         this.adjustInvoiceRestaurantList.map(r => {
           if (r._id === oldRestaurant._id) {
             r.logs = updatedRestaurant.logs;
-            console.log('update logs', r);
           }
         });
         this._global.publishAlert(
