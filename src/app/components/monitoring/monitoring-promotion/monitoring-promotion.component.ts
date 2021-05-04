@@ -44,7 +44,7 @@ export class MonitoringPromotionComponent implements OnInit {
       resource: 'restaurant',
       query: {
         'promotions.0': {$exists: false},
-        disabled: false
+        $or: [{disabled: false}, {disabled: {$exists: false}}]
       },
       projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1},
     }, 3000);
