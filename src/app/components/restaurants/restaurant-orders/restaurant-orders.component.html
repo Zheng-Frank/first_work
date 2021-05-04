@@ -39,10 +39,9 @@
       <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
         (onReject)="handleOnReject($event)" (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
         (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
-        (onChangeToSelfDelivery)="handleOnChangeToSelfDelivery($event)"
         (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)"
-        (onAdjustInvoice)="handleOnAdjustInvoice($event)"
-        (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)">
+        (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+        (onAdjustInvoice)="handleOnAdjustInvoice($event)">
       </app-order-card>
     </div>
   </div>
@@ -83,7 +82,7 @@
       (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
       (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
       (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
-      (onChangeToSelfDelivery)="handleOnChangeToSelfDelivery($event)"
+      (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
       (onAdjustInvoice)="handleOnAdjustInvoice($event)">
 
     </app-order-card>
