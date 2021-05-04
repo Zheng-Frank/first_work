@@ -104,8 +104,7 @@ export class UIPreviewComponent implements OnInit {
     "menuOptionIds": [
       "683e0c8d-2f75-4a15-a23b-8e61bd989a1e"
     ],
-    "nonCustomizable": true,
-    "sortOrder": null,
+    "nonCustomizable": true,    
     "promotional": true,
     "disabled": false
   } as Mi;
