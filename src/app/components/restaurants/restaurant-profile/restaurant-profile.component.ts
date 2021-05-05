@@ -112,8 +112,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   preferredLanguage;
   selfSignupRegistered;
   notification;
-  showExplanationsIcon = false; //  a flag to decide whether show English/Chinese translations icon and the icon will toggle show explanations when focus in it.
-  showExplanations = false;
+  showExplanationsIcon = this._global.showExplanationsIcon; //  a flag to decide whether show English/Chinese translations icon and the icon will toggle show explanations when focus in it.
   translating = '';
   Explanations = {
     ChineseExplanations:{
@@ -205,7 +204,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     }
   }
 
-  changeLanguageFlag = LanguageType.ENGLISH;
+  changeLanguageFlag = this._global.languageType;
   preferredLanguages = [
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
@@ -232,7 +231,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   // Show the corresponding translation of restaurant profile field.
   showCorrespondingTranslation(field){
     this.translating = field;
-    this.showExplanations = true;
   }
 
   isDate(dateToParse) {

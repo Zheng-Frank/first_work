@@ -18,7 +18,7 @@ declare var $: any;
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('restaurantProfile')restaurantProfile:RestaurantProfileComponent;
   languageTypes = [LanguageType.ENGLISH,LanguageType.CHINESE];
-  languageType = 'English';
+  languageType = this._global.languageType;
   restaurant: Restaurant;
   displayTextReply = false;
   displayGooglePIN = false;
@@ -215,18 +215,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
   changeLanguage(){
     if(this.languageType === LanguageType.ENGLISH){
-      this.restaurantProfile.changeLanguageFlag = LanguageType.ENGLISH;
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.ENGLISH;
     }else if(this.languageType === LanguageType.CHINESE){
-      this.restaurantProfile.changeLanguageFlag = LanguageType.CHINESE;
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.CHINESE;
     }
   }
 
   // if the switch is open,we show i button and show Chinese and English explanations
   toggleShowExplanations(){
     if(this.showExplanations){
-      this.restaurantProfile.showExplanationsIcon = true;
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = true;
     }else{
-      this.restaurantProfile.showExplanationsIcon = false;
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = false;
     }
   }
 
