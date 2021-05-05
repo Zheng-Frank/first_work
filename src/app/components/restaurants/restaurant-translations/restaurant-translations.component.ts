@@ -20,8 +20,8 @@ export class RestaurantTranslationsComponent implements OnInit {
 
   LANGUAGES = {
     EN: 'English',
-    CH: '中文',
-    // SP: 'Spanish'
+    ZH: '中文',
+    // ES: 'Spanish'
     // more can be added here in future
   };
   translationItems = [];
@@ -103,7 +103,7 @@ export class RestaurantTranslationsComponent implements OnInit {
         }
       }, 20000);
 
-      // build a dict, which may contain EN, CH, SP, etc
+      // build a dict, which may contain EN, ZH, ES, etc
       const dict = {};
       restaurants.map(rt => (rt.translations || []).map(t => {
         dict[t.EN.toLowerCase()] = dict[t.EN.toLowerCase()] || t;
