@@ -17,7 +17,8 @@ export class MonitoringPromotionComponent implements OnInit {
 
   rts: Restaurant[] = [];
   gmbWebsiteOwner = '';
-  gmbOwnerAndCounts = [];
+  generalGmbOwners = [];
+  specificGmbOwners = [];
   filtered: Restaurant[] = [];
 
   ngOnInit() {
@@ -31,10 +32,13 @@ export class MonitoringPromotionComponent implements OnInit {
         this.filtered = this.rts;
         break;
       case 'not-qmenu':
-        this.filtered = this.rts.filter(rt => rt.googleListing.gmbOwner !== 'qmenu');
+        this.filtered = this.rts.filter(rt => !rt.googleListing || rt.googleListing.gmbOwner !== 'qmenu');
+        break;
+      case 'empty':
+        this.filtered = this.rts.filter(rt => !rt.googleListing || !rt.googleListing.gmbOwner);
         break;
       default:
-        this.filtered = this.rts.filter(rt => rt.googleListing.gmbOwner === this.gmbWebsiteOwner);
+        this.filtered = this.rts.filter(rt => rt.googleListing && rt.googleListing.gmbOwner === this.gmbWebsiteOwner);
         break;
     }
   }
@@ -53,18 +57,33 @@ export class MonitoringPromotionComponent implements OnInit {
         || (rt.promotions.every(p => p.expiry && new Date(p.expiry).valueOf() < Date.now()));
     });
 
-    const gmbOwnerCountMap = {};
+    const generalCountMap = {empty: 0, qmenu: 0, unknown: 0};
+    const specificCountMap = {};
 
     this.rts.forEach(rt => {
       if (rt.googleListing && rt.googleListing.gmbOwner) {
-        gmbOwnerCountMap[rt.googleListing.gmbOwner] = (gmbOwnerCountMap[rt.googleListing.gmbOwner] || 0) + 1;
+        const {gmbOwner} = rt.googleListing;
+        if (generalCountMap.hasOwnProperty(gmbOwner)) {
+          generalCountMap[gmbOwner]++;
+        } else {
+          specificCountMap[gmbOwner] = (specificCountMap[gmbOwner] || 0) + 1;
+        }
+      } else {
+        generalCountMap.empty += 1;
       }
     });
 
-    this.gmbOwnerAndCounts = Object.keys(gmbOwnerCountMap).map(k => ({
+    this.generalGmbOwners = [
+      {owner: 'qmenu', count: generalCountMap.qmenu},
+      {owner: 'not-qmenu', count: this.rts.length - generalCountMap.qmenu},
+      {owner: 'unknown', count: generalCountMap.unknown},
+      {owner: 'empty', count: generalCountMap.empty}
+    ];
+
+    this.specificGmbOwners = Object.keys(specificCountMap).map(k => ({
       owner: k,
-      count: gmbOwnerCountMap[k]
-    })).sort((oc1, oc2) => oc1.owner > oc2.owner ? 1 : -1);
+      count: specificCountMap[k]
+    })).sort((oc1, oc2) => oc2.count - oc1.count);
 
     this.gmbWebsiteOwner = '';
     this.filter();
