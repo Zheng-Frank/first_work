@@ -5,3 +5,37 @@
 .import-modal .import-tip {
 
 }
+
+.import-modal .import-data {
+  padding: 0 1rem;
+}
+
+.import-modal .check-all {
+  margin: 0.5rem 0;
+}
+
+.import-modal label {
+  margin-bottom: 0;
+}
+.import-modal label input[type='checkbox'] {
+  margin-right: 1rem;
+}
+
+.import-modal .check-all .custom-checkbox {
+  margin-bottom: 0;
+}
+
+.import-modal .crawled-coupons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.import-modal .crawled-coupons li {
+  display: flex;
+  align-items: center;
+}
+
+.import-modal .import-footer {
+  text-align: right;
+  margin-top: 1rem;
+}

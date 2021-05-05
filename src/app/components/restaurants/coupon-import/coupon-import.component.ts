@@ -18,10 +18,9 @@ export class CouponImportComponent implements OnInit {
   @Input() visible = false;
   loading = false;
   @Output() close = new EventEmitter();
-
+  checkedCoupons = [];
   providers = [
-    {name: 'Beyond Menu'},
-    {name: 'Chinese Menu Online'}
+    {name: 'Beyond Menu', url: ''},
   ];
   providerUrl = '';
   coupons = [
@@ -54,31 +53,47 @@ export class CouponImportComponent implements OnInit {
   ngOnInit() {
   }
 
-  doImport() {
-    console.log('do import...');
+  getProviderName() {
+    const provider = this.providers.find(x => x.url === this.providerUrl);
+    return provider ? provider.name : this.providerUrl;
+  }
+
+  checkCoupon(e) {
+    let { target: { value } } = e;
+    if (value === 'all') {
+      if (this.checkedCoupons.length === this.coupons.length) {
+        // already checked all, uncheck all
+        this.checkedCoupons = [];
+      } else {
+        this.checkedCoupons = this.coupons.map(x => x.id);
+      }
+    } else {
+      value = Number(value);
+      const index = this.checkedCoupons.indexOf(value);
+      if (index >= 0) {
+        this.checkedCoupons.splice(index, 1);
+      } else {
+        this.checkedCoupons.push(value);
+      }
+    }
+    // @ts-ignore
+    document.getElementById('check-all-coupons').indeterminate = this.checkedCoupons.length
+      && this.checkedCoupons.length < this.coupons.length;
   }
 
 
-  async populateProviders() {
-    // this.loading = true;
-  }
-
-  async crawl(synchronously = false) {
-
+  async crawl() {
     this.importModal.show();
     return;
-
     this.loading = true;
     try {
       this._global.publishAlert(AlertType.Info, 'crawling...');
-      if (synchronously) {
-        this.coupons = await this._api.post(environment.appApiUrl + 'utils/coupon', {
-          name: 'crawl',
-          payload: {
-            url: this.providerUrl,
-          }
-        }).toPromise();
-      }
+      this.coupons = await this._api.post(environment.appApiUrl + 'utils/coupon', {
+        name: 'crawl',
+        payload: {
+          url: this.providerUrl,
+        }
+      }).toPromise();
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
