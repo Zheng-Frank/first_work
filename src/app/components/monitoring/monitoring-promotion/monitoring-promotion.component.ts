@@ -18,7 +18,8 @@ export class MonitoringPromotionComponent implements OnInit {
   rts: Restaurant[] = [];
   gmbWebsiteOwner = '';
   generalGmbOwners = [];
-  specificGmbOwners = [];
+  majorCompetitorGmbOwners = [];
+  minorCompetitorGmbOwners = [];
   filtered: Restaurant[] = [];
 
   ngOnInit() {
@@ -80,10 +81,13 @@ export class MonitoringPromotionComponent implements OnInit {
       {owner: 'empty', count: generalCountMap.empty}
     ];
 
-    this.specificGmbOwners = Object.keys(specificCountMap).map(k => ({
+    const competitors = Object.keys(specificCountMap).map(k => ({
       owner: k,
       count: specificCountMap[k]
     })).sort((oc1, oc2) => oc2.count - oc1.count);
+
+    this.majorCompetitorGmbOwners = competitors.filter(x => x.count > 100).sort((x, y) => y.count - x.count);
+    this.minorCompetitorGmbOwners = competitors.filter(x => x.count <= 100).sort((x, y) => x.owner > y.owner ? 1 : -1);
 
     this.gmbWebsiteOwner = '';
     this.filter();

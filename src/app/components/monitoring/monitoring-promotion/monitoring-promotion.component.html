@@ -12,8 +12,13 @@
             {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
           </option>
         </optgroup>
-        <optgroup label="Specific competitors">
-          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of specificGmbOwners">
+        <optgroup label="Main competitors">
+          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of majorCompetitorGmbOwners">
+            {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
+          </option>
+        </optgroup>
+        <optgroup label="All other competitors">
+          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of minorCompetitorGmbOwners">
             {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
           </option>
         </optgroup>
