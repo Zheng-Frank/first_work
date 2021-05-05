@@ -120,8 +120,6 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
   async sortMenus(sortedMenus) {
-    // let's REMOVE sortOrder of each menu and just rely on nature sequence
-    sortedMenus.map(menu => delete menu.sortOrder);
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {

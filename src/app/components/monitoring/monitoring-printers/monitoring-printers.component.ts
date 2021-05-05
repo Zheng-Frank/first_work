@@ -26,7 +26,13 @@ export class MonitoringPrintersComponent implements OnInit {
       // { object: "longhorn", text: "longhorn", selected: false },
     ],
     required: true
-  }
+  },
+  {
+    field: "host",
+    label: "EU Host",
+    inputType: "checkbox",
+    required: false 
+  },
 
   ];
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -82,6 +88,7 @@ export class MonitoringPrintersComponent implements OnInit {
           {
             type: this.printerInEditing.type,
             printers: printers,
+            host: this.printerInEditing.host && 'EU',
             createdAt: new Date().valueOf()
           }
         ]
