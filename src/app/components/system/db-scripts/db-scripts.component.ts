@@ -22,6 +22,78 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async fixMenuSortOrders() {
+    // const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'restaurant',
+    //   query: {
+    //     $or: [
+    //       { "menu.mc.sortOrder": { $exists: true } },
+    //       { "menu.mc.mis.sortOrder": { $exists: true } }
+    //     ]
+    //   },
+    //   projection: {
+    //     menus: 1,
+    //     name: 1
+    //   },
+    // }, 10);
+    while (true) {
+
+      const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          $or: [
+            { "menus.mcs.sortOrder": { $exists: true } },
+            { "menus.mcs.mis.sortOrder": { $exists: true } }
+          ]
+        },
+        projection: {
+          menus: 1,
+          name: 1,
+        },
+        limit: 20
+      }).toPromise();
+
+      if (restaurants.length === 0) {
+        console.log("all done");
+        break;
+      }
+
+      console.log(restaurants.map(r => r.name));
+      // a local function to sort arr based on sortOrder. 
+      const sort = function (arr) {
+        let firstPart = arr.filter((i) => i && typeof i.sortOrder === 'number');
+        let secondPart = arr.filter((i) => i && typeof i.sortOrder !== 'number');
+        firstPart = firstPart.sort((a, b) => a.sortOrder - b.sortOrder);
+        return firstPart.concat(secondPart);
+      }
+
+      for (let r of restaurants) {
+        const menus = r.menus || [];
+        const hasSortOrder = menus.some(menu => (menu.mcs || []).some(mc => (mc && mc.hasOwnProperty('sortOrder')) || (mc.mis || []).some(mi => (mi && mi.hasOwnProperty('sortOrder')))));
+        console.log(hasSortOrder);
+        if (hasSortOrder) {
+          // sort it and then remove sortOrder and rewrite back
+          menus.map(menu => {
+            (menu.mcs || []).map(mc => {
+              mc.mis = sort(mc.mis || []);
+              mc.mis.map(mi => delete mi.sortOrder);
+            });
+            // sort mcs
+            menu.mcs = sort(menu.mcs);
+            menu.mcs.map(mc => delete mc.sortOrder);
+          });
+          // write it back
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+            old: { _id: r._id },
+            new: { _id: r._id, menus: menus }
+          }]).toPromise();
+        }
+      }
+    }
+
+  }
+
+
   async fixBadMenuHours() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
