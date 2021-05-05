@@ -476,19 +476,13 @@ export class RestaurantOrdersComponent implements OnInit {
     this.orderForModal = order;
     this.logInEditing = new Log();
     this.adjustInvoiceComponment.percentage = true;
-    this.adjustInvoiceComponment.percentageAdjustmentAmount = 0;
-    this.adjustInvoiceComponment.adjustmentAmount = 0;
-    // prevent the undefined condition due to *ngIf
-    if(this.adjustInvoiceComponment.percentageInput){
-      this.adjustInvoiceComponment.percentageInput.nativeElement.value = 0;
-    }
-    if(this.adjustInvoiceComponment.numberInput){
-      this.adjustInvoiceComponment.numberInput.nativeElement.value = 0;
-    }
-    this.adjustInvoiceComponment.adjustmentReason.nativeElement.focus = true;
+    this.adjustInvoiceComponment.percentageAdjustmentAmount = 20;
+    this.adjustInvoiceComponment.adjustmentAmount = Math.round(order.getSubtotal() * 20) / 100; 
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
-    this.logInEditing.adjustmentReason = "Credit $0 to restaurant 0% of refund subtotal $" + order.getSubtotal() + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.";
+    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.ADDITIONAL EXPLANATION HERE(IF NEEDED)."
+    this.adjustInvoiceComponment.stripeReason ='';
+    this.adjustInvoiceComponment.additionalExplanation = '';
     this.adjustInvoiceModal.show();
   }
 

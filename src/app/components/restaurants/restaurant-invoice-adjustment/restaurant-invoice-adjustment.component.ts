@@ -17,15 +17,20 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   @Input() log: Log;
   @Input() restaurant: Restaurant;
   @Input() order: Order;
-  @ViewChild('adjustmentReason') adjustmentReason: ElementRef;
+  @ViewChild('additionalExplanationTextArea') additionalExplanationTextArea: ElementRef;
   @ViewChild('percentageInput') percentageInput: ElementRef;
   @ViewChild('numberInput') numberInput: ElementRef;
   @Output() onAdjustInvoice = new EventEmitter();
   @Output() onCancel = new EventEmitter(); // hide the q-modal
   @Output() success = new EventEmitter<any>();
   percentage = true;
-  percentageAdjustmentAmount = 0;
-  adjustmentAmount = 0; // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
+  percentageAdjustmentAmount = 20;
+  // it's 20% of order's subtotal by default ,but we just defined 0 to prevent undefined condition.
+  adjustmentAmount = 0.00; // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
+  additionalExplanation = '';
+  percentageAmountReason = '';
+  amountReason = '';
+  stripeReason = '';
   constructor(private _global: GlobalService) { }
 
   ngOnInit() {
@@ -33,8 +38,47 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   }
 
   toggleAdjustmentType() {
+    this.calculateNetAmountAndSetReason();
     this.log.adjustmentType === 'TRANSACTION' ? this.log.adjustmentType = undefined : this.log.adjustmentType = 'TRANSACTION';
   }
+
+  // to calculate net [credit/debit] to restaurant of $X.
+  calculateNetAmountAndSetReason() {
+    // it's percentage case or not
+    let amount = this.percentage ? Math.round(this.order.getSubtotal() * this.percentageAdjustmentAmount) / 100 : this.adjustmentAmount;
+
+    if (this.percentage) {
+      // generate net to restaurant reason
+      if (this.percentageAdjustmentAmount > 0) { // credit to restaurant
+        if (amount <= 15) {
+          let netToRestaurantAmount = 15 - amount;
+          this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount + ".";// 净亏损
+        } else {
+          let netToRestaurantAmount = amount - 15;
+          this.stripeReason = "Net credit to restaurant of $" + netToRestaurantAmount + ".";// 净赚
+        }
+
+      } else {// debit to restaurant
+        let netToRestaurantAmount = 15 - amount; // amount is negtive number and the restaurant should refund to us all money includes $15 and amount in total.
+        this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount + ".";// 净亏损
+      }
+    } else {
+      if (this.adjustmentAmount > 0) { // credit to restaurant
+        if (amount <= 15) {
+          let netToRestaurantAmount = 15 - amount;
+          this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount + ".";// 净亏损
+        } else {
+          let netToRestaurantAmount = amount - 15;
+          this.stripeReason = "Net credit to restaurant of $" + netToRestaurantAmount + ".";// 净赚
+        }
+
+      } else {// debit to restaurant
+        let netToRestaurantAmount = 15 - amount; // amount is negtive number and the restaurant should refund to us all money includes $15 and amount in total.
+        this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount + ".";// 净亏损
+      }
+    }
+  }
+
   getSubmittedTime(order: Order) {
     if (order.createdAt) {
       return new Date(order.createdAt);
@@ -64,7 +108,10 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       }
       if (this.isNumberValid(this.percentageAdjustmentAmount)) {
         // 19.5*27.5/100=5.3625*100=536.25 =>round =>536 =>5.36
-        this.log.adjustmentAmount = Math.round((this.order.getSubtotal() * this.percentageAdjustmentAmount / 100) * 100) / 100;
+        this.log.adjustmentAmount = Math.round(this.order.getSubtotal() * this.percentageAdjustmentAmount) / 100;
+        if (this.log.adjustmentType === 'TRANSACTION') {
+          this.calculateNetAmountAndSetReason();
+        }
         this.changeReasonText();
       } else {
         this._global.publishAlert(AlertType.Danger, 'Please input a valid percentage number !');
@@ -77,45 +124,33 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       }
       if (this.isNumberValid(this.adjustmentAmount)) {
         this.log.adjustmentAmount = this.adjustmentAmount;
+        if (this.log.adjustmentType === 'TRANSACTION') {
+          this.calculateNetAmountAndSetReason();
+        }
         this.changeReasonText();
       } else {
         this._global.publishAlert(AlertType.Danger, 'Please input a valid adjustment amount !');
       }
     }
   }
-  // we should change input value by default when q-toggle was toggled.
-  changeDefaultValue() {
-    if (this.percentage) {
-      this.percentageAdjustmentAmount = 0;
-      this.percentageInput.nativeElement.value = this.percentageAdjustmentAmount;
-    } else {
-      this.adjustmentAmount = 0;
-      this.numberInput.nativeElement.value = this.adjustmentAmount;
-    }
-  }
+
   // change textarea showed text and actual adjustment reason.
   changeReasonText() {
     try {
       let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
       let dateStr = date.slice(0, 4).join(' ');
       if (this.percentage) {
-        this.adjustmentReason.nativeElement.focus = true;
         if (this.percentageAdjustmentAmount < 0) {
-          this.log.adjustmentReason = "Debit $" + (-this.log.adjustmentAmount) + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         } else {
-          this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + this.percentageAdjustmentAmount + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         }
-        this.log.response = this.log.adjustmentReason; // make the log can be editable and storable
-        this.log.problem = this.log.adjustmentReason;
       } else {
-        this.adjustmentReason.nativeElement.focus = true;
         if (this.adjustmentAmount < 0) {
-          this.log.adjustmentReason = "Debit $" + (-this.log.adjustmentAmount) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.amountReason = "Debit $" + (-this.log.adjustmentAmount) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         } else {
-          this.log.adjustmentReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal() + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.amountReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         }
-        this.log.response = this.log.adjustmentReason;
-        this.log.problem = this.log.adjustmentReason;
       }
     } catch (err) {
       console.log(err);
@@ -153,12 +188,30 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, 'Please input a valid adjustment amount (the adjustment amount can not be zero) !');
       return;
     }
+    // The adjustment reason is handled uniformly at the time of submission
+    if(this.percentage){
+      this.log.adjustmentReason = this.percentageAmountReason + this.stripeReason + this.additionalExplanation;
+    }else{
+      this.log.adjustmentReason = this.amountReason + this.stripeReason + this.additionalExplanation;
+    }
+    this.log.response = this.log.adjustmentReason; // make the log can be editable and storable
+    this.log.problem = this.log.adjustmentReason;
+
     this.onAdjustInvoice.emit({
       restaurant: this.restaurant,
       log: this.log
     });
   }
   cancel() {
+    this.percentage = true;
+    this.percentageAdjustmentAmount = 20;
+    // it's 20% of order's subtotal by default 
+    this.adjustmentAmount = Math.round(this.order.getSubtotal() * 20) / 100; // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
+    let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
+    let dateStr = date.slice(0, 4).join(' ');
+    this.amountReason = this.percentageAmountReason = "Credit $" + this.adjustmentAmount.toFixed(2) + " to restaurant 20% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.ADDITIONAL EXPLANATION HERE(IF NEEDED).";
+    this.stripeReason = '';
+    this.additionalExplanation = '';
     this.onCancel.emit();
   }
 
