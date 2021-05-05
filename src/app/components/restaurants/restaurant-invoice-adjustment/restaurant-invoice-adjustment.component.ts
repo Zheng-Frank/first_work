@@ -26,10 +26,11 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   percentage = true;
   percentageAdjustmentAmount = 20;
   // it's 20% of order's subtotal by default ,but we just defined 0 to prevent undefined condition.
-  adjustmentAmount = 0.00; // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
+  adjustmentAmount = 0; // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
   additionalExplanation = '';
   percentageAmountReason = '';
   amountReason = '';
+  percentageStripeReason = ''
   stripeReason = '';
   constructor(private _global: GlobalService) { }
 
@@ -45,36 +46,36 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   // to calculate net [credit/debit] to restaurant of $X.
   calculateNetAmountAndSetReason() {
     // it's percentage case or not
-    let amount = this.percentage ? Math.round(this.order.getSubtotal() * this.percentageAdjustmentAmount) / 100 : this.adjustmentAmount;
+    let amount = this.percentage ? this.moneyTransform(this.order.getSubtotal() * this.percentageAdjustmentAmount / 100) : this.adjustmentAmount;
 
     if (this.percentage) {
       // generate net to restaurant reason
       if (this.percentageAdjustmentAmount > 0) { // credit to restaurant
         if (amount <= 15) {
-          let netToRestaurantAmount = 15 - amount;
-          this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount + ".";// 净亏损
+          let netToRestaurantAmount = this.moneyTransform(15 - amount);
+          this.percentageStripeReason = "Net debit to restaurant of $" + netToRestaurantAmount.toFixed(2) + ".";// 净亏损
         } else {
-          let netToRestaurantAmount = amount - 15;
-          this.stripeReason = "Net credit to restaurant of $" + netToRestaurantAmount + ".";// 净赚
+          let netToRestaurantAmount = this.moneyTransform(amount - 15);
+          this.percentageStripeReason = "Net credit to restaurant of $" + netToRestaurantAmount.toFixed(2) + ".";// 净赚
         }
 
       } else {// debit to restaurant
-        let netToRestaurantAmount = 15 - amount; // amount is negtive number and the restaurant should refund to us all money includes $15 and amount in total.
-        this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount + ".";// 净亏损
+        let netToRestaurantAmount = this.moneyTransform(15 - amount); // amount is negtive number and the restaurant should refund to us all money includes $15 and amount in total.
+        this.percentageStripeReason = "Net debit to restaurant of $" + netToRestaurantAmount.toFixed(2) + ".";// 净亏损
       }
     } else {
       if (this.adjustmentAmount > 0) { // credit to restaurant
         if (amount <= 15) {
-          let netToRestaurantAmount = 15 - amount;
-          this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount + ".";// 净亏损
+          let netToRestaurantAmount = this.moneyTransform(15 - amount);
+          this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount.toFixed(2) + ".";// 净亏损
         } else {
-          let netToRestaurantAmount = amount - 15;
-          this.stripeReason = "Net credit to restaurant of $" + netToRestaurantAmount + ".";// 净赚
+          let netToRestaurantAmount = this.moneyTransform(amount - 15);
+          this.stripeReason = "Net credit to restaurant of $" + netToRestaurantAmount.toFixed(2) + ".";// 净赚
         }
 
       } else {// debit to restaurant
-        let netToRestaurantAmount = 15 - amount; // amount is negtive number and the restaurant should refund to us all money includes $15 and amount in total.
-        this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount + ".";// 净亏损
+        let netToRestaurantAmount = this.moneyTransform(15 - amount); // amount is negtive number and the restaurant should refund to us all money includes $15 and amount in total.
+        this.stripeReason = "Net debit to restaurant of $" + netToRestaurantAmount.toFixed(2) + ".";// 净亏损
       }
     }
   }
@@ -108,7 +109,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       }
       if (this.isNumberValid(this.percentageAdjustmentAmount)) {
         // 19.5*27.5/100=5.3625*100=536.25 =>round =>536 =>5.36
-        this.log.adjustmentAmount = Math.round(this.order.getSubtotal() * this.percentageAdjustmentAmount) / 100;
+        this.log.adjustmentAmount = Number(this.moneyTransform(this.order.getSubtotal() * this.percentageAdjustmentAmount / 100));
         if (this.log.adjustmentType === 'TRANSACTION') {
           this.calculateNetAmountAndSetReason();
         }
@@ -120,10 +121,11 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
     } else {
       if (Math.abs(this.adjustmentAmount) > this.order.getSubtotal()) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
-        this.adjustmentAmount = this.adjustmentAmount < 0 ? -this.order.getSubtotal() : this.order.getSubtotal();
+        let subtotal = this.moneyTransform(this.order.getSubtotal());
+        this.adjustmentAmount = subtotal;
       }
       if (this.isNumberValid(this.adjustmentAmount)) {
-        this.log.adjustmentAmount = this.adjustmentAmount;
+        this.log.adjustmentAmount = Number(this.moneyTransform(this.adjustmentAmount));
         if (this.log.adjustmentType === 'TRANSACTION') {
           this.calculateNetAmountAndSetReason();
         }
@@ -141,20 +143,29 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       let dateStr = date.slice(0, 4).join(' ');
       if (this.percentage) {
         if (this.percentageAdjustmentAmount < 0) {
-          this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         } else {
-          this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         }
       } else {
         if (this.adjustmentAmount < 0) {
-          this.amountReason = "Debit $" + (-this.log.adjustmentAmount) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.amountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         } else {
-          this.amountReason = "Credit $" + this.log.adjustmentAmount + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          this.amountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
         }
       }
     } catch (err) {
       console.log(err);
     }
+  }
+  // money transform from money pipe 
+  moneyTransform(value: any): any {
+    if (value && +value > 0) {
+      return Number((+value).toFixed(2));
+    } else if (value && +value < 0) {
+      return -Number(Math.abs(+value).toFixed(2));
+    }
+    return 0.0;
   }
 
   ensureAdjustmentAmount() {
@@ -189,9 +200,9 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       return;
     }
     // The adjustment reason is handled uniformly at the time of submission
-    if(this.percentage){
-      this.log.adjustmentReason = this.percentageAmountReason + this.stripeReason + this.additionalExplanation;
-    }else{
+    if (this.percentage) {
+      this.log.adjustmentReason = this.percentageAmountReason + this.percentageStripeReason + this.additionalExplanation;
+    } else {
       this.log.adjustmentReason = this.amountReason + this.stripeReason + this.additionalExplanation;
     }
     this.log.response = this.log.adjustmentReason; // make the log can be editable and storable
@@ -206,11 +217,11 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
     this.percentage = true;
     this.percentageAdjustmentAmount = 20;
     // it's 20% of order's subtotal by default 
-    this.adjustmentAmount = Math.round(this.order.getSubtotal() * 20) / 100; // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
+    this.adjustmentAmount = Number(this.moneyTransform(this.order.getSubtotal() * 20 / 100)); // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
     let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
     this.amountReason = this.percentageAmountReason = "Credit $" + this.adjustmentAmount.toFixed(2) + " to restaurant 20% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.ADDITIONAL EXPLANATION HERE(IF NEEDED).";
-    this.stripeReason = '';
+    this.stripeReason = this.percentageStripeReason = '';
     this.additionalExplanation = '';
     this.onCancel.emit();
   }

@@ -69,7 +69,7 @@
       <label for="id-reason">Reason (eventually)
       </label>
       <div>{{percentage ? percentageAmountReason : amountReason}}</div>
-      <div *ngIf="log.adjustmentType === 'TRANSACTION'">{{stripeReason}}</div>
+      <div *ngIf="log.adjustmentType === 'TRANSACTION'">{{percentage ? percentageStripeReason:stripeReason}}</div>
       <div>{{additionalExplanation}}</div>
     </div>
     <!-- end with reason eventually -->
