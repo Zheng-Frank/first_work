@@ -777,7 +777,7 @@
             <label class="col-4 col-form-label pt-0 pl-5">Name
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('Name')" (mouseout)="showExplanations = false">
-                <div  *ngIf="showExplanations && translating === 'Name' " class="left edit-talk radius">
+                <div *ngIf="showExplanations && translating === 'Name' " class="left edit-talk radius">
                   <p>Name:{{Explanations.EnglishExplanations.Name}}</p>
                   -------------<br>
                   <p>名字:{{Explanations.ChineseExplanations.Name}}</p>
@@ -928,7 +928,8 @@
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('TimeEstimateforDelivery')"
                 (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'TimeEstimateforDelivery'" class="left edit-talk radius">
+                <div *ngIf="showExplanations && translating === 'TimeEstimateforDelivery'"
+                  class="left edit-talk radius">
                   <p>Time Estimate for Delivery:{{Explanations.EnglishExplanations.TimeEstimateforDelivery}}</p>
                   -------------<br>
                   <p>预估派送时间:{{Explanations.ChineseExplanations.TimeEstimateforDelivery}}</p>
@@ -986,8 +987,20 @@
               </i>
             </label>
             <div class="pl-1 col-7">
-              <input type="text" [(ngModel)]="notification" class="form-control"
-                placeholder="important message showing on website">
+              <!-- <input type="text" [(ngModel)]="notification" class="form-control"
+                placeholder="important message showing on website"> -->
+              <textarea class="form-control" rows="5" [(ngModel)]="notification"
+                placeholder="important message showing on website"></textarea>
+              <button class="btn btn-primary mt-2" (click)="previewWebsite()">Preview</button>
+              <q-modal #previewWebsiteModal>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="text-center">Preview Website Broadcast</h4>
+                <hr>
+                <div  [innerHTML]="notification">
+                </div>
+              </q-modal>
             </div>
           </div>
 
@@ -1242,7 +1255,8 @@
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('DefaultAmount')"
                         (mouseout)="showExplanations = false">
-                        <div *ngIf="showExplanations && translating === 'DefaultAmount'" class="left tip-edit-talk radius">
+                        <div *ngIf="showExplanations && translating === 'DefaultAmount'"
+                          class="left tip-edit-talk radius">
                           <p>Default Amount ($):{{Explanations.EnglishExplanations.DefaultAmount}}</p>
                           -------------<br>
                           <p>默认金额:{{Explanations.ChineseExplanations.DefaultAmount}}</p>
@@ -1272,7 +1286,8 @@
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('MinimumAmount')"
                         (mouseout)="showExplanations = false">
-                        <div *ngIf="showExplanations && translating === 'MinimumAmount'" class="left tip-edit-talk radius">
+                        <div *ngIf="showExplanations && translating === 'MinimumAmount'"
+                          class="left tip-edit-talk radius">
                           <p>Minimum Amount ($):{{Explanations.EnglishExplanations.MinimumAmount}}</p>
                           -------------<br>
                           <p>最小金额:{{Explanations.ChineseExplanations.MinimumAmount}}</p>
@@ -1424,7 +1439,8 @@
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('NotShowTaxOptiontoCustomer')"
                 (mouseout)="showExplanations = false">
-                <div *ngIf="showExplanations && translating === 'NotShowTaxOptiontoCustomer'" class="left edit-talk radius">
+                <div *ngIf="showExplanations && translating === 'NotShowTaxOptiontoCustomer'"
+                  class="left edit-talk radius">
                   <p>Not Show Tax Option to Customer:{{Explanations.EnglishExplanations.NotShowTaxOptiontoCustomer}}</p>
                   -------------<br>
                   <p>不向客户展示税率选项:{{Explanations.ChineseExplanations.NotShowTaxOptiontoCustomer}}</p>
@@ -1524,8 +1540,9 @@
           <h4>Notes
             <label class="col-4 col-form-label pt-0">
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                (mouseover)="showCorrespondingTranslation('Notes')" (mouseout)="showExplanations = false" style="font-size:15px;">
-                <div  *ngIf="showExplanations && translating === 'Notes'" class="left edit-talk radius">
+                (mouseover)="showCorrespondingTranslation('Notes')" (mouseout)="showExplanations = false"
+                style="font-size:15px;">
+                <div *ngIf="showExplanations && translating === 'Notes'" class="left edit-talk radius">
                   <p>Notes:{{Explanations.EnglishExplanations.Notes}}</p>
                   -------------<br>
                   <p>注意事项:{{Explanations.ChineseExplanations.Notes}}</p>
