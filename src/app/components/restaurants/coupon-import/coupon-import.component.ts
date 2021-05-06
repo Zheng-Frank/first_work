@@ -3,6 +3,7 @@ import {environment} from '../../../../environments/environment';
 import {AlertType} from '../../../classes/alert-type';
 import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
+import {Restaurant} from '@qmenu/ui';
 
 @Component({
   selector: 'app-coupon-import',
@@ -14,52 +15,22 @@ export class CouponImportComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
+  @Input() restaurant: Restaurant;
   @ViewChild('importModal') importModal;
   @Input() visible = false;
   loading = false;
   @Output() close = new EventEmitter();
   checkedCoupons = [];
-  providers = [
-    {name: 'Beyond Menu', url: ''},
-  ];
-  providerUrl = '';
-  coupons = [
-    {
-      'id': 1619691518355,
-      'name': '10% Off w Purchase of $5 or More',
-      'freeItemList': [],
-      'excludedOrderTypes': ['Delivery'],
-      'excludedPlatforms': [],
-      'orderMinimum': 5
-    },
-    {
-      'id': 1619691517920,
-      'name': 'Free Egg Roll w Purchase of $20 or More',
-      'freeItemList': ['Egg Roll'],
-      'excludedOrderTypes': [],
-      'excludedPlatforms': [],
-      'orderMinimum': 20
-    },
-    {
-      'id': 1619691517989,
-      'name': 'Free Cream Cheese Puff w Purchase of $20 or More',
-      'freeItemList': ['Cream Cheese Puff'],
-      'excludedOrderTypes': [],
-      'excludedPlatforms': [],
-      'orderMinimum': 20
-    }
-  ];
+  providers = ['Beyond Menu'];
+  provider = '';
+  coupons = [];
 
   ngOnInit() {
   }
 
-  getProviderName() {
-    const provider = this.providers.find(x => x.url === this.providerUrl);
-    return provider ? provider.name : this.providerUrl;
-  }
 
   checkCoupon(e) {
-    let { target: { value } } = e;
+    let {target: {value}} = e;
     if (value === 'all') {
       if (this.checkedCoupons.length === this.coupons.length) {
         // already checked all, uncheck all
@@ -83,17 +54,17 @@ export class CouponImportComponent implements OnInit {
 
 
   async crawl() {
-    this.importModal.show();
-    return;
-    this.loading = true;
+
     try {
-      this._global.publishAlert(AlertType.Info, 'crawling...');
-      this.coupons = await this._api.post(environment.appApiUrl + 'utils/coupon', {
-        name: 'crawl',
+      this._global.publishAlert(AlertType.Info, 'Crawling...');
+      this.coupons = await this._api.post(environment.appApiUrl + 'utils/menu', {
+        name: 'crawl-coupon',
         payload: {
-          url: this.providerUrl,
+          restaurantId: this.restaurant._id,
+          providerName: this.provider
         }
       }).toPromise();
+      this.importModal.show();
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
@@ -103,6 +74,28 @@ export class CouponImportComponent implements OnInit {
   }
 
   async update() {
+    try {
+      this._global.publishAlert(AlertType.Info, 'Update promotions...');
+
+      const { promotions } = this.restaurant;
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id'],
+          promotions
+        }, new: {
+          _id: this.restaurant['_id'],
+          promotions: [...promotions, this.coupons.filter(x => this.checkedCoupons.includes(x.id))]
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Promotions updated success!');
+      this.importModal.hide();
+      this.checkedCoupons = [];
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
+    }
+    this.loading = false;
 
   }
 

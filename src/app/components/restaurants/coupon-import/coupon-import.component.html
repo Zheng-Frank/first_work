@@ -2,9 +2,8 @@
   <div class="card card-body">
     <h3 class="text-center">From a Provider ({{providers.length}})</h3>
     <small class="text-left">Providers for which we currently support coupon scraping: Beyond Menu</small>
-    <select class="form-control mr-4" [(ngModel)]="providerUrl">
-      <option></option>
-      <option *ngFor="let provider of providers" [ngValue]="provider.url">{{provider.name}}</option>
+    <select class="form-control mr-4" [(ngModel)]="provider">
+      <option *ngFor="let provider of providers" [ngValue]="provider">{{provider}}</option>
     </select>
 
     <div class="py-2">
@@ -16,7 +15,7 @@
   </div>
   <div class="card card-body mt-4">
     <h3 class="text-center">or From a URL</h3>
-    <input [(ngModel)]="providerUrl" placeholder="crawl url">
+    <input [(ngModel)]="provider" placeholder="crawl url">
     <div class="py-2">
       <button class="btn btn-default text-right" (click)="close.emit()">Cancel</button>
       <button class="btn btn-primary" (click)="crawl()" [qLoading]="loading">
@@ -26,29 +25,44 @@
   </div>
 </div>
 <q-modal title="Coupon Import" class="import-modal" #importModal (close)="importModal.hide()">
-  <div class="import-tip">
-    The following coupon information has been scraped from {{getProviderName()}}. Please review  the information below and make edits as desired before importing.
-  </div>
-  <div class="import-data">
-    <div class="check-all">
-      <label class="custom-checkbox">
-        <input (click)="checkCoupon($event)" id="check-all-coupons" value="all" type="checkbox"
-               [checked]="checkedCoupons.length && checkedCoupons.length === coupons.length"/>
-        Import All
-      </label>
+  <div class="coupon-panel">
+    <div class="coupon-title">Existed coupons</div>
+    <div class="coupon-data">
+      <ul class="coupon-list">
+        <li *ngFor="let promotion of restaurant.promotions">
+          <div>{{promotion.name}}</div>
+          <div class="sub-text">{{promotion.excludedOrderTypes.join(', ')}}</div>
+        </li>
+      </ul>
     </div>
-    <ul class="crawled-coupons">
-      <li *ngFor="let coupon of coupons">
-        <label class="custom-checkbox">
-          <input (click)="checkCoupon($event)" [checked]="checkedCoupons.includes(coupon.id)" type="checkbox" value="{{coupon.id}}" />
-        </label>
-        <div class="coupon-info">
-          <div>{{coupon.name}}</div>
-          <div></div>
-        </div>
-      </li>
-    </ul>
   </div>
+
+  <div class="coupon-panel crawled">
+    <div class="coupon-title">
+      The following coupon information has been scraped from {{provider}}. Please review  the information below and make edits as desired before importing.
+    </div>
+    <div class="coupon-data">
+      <div class="check-all">
+        <label class="custom-checkbox">
+          <input (click)="checkCoupon($event)" id="check-all-coupons" value="all" type="checkbox"
+                 [checked]="checkedCoupons.length && checkedCoupons.length === coupons.length"/>
+          Import All
+        </label>
+      </div>
+      <ul class="coupon-list">
+        <li *ngFor="let coupon of coupons">
+          <div class="coupon-info">
+            <label class="custom-checkbox">
+              <input (click)="checkCoupon($event)" [checked]="checkedCoupons.includes(coupon.id)" type="checkbox" value="{{coupon.id}}" />
+            </label>
+            <div>{{coupon.name}}</div>
+          </div>
+          <div class="sub-text">{{coupon.excludedOrderTypes.join(', ')}}</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
   <div class="import-footer">
     <button class="btn btn-small btn-default" (click)='importModal.hide()'>Cancel</button>
     <button class="btn btn-small btn-primary ml-3" (click)='update()'>Import</button>
