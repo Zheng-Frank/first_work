@@ -65,8 +65,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.mi = new Mi(mi);
         this.mi.id = undefined;
         this.mi.category = category;
-        this.mi.sortOrder = undefined;
-
+        
         this.finishedChoosingStartupAction = true;
         // we want to top of the modal after a selection
         $('.modal').animate({ scrollTop: 0 }, 'slow');
