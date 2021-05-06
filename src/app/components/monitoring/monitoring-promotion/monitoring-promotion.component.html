@@ -6,10 +6,22 @@
     <div class="toolbar">
       <button class="btn btn-primary" (click)="query()">Refresh</button>
       <select class="form-control ml-2" [(ngModel)]="gmbWebsiteOwner" (change)="filter()">
-        <option value=''>GMB website owner</option>
-        <option value="not-qmenu">NOT qMenu</option>
-        <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of gmbOwnerAndCounts">{{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
-        </option>
+        <optgroup label="General">
+          <option value=''>Select GMB owner...</option>
+          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of generalGmbOwners">
+            {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
+          </option>
+        </optgroup>
+        <optgroup label="Main competitors">
+          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of majorCompetitorGmbOwners">
+            {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
+          </option>
+        </optgroup>
+        <optgroup label="All other competitors">
+          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of minorCompetitorGmbOwners">
+            {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
+          </option>
+        </optgroup>
       </select>
     </div>
 
