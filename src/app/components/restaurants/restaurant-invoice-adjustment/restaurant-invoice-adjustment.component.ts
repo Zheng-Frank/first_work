@@ -207,18 +207,6 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   }
 
   submitAdjustInvoice() {
-    if (!this.log.adjustmentAmount) {
-      this._global.publishAlert(AlertType.Danger, 'The log.adjustmentAmount can not be null !');
-      return;
-    }
-    if (this.percentageAdjustmentAmount === 0 && this.percentage) {
-      this._global.publishAlert(AlertType.Danger, 'Please input a valid percentage number (the percentage number can not be zero) !');
-      return;
-    }
-    if (this.adjustmentAmount === 0 && !this.percentage) {
-      this._global.publishAlert(AlertType.Danger, 'Please input a valid adjustment amount (the adjustment amount can not be zero) !');
-      return;
-    }
     // The adjustment reason is handled uniformly at the time of submission
     if (this.percentage) {
       if (this.log.adjustmentType === 'TRANSACTION') {
@@ -252,6 +240,17 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
     this.stripeReason = this.percentageStripeReason = '';
     this.additionalExplanation = '';
     this.onCancel.emit();
+  }
+  // we should allow CSR can submit even if percentageAdjustmentAmount or adjustmentAmount is zero.
+  isDisabled(){
+    if(this.log.adjustmentType === 'TRANSACTION'){
+      return false;
+    }
+    if(this.percentage){
+      return !(this.percentageAdjustmentAmount && this.percentageAdjustmentAmount != 0);
+    }else{
+      return !(this.adjustmentAmount && this.adjustmentAmount != 0);
+    }
   }
 
 }

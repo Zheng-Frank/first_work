@@ -77,10 +77,10 @@
 <div class="d-flex justify-content-end p-4">
   <button class="btn btn-secondary mr-2" (click)="cancel()">Cancel</button>
   <button class="btn btn-primary" *ngIf="percentage"
-    [disabled]="!(percentageAdjustmentAmount && percentageAdjustmentAmount != 0)"
+    [disabled]="isDisabled()"
     (click)="submitAdjustInvoice()">Submit</button>
   <button class="btn btn-primary" *ngIf="!percentage" 
-    [disabled]="!(adjustmentAmount && adjustmentAmount != 0)"
+    [disabled]="isDisabled()"
     (click)="submitAdjustInvoice()">Submit</button>
 
 </div>
