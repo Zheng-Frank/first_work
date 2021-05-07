@@ -46,11 +46,11 @@
   align-items: center;
 }
 
-.import-modal .coupon-list li .sub-text {
+.import-modal .sub-text {
   font-size: 0.75rem;
 }
 
-.import-modal .crawled .sub-text{
+.import-modal .coupon-list .sub-text{
   padding-left: 2rem;
 }
 

@@ -13,16 +13,6 @@
       </button>
     </div>
   </div>
-  <div class="card card-body mt-4">
-    <h3 class="text-center">or From a URL</h3>
-    <input [(ngModel)]="provider" placeholder="crawl url">
-    <div class="py-2">
-      <button class="btn btn-default text-right" (click)="close.emit()">Cancel</button>
-      <button class="btn btn-primary" (click)="crawl()" [qLoading]="loading">
-        <i class="fas fa-hourglass-half"></i> Crawl
-      </button>
-    </div>
-  </div>
 </div>
 <q-modal title="Coupon Import" class="import-modal" #importModal (close)="importModal.hide()">
   <div class="coupon-panel">
@@ -31,7 +21,7 @@
       <ul class="coupon-list">
         <li *ngFor="let promotion of restaurant.promotions">
           <div>{{promotion.name}}</div>
-          <div class="sub-text" *ngIf="promotion.excludedOrderTypes?.length > 0" >Excluded Order Types: {{promotion.excludedOrderTypes.join(', ')}}</div>
+          <div class="sub-text text-danger" *ngIf="promotion.excludedOrderTypes?.length > 0" >Excluded Order Types: {{promotion.excludedOrderTypes.join(', ')}}</div>
         </li>
       </ul>
     </div>
@@ -63,7 +53,7 @@
           <div class="sub-text" *ngIf="coupon.excludedOrderTypes?.length > 0">Excluded Order Types: {{coupon.excludedOrderTypes.join(', ')}}</div>
           <div class="sub-text" *ngIf="coupon.freeItemList?.length > 0">
             Free Items:
-            <span *ngIf="coupon.freeItemList[0]">
+            <span *ngIf="coupon.freeItemList[0]?.menu">
               {{getFreeItem(coupon.freeItemList[0])}}
             </span>
             <span *ngIf="!coupon.freeItemList[0].menu" class="text-danger">

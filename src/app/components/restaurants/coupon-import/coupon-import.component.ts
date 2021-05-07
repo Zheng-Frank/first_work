@@ -24,7 +24,7 @@ export class CouponImportComponent implements OnInit {
   providers = [{label: 'Beyond Menu', name: 'beyondmenu'}];
   provider = '';
   coupons = [];
-  failedTypes = [];
+  failedTypes = ['Pickup', 'Delivery'];
 
   ngOnInit() {
   }
@@ -63,7 +63,6 @@ export class CouponImportComponent implements OnInit {
   }
 
   async crawl() {
-
     if (!this.provider) {
       this._global.publishAlert(AlertType.Danger, 'Please select a provider first!');
       return;
@@ -71,12 +70,11 @@ export class CouponImportComponent implements OnInit {
 
     try {
       this._global.publishAlert(AlertType.Info, 'Crawling...');
-      const { coupons, error, failedTypes } = await this._api.post(environment.appApiUrl + 'utils/menu', {
+      const {coupons, error, failedTypes} = await this._api.post(environment.appApiUrl + 'utils/menu', {
         name: 'crawl-coupon',
         payload: {
           restaurantId: this.restaurant._id,
           providerName: this.provider,
-          url: this.provider
         }
       }).toPromise();
       if (error) {
@@ -99,7 +97,7 @@ export class CouponImportComponent implements OnInit {
     try {
       this._global.publishAlert(AlertType.Info, 'Update promotions...');
 
-      let { promotions } = this.restaurant;
+      let {promotions} = this.restaurant;
       promotions = promotions || [];
       const newPromotions = [...promotions, ...this.coupons.filter(x => this.checkedCoupons.includes(x.id))];
 
@@ -110,6 +108,8 @@ export class CouponImportComponent implements OnInit {
       this._global.publishAlert(AlertType.Success, 'Promotions updated success!');
       this.importModal.hide();
       this.checkedCoupons = [];
+      // @ts-ignore
+      document.getElementById('check-all-coupons').indeterminate = false;
       this.restaurant.promotions = newPromotions.map(x => new Promotion(x));
     } catch (error) {
       console.log(error);
