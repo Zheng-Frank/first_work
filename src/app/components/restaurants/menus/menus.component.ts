@@ -31,6 +31,7 @@ export class MenusComponent implements OnInit {
   activeId = undefined;
   cmoUrl;
   bmUrl;
+  disableNotesFlag;
 
   adjustingAllPrices = false;
   adjustMenuOrders = false;
@@ -44,6 +45,7 @@ export class MenusComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+    this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
   }
 
   hasMenuHoursMissing() {
@@ -119,6 +121,7 @@ export class MenusComponent implements OnInit {
     }
     this.apiRequesting = false;
   }
+
   async sortMenus(sortedMenus) {
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
@@ -219,13 +222,14 @@ export class MenusComponent implements OnInit {
     const oldMenus = this.restaurant.menus || [];
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
 
+    this.disableNotesFlag = !this.disableNotesFlag;
     newMenus.forEach(eachMenu => {
       eachMenu.mcs.forEach(eachMc => {
         eachMc.mis.forEach(mi => {
-          mi.nonCustomizable = true;
-        })
-      })
-    })
+          mi.nonCustomizable = this.disableNotesFlag;
+        });
+      });
+    });
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
@@ -319,7 +323,6 @@ export class MenusComponent implements OnInit {
     this.activeId = id;
     // let's do s smooth scroll to make it to center???
   }
-
 
   getMenuImageUrl(menu) {
     if (menu && menu.backgroundImageUrl) {
