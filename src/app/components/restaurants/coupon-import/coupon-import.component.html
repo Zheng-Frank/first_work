@@ -3,7 +3,7 @@
     <h3 class="text-center">From a Provider ({{providers.length}})</h3>
     <small class="text-left">Providers for which we currently support coupon scraping: Beyond Menu</small>
     <select class="form-control mr-4" [(ngModel)]="provider">
-      <option *ngFor="let provider of providers" [ngValue]="provider">{{provider}}</option>
+      <option *ngFor="let provider of providers" [ngValue]="provider.name">{{provider.label}}</option>
     </select>
 
     <div class="py-2">
@@ -26,12 +26,12 @@
 </div>
 <q-modal title="Coupon Import" class="import-modal" #importModal (close)="importModal.hide()">
   <div class="coupon-panel">
-    <div class="coupon-title">Existed coupons</div>
+    <div class="coupon-title">Existing coupons</div>
     <div class="coupon-data">
       <ul class="coupon-list">
         <li *ngFor="let promotion of restaurant.promotions">
           <div>{{promotion.name}}</div>
-          <div class="sub-text">{{promotion.excludedOrderTypes.join(', ')}}</div>
+          <div class="sub-text" *ngIf="promotion.excludedOrderTypes?.length > 0" >Excluded Order Types: {{promotion.excludedOrderTypes.join(', ')}}</div>
         </li>
       </ul>
     </div>
@@ -39,7 +39,10 @@
 
   <div class="coupon-panel crawled">
     <div class="coupon-title">
-      The following coupon information has been scraped from {{provider}}. Please review  the information below and make edits as desired before importing.
+      The following coupon information has been scraped from {{getProviderName()}}. Please review  the information below and make edits as desired before importing.
+      <div class="sub-text" *ngIf="failedTypes.length > 0">
+        Please note that menu scraping failed for the following service types: [{{failedTypes.join(', ')}}]. This means our knowledge of whether each coupon is usable for a given service type may be incomplete. Please confirm with the restaurant or try scraping coupons again later.
+      </div>
     </div>
     <div class="coupon-data">
       <div class="check-all">
@@ -57,7 +60,16 @@
             </label>
             <div>{{coupon.name}}</div>
           </div>
-          <div class="sub-text">{{coupon.excludedOrderTypes.join(', ')}}</div>
+          <div class="sub-text" *ngIf="coupon.excludedOrderTypes?.length > 0">Excluded Order Types: {{coupon.excludedOrderTypes.join(', ')}}</div>
+          <div class="sub-text" *ngIf="coupon.freeItemList?.length > 0">
+            Free Items:
+            <span *ngIf="coupon.freeItemList[0]">
+              {{getFreeItem(coupon.freeItemList[0])}}
+            </span>
+            <span *ngIf="!coupon.freeItemList[0].menu" class="text-danger">
+              Unable to find exact menu item match
+            </span>
+          </div>
         </li>
       </ul>
     </div>

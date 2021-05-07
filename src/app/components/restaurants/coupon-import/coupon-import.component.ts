@@ -3,7 +3,7 @@ import {environment} from '../../../../environments/environment';
 import {AlertType} from '../../../classes/alert-type';
 import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
-import {Restaurant} from '@qmenu/ui';
+import {Promotion, Restaurant} from '@qmenu/ui';
 
 @Component({
   selector: 'app-coupon-import',
@@ -21,9 +21,10 @@ export class CouponImportComponent implements OnInit {
   loading = false;
   @Output() close = new EventEmitter();
   checkedCoupons = [];
-  providers = ['Beyond Menu'];
+  providers = [{label: 'Beyond Menu', name: 'beyondmenu'}];
   provider = '';
   coupons = [];
+  failedTypes = [];
 
   ngOnInit() {
   }
@@ -52,18 +53,38 @@ export class CouponImportComponent implements OnInit {
       && this.checkedCoupons.length < this.coupons.length;
   }
 
+  getProviderName() {
+    const p = this.providers.find(x => x.name === this.provider);
+    return p ? p.label : '';
+  }
+
+  getFreeItem(item) {
+    return [item.menu.name, item.mc.name, item.mi.name].join('>');
+  }
 
   async crawl() {
 
+    if (!this.provider) {
+      this._global.publishAlert(AlertType.Danger, 'Please select a provider first!');
+      return;
+    }
+
     try {
       this._global.publishAlert(AlertType.Info, 'Crawling...');
-      this.coupons = await this._api.post(environment.appApiUrl + 'utils/menu', {
+      const { coupons, error, failedTypes } = await this._api.post(environment.appApiUrl + 'utils/menu', {
         name: 'crawl-coupon',
         payload: {
           restaurantId: this.restaurant._id,
-          providerName: this.provider
+          providerName: this.provider,
+          url: this.provider
         }
       }).toPromise();
+      if (error) {
+        this._global.publishAlert(AlertType.Danger, error);
+        return;
+      }
+      this.coupons = coupons;
+      this.failedTypes = failedTypes;
       this.importModal.show();
     } catch (error) {
       console.log(error);
@@ -74,23 +95,22 @@ export class CouponImportComponent implements OnInit {
   }
 
   async update() {
+
     try {
       this._global.publishAlert(AlertType.Info, 'Update promotions...');
 
-      const { promotions } = this.restaurant;
+      let { promotions } = this.restaurant;
+      promotions = promotions || [];
+      const newPromotions = [...promotions, ...this.coupons.filter(x => this.checkedCoupons.includes(x.id))];
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id'],
-          promotions
-        }, new: {
-          _id: this.restaurant['_id'],
-          promotions: [...promotions, this.coupons.filter(x => this.checkedCoupons.includes(x.id))]
-        }
+        old: {_id: this.restaurant['_id'], promotions},
+        new: {_id: this.restaurant['_id'], promotions: newPromotions}
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Promotions updated success!');
       this.importModal.hide();
       this.checkedCoupons = [];
+      this.restaurant.promotions = newPromotions.map(x => new Promotion(x));
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
