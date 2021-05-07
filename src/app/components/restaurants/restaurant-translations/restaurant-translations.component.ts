@@ -52,6 +52,12 @@ export class RestaurantTranslationsComponent implements OnInit {
         });
       });
     });
+    // add menuOptions!
+    (this.restaurant.menuOptions || []).map(mo => {
+      items.add(mo.name);
+      (mo.items || []).map(i => items.add(i.name));
+      (mo.items || []).map(i => items.add(i.placement));
+    });
     return items;
   }
 
