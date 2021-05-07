@@ -44,7 +44,7 @@ export class RestaurantStatsComponent implements OnInit {
       ]
     } as any;
 
-    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
       projection: {
@@ -55,8 +55,9 @@ export class RestaurantStatsComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 100000
-    }, 5000);
+      limit: 1000000
+    }).toPromise();
+    
     this.statistics['totalLifetimeOrders'].value = orders.length;
     // toFixed can keep n decimal place
     this.statistics['averageDailyOrders'].value = Number((orders.length / ((new Date().valueOf() - new Date(this.restaurant.createdAt).valueOf()) / (24 * 3600000))).toFixed(4));
