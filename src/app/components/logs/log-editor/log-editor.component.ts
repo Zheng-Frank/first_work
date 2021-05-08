@@ -230,5 +230,8 @@ export class LogEditorComponent implements OnInit {
   toggleHoursOfOperation(){
     this.log.type === 'hours-of-operation' ? this.log.type = undefined : this.log.type = 'hours-of-operation';
   }
+  toggleQRDineIn(){
+    this.log.type === 'qr-dine-in' ? this.log.type = undefined : this.log.type = 'qr-dine-in';
+  }
 
 }
