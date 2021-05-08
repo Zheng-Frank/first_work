@@ -130,7 +130,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
           },
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 12)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 4)))
           },
         }
       },
