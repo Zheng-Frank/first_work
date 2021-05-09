@@ -22,6 +22,85 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async fixMenuDuplication() {
+
+    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {},
+      projection: {
+        name: 1,
+      },
+      limit: 10000000
+    }).toPromise();
+
+    const restaurantIds = allRestaurants.map(r => r._id);
+    const badIds = [];
+
+    const batchSize = 50;
+    const batches = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batches) {
+      console.log("batch ", batches.indexOf(batch), ' of ', batches.length);
+      try {
+        const query = {
+          _id: { $in: [...batch.map(id => ({ $oid: id }))] }
+        };
+        const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          query,
+          projection: {
+            menus: 1,
+            name: 1,
+          },
+          limit: batchSize + 1
+        }).toPromise();
+
+        console.log("Done request");
+
+        for (let r of restaurants) {
+          const menus = r.menus || [];
+          let updated = false;
+          // we remove EITHER duplicared id or duplicated name of menu items!
+          for (let i = menus.length - 1; i >= 0; i--) {
+            const menu = menus[i];
+            const mcs = menu.mcs || [];
+            for (let j = mcs.length - 1; j >= 0; j--) {
+              const mc = mcs[j];
+              const mis = mc.mis || [];
+              const miIds = new Set();
+              const miNames = new Set();
+              for (let k = mis.length - 1; k >= 0; k--) {
+                const mi = mis[k] || {};
+                if (miIds.has(mi.id) /*|| miNames.has(mi.name) */) {
+                  console.log('dup:', mi.name, mi.sizeOptions[0].price);
+                  updated = true;
+                  mis.splice(k, 1);
+                }
+                miIds.add(mi.id);
+                miNames.add(mi.name);
+              }
+            }
+          }
+
+          if (updated) {
+            console.log(r.name)
+            // write it back
+            await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+              old: { _id: r._id },
+              new: { _id: r._id, menus: menus }
+            }]).toPromise();
+          }
+          console.log('done updating batch')
+        }
+      } catch (error) {
+        console.log(error);
+        badIds.push(...batch);
+      }
+      console.log("batch done");
+    }
+    console.log(badIds);
+  }
+
   async fixMenuSortOrders() {
     // const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
     //   resource: 'restaurant',
