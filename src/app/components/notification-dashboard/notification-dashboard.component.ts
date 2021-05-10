@@ -104,6 +104,10 @@ export class NotificationDashboardComponent implements OnInit {
     "qMenu Login Code": {
       description: "The message containing a 3-digit code sent to users so they can login to qMenu.",
       category: "misc"
+    }, 
+    "CC Auth Failure": {
+      description: "The warning message sent to a customer when their credit card fails to authorize on checkout",
+      category: "misc"
     }
   }
 
