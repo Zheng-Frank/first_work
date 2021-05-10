@@ -163,7 +163,7 @@
           <i class="fa fa-envelope"></i> Send Email</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="setTexting()">
           <i class="fa fa-comments"></i> Send Text</a>
-        <a *ngIf="order.courierId && order.delivery && (order.delivery.status === 'pending' || order.delivery.status === 'canceled')"
+        <a *ngIf="(order.courierId && order.delivery && (order.delivery.status === 'pending' || order.delivery.status === 'canceled'))||(order.type === 'DELIVERY'&&order.restaurantNotice)"
           role="button" class="text-primary text-nowrap card-link" (click)="openChangeOrderTypesModal(order)">
           <i class="fa fa-reply"></i> Change order type</a>
       </div>
