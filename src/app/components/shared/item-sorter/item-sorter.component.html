@@ -1,7 +1,7 @@
 <ul class="list-group">
   <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of sortedItems; let i = index">
     {{item[labelField] || item}}
-    <div>
+    <div class="text-nowrap">
       <button type="button" class="btn btn-primary" (click)="down(item)" ><i class="fas fa-arrow-down"></i></button>
       <button type="button" class="btn btn-primary" (click)="up(item)"><i class="fas fa-arrow-up"></i></button>
     </div>

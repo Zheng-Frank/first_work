@@ -1,4 +1,3 @@
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -208,8 +207,9 @@ import { SendPostcardComponent } from './components/restaurants/seamless-integra
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
 import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
+import { TimezoneOffsetPipe } from './pipes/timezone-offset.pipe';
+import { AddNewLogComponent } from './components/restaurants/seamless-integration/add-new-log/add-new-log.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
-import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
@@ -384,7 +384,6 @@ import { CouponImportComponent } from './components/restaurants/coupon-import/co
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
-    InvoiceViewerComponent,
     SchemasComponent,
     SeamlessIntegrationComponent,
     UploadCsvComponent,
@@ -397,6 +396,7 @@ import { CouponImportComponent } from './components/restaurants/coupon-import/co
     WeirdDataComponent,
     QrRestaurantListComponent,
     RestaurantTranslationsComponent,
+    AddNewLogComponent,
     CouponImportComponent
   ],
   imports: [

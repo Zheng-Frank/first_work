@@ -3,8 +3,24 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Menu De-duplication</h5>
+            <p class="card-text">Some menu has duplicated IDs. We'd like to remove duplicated ones (keep more expensive ones since it's more likely to be the edited). Safe to run multiple times</p>
+            <button class="btn btn-primary" (click)="fixMenuDuplication()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Migrate Menu Sorting Orders</h5>
+            <p class="card-text">Although we removed sortOrder, we like to maintain back-compatibility.
+                Safe to run multiple times</p>
+            <button class="btn btn-primary" (click)="fixMenuSortOrders()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Fix Menu Hours</h5>
-            <p class="card-text">Find out which restaurants have bad menu hours (null as one hour) and remove bad hours. Safe to run multiple times</p>
+            <p class="card-text">Find out which restaurants have bad menu hours (null as one hour) and remove bad hours.
+                Safe to run multiple times</p>
             <button class="btn btn-primary" (click)="fixBadMenuHours()">Execute</button>
         </div>
     </div>
