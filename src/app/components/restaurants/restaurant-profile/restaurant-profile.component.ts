@@ -1,3 +1,4 @@
+import { ViewChild } from '@angular/core';
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { Address, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
@@ -8,6 +9,7 @@ import { environment } from '../../../../environments/environment';
 import { AlertType } from '../../../classes/alert-type';
 import { HttpClient } from '@angular/common/http';
 import { formatNumber } from '@angular/common';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 @Component({
   selector: 'app-restaurant-profile',
@@ -212,7 +214,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   isComebackDateCorrectlySet = false;
   isTemporarilyDisabled;
   now = new Date().toISOString().split('T')[0];
-
+  @ViewChild('previewWebsiteModal') previewWebsiteModal:ModalComponent;
+  
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) {
   }
 
@@ -226,6 +229,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     }
     this.tipSettingsInit();
   }
+
+  // a small function we can preview website when we edit it.
+  previewWebsite(){
+    this.previewWebsiteModal.show();
+  }
+
   // Show the corresponding translation of restaurant profile field.
   showCorrespondingTranslation(field){
     this.translating = field;
