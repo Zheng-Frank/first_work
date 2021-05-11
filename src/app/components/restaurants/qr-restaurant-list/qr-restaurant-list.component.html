@@ -1,10 +1,18 @@
-<h3>List of Restaurants with QR Dine-In</h3>
-<div class="pb-2 text-right">
-  <div class="float-right form-inline mt-2 ml-2">
+<div class="text-center">
+    <h3>List of Restaurants with QR Dine-In ({{qrFilterRestaurantListRows?.length || 0}})</h3>
+</div>
+<div class="pb-2 text-left">
+  <div class="float-left form-inline mt-2 ml-2">
     <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
-    <label class="form-check-label mr-5" for="paginationCheck">
+    <label class="form-check-label mr-2" for="paginationCheck">
       Pagination
     </label>
+  </div>
+  <div class="float-left form-inline ml-2 mr-2">
+    <label class="form-check-label mr-2">Show</label>
+    <select [(ngModel)]="filterType" class="form-control ml-1"  (change)="filterQrFullyConfigured()">
+        <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
+    </select>
   </div>
   <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
 </div>
@@ -13,24 +21,29 @@
   <div *ngIf="!qrRestaurantListRows || qrRestaurantListRows.length === 0">
     Qr Restaurant list is empty.
   </div>
-  <q-table [rows]="qrRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+  <q-table [rows]="qrFilterRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
     [pageSize]="pagination ? 100 : 100000">
     <tr *tableRowTemplate="let restaurant;">
-      <td>{{qrRestaurantListRows.indexOf(restaurant) + 1}}</td>
+      <td>{{qrFilterRestaurantListRows.indexOf(restaurant) + 1}}</td>
       <td>
         <a href="#/restaurants/{{restaurant._id}}" target="_blank">{{restaurant.name}}</a>
         <br>
         {{restaurant.googleAddress?.formatted_address}}
+        <br>
+        <br>
+        <div *ngFor="let menu of restaurant.menus">
+          {{menu.name}} ({{menu.menuTarget || 'Online only'}})
+        </div>
       </td>
       <td>
-          {{restaurant.qrOrderNumber}}
+        {{restaurant.qrOrderNumber}}
       </td>
       <td>
         <div *ngIf="restaurant.feeSchedules">
           <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
         </div>
         <div *ngIf="!restaurant.feeSchedules">
-            <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
+          <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
         </div>
       </td>
     </tr>

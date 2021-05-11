@@ -3,8 +3,16 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Find Useless Menu Items</h5>
+            <p class="card-text">Hard coded RT Id for experiments only. Check console for result</p>
+            <button class="btn btn-primary" (click)="findNonUsedMis()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Menu De-duplication</h5>
-            <p class="card-text">Some menu has duplicated IDs. We'd like to remove duplicated ones (keep more expensive ones since it's more likely to be the edited). Safe to run multiple times</p>
+            <p class="card-text">Some menu has duplicated IDs. We'd like to remove duplicated ones (keep more expensive
+                ones since it's more likely to be the edited). Safe to run multiple times</p>
             <button class="btn btn-primary" (click)="fixMenuDuplication()">Execute</button>
         </div>
     </div>

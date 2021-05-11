@@ -10,7 +10,6 @@ import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
 import { Domain } from "src/app/classes/domain";
 import * as FileSaver from 'file-saver';
-
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -21,6 +20,44 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() { }
+
+  async findNonUsedMis() {
+    const rtId = '5a950e6fa5c27b1400a58830'
+    const [rt] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $oid: rtId } },
+      projection: {
+        name: 1,
+        'menus.mcs.mis.name': 1
+      },
+      limit: 1
+    }).toPromise();
+    const latestOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      query: { restaurant: { $oid: rtId } },
+      projection: {
+        'orderItems.miInstance.name': 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 2000
+    }).toPromise();
+    const map = {};
+    rt.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => map[mi.name] = 0)));
+    latestOrders.map(o => o.orderItems.map(oi => {
+      map[oi.miInstance.name] = (map[oi.miInstance.name] || 0) + 1;
+    }));
+    const sorted = Object.keys(map).map(k => ({ name: k, value: map[k], percent: 0 })).sort((a1, a2) => a2.value - a1.value);
+    const total = sorted.reduce((sum, i) => sum + i.value, 0);
+    let subtotal = 0;
+    for (let i = 0; i < sorted.length; i++) {
+      subtotal += sorted[i].value;
+      sorted[i].percent = subtotal / total;
+    }
+    console.log(sorted);
+    console.log('test')
+  }
 
   async fixMenuDuplication() {
 
