@@ -205,7 +205,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         if (!this.restaurant) {
           return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
         }
-        callback(this.restaurant);
+        if(callback){
+          callback(this.restaurant);
+        }
       }, error => {
         this._global.publishAlert(AlertType.Danger, error);
       }

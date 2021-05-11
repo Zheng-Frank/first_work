@@ -213,6 +213,7 @@ import { QrRestaurantListComponent } from './components/restaurants/qr-restauran
 import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
+import { RestaurantInvoiceAdjustmentComponent } from './components/restaurants/restaurant-invoice-adjustment/restaurant-invoice-adjustment.component';
 import { CouponImportComponent } from './components/restaurants/coupon-import/coupon-import.component';
 
 @NgModule({
@@ -396,8 +397,10 @@ import { CouponImportComponent } from './components/restaurants/coupon-import/co
     WeirdDataComponent,
     QrRestaurantListComponent,
     RestaurantTranslationsComponent,
+    RestaurantInvoiceAdjustmentComponent,
     AddNewLogComponent,
     CouponImportComponent
+
   ],
   imports: [
     BrowserModule,

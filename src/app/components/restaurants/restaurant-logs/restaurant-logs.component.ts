@@ -31,7 +31,12 @@ export class RestaurantLogsComponent implements OnInit {
     return a && b && (new Date(a.time).getTime() === new Date(b.time).getTime());
   }
 
-
+  reScan(){
+    if(this.logEditingModal){
+      this.logEditingModal.hide();
+    }
+    this.reload.emit();
+  }
   createNewLog() {
     this.logInEditing = new Log();
     this.logInEditingOriginal = undefined;
