@@ -7,15 +7,27 @@
         <div *ngIf="restaurant?.qrSettings?.viewOnly">
           <span>Enabled: false</span><br>
           <span>View Menu Only: true</span><br>
-          <small class="text-danger view-only-tip" >Customer can only view menus but not place orders if this setting is on</small>
+          <small class="text-danger view-only-tip">Customer can only view menus but not place orders if this setting is
+            on</small>
         </div>
         <div *ngIf="restaurant?.qrSettings && !restaurant?.qrSettings?.viewOnly">
           Enabled: true<br>
           View Menu Only: false
         </div>
+        <div>
+          Sales Person : {{ username }}
+        </div>
       </div>
       <div *qIf="editing">
-        <q-toggle [(ngModel)]="viewOnly" ></q-toggle> View Only?
+        <q-toggle [(ngModel)]="viewOnly"></q-toggle> View Only?
+        <div class="row">
+          <label class="col-2 text-center pl-4"
+            style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Sales Person:
+          </label>
+          <select [(ngModel)]="username" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
+            <option *ngFor="let u of users" [value]="type">{{u}}</option>
+          </select>
+        </div>
         <div class="form-group row text-right">
           <div class="col-12">
             <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
