@@ -173,18 +173,7 @@
                   </table>
                 </table>
               </a>
-              <div *ngIf='showLogHistory(data._id)'>
-                <h5>Log History</h5>
-                <hr />
-                <div class='row' *ngFor='let item of getLogHistory(data._id) | keyvalue'>
-                  <hr />
-                  <div class='col-sm-3'> {{ item.value.problem }} </div>
-                  <div class='col-sm-3'> {{ item.value.time }} </div>
-                  <div class='col-sm-3'>{{ item.value.username }} </div>
-                  <div class='col-sm-3'> {{ item.value.response }} </div>
-                </div>
-                <hr />
-              </div>
+
 
             </div>
 
@@ -238,11 +227,32 @@
               </div>
 
             </div>
+            <div class='col-sm-12'>
+              <app-add-new-log [id]='data._id'> {{ data._id }}</app-add-new-log>
+
+              <div *ngIf='showLogHistory(data._id)'>
+                <h5>Log History</h5>
+
+                <br />
+                <div class='row' *ngFor='let item of getLogHistory(data._id) | keyvalue'>
+
+                  <div class='col-sm-3'> {{ item.value.problem }} </div>
+                  <div class='col-sm-3'> {{ item.value.time }} </div>
+                  <div class='col-sm-3'>{{ item.value.username }} </div>
+                  <div class='col-sm-3'> {{ item.value.response }} </div>
+                </div>
+                <hr />
+              </div>
+            </div>
+
+
           </div>
         </div>
 
         <hr />
+
       </tr>
+
     </q-table>
   </div>
   <br />

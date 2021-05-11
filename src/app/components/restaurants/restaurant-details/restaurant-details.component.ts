@@ -1,10 +1,12 @@
-import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { LanguageType } from './../../../classes/language-type';
+import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Address } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 
 declare var $: any;
 
@@ -14,6 +16,9 @@ declare var $: any;
   styleUrls: ['./restaurant-details.component.css']
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
+  @ViewChild('restaurantProfile')restaurantProfile:RestaurantProfileComponent;
+  languageTypes = [LanguageType.ENGLISH,LanguageType.CHINESE];
+  languageType = this._global.languageType;
   restaurant: Restaurant;
   displayTextReply = false;
   displayGooglePIN = false;
@@ -106,6 +111,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     printerSN: 1,
     promotions: 1,
     'qrSettings.viewOnly': 1,
+    'qrSettings.agent': 1,
+    'qrSettings.agentAt': 1,
     rateSchedules: 1,
     requireBillingAddress: 1,
     requireZipcode: 1,
@@ -142,6 +149,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     hideOrderReadyEstimate: 1,
   };
 
+  showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
 
   knownUsers = [];
 
@@ -200,13 +208,31 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         if (!this.restaurant) {
           return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
         }
-        callback(this.restaurant);
+        if(callback){
+          callback(this.restaurant);
+        }
       }, error => {
         this._global.publishAlert(AlertType.Danger, error);
       }
     );
   }
+  // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
+  changeLanguage(){
+    if(this.languageType === LanguageType.ENGLISH){
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.ENGLISH;
+    }else if(this.languageType === LanguageType.CHINESE){
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.CHINESE;
+    }
+  }
 
+  // if the switch is open,we show i button and show Chinese and English explanations
+  toggleShowExplanations(){
+    if(this.showExplanations){
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = true;
+    }else{
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = false;
+    }
+  }
 
   async loadDetails() {
     this.readonly = true;

@@ -37,8 +37,13 @@ export class YelpBusinessesComponent implements OnInit {
       label: 'Time Zone',
     },
     {
-      label: 'Score',
+      label: 'Rating',
       paths: ['rating'],
+      sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+    },
+    {
+      label: 'Score',
+      paths: ['score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     },
     {
@@ -209,6 +214,7 @@ export class YelpBusinessesComponent implements OnInit {
           disabled: 1,
           "web.qmenuWebsite": 1,
           "googleAddress.timezone": 1,
+          score: 1
         },
       }, 3000);
 
@@ -262,6 +268,7 @@ export class YelpBusinessesComponent implements OnInit {
           logs: (restaurant_yelpRequest && restaurant_yelpRequest.logs) || [],
           isRTPublished: this.isPublished(row.yelpListing.yid),
           isRequested: !!restaurant_yelpRequest,
+          score:row.score||0
         }
       });
 

@@ -6,9 +6,6 @@
     <thead>
       <tr>
         <th>
-          Sequence
-        </th>
-        <th>
           Number
         </th>
         <th>
@@ -30,9 +27,6 @@
     </thead>
     <tbody>
       <tr *ngFor="let mi of mc.mis">
-        <td>
-          <input type="number" [(ngModel)]="mi.sortOrder" class="form-control app-input-sm">
-        </td>
         <td>
           <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-md">
         </td>

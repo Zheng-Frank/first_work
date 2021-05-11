@@ -16,20 +16,81 @@ export class MonitoringPromotionComponent implements OnInit {
   }
 
   rts: Restaurant[] = [];
+  gmbWebsiteOwner = '';
+  generalGmbOwners = [];
+  majorCompetitorGmbOwners = [];
+  minorCompetitorGmbOwners = [];
+  filtered: Restaurant[] = [];
 
   ngOnInit() {
     this.query();
   }
 
+
+  filter() {
+    switch (this.gmbWebsiteOwner) {
+      case '':
+        this.filtered = this.rts;
+        break;
+      case 'not-qmenu':
+        this.filtered = this.rts.filter(rt => !rt.googleListing || rt.googleListing.gmbOwner !== 'qmenu');
+        break;
+      case 'empty':
+        this.filtered = this.rts.filter(rt => !rt.googleListing || !rt.googleListing.gmbOwner);
+        break;
+      default:
+        this.filtered = this.rts.filter(rt => rt.googleListing && rt.googleListing.gmbOwner === this.gmbWebsiteOwner);
+        break;
+    }
+  }
+
   async query() {
-    this.rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        'promotions.1': {$exists: false},
-        disabled: false
+        $or: [{disabled: false}, {disabled: {$exists: false}}]
       },
-      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1},
+      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, 'promotions.expiry': 1},
     }, 3000);
+
+    this.rts = rts.filter(rt => {
+      return !rt.promotions || !rt.promotions.length
+        || (rt.promotions.every(p => p.expiry && new Date(p.expiry).valueOf() < Date.now()));
+    });
+
+    const generalCountMap = {empty: 0, qmenu: 0, unknown: 0};
+    const specificCountMap = {};
+
+    this.rts.forEach(rt => {
+      if (rt.googleListing && rt.googleListing.gmbOwner) {
+        const {gmbOwner} = rt.googleListing;
+        if (generalCountMap.hasOwnProperty(gmbOwner)) {
+          generalCountMap[gmbOwner]++;
+        } else {
+          specificCountMap[gmbOwner] = (specificCountMap[gmbOwner] || 0) + 1;
+        }
+      } else {
+        generalCountMap.empty += 1;
+      }
+    });
+
+    this.generalGmbOwners = [
+      {owner: 'qmenu', count: generalCountMap.qmenu},
+      {owner: 'not-qmenu', count: this.rts.length - generalCountMap.qmenu},
+      {owner: 'unknown', count: generalCountMap.unknown},
+      {owner: 'empty', count: generalCountMap.empty}
+    ];
+
+    const competitors = Object.keys(specificCountMap).map(k => ({
+      owner: k,
+      count: specificCountMap[k]
+    })).sort((oc1, oc2) => oc2.count - oc1.count);
+
+    this.majorCompetitorGmbOwners = competitors.filter(x => x.count > 100).sort((x, y) => y.count - x.count);
+    this.minorCompetitorGmbOwners = competitors.filter(x => x.count <= 100).sort((x, y) => x.owner > y.owner ? 1 : -1);
+
+    this.gmbWebsiteOwner = '';
+    this.filter();
   }
 
 }

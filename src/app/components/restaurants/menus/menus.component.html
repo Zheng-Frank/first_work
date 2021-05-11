@@ -3,6 +3,7 @@
     <h1>Menu hours missing (个别菜单的时间未定义)</h1>
   </div>
   <div class="text-right">
+    <button class="btn btn-link" (click)="importCoupon = !importCoupon">Import Coupons (采集优惠券)</button>
     <button class="btn btn-link" (click)="importMenu = !importMenu">Import Menus (采集菜单)</button>
     <ng-container *ngIf="getMenus().length > 0">
       <button *ngIf="!restaurant.skipImageInjection" class="btn btn-link" (click)="injectImages()">Inject Image
@@ -17,6 +18,9 @@
     <ng-container *ngIf="getMenus().length === 0">
       <button class="btn btn-primary" (click)="createTestMenu()">Create Test Menu (添加测试菜单)</button>
     </ng-container>
+
+
+    <app-coupon-import [restaurant]="restaurant" [visible]="importCoupon" (close)="importCoupon = false"></app-coupon-import>
 
     <div class="alert alert-secondary" *ngIf="importMenu">
       <div class="card card-body">
@@ -94,8 +98,7 @@
         </li>
         <li>
           <a (click)=showPromotionsComponent() class="nav-link {{showPromotions == true ? 'active' : 'text-primary'}}"
-            role="button"> Coupons / Promotions ({{restaurant?.promotions?.length}})</a>
-
+            role="button"> Coupons / Promotions ({{restaurant?.promotions?.length || 0}})</a>
         </li>
       </ul>
     </div>
