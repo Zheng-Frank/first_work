@@ -1,3 +1,4 @@
+import { LanguageType } from 'src/app/classes/language-type';
 import { Injectable, EventEmitter } from "@angular/core";
 import * as jwtDecode from "jwt-decode";
 import { Alert } from "../classes/alert";
@@ -517,6 +518,10 @@ export class GlobalService {
   get superset() {
     return this._superset;
   }
+  // a flag to decide whether show English/Chinese translations,and the switch is closed by default. 
+  showExplanationsIcon = false;
+  // a flag to decide whether change restaurant profile into Chinese.
+  languageType = 'English';
   get token() {
     return this._token;
   }
