@@ -93,7 +93,7 @@ export class QrRestaurantListComponent implements OnInit {
         qrOrderNumber: 1,
         feeSchedules: 1,
         rateSchedules: 1,
-        menus: 1
+        "menus.targetCustomer": 1
       },
       sort: { updatedAt: -1 }
     }, 5000);
