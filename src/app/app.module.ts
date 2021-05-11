@@ -207,6 +207,8 @@ import { SendPostcardComponent } from './components/restaurants/seamless-integra
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
 import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
+import { NotificationDashboardComponent } from './components/notification-dashboard/notification-dashboard.component';
+import { NotificationEditorComponent } from './components/notification-editor/notification-editor.component';
 import { TimezoneOffsetPipe } from './pipes/timezone-offset.pipe';
 import { AddNewLogComponent } from './components/restaurants/seamless-integration/add-new-log/add-new-log.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
@@ -393,6 +395,8 @@ import { CouponImportComponent } from './components/restaurants/coupon-import/co
     IvrAgentAnalysisComponent,
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
+    NotificationDashboardComponent,
+    NotificationEditorComponent,
     RestaurantStatsComponent,
     WeirdDataComponent,
     QrRestaurantListComponent,

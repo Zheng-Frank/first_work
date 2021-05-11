@@ -1,0 +1,166 @@
+<h1>Notification Management Dashboard</h1>
+<hr>
+
+<!-- <h6> General Settings</h6>
+<div class="row">
+    <span style="min-width:300px;max-width:300px;" class="pl-2 ml-4 mr-5 pr-5">
+        <u class="align-middle">To/From Settings</u>
+    </span>
+    <span class="pr-2 ml-5 pl-5 align-middle">
+        <u>Provider</u>
+    </span>
+    <select style="min-width:180px;max-width:180px;" class="form-control" [(ngModel)]="provider"
+        >
+        <option>Twilio</option>
+        <option>Plivo</option>
+        <option>Bandwidth</option>
+    </select>
+
+</div> 
+
+
+<table class="table table-striped table-sm mt-3" style="width: 50%">
+    <thead>
+        <tr>
+            <th style="width: 12%"></th>
+            <th style="width: 24%">From</th>
+            <th style="width: 24%">To</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let method of methods">
+            <td>
+                {{method}}
+            </td>
+            <td>
+                From column
+            </td>
+            <td>
+                To column
+            </td>
+        </tr>
+    </tbody>
+</table>
+-->
+
+<h6> Customer Notifications</h6>
+<span> Merge fields: 
+    _customerFirstName_,
+    _customerLastName_,
+    _restaurantName_,
+    _orderNumber_,
+    _orderTimeEstimate_,
+    _orderDetailsURL_,
+    _cancelComments_,
+    _adjustmentAmount_,
+    _refundTimeFrame_,
+    _loginCode_
+</span>
+<div class="d-flex flex-row flex-wrap" *ngIf="system">
+    <div *ngFor="let t of customer; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
+        <div class="card-body">
+            <h4 class="card-title ml-2">{{t.name}}</h4>
+            <div class="row ml-2">
+            </div>
+            <hr>
+            <p class="card-text">
+                <small>{{templateDetails[t.name].description}}</small>
+            </p>
+            <hr>
+            <p style="overflow:auto">
+                {{t.content}}
+            </p>
+            <button class="btn btn-primary" (click)="openPhoneNumberInput(t)">Send</button>
+            <button class="btn btn-primary" (click)="editNotification(t)">Edit</button> <br>
+            <small>Current estimated template length: {{replaceMergeFields(t.content).length}}</small>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<h6> Restaurant Notifications</h6>
+<span>  Merge fields: 
+    _customerFirstName_,
+    _customerLastName_,
+    _restaurantName_,
+    _orderNumber_,
+    _orderTimeEstimate_,
+    _orderDetailsURL_,
+    _cancelComments_,
+    _adjustmentAmount_,
+    _customerLastName,
+    _refundTimeFrame_,
+    _loginCode_
+</span>
+<div class="d-flex flex-row flex-wrap" *ngIf="system">
+    <div *ngFor="let t of restaurant; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
+        <div class="card-body">
+            <h4 class="card-title ml-2">{{t.name}}</h4>
+            <div class="row ml-2">
+            </div>
+            <hr>
+            <p class="card-text">
+                <small>{{templateDetails[t.name].description}}</small>
+            </p>
+            <hr>
+            <p style="overflow:auto">
+                {{t.content}}
+            </p>
+            <button class="btn btn-primary" (click)="openPhoneNumberInput(t)">Send</button>
+            <button class="btn btn-primary" (click)="editNotification(t)">Edit</button> <br>
+            <small>Current estimated template length: {{replaceMergeFields(t.content).length}}</small>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<h6> Miscellaneous Notifications</h6>
+<span> Merge fields: 
+    _customerFirstName_,
+    _customerLastName_,
+    _restaurantName_,
+    _orderNumber_,
+    _orderTimeEstimate_,
+    _orderDetailsURL_,
+    _cancelComments_,
+    _adjustmentAmount_,
+    _customerLastName,
+    _refundTimeFrame_,
+    _loginCode_
+</span>
+<div class="d-flex flex-row flex-wrap" *ngIf="system">
+    <div *ngFor="let t of misc; index as i" class="card mt-1 mb-1 ml-1 mr-1" style="width: 20rem;">
+        <div class="card-body">
+            <h4 class="card-title ml-2">{{t.name}}</h4>
+            <div class="row ml-2">
+            </div>
+            <hr>
+            <p class="card-text">
+                <small>{{templateDetails[t.name].description}}</small>
+            </p>
+            <hr>
+            <p style="overflow:auto">
+                {{t.content}}
+            </p>
+            <button class="btn btn-primary" (click)="openPhoneNumberInput(t)">Send</button>
+            <button class="btn btn-primary" (click)="editNotification(t)">Edit</button> <br>
+            <small>Current estimated template length: {{replaceMergeFields(t.content).length}}</small>
+        </div>
+    </div>
+</div>
+
+<q-modal #notificationModal>
+    <app-notification-editor #notificationEditor [notification]="notificationInEditor" (onCancel)="onCancel()"
+        (onDone)="onDone($event)"></app-notification-editor>
+</q-modal>
+
+<q-modal #phoneNumberModal>
+    Enter the telephone number this SMS should be sent to: <br>
+    <small> (10 digits, no spaces)</small> <br>
+    <input type="tel" [(ngModel)]="smsNumber">
+    <br>
+    <button class="btn btn-primary" (click)="sendMessage()">Send</button>
+    <button class="btn btn-secondary" (click)="closePhoneNumberInput()">Cancel</button>
+</q-modal>
