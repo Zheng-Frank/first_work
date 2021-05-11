@@ -14,24 +14,25 @@
           Enabled: true<br>
           View Menu Only: false
         </div>
-        <div>
-          Sales Person : {{ username }}
+        <div class="row ml-1 mt-2" *ngIf="isVisable()&&restaurant?.qrSettings">
+          Sales Person : {{ restaurant?.qrSettings?.salesPerson?.username || 'Waitng set'}}
         </div>
       </div>
       <div *qIf="editing">
         <q-toggle [(ngModel)]="viewOnly"></q-toggle> View Only?
-        <div class="row">
-          <label class="col-2 text-center pl-4"
-            style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Sales Person:
-          </label>
-          <select [(ngModel)]="username" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
-            <option *ngFor="let u of users" [value]="type">{{u}}</option>
+        <div class="row mt-2 pl-3" *ngIf="isVisable()">
+          <span class="mr-2">Sales Person:</span>
+          <select [(ngModel)]="salesPerson" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
+            <!-- some condtion is that the select's option will appear items which don't have any value and should be dispeared. -->
+            <ng-container *ngFor="let u of users">
+              <option *ngIf="u?.username" [value]="u">{{u?.username}}</option>
+            </ng-container>
           </select>
         </div>
         <div class="form-group row text-right">
           <div class="col-12">
             <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-            <button class="btn btn-primary" (click)="toggleViewOnly()">OK</button>
+            <button class="btn btn-primary" (click)="doEdit()">OK</button>
           </div>
         </div>
       </div>
