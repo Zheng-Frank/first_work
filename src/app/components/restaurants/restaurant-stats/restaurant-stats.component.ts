@@ -98,15 +98,8 @@ export class RestaurantStatsComponent implements OnInit {
     let menuItemWithoutPicture = [];
     orders.forEach(o => {
       o.orderItems.forEach(item => {
-        console.log("item.mcInstance.images:"+JSON.stringify(item.mcInstance.images));
-        // mcInstance
-        if (item.mcInstance && item.mcInstance.images && item.mcInstance.images.length > 0) {
-          menuItemWithPicture.push(item.mcInstance);
-        } else {
-          menuItemWithoutPicture.push(item.mcInstance);
-        }
-        // miInstance
-        console.log("item.miInstance.imageObjs:"+JSON.stringify(item.miInstance.imageObjs));
+        // mcInstance is menu categray,and miInstance is menu item.
+        // miInstance  
         if (item.miInstance && item.miInstance.imageObjs && item.miInstance.imageObjs.length > 0) {
           menuItemWithPicture.push(item.miInstance);
         } else {
