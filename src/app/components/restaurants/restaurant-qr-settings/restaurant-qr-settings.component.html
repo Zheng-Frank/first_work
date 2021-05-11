@@ -4,36 +4,29 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div *ngIf="!editing">
-        <div *ngIf="restaurant?.qrSettings?.viewOnly">
-          <span>Enabled: false</span><br>
-          <span>View Menu Only: true</span><br>
-          <small class="text-danger view-only-tip">Customer can only view menus but not place orders if this setting is
-            on</small>
+        <div class="text-danger" *ngIf="qrSettings.viewOnly">
+          View Menu Only (CUSTOMER CAN ONLY VIEW MENUS BUT NOT PLACE ORDERS)
         </div>
-        <div *ngIf="restaurant?.qrSettings && !restaurant?.qrSettings?.viewOnly">
-          Enabled: true<br>
-          View Menu Only: false
+        <div *ngIf="!restaurant?.qrSettings?.viewOnly">
+          Enabled
         </div>
-        <div class="row ml-1 mt-2" *ngIf="isVisable()&&restaurant?.qrSettings">
-          Sales Person : {{ restaurant?.qrSettings?.salesPerson?.username || 'Waitng set'}}
+        <div>
+          QR Agent: {{qrSettings.agent || 'None'}}
         </div>
       </div>
       <div *qIf="editing">
-        <q-toggle [(ngModel)]="viewOnly"></q-toggle> View Only?
-        <div class="row mt-2 pl-3" *ngIf="isVisable()">
-          <span class="mr-2">Sales Person:</span>
-          <select [(ngModel)]="salesPerson" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
-            <!-- some condtion is that the select's option will appear items which don't have any value and should be dispeared. -->
-            <ng-container *ngFor="let u of users">
-              <option *ngIf="u?.username" [value]="u">{{u?.username}}</option>
-            </ng-container>
-          </select>
+        <div>
+          <label>Sales Agent <button class="btn btn-link pt-0 pb-1" (click)="populateUsername()"><i class="fas fa-arrow-down"></i> Populate My Name</button></label>
+          <input type="text" class="form-control" placeholder="username of sales agent" [(ngModel)]="agent">
         </div>
-        <div class="form-group row text-right">
-          <div class="col-12">
-            <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-            <button class="btn btn-primary" (click)="doEdit()">OK</button>
-          </div>
+        <div class="pt-3">
+          <label class="checkbox-inline">
+            <input type="checkbox" [(ngModel)]="viewOnly"> View Menu Only
+          </label>
+        </div>
+        <div class="text-right py-2">
+          <button class="btn btn-secondary" (click)="editing = false">Cancel</button>
+          <button class="btn btn-primary" (click)="update()">&nbsp;&nbsp;OK&nbsp;&nbsp;</button>
         </div>
       </div>
       <div class="text-right" *ngIf="!editing">
