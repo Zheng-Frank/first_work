@@ -200,10 +200,10 @@ import { Form1099KComponent } from './components/restaurants/restaurant-form1099
 import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 import { SchemasComponent } from './components/system/schemas/schemas.component';
-import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
-import { UploadCsvComponent } from "./components/restaurants/seamless-integration/upload-csv/upload-csv.component";
-import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
-import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
+import { SeamlessIntegrationComponent } from './components/restaurants/seamless-integration/seamless-integration.component';
+import { UploadCsvComponent } from './components/restaurants/seamless-integration/upload-csv/upload-csv.component';
+import { AddOneRtComponent } from './components/restaurants/seamless-integration/add-one-rt/add-one-rt.component';
+import { SendPostcardComponent } from './components/restaurants/seamless-integration/send-postcard/send-postcard.component';
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
 import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
@@ -214,6 +214,7 @@ import { RestaurantStatsComponent } from './components/restaurants/restaurant-st
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
 import { RestaurantInvoiceAdjustmentComponent } from './components/restaurants/restaurant-invoice-adjustment/restaurant-invoice-adjustment.component';
+import { CouponImportComponent } from './components/restaurants/coupon-import/coupon-import.component';
 
 @NgModule({
   declarations: [
@@ -397,7 +398,9 @@ import { RestaurantInvoiceAdjustmentComponent } from './components/restaurants/r
     QrRestaurantListComponent,
     RestaurantTranslationsComponent,
     RestaurantInvoiceAdjustmentComponent,
-    AddNewLogComponent
+    AddNewLogComponent,
+    CouponImportComponent
+
   ],
   imports: [
     BrowserModule,

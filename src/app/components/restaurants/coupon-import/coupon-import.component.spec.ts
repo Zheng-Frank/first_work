@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SchemasComponent } from './schemas.component';
+import { CouponImportComponent } from './coupon-import.component';
 
-describe('SchemasComponent', () => {
-  let component: SchemasComponent;
-  let fixture: ComponentFixture<SchemasComponent>;
+describe('CouponImportComponent', () => {
+  let component: CouponImportComponent;
+  let fixture: ComponentFixture<CouponImportComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ SchemasComponent ]
+      declarations: [ CouponImportComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SchemasComponent);
+    fixture = TestBed.createComponent(CouponImportComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
