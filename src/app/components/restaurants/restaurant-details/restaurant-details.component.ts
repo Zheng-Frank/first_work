@@ -108,6 +108,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     printerSN: 1,
     promotions: 1,
     'qrSettings.viewOnly': 1,
+    'qrSettings.agent': 1,
+    'qrSettings.agentAt': 1,
     rateSchedules: 1,
     requireBillingAddress: 1,
     requireZipcode: 1,
