@@ -50,4 +50,5 @@ export class RestaurantQrSettingsComponent {
     }
     this.editing = false;
   }
+  
 }

@@ -3,7 +3,11 @@ import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { ApiService } from 'src/app/services/api.service';
 import { Component, OnInit } from '@angular/core';
-
+enum QRConfiguredTypes{
+  ALL = 'All',
+  CORRECT_CONFIGURATION = 'Correct configuration',
+  WRONG_CONFIGURATION = 'Wrong configuration'
+}
 @Component({
   selector: 'app-qr-restaurant-list',
   templateUrl: './qr-restaurant-list.component.html',
@@ -12,7 +16,11 @@ import { Component, OnInit } from '@angular/core';
 export class QrRestaurantListComponent implements OnInit {
 
   qrRestaurantListRows;
+  qrFilterRestaurantListRows;
   pagination = true;
+  qrFullyConfigured = false;
+  filterTypes = [QRConfiguredTypes.ALL,QRConfiguredTypes.CORRECT_CONFIGURATION,QRConfiguredTypes.WRONG_CONFIGURATION];
+  filterType = QRConfiguredTypes.ALL;
   knownUsers = [];
   restaurantsColumnDescriptors = [
     {
@@ -25,19 +33,55 @@ export class QrRestaurantListComponent implements OnInit {
     },
     {
       label: "Num QR orders",
-      sort: (a, b) =>a.qrOrderNumber-b.qrOrderNumber
+      sort: (a, b) => a.qrOrderNumber - b.qrOrderNumber
     },
     {
       label: "Fee/Rate Schedules"
     }
 
   ];
+  targets = [
+    {
+      value: 'ONLINE_ONLY',
+      text: 'Online only'
+    }, {
+      value: 'DINE_IN_ONLY',
+      text: 'Dine-in only'
+    }, {
+      value: 'ALL',
+      text: 'Both online and dine-in'
+    }];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.populateQrRestaurant();
   }
-   
+  /**
+   * RT is considered to have complete QR code setup if:
+    "QR fully configured"
+    Has fee schedules (not rate schedules)
+    Must have at least one menu with dine-in type (or both dine-in and online)
+    Must have fee setting for dine-in specifically:
+    must have at least one fee where: 
+    a) Qmenu is receiving money, 
+    b) the service type includes dine-in, 
+    c) the type is "service fee", 
+    d) amount/percent is NOT 0.
+   */
+  filterQrFullyConfigured() {
+    if (this.filterType === QRConfiguredTypes.ALL) {
+      this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
+    } else if(this.filterType === QRConfiguredTypes.CORRECT_CONFIGURATION){
+      this.qrFilterRestaurantListRows = this.qrRestaurantListRows
+        .filter(qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
+          && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0);
+    }else if(this.filterType === QRConfiguredTypes.WRONG_CONFIGURATION){
+      let temp = this.qrRestaurantListRows
+      .filter((qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
+        && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0));
+      this.qrFilterRestaurantListRows = this.qrRestaurantListRows.filter(qrList =>!temp.includes(qrList));
+      }
+  }
   async populateQrRestaurant() {
     this.qrRestaurantListRows = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -48,7 +92,8 @@ export class QrRestaurantListComponent implements OnInit {
         googleAddress: 1,
         qrOrderNumber: 1,
         feeSchedules: 1,
-        rateSchedules: 1
+        rateSchedules: 1,
+        menus: 1
       },
       sort: { updatedAt: -1 }
     }, 5000);
@@ -56,8 +101,8 @@ export class QrRestaurantListComponent implements OnInit {
     const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "dine-in-session",
       query: {
-        "orderObj.restaurantObj._id":{
-          $exists:true
+        "orderObj.restaurantObj._id": {
+          $exists: true
         }
       },
       projection: {
@@ -70,10 +115,18 @@ export class QrRestaurantListComponent implements OnInit {
     }, 5000);
     for (let i = 0; i < this.qrRestaurantListRows.length; i++) {
       let restaurant = this.qrRestaurantListRows[i];
-      let tempOrders = orders.filter(o=> o.orderObj.restaurantObj._id === restaurant._id);
+      let tempOrders = orders.filter(o => o.orderObj.restaurantObj._id === restaurant._id);
       this.qrRestaurantListRows[i].qrOrderNumber = tempOrders.length;
+      if(this.qrRestaurantListRows[i].menus){
+        this.qrRestaurantListRows[i].menus = this.qrRestaurantListRows[i].menus.map(m => {
+          if (m.targetCustomer) {
+            m.menuTarget = this.targets.filter(t => t.value === m.targetCustomer)[0].text;
+          }
+          return m;
+        });
+      }
     }
-
+    this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
 
   }
 
