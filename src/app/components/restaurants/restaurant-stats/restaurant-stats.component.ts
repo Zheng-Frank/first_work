@@ -17,7 +17,10 @@ export class RestaurantStatsComponent implements OnInit {
     totalUniqueCustomer: { value: 0, label: 'Total unique customers' },
     newCustomerLast30DaysOrders: { value: "", label: 'New customer orders (as % of orders placed in last 30 days)' },
     totalOrdersFromRepeatCustomer: { value: 0, label: 'Total orders from repeat customers' },
-    totalOrderFromNewCustomer: { value: 0, label: 'Total orders from new customers' }
+    totalOrderFromNewCustomer: { value: 0, label: 'Total orders from new customers' },
+    menusWithPicture: { value: 0, label: 'Orders for menu items with pictures per RT' },
+    menusWithoutPicture: { value: 0, label: 'Orders for Menu items without pictures per RT' },
+    menuPictureRate: { value: 0, label: 'Order rate for menu items with pictures vs. without pictures per RT' }
   }
   constructor(private _api: ApiService) { }
 
@@ -44,20 +47,20 @@ export class RestaurantStatsComponent implements OnInit {
       ]
     } as any;
 
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
       projection: {
         "customerPreviousOrderStatus.order": 1,
         createdAt: 1,
-        customer: 1
+        customer: 1,
+        "orderItems.miInstance": 1
       },
       sort: {
         createdAt: -1
       },
-      limit: 1000000
-    }).toPromise();
-    
+    }, 500);
+
     this.statistics['totalLifetimeOrders'].value = orders.length;
     // toFixed can keep n decimal place
     this.statistics['averageDailyOrders'].value = Number((orders.length / ((new Date().valueOf() - new Date(this.restaurant.createdAt).valueOf()) / (24 * 3600000))).toFixed(4));
@@ -90,6 +93,25 @@ export class RestaurantStatsComponent implements OnInit {
     this.statistics['totalOrdersFromRepeatCustomer'].value = orders.filter(o => repeatOrders.indexOf(o.customer) != -1).length;
     let newCustomerOrders = orders.filter(o => !o.customerPreviousOrderStatus);
     this.statistics['totalOrderFromNewCustomer'].value = newCustomerOrders.length;
+    // count menu item with picture and without picture.
+    let menuItemWithPictureCount = 0;
+    let menuItemWithoutPictureCount = 0;
+    orders.forEach(o => {
+      o.orderItems.forEach(item => {
+        // mcInstance is menu categray,and miInstance is menu item.
+        // miInstance  
+        if (item.miInstance && item.miInstance.imageObjs && item.miInstance.imageObjs.length > 0) {
+          menuItemWithPictureCount++;
+        } else {
+          menuItemWithoutPictureCount++
+        }
+      });
+    }
+    );
+    this.statistics['menusWithPicture'].value = menuItemWithPictureCount;
+    this.statistics['menusWithoutPicture'].value = menuItemWithoutPictureCount;
+    this.statistics['menuPictureRate'].value = Number(((menuItemWithPictureCount / menuItemWithoutPictureCount).toFixed(4)));
+
   }
 
 
