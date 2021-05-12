@@ -103,7 +103,7 @@ export class RestaurantStatsComponent implements OnInit {
         if (item.miInstance && item.miInstance.imageObjs && item.miInstance.imageObjs.length > 0) {
           menuItemWithPictureCount++;
         } else {
-          menuItemWithoutPictureCount++
+          menuItemWithoutPictureCount++;
         }
       });
     }
