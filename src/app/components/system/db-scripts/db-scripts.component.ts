@@ -10,7 +10,6 @@ import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
 import { Domain } from "src/app/classes/domain";
 import * as FileSaver from 'file-saver';
-
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -21,6 +20,123 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() { }
+
+  async findNonUsedMis() {
+    const rtId = '5a950e6fa5c27b1400a58830'
+    const [rt] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $oid: rtId } },
+      projection: {
+        name: 1,
+        'menus.mcs.mis.name': 1
+      },
+      limit: 1
+    }).toPromise();
+    const latestOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      query: { restaurant: { $oid: rtId } },
+      projection: {
+        'orderItems.miInstance.name': 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 2000
+    }).toPromise();
+    const map = {};
+    rt.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => map[mi.name] = 0)));
+    latestOrders.map(o => o.orderItems.map(oi => {
+      map[oi.miInstance.name] = (map[oi.miInstance.name] || 0) + 1;
+    }));
+    const sorted = Object.keys(map).map(k => ({ name: k, value: map[k], percent: 0 })).sort((a1, a2) => a2.value - a1.value);
+    const total = sorted.reduce((sum, i) => sum + i.value, 0);
+    let subtotal = 0;
+    for (let i = 0; i < sorted.length; i++) {
+      subtotal += sorted[i].value;
+      sorted[i].percent = subtotal / total;
+    }
+    console.log(sorted);
+    console.log('test')
+  }
+
+  async fixMenuDuplication() {
+
+    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {},
+      projection: {
+        name: 1,
+      },
+      limit: 10000000
+    }).toPromise();
+
+    const restaurantIds = allRestaurants.map(r => r._id);
+    const badIds = [];
+
+    const batchSize = 50;
+    const batches = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batches) {
+      console.log("batch ", batches.indexOf(batch), ' of ', batches.length);
+      try {
+        const query = {
+          _id: { $in: [...batch.map(id => ({ $oid: id }))] }
+        };
+        const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          query,
+          projection: {
+            menus: 1,
+            name: 1,
+          },
+          limit: batchSize + 1
+        }).toPromise();
+
+        console.log("Done request");
+
+        for (let r of restaurants) {
+          const menus = r.menus || [];
+          let updated = false;
+          // we remove EITHER duplicared id or duplicated name of menu items!
+          for (let i = menus.length - 1; i >= 0; i--) {
+            const menu = menus[i];
+            const mcs = menu.mcs || [];
+            for (let j = mcs.length - 1; j >= 0; j--) {
+              const mc = mcs[j];
+              const mis = mc.mis || [];
+              const miIds = new Set();
+              const miNames = new Set();
+              for (let k = mis.length - 1; k >= 0; k--) {
+                const mi = mis[k] || {};
+                if (miIds.has(mi.id) /*|| miNames.has(mi.name) */) {
+                  console.log('dup:', mi.name, mi.sizeOptions[0].price);
+                  updated = true;
+                  mis.splice(k, 1);
+                }
+                miIds.add(mi.id);
+                miNames.add(mi.name);
+              }
+            }
+          }
+
+          if (updated) {
+            console.log(r.name)
+            // write it back
+            await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+              old: { _id: r._id },
+              new: { _id: r._id, menus: menus }
+            }]).toPromise();
+          }
+          console.log('done updating batch')
+        }
+      } catch (error) {
+        console.log(error);
+        badIds.push(...batch);
+      }
+      console.log("batch done");
+    }
+    console.log(badIds);
+  }
 
   async fixMenuSortOrders() {
     // const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
