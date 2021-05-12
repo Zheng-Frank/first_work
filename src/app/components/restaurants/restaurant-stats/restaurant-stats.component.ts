@@ -54,7 +54,7 @@ export class RestaurantStatsComponent implements OnInit {
         "customerPreviousOrderStatus.order": 1,
         createdAt: 1,
         customer: 1,
-        orderItems: 1
+        "orderItems.miInstance": 1
       },
       sort: {
         createdAt: -1
@@ -94,23 +94,23 @@ export class RestaurantStatsComponent implements OnInit {
     let newCustomerOrders = orders.filter(o => !o.customerPreviousOrderStatus);
     this.statistics['totalOrderFromNewCustomer'].value = newCustomerOrders.length;
     // count menu item with picture and without picture.
-    let menuItemWithPicture = [];
-    let menuItemWithoutPicture = [];
+    let menuItemWithPictureCount = 0;
+    let menuItemWithoutPictureCount = 0;
     orders.forEach(o => {
       o.orderItems.forEach(item => {
         // mcInstance is menu categray,and miInstance is menu item.
         // miInstance  
         if (item.miInstance && item.miInstance.imageObjs && item.miInstance.imageObjs.length > 0) {
-          menuItemWithPicture.push(item.miInstance);
+          menuItemWithPictureCount++;
         } else {
-          menuItemWithoutPicture.push(item.miInstance);
+          menuItemWithoutPictureCount++
         }
       });
     }
     );
-    this.statistics['menusWithPicture'].value = menuItemWithPicture.length;
-    this.statistics['menusWithoutPicture'].value = menuItemWithoutPicture.length;
-    this.statistics['menuPictureRate'].value = Number(((menuItemWithPicture.length / menuItemWithoutPicture.length).toFixed(4)));
+    this.statistics['menusWithPicture'].value = menuItemWithPictureCount;
+    this.statistics['menusWithoutPicture'].value = menuItemWithoutPictureCount;
+    this.statistics['menuPictureRate'].value = Number(((menuItemWithPictureCount / menuItemWithoutPictureCount).toFixed(4)));
 
   }
 
