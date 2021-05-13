@@ -65,7 +65,7 @@ export class QrRestaurantListComponent implements OnInit {
   filterByQRSalesperson() {
     if (this.qrSalesperson === 'All') {
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows;
-    } else if(this.qrSalesperson){
+    } else if(this.qrSalesperson){ // the qrSalesperson may be undefined,and it will make interact wrong.
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
         .filter(qrList => this.qrSalesperson === qrList.qrSettings.agent);
     }
