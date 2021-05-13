@@ -478,6 +478,7 @@ export class RestaurantOrdersComponent implements OnInit {
     this.adjustInvoiceComponment.percentage = true;
     this.adjustInvoiceComponment.percentageAdjustmentAmount = 20;
     this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100)); 
+    this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
     this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
