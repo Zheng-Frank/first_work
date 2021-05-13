@@ -21,7 +21,7 @@ export class QrRestaurantListComponent implements OnInit {
   filterTypes = [QRConfiguredTypes.ALL, QRConfiguredTypes.CORRECT_CONFIGURATION, QRConfiguredTypes.WRONG_CONFIGURATION];
   filterType = QRConfiguredTypes.ALL;
   qrSalespeople = []; // filter by QR Sales people.
-  qrSalesperson;
+  qrSalesperson = 'All';
   knownUsers = [];
   restaurantsColumnDescriptors = [
     {
@@ -65,7 +65,7 @@ export class QrRestaurantListComponent implements OnInit {
   filterByQRSalesperson() {
     if (this.qrSalesperson === 'All') {
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows;
-    } else {
+    } else if(this.qrSalesperson){
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
         .filter(qrList => this.qrSalesperson === qrList.qrSettings.agent);
     }
