@@ -123,7 +123,7 @@ export class RestaurantStatsComponent implements OnInit {
     });
     this.statistics['menusWithPicture'].value = menuItemWithPictureCount > 0 ? Number((menuItemWithPictureOrderCount / menuItemWithPictureCount).toFixed(4)) : 0;
     this.statistics['menusWithoutPicture'].value = menuItemWithoutPictureCount > 0 ? Number((menuItemWithoutPictureOrderCount / menuItemWithoutPictureCount).toFixed(4)) : 0;
-    this.statistics['menuPictureRate'].value = this.statistics['menusWithoutPicture'].value > 0 ? Number(((this.statistics['menusWithPicture'].value / this.statistics['menusWithoutPicture'].value).toFixed(4))) : 0;
+    this.statistics['menuPictureRate'].value = this.statistics['menusWithoutPicture'].value > 0 ? Number((this.statistics['menusWithPicture'].value / this.statistics['menusWithoutPicture'].value).toFixed(4)) : 0;
 
   }
 
