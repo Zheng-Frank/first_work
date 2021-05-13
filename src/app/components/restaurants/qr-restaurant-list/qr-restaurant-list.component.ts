@@ -58,45 +58,55 @@ export class QrRestaurantListComponent implements OnInit {
   ngOnInit() {
     this.populateQrRestaurant();
   }
-  /**
-   * RT is considered to have complete QR code setup if:
-    "QR fully configured"
-    Has fee schedules (not rate schedules)
-    Must have at least one menu with dine-in type (or both dine-in and online)
-    Must have fee setting for dine-in specifically:
-    must have at least one fee where: 
-    a) Qmenu is receiving money, 
-    b) the service type includes dine-in, 
-    c) the type is "service fee", 
-    d) amount/percent is NOT 0.
-   */
-  filterQrFullyConfigured() {
-    if (this.filterType === QRConfiguredTypes.ALL) {
-      this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
-    } else if (this.filterType === QRConfiguredTypes.CORRECT_CONFIGURATION) {
-      this.qrFilterRestaurantListRows = this.qrRestaurantListRows
-        .filter(qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
-          && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0);
-    } else if (this.filterType === QRConfiguredTypes.WRONG_CONFIGURATION) {
-      let temp = this.qrRestaurantListRows
-        .filter((qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
-          && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0));
-      this.qrFilterRestaurantListRows = this.qrRestaurantListRows.filter(qrList => !temp.includes(qrList));
-    }
-  }
 
   /**
    * add a new filter type , filtering by qr salesperson.
    */
   filterByQRSalesperson() {
-    this.qrFilterRestaurantListRows = this.qrRestaurantListRows
-      .filter(qrList => {
-        if(this.qrSalesperson === 'All'){
-          return true;
-        }else{
-          return this.qrSalesperson === qrList.qrSettings.agent;
-        }
-      });
+    if (this.qrSalesperson === 'All') {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows;
+    } else {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => this.qrSalesperson === qrList.qrSettings.agent);
+    }
+  }
+  // filter having interact
+  filter() {
+    /**
+    * RT is considered to have complete QR code setup if:
+     "QR fully configured"
+     Has fee schedules (not rate schedules)
+     Must have at least one menu with dine-in type (or both dine-in and online)
+     Must have fee setting for dine-in specifically:
+     must have at least one fee where: 
+     a) Qmenu is receiving money, 
+     b) the service type includes dine-in, 
+     c) the type is "service fee", 
+     d) amount/percent is NOT 0.
+    */
+    switch (this.filterType) {
+      case QRConfiguredTypes.ALL:
+        this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
+        break;
+      case QRConfiguredTypes.CORRECT_CONFIGURATION:
+        this.qrFilterRestaurantListRows = this.qrRestaurantListRows
+          .filter(qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
+            && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0);
+        break;
+      case QRConfiguredTypes.WRONG_CONFIGURATION:
+        let temp = this.qrRestaurantListRows
+          .filter((qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
+            && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0));
+        this.qrFilterRestaurantListRows = this.qrRestaurantListRows.filter(qrList => !temp.includes(qrList));
+        break;
+      default:
+        this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
+        break;
+    }
+    /**
+    * add a new filter type , filtering by qr salesperson.
+    */
+    this.filterByQRSalesperson();
   }
 
   async populateQrRestaurant() {
@@ -111,7 +121,7 @@ export class QrRestaurantListComponent implements OnInit {
         feeSchedules: 1,
         rateSchedules: 1,
         "menus.targetCustomer": 1,
-        qrSettings : 1
+        qrSettings: 1
       },
       sort: { updatedAt: -1 }
     }, 5000);
@@ -135,7 +145,7 @@ export class QrRestaurantListComponent implements OnInit {
       let restaurant = this.qrRestaurantListRows[i];
       let tempOrders = orders.filter(o => o.orderObj.restaurantObj._id === restaurant._id);
       this.qrRestaurantListRows[i].qrOrderNumber = tempOrders.length;
-      if(restaurant.menus){
+      if (restaurant.menus) {
         this.qrRestaurantListRows[i].menus = restaurant.menus.map(m => {
           if (m.targetCustomer) {
             m.menuTarget = this.targets.filter(t => t.value === m.targetCustomer)[0].text;

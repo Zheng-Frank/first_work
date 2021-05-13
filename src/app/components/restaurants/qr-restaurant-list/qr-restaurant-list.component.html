@@ -4,13 +4,13 @@
 <div class="pb-2 text-left">
   <div class="float-left form-inline ml-2 mr-2">
     <label class="form-check-label mr-2">Show</label>
-    <select [(ngModel)]="filterType" class="form-control ml-1"  (change)="filterQrFullyConfigured()">
+    <select [(ngModel)]="filterType" class="form-control ml-1"  (change)="filter()">
         <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
     </select>
   </div>
   <div class="float-left form-inline ml-2 mr-2">
     <label class="form-check-label mr-2">QR Salesperson</label>
-    <select [(ngModel)]="qrSalesperson" class="form-control ml-1"  (change)="filterByQRSalesperson()">
+    <select [(ngModel)]="qrSalesperson" class="form-control ml-1"  (change)="filter()">
       <option value="All">All</option>  
       <ng-container *ngFor="let person of qrSalespeople">
         <option *ngIf="person != 'None'" [value]="person">{{person}}</option>
@@ -25,7 +25,7 @@
     Qr Restaurant list is empty.
   </div>
   <q-table [rows]="qrFilterRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-    [pageSize]="pagination ? 100 : 100000">
+    [pageSize]="100000">
     <tr *tableRowTemplate="let restaurant;">
       <td>{{qrFilterRestaurantListRows.indexOf(restaurant) + 1}}</td>
       <td>
@@ -35,7 +35,7 @@
         <br>
         <br>
        <div>
-        QR Salesperson : {{restaurant.qrSettings.agent}}
+        QR Salesperson: {{restaurant.qrSettings.agent}}
        </div>
       </td>
       <td>
