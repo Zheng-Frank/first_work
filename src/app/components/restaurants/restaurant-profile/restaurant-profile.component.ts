@@ -1,3 +1,4 @@
+import { ViewChild } from '@angular/core';
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { Address, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
@@ -8,6 +9,8 @@ import { environment } from '../../../../environments/environment';
 import { AlertType } from '../../../classes/alert-type';
 import { HttpClient } from '@angular/common/http';
 import { formatNumber } from '@angular/common';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { LanguageType } from 'src/app/classes/language-type';
 
 @Component({
   selector: 'app-restaurant-profile',
@@ -111,8 +114,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   preferredLanguage;
   selfSignupRegistered;
   notification;
-  showExplanationsIcon = true; //  a flag to decide whether show English/Chinese translations icon and the icon will toggle show explanations when focus in it.
-  showExplanations = false;
+  showExplanationsIcon = this._global.showExplanationsIcon; //  a flag to decide whether show English/Chinese translations icon and the icon will toggle show explanations when focus in it.
   translating = '';
   Explanations = {
     ChineseExplanations:{
@@ -123,37 +125,37 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Alias":"",
       "TimeZone":"你必须记得查看餐厅的时区并正确设置！直接在Google上搜索 “[city], [state] time zone” 或 “[zip code] time zone”。",
       "TaxRate":"餐厅的当地税率。 如果餐厅不知道他们的税率，您可以在谷歌上查找它们。",
-      "SalesAgent":"",
-      "Disabled":"复选框禁用餐厅（例如，如果餐厅停业或停止与qMenu开展业务，选中此框将禁用客户为餐厅下达的任何未来订单）。当一家餐馆被禁用时，这也会告诉我们的系统即使在所有权受到攻击时也不会产生专线小组转移任务，因为我们的专线小组团队努力维持一个不再与我们合作的餐馆的专线小巴列表是不值得的。",
+      "SalesAgent":"销售人员",
+      "Disabled":"取消合作的餐馆。（选中此框将禁用客户为餐厅下达的任何未来订单）。当一家餐馆被禁用时，这也会告诉我们的系统即使在所有权受到攻击时也不会产生专线小组转移任务，因为我们的GMB小组团队努力维持一个不再与我们合作的餐馆的GMB列表是不值得的。",
       "TimeEstimateforPickup":"准备拿餐订单时间估算（分钟）",
       "TimeEstimateforDelivery":"准备外送订单时间估算（分钟）",
-      "PreferredLanguage":"确定用于机器人调用的语言，以通知新的传入订单（英文或中文）.",
-      "WebsiteBroadcast":"此广播将显示在餐厅的订购网站上。 如果餐厅要求您向将出现在网站上的客户添加消息，则应在此处添加该内容。 例如，在下图中，餐馆想要警告顾客他们必须出示与他们打算用来购买食物的信用卡相匹配的有效ID。",
-      "Surcharge":"在线订购的额外费用。 鼓励餐厅尽可能不收取此类费用，因为它可能会阻止客户。 （向客户展示的文字：通常类似“在线订单费”）。",
-      "SurchargeRate":"在线订购的额外费用。 鼓励餐厅尽可能不收取此类费用，因为它可能会阻止客户。 （向客户展示的文字：通常类似“在线订单费”）",
+      "PreferredLanguage":"座机接受订单确认电话的语言。",
+      "WebsiteBroadcast":"小喇叭广播。用于餐馆温馨提示客人与餐馆相关的一些重要信息。此广播将显示在餐馆的订购网站上。",
+      "Surcharge":"在线订购的附加费（固定金额）",
+      "SurchargeRate":"在线订购的附加费（百分比）",
       "CCProcessingRate":"一些餐馆收取信用卡金额的一定百分比作为处理付款的费用。",
       "CCProcessingFlatFee":"部分餐厅收取固定费用以处理信用卡交易，如1美元。 鼓励餐厅尽可能不收取此类费用，因为它可能会阻止客户。",
-      "PickupMinimum":"取件订单的最低订单金额",
-      "CCMinimumCharge":"",
-      "DefaultPercentage":"",
-      "MinimumPercentage":"",
-      "DefaultAmount":"",
-      "MinimumAmount":"",
-      "ShowTip":"",
-      "DisableScheduling":"如果选中此复选框，则会阻止客户在餐厅当前未打开时从餐厅下订单。 由于客户经常仍然错误地为未来日期下订单（认为他们正在下当天订单），我们已将此作为所有餐厅的默认系统行为。",
-      "RegisterSelfSignup":"",
-      "Notes":"有关餐厅的任何额外的非结构化数据，没有其他现有专用字段输入信息。",
-      "HideOrderStatusonCustomerSide":"",
-      "SkipOrderConfirmation":"如果选择此选项，此餐厅的未确认订单将不会出现在Qmenu CSR Portal主页上的“未确认订单”列表中（换句话说，餐厅不希望确认他们获得的每个订单，也不会 希望收到我们的提醒。）",
-      "SkipAutoInvoicing":"",
-      "NotShowTaxOptiontoCustomer":"",
-      "SkipImageInject":"",
-      "Allowsubmittingorderatclosetime":"",
-      "HideprintingCC":"",
-      "PreventRTfromcancelingorders":"",
-      "Showorderreadyestimate":"",
+      "PickupMinimum":"拿餐最低subtotal的消费金额",
+      "CCMinimumCharge":"信用卡最低消费金额",
+      "DefaultPercentage":"小费默认百分比选项（如果小费默认金额更严格就金额优先）",
+      "MinimumPercentage":"小费最低百分比（如果小费最低金额更严格就金额优先）",
+      "DefaultAmount":"小费默认金额选项（如果小费默认百分比更严格就百分比优先）",
+      "MinimumAmount":"小费最低金额（如果小费最低百分比更严格就百分比优先）",
+      "ShowTip":"不显示小费（并且不允许客人在下单时给小费）",
+      "DisableScheduling":"如果选中此复选框，就不能产生预订单。",
+      "RegisterSelfSignup":"自动加入餐厅如果点击此复选框后就表示已经完成加入，不会在https://csr.qmenu.us/#/seamless-integration 出现了",
+      "Notes":"备注。有关餐厅的任何额外的非结构化数据，没有其他现有专用字段输入信息。",
+      "HideOrderStatusonCustomerSide":"在客人页面隐藏订单实时跟进状态",
+      "SkipOrderConfirmation":"跳过确认。如果选择此选项，此餐厅的未确认订单将不会出现在Qmenu CSR Portal主页上的“未确认订单”列表中（换句话说，餐厅不希望确认他们获得的每个订单，也不会 希望收到我们的提醒。）",
+      "SkipAutoInvoicing":"我们默认给所有餐馆自动做账，但勾选这个选项就代表手动做账",
+      "NotShowTaxOptiontoCustomer":"不显示税项",
+      "SkipImageInject":"如果没有勾选此选项的话，我们将自动插入菜单图片",
+      "Allowsubmittingorderatclosetime":"允许客人在餐馆关门之前任何时刻下订单，而不根据餐馆的预计准备时间限制在餐馆最后几十分钟不让下单",
+      "HideprintingCC":"隐藏订单上的云打印或传真的信用卡信息",
+      "PreventRTfromcancelingorders":"不允许餐馆自己取消订单",
+      "Showorderreadyestimate":"给客人看订单预计预计准备时间信息",
       "Domain":"标注:“域”字段不再位于“配置文件”部分下，因为现在，所有与网站相关的信息都已移至此处。",
-      "DisableOrderingAhead":"",
+      "DisableOrderingAhead":"如果选中此复选框，就不能产生预订单。",
       "OrderCallLanguage":"确定用于机器人调用的语言，以通知新的传入订单（英文或中文）.",
       "Logo":"（菜单编辑会处理这个问题，CSR+销售人员可以忽略）：这里上传的任何徽标都会出现在餐厅的qMenu订购网站的这两个地方。",
       "Photos":"(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。"
@@ -161,48 +163,50 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     EnglishExplanations:{
       "Name":"Name of restaurant",
       "Address":"Address of restaurant (this must now be selected from a list of Google-validated addresses).",
-      "AddressExtra":"Any extra address information, like apartment or suite number, that isn’t captured by the main “Address” field can be recorded here ",
+      "AddressExtra":"Any extra address information, like apartment or suite number, that isn’t captured by the main “Address” field can be recorded here.",
       "ID":"ID of restaurant",
       "Alias":"",
-      "TimeZone":"You must remember to look up the time zone of the restaurant and set it properly! Simply search for “[city], [state] time zone” or “[zip code] time zone” on Google. ",
+      "TimeZone":"You must remember to look up the time zone of the restaurant and set it properly! Simply search for “[city], [state] time zone” or “[zip code] time zone” on Google.",
       "TaxRate":"The restaurant’s local tax rate. If the restaurant doesn’t know their tax rate, you can look it up on Google for them.",
-      "SalesAgent":"",
-      "Disabled":"Checkbox to disable the restaurant (for instance, if the restaurant goes out of business or stops doing business with qMenu, checking this box will disable any future orders from being placed by customers for the restaurant). When a restaurant is disabled, this will also tell our system to not generate GMB transfer tasks even when the ownership is attacked, since it’s not worth our GMB team’s efforts to maintain a GMB listing of a restaurant that won’t work with us anymore anyway.",
-      "TimeEstimateforPickup":"Time Estimate for Pickup (mins)",
-      "TimeEstimateforDelivery":"Time Estimate for Delivery (mins):",
-      "PreferredLanguage":"Determines the language to use for robo-calls to notify of new incoming orders (English or Chinese) .",
+      "SalesAgent":"The name of the sales agent responsible for convincing the restaurant to join Qmenu.",
+      "Disabled":"Checkbox to disable the restaurant and stop any further activities. Use with caution! (For instance, if the restaurant goes out of business or stops working with qMenu, checking this box will disable any future orders from being placed by customers for the restaurant). When a restaurant is disabled, this will also tell our system to not generate GMB transfer tasks even when the ownership is attacked, since it’s not worth our GMB team’s efforts to maintain a GMB listing of a restaurant that won’t work with us anymore anyway.",
+      "TimeEstimateforPickup":"Estimated amount of time it takes the restaurant to prepare a pickup order (in minutes)",
+      "TimeEstimateforDelivery":"Estimated amount of time it takes the restaurant to prepare and deliver a delivery order (in minutes):",
+      "PreferredLanguage":"Determines the language to use for robo-calls to notify restaurant of new incoming orders (English or Chinese).",
       "WebsiteBroadcast":"This broadcast will be displayed on the restaurant’s ordering site. If the restaurant asks you to add a message to customers that will appear on the website, this is where you should add that content. For example, in the image below, the restaurant wants to warn customers that they must present a valid ID matching the credit card they intend to use to purchase the food.",
-      "Surcharge":" Extra fee for ordering online. Encourage the restaurant not to charge such a fee if possible as it may deter customers. (Text to show customer: what to show customers to explain this fee, usually something like “Service Fee”).",
-      "SurchargeRate":"",
-      "CCProcessingRate":"Some restaurants charge a percentage of the credit card amount as a fee to process the payment.",
-      "CCProcessingFlatFee":"Some restaurants charge a flat fee for processing credit card transactions, like $1. Encourage the restaurant not to charge such a fee if possible as it may deter customers.",
-      "PickupMinimum":"Minimum order amount for pickup orders ",
-      "CCMinimumCharge":"",
-      "DefaultPercentage":"",
-      "MinimumPercentage":"",
-      "DefaultAmount":"",
-      "MinimumAmount":"",
-      "ShowTip":"",
+      "Surcharge":"Extra flat fee for ordering online. Encourage the restaurant not to charge such a fee if possible as it may deter customers. (Text to show customer: what to show customers to explain this fee, usually something like “Service Fee”).",
+      "SurchargeRate":"Extra percentage fee for ordering online. Encourage the restaurant not to charge such a fee if possible as it may deter customers.",
+      "CCProcessingRate":"Percentage fee charged by the restaurant on orders where customers pay with credit card. Not recommended, may deter customers.",
+      "CCProcessingFlatFee":"Flat fee charged by the restaurant on orders where customers pay with credit card. Not recommended, may deter customers.",
+      "PickupMinimum":"Minimum order amount for pickup orders",
+      "CCMinimumCharge":"Minimum order amount for a customer to be allowed to pay by credit card",
+      "DefaultPercentage":"Default tip percentage pre-selected on checkout page (the stricter of this attribute and the default tip amount attribute will take precedence)",
+      "MinimumPercentage":"Minimum required tip percentage",
+      "DefaultAmount":"Default tip amount pre-selected on checkout page (the stricter of this attribute and the default tip percentage attribute will take precedence)",
+      "MinimumAmount":"Minimum required tip amount",
+      "ShowTip":"On/off switch to show or hide tip section on checkout page. On by default, but some restaurants prefer customers to give cash tips separately and thus don't want to show tip option online.",
       "DisableScheduling":"If this box is checked, it prevents customers from placing future orders from the restaurant if the restaurant is not currently open. Due to the fact that customers were often still mistakenly placing orders for future dates (thinking that they were placing current-day orders), we have made this the default system behavior for all restaurants.",
-      "RegisterSelf-Signup":"",
-      "Notes":"Any extra unstructured data about the restaurant for which there is not another existing dedicated field to enter the information into.",
+      "RegisterSelf-Signup":"For self-signup restaurants (those registering through signup.qmenu.com), checking this box takes them off the https://csr.qmenu.us/#/seamless-integration list.",
+      "Notes":"Any extra unstructured data about the restaurant for which there is no other dedicated field to store that information.",
       "HideOrderStatusonCustomerSide":"",
-      "SkipOrderConfirmation":"If this option is selected, unconfirmed orders for this restaurant will not appear in the “Unconfirmed Orders” list on the Qmenu CSR Portal home page (in other words, the restaurant doesn’t want to have to confirm each order they get and does not want to receive reminders from us to do so).",
+      "SkipOrderConfirmation":"If this option is selected, unconfirmed orders for this restaurant will not appear in the “Unconfirmed Orders” dashboard on the Qmenu CSR Portal home page. This means the restaurant doesn’t want to have to confirm each order they get and does not want to receive reminders from us to do so.",
       "SkipAutoInvoicing":"",
       "NotShowTaxOptiontoCustomer":"",
       "SkipImageInject":"",
-      "Allowsubmittingorderatclosetime":"",
+      "Allowsubmittingorderatclosetime":"If turned on, a customer will be allowed to submit an order right up until the moment the restaurant closes. Usually, if the restaurant closed at 4pm for example, and TimeEstimateforPickup was 20 minutes, the customer would only be able to sumbit an order at 3:40pm (20 mins before closing) at the latest.",
       "HideprintingCC":"",
-      "PreventRTfromcancelingorders":"",
-      "Showorderreadyestimate":"",
-      "Domain":" NOTE:The “Domain” field is no longer under the “Profile” section, because now, all website-related information has been moved here.", // Editable field.
-      "DisableOrderingAhead":"",
-      "OrderCallLanguage":"Determines the language to use for robo-calls to notify of new incoming orders (English or Chinese) .",
-      "Logo":" (Menu editors take care of this, CSR + sales can ignore): Any logo uploaded here will appear in these two places on the qMenu ordering site for the restaurant.",
-      "Photos":" (Menu editors take care of this, CSR + sales can ignore): Image uploaded here will be the website background image on the qMenu ordering site for the restaurant. ",
+      "PreventRTfromcancelingorders":"Hide the order cancellation button on the biz portal. Some restaurants from whom we are attempting to recoup cash due to unpaid invoices and for which we have set order payment collection method to Qmenu Collect, purposely cancel orders to avoid us recouping those unpaid funds.",
+      "Showorderreadyestimate":"If turned on, the order ready time estimate will be shown to the customer",
+      "Domain":" NOTE: The “Domain” field is no longer under the “Profile” section, because now, all website-related information has been moved here.", // Editable field.
+      "DisableOrderingAhead":"If turned on, customers won't be able to schedule orders for future point in time ahead of time.",
+      "OrderCallLanguage":"Determines the language to use for robo-calls to notify restaurants of new, incoming orders (Options: English or Chinese).",
+      "Logo":" (Menu editors take care of this, CSR + sales can ignore): Any logo uploaded here will appear in these two places on the qMenu ordering site for the restaurant: 1. The qmenu.us/alias page of the restaurant, 2. ...",
+      "Photos":" (Menu editors take care of this, CSR + sales can ignore): Image uploaded here will appear as the website background image on the qMenu ordering site for the restaurant.",
 
     }
   }
+
+  changeLanguageFlag = this._global.languageType;
   preferredLanguages = [
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
@@ -212,7 +216,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   isComebackDateCorrectlySet = false;
   isTemporarilyDisabled;
   now = new Date().toISOString().split('T')[0];
-
+  @ViewChild('previewWebsiteModal') previewWebsiteModal:ModalComponent;
+  
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) {
   }
 
@@ -226,10 +231,15 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     }
     this.tipSettingsInit();
   }
+
+  // a small function we can preview website when we edit it.
+  previewWebsite(){
+    this.previewWebsiteModal.show();
+  }
+
   // Show the corresponding translation of restaurant profile field.
   showCorrespondingTranslation(field){
     this.translating = field;
-    this.showExplanations = true;
   }
 
   isDate(dateToParse) {
