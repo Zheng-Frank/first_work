@@ -1,4 +1,4 @@
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { ApiService } from 'src/app/services/api.service';
@@ -37,6 +37,9 @@ export class QrRestaurantListComponent implements OnInit {
       sort: (a, b) => a.qrOrderNumber - b.qrOrderNumber
     },
     {
+      label: "Correct/Wrong Reasons"  // why restaurant is wrong.
+    },
+    {
       label: "Fee/Rate Schedules"
     }
 
@@ -65,7 +68,7 @@ export class QrRestaurantListComponent implements OnInit {
   filterByQRSalesperson() {
     if (this.qrSalesperson === 'All') {
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows;
-    } else if(this.qrSalesperson){ // the qrSalesperson may be undefined,and it will make interact wrong.
+    } else if (this.qrSalesperson) { // the qrSalesperson may be undefined,and it will make interact wrong.
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
         .filter(qrList => this.qrSalesperson === qrList.qrSettings.agent);
     }
@@ -89,14 +92,10 @@ export class QrRestaurantListComponent implements OnInit {
         this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
         break;
       case QRConfiguredTypes.CORRECT_CONFIGURATION:
-        this.qrFilterRestaurantListRows = this.qrRestaurantListRows
-          .filter(qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
-            && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0);
+        this.qrFilterRestaurantListRows = this.filterCorrectConfig();
         break;
       case QRConfiguredTypes.WRONG_CONFIGURATION:
-        let temp = this.qrRestaurantListRows
-          .filter((qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
-            && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0));
+        let temp = this.filterCorrectConfig();
         this.qrFilterRestaurantListRows = this.qrRestaurantListRows.filter(qrList => !temp.includes(qrList));
         break;
       default:
@@ -107,6 +106,12 @@ export class QrRestaurantListComponent implements OnInit {
     * add a new filter type , filtering by qr salesperson.
     */
     this.filterByQRSalesperson();
+  }
+
+  filterCorrectConfig() {
+    return this.qrRestaurantListRows
+      .filter(qrList => qrList.feeSchedules && qrList.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0
+        && qrList.menus && qrList.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0);
   }
 
   async populateQrRestaurant() {
@@ -121,6 +126,7 @@ export class QrRestaurantListComponent implements OnInit {
         feeSchedules: 1,
         rateSchedules: 1,
         "menus.targetCustomer": 1,
+        "menus.name": 1,
         "qrSettings.agent": 1
       },
       sort: { updatedAt: -1 }
@@ -153,10 +159,32 @@ export class QrRestaurantListComponent implements OnInit {
           return m;
         });
       }
-      let agent =  restaurant.qrSettings.agent || 'None';
+      let agent = restaurant.qrSettings.agent || 'None';
       this.qrRestaurantListRows[i].qrSettings.agent = agent; // it also needs to give row's agent a default value to avoid undefined condition.
-      this.qrSalespeople.push(agent);
+      if (this.qrSalespeople.indexOf(agent) === -1) {
+        this.qrSalespeople.push(agent);
+      }
     }
+    // find why some qr restaurants is wrong.
+    let correctRTs = this.filterCorrectConfig();
+    let wrongRTs = this.qrRestaurantListRows.filter(qrList => !correctRTs.includes(qrList));
+    wrongRTs = wrongRTs.map(wrong => {
+      wrong.Reasons = [];
+      let flagReason1 = wrong.feeSchedules && wrong.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0;
+      let flagReason2 = wrong.menus && wrong.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0;
+      if (!flagReason1) {
+        wrong.Reasons.push('(1)The feeSchedules configuration is wrong.');
+      }
+      if (!flagReason2) {
+        wrong.Reasons.push( '(2)The menus configuration is wrong.');
+      }
+      return wrong;
+    });
+    this.qrRestaurantListRows = wrongRTs;
+    this.qrRestaurantListRows.push(...correctRTs = correctRTs.map(correct => {
+      correct.Reasons = ['This restautant has completed QR code setup'];
+      return correct;
+    }));
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
 
   }
