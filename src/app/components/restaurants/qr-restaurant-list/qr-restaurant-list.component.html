@@ -2,16 +2,19 @@
     <h3>List of Restaurants with QR Dine-In ({{qrFilterRestaurantListRows?.length || 0}})</h3>
 </div>
 <div class="pb-2 text-left">
-  <div class="float-left form-inline mt-2 ml-2">
-    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
-    <label class="form-check-label mr-2" for="paginationCheck">
-      Pagination
-    </label>
-  </div>
   <div class="float-left form-inline ml-2 mr-2">
     <label class="form-check-label mr-2">Show</label>
-    <select [(ngModel)]="filterType" class="form-control ml-1"  (change)="filterQrFullyConfigured()">
+    <select [(ngModel)]="filterType" class="form-control ml-1"  (change)="filter()">
         <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
+    </select>
+  </div>
+  <div class="float-left form-inline ml-2 mr-2">
+    <label class="form-check-label mr-2">QR Salesperson</label>
+    <select [(ngModel)]="qrSalesperson" class="form-control ml-1"  (change)="filter()">
+      <option value="All">All</option>  
+      <ng-container *ngFor="let person of qrSalespeople">
+        <option *ngIf="person != 'None'" [value]="person">{{person}}</option>
+      </ng-container>
     </select>
   </div>
   <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
@@ -22,7 +25,7 @@
     Qr Restaurant list is empty.
   </div>
   <q-table [rows]="qrFilterRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-    [pageSize]="pagination ? 100 : 100000">
+    [pageSize]="100000">
     <tr *tableRowTemplate="let restaurant;">
       <td>{{qrFilterRestaurantListRows.indexOf(restaurant) + 1}}</td>
       <td>
@@ -31,9 +34,9 @@
         {{restaurant.googleAddress?.formatted_address}}
         <br>
         <br>
-        <div *ngFor="let menu of restaurant.menus">
-          {{menu.name}} ({{menu.menuTarget || 'Online only'}})
-        </div>
+       <div>
+        QR Salesperson: {{restaurant.qrSettings.agent}}
+       </div>
       </td>
       <td>
         {{restaurant.qrOrderNumber}}
