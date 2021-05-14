@@ -92,7 +92,7 @@ const routes: Routes = [
   { path: 'restaurants/:id/menus', component: MenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
   { path: 'restaurants/:id/menu-options', component: MenuOptionsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
   { path: 'restaurants/:id/invoices', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
-  { path: 'qr-restaurant-list', component:  QrRestaurantListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'qr-restaurant-list', component:  QrRestaurantListComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "CSR","MARKETING_DIRECTOR", "MARKETER","ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
   { path: 'ivr/dashboard', component: IvrDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'ivr/agent', component: IvrAgentComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
   { path: 'onboarding', component: MonitoringOnboardingComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
