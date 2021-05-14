@@ -1,84 +1,28 @@
-<div *ngIf="!restaurantList || restaurantList.length === 0">
-    Postmates list is empty.
-  </div>
-  
-  <q-simple-radio [(ngModel)]="selectedAvailability" [values]="availabilityList"
-    (ngModelChange)="selectAvailability($event)">
-  </q-simple-radio>
-  
-  <div class="float-left form-inline mt-2">
-    <label class="mr-2"> Count:</label>
-    <span class="mr-5"> {{filteredRestaurants.length}} </span>
-  
-    <label class="mr-2"> Postmates availability:</label>
-    <select class="mr-5" [(ngModel)]="selectedAvailability" (change)="filter()">
-      <option *ngFor="let availability of availabilityList">{{availability}}</option>
-    </select>
-  
-    <label class="mr-2"> Time Zone:</label>
-    <select class="mr-5" [(ngModel)]="selectedTimeZone" (change)="filter()">
-      <option>All</option>
-      <option *ngFor="let timeZone of timeZoneList">{{timeZone}}</option>
-    </select>
-  
-    <label class="mr-2"> Caller:</label>
-    <select class="mr-5" [(ngModel)]="selectedCaller" (change)="filter()">
-      <option>All</option>
-      <option *ngFor="let caller of callerList">{{caller}}</option>
-    </select>
-  
-    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
-    <label class="form-check-label mr-5" for="paginationCheck">
-      Pagination
-    </label>
-  </div>
-  
-  
-  <q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-    [pageSize]="pagination ? 100 : 100000">
-    <tr *tableRowTemplate="let restaurant;">
-      <td>{{filteredRestaurants.indexOf(restaurant) + 1}}</td>
-      <td>
-        <a href="#/restaurants/{{restaurant.restaurantId}}" target="_blank">{{restaurant.name}}</a>
-        <br>
-        {{restaurant.address}}
-      </td>
-      <td>{{restaurant.timeZone}}</td>
-      <td>{{restaurant.score | number : '1.0-1'}}</td>
-      <td>{{restaurant.availability || "unknown"}}</td>
-      <td>{{restaurant.checkedAt | ago: now}}</td>
-      <td>{{restaurant.callers?restaurant.callers[0]:null}}</td>
-      <td class="text-right">
-        <button class="btn btn-link py-0" (click)="call(restaurant)">
-          <i class="fas fa-phone"></i>
-        </button>
-      </td>
-      <td *ngIf="restaurant.callLogs">
-        <ng-container *ngFor="let log of restaurant.callLogs; index as logIndex">
-          <tr (click)="editLog(restaurant, logIndex)" style="cursor: pointer;">
-            {{log.time | date:'M/d'}} {{log.caller}}: {{log.comments}}
-          </tr>
-        </ng-container>
-      </td>
-    </tr>
-  </q-table>
-  
-  <q-modal [title]="restaurantInEditing.name" #callModal>
-    <div class="pb-2">
-      <button class="btn btn-primary" (click)="toggleNewCallLog()">
-        <i class="fas fa-phone"></i> Add New Log</button>
-    </div>
-    <div *qIf="editingNewCallLog">
-      <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="newLogFieldDescriptors"
-        (submit)="newLogSubmit($event)" (remove)="removeNewLog($event)" (cancel)="callModal.hide()">
-      </q-form-builder>
-    </div>
-  </q-modal>
-  
-  <q-modal [title]="restaurantInEditing.name" #logEditorModal>
-    <div *qIf="editingLog">
-      <q-form-builder [object]="restaurantInEditing" [fieldDescriptors]="logEditorFieldDescriptors"
-        (submit)="logEditorSubmit($event)" (remove)="removeLogNotAllowed($event)" (cancel)="logEditorModal.hide()">
-      </q-form-builder>
-    </div>
-  </q-modal>
+<div class="text-center">
+  <h3>Restaurants by Courier({{filteredRestaurants.length}})</h3>
+</div>
+<div *ngIf="!restaurants || restaurants.length === 0">
+  Restaurants by Courier list is empty.
+</div>
+<div class="float-left form-inline mt-2 mb-2 ml-2">
+  <label class="mr-2"> Courier:</label>
+  <select class="mr-5 form-control" [(ngModel)]="courier" (change)="filter()">
+    <option value="All">All</option>
+    <ng-container *ngFor="let courier of couriers">
+      <option *ngIf="courier != 'None'" [value]='courier.name'>{{courier.name}}</option>
+    </ng-container>
+  </select>
+</div>
+<q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true">
+  <tr *tableRowTemplate="let restaurant;">
+    <td>{{filteredRestaurants.indexOf(restaurant) + 1}}</td>
+    <td>
+      <a href="#/restaurants/{{restaurant.restaurantId}}" target="_blank">{{restaurant.name}}</a>
+      <br>
+      {{restaurant.address}}
+    </td>
+    <td>{{restaurant.courier?.name || 'None'}}</td>
+    <td>{{restaurant.timeZone}}</td>
+    <td>{{restaurant.score | number : '1.0-1' || 0}}</td>
+  </tr>
+</q-table>
