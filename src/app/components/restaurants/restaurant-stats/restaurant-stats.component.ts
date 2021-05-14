@@ -94,23 +94,36 @@ export class RestaurantStatsComponent implements OnInit {
     let newCustomerOrders = orders.filter(o => !o.customerPreviousOrderStatus);
     this.statistics['totalOrderFromNewCustomer'].value = newCustomerOrders.length;
     // count menu item with picture and without picture.
-    let menuItemWithPictureCount = 0;
-    let menuItemWithoutPictureCount = 0;
+    let menuItemWithPictureOrderCount = 0;
+    let menuItemWithoutPictureOrderCount = 0;
     orders.forEach(o => {
       o.orderItems.forEach(item => {
         // mcInstance is menu categray,and miInstance is menu item.
         // miInstance  
         if (item.miInstance && item.miInstance.imageObjs && item.miInstance.imageObjs.length > 0) {
-          menuItemWithPictureCount++;
+          menuItemWithPictureOrderCount++;
         } else {
-          menuItemWithoutPictureCount++
+          menuItemWithoutPictureOrderCount++;
         }
       });
     }
     );
-    this.statistics['menusWithPicture'].value = menuItemWithPictureCount;
-    this.statistics['menusWithoutPicture'].value = menuItemWithoutPictureCount;
-    this.statistics['menuPictureRate'].value = Number(((menuItemWithPictureCount / menuItemWithoutPictureCount).toFixed(4)));
+    let menuItemWithPictureCount = 0;
+    let menuItemWithoutPictureCount = 0;
+    this.restaurant.menus.forEach(menu => {
+      menu.mcs.forEach(mc => {
+        mc.mis.forEach(mi => {
+          if (mi.imageObjs && mi.imageObjs.length > 0) {
+            menuItemWithPictureCount++;
+          } else {
+            menuItemWithoutPictureCount++;
+          }
+        });
+      });
+    });
+    this.statistics['menusWithPicture'].value = menuItemWithPictureCount > 0 ? Number((menuItemWithPictureOrderCount / menuItemWithPictureCount).toFixed(4)) : 0;
+    this.statistics['menusWithoutPicture'].value = menuItemWithoutPictureCount > 0 ? Number((menuItemWithoutPictureOrderCount / menuItemWithoutPictureCount).toFixed(4)) : 0;
+    this.statistics['menuPictureRate'].value = this.statistics['menusWithoutPicture'].value > 0 ? Number((this.statistics['menusWithPicture'].value / this.statistics['menusWithoutPicture'].value).toFixed(4)) : 0;
 
   }
 
