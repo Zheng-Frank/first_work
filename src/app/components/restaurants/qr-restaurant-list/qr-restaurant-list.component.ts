@@ -1,4 +1,4 @@
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { ApiService } from 'src/app/services/api.service';
@@ -37,7 +37,7 @@ export class QrRestaurantListComponent implements OnInit {
       sort: (a, b) => a.qrOrderNumber - b.qrOrderNumber
     },
     {
-      label: "Reasons"  // why restaurant is wrong.
+      label: "Correct/Wrong Reasons"  // why restaurant is wrong.
     },
     {
       label: "Fee/Rate Schedules"
@@ -126,6 +126,7 @@ export class QrRestaurantListComponent implements OnInit {
         feeSchedules: 1,
         rateSchedules: 1,
         "menus.targetCustomer": 1,
+        "menus.name": 1,
         "qrSettings.agent": 1
       },
       sort: { updatedAt: -1 }
@@ -164,33 +165,26 @@ export class QrRestaurantListComponent implements OnInit {
         this.qrSalespeople.push(agent);
       }
     }
-    // find why qr restaurant is wrong.
+    // find why some qr restaurants is wrong.
     let correctRTs = this.filterCorrectConfig();
-    let wrongRTs = this.qrRestaurantListRows.filter(qrList => !this.qrRestaurantListRows.includes(qrList));
-    wrongRTs =  wrongRTs.map(wrong => {
-      wrong.Reasons = '';
+    let wrongRTs = this.qrRestaurantListRows.filter(qrList => !correctRTs.includes(qrList));
+    wrongRTs = wrongRTs.map(wrong => {
+      wrong.Reasons = [];
       let flagReason1 = wrong.feeSchedules && wrong.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0;
       let flagReason2 = wrong.menus && wrong.menus.filter(m => m.targetCustomer && (m.targetCustomer === 'DINE_IN_ONLY' || m.targetCustomer === 'ALL')).length > 0;
-      /**
-       * RT is considered to have complete QR code setup if:
-        "QR fully configured"
-        Has fee schedules (not rate schedules)
-        Must have at least one menu with dine-in type (or both dine-in and online)
-        Must have fee setting for dine-in specifically:
-        must have at least one fee where: 
-        a) Qmenu is receiving money, 
-        b) the service type includes dine-in, 
-        c) the type is "service fee", 
-        d) amount/percent is NOT 0.
-      */
-      if (flagReason1) {
-        wrong.Reasons += '(1)The feeSchedules configuration of the restaurant is wrong.';
+      if (!flagReason1) {
+        wrong.Reasons.push('(1)The feeSchedules configuration is wrong.');
       }
-      if(flagReason2){
-        wrong.Reasons += '(2)The menus configuration of the restaurant is wrong.'
+      if (!flagReason2) {
+        wrong.Reasons.push( '(2)The menus configuration is wrong.');
       }
       return wrong;
     });
+    this.qrRestaurantListRows = wrongRTs;
+    this.qrRestaurantListRows.push(...correctRTs = correctRTs.map(correct => {
+      correct.Reasons = ['This restautant has completed QR code setup'];
+      return correct;
+    }));
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
 
   }

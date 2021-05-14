@@ -1,17 +1,17 @@
 <div class="text-center">
-    <h3>List of Restaurants with QR Dine-In ({{qrFilterRestaurantListRows?.length || 0}})</h3>
+  <h3>List of Restaurants with QR Dine-In ({{qrFilterRestaurantListRows?.length || 0}})</h3>
 </div>
 <div class="pb-2 text-left">
   <div class="float-left form-inline ml-2 mr-2">
     <label class="form-check-label mr-2">Show</label>
-    <select [(ngModel)]="filterType" class="form-control ml-1"  (change)="filter()">
-        <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
+    <select [(ngModel)]="filterType" class="form-control ml-1" (change)="filter()">
+      <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
     </select>
   </div>
   <div class="float-left form-inline ml-2 mr-2">
     <label class="form-check-label mr-2">QR Salesperson</label>
-    <select [(ngModel)]="qrSalesperson" class="form-control ml-1"  (change)="filter()">
-      <option value="All">All</option>  
+    <select [(ngModel)]="qrSalesperson" class="form-control ml-1" (change)="filter()">
+      <option value="All">All</option>
       <ng-container *ngFor="let person of qrSalespeople">
         <option *ngIf="person != 'None'" [value]="person">{{person}}</option>
       </ng-container>
@@ -34,15 +34,21 @@
         {{restaurant.googleAddress?.formatted_address}}
         <br>
         <br>
-       <div>
-        QR Salesperson: {{restaurant.qrSettings.agent}}
-       </div>
-       <div>
-         
-       </div>
+        <div>
+          QR Salesperson: {{restaurant?.qrSettings?.agent}}
+        </div>
+        <br>
+        <div *ngFor="let menu of restaurant.menus">
+          {{menu.name}} ({{menu.menuTarget || 'Online only'}})
+        </div>
       </td>
       <td>
         {{restaurant.qrOrderNumber}}
+      </td>
+      <td>
+        <div *ngFor="let r of restaurant.Reasons">
+          {{r}}
+        </div>
       </td>
       <td>
         <div *ngIf="restaurant.feeSchedules">
