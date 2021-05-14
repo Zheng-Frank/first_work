@@ -155,7 +155,9 @@ export class QrRestaurantListComponent implements OnInit {
       }
       let agent =  restaurant.qrSettings.agent || 'None';
       this.qrRestaurantListRows[i].qrSettings.agent = agent; // it also needs to give row's agent a default value to avoid undefined condition.
-      this.qrSalespeople.push(agent);
+      if(this.qrSalespeople.indexOf(agent) === -1){
+        this.qrSalespeople.push(agent);
+      }
     }
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
 
