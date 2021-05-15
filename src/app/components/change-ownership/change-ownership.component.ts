@@ -66,11 +66,11 @@ export class ChangeOwnershipComponent implements OnInit {
     delete clone.closedHours;
     delete clone.salesBase;
     delete clone.salesBonus;
-    delete clone.paymentMeans;    
+    delete clone.paymentMeans;
     delete clone.logs;
     delete clone.people;
     delete clone.salesThreeMonthAverage;
-    clone.channels = clone.channels.filter(e => (e.type ==='Phone' && e.notifications && e.notifications.some(n => n ==='Business')) || e.type ==='Fax');
+    clone.channels = clone.channels.filter(e => (e.type === 'Phone' && e.notifications && e.notifications.some(n => n === 'Business')) || e.type === 'Fax');
 
     clone.name = this.newName;
     clone.previousRestaurantId = previousRestaurantId;
@@ -84,7 +84,10 @@ export class ChangeOwnershipComponent implements OnInit {
     });
 
     const oldPatch: any = {
-      old: { _id: oldRestaurant._id },
+      old: {
+        _id: oldRestaurant._id,
+        selfSignup: {} // leave this to make sure "new" doesn't have selfSignup
+      },
       new:
       {
         _id: oldRestaurant._id,
