@@ -159,18 +159,20 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Translations": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+      "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+     // "Translations": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
-      "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
+      //"1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
-      "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "API Logs": ['ADMIN'],
-      "Stats":['ADMIN','CSR']
+     // "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
+     // "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
+     // "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+     // "API Logs": ['ADMIN'],
+      //"Stats":['ADMIN','CSR'],
+      "Others":['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
