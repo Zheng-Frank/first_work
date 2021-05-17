@@ -43,7 +43,7 @@ export class MonitoringPromotionComponent implements OnInit {
   scrapedToggle(e) {
     const {target: {checked}} = e;
     if (checked) {
-      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(x => this.scrapedRegex.test(x.name)));
+      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(p => this.scrapedRegex.test(p.name)));
     } else {
       this.filter();
     }
@@ -51,21 +51,21 @@ export class MonitoringPromotionComponent implements OnInit {
 
   async crawl(rt) {
     try {
-      // this._global.publishAlert(AlertType.Info, 'Crawling...');
-      // const {coupons, error, failedTypes} = await this._api.post(environment.appApiUrl + 'utils/menu', {
-      //   name: 'crawl-coupon',
-      //   payload: {
-      //     restaurantId: rt._id,
-      //     providerName: 'beyondmenu',
-      //   }
-      // }).toPromise();
-      // if (error) {
-      //   this._global.publishAlert(AlertType.Danger, error);
-      //   return;
-      // }
+      this._global.publishAlert(AlertType.Info, 'Crawling...');
+      const {coupons, error, failedTypes} = await this._api.post(environment.appApiUrl + 'utils/menu', {
+        name: 'crawl-coupon',
+        payload: {
+          restaurantId: rt._id,
+          providerName: 'beyondmenu',
+        }
+      }).toPromise();
+      if (error) {
+        this._global.publishAlert(AlertType.Danger, error);
+        return;
+      }
       this.restaurant = rt;
-      // this.coupons = coupons;
-      // this.failedTypes = failedTypes;
+      this.coupons = coupons;
+      this.failedTypes = failedTypes;
       this.importModal.show();
     } catch (error) {
       console.log(error);
