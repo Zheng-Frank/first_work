@@ -29,6 +29,7 @@ export class MonitoringPromotionComponent implements OnInit {
   checkedCoupons = [];
   failedTypes = [];
   scrapedRegex = /^\[Scraped: (\w+)]/;
+  scrapedOnly = false;
 
 
   ngOnInit() {
@@ -37,6 +38,15 @@ export class MonitoringPromotionComponent implements OnInit {
 
   getFreeItem(item) {
     return [item.menu.name, item.mc.name, item.mi.name].join('>');
+  }
+
+  scrapedToggle(e) {
+    const {target: {checked}} = e;
+    if (checked) {
+      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(x => this.scrapedRegex.test(x.name)));
+    } else {
+      this.filter();
+    }
   }
 
   async crawl(rt) {
