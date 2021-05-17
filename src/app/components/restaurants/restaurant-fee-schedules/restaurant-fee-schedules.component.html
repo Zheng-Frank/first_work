@@ -26,8 +26,8 @@
               class="{{isFeeScheduleExpired(feeSchedule) ? 'expired' : '' }} ">
               <td class="text-lowercase text-nowrap my-text-b">{{feeSchedule.payer}} → {{feeSchedule.payee}}
                 <div class="my-text-small">
-                  {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : 'America/New_York' }} → <span
-                    *ngIf=" feeSchedule.toTime">{{ feeSchedule.toTime | adjustedDate: 'shortDate' : 'America/New_York' }}</span>
+                  {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : restaurant.googleAddress.timezone }} → <span
+                    *ngIf=" feeSchedule.toTime">{{ feeSchedule.toTime | adjustedDate: 'shortDate' : restaurant.googleAddress.timezone }}</span>
                 </div>
               </td>
               <td class="text-nowrap">

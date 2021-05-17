@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { InvoiceViewerComponent } from './invoice-viewer.component';
+import { CouponImportComponent } from './coupon-import.component';
 
-describe('InvoiceViewerComponent', () => {
-  let component: InvoiceViewerComponent;
-  let fixture: ComponentFixture<InvoiceViewerComponent>;
+describe('CouponImportComponent', () => {
+  let component: CouponImportComponent;
+  let fixture: ComponentFixture<CouponImportComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ InvoiceViewerComponent ]
+      declarations: [ CouponImportComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(InvoiceViewerComponent);
+    fixture = TestBed.createComponent(CouponImportComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

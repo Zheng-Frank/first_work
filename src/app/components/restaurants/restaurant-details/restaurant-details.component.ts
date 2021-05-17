@@ -1,10 +1,12 @@
-import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { LanguageType } from './../../../classes/language-type';
+import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Address } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 
 declare var $: any;
 
@@ -14,6 +16,9 @@ declare var $: any;
   styleUrls: ['./restaurant-details.component.css']
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
+  @ViewChild('restaurantProfile')restaurantProfile:RestaurantProfileComponent;
+  languageTypes = [LanguageType.ENGLISH,LanguageType.CHINESE];
+  languageType = this._global.languageType;
   restaurant: Restaurant;
   displayTextReply = false;
   displayGooglePIN = false;
@@ -44,7 +49,107 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
     restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],
     restaurantChains: ['ADMIN', 'CSR'],
-  }
+  };
+
+  projections = {
+    // profile needed fields
+    alias: 1,
+    allowedCities: 1,
+    allowedZipCodes: 1,
+    allowScheduling: 1,
+    autoPrintOnNewOrder: 1,
+    autoPrintVersion: 1,
+    blockedCities: 1,
+    blockedZipCodes: 1,
+    ccProcessingFlatFee: 1,
+    ccProcessingRate: 1,
+    ccProcessor: 1,
+    channels: 1,
+    closedDays: 1,
+    closedHours: 1,
+    courier: 1,
+    createdAt: 1,
+    crm: 1,
+    customizedRenderingStyles: 1,
+    deliveryArea: 1,
+    deliveryClosedHours: 1,
+    deliveryEndMinutesBeforeClosing: 1,
+    deliveryFromTime: 1,
+    deliveryHours: 1,
+    deliverySettings: 1,
+    deliveryTimeEstimate: 1,
+    disabled: 1,
+    disableScheduling: 1,
+    excludeAmex: 1,
+    excludeDiscover: 1,
+    feeSchedules: 1,
+    form1099ks: 1,
+    gmbOrigin: 1,
+    gmbOwnerHistory: 1,
+    gmbSettings: 1,
+    googleAddress: 1,
+    googleListing: 1,
+    hideOrderStatus: 1,
+    hideTipInput: 1,
+    hidePrintingCCInfo: 1,
+    images: 1,
+    logo: 1,
+    logs: 1,
+    menuOptions: 1,
+    menus: 1,
+    name: 1,
+    notes: 1,
+    notification: 1,
+    paymentMeans: 1,
+    people: 1,
+    pickupMinimum: 1,
+    pickupTimeEstimate: 1,
+    preferredLanguage: 1,
+    printCopies: 1,
+    printerKey: 1,
+    printers: 1,
+    printerSN: 1,
+    promotions: 1,
+    'qrSettings.viewOnly': 1,
+    'qrSettings.agent': 1,
+    'qrSettings.agentAt': 1,
+    rateSchedules: 1,
+    requireBillingAddress: 1,
+    requireZipcode: 1,
+    restaurantId: 1,
+    salesAgent: 1,
+    score: 1,
+    serviceSettings: 1,
+    skipImageInjection: 1,
+    skipOrderConfirmation: 1,
+    "selfSignup.registered": 1,
+    skipAutoInvoicing: 1,
+    skipShowTax: 1,
+    menuHoursExtended: 1,
+    stripePublishableKey: 1,
+    stripeSecretKey: 1,
+    surchargeAmount: 1,
+    surchargeName: 1,
+    surchargeRate: 1,
+    taxBeforePromotion: 1,
+    taxOnDelivery: 1,
+    taxRate: 1,
+    templateName: 1,
+    timeZone: 1,
+    web: 1,
+    yelpListing: 1,
+    phones: 1,
+    muteFirstNotifications: 1,
+    muteSecondNotifications: 1,
+    printSettings: 1,
+    useNewSettings: 1,
+    ccHandler: 1,
+    comebackDate: 1,
+    ccMinimumCharge: 1,
+    hideOrderReadyEstimate: 1,
+  };
+
+  showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
 
   knownUsers = [];
 
@@ -54,6 +159,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+      "Translations": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
@@ -64,6 +170,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
       "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "API Logs": ['ADMIN'],
+      "Stats":['ADMIN','CSR']
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
@@ -85,136 +192,84 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this._global.storeSet('restaurantDetailsTab', this.activeTab);
   }
 
+  async reload(callback: (rt: Restaurant) => any) {
+    const query = {_id: { $oid: this.id }};
+    this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: query,
+      projection: this.projections,
+      limit: 1
+    }).subscribe(
+      results => {
+        const rt = results[0];
+        (rt.gmbOwnerHistory || []).reverse();
+        (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
+        this.restaurant = rt ? new Restaurant(rt) : undefined;
+        if (!this.restaurant) {
+          return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
+        }
+        if(callback){
+          callback(this.restaurant);
+        }
+      }, error => {
+        this._global.publishAlert(AlertType.Danger, error);
+      }
+    );
+  }
+  // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
+  changeLanguage(){
+    if(this.languageType === LanguageType.ENGLISH){
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.ENGLISH;
+    }else if(this.languageType === LanguageType.CHINESE){
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.CHINESE;
+    }
+  }
+
+  // if the switch is open,we show i button and show Chinese and English explanations
+  toggleShowExplanations(){
+    if(this.showExplanations){
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = true;
+    }else{
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = false;
+    }
+  }
+
   async loadDetails() {
     this.readonly = true;
     if (this.id) {
       this.apiRequesting = true;
-      const query = {
-        _id: { $oid: this.id }
-      };
+      const query = {_id: { $oid: this.id }};
 
-      this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "restaurant",
+      this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
         query: query,
-        projection: {
-          // profile needed fields
-          alias: 1,
-          allowedCities: 1,
-          allowedZipCodes: 1,
-          allowScheduling: 1,
-          autoPrintOnNewOrder: 1,
-          autoPrintVersion: 1,
-          blockedCities: 1,
-          blockedZipCodes: 1,
-          ccProcessingFlatFee: 1,
-          ccProcessingRate: 1,
-          ccProcessor: 1,
-          channels: 1,
-          closedDays: 1,
-          closedHours: 1,
-          courier: 1,
-          createdAt: 1,
-          crm: 1,
-          customizedRenderingStyles: 1,
-          deliveryArea: 1,
-          deliveryClosedHours: 1,
-          deliveryEndMinutesBeforeClosing: 1,
-          deliveryFromTime: 1,
-          deliveryHours: 1,
-          deliverySettings: 1,
-          deliveryTimeEstimate: 1,
-          disabled: 1,
-          disableScheduling: 1,
-          excludeAmex: 1,
-          excludeDiscover: 1,
-          feeSchedules: 1,
-          form1099ks: 1,
-          gmbOrigin: 1,
-          gmbOwnerHistory: 1,
-          gmbSettings: 1,
-          googleAddress: 1,
-          googleListing: 1,
-          hideOrderStatus: 1,
-          hideTipInput: 1,
-          hidePrintingCCInfo: 1,
-          images: 1,
-          logo: 1,
-          logs: 1,
-          menuOptions: 1,
-          menus: 1,
-          name: 1,
-          notes: 1,
-          notification: 1,
-          paymentMeans: 1,
-          people: 1,
-          pickupMinimum: 1,
-          pickupTimeEstimate: 1,
-          preferredLanguage: 1,
-          printCopies: 1,
-          printerKey: 1,
-          printers: 1,
-          printerSN: 1,
-          promotions: 1,
-          'qrSettings.viewOnly': 1,
-          rateSchedules: 1,
-          requireBillingAddress: 1,
-          requireZipcode: 1,
-          restaurantId: 1,
-          salesAgent: 1,
-          score: 1,
-          serviceSettings: 1,
-          skipImageInjection: 1,
-          skipOrderConfirmation: 1,
-          "selfSignup.registered": 1,
-          skipAutoInvoicing: 1,
-          skipShowTax: 1,
-          menuHoursExtended: 1,
-          stripePublishableKey: 1,
-          stripeSecretKey: 1,
-          surchargeAmount: 1,
-          surchargeName: 1,
-          surchargeRate: 1,
-          taxBeforePromotion: 1,
-          taxOnDelivery: 1,
-          taxRate: 1,
-          templateName: 1,
-          timeZone: 1,
-          web: 1,
-          yelpListing: 1,
-          phones: 1,
-          muteFirstNotifications: 1,
-          muteSecondNotifications: 1,
-          printSettings: 1,
-          useNewSettings: 1,
-          ccHandler: 1,
-          comebackDate: 1,
-          ccMinimumCharge: 1
-
-        },
+        projection: this.projections,
         limit: 1
-      })
-        .subscribe(
-          results => {
-            this.apiRequesting = false;
-            const rt = results[0];
+      }).subscribe(
+        results => {
+          this.apiRequesting = false;
+          const rt = results[0];
 
-            (rt.gmbOwnerHistory || []).reverse();
+        (rt.gmbOwnerHistory || []).reverse();
 
-            (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
-            this.restaurant = rt ? new Restaurant(rt) : undefined;
-            if (!this.restaurant) {
-              return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
-            }
+        (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
+        this.restaurant = rt ? new Restaurant(rt) : undefined;
+        if (!this.restaurant) {
+          return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
+        }
 
-            const canEdit = this._global.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0) || (rt.rateSchedules).some(rs => rs.agent === 'invalid') || (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
-            this.readonly = !canEdit;
-
-          },
-          error => {
-            this.apiRequesting = false;
-            this._global.publishAlert(AlertType.Danger, error);
-          }
-        );
+        const canEdit = this._global.user.roles.some(r =>
+          ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
+          (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
+          (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
+        this.readonly = !canEdit;
+        },
+        error => {
+          this.apiRequesting = false;
+          this._global.publishAlert(AlertType.Danger, error);
+          return Promise.reject();
+        }
+      );
     }
   }
 

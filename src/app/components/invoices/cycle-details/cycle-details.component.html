@@ -1,10 +1,10 @@
 <div *ngIf="cycle">
   <h1 class="text-center">{{cycle.toDate}}</h1>
-  <!-- <button (click)="resetDangling()">reset dangling</button> -->
   <div class="text-right mb-2">
     <!-- <button class="btn btn-primary" (click)="fix()">
       <i class="fas fa-sync"></i> Fix</button> -->
-    <button class="btn btn-primary" (click)="loadCycle(id)">
+    <button class="btn btn-primary" (click)="resetDangling()">Reset Dangling</button>
+    <button class="btn btn-primary" (click)="loadCycle()">
       <i class="fas fa-sync"></i> Reload</button>
   </div>
   <!-- {{sortingDirection}} {{sortingColumn}} -->

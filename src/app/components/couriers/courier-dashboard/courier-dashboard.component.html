@@ -126,8 +126,9 @@
           <li class="list-group-item text-right">
             <button type="button" class="btn btn-link" (click)="addingHours = !addingHours">
               + Add Hours</button>
+            NOTE: NO TIMEZONE FOR PICKER YET. TODO: ADD TIMEZONE WHEN USING 
             <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="addingHours">
-              <q-hours-picker (cancel)="addingHours = false" (submit)="doneAddingHours($event)"></q-hours-picker>
+              <lib-hours-picker (cancel)="addingHours = false" (submit)="doneAddingHours($event)"></lib-hours-picker>
             </div>
           </li>
         </ul>

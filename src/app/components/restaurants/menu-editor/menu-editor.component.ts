@@ -2,7 +2,6 @@ import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angu
 import { Menu, Hour, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
@@ -13,7 +12,6 @@ import { HttpClient } from '@angular/common/http';
 export class MenuEditorComponent implements OnInit {
 
   menu: Menu;
-  @Input() offsetToEST = 0;
   @Input() timezone = 'America/New_York';
   @Output() onDelete = new EventEmitter();
   @Output() onDone = new EventEmitter();
@@ -23,6 +21,7 @@ export class MenuEditorComponent implements OnInit {
 
   clickedAddHour = false;
   clickedDelete = false;
+  selectedOption = 'New Menu';
 
   uploadImageError: string;
 
@@ -40,17 +39,48 @@ export class MenuEditorComponent implements OnInit {
 
   selectedTarget = this.targets[0];
 
-  constructor(private _api: ApiService, private _http: HttpClient, private _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _http: HttpClient) { }
 
   ngOnInit() {
   }
 
   isValid() {
-    return this.menu && this.menu.name;
+    if (!this.menu || !this.restaurant.menus) {
+      return false;
+    }
+    const nonselfMenus = this.restaurant.menus.filter(each => each.id !== this.menu.id);
+    return this.menu.name && !nonselfMenus.some(each => each.name === this.menu.name)
+  }
+
+  createArrayOfMenuNames() {
+    return this.restaurant.menus.map(menu => menu.name)
+  }
+
+  radioSelect(event) {
+    if (event === 'New Menu') {
+      this.setMenu(new Menu());
+    }
+  }
+
+  copyMenu(selectedMenuName) {
+    const menuCopy = new Menu(this.restaurant.menus.find(menu => menu.name === selectedMenuName));
+    menuCopy.name += ' - Copy';
+    delete menuCopy.id; // delete the copy's id, or else we will just end up editing the existing menu
+    menuCopy.mcs.map(mc => {
+      mc.id += '0'
+      mc.mis.map(mi => {
+        mi.id += '0'; // append a 0 to all Mc and Mi id's to keep them unique
+      })
+    })
+    this.setMenu(menuCopy);
   }
 
   setMenu(menu: Menu) {
     this.menu = menu;
+    if (menu === new Menu()) {
+      // if the passed-in menu is a blank menu, then we should reset our editing modal
+      this.selectedOption = 'New Menu';
+    }
     this.selectedTarget = this.targets.filter(t => t.value === menu['targetCustomer'])[0] || this.targets[0];
   }
 
@@ -59,7 +89,7 @@ export class MenuEditorComponent implements OnInit {
   }
 
   getStringOfDays(hours: Hour[]) {
-    return hours.map(d => d.toDayString(this.offsetToEST || 0)).join(', ');
+    return hours.map(d => d.toDayString(this.restaurant.googleAddress.timezone)).join(', ');
   }
 
   doneAddingHour(hours: Hour[]) {
@@ -72,13 +102,6 @@ export class MenuEditorComponent implements OnInit {
     });
     // sort!
     this.menu.hours.sort((a, b) => a.fromTime.valueOf() - b.fromTime.valueOf());
-
-    // correct offsetToEST, hour-picker is only for your LOCAL browser. We need to translate it to restaurant's hour settings
-    hours.map(h => {
-      h.fromTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.fromTime, this.timezone);
-      h.toTime = this._timezone.transformToTargetTimeUsingCurrentOffset(h.toTime, this.timezone);
-    });
-
     this.clickedAddHour = false;
   }
 

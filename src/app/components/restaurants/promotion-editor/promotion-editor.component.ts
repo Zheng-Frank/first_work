@@ -1,6 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-import { P } from '@angular/core/src/render3';
-import { Promotion, Menu } from '@qmenu/ui';
+import { Promotion, } from '@qmenu/ui';
 
 @Component({
   selector: 'app-promotion-editor',

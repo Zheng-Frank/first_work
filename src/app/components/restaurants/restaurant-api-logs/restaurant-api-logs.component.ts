@@ -2,10 +2,7 @@ import { Component, OnInit, Input, OnChanges, SimpleChanges, ViewChild } from '@
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
-import { AlertType } from 'src/app/classes/alert-type';
 import { environment } from 'src/environments/environment';
-import { Task } from 'src/app/classes/tasks/task';
-import { empty } from 'rxjs';
 
 const EMPTY_INDICATOR = "#>!$!%(@^";
 

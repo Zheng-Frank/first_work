@@ -12,7 +12,7 @@
   </div>
   <div class="form-group">
     <button type="button" class="btn btn-link ml-3" (click)="showAdvancedSearch = !showAdvancedSearch">
-     {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
+      {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
     <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
       <div class="row">
         <div class="col col-sm-6">
@@ -39,11 +39,55 @@
       <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
         (onReject)="handleOnReject($event)" (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
         (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
-        (onChangeToSelfDelivery)="handleOnChangeToSelfDelivery($event)">
-
+        (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)"
+        (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+        (onAdjustInvoice)="handleOnAdjustInvoice($event)">
       </app-order-card>
     </div>
   </div>
+
+   <!-- change order type q-modal to select two type of order type -->
+   <q-modal #changeOrderTypeModal style="margin-top: 160px;">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Change Order Type</h4>
+    <hr>
+    <div class="container">
+      <div class="row mb-3">
+        <div class="col-12">
+          <select [(ngModel)]="changeOrderType" class="form-control">
+            <option value="Customer Pickup">Customer Pickup</option>
+            <option value="Restaurant self-deliver">Restaurant self-deliver</option>
+          </select>
+        </div>
+      </div>
+    </div>
+      <div class="d-flex justify-content-end p-4">
+        <button class="btn btn-secondary mr-2" (click)="changeOrderTypeModal.hide()">Cancel</button>
+        <button class="btn btn-primary" (click)="handleOnChangeOrderTypes()">Submit</button>
+      </div>
+
+  </q-modal>
+    
+  <!-- start previous canceled order q-modal -->
+  <q-modal #previousCanceledOrderModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Previous Canceled Order</h4>
+    <hr>
+    <!-- row has negative margins and we need to remove them! -->
+    <app-order-card [restaurant]="restaurant" [order]="previousCanceledOrder"
+      (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
+      (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
+      (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
+      (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+      (onAdjustInvoice)="handleOnAdjustInvoice($event)">
+
+    </app-order-card>
+  </q-modal>
+  <!-- end previous canceled order q-modal -->
   <q-modal #paymentModal>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">×</span>
@@ -146,4 +190,15 @@
     <app-order-adjustment (submit)="submitAdjustment($event)"></app-order-adjustment>
   </q-modal>
 
+  <q-modal #adjustInvoiceModal>
+    <button type="button" class="close" (click)="cancelAdjustInvoice()">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Invoice Adjustment</h4>
+    <hr>
+    <app-restaurant-invoice-adjustment #adjustInvoiceComponment [restaurant]="restaurant"
+     [log]="logInEditing" [order]="orderForModal" (onAdjustInvoice)="doAdjustInvoice($event)" (onCancel)="cancelAdjustInvoice()">
+    </app-restaurant-invoice-adjustment>
+    
+  </q-modal>
 </div>

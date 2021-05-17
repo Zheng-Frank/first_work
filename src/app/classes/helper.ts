@@ -3,6 +3,7 @@ import { ApiService } from '../services/api.service';
 import { Address } from '@qmenu/ui';
 import { HttpClient } from '@angular/common/http';
 
+const FULL_LOCALE_OPTS = {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit'}
 export class Helper {
 
     static async uploadImage(files: File[], _api: ApiService, _http: HttpClient) {
@@ -277,6 +278,33 @@ export class Helper {
             });
         }
         return matchedTz;
+    }
+
+
+    static getOffsetNumToEST(timezone: string) {
+      if (timezone) {
+        const now = new Date();
+        const offset = (new Date(now.toLocaleString('en-US', {timeZone: timezone, ...FULL_LOCALE_OPTS})).valueOf()
+          - new Date(now.toLocaleString('en-US', {timeZone: 'America/New_York', ...FULL_LOCALE_OPTS})).valueOf()) / 3600000;
+        if (offset > 0) {
+          return '+' + offset;
+        } else {
+          return offset;
+        }
+      } else {
+        return '+0';
+      }
+    }
+
+  /**
+   * give a local date, get it's correspond time in given timezone, then convert that time to local time
+   * eg. local(New_York): 4/9/2021, 12:30:50 AM, correspond Phoenix time is 4/9/2021, 9:30:50 AM,
+   * we'll get a 4/9/2021, 9:30:50 AM show on local
+   * @param datetime
+   * @param timezone
+   */
+  static adjustDate(datetime: Date, timezone?: string) {
+    return new Date(datetime.toLocaleString('en-US', {timeZone: timezone, ...FULL_LOCALE_OPTS}));
     }
 
     static sanitizedName(menuItemName) {

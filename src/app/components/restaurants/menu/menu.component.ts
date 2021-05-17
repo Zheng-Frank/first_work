@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Menu, Hour, Mc, Mi, Item, Restaurant } from '@qmenu/ui';
+import { Menu, Mc, Mi, Item, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { MenuCategoryEditorComponent } from '../menu-category-editor/menu-category-editor.component';
@@ -20,7 +20,6 @@ export class MenuComponent implements OnInit {
   @Output() onEdit = new EventEmitter();
   @Output() onVisitMenuOptions = new EventEmitter();
   @Input() menu: Menu;
-  @Input() offsetToEST = 0;
   @Input() restaurant: Restaurant;
 
   @ViewChild('mcModal') mcModal: ModalComponent;
@@ -59,8 +58,7 @@ export class MenuComponent implements OnInit {
     // get index and only update that menu
     const index = this.restaurant.menus.indexOf(this.menu);
     const mcIndex = this.menu.mcs.indexOf(this.mcOfSortingMis);
-    try {
-      this.mcOfSortingMis.mis.map(mi => delete mi.sortOrder);
+    try {      
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id']
@@ -89,8 +87,7 @@ export class MenuComponent implements OnInit {
     // get index and only update that menu
     const index = this.restaurant.menus.indexOf(this.menu);
     console.log(index);
-    try {
-      this.menu.mcs.map(mc => delete mc.sortOrder);
+    try {      
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id']
@@ -125,8 +122,6 @@ export class MenuComponent implements OnInit {
     let mcCopy: Mc;
     if (!mc) {
       mcCopy = new Mc();
-      // preset the sorting order?
-      mcCopy.sortOrder = this.menu.mcs.length + 1;
     } else {
       mcCopy = new Mc(mc);
     }
@@ -216,9 +211,7 @@ export class MenuComponent implements OnInit {
           this._global.publishAlert(
             AlertType.Success,
             "Updated successfully"
-          );
-
-          this.menu.sortMcsAndMis();
+          );          
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");
@@ -271,8 +264,7 @@ export class MenuComponent implements OnInit {
     let menu = this.menu;
     let miCopy: Mi;
     if (!params.mi) {
-      miCopy = new Mi();
-      miCopy.sortOrder = params.mc.mis ? params.mc.mis.length + 1 : 0;
+      miCopy = new Mi();      
       miCopy.category = params.mc.id;
 
       // create default size (regular) options
@@ -384,9 +376,7 @@ export class MenuComponent implements OnInit {
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"
-            );
-
-            this.menu.sortMcsAndMis();
+            );         
           }
         },
         error => {
@@ -478,9 +468,7 @@ export class MenuComponent implements OnInit {
           this._global.publishAlert(
             AlertType.Success,
             "Updated successfully"
-          );
-
-          this.menu.sortMcsAndMis();
+          );          
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");

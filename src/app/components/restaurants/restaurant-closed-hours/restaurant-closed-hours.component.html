@@ -1,33 +1,39 @@
-<div class="card mb-2">
+<div class="card mb-2" *ngIf="restaurant">
   <h3 class="card-title text-center pt-4 pb-2"><i class="fa fa-calendar-times-o"></i> Closed Time</h3>
   <div class="text-muted text-center text-xs-center"><small>Define time slots when the restaurant is closed.</small>
   </div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
+        <label class="checkbox-inline" *ngIf="getExpiredClosedHours().length > 0"><input type="checkbox"
+          [(ngModel)]="showExpired"> Show expired
+        ({{getExpiredClosedHours().length}})</label>
       <table class="app-table w-100">
-        <tr *ngFor="let hour of (restaurant.closedHours || [])">
-          <td>
-            <div class="text-nowrap"><strong>
-                {{hour.fromTime | adjustedDate : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
-                -
-                {{hour.toTime | adjustedDate : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
-              </strong></div>
-            <div *ngIf="hour.comment">{{hour.comment}}</div>
-          </td>
-          <td scope="row" *ngIf="editing" class="text-xs-right" (click)="remove(hour)"><i
-              class="text-danger fa fa-remove" role="button"> Delete</i></td>
-        </tr>
+        <ng-container *ngFor="let hour of (restaurant.closedHours || [])">
+          <tr  *ngIf="showExpired || !isClosedHoursExpired(hour)"
+          class="{{isClosedHoursExpired(hour) ? 'expired' : '' }} ">
+            <td>
+              <div class="text-nowrap"><strong>
+                  {{hour.fromTime | dateTz : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
+                  -
+                  {{hour.toTime | dateTz : 'MMM d, y h:mm a' : restaurant.googleAddress.timezone}}
+                </strong></div>
+              <div *ngIf="hour.comment">{{hour.comment}}</div>
+            </td>
+            <td scope="row" *ngIf="editing" class="text-xs-right" (click)="remove(hour)"><i
+                class="text-danger fa fa-remove" role="button"> Delete</i></td>
+          </tr>
+        </ng-container>
       </table>
       <div *qIf="editing">
         <div class="jumbotron app-jumbo">
           <h5 class="text-xs-center">Add New Closed Time</h5>
           <app-hour-picker-simple [hour]="hourInEditing"></app-hour-picker-simple>
           <div>
-            <label class="m-t-1">Extra Comments:</label>
+            <label class="mt-1">Extra Comments:</label>
             <input [(ngModel)]="hourInEditing.comment" type="text" class="form-control" placeholder="such as holidy"
               autofocus>
             <div *ngIf="getError()" class="text-danger"><small>{{getError()}}</small></div>
-            <div class="m-t-1"><button class="btn btn-block btn-primary" (click)="addClosedHour()"
+            <div class="mt-1"><button class="btn btn-block btn-primary" (click)="addClosedHour()"
                 [disabled]="getError()">Add</button></div>
           </div>
 

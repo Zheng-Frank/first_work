@@ -115,7 +115,8 @@
               <td class="pl-1">
                 <div class="form-group">
                   <select class="form-control" id="courier-select" [(ngModel)]="selectedCourier">
-                    <option *ngFor="let c of couriers" [ngValue]="c">{{c.name}}</option>
+                    <option *ngFor="let c of couriers" [ngValue]="c" [disabled]="deliveryAndNotQMenuCollect(c)">
+                      {{c.name}}</option>
                   </select>
                   <div class="text-right py-2" *ngIf="selectedCourier && selectedCourier.name === 'Postmates'">
 
@@ -212,8 +213,9 @@
                   </div>
 
                   <div *qIf="clickedAddHour" class="alert alert-secondary mt-2" style="font-size: smaller">
-                    <q-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)">
-                    </q-hours-picker>
+                    <lib-hours-picker (cancel)="clickedAddHour = false" (submit)="doneAddingHour($event)"
+                      [timezone]="restaurant.googleAddress.timezone">
+                    </lib-hours-picker>
                   </div>
                 </td>
               </tr>

@@ -1,6 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 // DO NOT DELETE THIS LINE. IT LET COMPILER KNOW THAT WE NEED ALL CLASSES (OTHER WISE AOT WILL NOT IMPORT)
-import { SelectItem, Hour, Mi, Mc } from '@qmenu/ui';
+import { SelectItem, Hour, Mi } from '@qmenu/ui';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
@@ -104,8 +104,7 @@ export class UIPreviewComponent implements OnInit {
     "menuOptionIds": [
       "683e0c8d-2f75-4a15-a23b-8e61bd989a1e"
     ],
-    "nonCustomizable": true,
-    "sortOrder": null,
+    "nonCustomizable": true,    
     "promotional": true,
     "disabled": false
   } as Mi;

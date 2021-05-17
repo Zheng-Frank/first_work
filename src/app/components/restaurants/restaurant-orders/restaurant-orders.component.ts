@@ -1,17 +1,14 @@
-import { Component, OnInit, ViewChild, Input, SimpleChanges, OnChanges, Output } from '@angular/core';
-import { Injectable, EventEmitter, NgZone } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Order, Customer,TimezoneHelper } from '@qmenu/ui';
-import { Invoice } from '../../../classes/invoice';
+import { Helper } from 'src/app/classes/helper';
+import { Log } from 'src/app/classes/log';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
+import { EventEmitter, NgZone } from '@angular/core';
+import { Restaurant, Order, TimezoneHelper } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Observable, zip } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-import { OrderItem } from "@qmenu/ui";
 import { GlobalService } from 'src/app/services/global.service';
-import { Key } from 'protractor';
+import { OrderCardComponent } from '../order-card/order-card.component';
 
 
 declare var $: any;
@@ -29,9 +26,15 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('undoRejectModal') undoRejectModal: ModalComponent;
   @ViewChild('banModal') banModal: ModalComponent;
   @ViewChild('adjustModal') adjustModal: ModalComponent;
+  @ViewChild('adjustInvoiceModal') adjustInvoiceModal: ModalComponent;
+  @ViewChild('adjustInvoiceComponment') adjustInvoiceComponment: ModalComponent;
+  @ViewChild('previousCanceledOrderModal') previousCanceledOrderModal: ModalComponent; // this modal is in order to show customer previous canceled order detail
 
+  previousCanceledOrder: any; // previous canceled order object of one customer
+  @ViewChild('changeOrderTypeModal') changeOrderTypeModal: ModalComponent;
+  @ViewChild('orderCard') orderCard: OrderCardComponent;
+  cardSpecialOrder;
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
-
   // customer:Customer
   @Input() restaurant: Restaurant;
   searchText: string;
@@ -41,7 +44,7 @@ export class RestaurantOrdersComponent implements OnInit {
   showSummary = false;
   payment = {};
   // orderForModal: Order = null;
-  orderForModal: any = null;
+  orderForModal = new Order();
   now: Date = new Date();
   orderEvent: any;
   cancelError = '';
@@ -52,9 +55,18 @@ export class RestaurantOrdersComponent implements OnInit {
   showAdvancedSearch: boolean = false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
   toDate;
+  logInEditing = new Log(); // invoice ajustment modal need this field
+  adjustInvoiceRestaurantList = []; // all the restaurant need adjust invoice
+  changeOrderType = 'Restaurant self-deliver';
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
-
+  /**
+   * it is because that the changeordertypemodal has mass sort if it is in the card component.
+   */
+  handleOpenChangeOrderTypesModal(order) {
+    this.cardSpecialOrder = order;
+    this.changeOrderTypeModal.show();
+  }
   ngOnInit() {
     this.populateOrders();
     this.onNewOrderReceived.subscribe(
@@ -70,26 +82,6 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-  // GetTimeFromTimeZone(searchdate,timeZone) {
-  //   var lDate = new Date(searchdate);
-  //   var localTime = lDate.getTime();
-  //   var localOffset = lDate.getTimezoneOffset() * 60000; //本地和0时区的偏移
-  //   var utc = localTime + localOffset; //得到0时区时间
-  //   var placeTime = utc + (3600000 * TimeZone.getTimeZone("EST")); //当地时间
-  //   var pdate = new Date(placeTime);
-
-  //   return pdate.toLocaleString();
-  // }
-  // getTransformedDate (dateString,timezone){
-  //   const [year, month, date] = dateString.split('-');
-  //   //  let time=TimezoneHelper.transformToTimezoneDate(new Date(dateString), 'America/New_York');
-  //    console.log("time:"+TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone));
-  //    return TimezoneHelper.transformToTimezoneDate(new Date(`${month}/${date}/${year}`), timezone);
-  // }
-  // convertTimeAtTimezoneToUTC(input: string, zone: string) {
-  //   var m = moment.tz(input, zone).utc().format();
-  //   return m;
-  // }
   /**
    *
    * this function is used to filter order by createdAt
@@ -108,16 +100,9 @@ export class RestaurantOrdersComponent implements OnInit {
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
-    // const fromValue = new Date(from);
-    // const toValue = new Date(to);
-    // const utcf = new Date(fromValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const utct = new Date(toValue.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone }));
-    // const utcf = this.convertTimeAtTimezoneToUTC(from, this.restaurant.googleAddress.timezone);
-    // const utct = this.convertTimeAtTimezoneToUTC(to, this.restaurant.googleAddress.timezone);
-    const utcf= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from),this.restaurant.googleAddress.timezone);
-    const utct= TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to),this.restaurant.googleAddress.timezone);
-    console.log("utcf:"+utcf);
-    console.log("utct:"+utct);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), this.restaurant.googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), this.restaurant.googleAddress.timezone);
+
     if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
@@ -175,13 +160,11 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      // console.log("238行：订单："+JSON.stringify(o));
       return new Order(order);
     });
   }
@@ -196,10 +179,10 @@ export class RestaurantOrdersComponent implements OnInit {
     if (this.orders) {
       this.orders.forEach(o => {
         if (o.id === orderStatus.order) {
-          if (!o.orderStatuses) {
-            o.orderStatuses = [];
+          if (!o.statuses) {
+            o.statuses = [];
           }
-          o.orderStatuses.push(orderStatus);
+          o.statuses.push(orderStatus);
         }
       });
     }
@@ -261,12 +244,11 @@ export class RestaurantOrdersComponent implements OnInit {
         query['customerObj.phone'] = {
           $regex: queryStr
         }
-      } else { //the situation of the phone number don't have '-'  
+      } else { //the situation of the phone number don't have '-'
         query['customerObj.phone'] = {
           $regex: this.searchText
         }
       }
-
     }
     // console.log(JSON.stringify(query))
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -284,10 +266,10 @@ export class RestaurantOrdersComponent implements OnInit {
     // get blocked customers and assign back to each order blacklist reasons
     /**
      * orders.filter(function(){
-     *   
+     *
      *  return true;
      * })
-     * 
+     *
      */
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
@@ -316,16 +298,66 @@ export class RestaurantOrdersComponent implements OnInit {
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
-      order.orderStatuses = order.statuses;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
       order.restaurantNotie = order.restaurantNotie || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      // console.log("238行：订单："+JSON.stringify(o));
       return new Order(order);
     });
 
+  }
+  //this order may be don't exist in this 50 orders,we should find it in our database.
+  async handleOnOpenPreviousCanceledOrderModal(order_id) {
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        _id: {
+          $oid: order_id
+        }
+      },
+      projection: {//返回除logs以外的所有行
+        logs: 0,
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 1
+    }).toPromise();
+    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+    const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "blacklist",
+      query: {
+        "value": { $in: customerIds },
+        disabled: { $ne: true }
+      },
+      projection: {
+        disabled: 1,
+        reasons: 1, //
+        // reasons: {$slice: -10}, 数组里面前两个
+        value: 1,
+        orders: 1
+      },
+      limit: 100000,
+      sort: {
+        createAt: 1
+      }
+    }).toPromise();
+
+    const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
+    // assemble back to order:
+    this.previousCanceledOrder = orders.map(order => {
+      order.orderNumber = order.orderNumber;
+      order.customer = order.customerObj;
+      order.payment = order.paymentObj;
+      order.id = order._id;
+      order.customerNotice = order.customerNotice || '';
+      order.restaurantNotie = order.restaurantNotie || '';
+      // making it back-compatible to display bannedReasons
+      order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
+      return new Order(order);
+    })[0];
+    this.previousCanceledOrderModal.show();
   }
 
   async handleOnSetNewStatus(data) {
@@ -349,7 +381,7 @@ export class RestaurantOrdersComponent implements OnInit {
       value: os
     }).subscribe(
       result => {
-        data.order.orderStatuses.push(os);
+        data.order.statuses.push(os);
       },
       error => {
         alert('Update order status failed');
@@ -357,17 +389,32 @@ export class RestaurantOrdersComponent implements OnInit {
     );
   }
 
-  async handleOnChangeToSelfDelivery(order) {
-    try {
-      await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
-        orderId: order._id
-      }).toPromise();
-    } catch (error) {
-      console.log("errors")
+  /**
+   * change-to-self-delivery
+
+     change-to-pickup
+   */
+  async handleOnChangeOrderTypes() {
+    if (this.changeOrderType === 'Restaurant self-deliver') {
+      try {
+        await this._api.post(environment.appApiUrl + 'biz/orders/change-to-self-delivery', {
+          orderId: this.cardSpecialOrder._id
+        }).toPromise();
+      } catch (error) {
+        console.log("errors:"+JSON.stringify(error));
+      }
+    } else if(this.changeOrderType === 'Customer Pickup') {
+      try {
+        await this._api.post(environment.appApiUrl + 'biz/orders/change-to-pickup', {
+          orderId: this.cardSpecialOrder ._id
+        }).toPromise();
+      } catch (error) {
+        console.log("errors:"+JSON.stringify(error));
+      }
     }
+    this.changeOrderTypeModal.hide();
     this.populateOrders();
   }
-
   handleOnDisplayCreditCard(order) {
     const explanations = {
       IN_PERSON: 'NO CREDIT CARD INFO WAS COLLECTED. THE CUSTOMER WILL SWIPE CARD IN PERSON.',
@@ -423,6 +470,86 @@ export class RestaurantOrdersComponent implements OnInit {
     this.orderForModal = order;
     this.adjustModal.show();
     setTimeout(() => $('#adjustment').focus(), 1000);
+  }
+  // open adjust invoice modal,let the sub componment get focus and set a initial reason.
+  handleOnAdjustInvoice(order) {
+    this.orderForModal = order;
+    this.logInEditing = new Log();
+    this.adjustInvoiceComponment.percentage = true;
+    this.adjustInvoiceComponment.percentageAdjustmentAmount = 20;
+    this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100)); 
+    this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
+    let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
+    let dateStr = date.slice(0, 4).join(' ');
+    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
+    this.adjustInvoiceComponment.stripeReason = this.adjustInvoiceComponment.percentageStripeReason = '';
+    this.adjustInvoiceComponment.additionalExplanation = '';
+    this.adjustInvoiceModal.show();
+  }
+
+  // submit the result to api to create a new log
+  doAdjustInvoice(data){
+    this.onSuccessCreationLog(data);
+  }
+  // hide adjustment q-modal
+  cancelAdjustInvoice(){
+    this.adjustInvoiceModal.hide();
+  }
+
+  async onSuccessCreationLog(data) {
+
+    if (!data.log.time) {
+      data.log.time = new Date();
+    }
+    if (!data.log.username) {
+      data.log.username = this._global.user.username;
+    }
+    const log = JSON.parse(JSON.stringify(data.log)); // make it same as what' in logs array
+
+    // need to get full logs!
+    const rtWithFullLogs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        _id: { $oid: data.restaurant._id }
+      },
+      projection: {
+        logs: 1
+      },
+      limit: 1
+    },1);
+
+    const logs = rtWithFullLogs[0].logs || [];
+
+    // check if the original exists, by testing time
+    const myIndex = logs.findIndex(e => new Date(e.time).valueOf() === new Date(log.time).valueOf());
+    if (myIndex >= 0) {
+      logs[myIndex] = log;
+    } else {
+      logs.push(log);
+    }
+
+    this.patchLog({ _id: data.restaurant._id }, { _id: data.restaurant._id, logs: logs });
+
+  }
+  patchLog(oldRestaurant, updatedRestaurant) {
+    this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: oldRestaurant, new: updatedRestaurant }]).subscribe(
+      result => {
+        // let's update original, assuming everything successful
+        this.adjustInvoiceRestaurantList.map(r => {
+          if (r._id === oldRestaurant._id) {
+            r.logs = updatedRestaurant.logs;
+          }
+        });
+        this._global.publishAlert(
+          AlertType.Success,
+          'Successfully created new log.'
+        );
+        this.cancelAdjustInvoice();
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error adding a log");
+      }
+    );
   }
 
   handleOnReject(order) {
@@ -581,7 +708,7 @@ export class RestaurantOrdersComponent implements OnInit {
           field: "reasons",
           value: [...new Set([...item.reasons, ...reasons])]
         }).toPromise();
-        //      ${environment.qmenuApiUrl}generic 
+        //      ${environment.qmenuApiUrl}generic
         await this._api.patch(`${environment.appApiUrl}app`, {
           resource: 'blacklist',
           query: {
@@ -593,7 +720,7 @@ export class RestaurantOrdersComponent implements OnInit {
         }).toPromise();
       }
     }
-    //this.okBanOld(reasons);//okBanOldCustomer() 
+    //this.okBanOld(reasons);//okBanOldCustomer()
     this.banModal.hide();// 隐藏模块（hide the dialog）
     this.populateOrders(); //刷新订单界面(refresh order bound)
   }
@@ -605,7 +732,7 @@ export class RestaurantOrdersComponent implements OnInit {
         orderId: event.order.id,
         comments: event.comments
       }).toPromise();
-      (order.orderStatuses || []).push({
+      (order.statuses || []).push({
         status: 'CANCELED',
         comments: event.comments,
         createdAt: new Date()

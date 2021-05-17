@@ -44,6 +44,7 @@ export class TemporarilyDisabledComponent implements OnInit {
       projection: {
         _id: 1,
         "googleAddress.formatted_address": 1,
+        "googleAddress.timezone": 1,
         name: 1,
         disabled: 1,
         comebackDate: 1
@@ -57,5 +58,5 @@ export class TemporarilyDisabledComponent implements OnInit {
     })
   }
 
-  
+
 }

@@ -4,7 +4,6 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";;
 import { Invoice } from 'src/app/classes/invoice';
-import { RouterLinkWithHref } from '@angular/router';
 
 @Component({
   selector: 'app-my-restaurant',
@@ -149,7 +148,7 @@ export class MyRestaurantComponent implements OnInit {
 
 
   async ngOnInit() {
-    this.isSuperUser = ['gary', 'chris', 'mo', 'alan'].indexOf(this._global.user.username) >= 0;
+    this.isSuperUser = ['gary', 'chris', 'mo', 'dixon.adair'].indexOf(this._global.user.username) >= 0;
     this.username = this._global.user.username;
     this.usernames = [this.username];
     if (this.isSuperUser) {

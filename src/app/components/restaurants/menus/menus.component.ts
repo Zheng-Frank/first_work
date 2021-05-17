@@ -7,7 +7,6 @@ import { Helper } from '../../../classes/helper';
 
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
-import { TimezoneService } from '../../../services/timezone.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 
@@ -26,6 +25,7 @@ export class MenusComponent implements OnInit {
   @Output() menusChanged = new EventEmitter();
 
   importMenu = false;
+  importCoupon = false;
   apiRequesting = false;
   providerUrl;
   providers = [];
@@ -42,7 +42,7 @@ export class MenusComponent implements OnInit {
 
   showPromotions = false;
 
-  constructor(private _api: ApiService, private _global: GlobalService, public _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
   }
@@ -121,8 +121,6 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
   async sortMenus(sortedMenus) {
-    // let's REMOVE sortOrder of each menu and just rely on nature sequence
-    sortedMenus.map(menu => delete menu.sortOrder);
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
@@ -353,8 +351,6 @@ export class MenusComponent implements OnInit {
       menu.id = menu.id || new Date().valueOf() + '';
       newMenus.push(menu);
     }
-
-
     // patch?
     this.patchDiff(newMenus);
 
@@ -395,9 +391,20 @@ export class MenusComponent implements OnInit {
       const myOldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
       const myNewMenus = JSON.parse(JSON.stringify(newMenus));
 
-      // we'd like to remove mcs first!
+      if (myNewMenus.length !== myOldMenus.length) {
+        /* Different lengths means a new menu has been added. We don't want to delete any categories on the new menu,
+        because it could be a copy of an existing one. The new menu will always be in the last index position of myNewMenus*/
+        const newMenu = myNewMenus[myNewMenus.length - 1];
+        myNewMenus.map(m => {
+          if (m.id !== newMenu.id) {
+            delete m.mcs
+          }
+        });
+      } else {
+        // patch operation only cares about changes, so we delete unchanged menu categories.
+        myNewMenus.map(m => delete m.mcs);
+      }
       myOldMenus.map(m => delete m.mcs);
-      myNewMenus.map(m => delete m.mcs);
 
       this._api
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{

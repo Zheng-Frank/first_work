@@ -2,7 +2,6 @@ import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { Restaurant, Promotion } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { TimezoneService } from "../../../services/timezone.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
@@ -28,7 +27,7 @@ export class RestaurantPromotionsComponent implements OnInit {
 
   promotionInEditing;
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService, public _timezone: TimezoneService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
   }
@@ -143,7 +142,7 @@ export class RestaurantPromotionsComponent implements OnInit {
     }
   }
 
-  /* migrate function is not currently implemented. Checkout functionality has been updated to work with both newer data structures, 
+  /* migrate function is not currently implemented. Checkout functionality has been updated to work with both newer data structures,
   as well as the older excluded menus method. It should not be necessary to migrate excluded menus unless some other circumstance
   dictates that it should be done. */
 

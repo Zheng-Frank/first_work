@@ -10,7 +10,6 @@ import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
 import { Domain } from "src/app/classes/domain";
 import * as FileSaver from 'file-saver';
-
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -21,6 +20,195 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
   ngOnInit() { }
+
+  async findNonUsedMis() {
+    const rtId = '5a950e6fa5c27b1400a58830'
+    const [rt] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $oid: rtId } },
+      projection: {
+        name: 1,
+        'menus.mcs.mis.name': 1
+      },
+      limit: 1
+    }).toPromise();
+    const latestOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      query: { restaurant: { $oid: rtId } },
+      projection: {
+        'orderItems.miInstance.name': 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 2000
+    }).toPromise();
+    const map = {};
+    rt.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => map[mi.name] = 0)));
+    latestOrders.map(o => o.orderItems.map(oi => {
+      map[oi.miInstance.name] = (map[oi.miInstance.name] || 0) + 1;
+    }));
+    const sorted = Object.keys(map).map(k => ({ name: k, value: map[k], percent: 0 })).sort((a1, a2) => a2.value - a1.value);
+    const total = sorted.reduce((sum, i) => sum + i.value, 0);
+    let subtotal = 0;
+    for (let i = 0; i < sorted.length; i++) {
+      subtotal += sorted[i].value;
+      sorted[i].percent = subtotal / total;
+    }
+    console.log(sorted);
+    console.log('test')
+  }
+
+  async fixMenuDuplication() {
+
+    const allRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {},
+      projection: {
+        name: 1,
+      },
+      limit: 10000000
+    }).toPromise();
+
+    const restaurantIds = allRestaurants.map(r => r._id);
+    const badIds = [];
+
+    const batchSize = 50;
+    const batches = Array(Math.ceil(restaurantIds.length / batchSize)).fill(0).map((i, index) => restaurantIds.slice(index * batchSize, (index + 1) * batchSize));
+
+    for (let batch of batches) {
+      console.log("batch ", batches.indexOf(batch), ' of ', batches.length);
+      try {
+        const query = {
+          _id: { $in: [...batch.map(id => ({ $oid: id }))] }
+        };
+        const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          query,
+          projection: {
+            menus: 1,
+            name: 1,
+          },
+          limit: batchSize + 1
+        }).toPromise();
+
+        console.log("Done request");
+
+        for (let r of restaurants) {
+          const menus = r.menus || [];
+          let updated = false;
+          // we remove EITHER duplicared id or duplicated name of menu items!
+          for (let i = menus.length - 1; i >= 0; i--) {
+            const menu = menus[i];
+            const mcs = menu.mcs || [];
+            for (let j = mcs.length - 1; j >= 0; j--) {
+              const mc = mcs[j];
+              const mis = mc.mis || [];
+              const miIds = new Set();
+              const miNames = new Set();
+              for (let k = mis.length - 1; k >= 0; k--) {
+                const mi = mis[k] || {};
+                if (miIds.has(mi.id) /*|| miNames.has(mi.name) */) {
+                  console.log('dup:', mi.name, mi.sizeOptions[0].price);
+                  updated = true;
+                  mis.splice(k, 1);
+                }
+                miIds.add(mi.id);
+                miNames.add(mi.name);
+              }
+            }
+          }
+
+          if (updated) {
+            console.log(r.name)
+            // write it back
+            await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+              old: { _id: r._id },
+              new: { _id: r._id, menus: menus }
+            }]).toPromise();
+          }
+          console.log('done updating batch')
+        }
+      } catch (error) {
+        console.log(error);
+        badIds.push(...batch);
+      }
+      console.log("batch done");
+    }
+    console.log(badIds);
+  }
+
+  async fixMenuSortOrders() {
+    // const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'restaurant',
+    //   query: {
+    //     $or: [
+    //       { "menu.mc.sortOrder": { $exists: true } },
+    //       { "menu.mc.mis.sortOrder": { $exists: true } }
+    //     ]
+    //   },
+    //   projection: {
+    //     menus: 1,
+    //     name: 1
+    //   },
+    // }, 10);
+    while (true) {
+
+      const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          $or: [
+            { "menus.mcs.sortOrder": { $exists: true } },
+            { "menus.mcs.mis.sortOrder": { $exists: true } }
+          ]
+        },
+        projection: {
+          menus: 1,
+          name: 1,
+        },
+        limit: 20
+      }).toPromise();
+
+      if (restaurants.length === 0) {
+        console.log("all done");
+        break;
+      }
+
+      console.log(restaurants.map(r => r.name));
+      // a local function to sort arr based on sortOrder. 
+      const sort = function (arr) {
+        let firstPart = arr.filter((i) => i && typeof i.sortOrder === 'number');
+        let secondPart = arr.filter((i) => i && typeof i.sortOrder !== 'number');
+        firstPart = firstPart.sort((a, b) => a.sortOrder - b.sortOrder);
+        return firstPart.concat(secondPart);
+      }
+
+      for (let r of restaurants) {
+        const menus = r.menus || [];
+        const hasSortOrder = menus.some(menu => (menu.mcs || []).some(mc => (mc && mc.hasOwnProperty('sortOrder')) || (mc.mis || []).some(mi => (mi && mi.hasOwnProperty('sortOrder')))));
+        console.log(hasSortOrder);
+        if (hasSortOrder) {
+          // sort it and then remove sortOrder and rewrite back
+          menus.map(menu => {
+            (menu.mcs || []).map(mc => {
+              mc.mis = sort(mc.mis || []);
+              mc.mis.map(mi => delete mi.sortOrder);
+            });
+            // sort mcs
+            menu.mcs = sort(menu.mcs);
+            menu.mcs.map(mc => delete mc.sortOrder);
+          });
+          // write it back
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+            old: { _id: r._id },
+            new: { _id: r._id, menus: menus }
+          }]).toPromise();
+        }
+      }
+    }
+
+  }
+
 
   async fixBadMenuHours() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -202,7 +390,7 @@ export class DbScriptsComponent implements OnInit {
 
   async calculateCommissions() {
     // get all non-canceled, payment completed invoices so far
-    const invoices = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+    const invoicesRaw = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "invoice",
       query: {},
       projection: {
@@ -213,18 +401,15 @@ export class DbScriptsComponent implements OnInit {
         total: 1
       }
     }, 20000);
+    // remove bad ones
+    const invoices = invoicesRaw.filter(i => i.total < 100000);
+
+    // all
     const allCommissions = invoices.reduce((sum, invoice) => {
       if (!invoice.isCanceled) {
         return sum + (invoice.commission || 0);
       }
 
-      return sum;
-    }, 0);
-    const year = new Date().getFullYear() - 0;
-    const yearCommission = invoices.reduce((sum, invoice) => {
-      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
-        return sum + (invoice.commission || 0);
-      }
       return sum;
     }, 0);
     const allTotal = invoices.reduce((sum, invoice) => {
@@ -234,16 +419,49 @@ export class DbScriptsComponent implements OnInit {
 
       return sum;
     }, 0);
+
+    // year so far
+    const year = new Date().getFullYear() - 0;
+
+    const yearCommission = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
+        return sum + (invoice.commission || 0);
+      }
+      return sum;
+    }, 0);
+
     const yearTotal = invoices.reduce((sum, invoice) => {
       if (!invoice.isCanceled && new Date(invoice.toDate).getFullYear() === year) {
         return sum + (invoice.total || 0);
       }
       return sum;
     }, 0);
-    console.log(`Life Comissions: ${allCommissions}`);
-    console.log(`Year Comissions: ${yearCommission}`);
+
+    // year rolling
+
+    const lastYear = new Date();
+    lastYear.setDate(lastYear.getDate() - 366);
+
+    const yearOverYearCommission = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).valueOf() > lastYear.valueOf()) {
+        return sum + (invoice.commission || 0);
+      }
+      return sum;
+    }, 0);
+
+    const yearOverYearTotal = invoices.reduce((sum, invoice) => {
+      if (!invoice.isCanceled && new Date(invoice.toDate).valueOf() > lastYear.valueOf()) {
+        return sum + (invoice.total || 0);
+      }
+      return sum;
+    }, 0);
+
     console.log(`Life Total: ${allTotal}`);
+    console.log(`Life Comissions: ${allCommissions}`);
     console.log(`Year Total: ${yearTotal}`);
+    console.log(`Year Comissions: ${yearCommission}`);
+    console.log(`YoY Total: ${yearOverYearTotal}`);
+    console.log(`YoY Comissions: ${yearOverYearCommission}`);
   }
 
   async fixSalesBaseAndBonus() {
@@ -1799,7 +2017,7 @@ export class DbScriptsComponent implements OnInit {
     // 2. test if thanksgiving is already closed. if no:
     // 3. schedule a text (every 2 seconds apart??)
     // 4. make a table to capture result?
-    // 
+    //
 
     alert('DO NOT USE')
     // const restaurants: Restaurant[] = (await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -1825,7 +2043,7 @@ export class DbScriptsComponent implements OnInit {
 
     // console.log('not already closed: ', notAlreadyClosed.length);
 
-    // // inject an closedHour: 
+    // // inject an closedHour:
     // const closedHour = new Hour({
     //   occurence: 'ONE-TIME',
     //   fromTime: new Date('Nov 22 2018 5:00:00 GMT-0500'),
@@ -2077,7 +2295,7 @@ export class DbScriptsComponent implements OnInit {
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions && Array.isArray(mi.sizeOptions))));
           // fix size options
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis.map(mi => mi.sizeOptions = mi.sizeOptions.filter(so => so && so.name))));
-          // fix menu 
+          // fix menu
           clone.menus.map(menu => menu.mcs.map(mc => mc.mis = mc.mis.filter(mi => mi && mi.sizeOptions.length > 0)));
           return clone.menus;
         }
@@ -3065,7 +3283,7 @@ export class DbScriptsComponent implements OnInit {
           let toTime = new Date(r.closedHours[i].toTime);
           let now = new Date();
           let Difference_In_Time = now.getTime() - toTime.getTime();
-          // To calculate the no. of days between two dates 
+          // To calculate the no. of days between two dates
           let Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
           if (Difference_In_Days > 1) {
             r.closedHours.splice(i, 1);

@@ -1,7 +1,3 @@
-import { GmbAccount } from "./gmb-account";
-import { GmbRequest } from "./gmb-request";
-import { GmbBiz } from "./gmb-biz";
-
 /**
  * GMB account
  */
