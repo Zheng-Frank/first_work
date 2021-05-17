@@ -86,7 +86,7 @@ export class CouponImportComponent implements OnInit {
       this.importModal.show();
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving promotions');
     }
     this.loading = false;
 
