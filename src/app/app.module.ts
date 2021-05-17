@@ -218,6 +218,7 @@ import { RestaurantTranslationsComponent } from './components/restaurants/restau
 import { RestaurantInvoiceAdjustmentComponent } from './components/restaurants/restaurant-invoice-adjustment/restaurant-invoice-adjustment.component';
 import { CouponImportComponent } from './components/restaurants/coupon-import/coupon-import.component';
 import { RestaurantsByCourierComponent } from './components/restaurants/restaurants-by-courier/restaurants-by-courier.component';
+import { RestaurantOthersComponent } from './components/restaurants/restaurant-others/restaurant-others.component';
 
 @NgModule({
   declarations: [
@@ -405,7 +406,8 @@ import { RestaurantsByCourierComponent } from './components/restaurants/restaura
     RestaurantInvoiceAdjustmentComponent,
     AddNewLogComponent,
     CouponImportComponent,
-    RestaurantsByCourierComponent
+    RestaurantsByCourierComponent,
+    RestaurantOthersComponent
 
   ],
   imports: [

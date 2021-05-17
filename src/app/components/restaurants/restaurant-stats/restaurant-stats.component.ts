@@ -18,9 +18,9 @@ export class RestaurantStatsComponent implements OnInit {
     newCustomerLast30DaysOrders: { value: "", label: 'New customer orders (as % of orders placed in last 30 days)' },
     totalOrdersFromRepeatCustomer: { value: 0, label: 'Total orders from repeat customers' },
     totalOrderFromNewCustomer: { value: 0, label: 'Total orders from new customers' },
-    menusWithPicture: { value: 0, label: 'Orders for menu items with pictures per RT' },
-    menusWithoutPicture: { value: 0, label: 'Orders for Menu items without pictures per RT' },
-    menuPictureRate: { value: 0, label: 'Order rate for menu items with pictures vs. without pictures per RT' }
+    menusWithPicture: { value: 0, label: 'The X menu items with pictures were ordered' },
+    menusWithoutPicture: { value: 0, label: 'The Y menu items without pictures were ordered' },
+    menusWithPictureOrderRate: { value: 0, label: 'Menu items with pictures sell better than those without by a factor of' }
   }
   constructor(private _api: ApiService) { }
 
@@ -121,10 +121,13 @@ export class RestaurantStatsComponent implements OnInit {
         });
       });
     });
-    this.statistics['menusWithPicture'].value = menuItemWithPictureCount > 0 ? Number((menuItemWithPictureOrderCount / menuItemWithPictureCount).toFixed(4)) : 0;
-    this.statistics['menusWithoutPicture'].value = menuItemWithoutPictureCount > 0 ? Number((menuItemWithoutPictureOrderCount / menuItemWithoutPictureCount).toFixed(4)) : 0;
-    this.statistics['menuPictureRate'].value = this.statistics['menusWithoutPicture'].value > 0 ? Number((this.statistics['menusWithPicture'].value / this.statistics['menusWithoutPicture'].value).toFixed(4)) : 0;
-
+    let tempMenuItemWithPictureCount = menuItemWithPictureCount > 0 ? Number((menuItemWithPictureOrderCount / menuItemWithPictureCount).toFixed(4)) : 0;
+    let tempMenuItemWithoutPictureCount = menuItemWithoutPictureCount > 0 ? Number((menuItemWithoutPictureOrderCount / menuItemWithoutPictureCount).toFixed(4)) : 0;
+    this.statistics['menusWithPicture'].value = menuItemWithPictureOrderCount;
+    this.statistics['menusWithPicture'].label = 'The ' + menuItemWithPictureCount + ' menu items with pictures were ordered';
+    this.statistics['menusWithoutPicture'].value = menuItemWithoutPictureOrderCount;
+    this.statistics['menusWithoutPicture'].label = 'The ' + menuItemWithoutPictureCount + ' menu items without pictures were ordered';
+    this.statistics['menusWithPictureOrderRate'].value = menuItemWithoutPictureCount > 0 ? Number((tempMenuItemWithPictureCount / tempMenuItemWithoutPictureCount).toFixed(4)) : 0;
   }
 
 

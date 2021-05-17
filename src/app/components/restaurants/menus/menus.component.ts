@@ -1,14 +1,14 @@
-import { Component, OnInit, ViewChild, Input, Output, EventEmitter } from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 
-import { Menu, Restaurant } from '@qmenu/ui';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { MenuEditorComponent } from '../menu-editor/menu-editor.component';
-import { Helper } from '../../../classes/helper';
+import {Menu, Restaurant} from '@qmenu/ui';
+import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {MenuEditorComponent} from '../menu-editor/menu-editor.component';
+import {Helper} from '../../../classes/helper';
 
-import { ApiService } from '../../../services/api.service';
-import { GlobalService } from '../../../services/global.service';
-import { environment } from "../../../../environments/environment";
-import { AlertType } from '../../../classes/alert-type';
+import {ApiService} from '../../../services/api.service';
+import {GlobalService} from '../../../services/global.service';
+import {environment} from '../../../../environments/environment';
+import {AlertType} from '../../../classes/alert-type';
 
 @Component({
   selector: 'app-menus',
@@ -34,15 +34,18 @@ export class MenusComponent implements OnInit {
   bmUrl;
 
   adjustingAllPrices = false;
-  adjustMenuOrders = false;
+  adjustingMenuOrders = false;
   adjustPricesFactorPercent;
   adjustPricesFactorAmount;
   copyMenu = false;
   copyMenuToRestaurantId;
 
+  showAdditionalFunctions = false;
   showPromotions = false;
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+
+  constructor(private _api: ApiService, private _global: GlobalService) {
+  }
 
   ngOnInit() {
   }
@@ -51,45 +54,55 @@ export class MenusComponent implements OnInit {
     return (this.restaurant.menus || []).some(menu => (menu.hours || []).length === 0);
   }
 
+  hideAdditionalFunction() {
+    this.showAdditionalFunctions = false;
+    this.copyMenu = false;
+    this.importMenu = false;
+    this.importCoupon = false;
+    this.adjustingAllPrices = false;
+    this.adjustingMenuOrders = false;
+  }
+
+
   async populateProviders() {
     this.apiRequesting = true;
     try {
-      const providers = await this._api.post(environment.appApiUrl + "utils/menu", {
-        name: "get-service-providers",
+      const providers = await this._api.post(environment.appApiUrl + 'utils/menu', {
+        name: 'get-service-providers',
         payload: {
           ludocid: (this.restaurant.googleListing || {}).cid
         }
       }).toPromise();
       this.providers = providers.map(p => ({
-        name: p.name || "unknown",
-        url: (p.menuUrl && p.menuUrl !== "unknown") ? p.menuUrl : p.url
+        name: p.name || 'unknown',
+        url: (p.menuUrl && p.menuUrl !== 'unknown') ? p.menuUrl : p.url
       }));
       if (this.providers.length === 0) {
-        alert("no known providers found");
+        alert('no known providers found');
       }
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Error on retrieving providers");
-      alert("timeout");
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving providers');
+      alert('timeout');
     }
     this.apiRequesting = false;
   }
 
   async crawl(synchronously) {
-    console.log(this.restaurant.googleAddress)
+    console.log(this.restaurant.googleAddress);
     this.apiRequesting = true;
     try {
-      this._global.publishAlert(AlertType.Info, "crawling...");
+      this._global.publishAlert(AlertType.Info, 'crawling...');
       if (synchronously) {
-        const crawledRestaurant = await this._api.post(environment.appApiUrl + "utils/menu", {
-          name: "crawl",
+        const crawledRestaurant = await this._api.post(environment.appApiUrl + 'utils/menu', {
+          name: 'crawl',
           payload: {
             url: this.providerUrl,
             timezone: this.restaurant.googleAddress.timezone
           }
         }).toPromise();
-        this._global.publishAlert(AlertType.Info, "updating...");
-        await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        this._global.publishAlert(AlertType.Info, 'updating...');
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
           old: {
             _id: this.restaurant._id
           }, new: {
@@ -99,30 +112,34 @@ export class MenusComponent implements OnInit {
           }
         }]).toPromise();
 
-        this._global.publishAlert(AlertType.Info, "injecting images...");
-        await this._api.post(environment.appApiUrl + "utils/menu", {
-          name: "inject-images",
+        this._global.publishAlert(AlertType.Info, 'injecting images...');
+        await this._api.post(environment.appApiUrl + 'utils/menu', {
+          name: 'inject-images',
           payload: {
             restaurantId: this.restaurant._id,
           }
         }).toPromise();
-        this._global.publishAlert(AlertType.Info, "All done!");
+        this._global.publishAlert(AlertType.Info, 'All done!');
         this.menusChanged.emit();
       } else {
         await this._api.post(environment.appApiUrl + 'events',
-          [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'populate-menus', params: { restaurantId: this.restaurant._id, url: this.providerUrl } } }]
+          [{
+            queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`,
+            event: {name: 'populate-menus', params: {restaurantId: this.restaurant._id, url: this.providerUrl}}
+          }]
         ).toPromise();
-        alert("Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.");
+        alert('Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.');
       }
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Error on retrieving menus");
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
     }
     this.apiRequesting = false;
   }
+
   async sortMenus(sortedMenus) {
     try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
           _id: this.restaurant['_id']
         }, new: {
@@ -131,11 +148,11 @@ export class MenusComponent implements OnInit {
         }
       }]).toPromise();
       this.restaurant.menus = sortedMenus;
-      this._global.publishAlert(AlertType.Success, "Success!");
-      this.adjustMenuOrders = false;
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      this.adjustingMenuOrders = false;
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Failed!");
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
     }
   }
 
@@ -143,23 +160,28 @@ export class MenusComponent implements OnInit {
     const timestamp = new Date().valueOf().toString();
     const testMenu = {
       id: timestamp + '0',
-      name: "Test Menu（测试菜单）",
-      description: "Temporary for testing",
+      name: 'Test Menu（测试菜单）',
+      description: 'Temporary for testing',
       hours: [],
       mcs: [{
         id: timestamp + '1',
-        name: "Test Category",
+        name: 'Test Category',
         images: [],
         mis: [
           {
             id: timestamp + '2',
             category: timestamp + '1',
-            name: "Sesame Chicken（芝麻鸡）",
+            name: 'Sesame Chicken（芝麻鸡）',
             sizeOptions: [{
-              name: "regular",
+              name: 'regular',
               price: 10.99
             }],
-            imageObjs: [{ "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1558463472991.jpeg", "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/192_menuImage/1558463472991.jpeg", "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1558463472991.jpeg", "origin": "IMAGE-PICKER" }]
+            imageObjs: [{
+              'originalUrl': 'https://chopst.s3.amazonaws.com/menuImage/1558463472991.jpeg',
+              'thumbnailUrl': 'https://s3.amazonaws.com/chopstresized/192_menuImage/1558463472991.jpeg',
+              'normalUrl': 'https://s3.amazonaws.com/chopstresized/768_menuImage/1558463472991.jpeg',
+              'origin': 'IMAGE-PICKER'
+            }]
           }
         ]
       }]
@@ -173,7 +195,7 @@ export class MenusComponent implements OnInit {
     myNewMenus.map(m => delete m.mcs);
     myNewMenus.push(new Menu(testMenu as any));
     try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
           _id: this.restaurant['_id'],
           menus: myOldMenus
@@ -182,12 +204,12 @@ export class MenusComponent implements OnInit {
           menus: myNewMenus
         }
       }]).toPromise();
-      this._global.publishAlert(AlertType.Success, "Success!");
+      this._global.publishAlert(AlertType.Success, 'Success!');
       this.restaurant.menus.push(new Menu(testMenu as any));
 
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Failed!");
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
     }
     // set the latest as active tab
     this.setActiveId(testMenu.id);
@@ -196,7 +218,7 @@ export class MenusComponent implements OnInit {
 
   async copyMenuToRT() {
     try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
           _id: this.copyMenuToRestaurantId,
           menus: [],
@@ -207,11 +229,11 @@ export class MenusComponent implements OnInit {
           menuOptions: this.restaurant.menuOptions
         }
       }]).toPromise();
-      this._global.publishAlert(AlertType.Success, "Success!");
+      this._global.publishAlert(AlertType.Success, 'Success!');
       this.adjustingAllPrices = false;
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Failed!");
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
       this.adjustingAllPrices = false;
     }
   }
@@ -224,11 +246,11 @@ export class MenusComponent implements OnInit {
       eachMenu.mcs.forEach(eachMc => {
         eachMc.mis.forEach(mi => {
           mi.nonCustomizable = true;
-        })
-      })
-    })
+        });
+      });
+    });
     try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
           _id: this.restaurant['_id'],
           menus: oldMenus
@@ -238,10 +260,10 @@ export class MenusComponent implements OnInit {
         }
       }]).toPromise();
       this.restaurant.menus = newMenus.map(each => new Menu(each));
-      this._global.publishAlert(AlertType.Success, "Success!");
+      this._global.publishAlert(AlertType.Success, 'Success!');
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Failed!");
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
     }
 
   }
@@ -262,7 +284,7 @@ export class MenusComponent implements OnInit {
           } else if (this.adjustPricesFactorPercent) {
             item.price = +((+item.price) * (1 + factor)).toFixed(2);
           } else {
-            this._global.publishAlert(AlertType.Danger, "Missing data!");
+            this._global.publishAlert(AlertType.Danger, 'Missing data!');
           }
         }
       }))));
@@ -271,7 +293,7 @@ export class MenusComponent implements OnInit {
       newMenus.map((menu, index) => menu.hours = oldMenus[index].hours);
       // now let's patch!
       try {
-        await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
           old: {
             _id: this.restaurant['_id'],
             // menus: oldMenus 8/6/2020 just replace total to avoid dirty data problem causing 5f2c21e5e706a44974ce515a to fail
@@ -281,17 +303,16 @@ export class MenusComponent implements OnInit {
           }
         }]).toPromise();
         this.restaurant.menus = newMenus.map(menu => new Menu(menu));
-        this._global.publishAlert(AlertType.Success, "Success!");
+        this._global.publishAlert(AlertType.Success, 'Success!');
         this.adjustingAllPrices = false;
       } catch (error) {
         location.reload();
         console.log(error);
-        this._global.publishAlert(AlertType.Danger, "Failed!");
+        this._global.publishAlert(AlertType.Danger, 'Failed!');
         this.adjustingAllPrices = false;
       }
-    }
-    else {
-      this._global.publishAlert(AlertType.Danger, "Missing data!");
+    } else {
+      this._global.publishAlert(AlertType.Danger, 'Missing data!');
     }
   }
 
@@ -303,9 +324,6 @@ export class MenusComponent implements OnInit {
   }
 
   getActiveId() {
-    if (this.showPromotions) {
-      return 'promotions';
-    }
     if (this.activeId) {
       return this.activeId;
     }
@@ -316,7 +334,6 @@ export class MenusComponent implements OnInit {
   }
 
   setActiveId(id) {
-    this.showPromotions = false;
     this.activeId = id;
     // let's do s smooth scroll to make it to center???
   }
@@ -375,7 +392,7 @@ export class MenusComponent implements OnInit {
     }
 
     // get a shallow copy
-    const newMenus = this.restaurant.menus.filter(m => m.id != menu.id);
+    const newMenus = this.restaurant.menus.filter(m => m.id !== menu.id);
     this.patchDiff(newMenus);
     this.menuEditingModal.hide();
   }
@@ -384,7 +401,7 @@ export class MenusComponent implements OnInit {
     if (Helper.areObjectsEqual(this.restaurant.menus, newMenus)) {
       this._global.publishAlert(
         AlertType.Info,
-        "Not changed"
+        'Not changed'
       );
     } else {
       // api update here...
@@ -397,7 +414,7 @@ export class MenusComponent implements OnInit {
         const newMenu = myNewMenus[myNewMenus.length - 1];
         myNewMenus.map(m => {
           if (m.id !== newMenu.id) {
-            delete m.mcs
+            delete m.mcs;
           }
         });
       } else {
@@ -407,7 +424,7 @@ export class MenusComponent implements OnInit {
       myOldMenus.map(m => delete m.mcs);
 
       this._api
-        .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
           old: {
             _id: this.restaurant['_id'],
             menus: myOldMenus
@@ -422,11 +439,11 @@ export class MenusComponent implements OnInit {
             this.restaurant.menus = newMenus;
             this._global.publishAlert(
               AlertType.Success,
-              "Updated successfully"
+              'Updated successfully'
             );
           },
           error => {
-            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+            this._global.publishAlert(AlertType.Danger, 'Error updating to DB');
           }
         );
     }
@@ -437,8 +454,8 @@ export class MenusComponent implements OnInit {
   }
 
   async injectImages() {
-    const images = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "image",
+    const images = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'image',
       limit: 3000
     }).toPromise();
 
@@ -455,11 +472,11 @@ export class MenusComponent implements OnInit {
           const match = function (aliases, name) {
             const sanitizedName = Helper.sanitizedName(name);
             return (aliases || []).some(alias => alias.toLowerCase().trim() === sanitizedName);
-          }
-          //only use the first matched alias
+          };
+          // only use the first matched alias
           let matchingAlias = images.filter(image => match(image.aliases, mi.name) || match(image.aliases, mi.description))[0];
           if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
-            //reset the imageObj
+            // reset the imageObj
             mi.imageObjs = [];
             (matchingAlias.images || []).map(each => {
               (mi.imageObjs).push({
@@ -468,7 +485,7 @@ export class MenusComponent implements OnInit {
                 normalUrl: each.url768,
                 origin: 'IMAGE-PICKER'
               });
-            })
+            });
             needUpdate = true;
           }
         }
@@ -479,7 +496,7 @@ export class MenusComponent implements OnInit {
 
     if (needUpdate) {
       try {
-        await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
           old: {
             _id: this.restaurant['_id'],
             menus: oldMenus,
@@ -488,11 +505,12 @@ export class MenusComponent implements OnInit {
             menus: newMenus,
           }
         }]).toPromise();
-        this.restaurant.menus = JSON.parse(JSON.stringify(newMenus));;
-        this._global.publishAlert(AlertType.Success, "Success!");
+        const menus = JSON.parse(JSON.stringify(newMenus));
+        this.restaurant.menus = menus.map(x => new Menu(x));
+        this._global.publishAlert(AlertType.Success, 'Success!');
       } catch (error) {
         console.log(error);
-        this._global.publishAlert(AlertType.Danger, "Failed!");
+        this._global.publishAlert(AlertType.Danger, 'Failed!');
       }
 
     }
@@ -512,7 +530,7 @@ export class MenusComponent implements OnInit {
         }
       }
 
-      for (var i = indexArray.length - 1; i >= 0; i--) {
+      for (let i = indexArray.length - 1; i >= 0; i--) {
         mi.imageObjs.splice(indexArray[i], 1);
       }
 
@@ -520,7 +538,7 @@ export class MenusComponent implements OnInit {
 
     // now let's patch!
     try {
-      await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
           _id: this.restaurant['_id']
         }, new: {
@@ -529,16 +547,13 @@ export class MenusComponent implements OnInit {
         }
       }]).toPromise();
       this.restaurant.menus = newMenus.map(each => new Menu(each));
-      this._global.publishAlert(AlertType.Success, "Success!");
+      this._global.publishAlert(AlertType.Success, 'Success!');
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, "Failed!");
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
     }
 
   }
 
-  showPromotionsComponent() {
-    this.showPromotions = true;
-    this.activeId = undefined;
-  }
+
 }

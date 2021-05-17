@@ -1,0 +1,31 @@
+<div class="card">
+  <ul class="nav nav-tabs app-tab">
+    <li class="nav-item" *ngFor="let tab of tabs">
+      <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+        style="cursor: pointer;">{{tab}}</a>
+    </li>
+  </ul>
+  <div class="card-body">
+    <div *ngIf="activeTab === 'Translations'">
+      <app-restaurant-translations [restaurant]="restaurant"></app-restaurant-translations>
+    </div>
+    <div *ngIf="activeTab === '1099K'">
+      <app-restaurant-form1099-k [restaurant]="restaurant"></app-restaurant-form1099-k>
+    </div>
+    <div *ngIf="activeTab === 'GMB Posts'">
+      <app-restaurant-gmb-posts [restaurant]="restaurant"></app-restaurant-gmb-posts>
+    </div>
+    <div *ngIf="activeTab === 'Web Template'">
+      <app-restaurant-web-template [restaurant]="restaurant"></app-restaurant-web-template>
+    </div>
+    <div *ngIf="activeTab === 'Yelp'">
+      <app-restaurant-yelp [restaurant]="restaurant"></app-restaurant-yelp>
+    </div>
+    <div *ngIf="activeTab === 'API Logs'">
+      <app-restaurant-api-logs [restaurant]="restaurant"></app-restaurant-api-logs>
+    </div>
+    <div *ngIf="activeTab === 'Stats'">
+      <app-restaurant-stats [restaurant]="restaurant"></app-restaurant-stats>
+    </div>
+  </div>
+</div>
