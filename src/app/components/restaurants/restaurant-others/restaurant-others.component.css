@@ -1,0 +1,8 @@
+.app-tab{
+    white-space: nowrap;
+    display: inline-block;
+}
+.app-tab li {
+    display: inline-block;
+    float: inherit;
+}
