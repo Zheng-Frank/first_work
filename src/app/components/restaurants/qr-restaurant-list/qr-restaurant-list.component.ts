@@ -40,6 +40,18 @@ export class QrRestaurantListComponent implements OnInit {
       label: "Correct/Wrong Reasons"  // why restaurant is wrong.
     },
     {
+      label: "QR createdAt",
+      sort: (a, b) => {
+        if(a.qrSettings.createdAt && b.qrSettings.createdAt){
+          return new Date(a.qrSettings.createdAt).valueOf() - new Date(b.qrSettings.createdAt).valueOf()
+        }else if(a.qrSettings.createdAt && !b.qrSettings.createdAt){
+          return 1;
+        }else if(!a.qrSettings.createdAt && b.qrSettings.createdAt){
+          return -1;
+        }
+      }
+    },
+    {
       label: "Fee/Rate Schedules"
     }
 
@@ -122,7 +134,8 @@ export class QrRestaurantListComponent implements OnInit {
       projection: {
         _id: 1,
         name: 1,
-        googleAddress: 1,
+        "googleAddress.formatted_address": 1,
+        "googleAddress.timezone": 1,
         qrOrderNumber: 1,
         feeSchedules: 1,
         rateSchedules: 1,
@@ -130,6 +143,7 @@ export class QrRestaurantListComponent implements OnInit {
         "menus.name": 1,
         "qrSettings.codes": 1,
         "qrSettings.agent": 1,
+        "qrSettings.createdAt": 1,
       },
       sort: { updatedAt: -1 }
     }, 5000);

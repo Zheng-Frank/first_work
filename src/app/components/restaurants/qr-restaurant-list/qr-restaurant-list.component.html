@@ -51,6 +51,9 @@
         </div>
       </td>
       <td>
+        {{restaurant.qrSettings.createdAt | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}
+      </td>
+      <td>
         <div *ngIf="restaurant.feeSchedules">
           <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
         </div>
