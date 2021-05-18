@@ -498,13 +498,13 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Disable Scheduling' : '休息时间' }}
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Disable Ordering Ahead' : '禁用提前订购' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                      (mouseover)="showCorrespondingTranslation('DisableScheduling')" (mouseout)="translating = ''">
-                      <div *ngIf="translating === 'DisableScheduling'" class="left talk radius">
-                        <p>Disable Scheduling:{{Explanations.EnglishExplanations.DisableScheduling}}</p>
+                      (mouseover)="showCorrespondingTranslation('DisableOrderingAhead')" (mouseout)="translating = ''">
+                      <div *ngIf="translating === 'DisableOrderingAhead'" class="left talk radius">
+                        <p>Disable Ordering Ahead:{{Explanations.EnglishExplanations.DisableOrderingAhead}}</p>
                         -------------<br>
-                        <p>休息时间:{{Explanations.ChineseExplanations.DisableScheduling}}</p>
+                        <p>禁用提前订购:{{Explanations.ChineseExplanations.DisableOrderingAhead}}</p>
                       </div>
                     </i>
                   </div>
