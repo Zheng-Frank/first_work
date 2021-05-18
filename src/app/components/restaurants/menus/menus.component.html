@@ -2,24 +2,33 @@
   <div class="alert alert-danger text-center" *ngIf="hasMenuHoursMissing()">
     <h1>Menu hours missing (个别菜单的时间未定义)</h1>
   </div>
-  <div class="text-right">
-    <button class="btn btn-link" (click)="importCoupon = !importCoupon">Import Coupons (采集优惠券)</button>
-    <button class="btn btn-link" (click)="importMenu = !importMenu">Import Menus (采集菜单)</button>
-    <ng-container *ngIf="getMenus().length > 0">
-      <button *ngIf="!restaurant.skipImageInjection" class="btn btn-link" (click)="injectImages()">Inject Image
-        (加图片)</button>
-      <button class="btn btn-link" (click)="deleteImages()">Delete Image (删除图片)</button>
-      <button class="btn btn-link" (click)="disableNotes()">Disable Notes (取消客人注释)</button>
-      <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
-      <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices (整体提价)</button>
-      <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
-        (调整菜单次序)</button>
-    </ng-container>
-    <ng-container *ngIf="getMenus().length === 0">
-      <button class="btn btn-primary" (click)="createTestMenu()">Create Test Menu (添加测试菜单)</button>
-    </ng-container>
+  <div class="additional-functions-bar">
+    <button *ngIf="!showAdditionalFunctions" class="btn btn-link" (click)="showAdditionalFunctions=true" >
+      Show additional functions...
+    </button>
+    <div *ngIf="showAdditionalFunctions">
+      <button class="btn btn-link" (click)="hideAdditionalFunction()">Hide additional functions...</button>
+      <div class="text-right">
+        <button class="btn btn-link" (click)="importCoupon = !importCoupon">Import Coupons (采集优惠券)</button>
+        <button class="btn btn-link" (click)="importMenu = !importMenu">Import Menus (采集菜单)</button>
+        <ng-container *ngIf="getMenus().length > 0">
+          <button *ngIf="!restaurant.skipImageInjection" class="btn btn-link" (click)="injectImages()">Inject Image
+            (加图片)</button>
+          <button class="btn btn-link" (click)="deleteImages()">Delete Image (删除图片)</button>
+          <button class="btn btn-link" (click)="disableNotes()">Disable Notes (取消客人注释)</button>
+          <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
+          <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices (整体提价)</button>
+          <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
+            (调整菜单次序)</button>
+        </ng-container>
+        <ng-container *ngIf="getMenus().length === 0">
+          <button class="btn btn-primary" (click)="createTestMenu()">Create Test Menu (添加测试菜单)</button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
 
-
+  <div>
     <app-coupon-import [restaurant]="restaurant" [visible]="importCoupon" (close)="importCoupon = false"></app-coupon-import>
 
     <div class="alert alert-secondary" *ngIf="importMenu">
@@ -27,7 +36,7 @@
         <h3 class="text-center">From a Provider ({{providers.length}})</h3>
         <div class="text-center py-2">
           <button class="btn btn-primary" (click)="populateProviders()" [qLoading]="apiRequesting"><i
-              class="fas fa-sync-alt"></i> Populate Providers</button>
+            class="fas fa-sync-alt"></i> Populate Providers</button>
         </div>
         <small class="text-left">Providers for which we currently support menu scraping: Menufy,
             Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife</small>
@@ -52,14 +61,14 @@
 
           <button class="btn btn-primary" (click)="crawl()"><i class="fas fa-bolt"></i> Crawl Async</button>
           <button class="btn btn-primary" (click)="crawl(true)" [qLoading]="apiRequesting"><i
-              class="fas fa-hourglass-half"></i> Crawl Sync</button>
+            class="fas fa-hourglass-half"></i> Crawl Sync</button>
         </div>
       </div>
     </div>
 
     <div class="alert alert-secondary" *ngIf="adjustingMenuOrders">
       <app-item-sorter [items]="restaurant.menus" [labelField]="'name'" (sort)="sortMenus($event)"
-        (cancel)="adjustingMenuOrders = false"></app-item-sorter>
+                       (cancel)="adjustingMenuOrders = false"></app-item-sorter>
     </div>
 
     <div class="alert alert-secondary" *ngIf="copyMenu">
@@ -83,6 +92,7 @@
       </div>
     </div>
   </div>
+
   <!--making tab scrollable-->
   <div style="width: 100%; overflow: hidden">
     <div style="width: 100%; overflow: auto;">
@@ -95,10 +105,6 @@
           <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()"
             role="button">
             <span class="far fa-plus-square"></span> Add New Menu</a>
-        </li>
-        <li>
-          <a (click)=showPromotionsComponent() class="nav-link {{showPromotions == true ? 'active' : 'text-primary'}}"
-            role="button"> Coupons / Promotions ({{restaurant?.promotions?.length || 0}})</a>
         </li>
       </ul>
     </div>

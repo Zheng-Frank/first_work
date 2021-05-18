@@ -25,11 +25,13 @@ export class RootComponent implements OnInit {
   now = new Date();
   ivrEnabled = false;
   apiRequesting = false;
-  constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef, private _router: Router, private _connect: AmazonConnectService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef,
+              private _router: Router, private _connect: AmazonConnectService) {
     _api.onApiError.subscribe(error => {
       if (error && error.error && error.error.status === 401) {
         this._global.logout();
       }
+      setTimeout(() => this.apiRequesting = false, 0);
     });
     _connect.onEnabled.subscribe(enabled => this.ivrEnabled = enabled);
     this._api.onApiRequesting.subscribe((url) => { setTimeout(() => this.apiRequesting = true, 0); });

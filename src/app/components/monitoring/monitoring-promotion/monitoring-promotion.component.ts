@@ -1,8 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
 import {environment} from '../../../../environments/environment';
-import {Restaurant} from '@qmenu/ui';
+import {Promotion, Restaurant} from '@qmenu/ui';
+import {AlertType} from '../../../classes/alert-type';
 
 @Component({
   selector: 'app-monitoring-promotion',
@@ -15,17 +16,173 @@ export class MonitoringPromotionComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
+  @ViewChild('importModal') importModal;
+  @ViewChild('validateModal') validateModal;
   rts: Restaurant[] = [];
+  restaurant: Restaurant = null;
   gmbWebsiteOwner = '';
   generalGmbOwners = [];
   majorCompetitorGmbOwners = [];
   minorCompetitorGmbOwners = [];
   filtered: Restaurant[] = [];
+  coupons = [];
+  checkedCoupons = [];
+  failedTypes = [];
+  scrapedRegex = /^\[Scraped: (\w+)]/;
+  scrapedOnly = false;
+
 
   ngOnInit() {
     this.query();
   }
 
+  getFreeItem(item) {
+    return [item.menu.name, item.mc.name, item.mi.name].join('>');
+  }
+
+  scrapedToggle(e) {
+    const {target: {checked}} = e;
+    if (checked) {
+      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(p => this.scrapedRegex.test(p.name)));
+    } else {
+      this.filter();
+    }
+  }
+
+  async crawl(rt) {
+    try {
+      this._global.publishAlert(AlertType.Info, 'Crawling...');
+      const {coupons, error, failedTypes} = await this._api.post(environment.appApiUrl + 'utils/menu', {
+        name: 'crawl-coupon',
+        payload: {
+          restaurantId: rt._id,
+          providerName: 'beyondmenu',
+        }
+      }).toPromise();
+      if (error) {
+        this._global.publishAlert(AlertType.Danger, error);
+        return;
+      }
+      this.restaurant = rt;
+      this.coupons = coupons;
+      this.failedTypes = failedTypes;
+      this.importModal.show();
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving promotions');
+    }
+  }
+
+  checkCoupon(e) {
+    let {target: {value}} = e;
+    if (value === 'all') {
+      if (this.checkedCoupons.length === this.coupons.length) {
+        // already checked all, uncheck all
+        this.checkedCoupons = [];
+      } else {
+        this.checkedCoupons = this.coupons.map(x => x.id);
+      }
+    } else {
+      value = Number(value);
+      const index = this.checkedCoupons.indexOf(value);
+      if (index >= 0) {
+        this.checkedCoupons.splice(index, 1);
+      } else {
+        this.checkedCoupons.push(value);
+      }
+    }
+    // @ts-ignore
+    document.getElementById('check-all-coupons').indeterminate = this.checkedCoupons.length
+      && this.checkedCoupons.length < this.coupons.length;
+  }
+
+  countScraped(promotions) {
+    let count = 0, provider;
+
+    (promotions || []).forEach(x => {
+      if (this.scrapedRegex.test(x.name)) {
+        count++;
+        provider = (x.name.match(this.scrapedRegex) || [])[1];
+      }
+    });
+    if (count) {
+      return `${count} from ${provider}`;
+    } else {
+      return '';
+    }
+  }
+
+  async update() {
+
+    try {
+      this._global.publishAlert(AlertType.Info, 'Update promotions...');
+
+      let {promotions} = this.restaurant;
+      promotions = promotions || [];
+      const newPromotions = [...promotions, ...this.coupons.filter(x => this.checkedCoupons.includes(x.id))];
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id'], promotions},
+        new: {_id: this.restaurant['_id'], promotions: newPromotions}
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Promotions updated success!');
+      this.importModal.hide();
+      this.checkedCoupons = [];
+      // @ts-ignore
+      document.getElementById('check-all-coupons').indeterminate = false;
+      this.restaurant.promotions = newPromotions.map(x => new Promotion(x));
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
+    }
+
+  }
+
+  validate(rt) {
+    this.restaurant = rt;
+    this.validateModal.show();
+  }
+
+  closeModal(modal) {
+    modal.hide();
+    this.restaurant = null;
+    this.coupons = [];
+    this.checkedCoupons = [];
+    this.failedTypes = [];
+  }
+
+  async updatePromotion(old) {
+    try {
+      this._global.publishAlert(AlertType.Info, 'Update promotion...');
+      const {_id, promotions} = this.restaurant;
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id, old}, new: {_id, promotions}
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Promotions updated success!');
+      this.stat(this.rts);
+    } catch (error) {
+      // if error, restore promotions
+      this.restaurant.promotions = old;
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
+    }
+  }
+
+  async approve(promotion) {
+    let {promotions} = this.restaurant;
+    promotions = JSON.parse(JSON.stringify(promotions));
+    promotion.name = promotion.name.replace(this.scrapedRegex, '').trim();
+    promotion.expiry = undefined;
+    await this.updatePromotion(promotions);
+  }
+
+  async reject(promotion: Promotion) {
+    let {promotions} = this.restaurant;
+    promotions = JSON.parse(JSON.stringify(promotions));
+    const index = promotions.findIndex(x => x.id === promotion.id);
+    this.restaurant.promotions.splice(index, 1);
+    await this.updatePromotion(promotions);
+  }
 
   filter() {
     switch (this.gmbWebsiteOwner) {
@@ -44,17 +201,10 @@ export class MonitoringPromotionComponent implements OnInit {
     }
   }
 
-  async query() {
-    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        $or: [{disabled: false}, {disabled: {$exists: false}}]
-      },
-      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, 'promotions.expiry': 1},
-    }, 3000);
-
+  stat(rts) {
     this.rts = rts.filter(rt => {
       return !rt.promotions || !rt.promotions.length
+        || rt.promotions.some(x => this.scrapedRegex.test(x.name))
         || (rt.promotions.every(p => p.expiry && new Date(p.expiry).valueOf() < Date.now()));
     });
 
@@ -91,6 +241,18 @@ export class MonitoringPromotionComponent implements OnInit {
 
     this.gmbWebsiteOwner = '';
     this.filter();
+  }
+
+  async query() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        $or: [{disabled: false}, {disabled: {$exists: false}}]
+      },
+      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, promotions: 1},
+    }, 3000);
+
+    this.stat(rts);
   }
 
 }
