@@ -71,7 +71,7 @@ export class GmbLostListComponent implements OnInit {
     this.apiLoading = false;
     this.now = new Date();
     const tenDaysAgo = new Date();
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 30);
 
     // Getting data from tables
     const events = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
