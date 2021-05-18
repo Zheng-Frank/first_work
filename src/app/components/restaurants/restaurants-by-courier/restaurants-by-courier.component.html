@@ -1,5 +1,5 @@
 <div class="text-center">
-  <h3>Restaurants by Courier({{filteredRestaurants.length}})</h3>
+  <h3>Restaurants by Courier ({{filteredRestaurants.length}})</h3>
 </div>
 <div *ngIf="!restaurants || restaurants.length === 0">
   Restaurants by Courier list is empty.
@@ -8,8 +8,10 @@
   <label class="mr-2"> Courier:</label>
   <select class="mr-5 form-control" [(ngModel)]="courier" (change)="filter()">
     <option value="All">All</option>
+    <option value="Postmates">Postmates</option> 
+    <option value="Self delivery">Self delivery</option> 
     <ng-container *ngFor="let courier of couriers">
-      <option *ngIf="courier != 'None'" [value]='courier.name'>{{courier.name}}</option>
+      <option *ngIf="courier.name && courier.name != 'Postmates'" [value]='courier.name'>{{courier.name}}</option>
     </ng-container>
   </select>
 </div>
@@ -21,7 +23,9 @@
       <br>
       {{restaurant.address}}
     </td>
-    <td>{{restaurant.courier?.name || 'None'}}</td>
+    <td *ngIf="restaurant.courier"> {{restaurant.courier?.name}} </td>
+    <td *ngIf="!restaurant.courier && restaurant.deliverySettings && restaurant.deliverySettings.length > 0 && restaurant.deliveryClosedHours && restaurant.deliveryClosedHours && restaurant.deliveryClosedHours.length > 0"> Self delivery </td>
+    <td *ngIf="!restaurant.courier && !(restaurant.deliverySettings && restaurant.deliverySettings.length > 0 && restaurant.deliveryClosedHours && restaurant.deliveryClosedHours && restaurant.deliveryClosedHours.length > 0)"> None </td>
     <td>{{restaurant.timeZone}}</td>
     <td>{{restaurant.score | number : '1.0-1' || 0}}</td>
   </tr>

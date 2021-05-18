@@ -56,6 +56,8 @@ export class RestaurantsByCourierComponent implements OnInit {
         name: 1,
         courier: 1,
         score: 1,
+        deliveryClosedHours:1,
+        deliverySettings: 1
       },
     }, 5000);
     this.restaurants = this.parseRestaurants(this.restaurants);
@@ -69,16 +71,27 @@ export class RestaurantsByCourierComponent implements OnInit {
       address: each.googleAddress.formatted_address,
       score: each.score,
       timeZone: Helper.getTimeZone(each.googleAddress.formatted_address),
-      courier: each.courier
+      courier: each.courier,
+      deliveryClosedHours: each.deliveryClosedHours,
+      deliverySettings: each.deliverySettings
     }));
     return ret;
   }
 
   filter() {
-    if (this.courier === 'All') {
-      this.filteredRestaurants = this.restaurants;
-    } else if (this.courier) { // it's maybe undefined.
+    switch(this.courier){
+      case 'All':
+        this.filteredRestaurants = this.restaurants;
+        break;
+      case 'Postmates':
+        this.filteredRestaurants = this.restaurants.filter(each => each.courier && each.courier.name && each.courier.name === 'Postmates');
+        break;
+      case 'Self delivery':
+        this.filteredRestaurants = this.restaurants.filter(each => !each.courier && each.deliverySettings && each.deliverySettings.length > 0 && each.deliveryClosedHours && each.deliveryClosedHours && each.deliveryClosedHours.length > 0);
+        break;
+      default:
       this.filteredRestaurants = this.restaurants.filter(each => each.courier && each.courier.name && each.courier.name === this.courier);
-    }
+        break;
+      }
   }
 }
