@@ -196,13 +196,13 @@ export class QrRestaurantListComponent implements OnInit {
         wrong.Reasons.push( '(2)The menus configuration is wrong.');
       }
       if(!flagReason3){
-        wrong.Reasons.push( '(3)The code of qrSettings configuration is wrong.');
+        wrong.Reasons.push( '(3)The number of QR codes should not be zero.');
       }
       return wrong;
     });
     this.qrRestaurantListRows = wrongRTs;
     this.qrRestaurantListRows.push(...correctRTs = correctRTs.map(correct => {
-      correct.Reasons = ['This restautant has completed QR code setup'];
+      correct.Reasons = ['This restautant has completed QR code setup.'];
       return correct;
     }));
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
