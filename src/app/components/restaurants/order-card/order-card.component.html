@@ -16,7 +16,7 @@
     <h4 class="text-sm-center">
       {{getCustomerName(order)}}
     </h4>
-    <h6 style="font-size: 5% !important;" class="text-center">{{order.id}}</h6>
+    <h6 class="text-center text-muted">{{order.id}}</h6>
     <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
     <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
     <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">

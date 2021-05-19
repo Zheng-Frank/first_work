@@ -68,6 +68,7 @@ import { IvrAgentAnalysisComponent } from "./components/ivr-agent-analysis/ivr-a
 import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
 import { NotificationDashboardComponent } from './components/notification-dashboard/notification-dashboard.component';
 import {MonitoringPromotionComponent} from './components/monitoring/monitoring-promotion/monitoring-promotion.component';
+import { RestaurantsByCourierComponent } from './components/restaurants/restaurants-by-courier/restaurants-by-courier.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -123,7 +124,8 @@ const routes: Routes = [
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
-
+  { path: 'restaurants-by-courier', component: RestaurantsByCourierComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  
   { path: 'invalid-list', component: InvalidListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER_INTERNAL'] } },
   { path: 'temporarily-disabled', component: TemporarilyDisabledComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER_INTERNAL'] } },
   { path: 'unconfirmed-orders', component: MonitoringUnconfirmedOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },

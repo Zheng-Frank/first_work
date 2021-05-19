@@ -217,6 +217,7 @@ import { WeirdDataComponent } from './components/monitoring/weird-data/weird-dat
 import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
 import { RestaurantInvoiceAdjustmentComponent } from './components/restaurants/restaurant-invoice-adjustment/restaurant-invoice-adjustment.component';
 import { CouponImportComponent } from './components/restaurants/coupon-import/coupon-import.component';
+import { RestaurantsByCourierComponent } from './components/restaurants/restaurants-by-courier/restaurants-by-courier.component';
 import { RestaurantOthersComponent } from './components/restaurants/restaurant-others/restaurant-others.component';
 
 @NgModule({
@@ -405,6 +406,7 @@ import { RestaurantOthersComponent } from './components/restaurants/restaurant-o
     RestaurantInvoiceAdjustmentComponent,
     AddNewLogComponent,
     CouponImportComponent,
+    RestaurantsByCourierComponent,
     RestaurantOthersComponent
 
   ],
