@@ -83,6 +83,9 @@ export class QrRestaurantListComponent implements OnInit {
     } else if (this.qrSalesperson) { // the qrSalesperson may be undefined,and it will make interact wrong.
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
         .filter(qrList => this.qrSalesperson === qrList.qrSettings.agent);
+    }else if(this.qrSalesperson === 'None'){
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+      .filter(qrList => this.qrSalesperson === qrList.qrSettings.agent);
     }
   }
   // filter having interact

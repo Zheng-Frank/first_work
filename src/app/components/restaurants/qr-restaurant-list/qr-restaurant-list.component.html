@@ -15,6 +15,7 @@
       <ng-container *ngFor="let person of qrSalespeople">
         <option *ngIf="person != 'None'" [value]="person">{{person}}</option>
       </ng-container>
+      <option value="None">None</option>
     </select>
   </div>
   <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
