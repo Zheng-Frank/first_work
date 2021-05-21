@@ -49,9 +49,9 @@ export class MenuComponent implements OnInit {
   ngOnInit() {
   }
 
-  // add a new menu categary named beverages to menu,which is of dine-in only or both online and dine in .
-  addBeverageCategary(){
-    let temp = {
+  // add a new menu category named beverages to menu,which is of dine-in only or both online and dine in .
+  addBeverageCategary() {
+    let sampleMenu = {
       "mis": [
         {
           "imageObjs": [
@@ -87,38 +87,34 @@ export class MenuComponent implements OnInit {
       "images": [
       ]
     };
-    this.BeverageMenu.name = temp.name;
-    this.BeverageMenu.description = temp.description;
+    this.BeverageMenu.name = sampleMenu.name;
+    this.BeverageMenu.description = sampleMenu.description;
     this.BeverageMenu.disabled = false;
     this.BeverageMenu.images = [];
     this.BeverageMenu.mis = [];
-    let mi = new Mi();
-    mi.id = new Date().valueOf() + '';
-    mi.name = temp.mis[0].name;
-    mi.category = temp.mis[0].category;
-    mi.inventory = temp.mis[0].inventory;
-    mi.imageObjs = temp.mis[0].imageObjs;
-    mi.cachedMinCost = temp.mis[0].cachedMinCost;
-    mi.cachedMaxCost = temp.mis[0].cachedMaxCost;
+    let sampleMi = new Mi();
+    sampleMi.id = new Date().valueOf() + '';
+    sampleMi.name = sampleMenu.mis[0].name;
+    sampleMi.category = sampleMenu.mis[0].category;
+    sampleMi.inventory = sampleMenu.mis[0].inventory;
+    sampleMi.imageObjs = sampleMenu.mis[0].imageObjs;
+    sampleMi.cachedMinCost = sampleMenu.mis[0].cachedMinCost;
+    sampleMi.cachedMaxCost = sampleMenu.mis[0].cachedMaxCost;
     let item1 = new Item();
     item1.name = 'With Ice';
     item1.price = 0;
     let item2 = new Item();
     item2.name = 'No Ice';
     item2.price = 0;
-    mi.sizeOptions.push(item1);
-    mi.sizeOptions.push(item2);
-    this.BeverageMenu.mis.push(mi);
+    sampleMi.sizeOptions.push(item1);
+    sampleMi.sizeOptions.push(item2);
+    this.BeverageMenu.mis.push(sampleMi);
     this.mcDone(this.BeverageMenu);
   }
 
   // only restaurants in the type of  DINE_IN_ONLY and all
   isShowBeverageButton(menu) {
-    if (menu.targetCustomer && (menu.targetCustomer === 'DINE_IN_ONLY' || menu.targetCustomer === 'ALL')) {
-      return true;
-    } else {
-      return false;
-    }
+    return menu.targetCustomer && (menu.targetCustomer === 'DINE_IN_ONLY' || menu.targetCustomer === 'ALL');
   }
 
   showMiSortingModal(mc) {
@@ -231,13 +227,7 @@ export class MenuComponent implements OnInit {
       newMenus.map(menu => {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
-          if(menu.mcs.length > 0 && mc.name === 'Beverages'){
-            let temp = menu.mcs[0];
-            menu.mcs[0] = mc;
-            menu.mcs.push(temp);
-          }else{
-            menu.mcs.push(new Mc(mc));
-          }
+          menu.mcs.length > 0 && mc.name === 'Beverages' ? menu.mcs.unshift(mc) : menu.mcs.push(mc);
         }
       });
     } else {
@@ -274,13 +264,8 @@ export class MenuComponent implements OnInit {
           this.menu.mcs = this.menu.mcs || [];
           if (action === 'CREATE') {
             if (!this.menu.mcs.some(m => m.id === mc.id)) {
-              if(this.menu.mcs.length > 0 && mc.name === 'Beverages'){
-                let temp = this.menu.mcs[0];
-                this.menu.mcs[0] = mc;
-                this.menu.mcs.push(temp);
-              }else{
-                this.menu.mcs.push(mc);
-              }
+              // unshift() is a function from API that could be put an element in the top of the array.
+              this.menu.mcs.length > 0 && mc.name === 'Beverages' ? this.menu.mcs.unshift(mc) : this.menu.mcs.push(mc);
             }
           } else {
             // let's update original, assuming everything successful
