@@ -27,8 +27,8 @@
       (调整分类次序)</button>
   </div>
   <div *ngIf="isShowBeverageButton(menu)" class="text-center">
-    <button class="btn btn-link" (click)="addBeverageCategary()">Standard Beverage section
-      (标准饮料部)</button>
+    <button class="btn btn-link" (click)="addBeverageCategary()">Add Standard Beverage Section
+      (添加标准饮料区)</button>
   </div>
   <!--category cards-->
   <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)"
