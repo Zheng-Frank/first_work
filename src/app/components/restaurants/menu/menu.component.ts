@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Menu, Mc, Mi, Item, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
@@ -35,6 +36,8 @@ export class MenuComponent implements OnInit {
   editingMis = false;
   mcOfSortingMis;
 
+  BeverageMenu = new Mc();
+
   targetWording = {
     'ONLINE_ONLY': 'Online only',// also a default when there is no target customer specified
     'DINE_IN_ONLY': 'Dine-in only',
@@ -44,6 +47,78 @@ export class MenuComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+  }
+
+  // add a new menu categary named beverages to menu,which is of dine-in only or both online and dine in .
+  addBeverageCategary(){
+    let temp = {
+      "mis": [
+        {
+          "imageObjs": [
+            {
+              "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1618362512081.jpeg",
+              "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/128_menuImage/1618362512081.jpeg",
+              "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1618362512081.jpeg",
+              "origin": "CSR"
+            }
+          ],
+          "cachedMinCost": 0,
+          "cachedMaxCost": -1,
+          "sizeOptions": [
+            {
+              "name": "With Ice",
+              "price": 0
+            },
+            {
+              "name": "No Ice",
+              "price": 0
+            }
+          ],
+          "category": "0-200",
+          "name": "Water",
+          "inventory": null,
+          "id": "1618362517597",
+          "nonCustomizable": true
+        }
+      ],
+      "id": "0-200",
+      "name": "Beverages",
+      "description": "",
+      "images": [
+      ]
+    };
+    this.BeverageMenu.name = temp.name;
+    this.BeverageMenu.description = temp.description;
+    this.BeverageMenu.disabled = false;
+    this.BeverageMenu.images = [];
+    this.BeverageMenu.mis = [];
+    let mi = new Mi();
+    mi.id = new Date().valueOf() + '';
+    mi.name = temp.mis[0].name;
+    mi.category = temp.mis[0].category;
+    mi.inventory = temp.mis[0].inventory;
+    mi.imageObjs = temp.mis[0].imageObjs;
+    mi.cachedMinCost = temp.mis[0].cachedMinCost;
+    mi.cachedMaxCost = temp.mis[0].cachedMaxCost;
+    let item1 = new Item();
+    item1.name = 'With Ice';
+    item1.price = 0;
+    let item2 = new Item();
+    item2.name = 'No Ice';
+    item2.price = 0;
+    mi.sizeOptions.push(item1);
+    mi.sizeOptions.push(item2);
+    this.BeverageMenu.mis.push(mi);
+    this.mcDone(this.BeverageMenu);
+  }
+
+  // only restaurants in the type of  DINE_IN_ONLY and all
+  isShowBeverageButton(menu) {
+    if (menu.targetCustomer && (menu.targetCustomer === 'DINE_IN_ONLY' || menu.targetCustomer === 'ALL')) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   showMiSortingModal(mc) {
@@ -58,7 +133,7 @@ export class MenuComponent implements OnInit {
     // get index and only update that menu
     const index = this.restaurant.menus.indexOf(this.menu);
     const mcIndex = this.menu.mcs.indexOf(this.mcOfSortingMis);
-    try {      
+    try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id']
@@ -87,7 +162,7 @@ export class MenuComponent implements OnInit {
     // get index and only update that menu
     const index = this.restaurant.menus.indexOf(this.menu);
     console.log(index);
-    try {      
+    try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id']
@@ -156,7 +231,13 @@ export class MenuComponent implements OnInit {
       newMenus.map(menu => {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
-          menu.mcs.push(new Mc(mc));
+          if(menu.mcs.length > 0 && mc.name === 'Beverages'){
+            let temp = menu.mcs[0];
+            menu.mcs[0] = mc;
+            menu.mcs.push(temp);
+          }else{
+            menu.mcs.push(new Mc(mc));
+          }
         }
       });
     } else {
@@ -193,7 +274,13 @@ export class MenuComponent implements OnInit {
           this.menu.mcs = this.menu.mcs || [];
           if (action === 'CREATE') {
             if (!this.menu.mcs.some(m => m.id === mc.id)) {
-              this.menu.mcs.push(mc);
+              if(this.menu.mcs.length > 0 && mc.name === 'Beverages'){
+                let temp = this.menu.mcs[0];
+                this.menu.mcs[0] = mc;
+                this.menu.mcs.push(temp);
+              }else{
+                this.menu.mcs.push(mc);
+              }
             }
           } else {
             // let's update original, assuming everything successful
@@ -211,7 +298,7 @@ export class MenuComponent implements OnInit {
           this._global.publishAlert(
             AlertType.Success,
             "Updated successfully"
-          );          
+          );
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");
@@ -264,7 +351,7 @@ export class MenuComponent implements OnInit {
     let menu = this.menu;
     let miCopy: Mi;
     if (!params.mi) {
-      miCopy = new Mi();      
+      miCopy = new Mi();
       miCopy.category = params.mc.id;
 
       // create default size (regular) options
@@ -376,7 +463,7 @@ export class MenuComponent implements OnInit {
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"
-            );         
+            );
           }
         },
         error => {
@@ -468,7 +555,7 @@ export class MenuComponent implements OnInit {
           this._global.publishAlert(
             AlertType.Success,
             "Updated successfully"
-          );          
+          );
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");
