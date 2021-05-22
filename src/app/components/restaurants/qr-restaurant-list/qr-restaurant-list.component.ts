@@ -1,3 +1,5 @@
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { ViewChild } from '@angular/core';
 import { filter, map } from 'rxjs/operators';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
@@ -15,6 +17,7 @@ enum QRConfiguredTypes {
 })
 export class QrRestaurantListComponent implements OnInit {
 
+  @ViewChild('schedulesModal') schedulesModal:ModalComponent;
   qrRestaurantListRows;
   qrFilterRestaurantListRows;
   qrFullyConfigured = false;
@@ -52,7 +55,7 @@ export class QrRestaurantListComponent implements OnInit {
       }
     },
     {
-      label: "Fee/Rate Schedules"
+      label: "Logs"
     }
 
   ];
@@ -67,13 +70,23 @@ export class QrRestaurantListComponent implements OnInit {
       value: 'ALL',
       text: 'Both online and dine-in'
     }];
-
+  schedulesRestaurant;
+  showAllLogs = false;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.populateQrRestaurant();
   }
 
+  isSchedulesValid(restaurant){
+    return !(restaurant.feeSchedules && restaurant.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0);
+  }
+   // if it has some schedule problems , it should open modal to let saleperson fix it.
+  openSchedulesModal(restaurant){
+    this.schedulesRestaurant = restaurant;
+    console.log(this.schedulesRestaurant);
+    this.schedulesModal.show();
+  }
   /**
    * add a new filter type , filtering by qr salesperson.
    */
@@ -144,6 +157,7 @@ export class QrRestaurantListComponent implements OnInit {
         "qrSettings.codes": 1,
         "qrSettings.agent": 1,
         "qrSettings.createdAt": 1,
+        "logs": 1
       },
       sort: { updatedAt: -1 }
     }, 5000);
