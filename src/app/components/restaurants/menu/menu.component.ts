@@ -36,7 +36,7 @@ export class MenuComponent implements OnInit {
   editingMis = false;
   mcOfSortingMis;
 
-  BeverageMenu = new Mc();
+  BeverageMenu;
 
   targetWording = {
     'ONLINE_ONLY': 'Online only',// also a default when there is no target customer specified
@@ -50,7 +50,12 @@ export class MenuComponent implements OnInit {
   }
 
   // add a new menu category named beverages to menu,which is of dine-in only or both online and dine in .
-  addBeverageCategary() {
+  addBeverageCategary(menu) {
+    if (menu.mcs && menu.mcs[0] && menu.mcs[0].name === 'Beverages' && menu.mcs[0].mis[0].name === 'Water') {
+      return this._global.publishAlert(AlertType.Danger, 'Please check  the menu category,Standard Beverage Section, whether is areadyly be added.');
+    }
+    this.BeverageMenu = undefined;
+    this.BeverageMenu = new Mc();
     let sampleMenu = {
       "mis": [
         {
