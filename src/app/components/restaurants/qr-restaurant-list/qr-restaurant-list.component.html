@@ -1,38 +1,124 @@
-<h3>List of Restaurants with QR Dine-In</h3>
-<div class="pb-2 text-right">
-  <div class="float-right form-inline mt-2 ml-2">
-    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
-    <label class="form-check-label mr-5" for="paginationCheck">
-      Pagination
-    </label>
+<div class="text-center">
+  <h3>List of Restaurants with QR Dine-In ({{qrFilterRestaurantListRows?.length || 0}})</h3>
+</div>
+<div class="pb-5 text-left">
+  <div class="float-left form-inline ml-2 mr-2">
+    <label class="form-check-label mr-2">Show</label>
+    <select [(ngModel)]="filterType" class="form-control ml-1" (change)="filter()">
+      <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
+    </select>
   </div>
-  <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
+  <div class="float-left form-inline ml-2 mr-2">
+    <label class="form-check-label mr-2">QR Salesperson</label>
+    <select [(ngModel)]="qrSalesperson" class="form-control ml-1" (change)="filter()">
+      <option value="All">All</option>
+      <ng-container *ngFor="let person of qrSalespeople">
+        <option *ngIf="person != 'None'" [value]="person">{{person}}</option>
+      </ng-container>
+      <option value="None">None</option>
+    </select>
+  </div>
+  <div class="float-left form-inline ml-2 mr-2">
+      <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
+  </div>
+  <div class="float-left form-inline ml-2 mr-2 mt-2">
+    <input class="form-check-input" type="checkbox" [(ngModel)]="showAllLogs">
+    <label class="form-check-label" for="id-gmb"> Show all logs</label>
+  </div>
 </div>
 
 <div class="card-body text-left">
   <div *ngIf="!qrRestaurantListRows || qrRestaurantListRows.length === 0">
     Qr Restaurant list is empty.
   </div>
-  <q-table [rows]="qrRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-    [pageSize]="pagination ? 100 : 100000">
+  <q-table [rows]="qrFilterRestaurantListRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+    [pageSize]="100000">
     <tr *tableRowTemplate="let restaurant;">
-      <td>{{qrRestaurantListRows.indexOf(restaurant) + 1}}</td>
+      <td>{{qrFilterRestaurantListRows.indexOf(restaurant) + 1}}</td>
       <td>
         <a href="#/restaurants/{{restaurant._id}}" target="_blank">{{restaurant.name}}</a>
         <br>
         {{restaurant.googleAddress?.formatted_address}}
+        <br>
+        <br>
+        <div>
+          QR Salesperson: {{restaurant?.qrSettings?.agent}}
+        </div>
+        <br>
+        <div *ngFor="let menu of restaurant.menus">
+          {{menu.name}} ({{menu.menuTarget || 'Online only'}})
+        </div>
       </td>
       <td>
-          {{restaurant.qrOrderNumber}}
+        {{restaurant.qrOrderNumber}}
       </td>
       <td>
-        <div *ngIf="restaurant.feeSchedules">
-          <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
+        <div *ngFor="let r of restaurant.Reasons">
+          {{r}}
         </div>
-        <div *ngIf="!restaurant.feeSchedules">
-            <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
+        <div *ngIf="isSchedulesValid(restaurant)">
+          <button class="btn btn-link" (click)="openSchedulesModal(restaurant)">Fix Fee/Rate Schedules</button>
         </div>
+      </td>
+      <td>
+        {{restaurant.qrSettings.createdAt | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}
+      </td>
+      <td>
+        <ng-container *ngIf="!showAllLogs">
+          <table class="table table-sm">
+            <tr>
+              <th>Number</th>
+              <th>User</th>
+              <th>Timer</th>
+              <th>Problem</th>
+              <th>Response</th>
+            </tr>
+            <ng-container *ngFor="let log of restaurant.logs">
+              <tr *ngIf="log.type === 'qr-dine-in'">
+                <td>{{restaurant.logs.indexOf(log)+1}}</td>
+                <td>{{log.username}}</td>
+                <td>{{log.time | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</td>
+                <td>{{log.prblem}}</td>
+                <td>{{log.response}}</td>
+              </tr>
+            </ng-container>
+          </table>
+        </ng-container>
+        <ng-container *ngIf="showAllLogs">
+          <table class="table table-sm">
+            <tr>
+              <th>Number</th>
+              <th>User</th>
+              <th>Timer</th>
+              <th>Problem</th>
+              <th>Response</th>
+            </tr>
+            <tr *ngFor="let log of restaurant.logs">
+              <td>{{restaurant.logs.indexOf(log)+1}}</td>
+              <td>{{log.username}}</td>
+              <td>{{log.time | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</td>
+              <td>{{log.prblem}}</td>
+              <td>{{log.response}}</td>
+            </tr>
+          </table>
+        </ng-container>
       </td>
     </tr>
   </q-table>
+
+  <q-modal #schedulesModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Fix Fee/Rate Schedules</h4>
+    <hr>
+    <div *ngIf="schedulesRestaurant && schedulesRestaurant.feeSchedules">
+      <app-restaurant-fee-schedules [restaurant]="schedulesRestaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
+    </div>
+    <div *ngIf="schedulesRestaurant && !schedulesRestaurant.feeSchedules">
+      <app-restaurant-rate-schedules [restaurant]="schedulesRestaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
+    </div>
+  </q-modal>
+
+
 </div>

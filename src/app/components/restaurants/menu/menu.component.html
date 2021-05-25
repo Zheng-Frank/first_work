@@ -16,7 +16,8 @@
       <small>
         <div *ngIf="menu.description" class="card-subtitle">{{menu.description}}</div>
         <div class="text-center">
-          <lib-hours-viewer [timezone]="restaurant?.googleAddress.timezone" [hours]="menu.hours || []"></lib-hours-viewer>
+          <lib-hours-viewer [timezone]="restaurant?.googleAddress.timezone" [hours]="menu.hours || []">
+          </lib-hours-viewer>
         </div>
       </small>
     </div>
@@ -25,7 +26,10 @@
     <button class="btn btn-link" (click)="showMcSortingModal()">Adjust Category Orders
       (调整分类次序)</button>
   </div>
-
+  <div *ngIf="isShowBeverageButton(menu)" class="text-center">
+    <button class="btn btn-link" (click)="addBeverageCategary(menu)">Add Standard Beverage Section
+      (添加标准饮料区)</button>
+  </div>
   <!--category cards-->
   <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)"
     (onSortMis)="showMiSortingModal($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)"

@@ -16,7 +16,7 @@
     <h4 class="text-sm-center">
       {{getCustomerName(order)}}
     </h4>
-    <h6 style="font-size: 5% !important;" class="text-center">{{order.id}}</h6>
+    <h6 class="text-center text-muted">{{order.id}}</h6>
     <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
     <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
     <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
@@ -163,9 +163,12 @@
           <i class="fa fa-envelope"></i> Send Email</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="setTexting()">
           <i class="fa fa-comments"></i> Send Text</a>
-        <a *ngIf="order.courierId && order.delivery && (order.delivery.status === 'pending' || order.delivery.status === 'canceled')"
+        <a *ngIf="(order.courierId && order.delivery && (order.delivery.status === 'pending' || order.delivery.status === 'canceled'))||(order.type === 'DELIVERY'&&order.restaurantNotice)"
           role="button" class="text-primary text-nowrap card-link" (click)="openChangeOrderTypesModal(order)">
           <i class="fa fa-reply"></i> Change order type</a>
+        <a role="button" class="text-primary text-nowrap card-link" (click)="adjustInvoice()" >
+          <i class="fas fa-file-invoice-dollar"></i> Invoice Adjust</a>  
+  
       </div>
    
 

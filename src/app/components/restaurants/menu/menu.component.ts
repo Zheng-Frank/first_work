@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Menu, Mc, Mi, Item, Restaurant } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
@@ -35,6 +36,8 @@ export class MenuComponent implements OnInit {
   editingMis = false;
   mcOfSortingMis;
 
+  BeverageMenu;
+
   targetWording = {
     'ONLINE_ONLY': 'Online only',// also a default when there is no target customer specified
     'DINE_IN_ONLY': 'Dine-in only',
@@ -44,6 +47,79 @@ export class MenuComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+  }
+
+  // add a new menu category named beverages to menu,which is of dine-in only or both online and dine in .
+  addBeverageCategary(menu) {
+    if (menu.mcs && menu.mcs[0] && menu.mcs[0].name === 'Beverages' && menu.mcs[0].mis[0].name === 'Water') {
+      return this._global.publishAlert(AlertType.Danger, 'Please check  the menu category,Standard Beverage Section, whether is areadyly be added.');
+    }
+    this.BeverageMenu = undefined;
+    this.BeverageMenu = new Mc();
+    let sampleMenu = {
+      "mis": [
+        {
+          "imageObjs": [
+            {
+              "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1618362512081.jpeg",
+              "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/128_menuImage/1618362512081.jpeg",
+              "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1618362512081.jpeg",
+              "origin": "CSR"
+            }
+          ],
+          "cachedMinCost": 0,
+          "cachedMaxCost": -1,
+          "sizeOptions": [
+            {
+              "name": "With Ice",
+              "price": 0
+            },
+            {
+              "name": "No Ice",
+              "price": 0
+            }
+          ],
+          "category": "0-200",
+          "name": "Water",
+          "inventory": null,
+          "id": "1618362517597",
+          "nonCustomizable": true
+        }
+      ],
+      "id": "0-200",
+      "name": "Beverages",
+      "description": "",
+      "images": [
+      ]
+    };
+    this.BeverageMenu.name = sampleMenu.name;
+    this.BeverageMenu.description = sampleMenu.description;
+    this.BeverageMenu.disabled = false;
+    this.BeverageMenu.images = [];
+    this.BeverageMenu.mis = [];
+    let sampleMi = new Mi();
+    sampleMi.id = new Date().valueOf() + '';
+    sampleMi.name = sampleMenu.mis[0].name;
+    sampleMi.category = sampleMenu.mis[0].category;
+    sampleMi.inventory = sampleMenu.mis[0].inventory;
+    sampleMi.imageObjs = sampleMenu.mis[0].imageObjs;
+    sampleMi.cachedMinCost = sampleMenu.mis[0].cachedMinCost;
+    sampleMi.cachedMaxCost = sampleMenu.mis[0].cachedMaxCost;
+    let item1 = new Item();
+    item1.name = 'With Ice';
+    item1.price = 0;
+    let item2 = new Item();
+    item2.name = 'No Ice';
+    item2.price = 0;
+    sampleMi.sizeOptions.push(item1);
+    sampleMi.sizeOptions.push(item2);
+    this.BeverageMenu.mis.push(sampleMi);
+    this.mcDone(this.BeverageMenu);
+  }
+
+  // only restaurants in the type of  DINE_IN_ONLY and all
+  isShowBeverageButton(menu) {
+    return menu.targetCustomer && (menu.targetCustomer === 'DINE_IN_ONLY' || menu.targetCustomer === 'ALL');
   }
 
   showMiSortingModal(mc) {
@@ -58,7 +134,7 @@ export class MenuComponent implements OnInit {
     // get index and only update that menu
     const index = this.restaurant.menus.indexOf(this.menu);
     const mcIndex = this.menu.mcs.indexOf(this.mcOfSortingMis);
-    try {      
+    try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id']
@@ -87,7 +163,7 @@ export class MenuComponent implements OnInit {
     // get index and only update that menu
     const index = this.restaurant.menus.indexOf(this.menu);
     console.log(index);
-    try {      
+    try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {
           _id: this.restaurant['_id']
@@ -156,7 +232,7 @@ export class MenuComponent implements OnInit {
       newMenus.map(menu => {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
-          menu.mcs.push(new Mc(mc));
+          menu.mcs.length > 0 && mc.name === 'Beverages' ? menu.mcs.unshift(mc) : menu.mcs.push(mc);
         }
       });
     } else {
@@ -193,7 +269,8 @@ export class MenuComponent implements OnInit {
           this.menu.mcs = this.menu.mcs || [];
           if (action === 'CREATE') {
             if (!this.menu.mcs.some(m => m.id === mc.id)) {
-              this.menu.mcs.push(mc);
+              // unshift() is a function from API that could be put an element in the top of the array.
+              this.menu.mcs.length > 0 && mc.name === 'Beverages' ? this.menu.mcs.unshift(mc) : this.menu.mcs.push(mc);
             }
           } else {
             // let's update original, assuming everything successful
@@ -211,7 +288,7 @@ export class MenuComponent implements OnInit {
           this._global.publishAlert(
             AlertType.Success,
             "Updated successfully"
-          );          
+          );
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");
@@ -264,7 +341,7 @@ export class MenuComponent implements OnInit {
     let menu = this.menu;
     let miCopy: Mi;
     if (!params.mi) {
-      miCopy = new Mi();      
+      miCopy = new Mi();
       miCopy.category = params.mc.id;
 
       // create default size (regular) options
@@ -376,7 +453,7 @@ export class MenuComponent implements OnInit {
             this._global.publishAlert(
               AlertType.Success,
               "Updated successfully"
-            );         
+            );
           }
         },
         error => {
@@ -468,7 +545,7 @@ export class MenuComponent implements OnInit {
           this._global.publishAlert(
             AlertType.Success,
             "Updated successfully"
-          );          
+          );
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");

@@ -64,9 +64,11 @@ import { InvalidListComponent } from './components/restaurants/invalid-list/inva
 import { ChainsDashboardComponent } from './components/chains/chains-dashboard/chains-dashboard.component';
 import { TemporarilyDisabledComponent } from './components/restaurants/temporarily-disabled/temporarily-disabled.component';
 import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/monitoring-unconfirmed-orders/monitoring-unconfirmed-orders.component';
-import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
-import { SeamlessIntegrationComponent } from './components/restaurants/seamless-integration/seamless-integration.component';
+import { IvrAgentAnalysisComponent } from "./components/ivr-agent-analysis/ivr-agent-analysis.component";
+import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
+import { NotificationDashboardComponent } from './components/notification-dashboard/notification-dashboard.component';
 import {MonitoringPromotionComponent} from './components/monitoring/monitoring-promotion/monitoring-promotion.component';
+import { RestaurantsByCourierComponent } from './components/restaurants/restaurants-by-courier/restaurants-by-courier.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -91,14 +93,16 @@ const routes: Routes = [
   { path: 'restaurants/:id/menus', component: MenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
   { path: 'restaurants/:id/menu-options', component: MenuOptionsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR'] } },
   { path: 'restaurants/:id/invoices', component: RestaurantInvoicesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
-  { path: 'qr-restaurant-list', component:  QrRestaurantListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'qr-restaurant-list', component:  QrRestaurantListComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "CSR","MARKETING_DIRECTOR", "MARKETER","ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
   { path: 'ivr/dashboard', component: IvrDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'ivr/agent', component: IvrAgentComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
   { path: 'onboarding', component: MonitoringOnboardingComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"] } },
   { path: 'yelp', component: YelpDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'yelp-businesses', component: YelpBusinessesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
   { path: 'gmbs', component: Gmb2DashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
-  { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'system', component: SystemDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+
+  { path: 'messaging', component: NotificationDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'couriers', component: CourierDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'chains', component: ChainsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'monitoring', component: MonitoringDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
@@ -120,7 +124,8 @@ const routes: Routes = [
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
-
+  { path: 'restaurants-by-courier', component: RestaurantsByCourierComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  
   { path: 'invalid-list', component: InvalidListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER_INTERNAL'] } },
   { path: 'temporarily-disabled', component: TemporarilyDisabledComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER_INTERNAL'] } },
   { path: 'unconfirmed-orders', component: MonitoringUnconfirmedOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },

@@ -1,3 +1,4 @@
+import { LanguageType } from './../../../classes/language-type';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Address } from '@qmenu/ui';
@@ -16,6 +17,8 @@ declare var $: any;
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('restaurantProfile')restaurantProfile:RestaurantProfileComponent;
+  languageTypes = [LanguageType.ENGLISH,LanguageType.CHINESE];
+  languageType = this._global.languageType;
   restaurant: Restaurant;
   displayTextReply = false;
   displayGooglePIN = false;
@@ -108,6 +111,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     printerSN: 1,
     promotions: 1,
     'qrSettings.viewOnly': 1,
+    'qrSettings.agent': 1,
+    'qrSettings.agentAt': 1,
     rateSchedules: 1,
     requireBillingAddress: 1,
     requireZipcode: 1,
@@ -144,7 +149,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     hideOrderReadyEstimate: 1,
   };
 
-  showExplanations = true; // a flag to decide whether show English/Chinese translations.
+  showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
 
   knownUsers = [];
 
@@ -154,18 +159,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Translations": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+      "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
-      "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
-      "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "API Logs": ['ADMIN'],
-      "Stats":['ADMIN','CSR']
+      "Others":['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
@@ -203,19 +203,29 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         if (!this.restaurant) {
           return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
         }
-        callback(this.restaurant);
+        if(callback){
+          callback(this.restaurant);
+        }
       }, error => {
         this._global.publishAlert(AlertType.Danger, error);
       }
     );
   }
+  // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
+  changeLanguage(){
+    if(this.languageType === LanguageType.ENGLISH){
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.ENGLISH;
+    }else if(this.languageType === LanguageType.CHINESE){
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.CHINESE;
+    }
+  }
 
   // if the switch is open,we show i button and show Chinese and English explanations
   toggleShowExplanations(){
     if(this.showExplanations){
-      this.restaurantProfile.showExplanationsIcon = true;
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = true;
     }else{
-      this.restaurantProfile.showExplanationsIcon = false;
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = false;
     }
   }
 

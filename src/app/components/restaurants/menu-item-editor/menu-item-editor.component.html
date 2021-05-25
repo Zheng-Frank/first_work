@@ -26,10 +26,39 @@
   <div *ngIf="mi.id">
     <app-switch (onSelectValue)="onSelectAvailability($event)" [selectedValue]="getAvailability()" [values]="availabilityValues"></app-switch>
     <div class="form-group pt-1">
-      <label for="inventory">Inventory (库存量)</label>
-      <input [(ngModel)]="mi.inventory" type="number" class="form-control" id="inventory" placeholder="eg. 12">
-      <small class="form-text text-muted">Leave empty if inventory is not controlled. </small>
+        <!--two columns, one for name, one for sorting order-->
+        <div class="row">
+          <div class="col-xs-8">
+            <div class="form-group {{!mi.name ? 'has-danger' : ''}}">
+              <label>Name:</label>
+              <input name="mi-name" type="text" class="form-control" [attr.list]="'mi-names-' + mi.id"
+                [(ngModel)]="mi.name" placeholder="eg. spring rolls" autofocus>
+            </div>
+            <datalist [id]="'mi-names-' + mi.id">
+              <option *ngFor="let miName of miNames" value="{{miName}}">
+            </datalist>
+          </div>
+        </div>
+  
+        <!--description and order number-->
+        <div class="row">
+          <div class="col-xs-8">
+            <div class="form-group">
+              <label>Description:</label>
+              <input name="mi-description" type="text" class="form-control" [(ngModel)]="mi.description"
+                placeholder="eg. source: New Zealand">
+            </div>
+          </div>
+          <div class="col-xs-4">
+            <div class="form-group">
+              <label for="mi-order-number">Number:</label>
+              <input type="text" class="form-control" id="mi-order-number" [(ngModel)]="mi.number"
+                placeholder="A1, A2...">
+            </div>
+          </div>
+        </div>
     </div>
+  
     <!--price-->
     <div class="form-group">
       <label>Pricing:</label>
@@ -41,57 +70,42 @@
   </div>
 
   <div *qIf="showDetails || !mi.id">
-    <!--two columns, one for name, one for sorting order-->
-    <div class="row">
-      <div class="col-xs-8">
-        <div class="form-group {{!mi.name ? 'has-danger' : ''}}">
-          <label>Name:</label>
-          <input name="mi-name" type="text" class="form-control" [attr.list]="'mi-names-' + mi.id" [(ngModel)]="mi.name" placeholder="eg. spring rolls"
-            autofocus>
-        </div>
-        <datalist [id]="'mi-names-' + mi.id">
-          <option *ngFor="let miName of miNames" value="{{miName}}">
-        </datalist>
-      </div>
-    </div>
-
-    <!--description and order number-->
-    <div class="row">
-      <div class="col-xs-8">
-        <div class="form-group">
-          <label>Description:</label>
-          <input name="mi-description" type="text" class="form-control" [(ngModel)]="mi.description" placeholder="eg. source: New Zealand">
+    <div *ngIf="!mi.id">
+      <!--two columns, one for name, one for sorting order-->
+      <div class="row">
+        <div class="col-xs-8">
+          <div class="form-group {{!mi.name ? 'has-danger' : ''}}">
+            <label>Name:</label>
+            <input name="mi-name" type="text" class="form-control" [attr.list]="'mi-names-' + mi.id" [(ngModel)]="mi.name" placeholder="eg. spring rolls"
+              autofocus>
+          </div>
+          <datalist [id]="'mi-names-' + mi.id">
+            <option *ngFor="let miName of miNames" value="{{miName}}">
+          </datalist>
         </div>
       </div>
-      <div class="col-xs-4">
-        <div class="form-group">
-          <label for="mi-order-number">Number:</label>
-          <input type="text" class="form-control" id="mi-order-number" [(ngModel)]="mi.number" placeholder="A1, A2...">
+
+      <!--description and order number-->
+      <div class="row">
+        <div class="col-xs-8">
+          <div class="form-group">
+            <label>Description:</label>
+            <input name="mi-description" type="text" class="form-control" [(ngModel)]="mi.description" placeholder="eg. source: New Zealand">
+          </div>
+        </div>
+        <div class="col-xs-4">
+          <div class="form-group">
+            <label for="mi-order-number">Number:</label>
+            <input type="text" class="form-control" id="mi-order-number" [(ngModel)]="mi.number" placeholder="A1, A2...">
+          </div>
         </div>
       </div>
     </div>
-
-    <!--images section-->
-    <label>Images:</label>
-    <div *ngIf="mi.imageObjs">
-      <div *ngFor="let img of mi.imageObjs" class="pr-1 pb-1" style="display:inline-block; position:relative">
-        <img class="img-thumbnail app-thumbnail-h-6" src="{{img.originalUrl}}">
-        <button (click)="deleteImage(img)" class="btn btn-secondary fas fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-        <button (click)="deleteImage(img)" class="btn btn-link fas fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
-      </div>
-    </div>
-    <div *ngIf="uploadImageError">
-      <span class="text-danger">{{uploadImageError}}</span>
-    </div>
-    <input type="file" (change)="onUploadImageChange($event)" />
-    <div><small class="text-warning">Image may take time to show</small></div>
-
-    <div *ngIf="!mi.id" class="form-group pt-1">
+    <div class="form-group pt-1" *ngIf="mi.id">
       <label for="inventory">Inventory (库存量)</label>
       <input [(ngModel)]="mi.inventory" type="number" class="form-control" id="inventory" placeholder="eg. 12">
       <small class="form-text text-muted">Leave empty if inventory is not controlled. </small>
     </div>
-    <hr>
 
     <!--price-->
     <div *ngIf="!mi.id" class="form-group">
@@ -100,6 +114,28 @@
         [suggestions]="sizeNames">
       </app-options-editor>
     </div>
+
+     <!--images section-->
+     <label>Images:</label>
+     <div *ngIf="mi.imageObjs">
+       <div *ngFor="let img of mi.imageObjs" class="pr-1 pb-1" style="display:inline-block; position:relative">
+         <img class="img-thumbnail app-thumbnail-h-6" src="{{img.originalUrl}}">
+         <button (click)="deleteImage(img)" class="btn btn-secondary fas fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
+         <button (click)="deleteImage(img)" class="btn btn-link fas fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+       </div>
+     </div>
+     <div *ngIf="uploadImageError">
+       <span class="text-danger">{{uploadImageError}}</span>
+     </div>
+     <input type="file" (change)="onUploadImageChange($event)" />
+     <div><small class="text-warning">Image may take time to show</small></div>
+ 
+     <div *ngIf="!mi.id" class="form-group pt-1">
+       <label for="inventory">Inventory (库存量)</label>
+       <input [(ngModel)]="mi.inventory" type="number" class="form-control" id="inventory" placeholder="eg. 12">
+       <small class="form-text text-muted">Leave empty if inventory is not controlled. </small>
+     </div>
+     <hr>
 
     <!--taste or flavor-->
     <div class="form-group">
