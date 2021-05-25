@@ -1,6 +1,6 @@
-<div *ngIf="order && order.restaurant" class="card 
-           {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}} 
-          {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}} 
+<div *ngIf="order && order.restaurant" class="card
+           {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}}
+          {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}}
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
   <div class="order-number">
     <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
@@ -43,7 +43,7 @@
       <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</span>
       |
       <strong>{{order.type}}</strong> |
-      <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong> 
+      <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong>
       <span *ngIf="order.payment.paymentType === 'CREDITCARD'"> | </span>
       <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method != 'STRIPE'">{{order.payment.method}}</strong>
       <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'STRIPE'">RESTAURANT</strong>
@@ -84,7 +84,7 @@
           <div>
             <span class="label">Driver</span><span class="value">{{order.delivery?.courier?.name}}</span>
           </div>
-          <!-- 
+          <!--
           <div>
             <span class="label">Phone</span><span
               class="value">{{(order.delivery?.courier?.phone_number || '').slice(1) | tel}}</span>
@@ -163,14 +163,14 @@
           <i class="fa fa-envelope"></i> Send Email</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="setTexting()">
           <i class="fa fa-comments"></i> Send Text</a>
-        <a *ngIf="(order.courierId && order.delivery && (order.delivery.status === 'pending' || order.delivery.status === 'canceled'))||(order.type === 'DELIVERY'&&order.restaurantNotice)"
+        <a *ngIf="(order.courierId && order.delivery)||(order.type === 'DELIVERY'&&order.restaurantNotice)"
           role="button" class="text-primary text-nowrap card-link" (click)="openChangeOrderTypesModal(order)">
           <i class="fa fa-reply"></i> Change order type</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="adjustInvoice()" >
-          <i class="fas fa-file-invoice-dollar"></i> Invoice Adjust</a>  
-  
+          <i class="fas fa-file-invoice-dollar"></i> Invoice Adjust</a>
+
       </div>
-   
+
 
       <div *qIf="showTexting">
         <!--div class="row"-->
