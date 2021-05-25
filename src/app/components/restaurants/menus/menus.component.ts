@@ -32,6 +32,7 @@ export class MenusComponent implements OnInit {
   activeId = undefined;
   cmoUrl;
   bmUrl;
+  disableNotesFlag;
 
   adjustingAllPrices = false;
   adjustingMenuOrders = false;
@@ -48,6 +49,7 @@ export class MenusComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
   }
 
   hasMenuHoursMissing() {
@@ -242,10 +244,11 @@ export class MenusComponent implements OnInit {
     const oldMenus = this.restaurant.menus || [];
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
 
+    this.disableNotesFlag = !this.disableNotesFlag;
     newMenus.forEach(eachMenu => {
       eachMenu.mcs.forEach(eachMc => {
         eachMc.mis.forEach(mi => {
-          mi.nonCustomizable = true;
+          mi.nonCustomizable = this.disableNotesFlag;
         });
       });
     });
@@ -337,7 +340,6 @@ export class MenusComponent implements OnInit {
     this.activeId = id;
     // let's do s smooth scroll to make it to center???
   }
-
 
   getMenuImageUrl(menu) {
     if (menu && menu.backgroundImageUrl) {
