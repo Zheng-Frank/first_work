@@ -15,6 +15,7 @@
           <button *ngIf="!restaurant.skipImageInjection" class="btn btn-link" (click)="injectImages()">Inject Image
             (加图片)</button>
           <button class="btn btn-link" (click)="deleteImages()">Delete Image (删除图片)</button>
+          <button class="btn btn-link" (click)="disableNotes()">{{ !disableNotesFlag ? 'Enable Notes(打开注释)': 'Disable Notes(取消客人注释)' }}</button>
           <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
           <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices (整体提价)</button>
           <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
