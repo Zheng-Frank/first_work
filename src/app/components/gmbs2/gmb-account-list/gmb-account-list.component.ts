@@ -166,15 +166,14 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   sortAccounts() {
-    console.log(this.accountsSorted)
     if (this.accountsSorted === true) {
       this.filteredGmbAccounts.sort((a, b) => {
         return b.getAccountScore(this.timeConstant) - a.getAccountScore(this.timeConstant) || a.published - b.published;
-        // two sort crteria - First accounts will be sorted from highest (WORST) score to lowest
-        // for two or more locations with equal scores, they will be sorted from most locations to fewest
+        // If two or more accounts have the same score, we use secondary sort criteria (# of published locations)
+        // By these two criteria, accounts will be sorted from worst (highest score) at the top to best at the bottom
       });
     } else {
-      this.filterGmbAccounts();
+      this.filteredGmbAccounts.sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1)
     }
  
   }
