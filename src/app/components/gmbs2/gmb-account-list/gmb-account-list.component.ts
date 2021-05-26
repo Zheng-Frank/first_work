@@ -119,7 +119,6 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   filterGmbAccounts() {
-    console.log('you are here');
     this.filteredGmbAccounts = this.gmbAccounts;
     if (this.searchFilter) {
       this.filteredGmbAccounts = this.filteredGmbAccounts.filter(a =>
