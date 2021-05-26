@@ -26,6 +26,8 @@ export class GmbAccountListComponent implements OnInit {
   emailScanOlder;
   overSizeLocations;
   disabledAccount;
+  accountsSorted = false;
+  timeConstant = 7;
 
   scanningAll = false;
 
@@ -48,6 +50,7 @@ export class GmbAccountListComponent implements OnInit {
       $('#fake-Iinput').css('display', 'none');
     }, 400);
   }
+
 
   async populate() {
     const accountList = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -76,8 +79,7 @@ export class GmbAccountListComponent implements OnInit {
         isAgencyAcct: 1,
         isYelpEmail: 1
       }
-    }, 40);    
-
+    }, 40);
     // add 24 hours suspended and duplicate!
     accountList.map(a => {
       let suspendedInPastDay = 0;
@@ -117,6 +119,7 @@ export class GmbAccountListComponent implements OnInit {
   }
 
   filterGmbAccounts() {
+    console.log('you are here');
     this.filteredGmbAccounts = this.gmbAccounts;
     if (this.searchFilter) {
       this.filteredGmbAccounts = this.filteredGmbAccounts.filter(a =>
@@ -160,6 +163,20 @@ export class GmbAccountListComponent implements OnInit {
 
   cancel() {
     this.gmbEditingModal.hide();
+  }
+
+  sortAccounts() {
+    console.log(this.accountsSorted)
+    if (this.accountsSorted === true) {
+      this.filteredGmbAccounts.sort((a, b) => {
+        return b.getAccountScore(this.timeConstant) - a.getAccountScore(this.timeConstant) || a.published - b.published;
+        // two sort crteria - First accounts will be sorted from highest (WORST) score to lowest
+        // for two or more locations with equal scores, they will be sorted from most locations to fewest
+      });
+    } else {
+      this.filterGmbAccounts();
+    }
+ 
   }
 
   async done(event: FormEvent) {
@@ -293,7 +310,7 @@ export class GmbAccountListComponent implements OnInit {
         limit: 1
       }).toPromise();
 
-      if(!account || !account.cookies) {
+      if (!account || !account.cookies) {
         throw `Unable to find cookies for ${event.object.email}`;
       }
 

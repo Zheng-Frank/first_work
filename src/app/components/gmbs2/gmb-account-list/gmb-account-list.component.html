@@ -1,14 +1,13 @@
 <h2 class="text-center">GMB: Accounts ({{filteredGmbAccounts.length}})</h2>
 <div class="text-center">Published: {{publishedTotal}}, Suspended: {{suspendedTotal}}</div>
 
-
 <div class="clearfix my-2">
   <div class="float-left form-inline">
-    <label class="mr-2" style="padding-left: 15px"> Account Filter:</label>
+    <label class="mr-1" style="padding-left: 15px"> Account Filter:</label>
     <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2"
       placeholder="email or restaurant name" [(ngModel)]="searchFilter">
 
-    <input type="text" class="form-control ml-2" id="fake-Iinput" placeholder="email or restaurant name">
+    <input type="text" class="form-control ml-1" id="fake-Iinput" placeholder="email or restaurant name">
 
     <label class="mr-2" style="padding-left: 15px"> Type:</label>
     <select class="form-control" [(ngModel)]="type" (change)="filterGmbAccounts()">
@@ -16,7 +15,7 @@
       <option>Apply GMB</option>
       <option>Transfer GMB</option>
     </select>
-    <label class="mr-2" style="padding-left: 15px"> Location Scanned:</label>
+    <label class="mr-1" style="padding-left: 15px"> Location Scanned:</label>
     <select class="form-control" [(ngModel)]="locationScanOlder" (change)="filterGmbAccounts()">
       <option>All</option>
       <option value="2">More than 2 hours ago</option>
@@ -24,7 +23,7 @@
       <option value="24">More than 1 day ago</option>
       <option value="72">More than 3 days ago</option>
     </select>
-    <label class="mr-2" style="padding-left: 15px"> Email Scanned:</label>
+    <label class="mr-1" style="padding-left: 10px"> Email Scanned:</label>
     <select class="form-control" [(ngModel)]="emailScanOlder" (change)="filterGmbAccounts()">
       <option>All</option>
       <option value="2">More than 2 hours ago</option>
@@ -32,10 +31,12 @@
       <option value="24">More than 1 day ago</option>
       <option value="72">More than 3 days ago</option>
     </select>
-    <label class="checkbox-inline" style="padding-left: 15px">
+    <label class="checkbox-inline" style="padding-left: 10px">
       <input type="checkbox" [(ngModel)]="overSizeLocations" (change)="filterGmbAccounts()"> Oversize Account</label>
-    <label class="checkbox-inline" style="padding-left: 15px">
+    <label class="checkbox-inline" style="padding-left: 10px">
       <input type="checkbox" [(ngModel)]="disabledAccount" (change)="filterGmbAccounts()"> Disabled Account</label>
+      <label class="checkbox-inline" style="padding-left: 10px">
+        <input type="checkbox" [(ngModel)]="accountsSorted" (change)="sortAccounts()"> Sort by Score </label>
   </div>
 
   <div class="float-right">
@@ -44,7 +45,13 @@
       <i class="fas fa-plus"></i> Add GMB Account</button>
   </div>
 </div>
-<div *ngFor="let gmbAccount of filteredGmbAccounts" class="w-100 mb-2">
+<div *ngFor="let gmbAccount of filteredGmbAccounts; let i = index" class="w-100 mb-2">
+  <h4 *ngIf="gmbAccount.getAccountScore(timeConstant) > 1; else elseBlock" class="text-danger">Row: {{i + 1}}, Score: {{gmbAccount.getAccountScore(timeConstant).toFixed(2)}}</h4>
+  <ng-template #elseBlock>
+
+    <h4 >Row: {{i + 1}}, Score: {{gmbAccount.getAccountScore(timeConstant).toFixed(2)}}</h4>
+  </ng-template>
+  
   <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)"
     (scanRequests)="scanRequests($event)" (scanBizList)="scanBizList($event)" (login)="login($event)"></app-gmb-card2>
 </div>
