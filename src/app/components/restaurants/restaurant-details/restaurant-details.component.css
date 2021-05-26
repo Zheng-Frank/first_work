@@ -39,3 +39,7 @@ h1 {
 .small {
     font-size: 80%;
 }
+
+.google_link{
+    color: white !important;
+}
