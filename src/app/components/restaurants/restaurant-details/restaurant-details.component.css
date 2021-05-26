@@ -41,5 +41,6 @@ h1 {
 }
 
 .google_link{
-    color: white !important;
+    color: blue !important;
+    text-decoration: underline;
 }
