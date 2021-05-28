@@ -18,6 +18,7 @@ export class GmbAccount {
     recoveryEmail:string;
     postcardId:string;
     locations: GmbLocation []; 
+    suspendedInPastDay: number;
     disabled: boolean;
     isAgencyAcct = false;
     isYelpEmail = false;
@@ -37,5 +38,9 @@ export class GmbAccount {
 
             this.locations = (gmb.locations || []).map(loc => new GmbLocation(loc));
         }
+    }
+
+    getAccountScore(days) {
+        return this.locations.map(loc => loc.getLocationScore(days)).reduce((prev, current) => prev + current, 0);
     }
 }
