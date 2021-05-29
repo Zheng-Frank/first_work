@@ -17,7 +17,7 @@ import { parseAddress } from "parse-address";
 })
 export class RestaurantGmbComponent implements OnInit {
   @ViewChild('addGMBInviteModal') addGMBInviteModal: ModalComponent;
-  @Input() restaurant: Restaurant;
+  @Input() restaurant;
 
   relevantGmbRequests: any[] = [];
   emailAccountDict = {} as any;
@@ -32,7 +32,7 @@ export class RestaurantGmbComponent implements OnInit {
   hasGmbOwnership = false;
 
   isAdmin = false;
-
+  gmbOwnerHistoryRate = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
     console.log(parseAddress)
@@ -41,6 +41,7 @@ export class RestaurantGmbComponent implements OnInit {
   async ngOnInit() {
     this.hasGmbOwnership = await this.checkGmbOwnership();
   }
+  
 
   async checkGmbOwnership() {
     try {
@@ -60,14 +61,47 @@ export class RestaurantGmbComponent implements OnInit {
   async ngOnChanges(changes: SimpleChanges) {
     this.populate();
   }
-
+ 
   async populate() {
 
     this.gmbRows = [];
     if (!this.restaurant) {
       return;
     }
-
+    if(this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length>0){
+      this.restaurant.gmbOwnerHistory = this.restaurant.gmbOwnerHistory.sort((a,b)=>new Date(a.time).valueOf()-new Date(b.time).valueOf());
+      let allTime = new Date().valueOf() - new Date(this.restaurant.gmbOwnerHistory[0].time).valueOf();
+      console.log(allTime);
+      for(let i=0;i<this.restaurant.gmbOwnerHistory.length;i++){
+        let history = this.restaurant.gmbOwnerHistory[i];
+        if(this.restaurant.gmbOwnerHistory.length === 1){
+          let sample = {
+            gmbOwner:history.gmbOwner,
+            width:"100%"
+          }
+          this.gmbOwnerHistoryRate.push(sample);
+        }
+        if((i+1) != this.restaurant.gmbOwnerHistory.length ){
+          let sample = {
+            gmbOwner:history.gmbOwner,
+            width:"0%",
+          }
+          let width = (new Date(this.restaurant.gmbOwnerHistory[i+1].time).valueOf()-new Date(history.time).valueOf())/allTime*100;
+          sample.width = width.toFixed(2)+"%";
+          this.gmbOwnerHistoryRate.push(sample);
+        }
+        if(i===this.restaurant.gmbOwnerHistory.length-1){
+          let sample = {
+            gmbOwner:history.gmbOwner,
+            width:"0%",
+          }
+          let width = (new Date().valueOf()-new Date(history.time).valueOf())/allTime*100;
+          sample.width = width.toFixed(2)+"%";
+          this.gmbOwnerHistoryRate.push(sample);
+        }
+      }
+      console.log(JSON.stringify(this.gmbOwnerHistoryRate));
+    } 
     const gmbBizList = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {

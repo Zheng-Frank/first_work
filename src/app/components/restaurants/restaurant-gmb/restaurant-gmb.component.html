@@ -84,6 +84,11 @@
           <hr class="my-0"><small>{{gh.time | ago : now}}</small>
         </div>
       </ng-container>
+      <div class="progress_1 mt-5">
+        <ng-container *ngFor="let rate of gmbOwnerHistoryRate || [];">
+            <span class="progress_span1 {{rate.gmbOwner === 'qmenu' ? 'green':'red'}}" [ngStyle]="{width:rate.width}"><span class="progress_span2">{{rate.gmbOwner}} {{rate.width}}</span></span>
+        </ng-container>
+      </div>
     </div>
   </div>
 
