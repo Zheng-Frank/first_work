@@ -71,7 +71,6 @@ export class RestaurantGmbComponent implements OnInit {
     if(this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length>0){
       this.restaurant.gmbOwnerHistory = this.restaurant.gmbOwnerHistory.sort((a,b)=>new Date(a.time).valueOf()-new Date(b.time).valueOf());
       let allTime = new Date().valueOf() - new Date(this.restaurant.gmbOwnerHistory[0].time).valueOf();
-      console.log(allTime);
       for(let i=0;i<this.restaurant.gmbOwnerHistory.length;i++){
         let history = this.restaurant.gmbOwnerHistory[i];
         if(this.restaurant.gmbOwnerHistory.length === 1){
@@ -100,7 +99,6 @@ export class RestaurantGmbComponent implements OnInit {
           this.gmbOwnerHistoryRate.push(sample);
         }
       }
-      console.log(JSON.stringify(this.gmbOwnerHistoryRate));
     } 
     const gmbBizList = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
