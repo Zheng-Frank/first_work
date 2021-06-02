@@ -86,22 +86,11 @@ export class RestaurantGmbComponent implements OnInit {
    * @returns
    * @memberof RestaurantGmbComponent
    */
-  getBubbleStyle(offset) {
-    if (offset < 0.1) {
-      offset = -offset * 300;
-    } else if (offset > 0.1 && offset < 0.5) {
-      offset = -offset * 240;
-    } else if (offset > 0.5 && offset < 1) {
-      offset = -offset * 40;
-    } else if (offset > 1 && offset < 1.5) {
-      offset = -offset * 20;
-    } else {
-      offset = offset;
-    }
+  getBubbleStyle() {
+   
     return {
       position: "absolute",
       top: "-65px",
-      left: offset + "px"
     };
   }
   async populate() {

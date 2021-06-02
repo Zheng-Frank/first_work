@@ -92,7 +92,7 @@
               {{rate.width}}</span>
             <span class="progress_span2" *ngIf="rate.widthRate<=5"></span>
             <ng-container *ngIf="rate.widthRate<=5 && rate.showBubbleFlag">
-              <div class="bubble" [ngStyle]="getBubbleStyle(rate.widthRate)">
+              <div class="bubble" [ngStyle]="getBubbleStyle()">
                 <div class="bubble-talk">{{rate.gmbOwner}} {{rate.width}}</div>
               </div>
             </ng-container>
