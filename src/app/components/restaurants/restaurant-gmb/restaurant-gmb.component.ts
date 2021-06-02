@@ -80,11 +80,7 @@ export class RestaurantGmbComponent implements OnInit {
 
   }
   /**
-   *
    * it has some offset bug when the width of progress is really small.
-   * @param {*} offset
-   * @returns
-   * @memberof RestaurantGmbComponent
    */
   getBubbleStyle() {
    
