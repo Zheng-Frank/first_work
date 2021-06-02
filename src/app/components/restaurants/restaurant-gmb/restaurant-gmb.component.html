@@ -88,10 +88,10 @@
         <ng-container *ngFor="let rate of gmbOwnerHistoryRate || [];">
           <span class="progress_span1 {{rate.gmbOwner === 'qmenu' ? 'green':'red'}}"
             [ngStyle]="{width:rate.width}" (mouseover)="showBubble(rate.id,true)" (mouseout)="showBubble(rate.id,false)">
-            <span class="progress_span2" *ngIf="!(rate.widthRate<=5)">{{rate.gmbOwner}}
-              {{rate.width}}</span>
-            <span class="progress_span2" *ngIf="rate.widthRate<=5"></span>
-            <ng-container *ngIf="rate.widthRate<=5 && rate.showBubbleFlag">
+            <span class="progress_span2" *ngIf="!(rate.widthRate<=10)">{{rate.gmbOwner}} 
+              ({{rate.width}})</span>
+            <span class="progress_span2" *ngIf="rate.widthRate<=10"></span>
+            <ng-container *ngIf="rate.widthRate<=10 && rate.showBubbleFlag">
               <div class="bubble" [ngStyle]="getBubbleStyle()">
                 <div class="bubble-talk">{{rate.gmbOwner}} {{rate.width}}</div>
               </div>
