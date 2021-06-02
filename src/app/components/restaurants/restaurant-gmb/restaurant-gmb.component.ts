@@ -41,7 +41,7 @@ export class RestaurantGmbComponent implements OnInit {
   async ngOnInit() {
     this.hasGmbOwnership = await this.checkGmbOwnership();
   }
-  
+
 
   async checkGmbOwnership() {
     try {
@@ -61,45 +61,100 @@ export class RestaurantGmbComponent implements OnInit {
   async ngOnChanges(changes: SimpleChanges) {
     this.populate();
   }
- 
+  // to control whether show bubble.
+  showBubble(id, isMouseOver) {
+    console.log(id, isMouseOver);
+    if (isMouseOver) {
+      this.gmbOwnerHistoryRate.forEach(history => {
+        if (history.id === id) {
+          history.showBubbleFlag = true;
+        } else {
+          history.showBubbleFlag = false;
+        }
+      });
+    } else {
+      this.gmbOwnerHistoryRate.forEach(history => {
+        history.showBubbleFlag = false;
+      });
+    }
+
+  }
+  /**
+   *
+   * it has some offset bug when the width of progress is really small.
+   * @param {*} offset
+   * @returns
+   * @memberof RestaurantGmbComponent
+   */
+  getBubbleStyle(offset) {
+    if (offset < 0.1) {
+      offset = -offset * 300;
+    } else if (offset > 0.1 && offset < 0.5) {
+      offset = -offset * 240;
+    } else if (offset > 0.5 && offset < 1) {
+      offset = -offset * 40;
+    } else if (offset > 1 && offset < 1.5) {
+      offset = -offset * 20;
+    } else {
+      offset = offset;
+    }
+    return {
+      position: "absolute",
+      top: "-65px",
+      left: offset + "px"
+    };
+  }
   async populate() {
 
     this.gmbRows = [];
     if (!this.restaurant) {
       return;
     }
-    if(this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length>0){
-      this.restaurant.gmbOwnerHistory = this.restaurant.gmbOwnerHistory.sort((a,b)=>new Date(a.time).valueOf()-new Date(b.time).valueOf());
+    if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
+      this.restaurant.gmbOwnerHistory = this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(a.time).valueOf() - new Date(b.time).valueOf());
       let allTime = new Date().valueOf() - new Date(this.restaurant.gmbOwnerHistory[0].time).valueOf();
-      for(let i=0;i<this.restaurant.gmbOwnerHistory.length;i++){
+      for (let i = 0; i < this.restaurant.gmbOwnerHistory.length; i++) {
         let history = this.restaurant.gmbOwnerHistory[i];
-        if(this.restaurant.gmbOwnerHistory.length === 1){
+        if (this.restaurant.gmbOwnerHistory.length === 1) {
           let sample = {
-            gmbOwner:history.gmbOwner,
-            width:"100%"
+            id: i,
+            gmbOwner: history.gmbOwner,
+            width: "100%",
+            widthRate: 1,
+            showBubbleFlag: false
           }
           this.gmbOwnerHistoryRate.push(sample);
         }
-        if((i+1) != this.restaurant.gmbOwnerHistory.length ){
+        if ((i + 1) != this.restaurant.gmbOwnerHistory.length) {
           let sample = {
-            gmbOwner:history.gmbOwner,
-            width:"0%",
+            id: i,
+            gmbOwner: history.gmbOwner,
+            width: "0%",
+            widthRate: 0,
+            showBubbleFlag: false
           }
-          let width = (new Date(this.restaurant.gmbOwnerHistory[i+1].time).valueOf()-new Date(history.time).valueOf())/allTime*100;
-          sample.width = width.toFixed(2)+"%";
+          let widthRate = (new Date(this.restaurant.gmbOwnerHistory[i + 1].time).valueOf() - new Date(history.time).valueOf()) / allTime;
+          let width = widthRate * 100;
+          sample.width = width.toFixed(2) + "%";
+          sample.widthRate = Number(width.toFixed(2));
           this.gmbOwnerHistoryRate.push(sample);
         }
-        if(i===this.restaurant.gmbOwnerHistory.length-1){
+        if (i === this.restaurant.gmbOwnerHistory.length - 1) {
           let sample = {
-            gmbOwner:history.gmbOwner,
-            width:"0%",
+            id: i,
+            gmbOwner: history.gmbOwner,
+            width: "0%",
+            widthRate: 0,
+            showBubbleFlag: false
           }
-          let width = (new Date().valueOf()-new Date(history.time).valueOf())/allTime*100;
-          sample.width = width.toFixed(2)+"%";
+          let widthRate = (new Date().valueOf() - new Date(history.time).valueOf()) / allTime;
+          let width = widthRate * 100;
+          sample.width = width.toFixed(2) + "%";
+          sample.widthRate = Number(width.toFixed(2));
           this.gmbOwnerHistoryRate.push(sample);
         }
       }
-    } 
+    }
     const gmbBizList = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {
@@ -175,7 +230,7 @@ export class RestaurantGmbComponent implements OnInit {
       console.log(this.relevantGmbRequests);
       this.gmbRows = gmbBizList.map(gmbBiz => ({
         gmbBiz: gmbBiz,
-        accountLocationPairs: relevantGmbAccounts.reduce((list, acct) => (list.push(...(acct.locations||[]).filter(loc => gmbBiz.cid && loc.cid === gmbBiz.cid).map(loc => ({
+        accountLocationPairs: relevantGmbAccounts.reduce((list, acct) => (list.push(...(acct.locations || []).filter(loc => gmbBiz.cid && loc.cid === gmbBiz.cid).map(loc => ({
           account: acct,
           location: loc,
           statusHistory: loc.statusHistory.slice(0).reverse()
@@ -184,7 +239,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       if (this.gmbRows) {
         this.gmbOwner = this.gmbRows[0].accountLocationPairs.filter(al => {
-          const result = al.account.locations.filter(loc => loc.status === 'Published' && (loc.role=== 'PRIMARY_OWNER' || loc.role === 'OWNER' || loc.role === 'CO_OWNER'));
+          const result = al.account.locations.filter(loc => loc.status === 'Published' && (loc.role === 'PRIMARY_OWNER' || loc.role === 'OWNER' || loc.role === 'CO_OWNER'));
           return result.length > 0;
         });
       }
