@@ -83,7 +83,7 @@ export class RestaurantGmbComponent implements OnInit {
    * it has some offset bug when the width of progress is really small.
    */
   getBubbleStyle() {
-   
+
     return {
       position: "absolute",
       top: "-65px",
@@ -104,16 +104,19 @@ export class RestaurantGmbComponent implements OnInit {
           let sample = {
             id: i,
             gmbOwner: history.gmbOwner,
+            ownerTime: "0 days",
             width: "100%",
             widthRate: 1,
             showBubbleFlag: false
           }
+          sample.ownerTime = (allTime / (24 * 3600 * 100)).toFixed(0) + " days";// owner total days.
           this.gmbOwnerHistoryRate.push(sample);
         }
         if ((i + 1) != this.restaurant.gmbOwnerHistory.length) {
           let sample = {
             id: i,
             gmbOwner: history.gmbOwner,
+            ownerTime: "0 days",
             width: "0%",
             widthRate: 0,
             showBubbleFlag: false
@@ -122,12 +125,14 @@ export class RestaurantGmbComponent implements OnInit {
           let width = widthRate * 100;
           sample.width = width.toFixed(2) + "%";
           sample.widthRate = Number(width.toFixed(2));
+          sample.ownerTime = (widthRate * allTime / (24 * 3600 * 1000)).toFixed(0) + " days";
           this.gmbOwnerHistoryRate.push(sample);
         }
         if (i === this.restaurant.gmbOwnerHistory.length - 1) {
           let sample = {
             id: i,
             gmbOwner: history.gmbOwner,
+            ownerTime: "0 days",
             width: "0%",
             widthRate: 0,
             showBubbleFlag: false
@@ -136,6 +141,7 @@ export class RestaurantGmbComponent implements OnInit {
           let width = widthRate * 100;
           sample.width = width.toFixed(2) + "%";
           sample.widthRate = Number(width.toFixed(2));
+          sample.ownerTime = (widthRate * allTime / (24 * 3600 * 1000)).toFixed(0) + " days";
           this.gmbOwnerHistoryRate.push(sample);
         }
       }
