@@ -3,6 +3,18 @@ import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { Log } from '../../../classes/log';
+enum hideInvaidSalesTypes{
+  All = 'All',
+  ValidSales = 'Valid Sales',
+  InvalidSales = 'Invalid Sales'
+} 
+
+enum MenuTypes{
+  All = 'All',
+  NoMenu = 'No Menu',
+  HavingMenu = 'Having Menu'
+}
+
 @Component({
   selector: 'app-monitoring-onboarding',
   templateUrl: './monitoring-onboarding.component.html',
@@ -10,9 +22,10 @@ import { Log } from '../../../classes/log';
 })
 export class MonitoringOnboardingComponent implements OnInit {
 
+  hideInvalidSales = hideInvaidSalesTypes.ValidSales; // a flag to control whether hide restaurants of  invalid sales 
   havingGMB: boolean;
   isWarning: boolean;
-  filterBy;
+  filterBy = MenuTypes.All;
 
   rows = []; // {restaurant, noMenu, noOrder, hasGmb, hadGmb}
   filteredRows = [];
@@ -92,7 +105,7 @@ export class MonitoringOnboardingComponent implements OnInit {
 
     this.rows.sort((r1, r2) => r2.restaurant.createdAt.valueOf() - r1.restaurant.createdAt.valueOf())
     this.filteredRows = this.rows;
-
+    this.filter();
   }
 
   getDaysFromId(mongoId) {
@@ -102,26 +115,43 @@ export class MonitoringOnboardingComponent implements OnInit {
   filter() {
     this.filteredRows = this.rows;
     if (this.havingGMB) {
-      this.filteredRows = this.filteredRows.filter(r => r.accountAndStatuses[0] && r.accountAndStatuses[0].status === 'Published')
+      this.filteredRows = this.filteredRows.filter(r => r.accountAndStatuses[0] && r.accountAndStatuses[0].status === 'Published');
     }
     if (this.isWarning) {
-      this.filteredRows = this.filteredRows.filter(r => (r.hadGmb && r.noMenu) || (!r.noMenu && r.hadGmb && r.noOrder))
+      this.filteredRows = this.filteredRows.filter(r => (r.hadGmb && r.noMenu) || (!r.noMenu && r.hadGmb && r.noOrder));
     }
 
     switch (this.filterBy) {
-      case 'No Menu':
-        this.filteredRows = this.filteredRows.filter(r => r.agent !=='charity' &&  r.noMenu)
+      case MenuTypes.All:
+        this.filteredRows = this.filteredRows;
+      break;
+
+      case MenuTypes.NoMenu:
+        this.filteredRows = this.filteredRows.filter(r => r.agent !== 'charity' && r.noMenu);
         break;
 
-      case 'Having Menu':
-        this.filteredRows = this.filteredRows.filter(r => r.agent !=='charity'&&  !r.noMenu && r.noOrder)
+      case MenuTypes.HavingMenu:
+        this.filteredRows = this.filteredRows.filter(r => r.agent !== 'charity' && !r.noMenu && r.noOrder);
         break;
       default:
         break;
     }
 
+    switch (this.hideInvalidSales) {
+      case hideInvaidSalesTypes.All :
+        this.filteredRows = this.filteredRows;
+        break;
 
-    console.log(JSON.stringify(this.filteredRows));
+      case hideInvaidSalesTypes.ValidSales:
+        this.filteredRows = this.filteredRows.filter(r => !r.agent || !(r.agent && (r.agent.trim() === "invalid" || r.agent.trim() === "Invalid" || r.agent.trim() === "none" || r.agent.trim() === "None")));
+        break;
+      case hideInvaidSalesTypes.InvalidSales:
+        this.filteredRows = this.filteredRows.filter(r => !(!r.agent || !(r.agent && (r.agent.trim() === "invalid" || r.agent.trim() === "Invalid" || r.agent.trim() === "none" || r.agent.trim() === "None"))));
+        break;
+      default:
+        break;
+    }
+
   }
 
 }

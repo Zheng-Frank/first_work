@@ -65,7 +65,7 @@
         {{restaurant.gmbOrigin.time | date:'shortDate'}} </span>
       <span *ngIf="restaurant.googleListing" class="px-4">Main cid: <strong>{{restaurant.googleListing?.cid}}</strong>
         |
-        Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>      
+        Crawled: {{restaurant.googleListing.crawledAt | ago : now}}</span>
       <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="refreshMainListing()">Revalidate
         "googleListing"</button>
       <button class="btn btn-primary" [qLoading]="apiRequesting" (click)="showInviteGmbUserModal()"
@@ -84,6 +84,20 @@
           <hr class="my-0"><small>{{gh.time | ago : now}}</small>
         </div>
       </ng-container>
+      <div class="progress_1 mt-5">
+        <ng-container *ngFor="let rate of gmbOwnerHistoryRate || [];">
+          <span class="progress_span1 {{rate.gmbOwner === 'qmenu' ? 'green':'red'}}"
+            [ngStyle]="{width:rate.width}" (mouseover)="showBubble(rate.id,true)" (mouseout)="showBubble(rate.id,false)">
+            <span class="progress_span2" *ngIf="!(rate.widthRate<=13)">{{rate.gmbOwner}} {{rate.ownerTime}}({{rate.width}})</span>
+            <span class="progress_span2" *ngIf="rate.widthRate<=13"></span>
+            <ng-container *ngIf="rate.widthRate<=13 && rate.showBubbleFlag">
+              <div class="bubble" [ngStyle]="getBubbleStyle()">
+                <div class="bubble-talk">{{rate.gmbOwner}} {{rate.ownerTime}}({{rate.width}})</div>
+              </div>
+            </ng-container>
+          </span>
+        </ng-container>
+      </div>
     </div>
   </div>
 
@@ -230,7 +244,8 @@
                 <div>
                   <app-gmb-account-hotlink [email]="alPair.account.email" [appealId]="alPair.location.appealId">
                   </app-gmb-account-hotlink>
-                  <small *ngIf="alPair.location.role !== 'PRIMARY_OWNER' && alPair.location.role !== 'OWNER' && alPair.location.role !== 'CO_OWNER'"
+                  <small
+                    *ngIf="alPair.location.role !== 'PRIMARY_OWNER' && alPair.location.role !== 'OWNER' && alPair.location.role !== 'CO_OWNER'"
                     class="badge badge-info">{{alPair.location.role}}</small>
                 </div>
                 <div class="text-muted">

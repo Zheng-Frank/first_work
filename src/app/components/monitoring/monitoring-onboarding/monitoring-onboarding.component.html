@@ -1,19 +1,29 @@
-<div>
+<div class="ml-3">
     <input type="checkbox" [(ngModel)]="isWarning" (change)="filter()">
     <i class="fas fa-square text-warning"></i> Need Action Immediately!
 </div>
-<div>
+<div class="ml-3">
     <input type="checkbox" [(ngModel)]="havingGMB" (change)="filter()" id="havingGMB">
     <img [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px"> Currently Owning GMB
 </div>
-<div>
+<div class="ml-3">
     <img [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px"> Owned GMB but Lost Now
 </div>
-<div>
-
+<div class="ml-3">
     <div class="float-left form-inline">
-        <label for="">Filter by: </label>
-        <select class="form-control mr-2 mb-1" [(ngModel)]="filterBy" (change)="filter()">
+        <label for="">Filter by Sales: </label>
+        <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="hideInvalidSales" (change)="filter()">
+            <option>All</option>
+            <option>Valid Sales</option>
+            <option>Invalid Sales</option>
+        </select>
+    </div>
+</div>
+<div class="ml-3">
+    <div class="float-left form-inline">
+        <label for="">Filter by Menu: </label>
+        <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="filterBy" (change)="filter()">
+            <option>All</option>
             <option>No Menu</option>
             <option>Having Menu</option>
         </select>
@@ -22,6 +32,7 @@
 Total : {{filteredRows.length}}
 
 </div>
+
 <table class="table my-2">
     <tr>
         <th></th>
