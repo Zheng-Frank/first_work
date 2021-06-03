@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { Helper } from './../../../classes/helper';
 import { environment } from 'src/environments/environment';
 import { ApiService } from 'src/app/services/api.service';
@@ -11,7 +12,7 @@ import { Component, OnInit } from '@angular/core';
 export class RestaurantsByCourierComponent implements OnInit {
 
   couriers = [];
-  courier = 'All';
+  courier = 'Postmates';
   restaurants = [];
   filteredRestaurants = [];
 
@@ -21,6 +22,7 @@ export class RestaurantsByCourierComponent implements OnInit {
     },
     {
       label: "Restaurant",
+      paths :['name'], // the paths property is used to make the colunm sortable.
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
@@ -28,10 +30,10 @@ export class RestaurantsByCourierComponent implements OnInit {
     },
     {
       label: "Time Zone",
-      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
       label: "Score",
+      paths: ['score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
     }
   ];
@@ -49,19 +51,20 @@ export class RestaurantsByCourierComponent implements OnInit {
     }, 1000);
     this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { disabled: { $ne: true },"googleAddress.formatted_address":{$exists:true} },
+      query: { disabled: { $ne: true }, "googleAddress.formatted_address": { $exists: true } },
       projection: {
         _id: 1,
         "googleAddress.formatted_address": 1,
         name: 1,
         courier: 1,
         score: 1,
-        deliveryClosedHours:1,
+        deliveryClosedHours: 1,
         deliverySettings: 1
       },
     }, 5000);
-    this.restaurants = this.parseRestaurants(this.restaurants);
+    this.restaurants = this.parseRestaurants(this.restaurants).filter(each => (each.courier && each.courier.name) || (!each.courier && each.deliverySettings && each.deliverySettings.length > 0));
     this.filteredRestaurants = this.restaurants;
+    this.filter();
   }
 
   parseRestaurants(restaurants) {
@@ -79,7 +82,7 @@ export class RestaurantsByCourierComponent implements OnInit {
   }
 
   filter() {
-    switch(this.courier){
+    switch (this.courier) {
       case 'All':
         this.filteredRestaurants = this.restaurants;
         break;
@@ -87,11 +90,11 @@ export class RestaurantsByCourierComponent implements OnInit {
         this.filteredRestaurants = this.restaurants.filter(each => each.courier && each.courier.name && each.courier.name === 'Postmates');
         break;
       case 'Self delivery':
-        this.filteredRestaurants = this.restaurants.filter(each => !each.courier && each.deliverySettings && each.deliverySettings.length > 0 && each.deliveryClosedHours && each.deliveryClosedHours && each.deliveryClosedHours.length > 0);
+        this.filteredRestaurants = this.restaurants.filter(each => !each.courier && each.deliverySettings && each.deliverySettings.length > 0);
         break;
       default:
-      this.filteredRestaurants = this.restaurants.filter(each => each.courier && each.courier.name && each.courier.name === this.courier);
+        this.filteredRestaurants = this.restaurants.filter(each => each.courier && each.courier.name && each.courier.name === this.courier);
         break;
-      }
+    }
   }
 }

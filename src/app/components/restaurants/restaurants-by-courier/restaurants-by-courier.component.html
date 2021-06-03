@@ -1,8 +1,8 @@
 <div class="text-center">
-  <h3>Restaurants by Courier ({{filteredRestaurants.length}})</h3>
+  <h3>Restaurants with Delivery ({{filteredRestaurants.length}})</h3>
 </div>
 <div *ngIf="!restaurants || restaurants.length === 0">
-  Restaurants by Courier list is empty.
+  Restaurants with Delivery list is empty.
 </div>
 <div class="float-left form-inline mt-2 mb-2 ml-2">
   <label class="mr-2"> Courier:</label>
@@ -24,8 +24,8 @@
       {{restaurant.address}}
     </td>
     <td *ngIf="restaurant.courier"> {{restaurant.courier?.name}} </td>
-    <td *ngIf="!restaurant.courier && restaurant.deliverySettings && restaurant.deliverySettings.length > 0 && restaurant.deliveryClosedHours && restaurant.deliveryClosedHours && restaurant.deliveryClosedHours.length > 0"> Self delivery </td>
-    <td *ngIf="!restaurant.courier && !(restaurant.deliverySettings && restaurant.deliverySettings.length > 0 && restaurant.deliveryClosedHours && restaurant.deliveryClosedHours && restaurant.deliveryClosedHours.length > 0)"> None </td>
+    <td *ngIf="!restaurant.courier && restaurant.deliverySettings && restaurant.deliverySettings.length > 0"> Self delivery </td>
+    <td *ngIf="!restaurant.courier && !(restaurant.deliverySettings && restaurant.deliverySettings.length > 0)"> None </td>
     <td>{{restaurant.timeZone}}</td>
     <td>{{restaurant.score | number : '1.0-1' || 0}}</td>
   </tr>
