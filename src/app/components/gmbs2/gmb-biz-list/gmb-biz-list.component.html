@@ -58,6 +58,25 @@
             <option>old style qMenu redirect</option>
             <option>same as restaurant managed</option>
         </select>
+        <!-- skip gmb start -->
+        <select class="form-control mr-2 mb-1" [(ngModel)]="skipStatus" (change)="filter()">
+            <option>Skip GMB?</option>
+            <option>Skip</option>
+            <option>Not Skip</option>
+        </select>
+        <!-- skip gmb end -->
+        <!-- insisted start -->
+        <select class="form-control mr-2 mb-1" [(ngModel)]="insistStatus" (change)="filter()">
+            <option>Insist URLs?</option>
+            <option>Insist All</option>
+            <option>Insist Any</option>
+            <option>Insist None</option>
+            <option>Insist Website</option>
+            <option>Insist Menu Url</option>
+            <option>Insist Order Url</option>
+            <option>Insist Reservation Url</option>
+        </select>
+        <!-- insisted start -->
 
     </div>
 
