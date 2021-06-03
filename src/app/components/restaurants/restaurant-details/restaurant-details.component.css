@@ -39,3 +39,8 @@ h1 {
 .small {
     font-size: 80%;
 }
+
+.google_link{
+    color: blue !important;
+    text-decoration: underline;
+}

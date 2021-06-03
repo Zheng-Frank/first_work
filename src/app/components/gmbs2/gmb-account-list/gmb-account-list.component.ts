@@ -75,6 +75,7 @@ export class GmbAccountListComponent implements OnInit {
         "locations.locationName": 1,
         "locations.name": 1,
         "locations.address": 1,
+        "locations.role": 1,
         disabled: 1,
         isAgencyAcct: 1,
         isYelpEmail: 1
