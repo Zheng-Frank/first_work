@@ -14,7 +14,7 @@
 
       <div class="small">
         {{restaurant.googleAddress.formatted_address}} 
-        (<a class="google_link" href="https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}" target="_blank">Google</a>)
+        (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google</a>)
       </div>
       <div class="small">
           Value: {{ restaurant.score || 0 | number: "1.1-1" }}
