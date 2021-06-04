@@ -5,11 +5,12 @@ import { ApiService } from './../../../services/api.service';
 import { Helper } from 'src/app/classes/helper';
 import { Log } from 'src/app/classes/log';
 import { AlertType } from 'src/app/classes/alert-type';
-import { environment } from './../../../../environments/environment.prod';
+
 import { Component, OnInit, NgZone, ViewChild } from '@angular/core';
 import { Order, TimezoneHelper, Restaurant } from '@qmenu/ui';
 import { OrderCardComponent } from '../../restaurants/order-card/order-card.component';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { environment } from 'src/environments/environment';
 declare var $: any;
 @Component({
   selector: 'app-postmates-orders',
@@ -219,9 +220,12 @@ export class PostmatesOrdersComponent implements OnInit {
      */
   async populateOrders() {
     const query = {
-      'delivery.id':{
-        $exists:true
-      }
+      restaurant: {
+        $oid: '58ba1a8d9b4e441100d8cdc1'
+      },
+      // 'delivery.id':{
+      //   $exists:true
+      // }
     } as any;
 
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
