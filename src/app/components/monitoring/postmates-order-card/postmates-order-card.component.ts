@@ -12,7 +12,8 @@ declare var $: any;
 @Component({
   selector: 'app-postmates-order-card',
   templateUrl: './postmates-order-card.component.html',
-  styleUrls: ['./postmates-order-card.component.css']
+  styleUrls: ['./postmates-order-card.component.css'],
+  providers: [DatePipe]
 })
 export class PostmatesOrderCardComponent implements OnInit {
 

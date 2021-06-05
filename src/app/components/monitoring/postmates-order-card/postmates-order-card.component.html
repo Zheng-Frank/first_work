@@ -1,4 +1,4 @@
-<div *ngIf="order && order.restaurant" class="card 
+<div *ngIf="order && order.tempRestaurant" class="card 
            {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}} 
           {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}} 
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
@@ -12,42 +12,47 @@
     </span>
   </div>
   <div class="card-block">
-    <div class="row">
-      <div class="col-6">
-
+    <div class="row mt-3">
+      <div class="col-6 basic-info-border">
+        <h6 class="text-sm-center">
+          RT Name: {{order.tempRestaurant.name}}
+        </h6>
+        <h6 class="text-sm-center">
+          RT ID: {{order.tempRestaurant._id}}
+        </h6>
+        <h6 class="text-sm-center">
+          {{order.tempRestaurant.googleAddress.formatted_address}}
+        </h6>
       </div>
-      <div class="col-6">
-        <h4 class="text-sm-center">
-          {{getCustomerName(order)}}
-        </h4>
-        <h6 class="text-center text-muted">{{order.id}}</h6>
-        <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
-        <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
-        <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
-          <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
-        </div>
-
-        <!--display a checkmark to indicate it's done-->
-        <h4 *ngIf="order.statusEqual('COMPLETED')" class="app-status-done text-success">
+      <div class="col-6 basic-info-border">
+         <!--display a checkmark to indicate it's done-->
+        <h4 *ngIf="order.statusEqual('COMPLETED')" class="postmates-orders-status-done text-success">
           &#10004;
         </h4>
-        <!--display an x to indicate it's done-->
-        <h4 *ngIf="order.statusEqual('CANCELED')" class="app-status-done text-danger">
+          <!--display an x to indicate it's done-->
+        <h4 *ngIf="order.statusEqual('CANCELED')" class="postmates-orders-status-done text-danger">
           &#10008;
         </h4>
-
-        <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
+        <h6 class="text-sm-center">
+         Customer Name: {{getCustomerName(order)}}
+        </h6>
+        <h6 class="text-center text-muted">Order ID: {{order.id}}</h6>
+        <h6 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
           <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
-        </h5>
-
-        <h5 *ngIf="getCustomerEmail(order)" class="text-sm-center">
+        </h6>
+        <h6 *ngIf="getCustomerEmail(order)" class="text-sm-center">
           <a href="mailto:{{getCustomerEmail(order)}}">{{getCustomerEmail(order)}}</a>
-        </h5>
+        </h6>
+      </div>
+      <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
+      <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
+      <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
+        <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
       </div>
     </div>
 
     <div class="text-sm-center card-text">
-      <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</span>
+      <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : order.tempRestaurant.googleAddress.timezone}}</span>
       |
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong>
@@ -112,7 +117,7 @@
           </div>
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of getUpdatedStatuses()">
-              <span>{{record.created | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}</span>&nbsp;<span
+              <span>{{record.created | adjustedDate : 'h:mm a' : order.tempRestaurant.googleAddress.timezone}}</span>&nbsp;<span
                 class="value">{{postmatesStatus(record.status)}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>

@@ -96,11 +96,15 @@ export class PostmatesOrdersComponent implements OnInit {
    * @memberof RestaurantOrdersComponent
    */
   async doSearchOrderByTime(from, to ,restaurantId) {
+    if(this.type != 'Restautant ID' || (this.type == 'Restautant ID' && !this.searchText)){
+      return this._global.publishAlert(AlertType.Danger, "Please select search type as Restaurant and fill it correctly before using the advanced search");
+    }
+    
     if (from == undefined) {
-      return alert("please input a correct from time date format!");
+      return this._global.publishAlert(AlertType.Danger,"please input a correct from time date format!");
     }
     if (to == undefined) {
-      return alert("please input a correct to time date format !");
+      return this._global.publishAlert(AlertType.Danger,"please input a correct to time date format !");
     }
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -141,7 +145,7 @@ export class PostmatesOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 50
+      limit: 100
     }).toPromise();
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
@@ -167,6 +171,7 @@ export class PostmatesOrdersComponent implements OnInit {
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
+      order.tempRestaurant = restaurants.filter(restaurant=>restaurant._id === order.restaurant)[0];
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -221,11 +226,11 @@ export class PostmatesOrdersComponent implements OnInit {
   async populateOrders() {
     const query = {
       restaurant: {
-        $oid: '58ba1a8d9b4e441100d8cdc1'
+        $exists:true
       },
-      // 'delivery.id':{
-      //   $exists:true
-      // }
+      'delivery.id':{
+        $exists:true
+      }
     } as any;
 
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
@@ -270,7 +275,7 @@ export class PostmatesOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 50
+      limit: 100
     }).toPromise();
     console.log(orders);
     // get blocked customers and assign back to each order blacklist reasons
