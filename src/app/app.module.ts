@@ -221,6 +221,7 @@ import { RestaurantsByCourierComponent } from './components/restaurants/restaura
 import { RestaurantOthersComponent } from './components/restaurants/restaurant-others/restaurant-others.component';
 import { PostmatesOrderCardComponent } from './components/monitoring/postmates-order-card/postmates-order-card.component';
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
+import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 
 @NgModule({
   declarations: [
@@ -411,7 +412,8 @@ import { PostmatesOrdersComponent } from './components/monitoring/postmates-orde
     RestaurantsByCourierComponent,
     RestaurantOthersComponent,
     PostmatesOrderCardComponent,
-    PostmatesOrdersComponent
+    PostmatesOrdersComponent,
+    GmbWrongLinkComponent
 
   ],
   imports: [
