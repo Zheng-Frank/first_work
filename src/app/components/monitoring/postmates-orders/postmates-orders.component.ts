@@ -95,7 +95,7 @@ export class PostmatesOrdersComponent implements OnInit {
    * @param {*} to
    * @memberof RestaurantOrdersComponent
    */
-  async doSearchOrderByTime(from, to ,restaurantId) {
+  async doSearchOrderByTime(from, to) {
     if(this.type != 'Restautant ID' || (this.type == 'Restautant ID' && !this.searchText)){
       return this._global.publishAlert(AlertType.Danger, "Please select search type as Restaurant and fill it correctly before using the advanced search");
     }
@@ -106,23 +106,24 @@ export class PostmatesOrdersComponent implements OnInit {
     if (to == undefined) {
       return this._global.publishAlert(AlertType.Danger,"please input a correct to time date format !");
     }
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const selectRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { '_id':{$oid:restaurantId}},
+      query: { _id:{$oid:this.searchText}},
       projection: this.restaurantProjection,
     }, 1);
+    console.log("restaurants:"+this.searchText+","+JSON.stringify(selectRestaurants));
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
-    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), restaurants[0].googleAddress.timezone);
-    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), restaurants[0].googleAddress.timezone);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), selectRestaurants[0].googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), selectRestaurants[0].googleAddress.timezone);
 
     if (utcf > utct) {
       return alert("please input a correct date format,from time is less than or equals to time!");
     }
     const query = {
       restaurant: {
-        $oid: restaurants[0]._id
+        $oid: selectRestaurants[0]._id
       },
       $and: [{
         createdAt: {
@@ -167,7 +168,11 @@ export class PostmatesOrdersComponent implements OnInit {
         createAt: 1
       }
     }).toPromise();
-
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { },
+      projection: this.restaurantProjection
+    }, 20000);
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
@@ -277,7 +282,6 @@ export class PostmatesOrdersComponent implements OnInit {
       },
       limit: 100
     }).toPromise();
-    console.log(orders);
     // get blocked customers and assign back to each order blacklist reasons
    
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
@@ -366,7 +370,7 @@ export class PostmatesOrdersComponent implements OnInit {
     }, 1);
     // assemble back to order:
     this.previousCanceledOrder = orders.map(order => {
-      order.restaurant = restaurants[0],
+      order.tempRestaurant = restaurants[0],
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;

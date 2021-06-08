@@ -6,6 +6,14 @@
     <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
+    <!--display a checkmark to indicate it's done-->
+  <div *ngIf="order.statusEqual('COMPLETED')" class="postmates-orders-status-done text-success">
+    &#10004;
+  </div>
+    <!--display an x to indicate it's done-->
+  <div *ngIf="order.statusEqual('CANCELED')" class="postmates-orders-status-done text-danger">
+    &#10008;
+  </div>
   <div *ngIf="order.dineInSessionObj" class="qr">
     <span class="">
       <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
@@ -13,42 +21,36 @@
   </div>
   <div class="card-block">
     <div class="row mt-3">
-      <div class="col-6 basic-info-border">
-        <h6 class="text-sm-center">
+      <div class="col-6 basic-info-border" style="font-size: 12px !important;">
+        <div class="text-sm-center">
           RT Name: {{order.tempRestaurant.name}}
-        </h6>
-        <h6 class="text-sm-center">
+        </div>
+        <div class="text-sm-center">
           RT ID: {{order.tempRestaurant._id}}
-        </h6>
-        <h6 class="text-sm-center">
+        </div>
+        <div class="text-sm-center">
           {{order.tempRestaurant.googleAddress.formatted_address}}
-        </h6>
+        </div>
       </div>
-      <div class="col-6 basic-info-border">
-         <!--display a checkmark to indicate it's done-->
-        <h4 *ngIf="order.statusEqual('COMPLETED')" class="postmates-orders-status-done text-success">
-          &#10004;
-        </h4>
-          <!--display an x to indicate it's done-->
-        <h4 *ngIf="order.statusEqual('CANCELED')" class="postmates-orders-status-done text-danger">
-          &#10008;
-        </h4>
-        <h6 class="text-sm-center">
+      <div class="col-6 basic-info-border" style="font-size: 12px !important;">
+       
+        <div class="text-sm-center">
          Customer Name: {{getCustomerName(order)}}
-        </h6>
-        <h6 class="text-center text-muted">Order ID: {{order.id}}</h6>
-        <h6 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
+        </div>
+        <div class="text-center text-muted">Order ID: {{order.id}}</div>
+        <div *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
           <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
-        </h6>
-        <h6 *ngIf="getCustomerEmail(order)" class="text-sm-center">
+        </div>
+        <div *ngIf="getCustomerEmail(order)" class="text-sm-center">
           <a href="mailto:{{getCustomerEmail(order)}}">{{getCustomerEmail(order)}}</a>
-        </h6>
+        </div>
       </div>
-      <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
-      <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
-      <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
-        <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
-      </div>
+    </div>
+
+    <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
+    <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
+    <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger mt-2">
+      <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
     </div>
 
     <div class="text-sm-center card-text">

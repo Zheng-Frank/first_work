@@ -84,7 +84,7 @@
         <h4 class="text-center">Previous Canceled Order</h4>
         <hr>
         <!-- row has negative margins and we need to remove them! -->
-        <app-postmates-order-card [restaurant]="order?.tempRestaurant" [order]="previousCanceledOrder"
+        <app-postmates-order-card [restaurant]="previousCanceledOrder?.tempRestaurant" [order]="previousCanceledOrder"
           (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
           (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
           (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
