@@ -24,11 +24,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   languageTypes = [LanguageType.ENGLISH,LanguageType.CHINESE];
   languageType = this._global.languageType;
   restaurant: Restaurant;
-  displayTextReply = false;
   displayGooglePIN = false;
-  phoneNumber;
-  message = '';
-  textedPhoneNumber;
   @Input() id;
 
   tabs = [];
@@ -293,52 +289,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.activeTab = tab;
   }
 
-  isValid() {
-    return this.isPhoneValid(this.phoneNumber);
-  }
-
-  isPhoneValid(text) {
-    if (!text) {
-      return false;
-    }
-
-    let digits = text.replace(/\D/g, '');
-    if (digits) {
-      let phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
-      if (digits.match(phoneRe)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  sendText() {
-    this.textedPhoneNumber = this.phoneNumber;
-
-    this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
-      phoneNumber: this.phoneNumber,
-      message: this.message,
-      source: this.restaurant.id
-    })
-      .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            "Text Message Sent successfully"
-          );
-
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
-        }
-      );
-  }
   // show a modal to do the send SMS function
   toggleTextReply() {
-    // this.displayTextReply = !this.displayTextReply;
-    // focus on the phone number!
-    // setTimeout(() => { $('#profile-phone-number').focus(); }, 500);
     this.textReplyModal.show();
   }
 
