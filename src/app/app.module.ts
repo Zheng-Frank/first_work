@@ -220,6 +220,7 @@ import { CouponImportComponent } from './components/restaurants/coupon-import/co
 import { RestaurantsByCourierComponent } from './components/restaurants/restaurants-by-courier/restaurants-by-courier.component';
 import { RestaurantOthersComponent } from './components/restaurants/restaurant-others/restaurant-others.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
+import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
 
 @NgModule({
   declarations: [
@@ -409,7 +410,8 @@ import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wro
     CouponImportComponent,
     RestaurantsByCourierComponent,
     RestaurantOthersComponent,
-    GmbWrongLinkComponent
+    GmbWrongLinkComponent,
+    SendTextReplyComponent
 
   ],
   imports: [
