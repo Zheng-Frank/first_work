@@ -16,7 +16,7 @@
           Ajustment for
           Order #{{order.orderNumber}}
           ({{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}},
-          {{order.getSubtotal() || 0 | money}})
+          subtotal: {{order.getSubtotal() || 0 | money}},total: {{order.getTotal() || 0 | money}})
         </span>
         <br>
         <small class="text-danger">NOTE: Input a negative number if it is a debit (money deducted from
@@ -36,7 +36,7 @@
             <input class="form-control col-7" type="number" [(ngModel)]="percentageAdjustmentAmount"
               (ngModelChange)="calcAdjustmentAmount()" #percentageInput (focusout)="ensureAdjustmentAmount()">
             <span class="col-5 vertical-to-input">%
-              ={{order.getSubtotal() * percentageAdjustmentAmount /100 | money }}</span>
+              ={{ log.adjustmentAmount | money }}</span>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@
     <div class="mb-3">
       <label for="id-reason">Explanation
       </label>
-      <div>{{percentage ? percentageAmountReason : amountReason}}</div>
+      <div [innerHTML]="percentage ? percentageAmountReason : amountReason"></div>
       <div *ngIf="log.adjustmentType === 'TRANSACTION'">
         A $15 dispute fee will be debited to the restaurant.
       </div>

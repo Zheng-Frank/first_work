@@ -48,9 +48,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
     // if the percentage or amount is zero,we don't show stripe dispute what is net to restaurant of $x
     if (this.percentage) {
       if (this.percentageAdjustmentAmount && this.percentageAdjustmentAmount != 0) {
-        // it's percentage case or not
-        let amount = this.percentage ? this.moneyTransform(this.order.getSubtotal() * this.percentageAdjustmentAmount / 100) : this.adjustmentAmount;
-
+        let amount = this.log.adjustmentAmount;
         // generate net to restaurant reason
         if (this.percentageAdjustmentAmount > 0) { // credit to restaurant
           if (amount <= 15) {
@@ -68,9 +66,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       }
     } else {
       if (this.adjustmentAmount && this.adjustmentAmount != 0) {
-        // it's percentage case or not
-        let amount = this.percentage ? this.moneyTransform(this.order.getSubtotal() * this.percentageAdjustmentAmount / 100) : this.adjustmentAmount;
-
+        let amount = this.log.adjustmentAmount;
         if (this.adjustmentAmount > 0) { // credit to restaurant
           if (amount <= 15) {
             let netToRestaurantAmount = this.moneyTransform(15 - amount);
@@ -110,7 +106,12 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
 
   }
 
-  // the function is used to calculate invoice adjustment and give percentage field a limit between 0 and 100%
+  /**
+   *Make the absolute vale of total (not subtotal) the upper/lower limit of invoice adjustment
+    Also take into account taxes, percentage fess, and commission
+   *
+   * @memberof RestaurantInvoiceAdjustmentComponent
+   */
   calcAdjustmentAmount() {
     if (this.percentage) {
       if (Math.abs(this.percentageAdjustmentAmount) > 100) {
@@ -119,37 +120,107 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       }
       if (this.isNumberValid(this.percentageAdjustmentAmount)) {
         // 19.5*27.5/100=5.3625*100=536.25 =>round =>536 =>5.36
-        this.log.adjustmentAmount = Number(this.moneyTransform(this.order.getSubtotal() * this.percentageAdjustmentAmount / 100));
-        if (this.log.adjustmentType === 'TRANSACTION') {
-          this.calculateNetAmountAndSetReason();
-        }
-        if (this.percentageAdjustmentAmount && this.percentageAdjustmentAmount != 0) {
-          this.changeReasonText();
-        } else {
-          this.percentageAmountReason = '';
-          this.percentageStripeReason = '';
+        if (this.restaurant.feeSchedules) {
+          let feeSchedules = this.restaurant.feeSchedules.filter(feeSchedule => (feeSchedule.name === 'service fee' || feeSchedule.name === 'commission') && feeSchedule.payer === 'RESTAURANT' && feeSchedule.payee === 'QMENU' && feeSchedule.chargeBasis === 'ORDER_SUBTOTAL' && feeSchedule.rate > 0);
+          let taxRate = this.restaurant.taxRate;
+          let otherRates = [];
+          feeSchedules.filter(feeSchedule => {
+            otherRates.push({ name: feeSchedule.name, rate: feeSchedule.rate });
+          });
+          let toRestaurantSubtotal = Number(this.moneyTransform(this.order.getSubtotal() * this.percentageAdjustmentAmount / 100));
+          let delta = this.order.getSubtotal() - toRestaurantSubtotal;
+          let sumRate = 0;
+          sumRate += taxRate;
+          otherRates.forEach(otherRate => {
+            sumRate += otherRate.rate;
+          });
+          let amount = toRestaurantSubtotal + Number((delta * sumRate).toFixed(2));
+          let reasonOptions = {
+            taxRate: taxRate,
+            otherRates: otherRates,
+            delta: delta,
+            toRestaurantSubtotal: toRestaurantSubtotal
+          }
+          this.log.adjustmentAmount = Number(amount);
+          if (this.log.adjustmentType === 'TRANSACTION') {
+            this.calculateNetAmountAndSetReason();
+          }
+          if (this.percentageAdjustmentAmount && this.percentageAdjustmentAmount != 0) {
+            this.changeReasonText(true, reasonOptions);
+          } else {
+            this.percentageAmountReason = '';
+            this.percentageStripeReason = '';
+          }
+        } else if (this.restaurant.rateSchedules) {
+          let rateSchedules = this.restaurant.rateSchedules.filter(rateSchedule => { });
+          this.log.adjustmentAmount = Number(this.moneyTransform(this.order.getSubtotal() * this.percentageAdjustmentAmount / 100));
+          if (this.log.adjustmentType === 'TRANSACTION') {
+            this.calculateNetAmountAndSetReason();
+          }
+          if (this.percentageAdjustmentAmount && this.percentageAdjustmentAmount != 0) {
+            this.changeReasonText(false, {});
+          } else {
+            this.percentageAmountReason = '';
+            this.percentageStripeReason = '';
+          }
         }
       } else {
         this._global.publishAlert(AlertType.Danger, 'Please input a valid percentage number !');
       }
 
     } else {
+      // Make the absolute vale of total (not subtotal) the upper/lower limit of invoice adjustment.
       if (Math.abs(this.adjustmentAmount) > this.order.getSubtotal()) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
-        let subtotal = this.moneyTransform(this.order.getSubtotal());
-        this.adjustmentAmount = subtotal;
+        let total = this.moneyTransform(this.order.getSubtotal());
+        this.adjustmentAmount = total;
       }
       if (this.isNumberValid(this.adjustmentAmount)) {
-        this.log.adjustmentAmount = Number(this.moneyTransform(this.adjustmentAmount));
-        if (this.log.adjustmentType === 'TRANSACTION') {
-          this.calculateNetAmountAndSetReason();
+        if (this.restaurant.feeSchedules) {
+          let feeSchedules = this.restaurant.feeSchedules.filter(feeSchedule => (feeSchedule.name === 'service fee' || feeSchedule.name === 'commission') && feeSchedule.payer === 'RESTAURANT' && feeSchedule.payee === 'QMENU' && feeSchedule.chargeBasis === 'ORDER_SUBTOTAL' && feeSchedule.rate > 0);
+          let taxRate = this.restaurant.taxRate;
+          let otherRates = [];
+          feeSchedules.filter(feeSchedule => {
+            otherRates.push({ name: feeSchedule.name, rate: feeSchedule.rate });
+          });
+          let toRestaurantSubtotal = this.adjustmentAmount;
+          let delta = this.order.getSubtotal() - toRestaurantSubtotal;
+          let sumRate = 0;
+          sumRate += taxRate;
+          otherRates.forEach(otherRate => {
+            sumRate += otherRate.rate;
+          });
+          let amount = toRestaurantSubtotal + Number((delta * sumRate).toFixed(2))
+          let reasonOptions = {
+            taxRate: taxRate,
+            otherRates: otherRates,
+            delta: delta,
+            toRestaurantSubtotal: toRestaurantSubtotal
+          }
+          this.log.adjustmentAmount = Number(this.moneyTransform(amount));
+          if (this.log.adjustmentType === 'TRANSACTION') {
+            this.calculateNetAmountAndSetReason();
+          }
+          if (this.adjustmentAmount && this.adjustmentAmount != 0) {
+            this.changeReasonText(true, reasonOptions);
+          } else {
+            this.amountReason = '';
+            this.stripeReason = '';
+          }
+        } else if (this.restaurant.rateSchedules) {
+          let rateSchedules = this.restaurant.rateSchedules.filter(rateSchedule => { });
+          this.log.adjustmentAmount = Number(this.moneyTransform(this.adjustmentAmount));
+          if (this.log.adjustmentType === 'TRANSACTION') {
+            this.calculateNetAmountAndSetReason();
+          }
+          if (this.adjustmentAmount && this.adjustmentAmount != 0) {
+            this.changeReasonText(false, {});
+          } else {
+            this.amountReason = '';
+            this.stripeReason = '';
+          }
         }
-        if (this.adjustmentAmount && this.adjustmentAmount != 0) {
-          this.changeReasonText();
-        } else {
-          this.amountReason = '';
-          this.stripeReason = '';
-        }
+
       } else {
         this._global.publishAlert(AlertType.Danger, 'Please input a valid adjustment amount !');
       }
@@ -157,22 +228,72 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   }
 
   // change textarea showed text and actual adjustment reason.
-  changeReasonText() {
+  changeReasonText(isFeeSchedules, reasonOptions) {
     try {
       let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
       let dateStr = date.slice(0, 4).join(' ');
       if (this.percentage) {
-        if (this.percentageAdjustmentAmount < 0) {
-          this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        if (isFeeSchedules) {
+          if (this.percentageAdjustmentAmount < 0) {
+            //this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+            this.percentageAmountReason = "It has these follow bill details:<br/>";
+            this.percentageAmountReason += "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
+            this.percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
+            this.percentageAmountReason += "the refund percentage fee(by calculating with percentage) of subtotal is $"+(-reasonOptions.toRestaurantSubtotal).toFixed(2)+".<br/>";
+            this.percentageAmountReason += "the refund tax of subtotal is $" + (-reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
+            reasonOptions.otherRates.forEach(otherRate => {
+              this.percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (-reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
+            });
+          } else {
+            // this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+            this.percentageAmountReason = "It has these follow bill details:<br/>";
+            this.percentageAmountReason += "Credit $" + (this.log.adjustmentAmount).toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
+            this.percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
+            this.percentageAmountReason += "the refund percentage fee(by calculating with percentage) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
+            this.percentageAmountReason += "the refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
+            reasonOptions.otherRates.forEach(otherRate => {
+              this.percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
+            });
+          }
         } else {
-          this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          if (this.percentageAdjustmentAmount < 0) {
+            this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          } else {
+            this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          }
         }
+
       } else {
-        if (this.adjustmentAmount < 0) {
-          this.amountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        if (isFeeSchedules) {
+          if (this.adjustmentAmount < 0) {
+            //  this.amountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+            this.percentageAmountReason = "It has these follow bill details:<br/>";
+            this.percentageAmountReason += "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.\n";
+            this.percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) +".<br/>";
+            this.percentageAmountReason += "the refund amount fee(by calculating with number) of subtotal is $"+(-reasonOptions.toRestaurantSubtotal).toFixed(2)+".<br/>";
+            this.percentageAmountReason += "the refund tax of subtotal is $" + (-reasonOptions.delta * reasonOptions.taxRate).toFixed(2) +".<br/>";
+            reasonOptions.otherRates.forEach(otherRate => {
+              this.percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (-reasonOptions.delta * otherRate.rate).toFixed(2) +".<br/>";
+            });
+          } else {
+            // this.amountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+            this.percentageAmountReason = "It has these follow bill details:\n";
+            this.percentageAmountReason += "Credit $" + (this.log.adjustmentAmount).toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";;
+            this.percentageAmountReason += "the refund amount fee(by calculating with number) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
+            this.percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) +".<br/>";
+            this.percentageAmountReason += "the refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) +".<br/>";
+            reasonOptions.otherRates.forEach(otherRate => {
+              this.percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) +".<br/>";
+            });
+          }
         } else {
-          this.amountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          if (this.adjustmentAmount < 0) {
+            this.amountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          } else {
+            this.amountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          }
         }
+
       }
     } catch (err) {
       console.log(err);
@@ -216,7 +337,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       }
     } else {
       if (this.log.adjustmentType === 'TRANSACTION') {
-        this.log.adjustmentReason = this.amountReason + "A $15 dispute fee will be debited to the restaurant." +this.stripeReason + this.additionalExplanation;
+        this.log.adjustmentReason = this.amountReason + "A $15 dispute fee will be debited to the restaurant." + this.stripeReason + this.additionalExplanation;
       } else {
         this.log.adjustmentReason = this.amountReason + this.additionalExplanation;
       }
@@ -236,19 +357,65 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
     this.adjustmentAmount = Number(this.moneyTransform(this.order.getSubtotal() * 20 / 100)); // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
     let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
-    this.amountReason = this.percentageAmountReason = "Credit $" + this.adjustmentAmount.toFixed(2) + " to restaurant 20% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+    let reasonOptions ;
+    if (this.restaurant.feeSchedules) {
+      let feeSchedules = this.restaurant.feeSchedules.filter(feeSchedule => (feeSchedule.name === 'service fee' || feeSchedule.name === 'commission') && feeSchedule.payer === 'RESTAURANT' && feeSchedule.payee === 'QMENU' && feeSchedule.chargeBasis === 'ORDER_SUBTOTAL' && feeSchedule.rate > 0);
+      let taxRate = this.restaurant.taxRate;
+      let otherRates = [];
+      feeSchedules.filter(feeSchedule => {
+        otherRates.push({ name: feeSchedule.name, rate: feeSchedule.rate });
+      });
+      let toRestaurantSubtotal = this.adjustmentAmount;
+      let delta = this.order.getSubtotal() - toRestaurantSubtotal;
+      let sumRate = 0;
+      sumRate += taxRate;
+      otherRates.forEach(otherRate => {
+        sumRate += otherRate.rate;
+      });
+      this.log.adjustmentAmount = toRestaurantSubtotal + delta * sumRate;
+      reasonOptions = {
+        taxRate: taxRate,
+        otherRates: otherRates,
+        delta: delta,
+        toRestaurantSubtotal: toRestaurantSubtotal
+      }
+    }else if(this.restaurant.rateSchedules){
+      
+    }
+    this.log.adjustmentAmount = this.log.adjustmentAmount;
+    let percentageAmountReason = '';
+    percentageAmountReason = "It has these follow bill details:<br/>";
+    percentageAmountReason += "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
+    percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
+    percentageAmountReason += "the refund percentage fee(by calculating with percentage) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
+    percentageAmountReason += "the refund tax of subtotal is $" + (-reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
+    reasonOptions.otherRates.forEach(otherRate => {
+      percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
+    });
+
+    let amountReason = '';
+    amountReason = "It has these follow bill details:<br/>";
+    amountReason += "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
+    amountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
+    amountReason += "the refund amount fee(by calculating with number) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
+    amountReason += "the refund tax of subtotal is $" + reasonOptions.delta * reasonOptions.taxRate.toFixed(2) + ".<br/>";
+    reasonOptions.otherRates.forEach(otherRate => {
+      amountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
+    });
+    this.percentageAmountReason = percentageAmountReason;
+    this.amountReason = amountReason;
     this.stripeReason = this.percentageStripeReason = '';
     this.additionalExplanation = '';
     this.onCancel.emit();
   }
   // we should allow CSR can submit even if percentageAdjustmentAmount or adjustmentAmount is zero.
-  isDisabled(){
-    if(this.log.adjustmentType === 'TRANSACTION'){
+  isDisabled() {
+    if (this.log.adjustmentType === 'TRANSACTION') {
       return false;
     }
-    if(this.percentage){
+    if (this.percentage) {
       return !(this.percentageAdjustmentAmount && this.percentageAdjustmentAmount != 0);
-    }else{
+    } else {
       return !(this.adjustmentAmount && this.adjustmentAmount != 0);
     }
   }
