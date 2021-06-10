@@ -1,3 +1,4 @@
+import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
 import { SchemasComponent } from './components/system/schemas/schemas.component';
@@ -126,6 +127,7 @@ const routes: Routes = [
   { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'postmates-orders', component: PostmatesOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'restaurants-by-courier', component: RestaurantsByCourierComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
 
   { path: 'invalid-list', component: InvalidListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER_INTERNAL'] } },
