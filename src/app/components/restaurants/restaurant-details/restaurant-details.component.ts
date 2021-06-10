@@ -313,27 +313,19 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  sendText() {
+  async sendText() {
     this.textedPhoneNumber = this.phoneNumber;
+    
+    await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+      "name": "send-sms",
+      "params": {
+        "to": this.phoneNumber,
+        "from": "8557592648",
+        "providerName": "plivo",
+        "message": this.message
+      }
+    }]).toPromise();
 
-    this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
-      phoneNumber: this.phoneNumber,
-      message: this.message,
-      source: this.restaurant.id
-    })
-      .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            "Text Message Sent successfully"
-          );
-
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
-        }
-      );
   }
 
   toggleTextReply() {

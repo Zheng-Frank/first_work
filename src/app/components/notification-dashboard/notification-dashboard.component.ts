@@ -208,7 +208,7 @@ export class NotificationDashboardComponent implements OnInit {
       "name": "send-sms",
       "params": {
         "to": this.smsNumber.toString(),
-        "from": "8447935942",
+        "from": "8557592648",
         "providerName": "plivo",
         "message": this.replaceMergeFields(this.testMessageTemplate.content)
       }
