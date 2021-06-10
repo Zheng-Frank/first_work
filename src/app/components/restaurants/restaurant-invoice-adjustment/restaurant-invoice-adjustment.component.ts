@@ -238,21 +238,21 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
             //this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
             this.percentageAmountReason = "It has these follow bill details:<br/>";
             this.percentageAmountReason += "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
-            this.percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
-            this.percentageAmountReason += "the refund percentage fee(by calculating with percentage) of subtotal is $"+(-reasonOptions.toRestaurantSubtotal).toFixed(2)+".<br/>";
-            this.percentageAmountReason += "the refund tax of subtotal is $" + (-reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
+            this.percentageAmountReason += "The subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
+            this.percentageAmountReason += "The refund percentage fee(by calculating with percentage) of subtotal is $"+(-reasonOptions.toRestaurantSubtotal).toFixed(2)+".<br/>";
+            this.percentageAmountReason += "The refund tax of subtotal is $" + (-reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
             reasonOptions.otherRates.forEach(otherRate => {
-              this.percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (-reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
+              this.percentageAmountReason += "The refund " + otherRate.name + " of subtotal is $" + (-reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
             });
           } else {
             // this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
             this.percentageAmountReason = "It has these follow bill details:<br/>";
             this.percentageAmountReason += "Credit $" + (this.log.adjustmentAmount).toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
-            this.percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
-            this.percentageAmountReason += "the refund percentage fee(by calculating with percentage) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
-            this.percentageAmountReason += "the refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
+            this.percentageAmountReason += "The subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
+            this.percentageAmountReason += "The refund percentage fee(by calculating with percentage) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
+            this.percentageAmountReason += "The refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
             reasonOptions.otherRates.forEach(otherRate => {
-              this.percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
+              this.percentageAmountReason += "The refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
             });
           }
         } else {
@@ -269,21 +269,21 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
             //  this.amountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
             this.percentageAmountReason = "It has these follow bill details:<br/>";
             this.percentageAmountReason += "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.\n";
-            this.percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) +".<br/>";
-            this.percentageAmountReason += "the refund amount fee(by calculating with number) of subtotal is $"+(-reasonOptions.toRestaurantSubtotal).toFixed(2)+".<br/>";
-            this.percentageAmountReason += "the refund tax of subtotal is $" + (-reasonOptions.delta * reasonOptions.taxRate).toFixed(2) +".<br/>";
+            this.percentageAmountReason += "The subtotal of order is $" + this.order.getSubtotal().toFixed(2) +".<br/>";
+            this.percentageAmountReason += "The refund amount fee(by calculating with number) of subtotal is $"+(-reasonOptions.toRestaurantSubtotal).toFixed(2)+".<br/>";
+            this.percentageAmountReason += "The refund tax of subtotal is $" + (-reasonOptions.delta * reasonOptions.taxRate).toFixed(2) +".<br/>";
             reasonOptions.otherRates.forEach(otherRate => {
-              this.percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (-reasonOptions.delta * otherRate.rate).toFixed(2) +".<br/>";
+              this.percentageAmountReason += "The refund " + otherRate.name + " of subtotal is $" + (-reasonOptions.delta * otherRate.rate).toFixed(2) +".<br/>";
             });
           } else {
             // this.amountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
             this.percentageAmountReason = "It has these follow bill details:\n";
             this.percentageAmountReason += "Credit $" + (this.log.adjustmentAmount).toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";;
-            this.percentageAmountReason += "the refund amount fee(by calculating with number) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
-            this.percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) +".<br/>";
-            this.percentageAmountReason += "the refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) +".<br/>";
+            this.percentageAmountReason += "The refund amount fee(by calculating with number) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
+            this.percentageAmountReason += "The subtotal of order is $" + this.order.getSubtotal().toFixed(2) +".<br/>";
+            this.percentageAmountReason += "The refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) +".<br/>";
             reasonOptions.otherRates.forEach(otherRate => {
-              this.percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) +".<br/>";
+              this.percentageAmountReason += "The refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) +".<br/>";
             });
           }
         } else {
@@ -342,6 +342,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
         this.log.adjustmentReason = this.amountReason + this.additionalExplanation;
       }
     }
+    this.log.adjustmentReason = this.log.adjustmentReason.replace(/<br\/>/g,'');
     this.log.response = this.log.adjustmentReason; // make the log can be editable and storable
     this.log.problem = this.log.adjustmentReason;
 
@@ -351,61 +352,6 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
     });
   }
   cancel() {
-    this.percentage = true;
-    this.percentageAdjustmentAmount = 20;
-    // it's 20% of order's subtotal by default 
-    this.adjustmentAmount = Number(this.moneyTransform(this.order.getSubtotal() * 20 / 100)); // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
-    let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
-    let dateStr = date.slice(0, 4).join(' ');
-    let reasonOptions ;
-    if (this.restaurant.feeSchedules) {
-      let feeSchedules = this.restaurant.feeSchedules.filter(feeSchedule => (feeSchedule.name === 'service fee' || feeSchedule.name === 'commission') && feeSchedule.payer === 'RESTAURANT' && feeSchedule.payee === 'QMENU' && feeSchedule.chargeBasis === 'ORDER_SUBTOTAL' && feeSchedule.rate > 0);
-      let taxRate = this.restaurant.taxRate;
-      let otherRates = [];
-      feeSchedules.filter(feeSchedule => {
-        otherRates.push({ name: feeSchedule.name, rate: feeSchedule.rate });
-      });
-      let toRestaurantSubtotal = this.adjustmentAmount;
-      let delta = this.order.getSubtotal() - toRestaurantSubtotal;
-      let sumRate = 0;
-      sumRate += taxRate;
-      otherRates.forEach(otherRate => {
-        sumRate += otherRate.rate;
-      });
-      this.log.adjustmentAmount = toRestaurantSubtotal + delta * sumRate;
-      reasonOptions = {
-        taxRate: taxRate,
-        otherRates: otherRates,
-        delta: delta,
-        toRestaurantSubtotal: toRestaurantSubtotal
-      }
-    }else if(this.restaurant.rateSchedules){
-      
-    }
-    this.log.adjustmentAmount = this.log.adjustmentAmount;
-    let percentageAmountReason = '';
-    percentageAmountReason = "It has these follow bill details:<br/>";
-    percentageAmountReason += "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
-    percentageAmountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
-    percentageAmountReason += "the refund percentage fee(by calculating with percentage) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
-    percentageAmountReason += "the refund tax of subtotal is $" + (-reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
-    reasonOptions.otherRates.forEach(otherRate => {
-      percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
-    });
-
-    let amountReason = '';
-    amountReason = "It has these follow bill details:<br/>";
-    amountReason += "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant with order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
-    amountReason += "the subtotal of order is $" + this.order.getSubtotal().toFixed(2) + ".<br/>";
-    amountReason += "the refund amount fee(by calculating with number) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
-    amountReason += "the refund tax of subtotal is $" + reasonOptions.delta * reasonOptions.taxRate.toFixed(2) + ".<br/>";
-    reasonOptions.otherRates.forEach(otherRate => {
-      amountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
-    });
-    this.percentageAmountReason = percentageAmountReason;
-    this.amountReason = amountReason;
-    this.stripeReason = this.percentageStripeReason = '';
-    this.additionalExplanation = '';
     this.onCancel.emit();
   }
   // we should allow CSR can submit even if percentageAdjustmentAmount or adjustmentAmount is zero.
