@@ -157,6 +157,7 @@ export class SendTextReplyComponent implements OnInit {
     } else if (this.isPhoneValid(this.phoneNumber) && this.message != '') {
       return true;
     }
+    return false;
   }
 
 }
