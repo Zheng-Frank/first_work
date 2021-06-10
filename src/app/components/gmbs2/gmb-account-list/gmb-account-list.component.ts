@@ -63,7 +63,6 @@ export class GmbAccountListComponent implements OnInit {
         published: 1,
         suspended: 1,
         allLocations: 1,
-        pagerSize: 1,
         postcardId: 1,
         gmbScannedAt: 1,
         emailScannedAt: 1,
