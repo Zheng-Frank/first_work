@@ -506,25 +506,24 @@ export class RestaurantOrdersComponent implements OnInit {
     }else if(this.restaurant.rateSchedules){
       
     }
-    this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
     let percentageAmountReason = '';
     percentageAmountReason = "It has these follow bill details:<br/>";
     percentageAmountReason += "Credit $" + this.logInEditing.adjustmentAmount.toFixed(2) + " to restaurant with order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
-    percentageAmountReason += "the subtotal of order is $" + order.getSubtotal().toFixed(2) + ".<br/>";
-    percentageAmountReason += "the refund percentage fee(by calculating with percentage) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
-    percentageAmountReason += "the refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
+    percentageAmountReason += "The subtotal of order is $" + order.getSubtotal().toFixed(2) + ".<br/>";
+    percentageAmountReason += "The refund percentage fee(by calculating with percentage) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
+    percentageAmountReason += "The refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
     reasonOptions.otherRates.forEach(otherRate => {
-      percentageAmountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
+      percentageAmountReason += "The refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
     });
 
     let amountReason = '';
     amountReason = "It has these follow bill details:<br/>";
     amountReason += "Credit $" + this.logInEditing.adjustmentAmount.toFixed(2) + " to restaurant with order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
-    amountReason += "the subtotal of order is $" + order.getSubtotal().toFixed(2) + ".<br/>";
-    amountReason += "the refund amount fee(by calculating with number) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
-    amountReason += "the refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
+    amountReason += "The subtotal of order is $" + order.getSubtotal().toFixed(2) + ".<br/>";
+    amountReason += "The refund amount fee(by calculating with number) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
+    amountReason += "The refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
     reasonOptions.otherRates.forEach(otherRate => {
-      amountReason += "the refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
+      amountReason += "The refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
     });
     this.adjustInvoiceComponment.percentageAmountReason  =  percentageAmountReason;
     this.adjustInvoiceComponment.amountReason = amountReason;
