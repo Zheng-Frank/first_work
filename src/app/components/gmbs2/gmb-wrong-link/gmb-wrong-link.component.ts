@@ -78,16 +78,35 @@ export class GmbWrongLinkComponent implements OnInit {
     }, 20000);
 
     // const restaurants = rawRestaurants.filter(r => r._id === "608ddea741bf021081ac586e");
-    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-      resource: 'gmbAccount',
-      projection: {
-        email: 1,
-        "locations.cid": 1,
-        "locations.status": 1,
-        "locations.role": 1
-      }
-    }, 20000);
 
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      aggregate: [
+        { '$match': { _id: { $exists: true } } },
+        {
+          $project: {
+            email: 1,
+            locations: {
+              $filter: {
+                input: "$locations",
+                as: "location",
+                cond: { $in: ["$$location.status", ['Published']] }
+              },
+              // statusHistory: 0
+            }
+          }
+        },
+        {
+          $project: {
+            email: 1,
+            "locations.cid": 1,
+            "locations.status": 1,
+            "locations.role": 1,
+            "locations.appealId": 1
+          }
+        },
+      ]
+    }).toPromise();
 
     // create a published cidAccountLocationMap
     const cidAccountLocationMap = {};

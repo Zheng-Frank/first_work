@@ -16,7 +16,7 @@
       {{row.restaurant.score}}
     </td>
     <td>
-      <app-gmb-account-hotlink [email]="row.restaurant.accountLoc.account.email">
+      <app-gmb-account-hotlink [email]="row.restaurant.accountLoc.account.email"  [appealId]="row.restaurant.accountLoc.location.appealId">
       </app-gmb-account-hotlink>
     </td>
     <td style="width: 100px;">
