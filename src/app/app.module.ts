@@ -219,6 +219,9 @@ import { RestaurantInvoiceAdjustmentComponent } from './components/restaurants/r
 import { CouponImportComponent } from './components/restaurants/coupon-import/coupon-import.component';
 import { RestaurantsByCourierComponent } from './components/restaurants/restaurants-by-courier/restaurants-by-courier.component';
 import { RestaurantOthersComponent } from './components/restaurants/restaurant-others/restaurant-others.component';
+import { PostmatesOrderCardComponent } from './components/monitoring/postmates-order-card/postmates-order-card.component';
+import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
+import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 
 @NgModule({
   declarations: [
@@ -407,7 +410,10 @@ import { RestaurantOthersComponent } from './components/restaurants/restaurant-o
     AddNewLogComponent,
     CouponImportComponent,
     RestaurantsByCourierComponent,
-    RestaurantOthersComponent
+    RestaurantOthersComponent,
+    PostmatesOrderCardComponent,
+    PostmatesOrdersComponent,
+    GmbWrongLinkComponent
 
   ],
   imports: [

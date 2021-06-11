@@ -1,86 +1,88 @@
-<div class="card border-info mb-3">
-  <div class="card-header">
-    <i class="fas fa-exclamation"></i> DO NOT ADJUST CUSTOMER AND RESTAURANT AGREED ORDER CHANGES HERE. Only input
-    qMenu and restaurant mutually agreed
-    adjustment here. The adjustment will be included in next invoice cycle.
-    <div>
-      <strong>* STOP IF YOU DO NOT FULLY UNDERSTAND THIS FORM.</strong>
+<ng-container *ngIf="restaurant">
+  <div class="card border-info mb-3">
+    <div class="card-header">
+      <i class="fas fa-exclamation"></i> DO NOT ADJUST CUSTOMER AND RESTAURANT AGREED ORDER CHANGES HERE. Only input
+      qMenu and restaurant mutually agreed
+      adjustment here. The adjustment will be included in next invoice cycle.
+      <div>
+        <strong>* STOP IF YOU DO NOT FULLY UNDERSTAND THIS FORM.</strong>
+      </div>
     </div>
-  </div>
-  <div class="card-body">
-
-    <div class="mb-3">
-      <label for="id-amount">Credit to Restaurant($)</label>
-      <p>
-        <span style="font-size:0.7rem">
-          Ajustment for
-          Order #{{order.orderNumber}}
-          ({{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}},
-          {{order.getSubtotal() || 0 | money}})
-        </span>
-        <br>
-        <small class="text-danger">NOTE: Input a negative number if it is a debit (money deducted from
-          restaurant)</small>
-      </p>
-      <div class="row">
-        <div class="col-4">
-          <div class="row q-toggle-container">
-            <span class="mr-1">Percentage</span>
-            <q-toggle [(ngModel)]="percentage" (change)="calculateNetAmountAndSetReason()"></q-toggle>
+    <div class="card-body">
+  
+      <div class="mb-3">
+        <label for="id-amount">Credit to Restaurant($)</label>
+        <p>
+          <span style="font-size:0.7rem">
+            Ajustment for
+            Order #{{order.orderNumber}}
+            ({{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}},
+            {{order.getSubtotal() || 0 | money}})
+          </span>
+          <br>
+          <small class="text-danger">NOTE: Input a negative number if it is a debit (money deducted from
+            restaurant)</small>
+        </p>
+        <div class="row">
+          <div class="col-4">
+            <div class="row q-toggle-container">
+              <span class="mr-1">Percentage</span>
+              <q-toggle [(ngModel)]="percentage" (change)="calculateNetAmountAndSetReason()"></q-toggle>
+            </div>
+          </div>
+          <div class="col-8">
+            <input *ngIf="!percentage" class="form-control" type="number" [(ngModel)]="adjustmentAmount"
+              (ngModelChange)="calcAdjustmentAmount()" #numberInput (focusout)="ensureAdjustmentAmount()">
+            <div *ngIf="percentage" class="row">
+              <input class="form-control col-7" type="number" [(ngModel)]="percentageAdjustmentAmount"
+                (ngModelChange)="calcAdjustmentAmount()" #percentageInput (focusout)="ensureAdjustmentAmount()">
+              <span class="col-5 vertical-to-input">%
+                ={{order.getSubtotal() * percentageAdjustmentAmount /100 | money }}</span>
+            </div>
           </div>
         </div>
-        <div class="col-8">
-          <input *ngIf="!percentage" class="form-control" type="number" [(ngModel)]="adjustmentAmount"
-            (ngModelChange)="calcAdjustmentAmount()" #numberInput (focusout)="ensureAdjustmentAmount()">
-          <div *ngIf="percentage" class="row">
-            <input class="form-control col-7" type="number" [(ngModel)]="percentageAdjustmentAmount"
-              (ngModelChange)="calcAdjustmentAmount()" #percentageInput (focusout)="ensureAdjustmentAmount()">
-            <span class="col-5 vertical-to-input">%
-              ={{order.getSubtotal() * percentageAdjustmentAmount /100 | money }}</span>
-          </div>
+      </div>
+      <!-- start with stripe -->
+      <div *ngIf="isStripeDispute()" class="mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="id-transaction-adjustment"
+            [checked]="log.adjustmentType === 'TRANSACTION'" (change)="toggleAdjustmentType()">
+          <label class="form-check-label" for="id-transaction-adjustment"> Stripe Dispute</label>
         </div>
       </div>
-    </div>
-    <!-- start with stripe -->
-    <div *ngIf="isStripeDispute()" class="mb-3">
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="id-transaction-adjustment"
-          [checked]="log.adjustmentType === 'TRANSACTION'" (change)="toggleAdjustmentType()">
-        <label class="form-check-label" for="id-transaction-adjustment"> Stripe Dispute</label>
+      <!-- end with stripe -->
+      <!-- start with addtional explanation -->
+      <div class="mb-3">
+        <label for="id-reason">Additional Notes
+        </label>
+        <!-- textarea -->
+        <textarea #additionalExplanationTextArea rows='3' type="text" class="form-control" id="id-reason"
+          [(ngModel)]="additionalExplanation">
+        </textarea>
       </div>
-    </div>
-    <!-- end with stripe -->
-    <!-- start with addtional explanation -->
-    <div class="mb-3">
-      <label for="id-reason">Additional Notes
-      </label>
-      <!-- textarea -->
-      <textarea #additionalExplanationTextArea rows='3' type="text" class="form-control" id="id-reason"
-        [(ngModel)]="additionalExplanation">
-      </textarea>
-    </div>
-    <!-- end with addtional explanation -->
-    <!-- start with reason eventually -->
-    <div class="mb-3">
-      <label for="id-reason">Explanation
-      </label>
-      <div>{{percentage ? percentageAmountReason : amountReason}}</div>
-      <div *ngIf="log.adjustmentType === 'TRANSACTION'">
-        A $15 dispute fee will be debited to the restaurant.
+      <!-- end with addtional explanation -->
+      <!-- start with reason eventually -->
+      <div class="mb-3">
+        <label for="id-reason">Explanation
+        </label>
+        <div>{{percentage ? percentageAmountReason : amountReason}}</div>
+        <div *ngIf="log.adjustmentType === 'TRANSACTION'">
+          A $15 dispute fee will be debited to the restaurant.
+        </div>
+        <div *ngIf="log.adjustmentType === 'TRANSACTION'">{{percentage ? percentageStripeReason:stripeReason}}</div>
+        <div>{{additionalExplanation}}</div>
       </div>
-      <div *ngIf="log.adjustmentType === 'TRANSACTION'">{{percentage ? percentageStripeReason:stripeReason}}</div>
-      <div>{{additionalExplanation}}</div>
+      <!-- end with reason eventually -->
     </div>
-    <!-- end with reason eventually -->
   </div>
-</div>
-<div class="d-flex justify-content-end p-4">
-  <button class="btn btn-secondary mr-2" (click)="cancel()">Cancel</button>
-  <button class="btn btn-primary" *ngIf="percentage"
-    [disabled]="isDisabled()"
-    (click)="submitAdjustInvoice()">Submit</button>
-  <button class="btn btn-primary" *ngIf="!percentage" 
-    [disabled]="isDisabled()"
-    (click)="submitAdjustInvoice()">Submit</button>
-
-</div>
+  <div class="d-flex justify-content-end p-4">
+    <button class="btn btn-secondary mr-2" (click)="cancel()">Cancel</button>
+    <button class="btn btn-primary" *ngIf="percentage"
+      [disabled]="isDisabled()"
+      (click)="submitAdjustInvoice()">Submit</button>
+    <button class="btn btn-primary" *ngIf="!percentage" 
+      [disabled]="isDisabled()"
+      (click)="submitAdjustInvoice()">Submit</button>
+  
+  </div>
+</ng-container>

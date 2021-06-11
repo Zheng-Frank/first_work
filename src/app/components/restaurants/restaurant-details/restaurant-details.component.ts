@@ -150,7 +150,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
-
+  googleSearchText; // using redirect google search.
   knownUsers = [];
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
@@ -258,6 +258,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
           (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
         this.readonly = !canEdit;
+        // use encodeURLComponment to reformat the href of a link.
+        // https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}
+          let formatted_address = this.restaurant.googleAddress.formatted_address||'';
+          let name = this.restaurant.name || '';
+          this.googleSearchText = "https://www.google.com/search?q="+encodeURIComponent(name+" "+formatted_address);
         },
         error => {
           this.apiRequesting = false;
@@ -308,27 +313,19 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  sendText() {
+  async sendText() {
     this.textedPhoneNumber = this.phoneNumber;
+    
+    await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+      "name": "send-sms",
+      "params": {
+        "to": this.phoneNumber,
+        "from": "8557592648",
+        "providerName": "plivo",
+        "message": this.message
+      }
+    }]).toPromise();
 
-    this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
-      phoneNumber: this.phoneNumber,
-      message: this.message,
-      source: this.restaurant.id
-    })
-      .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            "Text Message Sent successfully"
-          );
-
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
-        }
-      );
   }
 
   toggleTextReply() {
