@@ -56,11 +56,15 @@ export class SendTextReplyComponent implements OnInit {
         let error;
         this.channels.forEach(channel => {
           this.phoneNumber = channel.value;
-          this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
-            phoneNumber: this.phoneNumber,
-            message: this.message,
-            source: this.restaurant.id
-          })
+          this._api.post(environment.qmenuApiUrl + "events/add-jobs", [{
+            "name": "send-sms",
+            "params": {
+              "to": this.phoneNumber,
+              "from": "8557592648",
+              "providerName": "plivo",
+              "message": this.message
+            }
+          }])
             .subscribe(
               result => {
                 // let's update original, assuming everything successful
@@ -80,11 +84,16 @@ export class SendTextReplyComponent implements OnInit {
 
     } else {
       this.textedPhoneNumber = this.phoneNumber;
-      this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
-        phoneNumber: this.phoneNumber,
-        message: this.message,
-        source: this.restaurant.id
-      })
+     
+      this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+        "name": "send-sms",
+        "params": {
+          "to": this.phoneNumber,
+          "from": "8557592648",
+          "providerName": "plivo",
+          "message": this.message
+        }
+      }])
         .subscribe(
           result => {
             // let's update original, assuming everything successful
