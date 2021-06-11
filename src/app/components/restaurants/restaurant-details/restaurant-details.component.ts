@@ -291,15 +291,15 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   // show a modal to do the send SMS function
   toggleTextReply() {
-    this.textReplyModal.show();
-  }
-
-  closeTextReply(){
     this.textReplyComponent.phoneNumber = '';
     this.textReplyComponent.message = '';
     this.textReplyComponent.textedPhoneNumber = '';
     this.textReplyComponent.sendToType = 'All';
-    this.textReplyComponent.sendWhatType = 'Customer';
+    this.textReplyComponent.sendWhatType = 'Custom';
+    this.textReplyModal.show();
+  }
+
+  closeTextReply(){
     this.textReplyModal.hide();
   }
 

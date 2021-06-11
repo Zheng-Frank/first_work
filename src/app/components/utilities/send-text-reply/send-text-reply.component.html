@@ -1,9 +1,11 @@
-<label>SendTo: </label>
+<label>Send to: </label>
 <select (change)="onChangeSendTo()" [(ngModel)]="sendToType" class="form-control">
-  <option>All</option>
-  <option>404-404-4004</option>
-  <option>505-505-5005</option>
-  <option>Other</option>
+  <ng-container *ngFor="let type of sendToTypes">
+      <option *ngIf="type === 'All'">{{type}}</option>
+      <option *ngIf="type != 'All' && type != 'Other'">{{type | tel}}</option>
+      <option *ngIf="type === 'Other'">{{type}}</option>
+  </ng-container>
+  
 </select>
 <div *ngIf="sendToType === 'Other'" class="form-group {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}}">
     <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control mt-1"
@@ -11,12 +13,12 @@
 </div>
 <label>Send what: </label>
 <select (change)="onChangeSendWhat()" [(ngModel)]="sendWhatType" class="form-control">
-  <option>Customer</option>
+  <option>Custom</option>
   <option>QR Biz link</option>
-  <option>QR promo vid(Chn)</option>
-  <option>QR promo vid(Ehn)</option>
-  <option>QR tutorial vid(Chn)</option>
-  <option>QR tutorial vid(Ehn)</option>
+  <option>QR promo vid (中)</option>
+  <option>QR promo vid (Eng)</option>
+  <option>QR tutorial vid (中)</option>
+  <option>QR tutorial vid (Eng)</option>
   <option>5x7 Signholder link</option>
 </select>
 <textarea rows="4" class="form-control mt-1" type="text" [(ngModel)]="message"></textarea>

@@ -18,10 +18,20 @@ export class SendTextReplyComponent implements OnInit {
   message = '';
   textedPhoneNumber;
   sendToType = 'All';
-  sendWhatType = 'Customer';
+  sendWhatType = 'Custom';
+  sendToTypes = [];
+  channels;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+    if(this.restaurant.channels){
+      this.channels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'SMS');
+      if(this.channels && this.channels.length > 0){
+        this.sendToTypes = [...new Set(this.channels.map(channel=>channel.value))];
+        this.sendToTypes.unshift('All');
+      }
+    }
+    this.sendToTypes.push('Other');
   }
 
   isPhoneValid(text) {
@@ -40,11 +50,11 @@ export class SendTextReplyComponent implements OnInit {
   }
 
   sendText() {
+    console.log(this.phoneNumber);
     if (this.sendToType === 'All') {
-      if (this.restaurant.channels) {
-        let channels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' || channel.type === 'SMS');
+      if (this.channels && this.channels.length > 0) {
         let error;
-        channels.forEach(channel => {
+        this.channels.forEach(channel => {
           this.phoneNumber = channel.value;
           this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
             phoneNumber: this.phoneNumber,
@@ -99,16 +109,11 @@ export class SendTextReplyComponent implements OnInit {
       case 'All':
         this.phoneNumber = '';
         break;
-      case '404-404-4004':
-        this.phoneNumber = '404-404-4004';
-        break;
-      case '505-505-5005':
-        this.phoneNumber = '505-505-5005';
-        break;
       case 'Other':
         this.phoneNumber = '';
         break;
       default:
+      this.phoneNumber = this.sendToType;
         break;
     }
   }
@@ -125,22 +130,22 @@ export class SendTextReplyComponent implements OnInit {
    */
   onChangeSendWhat() {
     switch (this.sendWhatType) {
-      case 'Customer':
+      case 'Custom':
         this.message = '';
         break;
       case 'QR Biz link':
         this.message = 'http://qrbiz.qmenu.com' + " qMenu 测试短信，请客服人员不要碰";
         break;
-      case 'QR promo vid(Chn)':
+      case 'QR promo vid (中)':
         this.message = 'https://www.youtube.com/watch?v=HosHBDOXKnw' + " qMenu 测试短信，请客服人员不要碰";
         break;
-      case 'QR promo vid(Ehn)':
+      case 'QR promo vid (Eng)':
         this.message = 'https://www.youtube.com/watch?v=nP7b1Z79qws' + " qMenu 测试短信，请客服人员不要碰";
         break;
-      case 'QR tutorial vid(Chn)':
+      case 'QR tutorial vid (中)':
         this.message = 'https://www.youtube.com/watch?v=KATrlX7N2g8&list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn' + " qMenu 测试短信，请客服人员不要碰";
         break;
-      case 'QR tutorial vid(Ehn)':
+      case 'QR tutorial vid (Eng)':
         this.message = 'https://www.youtube.com/watch?v=Ifc1uj3MGEc&list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l' + " qMenu 测试短信，请客服人员不要碰";
         break;
       case '5x7 Signholder link':
