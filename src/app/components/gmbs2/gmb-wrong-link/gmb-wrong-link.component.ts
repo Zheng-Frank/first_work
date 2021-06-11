@@ -25,6 +25,9 @@ export class GmbWrongLinkComponent implements OnInit {
       label: "qMenu Restaurant",
     },
     {
+      label: "Role",
+    },
+    {
       label: "Score",
       paths: ['restaurant', 'score'],
       sort: (a, b) => (a || 0) - (b || 0)
@@ -80,19 +83,23 @@ export class GmbWrongLinkComponent implements OnInit {
       projection: {
         email: 1,
         "locations.cid": 1,
-        "locations.status": 1
+        "locations.status": 1,
+        "locations.role": 1
       }
     }, 20000);
 
 
     // create a published cidAccountLocationMap
     const cidAccountLocationMap = {};
-
+    const roles = ['SITE_MANAGER', 'COMMUNITY_MANAGER', 'MANAGER', 'OWNER', 'CO_OWNER', 'PRIMARY_OWNER'];
     gmbAccounts.map(account => (account.locations || []).map(loc => {
       if (loc.cid && loc.status === 'Published') {
-        cidAccountLocationMap[loc.cid] = {
-          account: account,
-          location: loc
+        // match the highest ownership
+        if (!cidAccountLocationMap[loc.cid] || roles.indexOf(cidAccountLocationMap[loc.cid].location.role) < roles.indexOf(loc.role)) {
+          cidAccountLocationMap[loc.cid] = {
+            account: account,
+            location: loc
+          }
         }
       }
     }));

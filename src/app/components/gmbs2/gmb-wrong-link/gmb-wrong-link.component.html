@@ -1,7 +1,7 @@
 <h1 class="text-center">Restaurants with Wrong GMB Links: ({{rows.length}})</h1>
 
 <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let row;">
+  <tr *tableRowTemplate="let row;" class="{{row.restaurant.accountLoc.location.role === 'MANAGER' ? 'alert-danger' : ''}}">
     <td>{{rows.indexOf(row) + 1}}</td>
 
     <td>
@@ -9,7 +9,9 @@
       <br>
       <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
     </td>
-
+    <td >
+      {{row.restaurant.accountLoc.location.role}}
+    </td>
     <td>
       {{row.restaurant.score}}
     </td>
