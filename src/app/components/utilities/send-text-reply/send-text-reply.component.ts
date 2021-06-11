@@ -158,7 +158,8 @@ export class SendTextReplyComponent implements OnInit {
         this.message = 'https://www.youtube.com/watch?v=Ifc1uj3MGEc&list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l' + " qMenu 测试短信，请客服人员不要碰";
         break;
       case '5x7 Signholder link':
-        this.message = 'https://www.amazon.com/Azar-152722-5-Inch-Vertical-Double-Sided/dp/B0037W5BU2/ref=sr_1_5?dchild=1&keywords=5x7+sign+holder&qid=1623189798&sr=8-5' + " qMenu 测试短信，请客服人员不要碰";
+        // this.message = 'https://www.amazon.com/Azar-152722-5-Inch-Vertical-Double-Sided/dp/B0037W5BU2/ref=sr_1_5?dchild=1&keywords=5x7+sign+holder&qid=1623189798&sr=8-5' + " qMenu 测试短信，请客服人员不要碰";
+        this.message = 'test 5x7 Signholder link';
         break;
       default:
         break;
