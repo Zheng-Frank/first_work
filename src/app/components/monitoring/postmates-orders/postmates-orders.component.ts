@@ -176,7 +176,7 @@ export class PostmatesOrdersComponent implements OnInit {
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.tempRestaurant = restaurants.filter(restaurant=>restaurant._id === order.restaurant)[0];
+      order.restaurant = restaurants.filter(restaurant=>restaurant._id === order.restaurant)[0];
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -312,7 +312,7 @@ export class PostmatesOrdersComponent implements OnInit {
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.tempRestaurant = restaurants.filter(restaurant=>restaurant._id === order.restaurant)[0];
+      order.restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -370,7 +370,7 @@ export class PostmatesOrdersComponent implements OnInit {
     }, 1);
     // assemble back to order:
     this.previousCanceledOrder = orders.map(order => {
-      order.tempRestaurant = restaurants[0],
+      order.restaurant = restaurants[0],
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -503,7 +503,7 @@ export class PostmatesOrdersComponent implements OnInit {
     this.adjustInvoiceComponment.percentageAdjustmentAmount = 20;
     this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100)); 
     this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
-    let date = Helper.adjustDate(order.createdAt, order.tempRestaurant.googleAddress.timezone).toString().split(' ');
+    let date = Helper.adjustDate(order.createdAt, order.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
     this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
     this.adjustInvoiceComponment.stripeReason = this.adjustInvoiceComponment.percentageStripeReason = '';
@@ -621,8 +621,8 @@ export class PostmatesOrdersComponent implements OnInit {
         paymentObj: { method: (order.paymentObj || {}).method },
         type: order.type,
         restaurantObj: {
-          _id: order.tempRestaurant.id,
-          name: order.tempRestaurant.name,
+          _id: order.restaurant.id,
+          name: order.restaurant.name,
           // customerObj.email:{
           //   _id:"xxx"
           // }

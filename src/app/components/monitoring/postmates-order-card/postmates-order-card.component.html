@@ -1,4 +1,4 @@
-<div *ngIf="order && order.tempRestaurant" class="card 
+<div *ngIf="order && order.restaurant" class="card 
            {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}} 
           {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}} 
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
@@ -23,13 +23,13 @@
     <div class="row mt-3">
       <div class="col-6 basic-info-border" style="font-size: 12px !important;">
         <div class="text-sm-center">
-          RT Name: {{order.tempRestaurant.name}}
+          RT Name: {{order.restaurant.name}}
         </div>
         <div class="text-sm-center">
-          RT ID: {{order.tempRestaurant._id}}
+          RT ID: {{order.restaurant._id}}
         </div>
         <div class="text-sm-center">
-          {{order.tempRestaurant.googleAddress.formatted_address}}
+          {{order.restaurant.googleAddress.formatted_address}}
         </div>
       </div>
       <div class="col-6 basic-info-border" style="font-size: 12px !important;">
@@ -54,7 +54,7 @@
     </div>
 
     <div class="text-sm-center card-text">
-      <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : order.tempRestaurant.googleAddress.timezone}}</span>
+      <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : order.restaurant.googleAddress.timezone}}</span>
       |
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong>
@@ -119,7 +119,7 @@
           </div>
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of getUpdatedStatuses()">
-              <span>{{record.created | adjustedDate : 'h:mm a' : order.tempRestaurant.googleAddress.timezone}}</span>&nbsp;<span
+              <span>{{record.created | adjustedDate : 'h:mm a' : order.restaurant.googleAddress.timezone}}</span>&nbsp;<span
                 class="value">{{postmatesStatus(record.status)}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
