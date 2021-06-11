@@ -176,7 +176,7 @@ export class PostmatesOrdersComponent implements OnInit {
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.restaurant = restaurants.filter(restaurant=>restaurant._id === order.restaurant)[0];
+      order.restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
