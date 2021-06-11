@@ -85,9 +85,6 @@
         </div>
       </ng-container>
       <div class="mt-5">
-        <div class="mt-2 mb-5 text-left">
-          GMB Utilization Rate: {{gmbUtilizationObj.validDays}}/{{gmbUtilizationObj.totalDays}} days = {{gmbUtilizationObj.rate|number:'1.2-2'}}%
-        </div>
         <div class="progress_1">
           <ng-container *ngFor="let rate of gmbOwnerHistoryRate || [];">
             <span class="progress_span1 {{rate.gmbOwner === 'qmenu' ? 'green':'red'}}" [ngStyle]="{width:rate.width}"
@@ -102,6 +99,9 @@
               </ng-container>
             </span>
           </ng-container>
+        </div>
+        <div class="mt-2 mb-5 text-left">
+            GMB Utilization Rate: {{gmbUtilizationObj.validDays}}/{{gmbUtilizationObj.totalDays}} days = {{gmbUtilizationObj.rate|number:'1.2-2'}}%
         </div>
       </div>
     </div>
