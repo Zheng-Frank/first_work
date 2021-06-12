@@ -33,6 +33,12 @@ export class RestaurantGmbComponent implements OnInit {
 
   isAdmin = false;
   gmbOwnerHistoryRate = [];
+  gmbUtilizationObj = { // to show gmb owner utilization rate in total
+    totalDays: 0,
+    validDays: 0,
+    rate: 0
+  }
+
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
     console.log(parseAddress)
@@ -98,8 +104,11 @@ export class RestaurantGmbComponent implements OnInit {
     if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
       this.restaurant.gmbOwnerHistory = this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(a.time).valueOf() - new Date(b.time).valueOf());
       let allTime = new Date().valueOf() - new Date(this.restaurant.gmbOwnerHistory[0].time).valueOf();
+      this.gmbUtilizationObj.totalDays = Number((allTime / (24 * 3600 * 1000)).toFixed(0));
+      
       for (let i = 0; i < this.restaurant.gmbOwnerHistory.length; i++) {
         let history = this.restaurant.gmbOwnerHistory[i];
+
         if (this.restaurant.gmbOwnerHistory.length === 1) {
           let sample = {
             id: i,
@@ -109,8 +118,13 @@ export class RestaurantGmbComponent implements OnInit {
             widthRate: 1,
             showBubbleFlag: false
           }
-          sample.ownerTime = (allTime / (24 * 3600 * 100)).toFixed(0) + " days";// owner total days.
+          let ownerTime = (allTime / (24 * 3600 * 1000));
+          sample.ownerTime = ownerTime.toFixed(0) + " days";// owner total days.
           this.gmbOwnerHistoryRate.push(sample);
+          if (history.gmbOwner === 'qmenu') {
+            this.gmbUtilizationObj.validDays = Number(ownerTime.toFixed(0));
+            this.gmbUtilizationObj.rate = 100;
+          }
         }
         if ((i + 1) != this.restaurant.gmbOwnerHistory.length) {
           let sample = {
@@ -125,8 +139,13 @@ export class RestaurantGmbComponent implements OnInit {
           let width = widthRate * 100;
           sample.width = width.toFixed(2) + "%";
           sample.widthRate = Number(width.toFixed(2));
-          sample.ownerTime = (widthRate * allTime / (24 * 3600 * 1000)).toFixed(0) + " days";
+          let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
+          sample.ownerTime = ownerTime.toFixed(0)+ " days";
           this.gmbOwnerHistoryRate.push(sample);
+          if (history.gmbOwner === 'qmenu') {
+            this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
+            this.gmbUtilizationObj.rate += sample.widthRate;
+          }
         }
         if (i === this.restaurant.gmbOwnerHistory.length - 1) {
           let sample = {
@@ -141,8 +160,13 @@ export class RestaurantGmbComponent implements OnInit {
           let width = widthRate * 100;
           sample.width = width.toFixed(2) + "%";
           sample.widthRate = Number(width.toFixed(2));
-          sample.ownerTime = (widthRate * allTime / (24 * 3600 * 1000)).toFixed(0) + " days";
+          let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
+          sample.ownerTime = ownerTime.toFixed(0) + " days";
           this.gmbOwnerHistoryRate.push(sample);
+          if (history.gmbOwner === 'qmenu') {
+            this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
+            this.gmbUtilizationObj.rate += sample.widthRate;
+          }
         }
       }
     }

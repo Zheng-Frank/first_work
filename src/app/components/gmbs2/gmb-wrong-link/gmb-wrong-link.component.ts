@@ -25,6 +25,9 @@ export class GmbWrongLinkComponent implements OnInit {
       label: "qMenu Restaurant",
     },
     {
+      label: "Role",
+    },
+    {
       label: "Score",
       paths: ['restaurant', 'score'],
       sort: (a, b) => (a || 0) - (b || 0)
@@ -75,24 +78,47 @@ export class GmbWrongLinkComponent implements OnInit {
     }, 20000);
 
     // const restaurants = rawRestaurants.filter(r => r._id === "608ddea741bf021081ac586e");
-    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-      resource: 'gmbAccount',
-      projection: {
-        email: 1,
-        "locations.cid": 1,
-        "locations.status": 1
-      }
-    }, 20000);
 
+    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      aggregate: [
+        { '$match': { _id: { $exists: true } } },
+        {
+          $project: {
+            email: 1,
+            locations: {
+              $filter: {
+                input: "$locations",
+                as: "location",
+                cond: { $in: ["$$location.status", ['Published']] }
+              },
+              // statusHistory: 0
+            }
+          }
+        },
+        {
+          $project: {
+            email: 1,
+            "locations.cid": 1,
+            "locations.status": 1,
+            "locations.role": 1,
+            "locations.appealId": 1
+          }
+        },
+      ]
+    }).toPromise();
 
     // create a published cidAccountLocationMap
     const cidAccountLocationMap = {};
-
+    const roles = ['SITE_MANAGER', 'COMMUNITY_MANAGER', 'MANAGER', 'OWNER', 'CO_OWNER', 'PRIMARY_OWNER'];
     gmbAccounts.map(account => (account.locations || []).map(loc => {
       if (loc.cid && loc.status === 'Published') {
-        cidAccountLocationMap[loc.cid] = {
-          account: account,
-          location: loc
+        // match the highest ownership
+        if (!cidAccountLocationMap[loc.cid] || roles.indexOf(cidAccountLocationMap[loc.cid].location.role) < roles.indexOf(loc.role)) {
+          cidAccountLocationMap[loc.cid] = {
+            account: account,
+            location: loc
+          }
         }
       }
     }));
