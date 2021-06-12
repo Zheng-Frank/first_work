@@ -391,7 +391,6 @@ export class RestaurantOrdersComponent implements OnInit {
 
   /**
    * change-to-self-delivery
-
      change-to-pickup
    */
   async handleOnChangeOrderTypes() {
@@ -478,55 +477,10 @@ export class RestaurantOrdersComponent implements OnInit {
     this.adjustInvoiceComponment.percentage = true;
     this.adjustInvoiceComponment.percentageAdjustmentAmount = 20;
     this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100)); 
-   
+    this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
-    let reasonOptions ;
-    if (this.restaurant.feeSchedules) {
-      let feeSchedules = this.restaurant.feeSchedules.filter(feeSchedule => (feeSchedule.name === 'service fee' || feeSchedule.name === 'commission') && feeSchedule.payer === 'RESTAURANT' && feeSchedule.payee === 'QMENU' && feeSchedule.chargeBasis === 'ORDER_SUBTOTAL' && feeSchedule.rate > 0);
-      let taxRate = this.restaurant.taxRate;
-      let otherRates = [];
-      feeSchedules.filter(feeSchedule => {
-        otherRates.push({ name: feeSchedule.name, rate: feeSchedule.rate });
-      });
-      let toRestaurantSubtotal = this.adjustInvoiceComponment.adjustmentAmount;
-      let delta = order.getSubtotal() - toRestaurantSubtotal;
-      let sumRate = 0;
-      sumRate += taxRate;
-      otherRates.forEach(otherRate => {
-        sumRate += otherRate.rate;
-      });
-      this.logInEditing.adjustmentAmount = toRestaurantSubtotal + delta * sumRate;
-      reasonOptions = {
-        taxRate: taxRate,
-        otherRates: otherRates,
-        delta: delta,
-        toRestaurantSubtotal: toRestaurantSubtotal
-      }
-    }else if(this.restaurant.rateSchedules){
-      
-    }
-    let percentageAmountReason = '';
-    percentageAmountReason = "It has these follow bill details:<br/>";
-    percentageAmountReason += "Credit $" + this.logInEditing.adjustmentAmount.toFixed(2) + " to restaurant with order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
-    percentageAmountReason += "The subtotal of order is $" + order.getSubtotal().toFixed(2) + ".<br/>";
-    percentageAmountReason += "The refund percentage fee(by calculating with percentage) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
-    percentageAmountReason += "The refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
-    reasonOptions.otherRates.forEach(otherRate => {
-      percentageAmountReason += "The refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
-    });
-
-    let amountReason = '';
-    amountReason = "It has these follow bill details:<br/>";
-    amountReason += "Credit $" + this.logInEditing.adjustmentAmount.toFixed(2) + " to restaurant with order #" + order.orderNumber + " on " + dateStr + ") to coming invoice.<br/>";
-    amountReason += "The subtotal of order is $" + order.getSubtotal().toFixed(2) + ".<br/>";
-    amountReason += "The refund amount fee(by calculating with number) of subtotal is $"+reasonOptions.toRestaurantSubtotal.toFixed(2)+".<br/>";
-    amountReason += "The refund tax of subtotal is $" + (reasonOptions.delta * reasonOptions.taxRate).toFixed(2) + ".<br/>";
-    reasonOptions.otherRates.forEach(otherRate => {
-      amountReason += "The refund " + otherRate.name + " of subtotal is $" + (reasonOptions.delta * otherRate.rate).toFixed(2) + ".<br/>";
-    });
-    this.adjustInvoiceComponment.percentageAmountReason  =  percentageAmountReason;
-    this.adjustInvoiceComponment.amountReason = amountReason;
+    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant (20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
     this.adjustInvoiceComponment.stripeReason = this.adjustInvoiceComponment.percentageStripeReason = '';
     this.adjustInvoiceComponment.additionalExplanation = '';
     this.adjustInvoiceModal.show();
