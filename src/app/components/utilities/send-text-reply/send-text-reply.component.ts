@@ -134,6 +134,7 @@ export class SendTextReplyComponent implements OnInit {
 - QR promo vid (Chn): https://www.youtube.com/watch?v=HosHBDOXKnw
 - QR promo vid (Eng): https://www.youtube.com/watch?v=nP7b1Z79qws
 - 5x7 signholder link: https://www.amazon.com/Azar-152722-5-Inch-Vertical-Double-Sided/dp/B0037W5BU2/ref=sr_1_5?dchild=1&keywords=5x7+sign+holder&qid=1623189798&sr=8-5
+  <=>https://shorturl.at/gFQ19
 - QR tutorial vids (Chn): https://www.youtube.com/watch?v=KATrlX7N2g8&list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn
 - QR tutorial vids (Eng): https://www.youtube.com/watch?v=Ifc1uj3MGEc&list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l
    */
@@ -143,23 +144,25 @@ export class SendTextReplyComponent implements OnInit {
         this.message = '';
         break;
       case 'QR Biz link':
-        this.message = 'http://qrbiz.qmenu.com' + " qMenu 测试短信，请客服人员不要碰";
+        this.message = 'http://qrbiz.qmenu.com';
         break;
       case 'QR promo vid (中)':
-        this.message = 'https://www.youtube.com/watch?v=HosHBDOXKnw' + " qMenu 测试短信，请客服人员不要碰";
+        this.message = 'https://www.youtube.com/watch?v=HosHBDOXKnw';
         break;
       case 'QR promo vid (Eng)':
-        this.message = 'https://www.youtube.com/watch?v=nP7b1Z79qws' + " qMenu 测试短信，请客服人员不要碰";
+        this.message = 'https://www.youtube.com/watch?v=nP7b1Z79qws';
         break;
       case 'QR tutorial vid (中)':
-        this.message = 'https://www.youtube.com/watch?v=KATrlX7N2g8&list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn' + " qMenu 测试短信，请客服人员不要碰";
+        // this.message = 'https://www.youtube.com/watch?v=KATrlX7N2g8&list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn';
+        this.message = 'https://shorturl.at/korGR';
         break;
       case 'QR tutorial vid (Eng)':
-        this.message = 'https://www.youtube.com/watch?v=Ifc1uj3MGEc&list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l' + " qMenu 测试短信，请客服人员不要碰";
+       // this.message = 'https://www.youtube.com/watch?v=Ifc1uj3MGEc&list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l';
+        this.message = 'https://shorturl.at/cdpO9'
         break;
       case '5x7 Signholder link':
-        // this.message = 'https://www.amazon.com/Azar-152722-5-Inch-Vertical-Double-Sided/dp/B0037W5BU2/ref=sr_1_5?dchild=1&keywords=5x7+sign+holder&qid=1623189798&sr=8-5' + " qMenu 测试短信，请客服人员不要碰";
-        this.message = 'test 5x7 Signholder link';
+        // this.message = 'https://www.fixturedisplays.com/Picture_Frames_11193-2-5X7-24PK' ;
+        this.message = 'https://shorturl.at/gFQ19';
         break;
       default:
         break;
