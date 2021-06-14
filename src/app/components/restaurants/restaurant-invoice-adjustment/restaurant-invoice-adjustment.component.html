@@ -17,7 +17,7 @@
             Ajustment for
             Order #{{order.orderNumber}}
             ({{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}},
-            {{order.getSubtotal() || 0 | money}}, {{order.getTotal() || 0 |money}})
+            {{order.getSubtotal() || 0 | money}} subtotal, {{order.getTotal() || 0 |money}} total)
           </span>
           <br>
           <small class="text-danger">NOTE: Input a negative number if it is a debit (money deducted from
@@ -26,7 +26,7 @@
         <div class="row">
           <div class="col-4">
             <div class="row q-toggle-container">
-              <span class="mr-1">Percentage</span>
+              <span class="mr-1">% of subtotal</span>
               <q-toggle [(ngModel)]="percentage" (change)="calculateNetAmountAndSetReason()"></q-toggle>
             </div>
           </div>
