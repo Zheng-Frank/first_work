@@ -84,19 +84,25 @@
           <hr class="my-0"><small>{{gh.time | ago : now}}</small>
         </div>
       </ng-container>
-      <div class="progress_1 mt-5">
-        <ng-container *ngFor="let rate of gmbOwnerHistoryRate || [];">
-          <span class="progress_span1 {{rate.gmbOwner === 'qmenu' ? 'green':'red'}}"
-            [ngStyle]="{width:rate.width}" (mouseover)="showBubble(rate.id,true)" (mouseout)="showBubble(rate.id,false)">
-            <span class="progress_span2" *ngIf="!(rate.widthRate<=13)">{{rate.gmbOwner}} {{rate.ownerTime}}({{rate.width}})</span>
-            <span class="progress_span2" *ngIf="rate.widthRate<=13"></span>
-            <ng-container *ngIf="rate.widthRate<=13 && rate.showBubbleFlag">
-              <div class="bubble" [ngStyle]="getBubbleStyle()">
-                <div class="bubble-talk">{{rate.gmbOwner}} {{rate.ownerTime}}({{rate.width}})</div>
-              </div>
-            </ng-container>
-          </span>
-        </ng-container>
+      <div class="mt-5">
+        <div class="progress_1">
+          <ng-container *ngFor="let rate of gmbOwnerHistoryRate || [];">
+            <span class="progress_span1 {{rate.gmbOwner === 'qmenu' ? 'green':'red'}}" [ngStyle]="{width:rate.width}"
+              (mouseover)="showBubble(rate.id,true)" (mouseout)="showBubble(rate.id,false)">
+              <span class="progress_span2" *ngIf="!(rate.widthRate<=13)">{{rate.gmbOwner}}
+                {{rate.ownerTime}}({{rate.width}})</span>
+              <span class="progress_span2" *ngIf="rate.widthRate<=13"></span>
+              <ng-container *ngIf="rate.widthRate<=13 && rate.showBubbleFlag">
+                <div class="bubble" [ngStyle]="getBubbleStyle()">
+                  <div class="bubble-talk">{{rate.gmbOwner}} {{rate.ownerTime}}({{rate.width}})</div>
+                </div>
+              </ng-container>
+            </span>
+          </ng-container>
+        </div>
+        <div class="mt-2 text-left">
+            GMB Utilization Rate: {{gmbUtilizationObj.validDays}}/{{gmbUtilizationObj.totalDays}} days = {{gmbUtilizationObj.rate|number:'1.2-2'}}%
+        </div>
       </div>
     </div>
   </div>
