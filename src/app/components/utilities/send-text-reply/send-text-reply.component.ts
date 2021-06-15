@@ -40,6 +40,10 @@ export class SendTextReplyComponent implements OnInit {
     this.sendToTypes.push('Use Old Send Google PIN');
   }
 
+  toggleGooglePIN() {
+    this.displayGooglePIN = !this.displayGooglePIN;
+  }
+  
   isPhoneValid(text) {
     if (!text) {
       return false;
