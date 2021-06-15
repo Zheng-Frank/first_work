@@ -23,14 +23,14 @@
           <small class="text-danger">NOTE: Input a negative number if it is a debit (money deducted from
             restaurant)</small>
         </p>
-        <div class="row">
+        <div class="row ml-2">
           <div class="col-4">
             <div class="row q-toggle-container">
               <span class="mr-1">% of subtotal</span>
               <q-toggle [(ngModel)]="percentage" (change)="calculateNetAmountAndSetReason()"></q-toggle>
             </div>
           </div>
-          <div class="col-8">
+          <div class="col-7 ml-1">
             <input *ngIf="!percentage" class="form-control" type="number" [(ngModel)]="adjustmentAmount"
               (ngModelChange)="calcAdjustmentAmount()" #numberInput (focusout)="ensureAdjustmentAmount()">
             <div *ngIf="percentage" class="row">
