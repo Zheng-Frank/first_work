@@ -24,7 +24,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   languageTypes = [LanguageType.ENGLISH,LanguageType.CHINESE];
   languageType = this._global.languageType;
   restaurant: Restaurant;
-  displayGooglePIN = false;
+  
   @Input() id;
 
   tabs = [];
@@ -297,10 +297,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   // show a modal to do the send SMS function
   toggleTextReply() {
     this.textReplyComponent.phoneNumber = '';
+    this.textReplyComponent.email = '';
     this.textReplyComponent.message = '';
-    this.textReplyComponent.textedPhoneNumber = '';
-    this.textReplyComponent.sendToType = 'All';
+    this.textReplyComponent.sendToType = 'All SMS numbers';
     this.textReplyComponent.sendWhatType = 'Custom';
+    this.textReplyComponent.displayGooglePIN = false;
     this.textReplyModal.show();
   }
 
@@ -308,9 +309,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.textReplyModal.hide();
   }
 
-  toggleGooglePIN() {
-    this.displayGooglePIN = !this.displayGooglePIN;
-  }
 
   getAddress() {
     return (this.restaurant.address || {});
