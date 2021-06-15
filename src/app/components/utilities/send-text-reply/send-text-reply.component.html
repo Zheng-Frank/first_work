@@ -2,11 +2,20 @@
 <select (change)="onChangeSendTo()" [(ngModel)]="sendToType" class="form-control">
   <ng-container *ngFor="let type of sendToTypes">
     <option *ngIf="type === 'All SMS numbers'">{{type}}</option>
-    <option *ngIf="type === 'All Emails'">{{type}}</option>
+    <ng-container *ngIf="type === 'All Emails'">
+      <option>{{type}}</option>
+      <hr>
+    </ng-container>
     <option *ngIf="isPhoneValid(type)">{{type | tel}}</option>
-    <option *ngIf="isEmailValid(type)">{{type}}</option>
+    <ng-container *ngIf="isEmailValid(type)">
+      <option>{{type}}</option>
+      <hr>
+    </ng-container>
     <option *ngIf="type === 'Other SMS number'">{{type}}</option>
-    <option *ngIf="type === 'Other email'">{{type}}</option>
+    <ng-container *ngIf="type === 'Other email'">
+      <option>{{type}}</option>
+      <hr>
+    </ng-container>
     <option *ngIf="type === 'Use Old Send Google PIN'">{{type}}</option>
   </ng-container>
 </select>
