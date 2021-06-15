@@ -3,6 +3,13 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Recover Menus</h5>
+            <p class="card-text">Hard coded RT Id, One time menus JSON. Eg., copy menus from API logs and replace RT's menus with the copied ones</p>
+            <button class="btn btn-primary" (click)="recoverMenu()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Find Useless Menu Items</h5>
             <p class="card-text">Hard coded RT Id for experiments only. Check console for result</p>
             <button class="btn btn-primary" (click)="findNonUsedMis()">Execute</button>
@@ -260,7 +267,7 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Handle Holiday Closed Hours</h5>
-            <p class="card-text">This will add ALL closed hours for every restaurant. Send sms, using 8447935942. If
+            <p class="card-text">This will add ALL closed hours for every restaurant. Send sms, using 8557592648. If
                 restaurant replies 'open',
                 system will remove the hours. </p>
             <button class="btn btn-primary" (click)="handleHolidy()">Execute</button>

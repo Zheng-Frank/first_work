@@ -14,7 +14,7 @@
 
       <div class="small">
         {{restaurant.googleAddress.formatted_address}} 
-        (<a class="google_link" href="https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}" target="_blank">Google</a>)
+        (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google<i class="fas fa-external-link-alt"></i></a>)
       </div>
       <div class="small">
           Value: {{ restaurant.score || 0 | number: "1.1-1" }}
@@ -45,18 +45,15 @@
     <send-google-pin [restaurantId]="restaurant._id" (sendToLog)="toggleGooglePIN()"></send-google-pin>
   </div>
 
-  <div *qIf="displayTextReply">
-
-    <textarea rows="4" class="form-control mt-1" type="text" [(ngModel)]="message"></textarea>
-    <div class="form-group {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}}">
-      <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control mt-1"
-        placeholder="customer phone #">
-    </div>
-    <button (click)="sendText()" [disabled]="!isValid()" class="btn btn-primary btn-block mt-1">Send</button>
-    <div class="mt-1 alert-success" *ngIf="textedPhoneNumber">
-      <small>Text was sent to {{textedPhoneNumber}}. Thank you!</small>
-    </div>
-    <hr>
+  <div>
+    <q-modal #textReplyModal>
+      <button type="button" class="close"  (click)="closeTextReply()">
+        <span>×</span>
+      </button>
+      <h4 class="text-center">Send Text Message</h4>
+      <hr>
+      <app-send-text-reply #textReplyComponent [restaurant]="restaurant"></app-send-text-reply>
+    </q-modal>
   </div>
 
   <div class="card">

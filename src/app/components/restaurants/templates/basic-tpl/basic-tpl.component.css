@@ -9,7 +9,9 @@
 }
 
 .image-container {
-  width: 350px;
+  width: 125px;
+  height: 100px;
+  margin: 5px
 }
 
 .specialties-container {
