@@ -33,7 +33,6 @@ export class SendTextReplyComponent implements OnInit {
         this.sendToTypes = [...new Set(this.channels.map(channel => channel.value))];
         this.sendToTypes.unshift('All Emails');
         this.sendToTypes.unshift('All SMS numbers');
-        this.sendToTypes.unshift('All');
       }
     }
     this.sendToTypes.push('Other SMS number');
@@ -66,9 +65,7 @@ export class SendTextReplyComponent implements OnInit {
     }
     return false;
   }
-  toggleGooglePIN() {
-    this.displayGooglePIN = !this.displayGooglePIN;
-  }
+  
   sendText() {
     if (this.sendToType === 'All SMS numbers') {
       if (this.channels && this.channels.length > 0) {
@@ -221,13 +218,17 @@ export class SendTextReplyComponent implements OnInit {
         this.displayGooglePIN = false;
         break;
       case 'Use Old Send Google PIN':
+        this.phoneNumber = '';
+        this.email = '';
         this.displayGooglePIN = true;
         break;
       default:
         this.displayGooglePIN = false;
         if (this.isPhoneValid(this.sendToType)) {
+          this.email = '';
           this.phoneNumber = this.sendToType;
         } else if (this.isEmailValid(this.sendToType)) {
+          this.phoneNumber = '';
           this.email = this.sendToType;
         }
         break;
