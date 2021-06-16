@@ -156,6 +156,11 @@
     <div class="form-group">
       <label><input type="checkbox" [checked]="mi.promotional" (change)="mi.promotional=!mi.promotional"> Promotional</label>
     </div>
+    <!-- start with skip image injection option -->
+    <div class="form-group">
+        <label><input type="checkbox" [checked]="mi.SkipImageInjection" (change)="mi.SkipImageInjection=!mi.SkipImageInjection"> Skip Image Injection</label>
+    </div>
+    <!-- end with skip image injection option -->
     <!--allow special instruactions?-->
     <div class="form-group">
       <label><input type="checkbox" [checked]="!mi.nonCustomizable" (change)="toggleCustomizable()"> Allow customer input instructions (eg. no garlic)</label>
