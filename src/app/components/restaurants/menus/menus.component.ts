@@ -18,6 +18,7 @@ import {AlertType} from '../../../classes/alert-type';
 export class MenusComponent implements OnInit {
 
   @ViewChild('menuEditingModal') menuEditingModal: ModalComponent;
+  @ViewChild('cleanUpMenuModal') cleanUpMenuModal: ModalComponent;
   @ViewChild('menuEditor') menuEditor: MenuEditorComponent;
 
   @Input() restaurant: Restaurant;
@@ -51,6 +52,56 @@ export class MenusComponent implements OnInit {
   ngOnInit() {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
   }
+   /**
+    * TODO:
+    * Add a "Clean up menu (清理菜单)" button under the "Additional functions" section 
+    * under the Menus tab.This button, when clicked, should open a modal
+    */
+  openCleanUpMenuModal(){
+    this.cleanUpMenuModal.show();
+  }
+ 
+  doCleanUpMenu(){
+    const oldMenus = this.restaurant.menus || [];
+    const newMenus = JSON.parse(JSON.stringify(oldMenus));
+
+    newMenus.forEach(eachMenu => {
+      eachMenu.mcs.forEach(eachMc => {
+        eachMc.mis.forEach(mi => {
+          mi.name = (mi.name || '').trim();
+        });
+      });
+    });
+    
+  }
+
+  sanitizedName(menuItemName) {
+    let processedName;
+
+    //remove (Lunch) and numbers
+    processedName = (menuItemName || '').trim()
+    processedName = processedName.replace('&', '');
+    processedName = processedName.replace('.', ' ');
+    // processedName = processedName.replace('w.', ' ');
+    // processedName = processedName.replace('with', ' ');
+
+    // Remove non-English characters
+    processedName = processedName.replace(/[^\x00-\x7F]/g, '');
+
+    // 19a Sesame Chicken --> Sesame Chicken
+    // B Bourbon Chicken --> Bourbon Chicken
+    let nameArray = processedName.split(' ');
+    for (let i = 0; i < nameArray.length; i++) {
+        //remove 19a
+        if (/\d/.test(nameArray[i]) || nameArray[i].length === 1) {
+            nameArray.splice(i, 1);
+        }
+    }
+    processedName = nameArray.join(' ');
+    //remove extra space between words
+    processedName = processedName.replace(/\s+/g, " ").trim();
+    return processedName;
+}
 
   hasMenuHoursMissing() {
     return (this.restaurant.menus || []).some(menu => (menu.hours || []).length === 0);
