@@ -1,3 +1,4 @@
+import { map, filter } from 'rxjs/operators';
 import { Input } from '@angular/core';
 import { EventEmitter } from '@angular/core';
 import { GlobalService } from './../../../services/global.service';
@@ -60,7 +61,8 @@ export class PostmatesOrdersComponent implements OnInit {
     _id: 1,
     "googleAddress.formatted_address": 1,
     name: 1,
-    "googleAddress.timezone": 1
+    "googleAddress.timezone": 1,
+    "channels": 1
   };
 
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
@@ -172,11 +174,13 @@ export class PostmatesOrdersComponent implements OnInit {
       resource: 'restaurant',
       query: { },
       projection: this.restaurantProjection
-    }, 20000);
+    }, 5000);
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
+      let restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
+      order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -306,13 +310,16 @@ export class PostmatesOrdersComponent implements OnInit {
     }).toPromise();
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { },
+      query: {
+       },
       projection: this.restaurantProjection
-    }, 20000);
+    }, 5000);
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
+      let restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
+      order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -370,7 +377,9 @@ export class PostmatesOrdersComponent implements OnInit {
     }, 1);
     // assemble back to order:
     this.previousCanceledOrder = orders.map(order => {
-      order.restaurant = restaurants[0],
+      let restaurant = restaurants[0];
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
+      order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;

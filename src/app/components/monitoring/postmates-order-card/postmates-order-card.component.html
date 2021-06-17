@@ -29,6 +29,13 @@
           RT ID: {{order.restaurant._id}}
         </div>
         <div class="text-sm-center">
+          RT Phones: 
+          <ng-container *ngFor="let channel of order.restaurant.channels;let i = index;">
+              <span *ngIf="i !== order.restaurant.channels.length-1">{{channel.value}},</span>
+              <span *ngIf="i === order.restaurant.channels.length-1">{{channel.value}}</span>
+          </ng-container>
+        </div>
+        <div class="text-sm-center">
           {{order.restaurant.googleAddress.formatted_address}}
         </div>
       </div>

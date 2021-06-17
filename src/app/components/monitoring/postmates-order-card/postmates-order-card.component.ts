@@ -7,7 +7,7 @@ import { Input, EventEmitter } from '@angular/core';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Component, OnInit } from '@angular/core';
 import { Order, Restaurant } from '@qmenu/ui';
-import { environment } from 'src/environments/environment.qa';
+import { environment } from 'src/environments/environment';
 declare var $: any;
 @Component({
   selector: 'app-postmates-order-card',
