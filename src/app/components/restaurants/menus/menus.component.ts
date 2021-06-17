@@ -1,14 +1,14 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 
-import {Menu, Restaurant} from '@qmenu/ui';
-import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
-import {MenuEditorComponent} from '../menu-editor/menu-editor.component';
-import {Helper} from '../../../classes/helper';
+import { Menu, Restaurant } from '@qmenu/ui';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { MenuEditorComponent } from '../menu-editor/menu-editor.component';
+import { Helper } from '../../../classes/helper';
 
-import {ApiService} from '../../../services/api.service';
-import {GlobalService} from '../../../services/global.service';
-import {environment} from '../../../../environments/environment';
-import {AlertType} from '../../../classes/alert-type';
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
+import { environment } from '../../../../environments/environment';
+import { AlertType } from '../../../classes/alert-type';
 
 @Component({
   selector: 'app-menus',
@@ -52,56 +52,87 @@ export class MenusComponent implements OnInit {
   ngOnInit() {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
   }
-   /**
-    * TODO:
-    * Add a "Clean up menu (清理菜单)" button under the "Additional functions" section 
-    * under the Menus tab.This button, when clicked, should open a modal
-    */
-  openCleanUpMenuModal(){
+  /**
+   * TODO:
+   * Add a "Clean up menu (清理菜单)" button under the "Additional functions" section 
+   * under the Menus tab.This button, when clicked, should open a modal
+   */
+  openCleanUpMenuModal() {
     this.cleanUpMenuModal.show();
   }
- 
-  doCleanUpMenu(){
-    const oldMenus = this.restaurant.menus || [];
+  /*
+    TODD:
+    remove space and extract number of the name of mi if it suit for the rules.
+  */
+  async doCleanUpMenu() {
+    const oldMenus = this.restaurant.menus;
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
 
     newMenus.forEach(eachMenu => {
       eachMenu.mcs.forEach(eachMc => {
-        eachMc.mis.forEach(mi => {
-          mi.name = (mi.name || '').trim();
-        });
+        // Some menus may have no menu item and only one name
+        if (eachMc.mis.length > 1) {
+          let needToCLeanUp = false; // judge it whther need to extract number.
+          let count = 0;
+          eachMc.mis.forEach(mi=>{
+            let nameItems = mi.name.split('.');
+            if (nameItems.length > 1) {
+              count++;
+            }
+          });
+          if (count === eachMc.mis.length) {
+            needToCLeanUp = true;
+          }
+          eachMc.mis.forEach(mi=> {
+            // A1 .     soup =>(split)=>A1,.,soup =>A1. soup
+            let nameItems = mi.name.split(' ');
+            let name = '';
+            if (nameItems[0].indexOf('.') != -1) {
+              name += (nameItems[0] + " ");
+              nameItems.splice(0, 1);
+            }
+            if (nameItems[1] === '.') {
+              name += (nameItems[0] + nameItems[1] + " ");
+              nameItems.splice(0, 1);
+              nameItems.splice(1, 1);
+            }
+            nameItems.forEach(item=> {
+              let reg = new RegExp('^[A-Za-z]+$');
+              // var reg = new RegExp('^[A-Za-z0-9]+$');
+              if (reg.test(item)) {
+                name += (item + " ");
+
+              }
+            });
+            mi.name = name.trim();
+            // give menu item a number value 
+            //  A1.  A1 is needed.
+            let num_names = mi.name.split('.'); // a word before . is a number value we need. 
+            if (needToCLeanUp && num_names.length > 0) {
+              mi['number'] = num_names[0].trim();
+            }
+          });
+        }
       });
     });
-    
-  }
-
-  sanitizedName(menuItemName) {
-    let processedName;
-
-    //remove (Lunch) and numbers
-    processedName = (menuItemName || '').trim()
-    processedName = processedName.replace('&', '');
-    processedName = processedName.replace('.', ' ');
-    // processedName = processedName.replace('w.', ' ');
-    // processedName = processedName.replace('with', ' ');
-
-    // Remove non-English characters
-    processedName = processedName.replace(/[^\x00-\x7F]/g, '');
-
-    // 19a Sesame Chicken --> Sesame Chicken
-    // B Bourbon Chicken --> Bourbon Chicken
-    let nameArray = processedName.split(' ');
-    for (let i = 0; i < nameArray.length; i++) {
-        //remove 19a
-        if (/\d/.test(nameArray[i]) || nameArray[i].length === 1) {
-            nameArray.splice(i, 1);
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id'],
+          menus: oldMenus
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: newMenus
         }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      // this.restaurant.menus = newMenus;
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
     }
-    processedName = nameArray.join(' ');
-    //remove extra space between words
-    processedName = processedName.replace(/\s+/g, " ").trim();
-    return processedName;
-}
+    this.cleanUpMenuModal.hide();
+  }
 
   hasMenuHoursMissing() {
     return (this.restaurant.menus || []).some(menu => (menu.hours || []).length === 0);
@@ -178,7 +209,7 @@ export class MenusComponent implements OnInit {
         await this._api.post(environment.appApiUrl + 'events',
           [{
             queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`,
-            event: {name: 'populate-menus', params: {restaurantId: this.restaurant._id, url: this.providerUrl}}
+            event: { name: 'populate-menus', params: { restaurantId: this.restaurant._id, url: this.providerUrl } }
           }]
         ).toPromise();
         alert('Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.');
