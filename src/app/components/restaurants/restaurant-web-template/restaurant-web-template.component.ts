@@ -19,8 +19,11 @@ export class RestaurantWebTemplateComponent implements  OnInit {
 
   constructor(private _api: ApiService, private _crawl: CrawlTemplateService, private _global: GlobalService) { }
 
-  // tslint:disable-next-line: use-life-cycle-interface
-  async ngOnInit() {
+   ngOnInit() {
+    this.refresh();
+  }
+
+  async refresh() {
     [this.restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
@@ -30,15 +33,13 @@ export class RestaurantWebTemplateComponent implements  OnInit {
       }
     }).toPromise();
 
-    if(this.restaurant.web.template) {
+    if (this.restaurant.web.template) {
       this.templateName = this.restaurant.web.template.name;
     }
-
-    console.log('onInit');
   }
 
   async crawlTemplate() {
     this.templateName = await this._crawl.crawlTemplate(this.restaurant);
-    await this.ngOnInit();
+    await this.refresh();
   }
 }

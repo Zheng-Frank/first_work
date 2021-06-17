@@ -1,3 +1,4 @@
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { LanguageType } from './../../../classes/language-type';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -7,6 +8,7 @@ import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
+import { SendTextReplyComponent } from '../../utilities/send-text-reply/send-text-reply.component';
 
 declare var $: any;
 
@@ -17,14 +19,12 @@ declare var $: any;
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('restaurantProfile')restaurantProfile:RestaurantProfileComponent;
+  @ViewChild('textReplyModal')textReplyModal:ModalComponent;
+  @ViewChild('textReplyComponent')textReplyComponent: SendTextReplyComponent;
   languageTypes = [LanguageType.ENGLISH,LanguageType.CHINESE];
   languageType = this._global.languageType;
   restaurant: Restaurant;
-  displayTextReply = false;
   displayGooglePIN = false;
-  phoneNumber;
-  message = '';
-  textedPhoneNumber;
   @Input() id;
 
   tabs = [];
@@ -150,7 +150,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
-
+  googleSearchText; // using redirect google search.
   knownUsers = [];
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
@@ -258,6 +258,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
           (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
         this.readonly = !canEdit;
+        // use encodeURLComponment to reformat the href of a link.
+        // https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}
+          let formatted_address = this.restaurant.googleAddress.formatted_address||'';
+          let name = this.restaurant.name || '';
+          this.googleSearchText = "https://www.google.com/search?q="+encodeURIComponent(name+" "+formatted_address);
         },
         error => {
           this.apiRequesting = false;
@@ -289,52 +294,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.activeTab = tab;
   }
 
-  isValid() {
-    return this.isPhoneValid(this.phoneNumber);
-  }
-
-  isPhoneValid(text) {
-    if (!text) {
-      return false;
-    }
-
-    let digits = text.replace(/\D/g, '');
-    if (digits) {
-      let phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
-      if (digits.match(phoneRe)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  sendText() {
-    this.textedPhoneNumber = this.phoneNumber;
-
-    this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
-      phoneNumber: this.phoneNumber,
-      message: this.message,
-      source: this.restaurant.id
-    })
-      .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            "Text Message Sent successfully"
-          );
-
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
-        }
-      );
-  }
-
+  // show a modal to do the send SMS function
   toggleTextReply() {
-    this.displayTextReply = !this.displayTextReply;
-    // focus on the phone number!
-    setTimeout(() => { $('#profile-phone-number').focus(); }, 500);
+    this.textReplyComponent.phoneNumber = '';
+    this.textReplyComponent.message = '';
+    this.textReplyComponent.textedPhoneNumber = '';
+    this.textReplyComponent.sendToType = 'All';
+    this.textReplyComponent.sendWhatType = 'Custom';
+    this.textReplyModal.show();
+  }
+
+  closeTextReply(){
+    this.textReplyModal.hide();
   }
 
   toggleGooglePIN() {
