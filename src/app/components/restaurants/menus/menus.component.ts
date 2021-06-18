@@ -1,3 +1,4 @@
+import { map } from 'rxjs/operators';
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 
 import { Menu, Restaurant } from '@qmenu/ui';
@@ -126,7 +127,7 @@ export class MenusComponent implements OnInit {
         }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
-      // this.restaurant.menus = newMenus;
+      this.restaurant.menus = newMenus.map(menu=>new Menu(menu));
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Failed!');
