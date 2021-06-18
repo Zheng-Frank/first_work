@@ -105,7 +105,6 @@ export class DashboardItemOrderStatsComponent implements OnInit {
           orderItem = item;
         }
       });
-      // console.log(JSON.stringify(orderItem));
       if(orderItem && orderItem.order){
         dateArr.push({
           date: orderItem.order.createdAt,
