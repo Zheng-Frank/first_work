@@ -113,7 +113,6 @@ export class PostmatesOrdersComponent implements OnInit {
       query: { _id:{$oid:this.searchText}},
       projection: this.restaurantProjection,
     }, 1);
-    console.log("restaurants:"+this.searchText+","+JSON.stringify(selectRestaurants));
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
@@ -121,7 +120,7 @@ export class PostmatesOrdersComponent implements OnInit {
     const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), selectRestaurants[0].googleAddress.timezone);
 
     if (utcf > utct) {
-      return alert("please input a correct date format,from time is less than or equals to time!");
+      return this._global.publishAlert(AlertType.Danger,"please input a correct date format,from time is less than or equals to time!");
     }
     const query = {
       restaurant: {
