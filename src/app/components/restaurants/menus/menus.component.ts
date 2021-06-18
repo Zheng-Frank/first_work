@@ -92,9 +92,9 @@ export class MenusComponent implements OnInit {
               let nameItemWithDot = nameItems[0];
               let nameItemWithoutDot = nameItems[1];
               let name = '';
-              let items1 = nameItemWithDot.split(' ').filter(str=>str !==' ');
+              let items1 = nameItemWithDot.split(' ').filter(str=>str);
               name += (items1[0] + ". ");
-              let items2 = nameItemWithoutDot.splict(' ');
+              let items2 = nameItemWithoutDot.split(' ');
               items2.forEach(item => {
                 let reg = new RegExp('^[A-Za-z]+$');
                 // var reg = new RegExp('^[A-Za-z0-9]+$');
@@ -103,26 +103,23 @@ export class MenusComponent implements OnInit {
                 }
               });
               mi.name = name.trim();
+              // give menu item a number value 
+              //  A1.  A1 is needed.
               if (needToCLeanUp) {
-                mi['number'] = items1[0].trim();
+                mi['number'] = items1[0].trim();// a word before . is a number value we need.
               }
             } else {
-              
+              nameItems = mi.name.split(' ');
+              // it don't need to set number value.
+              let name = '';
               nameItems.forEach(item => {
                 let reg = new RegExp('^[A-Za-z]+$');
                 // var reg = new RegExp('^[A-Za-z0-9]+$');
                 if (reg.test(item)) {
                   name += (item + " ");
-  
                 }
               });
               mi.name = name.trim();
-              // give menu item a number value 
-              //  A1.  A1 is needed.
-              let num_names = mi.name.split('.'); // a word before . is a number value we need. 
-              if (needToCLeanUp && num_names.length > 0) {
-                mi['number'] = num_names[0].trim();
-              }
             }
           });
         }
