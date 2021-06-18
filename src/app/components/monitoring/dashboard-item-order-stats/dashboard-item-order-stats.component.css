@@ -1,0 +1,9 @@
+.my-text-small {
+  font-size: 75%;
+  opacity: 0.8;
+}
+
+.select-control {
+  max-width: 120px;
+  display: inline;
+}
