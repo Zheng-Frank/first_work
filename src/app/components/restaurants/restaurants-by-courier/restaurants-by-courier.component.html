@@ -15,6 +15,7 @@
     </ng-container>
   </select>
 </div>
+
 <q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true">
   <tr *tableRowTemplate="let restaurant;">
     <td>{{filteredRestaurants.indexOf(restaurant) + 1}}</td>
@@ -24,6 +25,7 @@
       {{restaurant.address}}
     </td>
     <td *ngIf="restaurant.courier"> {{restaurant.courier?.name}} </td>
+    <td *ngIf="restaurant.courier"> {{isDeliveryServiceEnabled(restaurant.serviceSettings)? 'ON' : 'OFF'}} </td>
     <td *ngIf="!restaurant.courier && restaurant.deliverySettings && restaurant.deliverySettings.length > 0"> Self delivery </td>
     <td *ngIf="!restaurant.courier && !(restaurant.deliverySettings && restaurant.deliverySettings.length > 0)"> None </td>
     <td>{{restaurant.timeZone}}</td>
