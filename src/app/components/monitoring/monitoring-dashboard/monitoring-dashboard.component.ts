@@ -93,12 +93,13 @@ export class MonitoringDashboardComponent implements OnInit {
       projection: {
         _id: 1,
         type: 1,
-        createdAt: 1
+        createdAt: 1,
+        runtime: 1
       },
       sort: {
         createdAt: -1
       },
-    }, 20000);
+    }, 15000);
     orders.forEach(order=>{
       this.orderStatsTypesArr.forEach(type=>{
         if(order.type && order.type === type){
@@ -106,6 +107,9 @@ export class MonitoringDashboardComponent implements OnInit {
             type:type,
             order:order
           });
+        }
+        if(order.runtime){
+
         }
       });
     });
