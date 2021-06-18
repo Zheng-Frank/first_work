@@ -5,5 +5,7 @@
 
 .select-control {
   max-width: 120px;
-  display: inline;
+  position: absolute;
+  right: 5px;
+  top: 5px;
 }

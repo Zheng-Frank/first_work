@@ -99,12 +99,22 @@ export class DashboardItemOrderStatsComponent implements OnInit {
     for (let i = 1; i <= 20; i++) {
       let count = 0;
       let orderItem;
-      this.filterOrderStatsItemsByDate.forEach(item => {
-        if ((new Date().valueOf() - new Date(item.order.createdAt).valueOf()) < (24 * 3600 * 1000 * i)) {
-          count++;
-          orderItem = item;
-        }
-      });
+      if(i === 1){
+        this.filterOrderStatsItemsByDate.forEach(item => {
+          if ((new Date().valueOf() - new Date(item.order.createdAt).valueOf()) < (24 * 3600 * 1000 * i)) {
+            count++;
+            orderItem = item;
+          }
+        });
+      }else {
+        this.filterOrderStatsItemsByDate.forEach(item => {
+          if ((new Date().valueOf() - new Date(item.order.createdAt).valueOf()) < (24 * 3600 * 1000 * i) && (new Date().valueOf() - new Date(item.order.createdAt).valueOf()) > (24 * 3600 * 1000 * (i-1))) {
+            count++;
+            orderItem = item;
+          }
+        });
+      }
+    
       if(orderItem && orderItem.order){
         dateArr.push({
           date: orderItem.order.createdAt,

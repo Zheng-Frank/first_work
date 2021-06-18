@@ -94,7 +94,9 @@ export class MonitoringDashboardComponent implements OnInit {
         _id: 1,
         type: 1,
         createdAt: 1,
-        runtime: 1
+        runtime: 1,
+        'dineInSessionObj._id': 1, // AR
+        'delivery.id': 1 // Postmates
       },
       sort: {
         createdAt: -1
@@ -108,10 +110,58 @@ export class MonitoringDashboardComponent implements OnInit {
             order:order
           });
         }
-        if(order.runtime){
-
-        }
       });
+      // other order type in different field of order items.
+      if(order.runtime && order.runtime.isApp){
+        this.orderStatsItemsByDate.push({
+          type:orderStatsTypes.APP,
+          order:order
+        });
+      }
+      if(order.runtime && order.runtime.os && order.runtime.os === orderStatsTypes.Mac){
+        this.orderStatsItemsByDate.push({
+          type:orderStatsTypes.Mac,
+          order:order
+        });
+      }
+      if(order.runtime && order.runtime.os && order.runtime.os === orderStatsTypes.Android){
+        this.orderStatsItemsByDate.push({
+          type:orderStatsTypes.Android,
+          order:order
+        });
+      }
+      if(order.runtime && order.runtime.os && order.runtime.os === orderStatsTypes.Linux){
+        this.orderStatsItemsByDate.push({
+          type:orderStatsTypes.Linux,
+          order:order
+        });
+      }
+      if(order.runtime && order.runtime.os && order.runtime.os === orderStatsTypes.Windows){
+        this.orderStatsItemsByDate.push({
+          type:orderStatsTypes.Windows,
+          order:order
+        });
+      }
+      if(order.runtime && order.runtime.os && order.runtime.os === orderStatsTypes.NULL){
+        this.orderStatsItemsByDate.push({
+          type:orderStatsTypes.NULL,
+          order:order
+        });
+      }
+      // QR
+      if(order.dineInSessionObj && order.dineInSessionObj._id){
+        this.orderStatsItemsByDate.push({
+          type:orderStatsTypes.QR,
+          order:order
+        });
+      }
+      // Postmates
+      if(order.delivery && order.delivery.id){
+        this.orderStatsItemsByDate.push({
+          type:orderStatsTypes.Postmates,
+          order:order
+        });
+      }
     });
    
   }
