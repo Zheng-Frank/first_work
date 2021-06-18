@@ -179,7 +179,7 @@ export class PostmatesOrdersComponent implements OnInit {
     // assemble back to order:
     this.orders = orders.map(order => {
       let restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
-      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
       order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
@@ -318,7 +318,7 @@ export class PostmatesOrdersComponent implements OnInit {
     // assemble back to order:
     this.orders = orders.map(order => {
       let restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
-      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
       order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
