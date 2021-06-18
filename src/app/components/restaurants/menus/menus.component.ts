@@ -1,4 +1,4 @@
-import { map } from 'rxjs/operators';
+import { map, filter } from 'rxjs/operators';
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 
 import { Menu, Restaurant } from '@qmenu/ui';
@@ -75,7 +75,7 @@ export class MenusComponent implements OnInit {
         if (eachMc.mis.length > 1) {
           let needToCLeanUp = false; // judge it whther need to extract number.
           let count = 0;
-          eachMc.mis.forEach(mi=>{
+          eachMc.mis.forEach(mi => {
             let nameItems = mi.name.split('.');
             if (nameItems.length > 1) {
               count++;
@@ -84,33 +84,45 @@ export class MenusComponent implements OnInit {
           if (count === eachMc.mis.length) {
             needToCLeanUp = true;
           }
-          eachMc.mis.forEach(mi=> {
-            // A1 .     soup =>(split)=>A1,.,soup =>A1. soup
-            let nameItems = mi.name.split(' ');
-            let name = '';
-            if (nameItems[0].indexOf('.') != -1) {
-              name += (nameItems[0] + " ");
-              nameItems.splice(0, 1);
-            }
-            if (nameItems[1] === '.') {
-              name += (nameItems[0] + nameItems[1] + " ");
-              nameItems.splice(0, 1);
-              nameItems.splice(1, 1);
-            }
-            nameItems.forEach(item=> {
-              let reg = new RegExp('^[A-Za-z]+$');
-              // var reg = new RegExp('^[A-Za-z0-9]+$');
-              if (reg.test(item)) {
-                name += (item + " ");
-
+          eachMc.mis.forEach(mi => {
+            let nameItems = mi.name.split('.');
+            if (nameItems.length > 1) {
+              // eg:
+              //  (space)A1 .     soup =>(split)=>A1,.,soup =>A1. soup
+              let nameItemWithDot = nameItems[0];
+              let nameItemWithoutDot = nameItems[1];
+              let name = '';
+              let items1 = nameItemWithDot.split(' ').filter(str=>str !==' ');
+              name += (items1[0] + ". ");
+              let items2 = nameItemWithoutDot.splict(' ');
+              items2.forEach(item => {
+                let reg = new RegExp('^[A-Za-z]+$');
+                // var reg = new RegExp('^[A-Za-z0-9]+$');
+                if (reg.test(item)) {
+                  name += (item + " ");
+                }
+              });
+              mi.name = name.trim();
+              if (needToCLeanUp) {
+                mi['number'] = items1[0].trim();
               }
-            });
-            mi.name = name.trim();
-            // give menu item a number value 
-            //  A1.  A1 is needed.
-            let num_names = mi.name.split('.'); // a word before . is a number value we need. 
-            if (needToCLeanUp && num_names.length > 0) {
-              mi['number'] = num_names[0].trim();
+            } else {
+              
+              nameItems.forEach(item => {
+                let reg = new RegExp('^[A-Za-z]+$');
+                // var reg = new RegExp('^[A-Za-z0-9]+$');
+                if (reg.test(item)) {
+                  name += (item + " ");
+  
+                }
+              });
+              mi.name = name.trim();
+              // give menu item a number value 
+              //  A1.  A1 is needed.
+              let num_names = mi.name.split('.'); // a word before . is a number value we need. 
+              if (needToCLeanUp && num_names.length > 0) {
+                mi['number'] = num_names[0].trim();
+              }
             }
           });
         }
@@ -127,7 +139,7 @@ export class MenusComponent implements OnInit {
         }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
-      this.restaurant.menus = newMenus.map(menu=>new Menu(menu));
+      this.restaurant.menus = newMenus.map(menu => new Menu(menu));
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Failed!');
