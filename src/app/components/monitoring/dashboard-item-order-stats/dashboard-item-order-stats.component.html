@@ -1,5 +1,5 @@
 <h5 class="text-center">
-  Daliy Order Stats
+  Daily Order Stats
   <select [(ngModel)]="filterType" class="form-control select-control ml-2" (change)="filterOrderStats()">
     <option *ngFor="let type of orderStatsTypesArr" [value]="type">{{type}}</option>
   </select>
