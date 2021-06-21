@@ -86,7 +86,9 @@ export class RestaurantOrdersComponent implements OnInit {
   getRestaurantAndUTCTimeZoneOffset(timezone: string) {
     const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }
     const now = new Date();
+    // utcOffset between China and Landon is -8
     const utcOffset = now.getTimezoneOffset() / 60;// use minute as unit.
+    // offset the restaurant and China is -12
     let offset = (new Date(now.toLocaleString('en-US', { timeZone: timezone, ...FULL_LOCALE_OPTS })).valueOf()
       - now.valueOf()) / 3600000;
     offset = offset - utcOffset;
