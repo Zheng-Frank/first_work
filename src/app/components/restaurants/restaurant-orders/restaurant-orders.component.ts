@@ -82,17 +82,7 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-  // extract the code from qmenu-ui.
-  getTimezoneDateFromBrowserDate(date: Date, timezone): Date {
-    const DEFAULT_DATE_OPTION = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    const DEFAULT_TIME_OPTION = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-    const DEFAULT_OPTION = { ...DEFAULT_DATE_OPTION, ...DEFAULT_TIME_OPTION };
-
-    const s1 = date.toLocaleString('en-US', { timeZone: timezone, ...DEFAULT_OPTION });
-    const s2 = date.toString(); // browser's locale
-    const diff = new Date(s2).valueOf() - new Date(s1).valueOf();
-    return new Date(date.valueOf() + diff);
-  }
+  // extract the code from Helper.
   getRestaurantAndUTCTimeZoneOffset(timezone: string) {
     const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }
     const now = new Date();
@@ -110,7 +100,6 @@ export class RestaurantOrdersComponent implements OnInit {
    * @memberof RestaurantOrdersComponent
    */
   async doSearchOrderByTime(from, to) {
-    // console.log("from time:" + from + "," + typeof from + " to time:" + to + "," + typeof to);
     if (from == undefined) {
       return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
@@ -121,7 +110,6 @@ export class RestaurantOrdersComponent implements OnInit {
       return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
     }
     let timeDiff = this.getRestaurantAndUTCTimeZoneOffset(this.restaurant.googleAddress.timezone);
-    console.log(timeDiff);
     // transform the timezone of the restaurant to the utc time.
     let moreToStrArr = to.split('-');
     moreToStrArr[2] = (parseInt(moreToStrArr[2]) + 1) + "";//enlarge the day range to get correct timezone
@@ -310,7 +298,6 @@ export class RestaurantOrdersComponent implements OnInit {
       },
       limit: 50
     }).toPromise();
-    console.log(orders);
     // get blocked customers and assign back to each order blacklist reasons
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
