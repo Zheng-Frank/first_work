@@ -82,6 +82,16 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
+
+  testDateSearch(date: Date, timezone): Date {
+    const DEFAULT_DATE_OPTION = {year: 'numeric', month: '2-digit', day: '2-digit'};
+    const DEFAULT_TIME_OPTION = {hour: '2-digit', minute: '2-digit', second: '2-digit'};
+    const DEFAULT_OPTION = {...DEFAULT_DATE_OPTION, ...DEFAULT_TIME_OPTION};
+    const s1 = date.toLocaleString('en-US', {timeZone: timezone, ...DEFAULT_OPTION});
+    const s2 = date.toString(); // browser's locale
+    const diff = new Date(s2).valueOf() - new Date(s1).valueOf();
+    return new Date(date.valueOf() + diff);
+  }
   // extract the code from Helper.
   getRestaurantAndUTCTimeZoneOffset(timezone: string) {
     const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }
@@ -94,6 +104,88 @@ export class RestaurantOrdersComponent implements OnInit {
     offset = offset - utcOffset;
     return offset;
   }
+  async doSearchOrderByTime(from, to) {
+    // console.log("from time:" + from + "," + typeof from + " to time:" + to + "," + typeof to);
+    if (from == undefined) {
+      return alert("please input a correct from time date format!");
+    }
+    if (to == undefined) {
+      return alert("please input a correct to time date format !");
+    }
+    let tostr = to.split('-');
+    tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
+    to = tostr.join('-');
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from+"T00:00:00.000Z"), this.restaurant.googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to+" 00:00:00.000"), this.restaurant.googleAddress.timezone);
+
+    if (utcf > utct) {
+      return alert("please input a correct date format,from time is less than or equals to time!");
+    }
+   
+
+    const query = {
+      restaurant: {
+        $oid: this.restaurant._id
+      },
+      $and: [{
+        createdAt: {
+          $gte: { $date: utcf }
+        } // less than and greater than
+      }, {
+        createdAt: {
+          $lte: { $date: utct }
+        }
+      }
+      ]
+    } as any;
+    console.log(JSON.stringify(query));
+    // ISO-Date()
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: query,
+      projection: {//返回除logs以外的所有行
+        logs: 0,
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 50
+    }).toPromise();
+    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+
+    const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "blacklist",
+      query: {
+        "value": { $in: customerIds },
+        disabled: { $ne: true }
+      },
+      projection: {
+        disabled: 1,
+        reasons: 1, //
+        // reasons: {$slice: -10}, 数组里面前两个
+        value: 1,
+        orders: 1
+      },
+      limit: 100000,
+      sort: {
+        createAt: 1
+      }
+    }).toPromise();
+
+    const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
+    // assemble back to order:
+    this.orders = orders.map(order => {
+      order.orderNumber = order.orderNumber;
+      order.customer = order.customerObj;
+      order.payment = order.paymentObj;
+      order.id = order._id;
+      order.customerNotice = order.customerNotice || '';
+      order.restaurantNotie = order.restaurantNotie || '';
+      // making it back-compatible to display bannedReasons
+      order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
+      return new Order(order);
+    });
+  }
   /**
    *
    * this function is used to filter order by createdAt
@@ -101,7 +193,7 @@ export class RestaurantOrdersComponent implements OnInit {
    * @param {*} to
    * @memberof RestaurantOrdersComponent
    */
-  async doSearchOrderByTime(from, to) {
+  async doSearchOrderByTime1(from, to) {
     if (from == undefined) {
       return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
@@ -170,6 +262,7 @@ export class RestaurantOrdersComponent implements OnInit {
       }
       ]
     } as any;
+    console.log(JSON.stringify(query));
     // ISO-Date()
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
