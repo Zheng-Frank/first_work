@@ -82,6 +82,26 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
+  // extract the code from qmenu-ui.
+  getTimezoneDateFromBrowserDate(date: Date, timezone): Date {
+    const DEFAULT_DATE_OPTION = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const DEFAULT_TIME_OPTION = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    const DEFAULT_OPTION = { ...DEFAULT_DATE_OPTION, ...DEFAULT_TIME_OPTION };
+
+    const s1 = date.toLocaleString('en-US', { timeZone: timezone, ...DEFAULT_OPTION });
+    const s2 = date.toString(); // browser's locale
+    const diff = new Date(s2).valueOf() - new Date(s1).valueOf();
+    return new Date(date.valueOf() + diff);
+  }
+  getRestaurantAndUTCTimeZoneOffset(timezone: string) {
+    const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }
+    const now = new Date();
+    const utcOffset = now.getTimezoneOffset() / 60;// use minute as unit.
+    let offset = (new Date(now.toLocaleString('en-US', { timeZone: timezone, ...FULL_LOCALE_OPTS })).valueOf()
+      - now.valueOf()) / 3600000;
+    offset = offset - utcOffset;
+    return offset;
+  }
   /**
    *
    * this function is used to filter order by createdAt
@@ -92,31 +112,70 @@ export class RestaurantOrdersComponent implements OnInit {
   async doSearchOrderByTime(from, to) {
     // console.log("from time:" + from + "," + typeof from + " to time:" + to + "," + typeof to);
     if (from == undefined) {
-      return alert("please input a correct from time date format!");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
     if (to == undefined) {
-      return alert("please input a correct to time date format !");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct to time date format !");
     }
-    let tostr = to.split('-');
-    tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
-    to = tostr.join('-');
-    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), this.restaurant.googleAddress.timezone);
-    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), this.restaurant.googleAddress.timezone);
+    if (new Date(from).valueOf() - new Date(to).valueOf() > 0) {
+      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
+    }
+    let timeDiff = this.getRestaurantAndUTCTimeZoneOffset(this.restaurant.googleAddress.timezone);
+    console.log(timeDiff);
+    // transform the timezone of the restaurant to the utc time.
+    let moreToStrArr = to.split('-');
+    moreToStrArr[2] = (parseInt(moreToStrArr[2]) + 1) + "";//enlarge the day range to get correct timezone
+    to = moreToStrArr.join('-');
 
-    if (utcf > utct) {
-      return alert("please input a correct date format,from time is less than or equals to time!");
+    let fromstr = '';
+    let tostr = '';
+    /*
+      timeDiff=-8
+      restaurant:2021-6-14T00:00:00.000Z
+      utc:2021-6-14T08:00:00.000Z
+      timeDiff=8
+      restaurant:2021-6-14T00:00:00.000Z
+      utc:2021-6-13T16:00:00.000Z
+    */
+    if (timeDiff < 0) {
+      if (Math.abs(timeDiff) < 10) {
+        fromstr = from + "T0" + (-timeDiff).toFixed(0) + ":00:00.000Z";
+        tostr = to + "T0" + (-timeDiff).toFixed(0) + ":00:00.000Z";
+      } else {
+        fromstr = from + "T" + (-timeDiff).toFixed(0) + ":00:00.000Z";
+        tostr = to + "T" + (-timeDiff).toFixed(0) + ":00:00.000Z";
+      }
+    } else {
+      let fromArr = from.split('-');
+      fromArr[2] = (parseInt(fromArr[2]) - 1) + "";
+      from = fromArr.join('-');
+      if (Math.abs(timeDiff) > 14) {
+        fromstr = from + "T0" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
+      } else {
+        fromstr = from + "T" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
+      }
+
+      let toArr = to.split('-');
+      toArr[2] = (parseInt(toArr[2]) - 1) + "";
+      to = toArr.join('-');
+      if (Math.abs(timeDiff) > 14) {
+        tostr = to + "T0" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
+      } else {
+        tostr = to + "T" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
+      }
     }
+   
     const query = {
       restaurant: {
         $oid: this.restaurant._id
       },
       $and: [{
         createdAt: {
-          $gte: { $date: utcf }
+          $gte: { $date: fromstr }
         } // less than and greater than
       }, {
         createdAt: {
-          $lte: { $date: utct }
+          $lte: { $date: tostr }
         }
       }
       ]
@@ -143,7 +202,7 @@ export class RestaurantOrdersComponent implements OnInit {
       },
       projection: {
         disabled: 1,
-        reasons: 1, //
+        reasons: 1, 
         // reasons: {$slice: -10}, 数组里面前两个
         value: 1,
         orders: 1
@@ -201,16 +260,6 @@ export class RestaurantOrdersComponent implements OnInit {
    * @memberof RestaurantOrdersComponent
    */
   search(event) {
-    let regexp = /^[0-9]{3,4}$/;
-    // if(!this.searchText){
-    //   this.populateOrders();
-    // }else if(this.type == 'Order Number'&&this.searchText && regexp.test(this.searchText)){
-    //   this.orders = this.orders.filter((order) => String(order.orderNumber).indexOf(this.searchText)!=-1);
-    // }else if(this.type == 'Postmates ID'){
-    //   this.orders = this.orders.filter((order) => order.delivery);
-    // }else if(this.type == 'Customer Phone'){
-    //   this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
-    // }
     this.populateOrders();
   }
 
@@ -250,7 +299,6 @@ export class RestaurantOrdersComponent implements OnInit {
         }
       }
     }
-    // console.log(JSON.stringify(query))
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -264,13 +312,6 @@ export class RestaurantOrdersComponent implements OnInit {
     }).toPromise();
     console.log(orders);
     // get blocked customers and assign back to each order blacklist reasons
-    /**
-     * orders.filter(function(){
-     *
-     *  return true;
-     * })
-     *
-     */
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -401,15 +442,15 @@ export class RestaurantOrdersComponent implements OnInit {
           orderId: this.cardSpecialOrder._id
         }).toPromise();
       } catch (error) {
-        console.log("errors:"+JSON.stringify(error));
+        console.log("errors:" + JSON.stringify(error));
       }
-    } else if(this.changeOrderType === 'Customer Pickup') {
+    } else if (this.changeOrderType === 'Customer Pickup') {
       try {
         await this._api.post(environment.appApiUrl + 'biz/orders/change-to-pickup', {
-          orderId: this.cardSpecialOrder ._id
+          orderId: this.cardSpecialOrder._id
         }).toPromise();
       } catch (error) {
-        console.log("errors:"+JSON.stringify(error));
+        console.log("errors:" + JSON.stringify(error));
       }
     }
     this.changeOrderTypeModal.hide();
@@ -477,22 +518,22 @@ export class RestaurantOrdersComponent implements OnInit {
     this.logInEditing = new Log();
     this.adjustInvoiceComponment.percentage = true;
     this.adjustInvoiceComponment.percentageAdjustmentAmount = 20;
-    this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100)); 
+    this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100));
     this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
-    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
+    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason = "Credit $" + this.adjustInvoiceComponment.adjustmentAmount.toFixed(2) + " to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
     this.adjustInvoiceComponment.stripeReason = this.adjustInvoiceComponment.percentageStripeReason = '';
     this.adjustInvoiceComponment.additionalExplanation = '';
     this.adjustInvoiceModal.show();
   }
 
   // submit the result to api to create a new log
-  doAdjustInvoice(data){
+  doAdjustInvoice(data) {
     this.onSuccessCreationLog(data);
   }
   // hide adjustment q-modal
-  cancelAdjustInvoice(){
+  cancelAdjustInvoice() {
     this.adjustInvoiceModal.hide();
   }
 
@@ -516,7 +557,7 @@ export class RestaurantOrdersComponent implements OnInit {
         logs: 1
       },
       limit: 1
-    },1);
+    }, 1);
 
     const logs = rtWithFullLogs[0].logs || [];
 
