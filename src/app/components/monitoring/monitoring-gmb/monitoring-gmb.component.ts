@@ -59,9 +59,9 @@ export class MonitoringGmbComponent implements OnInit {
     }, 200)
 
 
-    const domains = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'domain'
-    }, 3000)
+    // const domains = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    //   resource: 'domain'
+    // }, 300)
 
 
     const cidAccountLocationMap = {};
@@ -129,6 +129,9 @@ export class MonitoringGmbComponent implements OnInit {
       this.filteredRows = this.filteredRows.filter(e => e.domain && (new Date(e.domain.expiry)).valueOf() < now.valueOf());
     }
 
+    if (this.missingPickupSettings) {
+      this.filteredRows = this.filteredRows.filter(row => row.missingPickupSettings);
+    }
 
     switch (this.managedDomain) {
       case 'only active':
@@ -142,4 +145,11 @@ export class MonitoringGmbComponent implements OnInit {
     }
   }
 
+  isMissingPickup(restaurant) {
+    const pickupHasPaymentMethods = restaurant.serviceSettings && !!restaurant.serviceSettings.find(settings => settings.name === 'Pickup' && settings.paymentMethods && settings.paymentMethods.length !== 0);
+    const deliveryHasPymentMethods = restaurant.serviceSettings && !!restaurant.serviceSettings.find(settings => settings.name === 'Delivery' && settings.paymentMethods && settings.paymentMethods.length > 0);
+    const dineInHasPaymentMethods = restaurant.serviceSettings && !!restaurant.serviceSettings.find(settings => settings.name === 'Dine-in' && settings.paymentMethods && settings.paymentMethods.length > 0);
+
+    return !pickupHasPaymentMethods && (deliveryHasPymentMethods || dineInHasPaymentMethods);
+  }
 }
