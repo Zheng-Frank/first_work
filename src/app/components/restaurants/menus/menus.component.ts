@@ -75,6 +75,11 @@ export class MenusComponent implements OnInit {
     newMenus.forEach(eachMenu => {
       eachMenu.mcs.forEach(eachMc => {
         // Some menus may have no menu item and only one name
+        for(let key in eachMc){
+          if (eachMc[key] && typeof eachMc[key] === 'string' && eachMc[key].split(' ').length > 1) {
+
+          }
+        }
         if (eachMc.mis.length > 1) {
           eachMc.mis.forEach(mi => {
             for (let key in mi) {
