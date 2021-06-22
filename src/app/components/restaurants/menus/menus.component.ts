@@ -481,12 +481,14 @@ export class MenusComponent implements OnInit {
             // reset the imageObj
             mi.imageObjs = [];
             (matchingAlias.images || []).map(each => {
-              (mi.imageObjs).push({
-                originalUrl: each.url,
-                thumbnailUrl: each.url192,
-                normalUrl: each.url768,
-                origin: 'IMAGE-PICKER'
-              });
+              if(!mi.SkipImageInjection){
+                (mi.imageObjs).push({
+                  originalUrl: each.url,
+                  thumbnailUrl: each.url192,
+                  normalUrl: each.url768,
+                  origin: 'IMAGE-PICKER'
+                });
+              }
             });
             needUpdate = true;
           }
