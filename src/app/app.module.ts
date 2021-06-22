@@ -223,6 +223,7 @@ import { PostmatesOrderCardComponent } from './components/monitoring/postmates-o
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
+import { DashboardItemOrderStatsComponent } from './components/monitoring/dashboard-item-order-stats/dashboard-item-order-stats.component';
 
 @NgModule({
   declarations: [
@@ -416,7 +417,8 @@ import { SendTextReplyComponent } from './components/utilities/send-text-reply/s
     SendTextReplyComponent,
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
-    GmbWrongLinkComponent
+    GmbWrongLinkComponent,
+    DashboardItemOrderStatsComponent
 
   ],
   imports: [
