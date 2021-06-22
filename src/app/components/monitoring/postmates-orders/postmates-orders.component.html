@@ -13,26 +13,31 @@
         </select>
         <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
           class="form-control col-7" placeholder="Search">
-        <div *ngIf="searchText" class="text-muted float-left col-1">Found: {{orders.length}}</div>
+        <div *ngIf="searchText||dateType !=''" class="text-muted float-left col-1">Found: {{orders.length}}</div>
       </div>
       <div class="form-group">
-        <button type="button" class="btn btn-link ml-3" (click)="showAdvancedSearch = !showAdvancedSearch">
+        <button type="button" class="btn btn-link ml-3" (click)="toggleShowAdvancedSearch()">
           {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
         <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
-          <div class="row">
-            <div class="col col-sm-6">
-              <label>From:</label>
-              <input class="form-control" type="date" [(ngModel)]="fromDate">
+        <select [(ngModel)]="dateType" class="form-control mr-3 col-2" (change)="searchOrderByDate()">
+          <option *ngFor="let type of dateSearchTypes" [value]="type">{{type}}</option>
+        </select>
+          <div *ngIf="dateType === 'Custom'">
+            <div class="row">
+              <div class="col col-sm-6">
+                <label>From:</label>
+                <input class="form-control" type="date" [(ngModel)]="fromDate">
+              </div>
+              <div class="col col-sm-6">
+                <label>To:</label>
+                <input class="form-control" type="date" [(ngModel)]="toDate">
+              </div>
             </div>
-            <div class="col col-sm-6">
-              <label>To:</label>
-              <input class="form-control" type="date" [(ngModel)]="toDate">
-            </div>
-          </div>
-          <div class="row">
-            <div class="text-right mt-1 col-12">
-              <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByTime()">Cancel</button>
-              <button class="btn btn-primary" (click)="doSearchOrderByTime(fromDate,toDate)">Submit</button>
+            <div class="row">
+              <div class="text-right mt-1 col-12">
+                <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByTime()">Cancel</button>
+                <button class="btn btn-primary" (click)="doSearchOrderByTime(fromDate,toDate)">Submit</button>
+              </div>
             </div>
           </div>
         </div>
@@ -41,13 +46,14 @@
       <div class="row ml-0 mr-0">
         <!-- row has negative margins and we need to remove them! -->
         <div *ngFor="let order of orders" class="col-sm-12 col-md-6 col-lg-4  app-pl-025 app-pr-025 mb-1">
-          <app-postmates-order-card [restaurant]="order.restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
-            (onReject)="handleOnReject($event)" (onUndoReject)="handleOnUndoReject($event)"
-            (onBan)="handleOnBan($event)" (onDisplayCreditCard)="handleOnDisplayCreditCard($event)"
-            (onAdjust)="handleOnAdjust($event)"
+          <app-postmates-order-card [restaurant]="order.restaurant" [order]="order"
+            (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
+            (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
+            (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
             (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)"
             (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
-            (onAdjustInvoice)="handleOnAdjustInvoice($event)">
+            (onAdjustInvoice)="handleOnAdjustInvoice($event)"
+            (onOpenPreviousOrdersModal)="handleOnOpenPreviousOrdersModal($event)">
           </app-postmates-order-card>
         </div>
       </div>
@@ -94,6 +100,28 @@
         </app-postmates-order-card>
       </q-modal>
       <!-- end previous canceled order q-modal -->
+
+      <!-- start previous orders q-modal -->
+      <q-modal #previousOrdersModal>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+        <h4 class="text-center">Previous Orders</h4>
+        <hr>
+        <!-- row has negative margins and we need to remove them! -->
+        <ng-container *ngFor="let previousOrder of previousOrders">
+          <app-postmates-order-card [restaurant]="previousOrder?.restaurant" [order]="previousOrder"
+            (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
+            (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
+            (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
+            (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+            (onAdjustInvoice)="handleOnAdjustInvoice($event)">
+
+          </app-postmates-order-card>
+        </ng-container>
+      </q-modal>
+      <!-- end previous orders q-modal -->
+
       <q-modal #paymentModal>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">×</span>
@@ -203,8 +231,9 @@
         </button>
         <h4 class="text-center">Invoice Adjustment</h4>
         <hr>
-        <app-restaurant-invoice-adjustment #adjustInvoiceComponment [restaurant]="orderForModal?.restaurant" [log]="logInEditing"
-          [order]="orderForModal" (onAdjustInvoice)="doAdjustInvoice($event)" (onCancel)="cancelAdjustInvoice()">
+        <app-restaurant-invoice-adjustment #adjustInvoiceComponment [restaurant]="orderForModal?.restaurant"
+          [log]="logInEditing" [order]="orderForModal" (onAdjustInvoice)="doAdjustInvoice($event)"
+          (onCancel)="cancelAdjustInvoice()">
         </app-restaurant-invoice-adjustment>
 
       </q-modal>

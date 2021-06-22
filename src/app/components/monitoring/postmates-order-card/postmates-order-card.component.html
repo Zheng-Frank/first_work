@@ -6,6 +6,16 @@
     <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
+  <!-- start with previous orders -->
+  <div class="previous-orders-box" *ngIf="order.previousOrders">
+    <a href="javascript:void(0)" (click)="openPreviousOrdersModal(order)">{{order.previousOrders.length}} previous orders</a>
+  </div>
+  <!-- end with previous orders -->
+  <!-- start with the order caming time. -->
+  <div class="order-caming-time" *ngIf="order.createdAt">
+    {{getOrderComingTime(order)}}
+  </div>
+  <!-- end with the order caming time. -->
     <!--display a checkmark to indicate it's done-->
   <div *ngIf="order.statusEqual('COMPLETED')" class="postmates-orders-status-done text-success">
     &#10004;
