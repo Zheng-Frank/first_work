@@ -65,7 +65,10 @@ export class BasicTplComponent implements OnInit {
               private _cache: CacheService) { }
 
   ngOnInit() {
-    this.refresh();
+    this.refresh().then(() => {
+      this.toggleCustomTemplate(true);
+      this.republishToAWS();
+    });
     this.refreshTemplateList();
   }
 
@@ -116,8 +119,6 @@ export class BasicTplComponent implements OnInit {
     this.sectionDSubtext = this.desanitizeText(this.restaurant.web.template.sectionDSubtext);
     this.sectionElinkText = this.desanitizeText(this.restaurant.web.template.sectionElinkText);
     this.sectionEphone = this.desanitizeText(this.restaurant.web.template.sectionEphone);
-
-    this.isCustomTemplate = this.restaurant.web.template.isCustomTemplate || false;
   }
 
   clearLink() {
@@ -450,13 +451,13 @@ export class BasicTplComponent implements OnInit {
 
   }
 
-  async toggleCustomTemplate(event) {
+  async toggleCustomTemplate(isCustomTemplate) {
     console.error('this.toggleCustomTemplate()', event);
 
     const oldTemplate = {...this.restaurant.web.template} || {};
     const newTemplate = {...this.restaurant.web.template} || {};
 
-    newTemplate.isCustomTemplate = this.isCustomTemplate;
+    newTemplate.isCustomTemplate = isCustomTemplate;
 
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -467,9 +468,9 @@ export class BasicTplComponent implements OnInit {
       this.restaurant.web.template = this.restaurant.web.template || {};
       this.restaurant.web.template = newTemplate;
 
-      this._global.publishAlert(AlertType.Success, 'Custom template flag set');
+      console.log('Custom template flag set');
     } catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Error while setting custom flag');
+      console.error('Error while setting custom flag');
       console.error(error);
     }
   }
