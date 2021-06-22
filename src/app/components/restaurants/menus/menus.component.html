@@ -22,7 +22,7 @@
             (整体提价)</button>
           <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
             (调整菜单次序)</button>
-          <button class="btn btn-link" (click)="openCleanUpMenuModal()">Clean up menu (清理菜单)</button>
+          <button class="btn btn-link" (click)="openRemoveSpacesModal()">Remove unnecessary spaces (去掉多余的空格)</button> 
         </ng-container>
         <ng-container *ngIf="getMenus().length === 0">
         </ng-container>
@@ -138,43 +138,32 @@
       (onDone)="onDoneEditing($event)" (onDelete)="onDelete($event)"></app-menu-editor>
 
   </q-modal>
-  <!-- start with clean up menu modal -->
-  <q-modal #cleanUpMenuModal>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-      <span aria-hidden="true">×</span>
-    </button>
-    <h4 class="text-center">Menu Cleanup</h4>
-    <hr>
-    <div class="row">
+  <!-- start with remove spaces modal -->
+  <q-modal #removeSpacesModal>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+      <h4 class="text-center">Remove Unnecessary Spaces</h4>
+      <hr>
       <div class="row">
-        Proceeding with Menu cleanup will execute the following actions:
-      </div>
-      <div class="row" style="align-items:center;">
-        <div class="col-1">
-          <i class="fas fa-stop"></i>
+        <div class="row">
+          Proceeding with Menu cleanup will execute the following actions:
         </div>
-        <div class="col-11">
-          <span class="ml-1 font-weight-bolder"> Remove all leading/trailing spaces on each menu item.</span>
-        </div>
-      </div>
-      <div class="row" style="align-items:center;">
-        <div class="col-1">
-          <i class="fas fa-stop"></i>
-        </div>
-        <div class="col-11">
-          <span class="ml-1 font-weight-bolder">
-            Attempt to extract the menu item identifier if it exists for all items in a category
-            (e.g. the “A1” in “A1. General Tso’s Chicken”) and put it in the “Number” field for that item.
-          </span>
+        <div class="row" style="align-items:center;">
+          <div class="col-1">
+            <i class="fas fa-stop"></i>
+          </div>
+          <div class="col-11">
+            <span class="ml-1 font-weight-bolder"> Remove all leading/trailing spaces on each menu item.</span>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="d-flex justify-content-end p-4">
-        <button class="btn btn-secondary mr-2" (click)="cleanUpMenuModal.hide()">Cancel</button>
-        <button class="btn btn-primary" (click)="doCleanUpMenu()">Proceed</button>
-    </div>
-  </q-modal>
-  <!-- end with clean up menu modal -->
+      <div class="d-flex justify-content-end p-4">
+          <button class="btn btn-secondary mr-2" (click)="removeSpacesModal.hide()">Cancel</button>
+          <button class="btn btn-primary" (click)="doRemoveUnnessarySpace()">Proceed</button>
+      </div>
+    </q-modal>
+  <!-- end with remove spaces modal -->
   <div class="app-plus">
     <button (click)="clickNew()" class="btn btn-link text-success far fa-plus-circle"></button>
   </div>

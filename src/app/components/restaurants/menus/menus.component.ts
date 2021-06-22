@@ -19,7 +19,7 @@ import { AlertType } from '../../../classes/alert-type';
 export class MenusComponent implements OnInit {
 
   @ViewChild('menuEditingModal') menuEditingModal: ModalComponent;
-  @ViewChild('cleanUpMenuModal') cleanUpMenuModal: ModalComponent;
+  @ViewChild('removeSpacesModal') removeSpacesModal: ModalComponent;
   @ViewChild('menuEditor') menuEditor: MenuEditorComponent;
 
   @Input() restaurant: Restaurant;
@@ -58,14 +58,17 @@ export class MenusComponent implements OnInit {
    * Add a "Clean up menu (清理菜单)" button under the "Additional functions" section 
    * under the Menus tab.This button, when clicked, should open a modal
    */
-  openCleanUpMenuModal() {
-    this.cleanUpMenuModal.show();
+  openRemoveSpacesModal() {
+    this.removeSpacesModal.show();
+  }
+  isArray(obj) {
+    return Object.prototype.toString.call(obj) == "[object Array]";
   }
   /*
     TODD:
-    remove space and extract number of the name of mi if it suit for the rules.
+    remove space of the property's value of mi if it suit for the rules.
   */
-  async doCleanUpMenu() {
+  async doRemoveUnnessarySpace() {
     const oldMenus = this.restaurant.menus;
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
 
@@ -73,53 +76,24 @@ export class MenusComponent implements OnInit {
       eachMenu.mcs.forEach(eachMc => {
         // Some menus may have no menu item and only one name
         if (eachMc.mis.length > 1) {
-          let needToCLeanUp = false; // judge it whther need to extract number.
-          let count = 0;
           eachMc.mis.forEach(mi => {
-            let nameItems = mi.name.split('.');
-            if (nameItems.length > 1) {
-              count++;
-            }
-          });
-          if (count === eachMc.mis.length) {
-            needToCLeanUp = true;
-          }
-          eachMc.mis.forEach(mi => {
-            let nameItems = mi.name.split('.');
-            if (nameItems.length > 1) {
-              // eg:
-              //  (space)A1 .     soup =>(split)=>A1,.,soup =>A1. soup
-              let nameItemWithDot = nameItems[0];
-              let nameItemWithoutDot = nameItems[1];
-              let name = '';
-              let items1 = nameItemWithDot.split(' ').filter(str=>str);
-              name += (items1[0] + ". ");
-              let items2 = nameItemWithoutDot.split(' ');
-              items2.forEach(item => {
-                let reg = new RegExp('^[A-Za-z]+$');
-                // var reg = new RegExp('^[A-Za-z0-9]+$');
-                if (reg.test(item)) {
-                  name += (item + " ");
-                }
-              });
-              mi.name = name.trim();
-              // give menu item a number value 
-              //  A1.  A1 is needed.
-              if (needToCLeanUp) {
-                mi['number'] = items1[0].trim();// a word before . is a number value we need.
+            for (let key in mi) {
+              if (mi[key] && typeof mi[key] === 'string' && mi[key].split(' ').length > 1) {
+                mi[key] = mi[key].trim();
+                let mistrArr = mi[key].split(' ');
+                mi[key] = mistrArr.filter(mistr => mistr != '').join(' ');
               }
-            } else {
-              nameItems = mi.name.split(' ');
-              // it don't need to set number value.
-              let name = '';
-              nameItems.forEach(item => {
-                let reg = new RegExp('^[A-Za-z]+$');
-                // var reg = new RegExp('^[A-Za-z0-9]+$');
-                if (reg.test(item)) {
-                  name += (item + " ");
-                }
-              });
-              mi.name = name.trim();
+              if (this.isArray(mi[key])) {
+                mi[key].forEach(item => {
+                  for (let key in item) {
+                    if (item[key] && typeof item[key] === 'string' && item[key].split(' ').length > 1) {
+                      item[key] = item[key].trim();
+                      let itemstrArr = item[key].split(' ');
+                      item[key] = itemstrArr.filter(itemstr => itemstr != '').join(' ');
+                    }
+                  }
+                });
+              }
             }
           });
         }
@@ -141,7 +115,7 @@ export class MenusComponent implements OnInit {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Failed!');
     }
-    this.cleanUpMenuModal.hide();
+    this.removeSpacesModal.hide();
   }
 
   hasMenuHoursMissing() {
