@@ -12,7 +12,7 @@ import { Component, OnInit } from '@angular/core';
 export class RestaurantsByCourierComponent implements OnInit {
 
   couriers = [];
-  courier = 'Postmates';
+  courier = 'Postmates';  
   restaurants = [];
   filteredRestaurants = [];
 
@@ -22,11 +22,14 @@ export class RestaurantsByCourierComponent implements OnInit {
     },
     {
       label: "Restaurant",
-      paths :['name'], // the paths property is used to make the colunm sortable.
+      paths: ['name'], // the paths property is used to make the colunm sortable.
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
       label: "Courier",
+    },
+    {
+      label: "ON/OFF",
     },
     {
       label: "Time Zone",
@@ -42,6 +45,11 @@ export class RestaurantsByCourierComponent implements OnInit {
 
   ngOnInit() {
     this.populateRestaurantListByCourier();
+  }
+  isDeliveryServiceEnabled(settings) {
+    if (settings) {
+      return settings.some(e => e.name === 'Delivery' && e.paymentMethods && e.paymentMethods.length > 0);
+    }
   }
 
   async populateRestaurantListByCourier() {
@@ -59,7 +67,8 @@ export class RestaurantsByCourierComponent implements OnInit {
         courier: 1,
         score: 1,
         deliveryClosedHours: 1,
-        deliverySettings: 1
+        deliverySettings: 1,
+        serviceSettings: 1
       },
     }, 5000);
     this.restaurants = this.parseRestaurants(this.restaurants).filter(each => (each.courier && each.courier.name) || (!each.courier && each.deliverySettings && each.deliverySettings.length > 0));
@@ -76,7 +85,8 @@ export class RestaurantsByCourierComponent implements OnInit {
       timeZone: Helper.getTimeZone(each.googleAddress.formatted_address),
       courier: each.courier,
       deliveryClosedHours: each.deliveryClosedHours,
-      deliverySettings: each.deliverySettings
+      deliverySettings: each.deliverySettings,
+      serviceSettings: each.serviceSettings
     }));
     return ret;
   }

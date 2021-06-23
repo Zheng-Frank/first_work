@@ -1,0 +1,58 @@
+<h5 class="text-center">
+  Daily Order Stats
+  <select [(ngModel)]="filterType" class="form-control select-control ml-2" (change)="filterOrderStats()">
+    <option *ngFor="let type of orderStatsTypesArr" [value]="type">{{type}}</option>
+  </select>
+</h5>
+
+<div class="text-center my-text-small mb-2" *ngIf="filterType === 'All Types'">
+  Show all orders by type in last 24 hours
+</div>
+<div class="text-center my-text-small mb-2" *ngIf="filterType !== 'All Types'">
+  Showing number of orders of selected type by date
+</div>
+
+<div *ngIf="filterType === 'All Types'">
+  <table class="table table-sm text-center">
+    <tr *ngIf="orderStatsItemsAllTypes.headers">
+      <th *ngFor="let header of orderStatsItemsAllTypes.headers">
+        {{header}}
+      </th>
+    </tr>
+    <tr *ngFor="let row of getAllTypesRows()">
+      <td *ngFor="let column of row">
+        {{column}}
+      </td>
+    </tr>
+  </table>
+  <div class="text-left my-text-small">updated: {{ orderStatsItemsAllTypes.updatedAt | ago : now}}</div>
+  <div>
+    <button class="btn btn-link pl-0 py-0" (click)="displayingMore = !displayingMore"
+      *ngIf="displayingMore || getAllTypesRows().length < orderStatsItemsAllTypes.rows.length">{{displayingMore ? 'less...' : 'more...'}}</button>
+    <button class="btn btn-link pl-0 py-0" (click)="displayingJson = !displayingJson">view json...</button>
+  </div>
+  <pre *ngIf="displayingJson === true">
+        {{orderStatsItemsAllTypes | json}}
+      </pre>
+</div>
+
+<div *ngIf="filterType !== 'All Types'">
+  <table class="table table-sm text-center">
+    <tr>
+      <th>
+        date
+      </th>
+      <th>
+        count
+      </th>
+    </tr>
+    <tr *ngFor="let row of filterOrderStatsItemsByDate.dateArr">
+      <td>
+        {{row.date | date:'MM/dd/yyyy' }}
+      </td>
+      <td>
+        {{row.count}}
+      </td>
+    </tr>
+  </table>
+</div>
