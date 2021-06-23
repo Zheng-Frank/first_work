@@ -5,6 +5,7 @@ import { SchemasComponent } from './components/system/schemas/schemas.component'
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+import { MonitoringClosedRestaurantsComponent } from './components/monitoring/monitoring-closed-restaurants/monitoring-closed-restaurants.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 import { MonitoringEmailComponent } from './components/monitoring/monitoring-email/monitoring-email.component';
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
@@ -137,6 +138,7 @@ const routes: Routes = [
   { path: 'email-problems', component: MonitoringEmailComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'monitoring-hours', component: MonitoringHoursComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'disabled-restaurants', component: MonitoringDisabledRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'closed-restaurants', component: MonitoringClosedRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'manage-images', component: ImageManagerComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'restaurants-promotion', component: MonitoringPromotionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'banned-customers', component: BannedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
