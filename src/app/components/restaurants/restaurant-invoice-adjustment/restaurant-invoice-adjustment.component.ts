@@ -144,7 +144,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
       }
       if (Math.abs(this.adjustmentAmount) >= this.order.getTotal()) {
-        let total = this.moneyTransform(this.order.getTotal());
+        let total = this.adjustmentAmount < 0? -this.moneyTransform(this.order.getTotal()):this.moneyTransform(this.order.getTotal());
         this.adjustmentAmount = total;
         isAmountMore = true;
       }
