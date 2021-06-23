@@ -20,7 +20,7 @@
           {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
         <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
         <select [(ngModel)]="dateType" class="form-control mr-3 col-2" (change)="searchOrderByDate()">
-          <option *ngFor="let type of dateSearchTypes" [value]="type">{{type}}</option>
+          <option *ngFor="let type of dateSearchTypes">{{type}}</option>
         </select>
           <div *ngIf="dateType === 'Custom'">
             <div class="row">
@@ -35,8 +35,8 @@
             </div>
             <div class="row">
               <div class="text-right mt-1 col-12">
-                <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByTime()">Cancel</button>
-                <button class="btn btn-primary" (click)="doSearchOrderByTime(fromDate,toDate)">Submit</button>
+                <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByDateCustom()">Cancel</button>
+                <button class="btn btn-primary" (click)="doSearchOrderByDateCustom(fromDate,toDate)">Submit</button>
               </div>
             </div>
           </div>

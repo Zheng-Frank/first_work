@@ -51,8 +51,8 @@ export class PostmatesOrdersComponent implements OnInit {
   undoOrder: any;
   isPostmatesStatusDelivered = false;
   searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID', 'Restautant ID', 'Order ID'];
-  dateType;
-  dateSearchTypes = ['Today', 'Yesterday', 'Last 3 days', 'Custom'];
+  dateType = 'Today';
+  dateSearchTypes = ['Today', 'Yesterday', 'Custom'];
   type = 'Order Number';//  concrete search type
   showAdvancedSearch: boolean = false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
@@ -89,17 +89,19 @@ export class PostmatesOrdersComponent implements OnInit {
    *cancel the advanced date search
    * @memberof RestaurantOrdersComponent
    */
-  cancelDoSearchOrderByTime() {
+  cancelDoSearchOrderByDateCustom() {
     this.showAdvancedSearch = false;
-    this.dateType = '';
+    this.dateType = 'Today';
     this.populateOrders();
   }
 
   toggleShowAdvancedSearch(){
     this.showAdvancedSearch = !this.showAdvancedSearch;
-    this.dateType = '';
     if(!this.showAdvancedSearch){
       this.populateOrders();
+    }else{
+      this.dateType = 'Today';
+      this.searchOrderByDate();
     }
   }
   /*
@@ -146,26 +148,7 @@ export class PostmatesOrdersComponent implements OnInit {
           }
           ]
         } as any;
-      } else if (this.dateType === 'Last 3 days') {
-        query = {
-          restaurant: {
-            $exists: true
-          },
-          'delivery.id': {
-            $exists: true
-          },
-          $and: [{
-            createdAt: {
-              $gte: { $date: new Date(new Date().valueOf() - 72 * 3600 * 1000) }
-            } // less than and greater than
-          }, {
-            createdAt: {
-              $lte: { $date: new Date() }
-            }
-          }
-          ]
-        } as any;
-      }
+      } 
   
       // ISO-Date()
       const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
@@ -196,7 +179,7 @@ export class PostmatesOrdersComponent implements OnInit {
         sort: {
           createAt: 1
         }
-      },10000);
+      },100000);
       const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "order",
         query: {
@@ -251,7 +234,7 @@ export class PostmatesOrdersComponent implements OnInit {
    * @param {*} to
    * @memberof RestaurantOrdersComponent
    */
-  async doSearchOrderByTime(from, to) {
+  async doSearchOrderByDateCustom(from, to) {
     if (this.type != 'Restautant ID' || (this.type == 'Restautant ID' && !this.searchText)) {
       return this._global.publishAlert(AlertType.Danger, "Please select search type as Restaurant and fill it correctly before using the advanced search");
     }
