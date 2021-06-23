@@ -14,6 +14,7 @@ export class MonitoringGmbComponent implements OnInit {
   showOnlyPublished = false;
   showMissingWebsite = false;
   showExpiredDomain = false;
+  missingPickupSettings = false;
   filteredRows = [];
   domains = [];
   domainRtDict = {};
@@ -37,6 +38,7 @@ export class MonitoringGmbComponent implements OnInit {
         score: 1,
         googleListing: 1,
         "rateSchedules.agent": 1,
+        serviceSettings: 1,
         web: 1,
         createdAt: 1
       }
@@ -101,6 +103,8 @@ export class MonitoringGmbComponent implements OnInit {
       domain: this.domainRtDict[r._id],
       account: (cidAccountLocationMap[(r.googleListing || {}).cid] || {}).account,
       location: (cidAccountLocationMap[(r.googleListing || {}).cid] || {}).location,
+      missingPickupSettings: this.isMissingPickup(r),
+      serviceSettings: r.serviceSettings,
     }));
     // sort desc by score
     this.rows.sort((r1, r2) => (r2.restaurant.score || 0) - (r1.restaurant.score || 0));
@@ -129,6 +133,10 @@ export class MonitoringGmbComponent implements OnInit {
       this.filteredRows = this.filteredRows.filter(e => e.domain && (new Date(e.domain.expiry)).valueOf() < now.valueOf());
     }
 
+    if (this.missingPickupSettings) {
+      this.filteredRows = this.filteredRows.filter(row => row.missingPickupSettings)
+    }
+
 
     switch (this.managedDomain) {
       case 'only active':
@@ -142,4 +150,22 @@ export class MonitoringGmbComponent implements OnInit {
     }
   }
 
+  isMissingPickup(restaurant) {
+    const pickupSettings = (restaurant.serviceSettings || []).find(entry => entry.name === "Pickup");
+    const deliverySettings = (restaurant.serviceSettings || []).find(entry => entry.name === "Delivery");
+
+    if (!pickupSettings) {
+      return true;
+    }
+
+    if (deliverySettings && deliverySettings.paymentMethods) {
+      const pickupPaymentMethods = (pickupSettings.paymentMethods || []).length;
+      const deliveryPaymentMethods = (deliverySettings.paymentMethods || []).length;
+      if (pickupPaymentMethods === 0 && deliveryPaymentMethods > 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
