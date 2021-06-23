@@ -82,46 +82,29 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-
-  testDateSearch(date: Date, timezone): Date {
-    const DEFAULT_DATE_OPTION = {year: 'numeric', month: '2-digit', day: '2-digit'};
-    const DEFAULT_TIME_OPTION = {hour: '2-digit', minute: '2-digit', second: '2-digit'};
-    const DEFAULT_OPTION = {...DEFAULT_DATE_OPTION, ...DEFAULT_TIME_OPTION};
-    const s1 = date.toLocaleString('en-US', {timeZone: timezone, ...DEFAULT_OPTION});
-    const s2 = date.toString(); // browser's locale
-    const diff = new Date(s2).valueOf() - new Date(s1).valueOf();
-    return new Date(date.valueOf() + diff);
-  }
-  // extract the code from Helper.
-  getRestaurantAndUTCTimeZoneOffset(timezone: string) {
-    const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }
-    const now = new Date();
-    // utcOffset between China and Landon is -8
-    const utcOffset = now.getTimezoneOffset() / 60;// use minute as unit.
-    // offset the restaurant and China is -12
-    let offset = (new Date(now.toLocaleString('en-US', { timeZone: timezone, ...FULL_LOCALE_OPTS })).valueOf()
-      - now.valueOf()) / 3600000;
-    offset = offset - utcOffset;
-    return offset;
-  }
+    /**
+   *
+   * this function is used to filter order by createdAt
+   * @param {*} from
+   * @param {*} to
+   * @memberof RestaurantOrdersComponent
+   */
   async doSearchOrderByTime(from, to) {
-    // console.log("from time:" + from + "," + typeof from + " to time:" + to + "," + typeof to);
     if (from == undefined) {
-      return alert("please input a correct from time date format!");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
     if (to == undefined) {
-      return alert("please input a correct to time date format !");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct to time date format !");
     }
+    if (new Date(from).valueOf() - new Date(to).valueOf() > 0) {
+      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
+    }
+    
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
-    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from+"T00:00:00.000Z"), this.restaurant.googleAddress.timezone);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from+" 00:00:00.000"), this.restaurant.googleAddress.timezone);
     const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to+" 00:00:00.000"), this.restaurant.googleAddress.timezone);
-
-    if (utcf > utct) {
-      return alert("please input a correct date format,from time is less than or equals to time!");
-    }
-   
 
     const query = {
       restaurant: {
@@ -138,7 +121,7 @@ export class RestaurantOrdersComponent implements OnInit {
       }
       ]
     } as any;
-    console.log(JSON.stringify(query));
+
     // ISO-Date()
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
@@ -162,130 +145,6 @@ export class RestaurantOrdersComponent implements OnInit {
       projection: {
         disabled: 1,
         reasons: 1, //
-        // reasons: {$slice: -10}, 数组里面前两个
-        value: 1,
-        orders: 1
-      },
-      limit: 100000,
-      sort: {
-        createAt: 1
-      }
-    }).toPromise();
-
-    const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
-    // assemble back to order:
-    this.orders = orders.map(order => {
-      order.orderNumber = order.orderNumber;
-      order.customer = order.customerObj;
-      order.payment = order.paymentObj;
-      order.id = order._id;
-      order.customerNotice = order.customerNotice || '';
-      order.restaurantNotie = order.restaurantNotie || '';
-      // making it back-compatible to display bannedReasons
-      order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-      return new Order(order);
-    });
-  }
-  /**
-   *
-   * this function is used to filter order by createdAt
-   * @param {*} from
-   * @param {*} to
-   * @memberof RestaurantOrdersComponent
-   */
-  async doSearchOrderByTime1(from, to) {
-    if (from == undefined) {
-      return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
-    }
-    if (to == undefined) {
-      return this._global.publishAlert(AlertType.Danger, "please input a correct to time date format !");
-    }
-    if (new Date(from).valueOf() - new Date(to).valueOf() > 0) {
-      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
-    }
-    let timeDiff = this.getRestaurantAndUTCTimeZoneOffset(this.restaurant.googleAddress.timezone);
-    // transform the timezone of the restaurant to the utc time.
-    let moreToStrArr = to.split('-');
-    moreToStrArr[2] = (parseInt(moreToStrArr[2]) + 1) + "";//enlarge the day range to get correct timezone
-    to = moreToStrArr.join('-');
-
-    let fromstr = '';
-    let tostr = '';
-    /*
-      timeDiff=-8
-      restaurant:2021-6-14T00:00:00.000Z
-      utc:2021-6-14T08:00:00.000Z
-      timeDiff=8
-      restaurant:2021-6-14T00:00:00.000Z
-      utc:2021-6-13T16:00:00.000Z
-    */
-    if (timeDiff < 0) {
-      if (Math.abs(timeDiff) < 10) {
-        fromstr = from + "T0" + (-timeDiff).toFixed(0) + ":00:00.000Z";
-        tostr = to + "T0" + (-timeDiff).toFixed(0) + ":00:00.000Z";
-      } else {
-        fromstr = from + "T" + (-timeDiff).toFixed(0) + ":00:00.000Z";
-        tostr = to + "T" + (-timeDiff).toFixed(0) + ":00:00.000Z";
-      }
-    } else {
-      let fromArr = from.split('-');
-      fromArr[2] = (parseInt(fromArr[2]) - 1) + "";
-      from = fromArr.join('-');
-      if (Math.abs(timeDiff) > 14) {
-        fromstr = from + "T0" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
-      } else {
-        fromstr = from + "T" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
-      }
-
-      let toArr = to.split('-');
-      toArr[2] = (parseInt(toArr[2]) - 1) + "";
-      to = toArr.join('-');
-      if (Math.abs(timeDiff) > 14) {
-        tostr = to + "T0" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
-      } else {
-        tostr = to + "T" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
-      }
-    }
-   
-    const query = {
-      restaurant: {
-        $oid: this.restaurant._id
-      },
-      $and: [{
-        createdAt: {
-          $gte: { $date: fromstr }
-        } // less than and greater than
-      }, {
-        createdAt: {
-          $lte: { $date: tostr }
-        }
-      }
-      ]
-    } as any;
-    console.log(JSON.stringify(query));
-    // ISO-Date()
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "order",
-      query: query,
-      projection: {//返回除logs以外的所有行
-        logs: 0,
-      },
-      sort: {
-        createdAt: -1
-      },
-      limit: 50
-    }).toPromise();
-    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
-
-    const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "blacklist",
-      query: {
-        "value": { $in: customerIds },
-        disabled: { $ne: true }
-      },
-      projection: {
-        disabled: 1,
-        reasons: 1, 
         // reasons: {$slice: -10}, 数组里面前两个
         value: 1,
         orders: 1

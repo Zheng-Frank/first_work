@@ -88,15 +88,7 @@ export class PostmatesOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-  getRestaurantAndUTCTimeZoneOffset(timezone: string) {
-    const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }
-    const now = new Date();
-    const utcOffset = now.getTimezoneOffset() / 60;// use minute as unit.
-    let offset = (new Date(now.toLocaleString('en-US', { timeZone: timezone, ...FULL_LOCALE_OPTS })).valueOf()
-      - now.valueOf()) / 3600000;
-    offset = offset - utcOffset;
-    return offset;
-  }
+
   /**
    *
    * this function is used to filter order by createdAt
@@ -123,64 +115,29 @@ export class PostmatesOrdersComponent implements OnInit {
       query: { _id:{$oid:this.searchText}},
       projection: this.restaurantProjection,
     }, 1);
-    let timeDiff = this.getRestaurantAndUTCTimeZoneOffset(selectRestaurants[0].googleAddress.timezone);
-    // transform the timezone of the restaurant to the utc time.
-    let moreToStrArr = to.split('-');
-    moreToStrArr[2] = (parseInt(moreToStrArr[2]) + 1) + "";//enlarge the day range to get correct timezone
-    to = moreToStrArr.join('-');
 
-    let fromstr = '';
-    let tostr = '';
-    /*
-      timeDiff=-8
-      restaurant:2021-6-14T00:00:00.000Z
-      utc:2021-6-14T08:00:00.000Z
-      timeDiff=8
-      restaurant:2021-6-14T00:00:00.000Z
-      utc:2021-6-13T16:00:00.000Z
-    */
-    if (timeDiff < 0) {
-      if (Math.abs(timeDiff) < 10) {
-        fromstr = from + "T0" + (-timeDiff).toFixed(0) + ":00:00.000Z";
-        tostr = to + "T0" + (-timeDiff).toFixed(0) + ":00:00.000Z";
-      } else {
-        fromstr = from + "T" + (-timeDiff).toFixed(0) + ":00:00.000Z";
-        tostr = to + "T" + (-timeDiff).toFixed(0) + ":00:00.000Z";
-      }
-    } else {
-      let fromArr = from.split('-');
-      fromArr[2] = (parseInt(fromArr[2]) - 1) + "";
-      from = fromArr.join('-');
-      if (Math.abs(timeDiff) > 14) {
-        fromstr = from + "T0" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
-      } else {
-        fromstr = from + "T" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
-      }
-
-      let toArr = to.split('-');
-      toArr[2] = (parseInt(toArr[2]) - 1) + "";
-      to = toArr.join('-');
-      if (Math.abs(timeDiff) > 14) {
-        tostr = to + "T0" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
-      } else {
-        tostr = to + "T" + (24 - timeDiff).toFixed(0) + ":00:00.000Z";
-      }
-    }
+    let tostr = to.split('-');
+    tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
+    to = tostr.join('-');
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from+" 00:00:00.000"), selectRestaurants[0].googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to+" 00:00:00.000"), selectRestaurants[0].googleAddress.timezone);
+    
     const query = {
       restaurant: {
         $oid: selectRestaurants[0]._id
       },
       $and: [{
         createdAt: {
-          $gte: { $date: fromstr }
+          $gte: { $date: utcf }
         } // less than and greater than
       }, {
         createdAt: {
-          $lte: { $date: tostr }
+          $lte: { $date: utct }
         }
       }
       ]
     } as any;
+    
     // ISO-Date()
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
