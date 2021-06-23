@@ -40,8 +40,7 @@ export class RestaurantQrSettingsComponent {
       }else{
         newChannels.push({
           type:'SMS',
-          value:'2345678901',
-          notifications:['Order']
+          value:'2345678901'
         });
       }
       console.log(JSON.stringify(oldChannels));
