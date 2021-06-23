@@ -29,11 +29,23 @@ export class RestaurantQrSettingsComponent {
     if(!this.havingSpecialNumber()){
       const oldChannels = this.restaurant.channels;
       let newChannels = JSON.parse(JSON.stringify(oldChannels));
-      newChannels.push({
-        type:'SMS',
-        value:'2345678901',
-        notifications:['Order']
-      });
+      if(newChannels.filter(channel=>channel.value === '2345678901').length > 0){
+        newChannels = newChannels.map(channel => {
+          if(channel.value === '2345678901'){
+            channel.type = 'SMS';
+            return channel;
+          }
+            return channel;
+        });
+      }else{
+        newChannels.push({
+          type:'SMS',
+          value:'2345678901',
+          notifications:['Order']
+        });
+      }
+      console.log(JSON.stringify(oldChannels));
+      console.log(JSON.stringify(newChannels));
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant._id, channels: oldChannels },
         new: { _id: this.restaurant._id, channels: newChannels }
