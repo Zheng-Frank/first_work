@@ -54,8 +54,7 @@ export class MenusComponent implements OnInit {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
   }
   /**
-   * TODO:
-   * Add a "Clean up menu (清理菜单)" button under the "Additional functions" section 
+   * Add a "Remove unnecessary spaces (去掉多余的空格)" button under the "Additional functions" section 
    * under the Menus tab.This button, when clicked, should open a modal
    */
   openRemoveSpacesModal() {
@@ -65,36 +64,36 @@ export class MenusComponent implements OnInit {
     return Object.prototype.toString.call(obj) == "[object Array]";
   }
   /*
-    TODD:
     remove space of the property's value of mi if it suit for the rules.
   */
   async doRemoveUnnessarySpace() {
     const oldMenus = this.restaurant.menus;
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
-
+    /*
+      need to clean up the space of all properties of each menu 
+    */
     newMenus.forEach(eachMenu => {
       eachMenu.mcs.forEach(eachMc => {
         // Some menus may have no menu item and only one name
         for(let key in eachMc){
-          if (eachMc[key] && typeof eachMc[key] === 'string' && eachMc[key].split(' ').length > 1) {
-
+          // it's subvalue like images is a string array,and it shouldn't be proceeded.
+          if (!this.isArray(eachMc[key]) && eachMc[key] && typeof eachMc[key] === 'string') {
+            eachMc[key] = eachMc[key].trim().replace(/\s+/g,' '); // /\s+/g is one or many space matches.
           }
         }
         if (eachMc.mis.length > 1) {
           eachMc.mis.forEach(mi => {
             for (let key in mi) {
-              if (mi[key] && typeof mi[key] === 'string' && mi[key].split(' ').length > 1) {
-                mi[key] = mi[key].trim();
-                let mistrArr = mi[key].split(' ');
-                mi[key] = mistrArr.filter(mistr => mistr != '').join(' ');
+              if (!this.isArray(mi[key]) && mi[key] && typeof mi[key] === 'string') {
+                mi[key] = mi[key].trim().replace(/\s+/g,' ');
               }
-              if (this.isArray(mi[key])) {
+              //  it may meet such case like: "menuOptionIds":["1616626191437"],and we have to proceed it.
+              // that means it should not a string array.
+              if (this.isArray(mi[key]) && mi[key].length > 0 && typeof mi[key][0] !== 'string') {
                 mi[key].forEach(item => {
                   for (let key in item) {
-                    if (item[key] && typeof item[key] === 'string' && item[key].split(' ').length > 1) {
-                      item[key] = item[key].trim();
-                      let itemstrArr = item[key].split(' ');
-                      item[key] = itemstrArr.filter(itemstr => itemstr != '').join(' ');
+                    if (item[key] && typeof item[key] === 'string') {
+                      item[key] = item[key].trim().replace(/\s+/g,' ');
                     }
                   }
                 });
