@@ -1,0 +1,36 @@
+<div class="menu-cleanup">
+  <div class="cleanup-menus">
+    <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Current Item Name</th>
+        <th></th>
+        <th>Number</th>
+        <th>Modified Item Name</th>
+        <th>Chinese Translation</th>
+        <th>Default Display</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of menus">
+        <td>{{item.name}}</td>
+        <td><i class="fa fa-arrow-right"></i></td>
+        <td><input class="input-menu-number" [value]="item.number || ''" (change)="change(item, 'number', $event)" /></td>
+        <td><textarea [value]="item.translation.en || ''" (change)="change(item.translation, 'en', $event)"></textarea></td>
+        <td><input [value]="item.translation.zh || ''" (change)="change(item.translation, 'zh', $event)" /></td>
+        <td>
+          <select [value]="item.translation.defaultDisplay" (change)="change(item.translation, 'defaultDisplay', $event)">
+            <option *ngFor="let opt of displaySettings" [value]="opt.value">
+              {{opt.text}}
+            </option>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="text-right mt-1">
+    <button type="button" class="btn btn-secondary" (click)="this.cancel.emit()">Cancel</button>
+    <button type="button" class="btn btn-primary" (click)="ok()">Confirm</button>
+  </div>
+</div>

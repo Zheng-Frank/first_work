@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 
-import {Menu, Restaurant} from '@qmenu/ui';
+import {Menu, MenuOption, Restaurant} from '@qmenu/ui';
 import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {MenuEditorComponent} from '../menu-editor/menu-editor.component';
 import {Helper} from '../../../classes/helper';
@@ -9,6 +9,7 @@ import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
 import {environment} from '../../../../environments/environment';
 import {AlertType} from '../../../classes/alert-type';
+
 
 @Component({
   selector: 'app-menus',
@@ -19,6 +20,7 @@ export class MenusComponent implements OnInit {
 
   @ViewChild('menuEditingModal') menuEditingModal: ModalComponent;
   @ViewChild('menuEditor') menuEditor: MenuEditorComponent;
+  @ViewChild('menuCleanModal') menuCleanModal: ModalComponent;
 
   @Input() restaurant: Restaurant;
   @Output() onVisitMenuOptions = new EventEmitter();
@@ -43,6 +45,9 @@ export class MenusComponent implements OnInit {
 
   showAdditionalFunctions = false;
   showPromotions = false;
+
+  menusToClean = [];
+  menusIncludeCleaned = {};
 
 
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -137,6 +142,118 @@ export class MenusComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
     }
     this.apiRequesting = false;
+  }
+
+  match(item) {
+    let {name} = item;
+    if (!name) {
+      return;
+    }
+    name = name.trim();
+    let withNumRegex = /^(([a-zA-Z]?\d+)(\.?)\s)(\S+)\s*/i;
+    let numMatched = name.match(withNumRegex);
+    let measureWords = [
+      'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
+      'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
+      'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
+    ];
+    let number;
+    if (numMatched) {
+      let [, toRemove, num, dot, firstName] = numMatched;
+      // if dot after number, definite number, otherwise we check if a measure word after number or not
+      let hasMeasure = measureWords.includes((firstName || '').toLowerCase());
+      if (!!dot || !hasMeasure) {
+        // remove leading number chars
+        name = name.replace(toRemove, '');
+        item.cleanedName = name;
+      }
+      if (!hasMeasure) {
+        number = item.number || num;
+      }
+
+    }
+
+    let regex = /[\s-(]?([^\x00-\xff]+)[\s)]?/;
+    let re = name.match(regex);
+    if (re) {
+      let zh = re[1], zhIndex = re.index, en = name.replace(regex, '').trim();
+      let enIndex = name.indexOf(en);
+      let defaultDisplay = 'en';
+      if (zhIndex < enIndex) {
+        defaultDisplay = 'zh-en';
+      } else if (!!en) {
+        defaultDisplay = 'en-zh';
+      }
+      item.translation = {zh, en, defaultDisplay};
+      item.number = number;
+      this.menusToClean.push(item);
+    } else {
+      if (number) {
+        item.translation = { en: name, defaultDisplay: 'en'};
+        item.number = number;
+        this.menusToClean.push(item);
+      }
+    }
+
+  }
+
+  async cleanup() {
+    this.menusToClean = [];
+    let {menus, menuOptions} = this.restaurant;
+    let tempMenus = JSON.parse(JSON.stringify(menus)),
+      tempMenuOptions = JSON.parse(JSON.stringify(menuOptions));
+    tempMenus.forEach(menu => {
+      this.match(menu);
+      menu.mcs.forEach(mc => {
+        this.match(mc);
+        mc.mis.forEach(mi => {
+          this.match(mi);
+          mi.sizeOptions.forEach(so => {
+            this.match(so);
+          });
+        });
+      });
+    });
+
+    (tempMenuOptions || []).forEach(mo => {
+      this.match(mo.name);
+      (mo.items || []).forEach(moi => {
+        this.match(moi.name);
+      });
+    });
+
+    if (this.menusToClean.length > 0) {
+      this.menusIncludeCleaned = {menus: tempMenus, menuOptions: tempMenuOptions};
+      this.menuCleanModal.show();
+    }
+  }
+
+  cleanupCancel() {
+    this.menusIncludeCleaned = {};
+    this.menusToClean = [];
+    this.menuCleanModal.hide();
+  }
+
+  async cleanupSave() {
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          ...this.menusIncludeCleaned
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      // @ts-ignore
+      this.restaurant.menus = this.menusIncludeCleaned.menus.map(m => new Menu(m));
+      // @ts-ignore
+      this.restaurant.menuOptions = this.menusIncludeCleaned.menuOptions.map(mo => new MenuOption(mo));
+      this.cleanupCancel();
+    } catch (error) {
+      console.log('error...', error);
+      this._global.publishAlert(AlertType.Danger, 'Menus update failed.');
+    }
   }
 
   async sortMenus(sortedMenus) {
