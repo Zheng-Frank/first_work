@@ -162,21 +162,25 @@ export class ShowGooglePINComponent implements OnInit {
             limit: 10000
         }).toPromise();
 
-        //Populatge Google PIN from Call Log
+        // Populatge Google PIN from Call Log
         for (let i = 0; i < this.restaurantList.length; i++) {
             let restaurant = this.restaurantList[i];
             (restaurant.logs || []).map(eachLog => {
                 if (eachLog.type === 'google-pin') {
-                    const pin = eachLog.response || eachLog.response.trim();
-                    this.rows.push({
-                        gmbBiz: this.getGmbBizFromRestaurant(restaurant),
-                        agent: restaurant.rateSchedules ? restaurant.rateSchedules.agent : "",
-                        from: 'Call Log',
-                        text: eachLog.response,
-                        time: this.convertTimeToMilliseconds(eachLog.time),
-                        done: codes.some(code => code == pin)
-                    })
-                    //console.log('this.rows', this.rows);
+                    let pin = eachLog.response || eachLog.response.trim() || '';
+                    let item = {
+                      gmbBiz: this.getGmbBizFromRestaurant(restaurant),
+                      agent: restaurant.rateSchedules ? restaurant.rateSchedules.agent : "",
+                      from: 'Call Log',
+                      text: eachLog.response,
+                      time: this.convertTimeToMilliseconds(eachLog.time),
+                      done: codes.some(code => code === pin)
+                    };
+                    if (pin.startsWith('[biz]')) {
+                      item.text = pin.replace('[biz]', '');
+                      item.from = 'Customer Input';
+                    }
+                    this.rows.push(item);
                 }
             })
         }
