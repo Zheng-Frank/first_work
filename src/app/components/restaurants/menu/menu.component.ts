@@ -87,7 +87,7 @@ export class MenuComponent implements OnInit {
     async doBeverageSectionReorder(menu) {
       // get index and only update that menu
       const index = this.restaurant.menus.indexOf(menu);
-      let beverageMcs = menu.mcs.filter(mc => mc.name.toLowerCase() === 'Beverages');
+      let beverageMcs = menu.mcs.filter(mc => mc.name.toLowerCase() === 'beverages');
       beverageMcs.forEach(beverageMc => {
         let beverageMcIndex = menu.mcs.indexOf(beverageMc);
         if (beverageMcIndex !== -1) {
