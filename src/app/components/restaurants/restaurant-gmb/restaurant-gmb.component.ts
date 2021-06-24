@@ -69,7 +69,6 @@ export class RestaurantGmbComponent implements OnInit {
   }
   // to control whether show bubble.
   showBubble(id, isMouseOver) {
-    console.log(id, isMouseOver);
     if (isMouseOver) {
       this.gmbOwnerHistoryRate.forEach(history => {
         if (history.id === id) {
@@ -105,7 +104,6 @@ export class RestaurantGmbComponent implements OnInit {
       this.restaurant.gmbOwnerHistory = this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(a.time).valueOf() - new Date(b.time).valueOf());
       let allTime = new Date().valueOf() - new Date(this.restaurant.gmbOwnerHistory[0].time).valueOf();
       this.gmbUtilizationObj.totalDays = Number((allTime / (24 * 3600 * 1000)).toFixed(0));
-      
       for (let i = 0; i < this.restaurant.gmbOwnerHistory.length; i++) {
         let history = this.restaurant.gmbOwnerHistory[i];
 
@@ -115,7 +113,7 @@ export class RestaurantGmbComponent implements OnInit {
             gmbOwner: history.gmbOwner,
             ownerTime: "0 days",
             width: "100%",
-            widthRate: 1,
+            widthRate: 100,
             showBubbleFlag: false
           }
           let ownerTime = (allTime / (24 * 3600 * 1000));
@@ -125,47 +123,47 @@ export class RestaurantGmbComponent implements OnInit {
             this.gmbUtilizationObj.validDays = Number(ownerTime.toFixed(0));
             this.gmbUtilizationObj.rate = 100;
           }
-        }
-        if ((i + 1) != this.restaurant.gmbOwnerHistory.length) {
-          let sample = {
-            id: i,
-            gmbOwner: history.gmbOwner,
-            ownerTime: "0 days",
-            width: "0%",
-            widthRate: 0,
-            showBubbleFlag: false
-          }
-          let widthRate = (new Date(this.restaurant.gmbOwnerHistory[i + 1].time).valueOf() - new Date(history.time).valueOf()) / allTime;
-          let width = widthRate * 100;
-          sample.width = width.toFixed(2) + "%";
-          sample.widthRate = Number(width.toFixed(2));
-          let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
-          sample.ownerTime = ownerTime.toFixed(0)+ " days";
-          this.gmbOwnerHistoryRate.push(sample);
-          if (history.gmbOwner === 'qmenu') {
-            this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
-            this.gmbUtilizationObj.rate += sample.widthRate;
-          }
-        }
-        if (i === this.restaurant.gmbOwnerHistory.length - 1) {
-          let sample = {
-            id: i,
-            gmbOwner: history.gmbOwner,
-            ownerTime: "0 days",
-            width: "0%",
-            widthRate: 0,
-            showBubbleFlag: false
-          }
-          let widthRate = (new Date().valueOf() - new Date(history.time).valueOf()) / allTime;
-          let width = widthRate * 100;
-          sample.width = width.toFixed(2) + "%";
-          sample.widthRate = Number(width.toFixed(2));
-          let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
-          sample.ownerTime = ownerTime.toFixed(0) + " days";
-          this.gmbOwnerHistoryRate.push(sample);
-          if (history.gmbOwner === 'qmenu') {
-            this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
-            this.gmbUtilizationObj.rate += sample.widthRate;
+        }else{ // the case is the length large than 1.
+          if ((i + 1) != this.restaurant.gmbOwnerHistory.length) {
+            let sample = {
+              id: i,
+              gmbOwner: history.gmbOwner,
+              ownerTime: "0 days",
+              width: "0%",
+              widthRate: 0,
+              showBubbleFlag: false
+            }
+            let widthRate = (new Date(this.restaurant.gmbOwnerHistory[i + 1].time).valueOf() - new Date(history.time).valueOf()) / allTime;
+            let width = widthRate * 100;
+            sample.width = width.toFixed(2) + "%";
+            sample.widthRate = Number(width.toFixed(2));
+            let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
+            sample.ownerTime = ownerTime.toFixed(0)+ " days";
+            this.gmbOwnerHistoryRate.push(sample);
+            if (history.gmbOwner === 'qmenu') {
+              this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
+              this.gmbUtilizationObj.rate += sample.widthRate;
+            }
+          }else if ( i === this.restaurant.gmbOwnerHistory.length - 1) {
+            let sample = {
+              id: i,
+              gmbOwner: history.gmbOwner,
+              ownerTime: "0 days",
+              width: "0%",
+              widthRate: 0,
+              showBubbleFlag: false
+            }
+            let widthRate = (new Date().valueOf() - new Date(history.time).valueOf()) / allTime;
+            let width = widthRate * 100;
+            sample.width = width.toFixed(2) + "%";
+            sample.widthRate = Number(width.toFixed(2));
+            let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
+            sample.ownerTime = ownerTime.toFixed(0) + " days";
+            this.gmbOwnerHistoryRate.push(sample);
+            if (history.gmbOwner === 'qmenu') {
+              this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
+              this.gmbUtilizationObj.rate += sample.widthRate;
+            }
           }
         }
       }

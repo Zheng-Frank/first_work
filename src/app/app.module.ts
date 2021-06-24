@@ -140,6 +140,7 @@ import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/mo
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+import { MonitoringClosedRestaurantsComponent } from './components/monitoring/monitoring-closed-restaurants/monitoring-closed-restaurants.component';
 import { MonitoringGmbComponent } from './components/monitoring/monitoring-gmb/monitoring-gmb.component';
 import { MonitoringGmbTasksComponent } from './components/monitoring/monitoring-gmb-tasks/monitoring-gmb-tasks.component';
 import { MonitoringDomainComponent } from './components/monitoring/monitoring-domain/monitoring-domain.component';
@@ -350,6 +351,7 @@ import { DashboardItemOrderStatsComponent } from './components/monitoring/dashbo
     MonitoringOnboardingComponent,
     TaskBarComponent,
     MonitoringDisabledRestaurantsComponent,
+    MonitoringClosedRestaurantsComponent,
     MonitoringGmbComponent,
     MonitoringGmbTasksComponent,
     MonitoringDomainComponent,
