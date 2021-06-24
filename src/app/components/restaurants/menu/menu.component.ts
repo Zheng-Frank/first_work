@@ -83,6 +83,39 @@ export class MenuComponent implements OnInit {
 
   }
 
+    // reorder beverage category of menu.
+    async doBeverageSectionReorder(menu) {
+      // get index and only update that menu
+      const index = this.restaurant.menus.indexOf(menu);
+      let beverageMcs = menu.mcs.filter(mc => mc.name.toLowerCase() === 'Beverages');
+      beverageMcs.forEach(beverageMc => {
+        let beverageMcIndex = menu.mcs.indexOf(beverageMc);
+        if (beverageMcIndex !== -1) {
+          menu.mcs.splice(beverageMcIndex, 1);
+        }
+      });
+      // It's a problem to put unshift and splice together.
+      beverageMcs.forEach(beverageMc => menu.mcs.unshift(beverageMc));
+  
+      try {
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: {
+            _id: this.restaurant['_id']
+          }, new: {
+            _id: this.restaurant['_id'],
+            [`menus.${index}.mcs`]: menu.mcs,
+          }
+        }]).toPromise();
+        this.restaurant.menus[index].mcs = menu.mcs;
+        this._global.publishAlert(AlertType.Success, 'Success!');
+        this.beverageSectionModal.hide();
+      } catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, 'Failed!');
+        this.beverageSectionModal.hide();
+      }
+    }
+
   // only restaurants in the type of  DINE_IN_ONLY and all
   isShowBeverageButton(menu) {
     return menu.targetCustomer && (menu.targetCustomer === 'DINE_IN_ONLY' || menu.targetCustomer === 'ALL');
@@ -195,6 +228,17 @@ export class MenuComponent implements OnInit {
       newMenus.forEach(menu => {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
+           // check if mc name exist already
+           if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name)) {
+            repeated = true;
+            if (mc.name.toLowerCase() === 'beverages') {
+              this.mcModal.hide();
+              this.beverageSectionModal.show();
+            } else {
+              this._global.publishAlert(AlertType.Danger, `Menu category ${mc.name} already exist!`);
+            }
+            return;
+          }
           // must set id after check
           mc.id = new Date().valueOf() + '';
           mc.mis.forEach(mi => mi.category = mc.id);
@@ -205,6 +249,9 @@ export class MenuComponent implements OnInit {
           }
         }
       });
+      if (repeated) {
+        return;
+      }
     } else {
       // old Mc, replace everything
 
