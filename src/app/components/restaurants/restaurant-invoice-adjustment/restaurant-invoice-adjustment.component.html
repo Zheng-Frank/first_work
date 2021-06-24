@@ -35,7 +35,7 @@
             <div *ngIf="percentage" class="row">
               <input class="form-control col-7" type="number" [(ngModel)]="percentageAdjustmentAmount"
                 (ngModelChange)="calcAdjustmentAmount()" #percentageInput (focusout)="ensureAdjustmentAmount()">
-              <span class="col-5 vertical-to-input">%
+              <span class="ml-2 vertical-to-input">%
                 ={{order.getSubtotal() * percentageAdjustmentAmount /100 | money }}</span>
             </div>
           </div>

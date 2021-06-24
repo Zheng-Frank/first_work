@@ -117,8 +117,10 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       let subtotal = this.order.getSubtotal();
       let deltaPercentage = Number((total / subtotal * 100).toFixed(2));
       let isPercentageMore = false;
-      if (Math.abs(this.percentageAdjustmentAmount) >= deltaPercentage) {
+      if (Math.abs(this.percentageAdjustmentAmount) > deltaPercentage) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
+      }
+      if (Math.abs(this.percentageAdjustmentAmount) >= deltaPercentage) {
         this.percentageAdjustmentAmount = this.percentageAdjustmentAmount < 0 ? -deltaPercentage : deltaPercentage;
         isPercentageMore = true;
       }
