@@ -225,6 +225,8 @@ import { PostmatesOrdersComponent } from './components/monitoring/postmates-orde
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
 import { DashboardItemOrderStatsComponent } from './components/monitoring/dashboard-item-order-stats/dashboard-item-order-stats.component';
+import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
+import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
 
 @NgModule({
   declarations: [
@@ -420,7 +422,9 @@ import { DashboardItemOrderStatsComponent } from './components/monitoring/dashbo
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
     GmbWrongLinkComponent,
-    DashboardItemOrderStatsComponent
+    DashboardItemOrderStatsComponent,
+    SeoTrackingComponent,
+    RestaurantSeoTrackingComponent
 
   ],
   imports: [

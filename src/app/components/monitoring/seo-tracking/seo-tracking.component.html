@@ -1,0 +1,77 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">SEO Tracking</h1>
+  </h2>
+  <div class="card-body">
+    <div class="pb-5 text-left">
+      <div class="float-left form-inline ml-2 mr-2">
+        <label class="form-check-label mr-2">View</label>
+        <select [(ngModel)]="viewType" class="form-control ml-1">
+          <option *ngFor="let type of viewTypes">{{type}}</option>
+        </select>
+      </div>
+      <div *ngIf="viewType === 'Summary'" class="float-left form-inline ml-2 mr-2">
+        <label class="form-check-label mr-2">Provider</label>
+        <select [(ngModel)]="providerType" class="form-control ml-1" (change)="prvoiderFilter()">
+          <option *ngFor="let type of providerTypes">{{type}}</option>
+        </select>
+      </div>
+      <div *ngIf="viewType === 'Special Restaurant'" class="float-left form-inline ml-2 mr-2">
+        <input [qDebounce]="500" (debounce)="specialTRFilter()" type="text" class="form-control"
+          placeholder="Enter RT ID" [(ngModel)]="searchFilter">
+      </div>
+    </div>
+    <div *ngIf="viewType === 'Summary'">
+      <!-- start with statistics card -->
+      <div class="row mb-4">
+        <ng-container *ngFor="let nameEntry of totalRankingHistory">
+          <ng-container *ngFor="let status of statuses">
+            <div class="ml-2" *ngIf="nameEntry.name === status.name" >
+              <button class="btn {{status.btnClass}} btn-status mr-4">
+                <span class="h5">{{nameEntry.value || ''}}</span>
+                <hr>{{status.name}}
+              </button>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+      <!-- end with statistics card -->
+      <!-- start with statistics table -->
+      <div *ngIf="!qrRestaurantListRows || qrRestaurantListRows.length === 0">
+        Summary Ranking list is empty.
+      </div>
+      <q-table [rows]="filterSummaryRankingRows" [tableColumnDescriptors]="summaryColumnDescriptors" [compact]="true"
+        [pageSize]="100000">
+        <tr *tableRowTemplate="let row;">
+          <td>
+            {{row?.ranking}}
+          </td>
+          <td>
+            {{row?.count}}
+          </td>
+          <td>
+            {{row?.trend}}
+          </td>
+        </tr>
+      </q-table>
+      <!-- end with statistics table -->
+
+    </div>
+    <div *ngIf="viewType === 'Special Restaurant'">
+      <q-table [rows]="filterSummaryRankingRows" [tableColumnDescriptors]="summaryColumnDescriptors" [compact]="true"
+        [pageSize]="100000">
+        <tr *tableRowTemplate="let row;">
+          <td>
+            {{row?.ranking}}
+          </td>
+          <td>
+            {{row?.count}}
+          </td>
+          <td>
+            {{row?.trend}}
+          </td>
+        </tr>
+      </q-table>
+    </div>
+  </div>
+</div>

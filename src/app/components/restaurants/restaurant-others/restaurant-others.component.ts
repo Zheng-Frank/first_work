@@ -21,6 +21,7 @@ export class RestaurantOthersComponent implements OnInit {
       "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
       "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "API Logs": ['ADMIN'],
+      "SEO Tracing": ['ADMIN', 'CSR'],
       "Stats": ['ADMIN', 'CSR'],
     }
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));

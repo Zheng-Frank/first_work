@@ -1,3 +1,4 @@
+import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
@@ -145,6 +146,7 @@ const routes: Routes = [
   { path: 'schemas', component: SchemasComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
   { path: "seamless-integration", component: SeamlessIntegrationComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "SIGNUP_AGENT"] }, }, { path: "ivr-agent-analysis", component: IvrAgentAnalysisComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "SIGNUP_AGENT"] }, },
   { path: 'weird-data', component: WeirdDataComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
+  { path: 'seo-tracking', component: SeoTrackingComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
 ];
 
