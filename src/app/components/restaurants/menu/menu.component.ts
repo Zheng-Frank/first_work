@@ -87,7 +87,7 @@ export class MenuComponent implements OnInit {
     async doBeverageSectionReorder(menu) {
       // get index and only update that menu
       const index = this.restaurant.menus.indexOf(menu);
-      let beverageMcs = menu.mcs.filter(mc => mc.name.toLowerCase() === 'beverages');
+      let beverageMcs = menu.mcs.filter(mc => mc.name.trim().toLowerCase() === 'beverages');
       beverageMcs.forEach(beverageMc => {
         let beverageMcIndex = menu.mcs.indexOf(beverageMc);
         if (beverageMcIndex !== -1) {
@@ -229,9 +229,9 @@ export class MenuComponent implements OnInit {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
            // check if mc name exist already
-           if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name)) {
+           if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name.trim())) {
             repeated = true;
-            if (mc.name.toLowerCase() === 'beverages') {
+            if (mc.name.trim().toLowerCase() === 'beverages') {
               this.mcModal.hide();
               this.beverageSectionModal.show();
             } else {
