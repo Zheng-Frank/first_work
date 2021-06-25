@@ -16,7 +16,7 @@
           <option *ngFor="let type of providerTypes">{{type}}</option>
         </select>
       </div>
-      <div *ngIf="viewType === 'Special Restaurant'" class="float-left form-inline ml-2 mr-2">
+      <div *ngIf="viewType === 'Specific Restaurant'" class="float-left form-inline ml-2 mr-2">
         <input [qDebounce]="500" (debounce)="specialTRFilter()" type="text" class="form-control"
           placeholder="Enter RT ID" [(ngModel)]="searchFilter">
       </div>
@@ -57,7 +57,7 @@
       <!-- end with statistics table -->
 
     </div>
-    <div *ngIf="viewType === 'Special Restaurant'">
+    <div *ngIf="viewType === 'Specific Restaurant'">
       <q-table [rows]="filterSummaryRankingRows" [tableColumnDescriptors]="summaryColumnDescriptors" [compact]="true"
         [pageSize]="100000">
         <tr *tableRowTemplate="let row;">

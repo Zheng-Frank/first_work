@@ -7,7 +7,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SeoTrackingComponent implements OnInit {
 
-  viewTypes = ['Summary','Special Restaurant'];
+  viewTypes = ['Summary','Specific Restaurant'];
   viewType = 'Summary';
   providerTypes = ['qMenu'];
   providerType = 'qMenu';
@@ -28,6 +28,17 @@ export class SeoTrackingComponent implements OnInit {
     },
     {
       label: "Website count",
+    },
+    {
+      label: "Improvement/Worsening",
+    }
+  ];
+  ColumnDescriptors = [
+    {
+      label: 'Provider'
+    },
+    {
+      label: "O",
     },
     {
       label: "Improvement/Worsening",
