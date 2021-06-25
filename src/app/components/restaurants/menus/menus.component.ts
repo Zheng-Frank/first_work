@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 
-import {Menu, MenuOption, Restaurant} from '@qmenu/ui';
+import {Menu, MenuDisplay, MenuOption, Restaurant} from '@qmenu/ui';
 import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {MenuEditorComponent} from '../menu-editor/menu-editor.component';
 import {Helper} from '../../../classes/helper';
@@ -145,9 +145,18 @@ export class MenusComponent implements OnInit {
   }
 
   match(item) {
-    let {name} = item;
+    let {name, translation} = item;
     if (!name) {
       return;
+    }
+
+    // if menu has a translation
+    if (translation) {
+      // if menu's formal display equal it's name, we do not need to handle it
+      // todo: should we still show pure chinese menu with translation but no english ?
+      if (item.formalDisplay(this.restaurant.translations).replace('', '') === name) {
+        return;
+      }
     }
     name = name.trim();
     let withNumRegex = /^(([a-zA-Z]?\d+)(\.?)\s)(\S+)\s*/i;
@@ -157,11 +166,11 @@ export class MenusComponent implements OnInit {
       'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
       'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
     ];
-    let number;
+    let number, hasMeasure = false;
     if (numMatched) {
       let [, toRemove, num, dot, firstName] = numMatched;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
-      let hasMeasure = measureWords.includes((firstName || '').toLowerCase());
+      hasMeasure = measureWords.includes((firstName || '').toLowerCase());
       if (!!dot || !hasMeasure) {
         // remove leading number chars
         name = name.replace(toRemove, '');
@@ -178,19 +187,22 @@ export class MenusComponent implements OnInit {
     if (re) {
       let zh = re[1], zhIndex = re.index, en = name.replace(regex, '').trim();
       let enIndex = name.indexOf(en);
-      let defaultDisplay = 'en';
+      let defaultDisplay = en ? MenuDisplay.English : MenuDisplay.Chinese;
       if (zhIndex < enIndex) {
-        defaultDisplay = 'zh-en';
+        defaultDisplay = MenuDisplay.ChineseWithEnglish;
       } else if (!!en) {
-        defaultDisplay = 'en-zh';
+        defaultDisplay = MenuDisplay.EnglishWithChinese;
       }
+      // remove brackets around name
+      en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)\]$/, '$1');
+      zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
       item.translation = {zh, en, defaultDisplay};
       item.number = number;
       this.menusToClean.push(item);
     } else {
-      if (number) {
-        item.translation = { en: name, defaultDisplay: 'en'};
-        item.number = number;
+      if (number || hasMeasure) {
+        item.translation = {en: name, defaultDisplay: MenuDisplay.English};
+        item.number = number || item.number;
         this.menusToClean.push(item);
       }
     }
@@ -200,8 +212,8 @@ export class MenusComponent implements OnInit {
   async cleanup() {
     this.menusToClean = [];
     let {menus, menuOptions} = this.restaurant;
-    let tempMenus = JSON.parse(JSON.stringify(menus)),
-      tempMenuOptions = JSON.parse(JSON.stringify(menuOptions));
+    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x)),
+      tempMenuOptions = JSON.parse(JSON.stringify(menuOptions)).map(x => new MenuOption(x));
     tempMenus.forEach(menu => {
       this.match(menu);
       menu.mcs.forEach(mc => {
@@ -234,14 +246,49 @@ export class MenusComponent implements OnInit {
     this.menuCleanModal.hide();
   }
 
+  saveTranslation(item, translations) {
+    if (item.translation) {
+      let { zh, en } = item.translation;
+      // todo: should we do this delete ?
+      delete item.translation.zh;
+      let translation = translations.find(x => x.EN === en);
+      if (!translation) {
+        translation = {EN: en, ZH: zh};
+        translations.push(translation);
+      } else {
+        // todo: should we do update here ? eg. change in this modal or change in translations
+        translation.ZH = zh || translation.ZH;
+      }
+    }
+  }
+
   async cleanupSave() {
     try {
+      // @ts-ignore
+      let { translations = [] } = this.restaurant;
+      this.menusToClean.forEach(menu => {
+        this.saveTranslation(menu, translations);
+        (menu.mcs || []).forEach(mc => {
+          this.saveTranslation(mc, translations);
+          mc.mis.forEach(mi => {
+            this.saveTranslation(mi, translations);
+            mi.sizeOptions.forEach(so => {
+              this.saveTranslation(so, translations);
+            });
+          });
+        });
+        (menu.items || []).forEach(moi => {
+          this.saveTranslation(moi, translations);
+        });
+      });
+
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
           _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
-          ...this.menusIncludeCleaned
+          ...this.menusIncludeCleaned,
+          translations
         }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');

@@ -1,5 +1,4 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Restaurant} from '@qmenu/ui';
 import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
 
@@ -14,7 +13,6 @@ export class MenuCleanupComponent implements OnInit {
   }
 
 
-  @Input() restaurant: Restaurant;
   @Input() menus = [];
   @Output() cancel = new EventEmitter();
   @Output() save = new EventEmitter();
@@ -37,8 +35,10 @@ export class MenuCleanupComponent implements OnInit {
 
   async ok() {
     const clean = item => {
-      item.name = item.cleanedName;
-      delete item.cleanedName;
+      if (item.cleanedName) {
+        item.name = item.cleanedName;
+        delete item.cleanedName;
+      }
     };
     this.menus.forEach(menu => {
       clean(menu);
