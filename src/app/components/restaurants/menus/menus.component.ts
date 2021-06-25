@@ -63,6 +63,13 @@ export class MenusComponent implements OnInit {
   isArray(obj) {
     return Object.prototype.toString.call(obj) == "[object Array]";
   }
+
+  /*
+    a public logic we should extract it.
+  */
+  removeSpace(str){
+    return str.trim().replace(/\s+/g, ' ');
+  }
   /*
     remove space of the property's value of mi if it suit for the rules.
   */
@@ -75,17 +82,17 @@ export class MenusComponent implements OnInit {
     newMenus.forEach(eachMenu => {
       eachMenu.mcs.forEach(eachMc => {
         // Some menus may have no menu item and only one name
-        for(let key in eachMc){
+        for (let key in eachMc) {
           // it's subvalue like images is a string array,and it shouldn't be proceeded.
-          if (!this.isArray(eachMc[key]) && eachMc[key] && typeof eachMc[key] === 'string') {
-            eachMc[key] = eachMc[key].trim().replace(/\s+/g,' '); // /\s+/g is one or many space matches.
+          if (eachMc[key] && typeof eachMc[key] === 'string') {
+            eachMc[key] = this.removeSpace(eachMc[key]); // /\s+/g is one or many space matches.
           }
         }
         if (eachMc.mis.length > 1) {
           eachMc.mis.forEach(mi => {
             for (let key in mi) {
-              if (!this.isArray(mi[key]) && mi[key] && typeof mi[key] === 'string') {
-                mi[key] = mi[key].trim().replace(/\s+/g,' ');
+              if (mi[key] && typeof mi[key] === 'string') {
+                mi[key] = this.removeSpace(mi[key]);
               }
               //  it may meet such case like: "menuOptionIds":["1616626191437"],and we have to proceed it.
               // that means it should not a string array.
@@ -93,7 +100,7 @@ export class MenusComponent implements OnInit {
                 mi[key].forEach(item => {
                   for (let key in item) {
                     if (item[key] && typeof item[key] === 'string') {
-                      item[key] = item[key].trim().replace(/\s+/g,' ');
+                      item[key] = this.removeSpace(item[key]);
                     }
                   }
                 });
@@ -551,7 +558,7 @@ export class MenusComponent implements OnInit {
             // reset the imageObj
             mi.imageObjs = [];
             (matchingAlias.images || []).map(each => {
-              if(!mi.SkipImageInjection){
+              if (!mi.SkipImageInjection) {
                 (mi.imageObjs).push({
                   originalUrl: each.url,
                   thumbnailUrl: each.url192,
