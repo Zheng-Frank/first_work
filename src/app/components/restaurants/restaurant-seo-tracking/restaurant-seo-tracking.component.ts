@@ -10,19 +10,19 @@ import { Restaurant } from '@qmenu/ui';
 export class RestaurantSeoTrackingComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
-  summaryColumnDescriptors = [
+  specificColumnDescriptors = [
     {
-      label: 'Ranking'
+      label: 'Provider'
     },
     {
-      label: "Website count",
+      label: "Old Ranking",
     },
     {
-      label: "Improvement/Worsening",
+      label: "New Ranking",
     }
   ];
-  summaryRankingRows = [];
-  filterSummaryRankingRows = [];
+  specificRankingRows = [];
+  filterSpecificRankingRows = [];
 
   constructor() { }
 

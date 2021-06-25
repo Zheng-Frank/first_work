@@ -58,17 +58,17 @@
 
     </div>
     <div *ngIf="viewType === 'Specific Restaurant'">
-      <q-table [rows]="filterSummaryRankingRows" [tableColumnDescriptors]="summaryColumnDescriptors" [compact]="true"
+      <q-table [rows]="filterSpecificRankingRows" [tableColumnDescriptors]="specificColumnDescriptors" [compact]="true"
         [pageSize]="100000">
         <tr *tableRowTemplate="let row;">
           <td>
-            {{row?.ranking}}
+            {{row?.provider}}
           </td>
           <td>
-            {{row?.count}}
+            {{row?.oldRanking}}
           </td>
           <td>
-            {{row?.trend}}
+            {{row?.newRanking}}
           </td>
         </tr>
       </q-table>

@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
@@ -33,20 +34,22 @@ export class SeoTrackingComponent implements OnInit {
       label: "Improvement/Worsening",
     }
   ];
-  ColumnDescriptors = [
+  specificColumnDescriptors = [
     {
       label: 'Provider'
     },
     {
-      label: "O",
+      label: "Old Ranking",
     },
     {
-      label: "Improvement/Worsening",
+      label: "New Ranking",
     }
   ];
   searchFilter = '';
   summaryRankingRows = [];
   filterSummaryRankingRows = [];
+  specificRankingRows = [];
+  filterSpecificRankingRows = [];
   constructor() { }
 
   ngOnInit() {
