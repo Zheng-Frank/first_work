@@ -229,14 +229,15 @@ export class MenuComponent implements OnInit {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
            // check if mc name exist already
-           if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name.trim())) {
+          if (mc.name.trim().toLowerCase() === 'beverages') {
             repeated = true;
-            if (mc.name.trim().toLowerCase() === 'beverages') {
-              this.mcModal.hide();
-              this.beverageSectionModal.show();
-            } else {
-              this._global.publishAlert(AlertType.Danger, `Menu category ${mc.name} already exist!`);
-            }
+            this.mcModal.hide();
+            this.beverageSectionModal.show();
+            return;
+          } 
+          if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name.trim())) {
+            repeated = true;
+            this._global.publishAlert(AlertType.Danger, `Menu category ${mc.name} already exist!`);
             return;
           }
           // must set id after check
