@@ -43,8 +43,6 @@ export class RestaurantQrSettingsComponent {
           value:'2345678901'
         });
       }
-      console.log(JSON.stringify(oldChannels));
-      console.log(JSON.stringify(newChannels));
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant._id, channels: oldChannels },
         new: { _id: this.restaurant._id, channels: newChannels }
