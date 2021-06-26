@@ -1,0 +1,93 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">API Logs Dashboard</h1>
+  </h2>
+  <div class="card-body">
+    <div class="row ml-2 mb-2">
+      <label class="col-2 text-left">Showing Records By Default: </label>
+      <div class="col-1 text-left">
+        {{recordNumber}}
+      </div>
+      <!-- <div class="col-1 text-left">
+        <q-edit-label [value]="recordNumber" (edit)="onEdit($event)"></q-edit-label>
+      </div> -->
+    </div> 
+    <div class="pb-5 text-left">
+      <div class="float-left form-inline ml-2 mr-2">
+        <select [(ngModel)]="user" class="form-control ml-1">
+          <option *ngFor="let u of users">{{u}}</option>
+        </select>
+      </div>
+      <div class="float-left form-inline ml-2 mr-2">
+        <select [(ngModel)]="timeType" class="form-control ml-1">
+          <option *ngFor="let type of timeTypes">{{type}}</option>
+        </select>
+      </div>
+      <div *ngIf="timeType !== 'Custom range'" class="float-left form-inline ml-2 mr-2">
+        <button class="btn btn-primary" (click)="filterByUserAndTime()" [qLoading]="refreshing">
+          <i class="fas fa-hourglass-half"></i> Refresh</button>
+      </div>
+    </div>
+
+    <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="timeType === 'Custom range'">
+      <div class="row">
+        <div class="col col-sm-6">
+          <label>From:</label>
+          <input class="form-control" type="date" [(ngModel)]="fromDate">
+        </div>
+        <div class="col col-sm-6">
+          <label>To:</label>
+          <input class="form-control" type="date" [(ngModel)]="toDate">
+        </div>
+      </div>
+      <div class="row">
+        <div class="text-right mt-1 col-12">
+          <button type="button" class="btn btn-secondary" (click)="cancelDoSearchLogsByCustomTime()">Cancel</button>
+          <button class="btn btn-primary" (click)="doSearchLogsByCustomTime(fromDate,toDate)">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- start with api logs table -->
+    <div>
+      <div *ngIf="!apiLogsRows || apiLogsRows.length === 0">
+        API logs list is empty.
+      </div>
+      <q-table [rows]="apiLogsRows" [tableColumnDescriptors]="columnDescriptors" [compact]="true" [pageSize]="100000">
+        <tr *tableRowTemplate="let row;">
+          <td>
+            <button class="btn btn-link py-0" (click)="showDetails(row)">{{row?.id}}</button>
+          </td>
+          <td>
+            {{row?.name}}
+          </td>
+          <td class="nowrap">
+            {{row?.time | date: 'medium'}}
+          </td>
+          <td class="nowrap">
+            {{row?.resource}}
+          </td>
+          <td class="pl-3">
+            <table>
+              <tr *ngFor="let action of row.actions">
+                <td class="align-top">{{action.type}}</td>
+                <td class="wrap pl-3"><b>{{action.target.slice(1)}}</b>: {{action.old}} &#8594; {{action.new}}</td>
+              </tr>
+              <tr>
+                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                <td></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </q-table>
+    </div>
+    <!-- end with api logs table -->
+
+  </div>
+</div>
+<q-modal #logDetailsModal>
+  <pre>
+      {{ selectedLog | json}}
+    </pre>
+</q-modal>
