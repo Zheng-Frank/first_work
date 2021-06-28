@@ -4,13 +4,10 @@
   </h2>
   <div class="card-body">
     <div class="row ml-2 mb-2">
-      <label class="col-2 text-left">Showing Records By Default: </label>
-      <div class="col-1 text-left">
-        {{recordNumber}}
+      <label class="text-left">Showing Records: </label>
+      <div class="text-left ml-2">
+        {{apiLogsRows.length}}
       </div>
-      <!-- <div class="col-1 text-left">
-        <q-edit-label [value]="recordNumber" (edit)="onEdit($event)"></q-edit-label>
-      </div> -->
     </div> 
     <div class="pb-5 text-left">
       <div class="float-left form-inline ml-2 mr-2">

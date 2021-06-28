@@ -13,7 +13,7 @@ export class ApiLogsDashboardComponent implements OnInit {
   @ViewChild('logDetailsModal') logDetailsModal;
   users = [];
   user = '';
-  timeTypes = ['Last 24 hours', 'Last 48 hours', 'Last 7 days', 'Custom range','All'];
+  timeTypes = ['Last 24 hours', 'Last 48 hours', 'Last 7 days', 'Custom range'];
   timeType = 'Last 24 hours';
   apiLogsRows = [];
   recordNumber = 15;
@@ -194,11 +194,7 @@ export class ApiLogsDashboardComponent implements OnInit {
     } as any;
     //  timeTypes = ['Last 24 hours', 'Last 48 hours', 'Last 7 days', 'Custom range'];
     if (this.timeType !== 'Custom range') {
-      if(this.timeType === 'All'){
-        query = {
-          "token.user.username": this.user
-        }
-      }else if (this.timeType === 'Last 24 hours') {
+      if (this.timeType === 'Last 24 hours') {
         query = {
           "token.user.username": this.user,
           $and: [
@@ -247,7 +243,6 @@ export class ApiLogsDashboardComponent implements OnInit {
           ]
         }
       }
-      console.log(JSON.stringify(query));
       this.courseLogs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "apilog",
         query: query,
