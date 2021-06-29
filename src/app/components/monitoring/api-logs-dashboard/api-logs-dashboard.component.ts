@@ -254,8 +254,8 @@ export class ApiLogsDashboardComponent implements OnInit {
           "body.old": 1,
           "body.new": 1
         }
-      }, 15);
-      this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
+      }, 1);
+      this.courseLogs = this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
 
       // sort out the results;
       this.apiLogsRows = [];
