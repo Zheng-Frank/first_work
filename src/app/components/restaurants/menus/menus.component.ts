@@ -150,14 +150,6 @@ export class MenusComponent implements OnInit {
       return;
     }
 
-    // if menu has a translation
-    if (translation) {
-      // if menu's formal display equal it's name, we do not need to handle it
-      // todo: should we still show pure chinese menu with translation but no english ?
-      if (item.formalDisplay(this.restaurant.translations).replace('', '') === name) {
-        return;
-      }
-    }
     name = name.trim();
     let withNumRegex = /^(([a-zA-Z]?\d+)(\.?)\s)(\S+)\s*/i;
     let numMatched = name.match(withNumRegex);
@@ -185,23 +177,21 @@ export class MenusComponent implements OnInit {
     let regex = /[\s-(]?([^\x00-\xff]+)[\s)]?/;
     let re = name.match(regex);
     if (re) {
-      let zh = re[1], zhIndex = re.index, en = name.replace(regex, '').trim();
-      let enIndex = name.indexOf(en);
-      let defaultDisplay = en ? MenuDisplay.English : MenuDisplay.Chinese;
-      if (zhIndex < enIndex) {
-        defaultDisplay = MenuDisplay.ChineseWithEnglish;
-      } else if (!!en) {
-        defaultDisplay = MenuDisplay.EnglishWithChinese;
-      }
+      let zh = re[1], en = name.replace(regex, '').trim();
       // remove brackets around name
       en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)\]$/, '$1');
       zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
-      item.translation = {zh, en, defaultDisplay};
+      item.translation = {zh, en};
       item.number = number;
+
+      let trans = (this.restaurant.translations || []).find(x => x.EN === en);
+      if (translation && translation.en === en && trans && trans.ZH === zh) {
+        return;
+      }
       this.menusToClean.push(item);
     } else {
       if (number || hasMeasure) {
-        item.translation = {en: name, defaultDisplay: MenuDisplay.English};
+        item.translation = {en: name};
         item.number = number || item.number;
         this.menusToClean.push(item);
       }
@@ -211,6 +201,7 @@ export class MenusComponent implements OnInit {
 
   async cleanup() {
     this.menusToClean = [];
+    this.menusIncludeCleaned = {}
     let {menus, menuOptions} = this.restaurant;
     let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x)),
       tempMenuOptions = JSON.parse(JSON.stringify(menuOptions)).map(x => new MenuOption(x));
@@ -236,8 +227,8 @@ export class MenusComponent implements OnInit {
 
     if (this.menusToClean.length > 0) {
       this.menusIncludeCleaned = {menus: tempMenus, menuOptions: tempMenuOptions};
-      this.menuCleanModal.show();
     }
+    this.menuCleanModal.show();
   }
 
   cleanupCancel() {
@@ -248,17 +239,16 @@ export class MenusComponent implements OnInit {
 
   saveTranslation(item, translations) {
     if (item.translation) {
-      let { zh, en } = item.translation;
-      // todo: should we do this delete ?
-      delete item.translation.zh;
-      let translation = translations.find(x => x.EN === en);
+      let { zh, en, prev_en } = item.translation;
+      let translation = translations.find(x => x.EN === en || x.EN === prev_en);
       if (!translation) {
         translation = {EN: en, ZH: zh};
         translations.push(translation);
       } else {
-        // todo: should we do update here ? eg. change in this modal or change in translations
-        translation.ZH = zh || translation.ZH;
+        translation.EN = en;
+        translation.ZH = zh;
       }
+      ['zh', 'prev_en', 'prev_zn'].forEach(p => delete item.translation[p]);
     }
   }
 

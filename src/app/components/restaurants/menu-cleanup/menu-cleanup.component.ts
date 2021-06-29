@@ -17,19 +17,12 @@ export class MenuCleanupComponent implements OnInit {
   @Output() cancel = new EventEmitter();
   @Output() save = new EventEmitter();
 
-
-  displaySettings = [
-    {value: 'en', text: 'Eng'},
-    {value: 'zh', text: '中文'},
-    {value: 'en-zh', text: 'Eng - 中文'},
-    {value: 'zh-en', text: '中文 - Eng'}
-  ];
-
   ngOnInit() {
   }
 
 
   change(item, prop, e) {
+    item[`prev_${prop}`] = item[`prev_${prop}`] || item[prop];
     item[prop] = e.target.value;
   }
 
