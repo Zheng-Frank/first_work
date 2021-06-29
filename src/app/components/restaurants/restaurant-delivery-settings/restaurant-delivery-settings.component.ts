@@ -58,6 +58,8 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       query: {
       },
       projection: {
+        'Branch Name':1,
+        'Addresses':1,
         Latitude: 1,
         Longitude: 1,
         Viability: 1
@@ -68,6 +70,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     viabilityList.forEach(item => {
       if (item.Latitude && item.Longitude) {
         const distance = this.getDistance(this.restaurant.googleAddress.lat, this.restaurant.googleAddress.lng, item.Latitude, item.Longitude)
+        console.log(item["Addresses"]+":"+distance);
         distanceArr.push(distance);
       } else {
         distanceArr.push(Number.MAX_VALUE);
