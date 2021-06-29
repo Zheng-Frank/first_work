@@ -4,5 +4,6 @@ export enum OrderPaymentMethod {
     InPerson = 'IN_PERSON',
     KeyIn = 'KEY_IN',
     Stripe = 'STRIPE',
-    Qmenu = 'QMENU'
+    Qmenu = 'QMENU',
+    Paypal = 'PAYPAL'
 }
