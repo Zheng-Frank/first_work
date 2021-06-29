@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import {Restaurant, Hour, TimezoneHelper} from '@qmenu/ui';
+import { Restaurant, Hour, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -37,19 +37,48 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   firstNotifications = true;
   secondNotifications = true;
   checkingPostmatesAvailability = false;
+
+  getDistance(lat1, lng1, lat2, lng2) {
+    var radLat1 = lat1 * Math.PI / 180.0;
+    var radLat2 = lat2 * Math.PI / 180.0;
+    var a = radLat1 - radLat2;
+    var b = lng1 * Math.PI / 180.0 - lng2 * Math.PI / 180.0;
+    var s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) +
+      Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
+    s = s * 6378.137;// EARTH_RADIUS;
+    s = Math.round(s * 10000) / 10000;
+    // The distance to call return is in miles.
+    s = s * 0.62137; // 1 kilometre is 0.62137 mile.
+    return s;
+  }
   async checkPostmatesAvailability() {
     this.checkingPostmatesAvailability = true;
-    try {
-      await this._api.post(environment.appApiUrl + 'delivery/check-service-availability', {
-        "address": this.restaurant.googleAddress.formatted_address,
-        courier: {
-          ...this.selectedCourier
-        }
-      }).toPromise();
-      this.postmatesAvailability = "available";
-    } catch (error) {
-      console.log(error);
-      this.postmatesAvailability = "not available";
+    const viabilityList = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "viability-lookup",
+      query: {
+      },
+      projection: {
+        Latitude: 1,
+        Longitude: 1,
+        Viability: 1
+      },
+      limit: 20000
+    }).toPromise();
+    let distanceArr = [];
+    viabilityList.forEach(item => {
+      if (item.Latitude && item.Longitude) {
+        const distance = this.getDistance(this.restaurant.googleAddress.lat, this.restaurant.googleAddress.lng, item.Latitude, item.Longitude)
+        distanceArr.push(distance);
+      } else {
+        distanceArr.push(Number.MAX_VALUE);
+      }
+    });
+    let minDistance = Math.min(...distanceArr);
+    let index = distanceArr.indexOf(minDistance);
+    if (minDistance < 0.1 && (viabilityList[index].Viability === 'V1' || viabilityList[index].Viability === 'V2' || viabilityList[index].Viability === 'V3' || viabilityList[index].Viability === 'V4')) {
+      this.postmatesAvailability = "Available (" + viabilityList[index].Viability+")";
+    } else {
+      this.postmatesAvailability = "Not available";
     }
     this.checkingPostmatesAvailability = false;
   }
@@ -72,7 +101,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     for (let i = 0; i < 24 * 60 / interval; i++) {
       this.deliveryFromTimes.push({
         value: new Date(t.getTime()),
-        text: t.toLocaleString('en-US', {hour: '2-digit', minute: '2-digit', timeZone: this.restaurant.googleAddress.timezone})
+        text: t.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: this.restaurant.googleAddress.timezone })
       });
       t.setMinutes(t.getMinutes() + interval);
     }
@@ -156,7 +185,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
 
   update() {
-    if(!this.firstNotifications&&!this.secondNotifications){
+    if (!this.firstNotifications && !this.secondNotifications) {
       return this._global.publishAlert(AlertType.Danger, `Can't update delivery settings.Please turn on at least one notification.`);
     }
 
