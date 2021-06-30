@@ -229,7 +229,7 @@ export class MenuComponent implements OnInit {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
            // check if mc name exist already
-          if (mc.name.trim().toLowerCase() === 'beverages') {
+          if ((menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name.trim().toLowerCase() === mc.name.trim().toLowerCase())) && mc.name.trim().toLowerCase() === 'beverages') {
             repeated = true;
             this.mcModal.hide();
             this.beverageSectionModal.show();
