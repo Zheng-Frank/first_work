@@ -140,6 +140,7 @@ import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/mo
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+import { MonitoringClosedRestaurantsComponent } from './components/monitoring/monitoring-closed-restaurants/monitoring-closed-restaurants.component';
 import { MonitoringGmbComponent } from './components/monitoring/monitoring-gmb/monitoring-gmb.component';
 import { MonitoringGmbTasksComponent } from './components/monitoring/monitoring-gmb-tasks/monitoring-gmb-tasks.component';
 import { MonitoringDomainComponent } from './components/monitoring/monitoring-domain/monitoring-domain.component';
@@ -223,7 +224,9 @@ import { PostmatesOrderCardComponent } from './components/monitoring/postmates-o
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
-import { DashboardItemOrderStatsComponent } from './components/monitoring/dashboard-item-order-stats/dashboard-item-order-stats.component';
+import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
+import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+
 
 @NgModule({
   declarations: [
@@ -350,6 +353,7 @@ import { DashboardItemOrderStatsComponent } from './components/monitoring/dashbo
     MonitoringOnboardingComponent,
     TaskBarComponent,
     MonitoringDisabledRestaurantsComponent,
+    MonitoringClosedRestaurantsComponent,
     MonitoringGmbComponent,
     MonitoringGmbTasksComponent,
     MonitoringDomainComponent,
@@ -418,8 +422,8 @@ import { DashboardItemOrderStatsComponent } from './components/monitoring/dashbo
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
     GmbWrongLinkComponent,
-    DashboardItemOrderStatsComponent
-
+    SeoTrackingComponent,
+    RestaurantSeoTrackingComponent
   ],
   imports: [
     BrowserModule,

@@ -13,6 +13,19 @@
         <div>
           QR Agent: {{qrSettings.agent || 'None'}}
         </div>
+        <div>
+          <a class="a_underline" *ngIf="!havingSpecialNumber()" href="javascript:void(0)" (click)="addSpecialPhoneNumber()">Add 234-567-8901</a>
+          <a class="a_underline" *ngIf="havingSpecialNumber()" href="javascript:void(0)" (click)="addSpecialPhoneNumber()">Remove 234-567-8901</a>
+          <a class="a_underline ml-3" href="https://qrbiz.qmenu.com/#" target="_blank">Login in to qrbiz portal
+            <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
+            <div *ngIf="showExplanation" class="left talk radius">
+              <p>By temporarily adding the special number 234-567-8901 to this restaurant’s list of channels, you can use the verification code 234 to log in. Remember to remove the 234-567-8901 number after logging out.</p>
+              -------------<br>
+              <p>通过临时将特殊号码234-567-8901加入这家餐馆的Channels列表，您可以使用特殊验证码234登录，退出后记得点击 “Remove 234-567-8901” 删除特殊号码。</p>
+            </div>
+           </i>
+          </a>
+        </div>
       </div>
       <div *qIf="editing">
         <div>
