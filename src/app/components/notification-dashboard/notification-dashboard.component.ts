@@ -271,7 +271,7 @@ export class NotificationDashboardComponent implements OnInit {
     mergedMessage = mergedMessage.replace(/_restaurantName_/g, sampleOrderData.restaurantObj.name);
     mergedMessage = mergedMessage.replace(/_orderDetailsURL_/g, "https://qmenu.biz/sc6l8");
 
-    const orderReadyEST = `${new Date(sampleOrderData.timeToDeliverEstimate).toLocaleTimeString('en-US', {
+    const orderReadyEST = `${new Date(sampleOrderData.timeToDeliverEstimate).toLocaleString('en-US', {
       timeZone: "America/New_York", hour: '2-digit', minute: '2-digit'
     })}`;
 
