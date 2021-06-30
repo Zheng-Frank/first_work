@@ -79,7 +79,8 @@ export class MonitoringPrintersComponent implements OnInit {
           {
             name: this.printerInEditing.sn,
             key: this.printerInEditing.key,
-            autoPrintCopies: 1
+            autoPrintCopies: 1,
+            host: this.printerInEditing.host && 'EU'
           }
         );
       }
@@ -88,7 +89,6 @@ export class MonitoringPrintersComponent implements OnInit {
           {
             type: this.printerInEditing.type,
             printers: printers,
-            host: this.printerInEditing.host && 'EU',
             createdAt: new Date().valueOf()
           }
         ]
