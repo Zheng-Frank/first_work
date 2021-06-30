@@ -77,7 +77,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     });
     let minDistance = Math.min(...distanceArr);
     let index = distanceArr.indexOf(minDistance);
-    if (minDistance < 0.1 && (viabilityList[index].Viability === 'V1' || viabilityList[index].Viability === 'V2' || viabilityList[index].Viability === 'V3' || viabilityList[index].Viability === 'V4')) {
+    if (minDistance < 0.5 && (viabilityList[index].Viability === 'V1' || viabilityList[index].Viability === 'V2' || viabilityList[index].Viability === 'V3' || viabilityList[index].Viability === 'V4')) {
       this.postmatesAvailability = "Available (" + viabilityList[index].Viability+")";
     } else {
       this.postmatesAvailability = "Not available";

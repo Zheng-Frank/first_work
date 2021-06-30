@@ -1,0 +1,17 @@
+<h2 class="card-title m-3">
+  <h1 class="text-center">SEO Tracking (Coming soon)</h1>
+</h2>
+<q-table [rows]="filterSpecificRankingRows" [tableColumnDescriptors]="specificColumnDescriptors" [compact]="true"
+[pageSize]="100000">
+<tr *tableRowTemplate="let row;">
+  <td>
+    {{row?.provider}}
+  </td>
+  <td>
+    {{row?.oldRanking}}
+  </td>
+  <td>
+    {{row?.newRanking}}
+  </td>
+</tr>
+</q-table>
