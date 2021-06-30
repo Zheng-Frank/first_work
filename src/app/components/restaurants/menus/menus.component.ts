@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 
-import {Menu, MenuDisplay, MenuOption, Restaurant} from '@qmenu/ui';
+import {Menu, MenuOption, Restaurant} from '@qmenu/ui';
 import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {MenuEditorComponent} from '../menu-editor/menu-editor.component';
 import {Helper} from '../../../classes/helper';
@@ -151,7 +151,7 @@ export class MenusComponent implements OnInit {
     }
 
     name = name.trim();
-    let withNumRegex = /^(([a-zA-Z]?\d+)(\.?)\s)(\S+)\s*/i;
+    let withNumRegex = /^(([a-zA-Z]{0,2}\d+)(\.?)\s)(\S+)\s*/i;
     let numMatched = name.match(withNumRegex);
     let measureWords = [
       'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
@@ -174,12 +174,13 @@ export class MenusComponent implements OnInit {
 
     }
 
-    let regex = /[\s-(]?([^\x00-\xff]+)[\s)]?/;
+    // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
+    let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
     let re = name.match(regex);
     if (re) {
-      let zh = re[1], en = name.replace(regex, '').trim();
+      let zh = re[1].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
       // remove brackets around name
-      en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)\]$/, '$1');
+      en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1');
       zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
       item.translation = {zh, en};
       item.number = number;
@@ -201,7 +202,7 @@ export class MenusComponent implements OnInit {
 
   async cleanup() {
     this.menusToClean = [];
-    this.menusIncludeCleaned = {}
+    this.menusIncludeCleaned = {};
     let {menus, menuOptions} = this.restaurant;
     let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x)),
       tempMenuOptions = JSON.parse(JSON.stringify(menuOptions)).map(x => new MenuOption(x));
@@ -248,7 +249,7 @@ export class MenusComponent implements OnInit {
         translation.EN = en;
         translation.ZH = zh;
       }
-      ['zh', 'prev_en', 'prev_zn'].forEach(p => delete item.translation[p]);
+      ['zh', 'prev_en', 'prev_zh'].forEach(p => delete item.translation[p]);
     }
   }
 
