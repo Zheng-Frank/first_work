@@ -70,7 +70,6 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     viabilityList.forEach(item => {
       if (item.Latitude && item.Longitude) {
         const distance = this.getDistance(this.restaurant.googleAddress.lat, this.restaurant.googleAddress.lng, item.Latitude, item.Longitude)
-        console.log(item["Addresses"]+":"+distance);
         distanceArr.push(distance);
       } else {
         distanceArr.push(Number.MAX_VALUE);
