@@ -74,6 +74,7 @@ export class ApiLogsDashboardComponent implements OnInit {
     this.users = this.users.map(u => {
       return u.username
     });
+    this.users = this.users.sort((a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0));
     this.user = this.users[0];
     this.courseLogs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "apilog",
@@ -89,7 +90,7 @@ export class ApiLogsDashboardComponent implements OnInit {
       },
       limit: this.recordNumber
     }, 15);
-    this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
+    this.courseLogs = this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
 
     // sort out the results;
     this.apiLogsRows = [];
@@ -254,7 +255,7 @@ export class ApiLogsDashboardComponent implements OnInit {
           "body.old": 1,
           "body.new": 1
         }
-      }, 1);
+      }, 15);
       this.courseLogs = this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
 
       // sort out the results;
