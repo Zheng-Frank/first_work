@@ -224,8 +224,10 @@ import { PostmatesOrderCardComponent } from './components/monitoring/postmates-o
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
-import { DashboardItemOrderStatsComponent } from './components/monitoring/dashboard-item-order-stats/dashboard-item-order-stats.component';
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
+import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
+import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+
 
 @NgModule({
   declarations: [
@@ -421,9 +423,9 @@ import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dash
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
     GmbWrongLinkComponent,
-    DashboardItemOrderStatsComponent,
-    ApiLogsDashboardComponent
-
+    ApiLogsDashboardComponent,
+    SeoTrackingComponent,
+    RestaurantSeoTrackingComponent
   ],
   imports: [
     BrowserModule,
