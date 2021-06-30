@@ -123,7 +123,7 @@ export class RestaurantOrdersComponent implements OnInit {
     } as any;
 
     // ISO-Date()
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
       projection: {//返回除logs以外的所有行
@@ -132,8 +132,8 @@ export class RestaurantOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 50
-    }).toPromise();
+      limit: 500
+    },50);
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
