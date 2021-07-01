@@ -96,7 +96,7 @@ export class MenuComponent implements OnInit {
       });
       // It's a problem to put unshift and splice together.
       beverageMcs.forEach(beverageMc => menu.mcs.unshift(beverageMc));
-  
+
       try {
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
           old: {
@@ -208,9 +208,8 @@ export class MenuComponent implements OnInit {
   }
 
   editAllItems(mc) {
-    this.editingMis = true;
     this.misEditor.setMc(mc, this.restaurant.menuOptions);
-
+    this.editingMis = true;
   }
 
   mcDone(mc: Mc) {
@@ -234,7 +233,7 @@ export class MenuComponent implements OnInit {
             this.mcModal.hide();
             this.beverageSectionModal.show();
             return;
-          } 
+          }
           if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name.trim())) {
             repeated = true;
             this._global.publishAlert(AlertType.Danger, `Menu category ${mc.name} already exist!`);

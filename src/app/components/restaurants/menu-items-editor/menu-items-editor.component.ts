@@ -1,5 +1,5 @@
 import { Component, ViewChild, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-import { Mc, Item, Mi, MenuOption } from '@qmenu/ui';
+import {Mc, Item, Mi, MenuOption, IMenuTranslation} from '@qmenu/ui';
 
 declare var $: any;
 
@@ -27,8 +27,9 @@ export class MenuItemsEditorComponent implements OnInit {
 
     // attach 2 more size options for existing ones
 
-    this.mc.mis.map(mi => {
-      [0, 1].map(i => {
+    this.mc.mis.forEach(mi => {
+      mi.translation = mi.translation || {en: ''} as IMenuTranslation;
+      [0, 1].forEach(() => {
         const item = new Item();
         mi.sizeOptions.push(item);
       });
@@ -41,6 +42,7 @@ export class MenuItemsEditorComponent implements OnInit {
       mi.category = mc.id;
       mi.id = baseId + i.toString();
       mi.sizeOptions = [];
+      mi.translation = {en: ''} as IMenuTranslation;
 
       ['regular', 'small', 'large'].forEach(
         size => {
@@ -56,7 +58,7 @@ export class MenuItemsEditorComponent implements OnInit {
   ngOnInit() {
   }
 
-  isSpicy(mi){
+  isSpicy(mi) {
     return mi.flavors && mi.flavors['Spicy'];
   }
 
@@ -68,7 +70,7 @@ export class MenuItemsEditorComponent implements OnInit {
   ok() {
     //
     // should do validation first
-    //let's remove empty menuOptionIds
+    // let's remove empty menuOptionIds
     if (this.mc.menuOptionIds && this.mc.menuOptionIds.length === 0) {
       delete this.mc.menuOptionIds;
     }
@@ -76,11 +78,11 @@ export class MenuItemsEditorComponent implements OnInit {
     // remove empty sizeOptions!
     this.mc.mis.map(mi => {
       mi.sizeOptions = mi.sizeOptions.filter(i => i.name && i.price);
+    //  todo: save translations to rt's translation
     });
 
     // remove empty mis
-    this.mc.mis = this.mc.mis.filter(mi => mi.sizeOptions.length > 0 && mi.name
-    );
+    this.mc.mis = this.mc.mis.filter(mi => mi.sizeOptions.length > 0 && mi.name);
 
     console.log(this.mc);
 

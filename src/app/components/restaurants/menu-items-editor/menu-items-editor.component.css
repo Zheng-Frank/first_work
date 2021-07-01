@@ -14,3 +14,7 @@
 .form-control{
     display: initial !important;
 }
+.mi-translation label {
+  font-size: 0.75rem;
+  color: #9e9e9e;
+}
