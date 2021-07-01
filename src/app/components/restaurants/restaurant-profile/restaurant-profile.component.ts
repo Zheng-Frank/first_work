@@ -215,7 +215,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   isTemporarilyDisabled;
   now = new Date().toISOString().split('T')[0];
   @ViewChild('previewWebsiteModal') previewWebsiteModal:ModalComponent;
-  
+
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) {
   }
 
@@ -297,7 +297,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   tipSettingsInit() {
     ['Pickup', 'Delivery', 'Dine-in'].forEach(type => {
-      const setting = this.restaurant.serviceSettings.find(x => x.name === type) || {
+      const setting = (this.restaurant.serviceSettings || []).find(x => x.name === type) || {
         name: type,
         paymentMethods: [],
         tipSuggestion: {},

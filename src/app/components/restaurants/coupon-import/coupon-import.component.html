@@ -1,9 +1,9 @@
 <div class="alert alert-secondary" *ngIf="visible">
   <div class="card card-body">
-    <h3 class="text-center">From a Provider ({{providers.length}})</h3>
+    <h3 class="text-center">From a Provider ({{restaurant.providers?.length}})</h3>
     <small class="text-left">Providers for which we currently support coupon scraping: Beyond Menu</small>
     <select class="form-control mr-4" [(ngModel)]="provider">
-      <option *ngFor="let provider of providers" [ngValue]="provider.name">{{provider.label}}</option>
+      <option *ngFor="let provider of (restaurant.providers || [])" [ngValue]="provider.url">{{provider.name}}</option>
     </select>
 
     <div class="py-2">
