@@ -1,3 +1,4 @@
+import { map } from 'rxjs/operators';
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {Item, Mc, Menu, Mi, Restaurant} from '@qmenu/ui';
 import {Helper} from '../../../classes/helper';
@@ -35,7 +36,7 @@ export class MenuComponent implements OnInit {
 
   editingMis = false;
   mcOfSortingMis;
-
+  sortMcItems; // it's a mcs which waiting for reordering.
   targetWording = {
     'ONLINE_ONLY': 'Online only', // also a default when there is no target customer specified
     'DINE_IN_ONLY': 'Dine-in only',
@@ -107,7 +108,8 @@ export class MenuComponent implements OnInit {
           }
         }]).toPromise();
         this.restaurant.menus[index].mcs = menu.mcs;
-        this._global.publishAlert(AlertType.Success, 'Success!');
+        console.log(JSON.stringify(menu.mcs));
+        this._global.publishAlert(AlertType.Success, 'Resort Success!');
         this.beverageSectionModal.hide();
       } catch (error) {
         console.log(error);
@@ -152,7 +154,8 @@ export class MenuComponent implements OnInit {
     }
   }
 
-  showMcSortingModal() {
+  showMcSortingModal(mcs) {
+    this.sortMcItems = mcs;
     this.mcSortingModal.show();
   }
 
