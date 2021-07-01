@@ -132,7 +132,7 @@ export class RestaurantOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 500
+      limit: 150
     },50);
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
