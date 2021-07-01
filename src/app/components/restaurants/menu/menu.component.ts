@@ -533,10 +533,22 @@ export class MenuComponent implements OnInit {
 
 
     const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    newMenus.map(eachMenu => {
-      eachMenu.mcs.map(eachMc => {
+    const { translations } = this.restaurant;
+    newMenus.forEach(eachMenu => {
+      eachMenu.mcs.forEach(eachMc => {
         if (eachMc.id === mc.id) {
           eachMc.mis = mc.mis || [];
+          eachMc.mis.forEach(mi => {
+            let { en, zh } = mi.translation;
+            // todo: what if zh is deleted ?
+            let tmp = (translations || []).find(x => x.EN === en);
+            if (tmp) {
+              tmp.ZH = zh;
+            } else {
+              translations.push({EN: en, ZH: zh});
+            }
+            delete mi.translation.zh;
+          });
         }
       });
     });

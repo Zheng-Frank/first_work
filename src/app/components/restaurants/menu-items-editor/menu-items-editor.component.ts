@@ -12,7 +12,7 @@ export class MenuItemsEditorComponent implements OnInit {
 
   @Input() mc: Mc;
   @Input() menuOptions: MenuOption[] = [];
-
+  @Input() translations = [];
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
 
@@ -29,6 +29,10 @@ export class MenuItemsEditorComponent implements OnInit {
 
     this.mc.mis.forEach(mi => {
       mi.translation = mi.translation || {en: ''} as IMenuTranslation;
+      let tmp = this.translations.find(x => x.EN === mi.translation.en);
+      if (tmp) {
+        mi.translation.zh = tmp.ZH;
+      }
       [0, 1].forEach(() => {
         const item = new Item();
         mi.sizeOptions.push(item);
@@ -78,7 +82,6 @@ export class MenuItemsEditorComponent implements OnInit {
     // remove empty sizeOptions!
     this.mc.mis.map(mi => {
       mi.sizeOptions = mi.sizeOptions.filter(i => i.name && i.price);
-    //  todo: save translations to rt's translation
     });
 
     // remove empty mis
