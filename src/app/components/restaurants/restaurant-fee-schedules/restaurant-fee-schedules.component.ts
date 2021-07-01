@@ -360,7 +360,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   }
 
   feeSchedulePaymentMethodsLimitationString(feeSchedule: FeeSchedule) {
-    return feeSchedule.orderPaymentMethods.every(pm => ['IN_PERSON', 'KEY_IN', 'STRIPE', 'QMENU','PAYPAL'].indexOf(pm) >= 0) ? 'credit card orders' : feeSchedule.orderPaymentMethods.join(', ');
+    return feeSchedule.orderPaymentMethods.every(pm => ['IN_PERSON', 'KEY_IN', 'STRIPE', 'QMENU'].indexOf(pm) >= 0) ? 'credit card orders' : feeSchedule.orderPaymentMethods.join(', ');
   }
 
   isFeeScheduleExpired(feeSchedule) {
