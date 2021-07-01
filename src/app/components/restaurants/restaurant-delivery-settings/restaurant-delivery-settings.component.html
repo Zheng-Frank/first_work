@@ -26,7 +26,7 @@
           <button class="btn btn-link py-0 mr-3" (click)="checkPostmatesAvailability()" [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>          
           <div *ngIf="postmatesAvailability && postmatesAvailability.indexOf('Available') >= 0; else notAvailable">
             <i class="fa fa-check fg--green" aria-hidden="true"></i>
-            <span>Available</span>
+            <span>{{postmatesAvailability}}</span>
           </div>
           <ng-template #notAvailable>
             <div *ngIf="postmatesAvailability == 'Not available'">
