@@ -8,7 +8,6 @@ export const environment = {
   legacyApiUrl: "https://quez.herokuapp.com/",
   // legacyApiUrl: "http://localhost:1337/",
   autoGmbUrl: "http://localhost:3000/",
-
   migrationUrl: "http://qauto.ngrok.io/",
   taskUrl: "https://qtask.ngrok.io/",
   invoicingApiUrl: "http://localhost:8888/",
