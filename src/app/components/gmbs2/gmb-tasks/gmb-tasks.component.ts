@@ -648,7 +648,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         }));
         return {
             timezoneCell: Helper.getTimeZone(formatedAddr),
-            // localTimeString: new Date().toLocaleTimeString('en-US', { timeZone: timezoneR }), toLocaleTimeString toooo slow!!!!
+            localTimeString: new Date().toLocaleString('en-US', { timeZone: timezoneR, hour: '2-digit', minute: '2-digit' }), // toLocaleTimeString toooo slow, use to localeString instead!!!!
             statusClass: this.getStatusClass(task),
             address: (formatedAddr.split(', USA'))[0],
             score: this.restaurantDict[task.relatedMap.restaurantId].score,
