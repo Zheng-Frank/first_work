@@ -6,6 +6,11 @@
     <ul class="list-group list-group-flush">
 
       <li class="list-group-item">
+        <div class="text-right py-2">
+          <span>{{postmatesAvailability}} </span>
+          <button class="btn btn-link py-0 pr-0" (click)="checkPostmatesAvailability()"
+            [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>
+        </div>
         <!--displaying-->
         <div *qIf="!editing">
 
@@ -118,12 +123,6 @@
                     <option *ngFor="let c of couriers" [ngValue]="c" [disabled]="deliveryAndNotQMenuCollect(c)">
                       {{c.name}}</option>
                   </select>
-                  <div class="text-right py-2" *ngIf="selectedCourier && selectedCourier.name === 'Postmates'">
-
-                    <span>{{postmatesAvailability}} </span>
-                    <button class="btn btn-link py-0 pr-0" (click)="checkPostmatesAvailability()"
-                      [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>
-                  </div>
                 </div>
               </td>
             </tr>
