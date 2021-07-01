@@ -150,7 +150,7 @@ export class SendTextReplyComponent implements OnInit {
         this.message = 'https://www.youtube.com/watch?v=HosHBDOXKnw';
         break;
       case 'QR promo vid (Eng)':
-        this.message = 'https://www.youtube.com/watch?v=nP7b1Z79qws';
+        this.message = 'https://www.youtube.com/watch?v=_YL2LGE6joM';
         break;
       case 'QR tutorial vid (中)':
         // this.message = 'https://www.youtube.com/watch?v=KATrlX7N2g8&list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn';
