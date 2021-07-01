@@ -48,7 +48,18 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
 
     ngOnChanges(params) {
     }
-
+    /**
+     * it needs to show old pepper's count.
+     * @param mi 
+     */
+    getSpicy(mi) {
+        if (mi.flavors && mi.flavors['Spicy']) {
+            let pepperCounts = [];
+            pepperCounts.push(Array.apply(null, { length: +this.mi.flavors['Spicy'] }).map(Number.call, Number).length);
+            return pepperCounts;
+        }
+        return undefined;
+    }
     startupActionSelected(value) {
 
         if (value === 'Yes') {   // Copy
@@ -65,7 +76,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.mi = new Mi(mi);
         this.mi.id = undefined;
         this.mi.category = category;
-        
+
         this.finishedChoosingStartupAction = true;
         // we want to top of the modal after a selection
         $('.modal').animate({ scrollTop: 0 }, 'slow');

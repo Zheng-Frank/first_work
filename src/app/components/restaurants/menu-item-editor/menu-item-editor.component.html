@@ -143,7 +143,7 @@
       <div *qIf="mi.flavors">
 
         <label>Spicy (max = 5):</label>
-        <q-selector #spicySelector [name]="'Spicy'" [values]="[1, 2, 3, 4, 5]"></q-selector>
+        <q-selector #spicySelector [name]="'Spicy'" [values]="[1, 2, 3, 4, 5]" [initialValues]="getSpicy(mi)"></q-selector>
         <label>Sweet:</label>
         <q-selector #sweetSelector [name]="'Sweet'" [values]="[1, 2, 3, 4, 5]"></q-selector>
         <label>Sour:</label>
