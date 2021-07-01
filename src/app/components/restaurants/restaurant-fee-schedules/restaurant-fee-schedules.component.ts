@@ -143,8 +143,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       { object: OrderPaymentMethod.Cash, text: "Cash", selected: false },
       { object: OrderPaymentMethod.InPerson, text: "CC: swipe in-person", selected: false },
       { object: OrderPaymentMethod.KeyIn, text: "CC: key-in", selected: false },
-      { object: OrderPaymentMethod.Qmenu, text: "CC: qMenu collect", selected: false },
-      { object: OrderPaymentMethod.Paypal, text: "CC: qMenu paypal", selected: false },
+      { object: OrderPaymentMethod.Qmenu, text: "CC: qMenu collect", selected: false },      
       { object: OrderPaymentMethod.Stripe, text: "CC: restaurant using stripe", selected: false },
     ]
   };
