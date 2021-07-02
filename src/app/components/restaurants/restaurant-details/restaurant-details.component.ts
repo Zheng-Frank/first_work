@@ -36,7 +36,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    rateSchedules: ['RATE_EDITOR', 'MARKETER', 'CSR'],
+    rateSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     promotions: [],

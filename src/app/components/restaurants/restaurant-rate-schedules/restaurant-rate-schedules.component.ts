@@ -54,6 +54,7 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   }
 
   toggleEditing() {
+    // todo: remove last column may have issue when edit
     this.editing = !this.editing;
     this.rateSchedulesInEditing = JSON.parse(JSON.stringify(this.restaurant.rateSchedules || []));
     // put empty settings to make it 4 (hardcoded max)
