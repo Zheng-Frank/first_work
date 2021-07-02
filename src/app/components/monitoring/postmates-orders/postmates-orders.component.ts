@@ -95,11 +95,11 @@ export class PostmatesOrdersComponent implements OnInit {
     this.populateOrders();
   }
 
-  toggleShowAdvancedSearch(){
+  toggleShowAdvancedSearch() {
     this.showAdvancedSearch = !this.showAdvancedSearch;
-    if(!this.showAdvancedSearch){
+    if (!this.showAdvancedSearch) {
       this.populateOrders();
-    }else{
+    } else {
       this.dateType = 'Today';
       this.searchOrderByDate();
     }
@@ -108,9 +108,11 @@ export class PostmatesOrdersComponent implements OnInit {
     we can search order in today ,yesterday,last three days ,and also can give a time.
   */
   async searchOrderByDate() {
-    if(this.dateType != 'Custom'){
+    if (this.dateType != 'Custom') {
       let query = {};
       if (this.dateType === 'Today') {
+        let today = new Date();
+        let hours = today.getHours();
         query = {
           restaurant: {
             $exists: true
@@ -120,7 +122,7 @@ export class PostmatesOrdersComponent implements OnInit {
           },
           $and: [{
             createdAt: {
-              $gte: { $date: new Date(new Date().valueOf() - 24 * 3600 * 1000) }
+              $gte: { $date: new Date(new Date().valueOf() - hours * 3600 * 1000) }
             } // less than and greater than
           }, {
             createdAt: {
@@ -130,6 +132,10 @@ export class PostmatesOrdersComponent implements OnInit {
           ]
         } as any;
       } else if (this.dateType === 'Yesterday') {
+        let today = new Date();
+        let hours = today.getHours();
+        // new Date().valueOf() - (hours) * 3600 * 1000) means today has started,
+        // new Date(new Date().valueOf() - (24 + hours) * 3600 * 1000) means yestoday has started.
         query = {
           restaurant: {
             $exists: true
@@ -139,17 +145,17 @@ export class PostmatesOrdersComponent implements OnInit {
           },
           $and: [{
             createdAt: {
-              $gte: { $date: new Date(new Date().valueOf() - 48 * 3600 * 1000) }
+              $gte: { $date: new Date(new Date().valueOf() - (24 + hours) * 3600 * 1000) }
             } // less than and greater than
           }, {
             createdAt: {
-              $lte: { $date: new Date(new Date().valueOf() - 24 * 3600 * 1000) }
+              $lte: { $date: new Date(new Date().valueOf() - (hours) * 3600 * 1000) }
             }
           }
           ]
         } as any;
-      } 
-  
+      }
+
       // ISO-Date()
       const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "order",
@@ -160,9 +166,9 @@ export class PostmatesOrdersComponent implements OnInit {
         sort: {
           createdAt: -1
         },
-      },100);
+      }, 100);
       const customerIds = orders.filter(order => order.customer).map(order => order.customer);
-  
+
       const blacklist = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
         resource: "blacklist",
         query: {
@@ -179,7 +185,7 @@ export class PostmatesOrdersComponent implements OnInit {
         sort: {
           createAt: 1
         }
-      },100000);
+      }, 100000);
       const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "order",
         query: {
@@ -225,7 +231,7 @@ export class PostmatesOrdersComponent implements OnInit {
         return new Order(order);
       });
     }
-   
+
   }
   /**
    *
@@ -328,7 +334,7 @@ export class PostmatesOrdersComponent implements OnInit {
         }
       });
     });
-  
+
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
