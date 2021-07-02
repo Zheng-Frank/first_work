@@ -60,6 +60,25 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         }
         return undefined;
     }
+
+    getSweet(mi){
+        if (mi.flavors && mi.flavors['Sweet']) {
+            let sweetCounts = [];
+            sweetCounts.push(Array.apply(null, { length: +this.mi.flavors['Sweet'] }).map(Number.call, Number).length);
+            return sweetCounts;
+        }
+        return undefined;
+    }
+
+    getSour(mi){
+        if (mi.flavors && mi.flavors['Sour']) {
+            let sourCounts = [];
+            sourCounts.push(Array.apply(null, { length: +this.mi.flavors['Sour'] }).map(Number.call, Number).length);
+            return sourCounts;
+        }
+        return undefined;
+    }
+
     startupActionSelected(value) {
 
         if (value === 'Yes') {   // Copy
