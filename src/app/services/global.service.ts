@@ -554,6 +554,12 @@ export class GlobalService {
       const roles = this._user.roles || [];
       const menuMappings = [
         {
+          name: "Routines",
+          href: "#/routines",
+          fa: "fas fa-hourglass",
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"]
+        },
+        {
           name: "IVR",
           href: "#/ivr/agent",
           fa: "fas fa-user",

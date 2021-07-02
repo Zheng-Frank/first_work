@@ -16,9 +16,10 @@
                     <small>{{routine.description}} </small>
                 </div>
             </td>
-            <td >
-                <button class="btn btn-primary" [disabled]="routine.name === 'Timekeeping'"  (click)="createReport(routine)">Report</button>
-            </td> 
+            <td>
+                <button class="btn btn-primary" [disabled]="routine.name === 'Timekeeping'"
+                    (click)="createReport(routine)">Report</button>
+            </td>
         </tr>
     </q-table>
 
@@ -44,18 +45,15 @@
             <td>
                 <!-- Created Date -->
                 <div>
-                    {{routine.createdAt | date: 'short'}}
+
+                    {{routine.createdAt | date: 'shortDate'}}
+
                 </div>
             </td>
             <td>{{routine.version}}</td> <!-- Version -->
             <td class="text-nowrap">
                 <!-- Assignees -->
-                <ul>
-                    <li *ngFor="let assignee of routine.assignees">
-                        {{assignee}}
-                    </li>
-                </ul>
-
+                {{routine.assignees.length}}
             </td>
             <td>
                 <!-- Metrics -->
