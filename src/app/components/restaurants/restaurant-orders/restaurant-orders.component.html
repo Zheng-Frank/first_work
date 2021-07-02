@@ -7,7 +7,10 @@
       <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
     </select>
     <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
-      class="form-control col-7" placeholder="Search">
+      class="form-control col-6" placeholder="Search">
+    <div class="ml-3 mt-2">
+      <input  type="checkbox" [(ngModel)]="searchQROrder" (change)="searchQROrders()"> QR orders only
+    </div>
     <div *ngIf="searchText" class="text-muted float-left col-1">Found: {{orders.length}}</div>
   </div>
   <div class="form-group">
