@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
+import {FeeSchedule, Restaurant} from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -44,6 +44,13 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   }
 
   dateChanged(date) {
+  }
+
+  isCsrOrMarkter() {
+    const roles = this._global.user.roles || [];
+    // const roles = ['CSR', 'MARKTER'];
+    // todo: how to judge csr
+    return roles.includes('CSR') && !roles.includes('ADMIN');
   }
 
   toggleEditing() {

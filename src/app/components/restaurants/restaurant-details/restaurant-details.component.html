@@ -13,7 +13,7 @@
       <h2>{{restaurant.name}}</h2>
 
       <div class="small">
-        {{restaurant.googleAddress.formatted_address}} 
+        {{restaurant.googleAddress.formatted_address}}
         (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google<i class="fas fa-external-link-alt"></i></a>)
       </div>
       <div class="small">
@@ -33,7 +33,7 @@
   <div class="p-t-1 pt-1 p-b-1 pb-1">
     <button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
     <button (click)="toggleGooglePIN()" class="btn btn-secondary fa fa-comments"> Send Google PIN Message</button>
-    <span class="ml-2 mr-2">Show explanations</span><q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()"></q-toggle> 
+    <span class="ml-2 mr-2">Show explanations</span><q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()"></q-toggle>
     <span class="ml-2 mr-2">Language</span>
     <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;" (change)="changeLanguage()">
       <option *ngFor="let type of languageTypes" [value]="type">{{type}}</option>
@@ -85,7 +85,7 @@
       <div *ngIf="activeTab === 'Coupons'">
         <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
       </div>
-      
+
       <div *ngIf="activeTab === 'Invoices'">
         <app-restaurant-invoices [restaurant]="restaurant"></app-restaurant-invoices>
       </div>
@@ -93,11 +93,11 @@
       <div *ngIf="activeTab === 'Orders'">
         <app-restaurant-orders [restaurant]="restaurant"></app-restaurant-orders>
       </div>
-     
+
       <div *ngIf="activeTab === 'GMB'">
         <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
       </div>
-     
+
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
         <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
           <app-restaurant-profile [restaurant]="restaurant" #restaurantProfile [editable]="true"></app-restaurant-profile>
@@ -140,11 +140,11 @@
           <app-restaurant-payment-means [restaurant]="restaurant"></app-restaurant-payment-means>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('rateSchedules')">
-          <div *ngIf="restaurant.feeSchedules">
-            <app-restaurant-sales [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-sales>
-            <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
-          </div>
-          <div *ngIf="!restaurant.feeSchedules">
+<!--          <div *ngIf="restaurant.feeSchedules">-->
+<!--            <app-restaurant-sales [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-sales>-->
+<!--            <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>-->
+<!--          </div>-->
+          <div>
             <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
           </div>
         </div>
@@ -152,15 +152,15 @@
           <app-restarant-chains [restaurant]="restaurant"></app-restarant-chains>
         </div>
       </div>
-      
+
       <div *ngIf="activeTab === 'Logs'">
         <app-restaurant-logs [restaurant]="restaurant" (reload)="reload($event)"></app-restaurant-logs>
       </div>
-      
+
       <div *ngIf="activeTab === 'Tasks'">
         <app-restaurant-tasks [restaurant]="restaurant"></app-restaurant-tasks>
       </div>
-      
+
       <div *ngIf="activeTab === 'Diagnostics'">
         <app-restaurant-diagnostics [restaurant]="restaurant"></app-restaurant-diagnostics>
       </div>
@@ -168,7 +168,7 @@
       <div *ngIf="activeTab === 'Others'">
         <app-restaurant-others [restaurant]="restaurant"></app-restaurant-others>
       </div>
-     
+
     </div>
   </div>
 </div>

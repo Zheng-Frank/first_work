@@ -49,10 +49,11 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     items: [
       { object: "service fee", text: "service fee", selected: false },
       { object: "credit card fee", text: "credit card fee", selected: false },
-      { object: "monthly fee", text: "monthly fee", selected: false },
-      { object: "commission", text: "commission", selected: false }
+      { object: "monthly fee", text: "monthly fee", selected: false }
     ]
   };
+
+  nameCommission = { object: "commission", text: "commission", selected: false };
 
   payerDescriptor = {
     field: "payer", //
@@ -62,14 +63,15 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     items: [
       { object: "CUSTOMER", text: "customer", selected: false },
       { object: "RESTAURANT", text: "restaurant", selected: false },
-      { object: "QMENU", text: "qmenu", selected: false },
     ]
   };
+
+  payerQmenu = { object: "QMENU", text: "qmenu", selected: false };
 
   payeeCustomer = { object: "CUSTOMER", text: "customer", selected: false };
   payeeRestaurant = { object: "RESTAURANT", text: "restaurant", selected: false };
   payeeQmenu = { object: "QMENU", text: "qmenu", selected: false };
-  payeeSales = { object: 'NONE', text: 'NONE', seleted: false };
+  payeeSales = { object: 'NONE', text: 'NONE', selceted: false };
 
 
   payeeDescriptor = {
@@ -143,7 +145,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       { object: OrderPaymentMethod.Cash, text: "Cash", selected: false },
       { object: OrderPaymentMethod.InPerson, text: "CC: swipe in-person", selected: false },
       { object: OrderPaymentMethod.KeyIn, text: "CC: key-in", selected: false },
-      { object: OrderPaymentMethod.Qmenu, text: "CC: qMenu collect", selected: false },      
+      { object: OrderPaymentMethod.Qmenu, text: "CC: qMenu collect", selected: false },
       { object: OrderPaymentMethod.Stripe, text: "CC: restaurant using stripe", selected: false },
     ]
   };
@@ -173,6 +175,32 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   ngOnInit() { }
 
+  isCsrOrMarkter() {
+    const roles = this._global.user.roles || [];
+    // const roles = ['CSR', 'MARKTER'];
+    // todo: how to judge csr
+    return roles.includes('CSR') && !roles.includes('ADMIN');
+  }
+
+  isCsrViewCommission(feeSchedule: FeeSchedule) {
+    // if payer is QMENU, then this is a commission, CSR should not see this
+    return this.isCsrOrMarkter() && feeSchedule.payer === 'QMENU';
+  }
+
+  toggleCSRView() {
+    let payerItems = this.payerDescriptor.items,
+      nameItems = this.nameDescriptor.items;
+    if (this.isCsrOrMarkter()) {
+      this.payerDescriptor.items = payerItems.filter(x => x !== this.payerQmenu);
+      this.nameDescriptor.items = nameItems.filter(x => x !== this.nameCommission);
+    } else {
+      if (!payerItems.find(x => x.object === 'QMENU')) {
+        this.payerDescriptor.items.push(this.payerQmenu);
+        this.nameDescriptor.items.push(this.nameCommission);
+      }
+    }
+  }
+
   updateFormBuilder() {
 
     this.fieldDescriptors.length = 0; // clear existing first
@@ -183,11 +211,13 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       this.payerDescriptor,
     );
 
+    this.toggleCSRView();
+
     if (!this.feeScheduleInEditing.payer) {
       return;
     }
 
-    // rule #2: if there is a payer, always show payee, from time, to time, and charge basis 
+    // rule #2: if there is a payer, always show payee, from time, to time, and charge basis
     this.fieldDescriptors.push(
       this.payeeDescriptor,
       this.fromTimeDescriptor,

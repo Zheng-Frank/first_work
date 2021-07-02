@@ -22,7 +22,7 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let feeSchedule of feeSchedules">
-            <tr *ngIf="showExpired || !isFeeScheduleExpired(feeSchedule)"
+            <tr *ngIf="(showExpired || !isFeeScheduleExpired(feeSchedule)) && !isCsrViewCommission(feeSchedule)"
               class="{{isFeeScheduleExpired(feeSchedule) ? 'expired' : '' }} ">
               <td class="text-lowercase text-nowrap my-text-b">{{feeSchedule.payer}} → {{feeSchedule.payee}}
                 <div class="my-text-small">
