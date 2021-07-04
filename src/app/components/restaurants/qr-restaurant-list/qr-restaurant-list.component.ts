@@ -39,8 +39,16 @@ export class QrRestaurantListComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: "Num QR orders",
+      label: "QR orders",
       sort: (a, b) => a.qrOrderNumber - b.qrOrderNumber
+    },
+    {
+      label: "QR scans",
+      sort: (a, b) => a.qrScans - b.qrScans
+    },
+    {
+      label: "Last alive",
+      sort: (a, b) => new Date(a.lastKnownAliveTime || 0).valueOf() - new Date(b.lastKnownAliveTime || 0).valueOf()
     },
     {
       label: "Correct/Wrong Reasons"  // why restaurant is wrong.
@@ -85,11 +93,31 @@ export class QrRestaurantListComponent implements OnInit {
   hasQRTraining;
   qrCodesMailed;
   qrCodesObtained;
+  /* use rtStats to track rt stats. example:
+     {
+       "57c4dc97a941661100c642b4": { 
+         lastKnownAliveTime: "2021-07-03T17:43:36.966Z",
+         events:[{
+           code: "C2",
+           runtime:{
+             browser: "Chrome",
+             os: "Mac"
+           },
+           createdAt: "2021-07-03T20:57:58.358Z"
+          },
+          ...
+        ]}
+      ...
+      }
+  */
+  rtStats = {};
+  restaurantShowingDetails;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
-  ngOnInit() {
-    this.populateQrRestaurant();
+  async ngOnInit() {
+    await this.populateQrRestaurant();
+    await this.populateRtStats();
   }
 
   isSchedulesValid(restaurant) {
@@ -446,6 +474,77 @@ export class QrRestaurantListComponent implements OnInit {
     }));
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
 
+  }
+
+  // get restaurant's online status and customer's QR scanning events
+
+  async populateRtStats() {
+
+    // get newest duplicate!
+    const dateThreshold = new Date(new Date().valueOf() - 24 * 3600000); // one day
+    const latestListeners = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'resource-listener',
+      query: {
+        createdAt: { $gt: { $date: dateThreshold } }
+      },
+      projection: {
+        "query.orderObj.restaurantObj._id": 1,
+        "connections": { $slice: 1 }
+      },
+      sort: {
+        _id: -1
+      },
+      limit: 10000
+    }).toPromise();
+
+    // build rtId: onlineTime map
+    const rtStats = {}; /// eg: {"57c4dc97a941661100c642b4": "2021-07-03T16:09:19.521Z"}
+    latestListeners.forEach(listener => {
+      const rtId = listener.query.orderObj && listener.query.orderObj.restaurantObj && listener.query.orderObj.restaurantObj._id;
+      const time = listener.connections && listener.connections.length > 0 && listener.connections[0].time;
+      if (rtId && time) {
+        rtStats[rtId] = rtStats[rtId] || {};
+        rtStats[rtId].lastKnownAliveTime = time;
+      }
+    });
+
+    // scan events in past xxx days
+    const analyticsEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'analytics-event',
+      query: {
+        name: 'scan-qr'
+      },
+      projection: {
+        restaurantId: 1,
+        code: 1,
+        "runtime.browser": 1,
+        "runtime.os": 1,
+        createdAt: 1
+      },
+      sort: {
+        _id: -1
+      },
+      limit: 10000
+    }).toPromise();
+
+    analyticsEvents.forEach(evt => {
+      const rtId = evt.restaurantId;
+      rtStats[rtId] = rtStats[rtId] || {};
+      rtStats[rtId].events = rtStats[rtId].events || [];
+      rtStats[rtId].events.push(evt);
+    });
+    console.log(rtStats);
+    // let's fill a field qrScans to each row. because this happens after populating rows, so we are OK to inject it here
+    this.qrFilterRestaurantListRows.forEach(row => {
+      row.qrScans = (rtStats[row._id] && rtStats[row._id].events && rtStats[row._id].events.length) || 0;
+      row.lastKnownAliveTime = (rtStats[row._id] && rtStats[row._id].lastKnownAliveTime) || 0;
+    });
+    this.rtStats = rtStats;
+    return rtStats;
+  }
+
+  getAnalyticsEvents(restaurant) {
+    return (this.rtStats[restaurant._id] && this.rtStats[restaurant._id].events) || [];
   }
 
 }

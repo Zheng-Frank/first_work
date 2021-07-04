@@ -19,7 +19,7 @@
     </select>
   </div>
   <div class="float-left form-inline ml-2 mr-2">
-      <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
+    <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
   </div>
   <div class="float-left form-inline ml-2 mr-2 mt-2">
     <input class="form-check-input" type="checkbox" [(ngModel)]="showAllLogs">
@@ -58,6 +58,20 @@
       </td>
       <td>
         {{restaurant.qrOrderNumber}}
+      </td>
+      <td>
+        <button class="btn btn-link py-0"
+          (click)="restaurant === restaurantShowingDetails ? restaurantShowingDetails = null : restaurantShowingDetails = restaurant">{{restaurant.qrScans}}</button>
+        <div *ngIf="restaurant === restaurantShowingDetails">
+          <div *ngFor="let evt of getAnalyticsEvents(restaurant)" class="text-nowrap">
+            {{evt.createdAt | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}
+            {{evt.runtime.os}}
+            {{evt.runtime.browser}}
+          </div>
+        </div>
+      </td>
+      <td>
+        {{restaurant.lastKnownAliveTime | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}
       </td>
       <td>
         <div *ngFor="let r of restaurant.Reasons">
@@ -146,10 +160,12 @@
     <h4 class="text-center">Fix Fee/Rate Schedules</h4>
     <hr>
     <div *ngIf="schedulesRestaurant && schedulesRestaurant.feeSchedules">
-      <app-restaurant-fee-schedules [restaurant]="schedulesRestaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
+      <app-restaurant-fee-schedules [restaurant]="schedulesRestaurant" [users]="knownUsers">
+      </app-restaurant-fee-schedules>
     </div>
     <div *ngIf="schedulesRestaurant && !schedulesRestaurant.feeSchedules">
-      <app-restaurant-rate-schedules [restaurant]="schedulesRestaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
+      <app-restaurant-rate-schedules [restaurant]="schedulesRestaurant" [users]="knownUsers">
+      </app-restaurant-rate-schedules>
     </div>
   </q-modal>
   <!-- end with schedule modal -->
