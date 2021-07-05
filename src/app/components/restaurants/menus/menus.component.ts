@@ -151,7 +151,10 @@ export class MenusComponent implements OnInit {
     }
 
     name = name.trim();
-    let withNumRegex = /^(([a-zA-Z]{0,2}\d+)(\.?)\s)(\S+)\s*/i;
+    // we'll handle these cases:
+    // 1. A1. XXX; 2. A12 XXX; 3. AB1 XXX; 4. AB12. XXX; 5. 1A XXX; 6. 11B. XXX
+    // 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
+    let withNumRegex = /^(?<to_rm>(?<num>([a-zA-Z]{0,2}\d+)|(\d+[a-zA-Z]))(?<dot>\.?)\s)(?<word>\S+)\s*/i;
     let numMatched = name.match(withNumRegex);
     let measureWords = [
       'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
@@ -160,12 +163,12 @@ export class MenusComponent implements OnInit {
     ];
     let number, hasMeasure = false;
     if (numMatched) {
-      let [, toRemove, num, dot, firstName] = numMatched;
+      let { to_rm, num, dot, word } = numMatched.groups;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
-      hasMeasure = measureWords.includes((firstName || '').toLowerCase());
+      hasMeasure = measureWords.includes((word || '').toLowerCase());
       if (!!dot || !hasMeasure) {
         // remove leading number chars
-        name = name.replace(toRemove, '');
+        name = name.replace(to_rm, '');
         item.cleanedName = name;
       }
       if (!hasMeasure) {
