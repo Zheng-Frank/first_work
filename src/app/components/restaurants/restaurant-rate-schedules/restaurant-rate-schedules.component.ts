@@ -46,15 +46,12 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   dateChanged(date) {
   }
 
-  isCsrOrMarkter() {
+  canEditCommission() {
     const roles = this._global.user.roles || [];
-    // const roles = ['CSR', 'MARKTER'];
-    // todo: how to judge csr
-    return roles.includes('CSR') && !roles.includes('ADMIN');
+    return roles.includes('ADMIN') || roles.includes('RATE_EDITOR');
   }
 
   toggleEditing() {
-    // todo: remove last column may have issue when edit
     this.editing = !this.editing;
     this.rateSchedulesInEditing = JSON.parse(JSON.stringify(this.restaurant.rateSchedules || []));
     // put empty settings to make it 4 (hardcoded max)

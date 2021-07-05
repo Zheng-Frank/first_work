@@ -49,11 +49,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     items: [
       { object: "service fee", text: "service fee", selected: false },
       { object: "credit card fee", text: "credit card fee", selected: false },
-      { object: "monthly fee", text: "monthly fee", selected: false }
+      { object: "monthly fee", text: "monthly fee", selected: false },
+      { object: "commission", text: "commission", selected: false }
     ]
   };
-
-  nameCommission = { object: "commission", text: "commission", selected: false };
 
   payerDescriptor = {
     field: "payer", //
@@ -175,28 +174,46 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   ngOnInit() { }
 
-  isCsrOrMarkter() {
-    const roles = this._global.user.roles || [];
-    // const roles = ['CSR', 'MARKTER'];
-    // todo: how to judge csr
-    return roles.includes('CSR') && !roles.includes('ADMIN');
+  getUserRoles() {
+    return this._global.user.roles || [];
   }
 
-  isCsrViewCommission(feeSchedule: FeeSchedule) {
-    // if payer is QMENU, then this is a commission, CSR should not see this
-    return this.isCsrOrMarkter() && feeSchedule.payer === 'QMENU';
+  hasFullFeePrivilege() {
+    const roles = this.getUserRoles();
+    // ADMIN and RATE_EDITOR have full privileges of fee/rate schedule
+    return roles.includes('ADMIN') || roles.includes('RATE_EDITOR');
   }
 
-  toggleCSRView() {
-    let payerItems = this.payerDescriptor.items,
-      nameItems = this.nameDescriptor.items;
-    if (this.isCsrOrMarkter()) {
+  canViewFeeSchedule(feeSchedule) {
+
+    // 1. ADMIN can view everything in all platform
+    // 2. RATE_EDITOR can view everything in rate/fee schedule
+    if (this.hasFullFeePrivilege()) {
+      return this.showExpired || !this.isFeeScheduleExpired(feeSchedule);
+    }
+    // other's can not view expired items
+    if (this.isFeeScheduleExpired(feeSchedule)) {
+      return false;
+    }
+    // 3. Salesperson(MARKETER) can see rate/fee commission belongs to himself
+    const roles = this.getUserRoles();
+    if (roles.includes('MARKETER')) {
+      const username = this._global.user.username;
+      const [salesAgent] = ((this.restaurant || {} as any).rateSchedules || []).map(rs => rs.agent);
+      // todo: how to judge current agent of rt
+      return feeSchedule.payer !== 'QMENU' || salesAgent === username;
+    }
+    // 4. all other role can not view commission
+    return feeSchedule.payer !== 'QMENU';
+  }
+
+  togglePayerView() {
+    let payerItems = this.payerDescriptor.items;
+    if (!this.hasFullFeePrivilege()) {
       this.payerDescriptor.items = payerItems.filter(x => x !== this.payerQmenu);
-      this.nameDescriptor.items = nameItems.filter(x => x !== this.nameCommission);
     } else {
       if (!payerItems.find(x => x.object === 'QMENU')) {
         this.payerDescriptor.items.push(this.payerQmenu);
-        this.nameDescriptor.items.push(this.nameCommission);
       }
     }
   }
@@ -211,7 +228,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       this.payerDescriptor,
     );
 
-    this.toggleCSRView();
+    this.togglePayerView();
 
     if (!this.feeScheduleInEditing.payer) {
       return;
