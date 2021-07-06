@@ -117,7 +117,6 @@ export class QrRestaurantListComponent implements OnInit {
 
   async ngOnInit() {
     await this.populateQrRestaurant();
-    await this.populateRtStats();
   }
 
   isSchedulesValid(restaurant) {
@@ -128,6 +127,7 @@ export class QrRestaurantListComponent implements OnInit {
     this.schedulesRestaurant = restaurant;
     this.schedulesModal.show();
   }
+
   /**
    * add a new filter type , filtering by qr salesperson.
    */
@@ -183,13 +183,28 @@ export class QrRestaurantListComponent implements OnInit {
     this.filterByQRSettings();
   }
 
-  filterByQRSettings(){
+  filterByQRSettings() {
     if (this.hasSignHolders || this.hasQRTraining || this.qrCodesMailed || this.qrCodesObtained) {
-      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
-        .filter(qrList => qrList.qrSettings.hasSignHolders.hasSignHolders || qrList.qrSettings.hasQRTraining.hasQRTraining || qrList.qrSettings.qrCodesMailed.qrCodesMailed || qrList.qrSettings.qrCodesObtained.qrCodesObtained);
+      // the filters has some interaction.
+      if (this.hasSignHolders) {
+        this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+          .filter(qrList => qrList.qrSettings.hasSignHoldersAt);
+      }
+      if (this.hasQRTraining) {
+        this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+          .filter(qrList => qrList.qrSettings.hasQRTrainingAt);
+      }
+      if (this.qrCodesMailed) {
+        this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+          .filter(qrList => qrList.qrSettings.qrCodesMailedAt);
+      }
+      if (this.qrCodesObtained) {
+        this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+          .filter(qrList => qrList.qrSettings.qrCodesObtainedAt);
+      }
     } else {
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
-      .filter(qrList =>!(qrList.qrSettings.hasSignHolders.hasSignHolders || qrList.qrSettings.hasQRTraining.hasQRTraining || qrList.qrSettings.qrCodesMailed.qrCodesMailed || qrList.qrSettings.qrCodesObtained.qrCodesObtained));
+        .filter(qrList => !(qrList.qrSettings.hasSignHoldersAt || qrList.qrSettings.hasQRTrainingAt || qrList.qrSettings.qrCodesMailedAt || qrList.qrSettings.qrCodesObtainedAt));
     }
     this.QRSettingsFiltersModal.hide();
   }
@@ -204,55 +219,31 @@ export class QrRestaurantListComponent implements OnInit {
     */
     switch (flag) {
       case 0:
-        if (selectRestaurant.qrSettings.hasSignHolders && selectRestaurant.qrSettings.hasSignHolders.hasSignHolders) {
-          selectRestaurant.qrSettings.hasSignHolders = {
-            hasSignHolders: false,
-            updateAt: new Date()
-          };
+        if (selectRestaurant.qrSettings.hasSignHoldersAt) {
+          delete selectRestaurant.qrSettings.hasSignHoldersAt;
         } else {
-          selectRestaurant.qrSettings.hasSignHolders = {
-            hasSignHolders: true,
-            updateAt: new Date()
-          };
+          selectRestaurant.qrSettings.hasSignHoldersAt = new Date();
         }
         break;
       case 1:
-        if (selectRestaurant.qrSettings.hasQRTraining && selectRestaurant.qrSettings.hasQRTraining.hasQRTraining) {
-          selectRestaurant.qrSettings.hasQRTraining = {
-            hasQRTraining: false,
-            updateAt: new Date()
-          };
+        if (selectRestaurant.qrSettings.hasQRTrainingAt) {
+          delete selectRestaurant.qrSettings.hasQRTrainingAt;
         } else {
-          selectRestaurant.qrSettings.hasQRTraining = {
-            hasQRTraining: true,
-            updateAt: new Date()
-          };
+          selectRestaurant.qrSettings.hasQRTrainingAt = new Date();
         }
         break;
       case 2:
-        if (selectRestaurant.qrSettings.qrCodesMailed && selectRestaurant.qrSettings.qrCodesMailed.qrCodesMailed) {
-          selectRestaurant.qrSettings.qrCodesMailed = {
-            qrCodesMailed: false,
-            updateAt: new Date()
-          };
+        if (selectRestaurant.qrSettings.qrCodesMailedAt) {
+          delete selectRestaurant.qrSettings.qrCodesMailedAt;
         } else {
-          selectRestaurant.qrSettings.qrCodesMailed = {
-            qrCodesMailed: true,
-            updateAt: new Date()
-          };
+          selectRestaurant.qrSettings.qrCodesMailedAt = new Date();
         }
         break;
       case 3:
-        if (selectRestaurant.qrSettings.qrCodesObtained && selectRestaurant.qrSettings.qrCodesObtained.qrCodesObtained) {
-          selectRestaurant.qrSettings.qrCodesObtained = {
-            qrCodesObtained: false,
-            updateAt: new Date()
-          };
+        if (selectRestaurant.qrSettings.qrCodesObtainedAt) {
+          delete selectRestaurant.qrSettings.qrCodesObtainedAt;
         } else {
-          selectRestaurant.qrSettings.qrCodesObtained = {
-            qrCodesObtained: true,
-            updateAt: new Date()
-          };
+          selectRestaurant.qrSettings.qrCodesObtainedAt = new Date();
         }
         break;
       default:
@@ -285,7 +276,11 @@ export class QrRestaurantListComponent implements OnInit {
     this.qrCodesObtained = false;
     this.QRSettingsFiltersModal.show();
   }
-
+  // it hides the qrsetttings modal , and counts all qr restaurants. 
+  cancelQRSettingsFilter() {
+    this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
+    this.QRSettingsFiltersModal.hide();
+  }
   // the function is used to hide restaurant whose qr orders more than 20. 
   hidenRTsMoreThan20Orders() {
     if (this.hideMore20OrdersFlag) {
@@ -400,49 +395,17 @@ export class QrRestaurantListComponent implements OnInit {
       }
       let agent = restaurant.qrSettings.agent || 'None';
       this.qrRestaurantListRows[i].qrSettings.agent = agent; // it also needs to give row's agent a default value to avoid undefined condition.
-      if (restaurant.qrSettings.hasSignHolders && restaurant.qrSettings.hasSignHolders.hasSignHolders) {
-        this.qrRestaurantListRows[i].qrSettings.hasSignHolders = {
-          hasSignHolders: true,
-          updateAt: new Date()
-        };
-      } else {
-        this.qrRestaurantListRows[i].qrSettings.hasSignHolders = {
-          hasSignHolders: false,
-          updateAt: new Date()
-        };
+      if (restaurant.qrSettings.hasSignHoldersAt) {
+        this.qrRestaurantListRows[i].qrSettings.hasSignHoldersAt = restaurant.qrSettings.hasSignHoldersAt;
       }
-      if (restaurant.qrSettings.hasQRTraining && restaurant.qrSettings.hasQRTraining.hasQRTraining) {
-        this.qrRestaurantListRows[i].qrSettings.hasQRTraining = {
-          hasQRTraining: true,
-          updateAt: new Date()
-        };
-      } else {
-        this.qrRestaurantListRows[i].qrSettings.hasQRTraining = {
-          hasQRTraining: false,
-          updateAt: new Date()
-        };
+      if (restaurant.qrSettings.hasQRTrainingAt) {
+        this.qrRestaurantListRows[i].qrSettings.hasQRTrainingAt = restaurant.qrSettings.hasQRTrainingAt;
       }
-      if (restaurant.qrSettings.qrCodesMailed && restaurant.qrSettings.qrCodesMailed.qrCodesMailed) {
-        this.qrRestaurantListRows[i].qrSettings.qrCodesMailed = {
-          qrCodesMailed: true,
-          updateAt: new Date()
-        };
-      } else {
-        this.qrRestaurantListRows[i].qrSettings.qrCodesMailed = {
-          qrCodesMailed: false,
-          updateAt: new Date()
-        };
+      if (restaurant.qrSettings.qrCodesMailedAt) {
+        this.qrRestaurantListRows[i].qrSettings.qrCodesMailedAt = restaurant.qrSettings.qrCodesMailedAt;
       }
-      if (restaurant.qrSettings.qrCodesObtained && restaurant.qrSettings.qrCodesObtained.qrCodesObtained) {
-        restaurant.qrSettings.qrCodesObtained = {
-          qrCodesObtained: true,
-          updateAt: new Date()
-        };
-      } else {
-        restaurant.qrSettings.qrCodesObtained = {
-          qrCodesObtained: false,
-          updateAt: new Date()
-        };
+      if (restaurant.qrSettings.qrCodesObtainedAt) {
+        restaurant.qrSettings.qrCodesObtained = restaurant.qrSettings.qrCodesObtainedAt;
       }
       if (this.qrSalespeople.indexOf(agent) === -1) {
         this.qrSalespeople.push(agent);
@@ -473,7 +436,7 @@ export class QrRestaurantListComponent implements OnInit {
       return correct;
     }));
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
-
+    this.populateRtStats();
   }
 
   // get restaurant's online status and customer's QR scanning events
