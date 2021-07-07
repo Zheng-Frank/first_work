@@ -20,6 +20,7 @@ import { LanguageType } from 'src/app/classes/language-type';
 export class RestaurantProfileComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   @Input() editable;
+  @Input() users = [];
   uploadImageError: string;
   editing: boolean = false;
   address: Address;
@@ -262,6 +263,10 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   getMongoDate(mongoId) {
     return new Date(parseInt(mongoId.substring(0, 8), 16) * 1000);
+  }
+
+  getSalesAgent() {
+    return Helper.getSalesAgent(this.restaurant.rateSchedules, this.users);
   }
 
   toggleEditing() {

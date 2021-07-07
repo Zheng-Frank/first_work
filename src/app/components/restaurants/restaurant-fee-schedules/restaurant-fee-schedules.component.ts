@@ -9,6 +9,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
 import { OrderPaymentMethod } from 'src/app/classes/order-payment-method';
 import { CurrencyPipe } from '@angular/common';
 import { environment } from 'src/environments/environment';
+import {Helper} from '../../../classes/helper';
 
 @Component({
   selector: 'app-restaurant-fee-schedules',
@@ -62,14 +63,15 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     items: [
       { object: "CUSTOMER", text: "customer", selected: false },
       { object: "RESTAURANT", text: "restaurant", selected: false },
-      { object: "QMENU", text: "qmenu", selected: false },
     ]
   };
+
+  payerQmenu = { object: "QMENU", text: "qmenu", selected: false };
 
   payeeCustomer = { object: "CUSTOMER", text: "customer", selected: false };
   payeeRestaurant = { object: "RESTAURANT", text: "restaurant", selected: false };
   payeeQmenu = { object: "QMENU", text: "qmenu", selected: false };
-  payeeSales = { object: 'NONE', text: 'NONE', seleted: false };
+  payeeSales = { object: 'NONE', text: 'NONE', selceted: false };
 
 
   payeeDescriptor = {
@@ -143,7 +145,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       { object: OrderPaymentMethod.Cash, text: "Cash", selected: false },
       { object: OrderPaymentMethod.InPerson, text: "CC: swipe in-person", selected: false },
       { object: OrderPaymentMethod.KeyIn, text: "CC: key-in", selected: false },
-      { object: OrderPaymentMethod.Qmenu, text: "CC: qMenu collect", selected: false },      
+      { object: OrderPaymentMethod.Qmenu, text: "CC: qMenu collect", selected: false },
       { object: OrderPaymentMethod.Stripe, text: "CC: restaurant using stripe", selected: false },
     ]
   };
@@ -173,6 +175,76 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   ngOnInit() { }
 
+  getUserRoles() {
+    return this._global.user.roles || [];
+  }
+
+  hasFullFeePrivilege() {
+    const roles = this.getUserRoles();
+    // ADMIN and RATE_EDITOR have full privileges of fee/rate schedule
+    return roles.includes('ADMIN') || roles.includes('RATE_EDITOR');
+  }
+
+  getSalesAgents() {
+    const isEnabled = x => this.users.some(u => u.username === x.agent && !u.disabled);
+    let list = (this.restaurant.rateSchedules || []).filter(x => isEnabled(x))
+      .sort((x, y) => new Date(x.date).valueOf() - new Date(y.date).valueOf());
+    let outOfNow = false, prev = null;
+    for (let i = 0; i < list.length; i++) {
+      let item = list[i];
+      if (new Date(item.date).valueOf() > Date.now().valueOf()) {
+        outOfNow = true;
+        if (prev) {
+          prev.selected = true;
+        } else {
+          // if no agents earlier then now, just set to first;
+          item.selected = true;
+        }
+        break;
+      } else {
+        prev = item;
+      }
+    }
+    // if all agents' date are earlier then now, just use the latest one
+    if (!outOfNow && prev) {
+      prev.selected = true;
+    }
+    return list.map(x => ({object: x.agent, text: x.agent, selected: x.selected || false}));
+  }
+
+  canViewFeeSchedule(feeSchedule) {
+
+    // 1. ADMIN can view everything in all platform
+    // 2. RATE_EDITOR can view everything in rate/fee schedule
+    if (this.hasFullFeePrivilege()) {
+      return this.showExpired || !this.isFeeScheduleExpired(feeSchedule);
+    }
+    // other's can not view expired items
+    if (this.isFeeScheduleExpired(feeSchedule)) {
+      return false;
+    }
+    // 3. Salesperson(MARKETER) can see rate/fee commission belongs to himself
+    const roles = this.getUserRoles();
+    if (roles.includes('MARKETER')) {
+      const username = this._global.user.username;
+      let salesAgent = Helper.getSalesAgent(this.restaurant.rateSchedules, this.users);
+      return feeSchedule.payer !== 'QMENU' || salesAgent === username;
+    }
+    // 4. all other role can not view commission
+    return feeSchedule.payer !== 'QMENU';
+  }
+
+  togglePayerView() {
+    let payerItems = this.payerDescriptor.items;
+    if (!this.hasFullFeePrivilege()) {
+      this.payerDescriptor.items = payerItems.filter(x => x !== this.payerQmenu);
+    } else {
+      if (!payerItems.find(x => x.object === 'QMENU')) {
+        this.payerDescriptor.items.push(this.payerQmenu);
+      }
+    }
+  }
+
   updateFormBuilder() {
 
     this.fieldDescriptors.length = 0; // clear existing first
@@ -183,17 +255,22 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       this.payerDescriptor,
     );
 
+    this.togglePayerView();
+
     if (!this.feeScheduleInEditing.payer) {
       return;
     }
 
-    // rule #2: if there is a payer, always show payee, from time, to time, and charge basis 
+    // rule #2: if there is a payer, always show payee, from time, to time, and charge basis
     this.fieldDescriptors.push(
       this.payeeDescriptor,
       this.fromTimeDescriptor,
       this.toTimeDescriptor,
       this.chargeBasisDescriptor,
     );
+
+    const agents = this.getSalesAgents();
+    console.log(agents);
 
     switch (this.feeScheduleInEditing.payer) {
       case 'CUSTOMER':
@@ -209,9 +286,14 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisTotal, this.chargeBasisMonthly];
         break;
       case 'QMENU':
-        this.feeScheduleInEditing.payee = this.payeeSales.object;
+        if (agents.length > 0) {
+          this.feeScheduleInEditing.payee = agents.find(x => x.selected).object;
+          this.payeeDescriptor.items = agents;
+        } else {
+          this.feeScheduleInEditing.payee = this.payeeSales.object;
+          this.payeeDescriptor.items = [this.payeeSales];
+        }
         this.feeScheduleInEditing.chargeBasis = ChargeBasis.Commission;
-        this.payeeDescriptor.items = [this.payeeSales];
         this.chargeBasisDescriptor.items = [this.chargeBasisCommission];
         break;
       default:
@@ -258,10 +340,6 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   }
 
   edit(feeSchedule?: FeeSchedule) {
-    // first, let's make sure payeeSales is there!
-    const [salesAgent] = ((this.restaurant || {} as any).rateSchedules || []).map(rs => rs.agent);
-    this.payeeSales.object = salesAgent || 'NONE';
-    this.payeeSales.text = salesAgent || 'NONE';
 
     this.feeScheduleInEditing = new FeeSchedule(feeSchedule);
 
