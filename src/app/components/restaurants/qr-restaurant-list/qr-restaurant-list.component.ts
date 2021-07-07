@@ -93,6 +93,11 @@ export class QrRestaurantListComponent implements OnInit {
   hasQRTraining;
   qrCodesMailed;
   qrCodesObtained;
+
+  tempHasSignHolders;
+  tempHasQRTraining;
+  tempQRCodesMailed;
+  tempQRCodesObtained;
   /* use rtStats to track rt stats. example:
      {
        "57c4dc97a941661100c642b4": { 
@@ -112,15 +117,18 @@ export class QrRestaurantListComponent implements OnInit {
   */
   rtStats = {};
   restaurantShowingDetails;
-
+  qrSettingFilterTexts = ['Sign holders purchased', 'RT is trained', 'QR codes mailed', 'QR codes received'];
+  qrSettingFilterText;
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   async ngOnInit() {
     await this.populateQrRestaurant();
   }
+   
+  
 
   // rescan action needs interaction.
-  rescan(){
+  rescan() {
     this.populateQrRestaurant();
     this.filter();
   }
@@ -190,7 +198,6 @@ export class QrRestaurantListComponent implements OnInit {
   }
 
   filterByQRSettings() {
-    this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
     if (this.hasSignHolders || this.hasQRTraining || this.qrCodesMailed || this.qrCodesObtained) {
       // the filters has some interaction.
       if (this.hasSignHolders) {
@@ -209,8 +216,25 @@ export class QrRestaurantListComponent implements OnInit {
         this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
           .filter(qrList => qrList.qrSettings.qrCodesObtainedAt);
       }
-    } 
+    }
     this.QRSettingsFiltersModal.hide();
+     let tempqQRSettingFilterTexts = this.qrSettingFilterTexts.filter(text => (text === 'Sign holders purchased' && this.hasSignHolders) || (text === 'RT is trained' && this.hasQRTraining) || (text === 'QR codes mailed' && this.qrCodesMailed) || (text === 'QR codes received' && this.qrCodesObtained));
+    // when we close the qrSetting filters modal we should resolve the state its last.
+    this.qrSettingFilterText = tempqQRSettingFilterTexts.join(',');
+    tempqQRSettingFilterTexts.forEach(text=>{
+      if(text === 'Sign holders purchased' && this.hasSignHolders){
+        this.tempHasSignHolders = this.hasSignHolders;
+      }
+      if(text === 'RT is trained' && this.hasQRTraining){
+        this.tempHasQRTraining = this.hasQRTraining;
+      }
+      if(text === 'QR codes mailed' && this.qrCodesMailed){
+        this.tempQRCodesMailed = this.qrCodesMailed;
+      }
+      if(text === 'QR codes received' && this.qrCodesObtained){
+        this.tempQRCodesObtained = this.qrCodesObtained;
+      }
+    });
   }
 
   // add qr setting filter 
@@ -250,6 +274,10 @@ export class QrRestaurantListComponent implements OnInit {
   }
   // it hides the qrsetttings modal , and counts all qr restaurants. 
   cancelQRSettingsFilter() {
+    this.hasSignHolders = this.tempHasSignHolders;
+    this.hasQRTraining = this.tempHasQRTraining;
+    this.qrCodesMailed = this.tempQRCodesMailed;
+    this.qrCodesObtained = this.tempQRCodesObtained;
     this.QRSettingsFiltersModal.hide();
   }
   // the function is used to hide restaurant whose qr orders more than 20. 
