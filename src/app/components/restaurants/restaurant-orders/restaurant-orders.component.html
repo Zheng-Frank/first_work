@@ -1,13 +1,13 @@
 <div *ngIf="orders">
   <div class="row">
     <label class="col-2 text-center pl-4"
-      style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
+           style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
     </label>
     <select [(ngModel)]="type" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
       <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
     </select>
     <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
-      class="form-control col-7" placeholder="Search">
+           class="form-control col-7" placeholder="Search">
     <div *ngIf="searchText" class="text-muted float-left col-1">Found: {{orders.length}}</div>
   </div>
   <div class="form-group">
@@ -37,17 +37,17 @@
     <!-- row has negative margins and we need to remove them! -->
     <div *ngFor="let order of orders" class="col-sm-12 col-md-6 col-lg-4  app-pl-025 app-pr-025 mb-1">
       <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
-        (onReject)="handleOnReject($event)" (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
-        (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
-        (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)"
-        (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
-        (onAdjustInvoice)="handleOnAdjustInvoice($event)">
+                      (onReject)="handleOnReject($event)" (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
+                      (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
+                      (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)"
+                      (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+                      (onAdjustInvoice)="handleOnAdjustInvoice($event)">
       </app-order-card>
     </div>
   </div>
 
-   <!-- change order type q-modal to select two type of order type -->
-   <q-modal #changeOrderTypeModal style="margin-top: 160px;">
+  <!-- change order type q-modal to select two type of order type -->
+  <q-modal #changeOrderTypeModal style="margin-top: 160px;">
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">×</span>
     </button>
@@ -62,14 +62,22 @@
           </select>
         </div>
       </div>
-    </div>
-      <div class="d-flex justify-content-end p-4">
-        <button class="btn btn-secondary mr-2" (click)="changeOrderTypeModal.hide()">Cancel</button>
-        <button class="btn btn-primary" (click)="handleOnChangeOrderTypes()">Submit</button>
+      <div *ngIf="cardSpecialOrder && cardSpecialOrder.delivery.status !== 'pending'">
+        <div class="alert-danger text-center p-3">
+          This order has already been marked as in progress or completed according
+          to Postmates! You need to be certain that the Postmates delivery for this
+          order actually failed or had issues before changing its type!!!
+        </div>
       </div>
+    </div>
+
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="changeOrderTypeModal.hide()">Cancel</button>
+      <button class="btn btn-primary" (click)="handleOnChangeOrderTypes()">Submit</button>
+    </div>
 
   </q-modal>
-    
+
   <!-- start previous canceled order q-modal -->
   <q-modal #previousCanceledOrderModal>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -79,11 +87,11 @@
     <hr>
     <!-- row has negative margins and we need to remove them! -->
     <app-order-card [restaurant]="restaurant" [order]="previousCanceledOrder"
-      (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
-      (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
-      (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
-      (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
-      (onAdjustInvoice)="handleOnAdjustInvoice($event)">
+                    (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
+                    (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
+                    (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
+                    (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+                    (onAdjustInvoice)="handleOnAdjustInvoice($event)">
 
     </app-order-card>
   </q-modal>
@@ -146,7 +154,7 @@
     <div *ngIf="isPostmatesStatusDelivered" class="d-flex flex-column align-items-center">
       <span class="text-primary">ATTENTION</span>
       <p class="text-primary">Note that the Postmates status of this order <span
-          class="font-weight-bold">delivered.</span><br />Please be sure you want to cancel it before proceeding. </p>
+        class="font-weight-bold">delivered.</span><br />Please be sure you want to cancel it before proceeding. </p>
     </div>
   </q-modal>
 
@@ -197,8 +205,8 @@
     <h4 class="text-center">Invoice Adjustment</h4>
     <hr>
     <app-restaurant-invoice-adjustment #adjustInvoiceComponment [restaurant]="restaurant"
-     [log]="logInEditing" [order]="orderForModal" (onAdjustInvoice)="doAdjustInvoice($event)" (onCancel)="cancelAdjustInvoice()">
+                                       [log]="logInEditing" [order]="orderForModal" (onAdjustInvoice)="doAdjustInvoice($event)" (onCancel)="cancelAdjustInvoice()">
     </app-restaurant-invoice-adjustment>
-    
+
   </q-modal>
 </div>
