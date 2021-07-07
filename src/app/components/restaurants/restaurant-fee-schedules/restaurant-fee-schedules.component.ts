@@ -9,6 +9,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
 import { OrderPaymentMethod } from 'src/app/classes/order-payment-method';
 import { CurrencyPipe } from '@angular/common';
 import { environment } from 'src/environments/environment';
+import {Helper} from '../../../classes/helper';
 
 @Component({
   selector: 'app-restaurant-fee-schedules',
@@ -184,6 +185,33 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     return roles.includes('ADMIN') || roles.includes('RATE_EDITOR');
   }
 
+  getSalesAgents() {
+    const isEnabled = x => this.users.some(u => u.username === x.agent && !u.disabled);
+    let list = (this.restaurant.rateSchedules || []).filter(x => isEnabled(x))
+      .sort((x, y) => new Date(x.date).valueOf() - new Date(y.date).valueOf());
+    let outOfNow = false, prev = null;
+    for (let i = 0; i < list.length; i++) {
+      let item = list[i];
+      if (new Date(item.date).valueOf() > Date.now().valueOf()) {
+        outOfNow = true;
+        if (prev) {
+          prev.selected = true;
+        } else {
+          // if no agents earlier then now, just set to first;
+          item.selected = true;
+        }
+        break;
+      } else {
+        prev = item;
+      }
+    }
+    // if all agents' date are earlier then now, just use the latest one
+    if (!outOfNow && prev) {
+      prev.selected = true;
+    }
+    return list.map(x => ({object: x.agent, text: x.agent, selected: x.selected || false}));
+  }
+
   canViewFeeSchedule(feeSchedule) {
 
     // 1. ADMIN can view everything in all platform
@@ -199,8 +227,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     const roles = this.getUserRoles();
     if (roles.includes('MARKETER')) {
       const username = this._global.user.username;
-      const [salesAgent] = ((this.restaurant || {} as any).rateSchedules || []).map(rs => rs.agent);
-      // todo: how to judge current agent of rt
+      let salesAgent = Helper.getSalesAgent(this.restaurant.rateSchedules, this.users);
       return feeSchedule.payer !== 'QMENU' || salesAgent === username;
     }
     // 4. all other role can not view commission
@@ -242,6 +269,9 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       this.chargeBasisDescriptor,
     );
 
+    const agents = this.getSalesAgents();
+    console.log(agents);
+
     switch (this.feeScheduleInEditing.payer) {
       case 'CUSTOMER':
         // this.feeScheduleInEditing.chargeBasis = ChargeBasis.OrderSubtotal;
@@ -256,9 +286,14 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisTotal, this.chargeBasisMonthly];
         break;
       case 'QMENU':
-        this.feeScheduleInEditing.payee = this.payeeSales.object;
+        if (agents.length > 0) {
+          this.feeScheduleInEditing.payee = agents.find(x => x.selected).object;
+          this.payeeDescriptor.items = agents;
+        } else {
+          this.feeScheduleInEditing.payee = this.payeeSales.object;
+          this.payeeDescriptor.items = [this.payeeSales];
+        }
         this.feeScheduleInEditing.chargeBasis = ChargeBasis.Commission;
-        this.payeeDescriptor.items = [this.payeeSales];
         this.chargeBasisDescriptor.items = [this.chargeBasisCommission];
         break;
       default:
@@ -305,10 +340,6 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   }
 
   edit(feeSchedule?: FeeSchedule) {
-    // first, let's make sure payeeSales is there!
-    const [salesAgent] = ((this.restaurant || {} as any).rateSchedules || []).map(rs => rs.agent);
-    this.payeeSales.object = salesAgent || 'NONE';
-    this.payeeSales.text = salesAgent || 'NONE';
 
     this.feeScheduleInEditing = new FeeSchedule(feeSchedule);
 

@@ -334,4 +334,13 @@ export class Helper {
         processedName = processedName.replace(/\s+/g, " ").trim();
         return processedName;
     }
+
+    static getSalesAgent(rateSchedules, users) {
+      let now = Date.now();
+      const isEnabled = x => users.some(u => u.username === x.agent && !u.disabled);
+      let list = (rateSchedules || []).filter(x => isEnabled(x) && new Date(x.date).valueOf() <= now.valueOf())
+        .sort((x, y) => new Date(x.date).valueOf() - new Date(y.date).valueOf());
+      let item = list.pop() || {};
+      return item.agent || 'N/A';
+    }
 }

@@ -36,7 +36,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    rateSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
+    rateSchedules: ['ADMIN', 'RATE_EDITOR'], // rateSchedule should be migrated to fee schedule, no need to show for normal roles
+    feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     promotions: [],
