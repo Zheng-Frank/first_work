@@ -19,13 +19,15 @@ export class RoutineInstanceListComponent implements OnChanges {
   @ViewChild('routineReportModal') routineReportModal: ModalComponent;
 
   routineInReporting;
-  metricsResults = [];
+  resultsTable = {};
 
   pagination = true;
 
   ngOnChanges() {
     this.groupAndSortInstances()
     this.createInstanceColumnDescriptors();
+    this.createResultsTable();
+    console.log(this.resultsTable)
   }
 
   columnDescriptors = [
@@ -80,5 +82,25 @@ export class RoutineInstanceListComponent implements OnChanges {
       this.instanceColumnDescriptors[routine.name] = [createdAt, ...routineDescriptors];
       this.fullDisplayInstanceColumnDescriptors[routine.name] = [createdAt, username, ...routineDescriptors];
     });
+  }
+
+  createResultsTable() {
+    this.instanceList.forEach(inst => {
+      const instanceData = {}
+      inst.results.forEach(res => {
+        instanceData[res.name] = res.result
+      })
+      this.resultsTable[inst._id] = instanceData;
+    });
+  }
+
+  displayStuff(p1, p2) {
+    if (p1 === "60df720a5f322f680d674d50" || p1 === "60df74d15f322f680d6af516") {
+
+
+      console.log('name: ', p2)
+      console.log('value: ', this.resultsTable[p1][p2])
+    }
+
   }
 }

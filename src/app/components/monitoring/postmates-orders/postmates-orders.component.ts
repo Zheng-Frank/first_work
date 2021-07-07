@@ -1,3 +1,4 @@
+import { map, filter } from 'rxjs/operators';
 import { Input } from '@angular/core';
 import { EventEmitter } from '@angular/core';
 import { GlobalService } from './../../../services/global.service';
@@ -27,8 +28,9 @@ export class PostmatesOrdersComponent implements OnInit {
   @ViewChild('adjustInvoiceModal') adjustInvoiceModal: ModalComponent;
   @ViewChild('adjustInvoiceComponment') adjustInvoiceComponment: ModalComponent;
   @ViewChild('previousCanceledOrderModal') previousCanceledOrderModal: ModalComponent; // this modal is in order to show customer previous canceled order detail
-
+  @ViewChild('previousOrdersModal') previousOrdersModal: ModalComponent;
   previousCanceledOrder: any; // previous canceled order object of one customer
+  previousOrders: any; // previous orders object of a customer
   @ViewChild('changeOrderTypeModal') changeOrderTypeModal: ModalComponent;
   @ViewChild('orderCard') orderCard: OrderCardComponent;
   cardSpecialOrder;
@@ -48,7 +50,9 @@ export class PostmatesOrdersComponent implements OnInit {
   cancelError = '';
   undoOrder: any;
   isPostmatesStatusDelivered = false;
-  searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID', 'Restautant ID','Order ID'];
+  searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID', 'Restautant ID', 'Order ID'];
+  dateType = 'Today';
+  dateSearchTypes = ['Today', 'Yesterday', 'Custom'];
   type = 'Order Number';//  concrete search type
   showAdvancedSearch: boolean = false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
@@ -60,7 +64,8 @@ export class PostmatesOrdersComponent implements OnInit {
     _id: 1,
     "googleAddress.formatted_address": 1,
     name: 1,
-    "googleAddress.timezone": 1
+    "googleAddress.timezone": 1,
+    "channels": 1
   };
 
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
@@ -78,15 +83,155 @@ export class PostmatesOrdersComponent implements OnInit {
       d => this.showNotifier(d)
     );
   }
-  
+
   /**
    *
    *cancel the advanced date search
    * @memberof RestaurantOrdersComponent
    */
-  cancelDoSearchOrderByTime() {
+  cancelDoSearchOrderByDateCustom() {
     this.showAdvancedSearch = false;
+    this.dateType = 'Today';
     this.populateOrders();
+  }
+
+  toggleShowAdvancedSearch() {
+    this.showAdvancedSearch = !this.showAdvancedSearch;
+    if (!this.showAdvancedSearch) {
+      this.populateOrders();
+    } else {
+      this.dateType = 'Today';
+      this.searchOrderByDate();
+    }
+  }
+  /*
+    we can search order in today ,yesterday,last three days ,and also can give a time.
+  */
+  async searchOrderByDate() {
+    if (this.dateType != 'Custom') {
+      let query = {};
+      if (this.dateType === 'Today') {
+        let today = new Date();
+        let hours = today.getHours();
+        query = {
+          restaurant: {
+            $exists: true
+          },
+          'delivery.id': {
+            $exists: true
+          },
+          $and: [{
+            createdAt: {
+              $gte: { $date: new Date(new Date().valueOf() - hours * 3600 * 1000) }
+            } // less than and greater than
+          }, {
+            createdAt: {
+              $lte: { $date: new Date() }
+            }
+          }
+          ]
+        } as any;
+      } else if (this.dateType === 'Yesterday') {
+        let today = new Date();
+        let hours = today.getHours();
+        // new Date().valueOf() - (hours) * 3600 * 1000) means today has started,
+        // new Date(new Date().valueOf() - (24 + hours) * 3600 * 1000) means yestoday has started.
+        query = {
+          restaurant: {
+            $exists: true
+          },
+          'delivery.id': {
+            $exists: true
+          },
+          $and: [{
+            createdAt: {
+              $gte: { $date: new Date(new Date().valueOf() - (24 + hours) * 3600 * 1000) }
+            } // less than and greater than
+          }, {
+            createdAt: {
+              $lte: { $date: new Date(new Date().valueOf() - (hours) * 3600 * 1000) }
+            }
+          }
+          ]
+        } as any;
+      }
+
+      // ISO-Date()
+      const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: query,
+        projection: {//返回除logs以外的所有行
+          logs: 0,
+        },
+        sort: {
+          createdAt: -1
+        },
+      }, 100);
+      const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+
+      const blacklist = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+        resource: "blacklist",
+        query: {
+          "value": { $in: customerIds },
+          disabled: { $ne: true }
+        },
+        projection: {
+          disabled: 1,
+          reasons: 1, //
+          // reasons: {$slice: -10}, 数组里面前两个
+          value: 1,
+          orders: 1
+        },
+        sort: {
+          createAt: 1
+        }
+      }, 100000);
+      const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {
+          'customerObj._id': { $in: customerIds }
+        },
+        projection: {
+          _id: 1,
+          customer: 1
+        },
+        sort: {
+          createdAt: -1
+        },
+        limit: 10000,
+      }).toPromise();
+      orders.forEach(order => {
+        order.previousOrders = [];
+        previousOrders.forEach(previousOrder => {
+          if (order.customer === previousOrder.customer) {
+            order.previousOrders.push(previousOrder);
+          }
+        });
+      });
+      const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+        },
+        projection: this.restaurantProjection
+      }, 5000);
+      const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
+      // assemble back to order:
+      this.orders = orders.map(order => {
+        let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
+        restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
+        order.restaurant = restaurant;
+        order.orderNumber = order.orderNumber;
+        order.customer = order.customerObj;
+        order.payment = order.paymentObj;
+        order.id = order._id;
+        order.customerNotice = order.customerNotice || '';
+        order.restaurantNotie = order.restaurantNotie || '';
+        // making it back-compatible to display bannedReasons
+        order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
+        return new Order(order);
+      });
+    }
+
   }
   /**
    *
@@ -95,23 +240,22 @@ export class PostmatesOrdersComponent implements OnInit {
    * @param {*} to
    * @memberof RestaurantOrdersComponent
    */
-  async doSearchOrderByTime(from, to) {
-    if(this.type != 'Restautant ID' || (this.type == 'Restautant ID' && !this.searchText)){
+  async doSearchOrderByDateCustom(from, to) {
+    if (this.type != 'Restautant ID' || (this.type == 'Restautant ID' && !this.searchText)) {
       return this._global.publishAlert(AlertType.Danger, "Please select search type as Restaurant and fill it correctly before using the advanced search");
     }
-    
+
     if (from == undefined) {
-      return this._global.publishAlert(AlertType.Danger,"please input a correct from time date format!");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
     if (to == undefined) {
-      return this._global.publishAlert(AlertType.Danger,"please input a correct to time date format !");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct to time date format !");
     }
     const selectRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { _id:{$oid:this.searchText}},
+      query: { _id: { $oid: this.searchText } },
       projection: this.restaurantProjection,
     }, 1);
-    console.log("restaurants:"+this.searchText+","+JSON.stringify(selectRestaurants));
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
@@ -119,7 +263,7 @@ export class PostmatesOrdersComponent implements OnInit {
     const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), selectRestaurants[0].googleAddress.timezone);
 
     if (utcf > utct) {
-      return alert("please input a correct date format,from time is less than or equals to time!");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
     }
     const query = {
       restaurant: {
@@ -168,15 +312,35 @@ export class PostmatesOrdersComponent implements OnInit {
         createAt: 1
       }
     }).toPromise();
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: { },
-      projection: this.restaurantProjection
-    }, 20000);
+    const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        'customerObj._id': { $in: customerIds }
+      },
+      projection: {
+        _id: 1,
+        customer: 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 10000,
+    }).toPromise();
+    orders.forEach(order => {
+      order.previousOrders = [];
+      previousOrders.forEach(previousOrder => {
+        if (order.customer === previousOrder.customer) {
+          order.previousOrders.push(previousOrder);
+        }
+      });
+    });
+
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
+      let restaurant = selectRestaurants[0];
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
+      order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -223,7 +387,7 @@ export class PostmatesOrdersComponent implements OnInit {
   search(event) {
     this.populateOrders();
   }
-  
+
   /**
      *
      * @memberof RestaurantOrdersComponent
@@ -231,10 +395,10 @@ export class PostmatesOrdersComponent implements OnInit {
   async populateOrders() {
     const query = {
       restaurant: {
-        $exists:true
+        $exists: true
       },
-      'delivery.id':{
-        $exists:true
+      'delivery.id': {
+        $exists: true
       }
     } as any;
 
@@ -262,11 +426,11 @@ export class PostmatesOrdersComponent implements OnInit {
           $regex: this.searchText
         }
       }
-    }else if (this.type == 'Restautant ID' && this.searchText){
+    } else if (this.type == 'Restautant ID' && this.searchText) {
       query['restaurant'] = {
         $oid: this.searchText
       }
-    }else if (this.type == 'Order ID' && this.searchText){
+    } else if (this.type == 'Order ID' && this.searchText) {
       query['_id'] = {
         $oid: this.searchText
       }
@@ -282,8 +446,9 @@ export class PostmatesOrdersComponent implements OnInit {
       },
       limit: 100
     }).toPromise();
+
     // get blocked customers and assign back to each order blacklist reasons
-   
+
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -304,15 +469,41 @@ export class PostmatesOrdersComponent implements OnInit {
         createAt: 1
       }
     }).toPromise();
+    const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        'customerObj._id': { $in: customerIds }
+      },
+      projection: {
+        _id: 1,
+        customer: 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 10000,
+    }).toPromise();
+    orders.forEach(order => {
+      order.previousOrders = [];
+      previousOrders.forEach(previousOrder => {
+        if (order.customer === previousOrder.customer) {
+          order.previousOrders.push(previousOrder);
+        }
+      });
+    });
+
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { },
+      query: {
+      },
       projection: this.restaurantProjection
-    }, 20000);
+    }, 5000);
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      order.restaurant = restaurants.find(restaurant=>restaurant._id === order.restaurant);
+      let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
+      order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -324,6 +515,78 @@ export class PostmatesOrdersComponent implements OnInit {
       return new Order(order);
     });
 
+  }
+
+  /**
+   *
+   *It should show previous orders if any order placed by the same customer.
+   */
+  async handleOnOpenPreviousOrdersModal(prevoiusOrders) {
+    let orders = [];
+    for (let i = 0; i < prevoiusOrders.length; i++) {
+      const prevoiusOrder = prevoiusOrders[i];
+      const tempOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {
+          _id: {
+            $oid: prevoiusOrder._id
+          }
+        },
+        projection: {//返回除logs以外的所有行
+          logs: 0,
+        },
+        sort: {
+          createdAt: -1
+        },
+        limit: 1
+      }).toPromise();
+      orders.push(tempOrders[0]);
+    }
+
+    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+    const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "blacklist",
+      query: {
+        "value": { $in: customerIds },
+        disabled: { $ne: true }
+      },
+      projection: {
+        disabled: 1,
+        reasons: 1, //
+        // reasons: {$slice: -10}, 数组里面前两个
+        value: 1,
+        orders: 1
+      },
+      limit: 100000,
+      sort: {
+        createAt: 1
+      }
+    }).toPromise();
+
+    const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+      },
+      projection: this.restaurantProjection
+    }, 5000);
+    // assemble back to order:
+    this.previousOrders = orders.map(order => {
+      let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);;
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
+      order.restaurant = restaurant;
+      order.orderNumber = order.orderNumber;
+      order.customer = order.customerObj;
+      order.payment = order.paymentObj;
+      order.id = order._id;
+      order.customerNotice = order.customerNotice || '';
+      order.restaurantNotie = order.restaurantNotie || '';
+      // making it back-compatible to display bannedReasons
+      order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
+      return new Order(order);
+    });
+    console.log(this.previousOrders);
+    this.previousOrdersModal.show();
   }
   //this order may be don't exist in this 50 orders,we should find it in our database.
   async handleOnOpenPreviousCanceledOrderModal(order_id) {
@@ -365,12 +628,14 @@ export class PostmatesOrdersComponent implements OnInit {
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { '_id':{$oid:orders[0].restaurant}},
+      query: { '_id': { $oid: orders[0].restaurant } },
       projection: this.restaurantProjection,
     }, 1);
     // assemble back to order:
     this.previousCanceledOrder = orders.map(order => {
-      order.restaurant = restaurants[0],
+      let restaurant = restaurants[0];
+      restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
+      order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -425,15 +690,15 @@ export class PostmatesOrdersComponent implements OnInit {
           orderId: this.cardSpecialOrder._id
         }).toPromise();
       } catch (error) {
-        console.log("errors:"+JSON.stringify(error));
+        console.log("errors:" + JSON.stringify(error));
       }
-    } else if(this.changeOrderType === 'Customer Pickup') {
+    } else if (this.changeOrderType === 'Customer Pickup') {
       try {
         await this._api.post(environment.appApiUrl + 'biz/orders/change-to-pickup', {
-          orderId: this.cardSpecialOrder ._id
+          orderId: this.cardSpecialOrder._id
         }).toPromise();
       } catch (error) {
-        console.log("errors:"+JSON.stringify(error));
+        console.log("errors:" + JSON.stringify(error));
       }
     }
     this.changeOrderTypeModal.hide();
@@ -501,22 +766,22 @@ export class PostmatesOrdersComponent implements OnInit {
     this.logInEditing = new Log();
     this.adjustInvoiceComponment.percentage = true;
     this.adjustInvoiceComponment.percentageAdjustmentAmount = 20;
-    this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100)); 
+    this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100));
     this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
     let date = Helper.adjustDate(order.createdAt, order.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
-    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
+    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason = "Credit $" + this.adjustInvoiceComponment.adjustmentAmount.toFixed(2) + " to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
     this.adjustInvoiceComponment.stripeReason = this.adjustInvoiceComponment.percentageStripeReason = '';
     this.adjustInvoiceComponment.additionalExplanation = '';
     this.adjustInvoiceModal.show();
   }
 
   // submit the result to api to create a new log
-  doAdjustInvoice(data){
+  doAdjustInvoice(data) {
     this.onSuccessCreationLog(data);
   }
   // hide adjustment q-modal
-  cancelAdjustInvoice(){
+  cancelAdjustInvoice() {
     this.adjustInvoiceModal.hide();
   }
 
@@ -540,7 +805,7 @@ export class PostmatesOrdersComponent implements OnInit {
         logs: 1
       },
       limit: 1
-    },1);
+    }, 1);
 
     const logs = rtWithFullLogs[0].logs || [];
 
