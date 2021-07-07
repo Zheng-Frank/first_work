@@ -19,7 +19,7 @@
     </select>
   </div>
   <div class="float-left form-inline ml-2 mr-2">
-    <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
+    <button class="btn btn-primary" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
   </div>
   <div class="float-left form-inline ml-2 mr-2 mt-2">
     <input class="form-check-input" type="checkbox" [(ngModel)]="showAllLogs">
@@ -31,6 +31,10 @@
   </div>
   <div class="float-left form-inline ml-2 mr-2">
     <button class="btn btn-primary" (click)="showQRSettingsFilters()">Filters</button>
+    <span *ngIf="hasSignHolders" class="ml-2"> Sign holders purchased,</span>
+    <span *ngIf="hasQRTraining" > RT is trained, </span>
+    <span *ngIf="qrCodesMailed"> QR codes mailed, </span>
+    <span *ngIf="qrCodesObtained"> QR codes received</span>
   </div>
 </div>
 
@@ -83,19 +87,19 @@
         <div class="row">
           <div class="col-12">
             <div class="ml-2 mt-2">
-              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.hasSignHoldersAt" (change)="addQRSettingFilters(restaurant,0)">
+              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.hasSignHoldersAt" (change)="addQRSettingFilters(restaurant,'hasSignHoldersAt')">
               <label class="form-check-label"> Sign holders purchased</label>
             </div>
             <div class="ml-2 mt-2">
-              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.hasQRTrainingAt" (change)="addQRSettingFilters(restaurant,1)">
+              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.hasQRTrainingAt" (change)="addQRSettingFilters(restaurant,'hasQRTrainingAt')">
               <label class="form-check-label"> RT is trained</label>
             </div>
             <div class="ml-2 mt-2">
-              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.qrCodesMailedAt" (change)="addQRSettingFilters(restaurant,2)">
+              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.qrCodesMailedAt" (change)="addQRSettingFilters(restaurant,'qrCodesMailedAt')">
               <label class="form-check-label"> QR codes mailed</label>
             </div>
             <div class="ml-2 mt-2">
-              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.qrCodesObtainedAt" (change)="addQRSettingFilters(restaurant,3)">
+              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.qrCodesObtainedAt" (change)="addQRSettingFilters(restaurant,'qrCodesObtainedAt')">
               <label class="form-check-label"> QR codes received</label>
             </div>
           </div>

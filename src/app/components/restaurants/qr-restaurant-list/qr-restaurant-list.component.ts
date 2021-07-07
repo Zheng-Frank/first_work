@@ -119,6 +119,12 @@ export class QrRestaurantListComponent implements OnInit {
     await this.populateQrRestaurant();
   }
 
+  // rescan action needs interaction.
+  rescan(){
+    this.populateQrRestaurant();
+    this.filter();
+  }
+
   isSchedulesValid(restaurant) {
     return !(restaurant.feeSchedules && restaurant.feeSchedules.filter(f => f.payee === 'QMENU' && f.name === 'service fee' && !(!(f.rate > 0) && !(f.amount > 0)) && f.orderTypes && f.orderTypes.filter(type => type === 'DINE-IN').length > 0).length > 0);
   }
@@ -184,6 +190,7 @@ export class QrRestaurantListComponent implements OnInit {
   }
 
   filterByQRSettings() {
+    this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
     if (this.hasSignHolders || this.hasQRTraining || this.qrCodesMailed || this.qrCodesObtained) {
       // the filters has some interaction.
       if (this.hasSignHolders) {
@@ -202,54 +209,23 @@ export class QrRestaurantListComponent implements OnInit {
         this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
           .filter(qrList => qrList.qrSettings.qrCodesObtainedAt);
       }
-    } else {
-      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
-        .filter(qrList => !(qrList.qrSettings.hasSignHoldersAt || qrList.qrSettings.hasQRTrainingAt || qrList.qrSettings.qrCodesMailedAt || qrList.qrSettings.qrCodesObtainedAt));
-    }
+    } 
     this.QRSettingsFiltersModal.hide();
   }
 
   // add qr setting filter 
-  addQRSettingFilters(selectRestaurant, flag) {
+  addQRSettingFilters(selectRestaurant, key) {
     /*
       hasSignHolders;
       hasQRTraining;
       qrCodesMailed;
       qrCodesObtained;
     */
-    switch (flag) {
-      case 0:
-        if (selectRestaurant.qrSettings.hasSignHoldersAt) {
-          delete selectRestaurant.qrSettings.hasSignHoldersAt;
-        } else {
-          selectRestaurant.qrSettings.hasSignHoldersAt = new Date();
-        }
-        break;
-      case 1:
-        if (selectRestaurant.qrSettings.hasQRTrainingAt) {
-          delete selectRestaurant.qrSettings.hasQRTrainingAt;
-        } else {
-          selectRestaurant.qrSettings.hasQRTrainingAt = new Date();
-        }
-        break;
-      case 2:
-        if (selectRestaurant.qrSettings.qrCodesMailedAt) {
-          delete selectRestaurant.qrSettings.qrCodesMailedAt;
-        } else {
-          selectRestaurant.qrSettings.qrCodesMailedAt = new Date();
-        }
-        break;
-      case 3:
-        if (selectRestaurant.qrSettings.qrCodesObtainedAt) {
-          delete selectRestaurant.qrSettings.qrCodesObtainedAt;
-        } else {
-          selectRestaurant.qrSettings.qrCodesObtainedAt = new Date();
-        }
-        break;
-      default:
-        break;
+    if (selectRestaurant.qrSettings[key]) {
+      delete selectRestaurant.qrSettings[key];
+    } else {
+      selectRestaurant.qrSettings[key] = new Date();
     }
-
     this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
       [{ old: { _id: selectRestaurant._id }, new: { _id: selectRestaurant._id, qrSettings: selectRestaurant.qrSettings } }])
       .subscribe(
@@ -270,15 +246,10 @@ export class QrRestaurantListComponent implements OnInit {
 
   // the qr restaurant also has some other features need to show modal and filter. 
   showQRSettingsFilters() {
-    this.hasSignHolders = false;
-    this.hasQRTraining = false;
-    this.qrCodesMailed = false;
-    this.qrCodesObtained = false;
     this.QRSettingsFiltersModal.show();
   }
   // it hides the qrsetttings modal , and counts all qr restaurants. 
   cancelQRSettingsFilter() {
-    this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
     this.QRSettingsFiltersModal.hide();
   }
   // the function is used to hide restaurant whose qr orders more than 20. 
