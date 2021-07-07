@@ -7,7 +7,7 @@ import { Input, EventEmitter } from '@angular/core';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Component, OnInit } from '@angular/core';
 import { Order, Restaurant } from '@qmenu/ui';
-import { environment } from 'src/environments/environment.qa';
+import { environment } from 'src/environments/environment';
 declare var $: any;
 @Component({
   selector: 'app-postmates-order-card',
@@ -29,7 +29,7 @@ export class PostmatesOrderCardComponent implements OnInit {
   @Output() onBan = new EventEmitter();
   @Output() onOpenChangeOrderTypesModal = new EventEmitter();
   @Output() onOpenPreviousCanceledOrderModal = new EventEmitter();
-
+  @Output() onOpenPreviousOrdersModal = new EventEmitter();
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
 
@@ -39,12 +39,15 @@ export class PostmatesOrderCardComponent implements OnInit {
   phoneNumberToText;
   showTexting: boolean = false;
   displayingDeliveryDetails = false;
+  now;
   constructor(private _api: ApiService, private _global: GlobalService, private datePipe: DatePipe) {
   }
 
   ngOnInit() {
+    this.now = new Date();
   }
-  openPreviousCanceledOrderModal(order_id){
+
+  openPreviousCanceledOrderModal(order_id) {
     this.onOpenPreviousCanceledOrderModal.emit(order_id);
   }
   /**
@@ -67,15 +70,38 @@ export class PostmatesOrderCardComponent implements OnInit {
     document.execCommand('copy');
     this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
   }
- 
+  /**
+   * if the customer has other orders in our platform,show it in a modal.
+   */
+  openPreviousOrdersModal(order){
+    this.onOpenPreviousOrdersModal.emit(order.previousOrders);
+  }
   /**
    * Add "Change to pick-up" on CSR side for Postmates order
    */
-  openChangeOrderTypesModal(order){
+  openChangeOrderTypesModal(order) {
     this.onOpenChangeOrderTypesModal.emit(order);
   }
   getSubmittedTime(order: Order) {
     return new Date(order.createdAt);
+  }
+  /**
+   *There is an order it should show how long before the order came in.
+    when you see that Jun 18 ,it don't 2021-6-18,it maybe 2018-6-18,
+    we show order with created time descending order.
+   */
+  getOrderComingTime(order) {
+    let createdAtValue = this.now.valueOf() - new Date(order.createdAt).valueOf();// milliseconds
+    // we only need the Integer,toFixed(0) will directly carry the decimal point in the background.
+    // so should use parseInt() method. 
+    let hours = parseInt((createdAtValue / (3600 * 1000))+"");
+    // in this place,we need the minutes after the decimal point.
+    let minutes = Number(((createdAtValue - hours * 3600 * 1000) / (60 * 1000)).toFixed(0));
+    if (hours > 1) {
+      return `${hours} hours ${minutes} minutes ago`;
+    } else {
+      return `${minutes} minutes ago`;
+    }
   }
 
   getCustomerName(order: Order) {
@@ -400,7 +426,7 @@ export class PostmatesOrderCardComponent implements OnInit {
     this.onAdjust.emit(this.order);
   }
 
-  adjustInvoice(){
+  adjustInvoice() {
     this.onAdjustInvoice.emit(this.order);
   }
 

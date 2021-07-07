@@ -474,7 +474,8 @@ export class QrRestaurantListComponent implements OnInit {
     const analyticsEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'analytics-event',
       query: {
-        name: 'scan-qr'
+        name: 'scan-qr',
+        createdAt: { $gt: { $date: dateThreshold } }
       },
       projection: {
         restaurantId: 1,

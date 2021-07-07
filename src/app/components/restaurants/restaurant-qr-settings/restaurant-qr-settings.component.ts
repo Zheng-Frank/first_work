@@ -22,7 +22,7 @@ export class RestaurantQrSettingsComponent {
   constructor(private _api: ApiService, private _global: GlobalService) { }
  // if it has the speical number we should show whether remove it.
   havingSpecialNumber(){
-    return this.restaurant.channels && this.restaurant.channels.filter(channel=>channel.type && channel.type === 'SMS' && channel.value === '2345678901').length > 0;
+    return this.restaurant.channels && this.restaurant.channels.filter(channel=>channel.type && channel.value === '2345678901').length > 0;
   }
 
   async addSpecialPhoneNumber(){
@@ -56,7 +56,7 @@ export class RestaurantQrSettingsComponent {
     }else{
       const oldChannels = this.restaurant.channels;
       let newChannels = JSON.parse(JSON.stringify(oldChannels));
-      newChannels = newChannels.filter(channel=>!(channel.type && channel.type === 'SMS' && channel.value === '2345678901'));
+      newChannels = newChannels.filter(channel=>!(channel.type && channel.value === '2345678901'));
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant._id, channels: oldChannels },
         new: { _id: this.restaurant._id, channels: newChannels }
