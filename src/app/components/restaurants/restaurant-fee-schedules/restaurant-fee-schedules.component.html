@@ -8,7 +8,7 @@
     </ul>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
-      <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0"><input type="checkbox"
+      <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0 && hasFullFeePrivilege()"><input type="checkbox"
           [(ngModel)]="showExpired"> Show expired
         ({{getExpiredFeeSchedules().length}})</label>
       <table class="table table-borderless table-striped table-sm">
@@ -22,7 +22,7 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let feeSchedule of feeSchedules">
-            <tr *ngIf="showExpired || !isFeeScheduleExpired(feeSchedule)"
+            <tr *ngIf="(showExpired || !isFeeScheduleExpired(feeSchedule)) && canViewFeeSchedule(feeSchedule)"
               class="{{isFeeScheduleExpired(feeSchedule) ? 'expired' : '' }} ">
               <td class="text-lowercase text-nowrap my-text-b">{{feeSchedule.payer}} → {{feeSchedule.payee}}
                 <div class="my-text-small">
