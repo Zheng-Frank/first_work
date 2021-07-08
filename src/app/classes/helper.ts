@@ -344,12 +344,13 @@ export class Helper {
                 if (Array.isArray(target)) {
                     return target.map(Helper.trim);
                 }
+                let obj = {};
                 for (let p in target) {
                     if (target.hasOwnProperty(p)) {
-                        target[p] = Helper.trim(target[p]);
+                        obj[p] = Helper.trim(target[p]);
                     }
                 }
-                return target;
+                return obj;
             default:
                 return target;
         }

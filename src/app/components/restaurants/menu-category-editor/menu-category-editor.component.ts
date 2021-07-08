@@ -65,7 +65,7 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
 
   async onUploadImageChange(event) {
 
-    
+
     this.uploadImageError = undefined;
     let files = event.target.files;
     try {
@@ -92,7 +92,7 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
       this.mc.name = this.mc.name.trim();
     }
 
-    this.onDone.emit(this.mc);
+    this.onDone.emit(Helper.trim(this.mc));
   }
 
   cancel() {

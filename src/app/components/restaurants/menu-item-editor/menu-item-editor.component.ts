@@ -240,7 +240,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         if (this.mi.menuOptionIds && this.mi.menuOptionIds.length === 0) {
             delete this.mi.menuOptionIds;
         }
-        this.onDone.emit(this.mi);
+        this.onDone.emit(Helper.trim(this.mi));
     }
 
     cancel() {

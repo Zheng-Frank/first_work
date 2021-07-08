@@ -38,7 +38,7 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       query: {disabled: {$ne: true}},
       projection: {menus: 1, name: 1},
-    }, 200);
+    }, 2000);
 
     for (let i = 0; i < rts.length; i++) {
       let rt = rts[i], hasChanged = false, tmp = false;

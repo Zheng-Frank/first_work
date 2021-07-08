@@ -501,6 +501,7 @@ export class MenusComponent implements OnInit {
   }
 
   onDoneEditing(menu: Menu) {
+    console.log(JSON.stringify(menu))
     const newMenus = (this.restaurant.menus || []).slice(0);
     if (menu.id) {
       for (let i = newMenus.length - 1; i >= 0; i--) {
