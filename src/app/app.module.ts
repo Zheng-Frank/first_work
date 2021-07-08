@@ -93,6 +93,7 @@ import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-list/gmb-underattack-list.component';
 import { GmbSuspendedListComponent } from './components/gmbs2/gmb-suspended-list/gmb-suspended-list.component';
+import { GmbMissingListComponent } from './components/gmbs2/gmb-missing-list/gmb-missing-list.component';
 import { GmbLostListComponent } from './components/gmbs2/gmb-lost-list/gmb-lost-list.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
@@ -318,6 +319,7 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     GmbRequestListComponent,
     GmbUnderattackListComponent,
     GmbSuspendedListComponent,
+    GmbMissingListComponent,
     GmbLostListComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,

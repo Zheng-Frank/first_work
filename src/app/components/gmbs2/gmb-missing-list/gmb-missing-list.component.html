@@ -1,0 +1,31 @@
+<h2 class="text-center">GMB: Missing and Mismatched Locations</h2>
+<div class="text-center" *ngIf="filteredRows">{{filteredRows.length}} locations</div>
+<div class="text-center" *ngIf="combinedScore">{{combinedScore.toFixed(1)}} combined score</div>
+<div class="text-center">
+  <button class="btn btn-link" (click)="refresh()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+</div>
+
+<b>Filter by Error Message:</b>
+<select [(ngModel)]="selectedFilter" (change)="filter()">
+  <option *ngFor="let param of filterParameters">{{param}}</option>
+</select>
+
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="5000">
+  <tr *tableRowTemplate="let r;">
+    <td>{{filteredRows.indexOf(r) + 1}}</td>
+    <td *ngIf="r.id">
+      <a target="_blank" href="#/restaurants/{{r.id}}">{{r.name}}</a>
+      <div class="text-muted">
+        <small>{{r.address}}</small>
+      </div>
+    </td>
+    <td *ngIf="!r.id">
+      no match
+    </td>
+    <td>
+      {{r.error}}
+    </td>
+    <td>{{r.score}}</td>
+  </tr>
+</q-table>
