@@ -1,4 +1,3 @@
-import { map, filter } from 'rxjs/operators';
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 
 import { Menu, Restaurant } from '@qmenu/ui';
@@ -19,7 +18,6 @@ import { AlertType } from '../../../classes/alert-type';
 export class MenusComponent implements OnInit {
 
   @ViewChild('menuEditingModal') menuEditingModal: ModalComponent;
-  @ViewChild('removeSpacesModal') removeSpacesModal: ModalComponent;
   @ViewChild('menuEditor') menuEditor: MenuEditorComponent;
 
   @Input() restaurant: Restaurant;
@@ -53,21 +51,15 @@ export class MenusComponent implements OnInit {
   ngOnInit() {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
   }
-  /**
-   * Add a "Remove unnecessary spaces (去掉多余的空格)" button under the "Additional functions" section 
-   * under the Menus tab.This button, when clicked, should open a modal
-   */
-  openRemoveSpacesModal() {
-    this.removeSpacesModal.show();
-  }
+
   isArray(obj) {
-    return Object.prototype.toString.call(obj) == "[object Array]";
+    return Object.prototype.toString.call(obj) === '[object Array]';
   }
 
   /*
     a public logic we should extract it.
   */
-  removeSpace(str){
+  removeSpace(str) {
     return str.trim().replace(/\s+/g, ' ');
   }
   /*
@@ -76,9 +68,7 @@ export class MenusComponent implements OnInit {
   async doRemoveUnnessarySpace() {
     const oldMenus = this.restaurant.menus;
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
-    /*
-      need to clean up the space of all properties of each menu 
-    */
+
     newMenus.forEach(eachMenu => {
       eachMenu.mcs.forEach(eachMc => {
         // Some menus may have no menu item and only one name
@@ -125,7 +115,6 @@ export class MenusComponent implements OnInit {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Failed!');
     }
-    this.removeSpacesModal.hide();
   }
 
   hasMenuHoursMissing() {
