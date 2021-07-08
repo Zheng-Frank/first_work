@@ -168,6 +168,7 @@ export class QrRestaurantListComponent implements OnInit {
      d) amount/percent is NOT 0.
      it also need qrSettings.code exists and is not null. 
     */
+   console.log(this.filterType);
     switch (this.filterType) {
       case QRConfiguredTypes.ALL:
         this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
@@ -183,6 +184,7 @@ export class QrRestaurantListComponent implements OnInit {
         this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
         break;
     }
+    console.log("执行到此处"+this.qrFilterRestaurantListRows.length);
     /**
     * add a new filter type , filtering by qr salesperson.
     */
@@ -219,20 +221,11 @@ export class QrRestaurantListComponent implements OnInit {
     let tempqQRSettingFilterTexts = this.qrSettingFilterTexts.filter(text => (text === 'Sign holders purchased' && this.hasSignHolders) || (text === 'RT is trained' && this.hasQRTraining) || (text === 'QR codes mailed' && this.qrCodesMailed) || (text === 'QR codes received' && this.qrCodesObtained));
     // when we close the qrSetting filters modal we should resolve the state its last.
     this.qrSettingFilterText = tempqQRSettingFilterTexts.join(',');
-    tempqQRSettingFilterTexts.forEach(text => {
-      if (text === 'Sign holders purchased' && this.hasSignHolders) {
-        this.tempHasSignHolders = this.hasSignHolders;
-      }
-      if (text === 'RT is trained' && this.hasQRTraining) {
-        this.tempHasQRTraining = this.hasQRTraining;
-      }
-      if (text === 'QR codes mailed' && this.qrCodesMailed) {
-        this.tempQRCodesMailed = this.qrCodesMailed;
-      }
-      if (text === 'QR codes received' && this.qrCodesObtained) {
-        this.tempQRCodesObtained = this.qrCodesObtained;
-      }
-    });
+    this.tempHasSignHolders = this.hasSignHolders;
+    this.tempHasQRTraining = this.hasQRTraining;
+    this.tempQRCodesMailed = this.qrCodesMailed;
+    this.tempQRCodesObtained = this.qrCodesObtained;
+   
   }
 
   // add qr setting filter 
@@ -381,9 +374,9 @@ export class QrRestaurantListComponent implements OnInit {
     for (let i = 0; i < this.qrRestaurantListRows.length; i++) {
       let restaurant = this.qrRestaurantListRows[i];
       let tempOrders = orders.filter(o => o.orderObj.restaurantObj._id === restaurant._id);
-      this.qrRestaurantListRows[i].qrOrderNumber = tempOrders.length;
+      restaurant.qrOrderNumber = tempOrders.length;
       if (restaurant.menus) {
-        this.qrRestaurantListRows[i].menus = restaurant.menus.map(m => {
+        restaurant.menus = restaurant.menus.map(m => {
           if (m.targetCustomer) {
             m.menuTarget = this.targets.filter(t => t.value === m.targetCustomer)[0].text;
           }
@@ -391,19 +384,8 @@ export class QrRestaurantListComponent implements OnInit {
         });
       }
       let agent = restaurant.qrSettings.agent || 'None';
-      this.qrRestaurantListRows[i].qrSettings.agent = agent; // it also needs to give row's agent a default value to avoid undefined condition.
-      if (restaurant.qrSettings.hasSignHoldersAt) {
-        this.qrRestaurantListRows[i].qrSettings.hasSignHoldersAt = restaurant.qrSettings.hasSignHoldersAt;
-      }
-      if (restaurant.qrSettings.hasQRTrainingAt) {
-        this.qrRestaurantListRows[i].qrSettings.hasQRTrainingAt = restaurant.qrSettings.hasQRTrainingAt;
-      }
-      if (restaurant.qrSettings.qrCodesMailedAt) {
-        this.qrRestaurantListRows[i].qrSettings.qrCodesMailedAt = restaurant.qrSettings.qrCodesMailedAt;
-      }
-      if (restaurant.qrSettings.qrCodesObtainedAt) {
-        restaurant.qrSettings.qrCodesObtained = restaurant.qrSettings.qrCodesObtainedAt;
-      }
+      restaurant.qrSettings.agent = agent; // it also needs to give row's agent a default value to avoid undefined condition.
+      
       if (this.qrSalespeople.indexOf(agent) === -1) {
         this.qrSalespeople.push(agent);
       }
