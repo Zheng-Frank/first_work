@@ -1,3 +1,5 @@
+import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
+import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
@@ -5,6 +7,7 @@ import { SchemasComponent } from './components/system/schemas/schemas.component'
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+import { MonitoringClosedRestaurantsComponent } from './components/monitoring/monitoring-closed-restaurants/monitoring-closed-restaurants.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 import { MonitoringEmailComponent } from './components/monitoring/monitoring-email/monitoring-email.component';
 import { MonitoringFaxComponent } from './components/monitoring/monitoring-fax/monitoring-fax.component';
@@ -71,6 +74,7 @@ import { NotificationDashboardComponent } from './components/notification-dashbo
 import { MonitoringPromotionComponent } from './components/monitoring/monitoring-promotion/monitoring-promotion.component';
 import { RestaurantsByCourierComponent } from './components/restaurants/restaurants-by-courier/restaurants-by-courier.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
+import { RoutineDashboardComponent } from './components/routines/routine-dashboard/routine-dashboard.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -137,13 +141,18 @@ const routes: Routes = [
   { path: 'email-problems', component: MonitoringEmailComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'monitoring-hours', component: MonitoringHoursComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'disabled-restaurants', component: MonitoringDisabledRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'closed-restaurants', component: MonitoringClosedRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'manage-images', component: ImageManagerComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'restaurants-promotion', component: MonitoringPromotionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'banned-customers', component: BannedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
   { path: 'schemas', component: SchemasComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
   { path: "seamless-integration", component: SeamlessIntegrationComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "SIGNUP_AGENT"] }, }, { path: "ivr-agent-analysis", component: IvrAgentAnalysisComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "SIGNUP_AGENT"] }, },
   { path: 'weird-data', component: WeirdDataComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
+  { path: 'api-logs', component: ApiLogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },  
+  { path: 'routines', component: RoutineDashboardComponent, canActivate: [RoleGuard], data: { roles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"] } },
+  { path: 'seo-tracking', component: SeoTrackingComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
+
 ];
 
 @NgModule({

@@ -140,6 +140,7 @@ import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/mo
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+import { MonitoringClosedRestaurantsComponent } from './components/monitoring/monitoring-closed-restaurants/monitoring-closed-restaurants.component';
 import { MonitoringGmbComponent } from './components/monitoring/monitoring-gmb/monitoring-gmb.component';
 import { MonitoringGmbTasksComponent } from './components/monitoring/monitoring-gmb-tasks/monitoring-gmb-tasks.component';
 import { MonitoringDomainComponent } from './components/monitoring/monitoring-domain/monitoring-domain.component';
@@ -162,6 +163,10 @@ import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.compon
 import { ChangeOwnershipComponent } from './components/change-ownership/change-ownership.component';
 
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
+import { RoutineDashboardComponent } from './components/routines/routine-dashboard/routine-dashboard.component';
+import { RoutineListComponent } from './components/routines/routine-list/routine-list.component';
+import { RoutineInstanceListComponent } from './components/routines/routine-instance-list/routine-instance-list.component';
+
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
 import { MonitoringGmbOpenComponent } from './components/monitoring/monitoring-gmb-open/monitoring-gmb-open.component';
@@ -224,6 +229,11 @@ import { PostmatesOrdersComponent } from './components/monitoring/postmates-orde
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
 import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu-cleanup.component';
+import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
+import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
+import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+
+
 
 @NgModule({
   declarations: [
@@ -350,6 +360,7 @@ import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu
     MonitoringOnboardingComponent,
     TaskBarComponent,
     MonitoringDisabledRestaurantsComponent,
+    MonitoringClosedRestaurantsComponent,
     MonitoringGmbComponent,
     MonitoringGmbTasksComponent,
     MonitoringDomainComponent,
@@ -419,7 +430,12 @@ import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu
     PostmatesOrdersComponent,
     GmbWrongLinkComponent,
     MenuCleanupComponent,
-
+    ApiLogsDashboardComponent,
+    RoutineDashboardComponent,
+    RoutineListComponent,
+    RoutineInstanceListComponent,
+    SeoTrackingComponent,
+    RestaurantSeoTrackingComponent
   ],
   imports: [
     BrowserModule,

@@ -143,11 +143,11 @@
       <div *qIf="mi.flavors">
 
         <label>Spicy (max = 5):</label>
-        <q-selector #spicySelector [name]="'Spicy'" [values]="[1, 2, 3, 4, 5]"></q-selector>
+        <q-selector #spicySelector [name]="'Spicy'" [values]="[1, 2, 3, 4, 5]" [initialValues]="getSpicy(mi)"></q-selector>
         <label>Sweet:</label>
-        <q-selector #sweetSelector [name]="'Sweet'" [values]="[1, 2, 3, 4, 5]"></q-selector>
+        <q-selector #sweetSelector [name]="'Sweet'" [values]="[1, 2, 3, 4, 5]" [initialValues]="getSweet(mi)"></q-selector>
         <label>Sour:</label>
-        <q-selector #sourSelector [name]="'Sour'" [values]="[1, 2, 3, 4, 5]"></q-selector>
+        <q-selector #sourSelector [name]="'Sour'" [values]="[1, 2, 3, 4, 5]" [initialValues]="getSour(mi)"></q-selector>
 
       </div>
     </div>
@@ -156,6 +156,11 @@
     <div class="form-group">
       <label><input type="checkbox" [checked]="mi.promotional" (change)="mi.promotional=!mi.promotional"> Promotional</label>
     </div>
+    <!-- start with skip image injection option -->
+    <div class="form-group">
+        <label><input type="checkbox" [checked]="mi.SkipImageInjection" (change)="mi.SkipImageInjection=!mi.SkipImageInjection"> Skip Image Injection</label>
+    </div>
+    <!-- end with skip image injection option -->
     <!--allow special instruactions?-->
     <div class="form-group">
       <label><input type="checkbox" [checked]="!mi.nonCustomizable" (change)="toggleCustomizable()"> Allow customer input instructions (eg. no garlic)</label>

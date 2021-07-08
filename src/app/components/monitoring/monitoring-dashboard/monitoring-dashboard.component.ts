@@ -12,7 +12,6 @@ export class MonitoringDashboardComponent implements OnInit {
 
   monitoredItem = 'Dashboard Items';
   items = [];
-
   dashboardItems = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.populate();

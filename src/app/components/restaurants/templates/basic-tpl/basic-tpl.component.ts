@@ -65,7 +65,10 @@ export class BasicTplComponent implements OnInit {
               private _cache: CacheService) { }
 
   ngOnInit() {
-    this.refresh();
+    this.refresh().then(() => {
+      this.toggleCustomTemplate(true);
+      this.republishToAWS();
+    });
     this.refreshTemplateList();
   }
 
@@ -103,21 +106,19 @@ export class BasicTplComponent implements OnInit {
     this.headerSliderImages = this.restaurant.web.template.headerSlider;
     this.specialtyImages = this.restaurant.web.template.specialties;
     this.promoImages = this.restaurant.web.template.promos;
-    this.sectionATitle = this.sanitizeText(this.restaurant.web.template.sectionATitle);
-    this.sectionAslogan = this.sanitizeText(this.restaurant.web.template.sectionAslogan);
-    this.sectionBTitle = this.sanitizeText(this.restaurant.web.template.sectionBTitle);
-    this.SectionBImageCaption1 = this.sanitizeText(this.restaurant.web.template.SectionBImageCaption1);
-    this.SectionBImageCaption2 = this.sanitizeText(this.restaurant.web.template.SectionBImageCaption2);
-    this.SectionBImageCaption3 = this.sanitizeText(this.restaurant.web.template.SectionBImageCaption3);
-    this.sectionCTitle1 = this.sanitizeText(this.restaurant.web.template.sectionCTitle1);
-    this.sectionCTitle2 = this.sanitizeText(this.restaurant.web.template.sectionCTitle2);
-    this.sectionCTitle3 = this.sanitizeText(this.restaurant.web.template.sectionCTitle3);
-    this.sectionDTitle = this.sanitizeText(this.restaurant.web.template.sectionDTitle);
-    this.sectionDSubtext = this.sanitizeText(this.restaurant.web.template.sectionDSubtext);
-    this.sectionElinkText = this.sanitizeText(this.restaurant.web.template.sectionElinkText);
-    this.sectionEphone = this.sanitizeText(this.restaurant.web.template.sectionEphone);
-
-    this.isCustomTemplate = this.restaurant.web.template.isCustomTemplate || false;
+    this.sectionATitle = this.desanitizeText(this.restaurant.web.template.sectionATitle);
+    this.sectionAslogan = this.desanitizeText(this.restaurant.web.template.sectionAslogan);
+    this.sectionBTitle = this.desanitizeText(this.restaurant.web.template.sectionBTitle);
+    this.SectionBImageCaption1 = this.desanitizeText(this.restaurant.web.template.SectionBImageCaption1);
+    this.SectionBImageCaption2 = this.desanitizeText(this.restaurant.web.template.SectionBImageCaption2);
+    this.SectionBImageCaption3 = this.desanitizeText(this.restaurant.web.template.SectionBImageCaption3);
+    this.sectionCTitle1 = this.desanitizeText(this.restaurant.web.template.sectionCTitle1);
+    this.sectionCTitle2 = this.desanitizeText(this.restaurant.web.template.sectionCTitle2);
+    this.sectionCTitle3 = this.desanitizeText(this.restaurant.web.template.sectionCTitle3);
+    this.sectionDTitle = this.desanitizeText(this.restaurant.web.template.sectionDTitle);
+    this.sectionDSubtext = this.desanitizeText(this.restaurant.web.template.sectionDSubtext);
+    this.sectionElinkText = this.desanitizeText(this.restaurant.web.template.sectionElinkText);
+    this.sectionEphone = this.desanitizeText(this.restaurant.web.template.sectionEphone);
   }
 
   clearLink() {
@@ -450,13 +451,13 @@ export class BasicTplComponent implements OnInit {
 
   }
 
-  async toggleCustomTemplate(event) {
+  async toggleCustomTemplate(isCustomTemplate) {
     console.error('this.toggleCustomTemplate()', event);
 
     const oldTemplate = {...this.restaurant.web.template} || {};
     const newTemplate = {...this.restaurant.web.template} || {};
 
-    newTemplate.isCustomTemplate = this.isCustomTemplate;
+    newTemplate.isCustomTemplate = isCustomTemplate;
 
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -467,9 +468,9 @@ export class BasicTplComponent implements OnInit {
       this.restaurant.web.template = this.restaurant.web.template || {};
       this.restaurant.web.template = newTemplate;
 
-      this._global.publishAlert(AlertType.Success, 'Custom template flag set');
+      console.log('Custom template flag set');
     } catch (error) {
-      this._global.publishAlert(AlertType.Danger, 'Error while setting custom flag');
+      console.error('Error while setting custom flag');
       console.error(error);
     }
   }
@@ -614,12 +615,37 @@ export class BasicTplComponent implements OnInit {
     return text
       .replace(/\t/g, '')
       .replace(/\n/g, '')
-      .replace(/'/g, '&apos;');
+      .replace(/'/g, '&apos;')
+      .replace(/&/g, '&amp;');
   }
 
-  revertToDefaults() {
-    // TODO: set isCustomTemplate to false
-    // TODO: call crawl again
-    console.error('this.revertToDefaults()');
+  desanitizeText(text) {
+    return text
+      .replace(/&apos;/g, "'")
+      .replace(/&amp;/g, '&');
+  }
+
+  async revertToDefaults() {
+    const oldTemplate = {...this.restaurant.web.template} || {};
+    const newTemplate = {...this.restaurant.web.template} || {};
+
+    newTemplate.isCustomTemplate = this.isCustomTemplate;
+
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: this.restaurant._id, 'web.template': oldTemplate },
+        new: { _id: this.restaurant._id, 'web.template': newTemplate }
+      }]).toPromise();
+
+      this.restaurant.web.template = this.restaurant.web.template || {};
+      this.restaurant.web.template = newTemplate;
+
+      await this.republishToAWS();
+
+      this._global.publishAlert(AlertType.Success, 'Reverted to defaults succesfully');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error while reverting to defaults');
+      console.error(error);
+    }
   }
 }

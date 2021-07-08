@@ -23,7 +23,9 @@
     <div class="row ml-0 mr-0">
         <div *ngFor="let item of dashboardItems" class="col-sm-12 col-md-6 col-lg-4 app-pl-025 app-pr-025 mb-1">
             <div class="card alert-{{item.status}} p-2">
-                <app-dashboard-item [item]="item"></app-dashboard-item>
+                <ng-container>
+                    <app-dashboard-item [item]="item"></app-dashboard-item>
+                </ng-container>
             </div>
         </div>
     </div>
