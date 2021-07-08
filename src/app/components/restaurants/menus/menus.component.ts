@@ -65,44 +65,23 @@ export class MenusComponent implements OnInit {
     a public logic we should extract it.
   */
   removeSpace(str) {
-    return str.trim().replace(/\s+/g, ' ');
+    return (str || '').trim().replace(/\s+/g, ' ');
   }
   /*
     remove space of the property's value of mi if it suit for the rules.
   */
   async doRemoveUnnessarySpace() {
-    const oldMenus = this.restaurant.menus;
-    const newMenus = JSON.parse(JSON.stringify(oldMenus));
-
-    newMenus.forEach(eachMenu => {
-      eachMenu.mcs.forEach(eachMc => {
-        // Some menus may have no menu item and only one name
-        for (let key in eachMc) {
-          // it's subvalue like images is a string array,and it shouldn't be proceeded.
-          if (eachMc[key] && typeof eachMc[key] === 'string') {
-            eachMc[key] = this.removeSpace(eachMc[key]); // /\s+/g is one or many space matches.
-          }
-        }
-        if (eachMc.mis.length > 1) {
-          eachMc.mis.forEach(mi => {
-            for (let key in mi) {
-              if (mi[key] && typeof mi[key] === 'string') {
-                mi[key] = this.removeSpace(mi[key]);
-              }
-              //  it may meet such case like: "menuOptionIds":["1616626191437"],and we have to proceed it.
-              // that means it should not a string array.
-              if (this.isArray(mi[key]) && mi[key].length > 0 && typeof mi[key][0] !== 'string') {
-                mi[key].forEach(item => {
-                  for (let key in item) {
-                    if (item[key] && typeof item[key] === 'string') {
-                      item[key] = this.removeSpace(item[key]);
-                    }
-                  }
-                });
-              }
-            }
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    newMenus.forEach(menu => {
+      menu.name = this.removeSpace(menu.name);
+      (menu.mcs || []).forEach(mc => {
+        mc.name = this.removeSpace(mc.name);
+        (mc.mis || []).forEach(mi => {
+          mi.name = this.removeSpace(mi.name);
+          (mi.sizeOptions || []).forEach(so => {
+            so.name = this.removeSpace(so.name);
           });
-        }
+        });
       });
     });
     try {
