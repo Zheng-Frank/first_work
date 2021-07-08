@@ -20,7 +20,6 @@ export class Lead {
   rating: number;
   totalReviews: number;
   gmbVerified: boolean;
-  gmbOpen: boolean;
   orderOnlineUrl: string;
   cuisine: string;
   menuUrls: string[];

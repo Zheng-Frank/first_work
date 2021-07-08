@@ -220,13 +220,6 @@ export class LeadDashboardComponent implements OnInit {
         }))
       ]
     },
-    {
-      field: "gmbOpen", //
-      label: "GMB Status",
-      required: false,
-      inputType: "single-select",
-      items: [{ object: "gmb open", text: "Open", selected: false }]
-    },
     // {
     //   field: "gmbAccountOwner", //
     //   label: "qMenu Is GMB Owner",
@@ -920,11 +913,6 @@ export class LeadDashboardComponent implements OnInit {
           }
           if (filter.value === "store open") {
             query["closed"] = { $ne: true };
-          }
-          break;
-        case "gmbOpen":
-          if (filter.value === "gmb open") {
-            query["gmbOpen"] = true;
           }
           break;
         case "inQmenu":

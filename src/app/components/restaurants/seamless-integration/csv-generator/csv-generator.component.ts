@@ -168,13 +168,6 @@ export class CsvGeneratorComponent implements OnInit {
         }))
       ]
     },
-    {
-      field: "gmbOpen", //
-      label: "GMB Status",
-      required: false,
-      inputType: "single-select",
-      items: [{ object: "gmb open", text: "Open", selected: false }]
-    },
     // {
     //   field: "gmbAccountOwner", //
     //   label: "qMenu Is GMB Owner",
