@@ -99,7 +99,6 @@
             <div class="text-warning" *ngIf="task.transfer?.code">
                 <i class="fas fa-2x fa-lightbulb"></i>
             </div>
-            <i class="fas fa-lock-open text-info" *ngIf="task.gmbBiz?.gmbOpen"></i>
             <div *ngIf="task.relatedMap.location?.statusHistory">
                 {{task.relatedMap.location.statusHistory[0].time | ago : now}}
             </div>

@@ -623,7 +623,6 @@ export class CsvGeneratorComponent implements OnInit {
       lead.address.postal_code = Helper.getZipcode(each['address'])
       lead.cid = each.cid;
       lead.closed = each['closed'];
-      lead.gmbOpen = each['gmbOpen']
       lead.gmbOwner = each['gmbOwner'];
       lead.gmbVerified = each['gmbVerified'];
       lead.gmbWebsite = each['gmbWebsite'];

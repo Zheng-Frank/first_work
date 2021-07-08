@@ -3188,7 +3188,6 @@ export class DbScriptsComponent implements OnInit {
         "googleListing.cid": 1,
         "googleListing.gmbOwner": 1,
         "googleListing.gmbWebsite": 1,
-        "googleListing.gmbOpen": 1,
         "googleAddress.formatted_address": 1,
         web: 1,
         disabled: 1,

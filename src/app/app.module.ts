@@ -170,7 +170,6 @@ import { RoutineInstanceListComponent } from './components/routines/routine-inst
 
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
-import { MonitoringGmbOpenComponent } from './components/monitoring/monitoring-gmb-open/monitoring-gmb-open.component';
 import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
 import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
 import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.component';
@@ -243,7 +242,6 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     HomeComponent,
     MonitoringScriptComponent,
     MonitoringDbComponent,
-    MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
     UIPreviewComponent,

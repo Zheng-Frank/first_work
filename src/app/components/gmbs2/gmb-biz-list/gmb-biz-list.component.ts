@@ -67,7 +67,6 @@ export class GmbBizListComponent implements OnInit {
         "googleListing.cid": 1,
         "googleListing.gmbOwner": 1,
         "googleListing.gmbWebsite": 1,
-        "googleListing.gmbOpen": 1,
         "googleAddress.formatted_address": 1,
         disabled: 1,
         score: 1,
@@ -289,9 +288,6 @@ export class GmbBizListComponent implements OnInit {
         break;
       case 'suspended':
         this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.location.status === 'Suspended'));
-        break;
-      case 'open':
-        this.filteredRows = this.filteredRows.filter(r => r.restaurant.googleListing && r.restaurant.googleListing.gmbOpen);
         break;
       case 'lost in 48 hours':
         const now = new Date();
