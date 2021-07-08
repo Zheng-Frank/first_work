@@ -15,13 +15,16 @@ export class GmbMissingListComponent implements OnInit {
     selectedFilter = 'all';
     apiLoading = false;
     combinedScore;
-
+    now = new Date();
     myColumnDescriptors = [
         {
             label: "Number"
         },
         {
             label: "Restaurant Name"
+        },
+        {
+            label: "Suspended"
         },
         {
             label: "Error Message",
@@ -52,10 +55,7 @@ export class GmbMissingListComponent implements OnInit {
                 },
                 projection: {
                     name: 1,
-                    "googleListing.cid": 1,
-                    "googleListing.gmbOwner": 1,
-                    "googleListing.gmbWebsite": 1,
-                    "googleListing.gmbOpen": 1,
+                    "googleListing.place_id": 1,
                     "googleListing.error": 1,
                     "googleAddress.formatted_address": 1,
                     disabled: 1,
@@ -63,6 +63,27 @@ export class GmbMissingListComponent implements OnInit {
                 },
                 limit: 10000
             }).toPromise();
+
+            // this api gives a list of suspended locations. please see API reponse for data structure
+
+            // ...
+            // lastAt: "2021-05-23T23:55:10.145Z"
+            // place_id: "ChIJp_39urcu3YARizYpvD7myts"
+
+            const suspendedLocations = await this._api.post(environment.appApiUrl + "gmb/generic", {
+                name: "get-locations-status-changes",
+                payload: {
+                    previous: "Published",
+                    current: "Suspended",
+                    // account: "sz075589@gmail.com"
+                }
+            }).toPromise();
+
+            // build a rtId: suspendedAt map
+            const suspendedPlaceIdDict = suspendedLocations.reduce((dict, loc) => {
+                dict[loc.place_id] = loc.lastAt;
+                return dict;
+            }, {});
 
             const errors = {};
             this.rows = restaurants.filter(rt => !rt.disabled && rt.name !== 'qMenu Demo').map(rt => {
@@ -74,9 +95,13 @@ export class GmbMissingListComponent implements OnInit {
                     name: rt.name,
                     address: rt.googleAddress.formatted_address,
                     error: rt.googleListing.error,
-                    score: rt.score
+                    score: rt.score,
+                    suspendedAt: suspendedPlaceIdDict[rt.googleListing.place_id]
                 }
             });
+            // sort descending by score by default
+            this.rows.sort((b, a) => a.score - b.score);
+
             this.filterParameters = ['all', ...Object.keys(errors)];
         }
         catch (error) {

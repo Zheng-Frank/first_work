@@ -14,18 +14,18 @@
 <q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="5000">
   <tr *tableRowTemplate="let r;">
     <td>{{filteredRows.indexOf(r) + 1}}</td>
-    <td *ngIf="r.id">
+    <td>
       <a target="_blank" href="#/restaurants/{{r.id}}">{{r.name}}</a>
       <div class="text-muted">
         <small>{{r.address}}</small>
       </div>
     </td>
-    <td *ngIf="!r.id">
-      no match
+    <td>
+      {{r.suspendedAt | ago : now}}
     </td>
     <td>
       {{r.error}}
     </td>
-    <td>{{r.score}}</td>
+    <td>{{r.score | number: '1.0-0'}}</td>
   </tr>
 </q-table>
