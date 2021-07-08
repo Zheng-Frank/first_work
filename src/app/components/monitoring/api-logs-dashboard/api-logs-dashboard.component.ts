@@ -37,6 +37,10 @@ export class ApiLogsDashboardComponent implements OnInit {
   ];
   courseLogs = [];
   selectedLog;
+  restaurantProjection = {
+    _id: 1,
+    name: 1
+  }
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -91,18 +95,29 @@ export class ApiLogsDashboardComponent implements OnInit {
       limit: this.recordNumber
     }, 15);
     this.courseLogs = this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
-
+    // search all restaurants and load them to the apilog whose resource is restaurant.
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+      },
+      projection: this.restaurantProjection
+    }, 5000);
     // sort out the results;
     this.apiLogsRows = [];
     for (let log of this.courseLogs) {
       const actions = [];
       this.loadActions(log.body[0].old, log.body[0].new, "", actions);
+      let restaurant = {};
+      if(log.queryStringParameters.resource === 'restaurant'){
+        restaurant = restaurants.filter(restaurant=> restaurant._id === log.body[0].old._id)[0];
+      }
       this.apiLogsRows.push({
         id: log._id,
         name: log.token.user.username,
         time: log.time,
         resource: log.queryStringParameters.resource,
         actions: actions,
+        restaurant:restaurant
       });
     }
   }

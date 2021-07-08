@@ -63,6 +63,10 @@
           </td>
           <td class="nowrap">
             {{row?.resource}}
+            <div *ngIf="row.resource === 'restaurant'">
+              <a href="/restaurant/{{row?.restaurant?._id}}" target="_blank">{{row?.restaurant?._id}}</a><br/>
+              <span>{{row?.restaurant?.name}}</span>
+            </div>
           </td>
           <td class="pl-3">
             <table>
