@@ -11,7 +11,7 @@
     <table width="100%">
       <tr>
         <td valign="top">
-          <h5 class="media-heading">{{mi.name}}</h5>
+          <h5 class="media-heading"><span class="menu-item-number">{{mi.number}}</span> {{mi.name}}</h5>
           <p *ngIf="mi.description" class="text-muted">{{mi.description}}</p>
           <div *ngFor="let i of mi.menuOptionIds || []">
             <small>{{getDescriptionOfMenuOptionId(i)}}</small>

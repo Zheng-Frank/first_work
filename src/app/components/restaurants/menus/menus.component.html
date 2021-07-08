@@ -12,6 +12,7 @@
         <button class="btn btn-link" (click)="importCoupon = !importCoupon">Import Coupons (采集优惠券)</button>
         <button class="btn btn-link" (click)="importMenu = !importMenu">Import Menus (采集菜单)</button>
         <ng-container *ngIf="getMenus().length > 0">
+          <button class="btn btn-link" (click)="cleanup()">Clean up menu (清理菜单)</button>
           <button *ngIf="!restaurant.skipImageInjection" class="btn btn-link" (click)="injectImages()">Inject Image
             (加图片)</button>
           <button class="btn btn-link" (click)="deleteImages()">Delete Image (删除图片)</button>
@@ -138,6 +139,17 @@
       (onDone)="onDoneEditing($event)" (onDelete)="onDelete($event)"></app-menu-editor>
 
   </q-modal>
+
+  <q-modal #menuCleanModal [size]="'800px'">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Preview Extractions and Translations</h4>
+    <hr>
+    <app-menu-cleanup *ngIf="menusToClean.length > 0" [menus]="menusToClean" (cancel)="cleanupCancel()" (save)="cleanupSave()" ></app-menu-cleanup>
+    <div *ngIf="menusToClean.length === 0">All menus are cleaned up!</div>
+  </q-modal>
+
 
   <div class="app-plus">
     <button (click)="clickNew()" class="btn btn-link text-success far fa-plus-circle"></button>

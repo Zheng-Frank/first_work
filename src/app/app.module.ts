@@ -163,6 +163,10 @@ import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.compon
 import { ChangeOwnershipComponent } from './components/change-ownership/change-ownership.component';
 
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
+import { RoutineDashboardComponent } from './components/routines/routine-dashboard/routine-dashboard.component';
+import { RoutineListComponent } from './components/routines/routine-list/routine-list.component';
+import { RoutineInstanceListComponent } from './components/routines/routine-instance-list/routine-instance-list.component';
+
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
 import { MonitoringGmbOpenComponent } from './components/monitoring/monitoring-gmb-open/monitoring-gmb-open.component';
@@ -224,8 +228,11 @@ import { PostmatesOrderCardComponent } from './components/monitoring/postmates-o
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
+import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu-cleanup.component';
+import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+
 
 
 @NgModule({
@@ -422,6 +429,11 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
     GmbWrongLinkComponent,
+    MenuCleanupComponent,
+    ApiLogsDashboardComponent,
+    RoutineDashboardComponent,
+    RoutineListComponent,
+    RoutineInstanceListComponent,
     SeoTrackingComponent,
     RestaurantSeoTrackingComponent
   ],

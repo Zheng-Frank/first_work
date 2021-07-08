@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
+import {FeeSchedule, Restaurant} from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -44,6 +44,11 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   }
 
   dateChanged(date) {
+  }
+
+  canEditCommission() {
+    const roles = this._global.user.roles || [];
+    return roles.includes('ADMIN') || roles.includes('RATE_EDITOR');
   }
 
   toggleEditing() {
