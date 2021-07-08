@@ -154,7 +154,7 @@ export class MenusComponent implements OnInit {
     // we'll handle these cases:
     // 1. A1. XXX; 2. A12 XXX; 3. AB1 XXX; 4. AB12. XXX; 5. 1A XXX; 6. 11B. XXX
     // 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
-    let withNumRegex = /^(?<to_rm>(?<num>([a-zA-Z]{0,2}\d+)|(\d+[a-zA-Z]))(?<dot>\.?)\s)(?<word>\S+)\s*/i;
+    let withNumRegex = /^(?<to_rm>(?<num>([a-zA-Z]{0,2}\d+)|(\d+[a-zA-Z]))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
     let numMatched = name.match(withNumRegex);
     let measureWords = [
       'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
@@ -222,15 +222,8 @@ export class MenusComponent implements OnInit {
       });
     });
 
-    (tempMenuOptions || []).forEach(mo => {
-      this.match(mo.name);
-      (mo.items || []).forEach(moi => {
-        this.match(moi.name);
-      });
-    });
-
     if (this.menusToClean.length > 0) {
-      this.menusIncludeCleaned = {menus: tempMenus, menuOptions: tempMenuOptions};
+      this.menusIncludeCleaned = {menus: tempMenus};
     }
     this.menuCleanModal.show();
   }
@@ -288,8 +281,6 @@ export class MenusComponent implements OnInit {
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
       this.restaurant.menus = this.menusIncludeCleaned.menus.map(m => new Menu(m));
-      // @ts-ignore
-      this.restaurant.menuOptions = this.menusIncludeCleaned.menuOptions.map(mo => new MenuOption(mo));
       this.cleanupCancel();
     } catch (error) {
       console.log('error...', error);
