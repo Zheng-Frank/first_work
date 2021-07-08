@@ -126,7 +126,7 @@ export class MenuEditorComponent implements OnInit {
       this.menu['targetCustomer'] = this.selectedTarget.value;
     }
 
-    this.onDone.emit(this.menu);
+    this.onDone.emit(Helper.trim(this.menu));
     this.clickedDelete = false;
   }
 

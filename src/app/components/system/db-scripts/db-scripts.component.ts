@@ -21,11 +21,62 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
-  async trimMenu() {
-    await this._api.post(environment.qmenuApiUrl + 'utils/menu', {
-      name: 'trim-menu',
-      payload: {}
-    });
+  shrink(str) {
+    let regex = /(^\s+)|(\s{2,})|(\s+$)/g;
+    let changed = regex.test(str);
+    return {changed, result: (str || '').trim().replace(/\s+/g, ' ') };
+  }
+
+  trimName(item) {
+    let { changed, result } = this.shrink(item.name);
+    item.name = result;
+    return changed;
+  }
+
+  async removeAllMenuSpaces() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {disabled: {$ne: true}},
+      projection: {menus: 1, name: 1},
+    }, 200);
+
+    for (let i = 0; i < rts.length; i++) {
+      let rt = rts[i], hasChanged = false, tmp = false;
+      (rt.menus || []).forEach(menu => {
+        tmp = this.trimName(menu);
+        hasChanged = hasChanged || tmp;
+        (menu.mcs || []).forEach(mc => {
+          tmp = this.trimName(mc);
+          hasChanged = hasChanged || tmp;
+          (mc.mis || []).forEach(mi => {
+            tmp = this.trimName(mi);
+            hasChanged = hasChanged || tmp;
+            (mi.sizeOptions || []).forEach(so => {
+              tmp = this.trimName(so);
+              hasChanged = hasChanged || tmp;
+            });
+          });
+        });
+      });
+
+      if (hasChanged) {
+        try {
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+            old: {_id: rt._id},
+            new: {_id: rt._id, menus: rt.menus}
+          }]);
+          this._global.publishAlert(
+            AlertType.Success,
+            `Menus in restaurant ${rt.name} are cleaned.`
+          );
+        } catch (err) {
+          this._global.publishAlert(
+            AlertType.Danger,
+            `Menus in restaurant ${rt.name} clean failed...${err}`
+          );
+        }
+      }
+    }
   }
 
   async recoverMenu() {
@@ -1752,7 +1803,7 @@ export class DbScriptsComponent implements OnInit {
         rtStats[rtId].lastKnownAliveTime = time;
       }
     });
-    
+
     // scan events in past xxx days
     const analyticsEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'analytics-event',
