@@ -124,8 +124,8 @@ export class QrRestaurantListComponent implements OnInit {
   async ngOnInit() {
     await this.populateQrRestaurant();
   }
-   
-  
+
+
 
   // rescan action needs interaction.
   rescan() {
@@ -198,40 +198,38 @@ export class QrRestaurantListComponent implements OnInit {
   }
 
   filterByQRSettings() {
-    if (this.hasSignHolders || this.hasQRTraining || this.qrCodesMailed || this.qrCodesObtained) {
-      // the filters has some interaction.
-      if (this.hasSignHolders) {
-        this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
-          .filter(qrList => qrList.qrSettings.hasSignHoldersAt);
-      }
-      if (this.hasQRTraining) {
-        this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
-          .filter(qrList => qrList.qrSettings.hasQRTrainingAt);
-      }
-      if (this.qrCodesMailed) {
-        this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
-          .filter(qrList => qrList.qrSettings.qrCodesMailedAt);
-      }
-      if (this.qrCodesObtained) {
-        this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
-          .filter(qrList => qrList.qrSettings.qrCodesObtainedAt);
-      }
+    // the filters has some interaction.
+    if (this.hasSignHolders) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrSettings.hasSignHoldersAt);
+    }
+    if (this.hasQRTraining) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrSettings.hasQRTrainingAt);
+    }
+    if (this.qrCodesMailed) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrSettings.qrCodesMailedAt);
+    }
+    if (this.qrCodesObtained) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrSettings.qrCodesObtainedAt);
     }
     this.QRSettingsFiltersModal.hide();
-     let tempqQRSettingFilterTexts = this.qrSettingFilterTexts.filter(text => (text === 'Sign holders purchased' && this.hasSignHolders) || (text === 'RT is trained' && this.hasQRTraining) || (text === 'QR codes mailed' && this.qrCodesMailed) || (text === 'QR codes received' && this.qrCodesObtained));
+    let tempqQRSettingFilterTexts = this.qrSettingFilterTexts.filter(text => (text === 'Sign holders purchased' && this.hasSignHolders) || (text === 'RT is trained' && this.hasQRTraining) || (text === 'QR codes mailed' && this.qrCodesMailed) || (text === 'QR codes received' && this.qrCodesObtained));
     // when we close the qrSetting filters modal we should resolve the state its last.
     this.qrSettingFilterText = tempqQRSettingFilterTexts.join(',');
-    tempqQRSettingFilterTexts.forEach(text=>{
-      if(text === 'Sign holders purchased' && this.hasSignHolders){
+    tempqQRSettingFilterTexts.forEach(text => {
+      if (text === 'Sign holders purchased' && this.hasSignHolders) {
         this.tempHasSignHolders = this.hasSignHolders;
       }
-      if(text === 'RT is trained' && this.hasQRTraining){
+      if (text === 'RT is trained' && this.hasQRTraining) {
         this.tempHasQRTraining = this.hasQRTraining;
       }
-      if(text === 'QR codes mailed' && this.qrCodesMailed){
+      if (text === 'QR codes mailed' && this.qrCodesMailed) {
         this.tempQRCodesMailed = this.qrCodesMailed;
       }
-      if(text === 'QR codes received' && this.qrCodesObtained){
+      if (text === 'QR codes received' && this.qrCodesObtained) {
         this.tempQRCodesObtained = this.qrCodesObtained;
       }
     });
