@@ -206,18 +206,14 @@ export class MenusComponent implements OnInit {
   async cleanup() {
     this.menusToClean = [];
     this.menusIncludeCleaned = {};
-    let {menus, menuOptions} = this.restaurant;
-    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x)),
-      tempMenuOptions = JSON.parse(JSON.stringify(menuOptions)).map(x => new MenuOption(x));
+    let {menus} = this.restaurant;
+    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x));
     tempMenus.forEach(menu => {
       this.match(menu);
       menu.mcs.forEach(mc => {
         this.match(mc);
         mc.mis.forEach(mi => {
           this.match(mi);
-          mi.sizeOptions.forEach(so => {
-            this.match(so);
-          });
         });
       });
     });
@@ -259,9 +255,6 @@ export class MenusComponent implements OnInit {
           this.saveTranslation(mc, translations);
           mc.mis.forEach(mi => {
             this.saveTranslation(mi, translations);
-            mi.sizeOptions.forEach(so => {
-              this.saveTranslation(so, translations);
-            });
           });
         });
         (menu.items || []).forEach(moi => {
