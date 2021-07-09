@@ -5,10 +5,10 @@
  * B. not having any translations
  * C. some translations are out-dated because original things have changed
  */
-import { Component, Input, OnInit } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
-import { ApiService } from 'src/app/services/api.service';
-import { environment } from 'src/environments/environment';
+import {Component, Input, OnInit} from '@angular/core';
+import {Restaurant} from '@qmenu/ui';
+import {ApiService} from 'src/app/services/api.service';
+import {environment} from 'src/environments/environment';
 
 @Component({
   selector: 'app-restaurant-translations',
@@ -26,10 +26,25 @@ export class RestaurantTranslationsComponent implements OnInit {
   };
   translationItems = [];
 
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService) {
+  }
 
   ngOnInit() {
     this.populateTranslations();
+  }
+
+  extract(item, items) {
+    let {name, description, placement, translation} = item;
+    if (translation) {
+      items.add(translation.en);
+    } else {
+      let hasZhRegex = /[\s-(]?([^\x00-\xff]+)[\s)]?/;
+      [name, placement, description].forEach(text => {
+        if (text && !hasZhRegex.test(name)) {
+          items.add(name);
+        }
+      });
+    }
   }
 
   private extractTranslatingTexts() {
@@ -37,26 +52,24 @@ export class RestaurantTranslationsComponent implements OnInit {
     // add restaurant name
     items.add(this.restaurant.name);
     // add menu related
-    this.restaurant.menus.map(menu => {
-      items.add(menu.name);
-      items.add(menu.description);
-      menu.mcs.map(mc => {
-        items.add(mc.name);
-        items.add(mc.description);
-        mc.mis.map(mi => {
-          items.add(mi.name);
-          items.add(mi.description);
-          mi.sizeOptions.map(so => {
-            items.add(so.name);
+    this.restaurant.menus.forEach(menu => {
+      this.extract(menu, items);
+      menu.mcs.forEach(mc => {
+        this.extract(mc, items);
+        mc.mis.forEach(mi => {
+          this.extract(mi, items);
+          mi.sizeOptions.forEach(so => {
+            this.extract(so, items);
           });
         });
       });
     });
     // add menuOptions!
-    (this.restaurant.menuOptions || []).map(mo => {
-      items.add(mo.name);
-      (mo.items || []).map(i => items.add(i.name));
-      (mo.items || []).map(i => items.add(i.placement));
+    (this.restaurant.menuOptions || []).forEach(mo => {
+      this.extract(mo, items);
+      (mo.items || []).forEach(i => {
+        this.extract(i, items);
+      });
     });
     return items;
   }
@@ -76,8 +89,8 @@ export class RestaurantTranslationsComponent implements OnInit {
     const nonEmptyTranslations = this.translationItems.filter(t => this.nonEnglishLanguages.some(lang => t[lang]));
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
       {
-        old: { _id: this.restaurant._id },
-        new: { _id: this.restaurant._id, translations: nonEmptyTranslations }
+        old: {_id: this.restaurant._id},
+        new: {_id: this.restaurant._id, translations: nonEmptyTranslations}
       }
     ]).toPromise();
   }
@@ -85,7 +98,7 @@ export class RestaurantTranslationsComponent implements OnInit {
   private async populateTranslations() {
     const [rt] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { _id: { $oid: this.restaurant._id } },
+      query: {_id: {$oid: this.restaurant._id}},
       projection: {
         translations: 1
       }
@@ -95,8 +108,7 @@ export class RestaurantTranslationsComponent implements OnInit {
     const currentAllTexts = [...this.extractTranslatingTexts()].filter(t => t);
 
     // either matched translation or new item
-    const items = currentAllTexts.map(text => rtTranslations.find(t => t.EN === text) || { EN: text });
-    this.translationItems = items;
+    this.translationItems = currentAllTexts.map(text => rtTranslations.find(t => t.EN === text) || {EN: text});
   }
 
   async autoTranslate() {

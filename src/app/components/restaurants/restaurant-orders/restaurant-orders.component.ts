@@ -319,7 +319,6 @@ export class RestaurantOrdersComponent implements OnInit {
       },
       limit: 50
     }).toPromise();
-    console.log(orders);
     // get blocked customers and assign back to each order blacklist reasons
     /**
      * orders.filter(function(){
@@ -534,7 +533,7 @@ export class RestaurantOrdersComponent implements OnInit {
     this.logInEditing = new Log();
     this.adjustInvoiceComponment.percentage = true;
     this.adjustInvoiceComponment.percentageAdjustmentAmount = 20;
-    this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100)); 
+    this.adjustInvoiceComponment.adjustmentAmount = Number(this.adjustInvoiceComponment.moneyTransform(order.getSubtotal() * 20 / 100));
     this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');

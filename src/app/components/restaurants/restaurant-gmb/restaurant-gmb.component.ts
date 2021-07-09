@@ -351,7 +351,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       console.log(gmbBizList);
 
-      const fields = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
+      const fields = ['phone', 'place_id', 'gmbOwner', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
 
       const pairs = gmbBizList.map(gmbBiz => {
         const old = { _id: gmbBiz._id };

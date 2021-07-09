@@ -168,13 +168,6 @@ export class CsvGeneratorComponent implements OnInit {
         }))
       ]
     },
-    {
-      field: "gmbOpen", //
-      label: "GMB Status",
-      required: false,
-      inputType: "single-select",
-      items: [{ object: "gmb open", text: "Open", selected: false }]
-    },
     // {
     //   field: "gmbAccountOwner", //
     //   label: "qMenu Is GMB Owner",
@@ -623,7 +616,6 @@ export class CsvGeneratorComponent implements OnInit {
       lead.address.postal_code = Helper.getZipcode(each['address'])
       lead.cid = each.cid;
       lead.closed = each['closed'];
-      lead.gmbOpen = each['gmbOpen']
       lead.gmbOwner = each['gmbOwner'];
       lead.gmbVerified = each['gmbVerified'];
       lead.gmbWebsite = each['gmbWebsite'];

@@ -1,0 +1,15 @@
+.wrap {
+    word-break: break-all !important;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+::ng-deep th:nth-child(3){
+    white-space: nowrap;
+}
+
+::ng-deep th:nth-child(4){
+    white-space: nowrap;
+}
