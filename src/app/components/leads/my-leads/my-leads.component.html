@@ -53,7 +53,6 @@
             </th>
             <td>{{lead.assignee}}</td>
             <td class="text-nowrap">
-              <i class="fas fa-lock-open text-info" *ngIf="lead.gmbOpen"></i>
               <i class="fas fa-globe text-muted" *ngIf="!lead.gmbWebsite && lead.serviceProviders && lead.serviceProviders.length > 0"></i>
               {{lead.gmbOwner}}
             </td>

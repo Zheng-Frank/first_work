@@ -481,7 +481,6 @@ export class MyRestaurantComponent implements OnInit {
         cid: 1,
         qmenuId: 1,
         gmbWebsite: 1,
-        gmbOpen: 1
       }
     }, 6000);
 

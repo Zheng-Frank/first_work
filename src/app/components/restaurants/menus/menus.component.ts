@@ -57,6 +57,50 @@ export class MenusComponent implements OnInit {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
   }
 
+  isArray(obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]';
+  }
+
+  /*
+    a public logic we should extract it.
+  */
+  removeSpace(str) {
+    return (str || '').trim().replace(/\s+/g, ' ');
+  }
+  /*
+    remove space of the property's value of mi if it suit for the rules.
+  */
+  async doRemoveUnnessarySpace() {
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    newMenus.forEach(menu => {
+      menu.name = this.removeSpace(menu.name);
+      (menu.mcs || []).forEach(mc => {
+        mc.name = this.removeSpace(mc.name);
+        (mc.mis || []).forEach(mi => {
+          mi.name = this.removeSpace(mi.name);
+          (mi.sizeOptions || []).forEach(so => {
+            so.name = this.removeSpace(so.name);
+          });
+        });
+      });
+    });
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: newMenus
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      this.restaurant.menus = newMenus.map(menu => new Menu(menu));
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
+    }
+  }
+
   hasMenuHoursMissing() {
     return (this.restaurant.menus || []).some(menu => (menu.hours || []).length === 0);
   }
@@ -639,7 +683,7 @@ export class MenusComponent implements OnInit {
             // reset the imageObj
             mi.imageObjs = [];
             (matchingAlias.images || []).map(each => {
-              if(!mi.SkipImageInjection){
+              if (!mi.SkipImageInjection) {
                 (mi.imageObjs).push({
                   originalUrl: each.url,
                   thumbnailUrl: each.url192,
