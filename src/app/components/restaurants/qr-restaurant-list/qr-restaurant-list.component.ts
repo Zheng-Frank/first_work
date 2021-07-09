@@ -128,9 +128,9 @@ export class QrRestaurantListComponent implements OnInit {
 
 
   // rescan action needs interaction.
-  rescan() {
-    this.populateQrRestaurant();
-    this.filter();
+  async reload() {
+    await this.populateQrRestaurant();
+    await this.filter();
   }
 
   isSchedulesValid(restaurant) {
