@@ -60,11 +60,6 @@ export class TaskListComponent implements OnInit, OnChanges {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: "Listing",
-      paths: ['gmbBiz', 'gmbOpen'],
-      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
-    },
-    {
       label: "Owner",
       paths: ['gmbBiz', 'gmbOwner'],
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)

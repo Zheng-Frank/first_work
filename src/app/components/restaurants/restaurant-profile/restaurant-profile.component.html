@@ -149,7 +149,7 @@
                     </i>
                   </div>
                   <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{(restaurant.rateSchedules || [])[0]?.agent || 'N/A'}}
+                    {{getSalesAgent()}}
                   </div>
                 </div>
               </th>
@@ -836,21 +836,6 @@
             </label>
             <div class="pl-1 col-7">
               <input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
-            </div>
-          </div>
-          <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Sales Agent' : '销售人员' }}
-              <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                (mouseover)="showCorrespondingTranslation('SalesAgent')" (mouseout)="translating = ''">
-                <div *ngIf="translating === 'SalesAgent'" class="left edit-talk radius">
-                  <p>Sales Agent:{{Explanations.EnglishExplanations.SalesAgent}}</p>
-                  -------------<br>
-                  <p>销售人员:{{Explanations.ChineseExplanations.SalesAgent}}</p>
-                </div>
-              </i>
-            </label>
-            <div class="pl-1 col-7">
-              <input type="text" [(ngModel)]="salesAgent" class="form-control">
             </div>
           </div>
           <div class="form-group row" *ngIf="isDisabledEditable()">

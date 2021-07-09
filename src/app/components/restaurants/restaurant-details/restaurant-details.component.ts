@@ -36,7 +36,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    rateSchedules: ['RATE_EDITOR', 'MARKETER'],
+    rateSchedules: ['ADMIN', 'RATE_EDITOR'], // rateSchedule should be migrated to fee schedule, no need to show for normal roles
+    feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     promotions: [],
@@ -110,6 +111,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     printers: 1,
     printerSN: 1,
     promotions: 1,
+    providers: 1,
     'qrSettings.viewOnly': 1,
     'qrSettings.agent': 1,
     'qrSettings.agentAt': 1,
@@ -147,6 +149,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     comebackDate: 1,
     ccMinimumCharge: 1,
     hideOrderReadyEstimate: 1,
+    translations: 1,
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
