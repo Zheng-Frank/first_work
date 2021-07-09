@@ -9,7 +9,7 @@
     <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
       class="form-control col-6" placeholder="Search">
     <div class="ml-3 mt-2">
-      <input  type="checkbox" [(ngModel)]="searchQROrder" (change)="searchQROrders()"> QR orders only
+      <input  type="checkbox" [(ngModel)]="searchQROrder" (change)="search()"> QR orders only
     </div>
     <div *ngIf="searchText" class="text-muted float-left col-1 pt-2">Found: {{orders.length}}</div>
   </div>

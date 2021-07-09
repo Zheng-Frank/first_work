@@ -74,66 +74,7 @@ export class RestaurantOrdersComponent implements OnInit {
       d => this.showNotifier(d)
     );
   }
-  // search RT's orders only with QR.
-  async searchQROrders(){
-    if(this.searchQROrder){
-      const query = {
-        restaurant: {
-          $oid: this.restaurant._id
-        },
-        'dineInSessionObj._id':{
-          $exists:true
-        }
-      } as any;
-      const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
-        query: query,
-        projection: {//返回除logs以外的所有行
-          logs: 0,
-        },
-        sort: {
-          createdAt: -1
-        },
-        limit: 50
-      }).toPromise();
-      // get blocked customers and assign back to each order blacklist reasons
-      const customerIds = orders.filter(order => order.customer).map(order => order.customer);
   
-      const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "blacklist",
-        query: {
-          "value": { $in: customerIds },
-          disabled: { $ne: true }
-        },
-        projection: {
-          disabled: 1,
-          reasons: 1, 
-          value: 1,
-          orders: 1
-        },
-        limit: 100000,
-        sort: {
-          createAt: 1
-        }
-      }).toPromise();
-  
-      const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
-      // assemble back to order:
-      this.orders = orders.map(order => {
-        order.orderNumber = order.orderNumber;
-        order.customer = order.customerObj;
-        order.payment = order.paymentObj;
-        order.id = order._id;
-        order.customerNotice = order.customerNotice || '';
-        order.restaurantNotie = order.restaurantNotie || '';
-        // making it back-compatible to display bannedReasons
-        order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-        return new Order(order);
-      });
-    }else{
-      this.populateOrders();
-    }
-  }
   /**
    *
    *cancel the advanced date search
