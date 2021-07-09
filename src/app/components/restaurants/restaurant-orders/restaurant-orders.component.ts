@@ -262,16 +262,6 @@ export class RestaurantOrdersComponent implements OnInit {
    * @memberof RestaurantOrdersComponent
    */
   search(event) {
-    let regexp = /^[0-9]{3,4}$/;
-    // if(!this.searchText){
-    //   this.populateOrders();
-    // }else if(this.type == 'Order Number'&&this.searchText && regexp.test(this.searchText)){
-    //   this.orders = this.orders.filter((order) => String(order.orderNumber).indexOf(this.searchText)!=-1);
-    // }else if(this.type == 'Postmates ID'){
-    //   this.orders = this.orders.filter((order) => order.delivery);
-    // }else if(this.type == 'Customer Phone'){
-    //   this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
-    // }
     this.populateOrders();
   }
 
@@ -287,6 +277,12 @@ export class RestaurantOrdersComponent implements OnInit {
     } as any;
 
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
+    // when check the qr orders only checkbox ,it need interact with the search input.
+    if(this.searchQROrder){
+      query['dineInSessionObj._id'] = {
+        $exists:true
+      }
+    }
     if (!this.searchText) {
 
     } else if (this.type == 'Order Number' && this.searchText && regexp.test(this.searchText)) {
