@@ -168,7 +168,6 @@ export class QrRestaurantListComponent implements OnInit {
      d) amount/percent is NOT 0.
      it also need qrSettings.code exists and is not null. 
     */
-   console.log(this.filterType);
     switch (this.filterType) {
       case QRConfiguredTypes.ALL:
         this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
@@ -184,7 +183,6 @@ export class QrRestaurantListComponent implements OnInit {
         this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
         break;
     }
-    console.log("执行到此处"+this.qrFilterRestaurantListRows.length);
     /**
     * add a new filter type , filtering by qr salesperson.
     */
