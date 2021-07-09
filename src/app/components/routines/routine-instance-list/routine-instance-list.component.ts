@@ -27,7 +27,6 @@ export class RoutineInstanceListComponent implements OnChanges {
     this.groupAndSortInstances()
     this.createInstanceColumnDescriptors();
     this.createResultsTable();
-    console.log(this.resultsTable)
   }
 
   columnDescriptors = [
@@ -53,10 +52,10 @@ export class RoutineInstanceListComponent implements OnChanges {
   }
 
   groupAndSortInstances() {
-    this.groupedInstances = this.routineList.map(routine => {
-      routine.instances = this.instanceList.filter(inst => inst.routineId === routine._id).sort((a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf());
-      return routine;
-    });
+    this.groupedInstances = this.routineList.reduce((dict, routine) => {
+      dict[routine._id] = this.instanceList.filter(inst => inst.routineId === routine._id).sort((a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf());
+      return dict;
+    }, {});
   }
 
   createInstanceColumnDescriptors() {
@@ -94,13 +93,4 @@ export class RoutineInstanceListComponent implements OnChanges {
     });
   }
 
-  displayStuff(p1, p2) {
-    if (p1 === "60df720a5f322f680d674d50" || p1 === "60df74d15f322f680d6af516") {
-
-
-      console.log('name: ', p2)
-      console.log('value: ', this.resultsTable[p1][p2])
-    }
-
-  }
 }
