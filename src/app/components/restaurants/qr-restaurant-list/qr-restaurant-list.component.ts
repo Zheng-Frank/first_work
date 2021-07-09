@@ -218,7 +218,7 @@ export class QrRestaurantListComponent implements OnInit {
     this.QRSettingsFiltersModal.hide();
     let tempqQRSettingFilterTexts = this.qrSettingFilterTexts.filter(text => (text === 'Sign holders purchased' && this.hasSignHolders) || (text === 'RT is trained' && this.hasQRTraining) || (text === 'QR codes mailed' && this.qrCodesMailed) || (text === 'QR codes received' && this.qrCodesObtained));
     // when we close the qrSetting filters modal we should resolve the state its last.
-    this.qrSettingFilterText = tempqQRSettingFilterTexts.join(',');
+    this.qrSettingFilterText = tempqQRSettingFilterTexts.join(', ');
     this.tempHasSignHolders = this.hasSignHolders;
     this.tempHasQRTraining = this.hasQRTraining;
     this.tempQRCodesMailed = this.qrCodesMailed;
