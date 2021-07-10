@@ -9,10 +9,12 @@ import { environment } from "../../../../environments/environment";
 })
 export class GmbMissingListComponent implements OnInit {
 
+    MAXIMUM_LOG_DISPLAY_AGE = 30; // age, in days, of the oldest routine log entry we will display on the dashboard
     rows = [];
+    showRtsWithLogs = false;
     filteredRows = [];
-    filterParameters = ['all'];
-    selectedFilter = 'all';
+    filterParameters = ["all"];
+    selectedFilter = "all";
     apiLoading = false;
     combinedScore;
     now = new Date();
@@ -24,12 +26,13 @@ export class GmbMissingListComponent implements OnInit {
             label: "Restaurant Name"
         },
         {
+            label: "Routine Logs"
+        },
+        {
             label: "Suspended"
         },
         {
-            label: "Error Message",
-            paths: ['error'],
-            sort: (a, b) => a.localeCompare(b)
+            label: "Error Message"
         },
         {
             label: "Score",
@@ -64,6 +67,38 @@ export class GmbMissingListComponent implements OnInit {
                 limit: 10000
             }).toPromise();
 
+            const gmbMissingRoutine = await this._api.get(environment.qmenuApiUrl + "generic", {
+                resource: "routine",
+                query: {
+                    name: "Handling of GMB Missing Restaurants"
+                },
+                projection: {
+                    _id: 1,
+                    name: 1
+                },
+                limit: 1
+            }).toPromise();
+
+            const routineInstances = await this._api.get(environment.qmenuApiUrl + "generic", {
+                resource: "routine-instance",
+                query: {
+                    routineId: gmbMissingRoutine[0]._id
+                },
+                projection: {},
+                limit: 10000
+            }).toPromise();
+
+            const instanceDict = routineInstances.reduce((dict, inst) => {
+                const rtId = inst.results.find(res => res.name === "Restaurant ID").result;
+                if (dict[rtId]) {
+                    dict[rtId].push(inst);
+                } else {
+                    dict[rtId] = [inst];
+                }
+                return dict;
+            }, {});
+
+            console.log(instanceDict);
             // this api gives a list of suspended locations. please see API reponse for data structure
 
             // ...
@@ -86,7 +121,7 @@ export class GmbMissingListComponent implements OnInit {
             }, {});
 
             const errors = {};
-            this.rows = restaurants.filter(rt => !rt.disabled && rt.name !== 'qMenu Demo').map(rt => {
+            this.rows = restaurants.filter(rt => !rt.disabled && rt.name !== "qMenu Demo").map(rt => {
                 // we want an array of all unique error messages as filter parameters.
                 // use an object to ensure uniqueness, then map the object's keys to an array
                 errors[rt.googleListing.error] = rt.googleListing.error;
@@ -96,13 +131,16 @@ export class GmbMissingListComponent implements OnInit {
                     address: rt.googleAddress.formatted_address,
                     error: rt.googleListing.error,
                     score: rt.score,
-                    suspendedAt: suspendedPlaceIdDict[rt.googleListing.place_id]
+                    suspendedAt: suspendedPlaceIdDict[rt.googleListing.place_id],
+                    instances: (instanceDict[rt._id] || [])
+                        .filter(inst => new Date().valueOf() - new Date(inst.createdAt).valueOf() < 86400000 * this.MAXIMUM_LOG_DISPLAY_AGE) 
+                        .sort((a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf())
                 }
             });
             // sort descending by score by default
             this.rows.sort((b, a) => a.score - b.score);
 
-            this.filterParameters = ['all', ...Object.keys(errors)];
+            this.filterParameters = ["all", ...Object.keys(errors)];
         }
         catch (error) {
             console.error(`Error, failed to retrieve restaurant data: `, error);
@@ -113,15 +151,33 @@ export class GmbMissingListComponent implements OnInit {
     }
 
     filter() {
-        if (this.selectedFilter === 'all') {
+        if (this.selectedFilter === "all") {
             this.filteredRows = this.rows;
         } else {
             this.filteredRows = this.rows.filter(r => r.error === this.selectedFilter)
+        }
+
+        if (this.showRtsWithLogs) {
+            this.filteredRows = this.filteredRows.filter(r => (r.instances || []).length);
         }
         this.findCombinedScore();
     }
 
     findCombinedScore() {
         this.combinedScore = this.filteredRows.reduce((prev, curr) => prev + curr.score, 0);
+    }
+
+    displayMessageFromInstance(inst) {
+        const resultMessage = inst.results.find(res => res.name === "Result").result;
+        const comments = inst.results.find(res => res.name === "Comments").result;
+        return `${resultMessage}: ${comments}`
+    }
+
+    colorCodeMessages(inst) {
+        const result = inst.results.find(res => res.name === "Result").result;
+        if (result === "Succeeded") return "text-success";
+        if (result === "Failed") return "text-danger";
+        if (result === "Ongoing") return "text-warning";
+        return "";
     }
 }
