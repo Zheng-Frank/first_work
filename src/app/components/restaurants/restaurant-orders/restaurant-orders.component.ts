@@ -123,7 +123,12 @@ export class RestaurantOrdersComponent implements OnInit {
       }
       ]
     } as any;
-
+    // only show qr orders has some interactions with date range search. 
+    if(this.searchQROrder){
+      query['dineInSessionObj._id'] = {
+        $exists:true
+      }
+    }
     // ISO-Date()
     const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "order",

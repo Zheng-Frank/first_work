@@ -17,6 +17,7 @@
     <button type="button" class="btn btn-link ml-3" (click)="showAdvancedSearch = !showAdvancedSearch">
       {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
     <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
+      <div class="row text-danger ml-2">NOTE: The date range search only show 150 orders in the most front.</div>
       <div class="row">
         <div class="col col-sm-6">
           <label>From:</label>
