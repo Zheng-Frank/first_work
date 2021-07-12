@@ -21,18 +21,18 @@ export class RoutineInstanceListComponent implements OnChanges {
   routineInReporting;
   resultsTable = {};
 
-  pagination = true;
+  pagination = {};
 
   ngOnChanges() {
-    this.groupAndSortInstances()
-    this.createInstanceColumnDescriptors();
-    this.createResultsTable();
+    if ((this.routineList || []).length  && (this.instanceList || []).length) {
+      this.groupAndSortInstances()
+      this.createInstanceColumnDescriptors();
+      this.createResultsTable();
+      this.createPaginationTable();
+    }
   }
 
   columnDescriptors = [
-    {
-      label: 'Number'
-    },
     {
       label: "Routine Name",
       paths: ['name'],
@@ -93,4 +93,13 @@ export class RoutineInstanceListComponent implements OnChanges {
     });
   }
 
+  createPaginationTable() {
+    this.routineList.forEach(routine => {
+      this.pagination[routine._id] = true;
+    });
+  }
+
+  togglePagination(routineId) {
+    this.pagination[routineId] = !this.pagination[routineId];
+  }
 }
