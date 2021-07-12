@@ -49,7 +49,7 @@ export class RestaurantSeoTrackingComponent implements OnInit {
       this._global.publishAlert(AlertType.Success, 'Google ranks scraped!');
     } catch (error) {
       console.log(error);
-      this._global.publishAlert(AlertType.Danger, 'Error on retrieving promotions');
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving google ranks');
     }
   }
 }
