@@ -7,13 +7,17 @@
       <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
     </select>
     <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
-           class="form-control col-7" placeholder="Search">
-    <div *ngIf="searchText" class="text-muted float-left col-1">Found: {{orders.length}}</div>
+      class="form-control col-6" placeholder="Search">
+    <div class="ml-3 mt-2">
+      <input  type="checkbox" [(ngModel)]="searchQROrder" (change)="search()"> QR orders only
+    </div>
+    <div *ngIf="searchText" class="text-muted float-left col-1 pt-2">Found: {{orders.length}}</div>
   </div>
   <div class="form-group">
     <button type="button" class="btn btn-link ml-3" (click)="showAdvancedSearch = !showAdvancedSearch">
       {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
     <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
+      <div class="row text-danger ml-2">NOTE: The date range search only show 150 orders in the most front.</div>
       <div class="row">
         <div class="col col-sm-6">
           <label>From:</label>

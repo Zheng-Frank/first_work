@@ -58,6 +58,7 @@ export class RestaurantOrdersComponent implements OnInit {
   logInEditing = new Log(); // invoice ajustment modal need this field
   adjustInvoiceRestaurantList = []; // all the restaurant need adjust invoice
   changeOrderType = 'Restaurant self-deliver';
+  searchQROrder = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
   /**
@@ -73,6 +74,7 @@ export class RestaurantOrdersComponent implements OnInit {
       d => this.showNotifier(d)
     );
   }
+  
   /**
    *
    *cancel the advanced date search
@@ -121,7 +123,12 @@ export class RestaurantOrdersComponent implements OnInit {
       }
       ]
     } as any;
-
+    // only show qr orders has some interactions with date range search. 
+    if(this.searchQROrder){
+      query['dineInSessionObj._id'] = {
+        $exists:true
+      }
+    }
     // ISO-Date()
     const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "order",
@@ -217,6 +224,12 @@ export class RestaurantOrdersComponent implements OnInit {
     } as any;
 
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
+    // when check the qr orders only checkbox ,it need interact with the search input.
+    if(this.searchQROrder){
+      query['dineInSessionObj._id'] = {
+        $exists:true
+      }
+    }
     if (!this.searchText) {
 
     } else if (this.type == 'Order Number' && this.searchText && regexp.test(this.searchText)) {
