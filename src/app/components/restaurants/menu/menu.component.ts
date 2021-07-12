@@ -540,11 +540,10 @@ export class MenuComponent implements OnInit {
           eachMc.mis = mc.mis || [];
           eachMc.mis.forEach(mi => {
             let { en, zh } = mi.translation;
-            // todo: what if zh is deleted ?
             let tmp = (translations || []).find(x => x.EN === en);
             if (tmp) {
               tmp.ZH = zh;
-            } else {
+            } else if (zh) {
               translations.push({EN: en, ZH: zh});
             }
             delete mi.translation.zh;
@@ -559,7 +558,8 @@ export class MenuComponent implements OnInit {
           _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
-          menus: newMenus
+          menus: newMenus,
+          translations
         }
       }])
       .subscribe(

@@ -29,7 +29,7 @@ export class MenuItemsEditorComponent implements OnInit {
 
     this.mc.mis.forEach(mi => {
       mi.translation = mi.translation || {en: ''} as IMenuTranslation;
-      let tmp = this.translations.find(x => x.EN === mi.translation.en);
+      let tmp = (this.translations || []).find(x => mi.translation && x.EN === mi.translation.en);
       if (tmp) {
         mi.translation.zh = tmp.ZH;
       }
@@ -86,8 +86,6 @@ export class MenuItemsEditorComponent implements OnInit {
 
     // remove empty mis
     this.mc.mis = this.mc.mis.filter(mi => mi.sizeOptions.length > 0 && mi.name);
-
-    console.log(this.mc);
 
     this.onDone.emit(this.mc);
   }

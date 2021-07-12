@@ -136,6 +136,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     taxRate: 1,
     templateName: 1,
     timeZone: 1,
+    translations: 1,
     web: 1,
     yelpListing: 1,
     phones: 1,
