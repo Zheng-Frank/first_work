@@ -95,6 +95,22 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
 
+  trimName(menus) {
+    (menus || []).forEach(menu => {
+      menu.name = Helper.shrink(menu.name);
+      (menu.mcs || []).forEach(mc => {
+        mc.name = Helper.shrink(mc.name);
+        (mc.mis || []).forEach(mi => {
+          mi.name = Helper.shrink(mi.name);
+          (mi.sizeOptions || []).forEach(so => {
+            so.name = Helper.shrink(so.name);
+          });
+        });
+      });
+    });
+    return menus;
+  }
+
   async crawl(synchronously) {
     console.log(this.restaurant.googleAddress);
     this.apiRequesting = true;
@@ -114,7 +130,7 @@ export class MenusComponent implements OnInit {
             _id: this.restaurant._id
           }, new: {
             _id: this.restaurant._id,
-            menus: crawledRestaurant.menus,
+            menus: this.trimName(crawledRestaurant.menus),
             menuOptions: crawledRestaurant.menuOptions
           }
         }]).toPromise();
