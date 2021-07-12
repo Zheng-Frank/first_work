@@ -139,6 +139,22 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
 
+  trimName(menus) {
+    (menus || []).forEach(menu => {
+      menu.name = Helper.shrink(menu.name);
+      (menu.mcs || []).forEach(mc => {
+        mc.name = Helper.shrink(mc.name);
+        (mc.mis || []).forEach(mi => {
+          mi.name = Helper.shrink(mi.name);
+          (mi.sizeOptions || []).forEach(so => {
+            so.name = Helper.shrink(so.name);
+          });
+        });
+      });
+    });
+    return menus;
+  }
+
   async crawl(synchronously) {
     console.log(this.restaurant.googleAddress);
     this.apiRequesting = true;
@@ -158,7 +174,7 @@ export class MenusComponent implements OnInit {
             _id: this.restaurant._id
           }, new: {
             _id: this.restaurant._id,
-            menus: crawledRestaurant.menus,
+            menus: this.trimName(crawledRestaurant.menus),
             menuOptions: crawledRestaurant.menuOptions
           }
         }]).toPromise();
@@ -198,7 +214,7 @@ export class MenusComponent implements OnInit {
     // we'll handle these cases:
     // 1. A1. XXX; 2. A12 XXX; 3. AB1 XXX; 4. AB12. XXX; 5. 1A XXX; 6. 11B. XXX
     // 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
-    let withNumRegex = /^(?<to_rm>(?<num>([a-zA-Z]{0,2}\d+)|(\d+[a-zA-Z]))(?<dot>\.?)\s)(?<word>\S+)\s*/i;
+    let withNumRegex = /^(?<to_rm>(?<num>([a-zA-Z]{0,2}\d+)|(\d+[a-zA-Z]))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
     let numMatched = name.match(withNumRegex);
     let measureWords = [
       'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
@@ -250,31 +266,20 @@ export class MenusComponent implements OnInit {
   async cleanup() {
     this.menusToClean = [];
     this.menusIncludeCleaned = {};
-    let {menus, menuOptions} = this.restaurant;
-    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x)),
-      tempMenuOptions = JSON.parse(JSON.stringify(menuOptions)).map(x => new MenuOption(x));
+    let {menus} = this.restaurant;
+    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x));
     tempMenus.forEach(menu => {
       this.match(menu);
       menu.mcs.forEach(mc => {
         this.match(mc);
         mc.mis.forEach(mi => {
           this.match(mi);
-          mi.sizeOptions.forEach(so => {
-            this.match(so);
-          });
         });
       });
     });
 
-    (tempMenuOptions || []).forEach(mo => {
-      this.match(mo.name);
-      (mo.items || []).forEach(moi => {
-        this.match(moi.name);
-      });
-    });
-
     if (this.menusToClean.length > 0) {
-      this.menusIncludeCleaned = {menus: tempMenus, menuOptions: tempMenuOptions};
+      this.menusIncludeCleaned = {menus: tempMenus};
     }
     this.menuCleanModal.show();
   }
@@ -310,9 +315,6 @@ export class MenusComponent implements OnInit {
           this.saveTranslation(mc, translations);
           mc.mis.forEach(mi => {
             this.saveTranslation(mi, translations);
-            mi.sizeOptions.forEach(so => {
-              this.saveTranslation(so, translations);
-            });
           });
         });
         (menu.items || []).forEach(moi => {
@@ -332,8 +334,6 @@ export class MenusComponent implements OnInit {
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
       this.restaurant.menus = this.menusIncludeCleaned.menus.map(m => new Menu(m));
-      // @ts-ignore
-      this.restaurant.menuOptions = this.menusIncludeCleaned.menuOptions.map(mo => new MenuOption(mo));
       this.cleanupCancel();
     } catch (error) {
       console.log('error...', error);
@@ -561,6 +561,7 @@ export class MenusComponent implements OnInit {
   }
 
   onDoneEditing(menu: Menu) {
+    console.log(JSON.stringify(menu))
     const newMenus = (this.restaurant.menus || []).slice(0);
     if (menu.id) {
       for (let i = newMenus.length - 1; i >= 0; i--) {

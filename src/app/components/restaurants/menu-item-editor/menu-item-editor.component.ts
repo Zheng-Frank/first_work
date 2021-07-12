@@ -33,7 +33,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     uploadImageError: string;
     availabilityValues = ['Available', 'Unavailable'];
 
-    startupAction = undefined;  //'Yes', 'No', or undefined 
+    startupAction = undefined;  //'Yes', 'No', or undefined
     finishedChoosingStartupAction = false;
     existingMis = [];
 
@@ -50,7 +50,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     }
     /**
      * it needs to show old pepper's count.
-     * @param mi 
+     * @param mi
      */
     getSpicy(mi) {
         if (mi.flavors && mi.flavors['Spicy']) {
@@ -114,7 +114,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.mcSelectedMenuOptionIds = mcSelectedMenuOptionIds || [];
         this.mi = mi;
         //reset other values
-        this.startupAction = undefined;  //'Yes', 'No', or undefined 
+        this.startupAction = undefined;  //'Yes', 'No', or undefined
         this.finishedChoosingStartupAction = false;
         this.showDetails = false;
         // reset selectors, possibly not in view yet, so use setTimeout
@@ -240,6 +240,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         if (this.mi.menuOptionIds && this.mi.menuOptionIds.length === 0) {
             delete this.mi.menuOptionIds;
         }
+        this.mi.name = Helper.shrink(this.mi.name);
         this.onDone.emit(this.mi);
     }
 
