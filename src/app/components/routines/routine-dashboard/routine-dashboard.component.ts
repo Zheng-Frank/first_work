@@ -4,7 +4,6 @@ import { environment } from '../../../../environments/environment';
 import { GlobalService } from '../../../services/global.service';
 import { User } from '../../../classes/user';
 import { AlertType } from '../../../classes/alert-type';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 @Component({
   selector: 'app-routine-dashboard',
   templateUrl: './routine-dashboard.component.html',
@@ -12,9 +11,6 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 })
 
 export class RoutineDashboardComponent implements OnInit {
-
-  @ViewChild('routineEditingModal') routineEditingModal: ModalComponent;
-
   routines: any[] = [];
   routineInstances: any[] = [];
 

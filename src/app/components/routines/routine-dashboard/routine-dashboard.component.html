@@ -9,7 +9,7 @@
         <button *ngIf="!isUserCheckedIn" class="btn btn-success prominent" (click)="checkIn()">Check In</button>
     </div>
     <app-routine-list [routineList]="routines" [instanceList]="routineInstances" [user]="user" [fullDisplayMode]="false"
-        (sendReport)="postNewInstance($event)" (editRoutine)="edit($event)">
+        (sendReport)="postNewInstance($event)">
     </app-routine-list>
 </div>
 
