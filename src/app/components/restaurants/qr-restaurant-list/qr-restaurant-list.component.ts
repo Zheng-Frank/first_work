@@ -1,3 +1,5 @@
+import { AlertType } from './../../../classes/alert-type';
+import { Log } from 'src/app/classes/log';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ViewChild } from '@angular/core';
 import { filter, map } from 'rxjs/operators';
@@ -5,6 +7,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { ApiService } from 'src/app/services/api.service';
 import { Component, OnInit } from '@angular/core';
+import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 enum QRConfiguredTypes {
   ALL = 'All',
   CORRECT_CONFIGURATION = 'Correct configuration',
@@ -80,7 +83,21 @@ export class QrRestaurantListComponent implements OnInit {
     }];
   schedulesRestaurant;
   showAllLogs = false;
+  hideMore20OrdersFlag = false;
+  logInEditing = new Log();
+  @ViewChild('logEditingModal') logEditingModal;
+  @ViewChild('QRSettingsFiltersModal') QRSettingsFiltersModal;
+  restaurant; // used to select restaurant which need to edit.
+  // qr settings filters
+  hasSignHolders;
+  hasQRTraining;
+  qrCodesMailed;
+  qrCodesObtained;
 
+  tempHasSignHolders;
+  tempHasQRTraining;
+  tempQRCodesMailed;
+  tempQRCodesObtained;
   /* use rtStats to track rt stats. example:
      {
        "57c4dc97a941661100c642b4": { 
@@ -100,12 +117,20 @@ export class QrRestaurantListComponent implements OnInit {
   */
   rtStats = {};
   restaurantShowingDetails;
-
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  qrSettingFilterTexts = ['Sign holders purchased', 'RT is trained', 'QR codes mailed', 'QR codes received'];
+  qrSettingFilterText;
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   async ngOnInit() {
     await this.populateQrRestaurant();
-    await this.populateRtStats();
+  }
+
+
+
+  // rescan action needs interaction.
+  async reload() {
+    await this.populateQrRestaurant();
+    await this.filter();
   }
 
   isSchedulesValid(restaurant) {
@@ -114,9 +139,9 @@ export class QrRestaurantListComponent implements OnInit {
   // if it has some schedule problems , it should open modal to let saleperson fix it.
   openSchedulesModal(restaurant) {
     this.schedulesRestaurant = restaurant;
-    console.log(this.schedulesRestaurant);
     this.schedulesModal.show();
   }
+
   /**
    * add a new filter type , filtering by qr salesperson.
    */
@@ -162,6 +187,143 @@ export class QrRestaurantListComponent implements OnInit {
     * add a new filter type , filtering by qr salesperson.
     */
     this.filterByQRSalesperson();
+    /**
+    * to check it if should show rts > 20 orders. .
+    */
+    this.hidenRTsMoreThan20Orders();
+    /*
+     * filter with qrSetting new field.
+    */
+    this.filterByQRSettings();
+  }
+
+  filterByQRSettings() {
+    // the filters has some interaction.
+    if (this.hasSignHolders) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrSettings.hasSignHoldersAt);
+    }
+    if (this.hasQRTraining) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrSettings.hasQRTrainingAt);
+    }
+    if (this.qrCodesMailed) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrSettings.qrCodesMailedAt);
+    }
+    if (this.qrCodesObtained) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrSettings.qrCodesObtainedAt);
+    }
+    this.QRSettingsFiltersModal.hide();
+    let tempqQRSettingFilterTexts = this.qrSettingFilterTexts.filter(text => (text === 'Sign holders purchased' && this.hasSignHolders) || (text === 'RT is trained' && this.hasQRTraining) || (text === 'QR codes mailed' && this.qrCodesMailed) || (text === 'QR codes received' && this.qrCodesObtained));
+    // when we close the qrSetting filters modal we should resolve the state its last.
+    this.qrSettingFilterText = tempqQRSettingFilterTexts.join(', ');
+    this.tempHasSignHolders = this.hasSignHolders;
+    this.tempHasQRTraining = this.hasQRTraining;
+    this.tempQRCodesMailed = this.qrCodesMailed;
+    this.tempQRCodesObtained = this.qrCodesObtained;
+   
+  }
+
+  // add qr setting filter 
+  addQRSettingFilters(selectRestaurant, key) {
+    /*
+      hasSignHolders;
+      hasQRTraining;
+      qrCodesMailed;
+      qrCodesObtained;
+    */
+    if (selectRestaurant.qrSettings[key]) {
+      delete selectRestaurant.qrSettings[key];
+    } else {
+      selectRestaurant.qrSettings[key] = new Date();
+    }
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
+      [{ old: { _id: selectRestaurant._id }, new: { _id: selectRestaurant._id, qrSettings: selectRestaurant.qrSettings } }])
+      .subscribe(
+        result => {
+          // assuming everything successful
+          this._global.publishAlert(
+            AlertType.Success,
+            'Success Add a new feature fields of QR Settings.'
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error');
+        }
+      );
+  }
+
+  // the qr restaurant also has some other features need to show modal and filter. 
+  showQRSettingsFilters() {
+    this.QRSettingsFiltersModal.show();
+  }
+  // it hides the qrsetttings modal , and counts all qr restaurants. 
+  cancelQRSettingsFilter() {
+    this.hasSignHolders = this.tempHasSignHolders;
+    this.hasQRTraining = this.tempHasQRTraining;
+    this.qrCodesMailed = this.tempQRCodesMailed;
+    this.qrCodesObtained = this.tempQRCodesObtained;
+    this.QRSettingsFiltersModal.hide();
+  }
+  // the function is used to hide restaurant whose qr orders more than 20. 
+  hidenRTsMoreThan20Orders() {
+    if (this.hideMore20OrdersFlag) {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
+        .filter(qrList => qrList.qrOrderNumber <= 20);
+    } else {
+      this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows;
+    }
+  }
+
+  addLog(selectRestaurant) {
+    this.logInEditing = new Log();
+    this.logInEditing.type = 'qr-dine-in';
+    this.restaurant = selectRestaurant;
+    this.logEditingModal.show();
+  }
+
+  onCancelAddLog() {
+    this.logEditingModal.hide();
+  }
+
+  onSuccessAddLog(data) {
+    const oldRestaurant = JSON.parse(JSON.stringify(this.restaurant));
+    const updatedRestaurant = JSON.parse(JSON.stringify(oldRestaurant));
+    updatedRestaurant.logs = updatedRestaurant.logs || [];
+    if (!data.log.time) {
+      data.log.time = new Date();
+    }
+    if (!data.log.username) {
+      data.log.username = this._global.user.username;
+    }
+
+    updatedRestaurant.logs.push(new Log(data.log));
+
+    this.patchLog(oldRestaurant, updatedRestaurant, data.formEvent.acknowledge);
+  }
+
+  patchLog(oldRestaurant, updatedRestaurant, acknowledge) {
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
+      [{ old: { _id: oldRestaurant._id, logs: oldRestaurant.logs }, new: { _id: updatedRestaurant._id, logs: updatedRestaurant.logs } }])
+      .subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          this.restaurant.logs = updatedRestaurant.logs;
+          this._global.publishAlert(
+            AlertType.Success,
+            'Success Add a new log.'
+          );
+
+          acknowledge(null);
+          this.logEditingModal.hide();
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error');
+          acknowledge('API Error');
+        }
+      );
   }
 
   filterCorrectConfig() {
@@ -184,9 +346,7 @@ export class QrRestaurantListComponent implements OnInit {
         rateSchedules: 1,
         "menus.targetCustomer": 1,
         "menus.name": 1,
-        "qrSettings.codes": 1,
-        "qrSettings.agent": 1,
-        "qrSettings.createdAt": 1,
+        "qrSettings": 1,
         "logs": 1
       },
       sort: { updatedAt: -1 }
@@ -210,9 +370,9 @@ export class QrRestaurantListComponent implements OnInit {
     for (let i = 0; i < this.qrRestaurantListRows.length; i++) {
       let restaurant = this.qrRestaurantListRows[i];
       let tempOrders = orders.filter(o => o.orderObj.restaurantObj._id === restaurant._id);
-      this.qrRestaurantListRows[i].qrOrderNumber = tempOrders.length;
+      restaurant.qrOrderNumber = tempOrders.length;
       if (restaurant.menus) {
-        this.qrRestaurantListRows[i].menus = restaurant.menus.map(m => {
+        restaurant.menus = restaurant.menus.map(m => {
           if (m.targetCustomer) {
             m.menuTarget = this.targets.filter(t => t.value === m.targetCustomer)[0].text;
           }
@@ -220,7 +380,8 @@ export class QrRestaurantListComponent implements OnInit {
         });
       }
       let agent = restaurant.qrSettings.agent || 'None';
-      this.qrRestaurantListRows[i].qrSettings.agent = agent; // it also needs to give row's agent a default value to avoid undefined condition.
+      restaurant.qrSettings.agent = agent; // it also needs to give row's agent a default value to avoid undefined condition.
+      
       if (this.qrSalespeople.indexOf(agent) === -1) {
         this.qrSalespeople.push(agent);
       }
@@ -250,7 +411,7 @@ export class QrRestaurantListComponent implements OnInit {
       return correct;
     }));
     this.qrFilterRestaurantListRows = this.qrRestaurantListRows;
-
+    this.populateRtStats();
   }
 
   // get restaurant's online status and customer's QR scanning events

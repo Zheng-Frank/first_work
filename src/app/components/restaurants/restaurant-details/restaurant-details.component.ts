@@ -9,6 +9,7 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { SendTextReplyComponent } from '../../utilities/send-text-reply/send-text-reply.component';
+import {Helper} from '../../../classes/helper';
 
 declare var $: any;
 
@@ -326,7 +327,17 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   isSectionVisible(sectionName) {
     const roles = this._global.user.roles || [];
-    return this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
+    let hasFullPrivilege = this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
+
+    if (hasFullPrivilege) {
+      return true;
+    }
+    if (roles.includes('MARKETER')) {
+      const username = this._global.user.username;
+      let salesAgent = Helper.getSalesAgent(this.restaurant.rateSchedules, this.knownUsers);
+      return salesAgent === username;
+    }
+    return false;
   }
 
   isMarketerAndCreatedLessThan14Days() {
