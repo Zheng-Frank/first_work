@@ -336,23 +336,4 @@ export class Helper {
 
     static shrink = str => str.trim().replace(/\s+/g, ' ');
 
-    static trim(target: any) {
-        switch (typeof target) {
-            case 'string':
-                return Helper.shrink(target);
-            case 'object':
-                if (Array.isArray(target)) {
-                    return target.map(Helper.trim);
-                }
-                let obj = {};
-                for (let p in target) {
-                    if (target.hasOwnProperty(p)) {
-                        obj[p] = Helper.trim(target[p]);
-                    }
-                }
-                return obj;
-            default:
-                return target;
-        }
-    }
 }

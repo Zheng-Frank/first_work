@@ -91,8 +91,8 @@ export class MenuCategoryEditorComponent implements OnInit, OnChanges {
     if(this.mc && this.mc.name) {
       this.mc.name = this.mc.name.trim();
     }
-
-    this.onDone.emit(Helper.trim(this.mc));
+    this.mc.name = Helper.shrink(this.mc.name);
+    this.onDone.emit(this.mc);
   }
 
   cancel() {
