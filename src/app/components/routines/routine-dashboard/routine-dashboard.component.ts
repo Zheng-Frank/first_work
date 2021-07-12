@@ -96,7 +96,8 @@ export class RoutineDashboardComponent implements OnInit {
       }]
     }
     try {
-      this.timekeepingId = await this.postNewInstance(routineInstance, 'Check-In Successful')
+      await this.postNewInstance(routineInstance, 'Check-In Successful');
+      await this.populateStats();
     } catch (err) {
       this._global.publishAlert(
         AlertType.Danger,
@@ -131,6 +132,8 @@ export class RoutineDashboardComponent implements OnInit {
       );
       this.routineInstances[this.routineInstances.findIndex(inst => inst._id === this.timekeepingId)] = latestEntry;
       this.routineInstances = JSON.parse(JSON.stringify(this.routineInstances));
+      await this.populateStats();
+
     } catch (err) {
       this._global.publishAlert(
         AlertType.Danger,
