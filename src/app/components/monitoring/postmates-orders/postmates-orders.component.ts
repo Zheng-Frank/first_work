@@ -95,144 +95,6 @@ export class PostmatesOrdersComponent implements OnInit {
     this.populateOrders();
   }
 
-  toggleShowAdvancedSearch() {
-    this.showAdvancedSearch = !this.showAdvancedSearch;
-    if (!this.showAdvancedSearch) {
-      this.populateOrders();
-    } else {
-      this.dateType = 'Today';
-      this.searchOrderByDate();
-    }
-  }
-  /*
-    we can search order in today ,yesterday,last three days ,and also can give a time.
-  */
-  async searchOrderByDate() {
-    if (this.dateType != 'Custom') {
-      let query = {};
-      if (this.dateType === 'Today') {
-        let today = new Date();
-        let hours = today.getHours();
-        query = {
-          restaurant: {
-            $exists: true
-          },
-          'delivery.id': {
-            $exists: true
-          },
-          $and: [{
-            createdAt: {
-              $gte: { $date: new Date(new Date().valueOf() - hours * 3600 * 1000) }
-            } // less than and greater than
-          }, {
-            createdAt: {
-              $lte: { $date: new Date() }
-            }
-          }
-          ]
-        } as any;
-      } else if (this.dateType === 'Yesterday') {
-        let today = new Date();
-        let hours = today.getHours();
-        // new Date().valueOf() - (hours) * 3600 * 1000) means today has started,
-        // new Date(new Date().valueOf() - (24 + hours) * 3600 * 1000) means yestoday has started.
-        query = {
-          restaurant: {
-            $exists: true
-          },
-          'delivery.id': {
-            $exists: true
-          },
-          $and: [{
-            createdAt: {
-              $gte: { $date: new Date(new Date().valueOf() - (24 + hours) * 3600 * 1000) }
-            } // less than and greater than
-          }, {
-            createdAt: {
-              $lte: { $date: new Date(new Date().valueOf() - (hours) * 3600 * 1000) }
-            }
-          }
-          ]
-        } as any;
-      }
-
-      // ISO-Date()
-      const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-        resource: "order",
-        query: query,
-        projection: {//返回除logs以外的所有行
-          logs: 0,
-        },
-        sort: {
-          createdAt: -1
-        },
-      }, 100);
-      const customerIds = orders.filter(order => order.customer).map(order => order.customer);
-
-      const blacklist = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-        resource: "blacklist",
-        query: {
-          "value": { $in: customerIds },
-          disabled: { $ne: true }
-        },
-        projection: {
-          disabled: 1,
-          reasons: 1, //
-          // reasons: {$slice: -10}, 数组里面前两个
-          value: 1,
-          orders: 1
-        },
-        sort: {
-          createAt: 1
-        }
-      }, 100000);
-      const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
-        query: {
-          'customerObj._id': { $in: customerIds }
-        },
-        projection: {
-          _id: 1,
-          customer: 1
-        },
-        sort: {
-          createdAt: -1
-        },
-        limit: 10000,
-      }).toPromise();
-      orders.forEach(order => {
-        order.previousOrders = [];
-        previousOrders.forEach(previousOrder => {
-          if (order.customer === previousOrder.customer) {
-            order.previousOrders.push(previousOrder);
-          }
-        });
-      });
-      const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: {
-        },
-        projection: this.restaurantProjection
-      }, 5000);
-      const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
-      // assemble back to order:
-      this.orders = orders.map(order => {
-        let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
-        restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
-        order.restaurant = restaurant;
-        order.orderNumber = order.orderNumber;
-        order.customer = order.customerObj;
-        order.payment = order.paymentObj;
-        order.id = order._id;
-        order.customerNotice = order.customerNotice || '';
-        order.restaurantNotie = order.restaurantNotie || '';
-        // making it back-compatible to display bannedReasons
-        order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
-        return new Order(order);
-      });
-    }
-
-  }
   /**
    *
    * this function is used to filter order by createdAt
@@ -251,20 +113,21 @@ export class PostmatesOrdersComponent implements OnInit {
     if (to == undefined) {
       return this._global.publishAlert(AlertType.Danger, "please input a correct to time date format !");
     }
+    if (new Date(from).valueOf() - new Date(to).valueOf() > 0) {
+      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
+    }
     const selectRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: { _id: { $oid: this.searchText } },
       projection: this.restaurantProjection,
     }, 1);
+
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
-    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), selectRestaurants[0].googleAddress.timezone);
-    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), selectRestaurants[0].googleAddress.timezone);
-
-    if (utcf > utct) {
-      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
-    }
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from+" 00:00:00.000"), selectRestaurants[0].googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to+" 00:00:00.000"), selectRestaurants[0].googleAddress.timezone);
+    
     const query = {
       restaurant: {
         $oid: selectRestaurants[0]._id
@@ -280,6 +143,7 @@ export class PostmatesOrdersComponent implements OnInit {
       }
       ]
     } as any;
+    
     // ISO-Date()
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
@@ -448,7 +312,6 @@ export class PostmatesOrdersComponent implements OnInit {
     }).toPromise();
 
     // get blocked customers and assign back to each order blacklist reasons
-
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {

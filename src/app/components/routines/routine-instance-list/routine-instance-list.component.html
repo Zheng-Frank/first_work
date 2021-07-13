@@ -5,25 +5,26 @@
 <ng-template #elseBlock>
 
     <!-- Simple Display Mode -->
-    <q-table *ngIf="!fullDisplayMode" [rows]="groupedInstances" [tableColumnDescriptors]="columnDescriptors"
-        [compact]="true" [pageSize]="pagination ? 100 : 100000">
-        <tr *tableRowTemplate="let group">
-            <td class="align-middle">{{groupedInstances.indexOf(group) + 1}}</td>
+    <q-table *ngIf="!fullDisplayMode" [rows]="routineList" [tableColumnDescriptors]="columnDescriptors" [compact]="true"
+        [pageSize]="100">
+        <tr *tableRowTemplate="let routine">
+            <td class="align-middle">{{routineList.indexOf(routine) + 1}}</td>
             <td class="align-middle">
                 <div>
-                    <strong>{{group.name}}</strong><br>
-                    <small>{{group.description}} </small>
+                    <strong>{{routine.name}}</strong><br>
+                    <small>{{routine.description}} </small>
                 </div>
             </td>
             <td class="align-middle">
-                <q-table [rows]="group.instances" [tableColumnDescriptors]="instanceColumnDescriptors[group.name]"
-                    [compact]="true" [pageSize]="pagination ? 100 : 100000">
+                <q-table [rows]="groupedInstances[routine._id]"
+                    [tableColumnDescriptors]="instanceColumnDescriptors[routine.name]" [compact]="true"
+                    [pageSize]="pagination ? 100 : 100000">
 
         <tr *tableRowTemplate="let instance">
             <td>
                 {{instance.createdAt | date: 'short'}}
             </td>
-            <td *ngFor="let header of instanceColumnDescriptors[group.name] | slice: 1">
+            <td *ngFor="let header of instanceColumnDescriptors[routine.name] | slice: 1">
                 <span *ngIf="header.label === 'Check-In' || header.label === 'Check-Out'; else default">
                     {{resultsTable[instance._id][header.label] | date: 'shortTime'}}
                 </span>
@@ -41,20 +42,28 @@
 
     <!-- Full Display Mode -->
 
-    <q-table *ngIf="fullDisplayMode" [rows]="groupedInstances" [tableColumnDescriptors]="columnDescriptors"
-        [compact]="true" [pageSize]="pagination ? 100 : 100000">
-        <tr *tableRowTemplate="let group">
-            <td class="align-middle">{{groupedInstances.indexOf(group) + 1}}</td>
+    <q-table *ngIf="fullDisplayMode" [rows]="routineList" [tableColumnDescriptors]="columnDescriptors" [compact]="true"
+        [pageSize]="100">
+        <tr *tableRowTemplate="let routine">
+
             <td class="align-middle">
                 <div>
-                    <strong>{{group.name}}</strong><br>
-                    <small>{{group.description}} </small>
+                    <strong>{{routine.name}}</strong><br>
+                    <small>{{routine.description}} </small>
+
+                    <!-- <div>
+                        <button *ngIf="pagination[routine._id]" class="btn btn-link"
+                            (click)="togglePagination(routine._id)"><small>Click to Display All
+                                Instances</small></button>
+                        <button *ngIf="!pagination[routine._id]" class="btn btn-link"
+                            (click)="togglePagination(routine._id)"><small>Click to Hide Rows</small></button>
+                    </div> -->
                 </div>
             </td>
             <td class="align-middle">
-                <q-table [rows]="group.instances"
-                    [tableColumnDescriptors]="fullDisplayInstanceColumnDescriptors[group.name]" [compact]="true"
-                    [pageSize]="pagination ? 100 : 100000">
+                <q-table [rows]="groupedInstances[routine._id]"
+                    [tableColumnDescriptors]="fullDisplayInstanceColumnDescriptors[routine.name]" [compact]="true"
+                    [pageSize]="500">
 
         <tr *tableRowTemplate="let instance">
             <td>
@@ -63,7 +72,7 @@
             <td>
                 {{instance.assignee}}
             </td>
-            <td *ngFor="let header of fullDisplayInstanceColumnDescriptors[group.name] | slice: 2">
+            <td *ngFor="let header of fullDisplayInstanceColumnDescriptors[routine.name] | slice: 2">
                 <span *ngIf="header.label === 'Check-In' || header.label === 'Check-Out'; else default">
                     {{resultsTable[instance._id][header.label] | date: 'shortTime'}}
                 </span>

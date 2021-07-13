@@ -1,21 +1,15 @@
-<div class="clearfix mt-2">
-    <!-- Check-In / Check-Out -->
-    <!-- Admin Only Buttons -->
-    <div *ngIf="isUserAdmin" class="float-right">
-        <button class="btn btn-link" (click)="clickNew()">Add New Routine</button>
-        <button class="btn btn-link" (click)="toggleFullDisplayMode()">Toggle Admin Display</button>
-    </div>
-</div>
-
-<!-- Routines Display -->
 <div>
-    <h1 class="text-center">Routine Dashboard <span *ngIf="fullDisplayMode">(Admin mode)</span></h1>
-    <div *ngIf="!fullDisplayMode" class="text-center pb-3">
-        <button *ngIf="isUserCheckedIn" class="btn btn-danger prominent" (click)="checkOut()">Check Out</button>
-        <button *ngIf="!isUserCheckedIn" class="btn btn-success prominent" (click)="checkIn()">Check In</button>
+    <span class="mx-2 my-2">
+        <b class="text-success">Users Online Now:</b> {{stats.checkedInUsers.join(', ')}}
+    </span>
+    <h1 class="text-center mt-3">Routine Dashboard </h1>
+    <!-- Check-In / Check-Out -->
+    <div *ngIf="hasTimekeeping()" class="text-center pb-3">
+        <button *ngIf="isUserCheckedIn()" class="btn btn-danger prominent" (click)="checkOut()">Check Out</button>
+        <button *ngIf="!isUserCheckedIn()" class="btn btn-success prominent" (click)="checkIn()">Check In</button>
     </div>
-    <app-routine-list [routineList]="routines" [instanceList]="routineInstances" [user]="user"
-        [fullDisplayMode]="fullDisplayMode" (sendReport)="postNewInstance($event)" (editRoutine)="edit($event)">
+    <app-routine-list [routineList]="routines" [instanceList]="routineInstances" [user]="user" [fullDisplayMode]="false"
+        (sendReport)="postNewInstance($event)">
     </app-routine-list>
 </div>
 
@@ -24,57 +18,8 @@
 <!-- Logs Display -->
 <div>
     <h2 class="text-center text-capitalize">
-        {{fullDisplayMode ? 'All' : 'My'}} Routine Logs
+        My Routine Logs
     </h2>
-    <app-routine-instance-list [routineList]="routines" [instanceList]="routineInstances"
-        [fullDisplayMode]="fullDisplayMode">
+    <app-routine-instance-list [routineList]="routines" [instanceList]="routineInstances" [fullDisplayMode]="false">
     </app-routine-instance-list>
 </div>
-
-<!-- Editor -->
-<q-modal #routineEditingModal>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">×</span>
-    </button>
-    <h4 class="text-center">{{routineInEditing._id ? 'Edit Routine' : 'Create New Routine'}}</h4>
-    <hr>
-    <q-form-builder [object]="routineInEditing" [fieldDescriptors]="routineFieldDescriptors"
-        (submit)="submitRoutine($event)" (remove)="removeRoutine($event)" (cancel)="routineEditingModal.hide()"
-        [showDelete]="routineInEditing._id">
-        <div class="form-group">
-            <label>Metrics:</label>
-            <ul class="list-group my-2">
-                <li *ngFor="let metric of routineInEditing.metrics || []"
-                    class="list-group-item d-flex justify-content-between align-items-left">
-                    <div class="d-inline-block"><strong>{{metric.name}}</strong>
-                        <div>{{metric.type}}</div>
-                        <div>{{(metric.values || []).join(', ')}}</div>
-                    </div>
-                    <button class="btn btn-link pt-0" (click)="removeMetric(metric)">&times;</button>
-                </li>
-            </ul>
-            <div class="row">
-                <div class="col-3 pr-0">
-                    <input [(ngModel)]="metric.name" class="form-control" type="text" placeholder="Name">
-                </div>
-                <div class="col-3 pr-0">
-                    <select class="form-control" [(ngModel)]="metric.type">
-                        <option *ngFor="let t of ['string', 'number', 'date']" [ngValue]="t">{{t}}</option>
-                    </select>
-                </div>
-                <div class="col-4 pr-0">
-                    <input class="form-control" type="text" placeholder="Enum values" [(ngModel)]="metricValues">
-                </div>
-                <div class="col-2 pr-0">
-                    <button class="btn btn-link" (click)="addMetric()">+ Add</button>
-                </div>
-            </div>
-        </div>
-        <div class="form-check form-check-inline">
-            <label class="form-check-label">
-                <input class="form-check-input" type="checkbox" [(ngModel)]="routineInEditing.disabled">
-                Disabled
-            </label>
-        </div>
-    </q-form-builder>
-</q-modal>

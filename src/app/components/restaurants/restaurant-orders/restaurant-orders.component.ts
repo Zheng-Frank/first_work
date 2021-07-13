@@ -58,6 +58,7 @@ export class RestaurantOrdersComponent implements OnInit {
   logInEditing = new Log(); // invoice ajustment modal need this field
   adjustInvoiceRestaurantList = []; // all the restaurant need adjust invoice
   changeOrderType = 'Restaurant self-deliver';
+  searchQROrder = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
   /**
@@ -73,6 +74,7 @@ export class RestaurantOrdersComponent implements OnInit {
       d => this.showNotifier(d)
     );
   }
+  
   /**
    *
    *cancel the advanced date search
@@ -82,7 +84,7 @@ export class RestaurantOrdersComponent implements OnInit {
     this.showAdvancedSearch = false;
     this.populateOrders();
   }
-  /**
+    /**
    *
    * this function is used to filter order by createdAt
    * @param {*} from
@@ -90,22 +92,22 @@ export class RestaurantOrdersComponent implements OnInit {
    * @memberof RestaurantOrdersComponent
    */
   async doSearchOrderByTime(from, to) {
-    // console.log("from time:" + from + "," + typeof from + " to time:" + to + "," + typeof to);
     if (from == undefined) {
-      return alert("please input a correct from time date format!");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
     if (to == undefined) {
-      return alert("please input a correct to time date format !");
+      return this._global.publishAlert(AlertType.Danger, "please input a correct to time date format !");
     }
+    if (new Date(from).valueOf() - new Date(to).valueOf() > 0) {
+      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
+    }
+    
     let tostr = to.split('-');
     tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
     to = tostr.join('-');
-    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), this.restaurant.googleAddress.timezone);
-    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), this.restaurant.googleAddress.timezone);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from+" 00:00:00.000"), this.restaurant.googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to+" 00:00:00.000"), this.restaurant.googleAddress.timezone);
 
-    if (utcf > utct) {
-      return alert("please input a correct date format,from time is less than or equals to time!");
-    }
     const query = {
       restaurant: {
         $oid: this.restaurant._id
@@ -121,8 +123,14 @@ export class RestaurantOrdersComponent implements OnInit {
       }
       ]
     } as any;
+    // only show qr orders has some interactions with date range search. 
+    if(this.searchQROrder){
+      query['dineInSessionObj._id'] = {
+        $exists:true
+      }
+    }
     // ISO-Date()
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
       projection: {//返回除logs以外的所有行
@@ -131,8 +139,8 @@ export class RestaurantOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 50
-    }).toPromise();
+      limit: 150
+    },50);
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -201,16 +209,6 @@ export class RestaurantOrdersComponent implements OnInit {
    * @memberof RestaurantOrdersComponent
    */
   search(event) {
-    let regexp = /^[0-9]{3,4}$/;
-    // if(!this.searchText){
-    //   this.populateOrders();
-    // }else if(this.type == 'Order Number'&&this.searchText && regexp.test(this.searchText)){
-    //   this.orders = this.orders.filter((order) => String(order.orderNumber).indexOf(this.searchText)!=-1);
-    // }else if(this.type == 'Postmates ID'){
-    //   this.orders = this.orders.filter((order) => order.delivery);
-    // }else if(this.type == 'Customer Phone'){
-    //   this.orders = this.orders.filter((order) => order.customer.phone.indexOf(this.searchText) != -1);
-    // }
     this.populateOrders();
   }
 
@@ -226,6 +224,12 @@ export class RestaurantOrdersComponent implements OnInit {
     } as any;
 
     let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
+    // when check the qr orders only checkbox ,it need interact with the search input.
+    if(this.searchQROrder){
+      query['dineInSessionObj._id'] = {
+        $exists:true
+      }
+    }
     if (!this.searchText) {
 
     } else if (this.type == 'Order Number' && this.searchText && regexp.test(this.searchText)) {
@@ -250,7 +254,6 @@ export class RestaurantOrdersComponent implements OnInit {
         }
       }
     }
-    // console.log(JSON.stringify(query))
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -263,13 +266,6 @@ export class RestaurantOrdersComponent implements OnInit {
       limit: 50
     }).toPromise();
     // get blocked customers and assign back to each order blacklist reasons
-    /**
-     * orders.filter(function(){
-     *
-     *  return true;
-     * })
-     *
-     */
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -400,15 +396,15 @@ export class RestaurantOrdersComponent implements OnInit {
           orderId: this.cardSpecialOrder._id
         }).toPromise();
       } catch (error) {
-        console.log("errors:"+JSON.stringify(error));
+        console.log("errors:" + JSON.stringify(error));
       }
-    } else if(this.changeOrderType === 'Customer Pickup') {
+    } else if (this.changeOrderType === 'Customer Pickup') {
       try {
         await this._api.post(environment.appApiUrl + 'biz/orders/change-to-pickup', {
-          orderId: this.cardSpecialOrder ._id
+          orderId: this.cardSpecialOrder._id
         }).toPromise();
       } catch (error) {
-        console.log("errors:"+JSON.stringify(error));
+        console.log("errors:" + JSON.stringify(error));
       }
     }
     this.changeOrderTypeModal.hide();
@@ -480,18 +476,18 @@ export class RestaurantOrdersComponent implements OnInit {
     this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
-    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
+    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason = "Credit $" + this.adjustInvoiceComponment.adjustmentAmount.toFixed(2) + " to restaurant 20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
     this.adjustInvoiceComponment.stripeReason = this.adjustInvoiceComponment.percentageStripeReason = '';
     this.adjustInvoiceComponment.additionalExplanation = '';
     this.adjustInvoiceModal.show();
   }
 
   // submit the result to api to create a new log
-  doAdjustInvoice(data){
+  doAdjustInvoice(data) {
     this.onSuccessCreationLog(data);
   }
   // hide adjustment q-modal
-  cancelAdjustInvoice(){
+  cancelAdjustInvoice() {
     this.adjustInvoiceModal.hide();
   }
 
@@ -515,7 +511,7 @@ export class RestaurantOrdersComponent implements OnInit {
         logs: 1
       },
       limit: 1
-    },1);
+    }, 1);
 
     const logs = rtWithFullLogs[0].logs || [];
 

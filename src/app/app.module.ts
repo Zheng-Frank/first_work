@@ -165,6 +165,7 @@ import { ChangeOwnershipComponent } from './components/change-ownership/change-o
 
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
 import { RoutineDashboardComponent } from './components/routines/routine-dashboard/routine-dashboard.component';
+import { RoutineAdminDashboardComponent } from './components/routines/routine-admin-dashboard/routine-admin-dashboard.component';
 import { RoutineListComponent } from './components/routines/routine-list/routine-list.component';
 import { RoutineInstanceListComponent } from './components/routines/routine-instance-list/routine-instance-list.component';
 
@@ -432,6 +433,7 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     MenuCleanupComponent,
     ApiLogsDashboardComponent,
     RoutineDashboardComponent,
+    RoutineAdminDashboardComponent,
     RoutineListComponent,
     RoutineInstanceListComponent,
     SeoTrackingComponent,

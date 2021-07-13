@@ -181,7 +181,7 @@
   <!-- start with the log editing modal-->
   <q-modal #logEditingModal>
     <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
-      (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()" (remove)="removeLog($event)"></app-log-editor>
+      (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
   </q-modal>
   <!-- end with the log editing modal -->
   <!-- start with qrsettings filters condition modal -->

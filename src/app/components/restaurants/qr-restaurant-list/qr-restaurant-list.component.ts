@@ -248,8 +248,6 @@ export class QrRestaurantListComponent implements OnInit {
             AlertType.Success,
             'Success Add a new feature fields of QR Settings.'
           );
-          // reload list
-          this.populateQrRestaurant();
         },
         error => {
           this._global.publishAlert(AlertType.Danger, 'Error');
