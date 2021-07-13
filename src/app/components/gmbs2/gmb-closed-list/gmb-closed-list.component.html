@@ -24,14 +24,18 @@
         <small>{{r.address}}</small>
       </div>
     </td>
+    <td>{{r.score | number: '1.0-0'}}</td>
+    <td>
+      <app-gmb-account-hotlink [email]="r.publishedAccountEmail" *ngIf="r.publishedAccountEmail">
+      </app-gmb-account-hotlink>
+    </td>
     <td>
       <ul>
-        <li *ngFor="let inst of r.instances" >
+        <li *ngFor="let inst of r.instances">
           {{displayMessageFromInstance(inst)}} - {{inst.assignee}}, {{inst.createdAt | date: 'shortDate'}}
         </li>
       </ul>
     </td>
 
-    <td>{{r.score | number: '1.0-0'}}</td>
   </tr>
 </q-table>

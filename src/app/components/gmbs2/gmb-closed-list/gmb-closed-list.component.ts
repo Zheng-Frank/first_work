@@ -24,12 +24,15 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
             label: "Restaurant Name"
         },
         {
-            label: "Routine Logs"
-        },
-        {
             label: "Score",
             paths: ['score'],
             sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+        },
+        {
+            label: "Published"
+        },
+        {
+            label: "Routine Logs"
         }
     ];
 
@@ -51,6 +54,7 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
                 },
                 projection: {
                     name: 1,
+                    "googleListing.gmbOwner": 1,
                     "googleListing.place_id": 1,
                     "googleListing.error": 1,
                     "googleAddress.formatted_address": 1,
@@ -72,12 +76,14 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
                 limit: 1
             }).toPromise();
 
+            // get latest 1000 instances
             const routineInstances = await this._api.get(environment.qmenuApiUrl + "generic", {
                 resource: "routine-instance",
                 query: {
                     routineId: gmbClosedRoutine[0]._id
                 },
                 projection: {},
+                sort: { _id: -1 },
                 limit: 10000
             }).toPromise();
 
@@ -91,9 +97,42 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
                 return dict;
             }, {});
 
-            this.rows = restaurants.filter(rt => !rt.disabled ).map(rt => {
+            // let's pull GMB published status as well and couple with restaurant's googleListing to determine if we have GMB ownership
+            // use aggregate query to pull ONLY published locations
+            const gmbAccounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+                resource: 'gmbAccount',
+                aggregate: [
+                    { '$match': { _id: { $exists: true } } },
+                    {
+                        $project: {
+                            email: 1,
+                            locations: {
+                                $filter: {
+                                    input: "$locations",
+                                    as: "location",
+                                    cond: { $in: ["$$location.status", ['Published']] }
+                                },
+                                // statusHistory: 0
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            email: 1,
+                            "locations.place_id": 1,
+                            "locations.role": 1,
+                        }
+                    },
+                ]
+            }).toPromise();
+
+            const placeIdEmailDict = {}; // {place_id: email}
+            gmbAccounts.forEach(a => (a.locations || []).forEach(loc => placeIdEmailDict[loc.place_id] = a.email));
+
+            this.rows = restaurants.filter(rt => !rt.disabled).map(rt => {
                 return {
                     id: rt._id,
+                    ...rt.googleListing ? { publishedAccountEmail: placeIdEmailDict[rt.googleListing.place_id] } : {},
                     name: rt.name,
                     address: rt.googleAddress.formatted_address,
                     score: rt.score,
