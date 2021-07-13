@@ -276,4 +276,18 @@
   border: 1px solid #7b697bee;
   border-radius: 5px;
 }
+
+.order-caming-time{
+  position: absolute;
+  top: 0.5rem;
+  right: 2.25rem;
+  font-size: 0.1rem;
+  color: red;
+}
   
+.previous-orders-box{
+  position: absolute;
+  top: 0.5rem;
+  right: 12rem;
+  font-size: 0.1rem;
+}

@@ -13,7 +13,7 @@
     <div *ngIf="promotionType === 'Free Item'">
       <div *ngIf="!useFreeItemList"> <strong>Generic free item </strong></div>
       <div *ngIf="useFreeItemList && (promotion.freeItemList || []).length"> <strong>Choose Free item from: </strong>
-        <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi.name}} </div>
+        <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi?.name || freeItem.mc?.name || freeItem.menu?.name}} </div>
       </div>
     </div>
     <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires: </strong>{{promotion.expiry | date :
@@ -35,7 +35,7 @@
       currency:'USD':'symbol'}}</div>
     <div *ngIf="(promotion.freeItemList || []).length && !promotion.percentage && !promotion.amount"><strong> Choose
         Free item from: </strong>
-      <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi.name}} </div>
+      <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi?.name || freeItem.mc?.name || freeItem.menu?.name}} </div>
     </div>
     <div *ngIf="promotion.freeItemName"><strong>Generic free item</strong></div>
     <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires:</strong> {{promotion.expiry | date :

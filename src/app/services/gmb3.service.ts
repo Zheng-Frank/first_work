@@ -263,7 +263,7 @@ export class Gmb3Service {
 
     // we still want to update crawledAt, regardless of good or bad crawl result. If cid mismatch, we skip update (otherwise our owned gmb will try to update misinformation)
 
-    const fields = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
+    const fields = ['phone', 'place_id', 'gmbOwner', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
 
     const patchPairs = results.map((result, index) => {
 
@@ -361,7 +361,7 @@ export class Gmb3Service {
 
       if (gmbBizWithSameCids.length > 0) {
 
-        const fields = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
+        const fields = ['phone', 'place_id', 'gmbOwner', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
 
         const bizPatchPairs = gmbBizWithSameCids.map(gmbBiz => {
 

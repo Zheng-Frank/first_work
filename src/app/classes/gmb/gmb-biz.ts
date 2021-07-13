@@ -17,7 +17,6 @@ export class GmbBiz {
 
     gmbOwner: string;
     gmbWebsite: string;
-    gmbOpen: boolean;
     menuUrls: string[];
 
     comments: string;

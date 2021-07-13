@@ -1,0 +1,25 @@
+<div>
+    <span class="mx-2 my-2">
+        <b class="text-success">Users Online Now:</b> {{stats.checkedInUsers.join(', ')}}
+    </span>
+    <h1 class="text-center mt-3">Routine Dashboard </h1>
+    <!-- Check-In / Check-Out -->
+    <div *ngIf="hasTimekeeping()" class="text-center pb-3">
+        <button *ngIf="isUserCheckedIn()" class="btn btn-danger prominent" (click)="checkOut()">Check Out</button>
+        <button *ngIf="!isUserCheckedIn()" class="btn btn-success prominent" (click)="checkIn()">Check In</button>
+    </div>
+    <app-routine-list [routineList]="routines" [instanceList]="routineInstances" [user]="user" [fullDisplayMode]="false"
+        (sendReport)="postNewInstance($event)">
+    </app-routine-list>
+</div>
+
+<hr>
+
+<!-- Logs Display -->
+<div>
+    <h2 class="text-center text-capitalize">
+        My Routine Logs
+    </h2>
+    <app-routine-instance-list [routineList]="routines" [instanceList]="routineInstances" [fullDisplayMode]="false">
+    </app-routine-instance-list>
+</div>

@@ -186,7 +186,6 @@
       <img *ngIf="row.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
       <img *ngIf="row.suspended" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
       <span *ngIf="!row.published && !row.suspended">?</span>
-      <i class="fas fa-lock-open text-info" *ngIf="row.gmbBiz?.gmbOpen"></i>
     </td>
     <td>
       <div>

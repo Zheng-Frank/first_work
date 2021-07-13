@@ -20,6 +20,7 @@ import { LanguageType } from 'src/app/classes/language-type';
 export class RestaurantProfileComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   @Input() editable;
+  @Input() users = [];
   uploadImageError: string;
   editing: boolean = false;
   address: Address;
@@ -215,7 +216,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   isTemporarilyDisabled;
   now = new Date().toISOString().split('T')[0];
   @ViewChild('previewWebsiteModal') previewWebsiteModal:ModalComponent;
-  
+
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) {
   }
 
@@ -264,6 +265,10 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     return new Date(parseInt(mongoId.substring(0, 8), 16) * 1000);
   }
 
+  getSalesAgent() {
+    return Helper.getSalesAgent(this.restaurant.rateSchedules, this.users);
+  }
+
   toggleEditing() {
     this.address = new Address(this.restaurant.googleAddress);
     this.selfSignupRegistered = this.restaurant.selfSignup && this.restaurant.selfSignup.registered;
@@ -297,7 +302,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   tipSettingsInit() {
     ['Pickup', 'Delivery', 'Dine-in'].forEach(type => {
-      const setting = this.restaurant.serviceSettings.find(x => x.name === type) || {
+      const setting = (this.restaurant.serviceSettings || []).find(x => x.name === type) || {
         name: type,
         paymentMethods: [],
         tipSuggestion: {},

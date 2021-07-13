@@ -87,7 +87,7 @@ export class MonitoringScriptComponent implements OnInit {
 
   async populate() {
     this.apiLoading = true;
-    const scripts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const scripts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'routine-script',
       query: {},
       projection: {
@@ -99,14 +99,14 @@ export class MonitoringScriptComponent implements OnInit {
         disabled: 1,
         disabledBackup: 1,
         "uowsHistory.time": 1,
+        "uowsHistory.uows.assignedId": 1,
         "uowsHistory.uows.startedAt": 1,
         "uowsHistory.uows.endedAt": 1,
         // "uowsHistory.uows.result.body": 1,
         "uowsHistory.uows.error": 1,
       },
-      limit: 2000,
       sort: { name: 1 }
-    }).toPromise();
+    }, 25);
     this.apiLoading = false;
 
     let fixedThings = false;

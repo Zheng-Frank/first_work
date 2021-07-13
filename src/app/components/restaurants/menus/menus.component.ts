@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 
-import {Menu, Restaurant} from '@qmenu/ui';
+import {Menu, MenuOption, Restaurant} from '@qmenu/ui';
 import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {MenuEditorComponent} from '../menu-editor/menu-editor.component';
 import {Helper} from '../../../classes/helper';
@@ -9,6 +9,7 @@ import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
 import {environment} from '../../../../environments/environment';
 import {AlertType} from '../../../classes/alert-type';
+
 
 @Component({
   selector: 'app-menus',
@@ -19,6 +20,7 @@ export class MenusComponent implements OnInit {
 
   @ViewChild('menuEditingModal') menuEditingModal: ModalComponent;
   @ViewChild('menuEditor') menuEditor: MenuEditorComponent;
+  @ViewChild('menuCleanModal') menuCleanModal: ModalComponent;
 
   @Input() restaurant: Restaurant;
   @Output() onVisitMenuOptions = new EventEmitter();
@@ -44,12 +46,59 @@ export class MenusComponent implements OnInit {
   showAdditionalFunctions = false;
   showPromotions = false;
 
+  menusToClean = [];
+  menusIncludeCleaned = {};
+
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   ngOnInit() {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
+  }
+
+  isArray(obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]';
+  }
+
+  /*
+    a public logic we should extract it.
+  */
+  removeSpace(str) {
+    return (str || '').trim().replace(/\s+/g, ' ');
+  }
+  /*
+    remove space of the property's value of mi if it suit for the rules.
+  */
+  async doRemoveUnnessarySpace() {
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    newMenus.forEach(menu => {
+      menu.name = this.removeSpace(menu.name);
+      (menu.mcs || []).forEach(mc => {
+        mc.name = this.removeSpace(mc.name);
+        (mc.mis || []).forEach(mi => {
+          mi.name = this.removeSpace(mi.name);
+          (mi.sizeOptions || []).forEach(so => {
+            so.name = this.removeSpace(so.name);
+          });
+        });
+      });
+    });
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: newMenus
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      this.restaurant.menus = newMenus.map(menu => new Menu(menu));
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
+    }
   }
 
   hasMenuHoursMissing() {
@@ -90,6 +139,22 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
 
+  trimName(menus) {
+    (menus || []).forEach(menu => {
+      menu.name = Helper.shrink(menu.name);
+      (menu.mcs || []).forEach(mc => {
+        mc.name = Helper.shrink(mc.name);
+        (mc.mis || []).forEach(mi => {
+          mi.name = Helper.shrink(mi.name);
+          (mi.sizeOptions || []).forEach(so => {
+            so.name = Helper.shrink(so.name);
+          });
+        });
+      });
+    });
+    return menus;
+  }
+
   async crawl(synchronously) {
     console.log(this.restaurant.googleAddress);
     this.apiRequesting = true;
@@ -109,7 +174,7 @@ export class MenusComponent implements OnInit {
             _id: this.restaurant._id
           }, new: {
             _id: this.restaurant._id,
-            menus: crawledRestaurant.menus,
+            menus: this.trimName(crawledRestaurant.menus),
             menuOptions: crawledRestaurant.menuOptions
           }
         }]).toPromise();
@@ -137,6 +202,143 @@ export class MenusComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, 'Error on retrieving menus');
     }
     this.apiRequesting = false;
+  }
+
+  match(item) {
+    let {name, translation} = item;
+    if (!name) {
+      return;
+    }
+
+    name = name.trim();
+    // we'll handle these cases:
+    // 1. A1. XXX; 2. A12 XXX; 3. AB1 XXX; 4. AB12. XXX; 5. 1A XXX; 6. 11B. XXX
+    // 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
+    let withNumRegex = /^(?<to_rm>(?<num>([a-zA-Z]{0,2}\d+)|(\d+[a-zA-Z]))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    let numMatched = name.match(withNumRegex);
+    let measureWords = [
+      'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
+      'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
+      'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
+    ];
+    let number, hasMeasure = false;
+    if (numMatched) {
+      let { to_rm, num, dot, word } = numMatched.groups;
+      // if dot after number, definite number, otherwise we check if a measure word after number or not
+      hasMeasure = measureWords.includes((word || '').toLowerCase());
+      if (!!dot || !hasMeasure) {
+        // remove leading number chars
+        name = name.replace(to_rm, '');
+        item.cleanedName = name;
+      }
+      if (!hasMeasure) {
+        number = item.number || num;
+      }
+
+    }
+
+    // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
+    let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
+    let re = name.match(regex);
+    if (re) {
+      let zh = re[1].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
+      // remove brackets around name
+      en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1');
+      zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
+      item.translation = {zh, en};
+      item.number = number;
+
+      let trans = (this.restaurant.translations || []).find(x => x.EN === en);
+      if (translation && translation.en === en && trans && trans.ZH === zh) {
+        return;
+      }
+      this.menusToClean.push(item);
+    } else {
+      if (number || hasMeasure) {
+        item.translation = {en: name};
+        item.number = number || item.number;
+        this.menusToClean.push(item);
+      }
+    }
+
+  }
+
+  async cleanup() {
+    this.menusToClean = [];
+    this.menusIncludeCleaned = {};
+    let {menus} = this.restaurant;
+    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x));
+    tempMenus.forEach(menu => {
+      this.match(menu);
+      menu.mcs.forEach(mc => {
+        this.match(mc);
+        mc.mis.forEach(mi => {
+          this.match(mi);
+        });
+      });
+    });
+
+    if (this.menusToClean.length > 0) {
+      this.menusIncludeCleaned = {menus: tempMenus};
+    }
+    this.menuCleanModal.show();
+  }
+
+  cleanupCancel() {
+    this.menusIncludeCleaned = {};
+    this.menusToClean = [];
+    this.menuCleanModal.hide();
+  }
+
+  saveTranslation(item, translations) {
+    if (item.translation) {
+      let { zh, en, prev_en } = item.translation;
+      let translation = translations.find(x => x.EN === en || x.EN === prev_en);
+      if (!translation) {
+        translation = {EN: en, ZH: zh};
+        translations.push(translation);
+      } else {
+        translation.EN = en;
+        translation.ZH = zh;
+      }
+      ['zh', 'prev_en', 'prev_zh'].forEach(p => delete item.translation[p]);
+    }
+  }
+
+  async cleanupSave() {
+    try {
+      // @ts-ignore
+      let { translations = [] } = this.restaurant;
+      this.menusToClean.forEach(menu => {
+        this.saveTranslation(menu, translations);
+        (menu.mcs || []).forEach(mc => {
+          this.saveTranslation(mc, translations);
+          mc.mis.forEach(mi => {
+            this.saveTranslation(mi, translations);
+          });
+        });
+        (menu.items || []).forEach(moi => {
+          this.saveTranslation(moi, translations);
+        });
+      });
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          ...this.menusIncludeCleaned,
+          translations
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      // @ts-ignore
+      this.restaurant.menus = this.menusIncludeCleaned.menus.map(m => new Menu(m));
+      this.cleanupCancel();
+    } catch (error) {
+      console.log('error...', error);
+      this._global.publishAlert(AlertType.Danger, 'Menus update failed.');
+    }
   }
 
   async sortMenus(sortedMenus) {
@@ -359,6 +561,7 @@ export class MenusComponent implements OnInit {
   }
 
   onDoneEditing(menu: Menu) {
+    console.log(JSON.stringify(menu))
     const newMenus = (this.restaurant.menus || []).slice(0);
     if (menu.id) {
       for (let i = newMenus.length - 1; i >= 0; i--) {
@@ -481,7 +684,7 @@ export class MenusComponent implements OnInit {
             // reset the imageObj
             mi.imageObjs = [];
             (matchingAlias.images || []).map(each => {
-              if(!mi.SkipImageInjection){
+              if (!mi.SkipImageInjection) {
                 (mi.imageObjs).push({
                   originalUrl: each.url,
                   thumbnailUrl: each.url192,

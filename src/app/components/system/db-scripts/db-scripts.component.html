@@ -3,6 +3,13 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Remove Menus' Unnecessary Spaces</h5>
+            <p class="card-text">Remove all menus' unnecessary spaces, include preceding, tailing, and shrink continuous spaces between words to one.</p>
+            <button class="btn btn-primary" (click)="removeAllMenuSpaces()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Recover Menus</h5>
             <p class="card-text">Hard coded RT Id, One time menus JSON. Eg., copy menus from API logs and replace RT's menus with the copied ones</p>
             <button class="btn btn-primary" (click)="recoverMenu()">Execute</button>

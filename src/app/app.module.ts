@@ -93,6 +93,7 @@ import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-list/gmb-underattack-list.component';
 import { GmbSuspendedListComponent } from './components/gmbs2/gmb-suspended-list/gmb-suspended-list.component';
+import { GmbMissingListComponent } from './components/gmbs2/gmb-missing-list/gmb-missing-list.component';
 import { GmbLostListComponent } from './components/gmbs2/gmb-lost-list/gmb-lost-list.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
@@ -163,9 +164,13 @@ import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.compon
 import { ChangeOwnershipComponent } from './components/change-ownership/change-ownership.component';
 
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
+import { RoutineDashboardComponent } from './components/routines/routine-dashboard/routine-dashboard.component';
+import { RoutineAdminDashboardComponent } from './components/routines/routine-admin-dashboard/routine-admin-dashboard.component';
+import { RoutineListComponent } from './components/routines/routine-list/routine-list.component';
+import { RoutineInstanceListComponent } from './components/routines/routine-instance-list/routine-instance-list.component';
+
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
-import { MonitoringGmbOpenComponent } from './components/monitoring/monitoring-gmb-open/monitoring-gmb-open.component';
 import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
 import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
 import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.component';
@@ -224,7 +229,12 @@ import { PostmatesOrderCardComponent } from './components/monitoring/postmates-o
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
 import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
-import { DashboardItemOrderStatsComponent } from './components/monitoring/dashboard-item-order-stats/dashboard-item-order-stats.component';
+import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu-cleanup.component';
+import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
+import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
+import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+
+
 
 @NgModule({
   declarations: [
@@ -233,7 +243,6 @@ import { DashboardItemOrderStatsComponent } from './components/monitoring/dashbo
     HomeComponent,
     MonitoringScriptComponent,
     MonitoringDbComponent,
-    MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
     UIPreviewComponent,
@@ -309,6 +318,7 @@ import { DashboardItemOrderStatsComponent } from './components/monitoring/dashbo
     GmbRequestListComponent,
     GmbUnderattackListComponent,
     GmbSuspendedListComponent,
+    GmbMissingListComponent,
     GmbLostListComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,
@@ -420,8 +430,14 @@ import { DashboardItemOrderStatsComponent } from './components/monitoring/dashbo
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
     GmbWrongLinkComponent,
-    DashboardItemOrderStatsComponent
-
+    MenuCleanupComponent,
+    ApiLogsDashboardComponent,
+    RoutineDashboardComponent,
+    RoutineAdminDashboardComponent,
+    RoutineListComponent,
+    RoutineInstanceListComponent,
+    SeoTrackingComponent,
+    RestaurantSeoTrackingComponent
   ],
   imports: [
     BrowserModule,
