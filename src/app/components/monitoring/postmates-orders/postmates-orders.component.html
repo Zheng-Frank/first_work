@@ -19,23 +19,18 @@
         <button type="button" class="btn btn-link ml-3" (click)="toggleShowAdvancedSearch()">
           {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
         <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
-        <select [(ngModel)]="dateType" class="form-control mr-3 col-2" (change)="searchOrderByDate()">
-          <option *ngFor="let type of dateSearchTypes">{{type}}</option>
-        </select>
+          <select [(ngModel)]="dateType" class="form-control mr-3 col-2" (change)="searchOrderByDate()">
+            <option *ngFor="let type of dateSearchTypes">{{type}}</option>
+          </select>
           <div *ngIf="dateType === 'Custom'">
-            <div class="row">
+            <div class="row text-danger ml-2">NOTE: If unable to find a Postmates order when searching by customing date, it maybe cause by using EST timezone.</div>
+            <div class="row mt-2">
               <div class="col col-sm-6">
-                <label>From:</label>
                 <input class="form-control" type="date" [(ngModel)]="fromDate">
               </div>
               <div class="col col-sm-6">
-                <label>To:</label>
-                <input class="form-control" type="date" [(ngModel)]="toDate">
-              </div>
-            </div>
-            <div class="row">
-              <div class="text-right mt-1 col-12">
-                <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByDateCustom()">Cancel</button>
+                <button type="button" class="btn btn-secondary"
+                  (click)="cancelDoSearchOrderByDateCustom()">Cancel</button>
                 <button class="btn btn-primary" (click)="doSearchOrderByDateCustom(fromDate,toDate)">Submit</button>
               </div>
             </div>

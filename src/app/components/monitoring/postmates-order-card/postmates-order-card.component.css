@@ -281,7 +281,7 @@
   position: absolute;
   top: 0.5rem;
   right: 2.25rem;
-  font-size: 0.1rem;
+  font-size: 0.75rem;
   color: red;
 }
   
@@ -289,5 +289,5 @@
   position: absolute;
   top: 0.5rem;
   right: 12rem;
-  font-size: 0.1rem;
+  font-size: 0.75rem;
 }
