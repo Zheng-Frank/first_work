@@ -60,6 +60,7 @@
         </textarea>
       </div>
       <!-- end with addtional explanation -->
+
       <!-- start with reason eventually -->
       <div class="mb-3">
         <label for="id-reason">Explanation
@@ -72,6 +73,28 @@
         <div>{{additionalExplanation}}</div>
       </div>
       <!-- end with reason eventually -->
+      <!-- start with prblem -->
+      <div class="mb-3">
+        <label for="id-reason">Problems:
+        </label>
+        <!-- textarea -->
+        <textarea #problemTextArea rows='3' type="text" class="form-control"
+          [(ngModel)]="invoiceProblem">
+      </textarea>
+      </div>
+      <!-- end with problem -->
+
+      <!-- start with response -->
+      <div class="mb-3">
+        <label for="id-reason">Response:
+        </label>
+        <!-- textarea -->
+        <textarea #responseTextArea rows='3' type="text" class="form-control"
+          [(ngModel)]="invoiceResponse">
+        </textarea>
+      </div>
+      <!-- end with response -->
+
     </div>
   </div>
   <div class="d-flex justify-content-end p-4">

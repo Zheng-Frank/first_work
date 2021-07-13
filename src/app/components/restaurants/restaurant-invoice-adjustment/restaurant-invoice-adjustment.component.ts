@@ -32,6 +32,9 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   amountReason = '';
   percentageStripeReason = ''
   stripeReason = '';
+  invoiceProblem = 'Made food but customer did not pick up. Cancelled the order and banned the customer. Need to give partial loss coverage to restaurant.';
+  invoiceResponse = 'Done';
+
   constructor(private _global: GlobalService) { }
 
   ngOnInit() {
@@ -142,11 +145,11 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
 
     } else {
       let isAmountMore = false;
-      if(Math.abs(this.adjustmentAmount) > this.order.getTotal()){
+      if (Math.abs(this.adjustmentAmount) > this.order.getTotal()) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
       }
       if (Math.abs(this.adjustmentAmount) >= this.order.getTotal()) {
-        let total = this.adjustmentAmount < 0? -this.moneyTransform(this.order.getTotal()):this.moneyTransform(this.order.getTotal());
+        let total = this.adjustmentAmount < 0 ? -this.moneyTransform(this.order.getTotal()) : this.moneyTransform(this.order.getTotal());
         this.adjustmentAmount = total;
         isAmountMore = true;
       }
@@ -248,9 +251,9 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
         this.log.adjustmentReason = this.amountReason + this.additionalExplanation;
       }
     }
-    this.log.response = this.log.adjustmentReason; // make the log can be editable and storable
-    this.log.problem = this.log.adjustmentReason;
-
+    // make the log can be editable and storable
+    this.log.response = this.invoiceResponse;
+    this.log.problem = this.invoiceProblem;
     this.onAdjustInvoice.emit({
       restaurant: this.restaurant,
       log: this.log
