@@ -12,6 +12,9 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
     MAXIMUM_LOG_DISPLAY_AGE = 30; // age, in days, of the oldest routine log entry we will display on the dashboard
     rows = [];
     showRtsWithLogs = false;
+    showPublished = false;
+    gmbOwnersList = ['all'];
+    selectedGmbOwner = 'all';
     filteredRows = [];
     apiLoading = false;
     combinedScore;
@@ -24,6 +27,9 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
             label: "Restaurant Name"
         },
         {
+            label: "Routine Logs"
+        },
+        {
             label: "Score",
             paths: ['score'],
             sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
@@ -32,7 +38,7 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
             label: "Published"
         },
         {
-            label: "Routine Logs"
+            label: "GMB Owner"
         }
     ];
 
@@ -128,11 +134,16 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
 
             const placeIdEmailDict = {}; // {place_id: email}
             gmbAccounts.forEach(a => (a.locations || []).forEach(loc => placeIdEmailDict[loc.place_id] = a.email));
+            const gmbOwners = {};
 
             this.rows = restaurants.filter(rt => !rt.disabled).map(rt => {
+                if (rt.googleListing && rt.googleListing.gmbOwner) {
+                    gmbOwners[rt.googleListing.gmbOwner] = rt.googleListing.gmbOwner;
+                }
                 return {
                     id: rt._id,
                     ...rt.googleListing ? { publishedAccountEmail: placeIdEmailDict[rt.googleListing.place_id] } : {},
+                    ...rt.googleListing ? { gmbOwner: rt.googleListing.gmbOwner } : {},
                     name: rt.name,
                     address: rt.googleAddress.formatted_address,
                     score: rt.score,
@@ -143,7 +154,7 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
             });
             // sort descending by score by default
             this.rows.sort((b, a) => a.score - b.score);
-
+            this.gmbOwnersList = ['all', ...Object.keys(gmbOwners).sort((a, b) => a.localeCompare(b))];
         }
         catch (error) {
             console.error(`Error, failed to retrieve restaurant data: `, error);
@@ -155,8 +166,14 @@ export class GmbPermanentlyClosedListComponent implements OnInit {
 
     filter() {
         this.filteredRows = this.rows;
+        if (this.selectedGmbOwner !== 'all') {
+            this.filteredRows = this.filteredRows.filter(r => r.gmbOwner === this.selectedGmbOwner);
+        }
         if (this.showRtsWithLogs) {
             this.filteredRows = this.filteredRows.filter(r => (r.instances || []).length);
+        }
+        if (this.showPublished) {
+            this.filteredRows = this.filteredRows.filter(r => r.publishedAccountEmail);
         }
         this.findCombinedScore();
     }

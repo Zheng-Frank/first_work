@@ -10,8 +10,20 @@
 <div class="clearfix my-2">
 
   <span class="mx-2">
-    <b>Show Restaurants With Routine Logs:</b>
+    <b>Show Only Restaurants With Routine Logs:</b>
     <input type="checkbox" [(ngModel)]="showRtsWithLogs" (change)="filter()">
+  </span>
+
+  <span class="mx-2">
+    <b>Show Only Published Restaurants</b>
+    <input type="checkbox" [(ngModel)]="showPublished" (change)="filter()">
+  </span>
+
+  <span class="mx-2">
+    <b>Filter by GMB Owner</b>
+    <select [(ngModel)]="selectedGmbOwner" (change)="filter()">
+      <option *ngFor="let owner of gmbOwnersList">{{owner}}</option>
+    </select>
   </span>
 </div>
 
@@ -24,17 +36,21 @@
         <small>{{r.address}}</small>
       </div>
     </td>
-    <td>{{r.score | number: '1.0-0'}}</td>
-    <td>
-      <app-gmb-account-hotlink [email]="r.publishedAccountEmail" *ngIf="r.publishedAccountEmail">
-      </app-gmb-account-hotlink>
-    </td>
     <td>
       <ul>
         <li *ngFor="let inst of r.instances">
           {{displayMessageFromInstance(inst)}} - {{inst.assignee}}, {{inst.createdAt | date: 'shortDate'}}
         </li>
       </ul>
+    </td>
+    <td>{{r.score | number: '1.0-0'}}</td>
+    <td>
+      <app-gmb-account-hotlink [email]="r.publishedAccountEmail" *ngIf="r.publishedAccountEmail">
+      </app-gmb-account-hotlink>
+    </td>
+
+    <td>
+      <span *ngIf="r.gmbOwner">{{r.gmbOwner}}</span>
     </td>
 
   </tr>
