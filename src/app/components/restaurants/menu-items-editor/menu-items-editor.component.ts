@@ -15,6 +15,7 @@ export class MenuItemsEditorComponent implements OnInit {
   @Input() translations = [];
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
+  hideTranslations = true;
 
   constructor() { }
 
