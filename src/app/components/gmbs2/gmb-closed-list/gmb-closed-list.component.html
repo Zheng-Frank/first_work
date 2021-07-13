@@ -1,0 +1,37 @@
+<h2 class="text-center">GMB: Locations Marked Permanently Closed</h2>
+<h6 class="text-center">These locations are marked permanently closed on Google, but are not disabled on qMenu</h6>
+<div class="text-center" *ngIf="filteredRows">{{filteredRows.length}} locations</div>
+<div class="text-center" *ngIf="combinedScore">{{combinedScore.toFixed(1)}} combined score</div>
+<div class="text-center">
+  <button class="btn btn-link" (click)="refresh()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+</div>
+
+<div class="clearfix my-2">
+
+  <span class="mx-2">
+    <b>Show Restaurants With Routine Logs:</b>
+    <input type="checkbox" [(ngModel)]="showRtsWithLogs" (change)="filter()">
+  </span>
+</div>
+
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="5000">
+  <tr *tableRowTemplate="let r;">
+    <td>{{filteredRows.indexOf(r) + 1}}</td>
+    <td>
+      <a target="_blank" href="#/restaurants/{{r.id}}">{{r.name}}</a>
+      <div class="text-muted">
+        <small>{{r.address}}</small>
+      </div>
+    </td>
+    <td>
+      <ul>
+        <li *ngFor="let inst of r.instances" >
+          {{displayMessageFromInstance(inst)}} - {{inst.assignee}}, {{inst.createdAt | date: 'shortDate'}}
+        </li>
+      </ul>
+    </td>
+
+    <td>{{r.score | number: '1.0-0'}}</td>
+  </tr>
+</q-table>
