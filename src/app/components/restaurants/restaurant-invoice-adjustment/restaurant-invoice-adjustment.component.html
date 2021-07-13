@@ -52,7 +52,7 @@
       <!-- end with stripe -->
       <!-- start with addtional explanation -->
       <div class="mb-3">
-        <label for="id-reason">Additional Notes
+        <label for="id-reason">Additional Notes (on invoice explanation)
         </label>
         <!-- textarea -->
         <textarea #additionalExplanationTextArea rows='3' type="text" class="form-control" id="id-reason"
@@ -63,7 +63,7 @@
 
       <!-- start with reason eventually -->
       <div class="mb-3">
-        <label for="id-reason">Explanation
+        <label for="id-reason">Invoice Explanation
         </label>
         <div>{{percentage ? percentageAmountReason : amountReason}}</div>
         <div *ngIf="log.adjustmentType === 'TRANSACTION'">
@@ -74,8 +74,9 @@
       </div>
       <!-- end with reason eventually -->
       <!-- start with prblem -->
+      <hr>
       <div class="mb-3">
-        <label for="id-reason">Problems:
+        <label for="id-reason">Problem:
         </label>
         <!-- textarea -->
         <textarea #problemTextArea rows='3' type="text" class="form-control"
