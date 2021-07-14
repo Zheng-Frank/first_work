@@ -99,7 +99,7 @@ export class MonitoringScriptComponent implements OnInit {
         disabled: 1,
         disabledBackup: 1,
         "uowsHistory.time": 1,
-        "uowsHistory.uows.assignedId": 1,
+        // "uowsHistory.uows.assignedId": 1,
         "uowsHistory.uows.startedAt": 1,
         "uowsHistory.uows.endedAt": 1,
         // "uowsHistory.uows.result.body": 1,
