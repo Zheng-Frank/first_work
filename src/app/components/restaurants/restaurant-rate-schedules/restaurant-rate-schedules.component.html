@@ -19,7 +19,7 @@
               <th>Rate</th>
               <th>Fixed</th>
               <th>Agent</th>
-              <th *ngIf="canEditCommission()">Commission</th>
+              <th>Commission</th>
             </tr>
           </thead>
           <tbody>
@@ -30,7 +30,7 @@
               <td>{{rs.fixed | currency:'USD':'symbol'}}</td>
               <td>{{rs.agent}} <span *ngIf="isDisabled(rs.agent)" class="text-danger">*DISABLED*</span>
               </td>
-              <td *ngIf="canEditCommission()">{{rs.commission | percentage}}</td>
+              <td>{{rs.commission | percentage}}</td>
             </tr>
           </tbody>
         </table>
@@ -47,7 +47,7 @@
               <th>Rate</th>
               <th>Fixed($)</th>
               <th>Sales Agent</th>
-              <th *ngIf="canEditCommission()">Agent's Commission</th>
+              <th>Agent's Commission</th>
             </tr>
           </thead>
           <tbody>
@@ -72,7 +72,7 @@
               <td>
                 <input class="form-control" type="text" [(ngModel)]="rs.agent">
               </td>
-              <td *ngIf="canEditCommission()">
+              <td>
                 <input class="form-control" type="number" [(ngModel)]="rs.commission" placeholder="eg. 0.15">
               </td>
 

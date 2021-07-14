@@ -37,7 +37,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    rateSchedules: ['ADMIN', 'RATE_EDITOR'], // rateSchedule should be migrated to fee schedule, no need to show for normal roles
+    rateSchedules: ['ADMIN', 'RATE_EDITOR'],
     feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
@@ -332,7 +332,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     if (hasFullPrivilege) {
       return true;
     }
-    if (roles.includes('MARKETER')) {
+    // marketer should can view rateSchedules in rts under his agent
+    if (sectionName === 'rateSchedules' && roles.includes('MARKETER')) {
       const username = this._global.user.username;
       let salesAgent = Helper.getSalesAgent(this.restaurant.rateSchedules, this.knownUsers);
       return salesAgent === username;
