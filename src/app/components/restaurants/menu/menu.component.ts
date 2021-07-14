@@ -27,6 +27,8 @@ export class MenuComponent implements OnInit {
   @ViewChild('miModal') miModal: ModalComponent;
   @ViewChild('mcSortingModal') mcSortingModal: ModalComponent;
   @ViewChild('miSortingModal') miSortingModal: ModalComponent;
+  @ViewChild('miAdjustNumberModal') miAdjustNumberModal: ModalComponent;
+  
   @ViewChild('beverageSectionModal') beverageSectionModal: ModalComponent;
 
   @ViewChild('mcEditor') mcEditor: MenuCategoryEditorComponent;
@@ -36,6 +38,7 @@ export class MenuComponent implements OnInit {
 
   editingMis = false;
   mcOfSortingMis;
+  mcOfAdjustNumberMis; // the value is used to adjust menu items's number
   sortMcItems; // it's a mcs which waiting for reordering.
   targetWording = {
     'ONLINE_ONLY': 'Online only', // also a default when there is no target customer specified
@@ -121,6 +124,33 @@ export class MenuComponent implements OnInit {
   // only restaurants in the type of  DINE_IN_ONLY and all
   isShowBeverageButton(menu) {
     return menu.targetCustomer && (menu.targetCustomer === 'DINE_IN_ONLY' || menu.targetCustomer === 'ALL');
+  }
+
+  showAdjustItemNumberModal(mc){
+    this.mcOfAdjustNumberMis = mc;
+    this.miAdjustNumberModal.show();
+  }
+   // this function is used to adjust menu category items.
+  async doAdjustNumber(adjustedMis){
+      // get index and only update that menu
+      const index = this.restaurant.menus.indexOf(this.menu);
+      const mcIndex = this.menu.mcs.indexOf(this.mcOfSortingMis);
+      try {
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: {
+            _id: this.restaurant['_id']
+          }, new: {
+            _id: this.restaurant['_id'],
+            [`menus.${index}.mcs.${mcIndex}.mis`]: adjustedMis,
+          }
+        }]).toPromise();
+        this.restaurant.menus[index].mcs[mcIndex].mis = adjustedMis;
+        this._global.publishAlert(AlertType.Success, 'Success!');
+        this.miAdjustNumberModal.hide();
+      } catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, 'Failed!');
+      }
   }
 
   showMiSortingModal(mc) {
