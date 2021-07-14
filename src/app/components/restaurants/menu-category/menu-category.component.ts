@@ -23,6 +23,11 @@ export class MenuCategoryComponent implements OnInit {
   ngOnInit() {
   }
 
+  
+  adjustMenuItemsNumber(){
+
+  }
+
   sortMis() {
     this.onSortMis.emit(this.mc);
   }
