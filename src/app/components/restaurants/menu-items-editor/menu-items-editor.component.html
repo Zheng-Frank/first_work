@@ -1,10 +1,20 @@
 <div *ngIf="mc">
   <h4 class="text-center">All Items Under Category: {{mc.name}}</h4>
-
-
+  <div class="row text-right">
+    Adjust menu items's number: 
+    <input type="text" class="form-control" placeholder="Please input a valid format number." [(ngModel)]="formatNumber"/>
+    <label class="form-check-label mr-2">Show</label>
+    <select [(ngModel)]="filterType" class="form-control ml-1">
+      <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
+    </select>
+    <button class="btn btn-primary" (click)="clickOk()">Inc/Dec Items' Number(调整菜单条目序号)</button>
+  </div>
   <table class="table">
     <thead>
       <tr>
+        <th>
+          Adjust Flag
+        </th>
         <th>
           Number
         </th>
@@ -27,6 +37,9 @@
     </thead>
     <tbody>
       <tr *ngFor="let mi of mc.mis">
+        <td *ngIf="mi && mi.name">
+          <input type="checkbox" [checked]="mi.beChecked" (change)="setMiChecked(mi)">
+        </td>
         <td>
           <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-md">
         </td>

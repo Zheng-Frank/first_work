@@ -2,6 +2,10 @@ import { Component, ViewChild, OnInit, Input, Output, EventEmitter, OnChanges } 
 import { Mc, Item, Mi, MenuOption } from '@qmenu/ui';
 
 declare var $: any;
+enum adjustTypes{
+  Inc = 'Increment',
+  Dec = 'Decrement'
+}
 
 @Component({
   selector: 'app-menu-items-editor',
@@ -17,6 +21,14 @@ export class MenuItemsEditorComponent implements OnInit {
   @Output() onCancel = new EventEmitter();
 
   constructor() { }
+  
+  setMiChecked(mi){
+    if(!mi.beChecked){
+      mi.beChecked = true;
+    }else{
+      mi.beChecked = !mi.beChecked;
+    }
+  }
 
   setMc(mc: Mc, menuOptions: MenuOption[]) {
 
@@ -66,6 +78,8 @@ export class MenuItemsEditorComponent implements OnInit {
   }
 
   ok() {
+    console.log(this.mc.mis);
+    debugger
     //
     // should do validation first
     //let's remove empty menuOptionIds
