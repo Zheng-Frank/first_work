@@ -28,7 +28,11 @@ export class CouponImportComponent implements OnInit {
   ngOnInit() {
   }
 
-
+  getProviders() {
+    // only show supported providers: menufy,Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife
+    let supportted = ['chinesemenuonline', 'beyondmenu'];
+    return (this.restaurant.providers || []).filter(x => supportted.includes(x.name));
+  }
   checkCoupon(e) {
     let {target: {value}} = e;
     if (value === 'all') {
