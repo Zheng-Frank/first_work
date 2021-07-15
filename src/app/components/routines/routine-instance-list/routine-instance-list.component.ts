@@ -85,8 +85,8 @@ export class RoutineInstanceListComponent implements OnChanges {
 
   createResultsTable() {
     this.instanceList.forEach(inst => {
-      const instanceData = {}
-      inst.results.forEach(res => {
+      const instanceData = {};
+      (inst.results || []).forEach(res => {
         instanceData[res.name] = res.result
       })
       this.resultsTable[inst._id] = instanceData;
