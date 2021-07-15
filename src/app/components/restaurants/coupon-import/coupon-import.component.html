@@ -3,7 +3,7 @@
     <h3 class="text-center">From a Provider ({{restaurant.providers?.length}})</h3>
     <small class="text-left">Providers for which we currently support coupon scraping: Beyond Menu, CMO(Chinese Menu Online)</small>
     <select class="form-control mr-4" [(ngModel)]="provider">
-      <option *ngFor="let provider of (restaurant.providers || [])" [ngValue]="provider.url">{{provider.name}}</option>
+      <option *ngFor="let provider of getProviders()" [ngValue]="provider.url">{{provider.name}}</option>
     </select>
 
     <div class="py-2">
