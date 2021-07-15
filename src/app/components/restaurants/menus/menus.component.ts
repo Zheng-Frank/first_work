@@ -309,7 +309,7 @@ export class MenusComponent implements OnInit {
         translation.EN = en;
         translation.ZH = zh;
       }
-      ['zh', 'prev_en', 'prev_zh'].forEach(p => delete item.translation[p]);
+      delete item.translation;
     }
   }
 
