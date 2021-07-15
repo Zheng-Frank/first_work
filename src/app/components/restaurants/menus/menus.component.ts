@@ -63,8 +63,8 @@ export class MenusComponent implements OnInit {
 
   getProviders() {
     // only show supported providers: menufy,Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife
-    let supportted = ['menufy', 'redpassion', 'chinesemenuonline', 'chinesemenuonline', 'beyondmenu', 'grubhub', 'slicelife'];
-    return (this.restaurant.providers || this.providers).filter(x => supportted.includes(x.name));
+    let supported = ['menufy', 'redpassion', 'chinesemenuonline', 'chinesemenuonline', 'beyondmenu', 'grubhub', 'slicelife'];
+    return (this.restaurant.providers || this.providers).filter(x => supported.includes(x.name));
   }
 
   /*

@@ -30,8 +30,8 @@ export class CouponImportComponent implements OnInit {
 
   getProviders() {
     // only show supported providers: menufy,Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife
-    let supportted = ['chinesemenuonline', 'beyondmenu'];
-    return (this.restaurant.providers || []).filter(x => supportted.includes(x.name));
+    let supported = ['chinesemenuonline', 'beyondmenu'];
+    return (this.restaurant.providers || []).filter(x => supported.includes(x.name));
   }
   checkCoupon(e) {
     let {target: {value}} = e;
