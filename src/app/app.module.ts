@@ -438,7 +438,7 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     RoutineListComponent,
     RoutineInstanceListComponent,
     SeoTrackingComponent,
-    RestaurantSeoTrackingComponent,
+    RestaurantSeoTrackingComponent
   ],
   imports: [
     BrowserModule,
