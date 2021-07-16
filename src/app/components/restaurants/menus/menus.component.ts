@@ -61,6 +61,12 @@ export class MenusComponent implements OnInit {
     return Object.prototype.toString.call(obj) === '[object Array]';
   }
 
+  getProviders() {
+    // only show supported providers: menufy,Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife
+    let supported = ['menufy', 'redpassion', 'chinesemenuonline', 'chinesemenuonline', 'beyondmenu', 'grubhub', 'slicelife'];
+    return (this.restaurant.providers || this.providers).filter(x => supported.includes(x.name));
+  }
+
   /*
     a public logic we should extract it.
   */
