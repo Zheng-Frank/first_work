@@ -32,6 +32,9 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   amountReason = '';
   percentageStripeReason = ''
   stripeReason = '';
+  invoiceProblem = 'Made food but customer did not pick up. Cancelled the order and banned the customer. Need to give partial loss coverage to restaurant.';
+  invoiceResponse = 'Done';
+
   constructor(private _global: GlobalService) { }
 
   ngOnInit() {
@@ -113,9 +116,16 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   // the function is used to calculate invoice adjustment and give percentage field a limit between 0 and 100%
   calcAdjustmentAmount() {
     if (this.percentage) {
-      if (Math.abs(this.percentageAdjustmentAmount) > 100) {
+      let total = this.order.getTotal();
+      let subtotal = this.order.getSubtotal();
+      let deltaPercentage = Number((total / subtotal * 100).toFixed(2));
+      let isPercentageMore = false;
+      if (Math.abs(this.percentageAdjustmentAmount) > deltaPercentage) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
-        this.percentageAdjustmentAmount = this.percentageAdjustmentAmount < 0 ? -100 : 100;
+      }
+      if (Math.abs(this.percentageAdjustmentAmount) >= deltaPercentage) {
+        this.percentageAdjustmentAmount = this.percentageAdjustmentAmount < 0 ? -deltaPercentage : deltaPercentage;
+        isPercentageMore = true;
       }
       if (this.isNumberValid(this.percentageAdjustmentAmount)) {
         // 19.5*27.5/100=5.3625*100=536.25 =>round =>536 =>5.36
@@ -124,7 +134,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
           this.calculateNetAmountAndSetReason();
         }
         if (this.percentageAdjustmentAmount && this.percentageAdjustmentAmount != 0) {
-          this.changeReasonText();
+          this.changeReasonText(isPercentageMore);
         } else {
           this.percentageAmountReason = '';
           this.percentageStripeReason = '';
@@ -134,10 +144,14 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       }
 
     } else {
-      if (Math.abs(this.adjustmentAmount) > this.order.getSubtotal()) {
+      let isAmountMore = false;
+      if (Math.abs(this.adjustmentAmount) > this.order.getTotal()) {
         this._global.publishAlert(AlertType.Danger, 'The adjustment value entered is too large or too negative. Please try again !');
-        let subtotal = this.moneyTransform(this.order.getSubtotal());
-        this.adjustmentAmount = subtotal;
+      }
+      if (Math.abs(this.adjustmentAmount) >= this.order.getTotal()) {
+        let total = this.adjustmentAmount < 0 ? -this.moneyTransform(this.order.getTotal()) : this.moneyTransform(this.order.getTotal());
+        this.adjustmentAmount = total;
+        isAmountMore = true;
       }
       if (this.isNumberValid(this.adjustmentAmount)) {
         this.log.adjustmentAmount = Number(this.moneyTransform(this.adjustmentAmount));
@@ -145,7 +159,7 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
           this.calculateNetAmountAndSetReason();
         }
         if (this.adjustmentAmount && this.adjustmentAmount != 0) {
-          this.changeReasonText();
+          this.changeReasonText(isAmountMore);
         } else {
           this.amountReason = '';
           this.stripeReason = '';
@@ -157,21 +171,37 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
   }
 
   // change textarea showed text and actual adjustment reason.
-  changeReasonText() {
+  changeReasonText(moreFlag) {
     try {
       let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
       let dateStr = date.slice(0, 4).join(' ');
       if (this.percentage) {
-        if (this.percentageAdjustmentAmount < 0) {
-          this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        if (moreFlag) {
+          if (this.percentageAdjustmentAmount < 0) {
+            this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          } else {
+            this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          }
         } else {
-          this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          if (this.percentageAdjustmentAmount < 0) {
+            this.percentageAmountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          } else {
+            this.percentageAmountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.percentageAdjustmentAmount = this.percentageAdjustmentAmount === null ? 0 : this.percentageAdjustmentAmount).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          }
         }
       } else {
-        if (this.adjustmentAmount < 0) {
-          this.amountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+        if (moreFlag) {
+          if (this.adjustmentAmount < 0) {
+            this.amountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          } else {
+            this.amountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          }
         } else {
-          this.amountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          if (this.adjustmentAmount < 0) {
+            this.amountReason = "Debit $" + (-this.log.adjustmentAmount).toFixed(2) + " to restaurant (" + -(this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          } else {
+            this.amountReason = "Credit $" + this.log.adjustmentAmount.toFixed(2) + " to restaurant (" + (this.log.adjustmentAmount / this.order.getSubtotal() * 100).toFixed(2) + "% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
+          }
         }
       }
     } catch (err) {
@@ -216,39 +246,30 @@ export class RestaurantInvoiceAdjustmentComponent implements OnInit {
       }
     } else {
       if (this.log.adjustmentType === 'TRANSACTION') {
-        this.log.adjustmentReason = this.amountReason + "A $15 dispute fee will be debited to the restaurant." +this.stripeReason + this.additionalExplanation;
+        this.log.adjustmentReason = this.amountReason + "A $15 dispute fee will be debited to the restaurant." + this.stripeReason + this.additionalExplanation;
       } else {
         this.log.adjustmentReason = this.amountReason + this.additionalExplanation;
       }
     }
-    this.log.response = this.log.adjustmentReason; // make the log can be editable and storable
-    this.log.problem = this.log.adjustmentReason;
-
+    // make the log can be editable and storable
+    this.log.response = this.invoiceResponse;
+    this.log.problem = this.invoiceProblem;
     this.onAdjustInvoice.emit({
       restaurant: this.restaurant,
       log: this.log
     });
   }
   cancel() {
-    this.percentage = true;
-    this.percentageAdjustmentAmount = 20;
-    // it's 20% of order's subtotal by default 
-    this.adjustmentAmount = Number(this.moneyTransform(this.order.getSubtotal() * 20 / 100)); // when we input a number rather than a percentage we should use this field to reset the log.ajustmentAmount 
-    let date = Helper.adjustDate(this.order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
-    let dateStr = date.slice(0, 4).join(' ');
-    this.amountReason = this.percentageAmountReason = "Credit $" + this.adjustmentAmount.toFixed(2) + " to restaurant 20% of refund subtotal $" + this.order.getSubtotal().toFixed(2) + " order #" + this.order.orderNumber + " on " + dateStr + ") to coming invoice.";
-    this.stripeReason = this.percentageStripeReason = '';
-    this.additionalExplanation = '';
     this.onCancel.emit();
   }
   // we should allow CSR can submit even if percentageAdjustmentAmount or adjustmentAmount is zero.
-  isDisabled(){
-    if(this.log.adjustmentType === 'TRANSACTION'){
+  isDisabled() {
+    if (this.log.adjustmentType === 'TRANSACTION') {
       return false;
     }
-    if(this.percentage){
+    if (this.percentage) {
       return !(this.percentageAdjustmentAmount && this.percentageAdjustmentAmount != 0);
-    }else{
+    } else {
       return !(this.adjustmentAmount && this.adjustmentAmount != 0);
     }
   }
