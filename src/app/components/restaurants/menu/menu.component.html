@@ -39,7 +39,7 @@
     <hr>
     <p class="text-left">
       There is already one or more menu categories in this menu called "Beverages",
-      so a new "Beverages" won’t be added.Would you like to move the existing "Beverages" 
+      so a new "Beverages" won’t be added.Would you like to move the existing "Beverages"
       section to the top if it’s not at the top already?
     </p>
     <div class="d-flex justify-content-end p-4">
@@ -64,7 +64,7 @@
 </div>
 
 <div [hidden]="!editingMis">
-  <app-menu-items-editor #misEditor (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
+  <app-menu-items-editor #misEditor [translations]="restaurant.translations" (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
 </div>
 
 <q-modal #mcModal>
