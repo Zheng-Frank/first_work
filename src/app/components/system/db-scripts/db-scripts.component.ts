@@ -2910,12 +2910,14 @@ export class DbScriptsComponent implements OnInit {
   async injectRequireZipBillingAddress() {
     const serviceSettings = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
+      query: {disabled: { $ne: true }},
       projection: {
         name: 1,
         googleListing: 1,
         serviceSettings: 1,
         requireZipcode: 1,
         requireBillingAddress: 1
+        
       }
     }, 3000)
 
@@ -2923,7 +2925,7 @@ export class DbScriptsComponent implements OnInit {
     for (let r of serviceSettings) {
       const oldR = r;
       let newR = JSON.parse(JSON.stringify(r));
-      if (r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > -1)) {
+      if (r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods && each.paymentMethods.indexOf('QMENU') > -1)) {
         if (!newR.requireZipcode || !newR.requireBillingAddress) {
           newR.requireZipcode = true;
           updatedRestaurantPairs.push({
