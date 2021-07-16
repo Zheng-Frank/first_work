@@ -67,7 +67,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
         label: "Description",
         required: false,
         placeholder: 'Enter description',
-        inputType: "text"
+        inputType: "textarea"
       },
       {
         field: "assignees",
@@ -79,6 +79,12 @@ export class RoutineAdminDashboardComponent implements OnInit {
           text: user.username,
           selected: false
         }))
+      },
+      {
+        field: "startDate", //
+        label: "Start Date",
+        required: true,
+        inputType: "date"
       },
       {
         field: "recurrence", //

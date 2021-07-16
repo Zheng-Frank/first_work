@@ -301,12 +301,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         if (confirm('Trigger too many times could exhaust existing verification options. Are you sure?')) {
             this.verifyingOption = vo;
             try {
-                // await this._api.post(environment.gmbNgrok + 'task/verify', {
-                //     taskId: task._id,
-                //     email: task.request.email,
-                //     locationName: task.request.locationName,
-                //     verificationOption: vo
-                // }).toPromise();
 
                 await this._api.post(environment.appApiUrl + "gmb/generic", {
                     name: "verify",
