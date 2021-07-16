@@ -16,17 +16,11 @@ export class MenuCategoryComponent implements OnInit {
   @Output() onMcClicked = new EventEmitter();
   @Output() onEditAllMenuItems = new EventEmitter();
   @Output() onSortMis = new EventEmitter();
-  @Output() onAdjustItemNumber = new EventEmitter();
   @Input() restaurant: Restaurant;
 
   constructor() { }
 
   ngOnInit() {
-  }
-
-  
-  adjustMenuItemsNumber(){
-    this.onAdjustItemNumber.emit(this.mc);
   }
 
   sortMis() {

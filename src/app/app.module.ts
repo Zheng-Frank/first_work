@@ -234,7 +234,6 @@ import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
-import { MenuItemAdjustNumberComponent } from './components/restaurants/menu-item-adjust-number/menu-item-adjust-number.component';
 
 
 
@@ -440,7 +439,6 @@ import { MenuItemAdjustNumberComponent } from './components/restaurants/menu-ite
     RoutineInstanceListComponent,
     SeoTrackingComponent,
     RestaurantSeoTrackingComponent,
-    MenuItemAdjustNumberComponent
   ],
   imports: [
     BrowserModule,

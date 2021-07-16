@@ -11,14 +11,9 @@
     </div>
   </div>
   <div *ngIf="mc.mis && mc.mis.length > 1" class="text-center">
-    <button class="btn btn-link" (click)="adjustMenuItemsNumber()">Inc/Dec Items' Number
-      (调整菜单条目序号)</button>
-  </div>
-  <div *ngIf="mc.mis && mc.mis.length > 1" class="text-center">
     <button class="btn btn-link" (click)="sortMis()">Adjust Item Orders
       (调整次序)</button>
   </div>
-
 
   <div class="row ml-0 mr-0">
     <!-- row has negative margins and we need to remove them! -->

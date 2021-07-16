@@ -50,7 +50,7 @@
 
   <!--category cards-->
   <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)"
-    (onSortMis)="showMiSortingModal($event)" (onAdjustItemNumber)="showAdjustItemNumberModal($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)"
+    (onSortMis)="showMiSortingModal($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)"
     (onMiClicked)="editMi($event)" [menu]="menu" [restaurant]="restaurant">
   </app-menu-category>
 
@@ -64,7 +64,7 @@
 </div>
 
 <div [hidden]="!editingMis">
-  <app-menu-items-editor #misEditor (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
+  <app-menu-items-editor #misEditor (onAdjustItemNumber)="doAdjustNumber($event)" (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
 </div>
 
 <q-modal #mcModal>
@@ -88,7 +88,3 @@
     (cancel)="hideMcSortingModal()"></app-item-sorter>
 </q-modal>
 
-<q-modal #miAdjustNumberModal>
-  <app-menu-item-adjust-number *ngIf="mcOfAdjustNumberMis" [items]="mcOfAdjustNumberMis.mis" (adjustNumber)="doAdjustNumber($event)"
-    (cancel)="miAdjustNumberModal.hide()"></app-menu-item-adjust-number>
-</q-modal>
