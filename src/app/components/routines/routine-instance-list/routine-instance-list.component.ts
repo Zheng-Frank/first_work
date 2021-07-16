@@ -24,7 +24,7 @@ export class RoutineInstanceListComponent implements OnChanges {
   pagination = {};
 
   ngOnChanges() {
-    if ((this.routineList || []).length  && (this.instanceList || []).length) {
+    if ((this.routineList || []).length && (this.instanceList || []).length) {
       this.groupAndSortInstances()
       this.createInstanceColumnDescriptors();
       this.createResultsTable();
