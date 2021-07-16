@@ -4,6 +4,9 @@ import { environment } from '../../../../environments/environment';
 import { GlobalService } from '../../../services/global.service';
 import { User } from '../../../classes/user';
 import { AlertType } from '../../../classes/alert-type';
+import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
+
+
 @Component({
   selector: 'app-routine-dashboard',
   templateUrl: './routine-dashboard.component.html',
@@ -11,8 +14,14 @@ import { AlertType } from '../../../classes/alert-type';
 })
 
 export class RoutineDashboardComponent implements OnInit {
+  @ViewChild('notificationResponseModal') notificationResponseModal: ModalComponent;
   routines: any[] = [];
   routineInstances: any[] = [];
+  notifications: any[] = [];
+
+  notificationResponses: any[] = [];
+
+  notificationInReview;
 
   fullDisplayMode = false;
 
@@ -23,6 +32,18 @@ export class RoutineDashboardComponent implements OnInit {
   isUserAdmin = false;
   showUsersOnline = false;
   timekeepingId;
+
+  notificationColumns = [
+    {
+      label: 'Name'
+    },
+    {
+      label: 'Due Date'
+    },
+    {
+      label: 'Acknowledge'
+    },
+  ]
 
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.user = this._global.user;
@@ -44,7 +65,8 @@ export class RoutineDashboardComponent implements OnInit {
     }).toPromise();
 
     this.timekeepingId = routines.filter(r => r.name === 'Timekeeping')[0]._id;
-    this.routines = routines.filter(r => r.assignees.indexOf(this.user.username) > -1).sort((r1, r2) => new Date(r1.createdAt).valueOf() - new Date(r2.createdAt).valueOf());
+    this.routines = routines.filter(r => r.assignees.indexOf(this.user.username) > -1 && (r.recurrence || (r.metrics || []).length)).sort((r1, r2) => new Date(r1.createdAt).valueOf() - new Date(r2.createdAt).valueOf());
+    this.notifications = routines.filter(r => r.assignees.indexOf(this.user.username) > -1 && !r.recurrence && !(r.metrics || []).length);
   }
 
   async populateRoutineInstances() {
@@ -163,4 +185,35 @@ export class RoutineDashboardComponent implements OnInit {
   hasTimekeeping() {
     return this.routines.some(r => r.name === "Timekeeping");
   }
+
+  getUnacknowledgedNotifications() {
+    const unacknowledgedNotifications = (this.notifications || []).filter(n => {
+      return this.routineInstances.findIndex(inst => inst.routineId === n._id) < 0;
+    });
+    return unacknowledgedNotifications.length ? unacknowledgedNotifications : null;
+  }
+
+  openNotificationModal() {
+    this.notificationResponseModal.show();
+  }
+
+  openNotification(n) {
+    this.notificationInReview = JSON.parse(JSON.stringify(n));
+  }
+
+  acknowledgeNotification() {
+    const response = {
+      routineId: this.notificationInReview._id,
+      assignee: this.user.username,
+      createdAt: new Date()
+    }
+    this.postNewInstance(response, "Response Sent");
+    this.closeNotificationResponseModal();
+  }
+
+  closeNotificationResponseModal() {
+    this.notificationInReview = null;
+    this.notificationResponseModal.hide();
+  }
+
 }

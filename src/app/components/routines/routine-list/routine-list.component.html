@@ -38,9 +38,12 @@
             </td>
             <td>
                 <!-- Recurrence -->
-                <div>
+                <div *ngIf="displayRecurrenceInHours(routine.recurrence); else naBlock">
                     Every {{displayRecurrenceInHours(routine.recurrence).toFixed(1)}} hours
                 </div>
+                <ng-template #naBlock>
+                    <div>N/A</div>
+                </ng-template>
             </td>
             <td>
                 <!-- Created Date -->
