@@ -1,7 +1,6 @@
 <div *ngIf="mc">
   <h4 class="text-center">All Items Under Category: {{mc.name}}</h4>
   <div class="row">
-   
     <div class="form-inline form-group">
       <label class="ml-3"> Adjust menu items #
         <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true"
@@ -13,15 +12,16 @@
           </div>
         </i>
       </label>
-      <input type="text" class="form-control ml-2" style="min-width:120px;max-width: 120px;"
-        placeholder="e.g. 1 D1 1D" [(ngModel)]="formatNumber" />
+      <input type="text" class="form-control ml-2" style="min-width:120px;max-width: 120px;" placeholder="e.g. 1 D1 1D"
+        [(ngModel)]="formatNumber" />
       <button class="btn btn-primary ml-2" (click)="adjustMenuItemsNumber()">Excute</button>
       <label class="form-check-label mr-2 ml-2">Check All</label>
       <input type="checkbox" (change)="checkAllItems()" [(ngModel)]="checkedAll">
+      <label class="form-check-label mr-2 ml-2">Hide Translations</label>
+      <input type="checkbox" [(ngModel)]="hideTranslations" />
     </div>
   </div>
 
-  <div><label><input class="mr-2" type="checkbox" [(ngModel)]="hideTranslations" />Hide Translations</label></div>
   <table class="table">
     <thead>
       <tr>
@@ -91,7 +91,7 @@
 
   <div class="text-right">
     <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">
-          Cancel
+      Cancel
     </button>
     <button type="button" class="btn btn-primary" (click)="ok()">
       <span class="fa fa-ok"></span> &nbsp;&nbsp;OK&nbsp;&nbsp;&nbsp;&nbsp;
