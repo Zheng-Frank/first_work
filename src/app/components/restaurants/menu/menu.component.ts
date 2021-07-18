@@ -97,7 +97,7 @@ export class MenuComponent implements OnInit {
       });
       // It's a problem to put unshift and splice together.
       beverageMcs.forEach(beverageMc => menu.mcs.unshift(beverageMc));
-  
+
       try {
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
           old: {
@@ -211,9 +211,8 @@ export class MenuComponent implements OnInit {
   }
 
   editAllItems(mc) {
-    this.editingMis = true;
     this.misEditor.setMc(mc, this.restaurant.menuOptions);
-
+    this.editingMis = true;
   }
 
   mcDone(mc: Mc) {
@@ -237,7 +236,7 @@ export class MenuComponent implements OnInit {
             this.mcModal.hide();
             this.beverageSectionModal.show();
             return;
-          } 
+          }
           if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name.trim())) {
             repeated = true;
             this._global.publishAlert(AlertType.Danger, `Menu category ${mc.name} already exist!`);
@@ -537,10 +536,21 @@ export class MenuComponent implements OnInit {
 
 
     const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    newMenus.map(eachMenu => {
-      eachMenu.mcs.map(eachMc => {
+    const { translations } = this.restaurant;
+    newMenus.forEach(eachMenu => {
+      eachMenu.mcs.forEach(eachMc => {
         if (eachMc.id === mc.id) {
           eachMc.mis = mc.mis || [];
+          eachMc.mis.forEach(mi => {
+            let { en, zh } = mi.translation;
+            let tmp = (translations || []).find(x => x.EN === en);
+            if (tmp) {
+              tmp.ZH = zh;
+            } else if (zh) {
+              translations.push({EN: en, ZH: zh});
+            }
+            delete mi.translation.zh;
+          });
         }
       });
     });
@@ -551,7 +561,8 @@ export class MenuComponent implements OnInit {
           _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
-          menus: newMenus
+          menus: newMenus,
+          translations
         }
       }])
       .subscribe(

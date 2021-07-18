@@ -61,6 +61,12 @@ export class MenusComponent implements OnInit {
     return Object.prototype.toString.call(obj) === '[object Array]';
   }
 
+  getProviders() {
+    // only show supported providers: menufy,Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife
+    let supported = ['menufy', 'redpassion', 'chinesemenuonline', 'chinesemenuonline', 'beyondmenu', 'grubhub', 'slicelife'];
+    return (this.restaurant.providers || this.providers).filter(x => supported.includes(x.name));
+  }
+
   /*
     a public logic we should extract it.
   */
@@ -204,6 +210,16 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
 
+  parsePrefixNum(name) {
+    // 1) A1. XXX; A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
+    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 2) 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
+    let regex2 = /^(?<to_rm>(?<num>(\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 3) No. 1 XXX; NO. 12 XXX;
+    let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
+    return [regex1, regex2, regex3].reduce((a, c) => a || name.match(c), null);
+  }
+
   match(item) {
     let {name, translation} = item;
     if (!name) {
@@ -211,11 +227,9 @@ export class MenusComponent implements OnInit {
     }
 
     name = name.trim();
-    // we'll handle these cases:
-    // 1. A1. XXX; 2. A12 XXX; 3. AB1 XXX; 4. AB12. XXX; 5. 1A XXX; 6. 11B. XXX
-    // 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
-    let withNumRegex = /^(?<to_rm>(?<num>([a-zA-Z]{0,2}\d+)|(\d+[a-zA-Z]))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
-    let numMatched = name.match(withNumRegex);
+    // extract the possible number info from menu's name
+    let numMatched = this.parsePrefixNum(name);
+    // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
     let measureWords = [
       'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
       'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
@@ -301,7 +315,7 @@ export class MenusComponent implements OnInit {
         translation.EN = en;
         translation.ZH = zh;
       }
-      ['zh', 'prev_en', 'prev_zh'].forEach(p => delete item.translation[p]);
+      delete item.translation;
     }
   }
 

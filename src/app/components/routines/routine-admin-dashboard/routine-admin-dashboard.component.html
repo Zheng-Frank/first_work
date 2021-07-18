@@ -15,10 +15,9 @@
 <!-- Logs Display -->
 <div>
    <strong>Select a Routine to View Logs:</strong>
-    <select (change)="onSelectRoutine()" [(ngModel)]="selectedRoutine" placeholder="Select a Routine to View Logs">
-        <option *ngFor="let routine of routines" [ngValue]="routine">{{routine.name}}</option>
+    <q-dropdown style="display: inline-block; width: 400px;" (selectedItemChange)="onSelectRoutine($event)" placeholder="Click to Select..." [items]="getRoutineNames()">
 
-    </select>
+    </q-dropdown>
     <h2 class="text-center text-capitalize">
         {{selectedRoutine?.name || ""}} Routine Logs 
     </h2>
