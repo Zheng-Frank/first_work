@@ -5,10 +5,6 @@ import { Component, ViewChild, OnInit, Input, Output, EventEmitter, OnChanges } 
 import { Mc, Item, Mi, MenuOption } from '@qmenu/ui';
 
 declare var $: any;
-enum sortTypes {
-  Inc = 'Increment',
-  Dec = 'Decrement'
-}
 
 @Component({
   selector: 'app-menu-items-editor',
@@ -23,18 +19,16 @@ export class MenuItemsEditorComponent implements OnInit {
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
   @Output() onAdjustItemNumber = new EventEmitter();
-  adjustNumberTypes = [sortTypes.Inc, sortTypes.Dec];
-  adjustNumberType = sortTypes.Inc;
   formatNumber = '';
   checkedAll;
-
+  showExplanation = false; // to control the icon show explanations or not.
   constructor(private _global: GlobalService) { }
 
   // this function is to check all items quickly.
   checkAllItems() {
-    if(this.checkedAll){
+    if (this.checkedAll) {
       this.mc.mis.forEach(mi => mi && mi.name && (mi.beChecked = true));
-    }else{
+    } else {
       this.mc.mis.forEach(mi => mi && mi.name && (mi.beChecked = false));
     }
   }
@@ -54,7 +48,7 @@ export class MenuItemsEditorComponent implements OnInit {
     if (this.getCheckItemNumber() === 0) {
       return this._global.publishAlert(AlertType.Danger, 'Please check one item at least.');
     }
-    if((this.formatNumber || '').trim() === '' || !this.formatNumber){
+    if ((this.formatNumber || '').trim() === '' || !this.formatNumber) {
       return this._global.publishAlert(AlertType.Danger, 'Please input a number.');
     }
     // 0-9
@@ -64,61 +58,45 @@ export class MenuItemsEditorComponent implements OnInit {
     let regxp = /^((\d{0,2})|(([a-z])(\d{0,2}))|((\d{0,2})([a-z])))$/i;
     // the format number must contains a number
     let temp = this.formatNumber.match(regxp);
-    console.log(temp);
-    debugger
-    if (!temp) {
+    if (!temp) { // if it don't match any case,the temp consoled is null.
       return this._global.publishAlert(AlertType.Danger, 'Input format number error.');
     }
-    
+
     let wordBeforeNumber = true;
-    let number ;
+    let onlyNumber = false;
+    let number;
     let word = '';
-   
-    if(/[0-9]/.test(temp[7])){
+
+    if (/[0-9]/.test(temp[7])) { // the case of 1A
       wordBeforeNumber = false;
       number = Number(temp[7]);
       word = temp[8];
-      debugger
-    }else{
+    } else if(/[0-9]/.test(temp[5])){ // the case of A1
       number = Number(temp[5]);
       word = temp[4];
-      debugger
+    }else if(/[0-9]/.test(temp[2])){ // the case of 1
+      onlyNumber = true;
+      number = Number(temp[2]);
     }
-    console.log(number+","+word);
     let filterItems = this.mc.mis.filter(item => item.beChecked);
     // A1 1
     //let number = Number(this.formatNumber.replace(/[a-z]/i, '')); // /i is ignore.
     //let word = this.formatNumber.replace(/[0-9]/g, ''); // /g is global.
-    
-    switch (this.adjustNumberType) {
-      case sortTypes.Inc:
-        filterItems.forEach(item => {
-          if(wordBeforeNumber){
-            item.number = word + number;
-            number++;
-          }else{
-            item.number = number + word;
-            number++;
-          }
-        });
-        break;
-      case sortTypes.Dec:
-        if (filterItems.length > number) {
-          return this._global.publishAlert(AlertType.Danger, 'Input a large number.');
+
+    filterItems.forEach(item => {
+      if(onlyNumber){
+        item.number = number;
+        number++;
+      }else{
+        if (wordBeforeNumber) {
+          item.number = word + number;
+          number++;
+        } else {
+          item.number = number + word;
+          number++;
         }
-        filterItems.forEach(item => {
-          if(wordBeforeNumber){
-            item.number = word + number;
-            number--;
-          }else{
-            item.number = number + word;
-            number--;
-          }
-        });
-        break;
-      default:
-        break;
-    }
+      }
+    });
 
     this.mc.mis = this.mc.mis.filter(item => !item.beChecked);
     this.mc.mis = [...filterItems, ...this.mc.mis];
