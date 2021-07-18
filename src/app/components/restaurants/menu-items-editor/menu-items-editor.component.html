@@ -20,6 +20,8 @@
       <input type="checkbox" (change)="checkAllItems()" [(ngModel)]="checkedAll">
     </div>
   </div>
+
+  <div><label><input class="mr-2" type="checkbox" [(ngModel)]="hideTranslations" />Hide Translations</label></div>
   <table class="table">
     <thead>
       <tr>
@@ -55,7 +57,17 @@
           <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-md">
         </td>
         <td>
-          <input type="text" [(ngModel)]="mi.name" class="form-control app-input-100" placeholder="name">
+          <div><input type="text" [(ngModel)]="mi.name" class="form-control app-input-100" placeholder="name"></div>
+          <ng-container *ngIf="!hideTranslations">
+            <div class="mi-translation row">
+              <label class="col-form-label col-form-label-sm">English Name</label>
+              <input type="text" [(ngModel)]="mi.translation.en" class="form-control form-control-sm">
+            </div>
+            <div class="mi-translation row">
+              <label class="col-form-label col-form-label-sm zh">中文名称</label>
+              <input type="text" [(ngModel)]="mi.translation.zh" class="form-control form-control-sm">
+            </div>
+          </ng-container>
         </td>
         <td>
           <input [(ngModel)]="mi.description" class="form-control app-input-100" placeholder="description">
@@ -79,7 +91,7 @@
 
   <div class="text-right">
     <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">
-      Cancel
+          Cancel
     </button>
     <button type="button" class="btn btn-primary" (click)="ok()">
       <span class="fa fa-ok"></span> &nbsp;&nbsp;OK&nbsp;&nbsp;&nbsp;&nbsp;

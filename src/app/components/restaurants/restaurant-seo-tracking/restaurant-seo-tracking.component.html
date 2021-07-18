@@ -1,6 +1,9 @@
 <h2 class="card-title m-3">
   <h1 class="text-center">SEO Tracking (Coming soon)</h1>
 </h2>
+<div class="mb-3">
+  <button class="btn btn-primary" (click)="scrape()">Scrape provider rankings</button>
+</div>
 <q-table [rows]="filterSpecificRankingRows" [tableColumnDescriptors]="specificColumnDescriptors" [compact]="true"
 [pageSize]="100000">
 <tr *tableRowTemplate="let row;">
@@ -15,3 +18,8 @@
   </td>
 </tr>
 </q-table>
+<q-modal title="Google Ranks" #scrapeModal (close)="scrapeModal.hide()">
+  <div *ngFor="let item of ranks" class="mb-1">
+    <strong class="ml-3">{{item.rank}}</strong><a class="ml-3" href="{{item.website}}" target="_blank">{{item.name || item.website}}</a>
+  </div>
+</q-modal>

@@ -46,7 +46,7 @@
           Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife</small>
         <select class="form-control mr-4" [(ngModel)]="providerUrl">
           <option></option>
-          <option *ngFor="let provider of (restaurant.providers || providers)" [ngValue]="provider.url">{{provider.name || provider.url}}</option>
+          <option *ngFor="let provider of getProviders()" [ngValue]="provider.url">{{provider.name || provider.url}}</option>
         </select>
 
         <div class="py-2">

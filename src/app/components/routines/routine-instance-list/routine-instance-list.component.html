@@ -42,24 +42,10 @@
 
     <!-- Full Display Mode -->
 
-    <q-table *ngIf="fullDisplayMode" [rows]="routineList" [tableColumnDescriptors]="columnDescriptors" [compact]="true"
+    <q-table *ngIf="fullDisplayMode" [rows]="routineList" [tableColumnDescriptors]="[{'label': 'Routine Data'}]" [compact]="true"
         [pageSize]="100">
         <tr *tableRowTemplate="let routine">
 
-            <td class="align-middle">
-                <div>
-                    <strong>{{routine.name}}</strong><br>
-                    <small>{{routine.description}} </small>
-
-                    <!-- <div>
-                        <button *ngIf="pagination[routine._id]" class="btn btn-link"
-                            (click)="togglePagination(routine._id)"><small>Click to Display All
-                                Instances</small></button>
-                        <button *ngIf="!pagination[routine._id]" class="btn btn-link"
-                            (click)="togglePagination(routine._id)"><small>Click to Hide Rows</small></button>
-                    </div> -->
-                </div>
-            </td>
             <td class="align-middle">
                 <q-table [rows]="groupedInstances[routine._id]"
                     [tableColumnDescriptors]="fullDisplayInstanceColumnDescriptors[routine.name]" [compact]="true"

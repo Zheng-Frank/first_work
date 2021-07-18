@@ -260,7 +260,12 @@ export class RoutineAdminDashboardComponent implements OnInit {
     }
   }
 
-  onSelectRoutine() {
+  onSelectRoutine(selectEvent) {
+    this.selectedRoutine = this.routines.filter(r => r.name === selectEvent)[0];
     this.selectedInstanceList = this.allInstances.filter(inst => inst.routineId === this.selectedRoutine._id);
+  }
+
+  getRoutineNames() {
+    return this.routines.map(r => r.name);
   }
 }

@@ -139,6 +139,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     taxRate: 1,
     templateName: 1,
     timeZone: 1,
+    translations: 1,
     web: 1,
     yelpListing: 1,
     phones: 1,
@@ -149,8 +150,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     ccHandler: 1,
     comebackDate: 1,
     ccMinimumCharge: 1,
-    hideOrderReadyEstimate: 1,
-    translations: 1,
+    hideOrderReadyEstimate: 1
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
