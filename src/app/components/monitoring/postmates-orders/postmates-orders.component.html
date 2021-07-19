@@ -11,9 +11,12 @@
         <select [(ngModel)]="type" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
           <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
         </select>
-        <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
+        <input type="text" [(ngModel)]="searchText" style="min-width:300px;max-width:300px;"
           class="form-control col-7" placeholder="Search">
-        <div *ngIf="searchText||dateType !=''" class="text-muted float-left col-1">Found: {{orders.length}}</div>
+        <button class="btn btn-primary ml-2 mb-1" *ngIf="!showAdvancedSearch" (click)="search()">
+          <i class="fa fa-search"></i> Search
+        </button>
+        <div class="text-muted float-left col-1 mt-2">Found: {{orders.length}}</div>
       </div>
       <div class="form-group">
         <button type="button" class="btn btn-link ml-3" (click)="toggleShowAdvancedSearch()">

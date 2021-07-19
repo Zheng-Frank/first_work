@@ -82,8 +82,12 @@ export class RestaurantOrdersComponent implements OnInit {
    */
   cancelDoSearchOrderByTime() {
     this.showAdvancedSearch = false;
+    this.searchText = '';
+    this.searchQROrder = false;
+    this.type = 'Order Number';
     this.populateOrders();
   }
+  
     /**
    *
    * this function is used to filter order by createdAt
@@ -127,6 +131,24 @@ export class RestaurantOrdersComponent implements OnInit {
     if(this.searchQROrder){
       query['dineInSessionObj._id'] = {
         $exists:true
+      }
+    }
+    if (!this.searchText) {
+
+    } else if (this.type == 'Order Number' && this.searchText) {
+      query['orderNumber'] = +this.searchText.trim();// + let searchText convert from string to number.
+    } else if (this.type == 'Postmates ID' && this.searchText) {
+      query['delivery.id'] = this.searchText.trim();
+    } else if (this.type == 'Customer Phone' && this.searchText) {
+      if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
+        let str_arr = this.searchText.trim().split('-');
+        let queryStr = '';
+        str_arr.forEach(function (s) {
+          queryStr += s
+        });
+        query['customerObj.phone'] = queryStr
+      } else { //the situation of the phone number don't have '-'
+        query['customerObj.phone'] = this.searchText.trim();
       }
     }
     // ISO-Date()
@@ -208,7 +230,7 @@ export class RestaurantOrdersComponent implements OnInit {
    * @param {*} event
    * @memberof RestaurantOrdersComponent
    */
-  search(event) {
+  search() {
     this.populateOrders();
   }
 
@@ -223,7 +245,6 @@ export class RestaurantOrdersComponent implements OnInit {
       }
     } as any;
 
-    let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
     // when check the qr orders only checkbox ,it need interact with the search input.
     if(this.searchQROrder){
       query['dineInSessionObj._id'] = {
@@ -232,26 +253,20 @@ export class RestaurantOrdersComponent implements OnInit {
     }
     if (!this.searchText) {
 
-    } else if (this.type == 'Order Number' && this.searchText && regexp.test(this.searchText)) {
-      query.orderNumber = +this.searchText;
+    } else if (this.type == 'Order Number' && this.searchText) {
+      query['orderNumber'] = +this.searchText.trim();
     } else if (this.type == 'Postmates ID' && this.searchText) {
-      query['delivery.id'] = {
-        $regex: this.searchText
-      }
+      query['delivery.id'] = this.searchText.trim()
     } else if (this.type == 'Customer Phone' && this.searchText) {
       if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
-        let str_arr = this.searchText.split('-');
+        let str_arr = this.searchText.trim().split('-');
         let queryStr = '';
         str_arr.forEach(function (s) {
           queryStr += s
         });
-        query['customerObj.phone'] = {
-          $regex: queryStr
-        }
+        query['customerObj.phone'] = queryStr
       } else { //the situation of the phone number don't have '-'
-        query['customerObj.phone'] = {
-          $regex: this.searchText
-        }
+        query['customerObj.phone'] = this.searchText.trim();
       }
     }
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
