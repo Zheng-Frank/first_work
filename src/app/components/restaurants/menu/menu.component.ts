@@ -1,4 +1,3 @@
-import { map } from 'rxjs/operators';
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {Item, Mc, Menu, Mi, Restaurant} from '@qmenu/ui';
 import {Helper} from '../../../classes/helper';
@@ -542,14 +541,14 @@ export class MenuComponent implements OnInit {
         if (eachMc.id === mc.id) {
           eachMc.mis = mc.mis || [];
           eachMc.mis.forEach(mi => {
-            let { en, zh } = mi.translation;
-            let tmp = (translations || []).find(x => x.EN === en);
+            let { EN, ZH } = mi.translation;
+            let tmp = (translations || []).find(x => x.EN === EN);
             if (tmp) {
-              tmp.ZH = zh;
-            } else if (zh) {
-              translations.push({EN: en, ZH: zh});
+              tmp.ZH = ZH;
+            } else if (ZH) {
+              translations.push({EN, ZH});
             }
-            delete mi.translation.zh;
+            delete mi.translation;
           });
         }
       });
