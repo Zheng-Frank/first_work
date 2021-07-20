@@ -81,15 +81,6 @@ export class SendTextReplyComponent implements OnInit {
             };
           }
         }).filter(job =>job);
-        let contactList = this.channels.map(channel =>{
-          if(channel.type === 'SMS'){
-            return {
-              type:'SMS',
-              value:channel.value
-             }
-            }
-          }
-         ).filter(contact =>contact);
         this._api.post(environment.qmenuApiUrl + "events/add-jobs", jobs)
           .subscribe(
             result => {
@@ -123,15 +114,6 @@ export class SendTextReplyComponent implements OnInit {
             }
           }
         }).filter(job =>job);
-        let contactList = this.channels.map(channel =>{
-          if(channel.type === 'Email'){
-            return {
-              type:'Email',
-              value:channel.value
-             }
-            }
-          }
-         ).filter(contact =>contact);
         this._api.post(environment.qmenuApiUrl + "events/add-jobs", jobs)
           .subscribe(
             result => {
