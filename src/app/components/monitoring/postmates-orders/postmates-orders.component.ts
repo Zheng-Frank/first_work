@@ -73,7 +73,7 @@ export class PostmatesOrdersComponent implements OnInit {
     "googleAddress.timezone": 1,
     "channels": 1
   };
-
+  showExplanation = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
   /**
@@ -90,25 +90,17 @@ export class PostmatesOrdersComponent implements OnInit {
     );
   }
 
-  /**
-   *
-   *cancel the advanced date search
-   * @memberof RestaurantOrdersComponent
-   */
-  cancelDoSearchOrderByDateCustom() {
-    this.showAdvancedSearch = false;
-    this.dateType = filterTypes.Last24Hours;
-    this.populateOrders();
-  }
-
   toggleShowAdvancedSearch() {
     this.showAdvancedSearch = !this.showAdvancedSearch;
     if (!this.showAdvancedSearch) {
+      this.searchText = '';
+      this.type = 'Order ID';
+      this.fromDate = '';
       this.populateOrders();
     } else {
       this.searchText = '';
+      this.type = 'Order ID';
       this.dateType = filterTypes.Last24Hours;
-      this.searchOrderByDate();
     }
   }
   /*
@@ -272,6 +264,57 @@ export class PostmatesOrdersComponent implements OnInit {
       });
     }
   }
+
+  private isLeapYear(year): boolean {
+    return year % 100 != 0 && year % 4 == 0 || year % 400 == 0;
+  }
+
+  // it can't just enlarge the date range because to date maybe more than 31 days at the end of the month.
+  private getCorrectToDate(toDate) {
+    let tostr = toDate.split('-');
+    let to_year = parseInt(tostr[0]);
+    let to_month = parseInt(tostr[1]);
+    let to_day = parseInt(tostr[2]);
+    let bigMonth = [1, 3, 5, 7, 8, 10, 12];
+    //enlarge the day range to get correct timezone
+    if (to_month !== 2) {
+      if (bigMonth.includes(to_month)) {
+        if (to_day < 31) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      } else {
+        if (to_day < 30) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      }
+    } else {
+      // judge is it leap year?
+      if (this.isLeapYear(to_year)) {
+        if (to_day < 29) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      } else {
+        if (to_day < 28) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      }
+
+    }
+    return tostr.join('-');
+  }
+
   /**
    *
    * this function is used to filter order by createdAt
@@ -279,16 +322,13 @@ export class PostmatesOrdersComponent implements OnInit {
    * @param {*} to
    * @memberof RestaurantOrdersComponent
    */
-  async doSearchOrderByDateCustom(from) {
+  async doSearchOrderByDateCustom() {
 
-    if (from == undefined) {
+    if (this.fromDate === undefined || this.fromDate === '') {
       return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
-
-    let tostr = from.split('-');
-    tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
-    let to = tostr.join('-');
-    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from + " 00:00:00.000"), 'America/New_York');
+    let to = this.getCorrectToDate(this.fromDate);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.fromDate + " 00:00:00.000"), 'America/New_York');
     const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to + " 00:00:00.000"), 'America/New_York');
 
     const query = {

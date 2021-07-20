@@ -59,6 +59,7 @@ export class RestaurantOrdersComponent implements OnInit {
   adjustInvoiceRestaurantList = []; // all the restaurant need adjust invoice
   changeOrderType = 'Restaurant self-deliver';
   searchQROrder = false;
+  showExplanation = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
   /**
@@ -74,43 +75,93 @@ export class RestaurantOrdersComponent implements OnInit {
       d => this.showNotifier(d)
     );
   }
-  
+
   /**
    *
    *cancel the advanced date search
    * @memberof RestaurantOrdersComponent
    */
-  cancelDoSearchOrderByTime() {
-    this.showAdvancedSearch = false;
-    this.searchText = '';
-    this.searchQROrder = false;
-    this.type = 'Order Number';
-    this.populateOrders();
+  toggleDoSearchOrderByTime() {
+    this.showAdvancedSearch = !this.showAdvancedSearch;
+    if (!this.showAdvancedSearch) {
+      this.searchText = '';
+      this.searchQROrder = false;
+      this.type = 'Order Number';
+      this.fromDate = '';
+      this.toDate = '';
+      this.populateOrders();
+    }
   }
-  
-    /**
-   *
-   * this function is used to filter order by createdAt
-   * @param {*} from
-   * @param {*} to
-   * @memberof RestaurantOrdersComponent
-   */
-  async doSearchOrderByTime(from, to) {
-    if (from == undefined) {
+
+  private isLeapYear(year): boolean {
+    return year % 100 != 0 && year % 4 == 0 || year % 400 == 0;
+  }
+
+  // it can't just enlarge the date range because to date maybe more than 31 days at the end of the month.
+  private getCorrectToDate(toDate) {
+    let tostr = toDate.split('-');
+    let to_year = parseInt(tostr[0]);
+    let to_month = parseInt(tostr[1]);
+    let to_day = parseInt(tostr[2]);
+    let bigMonth = [1, 3, 5, 7, 8, 10, 12];
+    //enlarge the day range to get correct timezone
+    if (to_month !== 2) {
+      if (bigMonth.includes(to_month)) {
+        if (to_day < 31) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      } else {
+        if (to_day < 30) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      }
+    } else {
+      // judge is it leap year?
+      if (this.isLeapYear(to_year)) {
+        if (to_day < 29) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      } else {
+        if (to_day < 28) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      }
+
+    }
+    return tostr.join('-');
+  }
+  /**
+ *
+ * this function is used to filter order by createdAt
+ * @param {*} from
+ * @param {*} to
+ * @memberof RestaurantOrdersComponent
+ */
+  async doSearchOrderByTime() {
+    if (this.fromDate === undefined || this.fromDate === '') {
       return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
-    if (to == undefined) {
+    if (this.toDate === undefined || this.toDate === '') {
       return this._global.publishAlert(AlertType.Danger, "please input a correct to time date format !");
     }
-    if (new Date(from).valueOf() - new Date(to).valueOf() > 0) {
+    if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
       return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
     }
-    
-    let tostr = to.split('-');
-    tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
-    to = tostr.join('-');
-    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from+" 00:00:00.000"), this.restaurant.googleAddress.timezone);
-    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to+" 00:00:00.000"), this.restaurant.googleAddress.timezone);
+    let to = this.getCorrectToDate(this.toDate);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.fromDate + " 00:00:00.000"), this.restaurant.googleAddress.timezone);
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to + " 00:00:00.000"), this.restaurant.googleAddress.timezone);
 
     const query = {
       restaurant: {
@@ -128,9 +179,9 @@ export class RestaurantOrdersComponent implements OnInit {
       ]
     } as any;
     // only show qr orders has some interactions with date range search. 
-    if(this.searchQROrder){
+    if (this.searchQROrder) {
       query['dineInSessionObj._id'] = {
-        $exists:true
+        $exists: true
       }
     }
     if (!this.searchText) {
@@ -162,7 +213,7 @@ export class RestaurantOrdersComponent implements OnInit {
         createdAt: -1
       },
       limit: 150
-    },50);
+    }, 50);
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -246,9 +297,9 @@ export class RestaurantOrdersComponent implements OnInit {
     } as any;
 
     // when check the qr orders only checkbox ,it need interact with the search input.
-    if(this.searchQROrder){
+    if (this.searchQROrder) {
       query['dineInSessionObj._id'] = {
-        $exists:true
+        $exists: true
       }
     }
     if (!this.searchText) {
@@ -490,7 +541,7 @@ export class RestaurantOrdersComponent implements OnInit {
     this.logInEditing.adjustmentAmount = this.adjustInvoiceComponment.adjustmentAmount;
     let date = Helper.adjustDate(order.createdAt, this.restaurant.googleAddress.timezone).toString().split(' ');
     let dateStr = date.slice(0, 4).join(' ');
-    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason  =  "Credit $"+this.adjustInvoiceComponment.adjustmentAmount.toFixed(2)+" to restaurant (20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
+    this.adjustInvoiceComponment.amountReason = this.adjustInvoiceComponment.percentageAmountReason = "Credit $" + this.adjustInvoiceComponment.adjustmentAmount.toFixed(2) + " to restaurant (20% of refund subtotal $" + order.getSubtotal().toFixed(2) + " order #" + order.orderNumber + " on " + dateStr + ") to coming invoice."
     this.adjustInvoiceComponment.stripeReason = this.adjustInvoiceComponment.percentageStripeReason = '';
     this.adjustInvoiceComponment.additionalExplanation = '';
     this.adjustInvoiceModal.show();
