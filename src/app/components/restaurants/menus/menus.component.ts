@@ -127,7 +127,7 @@ export class MenusComponent implements OnInit {
       const providers = await this._api.post(environment.appApiUrl + 'utils/menu', {
         name: 'get-service-providers',
         payload: {
-          ludocid: (this.restaurant.googleListing || {}).cid
+          restaurantId: this.restaurant._id
         }
       }).toPromise();
       this.providers = providers.map(p => ({
