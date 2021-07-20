@@ -64,7 +64,7 @@
 </div>
 
 <div [hidden]="!editingMis">
-  <app-menu-items-editor #misEditor (onAdjustItemNumber)="doAdjustNumber($event)" [translations]="restaurant.translations" (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
+  <app-menu-items-editor #misEditor [translations]="restaurant.translations" (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
 </div>
 
 <q-modal #mcModal>

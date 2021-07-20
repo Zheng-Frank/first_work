@@ -18,11 +18,12 @@ export class MenuItemsEditorComponent implements OnInit {
   @Input() translations = [];
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
-  @Output() onAdjustItemNumber = new EventEmitter();
+
   formatNumber = '';
   checkedAll;
   showExplanation = false; // to control the icon show explanations or not.
   hideTranslations = true;
+  adjustNumberFlag = false; // a flag to decide whether show adjustment number tools
   constructor(private _global: GlobalService) { }
 
   // this function is to check all items quickly.
@@ -36,11 +37,7 @@ export class MenuItemsEditorComponent implements OnInit {
 
   // When the checkbox is be checked it should have a temp value to decide 
   setMiChecked(mi) {
-    if (!mi.beChecked) {
-      mi.beChecked = true;
-    } else {
-      mi.beChecked = !mi.beChecked;
-    }
+    mi.beChecked = !mi.beChecked;
   }
   getCheckItemNumber() {
     return this.mc.mis.filter(item => item.beChecked).length;
@@ -49,7 +46,7 @@ export class MenuItemsEditorComponent implements OnInit {
     if (this.getCheckItemNumber() === 0) {
       return this._global.publishAlert(AlertType.Danger, 'Please check one item at least.');
     }
-    if ((this.formatNumber || '').trim() === '' || !this.formatNumber) {
+    if (!(this.formatNumber || '').trim()) {
       return this._global.publishAlert(AlertType.Danger, 'Please input a number.');
     }
     // 0-9
@@ -101,26 +98,10 @@ export class MenuItemsEditorComponent implements OnInit {
 
     this.mc.mis = this.mc.mis.filter(item => !item.beChecked);
     this.mc.mis = [...filterItems, ...this.mc.mis];
-    // remove checked property.
-    this.mc.mis.forEach(mi => delete mi.beChecked);
-
-    // should do validation first
-    //let's remove empty menuOptionIds
-    if (this.mc.menuOptionIds && this.mc.menuOptionIds.length === 0) {
-      delete this.mc.menuOptionIds;
-    }
-
-    // remove empty sizeOptions!
-    this.mc.mis.map(mi => {
-      mi.sizeOptions && (mi.sizeOptions = mi.sizeOptions.filter(i => i.name && i.price));
-    });
-
-    // remove empty mis
-    this.mc.mis = this.mc.mis.filter(mi => mi.sizeOptions && mi.sizeOptions.length > 0 && mi.name);
-    // clean up format number input and change check all to default.
+     // clean up format number input and change check all to default.
     this.formatNumber = '';
     this.checkedAll = false;
-    this.onAdjustItemNumber.emit(this.mc);
+    this.ok();
   }
 
   setMc(mc: Mc, menuOptions: MenuOption[]) {

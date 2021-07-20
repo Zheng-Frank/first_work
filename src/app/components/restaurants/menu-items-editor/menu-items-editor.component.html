@@ -1,32 +1,36 @@
 <div *ngIf="mc">
-  <h4 class="text-center">All Items Under Category: {{mc.name}}</h4>
+  <h4 class="text-center">All Items Under Category: {{mc.name}}
+    <button class="btn btn-link adjust-number-position" (click)="adjustNumberFlag = !adjustNumberFlag">
+      {{ adjustNumberFlag?'Hide adjust menu item numbers..':'Adjust menu item numbers..'}}
+    </button>
+  </h4>
   <div class="row">
     <div class="form-inline form-group">
-      <label class="ml-3"> Adjust menu items #
-        <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true"
-          (mouseout)="showExplanation = false">
-          <div *ngIf="showExplanation" class="left talk radius">
-            <p>Select items to adjust and enter first number to increment from.</p>
-            -------------<br>
-            <p>选择要调整的项目，然后输入要从中递增的第一个数字。</p>
-          </div>
-        </i>
-      </label>
-      <input type="text" class="form-control ml-2" style="min-width:120px;max-width: 120px;" placeholder="e.g. 1 D1 1D"
-        [(ngModel)]="formatNumber" />
-      <button class="btn btn-primary ml-2" (click)="adjustMenuItemsNumber()">Excute</button>
-      <label class="form-check-label mr-2 ml-2">Check All</label>
-      <input type="checkbox" (change)="checkAllItems()" [(ngModel)]="checkedAll">
-      <label class="form-check-label mr-2 ml-2">Hide Translations</label>
+      <label class="form-check-label mr-2 ml-3">Hide Translations</label>
       <input type="checkbox" [(ngModel)]="hideTranslations" />
+      <ng-container *ngIf="adjustNumberFlag">
+        <label class="ml-3"> Adjust menu items #
+          <i class="fa fa-info-circle icon-color mouse-pointer" (mouseover)="showExplanation = true"
+            (mouseout)="showExplanation = false">
+            <div *ngIf="showExplanation" class="left talk radius">
+              <p>Select items to adjust and enter first number to increment from.</p>
+              -------------<br>
+              <p>选择要调整的项目，然后输入要从中递增的第一个序号。</p>
+            </div>
+          </i>
+        </label>
+        <input type="text" class="form-control ml-2" style="min-width:120px;max-width: 120px;"
+          placeholder="e.g. 1 D1 1D" [(ngModel)]="formatNumber" />
+        <button class="btn btn-primary ml-2" (click)="adjustMenuItemsNumber()">Execute</button>
+      </ng-container>
     </div>
   </div>
 
   <table class="table">
     <thead>
       <tr>
-        <th>
-          Adjust Flag
+        <th *ngIf="adjustNumberFlag">
+          <input type="checkbox" (change)="checkAllItems()" [(ngModel)]="checkedAll">
         </th>
         <th>
           Number
@@ -50,7 +54,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let mi of mc.mis">
-        <td>
+        <td *ngIf="adjustNumberFlag">
           <input *ngIf="mi && mi.name" type="checkbox" [checked]="mi.beChecked" (change)="setMiChecked(mi)">
         </td>
         <td>

@@ -21,8 +21,8 @@
 /* it is the css of the bubble cloud.*/
 .talk {
   position: absolute;
-  top: 276px;
-  left: 220px;
+  top: 285px;
+  left: 370px;
   border: 1px;
   min-height: 45px;
   background-color: #d8d4d4;
@@ -83,4 +83,13 @@
   font-size: 0.75rem;
   width: calc(100% - 3.76rem);
   min-width: 3rem;
+}
+
+.mouse-pointer{
+  cursor: pointer !important;
+}
+
+.adjust-number-position{
+  position: absolute;
+  left: 50px;
 }

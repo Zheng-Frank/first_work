@@ -125,12 +125,6 @@ export class MenuComponent implements OnInit {
     return menu.targetCustomer && (menu.targetCustomer === 'DINE_IN_ONLY' || menu.targetCustomer === 'ALL');
   }
 
-   // this function is used to adjust menu category items.
-  async doAdjustNumber(mcOfAdjustNumberMis){
-    // it should hide the edit all items panel before update. 
-    this.misDone(mcOfAdjustNumberMis);
-  }
-
   showMiSortingModal(mc) {
     this.mcOfSortingMis = mc;
     this.miSortingModal.show();
