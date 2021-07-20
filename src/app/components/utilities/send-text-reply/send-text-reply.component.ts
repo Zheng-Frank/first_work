@@ -256,26 +256,32 @@ export class SendTextReplyComponent implements OnInit {
       case 'Custom':
         this.message = '';
         break;
-      case 'QR Biz link':
+        case 'QR Biz link':
         this.message = 'http://qrbiz.qmenu.com';
         break;
       case 'QR promo vid (中)':
-        this.message = 'https://www.youtube.com/watch?v=HosHBDOXKnw';
+        this.message = '从qMenu堂吃扫码点餐过程互动性充分体验其中优势：https://www.youtube.com/watch?v=HosHBDOXKnw';
         break;
       case 'QR promo vid (Eng)':
-        this.message = 'https://www.youtube.com/watch?v=_YL2LGE6joM';
+        this.message = `See how your restaurant would benefit from qMenu's interactive QR dine-in system: https://www.youtube.com/watch?v=_YL2LGE6joM`;
         break;
       case 'QR tutorial vid (中)':
         // this.message = 'https://www.youtube.com/watch?v=KATrlX7N2g8&list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn';
-        this.message = 'https://shorturl.at/korGR';
+        this.message = '了解如何使用 qMenu 的交互式堂吃扫码点餐系统，包括初始设置：https://shorturl.at/korGR';
         break;
       case 'QR tutorial vid (Eng)':
-        // this.message = 'https://www.youtube.com/watch?v=Ifc1uj3MGEc&list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l';
-        this.message = 'https://shorturl.at/cdpO9'
+       // this.message = 'https://www.youtube.com/watch?v=Ifc1uj3MGEc&list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l';
+        this.message = 'Learn how to use qMenu’s interactive QR dine-in system, including initial setup: https://shorturl.at/cdpO9'
         break;
       case '5x7 Signholder link':
         // this.message = 'https://www.fixturedisplays.com/Picture_Frames_11193-2-5X7-24PK' ;
         this.message = 'https://shorturl.at/gFQ19';
+        break;
+      case 'QR promo pamphlet (Eng)':
+        this.message = `Take a look at all qMenu's QR dine-in system has to offer: https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/5936605.html`;
+        break;
+      case 'QR promo pamphlet (Chn)':
+        this.message = '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html';
         break;
       case 'First Notice (Chinese)':
         if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
@@ -327,6 +333,7 @@ export class SendTextReplyComponent implements OnInit {
         break;
     }
   }
+
   // when we can send message ? these is two cases.
   isValid() {
     if ((this.sendToType === 'All Emails' || this.sendToType === 'All SMS numbers') && this.message != '') {
