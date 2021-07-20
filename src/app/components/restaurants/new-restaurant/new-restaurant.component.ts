@@ -354,7 +354,7 @@ export class NewRestaurantComponent implements OnInit {
                 },
                 limit: 100
               }).toPromise();
-      
+
               if (relevantAccounts.length > 0) {
                 this._global.publishAlert(AlertType.Success, 'GMB already published!');
               } else {
@@ -366,14 +366,14 @@ export class NewRestaurantComponent implements OnInit {
                   relatedMap: { gmbBizId: gmbBiz._id, cid: gmbBiz.cid, qmenuId: gmbBiz.qmenuId },
                   transfer: {}
                 };
-      
+
                 await this._api.post(environment.qmenuApiUrl + 'generic?resource=task', [task]).toPromise();
                 this._global.publishAlert(AlertType.Success, 'Created new Apply GMB Ownership task');
               }
-      
-      
+
+
             } else {
-      
+
               this._global.publishAlert(AlertType.Info, 'No apply GMB ownership task is created!');
             }
       */
@@ -394,9 +394,7 @@ export class NewRestaurantComponent implements OnInit {
       const providers = await this._api.post(environment.appApiUrl + "utils/menu", {
         name: "get-service-providers",
         payload: {
-          name: this.restaurant.name,
-          address: (this.restaurant.googleAddress || {} as any).formatted_address,
-          phone: (this.restaurant.googleListing || {}).phone
+          restaurantId: this.restaurant._id
         }
       }).toPromise();
       const [knownProvider] = providers.filter(p => ["slicelife", "grubhub", "beyondmenu", "chinesemenuonline", "redpassion", "menufy", "doordash"].indexOf(p.name || "bad-unknown") >= 0).map(p => ({

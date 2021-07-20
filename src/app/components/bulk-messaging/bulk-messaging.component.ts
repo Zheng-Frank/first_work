@@ -116,7 +116,7 @@ export class BulkMessagingComponent implements OnInit {
               "name": "send-email",
               "params": {
                 "to": rtEmail.value,
-                "subject": "QMenu Notification",
+                "subject": "qMenu Newsletter",
                 "html": this.emailMsgContents
               }
             }]).toPromise();

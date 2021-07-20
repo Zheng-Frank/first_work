@@ -42,7 +42,7 @@ export class OrderCardComponent implements OnInit {
 
   ngOnInit() {
   }
-  openPreviousCanceledOrderModal(order_id){
+  openPreviousCanceledOrderModal(order_id) {
     this.onOpenPreviousCanceledOrderModal.emit(order_id);
   }
   /**
@@ -65,11 +65,11 @@ export class OrderCardComponent implements OnInit {
     document.execCommand('copy');
     this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
   }
- 
+
   /**
    * Add "Change to pick-up" on CSR side for Postmates order
    */
-  openChangeOrderTypesModal(order){
+  openChangeOrderTypesModal(order) {
     this.onOpenChangeOrderTypesModal.emit(order);
   }
   getSubmittedTime(order: Order) {
@@ -398,7 +398,7 @@ export class OrderCardComponent implements OnInit {
     this.onAdjust.emit(this.order);
   }
 
-  adjustInvoice(){
+  adjustInvoice() {
     this.onAdjustInvoice.emit(this.order);
   }
 
@@ -474,6 +474,31 @@ export class OrderCardComponent implements OnInit {
     const updates = (order.delivery.updates || []).filter((update, index, self) => self.findIndex(_update => (_update.status === update.status)) === index)
 
     return updates;
+  }
+
+  displayRestaurantNotice() {
+    const driverOnTheWay = "COOK ASAP! DRIVER ON THEIR WAY.";
+    const noDriverFound = "NO DRIVER FOUND YET. DO NOT COOK UNTIL FURTHER NOTICE.";
+    const pickupNotice = "Customer is coming to pickup the order";
+    
+    if (this.order.type === 'PICKUP') {
+      return this.order['restaurantNotice'] === pickupNotice;
+    }
+
+    if (this.order.type === 'DELIVERY') {
+      // if we have a courier and restaurant notice message says driver is on the way, display the message
+      if (this.order.delivery && this.order.delivery.courier) {
+        console.log(this.order['restaurantNotice'])
+        return this.order['restaurantNotice'] === driverOnTheWay;
+      }
+
+      // if we don't have a courier, and the message says no driver is found yet, display the message
+      if (this.order.delivery && !this.order.delivery.courier) {
+        console.log(this.order['restaurantNotice']);
+        return this.order['restaurantNotice'] === noDriverFound;
+      }
+    }
+    return false;
   }
 
   postmatesStatus(status) {

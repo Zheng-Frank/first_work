@@ -35,7 +35,7 @@ export class MenuComponent implements OnInit {
 
   editingMis = false;
   mcOfSortingMis;
-
+  sortMcItems; // it's a mcs which waiting for reordering.
   targetWording = {
     'ONLINE_ONLY': 'Online only', // also a default when there is no target customer specified
     'DINE_IN_ONLY': 'Dine-in only',
@@ -83,39 +83,39 @@ export class MenuComponent implements OnInit {
 
   }
 
-  // reorder beverage category of menu.
-  async doBeverageSectionReorder(menu) {
-    // get index and only update that menu
-    const index = this.restaurant.menus.indexOf(menu);
-    console.log(index);
-    let beverageMcs = menu.mcs.filter(mc => mc.name === 'Beverages');
-    beverageMcs.forEach(beverageMc => {
-      let beverageMcIndex = menu.mcs.indexOf(beverageMc);
-      if (beverageMcIndex !== -1) {
-        menu.mcs.splice(beverageMcIndex, 1);
-      }
-    });
-    // It's a problem to put unshift and splice together.
-    beverageMcs.forEach(beverageMc => menu.mcs.unshift(beverageMc));
-
-    try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          [`menus.${index}.mcs`]: menu.mcs,
+    // reorder beverage category of menu.
+    async doBeverageSectionReorder(menu) {
+      // get index and only update that menu
+      const index = this.restaurant.menus.indexOf(menu);
+      let beverageMcs = menu.mcs.filter(mc => mc.name.trim().toLowerCase() === 'beverages');
+      beverageMcs.forEach(beverageMc => {
+        let beverageMcIndex = menu.mcs.indexOf(beverageMc);
+        if (beverageMcIndex !== -1) {
+          menu.mcs.splice(beverageMcIndex, 1);
         }
-      }]).toPromise();
-      this.restaurant.menus[index].mcs = menu.mcs;
-      this._global.publishAlert(AlertType.Success, 'Success!');
-      this.beverageSectionModal.hide();
-    } catch (error) {
-      console.log(error);
-      this._global.publishAlert(AlertType.Danger, 'Failed!');
-      this.beverageSectionModal.hide();
+      });
+      // It's a problem to put unshift and splice together.
+      beverageMcs.forEach(beverageMc => menu.mcs.unshift(beverageMc));
+
+      try {
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: {
+            _id: this.restaurant['_id']
+          }, new: {
+            _id: this.restaurant['_id'],
+            [`menus.${index}.mcs`]: menu.mcs,
+          }
+        }]).toPromise();
+        this.restaurant.menus[index].mcs = menu.mcs;
+        console.log(JSON.stringify(menu.mcs));
+        this._global.publishAlert(AlertType.Success, 'Resort Success!');
+        this.beverageSectionModal.hide();
+      } catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, 'Failed!');
+        this.beverageSectionModal.hide();
+      }
     }
-  }
 
   // only restaurants in the type of  DINE_IN_ONLY and all
   isShowBeverageButton(menu) {
@@ -153,7 +153,8 @@ export class MenuComponent implements OnInit {
     }
   }
 
-  showMcSortingModal() {
+  showMcSortingModal(mcs) {
+    this.sortMcItems = mcs;
     this.mcSortingModal.show();
   }
 
@@ -209,9 +210,8 @@ export class MenuComponent implements OnInit {
   }
 
   editAllItems(mc) {
-    this.editingMis = true;
     this.misEditor.setMc(mc, this.restaurant.menuOptions);
-
+    this.editingMis = true;
   }
 
   mcDone(mc: Mc) {
@@ -229,15 +229,16 @@ export class MenuComponent implements OnInit {
       newMenus.forEach(menu => {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
-          // check if mc name exist already
-          if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name)) {
+           // check if mc name exist already
+          if ((menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name.trim().toLowerCase() === mc.name.trim().toLowerCase())) && mc.name.trim().toLowerCase() === 'beverages') {
             repeated = true;
-            if (mc.name === 'Beverages') {
-              this.mcModal.hide();
-              this.beverageSectionModal.show();
-            } else {
-              this._global.publishAlert(AlertType.Danger, `Menu category ${mc.name} already exist!`);
-            }
+            this.mcModal.hide();
+            this.beverageSectionModal.show();
+            return;
+          }
+          if (menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name === mc.name.trim())) {
+            repeated = true;
+            this._global.publishAlert(AlertType.Danger, `Menu category ${mc.name} already exist!`);
             return;
           }
           // must set id after check
@@ -534,10 +535,22 @@ export class MenuComponent implements OnInit {
 
 
     const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    newMenus.map(eachMenu => {
-      eachMenu.mcs.map(eachMc => {
+    let { translations } = this.restaurant;
+    translations = translations || [];
+    newMenus.forEach(eachMenu => {
+      eachMenu.mcs.forEach(eachMc => {
         if (eachMc.id === mc.id) {
           eachMc.mis = mc.mis || [];
+          eachMc.mis.forEach(mi => {
+            let { EN, ZH } = mi.translation;
+            let tmp = translations.find(x => x.EN === EN);
+            if (tmp) {
+              tmp.ZH = ZH;
+            } else if (ZH) {
+              translations.push({EN, ZH});
+            }
+            delete mi.translation;
+          });
         }
       });
     });
@@ -548,7 +561,8 @@ export class MenuComponent implements OnInit {
           _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
-          menus: newMenus
+          menus: newMenus,
+          translations
         }
       }])
       .subscribe(

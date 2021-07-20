@@ -33,7 +33,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     uploadImageError: string;
     availabilityValues = ['Available', 'Unavailable'];
 
-    startupAction = undefined;  //'Yes', 'No', or undefined 
+    startupAction = undefined;  //'Yes', 'No', or undefined
     finishedChoosingStartupAction = false;
     existingMis = [];
 
@@ -47,6 +47,36 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     }
 
     ngOnChanges(params) {
+    }
+    /**
+     * it needs to show old pepper's count.
+     * @param mi
+     */
+    getSpicy(mi) {
+        if (mi.flavors && mi.flavors['Spicy']) {
+            let pepperCounts = [];
+            pepperCounts.push(Array.apply(null, { length: +this.mi.flavors['Spicy'] }).map(Number.call, Number).length);
+            return pepperCounts;
+        }
+        return undefined;
+    }
+
+    getSweet(mi){
+        if (mi.flavors && mi.flavors['Sweet']) {
+            let sweetCounts = [];
+            sweetCounts.push(Array.apply(null, { length: +this.mi.flavors['Sweet'] }).map(Number.call, Number).length);
+            return sweetCounts;
+        }
+        return undefined;
+    }
+
+    getSour(mi){
+        if (mi.flavors && mi.flavors['Sour']) {
+            let sourCounts = [];
+            sourCounts.push(Array.apply(null, { length: +this.mi.flavors['Sour'] }).map(Number.call, Number).length);
+            return sourCounts;
+        }
+        return undefined;
     }
 
     startupActionSelected(value) {
@@ -65,7 +95,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.mi = new Mi(mi);
         this.mi.id = undefined;
         this.mi.category = category;
-        
+
         this.finishedChoosingStartupAction = true;
         // we want to top of the modal after a selection
         $('.modal').animate({ scrollTop: 0 }, 'slow');
@@ -84,7 +114,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.mcSelectedMenuOptionIds = mcSelectedMenuOptionIds || [];
         this.mi = mi;
         //reset other values
-        this.startupAction = undefined;  //'Yes', 'No', or undefined 
+        this.startupAction = undefined;  //'Yes', 'No', or undefined
         this.finishedChoosingStartupAction = false;
         this.showDetails = false;
         // reset selectors, possibly not in view yet, so use setTimeout
@@ -210,6 +240,7 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         if (this.mi.menuOptionIds && this.mi.menuOptionIds.length === 0) {
             delete this.mi.menuOptionIds;
         }
+        this.mi.name = Helper.shrink(this.mi.name);
         this.onDone.emit(this.mi);
     }
 

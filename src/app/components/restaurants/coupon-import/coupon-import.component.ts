@@ -21,7 +21,6 @@ export class CouponImportComponent implements OnInit {
   loading = false;
   @Output() close = new EventEmitter();
   checkedCoupons = [];
-  providers = [{label: 'Beyond Menu', name: 'beyondmenu'}];
   provider = '';
   coupons = [];
   failedTypes = ['Pickup', 'Delivery'];
@@ -29,7 +28,11 @@ export class CouponImportComponent implements OnInit {
   ngOnInit() {
   }
 
-
+  getProviders() {
+    // only show supported providers: menufy,Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife
+    let supported = ['chinesemenuonline', 'beyondmenu'];
+    return (this.restaurant.providers || []).filter(x => supported.includes(x.name));
+  }
   checkCoupon(e) {
     let {target: {value}} = e;
     if (value === 'all') {
@@ -54,8 +57,8 @@ export class CouponImportComponent implements OnInit {
   }
 
   getProviderName() {
-    const p = this.providers.find(x => x.name === this.provider);
-    return p ? p.label : '';
+    const p = (this.restaurant.providers || []).find(x => x.url === this.provider);
+    return p ? p.name : '';
   }
 
   getFreeItem(item) {
@@ -74,7 +77,8 @@ export class CouponImportComponent implements OnInit {
         name: 'crawl-coupon',
         payload: {
           restaurantId: this.restaurant._id,
-          providerName: this.provider,
+          url: this.provider,
+          providerName: this.getProviderName()
         }
       }).toPromise();
       if (error) {
