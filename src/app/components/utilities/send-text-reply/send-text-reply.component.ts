@@ -15,7 +15,6 @@ import { Component, OnInit } from '@angular/core';
 export class SendTextReplyComponent implements OnInit {
 
   @Input() restaurant;
-  @Output() sendToLog = new EventEmitter();
   phoneNumber = '';
   email = '';
   message = '';
@@ -103,12 +102,10 @@ export class SendTextReplyComponent implements OnInit {
                 AlertType.Success,
                 "Text Message Sent successfully"
               );
-              this.sendToLog.emit({ channels:contactList, comments: this.message });
             },
             error => {
               console.log(JSON.stringify(error));
               this._global.publishAlert(AlertType.Danger, "Failed to send successfully!");
-              this.sendToLog.emit({ channels:contactList, comments: this.message });
             }
           );
       } else {
@@ -147,12 +144,10 @@ export class SendTextReplyComponent implements OnInit {
                 AlertType.Success,
                 "Text Message Sent successfully"
               );
-              this.sendToLog.emit({ channels:contactList, comments: emailMessage });
             },
             error => {
               console.log(JSON.stringify(error));
               this._global.publishAlert(AlertType.Danger, "Failed to send successfully!");
-              this.sendToLog.emit({ channels:contactList, comments: emailMessage });
             }
           );
       } else {
@@ -175,11 +170,9 @@ export class SendTextReplyComponent implements OnInit {
               AlertType.Success,
               "Text Message Sent successfully"
             );
-            this.sendToLog.emit({ channels: [{type:'SMS',value:this.phoneNumber}], comments: this.message });
           },
           error => {
             this._global.publishAlert(AlertType.Danger, "Failed to send successfully!" + JSON.stringify(error));
-            this.sendToLog.emit({ channels: [{type:'SMS',value:this.phoneNumber}], comments: this.message });
           }
         );
     } else if (this.isEmailValid(this.email)) {
@@ -199,11 +192,9 @@ export class SendTextReplyComponent implements OnInit {
               AlertType.Success,
               "Text Message Sent successfully"
             );
-            this.sendToLog.emit({ channels: [{type:'Email',value:this.email}], comments: emailMessage });
           },
           error => {
             this._global.publishAlert(AlertType.Danger, "Failed to send successfully!" + JSON.stringify(error));
-            this.sendToLog.emit({ channels: [{type:'Email',value:this.email}], comments: emailMessage});
           }
         );
     }
