@@ -535,14 +535,15 @@ export class MenuComponent implements OnInit {
 
 
     const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    const { translations } = this.restaurant;
+    let { translations } = this.restaurant;
+    translations = translations || [];
     newMenus.forEach(eachMenu => {
       eachMenu.mcs.forEach(eachMc => {
         if (eachMc.id === mc.id) {
           eachMc.mis = mc.mis || [];
           eachMc.mis.forEach(mi => {
             let { EN, ZH } = mi.translation;
-            let tmp = (translations || []).find(x => x.EN === EN);
+            let tmp = translations.find(x => x.EN === EN);
             if (tmp) {
               tmp.ZH = ZH;
             } else if (ZH) {
