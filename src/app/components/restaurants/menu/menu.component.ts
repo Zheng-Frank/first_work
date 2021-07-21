@@ -26,7 +26,6 @@ export class MenuComponent implements OnInit {
   @ViewChild('miModal') miModal: ModalComponent;
   @ViewChild('mcSortingModal') mcSortingModal: ModalComponent;
   @ViewChild('miSortingModal') miSortingModal: ModalComponent;
-  @ViewChild('miAdjustNumberModal') miAdjustNumberModal: ModalComponent;
   
   @ViewChild('beverageSectionModal') beverageSectionModal: ModalComponent;
 
