@@ -4,8 +4,8 @@
   </h2>
   <div class="card-body">
     <div *ngIf="orders">
-      <div class="row">
-        <label class="col-2 text-center pl-4"
+      <div class="form-inline">
+        <label class="text-center pl-5"
           style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
         </label>
         <select [(ngModel)]="type" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
@@ -13,35 +13,38 @@
         </select>
         <input type="text" [(ngModel)]="searchText" style="min-width:300px;max-width:300px;" class="form-control col-7"
           placeholder="Please input">
+        <div class="form-inline" *ngIf="showAdvancedSearch">
+          <select [(ngModel)]="dateType" class="form-control mr-3 ml-2">
+            <option *ngFor="let type of dateSearchTypes">{{type}}</option>
+          </select>
+          <button class="btn btn-primary ml-2" *ngIf="dateType !== 'Custom'" (click)="searchOrderByDate()"><i
+              class="fa fa-search"></i>Search</button>
+          <ng-container *ngIf="dateType === 'Custom'">
+            <input class="form-control" type="date" [(ngModel)]="fromDate">
+            <button class="btn btn-primary ml-2" (click)="doSearchOrderByDateCustom()"><i
+                class="fa fa-search"></i>Search</button>
+          </ng-container>
+        </div>
         <button class="btn btn-primary ml-2 mb-1" *ngIf="!showAdvancedSearch" (click)="search()">
           <i class="fa fa-search"></i> Search
         </button>
-        <div class="text-muted float-left col-1 mt-2">Found: {{orders.length}}
-          <i class="fa fa-info-circle icon-color" *ngIf="!showAdvancedSearch" (mouseover)="showExplanation = true"
+        <div class="text-muted float-left col-1">Found: {{orders.length}}
+          <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true"
             (mouseout)="showExplanation = false">
             <div *ngIf="showExplanation" class="left talk radius">
-              <p>Only the lastest 50 items will be displayed, because there are too many orders.</p>
+              <p>
+              Only the lastest 50 items will be displayed, because there are too many orders.
+              If unable to find a Postmates order when searching by customing date, it maybe cause by using EST timezone.
+              </p>
               -------------<br>
-              <p>只会展示最近50条，因为订单实在太多了。</p>
+              <p>只会展示最近50条，因为订单实在太多了。如果通过自定义搜索时找不到邮递订单日期，可能是因为使用EST时区。</p>
             </div>
           </i>
         </div>
       </div>
       <div class="form-group">
-        <button type="button" class="btn btn-link ml-3" (click)="toggleShowAdvancedSearch()">
+        <button type="button" class="btn btn-link ml-5" (click)="toggleShowAdvancedSearch()">
           {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
-        <div class="alert alert-secondary my-mb-huge mt-2 row form-inline" *ngIf="showAdvancedSearch">
-          <select [(ngModel)]="dateType" class="form-control mr-3 col-2">
-            <option *ngFor="let type of dateSearchTypes">{{type}}</option>
-          </select>
-          <button class="btn btn-primary ml-2" *ngIf="dateType !== 'Custom'" (click)="searchOrderByDate()"><i class="fa fa-search"></i>Search</button>
-          <ng-container *ngIf="dateType === 'Custom'">
-            <input class="form-control" type="date" [(ngModel)]="fromDate">
-            <button class="btn btn-primary ml-2" (click)="doSearchOrderByDateCustom()"><i class="fa fa-search"></i>Search</button>
-            <div class="row text-danger ml-2">NOTE: If unable to find a Postmates order when searching by customing
-              date, it maybe cause by using EST timezone.</div>
-          </ng-container>
-        </div>
       </div>
 
       <div class="row ml-0 mr-0">

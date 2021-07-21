@@ -1,15 +1,15 @@
 <div *ngIf="orders">
-  <div class="row">
-    <label class="col-2 text-center pl-4"
+  <div class="form-inline">
+    <label class="text-center pl-5"
       style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
     </label>
-    <select [(ngModel)]="type" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
+    <select [(ngModel)]="type" class="form-control mr-3" style="min-width:180px;max-width:180px;">
       <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
     </select>
     <input type="text" [(ngModel)]="searchText" class="form-control col-6" placeholder="Please input"
       style="min-width:200px;max-width:200px;">
-    <div class="ml-3 mt-2">
-      <input type="checkbox" [(ngModel)]="searchQROrder"> QR orders only
+    <div class="ml-3">
+      <label> QR orders only <input type="checkbox" [(ngModel)]="searchQROrder" class="ml-1"></label> 
     </div>
     <div class="form-inline ml-2" *ngIf="showAdvancedSearch">
       <label>From:</label>
@@ -22,8 +22,8 @@
     <button class="btn btn-primary ml-2" *ngIf="!showAdvancedSearch" (click)="search()">
       <i class="fa fa-search"></i> Search
     </button>
-    <div class="text-muted float-left col-1 pt-2">Found: {{orders.length}}
-      <i class="fa fa-info-circle icon-color" *ngIf="!showAdvancedSearch" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
+    <div class="text-muted float-left col-1">Found: {{orders.length}}
+      <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
         <div *ngIf="showExplanation" class="left talk radius">
           <p>Only the latest 50 items will be displayed, because there are too many orders and the date range search only show 150 orders in the most front.</p>
           -------------<br>
@@ -33,27 +33,8 @@
     </div>
   </div>
   <div class="form-group">
-    <button type="button" class="btn btn-link ml-3" (click)="toggleDoSearchOrderByTime()">
+    <button type="button" class="btn btn-link ml-5" (click)="toggleDoSearchOrderByTime()">
       {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
-   <!-- <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
-      <div class="row text-danger ml-2">NOTE: The date range search only show 150 orders in the most front.</div>
-       <div class="row">
-        <div class="col col-sm-12 form-inline">
-          <label>From:</label>
-          <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
-          <label class="ml-2">To:</label>
-          <input class="form-control ml-1" type="date" [(ngModel)]="toDate">
-          <button class="btn btn-primary ml-2" (click)="doSearchOrderByTime()"><i class="fa fa-search"></i>
-            Search</button>
-        </div>
-      </div> 
-      <div class="row">
-        <div class="text-right mt-1 col-12">
-          <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByTime()">Cancel</button>
-          <button class="btn btn-primary" (click)="doSearchOrderByTime(fromDate,toDate)"><i class="fa fa-search"></i> Search</button>
-        </div>
-      </div> 
-    </div>-->
   </div>
 
   <div class="row ml-0 mr-0">
