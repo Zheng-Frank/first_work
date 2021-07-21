@@ -534,9 +534,13 @@ export class PostmatesOrderCardComponent implements OnInit {
       case 'dropoff':
         return 'Delivering';
 
-      case 'delivered':
-        return 'Delivered';
+      case 'pending':
+        return 'Pending';
     }
   }
 
+  hyphenatePhoneNumber(num) {
+    console.log(num);
+    return `${num.slice(0, 3)}-${num.slice(3, 6)}-${num.slice(6)}`
+  }
 }
