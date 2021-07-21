@@ -28,11 +28,7 @@ export class MenuItemsEditorComponent implements OnInit {
 
   // this function is to check all items quickly.
   checkAllItems() {
-    if (this.checkedAll) {
-      this.mc.mis.forEach(mi => mi && mi.name && (mi.beChecked = true));
-    } else {
-      this.mc.mis.forEach(mi => mi && mi.name && (mi.beChecked = false));
-    }
+    this.mc.mis.forEach(mi => mi && mi.name && (mi.beChecked = this.checkedAll));
   }
 
   // When the checkbox is be checked it should have a temp value to decide 
