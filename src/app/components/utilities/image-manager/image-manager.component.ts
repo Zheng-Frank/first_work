@@ -5,7 +5,11 @@ import { GlobalService } from "../../../services/global.service";
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Helper } from '../../../classes/helper';
 import { HttpClient } from '@angular/common/http';
-
+import { Restaurant } from '@qmenu/ui';
+enum orderByTypes {
+  menuFrequency = 'Menu frequency',
+  orderFrequency = 'Order frequency'
+}
 @Component({
   selector: 'app-image-manager',
   templateUrl: './image-manager.component.html',
@@ -14,7 +18,7 @@ import { HttpClient } from '@angular/common/http';
 export class ImageManagerComponent implements OnInit {
   @Output() onClickMiThumbnail = new EventEmitter();
   @ViewChild('modalZoom') modalZoom: ModalComponent;
-
+  @ViewChild('scrapeItemsModal') scrapeItemsModal: ModalComponent;
   // menuNames = ['a'];
   // images = ['https://spicysouthernkitchen.com/wp-content/uploads/general-tsau-chicken-15.jpg', 'https://www.jocooks.com/wp-content/uploads/2018/04/instant-pot-general-tsos-chicken-1-6-500x375.jpg'];
   uploadImageError;
@@ -22,11 +26,29 @@ export class ImageManagerComponent implements OnInit {
   addingNew = false;
   rows = [];
   images = [];
+  cuisineTypes = ['Chinese'];
+  cuisineType = '';
+  orderBys = [orderByTypes.menuFrequency, orderByTypes.orderFrequency];
+  orderBy = orderByTypes.menuFrequency;
+  restaurants: Restaurant[] = [];
+  restaurantProjection = {
+    _id: 1,
+    "googleListing.cuisine": 1,
+    "menu.mcs": 1
+  };
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   ngOnInit() {
     this.reload();
+  }
+  // this function is used to add some new common items to images table.
+  hahdleImportItems() {
+
+  }
+
+  openScrapeItemsModal() {
+    this.scrapeItemsModal.show();
   }
 
   thumbnailClick(row) {
@@ -41,6 +63,16 @@ export class ImageManagerComponent implements OnInit {
       resource: 'image',
       limit: 6000
     }).toPromise();
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+      },
+      projection: this.restaurantProjection
+    }, 5000);
+    this.restaurants = restaurants;
+    const cuisineTypes = this.restaurants.filter(restaurant => restaurant.googleListing && restaurant.googleListing.cuisine && restaurant.googleListing.cuisine !== '').map(restaurant => restaurant.googleListing.cuisine);
+    cuisineTypes.forEach(type => (this.cuisineTypes.indexOf(type) === -1 && this.cuisineTypes.push(type)));
+    this.cuisineTypes.unshift('');
   }
 
   async deleteRow(row) {
@@ -80,14 +112,15 @@ export class ImageManagerComponent implements OnInit {
 
         // https://s3.amazonaws.com/chopstresized/128_menuImage/1546284071756.jpg
         // https://chopst.s3.amazonaws.com/menuImage/1475263127544.jpg
-        const imageObj = { 
-          url: decodeURIComponent(data.Location), 
+        const imageObj = {
+          url: decodeURIComponent(data.Location),
           url96: 'https://s3.amazonaws.com/chopstresized/96_' + data.Key,
-          url128: 'https://s3.amazonaws.com/chopstresized/128_' + data.Key, 
-          url192: 'https://s3.amazonaws.com/chopstresized/192_' + data.Key, 
-          url256: 'https://s3.amazonaws.com/chopstresized/256_' + data.Key, 
-          url512: 'https://s3.amazonaws.com/chopstresized/512_' + data.Key, 
-          url768: 'https://s3.amazonaws.com/chopstresized/768_' + data.Key };
+          url128: 'https://s3.amazonaws.com/chopstresized/128_' + data.Key,
+          url192: 'https://s3.amazonaws.com/chopstresized/192_' + data.Key,
+          url256: 'https://s3.amazonaws.com/chopstresized/256_' + data.Key,
+          url512: 'https://s3.amazonaws.com/chopstresized/512_' + data.Key,
+          url768: 'https://s3.amazonaws.com/chopstresized/768_' + data.Key
+        };
         row.images = row.images || [];
         row.images.push(imageObj);
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', [{

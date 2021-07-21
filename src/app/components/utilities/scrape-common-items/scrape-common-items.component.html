@@ -1,0 +1,48 @@
+<ng-container>
+  <!-- start with cuisine types -->
+  <div class="row form-inline form-group ml-3">
+    <label class="form-check-label mr-2 ml-3"><span style="min-width: 100px;max-width: 100px;">Cuisine Type</span>
+      <select [(ngModel)]="cuisineType" class="form-control ml-2" style="min-width:200px;">
+        <option *ngFor="let type of cuisineTypes">{{type}}</option>
+      </select>
+    </label>
+  </div>
+  <!-- end with cuisine types -->
+  <!-- start with scrape top items -->
+  <div class="row form-inline form-group ml-3">
+    <label class="form-check-label mr-2 ml-3"><span style="min-width: 100px;max-width: 100px;">Scrape top</span>
+      <input type="number" class="form-control ml-2" [(ngModel)]="scrapingTopItemsNumber">
+      <span class="ml-1">items</span>
+    </label>
+  </div>
+  <!-- end with scrape top items -->
+  <!-- start with based on -->
+  <div class="row form-inline form-group ml-3">
+    <label class="form-check-label mr-2 ml-3"><span style="min-width: 100px;max-width: 100px;">Based on</span>
+      <select [(ngModel)]="basedOn" class="form-control ml-2" style="min-width:200px;">
+        <option *ngFor="let type of basedOns">{{type}}</option>
+      </select>
+    </label>
+  </div>
+  <!-- end with based on -->
+  <!-- start with scraping button -->
+  <div class="row ml-3">
+    <button class="btn btn-link" (click)="beginScrape()">{{scrapingFlag?'Scraping...':'Begin scraping'}}</button>
+  </div>
+  <!-- end with scraping button -->
+  <!-- start with scraping result -->
+  <div class="text-center" style="overflow-y: scroll;">
+    <div style="min-width:300px;max-width:300px;" *ngFor="let item of scrapingTopItems">
+      {{item}}
+    </div>
+  </div>
+  <div class="mt-1 alert-success" *ngIf="!isDisabled()">
+    <small>Scraping Comlete!{{scrapingTopItems?.length}} new items to import.</small>
+  </div>
+  <!-- end with scraping result -->
+  <div class="d-flex justify-content-end p-4">
+    <button class="btn btn-secondary mr-2" (click)="cancel()">Cancel</button>
+    <button class="btn btn-primary" [disabled]="isDisabled()" (click)="success()">Import</button>
+  </div>
+
+</ng-container>
