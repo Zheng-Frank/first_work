@@ -20,6 +20,7 @@ export class MenuItemsEditorComponent implements OnInit {
   @Output() onCancel = new EventEmitter();
 
   formatNumber = '';
+  checkedItems = [];
   checkedAll = false;
   showExplanation = false; // to control the icon show explanations or not.
   hideTranslations = true;
@@ -28,76 +29,79 @@ export class MenuItemsEditorComponent implements OnInit {
 
   // this function is to check all items quickly.
   checkAllItems() {
-    this.mc.mis.forEach(mi => mi && mi.name && (mi.beChecked = this.checkedAll));
+    if (this.checkedItems.length < this.mc.mis.length) {
+      this.checkedItems = this.mc.mis.map(x => x);
+    } else {
+      this.checkedItems = [];
+    }
   }
 
-  // When the checkbox is be checked it should have a temp value to decide 
+  // When the checkbox is be checked it should have a temp value to decide
   setMiChecked(mi) {
-    mi.beChecked = !mi.beChecked;
-  }
-  getCheckItemNumber() {
-    return this.mc.mis.filter(item => item.beChecked).length;
+    if (this.checkedItems.includes(mi)) {
+      this.checkedItems = this.checkedItems.filter(x => x !== mi);
+    } else {
+      this.checkedItems.push(mi);
+    }
   }
   adjustMenuItemsNumber() {
-    if (this.getCheckItemNumber() === 0) {
+    let len = this.checkedItems.length;
+    if (!len) {
       return this._global.publishAlert(AlertType.Danger, 'Please check one item at least.');
     }
     if (!(this.formatNumber || '').trim()) {
       return this._global.publishAlert(AlertType.Danger, 'Please input a number.');
     }
-    // 0-9
-    // A1
-    // 1A
-    // let regxp = /^(\d+)|([a-zA-Z]\d+)|(\d+[a-zA-Z])$/;
-    let regxp = /^((\d{0,2})|(([a-z])(\d{0,2}))|((\d{0,2})([a-z])))$/i;
-    // the format number must contains a number
-    let temp = this.formatNumber.match(regxp);
-    if (!temp) { // if it don't match any case,the temp consoled is null.
+    this.formatNumber = this.formatNumber.trim();
+
+    let regex1 = /^([a-z]{0,2})(\d+)$/i;
+    let regex2 = /^(\d+)([a-z]{0,2})$/i;
+    let regex3 = /^(No\.\s?)(\d+)$/i;
+
+    let matched = [regex1, regex2, regex3].reduce((a, c) => a || this.formatNumber.match(c), null);
+    if (!matched) {
       return this._global.publishAlert(AlertType.Danger, 'Input format number error.');
     }
 
-    let wordBeforeNumber = true;
-    let onlyNumber = false;
-    let number;
-    let word = '';
+    let [, prefix, num] = matched;
 
-    if (/[0-9]/.test(temp[7])) { // the case of 1A
-      wordBeforeNumber = false;
-      number = Number(temp[7]);
-      word = temp[8];
-    } else if(/[0-9]/.test(temp[5])){ // the case of A1
-      number = Number(temp[5]);
-      word = temp[4];
-    }else if(/[0-9]/.test(temp[2])){ // the case of 1
-      onlyNumber = true;
-      number = Number(temp[2]);
-    }
-    let filterItems = this.mc.mis.filter(item => item.beChecked);
-    // A1 1
-    //let number = Number(this.formatNumber.replace(/[a-z]/i, '')); // /i is ignore.
-    //let word = this.formatNumber.replace(/[0-9]/g, ''); // /g is global.
-
-    filterItems.forEach(item => {
-      if(onlyNumber){
-        item.number = number;
-        number++;
-      }else{
-        if (wordBeforeNumber) {
-          item.number = word + number;
-          number++;
-        } else {
-          item.number = number + word;
-          number++;
-        }
+    if (/\d/.test(num)) {
+      let base = Number.parseInt(num, 10);
+      this.checkedItems.forEach(mi => {
+        mi.number = `${prefix}${base}`;
+        base++;
+      });
+    } else {
+      // input number is end with letters, we should calculate the increment letters
+      // A: 65, Z: 90, a: 97, z: 122
+      let [head, tail] = num.split('').map(l => l.charCodeAt(0));
+      const getCapacity = charCode => charCode < 97 ? 90 - charCode : 122 - charCode;
+      let capacity = getCapacity(head);
+      if (tail) {
+        capacity += getCapacity(tail);
       }
-    });
 
-    this.mc.mis = this.mc.mis.filter(item => !item.beChecked);
-    this.mc.mis = [...filterItems, ...this.mc.mis];
-     // clean up format number input and change check all to default.
-    this.formatNumber = '';
-    this.checkedAll = false;
-    this.ok();
+      if (capacity < len) {
+        return this._global.publishAlert(AlertType.Danger, 'Invalid input.');
+      }
+
+      this.checkedItems.forEach(mi => {
+        let headLetter = String.fromCharCode(head),
+          tailLetter = tail ? String.fromCharCode(tail) : '';
+        mi.number = `${prefix}${headLetter}${tailLetter}`;
+        if (tailLetter) {
+          if (tailLetter.toLowerCase() === 'z') {
+            head++;
+            tail -= 25;
+          } else {
+            tail++;
+          }
+        } else {
+          head++;
+        }
+      });
+    }
+
   }
 
   setMc(mc: Mc, menuOptions: MenuOption[]) {
@@ -172,6 +176,10 @@ export class MenuItemsEditorComponent implements OnInit {
     this.mc.mis = this.mc.mis.filter(mi => mi.sizeOptions && mi.sizeOptions.length > 0 && mi.name);
 
     this.onDone.emit(this.mc);
+    // restore format number and checked items
+    this.formatNumber = '';
+    this.checkedAll = false;
+    this.checkedItems = [];
   }
 
   cancel() {

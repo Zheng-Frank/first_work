@@ -55,10 +55,10 @@
     <tbody>
       <tr *ngFor="let mi of mc.mis">
         <td *ngIf="showMoreFunction">
-          <input *ngIf="mi && mi.name" type="checkbox" [checked]="mi.beChecked" (change)="setMiChecked(mi)">
+          <input *ngIf="mi && mi.name" type="checkbox" [checked]="checkedItems.includes(mi)" (change)="setMiChecked(mi)">
         </td>
         <td>
-          <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-md">
+          <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-sm">
         </td>
         <td>
           <div><input type="text" [(ngModel)]="mi.name" class="form-control app-input-100" placeholder="name"></div>
