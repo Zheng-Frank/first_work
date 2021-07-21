@@ -1,5 +1,5 @@
 import { Component, ViewChild, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-import {Mc, Item, Mi, MenuOption, IMenuTranslation} from '@qmenu/ui';
+import {Mc, Item, Mi, MenuOption, IMenuTranslation, Helper as QMenuUIHelper} from '@qmenu/ui';
 
 declare var $: any;
 
@@ -26,14 +26,13 @@ export class MenuItemsEditorComponent implements OnInit {
     this.mc = mcCopy;
     this.menuOptions = (menuOptions || []).filter(mo => !(mc.menuOptionIds || []).some(id => mo.id === id));
 
-    // attach 2 more size options for existing ones
-
     this.mc.mis.forEach(mi => {
-      mi.translation = mi.translation || {en: ''} as IMenuTranslation;
-      let tmp = (this.translations || []).find(x => mi.translation && x.EN === mi.translation.en);
-      if (tmp) {
-        mi.translation.zh = tmp.ZH;
-      }
+      let translation = QMenuUIHelper.extractNameTranslation(mi.name) || {en: ''};
+      // temporarily add translation to mi for convenient use;
+      let { en, zh } = translation;
+      // @ts-ignore
+      mi.translation = (this.translations || []).find(x => x.EN === en) || {EN: en, ZH: zh};
+      // attach 2 more size options for existing ones
       [0, 1].forEach(() => {
         const item = new Item();
         mi.sizeOptions.push(item);
@@ -47,6 +46,7 @@ export class MenuItemsEditorComponent implements OnInit {
       mi.category = mc.id;
       mi.id = baseId + i.toString();
       mi.sizeOptions = [];
+      // @ts-ignore
       mi.translation = {en: ''} as IMenuTranslation;
 
       ['regular', 'small', 'large'].forEach(
@@ -92,6 +92,9 @@ export class MenuItemsEditorComponent implements OnInit {
   }
 
   cancel() {
+    // remove temporarily added property
+    // @ts-ignore
+    this.mc.mis.forEach(mi => delete mi.translation);
     this.onCancel.emit(this.mc);
   }
 

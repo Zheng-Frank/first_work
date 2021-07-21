@@ -477,17 +477,26 @@ export class OrderCardComponent implements OnInit {
   }
 
   displayRestaurantNotice() {
-    /* 6/23/2021: bug fix. Sometimes a restaurantNotice message meant for a delivery order
-     (e.g. "COOK ASAP! DRIVER ON THEIR WAY.") remains in place after the order has been changed to pickup.
-     We want to check and make sure these messages are only displayed when it is appropriate */
-    const deliveryNotices = ["COOK ASAP! DRIVER ON THEIR WAY.", "NO DRIVER FOUND YET. DO NOT COOK UNTIL FURTHER NOTICE."];
-    const pickupNotices = ["Customer is coming to pickup the order"];
+    const driverOnTheWay = "COOK ASAP! DRIVER ON THEIR WAY.";
+    const noDriverFound = "NO DRIVER FOUND YET. DO NOT COOK UNTIL FURTHER NOTICE.";
+    const pickupNotice = "Customer is coming to pickup the order";
+    
     if (this.order.type === 'PICKUP') {
-      return pickupNotices.indexOf(this.order['restaurantNotice']) >= 0;
+      return this.order['restaurantNotice'] === pickupNotice;
     }
 
     if (this.order.type === 'DELIVERY') {
-      return deliveryNotices.indexOf(this.order['restaurantNotice']) >= 0;
+      // if we have a courier and restaurant notice message says driver is on the way, display the message
+      if (this.order.delivery && this.order.delivery.courier) {
+        console.log(this.order['restaurantNotice'])
+        return this.order['restaurantNotice'] === driverOnTheWay;
+      }
+
+      // if we don't have a courier, and the message says no driver is found yet, display the message
+      if (this.order.delivery && !this.order.delivery.courier) {
+        console.log(this.order['restaurantNotice']);
+        return this.order['restaurantNotice'] === noDriverFound;
+      }
     }
     return false;
   }
