@@ -51,7 +51,7 @@
       <span *ngIf="order?.paymentObj?.stripeObject?.spreedlyGatewayToken"> (SPRE)</span>
       <span *ngIf="order?.paymentObj?.paypalClientId"> (PAYPAL)</span>
     </div>
-    <div class="text-uppercase highlight" *ngIf="displayRestaurantNotice()">
+    <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
       <strong>{{order.restaurantNotice}}</strong>
     </div>
     <div class="text-sm-center card-text" *ngIf="order.address?.apt">

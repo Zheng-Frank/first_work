@@ -281,13 +281,12 @@
   position: absolute;
   top: 0.5rem;
   right: 2.25rem;
-  font-size: 0.1rem;
-  color: red;
+  font-size: 1rem;
 }
   
 .previous-orders-box{
   position: absolute;
   top: 0.5rem;
   right: 12rem;
-  font-size: 0.1rem;
+  font-size: 1rem;
 }
