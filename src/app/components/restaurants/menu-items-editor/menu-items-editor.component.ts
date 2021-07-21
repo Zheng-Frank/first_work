@@ -20,10 +20,10 @@ export class MenuItemsEditorComponent implements OnInit {
   @Output() onCancel = new EventEmitter();
 
   formatNumber = '';
-  checkedAll;
+  checkedAll = false;
   showExplanation = false; // to control the icon show explanations or not.
   hideTranslations = true;
-  adjustNumberFlag = false; // a flag to decide whether show adjustment number tools
+  showMoreFunction = false; // a flag to decide whether show adjustment number tools
   constructor(private _global: GlobalService) { }
 
   // this function is to check all items quickly.

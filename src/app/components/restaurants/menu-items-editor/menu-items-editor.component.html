@@ -1,14 +1,14 @@
 <div *ngIf="mc">
-  <h4 class="text-center">All Items Under Category: {{mc.name}}
-    <button class="btn btn-link adjust-number-position" (click)="adjustNumberFlag = !adjustNumberFlag">
-      {{ adjustNumberFlag?'Hide adjust menu item numbers..':'Adjust menu item numbers..'}}
-    </button>
-  </h4>
+  <h4 class="text-center">All Items Under Category: {{mc.name}}</h4>
   <div class="row">
     <div class="form-inline form-group">
-      <label class="form-check-label mr-2 ml-3">Hide Translations</label>
-      <input type="checkbox" [(ngModel)]="hideTranslations" />
-      <ng-container *ngIf="adjustNumberFlag">
+      <button class="btn btn-link" (click)="showMoreFunction = !showMoreFunction">
+        {{ showMoreFunction?'Hide more functions...':'Show more functions...'}}
+      </button>
+      <ng-container *ngIf="showMoreFunction">
+        <label class="form-check-label mr-2 ml-3">Hide Translations
+          <input type="checkbox" [(ngModel)]="hideTranslations" class="ml-1"/>
+        </label>
         <label class="ml-3"> Adjust menu items #
           <i class="fa fa-info-circle icon-color mouse-pointer" (mouseover)="showExplanation = true"
             (mouseout)="showExplanation = false">
@@ -18,9 +18,9 @@
               <p>选择要调整的项目，然后输入要从中递增的第一个序号。</p>
             </div>
           </i>
-        </label>
-        <input type="text" class="form-control ml-2" style="min-width:120px;max-width: 120px;"
+          <input type="text" class="form-control ml-2" style="min-width:120px;max-width: 120px;"
           placeholder="e.g. 1 D1 1D" [(ngModel)]="formatNumber" />
+        </label>
         <button class="btn btn-primary ml-2" (click)="adjustMenuItemsNumber()">Execute</button>
       </ng-container>
     </div>
@@ -29,7 +29,7 @@
   <table class="table">
     <thead>
       <tr>
-        <th *ngIf="adjustNumberFlag">
+        <th *ngIf="showMoreFunction">
           <input type="checkbox" (change)="checkAllItems()" [(ngModel)]="checkedAll">
         </th>
         <th>
@@ -54,7 +54,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let mi of mc.mis">
-        <td *ngIf="adjustNumberFlag">
+        <td *ngIf="showMoreFunction">
           <input *ngIf="mi && mi.name" type="checkbox" [checked]="mi.beChecked" (change)="setMiChecked(mi)">
         </td>
         <td>
