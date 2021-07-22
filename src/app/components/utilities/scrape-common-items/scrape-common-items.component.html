@@ -1,8 +1,8 @@
 <ng-container>
   <!-- start with cuisine types -->
   <div class="row form-inline form-group ml-3">
-    <label class="form-check-label mr-2 ml-3"><span style="min-width: 100px;max-width: 100px;">Cuisine Type</span>
-      <select [(ngModel)]="cuisineType" class="form-control ml-2" style="min-width:200px;">
+    <label class="form-check-label mr-2 ml-3"><span class="limit-span-width">Cuisine Type</span>
+      <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width">
         <option *ngFor="let type of cuisineTypes">{{type}}</option>
       </select>
     </label>
@@ -10,7 +10,7 @@
   <!-- end with cuisine types -->
   <!-- start with scrape top items -->
   <div class="row form-inline form-group ml-3">
-    <label class="form-check-label mr-2 ml-3"><span style="min-width: 100px;max-width: 100px;">Scrape top</span>
+    <label class="form-check-label mr-2 ml-3"><span class="limit-span-width">Scrape top</span>
       <input type="number" class="form-control ml-2" [(ngModel)]="scrapingTopItemsNumber">
       <span class="ml-1">items</span>
     </label>
@@ -18,8 +18,8 @@
   <!-- end with scrape top items -->
   <!-- start with based on -->
   <div class="row form-inline form-group ml-3">
-    <label class="form-check-label mr-2 ml-3"><span style="min-width: 100px;max-width: 100px;">Based on</span>
-      <select [(ngModel)]="basedOn" class="form-control ml-2" style="min-width:200px;">
+    <label class="form-check-label mr-2 ml-3"><span class="limit-span-width">Based on</span>
+      <select [(ngModel)]="basedOn" class="form-control ml-2 limit-select-width">
         <option *ngFor="let type of basedOns">{{type}}</option>
       </select>
     </label>
@@ -27,7 +27,7 @@
   <!-- end with based on -->
   <!-- start with scraping button -->
   <div class="row ml-3">
-    <button class="btn btn-link" (click)="beginScrape()">{{scrapingFlag?'Scraping...':'Begin scraping'}}</button>
+    <button class="btn btn-link" (click)="beginScrape()" [qLoading]="scrapingFlag" >{{scrapingFlag?'Scraping...':'Begin scraping'}}</button>
   </div>
   <!-- end with scraping button -->
   <!-- start with scraping result -->

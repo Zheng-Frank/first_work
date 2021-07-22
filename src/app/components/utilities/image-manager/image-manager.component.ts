@@ -26,7 +26,7 @@ export class ImageManagerComponent implements OnInit {
   addingNew = false;
   rows = [];
   images = [];
-  cuisineTypes = ['Chinese'];
+  cuisineTypes = [];
   cuisineType = '';
   orderBys = [orderByTypes.menuFrequency, orderByTypes.orderFrequency];
   orderBy = orderByTypes.menuFrequency;
@@ -34,9 +34,17 @@ export class ImageManagerComponent implements OnInit {
   restaurantProjection = {
     _id: 1,
     "googleListing.cuisine": 1,
-    "menu.mcs": 1
+    "menus.mcs.mis.name": 1,
+    "menus.mcs.mis.imageObjs": 1,
   };
+  restaurantQuery = {
+    disabled:{$ne:true},
+    "googleListing.cuisine": { $exists: true },
+    "menus.mcs.mis.name": { $exists: true },
+    "menus.mcs.mis.imageObjs": { $exists: true }
+  }
 
+  popularItems = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   ngOnInit() {
@@ -65,11 +73,12 @@ export class ImageManagerComponent implements OnInit {
     }).toPromise();
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {
-      },
-      projection: this.restaurantProjection
-    }, 5000);
+      query: this.restaurantQuery,
+      projection: this.restaurantProjection,
+      limit:1000
+    },200);
     this.restaurants = restaurants;
+    // calculate cuisine types
     const cuisineTypes = this.restaurants.filter(restaurant => restaurant.googleListing && restaurant.googleListing.cuisine && restaurant.googleListing.cuisine !== '').map(restaurant => restaurant.googleListing.cuisine);
     cuisineTypes.forEach(type => (this.cuisineTypes.indexOf(type) === -1 && this.cuisineTypes.push(type)));
     this.cuisineTypes.unshift('');
