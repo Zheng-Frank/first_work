@@ -3,12 +3,13 @@
           {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}} 
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
   <div class="order-number">
-    <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
+    <span class="pl-1">{{order.orderNumber}}</span>
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
   <!-- start with previous orders -->
-  <div class="previous-orders-box" *ngIf="order.previousOrders">
-    <a href="javascript:void(0)" (click)="openPreviousOrdersModal(order)">{{order.previousOrders.length}} previous orders</a>
+  <div class="previous-orders-box" *ngIf="order.previousOrders[1]">
+    <a href="javascript:void(0)" (click)="openPreviousOrdersModal(order)">{{order.previousOrders.length}} previous
+      orders</a>
   </div>
   <!-- end with previous orders -->
   <!-- start with the order caming time. -->
@@ -16,11 +17,11 @@
     {{getOrderComingTime(order)}}
   </div>
   <!-- end with the order caming time. -->
-    <!--display a checkmark to indicate it's done-->
+  <!--display a checkmark to indicate it's done-->
   <div *ngIf="order.statusEqual('COMPLETED')" class="postmates-orders-status-done text-success">
     &#10004;
   </div>
-    <!--display an x to indicate it's done-->
+  <!--display an x to indicate it's done-->
   <div *ngIf="order.statusEqual('CANCELED')" class="postmates-orders-status-done text-danger">
     &#10008;
   </div>
@@ -33,16 +34,16 @@
     <div class="row mt-3">
       <div class="col-6 basic-info-border" style="font-size: 12px !important;">
         <div class="text-sm-center">
-          RT Name: {{order.restaurant.name}}
+          {{order.restaurant.name}}
         </div>
         <div class="text-sm-center">
-          RT ID: {{order.restaurant._id}}
+          <a routerLink="/restaurants/{{order.restaurant._id}}">{{order.restaurant._id}} </a>
         </div>
         <div class="text-sm-center">
-          RT Phones: 
+          Phone(s):
           <ng-container *ngFor="let channel of order.restaurant.channels;let i = index;">
-              <span *ngIf="i !== order.restaurant.channels.length-1">{{channel.value}},</span>
-              <span *ngIf="i === order.restaurant.channels.length-1">{{channel.value}}</span>
+            <span *ngIf="i !== order.restaurant.channels.length-1">{{hyphenatePhoneNumber(channel.value)}},</span>
+            <span *ngIf="i === order.restaurant.channels.length-1">{{hyphenatePhoneNumber(channel.value)}}</span>
           </ng-container>
         </div>
         <div class="text-sm-center">
@@ -50,16 +51,16 @@
         </div>
       </div>
       <div class="col-6 basic-info-border" style="font-size: 12px !important;">
-       
+
         <div class="text-sm-center">
-         Customer Name: {{getCustomerName(order)}}
+          Customer: {{getCustomerName(order)}}
         </div>
         <div class="text-center text-muted">Order ID: {{order.id}}</div>
         <div *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
-          <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
+          {{getCustomerPhoneNumber(order) | tel}}
         </div>
         <div *ngIf="getCustomerEmail(order)" class="text-sm-center">
-          <a href="mailto:{{getCustomerEmail(order)}}">{{getCustomerEmail(order)}}</a>
+          {{getCustomerEmail(order)}}
         </div>
       </div>
     </div>
@@ -136,7 +137,8 @@
           </div>
           <div *ngIf="displayingDeliveryDetails">
             <div *ngFor="let record of getUpdatedStatuses()">
-              <span>{{record.created | adjustedDate : 'h:mm a' : order.restaurant.googleAddress.timezone}}</span>&nbsp;<span
+              <span>{{record.created | adjustedDate : 'h:mm a' :
+                order.restaurant.googleAddress.timezone}}</span>&nbsp;<span
                 class="value">{{postmatesStatus(record.status)}}</span>
             </div>
             <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
