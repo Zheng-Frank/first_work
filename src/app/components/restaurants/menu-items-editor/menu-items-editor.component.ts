@@ -186,6 +186,7 @@ export class MenuItemsEditorComponent implements OnInit {
     // restore format number and checked items
     this.formatNumber = '';
     this.checkedAll = false;
+    this.showMoreFunction = false;
     this.checkedItems = [];
   }
 
@@ -194,6 +195,7 @@ export class MenuItemsEditorComponent implements OnInit {
     this.formatNumber = '';
     this.checkedItems = [];
     this.hideTranslations = true;
+    this.showMoreFunction = false;
     this.onCancel.emit(this.mc);
   }
 
