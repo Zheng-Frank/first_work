@@ -427,7 +427,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone );
     }
     if (this.broadcastExpiration) {
-      newObj.broadcastExpiration = getTransformedDate(this.broadcastExpiration);
+      this.restaurant.broadcastExpiration = newObj.broadcastExpiration = getTransformedDate(this.broadcastExpiration);
     }
 
     this._prunedPatch
