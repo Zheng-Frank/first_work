@@ -1,7 +1,6 @@
-import { filter } from 'rxjs/operators';
-import { GlobalService } from './../../../services/global.service';
+import { GlobalService } from '../../../services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
-import { Component, ViewChild, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import {Mc, Item, Mi, MenuOption, IMenuTranslation, Helper as QMenuUIHelper} from '@qmenu/ui';
 
 declare var $: any;
@@ -29,19 +28,26 @@ export class MenuItemsEditorComponent implements OnInit {
 
   // this function is to check all items quickly.
   checkAllItems() {
-    if (this.checkedItems.length < this.mc.mis.length) {
-      this.checkedItems = this.mc.mis.map(x => x);
+    if (this.checkedAll) {
+      this.checkedItems = this.mc.mis.map(x => x.id);
     } else {
       this.checkedItems = [];
     }
   }
 
+  toggleMoreFunctions() {
+    this.showMoreFunction = !this.showMoreFunction;
+    this.formatNumber = '';
+    this.checkedItems = [];
+    this.hideTranslations = true;
+  }
+
   // When the checkbox is be checked it should have a temp value to decide
   setMiChecked(mi) {
-    if (this.checkedItems.includes(mi)) {
-      this.checkedItems = this.checkedItems.filter(x => x !== mi);
+    if (this.checkedItems.includes(mi.id)) {
+      this.checkedItems = this.checkedItems.filter(x => x !== mi.id);
     } else {
-      this.checkedItems.push(mi);
+      this.checkedItems.push(mi.id);
     }
   }
   adjustMenuItemsNumber() {
@@ -67,9 +73,11 @@ export class MenuItemsEditorComponent implements OnInit {
 
     if (/\d/.test(num)) {
       let base = Number.parseInt(num, 10);
-      this.checkedItems.forEach(mi => {
-        mi.number = `${prefix}${base}`;
-        base++;
+      this.mc.mis.forEach(mi => {
+        if (this.checkedItems.includes(mi.id)) {
+          mi.number = `${prefix}${base}`;
+          base++;
+        }
       });
     } else {
       // input number is end with letters, we should calculate the increment letters
@@ -85,19 +93,21 @@ export class MenuItemsEditorComponent implements OnInit {
         return this._global.publishAlert(AlertType.Danger, 'Invalid input.');
       }
 
-      this.checkedItems.forEach(mi => {
-        let headLetter = String.fromCharCode(head),
-          tailLetter = tail ? String.fromCharCode(tail) : '';
-        mi.number = `${prefix}${headLetter}${tailLetter}`;
-        if (tailLetter) {
-          if (tailLetter.toLowerCase() === 'z') {
-            head++;
-            tail -= 25;
+      this.mc.mis.forEach(mi => {
+        if (this.checkedItems.includes(mi.id)) {
+          let headLetter = String.fromCharCode(head),
+            tailLetter = tail ? String.fromCharCode(tail) : '';
+          mi.number = `${prefix}${headLetter}${tailLetter}`;
+          if (tailLetter) {
+            if (tailLetter.toLowerCase() === 'z') {
+              head++;
+              tail -= 25;
+            } else {
+              tail++;
+            }
           } else {
-            tail++;
+            head++;
           }
-        } else {
-          head++;
         }
       });
     }
@@ -158,9 +168,6 @@ export class MenuItemsEditorComponent implements OnInit {
   }
 
   ok() {
-    // remove checked property.
-    this.mc.mis.forEach(mi => delete mi.beChecked);
-    //
     // should do validation first
     // let's remove empty menuOptionIds
     if (this.mc.menuOptionIds && this.mc.menuOptionIds.length === 0) {
@@ -183,9 +190,10 @@ export class MenuItemsEditorComponent implements OnInit {
   }
 
   cancel() {
-    // remove temporarily added property
-    // @ts-ignore
-    this.mc.mis.forEach(mi => delete mi.translation);
+    // restore initial state
+    this.formatNumber = '';
+    this.checkedItems = [];
+    this.hideTranslations = true;
     this.onCancel.emit(this.mc);
   }
 
