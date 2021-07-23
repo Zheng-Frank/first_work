@@ -1,3 +1,5 @@
+import { ScrapeCommonItemsComponent } from './../scrape-common-items/scrape-common-items.component';
+import { map } from 'rxjs/operators';
 import { Component, OnInit, Output, EventEmitter, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
@@ -19,6 +21,7 @@ export class ImageManagerComponent implements OnInit {
   @Output() onClickMiThumbnail = new EventEmitter();
   @ViewChild('modalZoom') modalZoom: ModalComponent;
   @ViewChild('scrapeItemsModal') scrapeItemsModal: ModalComponent;
+  @ViewChild('scrapeCommonItems') scrapeCommonItems:ScrapeCommonItemsComponent;
   // menuNames = ['a'];
   // images = ['https://spicysouthernkitchen.com/wp-content/uploads/general-tsau-chicken-15.jpg', 'https://www.jocooks.com/wp-content/uploads/2018/04/instant-pot-general-tsos-chicken-1-6-500x375.jpg'];
   uploadImageError;
@@ -36,12 +39,10 @@ export class ImageManagerComponent implements OnInit {
     "googleListing.cuisine": 1,
     "menus.mcs.mis.name": 1,
     "menus.mcs.mis.imageObjs": 1,
+    "menus.mcs.mis.orderCount": 1
   };
   restaurantQuery = {
-    disabled:{$ne:true},
-    "googleListing.cuisine": { $exists: true },
-    "menus.mcs.mis.name": { $exists: true },
-    "menus.mcs.mis.imageObjs": { $exists: true }
+    disabled:{$ne:true}
   }
 
   popularItems = [];
@@ -51,11 +52,17 @@ export class ImageManagerComponent implements OnInit {
     this.reload();
   }
   // this function is used to add some new common items to images table.
-  hahdleImportItems() {
-
+  async handleImportItems(scrapingTopItems) {
+    this.addingNew = true;
+    this.scrapeItemsModal.hide();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', scrapingTopItems).toPromise();
+    this.addingNew = false;
+    this.reload();
   }
 
   openScrapeItemsModal() {
+    this.scrapeCommonItems.scrapingTopItemsNumber = 5;
+    this.scrapeCommonItems.scrapingTopItems.length = 0; // reduce memory garbage generation.
     this.scrapeItemsModal.show();
   }
 

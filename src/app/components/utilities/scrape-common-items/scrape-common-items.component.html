@@ -31,18 +31,24 @@
   </div>
   <!-- end with scraping button -->
   <!-- start with scraping result -->
-  <div class="text-center" style="overflow-y: scroll;">
+  <div class="text-center" style="overflow-y: scroll;max-height: 300px;" *ngIf="!isDisabled() && !scrapingFlag">
     <div style="min-width:300px;max-width:300px;" *ngFor="let item of scrapingTopItems">
-      {{item}}
+      <span *ngFor="let a of item.aliases">{{a}}</span>
     </div>
   </div>
-  <div class="mt-1 alert-success" *ngIf="!isDisabled()">
-    <small>Scraping Comlete!{{scrapingTopItems?.length}} new items to import.</small>
+  <div class="mt-1 alert-success" *ngIf="!isDisabled() && !scrapingFlag">
+    <small>Scraping Comlete! {{scrapingTopItems.length}} new items to import.</small>
+  </div>
+  <div *ngIf="!isDisabled() && !scrapingFlag">
+    <small class="text-danger">The reason why it is not {{scrapingtopitemsnumber}} here is that some menu items already exist in table.</small>
+  </div>
+  <div *ngIf="!(!isDisabled() && !scrapingFlag)">
+    <small class="text-danger">You can scrape some top items of menus of restaurants here.And it's maybe empty if the number is too small like 1.</small>
   </div>
   <!-- end with scraping result -->
   <div class="d-flex justify-content-end p-4">
     <button class="btn btn-secondary mr-2" (click)="cancel()">Cancel</button>
-    <button class="btn btn-primary" [disabled]="isDisabled()" (click)="success()">Import</button>
+    <button class="btn btn-primary" [disabled]="isDisabled() || scrapingFlag" (click)="success()">Import</button>
   </div>
 
 </ng-container>

@@ -6,11 +6,11 @@
   <div class="card-body">
     <div class="row pb-2">
       <div class="col-6 text-left form-inline">
-        <label class="form-check-label mr-2 ml-3">Cuisine Type
+        <!-- <label class="form-check-label mr-2 ml-3">Cuisine Type
           <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width">
             <option *ngFor="let type of cuisineTypes">{{type}}</option>
           </select>
-        </label>
+        </label> -->
         <!-- <label class="form-check-label mr-2 ml-3">Order By
           <select [(ngModel)]="orderBy" class="form-control ml-2">
             <option *ngFor="let type of orderBys">{{type}}</option>
@@ -112,7 +112,7 @@
       </button>
       <h4 class="text-center">Scrape Common Items</h4>
       <hr>
-      <app-scrape-common-items [existsImageItems]="rows" [cuisineTypes]="cuisineTypes" [restaurants]="restaurants" (onCancel)="scrapeItemsModal.hide()" (onImport)="hahdleImportItems()"></app-scrape-common-items>
+      <app-scrape-common-items #scrapeCommonItems [existsImageItems]="rows" [cuisineTypes]="cuisineTypes" [restaurants]="restaurants" (onCancel)="scrapeItemsModal.hide()" (onImport)="handleImportItems($event)"></app-scrape-common-items>
     </q-modal>
     <!-- end with scrape common items -->
   </div>
