@@ -852,9 +852,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.tabs.map(tab => {
             const filterMap = {
                 "Mine": t => t.assignee === this.user.username && !t.result,
-                "Non-claimed": t => !t.assignee && !t.result,
+                "Non-claimed": t => !t.assignee && !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0] && !t.request.statusHistory[0].isError,
                 "My Closed": t => t.assignee === this.user.username && t.result,
-                "All Open": t => !t.result,
+                "All Open": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0] && !t.request.statusHistory[0].isError,
                 "All Closed": t => t.result,
                 "Errors": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0]
                     && t.request.statusHistory[0].isError,
