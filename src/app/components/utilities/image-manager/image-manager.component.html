@@ -6,16 +6,16 @@
   <div class="card-body">
     <div class="row pb-2">
       <div class="col-6 text-left form-inline">
-        <!-- <label class="form-check-label mr-2 ml-3">Cuisine Type
+        <label class="form-check-label mr-2 ml-3">Cuisine Type
           <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width">
             <option *ngFor="let type of cuisineTypes">{{type}}</option>
           </select>
-        </label> -->
-        <!-- <label class="form-check-label mr-2 ml-3">Order By
+        </label> 
+        <label class="form-check-label mr-2 ml-3">Order By
           <select [(ngModel)]="orderBy" class="form-control ml-2">
             <option *ngFor="let type of orderBys">{{type}}</option>
           </select>
-        </label> -->
+        </label> 
         <button class="btn btn-primary ml-2" (click)="openScrapeItemsModal()">Scrape Common Items</button>
       </div>
       <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
