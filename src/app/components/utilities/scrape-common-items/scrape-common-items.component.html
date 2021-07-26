@@ -31,18 +31,23 @@
   </div>
   <!-- end with scraping button -->
   <!-- start with scraping result -->
-  <div class="text-center" style="overflow-y: scroll;max-height: 300px;" *ngIf="!isDisabled() && !scrapingFlag">
-    <div style="min-width:300px;max-width:300px;" *ngFor="let item of scrapingTopItems">
+  <div class="text-left scraping-result ml-4 mr-4" *ngIf="!isDisabled() && !scrapingFlag">
+    <span class="pl-2">New Items: </span><br>
+    <div class="limit-scraping-div-width pl-5" *ngFor="let item of scrapingTopItems">
       <span *ngFor="let a of item.aliases">{{a}}</span>
     </div>
+    <span class="pl-2">Existing Items: </span>
+    <div class="limit-scraping-div-width pl-5" *ngFor="let item of existingTopItems">
+      <span *ngFor="let a of item.aliases">{{a}}  </span>
+    </div>
   </div>
-  <div class="mt-1 alert-success" *ngIf="!isDisabled() && !scrapingFlag">
-    <small>Scraping Comlete! {{scrapingTopItems.length}} new items to import.</small>
+  <div class="mt-1 alert-success ml-4 mr-4" *ngIf="!isDisabled() && !scrapingFlag">
+    <small>Scraping Comlete! {{scrapingTopItems.length}} new items to import.{{existingTopItems.length}} menu items already exists.</small>
   </div>
-  <div *ngIf="!isDisabled() && !scrapingFlag">
-    <small class="text-danger">The reason why it is not {{scrapingtopitemsnumber}} here is that some menu items already exist in table.</small>
+  <div class="ml-4 mr-4" *ngIf="!isDisabled() && !scrapingFlag">
+    <small class="text-danger">The reason why it is not {{scrapingtopitemsnumber}} new items here is that some menu items already exist in table.</small>
   </div>
-  <div *ngIf="!(!isDisabled() && !scrapingFlag)">
+  <div class="ml-4 mr-4" *ngIf="!(!isDisabled() && !scrapingFlag)">
     <small class="text-danger">You can scrape some top items of menus of restaurants here.And it's maybe empty if the number is too small like 1.</small>
   </div>
   <!-- end with scraping result -->

@@ -22,7 +22,7 @@ export class ImageManagerComponent implements OnInit {
   @Output() onClickMiThumbnail = new EventEmitter();
   @ViewChild('modalZoom') modalZoom: ModalComponent;
   @ViewChild('scrapeItemsModal') scrapeItemsModal: ModalComponent;
-  @ViewChild('scrapeCommonItems') scrapeCommonItems:ScrapeCommonItemsComponent;
+  @ViewChild('scrapeCommonItems') scrapeCommonItems: ScrapeCommonItemsComponent;
   // menuNames = ['a'];
   // images = ['https://spicysouthernkitchen.com/wp-content/uploads/general-tsau-chicken-15.jpg', 'https://www.jocooks.com/wp-content/uploads/2018/04/instant-pot-general-tsos-chicken-1-6-500x375.jpg'];
   uploadImageError;
@@ -32,7 +32,7 @@ export class ImageManagerComponent implements OnInit {
   images = [];
   cuisineTypes = [];
   cuisineType = '';
-  orderBys = [orderByTypes.NAME,orderByTypes.menuFrequency, orderByTypes.orderFrequency];
+  orderBys = [orderByTypes.NAME, orderByTypes.menuFrequency, orderByTypes.orderFrequency];
   orderBy = orderByTypes.NAME;
   restaurants: Restaurant[] = [];
   restaurantProjection = {
@@ -43,27 +43,54 @@ export class ImageManagerComponent implements OnInit {
     "menus.mcs.mis.orderCount": 1
   };
   restaurantQuery = {
-    disabled:{$ne:true}
+    disabled: { $ne: true }
   }
 
   popularItems = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
-  ngOnInit() {
-    this.reload();
+  async ngOnInit() {
+   await this.reload();
+   await this.loadRestaurants();
   }
+  // change order by select value toggle this method.
+  onChangeOrderBy() {
+    switch (this.orderBy) {
+      case orderByTypes.NAME:
+        this.rows = this.rows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
+        break;
+      case orderByTypes.menuFrequency:
+        this.rows = this.rows.sort((a, b) => ((a.menuCount || 0) > (b.menuCout || 0) ? 1 : (a.menuCount || 0) < (b.menuCout || 0) ? -1 : 0));
+        break;
+      case orderByTypes.orderFrequency:
+        this.rows = this.rows.sort((a, b) => ((a.orderCount || 0) > (b.orderCount || 0) ? 1 : (a.orderCount || 0) < (b.orderCount || 0) ? -1 : 0));
+        break;
+      default:
+        break;
+    }
+  }
+
   // this function is used to add some new common items to images table.
-  async handleImportItems(scrapingTopItems) {
-    this.addingNew = true;
+  async handleImportItems(Items) {
+    let {existItems,newItems} = Items;
     this.scrapeItemsModal.hide();
-    await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', scrapingTopItems).toPromise();
-    this.addingNew = false;
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', newItems).toPromise();
+    let tempExistingItems = existItems.map(item => item._id);
+    let updateItems = [];
+    for (let i = 0; i < existItems.length; i++) {
+      updateItems.push({
+        old: tempExistingItems[i],
+        new: existItems[i]
+      });
+    }
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', updateItems).toPromise();
     this.reload();
   }
 
   openScrapeItemsModal() {
     this.scrapeCommonItems.scrapingTopItemsNumber = 5;
     this.scrapeCommonItems.scrapingTopItems.length = 0; // reduce memory garbage generation.
+    this.scrapeCommonItems.existingTopItems.length = 0;
     this.scrapeItemsModal.show();
   }
 
@@ -74,22 +101,28 @@ export class ImageManagerComponent implements OnInit {
     }
     setTimeout(() => { this.modalZoom.show(); }, 0);
   }
-  async reload() {
-    this.rows = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'image',
-      limit: 6000
-    }).toPromise();
+
+  async loadRestaurants(){
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: this.restaurantQuery,
       projection: this.restaurantProjection,
-      limit:1000
-    },200);
+      limit: 1000
+    }, 200);
     this.restaurants = restaurants;
     // calculate cuisine types
     const cuisineTypes = this.restaurants.filter(restaurant => restaurant.googleListing && restaurant.googleListing.cuisine && restaurant.googleListing.cuisine !== '').map(restaurant => restaurant.googleListing.cuisine);
     cuisineTypes.forEach(type => (this.cuisineTypes.indexOf(type) === -1 && this.cuisineTypes.push(type)));
     this.cuisineTypes.unshift('');
+  }
+
+  async reload() {
+    this.rows = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'image',
+      limit: 6000
+    }).toPromise();
+    this.rows = this.rows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
+    
   }
 
   async deleteRow(row) {

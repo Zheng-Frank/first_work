@@ -12,7 +12,7 @@
           </select>
         </label> 
         <label class="form-check-label mr-2 ml-3">Order By
-          <select [(ngModel)]="orderBy" class="form-control ml-2">
+          <select [(ngModel)]="orderBy" class="form-control ml-2" (change)="onChangeOrderBy()">
             <option *ngFor="let type of orderBys">{{type}}</option>
           </select>
         </label> 
