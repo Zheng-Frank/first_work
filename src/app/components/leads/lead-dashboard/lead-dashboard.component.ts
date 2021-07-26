@@ -99,9 +99,6 @@ export class LeadDashboardComponent implements OnInit {
       label: "Assignee"
     },
     {
-      label: 'Assign/Unassign'
-    },
-    {
       label: "Web"
     },
     {
@@ -1115,7 +1112,7 @@ export class LeadDashboardComponent implements OnInit {
         }
       );
   }
-  
+
   patchDiff(originalLead, newLead, removeFromSelection?) {
     if (Helper.areObjectsEqual(originalLead, newLead)) {
       this._global.publishAlert(
@@ -1207,7 +1204,7 @@ export class LeadDashboardComponent implements OnInit {
         .filter(
           u =>
             u.manager === this._global.user.username ||
-            this._global.user.roles.indexOf("CSR") >= 0
+            this._global.user.roles.indexOf("CSR") >= 0 // CSR -> Admin
         )
         .map(u => u.username);
       myusers.push(this._global.user.username);
@@ -1215,35 +1212,49 @@ export class LeadDashboardComponent implements OnInit {
         event.acknowledge("Failed to " + event.object.assignee);
       } else {
         let leads = this.leads.filter(lead => lead._id === this.selectId);
-        leads.map(lead => {
-          const clonedLead = JSON.parse(JSON.stringify(lead));
-          if (
-            !clonedLead.assignee ||
-            myusers.indexOf(clonedLead.assignee) >= 0
-          ) {
-            clonedLead.assignee = event.object.assignee;
-            this._api
+        let lead = leads[0];
+
+        const clonedLead = JSON.parse(JSON.stringify(lead));
+       
+        if (
+          !clonedLead.assignee ||
+          myusers.indexOf(clonedLead.assignee) >= 0
+        ) {
+          let error = undefined;
+          clonedLead.assignee = event.object.assignee;
+          this._api
             .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
             .subscribe(
               result => {
-                // let's update original, assuming everything successful
-                Object.assign(lead, clonedLead);
+
                 this._global.publishAlert(
                   AlertType.Success,
                   lead.name + " was updated"
                 );
               },
               error => {
+                error = error;
                 this._global.publishAlert(AlertType.Danger, "Error updating to DB");
               }
             );
-          } else {
-            this._global.publishAlert(
-              AlertType.Danger,
-              "Failed to assign " + event.object.assignee
-            );
-          }
-        })
+            if(!error){
+               // let's update original, assuming everything successful
+               // method 1
+              // lead = undefined;
+              // lead = new CallLog(clonedLead);// lead is short at _id
+              // method 2
+              // Object.assign(lead,clonedLead); // error:ERROR TypeError: _v.context.$implicit.hasSameTimeAs is not a function
+              // method 3
+              // lead = undefined;
+              // lead = JSON.parse(JSON.stringify(clonedLead)); // nothing happen
+              debugger
+            }
+        } else {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Failed to assign " + event.object.assignee
+          );
+        }
         this.assigneeModal.hide();
         event.acknowledge(null);
       }
@@ -1268,20 +1279,23 @@ export class LeadDashboardComponent implements OnInit {
       if (myusers.indexOf(clonedLead.assignee) >= 0) {
         clonedLead.assignee = undefined;
         this._api
-        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
-        .subscribe(
-          result => {
-            // let's update original, assuming everything successful
-            Object.assign(lead, clonedLead);
-            this._global.publishAlert(
-              AlertType.Success,
-              lead.name + " was updated"
-            );
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-          }
-        );
+          .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+          .subscribe(
+            result => {
+              // let's update original, assuming everything successful
+              lead = undefined;
+              lead = JSON.parse(JSON.stringify(clonedLead));
+              debugger
+              Object.assign(lead, clonedLead);
+              this._global.publishAlert(
+                AlertType.Success,
+                lead.name + " was updated"
+              );
+            },
+            error => {
+              this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+            }
+          );
       } else {
         this._global.publishAlert(
           AlertType.Danger,
