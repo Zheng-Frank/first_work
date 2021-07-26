@@ -1211,22 +1211,21 @@ export class LeadDashboardComponent implements OnInit {
       if (myusers.indexOf(event.object.assignee) < 0) {
         event.acknowledge("Failed to " + event.object.assignee);
       } else {
-        let leads = this.leads.filter(lead => lead._id === this.selectId);
-        let lead = leads[0];
+        let lead = this.leads.find(lead => lead._id === this.selectId);
 
         const clonedLead = JSON.parse(JSON.stringify(lead));
-       
+
         if (
           !clonedLead.assignee ||
           myusers.indexOf(clonedLead.assignee) >= 0
         ) {
-          let error = undefined;
           clonedLead.assignee = event.object.assignee;
           this._api
             .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
             .subscribe(
               result => {
-
+                // let's update original, assuming everything successful
+                lead.assignee = clonedLead.assignee;
                 this._global.publishAlert(
                   AlertType.Success,
                   lead.name + " was updated"
@@ -1237,18 +1236,6 @@ export class LeadDashboardComponent implements OnInit {
                 this._global.publishAlert(AlertType.Danger, "Error updating to DB");
               }
             );
-            if(!error){
-               // let's update original, assuming everything successful
-               // method 1
-              // lead = undefined;
-              // lead = new CallLog(clonedLead);// lead is short at _id
-              // method 2
-              // Object.assign(lead,clonedLead); // error:ERROR TypeError: _v.context.$implicit.hasSameTimeAs is not a function
-              // method 3
-              // lead = undefined;
-              // lead = JSON.parse(JSON.stringify(clonedLead)); // nothing happen
-              debugger
-            }
         } else {
           this._global.publishAlert(
             AlertType.Danger,
@@ -1273,36 +1260,32 @@ export class LeadDashboardComponent implements OnInit {
       .map(u => u.username);
     myusers.push(this._global.user.username);
 
-    let leads = this.leads.filter(lead => lead._id === lead_id);
-    leads.map(lead => {
-      const clonedLead = JSON.parse(JSON.stringify(lead));
-      if (myusers.indexOf(clonedLead.assignee) >= 0) {
-        clonedLead.assignee = undefined;
-        this._api
-          .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
-          .subscribe(
-            result => {
-              // let's update original, assuming everything successful
-              lead = undefined;
-              lead = JSON.parse(JSON.stringify(clonedLead));
-              debugger
-              Object.assign(lead, clonedLead);
-              this._global.publishAlert(
-                AlertType.Success,
-                lead.name + " was updated"
-              );
-            },
-            error => {
-              this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-            }
-          );
-      } else {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Failed to unassign " + clonedLead.assignee
+    let lead = this.leads.find(lead => lead._id === lead_id);
+
+    const clonedLead = JSON.parse(JSON.stringify(lead));
+    if (myusers.indexOf(clonedLead.assignee) >= 0) {
+      clonedLead.assignee = undefined;
+      this._api
+        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+        .subscribe(
+          result => {
+            // let's update original, assuming everything successful
+            lead.assignee = undefined;
+            this._global.publishAlert(
+              AlertType.Success,
+              lead.name + " was updated"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
         );
-      }
-    });
+    } else {
+      this._global.publishAlert(
+        AlertType.Danger,
+        "Failed to unassign " + clonedLead.assignee
+      );
+    }
   }
 
   getGoogleQuery(lead) {
