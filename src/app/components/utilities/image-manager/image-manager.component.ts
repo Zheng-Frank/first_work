@@ -9,6 +9,7 @@ import { Helper } from '../../../classes/helper';
 import { HttpClient } from '@angular/common/http';
 import { Restaurant } from '@qmenu/ui';
 enum orderByTypes {
+  NAME = 'name',
   menuFrequency = 'Menu frequency',
   orderFrequency = 'Order frequency'
 }
@@ -31,8 +32,8 @@ export class ImageManagerComponent implements OnInit {
   images = [];
   cuisineTypes = [];
   cuisineType = '';
-  orderBys = [orderByTypes.menuFrequency, orderByTypes.orderFrequency];
-  orderBy = orderByTypes.menuFrequency;
+  orderBys = [orderByTypes.NAME,orderByTypes.menuFrequency, orderByTypes.orderFrequency];
+  orderBy = orderByTypes.NAME;
   restaurants: Restaurant[] = [];
   restaurantProjection = {
     _id: 1,
