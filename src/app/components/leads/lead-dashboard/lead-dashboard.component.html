@@ -3,10 +3,10 @@
   <button type="button" class="list-group-item list-group-item-action text-primary"
     (click)="crawlGoogleGmbOnSelected()">
     <i class="fab fa-searchengin"></i> Crawl Google Info ({{selectionSet.size}})</button>
-  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
+  <!-- <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
     <i class="fas fa-arrow-circle-right"></i> Assign to Marketer</button>
   <button type="button" class="list-group-item list-group-item-action text-primary" (click)="unassignOnSelected()">
-    <i class="fas fa-arrow-circle-right"></i> Unassign</button>
+    <i class="fas fa-arrow-circle-right"></i> Unassign</button> -->
 
   <!-- <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawlGoogleAddressAll()">
     <i class="fas fa-map-marker-alt"></i> Inject Google Address</button> -->
@@ -58,9 +58,16 @@
     <td>
       {{lead.totalReviews}}
     </td>
-    <td>
+    <td class="limit-assign-td-width">
       {{lead.assignee}}
+      <!-- start with assign -->
+      <button class="btn btn-outline-success limit-assign-font-size" *ngIf="!lead.assignee"><i
+          class="fas fa-arrow-circle-right" (click)="assignOnSelected(lead._id)">Assign to Marketer</i></button>
+      <button class="btn btn-outline-success limit-assign-font-size" *ngIf="lead.assignee"><i
+          class="fas fa-arrow-circle-right" (click)="unassignOnSelected(lead._id)">Unassign</i></button>
+      <!-- end with assign -->
     </td>
+
     <!-- <td>
         <img *ngIf="lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="lead.gmbAccountOwner" height="16px">
         <span *ngIf="lead.gmbAccountOwner !== 'qmenu'">?</span>
@@ -136,6 +143,8 @@
   </tr>
   </ng-container>
   </td>
+
+
   </tr>
 </q-table>
 

@@ -99,6 +99,9 @@ export class LeadDashboardComponent implements OnInit {
       label: "Assignee"
     },
     {
+      label: 'Assign/Unassign'
+    },
+    {
       label: "Web"
     },
     {
@@ -119,7 +122,6 @@ export class LeadDashboardComponent implements OnInit {
     {
       label: "Logs"
     }
-
   ];
 
   filterFieldDescriptors = [
@@ -357,7 +359,8 @@ export class LeadDashboardComponent implements OnInit {
       ]
     },
   ];
-
+  // select id, which it is used to assign/unassign restaurant to new salesperson. 
+  selectId;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -891,7 +894,7 @@ export class LeadDashboardComponent implements OnInit {
   async searchLeads(acknowledge?) {
     // get all users
     const query = {};
-    this.leads.length= 0;
+    this.leads.length = 0;
     this.searchFilters.map(filter => {
       switch (filter.path) {
         case "rating":
@@ -956,7 +959,7 @@ export class LeadDashboardComponent implements OnInit {
     });
 
     this.leads = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'lead', 
+      resource: 'lead',
       query: query,
       limit: 10000
     }, 3000)
@@ -1112,7 +1115,7 @@ export class LeadDashboardComponent implements OnInit {
         }
       );
   }
-
+  
   patchDiff(originalLead, newLead, removeFromSelection?) {
     if (Helper.areObjectsEqual(originalLead, newLead)) {
       this._global.publishAlert(
@@ -1131,7 +1134,6 @@ export class LeadDashboardComponent implements OnInit {
             }
             // let's update original, assuming everything successful
             Object.assign(originalLead, newLead);
-            this.editingModal.hide();
             this._global.publishAlert(
               AlertType.Success,
               originalLead.name + " was updated"
@@ -1161,7 +1163,8 @@ export class LeadDashboardComponent implements OnInit {
     //   });
   }
 
-  assignOnSelected() {
+  assignOnSelected(lead_id) {
+    this.selectId = lead_id;
     this.assigneeModal.show();
   }
 
@@ -1204,29 +1207,43 @@ export class LeadDashboardComponent implements OnInit {
         .filter(
           u =>
             u.manager === this._global.user.username ||
-            this._global.user.roles.indexOf("ADMIN") >= 0
+            this._global.user.roles.indexOf("CSR") >= 0
         )
         .map(u => u.username);
       myusers.push(this._global.user.username);
       if (myusers.indexOf(event.object.assignee) < 0) {
         event.acknowledge("Failed to " + event.object.assignee);
       } else {
-        this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
+        let leads = this.leads.filter(lead => lead._id === this.selectId);
+        leads.map(lead => {
           const clonedLead = JSON.parse(JSON.stringify(lead));
-
           if (
             !clonedLead.assignee ||
             myusers.indexOf(clonedLead.assignee) >= 0
           ) {
             clonedLead.assignee = event.object.assignee;
-            this.patchDiff(lead, clonedLead);
+            this._api
+            .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+            .subscribe(
+              result => {
+                // let's update original, assuming everything successful
+                Object.assign(lead, clonedLead);
+                this._global.publishAlert(
+                  AlertType.Success,
+                  lead.name + " was updated"
+                );
+              },
+              error => {
+                this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+              }
+            );
           } else {
             this._global.publishAlert(
               AlertType.Danger,
               "Failed to assign " + event.object.assignee
             );
           }
-        });
+        })
         this.assigneeModal.hide();
         event.acknowledge(null);
       }
@@ -1235,21 +1252,36 @@ export class LeadDashboardComponent implements OnInit {
     }
   }
 
-  unassignOnSelected() {
+  unassignOnSelected(lead_id) {
     const myusers = this.users
       .filter(
         u =>
           u.manager === this._global.user.username ||
-          this._global.user.roles.indexOf("ADMIN") >= 0
+          this._global.user.roles.indexOf("CSR") >= 0
       )
       .map(u => u.username);
     myusers.push(this._global.user.username);
 
-    this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
+    let leads = this.leads.filter(lead => lead._id === lead_id);
+    leads.map(lead => {
       const clonedLead = JSON.parse(JSON.stringify(lead));
       if (myusers.indexOf(clonedLead.assignee) >= 0) {
         clonedLead.assignee = undefined;
-        this.patchDiff(lead, clonedLead);
+        this._api
+        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+        .subscribe(
+          result => {
+            // let's update original, assuming everything successful
+            Object.assign(lead, clonedLead);
+            this._global.publishAlert(
+              AlertType.Success,
+              lead.name + " was updated"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
+        );
       } else {
         this._global.publishAlert(
           AlertType.Danger,
