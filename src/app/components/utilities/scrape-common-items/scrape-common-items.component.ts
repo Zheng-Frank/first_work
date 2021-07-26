@@ -84,7 +84,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
         miNames = miNames.sort((a, b) => a.count - b.count);
         miNames = this.scrapingTopItemsNumber < miNames.length ? miNames.sort((a, b) => a.count - b.count).slice(0, this.scrapingTopItemsNumber) : miNames.sort((a, b) => a.count - b.count).slice(0, miNames.length);
         let mFExistsNames = this.existsImageItems.filter(item => item.aliases);
-       
+
         this.scrapingTopItems = miNames.filter(item => {
           let flag = true;
           let name = item.name.toLowerCase().trim();
@@ -96,7 +96,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
               // case 1 ===
               // 2 contains 1 or 1 contains 2
               if (existName === name) {
-                if(!this.existingTopItems.includes(mFExistsNames[i])){
+                if (!this.existingTopItems.includes(mFExistsNames[i])) {
                   // update exist image item cuisine 
                   if (mFExistsNames[i].cuisines) {
                     mFExistsNames[i].cuisines = mFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
@@ -111,9 +111,9 @@ export class ScrapeCommonItemsComponent implements OnInit {
                     mFExistsNames[i].menuCount = 0;
                   }
                   // update order count 
-                  if(mFExistsNames[i].orderCount){
+                  if (mFExistsNames[i].orderCount) {
                     mFExistsNames[i].orderCount = item.mi.orderCount
-                  }else{
+                  } else {
                     mFExistsNames[i].orderCount = 0;
                   }
                   this.existingTopItems.push(mFExistsNames[i]);
@@ -123,38 +123,20 @@ export class ScrapeCommonItemsComponent implements OnInit {
             }
           }
           return flag;
-        }).map(item => {
-          let imageObjs = item.mi.imageObjs;
-          if (imageObjs && imageObjs.length > 0) {
-            return {
-              aliases: [item.name],
-              images: [{
-                url: (imageObjs[0].originalUrl || ''),
-                url96: (imageObjs[0].thumbnailUrl || ''),
-                url128: (imageObjs[0].normalUrl || ''),
-                url768: (imageObjs[0].normalUrl || '')
-              }],
-              url192: (imageObjs[0].thumbnailUrl || ''), // show in table colnum
-              cuisines: [this.cuisineType],
-              orderCount: item.mi.orderCount,
-              menuCount: item.count
-            }
-          } else {
-            return {
-              aliases: [item.name],
-              images: [{
-                url: '',
-                url96: '',
-                url128: '',
-                url768: ''
-              }],
-              url192: '', // show in table colnum
-              cuisines: [this.cuisineType],
-              orderCount: item.mi.orderCount,
-              menuCount: item.count
-            }
-          }
-        });
+        }).map(item => ({
+          aliases: [item.name],
+          images: [{
+            url: '',
+            url96: '',
+            url128: '',
+            url768: ''
+          }],
+          url192: '', // show in table colnum
+          cuisines: [this.cuisineType],
+          orderCount: item.mi.orderCount,
+          menuCount: item.count
+        }
+        ));
         setTimeout(() => this.scrapingFlag = false, 5000);
         break;
       case basedOnTypes.orderFrequency:
@@ -204,7 +186,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
                     oFExistsNames[i].cuisines = [];
                   }
                   // if it don't have menuCount, set a default value.
-                  if(!oFExistsNames[i].menuCount){
+                  if (!oFExistsNames[i].menuCount) {
                     oFExistsNames[i].menuCount = 0;
                   }
                   // update order count 
@@ -221,39 +203,21 @@ export class ScrapeCommonItemsComponent implements OnInit {
             }
           }
           return flag;
-        }).map(mi => {
-          let imageObjs = mi.imageObjs;
-          if (imageObjs && imageObjs.length > 0) {
-            return {
-              aliases: [mi.name],
-              images: [{
-                url: (imageObjs[0].originalUrl || ''),
-                url96: (imageObjs[0].thumbnailUrl || ''),
-                url128: (imageObjs[0].normalUrl || ''),
-                url768: (imageObjs[0].normalUrl || '')
-              }],
-              url192: (imageObjs[0].thumbnailUrl || ''),
-              cuisines: [this.cuisineType],
-              orderCount: mi.orderCount,
-              menuCount: 0
-            }
-          } else {
-            return {
-              aliases: [mi.name],
-              images: [{
-                url: '',
-                url96: '',
-                url128: '',
-                url768: ''
-              }],
-              url192: '',
-              cuisines: [this.cuisineType],
-              orderCount: mi.orderCount,
-              menuCount: 0
-            }
+        }).map(mi =>
+          ({
+            aliases: [mi.name],
+            images: [{
+              url: '',
+              url96: '',
+              url128: '',
+              url768: ''
+            }],
+            url192: '',
+            cuisines: [this.cuisineType],
+            orderCount: mi.orderCount,
+            menuCount: 0
           }
-        }
-        );
+          ));
         setTimeout(() => this.scrapingFlag = false, 5000);
         break;
       default:
