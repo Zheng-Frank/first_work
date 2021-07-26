@@ -82,6 +82,17 @@
         <button class="btn btn-link" (click)='showAddLinkModal()'>+ Add Link</button>
       </div>
 
+      <h5>Header Slider Images:</h5>
+      <div *ngFor="let image of headerSliderImages; let i = index">
+        <div  *ngIf="image" class="d-flex" >
+          <img [src]="image" class="image-container" alt="">
+          <div>
+            <button class="btn btn-link" (click)='fileSliderImageInput.click()'>Replace</button>
+            <input hidden type="file" #fileSliderImageInput (change)="uploadHeaderImage($event.target.files, i)" />
+          </div>
+        </div>
+      </div>
+
       <div class="d-flex justify-content-end mt-4">
         <button class="btn btn-primary btn-sm" (click)="savePartA()">Save</button>
       </div>
