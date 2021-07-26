@@ -1,33 +1,33 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { ApiService } from '../../../services/api.service';
-import { environment } from '../../../../environments/environment';
-import { GlobalService } from '../../../services/global.service';
-import { Lead } from '../../../classes/lead';
-import { AlertType } from '../../../classes/alert-type';
-import { CallLog } from '../../../classes/call-log';
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { ApiService } from "../../../services/api.service";
+import { environment } from "../../../../environments/environment";
+import { GlobalService } from "../../../services/global.service";
+import { Lead } from "../../../classes/lead";
+import { AlertType } from "../../../classes/alert-type";
+import { CallLog } from "../../../classes/call-log";
 import {
   ModalComponent,
   AddressPickerComponent
-} from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Address } from '@qmenu/ui';
-import { User } from '../../../classes/user';
-import { Helper } from '../../../classes/helper';
+} from "@qmenu/ui/bundles/qmenu-ui.umd";
+import { Address } from "@qmenu/ui";
+import { User } from "../../../classes/user";
+import { Helper } from "../../../classes/helper";
 const FOUR_DAYS = 86400000 * 4; // 4 days
 
 @Component({
-  selector: 'app-lead-dashboard',
-  templateUrl: './lead-dashboard.component.html',
-  styleUrls: ['./lead-dashboard.component.scss']
+  selector: "app-lead-dashboard",
+  templateUrl: "./lead-dashboard.component.html",
+  styleUrls: ["./lead-dashboard.component.scss"]
 })
 export class LeadDashboardComponent implements OnInit {
-  @ViewChild('editingModal') editingModal: ModalComponent;
-  @ViewChild('scanModal') scanModal: ModalComponent;
-  @ViewChild('assigneeModal') assigneeModal: ModalComponent;
-  @ViewChild('filterModal') filterModal: ModalComponent;
-  @ViewChild('viewModal') viewModal: ModalComponent;
-  @ViewChild('callModal') callModal: ModalComponent;
+  @ViewChild("editingModal") editingModal: ModalComponent;
+  @ViewChild("scanModal") scanModal: ModalComponent;
+  @ViewChild("assigneeModal") assigneeModal: ModalComponent;
+  @ViewChild("filterModal") filterModal: ModalComponent;
+  @ViewChild("viewModal") viewModal: ModalComponent;
+  @ViewChild("callModal") callModal: ModalComponent;
 
-  @ViewChild('myAddressPicker') myAddressPicker: AddressPickerComponent;
+  @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
 
   users: User[];
   restaurants;
@@ -55,14 +55,14 @@ export class LeadDashboardComponent implements OnInit {
   // for filtering
   searchFilters = [
     {
-      path: 'classifications',
-      value: 'Chinese Restaurants'
+      path: "classifications",
+      value: "Chinese Restaurants"
     }
   ];
 
   searchFilterObj = {};
   filterRating;
-  leadFieldNotToCompare = ['_id', 'crawledAt', 'createdAt', 'updatedAt', 'rating', 'totalReviews', 'serviceProviders', 'keyword'];
+  leadFieldNotToCompare = ["_id", "crawledAt", "createdAt", "updatedAt", "rating", "totalReviews", "serviceProviders", "keyword"]
 
   // for editing existing call log
   selectedCallLog;
@@ -87,47 +87,47 @@ export class LeadDashboardComponent implements OnInit {
       label: 'Name'
     },
     {
-      label: 'Cuisine'
+      label: "Cuisine"
     },
     {
-      label: 'Ratings'
+      label: "Ratings"
     },
     {
-      label: 'Reviews'
+      label: "Reviews"
     },
     {
-      label: 'Assignee'
+      label: "Assignee"
     },
     {
-      label: 'Web'
+      label: "Web"
     },
     {
-      label: 'Address'
+      label: "Address"
     },
     {
-      label: 'Group'
+      label: "Group"
     },
     {
-      label: 'State'
+      label: "State"
     },
     {
-      label: 'Comments'
+      label: "Comments"
     },
     {
-      label: 'Phones'
+      label: "Phones"
     },
     {
-      label: 'Logs'
+      label: "Logs"
     }
 
   ];
 
   filterFieldDescriptors = [
     {
-      field: 'cuisine', //
-      label: 'Cuisine',
+      field: "cuisine", //
+      label: "Cuisine",
       required: false,
-      inputType: 'single-select',
+      inputType: "single-select",
       items: [
         // 'Restaurants',
         // 'American Restaurants',
@@ -135,30 +135,30 @@ export class LeadDashboardComponent implements OnInit {
         // 'Hamburgers & Hot Dogs',
         // 'Fast Food Restaurants',
         // 'Breakfast  Brunch & Lunch Restaurants',
-        'Chinese restaurant',
-        'Fast food restaurant',
-        'Pizza',
-        'Pizza restaurant',
-        'Pizza Delivery',
-        'Italian Restaurant',
+        "Chinese restaurant",
+        "Fast food restaurant",
+        "Pizza",
+        "Pizza restaurant",
+        "Pizza Delivery",
+        "Italian Restaurant",
         // 'Take Out Restaurants',
         // 'Greek Restaurants',
-        'Asian restaurant',
+        "Asian restaurant",
         // 'Coffee & Espresso Restaurants',
         // 'Sandwich Shops',
-        'Sushi Bar',
-        'Sushi restaurant',
-        'Indian restaurant',
+        "Sushi Bar",
+        "Sushi restaurant",
+        "Indian restaurant",
         // 'Bars',
-        'Japanese restaurant',
-        // "Steak Houses",
-        'Mexican restaurant',
+        "Japanese restaurant",
+        //"Steak Houses",
+        "Mexican restaurant",
         // 'Latin American Restaurants',
         // 'Chicken Restaurants',
         // 'Bar & Grills',
         // 'Barbecue Restaurants',
-        'Thai restaurant',
-        'American restaurant',
+        "Thai restaurant",
+        "American restaurant",
         // 'Sports Bars',
         // 'Brew Pubs',
         // 'Health Food Restaurants',
@@ -177,20 +177,20 @@ export class LeadDashboardComponent implements OnInit {
         // 'Middle Eastern Restaurants',
         // 'Caribbean Restaurants',
         // 'Continental Restaurants',
-        'Vietnamese restaurant',
+        "Vietnamese restaurant",
         // 'French Restaurants',
         // 'Indian Restaurants',
         // 'Vegetarian Restaurants',
         // 'Vegan Restaurants',
-        'Korean restaurant',
+        "Korean restaurant",
         // 'Brazilian Restaurants',
         // 'Wine Bars',
         // 'Cuban Restaurants',
         // 'Peruvian Restaurants',
-        'Spanish restaurant',
+        "Spanish restaurant",
         // 'Irish Restaurants',
         // 'Pasta',
-        // "Mongolian Restaurants"
+        //"Mongolian Restaurants"
         // 'Gay & Lesbian Bars',
         // 'African Restaurants',
         // 'Hawaiian Restaurants',
@@ -203,14 +203,14 @@ export class LeadDashboardComponent implements OnInit {
         .map(s => ({ object: s, text: s, selected: false }))
     },
     {
-      field: 'gmbOwner', //
-      label: 'GMB Website',
+      field: "gmbOwner", //
+      label: "GMB Website",
       required: false,
-      inputType: 'single-select',
+      inputType: "single-select",
       items: [
         {
-          object: 'NOT_QMENU',
-          text: 'NOT qMenu',
+          object: "NOT_QMENU",
+          text: "NOT qMenu",
           selected: false
         },
         ...Object.keys(GlobalService.serviceProviderMap).map(s => ({
@@ -235,23 +235,23 @@ export class LeadDashboardComponent implements OnInit {
     //   items: [{ object: "in qMenu", text: "Yes", selected: false }]
     // },
     {
-      field: 'closed', //
-      label: 'Store Status',
+      field: "closed", //
+      label: "Store Status",
       required: false,
-      inputType: 'single-select',
+      inputType: "single-select",
       items: [
-        { object: 'store closed', text: 'Store Closed', selected: false },
-        { object: 'store open', text: 'Store Open', selected: false }
+        { object: "store closed", text: "Store Closed", selected: false },
+        { object: "store open", text: "Store Open", selected: false }
       ]
     },
     {
-      field: 'assigned', //
-      label: 'Assigned to Someone',
+      field: "assigned", //
+      label: "Assigned to Someone",
       required: false,
-      inputType: 'single-select',
+      inputType: "single-select",
       items: [
-        { object: 'assigned', text: 'Assigned', selected: false },
-        { object: 'not assigned', text: 'Not Assigned', selected: false }
+        { object: "assigned", text: "Assigned", selected: false },
+        { object: "not assigned", text: "Not Assigned", selected: false }
       ]
     },
     // {
@@ -265,95 +265,95 @@ export class LeadDashboardComponent implements OnInit {
     //   ]
     // },
     {
-      field: 'address.postal_code',
-      label: 'Zip Code',
+      field: "address.postal_code",
+      label: "Zip Code",
       required: false,
-      inputType: 'tel'
+      inputType: "tel"
     },
     {
-      field: 'address.locality',
-      label: 'City',
+      field: "address.locality",
+      label: "City",
       required: false,
-      inputType: 'text'
+      inputType: "text"
     },
     {
-      field: 'address.administrative_area_level_1',
-      label: 'State',
+      field: "address.administrative_area_level_1",
+      label: "State",
       required: false,
-      inputType: 'single-select',
+      inputType: "single-select",
       items: [
-        'AK',
-        'AL',
-        'AR',
-        'AZ',
-        'CA',
-        'CO',
-        'CT',
-        'DC',
-        'DE',
-        'FL',
-        'GA',
-        'HI',
-        'IA',
-        'ID',
-        'IL',
-        'IN',
-        'KS',
-        'KY',
-        'LA',
-        'MA',
-        'MD',
-        'ME',
-        'MI',
-        'MN',
-        'MO',
-        'MS',
-        'MT',
-        'NC',
-        'ND',
-        'NE',
-        'NH',
-        'NJ',
-        'NM',
-        'NV',
-        'NY',
-        'OH',
-        'OK',
-        'OR',
-        'PA',
-        'RI',
-        'SC',
-        'SD',
-        'TN',
-        'TX',
-        'UT',
-        'VA',
-        'VT',
-        'WA',
-        'WI',
-        'WV',
-        'WY'
+        "AK",
+        "AL",
+        "AR",
+        "AZ",
+        "CA",
+        "CO",
+        "CT",
+        "DC",
+        "DE",
+        "FL",
+        "GA",
+        "HI",
+        "IA",
+        "ID",
+        "IL",
+        "IN",
+        "KS",
+        "KY",
+        "LA",
+        "MA",
+        "MD",
+        "ME",
+        "MI",
+        "MN",
+        "MO",
+        "MS",
+        "MT",
+        "NC",
+        "ND",
+        "NE",
+        "NH",
+        "NJ",
+        "NM",
+        "NV",
+        "NY",
+        "OH",
+        "OK",
+        "OR",
+        "PA",
+        "RI",
+        "SC",
+        "SD",
+        "TN",
+        "TX",
+        "UT",
+        "VA",
+        "VT",
+        "WA",
+        "WI",
+        "WV",
+        "WY"
       ].map(state => ({ object: state, text: state, selected: false }))
     },
     {
-      field: 'timezone',
-      label: 'Timezone',
+      field: "timezone",
+      label: "Timezone",
       required: false,
-      inputType: 'single-select',
-      items: ['PDT', 'MDT', 'CDT', 'EDT', 'HST', 'AKDT'].map(state => ({
+      inputType: "single-select",
+      items: ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].map(state => ({
         object: state,
         text: state,
         selected: false
       }))
     },
     {
-      field: 'gmbScanned', //
-      label: 'Data Scanned',
+      field: "gmbScanned", //
+      label: "Data Scanned",
       required: false,
-      inputType: 'single-select',
+      inputType: "single-select",
       items: [
-        { object: 'scanned', text: 'Recently scanned', selected: false },
-        { object: 'not scanned', text: 'Not recently Scanned', selected: false }
+        { object: "scanned", text: "Recently scanned", selected: false },
+        { object: "not scanned", text: "Not recently Scanned", selected: false }
       ]
     },
   ];
@@ -361,16 +361,16 @@ export class LeadDashboardComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
-    this.searchFilters = this._global.storeGet('searchFilters') || [];
+    this.searchFilters = this._global.storeGet("searchFilters") || [];
     this.searchLeads();
     this.resetRating();
 
-    // retrieve restaurants with cids
+    //retrieve restaurants with cids
     this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       projection: {
         name: 1,
-        'googleListing.cid': 1
+        "googleListing.cid": 1
       },
       limit: 10000
     }).toPromise();
@@ -378,8 +378,8 @@ export class LeadDashboardComponent implements OnInit {
     // grab all users and make an assignee list!
     // get all users
     this._api
-      .get(environment.qmenuApiUrl + 'generic', {
-        resource: 'user',
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "user",
         limit: 1000
       })
       .subscribe(
@@ -391,15 +391,15 @@ export class LeadDashboardComponent implements OnInit {
             .map(u => new User(u))
             .filter(u =>
               (u.roles || []).some(
-                r => ['MARKETER', 'MARKETING_DIRECTOR'].indexOf(r) >= 0
+                r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
               )
             );
 
           const descriptor = {
-            field: 'assignee', // match db naming otherwise would be single instead of plural
-            label: 'Assignee',
+            field: "assignee", // match db naming otherwise would be single instead of plural
+            label: "Assignee",
             required: false,
-            inputType: 'single-select',
+            inputType: "single-select",
             items: marketingUsers.map(mu => ({
               object: mu.username,
               text: mu.username,
@@ -416,7 +416,7 @@ export class LeadDashboardComponent implements OnInit {
         error => {
           this._global.publishAlert(
             AlertType.Danger,
-            'Error pulling users from API'
+            "Error pulling users from API"
           );
         }
       );
@@ -427,8 +427,8 @@ export class LeadDashboardComponent implements OnInit {
     this.filterRating = undefined;
     this.searchFilters.map(sf => {
       switch (sf.path) {
-        case 'rating':
-          this.filterRating = +sf.value.replace(/^\D+/g, '') + 0.5;
+        case "rating":
+          this.filterRating = +sf.value.replace(/^\D+/g, "") + 0.5;
           break;
         default:
           break;
@@ -444,7 +444,7 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   setPathValue(object, path, value) {
-    const parts = path.split('.');
+    const parts = path.split(".");
     let current = object;
     for (let i = 0; i < parts.length - 1; i++) {
       if (!current[parts[i]]) {
@@ -463,8 +463,8 @@ export class LeadDashboardComponent implements OnInit {
   createNew() {
     this.formFieldDescriptors = [
       {
-        field: 'name',
-        label: 'Restaurant Name',
+        field: "name",
+        label: "Restaurant Name",
         disabled: false
       }
     ];
@@ -476,14 +476,14 @@ export class LeadDashboardComponent implements OnInit {
   scanNew() {
     this.formFieldDescriptors = [
       {
-        field: 'keyword',
-        label: 'Search Keyword',
+        field: "keyword",
+        label: "Search Keyword",
         required: true,
         disabled: false
       },
       {
-        field: 'zip',
-        label: 'Zip Code',
+        field: "zip",
+        label: "Zip Code",
         required: false,
         disabled: false
       },
@@ -499,62 +499,62 @@ export class LeadDashboardComponent implements OnInit {
       //   }))
       // },
       {
-        field: 'state',
-        label: 'State',
+        field: "state",
+        label: "State",
         required: false,
-        inputType: 'single-select',
+        inputType: "single-select",
         items: [
-          'AK',
-          'AL',
-          'AR',
-          'AZ',
-          'CA',
-          'CO',
-          'CT',
-          'DC',
-          'DE',
-          'FL',
-          'GA',
-          'HI',
-          'IA',
-          'ID',
-          'IL',
-          'IN',
-          'KS',
-          'KY',
-          'LA',
-          'MA',
-          'MD',
-          'ME',
-          'MI',
-          'MN',
-          'MO',
-          'MS',
-          'MT',
-          'NC',
-          'ND',
-          'NE',
-          'NH',
-          'NJ',
-          'NM',
-          'NV',
-          'NY',
-          'OH',
-          'OK',
-          'OR',
-          'PA',
-          'RI',
-          'SC',
-          'SD',
-          'TN',
-          'TX',
-          'UT',
-          'VA',
-          'VT',
-          'WA',
-          'WI',
-          'WV',
-          'WY'
+          "AK",
+          "AL",
+          "AR",
+          "AZ",
+          "CA",
+          "CO",
+          "CT",
+          "DC",
+          "DE",
+          "FL",
+          "GA",
+          "HI",
+          "IA",
+          "ID",
+          "IL",
+          "IN",
+          "KS",
+          "KY",
+          "LA",
+          "MA",
+          "MD",
+          "ME",
+          "MI",
+          "MN",
+          "MO",
+          "MS",
+          "MT",
+          "NC",
+          "ND",
+          "NE",
+          "NH",
+          "NJ",
+          "NM",
+          "NV",
+          "NY",
+          "OH",
+          "OK",
+          "OR",
+          "PA",
+          "RI",
+          "SC",
+          "SD",
+          "TN",
+          "TX",
+          "UT",
+          "VA",
+          "VT",
+          "WA",
+          "WI",
+          "WV",
+          "WY"
         ].map(state => ({ object: state, text: state, selected: false }))
       },
     ];
@@ -570,28 +570,28 @@ export class LeadDashboardComponent implements OnInit {
 
     // parallelly requesting
     try {
-      let result = await this._api.get(environment.qmenuApiUrl + 'utils/scan-gmb', { ludocid: cid, q: name }).toPromise();
+      let result = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", { ludocid: cid, q: name }).toPromise();
       result.keyword = keyword;
       return result;
     } catch (error) {
       console.log(error);
-      console.log('GMB crawl failed for ' + cid + ' ' + name + ' ' + keyword);
+      console.log("GMB crawl failed for " + cid + " " + name + " " + keyword);
       this._global.publishAlert(
-        AlertType.Danger, 'GMB crawl failed for ' + cid + ' ' + name + ' ' + keyword
+        AlertType.Danger, "GMB crawl failed for " + cid + " " + name + " " + keyword
       );
     }
   }
 
   async updateLead(newLead, oldLead) {
-    // delete newLead['_id'];
-    // delete oldLead['_id'];
-    // this.leadFieldNotToCompare.map(each => delete newLead[each]);
-    // this.leadFieldNotToCompare.map(each => delete oldLead[each]);
-    // keep the assignee
+    //delete newLead['_id'];
+    //delete oldLead['_id'];
+    //this.leadFieldNotToCompare.map(each => delete newLead[each]);
+    //this.leadFieldNotToCompare.map(each => delete oldLead[each]);
+    //keep the assignee
     if (oldLead.assignee) {
       newLead.assignee = oldLead.assignee;
     }
-    // keep the callLogs
+    //keep the callLogs
     if (oldLead.callLogs && oldLead.callLogs.length > 0) {
       newLead.callLogs = oldLead.callLogs;
     }
@@ -601,14 +601,14 @@ export class LeadDashboardComponent implements OnInit {
 
   async createNewLead(lead) {
     try {
-      const result = await this._api.post(environment.qmenuApiUrl + 'generic?resource=lead', [lead]).toPromise();
+      const result = await this._api.post(environment.qmenuApiUrl + "generic?resource=lead", [lead]).toPromise();
       this._global.publishAlert(
-        AlertType.Success, 'Successfully create lead ' + lead
+        AlertType.Success, "Successfully create lead " + lead
       );
       return result;
     } catch (error) {
       console.log(error);
-      console.log('creating lead failed for  ' + lead);
+      console.log("creating lead failed for  " + lead);
       // this._global.publishAlert(
       //   AlertType.Danger, "Failed to create lead " + lead
       // );
@@ -633,7 +633,7 @@ export class LeadDashboardComponent implements OnInit {
 
   async scanbOneLead(query) {
     try {
-      const result = await this._api.get(environment.qmenuApiUrl + 'utils/scan-lead', query).toPromise();
+      const result = await this._api.get(environment.qmenuApiUrl + "utils/scan-lead", query).toPromise();
       return result;
     } catch (error) {
       console.log('11111111111111111111111111');
@@ -653,19 +653,19 @@ export class LeadDashboardComponent implements OnInit {
       // parallelly requesting
       searchKeyword =
         scanLeadRequests = zipCodes.map(z => {
-          let query = { q: keyword + ' ' + z };
+          let query = { q: keyword + " " + z };
           return this.scanbOneLead(query);
         });
 
       scanLeadResults = await Promise.all(scanLeadRequests);
-      // merge the array of array to flatten it.
+      //merge the array of array to flatten it.
       scanLeadResults = [].concat.apply([], scanLeadResults).filter(each => each);
       const restaurantCids = this.restaurants.filter(r => r.googleListing && r.googleListing.cid).map(r => r.googleListing.cid);
-      // filter out cid already in qMenu restaurants before updating or creating lead
+      //filter out cid already in qMenu restaurants before updating or creating lead
       scanLeadResults = scanLeadResults.filter(each => !restaurantCids.some(cid => cid === each.cid));
 
       console.log('scanLeadResults=', scanLeadResults);
-      // retrieve existing lead with the same cids
+      //retrieve existing lead with the same cids
       // const existingLeads = await this._api.get(environment.qmenuApiUrl + 'generic', {
       //   resource: 'lead',
       //   query: {
@@ -673,11 +673,11 @@ export class LeadDashboardComponent implements OnInit {
       //   },
       //   limit: 1000
       // }).toPromise();
-      // creating or updating lead for the cids
-      // let newLeadsToCreate = scanLeadResults;
-      // let newLeadsToCreate = scanLeadResults.filter(each => !existingLeads.some(lead => lead.cid === each['cid']))
-      // let existingLeadsToUpdate = existingLeads.filter(each => scanLeadResults.some(lead => lead.cid === each['cid']))
-      // skip existing lead crawled within 4 days!;
+      //creating or updating lead for the cids
+      //let newLeadsToCreate = scanLeadResults;
+      //let newLeadsToCreate = scanLeadResults.filter(each => !existingLeads.some(lead => lead.cid === each['cid']))
+      //let existingLeadsToUpdate = existingLeads.filter(each => scanLeadResults.some(lead => lead.cid === each['cid']))
+      //skip existing lead crawled within 4 days!;
       // if (existingLeadsToUpdate && existingLeadsToUpdate.length > 0) {
       //   existingLeadsToUpdate = existingLeadsToUpdate.filter(b => {
       //     for (let i = 0; i < existingLeads.length; i++) {
@@ -688,7 +688,7 @@ export class LeadDashboardComponent implements OnInit {
       //     }
       //   })
       // }
-      // crawl GMB info new leads
+      //crawl GMB info new leads
       const newLeadsGMBRequests = (scanLeadResults).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
       let newLeadsCrawledGMBresults: any = await Promise.all(newLeadsGMBRequests);
       let newLeadsResults = this.convertToLead(newLeadsCrawledGMBresults.filter(each => each));
@@ -699,21 +699,22 @@ export class LeadDashboardComponent implements OnInit {
       }
 
 
-      // crawl GMB info existing leads
+      //crawl GMB info existing leads
       // const existingLeadsGMBRequests = (existingLeadsToUpdate).map(each => this.crawlOneGmb(each.cid, each.name, each.keyword));
       // let existingLeadsCrawledGMBresults: any = await Promise.all(existingLeadsGMBRequests);
       // let existingLeadsResults = this.convertToLead(existingLeadsCrawledGMBresults);
       // existingLeadsResults.map(each => this.updateLead(each, existingLeadsToUpdate.filter(e => e.cid === each.cid)[0]));
 
-      // this.scanModal.hide();
+      //this.scanModal.hide();
       this._global.publishAlert(
         AlertType.Success,
-        newLeadsResults.length + ' leads were added, ' + newLeadsGMBRequests.length + ' leads were updated'
+        newLeadsResults.length + " leads were added, " + newLeadsGMBRequests.length + " leads were updated"
       );
-    } catch (error) {
+    }
+    catch (error) {
       console.log('2222222222222222222222222');
       console.log('error for ' + zipCodes);
-      return event.acknowledge('Error while create/updade leads for ' + JSON.stringify(zipCodes));
+      return event.acknowledge("Error while create/updade leads for " + JSON.stringify(zipCodes));
     }
 
   }
@@ -723,9 +724,9 @@ export class LeadDashboardComponent implements OnInit {
       let lead = new Lead();
       lead.address = new Address();
       lead.address.formatted_address = each['address'];
-      lead.address.administrative_area_level_1 = Helper.getState(each['address']);
-      lead.address.locality = Helper.getCity(each['address']);
-      lead.address.postal_code = Helper.getZipcode(each['address']);
+      lead.address.administrative_area_level_1 = Helper.getState(each['address'])
+      lead.address.locality = Helper.getCity(each['address'])
+      lead.address.postal_code = Helper.getZipcode(each['address'])
       lead.cid = each.cid;
       lead.closed = each['closed'];
       lead.gmbOwner = each['gmbOwner'];
@@ -742,26 +743,26 @@ export class LeadDashboardComponent implements OnInit {
       lead.crawledAt = new Date();
       lead['keyword'] = each.keyword;
       lead.cuisine = each.cuisine;
-      lead['timezone'] = Helper.getTimeZone(each['address']);
+      lead['timezone'] = Helper.getTimeZone(each['address'])
       return lead;
-    });
+    })
 
   }
 
   async scanSubmit(event) {
     if (!event.object.keyword) {
-      return event.acknowledge('Must input keyword');
+      return event.acknowledge("Must input keyword");
     }
     let input = event.object;
     let zipCodes;
     if (input.keyword && input.zip) {
       zipCodes = input.zip.split();
     } else if (input.keyword && input.state) {
-      // retrieve restaurants with cids
+      //retrieve restaurants with cids
       zipCodes = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'zipCodes',
         query: {
-          'state_code': input.state
+          "state_code": input.state
         },
         projection: {
           zip_code: 1
@@ -770,9 +771,9 @@ export class LeadDashboardComponent implements OnInit {
       }).toPromise();
 
       zipCodes = zipCodes.map(each => each.zip_code);
-      // since CT zip code only 4 digits
-      zipCodes = zipCodes.map(each => each.length == 4 ? '0' + each : each);
-      // console.log('zipCodes', zipCodes);
+      //since CT zip code only 4 digits
+      zipCodes = zipCodes.map(each => each.length == 4 ? '0' + each : each)
+      //console.log('zipCodes', zipCodes);
     }
 
     let batchSize = 100;
@@ -780,8 +781,7 @@ export class LeadDashboardComponent implements OnInit {
       batchSize = 2;
     }
 
-    const batchedZipCodes = Array(Math.ceil(zipCodes.length / batchSize)).fill(0)
-      .map((i, index) => zipCodes.slice(index * batchSize, (index + 1) * batchSize));
+    const batchedZipCodes = Array(Math.ceil(zipCodes.length / batchSize)).fill(0).map((i, index) => zipCodes.slice(index * batchSize, (index + 1) * batchSize));
     const failedZipCodes = [];
     const succeededZipCodes = [];
 
@@ -791,32 +791,32 @@ export class LeadDashboardComponent implements OnInit {
         await new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve();
-          }, 20000);
+          }, 20000)
         });
         succeededZipCodes.push(...batch);
-        console.log('done for ' + batch);
+        console.log("done for " + batch);
       } catch (error) {
         failedZipCodes.push(...batch);
-        console.log('error for ' + batch);
+        console.log("error for " + batch);
         console.log(error);
       }
     }
-    console.log('Failed for ' + failedZipCodes);
-    console.log('Totally done  for ' + succeededZipCodes);
+    console.log("Failed for " + failedZipCodes);
+    console.log("Totally done  for " + succeededZipCodes);
     this.scanModal.hide();
-    this._global.publishAlert(AlertType.Success, 'Success');
+    this._global.publishAlert(AlertType.Success, "Success");
   }
 
   formSubmit(event) {
     if (!this.myAddressPicker.address.place_id) {
-      return event.acknowledge('Must input address');
+      return event.acknowledge("Must input address");
     }
 
     this.leadInEditing.address = this.myAddressPicker.address;
 
-    this.leadInEditing.address.apt = (this.addressApt || '').trim();
+    this.leadInEditing.address.apt = (this.addressApt || "").trim();
     this._api
-      .post(environment.qmenuApiUrl + 'generic?resource=lead', [
+      .post(environment.qmenuApiUrl + "generic?resource=lead", [
         this.leadInEditing
       ])
       .subscribe(
@@ -828,7 +828,7 @@ export class LeadDashboardComponent implements OnInit {
           this.editingModal.hide();
           this._global.publishAlert(
             AlertType.Success,
-            this.leadInEditing.name + ' was added'
+            this.leadInEditing.name + " was added"
           );
         },
         error => {
@@ -848,24 +848,23 @@ export class LeadDashboardComponent implements OnInit {
   filterSubmit(event) {
     this.searchFilters = this.getFilter(event.object);
     // remove rating field if there is one (maybe we let rating slip into the formbuilder object?)
-    this.searchFilters = this.searchFilters.filter(sf => sf.path !== 'rating');
+    this.searchFilters = this.searchFilters.filter(sf => sf.path !== "rating");
     if (this.filterRating && +this.filterRating > 1) {
       this.searchFilters.push({
-        path: 'rating',
-        value: 'rating ~ ' + this.filterRating
+        path: "rating",
+        value: "rating ~ " + this.filterRating
       });
     }
 
-    this.searchLeads();
+    this.searchLeads(event.acknowledge);
     this.filterModal.hide();
-    event.acknowledge();
-    this._global.storeSet('searchFilters', this.searchFilters);
+    this._global.storeSet("searchFilters", this.searchFilters);
   }
 
   getFilter(variable, parentPath?) {
     const results = [];
     Object.keys(variable).map(key => {
-      const path = parentPath ? parentPath + '.' + key : key;
+      const path = parentPath ? parentPath + "." + key : key;
       if (variable[key] !== Object(variable[key])) {
         results.push({
           path: path,
@@ -886,68 +885,68 @@ export class LeadDashboardComponent implements OnInit {
     // need to set rating, assignee values
     this.resetRating();
     this.searchLeads();
-    this._global.storeSet('searchFilters', this.searchFilters);
+    this._global.storeSet("searchFilters", this.searchFilters);
   }
 
-  async searchLeads() {
+  async searchLeads(acknowledge?) {
     // get all users
     const query = {};
-    this.leads.length = 0;
+    this.leads.length= 0;
     this.searchFilters.map(filter => {
       switch (filter.path) {
-        case 'rating':
+        case "rating":
           if (this.filterRating > 0) {
-            query['rating'] = { $gte: this.filterRating - 0.5 };
+            query["rating"] = { $gte: this.filterRating - 0.5 };
           }
           break;
-        case 'assigned':
-          if (filter.value === 'assigned') {
-            query['assignee'] = { $exists: true };
+        case "assigned":
+          if (filter.value === "assigned") {
+            query["assignee"] = { $exists: true };
           }
-          if (filter.value === 'not assigned') {
-            query['assignee'] = { $exists: false };
-          }
-          break;
-        case 'closed':
-          if (filter.value === 'store closed') {
-            query['closed'] = true;
-          }
-          if (filter.value === 'store open') {
-            query['closed'] = { $ne: true };
+          if (filter.value === "not assigned") {
+            query["assignee"] = { $exists: false };
           }
           break;
-        case 'inQmenu':
-          if (filter.value === 'in qMenu') {
-            query['inQmenu'] = true;
+        case "closed":
+          if (filter.value === "store closed") {
+            query["closed"] = true;
+          }
+          if (filter.value === "store open") {
+            query["closed"] = { $ne: true };
+          }
+          break;
+        case "inQmenu":
+          if (filter.value === "in qMenu") {
+            query["inQmenu"] = true;
           }
           break;
 
-        case 'gmbOwner':
-          if (filter.value === 'NOT_QMENU') {
-            query['gmbOwner'] = { $ne: 'qmenu' };
+        case "gmbOwner":
+          if (filter.value === "NOT_QMENU") {
+            query["gmbOwner"] = { $ne: "qmenu" };
           } else if (filter.value) {
-            query['gmbOwner'] = filter.value;
+            query["gmbOwner"] = filter.value;
           }
           break;
 
-        case 'gmbAccountOwner':
-          if (filter.value === 'qMenu gmb account') {
-            query['gmbAccountOwner'] = 'qmenu';
+        case "gmbAccountOwner":
+          if (filter.value === "qMenu gmb account") {
+            query["gmbAccountOwner"] = "qmenu";
           }
           break;
 
-        case 'gmbScanned':
-          if (filter.value === 'scanned') {
-            query['gmbScanned'] = true;
-          } else if (filter.value === 'not scanned') {
-            query['gmbScanned'] = { $exists: false };
+        case "gmbScanned":
+          if (filter.value === "scanned") {
+            query["gmbScanned"] = true;
+          } else if (filter.value === "not scanned") {
+            query["gmbScanned"] = { $exists: false };
           }
           break;
-        case 'address.place_id':
-          if (filter.value === 'address resolved') {
-            query['address.place_id'] = { $exists: true };
-          } else if (filter.value === 'not resolved') {
-            query['address.place_id'] = { $exists: false };
+        case "address.place_id":
+          if (filter.value === "address resolved") {
+            query["address.place_id"] = { $exists: true };
+          } else if (filter.value === "not resolved") {
+            query["address.place_id"] = { $exists: false };
           }
           break;
         default:
@@ -957,10 +956,10 @@ export class LeadDashboardComponent implements OnInit {
     });
 
     this.leads = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'lead',
+      resource: 'lead', 
       query: query,
       limit: 10000
-    }, 3000);
+    }, 3000)
 
     this.leads = this.leads.map(u => new Lead(u));
     this.sortLeads(this.leads);
@@ -1040,8 +1039,8 @@ export class LeadDashboardComponent implements OnInit {
   crawlGoogle(lead: Lead, resolveCallback?, rejectCallback?) {
     this.apiRequesting = true;
     this._api
-      .get(environment.qmenuApiUrl + 'utils/scan-gmb', {
-        q: [lead.name, lead.address.formatted_address].filter(i => i).join(' ')
+      .get(environment.qmenuApiUrl + "utils/scan-gmb", {
+        q: [lead.name, lead.address.formatted_address].filter(i => i).join(" ")
       })
       .subscribe(
         result => {
@@ -1056,7 +1055,7 @@ export class LeadDashboardComponent implements OnInit {
           }
 
           // currently we don't want to lose address in original lead
-          if (!gmbInfo.address || !gmbInfo.address['place_id']) {
+          if (!gmbInfo.address || !gmbInfo.address["place_id"]) {
             gmbInfo.address = clonedLead.address;
           }
 
@@ -1064,7 +1063,7 @@ export class LeadDashboardComponent implements OnInit {
           clonedLead.phones = clonedLead.phones || [];
           if (gmbInfo.phone && clonedLead.phones.indexOf(gmbInfo.phone) < 0) {
             clonedLead.phones.push(gmbInfo.phone);
-            delete clonedLead['phone'];
+            delete clonedLead["phone"];
           }
           clonedLead.gmbScanned = true;
           this.patchDiff(lead, clonedLead, true);
@@ -1075,7 +1074,7 @@ export class LeadDashboardComponent implements OnInit {
         },
         error => {
           this.apiRequesting = false;
-          this._global.publishAlert(AlertType.Danger, 'Failed to crawl');
+          this._global.publishAlert(AlertType.Danger, "Failed to crawl");
           if (rejectCallback) {
             rejectCallback(error);
           }
@@ -1094,7 +1093,7 @@ export class LeadDashboardComponent implements OnInit {
     lead.address = lead.address || {} as Address;
 
     this._api
-      .get(environment.qmenuApiUrl + 'utils/address', {
+      .get(environment.qmenuApiUrl + "utils/address", {
         formatted_address: lead.address.formatted_address
       })
       .subscribe(
@@ -1108,7 +1107,7 @@ export class LeadDashboardComponent implements OnInit {
           this.apiRequesting = false;
           this._global.publishAlert(
             AlertType.Danger,
-            'Failed to update Google address. Try crawling Google first.'
+            "Failed to update Google address. Try crawling Google first."
           );
         }
       );
@@ -1118,13 +1117,13 @@ export class LeadDashboardComponent implements OnInit {
     if (Helper.areObjectsEqual(originalLead, newLead)) {
       this._global.publishAlert(
         AlertType.Info,
-        originalLead.name + ', Nothing to update'
+        originalLead.name + ", Nothing to update"
       );
       this.selectionSet.delete(newLead._id);
     } else {
 
       this._api
-        .patch(environment.qmenuApiUrl + 'generic?resource=lead', [{ old: originalLead, new: newLead }])
+        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }])
         .subscribe(
           result => {
             if (removeFromSelection) {
@@ -1135,11 +1134,11 @@ export class LeadDashboardComponent implements OnInit {
             this.editingModal.hide();
             this._global.publishAlert(
               AlertType.Success,
-              originalLead.name + ' was updated'
+              originalLead.name + " was updated"
             );
           },
           error => {
-            this._global.publishAlert(AlertType.Danger, 'Error updating to DB');
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
           }
         );
     }
@@ -1166,9 +1165,9 @@ export class LeadDashboardComponent implements OnInit {
     this.assigneeModal.show();
   }
 
-  submitCallLog(event) {
+  sumbitCallLog(event) {
     const leadClone = new Lead(this.selectedLead);
-    // Assign to the current user by default if edit in leads table
+    //Assign to the current user by default if edit in leads table
     leadClone.assignee = this._global.user.username;
     leadClone.callLogs = leadClone.callLogs || [];
     if (event.object === this.newCallLog) {
@@ -1205,12 +1204,12 @@ export class LeadDashboardComponent implements OnInit {
         .filter(
           u =>
             u.manager === this._global.user.username ||
-            this._global.user.roles.indexOf('ADMIN') >= 0
+            this._global.user.roles.indexOf("ADMIN") >= 0
         )
         .map(u => u.username);
       myusers.push(this._global.user.username);
       if (myusers.indexOf(event.object.assignee) < 0) {
-        event.acknowledge('Failed to ' + event.object.assignee);
+        event.acknowledge("Failed to " + event.object.assignee);
       } else {
         this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
           const clonedLead = JSON.parse(JSON.stringify(lead));
@@ -1224,7 +1223,7 @@ export class LeadDashboardComponent implements OnInit {
           } else {
             this._global.publishAlert(
               AlertType.Danger,
-              'Failed to assign ' + event.object.assignee
+              "Failed to assign " + event.object.assignee
             );
           }
         });
@@ -1232,7 +1231,7 @@ export class LeadDashboardComponent implements OnInit {
         event.acknowledge(null);
       }
     } else {
-      event.acknowledge('No assignee is selected');
+      event.acknowledge("No assignee is selected");
     }
   }
 
@@ -1241,7 +1240,7 @@ export class LeadDashboardComponent implements OnInit {
       .filter(
         u =>
           u.manager === this._global.user.username ||
-          this._global.user.roles.indexOf('ADMIN') >= 0
+          this._global.user.roles.indexOf("ADMIN") >= 0
       )
       .map(u => u.username);
     myusers.push(this._global.user.username);
@@ -1254,7 +1253,7 @@ export class LeadDashboardComponent implements OnInit {
       } else {
         this._global.publishAlert(
           AlertType.Danger,
-          'Failed to unassign ' + clonedLead.assignee
+          "Failed to unassign " + clonedLead.assignee
         );
       }
     });
@@ -1263,9 +1262,9 @@ export class LeadDashboardComponent implements OnInit {
   getGoogleQuery(lead) {
     if (lead.address) {
       return (
-        'https://www.google.com/search?q=' +
+        "https://www.google.com/search?q=" +
         encodeURIComponent(
-          lead['name'] + ' ' + lead['address']['formatted_address']
+          lead["name"] + " " + lead["address"]["formatted_address"]
         )
       );
     }
