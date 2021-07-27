@@ -75,6 +75,7 @@ export class RestaurantMapComponent implements OnInit {
   ];
   agents = [];
   geocoder = null;
+  keyword = '';
 
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
   }
@@ -184,6 +185,10 @@ export class RestaurantMapComponent implements OnInit {
       this.infoWindow.close();
       this.infoWindow.setContent('');
     });
+  }
+
+  search() {
+
   }
 
 }
