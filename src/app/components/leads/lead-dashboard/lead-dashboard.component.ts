@@ -832,37 +832,6 @@ export class LeadDashboardComponent implements OnInit {
     this._global.publishAlert(AlertType.Success, "Success");
   }
 
-  formSubmit(event) {
-    if (!this.myAddressPicker.address.place_id) {
-      return event.acknowledge("Must input address");
-    }
-
-    this.leadInEditing.address = this.myAddressPicker.address;
-
-    this.leadInEditing.address.apt = (this.addressApt || "").trim();
-    this._api
-      .post(environment.qmenuApiUrl + "generic?resource=lead", [
-        this.leadInEditing
-      ])
-      .subscribe(
-        result => {
-          event.acknowledge(null);
-          // we get ids returned
-          this.leadInEditing._id = result[0];
-          this.leads.push(new Lead(this.leadInEditing));
-          this.filterLeads = this.leads;
-          this.editingModal.hide();
-          this._global.publishAlert(
-            AlertType.Success,
-            this.leadInEditing.name + " was added"
-          );
-        },
-        error => {
-          event.acknowledge(error.json() || error);
-        }
-      );
-  }
-
   formRemove(event) { }
 
   filter() {
@@ -918,6 +887,7 @@ export class LeadDashboardComponent implements OnInit {
   async searchLeads() {
     // get all users
     const query = {};
+    this.viewType = enumViewTypes.ALL;
     this.leads.length = 0;
     this.searchFilters.map(filter => {
       switch (filter.path) {
@@ -1179,12 +1149,6 @@ export class LeadDashboardComponent implements OnInit {
         }),
       Promise.resolve()
     );
-    // parallel example
-    // this.leads
-    //   .filter(lead => this.selectionSet.has(lead._id))
-    //   .map(lead => {
-    //     this.crawlGoogle(lead);
-    //   });
   }
 
   assignOnSelected(lead_id) {
