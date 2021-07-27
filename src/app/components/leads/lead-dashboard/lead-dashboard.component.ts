@@ -33,7 +33,7 @@ export class LeadDashboardComponent implements OnInit {
 
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
 
-  viewTypes = [enumViewTypes.ALL, enumViewTypes.Contacted, enumViewTypes.ALL];
+  viewTypes = [enumViewTypes.ALL, enumViewTypes.Contacted, enumViewTypes.Uncontacted];
   viewType = enumViewTypes.ALL; // this type is used to control view filters
   users: User[];
   restaurants;
@@ -432,13 +432,13 @@ export class LeadDashboardComponent implements OnInit {
   viewFilter() {
     switch (this.viewType) {
       case enumViewTypes.ALL:
-        this.leads = this.leads.filter(lead=>{});
+        this.filterLeads = this.leads;
         break;
       case enumViewTypes.Contacted:
-
+        this.filterLeads = this.leads.filter(lead => lead.getDescSortedCallLogs().length > 0);
         break;
       case enumViewTypes.Uncontacted:
-
+        this.filterLeads = this.leads.filter(lead => lead.getDescSortedCallLogs().length === 0);
         break;
       default:
         break;
@@ -482,6 +482,7 @@ export class LeadDashboardComponent implements OnInit {
 
   sortLeads(users) {
     this.leads.sort((u1, u2) => u1.name.localeCompare(u2.name));
+    this.filterLeads = this.leads;
   }
 
   createNew() {
@@ -849,6 +850,7 @@ export class LeadDashboardComponent implements OnInit {
           // we get ids returned
           this.leadInEditing._id = result[0];
           this.leads.push(new Lead(this.leadInEditing));
+          this.filterLeads = this.leads;
           this.editingModal.hide();
           this._global.publishAlert(
             AlertType.Success,
@@ -1027,14 +1029,14 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   isAllSelected() {
-    return this.leads.every(lead => this.selectionSet.has(lead._id));
+    return this.filterLeads.every(lead => this.selectionSet.has(lead._id));
   }
 
   toggleSelectAll() {
     if (this.isAllSelected()) {
       this.selectionSet.clear();
     } else {
-      this.selectionSet = new Set(this.leads.map(lead => lead._id));
+      this.selectionSet = new Set(this.filterLeads.map(lead => lead._id));
     }
   }
 
@@ -1053,12 +1055,12 @@ export class LeadDashboardComponent implements OnInit {
   selectNonCrawled() {
     this.selectionSet.clear();
     this.selectionSet = new Set(
-      this.leads.filter(l => !l.gmbScanned).map(l => l._id)
+      this.filterLeads.filter(l => !l.gmbScanned).map(l => l._id)
     );
   }
 
   hasSelection() {
-    return this.leads.some(lead => this.selectionSet.has(lead._id));
+    return this.filterLeads.some(lead => this.selectionSet.has(lead._id));
   }
 
   crawlGoogle(lead: Lead, resolveCallback?, rejectCallback?) {
@@ -1170,7 +1172,7 @@ export class LeadDashboardComponent implements OnInit {
 
   async crawlGoogleGmbOnSelected() {
     // this has to be done sequencially otherwise overload the server!
-    this.leads.filter(lead => this.selectionSet.has(lead._id)).reduce(
+    this.filterLeads.filter(lead => this.selectionSet.has(lead._id)).reduce(
       (p: any, lead) =>
         p.then(() => {
           return this.crawlGooglePromise(lead);
@@ -1236,7 +1238,7 @@ export class LeadDashboardComponent implements OnInit {
       if (myusers.indexOf(event.object.assignee) < 0) {
         event.acknowledge("Failed to " + event.object.assignee);
       } else {
-        let lead = this.leads.find(lead => lead._id === this.selectId);
+        let lead = this.filterLeads.find(lead => lead._id === this.selectId);
 
         const clonedLead = JSON.parse(JSON.stringify(lead));
 
@@ -1285,7 +1287,7 @@ export class LeadDashboardComponent implements OnInit {
       .map(u => u.username);
     myusers.push(this._global.user.username);
 
-    let lead = this.leads.find(lead => lead._id === lead_id);
+    let lead = this.filterLeads.find(lead => lead._id === lead_id);
 
     const clonedLead = JSON.parse(JSON.stringify(lead));
     if (myusers.indexOf(clonedLead.assignee) >= 0) {
