@@ -70,7 +70,7 @@ export class ImageManagerComponent implements OnInit {
         this.filterRows = this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
         break;
       case orderByTypes.menuFrequency:
-        this.filterRows = this.filterRows.sort((a, b) => {
+        this.filterRows.sort((a, b) => {
           if(a.menuCount && b.menuCount){
             return a.menuCount - b.menuCount;
           }else if(a.menuCount && !b.menuCount){
@@ -83,7 +83,7 @@ export class ImageManagerComponent implements OnInit {
         });
         break;
       case orderByTypes.orderFrequency:
-        this.filterRows = this.filterRows.sort((a, b) => {
+        this.filterRows.sort((a, b) => {
           if(a.orderCount && b.orderCount){
             return a.orderCount - b.orderCount;
           }else if(a.orderCount && !b.orderCount){
@@ -137,7 +137,7 @@ export class ImageManagerComponent implements OnInit {
       resource: 'restaurant',
       query: this.restaurantQuery,
       projection: this.restaurantProjection,
-      limit: 1000
+      // limit: 1000
     }, 500);
     this.restaurants = restaurants;
     // calculate cuisine types
