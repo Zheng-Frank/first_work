@@ -29,6 +29,7 @@ export class ImageManagerComponent implements OnInit {
   clickedMi;
   addingNew = false;
   rows = [];
+  filterRows = [];// images items needs cuisineType filter,so we need a filterRows to record them.
   images = [];
   cuisineTypes = [];
   cuisineType = '';
@@ -52,17 +53,47 @@ export class ImageManagerComponent implements OnInit {
    await this.reload();
    await this.loadRestaurants();
   }
+  
+  filter(){
+    if(!this.cuisineType){
+      this.filterRows = this.rows;
+    }else{
+      this.filterRows = this.rows.filter(row=>row.cuisines && row.cuisines.length > 0 && row.cuisines.includes(this.cuisineType));
+    }
+    this.onChangeOrderBy();
+  }
+
   // change order by select value toggle this method.
   onChangeOrderBy() {
     switch (this.orderBy) {
       case orderByTypes.NAME:
-        this.rows = this.rows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
+        this.filterRows = this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
         break;
       case orderByTypes.menuFrequency:
-        this.rows = this.rows.sort((a, b) => ((a.menuCount || 0) > (b.menuCout || 0) ? 1 : (a.menuCount || 0) < (b.menuCout || 0) ? -1 : 0));
+        this.filterRows = this.filterRows.sort((a, b) => {
+          if(a.menuCount && b.menuCount){
+            return a.menuCount - b.menuCount;
+          }else if(a.menuCount && !b.menuCount){
+            return 1;
+          }else if(!a.menuCount && b.menuCount){
+            return -1;
+          }else{
+            return 0;
+          }
+        });
         break;
       case orderByTypes.orderFrequency:
-        this.rows = this.rows.sort((a, b) => ((a.orderCount || 0) > (b.orderCount || 0) ? 1 : (a.orderCount || 0) < (b.orderCount || 0) ? -1 : 0));
+        this.filterRows = this.filterRows.sort((a, b) => {
+          if(a.orderCount && b.orderCount){
+            return a.orderCount - b.orderCount;
+          }else if(a.orderCount && !b.orderCount){
+            return 1;
+          }else if(!a.orderCount && b.orderCount){
+            return -1;
+          }else{
+            return 0;
+          }
+        });
         break;
       default:
         break;
@@ -121,7 +152,7 @@ export class ImageManagerComponent implements OnInit {
       limit: 6000
     }).toPromise();
     this.rows = this.rows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
-    
+    this.filterRows = this.rows;
   }
 
   async deleteRow(row) {

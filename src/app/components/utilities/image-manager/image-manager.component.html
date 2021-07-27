@@ -1,18 +1,18 @@
 <div class="card">
   <h2 class="card-title m-3">
     <!-- <i [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
-    <h1 class="text-center">Manage Images ({{rows.length}})</h1>
+    <h1 class="text-center">Manage Images ({{filterRows.length}})</h1>
   </h2>
   <div class="card-body">
     <div class="row pb-2">
       <div class="col-6 text-left form-inline">
         <label class="form-check-label mr-2 ml-3">Cuisine Type
-          <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width">
+          <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width" (change)="filter()" >
             <option *ngFor="let type of cuisineTypes">{{type}}</option>
           </select>
         </label> 
         <label class="form-check-label mr-2 ml-3">Order By
-          <select [(ngModel)]="orderBy" class="form-control ml-2" (change)="onChangeOrderBy()">
+          <select [(ngModel)]="orderBy" class="form-control ml-2" (change)="filter()">
             <option *ngFor="let type of orderBys">{{type}}</option>
           </select>
         </label> 
@@ -36,7 +36,7 @@
           Delete
         </th>
       </tr>
-      <tr *ngFor="let row of rows; let i = index">
+      <tr *ngFor="let row of filterRows; let i = index">
         <td>
           {{i+1}}
         </td>
