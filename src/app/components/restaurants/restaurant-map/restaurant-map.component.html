@@ -1,1 +1,19 @@
-<div id="rt-map"></div>
+<div>
+  <div class="row mb-3">
+    <div class="col-3">
+      <label>State</label>
+      <select class="form-control" [(ngModel)]="state" (change)="drawMarkers()">
+        <option value="">All</option>
+        <option *ngFor="let s of states" [value]="s">{{s}}</option>
+      </select>
+    </div>
+    <div class="col-3">
+      <label>Agent</label>
+      <select class="form-control" [(ngModel)]="agent" (change)="drawMarkers()">
+        <option value="">All</option>
+        <option *ngFor="let user of agents" [value]="user.username">{{user.username}}</option>
+      </select>
+    </div>
+  </div>
+  <div id="rt-map"></div>
+</div>
