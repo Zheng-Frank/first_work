@@ -1205,7 +1205,7 @@ export class LeadDashboardComponent implements OnInit {
         .filter(
           u =>
             u.manager === this._global.user.username ||
-            this._global.user.roles.indexOf("Admin") >= 0 
+            this._global.user.roles.indexOf("ADMIN") >= 0
         )
         .map(u => u.username);
       myusers.push(this._global.user.username);
@@ -1256,7 +1256,7 @@ export class LeadDashboardComponent implements OnInit {
       .filter(
         u =>
           u.manager === this._global.user.username ||
-          this._global.user.roles.indexOf("Admin") >= 0
+          this._global.user.roles.indexOf("ADMIN") >= 0
       )
       .map(u => u.username);
     myusers.push(this._global.user.username);
