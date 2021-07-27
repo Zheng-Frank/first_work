@@ -1,6 +1,6 @@
 import { ViewChild } from '@angular/core';
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
-import { Address, Restaurant } from '@qmenu/ui';
+import { Address, Restaurant, TimezoneHelper } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
@@ -18,7 +18,7 @@ import { LanguageType } from 'src/app/classes/language-type';
   styleUrls: ['./restaurant-profile.component.css']
 })
 export class RestaurantProfileComponent implements OnInit, OnChanges {
-  @Input() restaurant: Restaurant;
+  @Input() restaurant;
   @Input() editable;
   @Input() users = [];
   uploadImageError: string;
@@ -67,9 +67,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'notes',
     'insistedPrintCCInfo',
     'comebackDate',
-    'serviceSettings'
+    'serviceSettings',
   ];
-
+  broadcastExpiration:string; // this value is needed to decide when shows the broadcast on customer pwa.
   uploadError: string;
 
   tipSettings = {
@@ -158,7 +158,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "DisableOrderingAhead":"如果选中此复选框，就不能产生预订单。",
       "OrderCallLanguage":"确定用于机器人调用的语言，以通知新的传入订单（英文或中文）.",
       "Logo":"（菜单编辑会处理这个问题，CSR+销售人员可以忽略）：这里上传的任何徽标都会出现在餐厅的qMenu订购网站的这两个地方。",
-      "Photos":"(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。"
+      "Photos":"(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。",
+      "BroadcastExpiration":"广播过期时间"
     },
     EnglishExplanations:{
       "Name":"Name of restaurant",
@@ -201,7 +202,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "OrderCallLanguage":"Determines the language to use for robo-calls to notify restaurants of new, incoming orders (Options: English or Chinese).",
       "Logo":" (Menu editors take care of this, CSR + sales can ignore): Any logo uploaded here will appear in these two places on the qMenu ordering site for the restaurant: 1. The qmenu.us/alias page of the restaurant, 2. ...",
       "Photos":" (Menu editors take care of this, CSR + sales can ignore): Image uploaded here will appear as the website background image on the qMenu ordering site for the restaurant.",
-
+      "BroadcastExpiration":"Broadcast Expiration"
     }
   }
 
@@ -287,6 +288,10 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     // special fields
     this.images = this.restaurant.images || [];
     this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
+    
+    // website broadcast expiration field
+    // 2021-07-15T04:00:00.000Z
+    this.broadcastExpiration = this.restaurant.broadcastExpiration.split('T')[0] || '';
   }
 
   isEmailValid() {
@@ -416,6 +421,13 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       oldObj.selfSignup = {};
       newObj.selfSignup = { registered: this.selfSignupRegistered }
       // newObj.selfSignup.registered = this.selfSignupRegistered
+    }
+    // turn 2020-09-01 to timezone form
+    const getTransformedDate = (dateString) => {
+      return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone );
+    }
+    if (this.broadcastExpiration) {
+      this.restaurant.broadcastExpiration = newObj.broadcastExpiration = getTransformedDate(this.broadcastExpiration);
     }
 
     this._prunedPatch
