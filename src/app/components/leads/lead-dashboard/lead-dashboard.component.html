@@ -14,23 +14,33 @@
 </div>
 
 <h1 class="text-center">Lead Management</h1>
-<div class="text-right pb-2">
-  Total: {{leads.length}}
-  <!-- selected search filters -->
-  <ng-container *ngFor="let filter of searchFilters">
-    <button class="btn btn-outline-success" (click)="removeFilter(filter)">{{filter.value}}
-      <span class="text-danger">✕</span>
-    </button>
-  </ng-container>
+<div class="row">
+  <div class="form-inline text-left">
+    <label class="form-check-label mr-2 ml-3">View 
+      <select [(ngModel)]="viewType" class="form-control ml-2 limit-select-width">
+        <option *ngFor="let type of viewTypes">{{type}}</option>
+      </select>
+    </label>
+  </div>
+  <div class="text-right">
+    Total: {{leads.length}}
+    <!-- selected search filters -->
+    <ng-container *ngFor="let filter of searchFilters">
+      <button class="btn btn-outline-success" (click)="removeFilter(filter)">{{filter.value}}
+        <span class="text-danger">✕</span>
+      </button>
+    </ng-container>
 
-  <button class="btn btn-info" (click)="filter()">
-    <i class="fas fa-filter"></i> Filter</button>
-  <button class="btn btn-primary" (click)="scanNew()">+ Scan New Lead</button>
+    <button class="btn btn-info" (click)="filter()">
+      <i class="fas fa-filter"></i> Filter</button>
+    <button class="btn btn-primary" (click)="scanNew()">+ Scan New Lead</button>
 
-  <!-- <button class="btn btn-info" (click)="filter()">
-    <i class="fas fa-filter"></i> Filter</button>
-  <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button> -->
+    <!-- <button class="btn btn-info" (click)="filter()">
+      <i class="fas fa-filter"></i> Filter</button>
+    <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button> -->
+  </div>
 </div>
+
 
 
 

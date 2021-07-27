@@ -13,7 +13,11 @@ import { Address } from "@qmenu/ui";
 import { User } from "../../../classes/user";
 import { Helper } from "../../../classes/helper";
 const FOUR_DAYS = 86400000 * 4; // 4 days
-
+enum enumViewTypes {
+  ALL = 'All',
+  Contacted = 'Contacted',
+  Uncontacted = 'Uncontacted'
+}
 @Component({
   selector: "app-lead-dashboard",
   templateUrl: "./lead-dashboard.component.html",
@@ -29,6 +33,8 @@ export class LeadDashboardComponent implements OnInit {
 
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
 
+  viewTypes = [enumViewTypes.ALL, enumViewTypes.Contacted, enumViewTypes.ALL];
+  viewType = enumViewTypes.ALL; // this type is used to control view filters
   users: User[];
   restaurants;
   addressApt = null;
@@ -40,6 +46,7 @@ export class LeadDashboardComponent implements OnInit {
   apiRequesting = false;
 
   leads: Lead[] = [];
+  filterLeads: Lead[] = [];
   selectionSet = new Set();
 
   showSelectOptions = false;
@@ -421,6 +428,23 @@ export class LeadDashboardComponent implements OnInit {
         }
       );
   }
+  // sales person 
+  viewFilter() {
+    switch (this.viewType) {
+      case enumViewTypes.ALL:
+        this.leads = this.leads.filter(lead=>{});
+        break;
+      case enumViewTypes.Contacted:
+
+        break;
+      case enumViewTypes.Uncontacted:
+
+        break;
+      default:
+        break;
+    }
+  }
+
 
   resetRating() {
     // we need to parse float out of the rating settings
