@@ -28,7 +28,6 @@ export class MonitoringPromotionComponent implements OnInit {
   coupons = [];
   checkedCoupons = [];
   failedTypes = [];
-  scrapedRegex = /^\[Scraped: (\w+)]/;
   scrapedOnly = false;
 
 
@@ -43,7 +42,8 @@ export class MonitoringPromotionComponent implements OnInit {
   scrapedToggle(e) {
     const {target: {checked}} = e;
     if (checked) {
-      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(p => this.scrapedRegex.test(p.name)));
+      // @ts-ignore
+      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(p => !!p.source));
     } else {
       this.filter();
     }
@@ -100,9 +100,9 @@ export class MonitoringPromotionComponent implements OnInit {
     let count = 0, provider;
 
     (promotions || []).forEach(x => {
-      if (this.scrapedRegex.test(x.name)) {
+      if (!!x.source) {
         count++;
-        provider = (x.name.match(this.scrapedRegex) || [])[1];
+        provider = x.source;
       }
     });
     if (count) {
@@ -171,7 +171,7 @@ export class MonitoringPromotionComponent implements OnInit {
   async approve(promotion) {
     let {promotions} = this.restaurant;
     promotions = JSON.parse(JSON.stringify(promotions));
-    promotion.name = promotion.name.replace(this.scrapedRegex, '').trim();
+    promotion.source = undefined;
     promotion.expiry = undefined;
     await this.updatePromotion(promotions);
   }
@@ -204,7 +204,7 @@ export class MonitoringPromotionComponent implements OnInit {
   stat(rts) {
     this.rts = rts.filter(rt => {
       return !rt.promotions || !rt.promotions.length
-        || rt.promotions.some(x => this.scrapedRegex.test(x.name))
+        || rt.promotions.some(x => !!x.source)
         || (rt.promotions.every(p => p.expiry && new Date(p.expiry).valueOf() < Date.now()));
     });
 
