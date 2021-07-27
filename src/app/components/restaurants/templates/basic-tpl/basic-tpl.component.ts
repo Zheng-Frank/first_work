@@ -204,42 +204,71 @@ export class BasicTplComponent implements OnInit {
         new: newRestaurant
       }]).toPromise();
 
-      this._global.publishAlert(AlertType.Success, 'Image uploaded suceesfuly. Publishing to AWS now...');
+      this._global.publishAlert(AlertType.Success, 'Image uploaded successfully. Publishing to AWS now...');
 
+      await this.republishToAWS();
 
-      // --- Re publish changes
-      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-      const templateName = this.restaurant.web.templateName;
-      const restaurantId = this.restaurant._id;
-
-      if (!templateName || !domain) {
-        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
-      }
-
-      if (domain.indexOf('qmenu.us') >= 0) {
-        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
-      }
-
-      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
-        domain,
-        templateName,
-        restaurantId
-      }).toPromise();
-
-      // --- Invalidate domain
-      const result = await this._api.post(environment.appApiUrl + 'events',
-        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
-      ).toPromise();
-
-      console.log('uploadHeaderImage() nvalidation result:', result);
-
-      this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS successfully');
+      this._global.publishAlert(AlertType.Success, 'Header Slider Image(s) published to AWS successfully');
 
     } catch (error) {
       await this.refresh();
       this._global.publishAlert(AlertType.Danger, 'Error uploading image');
       console.error(error);
     }
+
+    // try {
+    //   // --- Upload Image
+    //   this.headerImage = event;
+    //
+    //   const { Location: url }: any = await Helper.uploadImage(this.headerImage, this._api, this._http);
+    //   this.headerSliderImages[index] = url;
+    //
+    //   // --- Save to DB
+    //   const newRestaurant = JSON.parse(JSON.stringify(this.restaurant));
+    //
+    //   newRestaurant.web.template.headerSlider = this.headerSliderImages;
+    //
+    //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+    //     old: { _id: this.restaurant['_id'] },
+    //     new: newRestaurant
+    //   }]).toPromise();
+    //
+    //   this._global.publishAlert(AlertType.Success, 'Image uploaded suceesfuly. Publishing to AWS now...');
+    //
+    //
+    //   // --- Re publish changes
+    //   const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
+    //   const templateName = this.restaurant.web.templateName;
+    //   const restaurantId = this.restaurant._id;
+    //
+    //   if (!templateName || !domain) {
+    //     return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
+    //   }
+    //
+    //   if (domain.indexOf('qmenu.us') >= 0) {
+    //     return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
+    //   }
+    //
+    //   await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
+    //     domain,
+    //     templateName,
+    //     restaurantId
+    //   }).toPromise();
+    //
+    //   // --- Invalidate domain
+    //   const result = await this._api.post(environment.appApiUrl + 'events',
+    //     [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
+    //   ).toPromise();
+    //
+    //   console.log('uploadHeaderImage() nvalidation result:', result);
+    //
+    //   this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS successfully');
+    //
+    // } catch (error) {
+    //   await this.refresh();
+    //   this._global.publishAlert(AlertType.Danger, 'Error uploading image');
+    //   console.error(error);
+    // }
   }
 
   async deleteHeaderSliderImage() {
@@ -619,7 +648,7 @@ export class BasicTplComponent implements OnInit {
       .replace(/&/g, '&amp;');
   }
 
-  desanitizeText(text) {
+  desanitizeText(text = '') {
     return text
       .replace(/&apos;/g, "'")
       .replace(/&amp;/g, '&');
