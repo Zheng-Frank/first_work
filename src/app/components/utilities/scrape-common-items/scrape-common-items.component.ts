@@ -49,7 +49,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
         this.scrapingFlag = true;
         this.scrapingTopItems.length = 0;
         this.existingTopItems.length = 0;
-        let mFRestaurants = this.restaurants.filter(restaurant => restaurant.menus && restaurant.googleListing.cuisine === this.cuisineType);
+        let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
         let mFMis = [];
         mFRestaurants.forEach(restaurant => {
           restaurant.menus.forEach(menu => {
@@ -64,25 +64,27 @@ export class ScrapeCommonItemsComponent implements OnInit {
         });
         let miNames = [];
         mFMis.forEach(mi => {
-          let flag = miNames.some(miName => miName.name === mi.name);
-          if (mi.name && !flag) {
-            let cuisines = [this.cuisineType];
-            // only filter the restaurant cuisine which in cuisine types array.
-            miNames.push({
-              name: mi.name,
-              mi: mi, // we need its imagesObj as follow.
-              count: 1,
-              cuisines: cuisines
-            });
-          } else if (mi.name && flag) {
-            let existNames = miNames.find(miName => miName.name === mi.name);
-            existNames.count++;
+          if (mi.name) {
+            let item = miNames.find(x => x.name === mi.name);
+            if (!item) {
+              let cuisines = [this.cuisineType];
+              // only filter the restaurant cuisine which in cuisine types array.
+              miNames.push({
+                name: mi.name,
+                mi: mi, // we need its imagesObj as follow.
+                count: 1,
+                cuisines: cuisines
+              });
+            } else {
+              item.count++;
+            }
           }
         });
 
         // scrapingTopItems only needs the name field that is not in the origin array.
         miNames = miNames.sort((a, b) => a.count - b.count);
-        miNames = this.scrapingTopItemsNumber < miNames.length ? miNames.sort((a, b) => a.count - b.count).slice(0, this.scrapingTopItemsNumber) : miNames.sort((a, b) => a.count - b.count).slice(0, miNames.length);
+        miNames = this.scrapingTopItemsNumber < miNames.length ?
+          miNames.slice(0, this.scrapingTopItemsNumber) : miNames.slice(0);
         let mFExistsNames = this.existsImageItems.filter(item => item.aliases);
 
         this.scrapingTopItems = miNames.filter(item => {
@@ -97,20 +99,20 @@ export class ScrapeCommonItemsComponent implements OnInit {
               // 2 contains 1 or 1 contains 2
               if (existName === name) {
                 if (!this.existingTopItems.includes(mFExistsNames[i])) {
-                  // update exist image item cuisine 
+                  // update exist image item cuisine
                   if (mFExistsNames[i].cuisines) {
                     mFExistsNames[i].cuisines = mFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
                     mFExistsNames[i].cuisines.push(this.cuisineType);
                   } else {
                     mFExistsNames[i].cuisines = [];
                   }
-                  // update menu count 
+                  // update menu count
                   if (mFExistsNames[i].menuCount) {
                     mFExistsNames[i].menuCount = item.count;
                   } else {
                     mFExistsNames[i].menuCount = 0;
                   }
-                  // update order count 
+                  // update order count
                   if (mFExistsNames[i].orderCount) {
                     mFExistsNames[i].orderCount = item.mi.orderCount
                   } else {
@@ -162,7 +164,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
         });
         // scrapingTopItems needs this follow array.
         // field that is in the origin array
-        // we filter it and update its' field includes cuisines, orderCount, menuCount 
+        // we filter it and update its' field includes cuisines, orderCount, menuCount
         oFMis = this.scrapingTopItemsNumber < oFMis.length ? oFMis.sort((mi1, mi2) => mi1.orderNumber - mi2.orderNumber).slice(0, this.scrapingTopItemsNumber) : oFMis.sort((mi1, mi2) => mi1.orderNumber - mi2.orderNumber).slice(0, oFMis.length);
         let oFExistsNames = this.existsImageItems.filter(item => item.aliases);
 
@@ -178,7 +180,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
               // 2 contains 1 or 1 contains 2
               if (existName === name) {
                 if (!this.existingTopItems.includes(oFExistsNames[i])) {
-                  // update exist image item cuisine 
+                  // update exist image item cuisine
                   if (oFExistsNames[i].cuisines) {
                     oFExistsNames[i].cuisines = oFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
                     oFExistsNames[i].cuisines.push(this.cuisineType);
@@ -189,7 +191,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
                   if (!oFExistsNames[i].menuCount) {
                     oFExistsNames[i].menuCount = 0;
                   }
-                  // update order count 
+                  // update order count
                   if (oFExistsNames[i].orderCount) {
                     oFExistsNames[i].orderCount = mi.orderCount;
                   } else {
