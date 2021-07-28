@@ -181,7 +181,7 @@ export class RestaurantMapComponent implements OnInit {
     }
     this.clearMap(this.searchedMarkers);
     this.placeService.nearbySearch({
-      query: this.keyword, radius: '5000', location: this.map.getCenter(), type: ['restaurant']
+      query: this.keyword, bounds: this.map.getBounds(), type: ['restaurant']
     }, (results, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK) {
         this.markSearched(results);
