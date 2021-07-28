@@ -78,7 +78,8 @@ export class GmbAccountListComponent implements OnInit {
         "locations.role": 1,
         disabled: 1,
         isAgencyAcct: 1,
-        isYelpEmail: 1
+        isYelpEmail: 1,
+        isDefenseAccount: 1
       }
     }, 35);
     // add 24 hours suspended and duplicate!
@@ -200,7 +201,8 @@ export class GmbAccountListComponent implements OnInit {
       comments: gmb.comments,
       disabled: gmb.disabled,
       isAgencyAcct: gmb.isAgencyAcct,
-      isYelpEmail: gmb.isYelpEmail
+      isYelpEmail: gmb.isYelpEmail,
+      isDefenseAccount: gmb.isDefenseAccount
     } as any;
 
     if (gmb.recoveryEmail) {
