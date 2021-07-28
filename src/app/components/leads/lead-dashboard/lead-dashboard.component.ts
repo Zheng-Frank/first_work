@@ -1200,7 +1200,7 @@ export class LeadDashboardComponent implements OnInit {
         .map(u => u.username);
       myusers.push(this._global.user.username);
       if (myusers.indexOf(event.object.assignee) < 0) {
-        event.acknowledge("Failed to " + event.object.assignee);
+        event.acknowledge("Failed to assign to" + event.object.assignee);
       } else {
         let lead = this.filterLeads.find(lead => lead._id === this.selectId);
 
@@ -1274,7 +1274,7 @@ export class LeadDashboardComponent implements OnInit {
     } else {
       this._global.publishAlert(
         AlertType.Danger,
-        "Failed to unassign " + clonedLead.assignee
+        "Failed to unassign."
       );
     }
   }
