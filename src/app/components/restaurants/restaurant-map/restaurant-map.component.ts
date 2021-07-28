@@ -122,10 +122,13 @@ export class RestaurantMapComponent implements OnInit {
         return;
       }
 
+      let icon = './assets/icons/marker-blue.svg';
+      if (Helper.getSalesAgent(rt.rateSchedules, this.agents) === this._global.user.username) {
+        icon = './assets/icons/marker-cyan.svg';
+      }
+
       const marker = new google.maps.Marker({
-        position: {lat, lng},
-        title: rt.name,
-        map: this.map
+        position: {lat, lng}, title: rt.name, map: this.map, icon
       });
       marker.addListener('click', () => {
         this.infoWindow.setContent(`<div><h3>${rt.name}</h3><div>${rt.googleAddress.formatted_address}</div></div>`);
@@ -146,8 +149,8 @@ export class RestaurantMapComponent implements OnInit {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
           const marker = new google.maps.Marker({
             position: item.geometry.location,
-            title: item.name,
-            map: this.map
+            title: item.name, map: this.map,
+            icon: './assets/icons/marker-red.svg'
           });
           marker.addListener('click', () => {
             this.infoWindow.setContent(`<div><h3>${item.name}</h3><div>${place.formatted_address}</div></div>`);
