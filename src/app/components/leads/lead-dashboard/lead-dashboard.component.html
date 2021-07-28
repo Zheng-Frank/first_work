@@ -16,11 +16,15 @@
 <h1 class="text-center">Lead Management</h1>
 <div class="row pb-2">
   <div class="col-6 form-inline text-left">
-    <label class="form-check-label mr-2 ml-3">View 
+    <label class="form-check-label mr-2 ml-3">View
       <select [(ngModel)]="viewType" class="form-control ml-2 limit-select-width" (change)="viewFilter()">
         <option *ngFor="let type of viewTypes">{{type}}</option>
       </select>
     </label>
+    <button type="button" class="btn btn-link ml-3" (click)="showMoreFunction = !showMoreFunction">
+      {{ showMoreFunction?'Hide more function...':'Show more function...'}}</button>
+    <button *ngIf="showMoreFunction" type="button" class="btn btn-link ml-3" (click)="openRemoveRTModal()">
+      Remove Chain Restaurant</button>
   </div>
   <div class="col-6 text-right">
     Total: {{filterLeads.length}}
@@ -348,3 +352,73 @@
     (submit)="assigneeSubmit($event)" (cancel)="assigneeModal.hide()">
   </q-form-builder>
 </q-modal>
+
+<!-- start with remove restaurant modal -->
+<q-modal #removeRTModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">Remove Chain Restaurants</h4>
+  <hr>
+  <div class="container">
+    <div class="row mb-3">
+      All restaurants with the following name will be removed from our leads.
+    </div>
+    <div class="row">
+      <input type="text" class="form-control" [(ngModel)]="searchDelRTText" placeholder="Chain Name">
+    </div>
+    <div class="row mb-3">
+      <button type="button" class="btn btn-link ml-3" (click)="searchDelRTInLeads()">
+        Preview consequences</button>
+    </div>
+    <div class="row mb-3">
+      <span class="text-danger">{{chainDelRestaurants.length}} records found,of which {{getContactedDelRTCount()}} call
+        logs/correspondences.</span>
+    </div>
+    <div class="row" *ngIf="chainDelRestaurants.length > 0">
+      <table class="table table-sms">
+        <thead>
+          <th>
+            <input type="checkbox" [(ngModel)]="checkAllDelChainRT" (change)="onCheckAllDelChainRT()">
+          </th>
+          <th>
+            Name
+          </th>
+          <th>
+            Having Logs
+          </th>
+        </thead>
+        <tbody>
+          <tr *ngFor="let restaurant of chainDelRestaurants">
+            <td>
+              <input type="checkbox" [checked]="restaurant.beChecked" (change)="onCheckDelChainRT(restaurant)">
+            </td>
+            <td>
+              {{restaurant.name}}
+              <span class="text-muted" *ngIf="restaurant.oldName">
+                <br>
+                <small>{{restaurant.oldName}}</small>
+              </span>
+            </td>
+            <td>
+              {{restaurant.getDescSortedCallLogs().length > 0}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row mb-3">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="removeLeadsNoLogs"
+        (change)="onCheckDelChainRTWithoutLogs()">
+      Remove only leads without logs.
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end p-4">
+    <button class="btn btn-secondary mr-2" (click)="removeRTModal.hide()">Cancel</button>
+    <button class="btn btn-primary" [disabled]="chainDelRestaurants.length === 0"
+      (click)="removeRTInLeads()">Remove</button>
+  </div>
+
+</q-modal>
+<!-- end with remove restaurant modal-->

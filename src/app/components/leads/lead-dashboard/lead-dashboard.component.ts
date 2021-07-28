@@ -30,9 +30,14 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("filterModal") filterModal: ModalComponent;
   @ViewChild("viewModal") viewModal: ModalComponent;
   @ViewChild("callModal") callModal: ModalComponent;
-
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
+  @ViewChild("removeRTModal") removeRTModal: ModalComponent;
 
+  checkAllDelChainRT = false; // this flag is used to check chain restaurants which will be deleted.
+  removeLeadsNoLogs = false; // if the value is true,we need to filter which has no logs.
+  chainDelRestaurants = []; // the field is the chain restaurants which needs to be deleted.
+  searchDelRTText = ''; // try to search the name of removed chain restaurant.
+  showMoreFunction = false; // show remove chain restaurant function.
   viewTypes = [enumViewTypes.ALL, enumViewTypes.Contacted, enumViewTypes.Uncontacted];
   viewType = enumViewTypes.ALL; // this type is used to control view filters
   users: User[];
@@ -428,6 +433,71 @@ export class LeadDashboardComponent implements OnInit {
         }
       );
   }
+  // when the checkbox is checked, we only checked the chains without logs.
+  onCheckDelChainRTWithoutLogs() {
+    this.checkAllDelChainRT = false;
+    if(this.removeLeadsNoLogs){
+      this.chainDelRestaurants.filter(chain => chain.getDescSortedCallLogs().length > 0 ? chain.beChecked = true:chain.beChecked = undefined);
+    }else{
+      this.onCheckAllDelChainRT();
+    }
+  }
+  // a table row be checked, then will be deleted in lead
+  onCheckDelChainRT(restaurant) {
+    restaurant.beChecked = !restaurant.beChecked;
+  }
+  // all table rows be checked, then will be deleted in lead
+  onCheckAllDelChainRT() {
+    this.chainDelRestaurants.forEach(c => c.beChecked = this.checkAllDelChainRT);
+  }
+  private getCheckedDelChainCount(){
+    return this.chainDelRestaurants.filter(chain => chain.beChecked).length;
+  }
+  // the function is used to remove chain restaurant in restaurant
+  async removeRTInLeads() {
+    if(this.getCheckedDelChainCount() === 0){
+      return this._global.publishAlert(AlertType.Danger, 'Please check one at least!');
+    }
+    let delChains = this.chainDelRestaurants.filter(chain => chain.beChecked).map(c => c._id);
+    await this._api.delete(environment.qmenuApiUrl + 'generic', {
+      resource: 'lead',
+      ids: delChains
+    }).toPromise();
+    this.removeRTModal.hide();
+    this.searchLeads();
+  }
+  
+  getContactedDelRTCount() {
+    return this.chainDelRestaurants.filter(chain => chain.getDescSortedCallLogs().length > 0).length;
+  }
+
+  // the function is used to search rts which need to delete in leads table.
+  async searchDelRTInLeads() {
+    if (!this.searchDelRTText) {
+      return this._global.publishAlert(AlertType.Danger, 'Please input chain restaurant name!');
+    }
+    const query = {
+      name: {
+        $regex:this.searchDelRTText
+      }
+    };
+    this.chainDelRestaurants.length = 0;
+    this.chainDelRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'lead',
+      query: query,
+      limit: 10000
+    }, 3000);
+    this.chainDelRestaurants = this.chainDelRestaurants.map(u=>new Lead(u));
+  }
+  // remove rt modal is used to remove some out-of-date data in lead table.
+  openRemoveRTModal() {
+    this.checkAllDelChainRT = false;
+    this.removeLeadsNoLogs = false;
+    this.searchDelRTText = '';
+    this.chainDelRestaurants.length = 0;
+    this.removeRTModal.show();
+  }
+
   // sales person 
   viewFilter() {
     switch (this.viewType) {
