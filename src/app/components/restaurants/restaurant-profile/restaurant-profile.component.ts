@@ -236,27 +236,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   toggleNotificationExpiry(){
     if(!this.controlExpiry){
       this.notificationExpiry = null;
-      this._prunedPatch
-      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-        {
-          old: {_id:this.restaurant._id},
-          new: {_id:this.restaurant._id,notificationExpiry:null}
-        }])
-      .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            'Updated successfully'
-          );
-  
-          // assign new values to restaurant
-          this.restaurant.notificationExpiry = this.notificationExpiry;
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, 'Error updating to DB');
-        }
-      );
     }
   }
 
@@ -321,7 +300,11 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     // 2021-07-15T04:00:00.000Z
     if(this.restaurant.notificationExpiry){
       this.controlExpiry = true; // contorls whether the switch is turned on 
-      this.notificationExpiry = this.restaurant.notificationExpiry.split('T')[0] || '';
+      if(typeof this.restaurant.notificationExpiry === "string"){ // when this.restaurant.notificationExpiry comes from api call, it is data type of string
+        this.notificationExpiry = this.restaurant.notificationExpiry.split('T')[0];
+      }else{ // this.restaurant.notificationExpiry is type of date
+        this.notificationExpiry = this.restaurant.notificationExpiry.toISOString().split('T')[0];
+      }
     }else{
       this.controlExpiry = false;
     }
@@ -459,8 +442,11 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     const getTransformedDate = (dateString) => {
       return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone );
     }
-    if (this.notificationExpiry) {
-      this.restaurant.notificationExpiry = newObj.notificationExpiry = getTransformedDate(this.notificationExpiry);
+   
+    if (this.controlExpiry && this.notificationExpiry) {
+      newObj.notificationExpiry = getTransformedDate(this.notificationExpiry);
+    }else{
+      newObj.notificationExpiry = null;
     }
 
     this._prunedPatch
@@ -480,9 +466,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
           // assign new values to restaurant
           this.fields.map(f => this.restaurant[f] = newObj[f]);
           if (this.restaurant.selfSignup) {
-            this.restaurant.selfSignup.registered = this.selfSignupRegistered
-          };
-
+            this.restaurant.selfSignup.registered = this.selfSignupRegistered;
+          }
+          this.restaurant.notificationExpiry = newObj.notificationExpiry;
           this.editing = false;
         },
         error => {
