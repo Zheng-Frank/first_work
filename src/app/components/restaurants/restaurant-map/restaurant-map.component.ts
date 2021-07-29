@@ -20,7 +20,6 @@ export class RestaurantMapComponent implements OnInit {
   map = null;
   markers = [];
   infoWindow = null;
-  markerClusterer = null;
   state = 'GA';
   agent = '';
   states = [
