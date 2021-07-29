@@ -121,7 +121,7 @@
           </span>
         </div>
       </div>
-      <div class="coupon-action" *ngIf="scrapedRegex.test(promotion.name)">
+      <div class="coupon-action" *ngIf="!!promotion.source">
         <button class="btn btn-primary btn-sm" (click)="approve(promotion)">Approve</button>
         <button class="btn btn-primary btn-sm" (click)="reject(promotion)">Reject</button>
       </div>

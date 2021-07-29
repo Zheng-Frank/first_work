@@ -856,7 +856,8 @@ export class LeadDashboardComponent implements OnInit {
       });
     }
 
-    this.searchLeads(event.acknowledge);
+    this.searchLeads();
+    event.acknowledge();
     this.filterModal.hide();
     this._global.storeSet("searchFilters", this.searchFilters);
   }
@@ -888,7 +889,7 @@ export class LeadDashboardComponent implements OnInit {
     this._global.storeSet("searchFilters", this.searchFilters);
   }
 
-  async searchLeads(acknowledge?) {
+  async searchLeads() {
     // get all users
     const query = {};
     this.leads.length= 0;
@@ -956,7 +957,7 @@ export class LeadDashboardComponent implements OnInit {
     });
 
     this.leads = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'lead', 
+      resource: 'lead',
       query: query,
       limit: 10000
     }, 3000)
@@ -1165,7 +1166,7 @@ export class LeadDashboardComponent implements OnInit {
     this.assigneeModal.show();
   }
 
-  sumbitCallLog(event) {
+  submitCallLog(event) {
     const leadClone = new Lead(this.selectedLead);
     //Assign to the current user by default if edit in leads table
     leadClone.assignee = this._global.user.username;
