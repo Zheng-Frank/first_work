@@ -69,7 +69,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'comebackDate',
     'serviceSettings',
   ];
-  broadcastExpiration:string; // this value is needed to decide when shows the broadcast on customer pwa.
+  controlExpiry = true; // a flag to contorl broadcast expiry date input showing or not.
+  notificationExpiry:string; // this value is needed to decide when shows the broadcast on customer pwa.
   uploadError: string;
 
   tipSettings = {
@@ -231,6 +232,33 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     }
     this.tipSettingsInit();
   }
+   // when q-toggle is checked, the notificationExpiry should be setted null
+  toggleNotificationExpiry(){
+    if(!this.controlExpiry){
+      this.notificationExpiry = null;
+      this._prunedPatch
+      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+        {
+          old: {_id:this.restaurant._id},
+          new: {_id:this.restaurant._id,notificationExpiry:null}
+        }])
+      .subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          this._global.publishAlert(
+            AlertType.Success,
+            'Updated successfully'
+          );
+  
+          // assign new values to restaurant
+          this.restaurant.notificationExpiry = this.notificationExpiry;
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error updating to DB');
+        }
+      );
+    }
+  }
 
   // a small function we can preview website when we edit it.
   previewWebsite(){
@@ -291,7 +319,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     
     // website broadcast expiration field
     // 2021-07-15T04:00:00.000Z
-    this.broadcastExpiration = this.restaurant.broadcastExpiration.split('T')[0] || '';
+    if(this.restaurant.notificationExpiry){
+      this.controlExpiry = true; // contorls whether the switch is turned on 
+      this.notificationExpiry = this.restaurant.notificationExpiry.split('T')[0] || '';
+    }else{
+      this.controlExpiry = false;
+    }
   }
 
   isEmailValid() {
@@ -426,8 +459,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     const getTransformedDate = (dateString) => {
       return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone );
     }
-    if (this.broadcastExpiration) {
-      this.restaurant.broadcastExpiration = newObj.broadcastExpiration = getTransformedDate(this.broadcastExpiration);
+    if (this.notificationExpiry) {
+      this.restaurant.notificationExpiry = newObj.notificationExpiry = getTransformedDate(this.notificationExpiry);
     }
 
     this._prunedPatch
