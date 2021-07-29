@@ -50,15 +50,15 @@ export class ImageManagerComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
-   await this.reload();
-   await this.loadRestaurants();
+    await this.reload();
+    await this.loadRestaurants();
   }
-  
-  filter(){
-    if(!this.cuisineType){
+
+  filter() {
+    if (!this.cuisineType) {
       this.filterRows = this.rows;
-    }else{
-      this.filterRows = this.rows.filter(row=>row.cuisines && row.cuisines.length > 0 && row.cuisines.includes(this.cuisineType));
+    } else {
+      this.filterRows = this.rows.filter(row => row.cuisines && row.cuisines.length > 0 && row.cuisines.includes(this.cuisineType));
     }
     this.onChangeOrderBy();
   }
@@ -67,33 +67,13 @@ export class ImageManagerComponent implements OnInit {
   onChangeOrderBy() {
     switch (this.orderBy) {
       case orderByTypes.NAME:
-        this.filterRows = this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
+        this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
         break;
       case orderByTypes.menuFrequency:
-        this.filterRows.sort((a, b) => {
-          if(a.menuCount && b.menuCount){
-            return a.menuCount - b.menuCount;
-          }else if(a.menuCount && !b.menuCount){
-            return 1;
-          }else if(!a.menuCount && b.menuCount){
-            return -1;
-          }else{
-            return 0;
-          }
-        });
+        this.filterRows.sort((a, b) => (a.menuCount || 0) - (b.menuCount || 0));
         break;
       case orderByTypes.orderFrequency:
-        this.filterRows.sort((a, b) => {
-          if(a.orderCount && b.orderCount){
-            return a.orderCount - b.orderCount;
-          }else if(a.orderCount && !b.orderCount){
-            return 1;
-          }else if(!a.orderCount && b.orderCount){
-            return -1;
-          }else{
-            return 0;
-          }
-        });
+        this.filterRows.sort((a, b) => (a.orderCount || 0) - (b.orderCount || 0));
         break;
       default:
         break;
@@ -102,7 +82,7 @@ export class ImageManagerComponent implements OnInit {
 
   // this function is used to add some new common items to images table.
   async handleImportItems(Items) {
-    let {existItems,newItems} = Items;
+    let { existItems, newItems } = Items;
     this.scrapeItemsModal.hide();
     await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', newItems).toPromise();
     let tempExistingItems = existItems.map(item => item._id);
@@ -132,12 +112,11 @@ export class ImageManagerComponent implements OnInit {
     setTimeout(() => { this.modalZoom.show(); }, 0);
   }
 
-  async loadRestaurants(){
+  async loadRestaurants() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: this.restaurantQuery,
-      projection: this.restaurantProjection,
-      // limit: 1000
+      projection: this.restaurantProjection
     }, 500);
     this.restaurants = restaurants;
     // calculate cuisine types
@@ -151,8 +130,8 @@ export class ImageManagerComponent implements OnInit {
       resource: 'image',
       limit: 6000
     }).toPromise();
-    this.rows = this.rows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
     this.filterRows = this.rows;
+    this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
   }
 
   async deleteRow(row) {

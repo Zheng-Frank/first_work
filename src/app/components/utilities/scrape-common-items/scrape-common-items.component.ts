@@ -43,44 +43,42 @@ export class ScrapeCommonItemsComponent implements OnInit {
         // the miName records the count of a menu item which disappear in the restaurant menu.
         // like {
         // name:'mi.name',
+        // mi:mi
         // count:1 ,
         // cuisines:[]
         // }
         this.scrapingFlag = true;
         this.scrapingTopItems.length = 0;
         this.existingTopItems.length = 0;
+        // only filter the restaurants of this cuisine type(current selected).
         let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
-        let mFMis = [];
+        if(mFRestaurants.length > 500){
+          mFRestaurants = mFRestaurants.slice(0,500);
+        }
+        let miNames = [];
         mFRestaurants.forEach(restaurant => {
           restaurant.menus.forEach(menu => {
             menu.mcs.forEach(mc => {
               mc.mis.forEach(mi => {
-                if (mFMis.indexOf(mi) === -1 && mi.name) {
-                  mFMis.push(mi);
+                if(mi.name){
+                  let item = miNames.find(x => x.name === mi.name);
+                  if (!item && mi.name) {
+                    let cuisines = [this.cuisineType];
+                    miNames.push({
+                      name: mi.name,
+                      mi: mi, // we need its orderCount as follow.
+                      count: 1,
+                      cuisines: cuisines
+                    });
+                  }else{
+                    item.count++;
+                  }
                 }
               });
             });
           });
         });
-        let miNames = [];
-        mFMis.forEach(mi => {
-          if (mi.name) {
-            let item = miNames.find(x => x.name === mi.name);
-            if (!item) {
-              let cuisines = [this.cuisineType];
-              // only filter the restaurant cuisine which in cuisine types array.
-              miNames.push({
-                name: mi.name,
-                mi: mi, // we need its imagesObj as follow.
-                count: 1,
-                cuisines: cuisines
-              });
-            } else {
-              item.count++;
-            }
-          }
-        });
-
+        
         // scrapingTopItems only needs the name field that is not in the origin array.
         miNames = miNames.sort((a, b) => a.count - b.count);
         miNames = this.scrapingTopItemsNumber < miNames.length ?
@@ -162,6 +160,9 @@ export class ScrapeCommonItemsComponent implements OnInit {
             });
           });
         });
+        if(oFRestaurants.length > 2000){
+          oFRestaurants = oFRestaurants.slice(0,2000);
+        }
         // scrapingTopItems needs this follow array.
         // field that is in the origin array
         // we filter it and update its' field includes cuisines, orderCount, menuCount

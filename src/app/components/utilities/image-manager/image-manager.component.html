@@ -42,6 +42,10 @@
         </td>
         <td>
           <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
+          <div class="row ml-1 mt-2" *ngIf="row.menuCount || row.orderCount">
+              <span *ngIf="row.menuCount" class="mr-2">Menu Frequency: {{row.menuCount}}</span>
+              <span *ngIf="row.orderCount">Order Frequency: {{row.orderCount}}</span>
+          </div>
         </td>
         <td class="pl-1">
           <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
