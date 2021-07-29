@@ -27,7 +27,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
   scrapingTopItems = [];
   existingTopItems = [];
   basedOns = [basedOnTypes.menuFrequency, basedOnTypes.orderFrequency];
-  basedOn = basedOnTypes.menuFrequency;
+  basedOn = basedOnTypes.orderFrequency;
   scrapingFlag = false;
   constructor(private _global: GlobalService) { }
 
