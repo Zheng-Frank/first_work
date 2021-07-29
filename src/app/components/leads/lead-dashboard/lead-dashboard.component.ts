@@ -438,7 +438,7 @@ export class LeadDashboardComponent implements OnInit {
   }
   // when the checkbox is checked, we only checked the chains without logs.
   onCheckDelChainRTWithoutLogs() {
-    this.removeLeadsNoLogs ? this.chainDelRestaurants.filter(chain => chain.getDescSortedCallLogs().length > 0 ? chain.beChecked = undefined : chain.beChecked = true) : this.chainDelRestaurants.forEach(chain => chain.beChecked = undefined);
+    this.removeLeadsNoLogs ? this.chainDelRestaurants.forEach(chain => chain.getDescSortedCallLogs().length > 0 ? chain.beChecked = undefined : chain.beChecked = true) : this.chainDelRestaurants.forEach(chain => chain.beChecked = undefined);
   }
   // a table row be checked, then will be deleted in lead
   onCheckDelChainRT(restaurant) {
