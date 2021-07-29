@@ -22,6 +22,7 @@ export class GmbAccount {
     disabled: boolean;
     isAgencyAcct = false;
     isYelpEmail = false;
+    isDefenseAccount = false;
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields
