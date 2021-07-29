@@ -16,9 +16,10 @@
         <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi?.name || freeItem.mc?.name || freeItem.menu?.name}} </div>
       </div>
     </div>
-    <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires: </strong>{{promotion.expiry | date :
+    <div [ngClass]="{'text-danger':  expired()}"><strong>Expires: </strong>{{promotion.expiry | date :
       'mediumDate':
       'America / New York'}}</div>
+    <div *ngIf="promotion.source" [ngClass]="{'text-danger': expired()}">(Scraped from {{promotion.source}})</div>
     <div><strong>Order Minimum: </strong>{{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
   </div>
 
@@ -38,9 +39,10 @@
       <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi?.name || freeItem.mc?.name || freeItem.menu?.name}} </div>
     </div>
     <div *ngIf="promotion.freeItemName"><strong>Generic free item</strong></div>
-    <div [ngClass]="{'text-danger': promotion.expiry < today}"><strong>Expires:</strong> {{promotion.expiry | date :
+    <div [ngClass]="{'text-danger': expired()}"><strong>Expires:</strong> {{promotion.expiry | date :
       'mediumDate':
       'America / New York'}}</div>
+    <div *ngIf="promotion.source" [ngClass]="{'text-danger': expired()}">(Scraped from {{promotion.source}})</div>
     <div><strong>Order Minimum: </strong>{{(promotion.orderMinimum || 0) | currency:'USD':'symbol'}}</div>
   </ng-template>
 
