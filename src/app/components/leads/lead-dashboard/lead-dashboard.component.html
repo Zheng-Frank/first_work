@@ -22,9 +22,9 @@
       </select>
     </label>
     <button type="button" class="btn btn-link ml-3" (click)="showMoreFunction = !showMoreFunction">
-      {{ showMoreFunction?'Hide more function...':'Show more function...'}}</button>
+      {{ showMoreFunction?'Hide more functions...':'Show more functions...'}}</button>
     <button *ngIf="showMoreFunction" type="button" class="btn btn-link ml-3" (click)="openRemoveRTModal()">
-      Remove Chain Restaurant</button>
+      Remove Chain Restaurants</button>
   </div>
   <div class="col-6 text-right">
     Total: {{filterLeads.length}}
@@ -354,32 +354,32 @@
 </q-modal>
 
 <!-- start with remove restaurant modal -->
-<q-modal #removeRTModal>
+
+<q-modal #removeRTModal [size]="'700px'">
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">×</span>
   </button>
   <h4 class="text-center">Remove Chain Restaurants</h4>
   <hr>
   <div class="container">
-    <div class="row mb-3">
+    <div class="row mb-1 ml-1">
       All restaurants with the following name will be removed from our leads.
     </div>
     <div class="row">
-      <input type="text" class="form-control" [(ngModel)]="searchDelRTText" placeholder="Chain Name">
+      <input type="text" class="form-control ml-2 mr-2" [(ngModel)]="searchDelRTText" placeholder="Chain Name">
     </div>
     <div class="row mb-3">
-      <button type="button" class="btn btn-link ml-3" (click)="searchDelRTInLeads()">
+      <button type="button" class="btn btn-link ml-2" (click)="searchDelRTInLeads()">
         Preview consequences</button>
     </div>
-    <div class="row mb-3">
-      <span class="text-danger">{{chainDelRestaurants.length}} records found,of which {{getContactedDelRTCount()}} call
+    <div class="row mb-3 ml-1">
+      <span class="text-danger">{{chainDelRestaurants.length}} records found, of which {{getContactedDelRTCount()}} have call
         logs/correspondences.</span>
     </div>
-    <div class="row" *ngIf="chainDelRestaurants.length > 0">
+    <div class="row limit-table-row-height" *ngIf="chainDelRestaurants.length > 0">
       <table class="table table-sms">
         <thead>
           <th>
-            <input type="checkbox" [(ngModel)]="checkAllDelChainRT" (change)="onCheckAllDelChainRT()">
           </th>
           <th>
             Name
@@ -391,7 +391,7 @@
         <tbody>
           <tr *ngFor="let restaurant of chainDelRestaurants">
             <td>
-              <input type="checkbox" [checked]="restaurant.beChecked" (change)="onCheckDelChainRT(restaurant)">
+              <input type="checkbox" [checked]="restaurant.beChecked" [disabled]="disabledCheckDelChainRT(restaurant)"  (change)="onCheckDelChainRT(restaurant)">
             </td>
             <td>
               {{restaurant.name}}
@@ -407,10 +407,10 @@
         </tbody>
       </table>
     </div>
-    <div class="row mb-3">
+    <div class="row mb-3 ml-3 mt-2">
       <input class="form-check-input" type="checkbox" [(ngModel)]="removeLeadsNoLogs"
         (change)="onCheckDelChainRTWithoutLogs()">
-      Remove only leads without logs.
+      Remove only leads without logs <span class="text-danger ml-1">(Only admin can delete leads with logs!)</span>
     </div>
   </div>
 

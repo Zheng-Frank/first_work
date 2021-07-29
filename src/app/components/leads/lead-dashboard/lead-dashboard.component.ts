@@ -33,7 +33,6 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
   @ViewChild("removeRTModal") removeRTModal: ModalComponent;
 
-  checkAllDelChainRT = false; // this flag is used to check chain restaurants which will be deleted.
   removeLeadsNoLogs = false; // if the value is true,we need to filter which has no logs.
   chainDelRestaurants = []; // the field is the chain restaurants which needs to be deleted.
   searchDelRTText = ''; // try to search the name of removed chain restaurant.
@@ -433,29 +432,29 @@ export class LeadDashboardComponent implements OnInit {
         }
       );
   }
+
+  isAdmin() {
+    return this._global.user.roles.indexOf("ADMIN") >= 0;
+  }
   // when the checkbox is checked, we only checked the chains without logs.
   onCheckDelChainRTWithoutLogs() {
-    this.checkAllDelChainRT = false;
-    if(this.removeLeadsNoLogs){
-      this.chainDelRestaurants.filter(chain => chain.getDescSortedCallLogs().length > 0 ? chain.beChecked = true:chain.beChecked = undefined);
-    }else{
-      this.onCheckAllDelChainRT();
-    }
+    this.removeLeadsNoLogs ? this.chainDelRestaurants.filter(chain => chain.getDescSortedCallLogs().length > 0 ? chain.beChecked = undefined : chain.beChecked = true) : this.chainDelRestaurants.forEach(chain => chain.beChecked = undefined);
   }
   // a table row be checked, then will be deleted in lead
   onCheckDelChainRT(restaurant) {
     restaurant.beChecked = !restaurant.beChecked;
   }
-  // all table rows be checked, then will be deleted in lead
-  onCheckAllDelChainRT() {
-    this.chainDelRestaurants.forEach(c => c.beChecked = this.checkAllDelChainRT);
+  // when the user is not admin the checkbox removing restaurants with logs can't be checked.
+  disabledCheckDelChainRT(restaurant) {
+    return !this.isAdmin() && restaurant.getDescSortedCallLogs().length > 0;
   }
-  private getCheckedDelChainCount(){
+
+  private getCheckedDelChainCount() {
     return this.chainDelRestaurants.filter(chain => chain.beChecked).length;
   }
   // the function is used to remove chain restaurant in restaurant
   async removeRTInLeads() {
-    if(this.getCheckedDelChainCount() === 0){
+    if (this.getCheckedDelChainCount() === 0) {
       return this._global.publishAlert(AlertType.Danger, 'Please check one at least!');
     }
     let delChains = this.chainDelRestaurants.filter(chain => chain.beChecked).map(c => c._id);
@@ -466,7 +465,7 @@ export class LeadDashboardComponent implements OnInit {
     this.removeRTModal.hide();
     this.searchLeads();
   }
-  
+
   getContactedDelRTCount() {
     return this.chainDelRestaurants.filter(chain => chain.getDescSortedCallLogs().length > 0).length;
   }
@@ -478,7 +477,7 @@ export class LeadDashboardComponent implements OnInit {
     }
     const query = {
       name: {
-        $regex:this.searchDelRTText
+        $regex: this.searchDelRTText
       }
     };
     this.chainDelRestaurants.length = 0;
@@ -487,11 +486,11 @@ export class LeadDashboardComponent implements OnInit {
       query: query,
       limit: 10000
     }, 3000);
-    this.chainDelRestaurants = this.chainDelRestaurants.map(u=>new Lead(u));
+    this.chainDelRestaurants = this.chainDelRestaurants.map(u => new Lead(u));
+    this.chainDelRestaurants.sort((u1, u2) => u1.name.localeCompare(u2.name));
   }
   // remove rt modal is used to remove some out-of-date data in lead table.
   openRemoveRTModal() {
-    this.checkAllDelChainRT = false;
     this.removeLeadsNoLogs = false;
     this.searchDelRTText = '';
     this.chainDelRestaurants.length = 0;
@@ -1270,7 +1269,7 @@ export class LeadDashboardComponent implements OnInit {
         .map(u => u.username);
       myusers.push(this._global.user.username);
       if (myusers.indexOf(event.object.assignee) < 0) {
-        event.acknowledge("Failed to assign to" + event.object.assignee);
+        event.acknowledge("Failed to assign to " + event.object.assignee);
       } else {
         let lead = this.filterLeads.find(lead => lead._id === this.selectId);
 
@@ -1300,7 +1299,7 @@ export class LeadDashboardComponent implements OnInit {
         } else {
           this._global.publishAlert(
             AlertType.Danger,
-            "Failed to assign " + event.object.assignee
+            "Failed to assign to " + event.object.assignee
           );
         }
         this.assigneeModal.hide();
