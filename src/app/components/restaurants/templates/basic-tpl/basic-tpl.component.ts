@@ -380,34 +380,9 @@ export class BasicTplComponent implements OnInit {
         new: newRestaurant
       }]).toPromise();
 
-      this._global.publishAlert(AlertType.Success, 'Order/Promo image uploaded suceesfuly. Publishing to AWS now...');
+      this._global.publishAlert(AlertType.Success, 'Order/Promo image uploaded successfully. Publishing to AWS now...');
 
-
-      // --- Re publish changes
-      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-      const templateName = this.restaurant.web.templateName;
-      const restaurantId = this.restaurant._id;
-
-      if (!templateName || !domain) {
-        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
-      }
-
-      if (domain.indexOf('qmenu.us') >= 0) {
-        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
-      }
-
-      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
-        domain,
-        templateName,
-        restaurantId
-      }).toPromise();
-
-      // --- Invalidate domain
-      const result = await this._api.post(environment.appApiUrl + 'events',
-        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
-      ).toPromise();
-
-      console.log('uploadPromoImage() nvalidation result:', result);
+      await this.republishToAWS();
 
       this._global.publishAlert(AlertType.Success, 'Order/Promo Image(s) published to AWS successfully');
 
