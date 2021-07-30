@@ -1,14 +1,14 @@
-import {Component, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
-import {Address, TimezoneHelper} from '@qmenu/ui';
-import {Helper} from '../../../classes/helper';
-import {ApiService} from '../../../services/api.service';
-import {GlobalService} from '../../../services/global.service';
-import {PrunedPatchService} from '../../../services/prunedPatch.service';
-import {environment} from '../../../../environments/environment';
-import {AlertType} from '../../../classes/alert-type';
-import {HttpClient} from '@angular/common/http';
-import {formatNumber} from '@angular/common';
-import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { Address, TimezoneHelper } from '@qmenu/ui';
+import { Helper } from '../../../classes/helper';
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
+import { PrunedPatchService } from '../../../services/prunedPatch.service';
+import { environment } from '../../../../environments/environment';
+import { AlertType } from '../../../classes/alert-type';
+import { HttpClient } from '@angular/common/http';
+import { formatNumber } from '@angular/common';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 @Component({
   selector: 'app-restaurant-profile',
