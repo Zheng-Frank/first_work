@@ -27,7 +27,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
   scrapingTopItems = [];
   existingTopItems = [];
   basedOns = [basedOnTypes.menuFrequency, basedOnTypes.orderFrequency];
-  basedOn = basedOnTypes.orderFrequency;
+  basedOn = basedOnTypes.menuFrequency;
   scrapingFlag = false;
   constructor(private _global: GlobalService) { }
 
@@ -52,37 +52,45 @@ export class ScrapeCommonItemsComponent implements OnInit {
         this.existingTopItems.length = 0;
         // only filter the restaurants of this cuisine type(current selected).
         let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
-        if(mFRestaurants.length > 500){
-          mFRestaurants = mFRestaurants.slice(0,500);
+        if(mFRestaurants.length > 2000){
+          mFRestaurants = mFRestaurants.slice(0,2000);
         }
-        let miNames = [];
+        /**
+         * this map likes this:
+         * {
+          * {
+          *  cuisine_mi.name1: 1
+          * },
+          * {
+          *  cuisine_mi.name2: 2
+          * },
+         * }
+         */
+        let map = {};
         mFRestaurants.forEach(restaurant => {
           restaurant.menus.forEach(menu => {
             menu.mcs.forEach(mc => {
               mc.mis.forEach(mi => {
                 if(mi.name){
-                  let item = miNames.find(x => x.name === mi.name);
-                  if (!item && mi.name) {
-                    let cuisines = [this.cuisineType];
-                    miNames.push({
-                      name: mi.name,
-                      mi: mi, // we need its orderCount as follow.
-                      count: 1,
-                      cuisines: cuisines
-                    });
-                  }else{
-                    item.count++;
-                  }
+                  map[this.cuisineType+"_"+mi.name] ? map[this.cuisineType+"_"+mi.name] += 1 : map[this.cuisineType+"_"+mi.name] = 1 ;
                 }
               });
             });
           });
         });
-        
+
+        let miNames = [];
+        for (const [key,value] of Object.entries(map)) {
+          miNames.push({
+            name: key.split('_')[1],
+            count: value
+          });
+        }
+
         // scrapingTopItems only needs the name field that is not in the origin array.
         miNames = miNames.sort((a, b) => a.count - b.count);
         miNames = this.scrapingTopItemsNumber < miNames.length ?
-          miNames.slice(0, this.scrapingTopItemsNumber) : miNames.slice(0);
+          miNames.slice(0, this.scrapingTopItemsNumber) : miNames.slice(0,miNames.length);
         let mFExistsNames = this.existsImageItems.filter(item => item.aliases);
 
         this.scrapingTopItems = miNames.filter(item => {
@@ -111,11 +119,9 @@ export class ScrapeCommonItemsComponent implements OnInit {
                     mFExistsNames[i].menuCount = 0;
                   }
                   // update order count
-                  if (mFExistsNames[i].orderCount) {
-                    mFExistsNames[i].orderCount = item.mi.orderCount
-                  } else {
+                  if (!mFExistsNames[i].orderCount) {
                     mFExistsNames[i].orderCount = 0;
-                  }
+                  } 
                   this.existingTopItems.push(mFExistsNames[i]);
                 }
                 flag = false;
@@ -133,7 +139,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
           }],
           url192: '', // show in table colnum
           cuisines: [this.cuisineType],
-          orderCount: item.mi.orderCount,
+          orderCount: 0,
           menuCount: item.count
         }
         ));

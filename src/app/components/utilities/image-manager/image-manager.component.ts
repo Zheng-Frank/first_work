@@ -116,7 +116,8 @@ export class ImageManagerComponent implements OnInit {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: this.restaurantQuery,
-      projection: this.restaurantProjection
+      projection: this.restaurantProjection,
+      limit: 10000
     }, 500);
     this.restaurants = restaurants;
     // calculate cuisine types
