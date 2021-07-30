@@ -160,7 +160,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "OrderCallLanguage":"确定用于机器人调用的语言，以通知新的传入订单（英文或中文）.",
       "Logo":"（菜单编辑会处理这个问题，CSR+销售人员可以忽略）：这里上传的任何徽标都会出现在餐厅的qMenu订购网站的这两个地方。",
       "Photos":"(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。",
-      "BroadcastExpiration":"广播过期时间"
     },
     EnglishExplanations:{
       "Name":"Name of restaurant",
@@ -203,7 +202,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "OrderCallLanguage":"Determines the language to use for robo-calls to notify restaurants of new, incoming orders (Options: English or Chinese).",
       "Logo":" (Menu editors take care of this, CSR + sales can ignore): Any logo uploaded here will appear in these two places on the qMenu ordering site for the restaurant: 1. The qmenu.us/alias page of the restaurant, 2. ...",
       "Photos":" (Menu editors take care of this, CSR + sales can ignore): Image uploaded here will appear as the website background image on the qMenu ordering site for the restaurant.",
-      "BroadcastExpiration":"Broadcast Expiration"
     }
   }
 

@@ -981,12 +981,11 @@
                 </div>
               </i>
             </label>
-            <div class="pl-1 col-7">
+            <div class="pl-1 col-8">
               <!-- <input type="text" [(ngModel)]="notification" class="form-control"
                 placeholder="important message showing on website"> -->
-              <textarea class="form-control" rows="5" [(ngModel)]="notification"
+              <textarea class="form-control col-11" rows="5" [(ngModel)]="notification"
                 placeholder="important message showing on website"></textarea>
-              <button class="btn btn-primary mt-2" (click)="previewWebsite()">Preview</button>
               <q-modal #previewWebsiteModal>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">×</span>
@@ -996,27 +995,18 @@
                 <div [innerHTML]="notification">
                 </div>
               </q-modal>
+              <!-- start with website broadcast expiration -->
+              <div class="form-group form-inline">
+                <button class="btn btn-primary mt-2" (click)="previewWebsite()">Preview</button>
+                <label class="col-form-label pt-0 mt-3 ml-1">{{changeLanguageFlag === 'English' ? 'Broadcast Expiration' : '广播过期时间' }}
+                </label>
+                <q-toggle class="pt-3 ml-2" [(ngModel)]="controlExpiry" (change)="toggleNotificationExpiry()"></q-toggle>
+                <input type="date" class="form-control ml-2 mt-2" *ngIf="controlExpiry" [(ngModel)]="notificationExpiry">
+              </div>
+              <!-- end with website broadcast expiration -->
             </div>
           </div>
-          <!-- start with website broadcast expiration -->
-          <div class="form-group row">
-            <label
-              class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Broadcast Expiration' : '广播过期时间' }}
-              <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                (mouseover)="showCorrespondingTranslation('BroadcastExpiration')" (mouseout)="translating = ''">
-                <div *ngIf="translating === 'BroadcastExpiration'" class="left edit-talk radius">
-                  <p>Broadcast Expiration:{{Explanations.EnglishExplanations.BroadcastExpiration}}</p>
-                  -------------<br>
-                  <p>广播过期时间:{{Explanations.ChineseExplanations.BroadcastExpiration}}</p>
-                </div>
-              </i>
-            </label>
-            <div class="pl-1 col-7 form-inline">
-              <input type="date" *ngIf="controlExpiry" class="form-control" [(ngModel)]="notificationExpiry">
-              <q-toggle class="ml-2 pt-1" [(ngModel)]="controlExpiry" (change)="toggleNotificationExpiry()"></q-toggle>
-            </div>
-          </div>
-          <!-- end with website broadcast expiration -->
+
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Logo' : '网站标志' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
