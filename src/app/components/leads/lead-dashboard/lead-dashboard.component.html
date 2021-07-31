@@ -25,6 +25,8 @@
       {{ showMoreFunction?'Hide more functions...':'Show more functions...'}}</button>
     <button *ngIf="showMoreFunction" type="button" class="btn btn-link ml-3" (click)="openRemoveRTModal()">
       Remove Chain Restaurants</button>
+    <button *ngIf="showMoreFunction" type="button" class="btn btn-primary ml-3" (click)="openTimeFiltersModal()">
+      Time Filters</button>
   </div>
   <div class="col-6 text-right">
     Total: {{filterLeads.length}}
@@ -373,7 +375,8 @@
         Preview consequences</button>
     </div>
     <div class="row mb-3 ml-1">
-      <span class="text-danger">{{chainDelRestaurants.length}} records found, of which {{getContactedDelRTCount()}} have call
+      <span class="text-danger">{{chainDelRestaurants.length}} records found, of which {{getContactedDelRTCount()}} have
+        call
         logs/correspondences.</span>
     </div>
     <div class="row limit-table-row-height" *ngIf="chainDelRestaurants.length > 0">
@@ -391,7 +394,8 @@
         <tbody>
           <tr *ngFor="let restaurant of chainDelRestaurants">
             <td>
-              <input type="checkbox" [checked]="restaurant.beChecked" [disabled]="disabledCheckDelChainRT(restaurant)"  (change)="onCheckDelChainRT(restaurant)">
+              <input type="checkbox" [checked]="restaurant.beChecked" [disabled]="disabledCheckDelChainRT(restaurant)"
+                (change)="onCheckDelChainRT(restaurant)">
             </td>
             <td>
               {{restaurant.name}}
@@ -422,3 +426,47 @@
 
 </q-modal>
 <!-- end with remove restaurant modal-->
+<!-- start with time filters -->
+<q-modal #timeFiltersModal [size]="'500px'">
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">Time Filters</h4>
+  <hr>
+  <div class="container">
+    <div class="row mb-3">
+      <div class="col-12">
+        <div class="ml-2 mt-2">
+          <label class="form-check-label form-inline">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="timeFiltersFlag1">
+            At least 
+            <select [(ngModel)]="minsBeforeClosing" class="form-control ml-2 mr-2 limit-time-select">
+              <option *ngFor="let min of minsBeforeClosings">{{min}}</option>
+            </select>
+             minutes before closing
+          </label>
+        </div>
+        <div class="ml-2 mt-2">
+          <label class="form-check-label form-inline">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="timeFiltersFlag2">
+            Local time between<input type="text" class="form-control ml-2 mr-2 limit-time-input" [(ngModel)]="timeFiltersStartHours">
+            to<input type="text" class="form-control ml-2 mr-2 limit-time-input" [(ngModel)]="timeFiltersEndHours">
+          </label>
+        </div>
+        <div class="ml-2 mt-2">
+          <label class="form-check-label form-inline">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="timeFiltersFlag3">
+            Open now?
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end p-4">
+    <button class="btn btn-secondary mr-2" (click)="timeFilterModal.hide()">Cancel</button>
+    <button class="btn btn-primary" (click)="applyTimeFilters()">Apply</button>
+  </div>
+
+</q-modal>
+<!-- end with time filters -->
