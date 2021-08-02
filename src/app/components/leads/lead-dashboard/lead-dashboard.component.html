@@ -15,7 +15,7 @@
 
 <h1 class="text-center">Lead Management</h1>
 <div class="row pb-2">
-  <div class="col-6 form-inline text-left">
+  <div class="col-8 form-inline text-left">
     <label class="form-check-label mr-2 ml-3">View
       <select [(ngModel)]="viewType" class="form-control ml-2 limit-select-width" (change)="viewFilter()">
         <option *ngFor="let type of viewTypes">{{type}}</option>
@@ -28,7 +28,7 @@
     <button *ngIf="showMoreFunction" type="button" class="btn btn-primary ml-3" (click)="openTimeFiltersModal()">
       Time Filters</button>
   </div>
-  <div class="col-6 text-right">
+  <div class="col-4 text-right">
     Total: {{filterLeads.length}}
     <!-- selected search filters -->
     <ng-container *ngFor="let filter of searchFilters">
@@ -449,8 +449,14 @@
         <div class="ml-2 mt-2">
           <label class="form-check-label form-inline">
             <input class="form-check-input" type="checkbox" [(ngModel)]="timeFiltersFlag2">
-            Local time between<input type="text" class="form-control ml-2 mr-2 limit-time-input" [(ngModel)]="timeFiltersStartHours">
-            to<input type="text" class="form-control ml-2 mr-2 limit-time-input" [(ngModel)]="timeFiltersEndHours">
+            Local time between
+            <select [(ngModel)]="timeFiltersStartHours" class="form-control ml-2 mr-2 limit-time-input">
+              <option *ngFor="let hour of timeFiltersHours">{{hour}}</option>
+            </select>
+            to
+            <select [(ngModel)]="timeFiltersEndHours" class="form-control ml-2 mr-2 limit-time-input">
+              <option *ngFor="let hour of timeFiltersHours">{{hour}}</option>
+            </select>
           </label>
         </div>
         <div class="ml-2 mt-2">

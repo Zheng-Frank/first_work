@@ -9,7 +9,7 @@ import {
   ModalComponent,
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { Address } from "@qmenu/ui";
+import { Address, TimezoneHelper } from "@qmenu/ui";
 import { User } from "../../../classes/user";
 import { Helper } from "../../../classes/helper";
 const FOUR_DAYS = 86400000 * 4; // 4 days
@@ -33,13 +33,17 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
   @ViewChild("removeRTModal") removeRTModal: ModalComponent;
   @ViewChild("timeFiltersModal") timeFilterModal: ModalComponent;
-  
+
+  now = new Date();
   timeFiltersFlag1 = false; // three conditions of timer filters, and one must be checked at least.
   timeFiltersFlag2 = false;
   timeFiltersFlag3 = false;
+  //timeFilterHours is an array needed in second condition of time filters, 
+  timeFiltersHours = ['00am','01am','02am','03am','04am','05am','06am','07am','08am','09am','10am',
+  '11am','12am','01pm','02pm','03pm','04pm','05pm','06pm','07pm','08pm','09pm','10pm','11pm','12pm'];
   // minsBeforeClosings is an array needed in first condition of time filters, whose elements from 1 - 60.
-  minsBeforeClosings = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,
-    31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60];
+  minsBeforeClosings = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+    31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60];
   minsBeforeClosing = 60; // the first condition of time filters 
   timeFiltersStartHours; // the first variable of second condition of time filters 
   timeFiltersEndHours; // the second variable of second condition of time filters 
@@ -60,7 +64,7 @@ export class LeadDashboardComponent implements OnInit {
   apiRequesting = false;
 
   leads: Lead[] = [];
-  filterLeads: Lead[] = [];
+  filterLeads = [];
   selectionSet = new Set();
 
   showSelectOptions = false;
@@ -442,21 +446,98 @@ export class LeadDashboardComponent implements OnInit {
         }
       );
   }
+
+
+
   /**
    * - Is RT open today or not?
      - Show hours they're open on current day (and line on timeline showing current time)
    */
-  applyTimeFilters(){
-    if(!this.timeFiltersFlag1 && !this.timeFiltersFlag2 && !this.timeFiltersFlag3){
+  applyTimeFilters() {
+    if (!this.timeFiltersFlag1 && !this.timeFiltersFlag2 && !this.timeFiltersFlag3) {
       return this._global.publishAlert(AlertType.Danger, 'Please check one at least!');
     }
+    this.viewFilter();
+    let startHours = this.convertTWToTF(this.timeFiltersStartHours);
+    let endHours = this.convertTWToTF(this.timeFiltersEndHours);
+
+    let nowDate = this.getCurrentDate(startHours);
+    let timezoneArr = this.filterLeads.map(lead=>lead.timezone);
+    
+    this.filterLeads = this.filterLeads.filter(lead=>{
+      if(lead.timezone){
+        let midHour = this.getLeadHoursFromTimezone(nowDate,lead.timezone); 
+        return midHour >= Number(startHours) && midHour <= Number(endHours);
+      }
+      return false;
+    });
+
     this.timeFilterModal.hide();
   }
-  
-  openTimeFiltersModal(){
+  // it means convert a.m./p.m. to 24 hours of a day.
+  // tw is twelve,tf is twenty-four
+  convertTWToTF(time: string): string {
+    let formatStr = time[3] + time[4];
+    let result = "";
+    switch (formatStr) {
+      case "am":
+        result = time[0]+time[1];
+        break;
+      case "pm":
+        result = Number(time[0]+time[1])+12+"";
+        break;
+      default:
+        break;
+    }
+    return result;
+  }
+  // e.g. 2021-8-2 11:59:000
+  // also using our saleperson timezone as standard.
+  getCurrentDate(hour:String): Date {
+    console.log(hour);
+    let year = this.now.getFullYear();
+    let m = this.now.getMonth() + 1;
+    let month = +1 < 10 ? "0" + m : m;
+    let date = this.now.getDate() < 10 ? "0" + this.now.getDate() : this.now.getDate();
+
+    return new Date(year + "-" + month + "-" + date+" "+hour+":00:00.000");
+  }
+  // lead has a timezone value, and we need it to calculate middle hours
+  // of start hours and end hours of second conditio of time filters.
+  getLeadHoursFromTimezone(nowDate,timezone) {
+    return TimezoneHelper.getTimezoneDateFromBrowserDate(nowDate, timezone).getHours();
+  }
+
+  getTimeZone(formatted_address) {
+    const tzMap = {
+        PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+        MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+        CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+            'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+        EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+            'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+            'NJ', 'DE', 'MD', 'DC', 'RI'],
+        HST: ['HI'],
+        AKDT: ['AK']
+    };
+
+    let matchedTz = '';
+    if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
+        let state = formatted_address.match(/\b[A-Z]{2}/)[0];
+
+        Object.keys(tzMap).map(tz => {
+            if (tzMap[tz].indexOf(state) > -1) {
+                matchedTz = tz;
+            }
+        });
+    }
+    return matchedTz;
+}
+
+  openTimeFiltersModal() {
     this.timeFilterModal.show();
   }
-  
+
   isAdmin() {
     return this._global.user.roles.indexOf("ADMIN") >= 0;
   }
