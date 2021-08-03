@@ -1,14 +1,14 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 
-import {Menu, MenuOption, Restaurant} from '@qmenu/ui';
-import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
-import {MenuEditorComponent} from '../menu-editor/menu-editor.component';
-import {Helper} from '../../../classes/helper';
+import { Menu, MenuOption, Restaurant } from '@qmenu/ui';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { MenuEditorComponent } from '../menu-editor/menu-editor.component';
+import { Helper } from '../../../classes/helper';
 
-import {ApiService} from '../../../services/api.service';
-import {GlobalService} from '../../../services/global.service';
-import {environment} from '../../../../environments/environment';
-import {AlertType} from '../../../classes/alert-type';
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
+import { environment } from '../../../../environments/environment';
+import { AlertType } from '../../../classes/alert-type';
 
 
 @Component({
@@ -27,6 +27,7 @@ export class MenusComponent implements OnInit {
   @Output() menusChanged = new EventEmitter();
 
   importMenu = false;
+  importJson = false;
   importCoupon = false;
   apiRequesting = false;
   providerUrl;
@@ -48,6 +49,7 @@ export class MenusComponent implements OnInit {
 
   menusToClean = [];
   menusIncludeCleaned = {};
+  menuJson = '';
 
 
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -55,6 +57,27 @@ export class MenusComponent implements OnInit {
 
   ngOnInit() {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
+  }
+
+  async confirmImportJson() {
+    try {
+      const menus = JSON.parse(this.menuJson);
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: menus
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      this.restaurant.menus = menus.map(menu => new Menu(menu));
+      this._global.publishAlert(AlertType.Success, "Done");
+      this.importJson = false;
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, "Failed");
+    }
   }
 
   isArray(obj) {
@@ -198,7 +221,7 @@ export class MenusComponent implements OnInit {
         await this._api.post(environment.appApiUrl + 'events',
           [{
             queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`,
-            event: {name: 'populate-menus', params: {restaurantId: this.restaurant._id, url: this.providerUrl}}
+            event: { name: 'populate-menus', params: { restaurantId: this.restaurant._id, url: this.providerUrl } }
           }]
         ).toPromise();
         alert('Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.');
@@ -221,7 +244,7 @@ export class MenusComponent implements OnInit {
   }
 
   match(item) {
-    let {name, translation} = item;
+    let { name, translation } = item;
     if (!name) {
       return;
     }
@@ -259,7 +282,7 @@ export class MenusComponent implements OnInit {
       // remove brackets around name
       en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1');
       zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
-      item.translation = {zh, en};
+      item.translation = { zh, en };
       item.number = number;
 
       let trans = (this.restaurant.translations || []).find(x => x.EN === en);
@@ -269,7 +292,7 @@ export class MenusComponent implements OnInit {
       this.menusToClean.push(item);
     } else {
       if (number || hasMeasure) {
-        item.translation = {en: name};
+        item.translation = { en: name };
         item.number = number || item.number;
         this.menusToClean.push(item);
       }
@@ -280,7 +303,7 @@ export class MenusComponent implements OnInit {
   async cleanup() {
     this.menusToClean = [];
     this.menusIncludeCleaned = {};
-    let {menus} = this.restaurant;
+    let { menus } = this.restaurant;
     let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x));
     tempMenus.forEach(menu => {
       this.match(menu);
@@ -293,7 +316,7 @@ export class MenusComponent implements OnInit {
     });
 
     if (this.menusToClean.length > 0) {
-      this.menusIncludeCleaned = {menus: tempMenus};
+      this.menusIncludeCleaned = { menus: tempMenus };
     }
     this.menuCleanModal.show();
   }
@@ -309,7 +332,7 @@ export class MenusComponent implements OnInit {
       let { zh, en, prev_en } = item.translation;
       let translation = translations.find(x => x.EN === en || x.EN === prev_en);
       if (!translation) {
-        translation = {EN: en, ZH: zh};
+        translation = { EN: en, ZH: zh };
         translations.push(translation);
       } else {
         translation.EN = en;
