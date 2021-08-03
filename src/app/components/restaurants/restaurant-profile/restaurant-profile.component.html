@@ -981,11 +981,12 @@
                 </div>
               </i>
             </label>
-            <div class="pl-1 col-8">
+            <div class="pl-1 col-7">
               <!-- <input type="text" [(ngModel)]="notification" class="form-control"
                 placeholder="important message showing on website"> -->
-              <textarea class="form-control col-11" rows="5" [(ngModel)]="notification"
+              <textarea class="form-control" rows="5" [(ngModel)]="notification"
                 placeholder="important message showing on website"></textarea>
+              <button class="btn btn-primary mt-2" (click)="previewWebsite()">Preview</button>
               <q-modal #previewWebsiteModal>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">×</span>
@@ -997,7 +998,6 @@
               </q-modal>
               <!-- start with website broadcast expiration -->
               <div class="form-group form-inline">
-                <button class="btn btn-primary mt-2" (click)="previewWebsite()">Preview</button>
                 <label class="col-form-label pt-0 mt-3 ml-1">{{changeLanguageFlag === 'English' ? 'Broadcast Expiration' : '广播过期时间' }}
                 </label>
                 <q-toggle class="pt-3 ml-2" [(ngModel)]="controlExpiry" (change)="toggleNotificationExpiry()"></q-toggle>
