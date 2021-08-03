@@ -34,7 +34,6 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("removeRTModal") removeRTModal: ModalComponent;
   @ViewChild("timeFiltersModal") timeFilterModal: ModalComponent;
 
-  now = new Date();
   beforeCloseFlag = false; // three conditions of timer filters, and one must be checked at least.
   betweenHoursFlag = false;
   openNowFlag = false;
@@ -466,10 +465,11 @@ export class LeadDashboardComponent implements OnInit {
       if(startHours > endHours){
         return this._global.publishAlert(AlertType.Danger, 'Start hours can not be great than end hours!');
       }
+      let now = new Date();
       this.filterLeads = this.filterLeads.filter(lead => {
         if (lead.timezone) {
           // midHours maybe -1 or 25 that represents 23:00 yestorday and 1:00 tomorrow using 24 hours rules.
-          let midHour = this.getLeadHoursFromTimezone(lead.timezone);
+          let midHour = this.getLeadHoursFromTimezone(now,lead.timezone);
           return midHour >= Number(startHours) && midHour <= Number(endHours);
         }
         return false;
@@ -498,8 +498,8 @@ export class LeadDashboardComponent implements OnInit {
 
   // lead has a timezone value, and we need it to calculate middle hours
   // of start hours and end hours of second conditio of time filters.
-  getLeadHoursFromTimezone(timezone: string): number {
-    let Localhours = this.now.getTimezoneOffset() / 60;
+  getLeadHoursFromTimezone(now: Date,timezone: string): number {
+    let utcOffsetHours = now.getTimezoneOffset() / 60;
     const tfMap = { // the map records the delta hours between UTC and PDT,MDT,EDT,CDT
       PDT: -7,
       MDT: -6,
@@ -514,8 +514,8 @@ export class LeadDashboardComponent implements OnInit {
       CST: -6,
       EST: -5
     }
-    let deltaHours = Localhours + tfMap[timezone];
-    return new Date(this.now.valueOf() + (deltaHours * 3600 * 1000)).getHours();
+    let deltaHours = utcOffsetHours + tfMap[timezone];
+    return new Date(now.valueOf() + (deltaHours * 3600 * 1000)).getHours();
   }
 
   openTimeFiltersModal() {
