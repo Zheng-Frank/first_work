@@ -12,6 +12,9 @@
         <button class="btn btn-primary" (click)="search()">Search</button>
       </div>
     </div>
+    <div class="text-danger">
+      Note: These two dates are based on America/New_York timezone.
+    </div>
   </div>
 
   <div class="row ml-0 mr-0">
@@ -143,7 +146,9 @@
               <div>Billing Address: {{order.ccAddress.formatted_address}}</div>
               <div>Restaurant Address: {{order.restaurantAddress?.formatted_address}}</div>
               <div>Distance: <span class="text-danger">{{order.ccAddress.distanceToStore | number }} miles</span></div>
-              <div [id]="'map-' + order.id" class="distance-map"></div>
+              <div>
+                <a [href]="getMapLink(order)" target="_blank" class="text-danger text-nowrap card-link">View On Google Map</a>
+              </div>
             </div>
 
             <div *ngIf="order.statusEqual('CANCELED')" class="alert alert-danger" role="alert">

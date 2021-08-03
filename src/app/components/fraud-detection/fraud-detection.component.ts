@@ -1,6 +1,6 @@
 import {Component, EventEmitter, NgZone, OnInit, ViewChild} from '@angular/core';
 import {OrderCardComponent} from '../restaurants/order-card/order-card.component';
-import {Order} from '@qmenu/ui';
+import {Order, TimezoneHelper} from '@qmenu/ui';
 import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {ApiService} from '../../services/api.service';
 import {GlobalService} from '../../services/global.service';
@@ -28,9 +28,6 @@ export class FraudDetectionComponent implements OnInit {
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
   maxCount = 8;
   orders: Order[];
-  maps = [];
-  markers = [];
-  lines = [];
   restaurantAddress = {} as any;
   resultList;
   showSummary = false;
@@ -84,18 +81,13 @@ export class FraudDetectionComponent implements OnInit {
   }
 
   async search() {
-    this.lines.forEach(l => l.setMap(null));
-    this.lines.length = 0;
-    this.markers.forEach(m => m.setMap(null));
-    this.markers.length = 0;
-    this.maps.length = 0;
     let query = {'ccAddress.distanceToStore': {$gte: 100}} as object;
     if (this.fromDate && this.toDate) {
       if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
         return this._global.publishAlert(AlertType.Danger, 'please input a correct date format,from time is less than or equals to time!');
       }
-      const utcf = new Date(this.fromDate + 'T00:00:00.000Z');
-      const utct = new Date(this.toDate + 'T00:00:00.000Z');
+      const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.fromDate + ' 00:00:00.000'), 'America/New_York');
+      const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.toDate + ' 00:00:00.000'), 'America/New_York');
       query = {
         ...query,
         $and: [
@@ -136,39 +128,12 @@ export class FraudDetectionComponent implements OnInit {
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
       return new Order(order);
     });
-    setTimeout(() => {
-      this.initMap();
-    }, 1500);
   }
 
-  initMap() {
-    this.orders.forEach(order => {
-      let el = document.getElementById('map-' + order.id);
-      let billingPoint = order.ccAddress;
-      let rtPoint = this.restaurantAddress[order.restaurant];
-      let bounds = new google.maps.LatLngBounds(billingPoint, rtPoint);
-      let map = new google.maps.Map(el, {center: bounds.getCenter(), zoom: 4 });
-      let size = new google.maps.Size(24, 24);
-      const billingMarker = new google.maps.Marker({
-        position: billingPoint, map,
-        icon: { url: './assets/icons/dollar.svg', scaledSize: size }
-      });
-      const rtMarker = new google.maps.Marker({
-        position: rtPoint, map,
-        icon: {url: './assets/icons/dine.svg', scaledSize: size}
-      });
-      let line = new google.maps.Polyline({
-        path: [billingPoint, rtPoint],
-        geodesic: true,
-        strokeColor: '#FF0000'
-      });
-
-      line.setMap(map);
-
-      this.lines.push(line);
-      this.markers.push(billingMarker, rtMarker);
-      this.maps.push(map);
-    });
+  getMapLink(order) {
+    let origin = this.restaurantAddress[order.restaurant].formatted_address,
+      destination = order.ccAddress.formatted_address;
+    return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
   }
 
   getCustomerName(order: Order) {
