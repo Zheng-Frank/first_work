@@ -458,12 +458,12 @@ export class LeadDashboardComponent implements OnInit {
     this.viewFilter(); // The time filters has an intersection with view filter types.
     if(this.betweenHoursFlag){
       if(!this.timeFiltersStartHours || !this.timeFiltersEndHours){
-        return this._global.publishAlert(AlertType.Danger, 'Start hours and end hours also should be checked!');
+        return this._global.publishAlert(AlertType.Danger, 'Start hours and end hours also should be selected!');
       }
       let startHours = this.convertTWToTF(this.timeFiltersStartHours);
       let endHours = this.convertTWToTF(this.timeFiltersEndHours);
       if(startHours > endHours){
-        return this._global.publishAlert(AlertType.Danger, 'Start hours can not be great than end hours!');
+        return this._global.publishAlert(AlertType.Danger, 'Start hours can not be greater than end hours!');
       }
       let now = new Date();
       this.filterLeads = this.filterLeads.filter(lead => {
