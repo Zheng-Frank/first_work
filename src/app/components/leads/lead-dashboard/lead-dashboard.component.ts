@@ -39,8 +39,8 @@ export class LeadDashboardComponent implements OnInit {
   timeFiltersFlag2 = false;
   timeFiltersFlag3 = false;
   //timeFilterHours is an array needed in second condition of time filters, 
-  timeFiltersHours = ['00am','01am','02am','03am','04am','05am','06am','07am','08am','09am','10am',
-  '11am','12am','01pm','02pm','03pm','04pm','05pm','06pm','07pm','08pm','09pm','10pm','11pm','12pm'];
+  timeFiltersHours = ['00 AM', '01 AM', '02 AM', '03 AM', '04 AM', '05 AM', '06 AM', '07 AM', '08 AM', '09 AM', '10 AM',
+    '11 AM', '12 AM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM', '09 PM', '10 PM', '11 PM', '12 PM'];
   // minsBeforeClosings is an array needed in first condition of time filters, whose elements from 1 - 60.
   minsBeforeClosings = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
     31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60];
@@ -448,7 +448,6 @@ export class LeadDashboardComponent implements OnInit {
   }
 
 
-
   /**
    * - Is RT open today or not?
      - Show hours they're open on current day (and line on timeline showing current time)
@@ -457,20 +456,25 @@ export class LeadDashboardComponent implements OnInit {
     if (!this.timeFiltersFlag1 && !this.timeFiltersFlag2 && !this.timeFiltersFlag3) {
       return this._global.publishAlert(AlertType.Danger, 'Please check one at least!');
     }
-    this.viewFilter();
-    let startHours = this.convertTWToTF(this.timeFiltersStartHours);
-    let endHours = this.convertTWToTF(this.timeFiltersEndHours);
-
-    let nowDate = this.getCurrentDate(startHours);
-    let timezoneArr = this.filterLeads.map(lead=>lead.timezone);
-    
-    this.filterLeads = this.filterLeads.filter(lead=>{
-      if(lead.timezone){
-        let midHour = this.getLeadHoursFromTimezone(nowDate,lead.timezone); 
-        return midHour >= Number(startHours) && midHour <= Number(endHours);
+    this.viewFilter(); // The time filters has an intersection with view filter types.
+    if(this.timeFiltersFlag2){
+      if(!this.timeFiltersStartHours || !this.timeFiltersEndHours){
+        return this._global.publishAlert(AlertType.Danger, 'Start hours and end hours also should be checked!');
       }
-      return false;
-    });
+      let startHours = this.convertTWToTF(this.timeFiltersStartHours);
+      let endHours = this.convertTWToTF(this.timeFiltersEndHours);
+      if(startHours > endHours){
+        return this._global.publishAlert(AlertType.Danger, 'Start hours can not be great than end hours!');
+      }
+      this.filterLeads = this.filterLeads.filter(lead => {
+        if (lead.timezone) {
+          // midHours maybe -1 or 25 that represents 23:00 yestorday and 1:00 tomorrow using 24 hours rules.
+          let midHour = this.getLeadHoursFromTimezone(lead.timezone);
+          return midHour >= Number(startHours) && midHour <= Number(endHours);
+        }
+        return false;
+      });
+    }
 
     this.timeFilterModal.hide();
   }
@@ -480,59 +484,31 @@ export class LeadDashboardComponent implements OnInit {
     let formatStr = time[3] + time[4];
     let result = "";
     switch (formatStr) {
-      case "am":
-        result = time[0]+time[1];
+      case "AM":
+        result = time[0] + time[1];
         break;
-      case "pm":
-        result = Number(time[0]+time[1])+12+"";
+      case "PM":
+        result = Number(time[0] + time[1]) + 12 + "";
         break;
       default:
         break;
     }
     return result;
   }
-  // e.g. 2021-8-2 11:59:000
-  // also using our saleperson timezone as standard.
-  getCurrentDate(hour:String): Date {
-    console.log(hour);
-    let year = this.now.getFullYear();
-    let m = this.now.getMonth() + 1;
-    let month = +1 < 10 ? "0" + m : m;
-    let date = this.now.getDate() < 10 ? "0" + this.now.getDate() : this.now.getDate();
 
-    return new Date(year + "-" + month + "-" + date+" "+hour+":00:00.000");
-  }
   // lead has a timezone value, and we need it to calculate middle hours
   // of start hours and end hours of second conditio of time filters.
-  getLeadHoursFromTimezone(nowDate,timezone) {
-    return TimezoneHelper.getTimezoneDateFromBrowserDate(nowDate, timezone).getHours();
-  }
-
-  getTimeZone(formatted_address) {
-    const tzMap = {
-        PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
-        MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
-        CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
-            'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
-        EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
-            'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
-            'NJ', 'DE', 'MD', 'DC', 'RI'],
-        HST: ['HI'],
-        AKDT: ['AK']
-    };
-
-    let matchedTz = '';
-    if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
-        let state = formatted_address.match(/\b[A-Z]{2}/)[0];
-
-        Object.keys(tzMap).map(tz => {
-            if (tzMap[tz].indexOf(state) > -1) {
-                matchedTz = tz;
-            }
-        });
+  getLeadHoursFromTimezone(timezone: string): number {
+    let Localhours = this.now.getTimezoneOffset() / 60;
+    const tfMap = { // the map records the delta hours between UTC and PDT,MDT,EDT,CDT
+      PDT: -7,
+      MDT: -6,
+      CDT: -5,
+      EDT: -4
     }
-    return matchedTz;
-}
+    let deltaHours = Localhours + tfMap[timezone];
+    return new Date(this.now.valueOf() + (deltaHours * 3600 * 1000)).getHours();
+  }
 
   openTimeFiltersModal() {
     this.timeFilterModal.show();
