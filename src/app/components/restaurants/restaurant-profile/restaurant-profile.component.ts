@@ -1,6 +1,5 @@
-import { ViewChild } from '@angular/core';
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
-import { Address, Restaurant, TimezoneHelper } from '@qmenu/ui';
+import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { Address, TimezoneHelper } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
@@ -10,7 +9,6 @@ import { AlertType } from '../../../classes/alert-type';
 import { HttpClient } from '@angular/common/http';
 import { formatNumber } from '@angular/common';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { LanguageType } from 'src/app/classes/language-type';
 
 @Component({
   selector: 'app-restaurant-profile',
@@ -69,8 +67,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'comebackDate',
     'serviceSettings',
   ];
-  controlExpiry = true; // a flag to contorl broadcast expiry date input showing or not.
-  notificationExpiry:string; // this value is needed to decide when shows the broadcast on customer pwa.
+  controlExpiry = false; // a flag to contorl broadcast expiry date input showing or not.
+  notificationExpiry: string; // this value is needed to decide when shows the broadcast on customer pwa.
   uploadError: string;
 
   tipSettings = {
@@ -293,11 +291,11 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     // special fields
     this.images = this.restaurant.images || [];
     this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
-    
+
     // website broadcast expiration field
     // 2021-07-15T04:00:00.000Z
     if(this.restaurant.notificationExpiry){
-      this.controlExpiry = true; // contorls whether the switch is turned on 
+      this.controlExpiry = true; // contorls whether the switch is turned on
       if(typeof this.restaurant.notificationExpiry === "string"){ // when this.restaurant.notificationExpiry comes from api call, it is data type of string
         this.notificationExpiry = this.restaurant.notificationExpiry.split('T')[0];
       }else{ // this.restaurant.notificationExpiry is type of date
@@ -439,11 +437,21 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     // turn 2020-09-01 to timezone form
     const getTransformedDate = (dateString) => {
       return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone );
-    }
-   
-    if (this.controlExpiry && this.notificationExpiry) {
-      newObj.notificationExpiry = getTransformedDate(this.notificationExpiry);
-    }else{
+    };
+
+    if (this.controlExpiry) {
+      if (this.notificationExpiry) {
+        newObj.notificationExpiry = getTransformedDate(this.notificationExpiry);
+      } else {
+        // if user open controlExpiry but not set expiration, we should ask user to confirm the behavor;
+        if (confirm('Broadcast expiration is empty, do you want to keep the broadcast permanently?')) {
+          newObj.notificationExpiry = null;
+          this.controlExpiry = false;
+        } else {
+          return;
+        }
+      }
+    } else {
       newObj.notificationExpiry = null;
     }
 
