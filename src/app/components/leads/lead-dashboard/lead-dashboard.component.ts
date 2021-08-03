@@ -35,9 +35,9 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("timeFiltersModal") timeFilterModal: ModalComponent;
 
   now = new Date();
-  timeFiltersFlag1 = false; // three conditions of timer filters, and one must be checked at least.
-  timeFiltersFlag2 = false;
-  timeFiltersFlag3 = false;
+  beforeCloseFlag = false; // three conditions of timer filters, and one must be checked at least.
+  betweenHoursFlag = false;
+  openNowFlag = false;
   //timeFilterHours is an array needed in second condition of time filters, 
   timeFiltersHours = ['00 AM', '01 AM', '02 AM', '03 AM', '04 AM', '05 AM', '06 AM', '07 AM', '08 AM', '09 AM', '10 AM',
     '11 AM', '12 AM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM', '09 PM', '10 PM', '11 PM', '12 PM'];
@@ -453,11 +453,11 @@ export class LeadDashboardComponent implements OnInit {
      - Show hours they're open on current day (and line on timeline showing current time)
    */
   applyTimeFilters() {
-    if (!this.timeFiltersFlag1 && !this.timeFiltersFlag2 && !this.timeFiltersFlag3) {
+    if (!this.beforeCloseFlag && !this.betweenHoursFlag && !this.openNowFlag) {
       return this._global.publishAlert(AlertType.Danger, 'Please check one at least!');
     }
     this.viewFilter(); // The time filters has an intersection with view filter types.
-    if(this.timeFiltersFlag2){
+    if(this.betweenHoursFlag){
       if(!this.timeFiltersStartHours || !this.timeFiltersEndHours){
         return this._global.publishAlert(AlertType.Danger, 'Start hours and end hours also should be checked!');
       }
@@ -504,7 +504,15 @@ export class LeadDashboardComponent implements OnInit {
       PDT: -7,
       MDT: -6,
       CDT: -5,
-      EDT: -4
+      EDT: -4,
+      HDT: -9,
+      AKDT: -8,
+      HST: -10,
+      AKST: -9,
+      PST: -8,
+      MST: -7,
+      CST: -6,
+      EST: -5
     }
     let deltaHours = Localhours + tfMap[timezone];
     return new Date(this.now.valueOf() + (deltaHours * 3600 * 1000)).getHours();
