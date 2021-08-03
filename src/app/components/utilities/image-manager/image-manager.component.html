@@ -1,7 +1,8 @@
 <div class="card">
   <h2 class="card-title m-3">
     <!-- <i [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
-    <h1 class="text-center">Manage Images ({{filterRows.length}})</h1>
+    <h1 class="text-center">Manage Images</h1>
+    <div class="text-center text-danger">({{filterRows.length}} items, {{getItemWithImageCount()}} with images)</div>
   </h2>
   <div class="card-body">
     <div class="row pb-2">

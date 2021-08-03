@@ -53,6 +53,10 @@ export class ImageManagerComponent implements OnInit {
     await this.reload();
     await this.loadRestaurants();
   }
+  
+  getItemWithImageCount(){
+    return this.filterRows.filter(item=>item.images && item.images.length > 0).length;
+  }
 
   filter() {
     if (!this.cuisineType) {
@@ -98,7 +102,7 @@ export class ImageManagerComponent implements OnInit {
   }
 
   openScrapeItemsModal() {
-    this.scrapeCommonItems.scrapingTopItemsNumber = 5;
+    this.scrapeCommonItems.scrapingTopItemsNumber = 500;
     this.scrapeCommonItems.scrapingTopItems.length = 0; // reduce memory garbage generation.
     this.scrapeCommonItems.existingTopItems.length = 0;
     this.scrapeItemsModal.show();

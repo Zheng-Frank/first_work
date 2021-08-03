@@ -23,7 +23,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
   @Output() onCancel = new EventEmitter();
   @Output() onImport = new EventEmitter();
 
-  scrapingTopItemsNumber = 5;
+  scrapingTopItemsNumber = 500;
   scrapingTopItems = [];
   existingTopItems = [];
   basedOns = [basedOnTypes.menuFrequency, basedOnTypes.orderFrequency];
