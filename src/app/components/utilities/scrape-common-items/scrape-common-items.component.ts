@@ -1,14 +1,12 @@
-import { GlobalService } from './../../../services/global.service';
-import { map, filter } from 'rxjs/operators';
-import { Component, OnInit, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { EventEmitter } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
-import { IfDirective } from '@qmenu/ui/directives/if.directive';
-import { AlertType } from 'src/app/classes/alert-type';
+import {GlobalService} from '../../../services/global.service';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {AlertType} from 'src/app/classes/alert-type';
+
 enum basedOnTypes {
   menuFrequency = 'Menu frequency',
   orderFrequency = 'Order frequency'
 }
+
 @Component({
   selector: 'app-scrape-common-items',
   templateUrl: './scrape-common-items.component.html',
@@ -16,7 +14,7 @@ enum basedOnTypes {
 })
 export class ScrapeCommonItemsComponent implements OnInit {
 
-  @Input() existsImageItems;// we need the exisits items to compare whether the new one should be import.
+  @Input() existsImageItems; // we need the exisits items to compare whether the new one should be import.
   @Input() cuisineTypes = [];
   cuisineType;
   @Input() restaurants = [];
@@ -29,7 +27,9 @@ export class ScrapeCommonItemsComponent implements OnInit {
   basedOns = [basedOnTypes.menuFrequency, basedOnTypes.orderFrequency];
   basedOn = basedOnTypes.menuFrequency;
   scrapingFlag = false;
-  constructor(private _global: GlobalService) { }
+
+  constructor(private _global: GlobalService) {
+  }
 
   ngOnInit() {
   }
@@ -52,18 +52,15 @@ export class ScrapeCommonItemsComponent implements OnInit {
         this.existingTopItems.length = 0;
         // only filter the restaurants of this cuisine type(current selected).
         let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
-        if(mFRestaurants.length > 2000){
-          mFRestaurants = mFRestaurants.slice(0,2000);
-        }
         /**
          * this map likes this:
          * {
-          * {
-          *  cuisine_mi.name1: 1
-          * },
-          * {
-          *  cuisine_mi.name2: 2
-          * },
+         * {
+         *  cuisine_mi.name1: 1
+         * },
+         * {
+         *  cuisine_mi.name2: 2
+         * },
          * }
          */
         let map = {};
@@ -71,8 +68,9 @@ export class ScrapeCommonItemsComponent implements OnInit {
           restaurant.menus.forEach(menu => {
             menu.mcs.forEach(mc => {
               mc.mis.forEach(mi => {
-                if(mi.name){
-                  map[this.cuisineType+"_"+mi.name] ? map[this.cuisineType+"_"+mi.name] += 1 : map[this.cuisineType+"_"+mi.name] = 1 ;
+                if (mi.name) {
+                  let key = this.cuisineType + '_' + mi.name;
+                  map[key] = (map[key] || 0) + 1;
                 }
               });
             });
@@ -80,7 +78,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
         });
 
         let miNames = [];
-        for (const [key,value] of Object.entries(map)) {
+        for (const [key, value] of Object.entries(map)) {
           miNames.push({
             name: key.split('_')[1],
             count: value
@@ -90,7 +88,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
         // scrapingTopItems only needs the name field that is not in the origin array.
         miNames = miNames.sort((a, b) => a.count - b.count);
         miNames = this.scrapingTopItemsNumber < miNames.length ?
-          miNames.slice(0, this.scrapingTopItemsNumber) : miNames.slice(0,miNames.length);
+          miNames.slice(0, this.scrapingTopItemsNumber) : miNames.slice(0, miNames.length);
         let mFExistsNames = this.existsImageItems.filter(item => item.aliases);
 
         this.scrapingTopItems = miNames.filter(item => {
@@ -121,7 +119,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
                   // update order count
                   if (!mFExistsNames[i].orderCount) {
                     mFExistsNames[i].orderCount = 0;
-                  } 
+                  }
                   this.existingTopItems.push(mFExistsNames[i]);
                 }
                 flag = false;
@@ -130,18 +128,18 @@ export class ScrapeCommonItemsComponent implements OnInit {
           }
           return flag;
         }).map(item => ({
-          aliases: [item.name],
-          images: [{
-            url: '',
-            url96: '',
-            url128: '',
-            url768: ''
-          }],
-          url192: '', // show in table colnum
-          cuisines: [this.cuisineType],
-          orderCount: 0,
-          menuCount: item.count
-        }
+            aliases: [item.name],
+            images: [{
+              url: '',
+              url96: '',
+              url128: '',
+              url768: ''
+            }],
+            url192: '', // show in table colnum
+            cuisines: [this.cuisineType],
+            orderCount: 0,
+            menuCount: item.count
+          }
         ));
         setTimeout(() => this.scrapingFlag = false, 5000);
         break;
@@ -153,26 +151,26 @@ export class ScrapeCommonItemsComponent implements OnInit {
         this.scrapingTopItems.length = 0;
         this.existingTopItems.length = 0;
         let oFRestaurants = this.restaurants.filter(restaurant => restaurant.menus && restaurant.googleListing.cuisine === this.cuisineType);
-
-        let oFMis = [];
+        let ofMiMap = {};
         oFRestaurants.forEach(restaurant => {
           restaurant.menus.forEach(menu => {
             menu.mcs.forEach(mc => {
               mc.mis.forEach(mi => {
-                if (oFMis.indexOf(mi) === -1 && mi.name && mi.orderCount) {
-                  oFMis.push(mi);
+                let key = `${this.cuisineType}_${mi.name}`;
+                if (mi.name && mi.orderCount && !ofMiMap[key]) {
                 }
+                ofMiMap[key] = mi.orderCount;
               });
             });
           });
         });
-        if(oFRestaurants.length > 2000){
-          oFRestaurants = oFRestaurants.slice(0,2000);
-        }
+
         // scrapingTopItems needs this follow array.
         // field that is in the origin array
         // we filter it and update its' field includes cuisines, orderCount, menuCount
-        oFMis = this.scrapingTopItemsNumber < oFMis.length ? oFMis.sort((mi1, mi2) => mi1.orderNumber - mi2.orderNumber).slice(0, this.scrapingTopItemsNumber) : oFMis.sort((mi1, mi2) => mi1.orderNumber - mi2.orderNumber).slice(0, oFMis.length);
+        let oFMis = Object.entries(ofMiMap).map(([k, v]) => ({name: k.split('_')[1], orderCount: v as number}));
+        oFMis = oFMis.sort((mi1, mi2) => mi1.orderCount - mi2.orderCount)
+          .slice(0, Math.min(oFMis.length, this.scrapingTopItemsNumber));
         let oFExistsNames = this.existsImageItems.filter(item => item.aliases);
 
         this.scrapingTopItems = oFMis.filter(mi => {
@@ -214,18 +212,18 @@ export class ScrapeCommonItemsComponent implements OnInit {
           return flag;
         }).map(mi =>
           ({
-            aliases: [mi.name],
-            images: [{
-              url: '',
-              url96: '',
-              url128: '',
-              url768: ''
-            }],
-            url192: '',
-            cuisines: [this.cuisineType],
-            orderCount: mi.orderCount,
-            menuCount: 0
-          }
+              aliases: [mi.name],
+              images: [{
+                url: '',
+                url96: '',
+                url128: '',
+                url768: ''
+              }],
+              url192: '',
+              cuisines: [this.cuisineType],
+              orderCount: mi.orderCount,
+              menuCount: 0
+            }
           ));
         setTimeout(() => this.scrapingFlag = false, 5000);
         break;
