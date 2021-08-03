@@ -41,14 +41,14 @@
       <label class="form-check-label mt-2" for="id-gmb"><input type="checkbox" [(ngModel)]="needRefreshCtrs">
           Auto Refresh
       </label>
-      <a class="btn btn-primary ml-4" href="/#/ivr-agent-analysis">
+      <a class="btn btn-primary ml-4 mt-2" href="/#/ivr-agent-analysis">
         <i class="fas fa-clipboard"></i>
         IVR Dashboard
       </a>
-      <button class="btn btn-primary ml-4" (click)="startIvr()">
+      <button class="btn btn-primary ml-4 mt-2" (click)="startIvr()">
         <i class="fas fa-headset"></i> Launch qMenu IVR
       </button>
-      <button class="btn btn-primary ml-4" (click)="refreshCtrs()" [qLoading]="refreshing">
+      <button class="btn btn-primary ml-4 mt-2" (click)="refreshCtrs()" [qLoading]="refreshing">
         <i class="fas fa-sync-alt"></i> Reload
       </button>
     </div>
