@@ -1,5 +1,5 @@
 import { ScrapeCommonItemsComponent } from './../scrape-common-items/scrape-common-items.component';
-import { map } from 'rxjs/operators';
+import { map, filter } from 'rxjs/operators';
 import { Component, OnInit, Output, EventEmitter, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
@@ -53,9 +53,11 @@ export class ImageManagerComponent implements OnInit {
     await this.reload();
     await this.loadRestaurants();
   }
-  
-  getItemWithImageCount(){
-    return this.filterRows.filter(item=>item.images && item.images.length > 0).length;
+
+  getItemWithImageCount() {
+    return this.filterRows.filter(item => item.images && item.images.length > 0 &&
+      item.images.filter(image => image.url || image.url196 || image.url128 || image.url768).length > 0
+      && item.url192).length;
   }
 
   filter() {
@@ -127,6 +129,7 @@ export class ImageManagerComponent implements OnInit {
     // calculate cuisine types
     const cuisineTypes = this.restaurants.filter(restaurant => restaurant.googleListing && restaurant.googleListing.cuisine && restaurant.googleListing.cuisine !== '').map(restaurant => restaurant.googleListing.cuisine);
     cuisineTypes.forEach(type => (this.cuisineTypes.indexOf(type) === -1 && this.cuisineTypes.push(type)));
+    this.cuisineTypes.sort((a,b)=>a.localeCompare(b));
     this.cuisineTypes.unshift('');
   }
 

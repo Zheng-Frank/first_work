@@ -35,10 +35,18 @@
     <span class="pl-2">New Items: </span><br>
     <div class="limit-scraping-div-width pl-5" *ngFor="let item of scrapingTopItems">
       <span *ngFor="let a of item.aliases">{{a}}</span>
+      <div>
+        <span *ngIf="basedOn === 'Menu frequency' && scrapingMenuFlag">( menuCount: {{item.menuCount}} )</span>
+        <span *ngIf="basedOn === 'Order frequency' && scrapingOrderFlag">( orderCount: {{item.orderCount}} )</span>
+      </div>
     </div>
     <span class="pl-2">Existing Items: </span>
     <div class="limit-scraping-div-width pl-5" *ngFor="let item of existingTopItems">
       <span *ngFor="let a of item.aliases">{{a}}  </span>
+      <div>
+        <span *ngIf="basedOn === 'Menu frequency' && scrapingMenuFlag">( menuCount: {{item.menuCount}} )</span>
+        <span *ngIf="basedOn === 'Order frequency' && scrapingOrderFlag">( orderCount: {{item.orderCount}} )</span>
+      </div>
     </div>
   </div>
   <div class="mt-1 alert-success ml-4 mr-4" *ngIf="!isDisabled() && !scrapingFlag">
@@ -48,7 +56,9 @@
     <small class="text-danger">The reason why it is not {{scrapingtopitemsnumber}} new items here is that some menu items already exist in table.</small>
   </div>
   <div class="ml-4 mr-4" *ngIf="!(!isDisabled() && !scrapingFlag)">
-    <small class="text-danger">You can scrape some top items of menus of restaurants here.And it's maybe empty if the number is too small like 1.</small>
+    <small class="text-danger">You can scrape some top items of menus of restaurants here.And it's maybe empty if the number is too small like 1.
+      MenuCount or orderCount maybe zero, because zero is considered to default.
+    </small>
   </div>
   <!-- end with scraping result -->
   <div class="d-flex justify-content-end p-4">

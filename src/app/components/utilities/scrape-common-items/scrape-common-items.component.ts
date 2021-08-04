@@ -27,7 +27,10 @@ export class ScrapeCommonItemsComponent implements OnInit {
   basedOns = [basedOnTypes.menuFrequency, basedOnTypes.orderFrequency];
   basedOn = basedOnTypes.menuFrequency;
   scrapingFlag = false;
-
+  // this following flag is used to avoid user some error behaviors before he scraping
+  // (such as change basedOn select before scraping).
+  scrapingMenuFlag = false;
+  scrapingOrderFlag = false;
   constructor(private _global: GlobalService) {
   }
 
@@ -48,6 +51,8 @@ export class ScrapeCommonItemsComponent implements OnInit {
         // cuisines:[]
         // }
         this.scrapingFlag = true;
+        this.scrapingMenuFlag = true;
+        this.scrapingOrderFlag = false;
         this.scrapingTopItems.length = 0;
         this.existingTopItems.length = 0;
         // only filter the restaurants of this cuisine type(current selected).
@@ -84,11 +89,13 @@ export class ScrapeCommonItemsComponent implements OnInit {
             count: value
           });
         }
-
         // scrapingTopItems only needs the name field that is not in the origin array.
-        miNames = miNames.sort((a, b) => a.count - b.count);
-        miNames = this.scrapingTopItemsNumber < miNames.length ?
-          miNames.slice(0, this.scrapingTopItemsNumber) : miNames.slice(0, miNames.length);
+        // sort() method of array api:
+        // a - b is ascending order
+        // b - a is decending order
+        // sort() is void 
+        miNames = miNames.sort((a, b) => b.count - a.count).slice(0, Math.min(this.scrapingTopItemsNumber,miNames.length));
+
         let mFExistsNames = this.existsImageItems.filter(item => item.aliases);
 
         this.scrapingTopItems = miNames.filter(item => {
@@ -133,9 +140,9 @@ export class ScrapeCommonItemsComponent implements OnInit {
               url: '',
               url96: '',
               url128: '',
+              url192: '', // show in table colnum
               url768: ''
             }],
-            url192: '', // show in table colnum
             cuisines: [this.cuisineType],
             orderCount: 0,
             menuCount: item.count
@@ -148,6 +155,8 @@ export class ScrapeCommonItemsComponent implements OnInit {
           return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
         }
         this.scrapingFlag = true;
+        this.scrapingOrderFlag = true;
+        this.scrapingMenuFlag = false;
         this.scrapingTopItems.length = 0;
         this.existingTopItems.length = 0;
         let oFRestaurants = this.restaurants.filter(restaurant => restaurant.menus && restaurant.googleListing.cuisine === this.cuisineType);
@@ -169,7 +178,7 @@ export class ScrapeCommonItemsComponent implements OnInit {
         // field that is in the origin array
         // we filter it and update its' field includes cuisines, orderCount, menuCount
         let oFMis = Object.entries(ofMiMap).map(([k, v]) => ({name: k.split('_')[1], orderCount: v as number}));
-        oFMis = oFMis.sort((mi1, mi2) => mi1.orderCount - mi2.orderCount)
+        oFMis = oFMis.sort((mi1, mi2) => (mi2.orderCount || 0) - (mi1.orderCount || 0))
           .slice(0, Math.min(oFMis.length, this.scrapingTopItemsNumber));
         let oFExistsNames = this.existsImageItems.filter(item => item.aliases);
 
@@ -217,9 +226,9 @@ export class ScrapeCommonItemsComponent implements OnInit {
                 url: '',
                 url96: '',
                 url128: '',
+                url192: '',
                 url768: ''
               }],
-              url192: '',
               cuisines: [this.cuisineType],
               orderCount: mi.orderCount,
               menuCount: 0

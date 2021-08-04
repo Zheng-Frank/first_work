@@ -51,10 +51,10 @@
         <td class="pl-1">
           <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
             <img src="{{img.url192}}" (click)="thumbnailClick(row)">
-            <button (click)="deleteImage(img, row)" class="btn btn-secondary close-button transparent">
+            <button (click)="deleteImage(img, row)" *ngIf="img.url192" class="btn btn-secondary close-button transparent">
               <i class="fas fa-times"></i>
             </button>
-            <button (click)="deleteImage(img, row)" class="btn btn-link text-danger close-button">
+            <button (click)="deleteImage(img, row)" *ngIf="img.url192" class="btn btn-link text-danger close-button">
               <i class="fas fa-times"></i>
             </button>
           </div>
