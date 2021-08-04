@@ -20,7 +20,7 @@ export class RestaurantMapComponent implements OnInit {
   map = null;
   markers = [];
   infoWindow = null;
-  state = 'GA';
+  state = '';
   agent = '';
   states = [
     'AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA',
@@ -55,11 +55,6 @@ export class RestaurantMapComponent implements OnInit {
     }, 500);
 
     this.agents = users.filter(u => u.roles && u.roles.includes('MARKETER'));
-    let current = this._global.user;
-    // if current user is marketer, default to self
-    if (current.roles.includes('MARKETER')) {
-      this.agent = current.username;
-    }
   }
 
   async getRTs() {
