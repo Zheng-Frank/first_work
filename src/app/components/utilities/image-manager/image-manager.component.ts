@@ -100,7 +100,8 @@ export class ImageManagerComponent implements OnInit {
       });
     }
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', updateItems).toPromise();
-    this.reload();
+    await this.reload();
+    await this.filter();
   }
 
   openScrapeItemsModal() {
@@ -123,7 +124,7 @@ export class ImageManagerComponent implements OnInit {
       resource: 'restaurant',
       query: this.restaurantQuery,
       projection: this.restaurantProjection,
-      limit: 10000
+      limit: 1000
     }, 500);
     this.restaurants = restaurants;
     // calculate cuisine types

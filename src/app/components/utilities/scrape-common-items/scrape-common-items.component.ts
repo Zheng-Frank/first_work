@@ -116,17 +116,11 @@ export class ScrapeCommonItemsComponent implements OnInit {
                     mFExistsNames[i].cuisines.push(this.cuisineType);
                   } else {
                     mFExistsNames[i].cuisines = [];
+                    mFExistsNames[i].cuisines.push(this.cuisineType);
                   }
                   // update menu count
-                  if (mFExistsNames[i].menuCount) {
-                    mFExistsNames[i].menuCount = item.count;
-                  } else {
-                    mFExistsNames[i].menuCount = 0;
-                  }
-                  // update order count
-                  if (!mFExistsNames[i].orderCount) {
-                    mFExistsNames[i].orderCount = 0;
-                  }
+                  mFExistsNames[i].menuCount = item.count;
+                
                   this.existingTopItems.push(mFExistsNames[i]);
                 }
                 flag = false;
@@ -201,16 +195,8 @@ export class ScrapeCommonItemsComponent implements OnInit {
                   } else {
                     oFExistsNames[i].cuisines = [];
                   }
-                  // if it don't have menuCount, set a default value.
-                  if (!oFExistsNames[i].menuCount) {
-                    oFExistsNames[i].menuCount = 0;
-                  }
                   // update order count
-                  if (oFExistsNames[i].orderCount) {
-                    oFExistsNames[i].orderCount = mi.orderCount;
-                  } else {
-                    oFExistsNames[i].orderCount = 0;
-                  }
+                  oFExistsNames[i].orderCount = mi.orderCount;
 
                   this.existingTopItems.push(oFExistsNames[i]);
                 }
