@@ -81,7 +81,7 @@ export class FraudDetectionComponent implements OnInit {
   }
 
   async search() {
-    let query = {'ccAddress.distanceToStore': {$gte: 100}} as object;
+    let query = {'ccAddress.distanceToStore': {$gte: 200}} as object;
     if (this.fromDate && this.toDate) {
       if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
         return this._global.publishAlert(AlertType.Danger, 'please input a correct date format,from time is less than or equals to time!');
