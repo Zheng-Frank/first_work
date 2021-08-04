@@ -50,15 +50,10 @@
     </div>
   </div>
   <div class="mt-1 alert-success ml-4 mr-4" *ngIf="!isDisabled() && !scrapingFlag">
-    <small>Scraping Comlete! {{scrapingTopItems.length}} new items to import.{{existingTopItems.length}} menu items already exists.</small>
+    <small>Scraping Comlete! {{scrapingTopItems.length}} new items to import. {{existingTopItems.length}} menu items already exists.</small>
   </div>
   <div class="ml-4 mr-4" *ngIf="!isDisabled() && !scrapingFlag">
-    <small class="text-danger">The reason why it is not {{scrapingtopitemsnumber}} new items here is that some menu items already exist in table.</small>
-  </div>
-  <div class="ml-4 mr-4" *ngIf="!(!isDisabled() && !scrapingFlag)">
-    <small class="text-danger">You can scrape some top items of menus of restaurants here.And it's maybe empty if the number is too small like 1.
-      MenuCount or orderCount maybe zero, because zero is considered to default.
-    </small>
+    <small class="text-danger">No new items to import. All scraped items already in database.</small>
   </div>
   <!-- end with scraping result -->
   <div class="d-flex justify-content-end p-4">
