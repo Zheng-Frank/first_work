@@ -76,10 +76,10 @@ export class ImageManagerComponent implements OnInit {
         this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
         break;
       case orderByTypes.menuFrequency:
-        this.filterRows.sort((a, b) => (a.menuCount || 0) - (b.menuCount || 0));
+        this.filterRows.sort((a, b) => (b.menuCount || 0) - (a.menuCount || 0));
         break;
       case orderByTypes.orderFrequency:
-        this.filterRows.sort((a, b) => (a.orderCount || 0) - (b.orderCount || 0));
+        this.filterRows.sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
         break;
       default:
         break;
@@ -91,7 +91,7 @@ export class ImageManagerComponent implements OnInit {
     let { existItems, newItems } = Items;
     this.scrapeItemsModal.hide();
     await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', newItems).toPromise();
-    let tempExistingItems = existItems.map(item => item._id);
+    let tempExistingItems = existItems.map(item => ({_id: item._id}));
     let updateItems = [];
     for (let i = 0; i < existItems.length; i++) {
       updateItems.push({
