@@ -8,7 +8,6 @@ import {AlertType} from '../../classes/alert-type';
 import {environment} from '../../../environments/environment';
 
 declare var $: any;
-declare var google: any;
 
 @Component({
   selector: 'app-fraud-detection',
