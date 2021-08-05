@@ -106,9 +106,9 @@
     <a class="ml-2" target="_blank" *ngFor="let competitor of competitorSites" [href]="competitor.url">{{competitor.name}}</a>
   </div>
   <ul class="coupon-list">
-    <li *ngFor="let promotion of (restaurant?.promotions || [])">
+    <li *ngFor="let promotion of sortedPromotions(restaurant?.promotions || [])">
       <div class="coupon-info">
-        <div>{{promotion.name}}</div>
+        <div>{{promotion.name}}<span class="promotion-source">({{promotion.source}})</span></div>
         <div class="sub-text" *ngIf="promotion.excludedOrderTypes?.length > 0">Excluded Order Types: {{promotion.excludedOrderTypes.join(', ')}}</div>
         <div class="sub-text" *ngIf="promotion.freeItemList?.length > 0">
           Free Items:

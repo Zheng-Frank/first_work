@@ -4,7 +4,6 @@ import {GlobalService} from '../../../services/global.service';
 import {environment} from '../../../../environments/environment';
 import {Promotion, Restaurant} from '@qmenu/ui';
 import {AlertType} from '../../../classes/alert-type';
-import {window} from 'rxjs/operators';
 
 @Component({
   selector: 'app-monitoring-promotion',
@@ -119,9 +118,16 @@ export class MonitoringPromotionComponent implements OnInit {
     this.validateModal.show();
   }
 
+  sortedPromotions(promotions) {
+    return promotions.sort((x, y) => {
+      return x.name > y.name ? 1 : (x.name < y.name ? -1 : 0);
+    });
+  }
+
   refreshCompetitorSites(rt) {
     if (!rt) {
-      return [];
+      this.competitorSites = [];
+      return;
     }
     let competitors = {};
     const Providers = {BeyondMenu: 'beyondmenu', CMO: 'chinesemenuonline'};
