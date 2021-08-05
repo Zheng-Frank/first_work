@@ -99,6 +99,7 @@ export class ImageManagerComponent implements OnInit {
             count: value
           });
         }
+        miNames = miNames.sort((a, b) => b.count - a.count).slice(0, Math.min(1000, miNames.length));
         let mFExistsNames = this.rows.filter(item => item.aliases);
 
         miNames.forEach(item => {
@@ -149,7 +150,8 @@ export class ImageManagerComponent implements OnInit {
         });
 
         let oFMis = Object.entries(ofMiMap).map(([k, v]) => ({ name: k.split('_')[1], orderCount: v as number }));
-        
+        oFMis = oFMis.sort((mi1, mi2) => mi2.orderCount - mi1.orderCount)
+        .slice(0, Math.min(oFMis.length, 1000));
         let oFExistsNames = this.rows.filter(item => item.aliases);
 
         oFMis.forEach(mi => {
