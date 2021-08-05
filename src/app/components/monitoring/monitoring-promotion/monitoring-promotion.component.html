@@ -24,7 +24,7 @@
         </optgroup>
       </select>
       <div class="form-check ml-2">
-        <input class="form-check-input" type="checkbox" id="flexCheckDefault" (click)="scrapedToggle($event)">
+        <input class="form-check-input" type="checkbox" id="flexCheckDefault" [(ngModel)]="scrapedOnly" (change)="filter()">
         <label class="form-check-label" for="flexCheckDefault">Scraped coupon RTs only</label>
       </div>
     </div>
@@ -35,12 +35,7 @@
         <tr *ngFor="let rt of filtered">
           <td><a target="_blank" href="/#/restaurants/{{rt._id}}">{{rt.name}}</a></td>
           <td>
-            <div *ngIf="countScraped(rt.promotions)">
-              {{countScraped(rt.promotions)}} (<a class="btn-link" (click)="validate(rt)">Validate</a>)
-            </div>
-            <div *ngIf="!countScraped(rt.promotions)">
-              <a class="btn-link" (click)="crawl(rt)">Crawl</a>
-            </div>
+            <app-monitoring-promotion-cell [promotions]="rt.promotions" (crawl)="crawl(rt)" (validate)="validate(rt)"></app-monitoring-promotion-cell>
           </td>
           <td>{{rt.googleListing?.gmbOwner}}</td>
         </tr>
@@ -106,6 +101,10 @@
 </q-modal>
 
 <q-modal title="Promotion Validate" class="validate-modal" #validateModal (close)="closeModal(validateModal)">
+  <div>
+    <span>View on competitor sites:</span>
+    <a class="ml-2" target="_blank" *ngFor="let competitor of competitorSites" [href]="competitor.url">{{competitor.name}}</a>
+  </div>
   <ul class="coupon-list">
     <li *ngFor="let promotion of (restaurant?.promotions || [])">
       <div class="coupon-info">
