@@ -1,3 +1,4 @@
+import { AlertType } from './../../../classes/alert-type';
 import { ScrapeCommonItemsComponent } from './../scrape-common-items/scrape-common-items.component';
 import { map, filter } from 'rxjs/operators';
 import { Component, OnInit, Output, EventEmitter, ViewChild } from '@angular/core';
@@ -8,8 +9,9 @@ import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { Helper } from '../../../classes/helper';
 import { HttpClient } from '@angular/common/http';
 import { Restaurant } from '@qmenu/ui';
+import { stringify } from '@angular/core/src/util';
 enum orderByTypes {
-  NAME = 'name',
+  NAME = 'Name',
   menuFrequency = 'Menu frequency',
   orderFrequency = 'Order frequency'
 }
@@ -23,11 +25,11 @@ export class ImageManagerComponent implements OnInit {
   @ViewChild('modalZoom') modalZoom: ModalComponent;
   @ViewChild('scrapeItemsModal') scrapeItemsModal: ModalComponent;
   @ViewChild('scrapeCommonItems') scrapeCommonItems: ScrapeCommonItemsComponent;
+  @ViewChild('addRecordsModal') addRecordsModal: ModalComponent;
   // menuNames = ['a'];
   // images = ['https://spicysouthernkitchen.com/wp-content/uploads/general-tsau-chicken-15.jpg', 'https://www.jocooks.com/wp-content/uploads/2018/04/instant-pot-general-tsos-chicken-1-6-500x375.jpg'];
   uploadImageError;
   clickedMi;
-  addingNew = false;
   rows = [];
   filterRows = [];// images items needs cuisineType filter,so we need a filterRows to record them.
   images = [];
@@ -35,7 +37,7 @@ export class ImageManagerComponent implements OnInit {
   cuisineType = '';
   orderBys = [orderByTypes.NAME, orderByTypes.menuFrequency, orderByTypes.orderFrequency];
   orderBy = orderByTypes.NAME;
-  restaurants: Restaurant[] = [];
+  restaurants = [];
   restaurantProjection = {
     _id: 1,
     "googleListing.cuisine": 1,
@@ -46,7 +48,10 @@ export class ImageManagerComponent implements OnInit {
     disabled: { $ne: true }
   }
 
-  popularItems = [];
+  newImages = [];
+  calculatingStats = false; // control progress bar actions.
+  existingTopItems = [];
+  noImagesFlag = false; // control whether show no image items. 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -54,10 +59,168 @@ export class ImageManagerComponent implements OnInit {
     await this.loadRestaurants();
   }
 
+  onChangeShowNoImageItems(){
+    if(this.noImagesFlag){
+      this.filterRows = this.filterRows.filter(item => !(item.images && item.images.length > 0 &&
+        item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192)));
+    }
+  }
+
+  // the method do a task of calculate old images 
+  // stats and add three new properties: menuCount, orderCount, cuisines
+  async calculateStats() {
+    switch (this.orderBy) {
+      case orderByTypes.menuFrequency:
+        if (!this.cuisineType) {
+          return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
+        }
+        this.calculatingStats = true;
+        this.existingTopItems.length = 0;
+        let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
+
+        let map = {};
+        mFRestaurants.forEach(restaurant => {
+          restaurant.menus.forEach(menu => {
+            menu.mcs.forEach(mc => {
+              mc.mis.forEach(mi => {
+                if (mi.name) {
+                  let key = this.cuisineType + '_' + mi.name;
+                  map[key] = (map[key] || 0) + 1;
+                }
+              });
+            });
+          });
+        });
+
+        let miNames = [];
+        for (const [key, value] of Object.entries(map)) {
+          miNames.push({
+            name: key.split('_')[1],
+            count: value
+          });
+        }
+        let mFExistsNames = this.rows.filter(item => item.aliases);
+
+        miNames.forEach(item => {
+          let name = item.name.toLowerCase().trim();
+          for (let i = 0; i < mFExistsNames.length; i++) {
+            let aliases = mFExistsNames[i].aliases;
+            for (let j = 0; j < aliases.length; j++) {
+              let existName = aliases[j].toLowerCase().trim();
+              if (existName === name) {
+                if (!this.existingTopItems.includes(mFExistsNames[i])) {
+                  // update exist image item cuisine
+                  if (mFExistsNames[i].cuisines) {
+                    mFExistsNames[i].cuisines = mFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
+                    mFExistsNames[i].cuisines.push(this.cuisineType);
+                  } else {
+                    mFExistsNames[i].cuisines = [];
+                    mFExistsNames[i].cuisines.push(this.cuisineType);
+                  }
+                  // update menu count
+                  mFExistsNames[i].menuCount = item.count;
+
+                  this.existingTopItems.push(mFExistsNames[i]);
+                }
+              }
+            }
+          }
+        });
+        break;
+      case orderByTypes.orderFrequency:
+        if (!this.cuisineType) {
+          return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
+        }
+        this.calculatingStats = true;
+        this.existingTopItems.length = 0;
+        let oFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
+        let ofMiMap = {};
+        oFRestaurants.forEach(restaurant => {
+          restaurant.menus.forEach(menu => {
+            menu.mcs.forEach(mc => {
+              mc.mis.forEach(mi => {
+                let key = `${this.cuisineType}_${mi.name}`;
+                if (mi.name && mi.orderCount && !ofMiMap[key]) {
+                  ofMiMap[key] = mi.orderCount;
+                }
+              });
+            });
+          });
+        });
+
+        let oFMis = Object.entries(ofMiMap).map(([k, v]) => ({ name: k.split('_')[1], orderCount: v as number }));
+        
+        let oFExistsNames = this.rows.filter(item => item.aliases);
+
+        oFMis.forEach(mi => {
+          let name = mi.name.toLowerCase().trim();
+          for (let i = 0; i < oFExistsNames.length; i++) {
+            let aliases = oFExistsNames[i].aliases;
+            for (let j = 0; j < aliases.length; j++) {
+              let existName = aliases[j].toLowerCase().trim();
+              // Strict case sensitivity is required
+              if (existName === name) {
+                if (!this.existingTopItems.includes(oFExistsNames[i])) {
+                  // update exist image item cuisine
+                  if (oFExistsNames[i].cuisines) {
+                    oFExistsNames[i].cuisines = oFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
+                    oFExistsNames[i].cuisines.push(this.cuisineType);
+                  } else {
+                    oFExistsNames[i].cuisines = [];
+                    oFExistsNames[i].cuisines.push(this.cuisineType);
+                  }
+                  // update order count
+                  oFExistsNames[i].orderCount = mi.orderCount;
+
+                  this.existingTopItems.push(oFExistsNames[i]);
+                }
+              }
+            }
+          }
+        });
+        break;
+      case orderByTypes.NAME:
+        this._global.publishAlert(AlertType.Danger, 'Name can not be scraped !');
+        break;
+      default:
+        break;
+    }
+    if (this.orderBy !== orderByTypes.NAME) {
+      let tempExistingItems = this.existingTopItems.map(item => ({ _id: item._id }));
+      let updateItems = [];
+      for (let i = 0; i < this.existingTopItems.length; i++) {
+        updateItems.push({
+          old: tempExistingItems[i],
+          new: this.existingTopItems[i]
+        });
+      }
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', updateItems).toPromise();
+      await this.reload();
+      await this.filter();
+      this.calculatingStats = false;
+    }
+
+  }
+
+  // create a new row to add a image's aliases
+  createNewLine() {
+    if (this.newImages.length === 10) {
+      return this._global.publishAlert(AlertType.Danger, 'Can not add a new row (10 is maxinum) !');
+    }
+    let _id = this.newImages.length;
+    this.newImages.push({ _id: _id });
+  }
+  // delete a row using to add a new record of image table
+  deleteNewLine(_id) {
+    if (this.newImages.length === 1) {
+      return this._global.publishAlert(AlertType.Danger, 'Can not remove this row (1 is minium) !');
+    }
+    this.newImages.splice(this.newImages.findIndex(img => img._id === _id), 1);
+  }
+
   getItemWithImageCount() {
     return this.filterRows.filter(item => item.images && item.images.length > 0 &&
-      item.images.filter(image => image.url || image.url196 || image.url128 || image.url768).length > 0
-      && item.url192).length;
+      item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0).length;
   }
 
   filter() {
@@ -67,6 +230,7 @@ export class ImageManagerComponent implements OnInit {
       this.filterRows = this.rows.filter(row => row.cuisines && row.cuisines.length > 0 && row.cuisines.includes(this.cuisineType));
     }
     this.onChangeOrderBy();
+    this.onChangeShowNoImageItems();
   }
 
   // change order by select value toggle this method.
@@ -91,7 +255,7 @@ export class ImageManagerComponent implements OnInit {
     let { existItems, newItems } = Items;
     this.scrapeItemsModal.hide();
     await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', newItems).toPromise();
-    let tempExistingItems = existItems.map(item => ({_id: item._id}));
+    let tempExistingItems = existItems.map(item => ({ _id: item._id }));
     let updateItems = [];
     for (let i = 0; i < existItems.length; i++) {
       updateItems.push({
@@ -124,13 +288,13 @@ export class ImageManagerComponent implements OnInit {
       resource: 'restaurant',
       query: this.restaurantQuery,
       projection: this.restaurantProjection,
-      limit: 1000
+      limit: 10000
     }, 500);
     this.restaurants = restaurants;
     // calculate cuisine types
     const cuisineTypes = this.restaurants.filter(restaurant => restaurant.googleListing && restaurant.googleListing.cuisine && restaurant.googleListing.cuisine !== '').map(restaurant => restaurant.googleListing.cuisine);
     cuisineTypes.forEach(type => (this.cuisineTypes.indexOf(type) === -1 && this.cuisineTypes.push(type)));
-    this.cuisineTypes.sort((a,b)=>a.localeCompare(b));
+    this.cuisineTypes.sort((a, b) => a.localeCompare(b));
     this.cuisineTypes.unshift('');
   }
 
@@ -153,10 +317,31 @@ export class ImageManagerComponent implements OnInit {
     }
   }
 
+  openAddRecordsModal() {
+    this.newImages.length = 0;
+    this.newImages.push({ _id: 0 });
+    this.addRecordsModal.show();
+  }
+
+  cancelCreateNew() {
+    this.addRecordsModal.hide();
+  }
+
+  aliasesHasEmpty() {
+    return this.newImages.filter(img => img.aliases && img.aliases.trim() === '' || !img.aliases).length > 0;
+  }
+
   async createNew() {
-    this.addingNew = true;
-    await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', [{}]).toPromise();
-    this.addingNew = false;
+    if (this.aliasesHasEmpty()) {
+      return this._global.publishAlert(AlertType.Danger, 'Please check whose aliases is empty !');
+    }
+    this.newImages = this.newImages.map(img => {
+      delete img['_id'];
+      img.aliases = img.aliases.split(',').filter(alias => alias).map(alias => alias.trim());
+      return img;
+    });
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', this.newImages).toPromise();
+    this.addRecordsModal.hide();
     this.reload();
   }
 

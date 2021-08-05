@@ -6,22 +6,28 @@
   </h2>
   <div class="card-body">
     <div class="row pb-2">
-      <div class="col-6 text-left form-inline">
+      <div class="col-8 text-left form-inline">
         <label class="form-check-label mr-2 ml-3">Cuisine Type
-          <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width" (change)="filter()" >
+          <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width" (change)="filter()">
             <option *ngFor="let type of cuisineTypes">{{type}}</option>
           </select>
-        </label> 
+        </label>
         <label class="form-check-label mr-2 ml-3">Order By
           <select [(ngModel)]="orderBy" class="form-control ml-2" (change)="filter()">
             <option *ngFor="let type of orderBys">{{type}}</option>
           </select>
-        </label> 
+        </label>
         <button class="btn btn-primary ml-2" (click)="openScrapeItemsModal()">Scrape Common Items</button>
+        <!-- start with show no image items -->
+        <label class="form-check-label ml-3">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="noImagesFlag" (change)="filter()"> show no images items
+        </label>
+        <!-- end with show no image items -->
       </div>
       <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
-      <div class="col-6 text-right">
-        <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
+      <div class="col-4 text-right">
+          <button class="btn btn-primary" (click)="calculateStats()" [qLoading]="calculatingStats">+ Calculate Stats</button>
+        <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New Record</button>
       </div>
     </div>
     <table class="table table-striped">
@@ -44,14 +50,18 @@
         <td>
           <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
           <div class="row ml-1 mt-2" *ngIf="row.menuCount || row.orderCount">
-              <span *ngIf="row.menuCount" class="mr-2">Menu Frequency: {{row.menuCount}}</span>
-              <span *ngIf="row.orderCount">Order Frequency: {{row.orderCount}}</span>
+            <span class="mr-2" *ngIf="orderBy === 'Menu frequency'">Menu Frequency: {{row.menuCount || 0}}</span>
+            <span *ngIf="orderBy === 'Order frequency'">Order Frequency: {{row.orderCount || 0}}</span>
+          </div>
+          <div class="row ml-1 mt-2 text-warning" *ngIf="row.cuisines">
+            <span>Cuisines: {{row.cuisines.join(', ').toString()}}</span>
           </div>
         </td>
         <td class="pl-1">
           <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
             <img src="{{img.url192}}" (click)="thumbnailClick(row)">
-            <button (click)="deleteImage(img, row)" *ngIf="img.url192" class="btn btn-secondary close-button transparent">
+            <button (click)="deleteImage(img, row)" *ngIf="img.url192"
+              class="btn btn-secondary close-button transparent">
               <i class="fas fa-times"></i>
             </button>
             <button (click)="deleteImage(img, row)" *ngIf="img.url192" class="btn btn-link text-danger close-button">
@@ -74,10 +84,6 @@
       </tr>
 
     </table>
-    <div class="text-right pb-2">
-      <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
-      <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
-    </div>
 
     <q-modal #modalZoom *ngIf="clickedMi">
       <div class="modal-header" data-dismiss="modal">
@@ -117,8 +123,36 @@
       </button>
       <h4 class="text-center">Scrape Common Items</h4>
       <hr>
-      <app-scrape-common-items #scrapeCommonItems [existsImageItems]="rows" [cuisineTypes]="cuisineTypes" [restaurants]="restaurants" (onCancel)="scrapeItemsModal.hide()" (onImport)="handleImportItems($event)"></app-scrape-common-items>
+      <app-scrape-common-items #scrapeCommonItems [existsImageItems]="rows" [cuisineTypes]="cuisineTypes"
+        [restaurants]="restaurants" (onCancel)="scrapeItemsModal.hide()" (onImport)="handleImportItems($event)">
+      </app-scrape-common-items>
     </q-modal>
     <!-- end with scrape common items -->
+    <!-- start with add new record modal -->
+    <q-modal #addRecordsModal>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+      <h4 class="text-center">Add New Records</h4>
+      <hr>
+      <div class="container">
+        <div class="row">
+          <div class="col-12 text-right">
+            <button class="btn btn-primary" (click)="createNewLine()">+</button>
+          </div>
+        </div>
+        <div class="row mt-2" *ngFor="let img of newImages">
+          <input type="text" class="form-control col-10" [(ngModel)]="img.aliases"
+            placeholder="Enter comma separed values!">
+          <button class="btn btn-link col-2" (click)="deleteNewLine(img._id)"><i class="fa fa-minus"></i></button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end p-4">
+        <button class="btn btn-secondary mr-2" (click)="cancelCreateNew()">Cancel</button>
+        <button class="btn btn-primary" (click)="createNew()">OK</button>
+      </div>
+    </q-modal>
+    <!-- end with add new record modal -->
   </div>
 </div>
