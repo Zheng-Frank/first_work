@@ -38,11 +38,25 @@ export class MenuEditorComponent implements OnInit {
     }];
 
   selectedTarget = this.targets[0];
-
+  sampleMenu = require('./sample_menu.json');
   constructor(private _api: ApiService, private _http: HttpClient) {
   }
 
   ngOnInit() {
+  }
+  // copy sample menu from demo of prod for new restaurant signing up.
+  createSampleMenu(){
+    let sampleMenu = this.sampleMenu;
+    sampleMenu.name = 'Example Menu';
+    delete sampleMenu.id; // delete the copy's id, or else we will just end up editing the existing menu
+    sampleMenu.mcs.map(mc => {
+      mc.id += '0';
+      mc.mis.map(mi => {
+        mi.id += '0'; // append a 0 to all Mc and Mi id's to keep them unique
+      });
+    });
+    sampleMenu = new Menu(sampleMenu);
+    this.setMenu(sampleMenu);
   }
 
   isValid() {
@@ -60,6 +74,8 @@ export class MenuEditorComponent implements OnInit {
   radioSelect(event) {
     if (event === 'New Menu') {
       this.setMenu(new Menu());
+    }else if(event === 'Sample Menu'){
+      this.createSampleMenu();
     }
   }
 
