@@ -7,7 +7,7 @@
   <div *ngIf="!menu.id">
     <label>Choose New Or Existing Menu:</label>
     <div>
-      <div *ngFor="let option of ['New Menu', 'Copy from existing Menu']; let i = index" class="d-inline-block pr-2">
+      <div *ngFor="let option of ['New Menu', 'Copy from existing Menu' ,'Sample Menu']; let i = index" class="d-inline-block pr-2">
         <input type="radio" name="option" id="option-{{i}}" [value]="option" [(ngModel)]="selectedOption" (change)="radioSelect(option)">
         <label for="option-{{i}}">{{option}}</label>
       </div>
