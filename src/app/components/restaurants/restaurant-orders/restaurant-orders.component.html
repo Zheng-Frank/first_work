@@ -1,51 +1,51 @@
 <div *ngIf="orders">
-  <div class="row">
-    <label class="col-2 text-center pl-4"
-           style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
+  <div class="form-inline">
+    <label class="text-center pl-5"
+      style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
     </label>
-    <select [(ngModel)]="type" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
+    <select [(ngModel)]="type" class="form-control mr-3" style="min-width:180px;max-width:180px;">
       <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
     </select>
-    <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
-      class="form-control col-6" placeholder="Search">
-    <div class="ml-3 mt-2">
-      <input  type="checkbox" [(ngModel)]="searchQROrder" (change)="search()"> QR orders only
+    <input type="text" [(ngModel)]="searchText" class="form-control col-6" placeholder="Please input"
+      style="min-width:200px;max-width:200px;">
+    <div class="ml-3">
+      <label> QR orders only <input type="checkbox" [(ngModel)]="searchQROrder" class="ml-1"></label> 
     </div>
-    <div *ngIf="searchText" class="text-muted float-left col-1 pt-2">Found: {{orders.length}}</div>
+    <div class="form-inline ml-2" *ngIf="showAdvancedSearch">
+      <label>From:</label>
+      <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
+      <label class="ml-2">To:</label>
+      <input class="form-control ml-1" type="date" [(ngModel)]="toDate">
+      <button class="btn btn-primary ml-2" (click)="doSearchOrderByTime()"><i class="fa fa-search"></i>
+        Search</button>
+    </div>
+    <button class="btn btn-primary ml-2" *ngIf="!showAdvancedSearch" (click)="search()">
+      <i class="fa fa-search"></i> Search
+    </button>
+    <div class="text-muted float-left col-1">Found: {{orders.length}}
+      <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
+        <div *ngIf="showExplanation" class="left talk radius">
+          <p>Only the latest 50 items will be displayed, because there are too many orders and the date range search only show 150 orders in the most front.</p>
+          -------------<br>
+          <p>除非使用日期范围搜索，否则只显示最近的50个订单，在使用日期范围搜索这种情况下，将显示最近的150个订单。</p>
+        </div>
+      </i>
+    </div>
   </div>
   <div class="form-group">
-    <button type="button" class="btn btn-link ml-3" (click)="showAdvancedSearch = !showAdvancedSearch">
+    <button type="button" class="btn btn-link ml-5" (click)="toggleDoSearchOrderByTime()">
       {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
-    <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
-      <div class="row text-danger ml-2">NOTE: The date range search only show 150 orders in the most front.</div>
-      <div class="row">
-        <div class="col col-sm-6">
-          <label>From:</label>
-          <input class="form-control" type="date" [(ngModel)]="fromDate">
-        </div>
-        <div class="col col-sm-6">
-          <label>To:</label>
-          <input class="form-control" type="date" [(ngModel)]="toDate">
-        </div>
-      </div>
-      <div class="row">
-        <div class="text-right mt-1 col-12">
-          <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByTime()">Cancel</button>
-          <button class="btn btn-primary" (click)="doSearchOrderByTime(fromDate,toDate)">Submit</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="row ml-0 mr-0">
     <!-- row has negative margins and we need to remove them! -->
     <div *ngFor="let order of orders" class="col-sm-12 col-md-6 col-lg-4  app-pl-025 app-pr-025 mb-1">
       <app-order-card [restaurant]="restaurant" [order]="order" (onSetNewStatus)="handleOnSetNewStatus($event)"
-                      (onReject)="handleOnReject($event)" (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
-                      (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
-                      (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)"
-                      (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
-                      (onAdjustInvoice)="handleOnAdjustInvoice($event)">
+        (onReject)="handleOnReject($event)" (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
+        (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
+        (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)"
+        (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+        (onAdjustInvoice)="handleOnAdjustInvoice($event)">
       </app-order-card>
     </div>
   </div>
@@ -91,11 +91,11 @@
     <hr>
     <!-- row has negative margins and we need to remove them! -->
     <app-order-card [restaurant]="restaurant" [order]="previousCanceledOrder"
-                    (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
-                    (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
-                    (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
-                    (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
-                    (onAdjustInvoice)="handleOnAdjustInvoice($event)">
+      (onSetNewStatus)="handleOnSetNewStatus($event)" (onReject)="handleOnReject($event)"
+      (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
+      (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
+      (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
+      (onAdjustInvoice)="handleOnAdjustInvoice($event)">
 
     </app-order-card>
   </q-modal>
@@ -158,7 +158,7 @@
     <div *ngIf="isPostmatesStatusDelivered" class="d-flex flex-column align-items-center">
       <span class="text-primary">ATTENTION</span>
       <p class="text-primary">Note that the Postmates status of this order <span
-        class="font-weight-bold">delivered.</span><br />Please be sure you want to cancel it before proceeding. </p>
+          class="font-weight-bold">delivered.</span><br />Please be sure you want to cancel it before proceeding. </p>
     </div>
   </q-modal>
 
@@ -208,8 +208,8 @@
     </button>
     <h4 class="text-center">Invoice Adjustment</h4>
     <hr>
-    <app-restaurant-invoice-adjustment #adjustInvoiceComponment [restaurant]="restaurant"
-                                       [log]="logInEditing" [order]="orderForModal" (onAdjustInvoice)="doAdjustInvoice($event)" (onCancel)="cancelAdjustInvoice()">
+    <app-restaurant-invoice-adjustment #adjustInvoiceComponment [restaurant]="restaurant" [log]="logInEditing"
+      [order]="orderForModal" (onAdjustInvoice)="doAdjustInvoice($event)" (onCancel)="cancelAdjustInvoice()">
     </app-restaurant-invoice-adjustment>
 
   </q-modal>
