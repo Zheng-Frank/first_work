@@ -11,7 +11,7 @@ import { Restaurant } from '@qmenu/ui';
 import { stringify } from '@angular/core/src/util';
 enum orderByTypes {
   NAME = 'Name',
-  // menuFrequency = 'Menu frequency',
+  menuFrequency = 'Menu frequency',
   orderFrequency = 'Order frequency'
 }
 @Component({
@@ -32,7 +32,7 @@ export class ImageManagerComponent implements OnInit {
   images = [];
   cuisineTypes = [];
   cuisineType = '';
-  orderBys = [orderByTypes.NAME, orderByTypes.orderFrequency];
+  orderBys = [orderByTypes.NAME, orderByTypes.menuFrequency, orderByTypes.orderFrequency];
   orderBy = orderByTypes.NAME;
   restaurants = [];
   restaurantProjection = {
@@ -99,9 +99,9 @@ export class ImageManagerComponent implements OnInit {
       case orderByTypes.NAME:
         this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
         break;
-      // case orderByTypes.menuFrequency:
-      //   this.filterRows.sort((a, b) => (b.menuCount || 0) - (a.menuCount || 0));
-      //   break;
+      case orderByTypes.menuFrequency:
+        this.filterRows.sort((a, b) => (b.menuCount || 0) - (a.menuCount || 0));
+        break;
       case orderByTypes.orderFrequency:
         this.filterRows.sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
         break;
