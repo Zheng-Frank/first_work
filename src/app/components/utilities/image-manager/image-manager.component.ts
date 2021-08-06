@@ -1,5 +1,4 @@
 import { AlertType } from './../../../classes/alert-type';
-import { ScrapeCommonItemsComponent } from './../scrape-common-items/scrape-common-items.component';
 import { map, filter } from 'rxjs/operators';
 import { Component, OnInit, Output, EventEmitter, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
@@ -23,8 +22,6 @@ enum orderByTypes {
 export class ImageManagerComponent implements OnInit {
   @Output() onClickMiThumbnail = new EventEmitter();
   @ViewChild('modalZoom') modalZoom: ModalComponent;
-  @ViewChild('scrapeItemsModal') scrapeItemsModal: ModalComponent;
-  @ViewChild('scrapeCommonItems') scrapeCommonItems: ScrapeCommonItemsComponent;
   @ViewChild('addRecordsModal') addRecordsModal: ModalComponent;
   // menuNames = ['a'];
   // images = ['https://spicysouthernkitchen.com/wp-content/uploads/general-tsau-chicken-15.jpg', 'https://www.jocooks.com/wp-content/uploads/2018/04/instant-pot-general-tsos-chicken-1-6-500x375.jpg'];
@@ -50,7 +47,6 @@ export class ImageManagerComponent implements OnInit {
 
   newImages = [];
   calculatingStats = false; // control progress bar actions.
-  existingTopItems = [];
   noImagesFlag = false; // control whether show no image items. 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
@@ -62,150 +58,8 @@ export class ImageManagerComponent implements OnInit {
   onChangeShowNoImageItems(){
     if(this.noImagesFlag){
       this.filterRows = this.filterRows.filter(item => !(item.images && item.images.length > 0 &&
-        item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192)));
+        item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0));
     }
-  }
-
-  // the method do a task of calculate old images 
-  // stats and add three new properties: menuCount, orderCount, cuisines
-  async calculateStats() {
-    switch (this.orderBy) {
-      // case orderByTypes.menuFrequency:
-      //   if (!this.cuisineType) {
-      //     return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
-      //   }
-      //   this.calculatingStats = true;
-      //   this.existingTopItems.length = 0;
-      //   let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
-
-      //   let map = {};
-      //   mFRestaurants.forEach(restaurant => {
-      //     restaurant.menus.forEach(menu => {
-      //       menu.mcs.forEach(mc => {
-      //         mc.mis.forEach(mi => {
-      //           if (mi.name) {
-      //             let key = this.cuisineType + '_' + mi.name;
-      //             map[key] = (map[key] || 0) + 1;
-      //           }
-      //         });
-      //       });
-      //     });
-      //   });
-
-      //   let miNames = [];
-      //   for (const [key, value] of Object.entries(map)) {
-      //     miNames.push({
-      //       name: key.split('_')[1],
-      //       count: value
-      //     });
-      //   }
-      //   miNames = miNames.sort((a, b) => b.count - a.count).slice(0, Math.min(1000, miNames.length));
-      //   let mFExistsNames = this.rows.filter(item => item.aliases);
-
-      //   miNames.forEach(item => {
-      //     let name = item.name.toLowerCase().trim();
-      //     for (let i = 0; i < mFExistsNames.length; i++) {
-      //       let aliases = mFExistsNames[i].aliases;
-      //       for (let j = 0; j < aliases.length; j++) {
-      //         let existName = aliases[j].toLowerCase().trim();
-      //         if (existName === name) {
-      //           if (!this.existingTopItems.includes(mFExistsNames[i])) {
-      //             // update exist image item cuisine
-      //             if (mFExistsNames[i].cuisines) {
-      //               mFExistsNames[i].cuisines = mFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
-      //               mFExistsNames[i].cuisines.push(this.cuisineType);
-      //             } else {
-      //               mFExistsNames[i].cuisines = [];
-      //               mFExistsNames[i].cuisines.push(this.cuisineType);
-      //             }
-      //             // update menu count
-      //             mFExistsNames[i].menuCount = item.count;
-
-      //             this.existingTopItems.push(mFExistsNames[i]);
-      //           }
-      //         }
-      //       }
-      //     }
-      //   });
-      //   break;
-      case orderByTypes.orderFrequency:
-        if (!this.cuisineType) {
-          return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
-        }
-        this.calculatingStats = true;
-        this.existingTopItems.length = 0;
-        let oFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
-        let ofMiMap = {};
-        oFRestaurants.forEach(restaurant => {
-          restaurant.menus.forEach(menu => {
-            menu.mcs.forEach(mc => {
-              mc.mis.forEach(mi => {
-                let key = `${this.cuisineType}_${mi.name}`;
-                if (mi.name && mi.orderCount && !ofMiMap[key]) {
-                  ofMiMap[key] = mi.orderCount;
-                }
-              });
-            });
-          });
-        });
-
-        let oFMis = Object.entries(ofMiMap).map(([k, v]) => ({ name: k.split('_')[1], orderCount: v as number }));
-        oFMis = oFMis.sort((mi1, mi2) => mi2.orderCount - mi1.orderCount)
-        .slice(0, Math.min(oFMis.length, 1000));
-        let oFExistsNames = this.rows.filter(item => item.aliases);
-
-        oFMis.forEach(mi => {
-          let name = mi.name.toLowerCase().trim();
-          for (let i = 0; i < oFExistsNames.length; i++) {
-            let aliases = oFExistsNames[i].aliases;
-            for (let j = 0; j < aliases.length; j++) {
-              let existName = aliases[j].toLowerCase().trim();
-              // Strict case sensitivity is required
-              if (existName === name) {
-                if (!this.existingTopItems.includes(oFExistsNames[i])) {
-                  // update exist image item cuisine
-                  if (oFExistsNames[i].cuisines) {
-                    oFExistsNames[i].cuisines = oFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
-                    oFExistsNames[i].cuisines.push(this.cuisineType);
-                  } else {
-                    oFExistsNames[i].cuisines = [];
-                    oFExistsNames[i].cuisines.push(this.cuisineType);
-                  }
-                  // update order count
-                  if(oFExistsNames[i].orderCount){
-                    oFExistsNames[i].orderCount += mi.orderCount;
-                  }else{
-                    oFExistsNames[i].orderCount = mi.orderCount;
-                  }
-
-                  this.existingTopItems.push(oFExistsNames[i]);
-                }
-              }
-            }
-          }
-        });
-        break;
-      case orderByTypes.NAME:
-        this._global.publishAlert(AlertType.Danger, 'Name can not be scraped !');
-        break;
-      default:
-        break;
-    }
-    if (this.orderBy !== orderByTypes.NAME) {
-      let tempExistingItems = this.existingTopItems.map(item => ({ _id: item._id }));
-      let updateItems = [];
-      for (let i = 0; i < this.existingTopItems.length; i++) {
-        updateItems.push({
-          old: tempExistingItems[i],
-          new: this.existingTopItems[i]
-        });
-      }
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', updateItems).toPromise();
-      await this.reload();
-      await this.filter();
-      this.calculatingStats = false;
-    }
-
   }
 
   // create a new row to add a image's aliases
@@ -256,31 +110,6 @@ export class ImageManagerComponent implements OnInit {
     }
   }
 
-  // this function is used to add some new common items to images table.
-  async handleImportItems(Items) {
-    let { existItems, newItems } = Items;
-    this.scrapeItemsModal.hide();
-    await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', newItems).toPromise();
-    let tempExistingItems = existItems.map(item => ({ _id: item._id }));
-    let updateItems = [];
-    for (let i = 0; i < existItems.length; i++) {
-      updateItems.push({
-        old: tempExistingItems[i],
-        new: existItems[i]
-      });
-    }
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', updateItems).toPromise();
-    await this.reload();
-    await this.filter();
-  }
-
-  openScrapeItemsModal() {
-    this.scrapeCommonItems.scrapingTopItemsNumber = 500;
-    this.scrapeCommonItems.scrapingTopItems.length = 0; // reduce memory garbage generation.
-    this.scrapeCommonItems.existingTopItems.length = 0;
-    this.scrapeItemsModal.show();
-  }
-
   thumbnailClick(row) {
     this.clickedMi = row;
     if (row.images) {
@@ -294,7 +123,7 @@ export class ImageManagerComponent implements OnInit {
       resource: 'restaurant',
       query: this.restaurantQuery,
       projection: this.restaurantProjection,
-      limit: 1000
+      limit: 10000
     }, 500);
     this.restaurants = restaurants;
     // calculate cuisine types
@@ -348,7 +177,8 @@ export class ImageManagerComponent implements OnInit {
     });
     await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', this.newImages).toPromise();
     this.addRecordsModal.hide();
-    this.reload();
+    await this.reload();
+    await this.filter();
   }
 
   async updateAliases(row) {

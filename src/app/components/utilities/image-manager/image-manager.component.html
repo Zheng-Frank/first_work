@@ -17,7 +17,7 @@
             <option *ngFor="let type of orderBys">{{type}}</option>
           </select>
         </label>
-        <button class="btn btn-primary ml-2" (click)="openScrapeItemsModal()">Scrape Common Items</button>
+        
         <!-- start with show no image items -->
         <label class="form-check-label ml-3">
           <input class="form-check-input" type="checkbox" [(ngModel)]="noImagesFlag" (change)="filter()"> Show items w/o images
@@ -26,7 +26,7 @@
       </div>
       <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
       <div class="col-4 text-right">
-          <button class="btn btn-primary" (click)="calculateStats()" [qLoading]="calculatingStats"><i class="fa fas fa-sync"></i> Calculate Stats</button>
+          <!-- <button class="btn btn-primary" (click)="calculateStats()" [qLoading]="calculatingStats"><i class="fa fas fa-sync"></i> Calculate Stats</button> -->
         <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New Record</button>
       </div>
     </div>
@@ -116,18 +116,6 @@
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </q-modal>
-    <!-- start with scrape common items -->
-    <q-modal #scrapeItemsModal>
-      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">×</span>
-      </button>
-      <h4 class="text-center">Scrape Common Items</h4>
-      <hr>
-      <app-scrape-common-items #scrapeCommonItems [existsImageItems]="rows" [cuisineTypes]="cuisineTypes"
-        [restaurants]="restaurants" (onCancel)="scrapeItemsModal.hide()" (onImport)="handleImportItems($event)">
-      </app-scrape-common-items>
-    </q-modal>
-    <!-- end with scrape common items -->
     <!-- start with add new record modal -->
     <q-modal #addRecordsModal>
       <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -146,7 +134,7 @@
         <div class="row mt-2" *ngFor="let img of newImages">
           <input type="text" class="form-control col-10" [(ngModel)]="img.aliases"
             placeholder="Enter comma separed values!">
-          <button class="btn btn-link col-2" (click)="deleteNewLine(img._id)" *ngIf="newImages.length >= 1"><i class="fa fa-minus"></i></button>
+          <button class="btn btn-link col-2" (click)="deleteNewLine(img._id)" *ngIf="newImages.length > 1"><i class="fa fa-minus"></i></button>
         </div>
       </div>
 
