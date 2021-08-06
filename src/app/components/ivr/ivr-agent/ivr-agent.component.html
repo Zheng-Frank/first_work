@@ -1,6 +1,6 @@
 <div class="pt-2">
   <h1 class="text-center">IVR Logs</h1>
-  <div class="my-text-small text-muted text-center">
+  <div class="my-text-small text-muted text-center" *ngIf="needRefreshCtrs">
     refreshed: {{ lastRefreshed | ago: now }} | total:
     {{ totalMinutes }} minutes
   </div>
@@ -10,73 +10,49 @@
     <span *ngFor="let phone of getMyPhones()">{{ phone | tel }} | </span>
     {{ getVisibleQueueNames().join(", ") }}
   </div>
+  <div class="row">
+    <!-- start with col-7 -->
+    <div class="form-inline col-7">
+      <input [qDebounce]="500" (debounce)="filter($event)" type="text" class="form-control mr-4"
+        placeholder="phone or restaurant ID" [(ngModel)]="searchFilter" />
 
-  <div class="float-top-right pb-2 text-right">
-    <a class="btn btn-primary ml-4" href="/#/ivr-agent-analysis">
-      <i class="fas fa-clipboard"></i>
-      IVR Dashboard
-    </a>
-    <button class="btn btn-primary ml-4" (click)="startIvr()">
-      <i class="fas fa-headset"></i> Launch qMenu IVR
-    </button>
-    <button
-      class="btn btn-primary ml-4"
-      (click)="refreshCtrs()"
-      [qLoading]="refreshing"
-    >
-      <i class="fas fa-sync-alt"></i> Reload
-    </button>
-  </div>
-
-  <div class="form-inline">
-    <input
-      [qDebounce]="500"
-      (debounce)="filter($event)"
-      type="text"
-      class="form-control mr-4"
-      placeholder="phone or restaurant ID"
-      [(ngModel)]="searchFilter"
-    />
-
-    <select
-      (change)="filterQueue()"
-      [(ngModel)]="selectedQueue"
-      class="form-control mr-4"
-    >
-      <option *ngFor="let q of queuesForFilter" [ngValue]="q">
-        {{ q.name || (q.arn ? "(no name))" : "(no arn)") }}
-      </option>
-    </select>
-    <select
-      (change)="filterQueue()"
-      [(ngModel)]="selectedAgent"
-      class="form-control mr-4"
-    >
-      <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">
-        {{ agent || "(no agent)" }}
-      </option>
-    </select>
-    <select
-      (change)="filterQueue()"
-      [(ngModel)]="selectedLanguageCode"
-      class="form-control mr-4"
-    >
-      <option
-        *ngFor="let languageCode of languageCodesForFilter"
-        [ngValue]="languageCode"
-      >
-        {{ languageCode || "(N/A)" }}
-      </option>
-    </select>
-    <label class="checkbox-inline"
-      ><input
-        type="checkbox"
-        [(ngModel)]="shouldCallbackOnly"
-        (change)="filter()"
-        class="mx-1"
-      />
-      Should callback</label
-    >
+      <select (change)="filterQueue()" [(ngModel)]="selectedQueue" class="form-control mr-4">
+        <option *ngFor="let q of queuesForFilter" [ngValue]="q">
+          {{ q.name || (q.arn ? "(no name))" : "(no arn)") }}
+        </option>
+      </select>
+      <select (change)="filterQueue()" [(ngModel)]="selectedAgent" class="form-control mr-4">
+        <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">
+          {{ agent || "(no agent)" }}
+        </option>
+      </select>
+      <select (change)="filterQueue()" [(ngModel)]="selectedLanguageCode" class="form-control mr-4">
+        <option *ngFor="let languageCode of languageCodesForFilter" [ngValue]="languageCode">
+          {{ languageCode || "(N/A)" }}
+        </option>
+      </select>
+      <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="shouldCallbackOnly" (change)="filter()"
+          class="mx-1" />
+        Should callback</label>
+    </div>
+    <!-- end with col-7 -->
+    <!-- start with col-5 -->
+    <div class="text-right col-5">
+      <label class="form-check-label mt-2" for="id-gmb"><input type="checkbox" [(ngModel)]="needRefreshCtrs">
+          Auto Refresh
+      </label>
+      <a class="btn btn-primary ml-4 mt-2" href="/#/ivr-agent-analysis">
+        <i class="fas fa-clipboard"></i>
+        IVR Dashboard
+      </a>
+      <button class="btn btn-primary ml-4 mt-2" (click)="startIvr()">
+        <i class="fas fa-headset"></i> Launch qMenu IVR
+      </button>
+      <button class="btn btn-primary ml-4 mt-2" (click)="refreshCtrs()" [qLoading]="refreshing">
+        <i class="fas fa-sync-alt"></i> Reload
+      </button>
+    </div>
+    <!-- end with col-5 -->
   </div>
 
   <table class="table mt-2">
@@ -90,10 +66,7 @@
       <th>Recording</th>
       <th>Status</th>
     </tr>
-    <tr
-      *ngFor="let ir of filteredIvrRecords; let i = index"
-      class="{{ ir.shouldCallback ? 'alert-danger' : '' }}"
-    >
+    <tr *ngFor="let ir of filteredIvrRecords; let i = index" class="{{ ir.shouldCallback ? 'alert-danger' : '' }}">
       <th>{{ i + 1 }}</th>
       <td>
         {{ ir.initiatedAt | ago: now }}<br />

@@ -17,7 +17,7 @@ import { parseAddress } from "parse-address";
 })
 export class RestaurantGmbComponent implements OnInit {
   @ViewChild('addGMBInviteModal') addGMBInviteModal: ModalComponent;
-  @Input() restaurant: Restaurant;
+  @Input() restaurant;
 
   relevantGmbRequests: any[] = [];
   emailAccountDict = {} as any;
@@ -32,6 +32,12 @@ export class RestaurantGmbComponent implements OnInit {
   hasGmbOwnership = false;
 
   isAdmin = false;
+  gmbOwnerHistoryRate = [];
+  gmbUtilizationObj = { // to show gmb owner utilization rate in total
+    totalDays: 0,
+    validDays: 0,
+    rate: 0
+  }
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
@@ -41,6 +47,7 @@ export class RestaurantGmbComponent implements OnInit {
   async ngOnInit() {
     this.hasGmbOwnership = await this.checkGmbOwnership();
   }
+
 
   async checkGmbOwnership() {
     try {
@@ -60,14 +67,107 @@ export class RestaurantGmbComponent implements OnInit {
   async ngOnChanges(changes: SimpleChanges) {
     this.populate();
   }
+  // to control whether show bubble.
+  showBubble(id, isMouseOver) {
+    if (isMouseOver) {
+      this.gmbOwnerHistoryRate.forEach(history => {
+        if (history.id === id) {
+          history.showBubbleFlag = true;
+        } else {
+          history.showBubbleFlag = false;
+        }
+      });
+    } else {
+      this.gmbOwnerHistoryRate.forEach(history => {
+        history.showBubbleFlag = false;
+      });
+    }
 
+  }
+  /**
+   * it has some offset bug when the width of progress is really small.
+   */
+  getBubbleStyle() {
+
+    return {
+      position: "absolute",
+      top: "-65px",
+    };
+  }
   async populate() {
 
     this.gmbRows = [];
     if (!this.restaurant) {
       return;
     }
+    if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
+      this.restaurant.gmbOwnerHistory = this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(a.time).valueOf() - new Date(b.time).valueOf());
+      let allTime = new Date().valueOf() - new Date(this.restaurant.gmbOwnerHistory[0].time).valueOf();
+      this.gmbUtilizationObj.totalDays = Number((allTime / (24 * 3600 * 1000)).toFixed(0));
+      for (let i = 0; i < this.restaurant.gmbOwnerHistory.length; i++) {
+        let history = this.restaurant.gmbOwnerHistory[i];
 
+        if (this.restaurant.gmbOwnerHistory.length === 1) {
+          let sample = {
+            id: i,
+            gmbOwner: history.gmbOwner,
+            ownerTime: "0 days",
+            width: "100%",
+            widthRate: 100,
+            showBubbleFlag: false
+          }
+          let ownerTime = (allTime / (24 * 3600 * 1000));
+          sample.ownerTime = ownerTime.toFixed(0) + " days";// owner total days.
+          this.gmbOwnerHistoryRate.push(sample);
+          if (history.gmbOwner === 'qmenu') {
+            this.gmbUtilizationObj.validDays = Number(ownerTime.toFixed(0));
+            this.gmbUtilizationObj.rate = 100;
+          }
+        }else{ // the case is the length large than 1.
+          if ((i + 1) != this.restaurant.gmbOwnerHistory.length) {
+            let sample = {
+              id: i,
+              gmbOwner: history.gmbOwner,
+              ownerTime: "0 days",
+              width: "0%",
+              widthRate: 0,
+              showBubbleFlag: false
+            }
+            let widthRate = (new Date(this.restaurant.gmbOwnerHistory[i + 1].time).valueOf() - new Date(history.time).valueOf()) / allTime;
+            let width = widthRate * 100;
+            sample.width = width.toFixed(2) + "%";
+            sample.widthRate = Number(width.toFixed(2));
+            let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
+            sample.ownerTime = ownerTime.toFixed(0)+ " days";
+            this.gmbOwnerHistoryRate.push(sample);
+            if (history.gmbOwner === 'qmenu') {
+              this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
+              this.gmbUtilizationObj.rate += sample.widthRate;
+            }
+          }else if ( i === this.restaurant.gmbOwnerHistory.length - 1) {
+            let sample = {
+              id: i,
+              gmbOwner: history.gmbOwner,
+              ownerTime: "0 days",
+              width: "0%",
+              widthRate: 0,
+              showBubbleFlag: false
+            }
+            let widthRate = (new Date().valueOf() - new Date(history.time).valueOf()) / allTime;
+            let width = widthRate * 100;
+            sample.width = width.toFixed(2) + "%";
+            sample.widthRate = Number(width.toFixed(2));
+            let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
+            sample.ownerTime = ownerTime.toFixed(0) + " days";
+            this.gmbOwnerHistoryRate.push(sample);
+            if (history.gmbOwner === 'qmenu') {
+              this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
+              this.gmbUtilizationObj.rate += sample.widthRate;
+            }
+          }
+        }
+      }
+    }
     const gmbBizList = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {
@@ -143,7 +243,7 @@ export class RestaurantGmbComponent implements OnInit {
       console.log(this.relevantGmbRequests);
       this.gmbRows = gmbBizList.map(gmbBiz => ({
         gmbBiz: gmbBiz,
-        accountLocationPairs: relevantGmbAccounts.reduce((list, acct) => (list.push(...(acct.locations||[]).filter(loc => gmbBiz.cid && loc.cid === gmbBiz.cid).map(loc => ({
+        accountLocationPairs: relevantGmbAccounts.reduce((list, acct) => (list.push(...(acct.locations || []).filter(loc => gmbBiz.cid && loc.cid === gmbBiz.cid).map(loc => ({
           account: acct,
           location: loc,
           statusHistory: loc.statusHistory.slice(0).reverse()
@@ -152,7 +252,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       if (this.gmbRows) {
         this.gmbOwner = this.gmbRows[0].accountLocationPairs.filter(al => {
-          const result = al.account.locations.filter(loc => loc.status === 'Published' && (loc.role=== 'PRIMARY_OWNER' || loc.role === 'OWNER' || loc.role === 'CO_OWNER'));
+          const result = al.account.locations.filter(loc => loc.status === 'Published' && (loc.role === 'PRIMARY_OWNER' || loc.role === 'OWNER' || loc.role === 'CO_OWNER'));
           return result.length > 0;
         });
       }
@@ -251,7 +351,7 @@ export class RestaurantGmbComponent implements OnInit {
 
       console.log(gmbBizList);
 
-      const fields = ['phone', 'place_id', 'gmbOwner', 'gmbOpen', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
+      const fields = ['phone', 'place_id', 'gmbOwner', 'gmbWebsite', 'menuUrls', 'closed', 'reservations', 'serviceProviders'];
 
       const pairs = gmbBizList.map(gmbBiz => {
         const old = { _id: gmbBiz._id };

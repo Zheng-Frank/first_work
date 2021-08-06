@@ -26,7 +26,13 @@ export class MonitoringPrintersComponent implements OnInit {
       // { object: "longhorn", text: "longhorn", selected: false },
     ],
     required: true
-  }
+  },
+  {
+    field: "host",
+    label: "EU Host",
+    inputType: "checkbox",
+    required: false 
+  },
 
   ];
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -73,7 +79,8 @@ export class MonitoringPrintersComponent implements OnInit {
           {
             name: this.printerInEditing.sn,
             key: this.printerInEditing.key,
-            autoPrintCopies: 1
+            autoPrintCopies: 1,
+            host: this.printerInEditing.host && 'EU'
           }
         );
       }

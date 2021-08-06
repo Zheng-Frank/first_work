@@ -26,12 +26,12 @@ export class SendGooglePINComponent implements OnChanges {
                     body: [
                         {
                             type: "sms",
-                            contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!`
+                            contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 为了您的方便，我们最近在qMenu商家app里的“Settings”选项卡下面，也添加了输入5位数的功能. 多谢!`
 
                         },
                         {
                             type: "email",
-                            contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到844-793-5942或者给我们的客服打电话 404-382-9768. 多谢!`,
+                            contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 为了您的方便，我们最近在qMenu商家app里的“Settings”选项卡下面，也添加了输入5位数的功能. 多谢!!`,
                         },
                         {
                             type: "fax",
@@ -45,12 +45,12 @@ export class SendGooglePINComponent implements OnChanges {
                     body: [
                         {
                             type: "sms",
-                            contents: `This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`,
+                            contents: `This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. In qMenu Owner app, under Settings tab, you can input the 5 digit PIN also. Thanks`,
 
                         },
                         {
                             type: "email",
-                            contents: 'Hi, <br>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 844-793-5942 or call us at 404-382-9768.<br> Thanks',
+                            contents: 'Hi, <br>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.<br> In qMenu Owner app, under Settings tab, you can input the 5 digit PIN also. <br> Thanks',
                         },
                         {
                             type: "fax",
@@ -63,14 +63,14 @@ export class SendGooglePINComponent implements OnChanges {
                     body: [
                         {
                             type: "sms",
-                            contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!
-                        This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks`,
+                            contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 为了您的方便，我们最近在qMenu商家app里的“Settings”选项卡下面，也添加了输入5位数的功能. 多谢!
+                        This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. <br>In qMenu Owner app, under Settings tab, you can input the 5 digit PIN also. <br> Thanks`,
 
                         },
                         {
                             type: "email",
-                            contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到844-793-5942或者给我们的客服打电话 404-382-9768. 多谢!<br>
-                        Hi, <br>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 844-793-5942 or call us at 404-382-9768.<br> Thanks`
+                            contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 为了您的方便，我们最近在qMenu商家app里的“Settings”选项卡下面，也添加了输入5位数的功能. 多谢!<br>
+                        Hi, <br>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.<br> In qMenu Owner app, under Settings tab, you can input the 5 digit PIN also. <br> Thanks`
                         },
                         {
                             type: "fax",
@@ -90,12 +90,12 @@ export class SendGooglePINComponent implements OnChanges {
                     body: [
                         {
                             type: "sms",
-                            contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!`
+                            contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 为了您的方便，我们最近在qMenu商家app里的“Settings”选项卡下面，也添加了输入5位数的功能. 多谢!`
 
                         },
                         {
                             type: "email",
-                            contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到844-793-5942或者给我们的客服打电话 404-382-9768. 多谢!`,
+                            contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 多谢!`,
                         },
                         {
                             type: "fax",
@@ -109,12 +109,12 @@ export class SendGooglePINComponent implements OnChanges {
                     body: [
                         {
                             type: "sms",
-                            contents: `This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`,
+                            contents: `This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. In qMenu Owner app, under Settings tab, you can input the 5 digit PIN also. Thanks`,
 
                         },
                         {
                             type: "email",
-                            contents: 'Hi, <br>This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 844-793-5942 or call us at 404-382-9768.<br> Thanks',
+                            contents: 'Hi, <br>This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.<br> In qMenu Owner app, under Settings tab, you can input the 5 digit PIN also. <br> Thanks',
                         },
                         {
                             type: "fax",
@@ -127,14 +127,14 @@ export class SendGooglePINComponent implements OnChanges {
                     body: [
                         {
                             type: "sms",
-                            contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768. 多谢!
-                            This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`,
+                            contents: `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768. 为了您的方便，我们最近在qMenu商家app里的“Settings”选项卡下面，也添加了输入5位数的功能. 多谢!
+                            This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. In qMenu Owner app, under Settings tab, you can input the 5 digit PIN also. Thanks`,
 
                         },
                         {
                             type: "email",
-                            contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到844-793-5942或者给我们的客服打电话 404-382-9768. 多谢!<br>
-                            Hi, <br>This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 844-793-5942, or call us at 404-382-9768.<br> Thanks`,
+                            contents: `你好,<br>这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. <br>为了您的方便，我们最近在qMenu商家app里的“Settings”选项卡下面，也添加了输入5位数的功能. 多谢!
+                            Hi, <br>This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648, or call us at 404-382-9768.<br> In qMenu Owner app, under Settings tab, you can input the 5 digit PIN also. <br> Thanks`,
                         },
                         {
                             type: "fax",
@@ -219,7 +219,7 @@ export class SendGooglePINComponent implements OnChanges {
                         "name": "send-sms",
                         "params": {
                             "to": messageInfo.messageTo.value,
-                            "from": "8447935942",
+                            "from": "8557592648",
                             "providerName": "plivo",
                             "message": messageInfo.noticeContent
                         }

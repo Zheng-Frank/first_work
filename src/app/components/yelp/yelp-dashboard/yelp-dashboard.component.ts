@@ -21,13 +21,14 @@ export class YelpDashboardComponent implements OnInit {
 
   async refresh() {
     // --- restaurant
-    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       query: { yelpListing: { $exists: true } },
       resource: 'restaurant',
-      projection: { yelpListing: 1 }
-    }, 5000);
+      projection: { 'yelpListing.rate': 1 },
+      limit: 100000000
+    }).toPromise();
 
     this.restaurants = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true);
   }
-  
+
 }

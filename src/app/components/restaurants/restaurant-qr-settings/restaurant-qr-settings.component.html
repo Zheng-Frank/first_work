@@ -4,15 +4,43 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div *ngIf="!editing">
-        <div class="text-danger" *ngIf="restaurant?.qrSettings?.viewOnly">
+        <div class="text-danger" *ngIf="qrSettings.viewOnly">
           View Menu Only (CUSTOMER CAN ONLY VIEW MENUS BUT NOT PLACE ORDERS)
         </div>
-        <div *ngIf="restaurant?.qrSettings && !restaurant?.qrSettings?.viewOnly">
+        <div *ngIf="!restaurant?.qrSettings?.viewOnly">
           Enabled
+        </div>
+        <div>
+          QR Agent: {{qrSettings.agent || 'None'}}
+        </div>
+        <div>
+          <a class="a_underline" *ngIf="!havingSpecialNumber()" href="javascript:void(0)" (click)="addSpecialPhoneNumber()">Add 234-567-8901</a>
+          <a class="a_underline" *ngIf="havingSpecialNumber()" href="javascript:void(0)" (click)="addSpecialPhoneNumber()">Remove 234-567-8901</a>
+          <a class="a_underline ml-3" href="https://qrbiz.qmenu.com/#" target="_blank">Login in to qrbiz portal
+            <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
+            <div *ngIf="showExplanation" class="left talk radius">
+              <p>By temporarily adding the special number 234-567-8901 to this restaurant’s list of channels, you can use the verification code 234 to log in. Remember to remove the 234-567-8901 number after logging out.</p>
+              -------------<br>
+              <p>通过临时将特殊号码234-567-8901加入这家餐馆的Channels列表，您可以使用特殊验证码234登录，退出后记得点击 “Remove 234-567-8901” 删除特殊号码。</p>
+            </div>
+           </i>
+          </a>
         </div>
       </div>
       <div *qIf="editing">
-        <q-toggle [(ngModel)]="viewOnly" (change)="toggleViewOnly()"></q-toggle> View Only?
+        <div>
+          <label>Sales Agent <button class="btn btn-link pt-0 pb-1" (click)="populateUsername()"><i class="fas fa-arrow-down"></i> Populate My Name</button></label>
+          <input type="text" class="form-control" placeholder="username of sales agent" [(ngModel)]="agent">
+        </div>
+        <div class="pt-3">
+          <label class="checkbox-inline">
+            <input type="checkbox" [(ngModel)]="viewOnly"> View Menu Only
+          </label>
+        </div>
+        <div class="text-right py-2">
+          <button class="btn btn-secondary" (click)="editing = false">Cancel</button>
+          <button class="btn btn-primary" (click)="update()">&nbsp;&nbsp;OK&nbsp;&nbsp;</button>
+        </div>
       </div>
       <div class="text-right" *ngIf="!editing">
         <div>

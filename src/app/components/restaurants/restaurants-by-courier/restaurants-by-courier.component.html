@@ -1,0 +1,34 @@
+<div class="text-center">
+  <h3>Restaurants with Delivery ({{filteredRestaurants.length}})</h3>
+</div>
+<div *ngIf="!restaurants || restaurants.length === 0">
+  Restaurants with Delivery list is empty.
+</div>
+<div class="float-left form-inline mt-2 mb-2 ml-2">
+  <label class="mr-2"> Courier:</label>
+  <select class="mr-5 form-control" [(ngModel)]="courier" (change)="filter()">
+    <option value="All">All</option>
+    <option value="Postmates">Postmates</option> 
+    <option value="Self delivery">Self delivery</option> 
+    <ng-container *ngFor="let courier of couriers">
+      <option *ngIf="courier.name && courier.name != 'Postmates'" [value]='courier.name'>{{courier.name}}</option>
+    </ng-container>
+  </select>
+</div>
+
+<q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true">
+  <tr *tableRowTemplate="let restaurant;">
+    <td>{{filteredRestaurants.indexOf(restaurant) + 1}}</td>
+    <td>
+      <a href="#/restaurants/{{restaurant.restaurantId}}" target="_blank">{{restaurant.name}}</a>
+      <br>
+      {{restaurant.address}}
+    </td>
+    <td *ngIf="restaurant.courier"> {{restaurant.courier?.name}} </td>
+    <td *ngIf="restaurant.courier"> {{isDeliveryServiceEnabled(restaurant.serviceSettings)? 'ON' : 'OFF'}} </td>
+    <td *ngIf="!restaurant.courier && restaurant.deliverySettings && restaurant.deliverySettings.length > 0"> Self delivery </td>
+    <td *ngIf="!restaurant.courier && !(restaurant.deliverySettings && restaurant.deliverySettings.length > 0)"> None </td>
+    <td>{{restaurant.timeZone}}</td>
+    <td>{{restaurant.score | number : '1.0-1' || 0}}</td>
+  </tr>
+</q-table>

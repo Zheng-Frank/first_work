@@ -46,6 +46,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   timer;
   timerInterval = 5000; // every 5 seconds
   refreshDataInterval = 3 * 60000; // every 3 minutes
+  needRefreshCtrs = true;
 
   connectedContact;
 
@@ -288,11 +289,13 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.setIvrAgent();
     this.timer = setInterval(_ => {
-      this.now = new Date();
-      // refresh every 3 minutes
-      if (!this.lastRefreshed || this.now.valueOf() - this.lastRefreshed.valueOf() > this.refreshDataInterval) {
-        this.lastRefreshed = this.now; // preset to avoid being called multiple times (not finishing within each tick)
-        this.refreshCtrs();
+      if(this.needRefreshCtrs){ // to control whether auto refresh IVR.
+        this.now = new Date();
+        // refresh every 3 minutes
+        if (!this.lastRefreshed || this.now.valueOf() - this.lastRefreshed.valueOf() > this.refreshDataInterval) {
+          this.lastRefreshed = this.now; // preset to avoid being called multiple times (not finishing within each tick)
+          this.refreshCtrs();
+        }
       }
     }, this.timerInterval);
   }

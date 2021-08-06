@@ -14,6 +14,10 @@
 
       <div class="small">
         {{restaurant.googleAddress.formatted_address}}
+        (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google<i class="fas fa-external-link-alt"></i></a>)
+      </div>
+      <div class="small">
+          Value: {{ restaurant.score || 0 | number: "1.1-1" }}
       </div>
       <h1 *ngIf="restaurant.disabled && restaurant.comebackDate === undefined" class="alert alert-danger">DISABLED</h1>
       <h1 *ngIf="restaurant.disabled && (restaurant.comebackDate === null || isDate(restaurant.comebackDate))"
@@ -30,6 +34,11 @@
   <div class="p-t-1 pt-1 p-b-1 pb-1">
     <button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
     <button (click)="toggleGooglePIN()" class="btn btn-secondary fa fa-comments"> Send Google PIN Message</button>
+    <span class="ml-2 mr-2">Show explanations</span><q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()"></q-toggle>
+    <span class="ml-2 mr-2">Language</span>
+    <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;" (change)="changeLanguage()">
+      <option *ngFor="let type of languageTypes" [value]="type">{{type}}</option>
+    </select>
   </div>
 
 
@@ -37,25 +46,28 @@
     <send-google-pin [restaurantId]="restaurant._id" (sendToLog)="toggleGooglePIN()"></send-google-pin>
   </div>
 
-  <div *qIf="displayTextReply">
-
-    <textarea rows="4" class="form-control mt-1" type="text" [(ngModel)]="message"></textarea>
-    <div class="form-group {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}}">
-      <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control mt-1"
-        placeholder="customer phone #">
-    </div>
-    <button (click)="sendText()" [disabled]="!isValid()" class="btn btn-primary btn-block mt-1">Send</button>
-    <div class="mt-1 alert-success" *ngIf="textedPhoneNumber">
-      <small>Text was sent to {{textedPhoneNumber}}. Thank you!</small>
-    </div>
-    <hr>
+  <div>
+    <q-modal #textReplyModal>
+      <button type="button" class="close"  (click)="closeTextReply()">
+        <span>×</span>
+      </button>
+      <h4 class="text-center">Send Text Message</h4>
+      <hr>
+      <app-send-text-reply #textReplyComponent [restaurant]="restaurant"></app-send-text-reply>
+    </q-modal>
   </div>
 
   <div class="card">
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item" *ngFor="let tab of tabs">
-          <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+          <a *ngIf="tab === 'Menus' " class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+            style="cursor: pointer;">{{tab}} ({{restaurant?.menus?.length || 0}})</a>
+          <a *ngIf="tab === 'Menu Options'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+            style="cursor: pointer;">{{tab}} ({{restaurant?.menuOptions?.length || 0}})</a>
+          <a *ngIf="tab === 'Coupons'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+            style="cursor: pointer;">{{tab}} ({{restaurant?.promotions?.length || 0}})</a>
+          <a *ngIf="tab != 'Menus' && tab != 'Menu Options' && tab != 'Coupons' " class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}}</a>
         </li>
       </ul>
@@ -71,30 +83,29 @@
         <app-menu-options [restaurant]="restaurant"></app-menu-options>
       </div>
 
-      <div *ngIf="activeTab === 'Invoices'">
-        <app-restaurant-invoices [restaurant]="restaurant"></app-restaurant-invoices>
+      <div *ngIf="activeTab === 'Coupons'">
+        <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
       </div>
 
-      <div *ngIf="activeTab === '1099K'">
-        <app-restaurant-form1099-k [restaurant]="restaurant"></app-restaurant-form1099-k>
+      <div *ngIf="activeTab === 'Invoices'">
+        <app-restaurant-invoices [restaurant]="restaurant"></app-restaurant-invoices>
       </div>
 
       <div *ngIf="activeTab === 'Orders'">
         <app-restaurant-orders [restaurant]="restaurant"></app-restaurant-orders>
       </div>
-      <div *ngIf="activeTab === 'Yelp'">
-        <app-restaurant-yelp [restaurant]="restaurant"></app-restaurant-yelp>
-      </div>
+
       <div *ngIf="activeTab === 'GMB'">
         <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
       </div>
+
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
 
         <div class="col-xl-6" *ngIf="isSectionVisible('orderNotifications')">
           <app-order-notifications [restaurant]="restaurant"></app-order-notifications>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
-          <app-restaurant-profile [restaurant]="restaurant" [editable]="true"></app-restaurant-profile>
+          <app-restaurant-profile [restaurant]="restaurant" #restaurantProfile [users]="knownUsers" [editable]="true"></app-restaurant-profile>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('webSettings')">
           <app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>
@@ -105,7 +116,7 @@
         <div class="col-xl-6" *ngIf="isSectionVisible('serviceSettings')">
           <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
         </div>
-        <div class="col-xl-6" *ngIf="restaurant?.qrSettings && isSectionVisible('qrSettings')">
+        <div class="col-xl-6" *ngIf="isSectionVisible('qrSettings')">
           <app-restaurant-qr-settings [restaurant]="restaurant"></app-restaurant-qr-settings>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('closedHours')">
@@ -133,38 +144,34 @@
         <div class="col-xl-6" *ngIf="isSectionVisible('paymentMeans') || isMarketerAndCreatedLessThan14Days()">
           <app-restaurant-payment-means [restaurant]="restaurant"></app-restaurant-payment-means>
         </div>
-        <div class="col-xl-6" *ngIf="isSectionVisible('rateSchedules')">
-          <div *ngIf="restaurant.feeSchedules">
-            <app-restaurant-sales [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-sales>
-            <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
-          </div>
-          <div *ngIf="!restaurant.feeSchedules">
-            <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers">
-            </app-restaurant-rate-schedules>
-          </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('feeSchedules') && restaurant.feeSchedules">
+          <app-restaurant-sales [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-sales>
+          <app-restaurant-fee-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-fee-schedules>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('rateSchedules') && !restaurant.feeSchedules">
+          <app-restaurant-rate-schedules [restaurant]="restaurant" [users]="knownUsers"></app-restaurant-rate-schedules>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('restaurantChains')">
           <app-restarant-chains [restaurant]="restaurant"></app-restarant-chains>
         </div>
       </div>
+
       <div *ngIf="activeTab === 'Logs'">
         <app-restaurant-logs [restaurant]="restaurant" (reload)="reload($event)"></app-restaurant-logs>
       </div>
+
       <div *ngIf="activeTab === 'Tasks'">
         <app-restaurant-tasks [restaurant]="restaurant"></app-restaurant-tasks>
       </div>
+
       <div *ngIf="activeTab === 'Diagnostics'">
         <app-restaurant-diagnostics [restaurant]="restaurant"></app-restaurant-diagnostics>
       </div>
-      <div *ngIf="activeTab === 'GMB Posts'">
-        <app-restaurant-gmb-posts [restaurant]="restaurant"></app-restaurant-gmb-posts>
+
+      <div *ngIf="activeTab === 'Others'">
+        <app-restaurant-others [restaurant]="restaurant"></app-restaurant-others>
       </div>
-      <div *ngIf="activeTab === 'Web Template'">
-        <app-restaurant-web-template [restaurant]="restaurant"></app-restaurant-web-template>
-      </div>
-      <div *ngIf="activeTab === 'API Logs'">
-        <app-restaurant-api-logs [restaurant]="restaurant"></app-restaurant-api-logs>
-      </div>
+
     </div>
   </div>
 </div>

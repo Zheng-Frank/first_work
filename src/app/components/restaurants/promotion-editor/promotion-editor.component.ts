@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-import { Promotion, } from '@qmenu/ui';
+import {Promotion} from '@qmenu/ui';
 
 @Component({
   selector: 'app-promotion-editor',
@@ -17,7 +17,8 @@ export class PromotionEditorComponent implements OnChanges {
   @Output() onDelete = new EventEmitter();
 
   promotionType = '$ Discount';
-  expiry;
+  hasExpiry = false;
+  expiry = undefined;
   freeItemListMaxLength = 3;
   useFreeItemList = false;
 
@@ -28,7 +29,18 @@ export class PromotionEditorComponent implements OnChanges {
 
   ngOnChanges(change) {
     if (change.promotion && change.promotion.currentValue) {
+      this.hasExpiry = !!change.promotion.currentValue.expiry;
       this.openPromotionInEditor(change.promotion.currentValue);
+    }
+  }
+
+  toggleHasExpiry() {
+    if (!this.hasExpiry) {
+      this.expiry = undefined;
+    } else {
+      if (this.promotion.expiry) {
+        this.expiry = this.promotion.expiry.toISOString().split('T')[0];
+      }
     }
   }
 
@@ -98,7 +110,13 @@ export class PromotionEditorComponent implements OnChanges {
         this.useFreeItemList = true;
       }
     }
-    // Finally, "unflatten" the promotion lists and assign them to our locally bound variables. 
+    if (this.promotion.expiry) {
+      this.expiry = this.promotion.expiry.toISOString().split('T')[0];
+    } else {
+      this.expiry = undefined;
+    }
+
+    // Finally, "unflatten" the promotion lists and assign them to our locally bound variables.
     this.freeItemList = this.unflattenList(promotion.freeItemList);
     this.applicableItems = this.unflattenList(promotion.applicableItems);
   }
@@ -139,14 +157,14 @@ export class PromotionEditorComponent implements OnChanges {
     this.promotion.freeItemList = this.flattenList(this.freeItemList) || [];
     this.promotion.applicableItems = this.flattenList(this.applicableItems) || [];
 
-    if (!this.promotion.expiry) {
-      if (typeof this.promotion.expiry === 'string') {
-        this.promotion.expiry = new Date(this.promotion.expiry);
-        // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
-        this.promotion.expiry.setMinutes(this.promotion.expiry.getMinutes() + new Date().getTimezoneOffset());
-      }
-      // making it expire at next month
-      //this.promotion.expiry.setMonth(this.promotion.expiry.getMonth() + 1);
+    if (!this.hasExpiry) {
+      this.promotion.expiry = null;
+    } else {
+      this.promotion.expiry = new Date(this.expiry);
+      // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
+      // todo: the expiry may need optimize, we should use last second of the expiry date to compare with today
+      // and the db data need to be transform to local time when compare
+      this.promotion.expiry.setMinutes(this.promotion.expiry.getMinutes() + new Date().getTimezoneOffset());
     }
     this.onDone.emit(this.promotion);
   }
@@ -277,7 +295,7 @@ export class PromotionEditorComponent implements OnChanges {
         suggestedTitle = `Choice of free item with $${this.promotion.orderMinimum} min. purchase`;
       }
     }
-    /* We don't want really long promotion titles, so if our algorithmically-suggested title is too long, 
+    /* We don't want really long promotion titles, so if our algorithmically-suggested title is too long,
     we're going to return null, which makes the user come up with their own title. */
     if (suggestedTitle.length > 80) {
       return null

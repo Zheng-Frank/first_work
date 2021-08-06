@@ -1,8 +1,8 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Menu, Hour, Restaurant } from '@qmenu/ui';
-import { Helper } from '../../../classes/helper';
-import { ApiService } from '../../../services/api.service';
-import { HttpClient } from '@angular/common/http';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Hour, Menu, Restaurant} from '@qmenu/ui';
+import {Helper} from '../../../classes/helper';
+import {ApiService} from '../../../services/api.service';
+import {HttpClient} from '@angular/common/http';
 
 @Component({
   selector: 'app-menu-editor',
@@ -39,7 +39,8 @@ export class MenuEditorComponent implements OnInit {
 
   selectedTarget = this.targets[0];
 
-  constructor(private _api: ApiService, private _http: HttpClient) { }
+  constructor(private _api: ApiService, private _http: HttpClient) {
+  }
 
   ngOnInit() {
   }
@@ -49,11 +50,11 @@ export class MenuEditorComponent implements OnInit {
       return false;
     }
     const nonselfMenus = this.restaurant.menus.filter(each => each.id !== this.menu.id);
-    return this.menu.name && !nonselfMenus.some(each => each.name === this.menu.name)
+    return this.menu.name && !nonselfMenus.some(each => each.name === this.menu.name);
   }
 
   createArrayOfMenuNames() {
-    return this.restaurant.menus.map(menu => menu.name)
+    return this.restaurant.menus.map(menu => menu.name);
   }
 
   radioSelect(event) {
@@ -67,11 +68,11 @@ export class MenuEditorComponent implements OnInit {
     menuCopy.name += ' - Copy';
     delete menuCopy.id; // delete the copy's id, or else we will just end up editing the existing menu
     menuCopy.mcs.map(mc => {
-      mc.id += '0'
+      mc.id += '0';
       mc.mis.map(mi => {
         mi.id += '0'; // append a 0 to all Mc and Mi id's to keep them unique
-      })
-    })
+      });
+    });
     this.setMenu(menuCopy);
   }
 
@@ -121,9 +122,10 @@ export class MenuEditorComponent implements OnInit {
 
     delete this.menu['targetCustomer'];
     if (this.selectedTarget && this.selectedTarget.value !== 'ONLINE_ONLY') {
+      // @ts-ignore
       this.menu['targetCustomer'] = this.selectedTarget.value;
     }
-
+    this.menu.name = Helper.shrink(this.menu.name);
     this.onDone.emit(this.menu);
     this.clickedDelete = false;
   }
@@ -159,8 +161,7 @@ export class MenuEditorComponent implements OnInit {
       if (data && data.Location) {
         this.menu.backgroundImageUrl = data.Location;
       }
-    }
-    catch (err) {
+    } catch (err) {
       this.uploadImageError = err;
     }
   }

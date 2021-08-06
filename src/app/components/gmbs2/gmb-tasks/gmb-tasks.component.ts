@@ -46,7 +46,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "request.voHistory": { $slice: 2 },
                 "notification_status": 1,
             }
-        }, 1000);
+        }, 10000);
 
         this.tasks = dbTasks.map(t => new Task(t));
         this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
@@ -301,12 +301,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         if (confirm('Trigger too many times could exhaust existing verification options. Are you sure?')) {
             this.verifyingOption = vo;
             try {
-                // await this._api.post(environment.gmbNgrok + 'task/verify', {
-                //     taskId: task._id,
-                //     email: task.request.email,
-                //     locationName: task.request.locationName,
-                //     verificationOption: vo
-                // }).toPromise();
 
                 await this._api.post(environment.appApiUrl + "gmb/generic", {
                     name: "verify",
@@ -648,11 +642,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         }));
         return {
             timezoneCell: Helper.getTimeZone(formatedAddr),
-            localTimeString: new Date().toLocaleTimeString('en-US', { timeZone: timezoneR }),
+            localTimeString: new Date().toLocaleString('en-US', { timeZone: timezoneR, hour: '2-digit', minute: '2-digit' }), // toLocaleTimeString toooo slow, use to localeString instead!!!!
             statusClass: this.getStatusClass(task),
             address: (formatedAddr.split(', USA'))[0],
             score: this.restaurantDict[task.relatedMap.restaurantId].score,
-            courier: (this.restaurantDict[task.relatedMap.restaurantId].courier||{}).name,
+            courier: (this.restaurantDict[task.relatedMap.restaurantId].courier || {}).name,
             rowNumber: rowNumber,
             gmbOwner: (this.restaurantDict[task.relatedMap.restaurantId].googleListing || {}).gmbOwner,
             task: task,
@@ -732,8 +726,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "locations.role": 1
             }
         }).toPromise();
-        allPublished.forEach(acct => (acct.locations || []).forEach(loc => { 
-            if (loc.status === "Published" && ["PRIMARY_OWNER", 'OWNER','CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid) }));
+        allPublished.forEach(acct => (acct.locations || []).forEach(loc => {
+            if (loc.status === "Published" && ["PRIMARY_OWNER", 'OWNER', 'CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid)
+        }));
     }
 
     private async populateManualFixes() {
@@ -772,7 +767,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     ownerDeclined = "Any";
 
     filter() {
-
+        const start = new Date();
         this.filteredTasks = this.tasks;
 
         if (this.verified !== "Any") {
@@ -850,16 +845,16 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         };
 
         //filter courier
-        if( this.hasCourier ){
-            this.filteredTasks = this.filteredTasks.filter( t => (this.restaurantDict[t.relatedMap.restaurantId]||{}).courier );
+        if (this.hasCourier) {
+            this.filteredTasks = this.filteredTasks.filter(t => (this.restaurantDict[t.relatedMap.restaurantId] || {}).courier);
         }
 
         this.tabs.map(tab => {
             const filterMap = {
                 "Mine": t => t.assignee === this.user.username && !t.result,
-                "Non-claimed": t => !t.assignee && !t.result,
+                "Non-claimed": t => !t.assignee && !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0] && !t.request.statusHistory[0].isError,
                 "My Closed": t => t.assignee === this.user.username && t.result,
-                "All Open": t => !t.result,
+                "All Open": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0] && !t.request.statusHistory[0].isError,
                 "All Closed": t => t.result,
                 "Errors": t => !t.result && t.request && t.request.statusHistory && t.request.statusHistory[0]
                     && t.request.statusHistory[0].isError,
@@ -872,6 +867,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             };
             tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
         });
+        console.log("filter", new Date().valueOf() - start.valueOf());
     }
 
     async populatePostcardId() {

@@ -16,15 +16,37 @@
       <small>
         <div *ngIf="menu.description" class="card-subtitle">{{menu.description}}</div>
         <div class="text-center">
-          <lib-hours-viewer [timezone]="restaurant?.googleAddress.timezone" [hours]="menu.hours || []"></lib-hours-viewer>
+          <lib-hours-viewer [timezone]="restaurant?.googleAddress.timezone" [hours]="menu.hours || []">
+          </lib-hours-viewer>
         </div>
       </small>
     </div>
   </div>
   <div *ngIf="menu.mcs && menu.mcs.length > 1" class="text-center">
-    <button class="btn btn-link" (click)="showMcSortingModal()">Adjust Category Orders
+    <button class="btn btn-link" (click)="showMcSortingModal(menu.mcs)">Adjust Category Orders
       (调整分类次序)</button>
   </div>
+  <div *ngIf="isShowBeverageButton(menu)" class="text-center">
+    <button class="btn btn-link" (click)="addBeverageCategory(menu)">Add Standard Beverage Section
+      (添加标准饮料区)</button>
+  </div>
+
+  <q-modal #beverageSectionModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Beverages section exists</h4>
+    <hr>
+    <p class="text-left">
+      There is already one or more menu categories in this menu called "Beverages",
+      so a new "Beverages" won’t be added.Would you like to move the existing "Beverages"
+      section to the top if it’s not at the top already?
+    </p>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="beverageSectionModal.hide()">Leave in place</button>
+      <button class="btn btn-primary" (click)="doBeverageSectionReorder(menu)">Yes, move up</button>
+    </div>
+  </q-modal>
 
   <!--category cards-->
   <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)"
@@ -42,7 +64,7 @@
 </div>
 
 <div [hidden]="!editingMis">
-  <app-menu-items-editor #misEditor (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
+  <app-menu-items-editor #misEditor [translations]="restaurant.translations" (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
 </div>
 
 <q-modal #mcModal>
@@ -62,6 +84,7 @@
 </q-modal>
 
 <q-modal #mcSortingModal>
-  <app-item-sorter *ngIf="menu && menu.mcs" [items]="menu.mcs" [labelField]="'name'" (sort)="sortMcs($event)"
+  <app-item-sorter *ngIf="menu && menu.mcs" [items]="sortMcItems" [labelField]="'name'" (sort)="sortMcs($event)"
     (cancel)="hideMcSortingModal()"></app-item-sorter>
 </q-modal>
+

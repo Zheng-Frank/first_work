@@ -6,7 +6,6 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from "../../../services/global.service";
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
-
 declare var $: any;
 @Component({
   selector: 'app-order-card',
@@ -21,11 +20,13 @@ export class OrderCardComponent implements OnInit {
 
   @Output() onSetNewStatus = new EventEmitter();
   @Output() onAdjust = new EventEmitter();
+  @Output() onAdjustInvoice = new EventEmitter();
   @Output() onDisplayCreditCard = new EventEmitter();
   @Output() onReject = new EventEmitter();
   @Output() onUndoReject = new EventEmitter();
   @Output() onBan = new EventEmitter();
-  @Output() onChangeToSelfDelivery = new EventEmitter();
+  @Output() onOpenChangeOrderTypesModal = new EventEmitter();
+  @Output() onOpenPreviousCanceledOrderModal = new EventEmitter();
 
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
@@ -41,18 +42,18 @@ export class OrderCardComponent implements OnInit {
 
   ngOnInit() {
   }
+  openPreviousCanceledOrderModal(order_id) {
+    this.onOpenPreviousCanceledOrderModal.emit(order_id);
+  }
   /**
    * When click on "copy" button, should put the following text in the user's clipboard:
 "RT: [rt_id], Order# [XX] ([Mmm DD HH:MM AM/PM])"
    */
   copyToClipboard(order) {
-    // console.log("order.createdAt:"+order.createdAt+", type of order.createdAt:"+typeof order.createdAt);
     const cloned = order.createdAt.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone });
-    // console.log("cloned:"+cloned);
     // let createdAt = moment(cloned).format("Mmm dd h:mm a");
     let createdAt = cloned.split(',')[0];
     let text = `RT: ${this.restaurant._id}, Order# ${order.orderNumber} (${createdAt})`;
-    // console.log("text:"+text);
     const handleCopy = (e: ClipboardEvent) => {
       // clipboardData 可能是 null
       e.clipboardData && e.clipboardData.setData('text/plain', text);
@@ -65,10 +66,12 @@ export class OrderCardComponent implements OnInit {
     this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
   }
 
-  changeToSelfDelivery() {
-    this.onChangeToSelfDelivery.emit(this.order);
+  /**
+   * Add "Change to pick-up" on CSR side for Postmates order
+   */
+  openChangeOrderTypesModal(order) {
+    this.onOpenChangeOrderTypesModal.emit(order);
   }
-
   getSubmittedTime(order: Order) {
     return new Date(order.createdAt);
   }
@@ -395,6 +398,10 @@ export class OrderCardComponent implements OnInit {
     this.onAdjust.emit(this.order);
   }
 
+  adjustInvoice() {
+    this.onAdjustInvoice.emit(this.order);
+  }
+
   showCreditCard() {
     this.onDisplayCreditCard.emit(this.order);
   }
@@ -483,8 +490,8 @@ export class OrderCardComponent implements OnInit {
       case 'dropoff':
         return 'Delivering';
 
-      case 'delivered':
-        return 'Delivered';
+      case 'pending':
+        return 'Pending';
     }
   }
 }

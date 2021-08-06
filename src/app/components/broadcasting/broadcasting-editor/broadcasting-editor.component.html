@@ -5,37 +5,37 @@
 
         <div class="d-flex flex-column w-100">
           <div>
-
             <h6>1. Enter comma separated list of restaurant ids:</h6>
             <div class="broadcast__list">
               <div>
-                <textarea class="form-control w-100 full-height" [(ngModel)]="broadcast.restaurantListId"></textarea>
+                <textarea class="form-control w-100 full-height" [(ngModel)]="restaurantCSVList"></textarea>
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
-    <!--  -->
     <div class="col-md-5">
       <label>2. Select broadcast to publish:</label>
-      <select class="form-control" [(ngModel)]="selectedPreviousBroadcast" (change)="selectBroadcast($event.target.value)">
-        <option *ngFor="let broadcast of broadcasts" [value]="broadcast._id">{{broadcast.name}}</option>
+      <select class="form-control" [(ngModel)]="broadcast._id" (change)="selectBroadcast($event.target.value)">
+        <option [ngValue]="undefined" selected>Select One</option>
+        <option *ngFor="let b of broadcasts; let i = index" [value]="b._id">{{b.name}}</option>
       </select>
       <div class="d-flex justify-content-end">
-        <button class="btn btn-link" (click)="newBroadcastModal.show()">Create New Broadcast</button>
+        <button class="btn btn-link" (click)="showBroadcastModal(null)">Create New Broadcast</button>
       </div>
     </div>
-    <!--  -->
 
     <div class="col-md-4">
       <div class="broadcasting__section">
         <div class="w-100">
           <h6>Preview</h6>
-          <!-- <div [innerHTML]="broadcast.template" class="broadcast__preview"></div> -->
-          <iframe [srcdoc]="broadcast.template | sanitizeDom" class="broadcast__preview" frameBorder="0"></iframe>
+            <div *ngIf="broadcast._id">
+              <i class="fas fa-info-circle"></i>
+              {{broadcast.mustAgree ? 'User must acknowledge this broadcast': broadcast._id ? 'User is allowed to dismiss this broadcast' : ''}}
+            </div>
+            <iframe [srcdoc]="broadcast.template || '' | sanitizeDom" class="broadcast__preview" frameBorder="0"></iframe>
         </div>
       </div>
     </div>
@@ -47,10 +47,9 @@
 
 </div>
 
-<q-modal #newBroadcastModal>
-  <h4 class="text-center">Add New Broadcast</h4>
+<q-modal #broadcastModal>
+  <h4 class="text-center">{{broadcastModalTitle}}</h4>
   <hr>
-
   <div class="broadcasting__section">
     <div class="w-100">
       <div class="row d-flex align-items-center mb-2">
@@ -58,7 +57,16 @@
           <label> Name:<span class="text-danger">*</span></label>
         </div>
         <div class="col-md-9">
-          <input type="text" class="form-control" placeholder="i.e Biz App New Features" [(ngModel)]="previewBroadcast.name">
+          <input type="text" class="form-control" placeholder="i.e Biz App New Features" [(ngModel)]="broadcast.name">
+        </div>
+      </div>
+
+      <div class="row d-flex align-items-center mb-2">
+        <div class="col-md-3">
+          <label> Should acknowledge: </label>
+        </div>
+        <div class="col-md-9">
+          <q-simple-radio [(ngModel)]="broadcast.mustAgree" [equalWidth]="true" [values]="['Yes', 'No']"></q-simple-radio>
         </div>
       </div>
 
@@ -67,14 +75,14 @@
           <label> Template:<span class="text-danger">*</span></label>
         </div>
         <div class="col-md-9">
-          <textarea class="form-control" rows="12" [(ngModel)]="previewBroadcast.template"></textarea>
+          <textarea class="form-control" rows="4" [(ngModel)]="broadcast.template"></textarea>
         </div>
       </div>
 
       <div class="row">
         <div class="col-md-12">
           <label> Preview:</label>
-          <iframe [srcdoc]="previewBroadcast.template | sanitizeDom" class="broadcast__preview" frameBorder="0"></iframe>
+          <iframe [srcdoc]="broadcast.template || '' | sanitizeDom" class="broadcast__preview" frameBorder="0"></iframe>
         </div>
       </div>
 

@@ -225,6 +225,7 @@ export class CycleDetailsComponent implements OnInit {
     } else {
       this._global.publishAlert(AlertType.Danger, 'No dangling restaurants found');
     }
+    this.loadCycle();
   }
 
   async populatePaymentMeansAndDisabled() {
@@ -249,7 +250,8 @@ export class CycleDetailsComponent implements OnInit {
         if (!pm.details || !pm.details.memo) {
           return true;
         }
-        if (['one time', '一次'].some(t => pm.details.memo.indexOf(t) >= 0)) {
+        const isOneTime = ['one time', '一次'].some(t => pm.details.memo.toLowerCase().indexOf(t) >= 0);
+        if (isOneTime) {
           return false;
         }
         return true;

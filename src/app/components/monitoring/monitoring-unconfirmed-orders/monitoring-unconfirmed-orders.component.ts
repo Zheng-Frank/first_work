@@ -53,9 +53,13 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
   log(item) {
     console.log(item)
   }
+
+
+
+
   async ngOnInit() {
 
-    console.log("TESTING FUNCTION")
+
 
 
 
@@ -125,7 +129,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
           },
           $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 12)))
+            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 4)))
           },
         }
       },
@@ -475,10 +479,10 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         oneHourOverdue = true
       }
 
-      let scheduledString = `Scheduled for ${expectedDeliverTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
-      let placedAtString = `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
+      let scheduledString = `Scheduled for ${expectedDeliverTime.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
+      let placedAtString = `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
 
-      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes) (order placed yesterday)` : `Confirm by ${new Date(confirmBy).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime})`
+      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes) (order placed yesterday)` : `Confirm by ${new Date(confirmBy).toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime})`
 
       if (oneHourOverdue) {
         return {
@@ -507,14 +511,14 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           oneHourOverdue = true
         }
 
-        expectedConfirmation = new Date(expectedConfirmation).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
+        expectedConfirmation = new Date(expectedConfirmation).toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
 
 
 
         // console.log(lateTime)
 
         return {
-          texts: [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}. (Late by ${lateTime})`],
+          texts: [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}. (Late by ${lateTime})`],
           overdue: oneHourOverdue
         }
 

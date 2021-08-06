@@ -6,6 +6,23 @@ import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Helper } from 'src/app/classes/helper';
 
+enum SkipFilterTypes{
+  Title = 'Skip GMB?',
+  SkipGMB = 'Skip',
+  NotSkipGMB = 'Not Skip'
+}
+
+enum InsistedFilterTypes{
+  Title = 'Insist URLs?',
+  All = 'Insist All',
+  InsistAny = 'Insist Any',
+  InsistNone = 'Insist None',
+  InsistWebsite = 'Insist Website',
+  InsistMenuUrl = 'Insist Menu Url',
+  InsistOrderUrl = 'Insist Order Url',
+  InsistResrvationUrl = 'Insist Reservation Url'
+}
+
 @Component({
   selector: 'app-gmb-biz-list',
   templateUrl: './gmb-biz-list.component.html',
@@ -16,6 +33,8 @@ export class GmbBizListComponent implements OnInit {
   filteredRows = [];
 
   searchFilter;
+  skipStatus = SkipFilterTypes.Title;
+  insistStatus = InsistedFilterTypes.Title;
   restaurantStatus = "restaurant status";
   restaurantProblems = "restaurant problems";
   gmbStatus = "GMB status";
@@ -48,7 +67,6 @@ export class GmbBizListComponent implements OnInit {
         "googleListing.cid": 1,
         "googleListing.gmbOwner": 1,
         "googleListing.gmbWebsite": 1,
-        "googleListing.gmbOpen": 1,
         "googleAddress.formatted_address": 1,
         disabled: 1,
         score: 1,
@@ -61,10 +79,14 @@ export class GmbBizListComponent implements OnInit {
         "web.qmenuWebsite": 1,
         "web.bizManagedWebsite": 1,
         "web.useBizWebsite": 1,
-        "web.useBizWebsiteForAll": 1
+        "web.useBizWebsiteForAll": 1,
+        "web.useBizMenuUrl": 1,
+        "web.useBizOrderAheadUrl": 1,
+        "web.useBizReservationUrl": 1,
+        "web.ignoreGmbOwnershipRequest": 1
       }
     }, 2000); 
-
+ 
     const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: 'gmbAccount',
       projection: {
@@ -267,9 +289,6 @@ export class GmbBizListComponent implements OnInit {
       case 'suspended':
         this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.location.status === 'Suspended'));
         break;
-      case 'open':
-        this.filteredRows = this.filteredRows.filter(r => r.restaurant.googleListing && r.restaurant.googleListing.gmbOpen);
-        break;
       case 'lost in 48 hours':
         const now = new Date();
         const recentSpan = 48 * 3600000;
@@ -358,6 +377,58 @@ export class GmbBizListComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.agent === this.agent);
         break;
     }
+
+    switch(this.skipStatus){
+      case SkipFilterTypes.Title:
+        break;
+      case SkipFilterTypes.SkipGMB:
+      this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.ignoreGmbOwnershipRequest);
+        break;
+      case SkipFilterTypes.NotSkipGMB:
+      this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && !r.restaurant.web.ignoreGmbOwnershipRequest);
+        break;
+      default:
+
+        break;
+    }
+
+    switch(this.insistStatus){
+      case InsistedFilterTypes.Title:
+        break;
+      case InsistedFilterTypes.All:
+      let allFlag = r => (r.restaurant.web && r.restaurant.web.useBizWebsiteForAll)||(r.restaurant.web && !r.restaurant.web.useBizWebsiteForAll && r.restaurant.web.useBizWebsite && r.restaurant.web.useBizMenuUrl
+        && r.restaurant.web.useBizOrderAheadUrl && r.restaurant.web.useBizReservationUrl)||(r.restaurant.web && r.restaurant.web.useBizWebsiteForAll && r.restaurant.web.useBizWebsite && r.restaurant.web.useBizMenuUrl
+          && r.restaurant.web.useBizOrderAheadUrl && r.restaurant.web.useBizReservationUrl);
+      this.filteredRows = this.filteredRows.filter(allFlag);
+        break;
+      case InsistedFilterTypes.InsistAny:
+      let insistAnyFlag = r => r.restaurant.web && (r.restaurant.web.useBizWebsiteForAll||r.restaurant.web.useBizWebsite||r.restaurant.web.useBizMenuUrl
+        ||r.restaurant.web.useBizOrderAheadUrl||r.restaurant.web.useBizReservationUrl);
+      this.filteredRows = this.filteredRows.filter(insistAnyFlag);
+        break;
+      case InsistedFilterTypes.InsistNone:
+      let NoneFlag = r => !(r.restaurant.web && (r.restaurant.web.useBizWebsiteForAll||r.restaurant.web.useBizWebsite||r.restaurant.web.useBizMenuUrl
+        ||r.restaurant.web.useBizOrderAheadUrl||r.restaurant.web.useBizReservationUrl));
+      this.filteredRows = this.filteredRows.filter(NoneFlag);
+        break;
+      case InsistedFilterTypes.InsistWebsite:
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.useBizWebsite);
+          break;
+      case InsistedFilterTypes.InsistMenuUrl:
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.useBizMenuUrl);
+          break;
+      case InsistedFilterTypes.InsistOrderUrl:
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.useBizOrderAheadUrl);
+          break;
+      case InsistedFilterTypes.InsistResrvationUrl:
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.useBizReservationUrl);
+          break;
+      default:
+
+        break;
+    }
+
+    
 
   }
 

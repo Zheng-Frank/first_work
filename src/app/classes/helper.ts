@@ -1,28 +1,30 @@
-import { environment } from '../../environments/environment';
-import { ApiService } from '../services/api.service';
-import { Address } from '@qmenu/ui';
-import { HttpClient } from '@angular/common/http';
+import {environment} from '../../environments/environment';
+import {ApiService} from '../services/api.service';
+import {Address} from '@qmenu/ui';
+import {HttpClient} from '@angular/common/http';
 
-const FULL_LOCALE_OPTS = {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit'}
+const FULL_LOCALE_OPTS = {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit'};
+
 export class Helper {
 
     static async uploadImage(files: File[], _api: ApiService, _http: HttpClient) {
         // let's take only the first file so far (possible for multiple files in future)
         const [file] = files;
         if (file.type.indexOf('image') < 0) {
-            throw 'Invalid file type. Choose image only.';
+            throw new Error('Invalid file type. Choose image only.');
         } else if (file.size > 20000000) {
-            throw 'The image size exceeds 20M.';
+            throw new Error('The image size exceeds 20M.');
         } else {
+            // tslint:disable-next-line:max-line-length
             const apiPath = `utils/s3-signed-url?contentType=${file.type}&prefix=menuImage&extension=${file.name.split('.').pop()}&bucket=chopst&expires=3600`;
             // Get presigned url
             try {
                 const response = await _api.get(environment.appApiUrl + apiPath).toPromise();
                 const presignedUrl = response['url'];
                 await _http.put(presignedUrl, file).toPromise();
-                return { Location: presignedUrl.slice(0, presignedUrl.indexOf("?")) };
+                return {Location: presignedUrl.slice(0, presignedUrl.indexOf('?'))};
             } catch (error) {
-                throw "Failed to get presigned Url";
+                throw new Error('Failed to get presigned Url');
             }
         }
     }
@@ -37,7 +39,7 @@ export class Helper {
         }
         // date compare
         if (obj1 instanceof Date) {
-          return obj1.valueOf() === obj2.valueOf();
+            return (obj2 instanceof Date) && obj1.valueOf() === obj2.valueOf();
         }
 
         const keys1 = Object.getOwnPropertyNames(obj1);
@@ -122,10 +124,10 @@ export class Helper {
     static processBatchedPromises(promises): any {
         return Promise.all(promises.map(p => new Promise((resolve, reject) => {
             p.then(data => {
-                resolve({ result: data, success: true });
+                resolve({result: data, success: true});
             }).catch(error => {
-                resolve({ result: error, success: false });
-            })
+                resolve({result: error, success: false});
+            });
         })));
     }
 
@@ -189,45 +191,36 @@ export class Helper {
 
     static getState(formatted_address) {
         try {
-            let addressArray = formatted_address.split(",");
+            let addressArray = formatted_address.split(',');
             if (addressArray[addressArray.length - 1] && addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)) {
-                //console.log('address=', address);
-                //console.log(address.match(/\b[A-Z]{2}/)[0]);
                 let state = addressArray[addressArray.length - 1].match(/\b[A-Z]{2}/)[0];
                 return state;
             }
-        }
-        catch (e) {
+        } catch (e) {
             return '';
         }
     }
 
     static getCity(formatted_address) {
         try {
-            let addressArray = formatted_address.split(",");
+            let addressArray = formatted_address.split(',');
             if (addressArray[addressArray.length - 2]) {
-                //console.log('address=', address);
-                //console.log(address.match(/\b[A-Z]{2}/)[0]);
                 let city = addressArray[addressArray.length - 2].trim();
                 return city;
             }
-        }
-        catch (e) {
+        } catch (e) {
             return '';
         }
     }
 
     static getZipcode(formatted_address) {
         try {
-            let addressArray = formatted_address.split(",");
+            let addressArray = formatted_address.split(',');
             if (addressArray[addressArray.length - 1] && addressArray[addressArray.length - 1].match(/\b\d{5}\b/g)) {
-                //console.log('address=', address);
-                //console.log(address.match(/\b[A-Z]{2}/)[0]);
                 let zip = addressArray[addressArray.length - 1].match(/\b\d{5}\b/g)[0].trim();
                 return zip;
             }
-        }
-        catch (e) {
+        } catch (e) {
             return '';
         }
     }
@@ -235,10 +228,9 @@ export class Helper {
 
     static getAddressLine1(formatted_address) {
         try {
-            let addressArray = formatted_address.split(",");
+            let addressArray = formatted_address.split(',');
             return addressArray[0];
-        }
-        catch (e) {
+        } catch (e) {
             return '';
         }
     }
@@ -267,8 +259,6 @@ export class Helper {
 
         let matchedTz = '';
         if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
-            //console.log('address=', address);
-            //console.log(address.match(/\b[A-Z]{2}/)[0]);
             let state = formatted_address.match(/\b[A-Z]{2}/)[0];
 
             Object.keys(tzMap).map(tz => {
@@ -282,36 +272,36 @@ export class Helper {
 
 
     static getOffsetNumToEST(timezone: string) {
-      if (timezone) {
-        const now = new Date();
-        const offset = (new Date(now.toLocaleString('en-US', {timeZone: timezone, ...FULL_LOCALE_OPTS})).valueOf()
-          - new Date(now.toLocaleString('en-US', {timeZone: 'America/New_York', ...FULL_LOCALE_OPTS})).valueOf()) / 3600000;
-        if (offset > 0) {
-          return '+' + offset;
+        if (timezone) {
+            const now = new Date();
+            const offset = (new Date(now.toLocaleString('en-US', {timeZone: timezone, ...FULL_LOCALE_OPTS})).valueOf()
+                - new Date(now.toLocaleString('en-US', {timeZone: 'America/New_York', ...FULL_LOCALE_OPTS})).valueOf()) / 3600000;
+            if (offset > 0) {
+                return '+' + offset;
+            } else {
+                return offset;
+            }
         } else {
-          return offset;
+            return '+0';
         }
-      } else {
-        return '+0';
-      }
     }
 
-  /**
-   * give a local date, get it's correspond time in given timezone, then convert that time to local time
-   * eg. local(New_York): 4/9/2021, 12:30:50 AM, correspond Phoenix time is 4/9/2021, 9:30:50 AM,
-   * we'll get a 4/9/2021, 9:30:50 AM show on local
-   * @param datetime
-   * @param timezone
-   */
-  static adjustDate(datetime: Date, timezone?: string) {
-    return new Date(datetime.toLocaleString('en-US', {timeZone: timezone, ...FULL_LOCALE_OPTS}));
+    /**
+     * give a local date, get it's correspond time in given timezone, then convert that time to local time
+     * eg. local(New_York): 4/9/2021, 12:30:50 AM, correspond Phoenix time is 4/9/2021, 9:30:50 AM,
+     * we'll get a 4/9/2021, 9:30:50 AM show on local
+     * @param datetime
+     * @param timezone
+     */
+    static adjustDate(datetime: Date, timezone?: string) {
+        return new Date(datetime.toLocaleString('en-US', {timeZone: timezone, ...FULL_LOCALE_OPTS}));
     }
 
     static sanitizedName(menuItemName) {
         let processedName;
 
-        //remove (Lunch) and numbers
-        processedName = (menuItemName || '').toLowerCase().replace(/\(.*?\)/g, "").replace(/[0-9]/g, "").trim()
+        // remove (Lunch) and numbers
+        processedName = (menuItemName || '').toLowerCase().replace(/\(.*?\)/g, '').replace(/[0-9]/g, '').trim();
         processedName = processedName.replace('&', '');
         processedName = processedName.replace('.', ' ');
         // processedName = processedName.replace('w.', ' ');
@@ -324,14 +314,26 @@ export class Helper {
         // B Bourbon Chicken --> Bourbon Chicken
         let nameArray = processedName.split(' ');
         for (let i = 0; i < nameArray.length; i++) {
-            //remove 19a
+            // remove 19a
             if (/\d/.test(nameArray[i]) || nameArray[i].length === 1) {
                 nameArray.splice(i, 1);
             }
         }
         processedName = nameArray.join(' ');
-        //remove extra space between words
-        processedName = processedName.replace(/\s+/g, " ").trim();
+        // remove extra space between words
+        processedName = processedName.replace(/\s+/g, '').trim();
         return processedName;
     }
+
+    static getSalesAgent(rateSchedules, users) {
+        let now = Date.now();
+        const isEnabled = x => users.some(u => u.username === x.agent && !u.disabled);
+        let list = (rateSchedules || []).filter(x => isEnabled(x) && new Date(x.date).valueOf() <= now.valueOf())
+            .sort((x, y) => new Date(x.date).valueOf() - new Date(y.date).valueOf());
+        let item = list.pop() || {};
+        return item.agent || 'N/A';
+    }
+
+    static shrink = str => str.trim().replace(/\s+/g, ' ');
+
 }

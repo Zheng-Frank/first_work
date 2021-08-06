@@ -37,4 +37,14 @@ export class GmbLocation {
         }
     }
 
+    getLocationScore(days) {
+        if (this.status !== 'Suspended') {
+            return 0;
+        } else {
+            const suspendedTime = new Date(this.statusHistory[0].time).valueOf();
+            const timeSinceSuspension = new Date().valueOf() - suspendedTime;
+            const timeConstant = days * 24 * 3600000 // convert days to ms
+            return Math.exp(-timeSinceSuspension / timeConstant);
+        }
+    }
 }

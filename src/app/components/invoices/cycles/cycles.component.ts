@@ -189,7 +189,7 @@ export class CyclesComponent implements OnInit {
         toDate: cycle.toDate,
         restaurantId: r._id,
         payoutThreshold: cycle.payoutThreshold,
-        maxAdjustmentThreshold: 3, // override default number 2, requested by mo, 2/16/2021
+        maxAdjustmentThreshold: 5, // override default number 4, requested by mo, 5/11/2021
         balanceThreshold: cycle.balanceThreshold,
         cycleId: cycle._id
       };

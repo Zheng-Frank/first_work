@@ -12,15 +12,17 @@ export class GmbAccount {
     allLocations: number;
     published: number;
     suspended: number;
-    pagerSize: number;
     comments: string;
     type:string;
     recoveryEmail:string;
     postcardId:string;
     locations: GmbLocation []; 
+    suspendedInPastDay: number;
+    lostIn2Days: number;
     disabled: boolean;
     isAgencyAcct = false;
     isYelpEmail = false;
+    isDefenseAccount = false;
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields
@@ -37,5 +39,9 @@ export class GmbAccount {
 
             this.locations = (gmb.locations || []).map(loc => new GmbLocation(loc));
         }
+    }
+
+    getAccountScore(days) {
+        return this.locations.map(loc => loc.getLocationScore(days)).reduce((prev, current) => prev + current, 0);
     }
 }

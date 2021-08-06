@@ -5,6 +5,7 @@ import {ApiService} from '../../../services/api.service';
 import {environment} from '../../../../environments/environment';
 import {GlobalService} from '../../../services/global.service';
 import {AlertType} from '../../../classes/alert-type';
+import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 
 @Component({
   selector: 'app-restaurant-logs',
@@ -21,7 +22,7 @@ export class RestaurantLogsComponent implements OnInit {
   logInEditing = new Log();
   logInEditingOriginal;
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch : PrunedPatchService) {
   }
 
   ngOnInit() {
@@ -31,7 +32,12 @@ export class RestaurantLogsComponent implements OnInit {
     return a && b && (new Date(a.time).getTime() === new Date(b.time).getTime());
   }
 
-
+  reScan(){
+    if(this.logEditingModal){
+      this.logEditingModal.hide();
+    }
+    this.reload.emit();
+  }
   createNewLog() {
     this.logInEditing = new Log();
     this.logInEditingOriginal = undefined;
@@ -105,8 +111,8 @@ export class RestaurantLogsComponent implements OnInit {
   }
 
   patch(oldRestaurant, updatedRestaurant, acknowledge) {
-    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
-      [{old: {_id: oldRestaurant._id}, new: {_id: updatedRestaurant._id, logs: updatedRestaurant.logs}}])
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
+      [{old: {_id: oldRestaurant._id, logs: oldRestaurant.logs}, new: {_id: updatedRestaurant._id, logs: updatedRestaurant.logs}}])
       .subscribe(
         result => {
           // let's update original, assuming everything successful

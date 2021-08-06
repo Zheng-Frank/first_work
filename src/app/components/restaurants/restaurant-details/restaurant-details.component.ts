@@ -1,10 +1,15 @@
-import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { LanguageType } from './../../../classes/language-type';
+import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Restaurant, Address } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
+import { SendTextReplyComponent } from '../../utilities/send-text-reply/send-text-reply.component';
+import { Helper } from '../../../classes/helper';
 
 declare var $: any;
 
@@ -14,12 +19,13 @@ declare var $: any;
   styleUrls: ['./restaurant-details.component.css']
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
+  @ViewChild('restaurantProfile') restaurantProfile: RestaurantProfileComponent;
+  @ViewChild('textReplyModal') textReplyModal: ModalComponent;
+  @ViewChild('textReplyComponent') textReplyComponent: SendTextReplyComponent;
+  languageTypes = [LanguageType.ENGLISH, LanguageType.CHINESE];
+  languageType = this._global.languageType;
   restaurant: Restaurant;
-  displayTextReply = false;
   displayGooglePIN = false;
-  phoneNumber;
-  message = '';
-  textedPhoneNumber;
   @Input() id;
 
   tabs = [];
@@ -31,7 +37,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    rateSchedules: ['RATE_EDITOR', 'MARKETER'],
+    rateSchedules: ['ADMIN', 'RATE_EDITOR'],
+    feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
     promotions: [],
@@ -106,7 +113,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     printers: 1,
     printerSN: 1,
     promotions: 1,
+    providers: 1,
     'qrSettings.viewOnly': 1,
+    'qrSettings.agent': 1,
+    'qrSettings.agentAt': 1,
     rateSchedules: 1,
     requireBillingAddress: 1,
     requireZipcode: 1,
@@ -130,6 +140,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     taxRate: 1,
     templateName: 1,
     timeZone: 1,
+    translations: 1,
     web: 1,
     yelpListing: 1,
     phones: 1,
@@ -141,9 +152,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     comebackDate: 1,
     ccMinimumCharge: 1,
     hideOrderReadyEstimate: 1,
+    disableOrderCancelation: 1, // add a new prperty and it will control whether the restaurant can cancel order.
+    notificationExpiry: 1, // this value is needed to decide when shows the broadcast on customer pwa.
+    doNotHideUselessMenuItems: 1,
   };
 
-
+  showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
+  googleSearchText; // using redirect google search.
   knownUsers = [];
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
@@ -152,16 +167,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+      "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
-      "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
-      "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "API Logs": ['ADMIN'],
+      "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
@@ -199,13 +211,31 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         if (!this.restaurant) {
           return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
         }
-        callback(this.restaurant);
+        if (callback) {
+          callback(this.restaurant);
+        }
       }, error => {
         this._global.publishAlert(AlertType.Danger, error);
       }
     );
   }
+  // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
+  changeLanguage() {
+    if (this.languageType === LanguageType.ENGLISH) {
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.ENGLISH;
+    } else if (this.languageType === LanguageType.CHINESE) {
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.CHINESE;
+    }
+  }
 
+  // if the switch is open,we show i button and show Chinese and English explanations
+  toggleShowExplanations() {
+    if (this.showExplanations) {
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = true;
+    } else {
+      this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = false;
+    }
+  }
 
   async loadDetails() {
     this.readonly = true;
@@ -236,6 +266,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
             (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
           this.readonly = !canEdit;
+          // use encodeURLComponment to reformat the href of a link.
+          // https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}
+          let formatted_address = this.restaurant.googleAddress.formatted_address || '';
+          let name = this.restaurant.name || '';
+          this.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(name + " " + formatted_address);
         },
         error => {
           this.apiRequesting = false;
@@ -267,52 +302,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.activeTab = tab;
   }
 
-  isValid() {
-    return this.isPhoneValid(this.phoneNumber);
-  }
-
-  isPhoneValid(text) {
-    if (!text) {
-      return false;
-    }
-
-    let digits = text.replace(/\D/g, '');
-    if (digits) {
-      let phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
-      if (digits.match(phoneRe)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  sendText() {
-    this.textedPhoneNumber = this.phoneNumber;
-
-    this._api.put(environment.legacyApiUrl + "twilio/sendTextAndCreateCustomer/", {
-      phoneNumber: this.phoneNumber,
-      message: this.message,
-      source: this.restaurant.id
-    })
-      .subscribe(
-        result => {
-          // let's update original, assuming everything successful
-          this._global.publishAlert(
-            AlertType.Success,
-            "Text Message Sent successfully"
-          );
-
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Failed to send successfully");
-        }
-      );
-  }
-
+  // show a modal to do the send SMS function
   toggleTextReply() {
-    this.displayTextReply = !this.displayTextReply;
-    // focus on the phone number!
-    setTimeout(() => { $('#profile-phone-number').focus(); }, 500);
+    this.textReplyComponent.phoneNumber = '';
+    this.textReplyComponent.message = '';
+    this.textReplyComponent.textedPhoneNumber = '';
+    this.textReplyComponent.sendToType = 'All';
+    this.textReplyComponent.sendWhatType = 'Custom';
+    this.textReplyModal.show();
+  }
+
+  closeTextReply() {
+    this.textReplyModal.hide();
   }
 
   toggleGooglePIN() {
@@ -330,7 +331,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   isSectionVisible(sectionName) {
     const roles = this._global.user.roles || [];
-    return this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
+    let hasFullPrivilege = this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
+
+    if (hasFullPrivilege) {
+      return true;
+    }
+    // marketer should can view rateSchedules in rts under his agent
+    if (sectionName === 'rateSchedules' && roles.includes('MARKETER')) {
+      const username = this._global.user.username;
+      let salesAgent = Helper.getSalesAgent(this.restaurant.rateSchedules, this.knownUsers);
+      return salesAgent === username;
+    }
+    return false;
   }
 
   isMarketerAndCreatedLessThan14Days() {

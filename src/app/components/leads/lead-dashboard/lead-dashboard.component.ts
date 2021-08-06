@@ -220,13 +220,6 @@ export class LeadDashboardComponent implements OnInit {
         }))
       ]
     },
-    {
-      field: "gmbOpen", //
-      label: "GMB Status",
-      required: false,
-      inputType: "single-select",
-      items: [{ object: "gmb open", text: "Open", selected: false }]
-    },
     // {
     //   field: "gmbAccountOwner", //
     //   label: "qMenu Is GMB Owner",
@@ -736,7 +729,6 @@ export class LeadDashboardComponent implements OnInit {
       lead.address.postal_code = Helper.getZipcode(each['address'])
       lead.cid = each.cid;
       lead.closed = each['closed'];
-      lead.gmbOpen = each['gmbOpen']
       lead.gmbOwner = each['gmbOwner'];
       lead.gmbVerified = each['gmbVerified'];
       lead.gmbWebsite = each['gmbWebsite'];
@@ -864,7 +856,8 @@ export class LeadDashboardComponent implements OnInit {
       });
     }
 
-    this.searchLeads(event.acknowledge);
+    this.searchLeads();
+    event.acknowledge();
     this.filterModal.hide();
     this._global.storeSet("searchFilters", this.searchFilters);
   }
@@ -896,7 +889,7 @@ export class LeadDashboardComponent implements OnInit {
     this._global.storeSet("searchFilters", this.searchFilters);
   }
 
-  async searchLeads(acknowledge?) {
+  async searchLeads() {
     // get all users
     const query = {};
     this.leads.length= 0;
@@ -921,11 +914,6 @@ export class LeadDashboardComponent implements OnInit {
           }
           if (filter.value === "store open") {
             query["closed"] = { $ne: true };
-          }
-          break;
-        case "gmbOpen":
-          if (filter.value === "gmb open") {
-            query["gmbOpen"] = true;
           }
           break;
         case "inQmenu":
@@ -969,7 +957,7 @@ export class LeadDashboardComponent implements OnInit {
     });
 
     this.leads = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'lead', 
+      resource: 'lead',
       query: query,
       limit: 10000
     }, 3000)
@@ -1178,7 +1166,7 @@ export class LeadDashboardComponent implements OnInit {
     this.assigneeModal.show();
   }
 
-  sumbitCallLog(event) {
+  submitCallLog(event) {
     const leadClone = new Lead(this.selectedLead);
     //Assign to the current user by default if edit in leads table
     leadClone.assignee = this._global.user.username;

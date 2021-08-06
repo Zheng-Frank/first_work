@@ -1,4 +1,4 @@
-import { InvoiceViewerComponent } from './components/invoices/invoice-viewer/invoice-viewer.component';
+/* tslint:disable:max-line-length */
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -94,6 +94,8 @@ import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-list/gmb-underattack-list.component';
 import { GmbSuspendedListComponent } from './components/gmbs2/gmb-suspended-list/gmb-suspended-list.component';
+import { GmbMissingListComponent } from './components/gmbs2/gmb-missing-list/gmb-missing-list.component';
+import { GmbPermanentlyClosedListComponent } from './components/gmbs2/gmb-closed-list/gmb-closed-list.component';
 import { GmbLostListComponent } from './components/gmbs2/gmb-lost-list/gmb-lost-list.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
@@ -141,13 +143,14 @@ import { MonitoringUnconfirmedOrdersComponent } from './components/monitoring/mo
 import { ImageManagerComponent } from './components/utilities/image-manager/image-manager.component';
 import { MonitoringOnboardingComponent } from './components/monitoring/monitoring-onboarding/monitoring-onboarding.component';
 import { MonitoringDisabledRestaurantsComponent } from './components/monitoring/monitoring-disabled-restaurants/monitoring-disabled-restaurants.component';
+import { MonitoringClosedRestaurantsComponent } from './components/monitoring/monitoring-closed-restaurants/monitoring-closed-restaurants.component';
 import { MonitoringGmbComponent } from './components/monitoring/monitoring-gmb/monitoring-gmb.component';
 import { MonitoringGmbTasksComponent } from './components/monitoring/monitoring-gmb-tasks/monitoring-gmb-tasks.component';
 import { MonitoringDomainComponent } from './components/monitoring/monitoring-domain/monitoring-domain.component';
 import { MonitoringPrintersComponent } from './components/monitoring/monitoring-printers/monitoring-printers.component';
 import { MonitoringHoursComponent } from './components/monitoring/monitoring-hours/monitoring-hours.component';
 import { MonitoringRestaurantsComponent } from './components/monitoring/monitoring-restaurants/monitoring-restaurants.component';
-
+import { MonitoringPromotionComponent } from './components/monitoring/monitoring-promotion/monitoring-promotion.component';
 
 import { TaskBarComponent } from './components/tasks/task-bar/task-bar.component';
 import { AwsMigrationComponent } from './components/system/aws-migration/aws-migration.component';
@@ -163,9 +166,13 @@ import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.compon
 import { ChangeOwnershipComponent } from './components/change-ownership/change-ownership.component';
 
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
+import { RoutineDashboardComponent } from './components/routines/routine-dashboard/routine-dashboard.component';
+import { RoutineAdminDashboardComponent } from './components/routines/routine-admin-dashboard/routine-admin-dashboard.component';
+import { RoutineListComponent } from './components/routines/routine-list/routine-list.component';
+import { RoutineInstanceListComponent } from './components/routines/routine-instance-list/routine-instance-list.component';
+
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
-import { MonitoringGmbOpenComponent } from './components/monitoring/monitoring-gmb-open/monitoring-gmb-open.component';
 import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
 import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
 import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.component';
@@ -201,16 +208,37 @@ import { Form1099KComponent } from './components/restaurants/restaurant-form1099
 import { OtherModulesComponent } from './components/monitoring/other-modules/other-modules.component';
 import { BannedCustomersComponent } from './components/restaurants/banned-customers/banned-customers.component';
 import { SchemasComponent } from './components/system/schemas/schemas.component';
-import { SeamlessIntegrationComponent } from "./components/restaurants/seamless-integration/seamless-integration.component";
-import { UploadCsvComponent } from "./components/restaurants/seamless-integration/upload-csv/upload-csv.component";
-import { AddOneRtComponent } from "./components/restaurants/seamless-integration/add-one-rt/add-one-rt.component";
-import { SendPostcardComponent } from "./components/restaurants/seamless-integration/send-postcard/send-postcard.component";
+import { SeamlessIntegrationComponent } from './components/restaurants/seamless-integration/seamless-integration.component';
+import { UploadCsvComponent } from './components/restaurants/seamless-integration/upload-csv/upload-csv.component';
+import { AddOneRtComponent } from './components/restaurants/seamless-integration/add-one-rt/add-one-rt.component';
+import { SendPostcardComponent } from './components/restaurants/seamless-integration/send-postcard/send-postcard.component';
 import { IvrAgentAnalysisComponent } from './components/ivr-agent-analysis/ivr-agent-analysis.component';
 import { CsvGeneratorComponent } from './components/restaurants/seamless-integration/csv-generator/csv-generator.component';
 import { RestaurantQrSettingsComponent } from './components/restaurants/restaurant-qr-settings/restaurant-qr-settings.component';
+import { NotificationDashboardComponent } from './components/notification-dashboard/notification-dashboard.component';
+import { NotificationEditorComponent } from './components/notification-editor/notification-editor.component';
+import { TimezoneOffsetPipe } from './pipes/timezone-offset.pipe';
+import { AddNewLogComponent } from './components/restaurants/seamless-integration/add-new-log/add-new-log.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
-import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import { OrderNotificationsComponent } from './components/restaurants/order-notifications/order-notifications.component';
+import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
+import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
+import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
+import { RestaurantInvoiceAdjustmentComponent } from './components/restaurants/restaurant-invoice-adjustment/restaurant-invoice-adjustment.component';
+import { CouponImportComponent } from './components/restaurants/coupon-import/coupon-import.component';
+import { RestaurantsByCourierComponent } from './components/restaurants/restaurants-by-courier/restaurants-by-courier.component';
+import { RestaurantOthersComponent } from './components/restaurants/restaurant-others/restaurant-others.component';
+import { PostmatesOrderCardComponent } from './components/monitoring/postmates-order-card/postmates-order-card.component';
+import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
+import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
+import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
+import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu-cleanup.component';
+import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
+import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
+import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
+
+
 
 @NgModule({
   declarations: [
@@ -219,7 +247,6 @@ import { OrderNotificationsComponent } from './components/restaurants/order-noti
     HomeComponent,
     MonitoringScriptComponent,
     MonitoringDbComponent,
-    MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
     UIPreviewComponent,
@@ -295,6 +322,7 @@ import { OrderNotificationsComponent } from './components/restaurants/order-noti
     GmbRequestListComponent,
     GmbUnderattackListComponent,
     GmbSuspendedListComponent,
+    GmbMissingListComponent,
     GmbLostListComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,
@@ -337,12 +365,14 @@ import { OrderNotificationsComponent } from './components/restaurants/order-noti
     MonitoringOnboardingComponent,
     TaskBarComponent,
     MonitoringDisabledRestaurantsComponent,
+    MonitoringClosedRestaurantsComponent,
     MonitoringGmbComponent,
     MonitoringGmbTasksComponent,
     MonitoringDomainComponent,
     MonitoringPrintersComponent,
     MonitoringHoursComponent,
     MonitoringRestaurantsComponent,
+    MonitoringPromotionComponent,
     AwsMigrationComponent,
     WorkflowDashboardComponent,
     SopDashboardComponent,
@@ -380,7 +410,6 @@ import { OrderNotificationsComponent } from './components/restaurants/order-noti
     Form1099KComponent,
     OtherModulesComponent,
     BannedCustomersComponent,
-    InvoiceViewerComponent,
     SchemasComponent,
     SeamlessIntegrationComponent,
     UploadCsvComponent,
@@ -390,7 +419,32 @@ import { OrderNotificationsComponent } from './components/restaurants/order-noti
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
     OrderNotificationsComponent,
-    QrRestaurantListComponent
+    QrRestaurantListComponent,
+    NotificationDashboardComponent,
+    NotificationEditorComponent,
+    RestaurantStatsComponent,
+    WeirdDataComponent,
+    QrRestaurantListComponent,
+    RestaurantTranslationsComponent,
+    RestaurantInvoiceAdjustmentComponent,
+    AddNewLogComponent,
+    CouponImportComponent,
+    RestaurantsByCourierComponent,
+    RestaurantOthersComponent,
+    GmbWrongLinkComponent,
+    SendTextReplyComponent,
+    PostmatesOrderCardComponent,
+    PostmatesOrdersComponent,
+    GmbPermanentlyClosedListComponent,
+    MenuCleanupComponent,
+    ApiLogsDashboardComponent,
+    RoutineDashboardComponent,
+    RoutineAdminDashboardComponent,
+    RoutineListComponent,
+    RoutineInstanceListComponent,
+    SeoTrackingComponent,
+    RestaurantSeoTrackingComponent,
+    RestaurantMapComponent
   ],
   imports: [
     BrowserModule,

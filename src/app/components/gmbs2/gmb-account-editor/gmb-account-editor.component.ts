@@ -76,6 +76,12 @@ export class GmbAccountEditorComponent implements OnInit, OnChanges {
         inputType: "checkbox"
       },
       {
+        field: "isDefenseAccount",
+        label: "Defense Account",
+        required: false,
+        inputType: "checkbox"
+      },
+      {
         field: "comments", //
         label: "Comments",
         required: false,

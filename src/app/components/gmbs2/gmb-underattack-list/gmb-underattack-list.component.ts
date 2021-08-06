@@ -128,7 +128,7 @@ export class GmbUnderattackListComponent implements OnInit {
         "request.statusHistory": { $slice: 1 },
         "request.pinHistory": { $slice: 1 },
       }
-    }, 6000);
+    }, 3000);
 
     // Filtered out requests we have pin
     const safePlaceIdSet =

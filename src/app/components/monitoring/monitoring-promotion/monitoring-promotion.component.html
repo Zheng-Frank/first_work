@@ -1,0 +1,130 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">Restaurants without promotion ({{filtered.length}})</h1>
+  </h2>
+  <div class="card-body">
+    <div class="toolbar">
+      <button class="btn btn-primary" (click)="query()">Refresh</button>
+      <select class="form-control ml-2" [(ngModel)]="gmbWebsiteOwner" (change)="filter()">
+        <optgroup label="General">
+          <option value=''>Select GMB owner...</option>
+          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of generalGmbOwners">
+            {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
+          </option>
+        </optgroup>
+        <optgroup label="Main competitors">
+          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of majorCompetitorGmbOwners">
+            {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
+          </option>
+        </optgroup>
+        <optgroup label="All other competitors">
+          <option value="{{gmbOwnerCount.owner}}" *ngFor="let gmbOwnerCount of minorCompetitorGmbOwners">
+            {{gmbOwnerCount.owner}} ({{gmbOwnerCount.count}})
+          </option>
+        </optgroup>
+      </select>
+      <div class="form-check ml-2">
+        <input class="form-check-input" type="checkbox" id="flexCheckDefault" (click)="scrapedToggle($event)">
+        <label class="form-check-label" for="flexCheckDefault">Scraped coupon RTs only</label>
+      </div>
+    </div>
+
+    <table class="table rt-list">
+      <thead><tr><th>Restaurant</th><th>Scrape Status</th><th>Gmb Owner</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let rt of filtered">
+          <td><a target="_blank" href="/#/restaurants/{{rt._id}}">{{rt.name}}</a></td>
+          <td>
+            <div *ngIf="countScraped(rt.promotions)">
+              {{countScraped(rt.promotions)}} (<a class="btn-link" (click)="validate(rt)">Validate</a>)
+            </div>
+            <div *ngIf="!countScraped(rt.promotions)">
+              <a class="btn-link" (click)="crawl(rt)">Crawl</a>
+            </div>
+          </td>
+          <td>{{rt.googleListing?.gmbOwner}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<q-modal title="Promotion Import" class="import-modal" #importModal (close)="closeModal(importModal)">
+  <div class="coupon-panel">
+    <div class="coupon-title">Existing coupons</div>
+    <div class="coupon-data">
+      <ul class="coupon-list">
+        <li *ngFor="let promotion of restaurant?.promotions">
+          <div>{{promotion.name}}</div>
+          <div class="sub-text text-danger" *ngIf="promotion.excludedOrderTypes?.length > 0" >Excluded Order Types: {{promotion.excludedOrderTypes.join(', ')}}</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="coupon-panel crawled">
+    <div class="coupon-title">
+      The following coupon information has been scraped from BeyondMenu. Please review  the information below and make edits as desired before importing.
+      <div class="sub-text" *ngIf="failedTypes.length > 0">
+        Please note that menu scraping failed for the following service types: [{{failedTypes.join(', ')}}]. This means our knowledge of whether each coupon is usable for a given service type may be incomplete. Please confirm with the restaurant or try scraping coupons again later.
+      </div>
+    </div>
+    <div class="coupon-data">
+      <div class="check-all">
+        <label class="custom-checkbox">
+          <input (click)="checkCoupon($event)" id="check-all-coupons" value="all" type="checkbox"
+                 [checked]="checkedCoupons.length && checkedCoupons.length === coupons.length"/>
+          Import All
+        </label>
+      </div>
+      <ul class="coupon-list">
+        <li *ngFor="let coupon of coupons">
+          <div class="coupon-info">
+            <label class="custom-checkbox">
+              <input (click)="checkCoupon($event)" [checked]="checkedCoupons.includes(coupon.id)" type="checkbox" value="{{coupon.id}}" />
+            </label>
+            <div>{{coupon.name}}</div>
+          </div>
+          <div class="sub-text" *ngIf="coupon.excludedOrderTypes?.length > 0">Excluded Order Types: {{coupon.excludedOrderTypes.join(', ')}}</div>
+          <div class="sub-text" *ngIf="coupon.freeItemList?.length > 0">
+            Free Items:
+            <span *ngIf="coupon.freeItemList[0]?.menu">
+              {{getFreeItem(coupon.freeItemList[0])}}
+            </span>
+            <span *ngIf="!coupon.freeItemList[0].menu" class="text-danger">
+              Unable to find exact menu item match
+            </span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="import-footer">
+    <button class="btn btn-small btn-default" (click)='closeModal(importModal)'>Cancel</button>
+    <button class="btn btn-small btn-primary ml-3" (click)='update()'>Import</button>
+  </div>
+</q-modal>
+
+<q-modal title="Promotion Validate" class="validate-modal" #validateModal (close)="closeModal(validateModal)">
+  <ul class="coupon-list">
+    <li *ngFor="let promotion of (restaurant?.promotions || [])">
+      <div class="coupon-info">
+        <div>{{promotion.name}}</div>
+        <div class="sub-text" *ngIf="promotion.excludedOrderTypes?.length > 0">Excluded Order Types: {{promotion.excludedOrderTypes.join(', ')}}</div>
+        <div class="sub-text" *ngIf="promotion.freeItemList?.length > 0">
+          Free Items:
+          <span *ngIf="promotion.freeItemList[0]?.menu">
+            {{getFreeItem(promotion.freeItemList[0])}}
+          </span>
+          <span *ngIf="!promotion.freeItemList[0].menu" class="text-danger">
+            Unable to find exact menu item match
+          </span>
+        </div>
+      </div>
+      <div class="coupon-action" *ngIf="!!promotion.source">
+        <button class="btn btn-primary btn-sm" (click)="approve(promotion)">Approve</button>
+        <button class="btn btn-primary btn-sm" (click)="reject(promotion)">Reject</button>
+      </div>
+    </li>
+  </ul>
+</q-modal>

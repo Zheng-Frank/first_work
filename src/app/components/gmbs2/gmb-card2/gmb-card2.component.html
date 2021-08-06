@@ -5,18 +5,20 @@
   <div class="card-body {{gmbAccount.disabled? 'alert-warning' : ''}}">
     <div class="clearfix">
       <div class="float-left">
-        <h3><i *ngIf="gmbAccount.isAgencyAcct" class="fas fa-building"></i>{{gmbAccount.email | emailName}} [{{gmbAccount.postcardId}}] {{gmbAccount.disabled? '(disabled)' : ''}}</h3>
-        <div *ngIf="gmbAccount.pagerSize !== 100" class="alert alert-danger">Bad Pager Size: {{gmbAccount.pagerSize}}.
-          Please login the account and change the pager size to 100!</div>
+        <h3><i *ngIf="gmbAccount.isAgencyAcct" class="fas fa-building"></i>{{gmbAccount.email | emailName}}
+          [{{gmbAccount.postcardId}}] {{gmbAccount.disabled? '(disabled)' : ''}}</h3>
         <div *ngIf="gmbAccount.comments">
           <small>{{gmbAccount.comments}}</small>
         </div>
         <span class="{{gmbAccount.allLocations > 95 ? 'bg-danger text-light' : ''}}"
           *ngIf="gmbAccount.allLocations">Total
           {{gmbAccount.allLocations}}, </span>
-        <span>Published: {{gmbAccount.published}}, Suspended: {{gmbAccount.suspended}} <span
-            *ngIf="gmbAccount.suspendedInPastDay" class="text-danger">({{gmbAccount.suspendedInPastDay}}
-            recently)</span></span>
+        <span>Published: {{gmbAccount.published}}, Suspended: {{gmbAccount.suspended}}
+          <span *ngIf="gmbAccount.suspendedInPastDay" class="text-danger">({{gmbAccount.suspendedInPastDay}}
+            recently)</span>
+          <span *ngIf="gmbAccount.lostIn2Days" class="text-danger">({{gmbAccount.lostIn2Days}}
+            lost recently)</span>
+        </span>
         <button class="btn btn-link fix-v-align" (click)="expandBizLis = !expandBizLis">Details...
           <i class="fas {{expandBizLis ? 'fa-caret-up' : 'fa-caret-down'}} "></i>
         </button>
@@ -29,7 +31,11 @@
                   <label class="form-check-label">
                     <input type="checkbox" [checked]="isSelected(loc)" (change)="toggleSelected(loc)">
                     {{loc.status}}
-                  </label></td>
+                  </label>
+                </td>
+                <td>
+                  {{loc.role}}
+                </td>
                 <td>{{loc.statusHistory[0].time | ago : now}}
                   <div *ngIf="!loc.locationName" class="text-danger">
                     MISSING ID
@@ -50,6 +56,9 @@
                 </td>
                 <td *ngIf="loc.cid && loc.cid.length >= 4" class="text-muted">
                   <small>{{loc.place_id}}</small>
+                </td>
+                <td class="text-muted">
+                  <small>{{loc.locationName}}</small>
                 </td>
               </tr>
             </ng-container>

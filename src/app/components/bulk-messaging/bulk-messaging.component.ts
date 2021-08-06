@@ -97,7 +97,7 @@ export class BulkMessagingComponent implements OnInit {
               "name": "send-sms",
               "params": {
                 "to": rtSMS.value,
-                "from": "8447935942",
+                "from": "8557592648",
                 "providerName": "plivo",
                 "message": this.smsMsgContents
               }
@@ -116,7 +116,7 @@ export class BulkMessagingComponent implements OnInit {
               "name": "send-email",
               "params": {
                 "to": rtEmail.value,
-                "subject": "QMenu Notification",
+                "subject": "qMenu Newsletter",
                 "html": this.emailMsgContents
               }
             }]).toPromise();

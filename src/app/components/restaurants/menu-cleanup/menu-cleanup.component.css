@@ -1,0 +1,20 @@
+.cleanup-menus {
+  width: 100%;
+  height: 100%;
+  max-height: 500px;
+  overflow: auto;
+}
+
+.cleanup-menus table thead th {
+  word-break: keep-all;
+  white-space: nowrap;
+}
+
+.cleanup-menus table .input-menu-number {
+  width: 60px;
+}
+
+.cleanup-menus table textarea {
+  height: auto;
+
+}
