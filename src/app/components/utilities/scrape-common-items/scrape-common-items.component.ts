@@ -3,7 +3,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AlertType } from 'src/app/classes/alert-type';
 
 enum basedOnTypes {
-  menuFrequency = 'Menu frequency',
+  // menuFrequency = 'Menu frequency',
   orderFrequency = 'Order frequency'
 }
 
@@ -24,8 +24,8 @@ export class ScrapeCommonItemsComponent implements OnInit {
   scrapingTopItemsNumber = 500;
   scrapingTopItems = [];
   existingTopItems = [];
-  basedOns = [basedOnTypes.menuFrequency, basedOnTypes.orderFrequency];
-  basedOn = basedOnTypes.menuFrequency;
+  basedOns = [ basedOnTypes.orderFrequency];
+  basedOn = basedOnTypes.orderFrequency;
   scrapingFlag = false;
   // this following flag is used to avoid user some error behaviors before he scraping
   // (such as change basedOn select before scraping).
@@ -38,105 +38,105 @@ export class ScrapeCommonItemsComponent implements OnInit {
 
   beginScrape() {
     switch (this.basedOn) {
-      case basedOnTypes.menuFrequency:
-        if (!this.cuisineType) {
-          return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
-        }
-        if (this.scrapingTopItemsNumber > 1000) {
-          this.scrapingTopItemsNumber = 1000;
-          return this._global.publishAlert(AlertType.Danger, 'Top number is so large !');
-        }
-        // reset flag and tools array
-        this.scrapingFlag = true;
-        this.scrapingMenuFlag = true;
-        this.scrapingTopItems.length = 0;
-        this.existingTopItems.length = 0;
-        // only filter the restaurants of this cuisine type(current selected).
-        let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
-        /**
-         * this map likes this:
-         * {
-         * {
-         *  cuisine_mi.name1: 1
-         * },
-         * {
-         *  cuisine_mi.name2: 2
-         * },
-         * }
-         */
-        let map = {};
-        mFRestaurants.forEach(restaurant => {
-          restaurant.menus.forEach(menu => {
-            menu.mcs.forEach(mc => {
-              mc.mis.forEach(mi => {
-                if (mi.name) {
-                  let key = this.cuisineType + '_' + mi.name;
-                  map[key] = (map[key] || 0) + 1;
-                }
-              });
-            });
-          });
-        });
+      // case basedOnTypes.menuFrequency:
+      //   if (!this.cuisineType) {
+      //     return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
+      //   }
+      //   if (this.scrapingTopItemsNumber > 1000) {
+      //     this.scrapingTopItemsNumber = 1000;
+      //     return this._global.publishAlert(AlertType.Danger, 'Top number is so large !');
+      //   }
+      //   // reset flag and tools array
+      //   this.scrapingFlag = true;
+      //   this.scrapingMenuFlag = true;
+      //   this.scrapingTopItems.length = 0;
+      //   this.existingTopItems.length = 0;
+      //   // only filter the restaurants of this cuisine type(current selected).
+      //   let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
+      //   /**
+      //    * this map likes this:
+      //    * {
+      //    * {
+      //    *  cuisine_mi.name1: 1
+      //    * },
+      //    * {
+      //    *  cuisine_mi.name2: 2
+      //    * },
+      //    * }
+      //    */
+      //   let map = {};
+      //   mFRestaurants.forEach(restaurant => {
+      //     restaurant.menus.forEach(menu => {
+      //       menu.mcs.forEach(mc => {
+      //         mc.mis.forEach(mi => {
+      //           if (mi.name) {
+      //             let key = this.cuisineType + '_' + mi.name;
+      //             map[key] = (map[key] || 0) + 1;
+      //           }
+      //         });
+      //       });
+      //     });
+      //   });
 
-        let miNames = [];
-        // the miName records the count of a menu item which disappear in the restaurant menu.
-        // like {
-        // name:'mi.name',
-        // count:1 
-        // }
-        for (const [key, value] of Object.entries(map)) {
-          miNames.push({
-            name: key.split('_')[1],
-            count: value
-          });
-        }
-        // scrapingTopItems only needs the name field that is not in the origin array.
-        // sort() method of array api:
-        // a - b is ascending order
-        // b - a is decending order
-        // sort() is void 
-        miNames = miNames.sort((a, b) => b.count - a.count).slice(0, Math.min(this.scrapingTopItemsNumber, miNames.length));
+      //   let miNames = [];
+      //   // the miName records the count of a menu item which disappear in the restaurant menu.
+      //   // like {
+      //   // name:'mi.name',
+      //   // count:1 
+      //   // }
+      //   for (const [key, value] of Object.entries(map)) {
+      //     miNames.push({
+      //       name: key.split('_')[1],
+      //       count: value
+      //     });
+      //   }
+      //   // scrapingTopItems only needs the name field that is not in the origin array.
+      //   // sort() method of array api:
+      //   // a - b is ascending order
+      //   // b - a is decending order
+      //   // sort() is void 
+      //   miNames = miNames.sort((a, b) => b.count - a.count).slice(0, Math.min(this.scrapingTopItemsNumber, miNames.length));
 
-        let mFExistsNames = this.existsImageItems.filter(item => item.aliases);
+      //   let mFExistsNames = this.existsImageItems.filter(item => item.aliases);
 
-        this.scrapingTopItems = miNames.filter(item => {
-          let flag = true;
-          let name = item.name.toLowerCase().trim();
-          for (let i = 0; i < mFExistsNames.length; i++) {
-            let aliases = mFExistsNames[i].aliases;
-            for (let j = 0; j < aliases.length; j++) {
-              let existName = aliases[j].toLowerCase().trim();
-              // Strict case sensitivity is required
-              if (existName === name) {
-                if (!this.existingTopItems.includes(mFExistsNames[i])) {
-                  // update exist image item cuisine
-                  if (mFExistsNames[i].cuisines) {
-                    mFExistsNames[i].cuisines = mFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
-                    mFExistsNames[i].cuisines.push(this.cuisineType);
-                  } else {
-                    mFExistsNames[i].cuisines = [];
-                    mFExistsNames[i].cuisines.push(this.cuisineType);
-                  }
-                  // update menu count
-                  mFExistsNames[i].menuCount = item.count;
+      //   this.scrapingTopItems = miNames.filter(item => {
+      //     let flag = true;
+      //     let name = item.name.toLowerCase().trim();
+      //     for (let i = 0; i < mFExistsNames.length; i++) {
+      //       let aliases = mFExistsNames[i].aliases;
+      //       for (let j = 0; j < aliases.length; j++) {
+      //         let existName = aliases[j].toLowerCase().trim();
+      //         // Strict case sensitivity is required
+      //         if (existName === name) {
+      //           if (!this.existingTopItems.includes(mFExistsNames[i])) {
+      //             // update exist image item cuisine
+      //             if (mFExistsNames[i].cuisines) {
+      //               mFExistsNames[i].cuisines = mFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
+      //               mFExistsNames[i].cuisines.push(this.cuisineType);
+      //             } else {
+      //               mFExistsNames[i].cuisines = [];
+      //               mFExistsNames[i].cuisines.push(this.cuisineType);
+      //             }
+      //             // update menu count
+      //             mFExistsNames[i].menuCount = item.count;
 
-                  this.existingTopItems.push(mFExistsNames[i]);
-                }
-                flag = false;
-              }
-            }
-          }
-          return flag;
-        }).map(item => ({
-          aliases: [item.name],
-          images: [], // Just a empty array is ok, because the images will be added later.
-          cuisines: [this.cuisineType],
-          orderCount: 0,
-          menuCount: item.count
-        }
-        ));
-        setTimeout(() => this.scrapingFlag = false, 5000);
-        break;
+      //             this.existingTopItems.push(mFExistsNames[i]);
+      //           }
+      //           flag = false;
+      //         }
+      //       }
+      //     }
+      //     return flag;
+      //   }).map(item => ({
+      //     aliases: [item.name],
+      //     images: [], // Just a empty array is ok, because the images will be added later.
+      //     cuisines: [this.cuisineType],
+      //     orderCount: 0,
+      //     menuCount: item.count
+      //   }
+      //   ));
+      //   setTimeout(() => this.scrapingFlag = false, 5000);
+      //   break;
       case basedOnTypes.orderFrequency:
         if (!this.cuisineType) {
           return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
@@ -194,8 +194,12 @@ export class ScrapeCommonItemsComponent implements OnInit {
                     oFExistsNames[i].cuisines.push(this.cuisineType);
                   }
                   // update order count
-                  oFExistsNames[i].orderCount = mi.orderCount;
-
+                  if(oFExistsNames[i].orderCount){
+                    oFExistsNames[i].orderCount += mi.orderCount;
+                  }else{
+                    oFExistsNames[i].orderCount = mi.orderCount;
+                  }
+                  
                   this.existingTopItems.push(oFExistsNames[i]);
                 }
                 flag = false;

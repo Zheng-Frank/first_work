@@ -12,7 +12,7 @@ import { Restaurant } from '@qmenu/ui';
 import { stringify } from '@angular/core/src/util';
 enum orderByTypes {
   NAME = 'Name',
-  menuFrequency = 'Menu frequency',
+  // menuFrequency = 'Menu frequency',
   orderFrequency = 'Order frequency'
 }
 @Component({
@@ -35,7 +35,7 @@ export class ImageManagerComponent implements OnInit {
   images = [];
   cuisineTypes = [];
   cuisineType = '';
-  orderBys = [orderByTypes.NAME, orderByTypes.menuFrequency, orderByTypes.orderFrequency];
+  orderBys = [orderByTypes.NAME, orderByTypes.orderFrequency];
   orderBy = orderByTypes.NAME;
   restaurants = [];
   restaurantProjection = {
@@ -70,64 +70,64 @@ export class ImageManagerComponent implements OnInit {
   // stats and add three new properties: menuCount, orderCount, cuisines
   async calculateStats() {
     switch (this.orderBy) {
-      case orderByTypes.menuFrequency:
-        if (!this.cuisineType) {
-          return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
-        }
-        this.calculatingStats = true;
-        this.existingTopItems.length = 0;
-        let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
+      // case orderByTypes.menuFrequency:
+      //   if (!this.cuisineType) {
+      //     return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
+      //   }
+      //   this.calculatingStats = true;
+      //   this.existingTopItems.length = 0;
+      //   let mFRestaurants = this.restaurants.filter(restaurant => (restaurant.menus || []).length > 0 && restaurant.googleListing.cuisine === this.cuisineType);
 
-        let map = {};
-        mFRestaurants.forEach(restaurant => {
-          restaurant.menus.forEach(menu => {
-            menu.mcs.forEach(mc => {
-              mc.mis.forEach(mi => {
-                if (mi.name) {
-                  let key = this.cuisineType + '_' + mi.name;
-                  map[key] = (map[key] || 0) + 1;
-                }
-              });
-            });
-          });
-        });
+      //   let map = {};
+      //   mFRestaurants.forEach(restaurant => {
+      //     restaurant.menus.forEach(menu => {
+      //       menu.mcs.forEach(mc => {
+      //         mc.mis.forEach(mi => {
+      //           if (mi.name) {
+      //             let key = this.cuisineType + '_' + mi.name;
+      //             map[key] = (map[key] || 0) + 1;
+      //           }
+      //         });
+      //       });
+      //     });
+      //   });
 
-        let miNames = [];
-        for (const [key, value] of Object.entries(map)) {
-          miNames.push({
-            name: key.split('_')[1],
-            count: value
-          });
-        }
-        miNames = miNames.sort((a, b) => b.count - a.count).slice(0, Math.min(1000, miNames.length));
-        let mFExistsNames = this.rows.filter(item => item.aliases);
+      //   let miNames = [];
+      //   for (const [key, value] of Object.entries(map)) {
+      //     miNames.push({
+      //       name: key.split('_')[1],
+      //       count: value
+      //     });
+      //   }
+      //   miNames = miNames.sort((a, b) => b.count - a.count).slice(0, Math.min(1000, miNames.length));
+      //   let mFExistsNames = this.rows.filter(item => item.aliases);
 
-        miNames.forEach(item => {
-          let name = item.name.toLowerCase().trim();
-          for (let i = 0; i < mFExistsNames.length; i++) {
-            let aliases = mFExistsNames[i].aliases;
-            for (let j = 0; j < aliases.length; j++) {
-              let existName = aliases[j].toLowerCase().trim();
-              if (existName === name) {
-                if (!this.existingTopItems.includes(mFExistsNames[i])) {
-                  // update exist image item cuisine
-                  if (mFExistsNames[i].cuisines) {
-                    mFExistsNames[i].cuisines = mFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
-                    mFExistsNames[i].cuisines.push(this.cuisineType);
-                  } else {
-                    mFExistsNames[i].cuisines = [];
-                    mFExistsNames[i].cuisines.push(this.cuisineType);
-                  }
-                  // update menu count
-                  mFExistsNames[i].menuCount = item.count;
+      //   miNames.forEach(item => {
+      //     let name = item.name.toLowerCase().trim();
+      //     for (let i = 0; i < mFExistsNames.length; i++) {
+      //       let aliases = mFExistsNames[i].aliases;
+      //       for (let j = 0; j < aliases.length; j++) {
+      //         let existName = aliases[j].toLowerCase().trim();
+      //         if (existName === name) {
+      //           if (!this.existingTopItems.includes(mFExistsNames[i])) {
+      //             // update exist image item cuisine
+      //             if (mFExistsNames[i].cuisines) {
+      //               mFExistsNames[i].cuisines = mFExistsNames[i].cuisines.filter(c => c !== this.cuisineType);
+      //               mFExistsNames[i].cuisines.push(this.cuisineType);
+      //             } else {
+      //               mFExistsNames[i].cuisines = [];
+      //               mFExistsNames[i].cuisines.push(this.cuisineType);
+      //             }
+      //             // update menu count
+      //             mFExistsNames[i].menuCount = item.count;
 
-                  this.existingTopItems.push(mFExistsNames[i]);
-                }
-              }
-            }
-          }
-        });
-        break;
+      //             this.existingTopItems.push(mFExistsNames[i]);
+      //           }
+      //         }
+      //       }
+      //     }
+      //   });
+      //   break;
       case orderByTypes.orderFrequency:
         if (!this.cuisineType) {
           return this._global.publishAlert(AlertType.Danger, 'Please select cuisine type first.');
@@ -172,7 +172,11 @@ export class ImageManagerComponent implements OnInit {
                     oFExistsNames[i].cuisines.push(this.cuisineType);
                   }
                   // update order count
-                  oFExistsNames[i].orderCount = mi.orderCount;
+                  if(oFExistsNames[i].orderCount){
+                    oFExistsNames[i].orderCount += mi.orderCount;
+                  }else{
+                    oFExistsNames[i].orderCount = mi.orderCount;
+                  }
 
                   this.existingTopItems.push(oFExistsNames[i]);
                 }
@@ -241,9 +245,9 @@ export class ImageManagerComponent implements OnInit {
       case orderByTypes.NAME:
         this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
         break;
-      case orderByTypes.menuFrequency:
-        this.filterRows.sort((a, b) => (b.menuCount || 0) - (a.menuCount || 0));
-        break;
+      // case orderByTypes.menuFrequency:
+      //   this.filterRows.sort((a, b) => (b.menuCount || 0) - (a.menuCount || 0));
+      //   break;
       case orderByTypes.orderFrequency:
         this.filterRows.sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
         break;
@@ -290,7 +294,7 @@ export class ImageManagerComponent implements OnInit {
       resource: 'restaurant',
       query: this.restaurantQuery,
       projection: this.restaurantProjection,
-      limit: 10000
+      limit: 1000
     }, 500);
     this.restaurants = restaurants;
     // calculate cuisine types
