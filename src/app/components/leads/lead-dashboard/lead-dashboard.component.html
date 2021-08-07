@@ -3,10 +3,10 @@
   <button type="button" class="list-group-item list-group-item-action text-primary"
     (click)="crawlGoogleGmbOnSelected()">
     <i class="fab fa-searchengin"></i> Crawl Google Info ({{selectionSet.size}})</button>
-  <!-- <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
-    <i class="fas fa-arrow-circle-right"></i> Assign to Marketer</button>
+  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
+    <i class="fas fa-arrow-circle-right"></i> Assign to Marketer ({{selectionSet.size}})</button>
   <button type="button" class="list-group-item list-group-item-action text-primary" (click)="unassignOnSelected()">
-    <i class="fas fa-arrow-circle-right"></i> Unassign</button> -->
+    <i class="fas fa-arrow-circle-right"></i> Unassign ({{selectionSet.size}})</button>
 
   <!-- <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawlGoogleAddressAll()">
     <i class="fas fa-map-marker-alt"></i> Inject Google Address</button> -->
@@ -23,11 +23,12 @@
     </label>
     <button type="button" class="btn btn-link ml-3" (click)="showMoreFunction = !showMoreFunction">
       {{ showMoreFunction?'Hide more functions...':'Show more functions...'}}</button>
-    <button *ngIf="showMoreFunction" type="button" class="btn btn-link ml-3" (click)="openRemoveRTModal()">
+    <button *ngIf="showMoreFunction && isAdmin()" type="button" class="btn btn-link ml-3" (click)="openRemoveRTModal()">
       Remove Chain Restaurants</button>
     <button *ngIf="showMoreFunction" type="button" class="btn btn-primary ml-3" (click)="openTimeFiltersModal()">
-      Time Filters</button> 
-    <span *ngIf="timeFiltersStartHours && timeFiltersEndHours" class="ml-1">Applied: between {{timeFiltersStartHours}} and {{timeFiltersEndHours}}</span>
+      Time Filters</button>
+    <span *ngIf="timeFiltersStartHours && timeFiltersEndHours" class="ml-1">Applied: between {{timeFiltersStartHours}}
+      and {{timeFiltersEndHours}}</span>
   </div>
   <div class="col-4 text-right">
     Total: {{filterLeads.length}}
@@ -79,9 +80,9 @@
       {{lead.assignee}}
       <!-- start with assign -->
       <button class="btn btn-outline-success limit-assign-font-size" *ngIf="!lead.assignee"><i
-          class="fas fa-arrow-circle-right" (click)="assignOnSelected(lead._id)">Assign to Marketer</i></button>
+          class="fas fa-arrow-circle-right" (click)="assignSingle(lead._id)">Assign to Marketer</i></button>
       <button class="btn btn-outline-success limit-assign-font-size" *ngIf="lead.assignee"><i
-          class="fas fa-arrow-circle-right" (click)="unassignOnSelected(lead._id)">Unassign</i></button>
+          class="fas fa-arrow-circle-right" (click)="unassignSingle(lead._id)">Unassign</i></button>
       <!-- end with assign -->
     </td>
 
@@ -384,6 +385,7 @@
       <table class="table table-sms">
         <thead>
           <th>
+            <input type="checkbox" [(ngModel)]="checkAllDelChainRT" (change)="onCheckAllDelChainRT()">
           </th>
           <th>
             Name
@@ -395,7 +397,7 @@
         <tbody>
           <tr *ngFor="let restaurant of chainDelRestaurants">
             <td>
-              <input type="checkbox" [checked]="restaurant.beChecked" [disabled]="disabledCheckDelChainRT(restaurant)"
+              <input type="checkbox" [checked]="restaurant.beChecked" 
                 (change)="onCheckDelChainRT(restaurant)">
             </td>
             <td>
@@ -415,13 +417,13 @@
     <div class="row mb-3 ml-3 mt-2">
       <input class="form-check-input" type="checkbox" [(ngModel)]="removeLeadsNoLogs"
         (change)="onCheckDelChainRTWithoutLogs()">
-      Remove only leads without logs <span class="text-danger ml-1">(Only admin can delete leads with logs!)</span>
+        Remove only leads without logs
     </div>
   </div>
 
   <div class="d-flex justify-content-end p-4">
     <button class="btn btn-secondary mr-2" (click)="removeRTModal.hide()">Cancel</button>
-    <button class="btn btn-primary" [disabled]="chainDelRestaurants.length === 0"
+    <button class="btn btn-primary" [disabled]="disabledRemove()"
       (click)="removeRTInLeads()">Remove</button>
   </div>
 

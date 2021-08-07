@@ -34,6 +34,8 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("removeRTModal") removeRTModal: ModalComponent;
   @ViewChild("timeFiltersModal") timeFilterModal: ModalComponent;
 
+  multipleChoice = false; // it's true when using checkbox of the table.
+  checkAllDelChainRT = false; // this flag is used to check chain restaurants which will be deleted.
   beforeCloseFlag = false; // three conditions of timer filters, and one must be checked at least.
   betweenHoursFlag = false;
   openNowFlag = false;
@@ -435,6 +437,11 @@ export class LeadDashboardComponent implements OnInit {
 
           const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
           clonedDescriptor.required = true;
+          // if the role of current user is marketer, should do following things:
+          // if current user open assigning to marketer modal, he must want to assign to himself first.
+          clonedDescriptor.items.forEach(item => {
+            item.object === this._global.user.username ? item.selected = true : item.selected = false;
+          });
           this.assigneeFieldDescriptors.push(clonedDescriptor);
         },
         error => {
@@ -456,20 +463,20 @@ export class LeadDashboardComponent implements OnInit {
       return this._global.publishAlert(AlertType.Danger, 'Please check one at least!');
     }
     this.viewFilter(); // The time filters has an intersection with view filter types.
-    if(this.betweenHoursFlag){
-      if(!this.timeFiltersStartHours || !this.timeFiltersEndHours){
+    if (this.betweenHoursFlag) {
+      if (!this.timeFiltersStartHours || !this.timeFiltersEndHours) {
         return this._global.publishAlert(AlertType.Danger, 'Start hours and end hours also should be selected!');
       }
       let startHours = this.convertTWToTF(this.timeFiltersStartHours);
       let endHours = this.convertTWToTF(this.timeFiltersEndHours);
-      if(startHours > endHours){
+      if (startHours > endHours) {
         return this._global.publishAlert(AlertType.Danger, 'Start hours can not be greater than end hours!');
       }
       let now = new Date();
       this.filterLeads = this.filterLeads.filter(lead => {
         if (lead.timezone) {
           // midHours maybe -1 or 25 that represents 23:00 yestorday and 1:00 tomorrow using 24 hours rules.
-          let midHour = this.getLeadHoursFromTimezone(now,lead.timezone);
+          let midHour = this.getLeadHoursFromTimezone(now, lead.timezone);
           return midHour >= Number(startHours) && midHour <= Number(endHours);
         }
         return false;
@@ -498,7 +505,7 @@ export class LeadDashboardComponent implements OnInit {
 
   // lead has a timezone value, and we need it to calculate middle hours
   // of start hours and end hours of second conditio of time filters.
-  getLeadHoursFromTimezone(now: Date,timezone: string): number {
+  getLeadHoursFromTimezone(now: Date, timezone: string): number {
     let utcOffsetHours = now.getTimezoneOffset() / 60;
     const tfMap = { // the map records the delta hours between UTC and PDT,MDT,EDT,CDT
       PDT: -7,
@@ -521,26 +528,39 @@ export class LeadDashboardComponent implements OnInit {
   openTimeFiltersModal() {
     this.timeFilterModal.show();
   }
+  // Disabling remove button, if any chain is not checked.
+  disabledRemove() {
+    return !this.chainDelRestaurants.some(chain => chain.beChecked === true);
+  }
 
   isAdmin() {
     return this._global.user.roles.indexOf("ADMIN") >= 0;
   }
   // when the checkbox is checked, we only checked the chains without logs.
   onCheckDelChainRTWithoutLogs() {
-    this.removeLeadsNoLogs ? this.chainDelRestaurants.forEach(chain => chain.getDescSortedCallLogs().length > 0 ? chain.beChecked = undefined : chain.beChecked = true) : this.chainDelRestaurants.forEach(chain => chain.beChecked = undefined);
+    this.checkAllDelChainRT = false;
+    if (this.removeLeadsNoLogs) {
+      this.chainDelRestaurants.forEach(chain => chain.getDescSortedCallLogs().length > 0 ? chain.beChecked = undefined : chain.beChecked = true)
+    } else {
+      this.onCheckAllDelChainRT();
+    }
   }
+
+  // all table rows be checked, then will be deleted in lead
+  onCheckAllDelChainRT() {
+    this.removeLeadsNoLogs = false;
+    this.chainDelRestaurants.forEach(c => c.beChecked = this.checkAllDelChainRT);
+  }
+
   // a table row be checked, then will be deleted in lead
   onCheckDelChainRT(restaurant) {
     restaurant.beChecked = !restaurant.beChecked;
   }
-  // when the user is not admin the checkbox removing restaurants with logs can't be checked.
-  disabledCheckDelChainRT(restaurant) {
-    return !this.isAdmin() && restaurant.getDescSortedCallLogs().length > 0;
-  }
 
-  private getCheckedDelChainCount() {
+  getCheckedDelChainCount() {
     return this.chainDelRestaurants.filter(chain => chain.beChecked).length;
   }
+
   // the function is used to remove chain restaurant in restaurant
   async removeRTInLeads() {
     if (this.getCheckedDelChainCount() === 0) {
@@ -578,6 +598,7 @@ export class LeadDashboardComponent implements OnInit {
     this.chainDelRestaurants = this.chainDelRestaurants.map(u => new Lead(u));
     this.chainDelRestaurants.sort((u1, u2) => u1.name.localeCompare(u2.name));
   }
+
   // remove rt modal is used to remove some out-of-date data in lead table.
   openRemoveRTModal() {
     this.removeLeadsNoLogs = false;
@@ -1308,9 +1329,21 @@ export class LeadDashboardComponent implements OnInit {
       Promise.resolve()
     );
   }
-
-  assignOnSelected(lead_id) {
+  // using single button clicked (green button named assign to marketer of each row).
+  assignSingle(lead_id) {
+    this.multipleChoice = false;
     this.selectId = lead_id;
+    (this.assigneeFieldDescriptors[0].items || []).forEach(item => {
+      item.object === this._global.user.username ? item.selected = true : item.selected = false;
+    });
+    this.assigneeModal.show();
+  }
+  // using in many leads be checked of the table. 
+  assignOnSelected() {
+    this.multipleChoice = true;
+    (this.assigneeFieldDescriptors[0].items || []).forEach(item => {
+      item.object === this._global.user.username ? item.selected = true : item.selected = false;
+    });
     this.assigneeModal.show();
   }
 
@@ -1360,37 +1393,72 @@ export class LeadDashboardComponent implements OnInit {
       if (myusers.indexOf(event.object.assignee) < 0) {
         event.acknowledge("Failed to assign to " + event.object.assignee);
       } else {
-        let lead = this.filterLeads.find(lead => lead._id === this.selectId);
+        if (!this.multipleChoice) {
+          let lead = this.filterLeads.find(lead => lead._id === this.selectId);
 
-        const clonedLead = JSON.parse(JSON.stringify(lead));
+          const clonedLead = JSON.parse(JSON.stringify(lead));
 
-        if (
-          !clonedLead.assignee ||
-          myusers.indexOf(clonedLead.assignee) >= 0
-        ) {
-          clonedLead.assignee = event.object.assignee;
-          this._api
-            .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
-            .subscribe(
-              result => {
-                // let's update original, assuming everything successful
-                lead.assignee = clonedLead.assignee;
-                this._global.publishAlert(
-                  AlertType.Success,
-                  lead.name + " was updated"
-                );
-              },
-              error => {
-                error = error;
-                this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-              }
+          if (
+            !clonedLead.assignee ||
+            myusers.indexOf(clonedLead.assignee) >= 0
+          ) {
+            clonedLead.assignee = event.object.assignee;
+            this._api
+              .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+              .subscribe(
+                result => {
+                  // let's update original, assuming everything successful
+                  lead.assignee = clonedLead.assignee;
+                  this._global.publishAlert(
+                    AlertType.Success,
+                    lead.name + " was updated"
+                  );
+                },
+                error => {
+                  error = error;
+                  this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+                }
+              );
+          } else {
+            this._global.publishAlert(
+              AlertType.Danger,
+              "Failed to assign to " + event.object.assignee
             );
+          }
         } else {
-          this._global.publishAlert(
-            AlertType.Danger,
-            "Failed to assign to " + event.object.assignee
-          );
+          this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
+            const clonedLead = JSON.parse(JSON.stringify(lead));
+
+            if (
+              !clonedLead.assignee ||
+              myusers.indexOf(clonedLead.assignee) >= 0
+            ) {
+              clonedLead.assignee = event.object.assignee;
+              this._api
+                .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+                .subscribe(
+                  result => {
+                    // let's update original, assuming everything successful
+                    lead.assignee = clonedLead.assignee;
+                    this._global.publishAlert(
+                      AlertType.Success,
+                      lead.name + " was updated"
+                    );
+                  },
+                  error => {
+                    error = error;
+                    this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+                  }
+                );
+            } else {
+              this._global.publishAlert(
+                AlertType.Danger,
+                "Failed to assign " + event.object.assignee
+              );
+            }
+          });
         }
+        this.multipleChoice = false;
         this.assigneeModal.hide();
         event.acknowledge(null);
       }
@@ -1399,7 +1467,47 @@ export class LeadDashboardComponent implements OnInit {
     }
   }
 
-  unassignOnSelected(lead_id) {
+  // using in many leads be checked of the table. 
+  unassignOnSelected(){
+    const myusers = this.users
+      .filter(
+        u =>
+          u.manager === this._global.user.username ||
+          this._global.user.roles.indexOf("ADMIN") >= 0
+      )
+      .map(u => u.username);
+    myusers.push(this._global.user.username);
+
+    this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
+      const clonedLead = JSON.parse(JSON.stringify(lead));
+      if (myusers.indexOf(clonedLead.assignee) >= 0) {
+        clonedLead.assignee = undefined;
+        this._api
+          .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+          .subscribe(
+            result => {
+              // let's update original, assuming everything successful
+              lead.assignee = undefined;
+              this._global.publishAlert(
+                AlertType.Success,
+                lead.name + " was updated"
+              );
+            },
+            error => {
+              this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+            }
+          );
+      } else {
+        this._global.publishAlert(
+          AlertType.Danger,
+          "Failed to unassign " + clonedLead.assignee
+        );
+      }
+    });
+  }
+
+  // using single button clicked (green button named unassign of each row).
+  unassignSingle(lead_id) {
     const myusers = this.users
       .filter(
         u =>
