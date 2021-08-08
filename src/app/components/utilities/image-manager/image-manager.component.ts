@@ -36,10 +36,7 @@ export class ImageManagerComponent implements OnInit {
   orderBy = orderByTypes.NAME;
   restaurants = [];
   restaurantProjection = {
-    _id: 1,
-    "googleListing.cuisine": 1,
-    "menus.mcs.mis.name": 1,
-    "menus.mcs.mis.orderCount": 1
+    "googleListing.cuisine": 1
   };
   restaurantQuery = {
     disabled: { $ne: true }
@@ -123,8 +120,7 @@ export class ImageManagerComponent implements OnInit {
       resource: 'restaurant',
       query: this.restaurantQuery,
       projection: this.restaurantProjection,
-      limit: 10000
-    }, 500);
+    }, 10000);
     this.restaurants = restaurants;
     // calculate cuisine types
     const cuisineTypes = this.restaurants.filter(restaurant => restaurant.googleListing && restaurant.googleListing.cuisine && restaurant.googleListing.cuisine !== '').map(restaurant => restaurant.googleListing.cuisine);
