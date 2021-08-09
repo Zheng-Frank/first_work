@@ -161,16 +161,44 @@ export class ImageManagerComponent implements OnInit {
   aliasesHasEmpty() {
     return this.newImages.filter(img => img.aliases && img.aliases.trim() === '' || !img.aliases).length > 0;
   }
+  
+  isAliasesSame(newImages){
+    let flag = false;
+    let aliases = [];
+    this.rows.forEach(row=>{
+      if(row.aliases){
+        aliases.push(...row.aliases);
+      }
+    });
+    newImages.forEach(image => {
+      image.aliases.forEach(alias => {
+        aliases.forEach(a=>{
+          if(a === alias){
+            flag = true;
+          }
+        });
+      });
+    });
+    return flag;
+  }
 
   async createNew() {
     if (this.aliasesHasEmpty()) {
       return this._global.publishAlert(AlertType.Danger, 'Please check whose aliases is empty !');
     }
+
     this.newImages = this.newImages.map(img => {
       delete img['_id'];
-      img.aliases = img.aliases.split(',').filter(alias => alias).map(alias => alias.trim());
+      if(img.aliases.indexOf(',') !== -1){
+        img.aliases = img.aliases.split(',').filter(alias => alias).map(alias => alias.trim());
+      }
       return img;
     });
+
+    if(this.isAliasesSame(this.newImages)){
+      return this._global.publishAlert(AlertType.Danger, 'This alias has already exists !');
+    }
+
     await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', this.newImages).toPromise();
     this.addRecordsModal.hide();
     await this.reload();

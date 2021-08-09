@@ -124,17 +124,13 @@
       <h4 class="text-center">Add New Records</h4>
       <hr>
       <div class="container">
-        <div class="row">
-          <div class="col-12 text-right">
-            <button class="btn btn-primary" (click)="createNewLine()">
-              <i class="fa fa-plus"></i>
-            </button>
-          </div>
-        </div>
-        <div class="row mt-2" *ngFor="let img of newImages">
+        <div class="row mt-2" *ngFor="let img of newImages;let i = index;">
           <input type="text" class="form-control col-10" [(ngModel)]="img.aliases"
             placeholder="Enter comma separed values!">
-          <button class="btn btn-link col-2" (click)="deleteNewLine(img._id)" *ngIf="newImages.length > 1"><i class="fa fa-minus"></i></button>
+          <button class="btn btn-link col-1 btn-sm" (click)="deleteNewLine(img._id)" *ngIf="newImages.length > 1"><i class="fa fa-minus"></i></button>
+          <button class="btn btn-link col-1 btn-sm" *ngIf="(i===newImages.length-1)&&(newImages.length<10)"  (click)="createNewLine()">
+            <i class="fa fa-plus"></i>
+          </button>
         </div>
       </div>
 
