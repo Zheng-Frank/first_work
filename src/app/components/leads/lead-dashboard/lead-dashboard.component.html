@@ -3,9 +3,9 @@
   <button type="button" class="list-group-item list-group-item-action text-primary"
     (click)="crawlGoogleGmbOnSelected()">
     <i class="fab fa-searchengin"></i> Crawl Google Info ({{selectionSet.size}})</button>
-  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
+  <button type="button" *ngIf="isAdmin()" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
     <i class="fas fa-arrow-circle-right"></i> Assign to Marketer ({{selectionSet.size}})</button>
-  <button type="button" class="list-group-item list-group-item-action text-primary" (click)="unassignOnSelected()">
+  <button type="button" *ngIf="isAdmin()" class="list-group-item list-group-item-action text-primary" (click)="unassignOnSelected()">
     <i class="fas fa-arrow-circle-right"></i> Unassign ({{selectionSet.size}})</button>
 
   <!-- <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawlGoogleAddressAll()">
@@ -79,10 +79,12 @@
     <td class="limit-assign-td-width">
       {{lead.assignee}}
       <!-- start with assign -->
-      <button class="btn btn-outline-success limit-assign-font-size" *ngIf="!lead.assignee"><i
+      <div *ngIf="isAdmin()">
+        <button class="btn btn-outline-success limit-assign-font-size" *ngIf="!lead.assignee"><i
           class="fas fa-arrow-circle-right" (click)="assignSingle(lead._id)">Assign to Marketer</i></button>
-      <button class="btn btn-outline-success limit-assign-font-size" *ngIf="lead.assignee"><i
+        <button class="btn btn-outline-success limit-assign-font-size" *ngIf="lead.assignee"><i
           class="fas fa-arrow-circle-right" (click)="unassignSingle(lead._id)">Unassign</i></button>
+      </div>
       <!-- end with assign -->
     </td>
 
