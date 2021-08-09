@@ -538,14 +538,14 @@ export class LeadDashboardComponent implements OnInit {
   assgineeDisabled(assignee) {
     if(this.users){
       let user = this.users.find(user => user.username === assignee);
-      return user ? user.disabled : true;
+      return user ? user.disabled : false;
     }
   }
 
   isAdmin() {
     return this._global.user.roles.indexOf("ADMIN") >= 0;
   }
-  
+
   // when the checkbox is checked, we only checked the chains without logs.
   onCheckDelChainRTWithoutLogs() {
     this.checkAllDelChainRT = false;
