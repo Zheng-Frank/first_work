@@ -79,12 +79,14 @@
     <td class="limit-assign-td-width">
       {{lead.assignee}}
       <!-- start with assign -->
-      <div *ngIf="isAdmin()">
+      <ng-container *ngIf="isAdmin()">
         <button class="btn btn-outline-success limit-assign-font-size" *ngIf="!lead.assignee"><i
-          class="fas fa-arrow-circle-right" (click)="assignSingle(lead._id)">Assign to Marketer</i></button>
+            class="fas fa-arrow-circle-right" (click)="assignSingle(lead._id)">Assign to Marketer</i></button>
+      </ng-container>
+      <ng-container *ngIf="isAdmin() || assgineeDisabled(lead.assignee)">
         <button class="btn btn-outline-success limit-assign-font-size" *ngIf="lead.assignee"><i
-          class="fas fa-arrow-circle-right" (click)="unassignSingle(lead._id)">Unassign</i></button>
-      </div>
+            class="fas fa-arrow-circle-right" (click)="unassignSingle(lead._id)">Unassign</i></button>
+      </ng-container>
       <!-- end with assign -->
     </td>
 
@@ -399,8 +401,7 @@
         <tbody>
           <tr *ngFor="let restaurant of chainDelRestaurants">
             <td>
-              <input type="checkbox" [checked]="restaurant.beChecked" 
-                (change)="onCheckDelChainRT(restaurant)">
+              <input type="checkbox" [checked]="restaurant.beChecked" (change)="onCheckDelChainRT(restaurant)">
             </td>
             <td>
               {{restaurant.name}}
@@ -419,14 +420,13 @@
     <div class="row mb-3 ml-3 mt-2">
       <input class="form-check-input" type="checkbox" [(ngModel)]="removeLeadsNoLogs"
         (change)="onCheckDelChainRTWithoutLogs()">
-        Remove only leads without logs
+      Remove only leads without logs
     </div>
   </div>
 
   <div class="d-flex justify-content-end p-4">
     <button class="btn btn-secondary mr-2" (click)="removeRTModal.hide()">Cancel</button>
-    <button class="btn btn-primary" [disabled]="disabledRemove()"
-      (click)="removeRTInLeads()">Remove</button>
+    <button class="btn btn-primary" [disabled]="disabledRemove()" (click)="removeRTInLeads()">Remove</button>
   </div>
 
 </q-modal>

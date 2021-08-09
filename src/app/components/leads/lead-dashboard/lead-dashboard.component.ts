@@ -528,9 +528,18 @@ export class LeadDashboardComponent implements OnInit {
   openTimeFiltersModal() {
     this.timeFilterModal.show();
   }
+
   // Disabling remove button, if any chain is not checked.
   disabledRemove() {
     return !this.chainDelRestaurants.some(chain => chain.beChecked === true);
+  }
+
+  // if user is disabled, he can be assigned.
+  assgineeDisabled(assignee) {
+    if(this.users){
+      let user = this.users.find(user => user.username === assignee);
+      return user ? user.disabled : true;
+    }
   }
 
   isAdmin() {
@@ -1468,7 +1477,7 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   // using in many leads be checked of the table. 
-  unassignOnSelected(){
+  unassignOnSelected() {
     const myusers = this.users
       .filter(
         u =>
