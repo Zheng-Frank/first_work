@@ -171,7 +171,7 @@ export class ImageManagerComponent implements OnInit {
       }
     });
     newImages.forEach(image => {
-      image.aliases.forEach(alias => {
+      (image.aliases||[]).forEach(alias => {
         aliases.forEach(a=>{
           if(a === alias){
             flag = true;
@@ -189,9 +189,7 @@ export class ImageManagerComponent implements OnInit {
 
     this.newImages = this.newImages.map(img => {
       delete img['_id'];
-      if(img.aliases.indexOf(',') !== -1){
-        img.aliases = img.aliases.split(',').filter(alias => alias).map(alias => alias.trim());
-      }
+      img.aliases = img.aliases.split(',').filter(alias => alias).map(alias => alias.trim());
       return img;
     });
 
