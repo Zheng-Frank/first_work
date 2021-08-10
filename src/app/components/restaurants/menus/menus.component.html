@@ -154,9 +154,8 @@
     </button>
     <h4 class="text-center">Preview Extractions and Translations</h4>
     <hr>
-    <app-menu-cleanup *ngIf="menusToClean.length > 0" [menus]="menusToClean" (cancel)="cleanupCancel()"
-      (save)="cleanupSave()"></app-menu-cleanup>
-    <div *ngIf="menusToClean.length === 0">All menus are cleaned up!</div>
+    <app-menu-cleanup #cleanupComponent [allMenus]="restaurant.menus" [translations]="restaurant.translations"
+                      (cancel)="cleanupCancel()" (save)="cleanupSave($event)"></app-menu-cleanup>
   </q-modal>
 
 

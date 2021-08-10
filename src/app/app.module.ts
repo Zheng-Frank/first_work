@@ -236,6 +236,7 @@ import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dash
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
 import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
+import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 
 
 
@@ -441,7 +442,8 @@ import { RestaurantMapComponent } from './components/restaurants/restaurant-map/
     RoutineInstanceListComponent,
     SeoTrackingComponent,
     RestaurantSeoTrackingComponent,
-    RestaurantMapComponent
+    RestaurantMapComponent,
+    CleanMenusComponent
   ],
   imports: [
     BrowserModule,

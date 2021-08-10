@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 
-import { Menu, MenuOption, Restaurant } from '@qmenu/ui';
+import { Menu, Restaurant } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { MenuEditorComponent } from '../menu-editor/menu-editor.component';
 import { Helper } from '../../../classes/helper';
@@ -9,6 +9,7 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from '../../../../environments/environment';
 import { AlertType } from '../../../classes/alert-type';
+import {MenuCleanupComponent} from '../menu-cleanup/menu-cleanup.component';
 
 
 @Component({
@@ -21,6 +22,7 @@ export class MenusComponent implements OnInit {
   @ViewChild('menuEditingModal') menuEditingModal: ModalComponent;
   @ViewChild('menuEditor') menuEditor: MenuEditorComponent;
   @ViewChild('menuCleanModal') menuCleanModal: ModalComponent;
+  @ViewChild('cleanupComponent') cleanupComponent: MenuCleanupComponent;
 
   @Input() restaurant: Restaurant;
   @Output() onVisitMenuOptions = new EventEmitter();
@@ -47,8 +49,6 @@ export class MenusComponent implements OnInit {
   showAdditionalFunctions = false;
   showPromotions = false;
 
-  menusToClean = [];
-  menusIncludeCleaned = {};
   menuJson = '';
 
 
@@ -233,144 +233,32 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
 
-  parsePrefixNum(name) {
-    // 1) A1. XXX; A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
-    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
-    // 2) 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
-    let regex2 = /^(?<to_rm>(?<num>(\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
-    // 3) No. 1 XXX; NO. 12 XXX;
-    let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
-    return [regex1, regex2, regex3].reduce((a, c) => a || name.match(c), null);
-  }
-
-  match(item) {
-    let { name, translation } = item;
-    if (!name) {
-      return;
-    }
-
-    name = name.trim();
-    // extract the possible number info from menu's name
-    let numMatched = this.parsePrefixNum(name);
-    // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
-    let measureWords = [
-      'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
-      'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
-      'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
-    ];
-    let number, hasMeasure = false;
-    if (numMatched) {
-      let { to_rm, num, dot, word } = numMatched.groups;
-      // if dot after number, definite number, otherwise we check if a measure word after number or not
-      hasMeasure = measureWords.includes((word || '').toLowerCase());
-      if (!!dot || !hasMeasure) {
-        // remove leading number chars
-        name = name.replace(to_rm, '');
-        item.cleanedName = name;
-      }
-      if (!hasMeasure) {
-        number = item.number || num;
-      }
-
-    }
-
-    // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
-    let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
-    let re = name.match(regex);
-    if (re) {
-      let zh = re[1].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
-      // remove brackets around name
-      en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1');
-      zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
-      item.translation = { zh, en };
-      item.number = number;
-
-      let trans = (this.restaurant.translations || []).find(x => x.EN === en);
-      if (translation && translation.en === en && trans && trans.ZH === zh) {
-        return;
-      }
-      this.menusToClean.push(item);
-    } else {
-      if (number || hasMeasure) {
-        item.translation = { en: name };
-        item.number = number || item.number;
-        this.menusToClean.push(item);
-      }
-    }
-
-  }
-
   async cleanup() {
-    this.menusToClean = [];
-    this.menusIncludeCleaned = {};
-    let { menus } = this.restaurant;
-    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x));
-    tempMenus.forEach(menu => {
-      this.match(menu);
-      menu.mcs.forEach(mc => {
-        this.match(mc);
-        mc.mis.forEach(mi => {
-          this.match(mi);
-        });
-      });
-    });
-
-    if (this.menusToClean.length > 0) {
-      this.menusIncludeCleaned = { menus: tempMenus };
-    }
     this.menuCleanModal.show();
+    setTimeout(() => {
+      this.cleanupComponent.collect();
+    }, 0);
   }
 
   cleanupCancel() {
-    this.menusIncludeCleaned = {};
-    this.menusToClean = [];
     this.menuCleanModal.hide();
   }
 
-  saveTranslation(item, translations) {
-    if (item.translation) {
-      let { zh, en, prev_en } = item.translation;
-      let translation = translations.find(x => x.EN === en || x.EN === prev_en);
-      if (!translation) {
-        translation = { EN: en, ZH: zh };
-        translations.push(translation);
-      } else {
-        translation.EN = en;
-        translation.ZH = zh;
-      }
-      delete item.translation;
-    }
-  }
-
-  async cleanupSave() {
+  async cleanupSave({menus, translations}) {
     try {
-      // @ts-ignore
-      let { translations = [] } = this.restaurant;
-      this.menusToClean.forEach(menu => {
-        this.saveTranslation(menu, translations);
-        (menu.mcs || []).forEach(mc => {
-          this.saveTranslation(mc, translations);
-          mc.mis.forEach(mi => {
-            this.saveTranslation(mi, translations);
-          });
-        });
-        (menu.items || []).forEach(moi => {
-          this.saveTranslation(moi, translations);
-        });
-      });
-
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
           _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
-          ...this.menusIncludeCleaned,
+          menus,
           translations
         }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
-      this.restaurant.menus = this.menusIncludeCleaned.menus.map(m => new Menu(m));
+      this.restaurant.menus = menus.map(m => new Menu(m));
+      this.restaurant.translations = translations;
       this.cleanupCancel();
     } catch (error) {
       console.log('error...', error);

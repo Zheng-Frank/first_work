@@ -1,4 +1,4 @@
-<div class="menu-cleanup">
+<div *ngIf="flattened.length > 0" class="menu-cleanup">
   <div class="cleanup-menus">
     <table class="table table-bordered">
     <thead>
@@ -11,12 +11,15 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let item of menus">
-        <td>{{item.name}}</td>
+      <tr *ngFor="let item of flattened">
+        <td *ngIf="!nameEditable">{{item.name}}</td>
+        <td *ngIf="nameEditable">
+          <textarea [value]="item.name" (change)="change(item, 'name', $event)"></textarea>
+        </td>
         <td><i class="fa fa-arrow-right"></i></td>
         <td><input class="input-menu-number" [value]="item.number || ''" (change)="change(item, 'number', $event)" /></td>
-        <td><textarea [value]="item.translation.en || ''" (change)="change(item.translation, 'en', $event)"></textarea></td>
-        <td><input [value]="item.translation.zh || ''" (change)="change(item.translation, 'zh', $event)" /></td>
+        <td><textarea [value]="item.translation?.en || ''" (change)="change(item.translation, 'en', $event, 'prev_en')"></textarea></td>
+        <td><input [value]="item.translation?.zh || ''" (change)="change(item.translation, 'zh', $event)" /></td>
       </tr>
     </tbody>
   </table>
@@ -26,3 +29,4 @@
     <button type="button" class="btn btn-primary" (click)="ok()">Confirm</button>
   </div>
 </div>
+<div *ngIf="flattened.length === 0">All menus are cleaned up!</div>
