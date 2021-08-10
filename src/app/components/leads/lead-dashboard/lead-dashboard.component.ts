@@ -539,7 +539,7 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   isAdmin() {
-    return this._global.user.roles.indexOf("CSR") >= 0;
+    return this._global.user.roles.indexOf("ADMIN") >= 0;
   }
 
   // when the checkbox is checked, we only checked the chains without logs.
