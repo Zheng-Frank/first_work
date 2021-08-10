@@ -437,11 +437,7 @@ export class LeadDashboardComponent implements OnInit {
 
           const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
           clonedDescriptor.required = true;
-          // if the role of current user is marketer, should do following things:
-          // if current user open assigning to marketer modal, he must want to assign to himself first.
-          clonedDescriptor.items.forEach(item => {
-            item.object === this._global.user.username ? item.selected = true : item.selected = false;
-          });
+         
           this.assigneeFieldDescriptors.push(clonedDescriptor);
         },
         error => {
