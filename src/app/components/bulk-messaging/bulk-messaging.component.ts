@@ -35,7 +35,7 @@ export class BulkMessagingComponent implements OnInit {
   isError = false;
 
   processedRestaurantIds = new Set();
-
+  @Input()
   ePLRestaurants = [];// enable prefer language restaurants
   filterEPLRestaurants = [];
   selectTypes = [languageTypes.All, languageTypes.English, languageTypes.Chinese];
@@ -48,7 +48,8 @@ export class BulkMessagingComponent implements OnInit {
   }
 
   onChange() {
-    this.populateRestaurantByLanguage();
+    this.ePLRestaurants = this.ePLRestaurants.filter(rt=>!rt.disabled);
+    this.filterEPLRestaurants = this.ePLRestaurants;
   }
 
   filterRestaurantByLanguage() {
@@ -68,37 +69,11 @@ export class BulkMessagingComponent implements OnInit {
     this.inputRestaurantString = this.filterEPLRestaurants.join(',');
   }
 
-  async populateRestaurantByLanguage() {
-    this.ePLRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        disabled: {
-          $ne: true
-        }
-      },
-      projection: {
-        _id: 1,
-        preferredLanguage: 1
-      }
-    }, 10000);
-    this.filterEPLRestaurants = this.ePLRestaurants;
-  }
-
-  async getRestaurantById(id) {
-    if (!id) {
-      return;
-    }
-
-    const restaurants = await this._global.getCachedRestaurantListForPicker();
-    const restaurant = restaurants.filter(rt => rt._id === id.trim())[0];
-    return restaurant;
-  }
-
   async onAddRestaurant() {
     const restaurantIdList = this.inputRestaurantString.split(',');
 
-    restaurantIdList.forEach(async restaurantId => {
-      const restaurant = await this.getRestaurantById(restaurantId.trim());
+    restaurantIdList.forEach(restaurantId => {
+      const restaurant = this.ePLRestaurants.find(rt=>rt._id === restaurantId);
       if (restaurant) {
         this.restaurants.push(restaurant);
       }
