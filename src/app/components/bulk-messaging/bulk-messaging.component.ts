@@ -1,4 +1,3 @@
-import { filter } from 'rxjs/operators';
 import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
