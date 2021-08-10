@@ -1,3 +1,4 @@
+/* tslint:disable:max-line-length */
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -235,6 +236,8 @@ import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dash
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
 import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
+import { MonitoringPromotionCellComponent } from './components/monitoring/monitoring-promotion-cell/monitoring-promotion-cell.component';
+import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
 
 
 
@@ -440,7 +443,9 @@ import { FraudDetectionComponent } from './components/fraud-detection/fraud-dete
     RoutineInstanceListComponent,
     SeoTrackingComponent,
     RestaurantSeoTrackingComponent,
-    FraudDetectionComponent
+    FraudDetectionComponent,
+    MonitoringPromotionCellComponent,
+    RestaurantMapComponent
   ],
   imports: [
     BrowserModule,
