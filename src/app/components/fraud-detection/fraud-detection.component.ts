@@ -34,8 +34,8 @@ export class FraudDetectionComponent implements OnInit {
   cancelError = '';
   undoOrder: any;
   isPostmatesStatusDelivered = false;
-  fromDate;
-  toDate;
+  createdAt;
+  showTip = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
@@ -80,21 +80,24 @@ export class FraudDetectionComponent implements OnInit {
   }
 
   async search() {
+
     let query = {'ccAddress.distanceToStore': {$gte: 200}} as object;
-    if (this.fromDate && this.toDate) {
-      if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
-        return this._global.publishAlert(AlertType.Danger, 'please input a correct date format,from time is less than or equals to time!');
-      }
-      const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.fromDate + ' 00:00:00.000'), 'America/New_York');
-      const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.toDate + ' 00:00:00.000'), 'America/New_York');
-      query = {
-        ...query,
-        $and: [
-          {createdAt: {$gte: {$date: utcf}}},
-          {createdAt: {$lte: {$date: utct}}}
-        ]
-      };
+
+    let toDate = new Date(), fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - 1);
+
+    if (this.createdAt) {
+      fromDate = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.createdAt + ' 00:00:00.000'), 'America/New_York');
+      toDate = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.createdAt + ' 23:59:59.999'), 'America/New_York');
     }
+
+    query = {
+      ...query,
+      $and: [
+        {createdAt: {$gte: {$date: fromDate}}},
+        {createdAt: {$lte: {$date: toDate}}}
+      ]
+    };
 
     // ISO-Date()
     const orders = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
