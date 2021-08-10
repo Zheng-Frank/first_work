@@ -1,7 +1,14 @@
+import { filter } from 'rxjs/operators';
 import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from "../../../environments/environment";
+
+enum languageTypes {
+  All = 'ALL',
+  Chinese = 'CHINESE',
+  English = 'ENGLISH'
+}
 
 @Component({
   selector: 'app-bulk-messaging',
@@ -30,6 +37,11 @@ export class BulkMessagingComponent implements OnInit {
 
   processedRestaurantIds = new Set();
 
+  ePLRestaurants = [];// enable prefer language restaurants
+  filterEPLRestaurants = [];
+  selectTypes = [languageTypes.All, languageTypes.English, languageTypes.Chinese];
+  selectType = languageTypes.All;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -37,6 +49,40 @@ export class BulkMessagingComponent implements OnInit {
   }
 
   onChange() {
+    this.populateRestaurantByLanguage();
+  }
+
+  filterRestaurantByLanguage() {
+    switch (this.selectType) {
+      case languageTypes.All:
+        this.filterEPLRestaurants = this.ePLRestaurants.map(rt=>rt._id);
+        break;
+      case languageTypes.English:
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt=>rt.preferredLanguage === languageTypes.English).map(rt=>rt._id);
+        break;
+      case languageTypes.Chinese:
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt=>rt.preferredLanguage === languageTypes.Chinese).map(rt=>rt._id);
+        break;
+      default:
+        break;
+    }
+    this.inputRestaurantString = this.filterEPLRestaurants.join(',');
+  }
+
+  async populateRestaurantByLanguage() {
+    this.ePLRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        disabled: {
+          $ne: true
+        }
+      },
+      projection: {
+        _id: 1,
+        preferredLanguage: 1
+      }
+    }, 10000);
+    this.filterEPLRestaurants = this.ePLRestaurants;
   }
 
   async getRestaurantById(id) {
