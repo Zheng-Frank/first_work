@@ -543,7 +543,7 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   isAdmin() {
-    return this._global.user.roles.indexOf("ADMIN") >= 0;
+    return this._global.user.roles.indexOf("CSR") >= 0;
   }
 
   // when the checkbox is checked, we only checked the chains without logs.
@@ -1343,17 +1343,17 @@ export class LeadDashboardComponent implements OnInit {
   assignSingle(lead_id) {
     this.multipleChoice = false;
     this.selectId = lead_id;
-    (this.assigneeFieldDescriptors[0].items || []).forEach(item => {
-      item.object === this._global.user.username ? item.selected = true : item.selected = false;
-    });
+    this.assigneeObj = {
+      assignee:this._global.user.username
+    } 
     this.assigneeModal.show();
   }
   // using in many leads be checked of the table. 
   assignOnSelected() {
     this.multipleChoice = true;
-    (this.assigneeFieldDescriptors[0].items || []).forEach(item => {
-      item.object === this._global.user.username ? item.selected = true : item.selected = false;
-    });
+    this.assigneeObj = {
+      assignee:this._global.user.username
+    } 
     this.assigneeModal.show();
   }
 
