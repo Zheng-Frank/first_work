@@ -76,13 +76,20 @@ a.btn-link {
 }
 
 .validate-modal .coupon-list {
-  max-height: 24rem;
+  max-height: 36rem;
 }
 
 .validate-modal .coupon-list li {
   display: flex;;
   align-items: center;
   justify-content: space-between;
+}
+
+.validate-modal .coupon-list li .promotion-source {
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+  color: #999;
+  font-style: italic;
 }
 
 .validate-modal .coupon-list li .coupon-action {
