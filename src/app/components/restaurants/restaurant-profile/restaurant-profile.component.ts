@@ -209,6 +209,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
   ];
+  Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
 
   comebackDate = null;
   isComebackDateCorrectlySet = false;

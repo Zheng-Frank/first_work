@@ -21,7 +21,7 @@
               <i class="{{channelTypeToFaClassMap[channel.type]}}"></i>
             </td>
             <td>{{join(channel.notifications)}}</td>
-            <td>{{channel.orderNotifyLanguage}}</td>
+            <td>{{Languages[channel.channelLanguage]}}</td>
             <td>
               <button class="btn btn-link p0" (click)="editChannel(channel)" *ngIf="!viewOnly">Edit</button>
             </td>

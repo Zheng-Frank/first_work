@@ -64,7 +64,7 @@ export class RestaurantContactsComponent implements OnInit {
   ];
 
   channelLanguageDescriptor = {
-      field: "orderNotifyLanguage",
+      field: "channelLanguage",
       label: "Order Notify Language",
       required: false,
       inputType: "single-select",
@@ -123,6 +123,8 @@ export class RestaurantContactsComponent implements OnInit {
 
   crm = "";
   crms = [];
+
+  Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
@@ -221,11 +223,11 @@ export class RestaurantContactsComponent implements OnInit {
 
   channelFormChange() {
     if (this.channelInEditing.type === 'Phone') {
-      if (!this.channelFieldDescriptors.some(x => x.field === 'orderNotifyLanguage')) {
+      if (!this.channelFieldDescriptors.some(x => x.field === 'channelLanguage')) {
         this.channelFieldDescriptors.push(this.channelLanguageDescriptor);
       }
     } else {
-      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => x.field !== 'orderNotifyLanguage');
+      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => x.field !== 'channelLanguage');
     }
   }
 
@@ -237,9 +239,9 @@ export class RestaurantContactsComponent implements OnInit {
       this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
     }
 
-    // currently orderNotifyLanguage only support for Phone
+    // currently channelLanguage only support for Phone
     if (this.channelInEditing.type !== 'Phone') {
-      this.channelInEditing.orderNotifyLanguage = undefined;
+      this.channelInEditing.channelLanguage = undefined;
     }
 
 
