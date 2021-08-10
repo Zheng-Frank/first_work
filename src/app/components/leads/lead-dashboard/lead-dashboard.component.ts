@@ -1530,7 +1530,7 @@ export class LeadDashboardComponent implements OnInit {
     let lead = this.filterLeads.find(lead => lead._id === lead_id);
 
     const clonedLead = JSON.parse(JSON.stringify(lead));
-    if (myusers.indexOf(clonedLead.assignee) >= 0) {
+    if (myusers.indexOf(clonedLead.assignee) >= 0 || this.assgineeDisabled(clonedLead.assignee)) {
       clonedLead.assignee = undefined;
       this._api
         .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
