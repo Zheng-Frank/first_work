@@ -9,21 +9,21 @@
   <div *ngIf="order.dineInSessionObj" class="qr">
     <span class="">
       <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
-      <i class="fa fa-laptap" *ngIf="orderFromPC(order)"></i>
-      <i class="fa fa-tablet" *ngIf="orderFromPhone(order)"></i>
+      <i class="fa fa-laptop" *ngIf="orderFromPC(order)"></i>
+      <i class="fa fa-mobile-alt" *ngIf="orderFromPhone(order)"></i>
     </span>
   </div>
   <!-- start with pc icon -->
   <div *ngIf="!order.dineInSessionObj && orderFromPC(order)" class="qr">
     <span class="">
-      <i class="fa fa-laptap"></i>
+      <i class="fa fa-laptop"></i>
     </span>
   </div>
   <!-- end with pc icon -->
   <!-- start with phone icon -->
   <div *ngIf="!order.dineInSessionObj && orderFromPhone(order)" class="qr">
     <span class="">
-      <i class="fa fa-tablet"></i>
+      <i class="fa fa-mobile-alt"></i>
     </span>
   </div>
   <!-- end with phone icon -->
