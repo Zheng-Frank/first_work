@@ -530,14 +530,6 @@ export class LeadDashboardComponent implements OnInit {
     return !this.chainDelRestaurants.some(chain => chain.beChecked === true);
   }
 
-  // if user is disabled, he can be assigned.
-  assgineeDisabled(assignee) {
-    if(this.users){
-      let user = this.users.find(user => user.username === assignee);
-      return user ? user.disabled : false;
-    }
-  }
-
   isAdmin() {
     return this._global.user.roles.indexOf("ADMIN") >= 0;
   }
@@ -1391,7 +1383,7 @@ export class LeadDashboardComponent implements OnInit {
       const myusers = this.users
         .filter(
           u =>
-            u.manager === this._global.user.username ||
+            u.manager === this._global.user.username||
             this.isAdmin()
         )
         .map(u => u.username);
@@ -1478,7 +1470,7 @@ export class LeadDashboardComponent implements OnInit {
     const myusers = this.users
       .filter(
         u =>
-          u.manager === this._global.user.username ||
+          u.manager === this._global.user.username || 
           this.isAdmin()
       )
       .map(u => u.username);
@@ -1506,7 +1498,7 @@ export class LeadDashboardComponent implements OnInit {
       } else {
         this._global.publishAlert(
           AlertType.Danger,
-          "Failed to unassign " + clonedLead.assignee
+          "Failed to unassign."
         );
       }
     });
@@ -1522,11 +1514,10 @@ export class LeadDashboardComponent implements OnInit {
       )
       .map(u => u.username);
     myusers.push(this._global.user.username);
-
     let lead = this.filterLeads.find(lead => lead._id === lead_id);
 
     const clonedLead = JSON.parse(JSON.stringify(lead));
-    if (myusers.indexOf(clonedLead.assignee) >= 0 || this.assgineeDisabled(clonedLead.assignee)) {
+    if (myusers.indexOf(clonedLead.assignee) >= 0) {
       clonedLead.assignee = undefined;
       this._api
         .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
