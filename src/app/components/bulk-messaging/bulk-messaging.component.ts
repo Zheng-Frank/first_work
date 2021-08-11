@@ -16,6 +16,7 @@ enum languageTypes {
 })
 export class BulkMessagingComponent implements OnInit {
   @Input() restaurant;
+  @Input() ePLRestaurants = [];// enable prefer language restaurants
 
   isSMS = true;
   isEmail = false;
@@ -35,8 +36,7 @@ export class BulkMessagingComponent implements OnInit {
   isError = false;
 
   processedRestaurantIds = new Set();
-  @Input()
-  ePLRestaurants = [];// enable prefer language restaurants
+
   filterEPLRestaurants = [];
   selectTypes = [languageTypes.All, languageTypes.English, languageTypes.Chinese];
   selectType = languageTypes.All;
@@ -48,42 +48,48 @@ export class BulkMessagingComponent implements OnInit {
   }
 
   onChange() {
-    this.ePLRestaurants = this.ePLRestaurants.filter(rt=>!rt.disabled);
     this.filterEPLRestaurants = this.ePLRestaurants;
   }
 
   filterRestaurantByLanguage() {
+    this.inputRestaurantString = '';
     switch (this.selectType) {
       case languageTypes.All:
-        this.filterEPLRestaurants = this.ePLRestaurants.map(rt=>rt._id);
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt => !rt.disabled ? true : false);;
         break;
       case languageTypes.English:
-        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt=>rt.preferredLanguage === languageTypes.English).map(rt=>rt._id);
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt => !rt.disabled ? rt.preferredLanguage === languageTypes.English : false);
         break;
       case languageTypes.Chinese:
-        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt=>rt.preferredLanguage === languageTypes.Chinese).map(rt=>rt._id);
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt => !rt.disabled ? rt.preferredLanguage === languageTypes.Chinese : false);
         break;
       default:
         break;
     }
-    this.inputRestaurantString = this.filterEPLRestaurants.join(',');
+    this.inputRestaurantString = this.filterEPLRestaurants.map(rt => rt._id).join(',');
   }
 
   async onAddRestaurant() {
+    this.restaurants.length = 0;
     const restaurantIdList = this.inputRestaurantString.split(',');
 
     restaurantIdList.forEach(restaurantId => {
-      const restaurant = this.ePLRestaurants.find(rt=>rt._id === restaurantId);
+      const restaurant = this.filterEPLRestaurants.find(rt => rt._id === restaurantId);
       if (restaurant) {
         this.restaurants.push(restaurant);
       }
     });
 
     this.inputRestaurantString = '';
+    this.filterEPLRestaurants.length = 0;
   }
 
   onRemove(id) {
     this.restaurants = this.restaurants.filter(restaurant => restaurant._id !== id);
+  }
+
+  onClearRestaurants() {
+    this.restaurants.length = 0;
   }
 
   stopBulkSend() {
