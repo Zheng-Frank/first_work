@@ -235,6 +235,7 @@ import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+import { MonitoringPromotionCellComponent } from './components/monitoring/monitoring-promotion-cell/monitoring-promotion-cell.component';
 import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
 
 
@@ -441,6 +442,7 @@ import { RestaurantMapComponent } from './components/restaurants/restaurant-map/
     RoutineInstanceListComponent,
     SeoTrackingComponent,
     RestaurantSeoTrackingComponent,
+    MonitoringPromotionCellComponent,
     RestaurantMapComponent
   ],
   imports: [
