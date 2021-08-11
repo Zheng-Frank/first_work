@@ -1,0 +1,313 @@
+{
+  "hours": [{
+    "occurence": "WEEKLY",
+    "fromTime": "1969-12-28T16:00:00.000Z",
+    "toTime": "1969-12-29T05:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "1969-12-30T16:30:00.000Z",
+    "toTime": "1969-12-30T21:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "1969-12-30T22:00:00.000Z",
+    "toTime": "1969-12-31T03:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "1969-12-31T16:30:00.000Z",
+    "toTime": "1969-12-31T21:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "1969-12-31T22:00:00.000Z",
+    "toTime": "1970-01-01T03:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "1970-01-01T16:30:00.000Z",
+    "toTime": "1970-01-01T21:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "1970-01-01T22:00:00.000Z",
+    "toTime": "1970-01-02T03:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "1970-01-02T16:00:00.000Z",
+    "toTime": "1970-01-03T05:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "1970-01-03T16:00:00.000Z",
+    "toTime": "1970-01-04T05:00:00.000Z"
+  }, {
+    "occurence": "WEEKLY",
+    "fromTime": "2021-05-03T04:00:00.000Z",
+    "toTime": "2021-05-04T04:00:00.000Z"
+  }],
+  "mcs": [{
+    "mis": [{
+      "imageObjs": [],
+      "cachedMinCost": -1,
+      "cachedMaxCost": -1,
+      "sizeOptions": [{
+        "name": "With Drinks",
+        "price": 10
+      }, {
+        "name": "With Chips",
+        "price": 11.5
+      }],
+      "category": "1531882638539",
+      "name": "Testing Item",
+      "inventory": null,
+      "id": "1592857984195",
+      "menuOptionIds": ["1592857967184", "1592858345275", "1592858300893"]
+    }, {
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1580146133481.jpg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/128_menuImage/1580146133481.jpg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1580146133481.jpg",
+        "origin": "CSR"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": -1,
+      "sizeOptions": [{
+        "name": "10\"",
+        "price": 12.49
+      }, {
+        "name": "14\"",
+        "price": 14.49
+      }, {
+        "name": "18\"",
+        "price": 16.49
+      }],
+      "category": "1531882638539",
+      "name": "Custom",
+      "description": "Comes with cheese and sauces",
+      "inventory": null,
+      "id": "1579732524932",
+      "menuOptionIds": ["1579732690604", "1579732861995", "10", "1579733264249"],
+      "orderCount": 1
+    }],
+    "name": "PIZZA",
+    "description": "Hand Tossed Pizzas",
+    "id": "1531882638539",
+    "images": []
+  }, {
+    "mis": [{
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1559081486363.jpeg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/192_menuImage/1559081486363.jpeg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1559081486363.jpeg",
+        "origin": "IMAGE-PICKER"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": 2.5,
+      "sizeOptions": [{
+        "name": "regular",
+        "price": 4
+      }],
+      "imageCandidates": [],
+      "category": "1531885120788",
+      "id": "15318851323461",
+      "name": "Garlic Bread",
+      "inventory": null
+    }, {
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1558993846519.jpeg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/192_menuImage/1558993846519.jpeg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1558993846519.jpeg",
+        "origin": "IMAGE-PICKER"
+      }, {
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1562725907769.jpeg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/192_menuImage/1562725907769.jpeg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1562725907769.jpeg",
+        "origin": "IMAGE-PICKER"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": 7.99,
+      "sizeOptions": [{
+        "name": "regular",
+        "price": 9.49
+      }],
+      "imageCandidates": [],
+      "category": "1531885120788",
+      "id": "15318851323460",
+      "name": "Chicken Wings(1Opcs)",
+      "description": "(Hot, BBQ, Teriyaki, Lemon Peper, Spicy BBQ, Honey Mustard Garlic, Parmesan, General Tso’s Sauce, Sesame Sauce Rinch"
+    }, {
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1580146485753.jpg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/128_menuImage/1580146485753.jpg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1580146485753.jpg",
+        "origin": "CSR"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": 5.99,
+      "sizeOptions": [{
+        "name": "regular",
+        "price": 7.49
+      }],
+      "imageCandidates": [],
+      "category": "1531885120788",
+      "id": "15318947476462",
+      "name": "BBQ Meat Ball",
+      "inventory": null
+    }, {
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1558627604251.jpeg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/192_menuImage/1558627604251.jpeg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1558627604251.jpeg",
+        "origin": "IMAGE-PICKER"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": -1,
+      "sizeOptions": [{
+        "name": "small",
+        "price": 4.49
+      }, {
+        "name": "large",
+        "price": 5.49
+      }],
+      "imageCandidates": [],
+      "category": "1531885120788",
+      "id": "15318947476463",
+      "name": "French Fries"
+    }, {
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1559343266364.jpeg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/192_menuImage/1559343266364.jpeg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1559343266364.jpeg",
+        "origin": "IMAGE-PICKER"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": 7.95,
+      "sizeOptions": [{
+        "name": "regular",
+        "price": 9.45
+      }],
+      "imageCandidates": [],
+      "category": "1531885120788",
+      "id": "15318947476466",
+      "name": "Fried Shrimp",
+      "menuOptionIds": ["1589431385847"],
+      "inventory": null
+    }, {
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1562524615290.jpeg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/192_menuImage/1562524615290.jpeg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1562524615290.jpeg",
+        "origin": "IMAGE-PICKER"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": 4.95,
+      "sizeOptions": [{
+        "name": "regular",
+        "price": 6.45
+      }],
+      "imageCandidates": [],
+      "category": "1531885120788",
+      "id": "15318949782020",
+      "name": "Teriyaki Chicken (Chicken Stick) (6)"
+    }, {
+      "imageObjs": [],
+      "cachedMinCost": -1,
+      "cachedMaxCost": 5.5,
+      "sizeOptions": [{
+        "name": "regular",
+        "price": 7
+      }],
+      "imageCandidates": [],
+      "category": "1531885120788",
+      "id": "15318949782021",
+      "name": "Beef Stick(4)"
+    }],
+    "name": "SIDE OR0ER5",
+    "id": "1531885120788",
+    "images": []
+  }, {
+    "mis": [{
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1580146432958.jpg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/128_menuImage/1580146432958.jpg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1580146432958.jpg",
+        "origin": "CSR"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": -1,
+      "sizeOptions": [{
+        "name": "Beef",
+        "price": 7.49
+      }, {
+        "name": "Chicken",
+        "price": 8.49
+      }, {
+        "name": "Turkey",
+        "price": 8.49
+      }, {
+        "name": "Veggie",
+        "price": 8.49
+      }],
+      "category": "1579733617673",
+      "name": "Custom Burger",
+      "inventory": null,
+      "id": "1579733768141",
+      "menuOptionIds": ["1579734260551", "1579734542057", "1579734412047"]
+    }],
+    "name": "Burgers",
+    "id": "1579733617673",
+    "images": [],
+    "menuOptionIds": ["1591321495837"]
+  }, {
+    "mis": [{
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1580146405156.jpg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/128_menuImage/1580146405156.jpg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1580146405156.jpg",
+        "origin": "CSR"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": -1,
+      "sizeOptions": [{
+        "name": "Beef",
+        "price": 7.49
+      }, {
+        "name": "Chicken",
+        "price": 8.49
+      }],
+      "category": "1579733659705",
+      "name": "Taco",
+      "inventory": null,
+      "id": "1579734835908",
+      "menuOptionIds": ["1579734412047"]
+    }, {
+      "imageObjs": [{
+        "originalUrl": "https://chopst.s3.amazonaws.com/menuImage/1580146414300.jpeg",
+        "thumbnailUrl": "https://s3.amazonaws.com/chopstresized/128_menuImage/1580146414300.jpeg",
+        "normalUrl": "https://s3.amazonaws.com/chopstresized/768_menuImage/1580146414300.jpeg",
+        "origin": "CSR"
+      }],
+      "cachedMinCost": -1,
+      "cachedMaxCost": -1,
+      "sizeOptions": [{
+        "name": "Beef",
+        "price": 7.49
+      }, {
+        "name": "Chicken",
+        "price": 8.49
+      }],
+      "category": "1579733659705",
+      "name": "Burrito",
+      "inventory": null,
+      "id": "1579734848042",
+      "menuOptionIds": ["1579734412047"],
+      "flavors": {
+        "Sweet": 2,
+        "Spicy": 2
+      }
+    }],
+    "name": "Mexican Food",
+    "id": "1579733659705",
+    "images": [],
+    "menuOptionIds": ["1579734260551", "1591321495837"]
+  }],
+  "name": "Demo Menu",
+  "id": "1531882580724",
+  "backgroundImageUrl": "https://chopst.s3.amazonaws.com/menuImage/1531923986444.jpg",
+  "popularMiIds": []
+}
