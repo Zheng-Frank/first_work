@@ -41,6 +41,7 @@ export class ApiLogsDashboardComponent implements OnInit {
     _id: 1,
     name: 1
   }
+  restaurants = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -96,7 +97,7 @@ export class ApiLogsDashboardComponent implements OnInit {
     }, 15);
     this.courseLogs = this.courseLogs.sort((a, b) => a.time > b.time ? -1 : 1);
     // search all restaurants and load them to the apilog whose resource is restaurant.
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
       },
@@ -109,7 +110,7 @@ export class ApiLogsDashboardComponent implements OnInit {
       this.loadActions(log.body[0].old, log.body[0].new, "", actions);
       let restaurant = {};
       if(log.queryStringParameters.resource === 'restaurant'){
-        restaurant = restaurants.filter(restaurant=> restaurant._id === log.body[0].old._id)[0];
+        restaurant = this.restaurants.filter(restaurant=> restaurant._id === log.body[0].old._id)[0];
       }
       this.apiLogsRows.push({
         id: log._id,
@@ -278,12 +279,17 @@ export class ApiLogsDashboardComponent implements OnInit {
       for (let log of this.courseLogs) {
         const actions = [];
         this.loadActions(log.body[0].old, log.body[0].new, "", actions);
+        let restaurant = {};
+        if(log.queryStringParameters.resource === 'restaurant'){
+          restaurant = this.restaurants.filter(restaurant=> restaurant._id === log.body[0].old._id)[0];
+        }
         this.apiLogsRows.push({
           id: log._id,
           name: log.token.user.username,
           time: log.time,
           resource: log.queryStringParameters.resource,
           actions: actions,
+          restaurant:restaurant
         });
       }
     }
