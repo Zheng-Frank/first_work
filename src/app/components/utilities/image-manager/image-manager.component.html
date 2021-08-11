@@ -6,7 +6,7 @@
   </h2>
   <div class="card-body">
     <div class="row pb-2">
-      <div class="col-8 text-left form-inline">
+      <div class="col-7 text-left form-inline">
         <label class="form-check-label mr-2 ml-3">Cuisine Type
           <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width" (change)="filter()">
             <option *ngFor="let type of cuisineTypes">{{type}}</option>
@@ -17,16 +17,15 @@
             <option *ngFor="let type of orderBys">{{type}}</option>
           </select>
         </label>
-        
+
         <!-- start with show no image items -->
         <label class="form-check-label ml-3">
           <input class="form-check-input" type="checkbox" [(ngModel)]="noImagesFlag" (change)="filter()"> Show items w/o images
         </label>
         <!-- end with show no image items -->
       </div>
-      <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
-      <div class="col-4 text-right">
-          <!-- <button class="btn btn-primary" (click)="calculateStats()" [qLoading]="calculatingStats"><i class="fa fas fa-sync"></i> Calculate Stats</button> -->
+      <div class="col-5 text-right">
+           <button class="btn btn-primary" (click)="scrape()"><i class="fa fas fa-sync"></i> Scrape Common Items Async</button>
         <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New Records</button>
       </div>
     </div>
@@ -127,7 +126,7 @@
         <div class="row mt-2" *ngFor="let img of newImages;let i = index;">
           <input type="text" class="form-control col-10" [(ngModel)]="img.aliases"
             placeholder="Enter comma separed values!">
-          <button class="btn btn-link col-1 btn-sm" (click)="deleteNewLine(img._id)" *ngIf="newImages.length > 1"><i class="fa fa-minus"></i></button>
+          <button class="btn btn-link col-1 btn-sm" (click)="deleteNewLine(i)" *ngIf="newImages.length > 1"><i class="fa fa-minus"></i></button>
           <button class="btn btn-link col-1 btn-sm" *ngIf="(i===newImages.length-1)&&(newImages.length<10)"  (click)="createNewLine()">
             <i class="fa fa-plus"></i>
           </button>

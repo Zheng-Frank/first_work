@@ -1,14 +1,13 @@
-import { AlertType } from './../../../classes/alert-type';
-import { map, filter } from 'rxjs/operators';
-import { Component, OnInit, Output, EventEmitter, ViewChild } from '@angular/core';
-import { ApiService } from "../../../services/api.service";
-import { environment } from "../../../../environments/environment";
-import { GlobalService } from "../../../services/global.service";
-import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { Helper } from '../../../classes/helper';
-import { HttpClient } from '@angular/common/http';
-import { Restaurant } from '@qmenu/ui';
-import { stringify } from '@angular/core/src/util';
+/* tslint:disable:max-line-length */
+import {AlertType} from '../../../classes/alert-type';
+import {Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
+import {ApiService} from '../../../services/api.service';
+import {environment} from '../../../../environments/environment';
+import {GlobalService} from '../../../services/global.service';
+import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {Helper} from '../../../classes/helper';
+import {HttpClient} from '@angular/common/http';
+
 enum orderByTypes {
   NAME = 'Name',
   menuFrequency = 'Menu frequency',
@@ -28,7 +27,7 @@ export class ImageManagerComponent implements OnInit {
   uploadImageError;
   clickedMi;
   rows = [];
-  filterRows = [];// images items needs cuisineType filter,so we need a filterRows to record them.
+  filterRows = []; // images items needs cuisineType filter,so we need a filterRows to record them.
   images = [];
   cuisineTypes = [];
   cuisineType = '';
@@ -40,11 +39,11 @@ export class ImageManagerComponent implements OnInit {
   };
   restaurantQuery = {
     disabled: { $ne: true }
-  }
+  };
 
   newImages = [];
   calculatingStats = false; // control progress bar actions.
-  noImagesFlag = false; // control whether show no image items. 
+  noImagesFlag = false; // control whether show no image items.
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -52,8 +51,8 @@ export class ImageManagerComponent implements OnInit {
     await this.loadRestaurants();
   }
 
-  onChangeShowNoImageItems(){
-    if(this.noImagesFlag){
+  onChangeShowNoImageItems() {
+    if (this.noImagesFlag) {
       this.filterRows = this.filterRows.filter(item => !(item.images && item.images.length > 0 &&
         item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0));
     }
@@ -61,18 +60,11 @@ export class ImageManagerComponent implements OnInit {
 
   // create a new row to add a image's aliases
   createNewLine() {
-    if (this.newImages.length === 10) {
-      return this._global.publishAlert(AlertType.Danger, 'Can not add a new row (10 is maxinum) !');
-    }
-    let _id = this.newImages.length;
-    this.newImages.push({ _id: _id });
+    this.newImages.push({ _id: Date.now() });
   }
   // delete a row using to add a new record of image table
-  deleteNewLine(_id) {
-    if (this.newImages.length === 1) {
-      return this._global.publishAlert(AlertType.Danger, 'Can not remove this row (1 is minium) !');
-    }
-    this.newImages.splice(this.newImages.findIndex(img => img._id === _id), 1);
+  deleteNewLine(index) {
+    this.newImages.splice(index, 1);
   }
 
   getItemWithImageCount() {
@@ -148,6 +140,21 @@ export class ImageManagerComponent implements OnInit {
     }
   }
 
+  async scrape() {
+    try {
+      await this._api.post(environment.appApiUrl + 'events',
+        [{
+          queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`,
+          event: { name: 'manage-images', params: {  } }
+        }]
+      ).toPromise();
+      this._global.publishAlert(AlertType.Info,
+        'Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.');
+    } catch (e) {
+      this._global.publishAlert(AlertType.Danger, 'Scrape common items failed.');
+    }
+  }
+
   openAddRecordsModal() {
     this.newImages.length = 0;
     this.newImages.push({ _id: 0 });
@@ -158,55 +165,71 @@ export class ImageManagerComponent implements OnInit {
     this.addRecordsModal.hide();
   }
 
-  aliasesHasEmpty() {
-    return this.newImages.filter(img => img.aliases && img.aliases.trim() === '' || !img.aliases).length > 0;
-  }
-  
-  isAliasesSame(newImages){
-    let flag = false;
-    let aliases = [];
-    this.rows.forEach(row=>{
-      if(row.aliases){
-        aliases.push(...row.aliases);
+  isAllEmpty() {
+    let empties = [];
+    this.newImages.forEach((x, i) => {
+      let aliases = (x.aliases || '').split(',').filter(a => !!a.trim());
+      if (!aliases.length) {
+        empties.push({_id: x._id, i});
       }
     });
+
+    if (empties.length > 0) {
+      this.newImages = this.newImages.filter(x => !empties.some(e => e._id === x._id));
+    }
+    if (!this.newImages.length) {
+      this._global.publishAlert(AlertType.Danger, 'Please input aliases for each line!');
+      return true;
+    } else if (empties.length > 0) {
+      this._global.publishAlert(AlertType.Warning, `Skipped empty lines ${empties.map(x => x.i).join(', ')}.`);
+    }
+    return false;
+  }
+
+  hasRepeatAlias(newImages, list?) {
+    let aliases = new Set((list || this.rows).reduce((a, c) => ([...a, ...(c.aliases || [])]), []));
+    let repeated = [];
     newImages.forEach(image => {
-      image.aliases.forEach(alias => {
-        aliases.forEach(a=>{
-          if(a === alias){
-            flag = true;
-          }
-        });
+      image.aliases.forEach(a => {
+        if (aliases.has(a)) {
+          repeated.push(a);
+        } else {
+          aliases.add(a);
+        }
       });
     });
-    return flag;
+    return repeated;
   }
 
   async createNew() {
-    if (this.aliasesHasEmpty()) {
-      return this._global.publishAlert(AlertType.Danger, 'Please check whose aliases is empty !');
+    if (this.isAllEmpty()) {
+      return;
     }
 
-    this.newImages = this.newImages.map(img => {
-      delete img['_id'];
-      if(img.aliases.indexOf(',') !== -1){
-        img.aliases = img.aliases.split(',').filter(alias => alias).map(alias => alias.trim());
-      }
-      return img;
-    });
+    let newImages = this.newImages.map(img => ({
+      aliases: img.aliases.split(',').filter(alias => alias).map(alias => alias.trim())
+    }));
 
-    if(this.isAliasesSame(this.newImages)){
-      return this._global.publishAlert(AlertType.Danger, 'This alias has already exists !');
+    let repeated = this.hasRepeatAlias(newImages);
+
+    if (repeated.length > 0) {
+      return this._global.publishAlert(AlertType.Danger, `Aliases ${repeated.join(',')} repeat!`);
     }
 
-    await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', this.newImages).toPromise();
+    await this._api.post(environment.qmenuApiUrl + 'generic?resource=image', newImages).toPromise();
     this.addRecordsModal.hide();
+    this.newImages = [];
     await this.reload();
     await this.filter();
   }
 
   async updateAliases(row) {
-    console.log(row)
+    let others = this.rows.filter(x => x._id !== row._id);
+    let repeated = this.hasRepeatAlias([row], others);
+
+    if (repeated.length > 0) {
+      return this._global.publishAlert(AlertType.Danger, `Aliases ${repeated.join(',')} repeat!`);
+    }
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', [{
       old: { _id: row._id },
       new: { _id: row._id, aliases: row.aliases }
@@ -220,7 +243,6 @@ export class ImageManagerComponent implements OnInit {
     let files = event.target.files;
     try {
       const data: any = await Helper.uploadImage(files, this._api, this._http);
-      console.log(data)
       if (data && data.Location) {
 
         // https://s3.amazonaws.com/chopstresized/128_menuImage/1546284071756.jpg
@@ -241,8 +263,7 @@ export class ImageManagerComponent implements OnInit {
           new: { _id: row._id, images: row.images }
         }]).toPromise();
       }
-    }
-    catch (err) {
+    } catch (err) {
       this.uploadImageError = err;
     }
 
