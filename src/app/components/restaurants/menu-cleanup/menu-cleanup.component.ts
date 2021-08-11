@@ -75,7 +75,7 @@ export class MenuCleanupComponent implements OnInit {
       zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
 
       let trans = (this.translations || []).find(x => x.EN === en);
-      console.log(number, zh, en, trans);
+
       if (trans && trans.ZH === zh && !number) {
         return;
       }
