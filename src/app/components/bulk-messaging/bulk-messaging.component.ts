@@ -72,16 +72,13 @@ export class BulkMessagingComponent implements OnInit {
   async onAddRestaurant() {
     this.restaurants.length = 0;
     const restaurantIdList = this.inputRestaurantString.split(',');
-
     restaurantIdList.forEach(restaurantId => {
-      const restaurant = this.filterEPLRestaurants.find(rt => rt._id === restaurantId);
+      const restaurant = this.ePLRestaurants.find(rt => rt._id === restaurantId);
       if (restaurant) {
         this.restaurants.push(restaurant);
       }
     });
-
     this.inputRestaurantString = '';
-    this.filterEPLRestaurants.length = 0;
   }
 
   onRemove(id) {
